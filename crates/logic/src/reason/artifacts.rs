@@ -557,23 +557,85 @@ pub fn build_reasoning_result_ttl(result: &ReasoningResult) -> String {
     out
 }
 
-// ── el-subsumption-correspondence ────────────────────────────────────────────────
+// ── fragment-subsumption correspondence (EL, RL, … lattice edges) ─────────────────
 
-/// Banner for the native⊒oracle EL-subsumption correspondence artifact.
-const CORRESPONDENCE_HEADER: &str = "\
-# GMEOW native ⊒ oracle EL-subsumption correspondence (RDF 1.2).
+/// A certified fragment on the native-chase promotion lattice (EL ⊂ RL ⊂ DL …).
+///
+/// Carries the two pieces of per-fragment identity the correspondence artifact
+/// varies over: `slug` is the lowercase IRI-local token that keys the reified
+/// individuals (`{slug}-native-subsumption-correspondence`, …) so each fragment
+/// edge gets stable, distinct subjects in the bundle; `label` is the uppercase
+/// profile name used in the human-readable banner and comment. Everything else —
+/// relation, morphism, preservation, discharged section-law — is IDENTICAL across
+/// fragments (the whole point: one calculus, one claim shape per lattice edge).
+struct SubsumptionFragment {
+    /// IRI-local slug (`"el"`, `"rl"`) keying the reified individuals.
+    slug: &'static str,
+    /// Profile label (`"EL"`, `"RL"`) for the banner / comment prose.
+    label: &'static str,
+}
+
+/// The EL fragment edge of the native-chase promotion lattice.
+const EL_FRAGMENT: SubsumptionFragment = SubsumptionFragment {
+    slug: "el",
+    label: "EL",
+};
+
+/// The RL fragment edge (the next edge up: EL ⊂ RL) of the promotion lattice.
+const RL_FRAGMENT: SubsumptionFragment = SubsumptionFragment {
+    slug: "rl",
+    label: "RL",
+};
+
+/// Banner for a native⊒oracle fragment-subsumption correspondence artifact.
+fn correspondence_header(fragment: &SubsumptionFragment) -> String {
+    let label = fragment.label;
+    format!(
+        "\
+# GMEOW native ⊒ oracle {label}-subsumption correspondence (RDF 1.2).
 # The reified logic:Correspondence recording that the native forward engine
-# SUBSUMES the demoted external oracle on the certified EL fragment: the oracle
+# SUBSUMES the demoted external oracle on the certified {label} fragment: the oracle
 # closure is a section/retraction of the native closure (put ∘ get = id over the
-# EL profile), a complete over-approximation carrying the native↔oracle
+# {label} profile), a complete over-approximation carrying the native↔oracle
 # divergence ledger as its loss cell. Pure native-lane output. DO NOT EDIT.
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
-";
+"
+    )
+}
 
 /// Render the native⊒oracle EL-subsumption parity result as a bundle-borne
+/// `logic:Correspondence` individual (Part B of the native-chase promotion).
+///
+/// Thin wrapper over [`build_subsumption_correspondence_ttl`] pinned to the EL
+/// lattice edge; see that function for the full claim-shape rationale.
+pub fn build_el_subsumption_correspondence_ttl(
+    ledger: &DivergenceLedger,
+    contract_hash: &str,
+    view_engine: &str,
+) -> String {
+    build_subsumption_correspondence_ttl(&EL_FRAGMENT, ledger, contract_hash, view_engine)
+}
+
+/// Render the native⊒oracle RL-subsumption parity result as a bundle-borne
+/// `logic:Correspondence` individual (the next edge of the EL ⊂ RL lattice).
+///
+/// Thin wrapper over [`build_subsumption_correspondence_ttl`] pinned to the RL
+/// lattice edge; the RL closure is the larger OWL 2 RL/RDF deductive closure over
+/// the 4-ary generic-triple encoding, and the reified claim shape is identical to
+/// EL's (native ⊒ oracle, section/retraction, complete over-approximation, section
+/// law discharged within the certified fragment).
+pub fn build_rl_subsumption_correspondence_ttl(
+    ledger: &DivergenceLedger,
+    contract_hash: &str,
+    view_engine: &str,
+) -> String {
+    build_subsumption_correspondence_ttl(&RL_FRAGMENT, ledger, contract_hash, view_engine)
+}
+
+/// Render a native⊒oracle fragment-subsumption parity result as a bundle-borne
 /// `logic:Correspondence` individual (Part B of the native-chase promotion).
 ///
 /// This REIFIES the gap-zero parity verdict as a first-class correspondence in
@@ -583,36 +645,44 @@ const CORRESPONDENCE_HEADER: &str = "\
 /// * `logic:correspondenceRelation logic:Subsumes` — the native closure subsumes
 ///   the oracle's (native ⊇ oracle);
 /// * `logic:morphismClass logic:SectionRetraction` — the oracle closure is a
-///   section/retraction of the native closure (`put ∘ get = id_S` over EL);
+///   section/retraction of the native closure (`put ∘ get = id_S` over the fragment);
 /// * `logic:preservationKind logic:CompleteOverApproximation` — the loss-ledger
 ///   polarity: the target does not miss answers, it may add some (native ⊇ oracle);
 /// * `logic:mnemomorphic true` — the native get leg retains the full source
-///   witness (the complete EL closure), which is what discharges the section law;
+///   witness (the complete fragment closure), which discharges the section law;
 /// * `logic:hasLawClaim` → a `logic:LawClaim` on `logic:SectionLaw` carrying
 ///   `logic:lawDischargeVerdict logic:ObligationDischarged` under
 ///   `logic:lawDischargeCondition logic:DischargeCertifiedFragment` — the exact
-///   declared way to say "proved within a certified complete fragment" (the EL
+///   declared way to say "proved within a certified complete fragment" (the
 ///   profile over which the chase terminates and is complete);
 /// * `logic:contractHash` + `logic:engine` — the proof-certificate binding to the
 ///   native contract and the two engines the parity ran between.
 ///
+/// `fragment` selects the lattice edge (EL, RL, …): it keys the reified subjects
+/// and names the profile in the prose, but the relation / morphism / preservation
+/// / discharged-law claim is IDENTICAL across fragments (one calculus per edge).
 /// The [`DivergenceLedger`] rides as the loss cell: its per-kind tallies are
 /// carried as report-local `gmeow:` counts and every NON-`Agree` row is projected
 /// to a `gmeow:Finding` (via [`divergence_findings`]) — a gap-zero ledger carries
 /// zero findings, so a healthy run emits none. `contract_hash` is the native
 /// contract digest ([`crate::reason::native_contract_hash`]); `view_engine` names
 /// the demoted oracle (`"nemo"`).
-pub fn build_el_subsumption_correspondence_ttl(
+fn build_subsumption_correspondence_ttl(
+    fragment: &SubsumptionFragment,
     ledger: &DivergenceLedger,
     contract_hash: &str,
     view_engine: &str,
 ) -> String {
-    let mut out = String::from(CORRESPONDENCE_HEADER);
+    let mut out = correspondence_header(fragment);
 
-    let correspondence = gmeow("el-native-subsumption-correspondence");
-    let law_claim = gmeow("el-native-subsumption-lawclaim");
+    let slug = fragment.slug;
+    let label = fragment.label;
+    let correspondence = gmeow(&format!("{slug}-native-subsumption-correspondence"));
+    let law_claim = gmeow(&format!("{slug}-native-subsumption-lawclaim"));
 
-    out.push_str("\n# --- the reified native ⊒ oracle EL correspondence ---\n");
+    out.push_str(&format!(
+        "\n# --- the reified native ⊒ oracle {label} correspondence ---\n"
+    ));
     out.push_str(&emit_resource(
         &correspondence,
         &[
@@ -645,7 +715,7 @@ pub fn build_el_subsumption_correspondence_ttl(
             (
                 RDFS_COMMENT.to_owned(),
                 format!(
-                    "\"native subsumes {} on the certified EL fragment, proved gap-zero\"@en",
+                    "\"native subsumes {} on the certified {label} fragment, proved gap-zero\"@en",
                     escape_literal(view_engine)
                 ),
             ),
@@ -656,7 +726,7 @@ pub fn build_el_subsumption_correspondence_ttl(
         ],
     ));
 
-    // The section-law claim, discharged within the certified EL fragment — the
+    // The section-law claim, discharged within the certified fragment — the
     // declared "proved in a certified complete fragment" status (no minted term).
     out.push_str("\n# --- the discharged section-law claim ---\n");
     out.push_str(&emit_resource(
@@ -680,7 +750,7 @@ pub fn build_el_subsumption_correspondence_ttl(
     out.push_str("\n# --- loss cell: the native↔oracle divergence ledger (findings) ---\n");
     for (index, finding) in divergence_findings(ledger).iter().enumerate() {
         out.push_str(&emit_resource(
-            &gmeow(&format!("el-correspondence-finding-{index}")),
+            &gmeow(&format!("{slug}-correspondence-finding-{index}")),
             &[
                 (RDF_TYPE.to_owned(), format!("<{}>", gmeow("Finding"))),
                 (

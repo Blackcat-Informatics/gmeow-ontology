@@ -2210,4 +2210,239 @@ mod tests {
             "the loss cell records the oracle-only tally: {ttl}"
         );
     }
+
+    // ── RL promotion corpus gate + reified correspondence (Task 3) ────────────────
+    //
+    // The OWL 2 RL/RDF closure runs over the 4-ary generic-triple encoding
+    // `triple(?s, ?p, ?o, ?w)` (predicate-as-DATA), so `NativeForwardOracle`
+    // dispatches to the arity-generic evaluator `crate::physical::generic` while
+    // Nemo runs the same rule set over the same typed EDB. The gate compares the
+    // full `triple` closure fact set and demands gap-zero.
+
+    const RL_WORLD: &str = "urn:world:rl-corpus";
+    const RL_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const RL_SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+    const RL_SUBPROP: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
+    const RL_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
+    const RL_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+    const RL_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+    const RL_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+    const RL_TRANSITIVE: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
+    const RL_ONE_OF: &str = "http://www.w3.org/2002/07/owl#oneOf";
+    /// A literal-surrogate object IRI — the shape `crate::reason::rl` interns a
+    /// literal object to before the chase (RL never inspects the literal value).
+    const RL_LIT_SURROGATE: &str = "urn:gmeow-rl-lit:0";
+
+    /// Push one generic-triple `triple(subject, predicate, object, world)` fact into
+    /// a typed EDB — the RL predicate-as-data encoding (arity 4, relation `triple`).
+    fn push_rl_triple(facts: &mut TypedFactSet, s: &str, p: &str, o: &TermValue) {
+        let s = facts.intern(&ex_iri(s));
+        let p = facts.intern(&ex_iri(p));
+        let o = facts.intern(o);
+        let w = facts.intern(&TermValue::simple_literal(RL_WORLD));
+        facts.push_fact("triple", vec![s, p, o, w]);
+    }
+
+    /// Seed a real OWL 2 RL/RDF corpus into the 4-ary generic-triple encoding,
+    /// exercising the variable-predicate meta-rules (`prp-spo1`, `prp-dom`,
+    /// `prp-trp`), class subsumption (`cax-sco`/`scm-sco`), the finite-list surface
+    /// (`cls-oneOf` over `list_member`), AND a literal-surrogate object round-trip
+    /// (a `prp-spo1` over a data property).
+    fn rl_corpus_edb() -> TypedFactSet {
+        let cls = |n: &str| format!("http://ex/rl/{n}");
+        let iri = |n: &str| ex_iri(&cls(n));
+        let mut facts = TypedFactSet::new();
+        // cax-sco + scm-sco: x a A, A ⊑ B ⊑ C ⇒ x a B, x a C, A ⊑ C.
+        push_rl_triple(&mut facts, &cls("x"), RL_TYPE, &iri("A"));
+        push_rl_triple(&mut facts, &cls("A"), RL_SUBCLASS, &iri("B"));
+        push_rl_triple(&mut facts, &cls("B"), RL_SUBCLASS, &iri("C"));
+        // prp-spo1 over an object property: p1 ⊑ p2, x p1 y ⇒ x p2 y.
+        push_rl_triple(&mut facts, &cls("p1"), RL_SUBPROP, &iri("p2"));
+        push_rl_triple(&mut facts, &cls("x"), &cls("p1"), &iri("y"));
+        // prp-spo1 carrying a literal object (surrogate IRI): d1 ⊑ d2, x d1 "lit".
+        push_rl_triple(&mut facts, &cls("d1"), RL_SUBPROP, &iri("d2"));
+        push_rl_triple(&mut facts, &cls("x"), &cls("d1"), &ex_iri(RL_LIT_SURROGATE));
+        // prp-dom: p1 domain A ⇒ x a A (from x p1 y).
+        push_rl_triple(&mut facts, &cls("p1"), RL_DOMAIN, &iri("Dom"));
+        // prp-trp: pt a TransitiveProperty, m pt n, n pt o ⇒ m pt o.
+        push_rl_triple(&mut facts, &cls("pt"), RL_TYPE, &ex_iri(RL_TRANSITIVE));
+        push_rl_triple(&mut facts, &cls("m"), &cls("pt"), &iri("n"));
+        push_rl_triple(&mut facts, &cls("n"), &cls("pt"), &iri("o"));
+        // cls-oneOf over an RDF list: E oneOf ( u v ) ⇒ u a E, v a E.
+        push_rl_triple(&mut facts, &cls("E"), RL_ONE_OF, &iri("l0"));
+        push_rl_triple(&mut facts, &cls("l0"), RL_FIRST, &iri("u"));
+        push_rl_triple(&mut facts, &cls("l0"), RL_REST, &iri("l1"));
+        push_rl_triple(&mut facts, &cls("l1"), RL_FIRST, &iri("v"));
+        push_rl_triple(&mut facts, &cls("l1"), RL_REST, &ex_iri(RL_NIL));
+        facts
+    }
+
+    /// The full `triple` closure fact set of a chase result, as comparable
+    /// `(subject, predicate, object)` N3-surface triples (the single-world corpus
+    /// carries a constant world, so it is not part of the discriminating key). The
+    /// `list_member/3` bookkeeping rows are internal, not closure facts, so they are
+    /// excluded — exactly what `crate::reason::rl::rl_closure` coerces back.
+    fn rl_triple_tuples(closure: &TypedChaseResult) -> Vec<(String, String, String)> {
+        closure
+            .rows
+            .iter()
+            .filter_map(|(row, _prov)| {
+                if row.predicate != "triple" || row.args.len() != 4 {
+                    return None;
+                }
+                Some((
+                    term_display(&row.args[0]),
+                    term_display(&row.args[1]),
+                    term_display(&row.args[2]),
+                ))
+            })
+            .collect()
+    }
+
+    /// Build the native↔oracle RL divergence ledger over the shared corpus: run BOTH
+    /// forward oracles over `RL_RULES`, then classify the full `triple` closures via
+    /// `crate::reason::ledger::compare_subsumption` (which compares the two fact sets
+    /// component-wise).
+    fn rl_divergence_ledger() -> crate::reason::ledger::DivergenceLedger {
+        let facts = rl_corpus_edb();
+        let rules = crate::reason::rl::RL_RULES;
+        let native = NativeForwardOracle
+            .materialize(&facts, rules, &ForwardBudget::UNBOUNDED)
+            .expect("native RL chase must decide the positive-Datalog RL rule set");
+        let nemo = NemoForwardOracle
+            .materialize(&facts, rules, &ForwardBudget::UNBOUNDED)
+            .expect("nemo RL chase must succeed");
+        let rows = crate::reason::ledger::compare_subsumption(
+            &rl_triple_tuples(&native),
+            &rl_triple_tuples(&nemo),
+        );
+        crate::reason::ledger::build_ledger(rows, Vec::new(), Vec::new(), Vec::new())
+    }
+
+    /// Part A — the RL promotion parity gate (gap-zero, non-vacuous): over the RL
+    /// fixture corpus the native arity-generic forward engine SUBSUMES the Nemo
+    /// oracle on the FULL `triple` closure. The strict verdict must pass (zero
+    /// OracleOnly / DlGap / CorpusOnly) AND `agree > 0`. Any OracleOnly divergence is
+    /// a native-coverage regression to fix in the generic evaluator — never by
+    /// relaxing this gate.
+    #[test]
+    fn rl_native_oracle_ledger_gap_zero() {
+        let ledger = rl_divergence_ledger();
+        let verdict = crate::reason::ledger::enforce(&ledger);
+        assert!(
+            verdict.passed,
+            "native ⊉ Nemo on the RL corpus ({} oracle-only, {} dl-gap): {:?}\nrows: {:#?}",
+            ledger.oracle_only,
+            ledger.dl_gap,
+            verdict.reasons,
+            ledger
+                .rows
+                .iter()
+                .filter(|r| r.kind != DivergenceKind::Agree)
+                .collect::<Vec<_>>()
+        );
+        assert!(
+            ledger.agree > 0,
+            "the RL parity ledger must have at least one agreeing fact"
+        );
+        // Non-trivial closure: the variable-predicate meta-rules, class-subsumption
+        // transitivity, the literal-surrogate carry, and the finite-list surface must
+        // all be among the AGREED facts (proving the generic chase ran, not an echo).
+        //
+        // `compare_subsumption` maps each `(a, b, c)` comparand to `(subject, object,
+        // world)` and unbrackets every component, so an agreed `triple(s, p, o)`
+        // surfaces as `subject == bare(s)`, `object == bare(p)`, `world == bare(o)`.
+        let agreed = |s: &str, p: &str, o: &str| {
+            ledger.rows.iter().any(|r| {
+                r.kind == DivergenceKind::Agree && r.subject == s && r.object == p && r.world == o
+            })
+        };
+        let rl = |n: &str| format!("http://ex/rl/{n}");
+        // prp-spo1 (variable predicate) — x p2 y.
+        assert!(
+            agreed(&rl("x"), &rl("p2"), &rl("y")),
+            "x p2 y via prp-spo1 (variable predicate)"
+        );
+        // prp-spo1 carrying a literal surrogate — x d2 <lit-surrogate>.
+        assert!(
+            agreed(&rl("x"), &rl("d2"), RL_LIT_SURROGATE),
+            "x d2 <lit-surrogate> via prp-spo1"
+        );
+        // cax-sco + scm-sco — x a C (via A ⊑ B ⊑ C).
+        assert!(
+            agreed(&rl("x"), RL_TYPE, &rl("C")),
+            "x a C via cax-sco + scm-sco"
+        );
+        // prp-trp — m pt o.
+        assert!(agreed(&rl("m"), &rl("pt"), &rl("o")), "m pt o via prp-trp");
+        // cls-oneOf over list_member — u a E.
+        assert!(agreed(&rl("u"), RL_TYPE, &rl("E")), "u a E via cls-oneOf");
+    }
+
+    /// Part B — the reified RL `logic:Correspondence`: the gap-zero RL parity verdict
+    /// is emitted as a bundle-borne correspondence ("native ⊒ Nemo on the certified
+    /// RL fragment"), the next edge of the EL ⊂ RL promotion lattice, carrying the
+    /// divergence ledger as its loss cell and the native contract hash as its
+    /// proof-certificate binding. Same claim shape as EL (only the lattice-edge slug
+    /// differs).
+    #[test]
+    fn rl_subsumption_correspondence_emitted() {
+        let ledger = rl_divergence_ledger();
+        assert!(crate::reason::ledger::enforce(&ledger).passed);
+
+        let contract = crate::reason::native_contract_hash();
+        let ttl = crate::reason::artifacts::build_rl_subsumption_correspondence_ttl(
+            &ledger, &contract, "nemo",
+        );
+
+        assert!(
+            ttl.contains("#type> <https://blackcatinformatics.ca/logic/Correspondence>"),
+            "must reify a logic:Correspondence: {ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "logic/correspondenceRelation> <https://blackcatinformatics.ca/logic/Subsumes>"
+            ),
+            "relation must be logic:Subsumes: {ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "logic/preservationKind> \
+                 <https://blackcatinformatics.ca/logic/CompleteOverApproximation>"
+            ),
+            "preservation must be logic:CompleteOverApproximation: {ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "logic/morphismClass> <https://blackcatinformatics.ca/logic/SectionRetraction>"
+            ),
+            "law-rung must be logic:SectionRetraction: {ttl}"
+        );
+        assert!(
+            ttl.contains("logic/lawClaimed> <https://blackcatinformatics.ca/logic/SectionLaw>")
+                && ttl.contains(
+                    "logic/lawDischargeVerdict> \
+                     <https://blackcatinformatics.ca/logic/ObligationDischarged>"
+                )
+                && ttl.contains(
+                    "logic/lawDischargeCondition> \
+                     <https://blackcatinformatics.ca/logic/DischargeCertifiedFragment>"
+                ),
+            "the section law must be discharged within the certified fragment: {ttl}"
+        );
+        assert!(
+            ttl.contains(&format!("logic/contractHash> \"{contract}\"")),
+            "contractHash must equal native_contract_hash(): {ttl}"
+        );
+        assert!(
+            ttl.contains(&format!("gmeow/oracleOnlyCount> {}", ledger.oracle_only)),
+            "the loss cell records the oracle-only tally: {ttl}"
+        );
+        // The RL lattice edge keys its reified subject on the `rl` slug (distinct from
+        // the EL edge's subjects), so both correspondences can coexist in the bundle.
+        assert!(
+            ttl.contains("gmeow/rl-native-subsumption-correspondence>"),
+            "the RL correspondence subject must be slugged `rl`: {ttl}"
+        );
+    }
 }
