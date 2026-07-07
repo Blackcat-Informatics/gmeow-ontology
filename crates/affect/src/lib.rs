@@ -937,6 +937,72 @@ pub fn geometry_from_gts_bytes(
         .collect()
 }
 
+/// Certify the AUTHORED `math:definiteness` of a Gram matrix against the
+/// COMPUTED exact-rational LDLᵀ positive-definiteness witness.
+///
+/// SHACL/Datalog cannot compute an LDLᵀ factorization, so this cross-check is
+/// Rust-only: it reads `gram_iri`'s cells from `bytes`, fills the declared
+/// symmetric Gram, runs [`InnerProductSpace::ldlt_pivots`], and compares the
+/// computed positive-definiteness (all pivots `> 0`) against the authored
+/// `math:definiteness` IRI.
+///
+/// Hard-fails when the authored declaration is ABSENT (SHACL does not require
+/// it, so a silent gap is a loud error here), and when the authored and
+/// computed verdicts DISAGREE. On agreement it returns the LDLᵀ pivots as
+/// printable ratios (the same `Rational::ratio_string` form `Geometry.pivots`
+/// carries), so the authored form is certified by the derived witness.
+pub fn crosscheck_authored_definiteness(
+    bytes: &[u8],
+    gram_iri: &str,
+) -> Result<Vec<String>, String> {
+    let graph = purrdf::gts::reader::read(bytes, false, None);
+    let index = index_graph(&graph);
+
+    let authored = first_iri(&index, gram_iri, &math("definiteness")).ok_or_else(|| {
+        format!("Gram matrix {gram_iri} declares no math:definiteness (authored PD absent)")
+    })?;
+    let authored_pd = authored == math("positiveDefinite");
+
+    // Fill the declared SYMMETRIC Gram from the graph cells; the max bounded
+    // index sizes the matrix (every index is bounded below `MAX_BASIS_DIM`).
+    let cells = load_gram(&index, gram_iri)?;
+    let dim = cells
+        .iter()
+        .flat_map(|(r, c, _)| [*r, *c])
+        .max()
+        .map(|m| m + 1)
+        .ok_or_else(|| format!("Gram matrix {gram_iri} has no entries"))?;
+    debug_assert!(dim <= MAX_BASIS_DIM, "derived dimension {dim} exceeds cap");
+    let mut gram = vec![vec![Rational::zero(); dim]; dim];
+    for (row, col, value) in cells {
+        gram[row][col] = value;
+        gram[col][row] = value; // declared symmetric fill
+    }
+
+    let space = InnerProductSpace::new(gram)?;
+    let pivots = space.ldlt_pivots();
+    let computed_pd = pivots.is_ok();
+
+    if authored_pd != computed_pd {
+        return Err(format!(
+            "definiteness cross-check failed for {gram_iri}: authored {authored} but LDLᵀ says {}",
+            if computed_pd {
+                "positive-definite".to_string()
+            } else {
+                pivots.unwrap_err()
+            }
+        ));
+    }
+
+    // Verdicts agree. When both say positive-definite the pivots are the
+    // certificate; when both say NOT positive-definite there are no positive
+    // pivots to report (an agreed non-PD Gram carries an empty certificate).
+    match pivots {
+        Ok(pivots) => Ok(pivots.into_iter().map(Rational::ratio_string).collect()),
+        Err(_) => Ok(Vec::new()),
+    }
+}
+
 /// The metric distance `‖x_a − x_b‖_G` and cosine `⟨x_a,x_b⟩/(‖x_a‖‖x_b‖)`
 /// between the basis vectors of two intensity observations, sharing the metric
 /// of `obs_a`. Returned as `(distance, cosine)` fixed-precision decimals.
@@ -1378,6 +1444,67 @@ ex:intensity{suffix} a gmeow:DerivedAffectIntensityObservation ;
     gmeow:derivedByFunction gmeow:fnAffectiveIntensity ."#
         );
         out
+    }
+
+    /// A standalone `math:GramMatrix` (no observation), authored with
+    /// `definiteness` and a 2×2 body whose off-diagonal is `off = off_num/off_den`.
+    /// When `with_definiteness` is false the `math:definiteness` triple is omitted.
+    fn gram_only_turtle(off_num: i128, off_den: i128, with_definiteness: bool) -> String {
+        let mut out = String::new();
+        let _ = writeln!(
+            out,
+            "@prefix gmeow: <{GM}> .\n@prefix math: <{MATH}> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/affect/> ."
+        );
+        let definiteness = if with_definiteness {
+            "\n    math:definiteness math:positiveDefinite ;"
+        } else {
+            ""
+        };
+        let _ = write!(
+            out,
+            r#"
+ex:testGram a math:GramMatrix ;{definiteness}
+    math:hasEntry ex:g00 , ex:g01 , ex:g11 .
+
+ex:g00 a math:MatrixEntry ; math:atRow "0"^^xsd:integer ; math:atColumn "0"^^xsd:integer ; math:entryValue ex:ratOne .
+ex:g01 a math:MatrixEntry ; math:atRow "0"^^xsd:integer ; math:atColumn "1"^^xsd:integer ; math:entryValue ex:ratOff .
+ex:g11 a math:MatrixEntry ; math:atRow "1"^^xsd:integer ; math:atColumn "1"^^xsd:integer ; math:entryValue ex:ratOne .
+
+ex:ratOne a math:RationalValue ; math:numerator "1"^^xsd:integer ; math:denominator "1"^^xsd:integer .
+ex:ratOff a math:RationalValue ; math:numerator "{off_num}"^^xsd:integer ; math:denominator "{off_den}"^^xsd:integer .
+"#
+        );
+        out
+    }
+
+    const TEST_GRAM_IRI: &str = "https://blackcatinformatics.ca/gmeow/examples/affect/testGram";
+
+    // The shipped/authored correlated Gram (off-diagonal 1/4) is authored PD and
+    // the LDLᵀ witness AGREES: pivots [1, 15/16] certify it.
+    #[test]
+    fn crosscheck_agreeing_pd_returns_pivots() {
+        let bytes = turtle_to_gts(&gram_only_turtle(1, 4, true));
+        let pivots = crosscheck_authored_definiteness(&bytes, TEST_GRAM_IRI).unwrap();
+        assert_eq!(pivots, vec!["1".to_string(), "15/16".to_string()]);
+    }
+
+    // Authored `math:positiveDefinite` but numerically INDEFINITE (off-diagonal
+    // 2 > 1 drives pivot 1 = 1 − 4 = −3 ≤ 0) → the cross-check hard-fails.
+    #[test]
+    fn crosscheck_authored_pd_but_indefinite_hard_fails() {
+        let bytes = turtle_to_gts(&gram_only_turtle(2, 1, true));
+        let err = crosscheck_authored_definiteness(&bytes, TEST_GRAM_IRI).unwrap_err();
+        assert!(err.contains("cross-check failed"), "{err}");
+        assert!(err.contains("positiveDefinite"), "{err}");
+    }
+
+    // A Gram with NO `math:definiteness` is a loud error — SHACL does not require
+    // it, so its absence must not silently pass the gate.
+    #[test]
+    fn crosscheck_missing_definiteness_hard_fails() {
+        let bytes = turtle_to_gts(&gram_only_turtle(1, 4, false));
+        let err = crosscheck_authored_definiteness(&bytes, TEST_GRAM_IRI).unwrap_err();
+        assert!(err.contains("authored PD absent"), "{err}");
     }
 
     fn two_observation_graph(a: &str, b: &str) -> Graph {
