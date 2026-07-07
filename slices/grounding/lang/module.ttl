@@ -3456,6 +3456,13 @@ gmeow:gmnDenIpaStress
     lang:denotationTarget gmeow:suprasegmentalPrimaryStress ;
     lang:denotationContext gmeow:gmnLangGlyphContext .
 
+lang:Ungrammaticality
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Ungrammaticality"@x-gmeow-english ;
+    skos:definition "The ill-formedness a `*`-marked linguistic form exhibits: the property of being ungrammatical, a form the grammar of its sign system does not license. The linguistic notion the standard `*` prefix notation marks — distinct from lang:LangConformanceFailure, which is the slice's internal SHACL-conformance-failure taxonomy over serialized documents rather than a judgment about a linguistic form's grammaticality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # --- The ungrammaticality operator glyph ------------------------------------ #
 # `*` (U+002A) marks an ill-formed form. It costs one token, so it earns a
 # glyph slot; it shares its codepoint with math multiplication, so its reading
@@ -3484,11 +3491,11 @@ gmeow:gmnDenUngrammatical
     a lang:Denotation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "denotation of the ungrammaticality operator"@x-gmeow-english ;
-    skos:definition "The reified meaning assignment binding the `*` operator form to lang:LangConformanceFailure, the ill-formedness the standard linguistics notation marks."@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the `*` operator form to lang:Ungrammaticality, the ill-formedness the standard linguistics notation marks."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     lang:denotedForm gmeow:gmnFormUngrammatical ;
-    lang:denotationKind lang:denotesEntity ;
-    lang:denotationTarget lang:LangConformanceFailure ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget lang:Ungrammaticality ;
     lang:denotationContext gmeow:gmnLangGlyphContext .
 
 # --- Named-key rulings (symbols measured out of the glyph table) ------------- #
@@ -3511,7 +3518,7 @@ gmeow:gmnDenDenotation
     skos:definition "The reified meaning assignment binding the `den` named key to lang:Denotation, the meaning-assignment relation of formal semantics it names."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     lang:denotedForm gmeow:gmnFormDenotation ;
-    lang:denotationKind lang:denotesEntity ;
+    lang:denotationKind lang:denotesClass ;
     lang:denotationTarget lang:Denotation ;
     lang:denotationContext gmeow:gmnLangGlyphContext .
 
@@ -3530,7 +3537,7 @@ gmeow:gmnDenTranslationLeg
     skos:definition "The reified meaning assignment binding the `xl` named key to lang:Translation, the translation leg it names."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     lang:denotedForm gmeow:gmnFormTranslationLeg ;
-    lang:denotationKind lang:denotesEntity ;
+    lang:denotationKind lang:denotesClass ;
     lang:denotationTarget lang:Translation ;
     lang:denotationContext gmeow:gmnLangGlyphContext .
 
