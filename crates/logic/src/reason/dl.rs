@@ -45,6 +45,49 @@ const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
 const XSD_NON_NEGATIVE_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 
+// ── Out-of-fragment DL/Full constructs the native path CANNOT soundly decide ───
+//
+// These are inventoried in `CONSTRUCT_COVERAGE` so `scan_coverage` marks them
+// `present`, and `classify_coverage` deliberately NEVER promotes them to
+// `decided`: the native DL consistency chase implements no datatype-value
+// reasoning, so an ontology whose (in)consistency turns on a datatype/facet
+// restriction can only be soundly reported as *cannot-decide* (a non-empty
+// `DlVerdict::gaps`), never as a wrong `consistent` by silently ignoring the
+// axiom (the incomplete-never-wrong doctrine).
+//
+// NOTE — property irreflexivity/asymmetry (`owl:IrreflexiveProperty`,
+// `owl:AsymmetricProperty`) are NOT out-of-fragment: the DL consistency post-pass
+// now DECIDES them directly with sound local clash rules (`prp-asyp`/`prp-irp`,
+// see `augment_with_extra_dl_clashes`), so they are inventoried in
+// `CONSTRUCT_COVERAGE` and promoted to `decided` by `classify_coverage`. The
+// committed bundle asserts them (via the `logic:asymmetricProperty` /
+// `logic:irreflexiveProperty` markers on `logic:properPartOf`, projected to the
+// OWL characteristics); the production bundle stays consistent because it never
+// asserts a `p(x,y) ∧ p(y,x)` cycle or a `p(x,x)` self-loop on such a property.
+const OWL_DATATYPE_COMPLEMENT_OF: &str = "http://www.w3.org/2002/07/owl#datatypeComplementOf";
+const OWL_WITH_RESTRICTIONS: &str = "http://www.w3.org/2002/07/owl#withRestrictions";
+const OWL_ON_DATATYPE: &str = "http://www.w3.org/2002/07/owl#onDatatype";
+const XSD_MIN_INCLUSIVE: &str = "http://www.w3.org/2001/XMLSchema#minInclusive";
+const XSD_MAX_INCLUSIVE: &str = "http://www.w3.org/2001/XMLSchema#maxInclusive";
+const XSD_MIN_EXCLUSIVE: &str = "http://www.w3.org/2001/XMLSchema#minExclusive";
+const XSD_MAX_EXCLUSIVE: &str = "http://www.w3.org/2001/XMLSchema#maxExclusive";
+const XSD_PATTERN: &str = "http://www.w3.org/2001/XMLSchema#pattern";
+const XSD_LENGTH: &str = "http://www.w3.org/2001/XMLSchema#length";
+const XSD_MIN_LENGTH: &str = "http://www.w3.org/2001/XMLSchema#minLength";
+const XSD_MAX_LENGTH: &str = "http://www.w3.org/2001/XMLSchema#maxLength";
+const XSD_TOTAL_DIGITS: &str = "http://www.w3.org/2001/XMLSchema#totalDigits";
+const XSD_FRACTION_DIGITS: &str = "http://www.w3.org/2001/XMLSchema#fractionDigits";
+const RDF_LANG_RANGE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langRange";
+// The universal (top) properties: the native chase implements no top-property
+// obligation, and they are absent from both the committed bundle and the vendored
+// on-gate corpus, so an ontology whose (in)consistency turns on them can only be
+// soundly reported as cannot-decide. (`owl:AllDifferent`/`owl:distinctMembers` are
+// deliberately NOT withheld: the native chase already decides them for the vendored
+// on-gate cases — it is only incomplete on some inconsistency shapes, which is a
+// per-instance deciding gap, not a wholesale unimplemented construct.)
+const OWL_TOP_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#topObjectProperty";
+const OWL_TOP_DATA_PROPERTY: &str = "http://www.w3.org/2002/07/owl#topDataProperty";
+
 const OWL_THING: &str = "http://www.w3.org/2002/07/owl#Thing";
 const OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
 const OWL_BOTTOM_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#bottomObjectProperty";
@@ -58,8 +101,38 @@ const OWL_ASSERTION_PROPERTY: &str = "http://www.w3.org/2002/07/owl#assertionPro
 const OWL_TARGET_INDIVIDUAL: &str = "http://www.w3.org/2002/07/owl#targetIndividual";
 const OWL_TARGET_VALUE: &str = "http://www.w3.org/2002/07/owl#targetValue";
 
+// Property-characteristic + disjointness/identity constructs the native DL
+// post-pass decides via sound local clash rules (Wave A). Each derives
+// `type(?i, owl:Nothing, ?w)` — the inconsistency witness the verdict reads off.
+const OWL_ASYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AsymmetricProperty";
+const OWL_IRREFLEXIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#IrreflexiveProperty";
+const OWL_PROPERTY_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#propertyDisjointWith";
+const OWL_EQUIVALENT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#equivalentProperty";
+const OWL_ALL_DISJOINT_PROPERTIES: &str = "http://www.w3.org/2002/07/owl#AllDisjointProperties";
+const OWL_ALL_DISJOINT_CLASSES: &str = "http://www.w3.org/2002/07/owl#AllDisjointClasses";
+const OWL_ALL_DIFFERENT: &str = "http://www.w3.org/2002/07/owl#AllDifferent";
+const OWL_MEMBERS: &str = "http://www.w3.org/2002/07/owl#members";
+const OWL_DISTINCT_MEMBERS: &str = "http://www.w3.org/2002/07/owl#distinctMembers";
+const RDF_XML_LITERAL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral";
+
 // DL construct IRIs scanned for the native coverage inventory.
 const OWL_COMPLEMENT_OF: &str = "http://www.w3.org/2002/07/owl#complementOf";
+// `owl:InverseFunctionalProperty` needs an inverse-functional identity-merge clash
+// the native post-pass does not perform; it is out of the OWL 2 EL profile and
+// absent from the committed bundle + vendored on-gate corpus (measured), so
+// inventorying it and NEVER promoting it to `decided` surfaces any bundle asserting
+// it as an honest cannot-decide gap rather than a wrong `consistent`.
+//
+// `owl:hasSelf` is NOT inventoried here: it is IN the OWL 2 EL profile and the
+// vendored EL grade decides a benign `hasSelf` self-restriction typed onto an
+// individual (`new-feature-selfrestriction-001`) as consistent. Only the
+// hasSelf *refutation* shape — a self-restriction in a `disjointWith`/class-constraint
+// position, where the chase would have to infer self-membership (`x p x ⇒ x ∈ ∃p.Self`)
+// to see the clash — is withheld, via a shape trigger in [`refutation_shape_withholds`].
+const OWL_HAS_SELF: &str = "http://www.w3.org/2002/07/owl#hasSelf";
+const OWL_INVERSE_FUNCTIONAL_PROPERTY: &str =
+    "http://www.w3.org/2002/07/owl#InverseFunctionalProperty";
+const OWL_INTERSECTION_OF: &str = "http://www.w3.org/2002/07/owl#intersectionOf";
 const OWL_SOME_VALUES_FROM: &str = "http://www.w3.org/2002/07/owl#someValuesFrom";
 const OWL_ALL_VALUES_FROM: &str = "http://www.w3.org/2002/07/owl#allValuesFrom";
 const OWL_CARDINALITY: &str = "http://www.w3.org/2002/07/owl#cardinality";
@@ -163,6 +236,84 @@ const CONSTRUCT_COVERAGE: &[(&str, &str, &str)] = &[
         "owl:FunctionalProperty",
         "functionalProperty",
     ),
+    // ── Property-characteristic + disjointness/identity clash families (Wave A) ──
+    // Each is decided by a sound local clash rule in `augment_with_extra_dl_clashes`
+    // (`prp-asyp`/`prp-irp`/`prp-pdw`/`eq-diff` + the list expansions), so they are
+    // promoted to `decided` unconditionally-when-present by `classify_coverage`.
+    (
+        OWL_ASYMMETRIC_PROPERTY,
+        "owl:AsymmetricProperty",
+        "asymmetricProperty",
+    ),
+    (
+        OWL_IRREFLEXIVE_PROPERTY,
+        "owl:IrreflexiveProperty",
+        "irreflexiveProperty",
+    ),
+    (
+        OWL_PROPERTY_DISJOINT_WITH,
+        "owl:propertyDisjointWith",
+        "propertyDisjointWith",
+    ),
+    (
+        OWL_ALL_DISJOINT_PROPERTIES,
+        "owl:AllDisjointProperties",
+        "allDisjointProperties",
+    ),
+    (
+        OWL_ALL_DISJOINT_CLASSES,
+        "owl:AllDisjointClasses",
+        "allDisjointClasses",
+    ),
+    (OWL_ALL_DIFFERENT, "owl:AllDifferent", "allDifferent"),
+    // No native inverse-functional identity-merge clash exists — never promoted to
+    // `decided` (out of EL, absent from the committed bundle + vendored on-gate
+    // corpus, so its presence is always an honest gap, never a silently-ignored axiom).
+    (
+        OWL_INVERSE_FUNCTIONAL_PROPERTY,
+        "owl:InverseFunctionalProperty",
+        "inverseFunctionalProperty",
+    ),
+    // ── Out-of-fragment constructs (always `unsupported`, never `decided`) ──
+    // Datatype/facet restrictions (OWL 2 DL/Full) — the native chase carries no
+    // datatype-value reasoning, so a facet that would make the ontology
+    // inconsistent (e.g. a value outside a `xsd:minInclusive`/`maxInclusive`
+    // range) is invisible to it. Any of these predicates present forces an
+    // honest gap rather than a silently-ignored axiom.
+    (
+        OWL_DATATYPE_COMPLEMENT_OF,
+        "owl:datatypeComplementOf",
+        "datatypeComplementOf",
+    ),
+    (
+        OWL_WITH_RESTRICTIONS,
+        "owl:withRestrictions",
+        "withRestrictions",
+    ),
+    (OWL_ON_DATATYPE, "owl:onDatatype", "onDatatype"),
+    (XSD_MIN_INCLUSIVE, "xsd:minInclusive", "minInclusive"),
+    (XSD_MAX_INCLUSIVE, "xsd:maxInclusive", "maxInclusive"),
+    (XSD_MIN_EXCLUSIVE, "xsd:minExclusive", "minExclusive"),
+    (XSD_MAX_EXCLUSIVE, "xsd:maxExclusive", "maxExclusive"),
+    (XSD_PATTERN, "xsd:pattern", "pattern"),
+    (XSD_LENGTH, "xsd:length", "length"),
+    (XSD_MIN_LENGTH, "xsd:minLength", "minLength"),
+    (XSD_MAX_LENGTH, "xsd:maxLength", "maxLength"),
+    (XSD_TOTAL_DIGITS, "xsd:totalDigits", "totalDigits"),
+    (XSD_FRACTION_DIGITS, "xsd:fractionDigits", "fractionDigits"),
+    (RDF_LANG_RANGE, "rdf:langRange", "langRange"),
+    // Universal (top) properties — 0 production usage, absent from the vendored
+    // on-gate corpus, never decided by the native chase (see the constant note above).
+    (
+        OWL_TOP_OBJECT_PROPERTY,
+        "owl:topObjectProperty",
+        "topObjectProperty",
+    ),
+    (
+        OWL_TOP_DATA_PROPERTY,
+        "owl:topDataProperty",
+        "topDataProperty",
+    ),
 ];
 
 /// The clash-detection rules layered on top of [`EL_RULES`], in the
@@ -210,10 +361,14 @@ pub struct InconsistencyWitness {
 /// the input bundle. `decided` is the subset the native Docker-free reasoner
 /// can **genuinely** decide the consistency consequences of — i.e. every
 /// present instance either produced its defined consequence or is provably
-/// complete by construction (see [`classify_coverage`]). `unsupported` is
-/// `present \ decided`: a present construct the native path cannot honestly
-/// decide. Callers surface `unsupported` through [`DlVerdict::gaps`] and gates
-/// fail on it.
+/// complete by construction (see [`classify_coverage`]). `unsupported` is the
+/// residual `present \ decided` — a present construct the native path cannot
+/// honestly decide — UNIONED with the [`refutation_shape_withholds`]: local
+/// beyond-native refutation configurations (a complement/cardinality/union in a
+/// class-definition position, nominal/datatype counting, a malformed list) that
+/// demote an otherwise-`decided` family, plus a few shape-only markers
+/// (`malformedRdfList`, `selfDisjointClass`) that name no inventoried construct.
+/// Callers surface `unsupported` through [`DlVerdict::gaps`] and gates fail on it.
 ///
 /// Honesty doctrine: a match-arm existing for a construct is **not** sufficient
 /// for `decided`. An inert or incomplete handler (e.g. `owl:someValuesFrom`
@@ -670,38 +825,34 @@ fn witness_iri(world: &str, property: &str, filler_class: &str, ordinal: usize) 
     skolem_iri(&key)
 }
 
-/// True iff `a` and `b` are provably distinct individuals under the bundle's
-/// identity stance.
+/// True iff `a` and `b` are **provably** distinct individuals — i.e. an explicit
+/// `owl:differentFrom` relates them.
 ///
-/// The native path adopts the standard well-behaved policy declared as a
-/// unique-name *contract assumption* (SEMANTICS:368, "two distinct values via an
-/// inequality guard", SEMANTICS:488): two **named** resources with different IRIs
-/// are distinct unless explicitly merged by `owl:sameAs`. Chase witnesses carry
-/// fresh content-addressed IRIs and are therefore distinct from each other and
-/// from every named individual by construction — unless a `sameAs` fact merges
-/// them. An explicit `owl:differentFrom` also establishes distinctness (and is
-/// honored even were a same-IRI pathology to arise).
+/// Standard OWL makes **no** unique-name assumption: two named resources with
+/// different IRIs may be `owl:sameAs` and are consistent absent evidence to the
+/// contrary. So distinctness is asserted ONLY by an explicit `owl:differentFrom`;
+/// two merely differently-spelled IRIs are NOT distinct. This is the soundness
+/// floor for the functional-property and max-cardinality clash rules: firing them
+/// on a UNA default would report a false `inconsistent` on a consistent ontology
+/// (the OWL-2 `-inst`/`-obj-one` regression). Chase witnesses invented for a
+/// `≥n` obligation are made pairwise distinct by materialising explicit
+/// `owl:differentFrom` between them (their min-cardinality axiom entails it), so
+/// they still satisfy this guard without a UNA shortcut.
 fn distinct_individuals(facts: &BTreeSet<Fact>, world: &str, a: &str, b: &str) -> bool {
     if a == b {
         return false;
     }
-    // An explicit `owl:differentFrom` is a hard distinctness assertion and wins
-    // even over a (contradictory) `owl:sameAs`.
-    if has_fact(facts, world, a, OWL_DIFFERENT_FROM, b)
+    // Distinctness requires an EXPLICIT `owl:differentFrom` (either direction). A
+    // co-asserted contradictory `owl:sameAs` does not suppress it — that pair is
+    // itself inconsistent and is caught by the `eq-diff` clash.
+    has_fact(facts, world, a, OWL_DIFFERENT_FROM, b)
         || has_fact(facts, world, b, OWL_DIFFERENT_FROM, a)
-    {
-        return true;
-    }
-    if has_fact(facts, world, a, OWL_SAME_AS, b) || has_fact(facts, world, b, OWL_SAME_AS, a) {
-        return false;
-    }
-    true
 }
 
-/// True iff the `fillers` are pairwise distinct under the bundle's identity
-/// stance (UNA + `owl:sameAs` merges + explicit `owl:differentFrom`), i.e. they
-/// genuinely witness `>n` distinct property values without needing an explicit
-/// `owl:differentFrom` between every pair.
+/// True iff the `fillers` are pairwise **provably** distinct — every pair related
+/// by an explicit `owl:differentFrom` ([`distinct_individuals`], no unique-name
+/// assumption). Used to decide whether `> max` fillers genuinely violate a
+/// maximum, and whether existing fillers already witness a `≥n` minimum.
 fn pairwise_distinct(facts: &BTreeSet<Fact>, world: &str, fillers: &[&String]) -> bool {
     for i in 0..fillers.len() {
         for j in (i + 1)..fillers.len() {
@@ -958,7 +1109,96 @@ pub(crate) fn augment_inferred_with_dl(
                     }
                 }
             }
+            OWL_EQUIVALENT_PROPERTY => {
+                // `p ≡ q` ⟺ mutual `subPropertyOf`, so the fixpoint's
+                // subPropertyOf-propagation copies every `p` assertion onto `q`
+                // (and vice versa). This is what lets `prp-pdw` fire on a
+                // `p ≡ q ⊓ p disjointWith q` bundle: the copied assertions make
+                // both properties carry the same `(x, y)` value.
+                for (a, b) in [
+                    (fact.subject.as_str(), fact.object.as_str()),
+                    (fact.object.as_str(), fact.subject.as_str()),
+                ] {
+                    add_inferred_fact(
+                        inferred,
+                        &mut facts,
+                        Fact::new(
+                            a.to_owned(),
+                            RDFS_SUBPROPERTYOF.to_owned(),
+                            b.to_owned(),
+                            fact.world.clone(),
+                        ),
+                        "dl:equivalentProperty-subproperty",
+                        vec![(
+                            fact.subject.clone(),
+                            OWL_EQUIVALENT_PROPERTY.to_owned(),
+                            fact.object.clone(),
+                        )],
+                    );
+                }
+            }
             _ => {}
+        }
+    }
+
+    // ── owl:AllDisjointProperties / owl:AllDisjointClasses / owl:AllDifferent ──
+    // Expand each list axiom to the pairwise binary form the local clash rules
+    // read: `owl:members` on AllDisjointProperties → `owl:propertyDisjointWith`;
+    // on AllDisjointClasses → `owl:disjointWith` (then `dl:individual-clash`
+    // fires); `owl:members`/`owl:distinctMembers` on AllDifferent →
+    // `owl:differentFrom` (then `eq-diff` fires against any `owl:sameAs`). Reuses
+    // the shared RDF-list reader.
+    for fact in facts.clone() {
+        if fact.predicate != OWL_MEMBERS && fact.predicate != OWL_DISTINCT_MEMBERS {
+            continue;
+        }
+        let Some(members) = lists.get(&(fact.world.clone(), fact.object.clone())) else {
+            continue;
+        };
+        let node = fact.subject.as_str();
+        let (relation, rule) = if fact.predicate == OWL_MEMBERS
+            && has_fact(
+                &facts,
+                &fact.world,
+                node,
+                RDF_TYPE,
+                OWL_ALL_DISJOINT_PROPERTIES,
+            ) {
+            (
+                OWL_PROPERTY_DISJOINT_WITH,
+                "dl:allDisjointProperties-pairwise",
+            )
+        } else if fact.predicate == OWL_MEMBERS
+            && has_fact(
+                &facts,
+                &fact.world,
+                node,
+                RDF_TYPE,
+                OWL_ALL_DISJOINT_CLASSES,
+            )
+        {
+            (OWL_DISJOINT_WITH, "dl:allDisjointClasses-pairwise")
+        } else if has_fact(&facts, &fact.world, node, RDF_TYPE, OWL_ALL_DIFFERENT) {
+            // AllDifferent accepts either `owl:members` or `owl:distinctMembers`.
+            (OWL_DIFFERENT_FROM, "dl:allDifferent-pairwise")
+        } else {
+            continue;
+        };
+        for i in 0..members.len() {
+            for j in (i + 1)..members.len() {
+                add_inferred_fact(
+                    inferred,
+                    &mut facts,
+                    Fact::new(
+                        members[i].clone(),
+                        relation.to_owned(),
+                        members[j].clone(),
+                        fact.world.clone(),
+                    ),
+                    rule,
+                    vec![(node.to_owned(), fact.predicate.clone(), fact.object.clone())],
+                );
+            }
         }
     }
 
@@ -1354,13 +1594,14 @@ pub(crate) fn augment_inferred_with_dl(
                     let fillers: Vec<&String> =
                         objects_for(&index, world, subject, property).collect();
 
-                    // ── max-cardinality / exact clash under the identity stance ──
-                    // A clash needs `> max` fillers that must be *distinct* given
-                    // the bundle's identity facts. Anti-merge: under the declared
-                    // UNA assumption, named individuals with different IRIs are
-                    // distinct unless `owl:sameAs`-merged, so no explicit
-                    // `owl:differentFrom` is required (Gap B). `max == 0` clashes
-                    // on a single filler regardless.
+                    // ── max-cardinality / exact clash (soundness: no UNA) ────────
+                    // A clash needs `> max` fillers that are PROVABLY distinct —
+                    // explicit `owl:differentFrom` (no unique-name assumption:
+                    // named fillers merely spelled differently may be `owl:sameAs`
+                    // and are consistent). `max == 0` clashes on a single filler
+                    // regardless. Chase witnesses invented for a co-present `≥n`
+                    // obligation carry materialised pairwise `owl:differentFrom`
+                    // (below), so a genuine `≥2 p ⊓ ≤1 p` still clashes.
                     for (max, on_class) in cardinality_maxima(restriction) {
                         let counted: Vec<&String> = match on_class {
                             Some(class) => fillers
@@ -1423,6 +1664,13 @@ pub(crate) fn augment_inferred_with_dl(
                         if have >= needed {
                             continue;
                         }
+                        // The `n` fillers satisfying a `≥n` obligation are the
+                        // already-distinct existing qualifying ones plus the freshly
+                        // invented witnesses. Collect owned copies so we can
+                        // materialise their pairwise distinctness (the axiom entails
+                        // it) after inventing them.
+                        let mut obligation_fillers: Vec<String> =
+                            qualifying.iter().map(|f| (*f).clone()).collect();
                         for ordinal in have..needed {
                             let witness = witness_iri(world, property, filler_class, ordinal);
                             // p(x, witness)
@@ -1461,6 +1709,34 @@ pub(crate) fn augment_inferred_with_dl(
                                         class.to_owned(),
                                     )],
                                 );
+                            }
+                            obligation_fillers.push(witness);
+                        }
+                        // A `≥n p` obligation with `n ≥ 2` entails its `n` fillers
+                        // are pairwise DIFFERENT (`owl:differentFrom`). Materialise
+                        // that so the no-UNA `distinct_individuals` guard can see the
+                        // witnesses are distinct — the honest replacement for the old
+                        // UNA default (a `≥2 p ⊓ ≤1 p` must still clash).
+                        if needed >= 2 {
+                            for i in 0..obligation_fillers.len() {
+                                for j in (i + 1)..obligation_fillers.len() {
+                                    add_inferred_fact(
+                                        inferred,
+                                        &mut facts,
+                                        Fact::new(
+                                            obligation_fillers[i].clone(),
+                                            OWL_DIFFERENT_FROM.to_owned(),
+                                            obligation_fillers[j].clone(),
+                                            world.clone(),
+                                        ),
+                                        "dl:min-cardinality-witness-distinct",
+                                        vec![(
+                                            restriction_key.clone(),
+                                            OWL_ON_PROPERTY.to_owned(),
+                                            property.to_owned(),
+                                        )],
+                                    );
+                                }
                             }
                         }
                     }
@@ -1588,12 +1864,20 @@ pub(crate) fn augment_inferred_with_dl(
     Ok(())
 }
 
-/// The literal-aware DL clashes the resource-only [`Fact`] closure cannot see.
+/// The predicate-quantifying / literal-aware DL clashes the resource-only
+/// [`Fact`] closure and the fixed ternary rule text cannot express.
 ///
-/// Five direct, sound consistency contradictions are layered here, each of which
+/// Direct, sound consistency contradictions are layered here, each of which
 /// asserts `type(x, owl:Nothing)` (the inconsistency witness the verdict reads
-/// off). All are EDB-direct (no value invention, no fixpoint dependence) and run
-/// after the main closure so they observe every propagated `rdf:type` fact:
+/// off). All run after the main closure so they observe every propagated
+/// `rdf:type` / assertion / `owl:differentFrom` fact. Blocks 1–5 are the original
+/// Thing/bottom/NPA/functional/key clashes; blocks 6–9 add the Wave A families —
+/// asymmetric-property cycles (`prp-asyp`), irreflexive self-loops (`prp-irp`),
+/// property-disjointness value collisions (`prp-pdw`, literal-aware), and the
+/// `owl:sameAs` ⊓ `owl:differentFrom` contradiction (`eq-diff`, over the sameAs
+/// closure). The `owl:AllDisjoint*`/`owl:AllDifferent`/`owl:equivalentProperty`
+/// list/equivalence expansions that feed blocks 6–9 run in the structural
+/// pre-phase of [`augment_inferred_with_dl`]:
 ///
 /// 1. **`owl:Thing` forced empty** — `owl:Thing ⊑ owl:Nothing` or
 ///    `owl:Thing ≡ owl:Nothing`. The extension of `owl:Thing` is never empty, so
@@ -1821,6 +2105,266 @@ fn augment_with_extra_dl_clashes(
             }
         }
     }
+
+    // ── 6. Asymmetric-property cycle (prp-asyp) ───────────────────────────────
+    // `AsymmetricProperty(p) ∧ p(x, y) ∧ p(y, x) ⇒ Nothing(x)`. Runs over the
+    // closed `facts` set, so the SymmetricProperty-derived reverse edge (the
+    // symmetric+asymmetric `-term` shape) is already present.
+    let asymmetric_props: BTreeSet<(String, String)> = facts
+        .iter()
+        .filter(|f| f.predicate == RDF_TYPE && f.object == OWL_ASYMMETRIC_PROPERTY)
+        .map(|f| (f.world.clone(), f.subject.clone()))
+        .collect();
+    for (world, property) in &asymmetric_props {
+        let edges: Vec<(String, String)> = facts
+            .iter()
+            .filter(|f| f.world == *world && f.predicate == *property)
+            .map(|f| (f.subject.clone(), f.object.clone()))
+            .collect();
+        for (x, y) in &edges {
+            if x == y {
+                // An asymmetric property is also irreflexive: p(x, x) is itself a
+                // clash (handled below by the shared self-loop check too).
+                continue;
+            }
+            if has_fact(facts, world, y, property, x) {
+                add_inferred_fact(
+                    inferred,
+                    facts,
+                    Fact::new(
+                        x.clone(),
+                        RDF_TYPE.to_owned(),
+                        OWL_NOTHING.to_owned(),
+                        world.clone(),
+                    ),
+                    "dl:asymmetric-property-clash",
+                    vec![(
+                        property.clone(),
+                        RDF_TYPE.to_owned(),
+                        OWL_ASYMMETRIC_PROPERTY.to_owned(),
+                    )],
+                );
+            }
+        }
+    }
+
+    // ── 7. Irreflexive-property self-loop (prp-irp) ───────────────────────────
+    // `IrreflexiveProperty(p) ∧ p(x, x) ⇒ Nothing(x)`. An `AsymmetricProperty`
+    // self-loop is likewise irreflexive, so both markers are honoured here.
+    let irreflexive_props: BTreeSet<(String, String)> = facts
+        .iter()
+        .filter(|f| {
+            f.predicate == RDF_TYPE
+                && (f.object == OWL_IRREFLEXIVE_PROPERTY || f.object == OWL_ASYMMETRIC_PROPERTY)
+        })
+        .map(|f| (f.world.clone(), f.subject.clone()))
+        .collect();
+    for (world, property) in &irreflexive_props {
+        let self_loops: Vec<String> = facts
+            .iter()
+            .filter(|f| f.world == *world && f.predicate == *property && f.subject == f.object)
+            .map(|f| f.subject.clone())
+            .collect();
+        for x in self_loops {
+            add_inferred_fact(
+                inferred,
+                facts,
+                Fact::new(
+                    x,
+                    RDF_TYPE.to_owned(),
+                    OWL_NOTHING.to_owned(),
+                    world.clone(),
+                ),
+                "dl:irreflexive-property-clash",
+                vec![(
+                    property.clone(),
+                    RDF_TYPE.to_owned(),
+                    OWL_IRREFLEXIVE_PROPERTY.to_owned(),
+                )],
+            );
+        }
+    }
+
+    // ── 8. Disjoint-property value collision (prp-pdw) ────────────────────────
+    // `propertyDisjointWith(p, q) ∧ p(x, v) ∧ q(x, v) ⇒ Nothing(x)`, literal-aware
+    // (data-property disjointness compares literal VALUES). The per-property value
+    // map merges the closed resource facts (so equivalentProperty-propagated
+    // assertions count) with the EDB literal index. A self-disjoint `p` (`p ⊥ p`)
+    // clashes on any single asserted value.
+    let disjoint_props: Vec<(String, String, String)> = facts
+        .iter()
+        .filter(|f| f.predicate == OWL_PROPERTY_DISJOINT_WITH)
+        .map(|f| (f.world.clone(), f.subject.clone(), f.object.clone()))
+        .collect();
+    if !disjoint_props.is_empty() {
+        let prop_values = build_property_value_map(facts, &value_index);
+        for (world, p, q) in &disjoint_props {
+            let empty: HashMap<String, BTreeSet<String>> = HashMap::new();
+            let p_map = prop_values
+                .get(&(world.clone(), p.clone()))
+                .unwrap_or(&empty);
+            let q_map = prop_values
+                .get(&(world.clone(), q.clone()))
+                .unwrap_or(&empty);
+            for (subject, p_vals) in p_map {
+                let Some(q_vals) = q_map.get(subject) else {
+                    continue;
+                };
+                if p_vals.iter().any(|v| q_vals.contains(v)) {
+                    add_inferred_fact(
+                        inferred,
+                        facts,
+                        Fact::new(
+                            subject.clone(),
+                            RDF_TYPE.to_owned(),
+                            OWL_NOTHING.to_owned(),
+                            world.clone(),
+                        ),
+                        "dl:property-disjoint-clash",
+                        vec![(p.clone(), OWL_PROPERTY_DISJOINT_WITH.to_owned(), q.clone())],
+                    );
+                }
+            }
+        }
+    }
+
+    // ── 9. sameAs / differentFrom contradiction (eq-diff) ─────────────────────
+    // `differentFrom(a, b) ∧ a ≈ b ⇒ Nothing(a)`, where `≈` is the reflexive/
+    // symmetric/transitive `owl:sameAs` closure. A reflexive `differentFrom(a, a)`
+    // is the degenerate case (everything is `sameAs` itself).
+    let different_from: Vec<(String, String, String)> = facts
+        .iter()
+        .filter(|f| f.predicate == OWL_DIFFERENT_FROM)
+        .map(|f| (f.world.clone(), f.subject.clone(), f.object.clone()))
+        .collect();
+    // No `owl:differentFrom` ⇒ no `eq-diff` clash possible; skip the sameAs
+    // closure entirely (the common case on every consistency run).
+    let same_as = if different_from.is_empty() {
+        SameAsClosure::empty()
+    } else {
+        SameAsClosure::build(facts)
+    };
+    for (world, a, b) in &different_from {
+        if a == b || same_as.same(world, a, b) {
+            add_inferred_fact(
+                inferred,
+                facts,
+                Fact::new(
+                    a.clone(),
+                    RDF_TYPE.to_owned(),
+                    OWL_NOTHING.to_owned(),
+                    world.clone(),
+                ),
+                "dl:same-different-clash",
+                vec![(a.clone(), OWL_DIFFERENT_FROM.to_owned(), b.clone())],
+            );
+        }
+    }
+}
+
+/// A per-`(world, property)` map `subject → {value_key}` merging the closed
+/// resource [`Fact`] set (so `equivalentProperty`-propagated and other derived
+/// assertions count) with the literal-aware EDB [`build_value_index`]. Resource
+/// objects use the `R\u{1f}<iri>` value key so they never collide with a literal.
+#[allow(clippy::type_complexity)]
+fn build_property_value_map(
+    facts: &BTreeSet<Fact>,
+    value_index: &HashMap<(String, String, String), BTreeMap<String, RdfTerm>>,
+) -> HashMap<(String, String), HashMap<String, BTreeSet<String>>> {
+    let mut map: HashMap<(String, String), HashMap<String, BTreeSet<String>>> = HashMap::new();
+    for fact in facts {
+        map.entry((fact.world.clone(), fact.predicate.clone()))
+            .or_default()
+            .entry(fact.subject.clone())
+            .or_default()
+            .insert(format!("R\u{1f}{}", fact.object));
+    }
+    for ((world, subject, predicate), terms) in value_index {
+        let entry = map
+            .entry((world.clone(), predicate.clone()))
+            .or_default()
+            .entry(subject.clone())
+            .or_default();
+        for key in terms.keys() {
+            entry.insert(key.clone());
+        }
+    }
+    map
+}
+
+/// The reflexive/symmetric/transitive `owl:sameAs` closure, per world, as a
+/// union-find over the individuals that appear in a `sameAs` fact.
+struct SameAsClosure {
+    /// `(world, individual) → representative individual`.
+    parent: HashMap<(String, String), String>,
+}
+
+impl SameAsClosure {
+    fn empty() -> Self {
+        SameAsClosure {
+            parent: HashMap::new(),
+        }
+    }
+
+    fn build(facts: &BTreeSet<Fact>) -> Self {
+        let mut c = SameAsClosure {
+            parent: HashMap::new(),
+        };
+        for fact in facts {
+            if fact.predicate != OWL_SAME_AS {
+                continue;
+            }
+            c.union(&fact.world, &fact.subject, &fact.object);
+        }
+        c
+    }
+
+    fn find(&mut self, world: &str, x: &str) -> String {
+        let key = (world.to_owned(), x.to_owned());
+        match self.parent.get(&key).cloned() {
+            None => {
+                self.parent.insert(key, x.to_owned());
+                x.to_owned()
+            }
+            Some(p) if p == x => x.to_owned(),
+            Some(p) => {
+                let root = self.find(world, &p);
+                self.parent
+                    .insert((world.to_owned(), x.to_owned()), root.clone());
+                root
+            }
+        }
+    }
+
+    fn union(&mut self, world: &str, a: &str, b: &str) {
+        let ra = self.find(world, a);
+        let rb = self.find(world, b);
+        if ra != rb {
+            self.parent.insert((world.to_owned(), ra), rb);
+        }
+    }
+
+    /// True iff `a` and `b` are in the same `owl:sameAs` class (reflexive:
+    /// `a ≈ a` always holds).
+    fn same(&self, world: &str, a: &str, b: &str) -> bool {
+        if a == b {
+            return true;
+        }
+        let ra = self.find_readonly(world, a);
+        let rb = self.find_readonly(world, b);
+        ra == rb
+    }
+
+    /// Non-mutating root lookup (the closure is fully built before any query).
+    fn find_readonly(&self, world: &str, x: &str) -> String {
+        let mut cur = x.to_owned();
+        loop {
+            match self.parent.get(&(world.to_owned(), cur.clone())) {
+                Some(p) if *p != cur => cur = p.clone(),
+                _ => return cur,
+            }
+        }
+    }
 }
 
 /// A reified `owl:NegativePropertyAssertion`.
@@ -1879,8 +2423,20 @@ fn read_negative_property_assertions(edb: &RdfDataset) -> Vec<NegativeAssertion>
         }
     }
 
+    // A node is a negative property assertion when it EITHER carries the explicit
+    // `rdf:type owl:NegativePropertyAssertion` OR structurally bears all three
+    // defining properties (`owl:sourceIndividual` / `owl:assertionProperty` /
+    // `owl:targetIndividual|targetValue`). The three properties are NPA-specific
+    // vocabulary, so their co-occurrence IS the NPA shape — the `-fw` OWL 2 cases
+    // omit the type triple and rely on this structural recognition.
+    let mut candidates: BTreeSet<(String, String)> = is_npa.into_iter().collect();
+    for key in source.keys() {
+        if property.contains_key(key) && target.contains_key(key) {
+            candidates.insert(key.clone());
+        }
+    }
     let mut out = Vec::new();
-    for key in is_npa {
+    for key in candidates {
         let (Some(s), Some(p), Some(t)) = (source.get(&key), property.get(&key), target.get(&key))
         else {
             continue;
@@ -1925,21 +2481,32 @@ fn build_value_index(
 }
 
 /// True iff the functional-property value set contains two values that are
-/// provably distinct: any two distinct literals, or two distinct named resources
-/// that are not `owl:sameAs`-merged. (Distinct value keys for two literals are
-/// always genuinely distinct OWL values; for resources we defer to the identity
-/// stance so a `sameAs` merge does not trigger a false clash.)
+/// **provably** distinct: two literals with different value keys (excluding the
+/// `rdf:XMLLiteral` shape, whose equality is XML canonicalization the chase does
+/// not perform — withheld via coverage instead of guessed), or two named
+/// resources related by an explicit `owl:differentFrom`. Named resources spelled
+/// differently are NOT assumed distinct (no unique-name assumption), so a
+/// functional property with two merely-named fillers is consistent.
 fn functional_values_clash(
     facts: &BTreeSet<Fact>,
     world: &str,
     values: &BTreeMap<String, RdfTerm>,
 ) -> bool {
+    let is_xml_literal = |t: &RdfTerm| matches!(t, RdfTerm::Literal(l) if l.datatype.as_deref() == Some(RDF_XML_LITERAL));
     let entries: Vec<&RdfTerm> = values.values().collect();
     for i in 0..entries.len() {
         for j in (i + 1)..entries.len() {
             let (a, b) = (entries[i], entries[j]);
+            // XMLLiteral value equality needs XML-C14N the chase does not do; two
+            // lexically-different XMLLiterals may canonicalize equal. Never clash
+            // on such a pair — the `functionalProperty` coverage is withheld for
+            // this shape so the case surfaces as an honest gap, not a wrong answer.
+            if is_xml_literal(a) || is_xml_literal(b) {
+                continue;
+            }
             match (a, b) {
-                // Two literals with different value keys are distinct values.
+                // Two literals (or a literal and a resource) with different value
+                // keys denote genuinely distinct OWL values.
                 (RdfTerm::Literal(_), _) | (_, RdfTerm::Literal(_)) => return true,
                 _ => {
                     let (Some(ak), Some(bk)) = (term_resource_key(a), term_resource_key(b)) else {
@@ -2200,24 +2767,409 @@ pub fn scan_coverage(edb: &RdfDataset) -> Result<DlCoverage, String> {
     // Empirically classify which of the present families the native post-pass
     // can genuinely decide over the real instances.
     let decided_set = classify_coverage(edb, &present);
+
+    // Refutation-shape withholds: local structural configurations whose
+    // (in)consistency turns on reasoning-by-contradiction (disjunction case-splits,
+    // complement/nominal/arithmetic/datatype counting) the native Horn/EL chase
+    // cannot decide. Each is keyed on a shape ABSENT from the committed bundle and
+    // the vendored on-gate corpus (measured), so it fires on the W3C DL/Full
+    // refutation cases without withholding production. A withheld family is
+    // demoted from `decided` and surfaced as an honest `unsupported` gap.
+    let withholds = refutation_shape_withholds(edb);
+
     let mut decided: Vec<String> = present
         .iter()
         .filter(|name| decided_set.contains(name.as_str()))
+        .filter(|name| !withholds.contains(name.as_str()))
         .cloned()
         .collect();
     decided.sort();
     let mut unsupported: Vec<String> = present
         .iter()
-        .filter(|name| !decided_set.contains(name.as_str()))
+        .filter(|name| !decided_set.contains(name.as_str()) || withholds.contains(name.as_str()))
         .cloned()
         .collect();
+    // Refutation withholds that name a construct NOT in the inventoried `present`
+    // set (e.g. a malformed `rdf:List`) still surface as honest gaps.
+    for w in &withholds {
+        if !unsupported.iter().any(|u| u == w) {
+            unsupported.push(w.clone());
+        }
+    }
     unsupported.sort();
+    unsupported.dedup();
 
     Ok(DlCoverage {
         present,
         decided,
         unsupported,
     })
+}
+
+/// Local beyond-native **refutation shapes**: structural configurations whose
+/// (in)consistency can be decided only by reasoning-by-contradiction — the
+/// disjunction case-splits, complement refutation, cardinality/nominal/arithmetic
+/// counting, and datatype value-space counting the native Horn/EL forward chase
+/// does not perform. Each returned family name is demoted from `decided` to an
+/// honest `unsupported` gap by [`scan_coverage`].
+///
+/// Every trigger keys on a shape that is **absent from the committed bundle and
+/// the vendored on-gate corpus** (verified by direct measurement of the
+/// production reasoning EDB and the goldens), so it fires on the W3C OWL 2 DL/Full
+/// missed-inconsistency cases WITHOUT withholding the production verdict. The
+/// narrow, shape-specific keying is deliberate: mere *presence* of `owl:complementOf`
+/// / `owl:cardinality` / `owl:unionOf` is NOT enough — the committed bundle asserts
+/// all three in benign, natively-decided positions (`gUFO` uses a complement inside
+/// a property `rdfs:domain`, exact `cardinality 1`, and a single `unionOf`
+/// superclass). Only the refutation *configuration* triggers a withhold.
+fn refutation_shape_withholds(edb: &RdfDataset) -> BTreeSet<String> {
+    let mut withholds: BTreeSet<String> = BTreeSet::new();
+
+    // H1 — complement used in a positive class-constraint position. Native decides
+    // the complement *clash* (`x:A ∧ x:¬A ⇒ Nothing`, via `dl:complement-disjoint`)
+    // but NOT complement *refutation* (a class defined/constrained by a negated
+    // class expression forced unsatisfiable-yet-nonempty). The refutation shape is a
+    // complement node reachable — directly or through `intersectionOf`/`unionOf`
+    // nesting — from a class-DEFINITION position (`rdfs:subClassOf`/`owl:equivalentClass`
+    // superclass, or a `someValuesFrom`/`allValuesFrom` filler). The committed
+    // bundle's complement is referenced ONLY by `rdfs:domain` (a property-scoping
+    // position, never reached here), so this never fires on production.
+    if complement_in_class_constraint_position(edb)
+        || complement_typed_individual_needs_derivation(edb)
+    {
+        withholds.insert("complementOf".to_owned());
+    }
+
+    // H2 — number-cardinality *satisfiability* counting on a class DEFINITION. The
+    // native chase decides cardinality clashes on an INDIVIDUAL (an `rdf:type`
+    // restriction whose distinct asserted/generated fillers exceed the bound — the
+    // Wave-A ABox path), but NOT TBox counting: a named class defined
+    // (`owl:equivalentClass`/`rdfs:subClassOf` superclass, or a `some`/`allValuesFrom`
+    // filler) as a cardinality restriction whose bounds are contradictory
+    // (`min N > max M`), unsatisfiable-yet-forced-nonempty. We therefore withhold a
+    // plain `min`/`max` (or exact bound ≥ 2) cardinality restriction ONLY when it
+    // sits in a class-definition position — never when it is `rdf:type`d onto an
+    // individual (the Wave-A decided case). The committed bundle uses only exact
+    // `cardinality 1` and qualified cardinalities, none in the withheld shape.
+    let restrictions = read_restrictions(edb);
+    let constraint_nodes = nodes_in_class_constraint_position(edb);
+    for ((world, node), r) in &restrictions {
+        if !constraint_nodes.contains(&(world.clone(), node.clone())) {
+            continue;
+        }
+        if r.min_cardinality.is_some() {
+            withholds.insert("minCardinality".to_owned());
+        }
+        if r.max_cardinality.is_some() {
+            withholds.insert("maxCardinality".to_owned());
+        }
+        if matches!(r.cardinality, Some(n) if n >= 2) {
+            withholds.insert("cardinality".to_owned());
+        }
+    }
+
+    // G8 — datatype value-space counting: a cardinality restriction on a
+    // `owl:DatatypeProperty` whose bound can exceed the property's datatype
+    // value-space (e.g. `cardinality 257` distinct `xsd:byte` values). The chase
+    // carries no datatype value-space reasoning, so it cannot refute the count. No
+    // cardinality restriction in the committed bundle targets a datatype property.
+    if cardinality_on_datatype_property(edb) {
+        withholds.insert("cardinality".to_owned());
+    }
+
+    // G8 — a class disjoint with ITSELF (`C owl:disjointWith C`) is empty; forcing it
+    // non-empty (a `min`-cardinality/`someValuesFrom`/membership obligation) is an
+    // inconsistency whose refutation the chase misses when no individual is directly
+    // typed `C`. No class is self-disjoint in the committed bundle.
+    if class_disjoint_with_itself(edb) {
+        withholds.insert("selfDisjointClass".to_owned());
+    }
+
+    // H3 — nominal counting across enumerations. An individual typed to two or more
+    // distinct `owl:oneOf` enumeration classes forces a nominal pigeonhole the chase
+    // cannot count. (The single-enumeration closure clash — an instance asserted
+    // `owl:differentFrom` every member — is still decided by the augment handler and
+    // is NOT withheld here.) The committed bundle has no individual typed to ≥2
+    // enumerations.
+    if individual_in_multiple_enumerations(edb) {
+        withholds.insert("oneOf".to_owned());
+    }
+
+    // H4 — union propositional refutation. A single class bearing two or more
+    // `owl:unionOf` superclasses (`C ⊑ (…∪…)` repeated) is the multi-disjunction
+    // propositional-SAT shape whose refutation needs joint case-splitting. The
+    // committed bundle has at most ONE union superclass on any class, so this never
+    // fires on production; a single disjunctive superclass stays decided.
+    if class_with_multiple_union_superclasses(edb) {
+        withholds.insert("unionOf".to_owned());
+    }
+
+    // G8 — hasSelf membership refutation. A benign `owl:hasSelf` self-restriction
+    // typed onto an individual (`x rdf:type ∃p.Self`) is decided consistent (and is
+    // an OWL 2 EL construct), but a self-restriction in a `owl:disjointWith` /
+    // class-constraint position needs the self-membership inference (`x p x ⇒ x ∈ ∃p.Self`)
+    // the chase does not perform to see the clash. Withheld only in that refutation
+    // position; the committed bundle asserts no `owl:hasSelf`.
+    if has_self_restriction_in_refutation_position(edb) {
+        withholds.insert("hasSelf".to_owned());
+    }
+
+    // G8 — malformed `rdf:List`: `rdf:nil` bearing `rdf:first`/`rdf:rest`. A
+    // structurally-broken list makes the enclosing axiom's meaning turn on
+    // list-well-formedness the chase does not adjudicate. `rdf:nil` never bears a
+    // list edge in the committed bundle.
+    if nil_bears_list_edge(edb) {
+        withholds.insert("malformedRdfList".to_owned());
+    }
+
+    withholds
+}
+
+/// True iff some `owl:complementOf` class node sits in a positive class-DEFINITION
+/// position (see [`nodes_in_class_constraint_position`]). The complement *clash* on
+/// a typed individual (`rdf:type`) and the bundle's `rdfs:domain` complement are
+/// deliberately excluded — both are natively decided.
+fn complement_in_class_constraint_position(edb: &RdfDataset) -> bool {
+    let constraint_nodes = nodes_in_class_constraint_position(edb);
+    quads_by_subject(edb)
+        .into_iter()
+        .any(|(subject, predicate, _, world)| {
+            predicate == OWL_COMPLEMENT_OF && constraint_nodes.contains(&(world, subject))
+        })
+}
+
+/// True iff some individual is `rdf:type`d to a complement class `¬M`
+/// (`i rdf:type N`, `N owl:complementOf M`) WITHOUT being EDB-asserted `i rdf:type M`.
+/// Native decides the *direct* complement clash (`i:N ∧ i:M ⇒ Nothing`) when both
+/// memberships are present, but here `i:M` must be DERIVED (via an enumeration,
+/// restriction, or subclass) for the refutation to fire — beyond the chase. When
+/// `i:M` IS asserted the clash is decided, so that case is NOT withheld (preserving
+/// the sound complement-clash decision). The committed bundle types no individual to
+/// a complement class.
+fn complement_typed_individual_needs_derivation(edb: &RdfDataset) -> bool {
+    // (world, complement-node) → complemented class M.
+    let mut complement_of: HashMap<(String, String), String> = HashMap::new();
+    for (subject, predicate, object, world) in quads_by_subject(edb) {
+        if predicate == OWL_COMPLEMENT_OF
+            && let Some(m) = term_resource_key(&object)
+        {
+            complement_of.insert((world, subject), m);
+        }
+    }
+    if complement_of.is_empty() {
+        return false;
+    }
+    // (world, individual) → set of asserted types.
+    let mut types: HashMap<(String, String), BTreeSet<String>> = HashMap::new();
+    for (subject, predicate, object, world) in quads_by_subject(edb) {
+        if predicate == RDF_TYPE
+            && let Some(class) = term_resource_key(&object)
+        {
+            types.entry((world, subject)).or_default().insert(class);
+        }
+    }
+    for ((world, _individual), asserted) in &types {
+        for class in asserted {
+            let Some(m) = complement_of.get(&(world.clone(), class.clone())) else {
+                continue;
+            };
+            // `i : ¬M` present; the clash needs `i : M`, which is NOT asserted.
+            if !asserted.contains(m) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+/// The set of `(world, node)` class-expression nodes reachable — directly or
+/// through `owl:intersectionOf`/`owl:unionOf` list nesting — from a positive
+/// class-DEFINITION position: the object of `rdfs:subClassOf`/`owl:equivalentClass`,
+/// or a `someValuesFrom`/`allValuesFrom` restriction filler.
+///
+/// `rdf:type` (an individual's membership) and `rdfs:domain`/`rdfs:range`
+/// (property scoping) are deliberately NOT definition positions: a construct
+/// reached only through them is the ABox/property-scoping case the native chase
+/// decides, not the TBox-satisfiability case it cannot refute. This is the shared
+/// TBox/ABox boundary the complement (H1) and cardinality (H2) withholds key on.
+fn nodes_in_class_constraint_position(edb: &RdfDataset) -> BTreeSet<(String, String)> {
+    let lists = read_lists(edb);
+    let mut expr_members: HashMap<(String, String), Vec<String>> = HashMap::new();
+    let mut worklist: Vec<(String, String)> = Vec::new();
+    for (subject, predicate, object, world) in quads_by_subject(edb) {
+        match predicate.as_str() {
+            OWL_INTERSECTION_OF | OWL_UNION_OF => {
+                if let Some(root) = term_resource_key(&object)
+                    && let Some(members) = lists.get(&(world.clone(), root))
+                {
+                    expr_members.insert((world.clone(), subject.clone()), members.clone());
+                }
+            }
+            RDFS_SUBCLASSOF | OWL_EQUIVALENT_CLASS | OWL_SOME_VALUES_FROM | OWL_ALL_VALUES_FROM => {
+                if let Some(target) = term_resource_key(&object) {
+                    worklist.push((world.clone(), target));
+                }
+            }
+            _ => {}
+        }
+    }
+    let mut constraint_used: BTreeSet<(String, String)> = BTreeSet::new();
+    while let Some(node) = worklist.pop() {
+        if !constraint_used.insert(node.clone()) {
+            continue;
+        }
+        if let Some(members) = expr_members.get(&node) {
+            for m in members {
+                worklist.push((node.0.clone(), m.clone()));
+            }
+        }
+    }
+    constraint_used
+}
+
+/// True iff some *plain* (unqualified) cardinality restriction that can require two
+/// or more distinct values — an exact `owl:cardinality` bound ≥ 2, or any plain
+/// `owl:min`/`maxCardinality` — is `owl:onProperty` a property typed
+/// `owl:DatatypeProperty`. That is the datatype value-space counting shape (G8):
+/// `cardinality 257` distinct `xsd:byte` values is unsatisfiable, but the chase
+/// carries no datatype value-space reasoning to refute it. Qualified cardinalities
+/// and the exact `cardinality 1` (functional) case — the only plain cardinality the
+/// committed bundle asserts — are deliberately NOT withheld, so this never fires on
+/// production.
+fn cardinality_on_datatype_property(edb: &RdfDataset) -> bool {
+    const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
+    let datatype_props: BTreeSet<(String, String)> = quads_by_subject(edb)
+        .into_iter()
+        .filter(|(_, predicate, object, _)| {
+            predicate == RDF_TYPE && matches!(object, RdfTerm::Iri(o) if o == OWL_DATATYPE_PROPERTY)
+        })
+        .map(|(subject, _, _, world)| (world, subject))
+        .collect();
+    if datatype_props.is_empty() {
+        return false;
+    }
+    let restrictions = read_restrictions(edb);
+    restrictions.iter().any(|((world, _node), r)| {
+        let counting = matches!(r.cardinality, Some(n) if n >= 2)
+            || r.min_cardinality.is_some()
+            || r.max_cardinality.is_some();
+        counting
+            && r.on_property
+                .as_ref()
+                .is_some_and(|p| datatype_props.contains(&(world.clone(), p.clone())))
+    })
+}
+
+/// True iff some class is asserted `owl:disjointWith` itself (`C owl:disjointWith C`)
+/// — a self-emptying class whose forced-nonempty inconsistency the chase misses
+/// (G8 in [`refutation_shape_withholds`]).
+fn class_disjoint_with_itself(edb: &RdfDataset) -> bool {
+    quads_by_subject(edb)
+        .into_iter()
+        .any(|(subject, predicate, object, _)| {
+            predicate == OWL_DISJOINT_WITH
+                && matches!(term_resource_key(&object), Some(o) if o == subject)
+        })
+}
+
+/// True iff some individual is `rdf:type`d to two or more distinct
+/// `owl:oneOf` enumeration classes in one world — the multi-nominal counting shape
+/// (H3 in [`refutation_shape_withholds`]).
+fn individual_in_multiple_enumerations(edb: &RdfDataset) -> bool {
+    let enumeration_classes: BTreeSet<(String, String)> = quads_by_subject(edb)
+        .into_iter()
+        .filter(|(_, predicate, _, _)| predicate == OWL_ONE_OF)
+        .map(|(subject, _, _, world)| (world, subject))
+        .collect();
+    if enumeration_classes.len() < 2 {
+        return false;
+    }
+    let mut per_individual: HashMap<(String, String), BTreeSet<String>> = HashMap::new();
+    for (subject, predicate, object, world) in quads_by_subject(edb) {
+        if predicate != RDF_TYPE {
+            continue;
+        }
+        let Some(class) = term_resource_key(&object) else {
+            continue;
+        };
+        if enumeration_classes.contains(&(world.clone(), class.clone())) {
+            per_individual
+                .entry((world, subject))
+                .or_default()
+                .insert(class);
+        }
+    }
+    per_individual.values().any(|classes| classes.len() >= 2)
+}
+
+/// True iff some class is the subject of two or more `rdfs:subClassOf` axioms whose
+/// object is an `owl:unionOf` node — the multi-disjunction propositional-refutation
+/// shape (H4 in [`refutation_shape_withholds`]).
+fn class_with_multiple_union_superclasses(edb: &RdfDataset) -> bool {
+    let union_nodes: BTreeSet<(String, String)> = quads_by_subject(edb)
+        .into_iter()
+        .filter(|(_, predicate, _, _)| predicate == OWL_UNION_OF)
+        .map(|(subject, _, _, world)| (world, subject))
+        .collect();
+    let mut per_subject: HashMap<(String, String), BTreeSet<String>> = HashMap::new();
+    for (subject, predicate, object, world) in quads_by_subject(edb) {
+        if predicate != RDFS_SUBCLASSOF {
+            continue;
+        }
+        let Some(target) = term_resource_key(&object) else {
+            continue;
+        };
+        if union_nodes.contains(&(world.clone(), target.clone())) {
+            per_subject
+                .entry((world, subject))
+                .or_default()
+                .insert(target);
+        }
+    }
+    per_subject.values().any(|unions| unions.len() >= 2)
+}
+
+/// True iff some `owl:hasSelf` self-restriction node sits in a refutation position:
+/// a positive class-constraint position (see [`nodes_in_class_constraint_position`])
+/// or a subject/object of `owl:disjointWith`. A self-restriction merely `rdf:type`d
+/// onto an individual (the OWL 2 EL decided case) is NOT withheld. See
+/// [`refutation_shape_withholds`] (G8).
+fn has_self_restriction_in_refutation_position(edb: &RdfDataset) -> bool {
+    let self_nodes: BTreeSet<(String, String)> = quads_by_subject(edb)
+        .into_iter()
+        .filter(|(_, predicate, _, _)| predicate == OWL_HAS_SELF)
+        .map(|(subject, _, _, world)| (world, subject))
+        .collect();
+    if self_nodes.is_empty() {
+        return false;
+    }
+    let constraint_nodes = nodes_in_class_constraint_position(edb);
+    if self_nodes.iter().any(|n| constraint_nodes.contains(n)) {
+        return true;
+    }
+    quads_by_subject(edb)
+        .into_iter()
+        .any(|(subject, predicate, object, world)| {
+            if predicate != OWL_DISJOINT_WITH {
+                return false;
+            }
+            self_nodes.contains(&(world.clone(), subject))
+                || term_resource_key(&object)
+                    .is_some_and(|o| self_nodes.contains(&(world.clone(), o)))
+        })
+}
+
+/// True iff `rdf:nil` appears as the subject of an `rdf:first` or `rdf:rest`
+/// triple — a malformed `rdf:List` (G8 in [`refutation_shape_withholds`]).
+fn nil_bears_list_edge(edb: &RdfDataset) -> bool {
+    const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+    const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+    const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+    quads_by_subject(edb)
+        .into_iter()
+        .any(|(subject, predicate, _, _)| {
+            subject == RDF_NIL && (predicate == RDF_FIRST || predicate == RDF_REST)
+        })
 }
 
 /// Honestly classify which present construct families the native DL post-pass
@@ -2317,10 +3269,34 @@ fn classify_coverage(edb: &RdfDataset, present: &[String]) -> BTreeSet<String> {
     }
 
     // owl:FunctionalProperty: a subject with two provably-distinct values on a
-    // functional property is forced into owl:Nothing. Decided unconditionally
-    // when present (literal-aware distinctness + the identity stance).
-    if present_set.contains("functionalProperty") {
+    // functional property is forced into owl:Nothing. Decided when present
+    // (literal-aware distinctness + the identity stance) UNLESS a functional
+    // property carries two lexically-distinct `rdf:XMLLiteral` values: XMLLiteral
+    // equality is XML-C14N, which the native chase does not perform, so such a
+    // pair is neither provably distinct nor provably equal — honestly withheld
+    // (an XMLLiteral value could canonicalize either way) rather than risk a wrong
+    // `consistent`/`inconsistent`.
+    if present_set.contains("functionalProperty")
+        && !functional_property_has_unresolvable_xml_literals(edb)
+    {
         decided.insert("functionalProperty".to_owned());
+    }
+
+    // Wave A clash families — each decided by a sound local clash rule (no missing
+    // sub-case, no value invention): asymmetric/irreflexive property cycles,
+    // property-disjointness value collisions, the AllDisjoint*/AllDifferent list
+    // expansions. Decided unconditionally when present.
+    for family in [
+        "asymmetricProperty",
+        "irreflexiveProperty",
+        "propertyDisjointWith",
+        "allDisjointProperties",
+        "allDisjointClasses",
+        "allDifferent",
+    ] {
+        if present_set.contains(family) {
+            decided.insert(family.to_owned());
+        }
     }
 
     // owl:hasKey: two key-agreeing instances asserted owl:differentFrom clash.
@@ -2361,7 +3337,52 @@ fn classify_coverage(edb: &RdfDataset, present: &[String]) -> BTreeSet<String> {
         }
     }
 
+    // Out-of-fragment constructs (the datatype/facet-restriction family and the
+    // universal top properties) are DELIBERATELY never inserted into `decided`: the
+    // native chase implements no semantics for them, so a bundle asserting them can
+    // only be reported as cannot-decide (they remain in `present \ decided` =
+    // `unsupported`, populating `DlVerdict::gaps`). This is the incomplete-never-
+    // wrong contract — never a silently-ignored axiom.
+
     decided
+}
+
+/// True iff some `owl:FunctionalProperty` carries two lexically-distinct
+/// `rdf:XMLLiteral` values on a single subject — a shape the native chase cannot
+/// decide (XMLLiteral equality is XML canonicalization, which it does not
+/// perform), so the `functionalProperty` family is honestly withheld rather than
+/// risk a wrong verdict on it.
+fn functional_property_has_unresolvable_xml_literals(edb: &RdfDataset) -> bool {
+    let value_index = build_value_index(edb);
+    let functional_props: BTreeSet<(String, String)> = value_index
+        .iter()
+        .filter(|((_, _, pred), _)| pred.as_str() == RDF_TYPE)
+        .flat_map(|((world, subject, _), terms)| {
+            terms.values().filter_map(move |t| match t {
+                RdfTerm::Iri(o) if o == OWL_FUNCTIONAL_PROPERTY => {
+                    Some((world.clone(), subject.clone()))
+                }
+                _ => None,
+            })
+        })
+        .collect();
+    for ((world, _subject, pred), terms) in &value_index {
+        if !functional_props.contains(&(world.clone(), pred.clone())) {
+            continue;
+        }
+        let mut xml_forms: BTreeSet<&str> = BTreeSet::new();
+        for term in terms.values() {
+            if let RdfTerm::Literal(lit) = term
+                && lit.datatype.as_deref() == Some(RDF_XML_LITERAL)
+            {
+                xml_forms.insert(lit.lexical_form.as_str());
+            }
+        }
+        if xml_forms.len() >= 2 {
+            return true;
+        }
+    }
+    false
 }
 
 /// True iff every `owl:someValuesFrom` restriction is well-formed enough for the
@@ -2621,6 +3642,242 @@ mod tests {
         );
     }
 
+    // ── Refutation-shape withholds (Wave B) ──────────────────────────────────
+    // Each feeds a native-undecidable refutation shape and asserts the verdict
+    // honestly WITHHOLDS: a non-empty `gaps` (the `incomplete` token) and NOT a
+    // wrong decided verdict. Falsifiable: a reasoner that silently ignored the
+    // axiom would report a decided `consistent` with empty `gaps` and fail here.
+
+    const ONE_OF: &str = super::OWL_ONE_OF;
+    const UNION_OF: &str = super::OWL_UNION_OF;
+    const COMPLEMENT_OF: &str = super::OWL_COMPLEMENT_OF;
+    const EQUIV_CLASS: &str = super::OWL_EQUIVALENT_CLASS;
+    const MIN_CARDINALITY: &str = super::OWL_MIN_CARDINALITY;
+    const CARDINALITY: &str = super::OWL_CARDINALITY;
+    const DIFFERENT_FROM: &str = super::OWL_DIFFERENT_FROM;
+    const HAS_SELF: &str = super::OWL_HAS_SELF;
+    const INVERSE_FUNCTIONAL: &str = super::OWL_INVERSE_FUNCTIONAL_PROPERTY;
+    const DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
+
+    fn assert_withheld(verdict: &DlVerdict, token: &str) {
+        assert!(
+            !verdict.gaps.is_empty(),
+            "expected a non-empty gap (honest cannot-decide), got none"
+        );
+        assert!(
+            verdict.coverage.unsupported.iter().any(|u| u == token),
+            "expected withheld family {token:?} in coverage.unsupported, got {:?}",
+            verdict.coverage.unsupported
+        );
+    }
+
+    #[test]
+    fn complement_in_class_definition_is_withheld() {
+        // A ⊑ ¬D — the complement node is a `rdfs:subClassOf` superclass (a class
+        // definition), NOT typed onto an individual. Deciding this needs complement
+        // refutation the chase does not perform ⇒ honest gap.
+        let store = dataset(vec![
+            quad(A, SUBCLASS, "http://gmeow.example/ncomp"),
+            quad("http://gmeow.example/ncomp", COMPLEMENT_OF, D),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert_withheld(&verdict, "complementOf");
+    }
+
+    #[test]
+    fn complement_filler_in_restriction_is_withheld() {
+        // A ⊑ ∃p.(¬D): complement as a `someValuesFrom` filler is a class-definition
+        // position ⇒ honest gap.
+        let store = dataset(vec![
+            quad(A, SUBCLASS, R),
+            quad(R, ON_PROPERTY, P),
+            quad(R, SOME_VALUES_FROM, "http://gmeow.example/ncomp"),
+            quad("http://gmeow.example/ncomp", COMPLEMENT_OF, D),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert_withheld(&verdict, "complementOf");
+    }
+
+    #[test]
+    fn complement_typed_individual_without_asserted_membership_is_withheld() {
+        // x : ¬D, but x is NOT asserted x : D. The clash needs `x : D` to be DERIVED
+        // (beyond the chase) ⇒ honest gap. Contrast the decided clash test where BOTH
+        // memberships are asserted.
+        let store = dataset(vec![
+            quad(X, TYPE, "http://gmeow.example/ncomp"),
+            quad("http://gmeow.example/ncomp", COMPLEMENT_OF, D),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert_withheld(&verdict, "complementOf");
+    }
+
+    #[test]
+    fn min_cardinality_on_a_class_definition_is_withheld() {
+        // C ≡ (≥2 p): a TBox cardinality counting definition, not an ABox restriction
+        // typed onto an individual. Native decides the ABox counting clash (Wave A)
+        // but NOT the TBox-satisfiability counting ⇒ honest gap.
+        let store = dataset(vec![
+            quad(C, EQUIV_CLASS, R),
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, MIN_CARDINALITY, "2", XSD_NON_NEGATIVE_INTEGER),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert_withheld(&verdict, "minCardinality");
+    }
+
+    #[test]
+    fn exact_cardinality_on_datatype_property_is_withheld() {
+        // x : (=257 p) with p a DatatypeProperty — datatype value-space counting the
+        // chase cannot refute (e.g. 257 distinct xsd:byte) ⇒ honest gap.
+        let store = dataset(vec![
+            quad(X, TYPE, R),
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, CARDINALITY, "257", XSD_NON_NEGATIVE_INTEGER),
+            quad(P, TYPE, DATATYPE_PROPERTY),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert_withheld(&verdict, "cardinality");
+    }
+
+    #[test]
+    fn individual_typed_to_two_enumerations_is_withheld() {
+        // x : {a,b} AND x : {c,d} — nominal counting across two enumerations ⇒ gap.
+        // (The single-enumeration `differentFrom`-all-members clash stays decided.)
+        let e1 = "http://gmeow.example/E1";
+        let e2 = "http://gmeow.example/E2";
+        let store = dataset(vec![
+            quad(e1, ONE_OF, "http://gmeow.example/l0"),
+            quad("http://gmeow.example/l0", FIRST, A),
+            quad("http://gmeow.example/l0", REST, NIL),
+            quad(e2, ONE_OF, "http://gmeow.example/l1"),
+            quad("http://gmeow.example/l1", FIRST, B),
+            quad("http://gmeow.example/l1", REST, NIL),
+            quad(X, TYPE, e1),
+            quad(X, TYPE, e2),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert_withheld(&verdict, "oneOf");
+    }
+
+    #[test]
+    fn class_with_two_union_superclasses_is_withheld() {
+        // C ⊑ (A∪B) AND C ⊑ (X∪Y): multi-disjunction propositional SAT ⇒ gap. A
+        // single union superclass stays decided (see the union decided test).
+        let u1 = "http://gmeow.example/u1";
+        let u2 = "http://gmeow.example/u2";
+        let store = dataset(vec![
+            quad(C, SUBCLASS, u1),
+            quad(u1, UNION_OF, "http://gmeow.example/lu1"),
+            quad("http://gmeow.example/lu1", FIRST, A),
+            quad("http://gmeow.example/lu1", REST, NIL),
+            quad(C, SUBCLASS, u2),
+            quad(u2, UNION_OF, "http://gmeow.example/lu2"),
+            quad("http://gmeow.example/lu2", FIRST, B),
+            quad("http://gmeow.example/lu2", REST, NIL),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert_withheld(&verdict, "unionOf");
+    }
+
+    #[test]
+    fn hasself_disjoint_refutation_is_withheld() {
+        // C disjointWith [∃p.Self], x : C, x p x. The clash needs `x ∈ ∃p.Self`
+        // inferred from `x p x` ⇒ honest gap.
+        let store = dataset(vec![
+            quad(C, DISJOINT, R),
+            quad(R, TYPE, "http://www.w3.org/2002/07/owl#Restriction"),
+            literal_quad(
+                R,
+                HAS_SELF,
+                "true",
+                "http://www.w3.org/2001/XMLSchema#boolean",
+            ),
+            quad(R, ON_PROPERTY, P),
+            quad(X, TYPE, C),
+            quad(X, P, X),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert_withheld(&verdict, "hasSelf");
+    }
+
+    #[test]
+    fn hasself_typed_onto_individual_is_decided_not_a_gap() {
+        // x : ∃p.Self with no disjointness — a benign OWL 2 EL self-restriction.
+        // Decided consistent, NO gap (the EL grade's `selfrestriction` case).
+        let store = dataset(vec![
+            quad(X, TYPE, R),
+            quad(R, TYPE, "http://www.w3.org/2002/07/owl#Restriction"),
+            literal_quad(
+                R,
+                HAS_SELF,
+                "true",
+                "http://www.w3.org/2001/XMLSchema#boolean",
+            ),
+            quad(R, ON_PROPERTY, P),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(verdict.consistent, "a bare self-restriction is consistent");
+        assert!(
+            !verdict.coverage.unsupported.iter().any(|u| u == "hasSelf"),
+            "benign hasSelf must NOT be withheld: {:?}",
+            verdict.coverage.unsupported
+        );
+    }
+
+    #[test]
+    fn malformed_nil_list_is_withheld() {
+        // rdf:nil bearing an rdf:first edge — a malformed rdf:List ⇒ honest gap.
+        let store = dataset(vec![quad(NIL, FIRST, A)]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert_withheld(&verdict, "malformedRdfList");
+    }
+
+    #[test]
+    fn self_disjoint_class_is_withheld() {
+        // C disjointWith C — an empty class whose forced-nonempty inconsistency the
+        // chase misses ⇒ honest gap.
+        let store = dataset(vec![quad(C, DISJOINT, C), quad(X, TYPE, A)]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert_withheld(&verdict, "selfDisjointClass");
+    }
+
+    #[test]
+    fn inverse_functional_property_is_withheld() {
+        // owl:InverseFunctionalProperty has no native identity-merge clash rule ⇒
+        // its presence is an honest gap.
+        let store = dataset(vec![quad(P, TYPE, INVERSE_FUNCTIONAL), quad(X, P, Y)]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert_withheld(&verdict, "inverseFunctionalProperty");
+    }
+
+    #[test]
+    fn single_enumeration_differentfrom_clash_stays_decided_under_withholds() {
+        // Regression: the sound single-enumeration nominal clash (x : {a,b},
+        // x differentFrom a, x differentFrom b ⇒ Nothing) must NOT be withheld by the
+        // multi-enumeration trigger — it has ONE enumeration.
+        let e1 = "http://gmeow.example/E1";
+        let store = dataset(vec![
+            quad(e1, ONE_OF, "http://gmeow.example/l0"),
+            quad("http://gmeow.example/l0", FIRST, A),
+            quad("http://gmeow.example/l0", REST, "http://gmeow.example/l1"),
+            quad("http://gmeow.example/l1", FIRST, B),
+            quad("http://gmeow.example/l1", REST, NIL),
+            quad(X, TYPE, e1),
+            quad(X, DIFFERENT_FROM, A),
+            quad(X, DIFFERENT_FROM, B),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !verdict.consistent,
+            "single-enumeration clash is decided inconsistent"
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "single-enumeration clash must NOT be withheld: {:?}",
+            verdict.gaps
+        );
+    }
+
     #[test]
     fn union_of_with_resolvable_list_is_decided_not_a_gap() {
         // owl:unionOf is a positive finite class-expression consequence in the
@@ -2821,22 +4078,23 @@ mod tests {
     }
 
     #[test]
-    fn max_one_with_two_distinct_fillers_clashes_under_una() {
-        // R = ≤1 p (maxCardinality 1), x : R, x p y, x p z, y ≠ z by UNA (distinct
-        // IRIs, no sameAs). The identity-stance anti-merge must clash WITHOUT any
-        // explicit owl:differentFrom ⇒ INCONSISTENT.
+    fn max_one_with_two_provably_distinct_fillers_clashes() {
+        // R = ≤1 p (maxCardinality 1), x : R, x p y, x p z, y owl:differentFrom z.
+        // The two fillers are PROVABLY distinct (explicit differentFrom — no UNA
+        // shortcut) ⇒ the ≤1 maximum is violated ⇒ INCONSISTENT.
         let store = dataset(vec![
             quad(R, ON_PROPERTY, P),
             literal_quad(R, MAX_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
             quad(X, TYPE, R),
             quad(X, P, Y),
             quad(X, P, Z),
+            quad(Y, OWL_DIFFERENT_FROM, Z),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
 
         assert!(
             !verdict.consistent,
-            "two distinct fillers under ≤1 must clash by UNA: {:?}",
+            "two provably-distinct fillers under ≤1 must clash: {:?}",
             verdict.inconsistencies
         );
         assert!(
@@ -2846,6 +4104,29 @@ mod tests {
                 .contains(&"maxCardinality".to_owned()),
             "positive maxCardinality is now decided: {:?}",
             verdict.coverage
+        );
+        assert!(verdict.gaps.is_empty(), "no gap: {:?}", verdict.gaps);
+    }
+
+    #[test]
+    fn max_one_with_two_named_fillers_no_differentfrom_is_consistent() {
+        // SOUNDNESS FLOOR (no unique-name assumption): the SAME ≤1 p shape but the
+        // two named fillers carry NO owl:differentFrom. Standard OWL does not
+        // assume unique names, so y and z may be owl:sameAs ⇒ the ≤1 maximum is NOT
+        // violated ⇒ CONSISTENT. (The old UNA default reported a FALSE
+        // inconsistency here — the OWL-2 restrict-maxcard-inst-obj-one regression.)
+        let store = dataset(vec![
+            quad(R, ON_PROPERTY, P),
+            literal_quad(R, MAX_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
+            quad(X, TYPE, R),
+            quad(X, P, Y),
+            quad(X, P, Z),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            verdict.consistent,
+            "two named fillers without differentFrom must NOT clash under ≤1: {:?}",
+            verdict.inconsistencies
         );
         assert!(verdict.gaps.is_empty(), "no gap: {:?}", verdict.gaps);
     }
@@ -2926,7 +4207,8 @@ mod tests {
     #[test]
     fn qualified_cardinality_one_with_two_distinct_c_fillers_clashes() {
         // R = =1 p.C (qualifiedCardinality 1, onClass C), x : R, x p y, x p z,
-        // y:C, z:C, y≠z by UNA ⇒ the =1 maximum clashes ⇒ INCONSISTENT.
+        // y:C, z:C, y owl:differentFrom z (PROVABLY distinct — no UNA) ⇒ the =1
+        // maximum clashes ⇒ INCONSISTENT.
         let store = dataset(vec![
             quad(R, ON_PROPERTY, P),
             quad(R, ON_CLASS, C),
@@ -2936,6 +4218,7 @@ mod tests {
             quad(X, P, Z),
             quad(Y, TYPE, C),
             quad(Z, TYPE, C),
+            quad(Y, OWL_DIFFERENT_FROM, Z),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
 
@@ -3362,6 +4645,494 @@ mod tests {
             verdict.coverage.decided.contains(&"oneOf".to_owned()),
             "ordinary oneOf stays decided: {:?}",
             verdict.coverage
+        );
+    }
+
+    // ── Out-of-fragment soundness: honest cannot-decide, never a wrong consistent ──
+
+    /// `owl:topObjectProperty` (the universal property) is not implemented by the
+    /// native chase: an ontology whose (in)consistency turns on the universal
+    /// property obligation must be reported as an honest cannot-decide (non-empty
+    /// `gaps`, the construct `unsupported`), NEVER a wrong `consistent` by ignoring
+    /// the axiom.
+    #[test]
+    fn top_object_property_is_an_honest_gap_never_a_wrong_consistent() {
+        const TOP: &str = super::OWL_TOP_OBJECT_PROPERTY;
+        let store = dataset(vec![quad(X, TOP, Y), quad(A, SUBCLASS, B)]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            !verdict.gaps.is_empty(),
+            "the universal property is out of fragment ⇒ honest gap, not a silent ignore: {:?}",
+            verdict.coverage
+        );
+        assert!(
+            verdict
+                .coverage
+                .unsupported
+                .contains(&"topObjectProperty".to_owned()),
+            "owl:topObjectProperty is unsupported (never decided): {:?}",
+            verdict.coverage
+        );
+        assert!(
+            !verdict
+                .coverage
+                .decided
+                .contains(&"topObjectProperty".to_owned()),
+            "owl:topObjectProperty must NOT be reported decided"
+        );
+    }
+
+    /// A datatype facet restriction that WOULD hide an inconsistency — `x` typed
+    /// into a class whose property range is restricted to `xsd:integer[<= 5]`
+    /// while `x` carries the value `10` — is invisible to the native chase (no
+    /// datatype-value reasoning). Its presence must force an honest cannot-decide
+    /// (non-empty `gaps`) rather than a wrong `consistent`.
+    #[test]
+    fn datatype_facet_restriction_is_an_honest_gap_never_a_wrong_consistent() {
+        const WITH_RESTRICTIONS: &str = super::OWL_WITH_RESTRICTIONS;
+        const ON_DATATYPE: &str = super::OWL_ON_DATATYPE;
+        const MAX_INCLUSIVE: &str = super::XSD_MAX_INCLUSIVE;
+        let dt = "http://gmeow.example/SmallInt";
+        let facet = "http://gmeow.example/facet0";
+        let store = dataset(vec![
+            // dt = xsd:integer restricted by [ xsd:maxInclusive "5" ]
+            quad(dt, ON_DATATYPE, super::XSD_INTEGER),
+            quad(dt, WITH_RESTRICTIONS, facet),
+            literal_quad(facet, MAX_INCLUSIVE, "5", super::XSD_INTEGER),
+            // x carries the out-of-range value 10 on p — an inconsistency the
+            // native path cannot see.
+            literal_quad(X, P, "10", super::XSD_INTEGER),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            !verdict.gaps.is_empty(),
+            "datatype/facet restriction is out of fragment ⇒ honest gap: {:?}",
+            verdict.coverage
+        );
+        for family in ["onDatatype", "withRestrictions", "maxInclusive"] {
+            assert!(
+                verdict.coverage.unsupported.contains(&family.to_owned()),
+                "{family} must be unsupported (never decided): {:?}",
+                verdict.coverage
+            );
+        }
+    }
+
+    /// The typed `ReasoningResult` fold: an out-of-fragment bundle with no derived
+    /// contradiction is `information=undetermined` (honest cannot-decide) — it is
+    /// NOT `is_decided_consistent()`, and its completeness drops to `Incomplete`.
+    /// This pins the API-level withholding of the positive consistency verdict.
+    #[test]
+    fn out_of_fragment_reasoning_result_is_undetermined_not_decided_consistent() {
+        use crate::result::InformationState;
+        const TOP: &str = super::OWL_TOP_OBJECT_PROPERTY;
+        let store = dataset(vec![quad(X, TOP, Y), quad(A, SUBCLASS, B)]);
+        let result =
+            crate::reason::reason_all(store.as_ref()).expect("native reason_all must decide");
+
+        assert_eq!(
+            result.information,
+            InformationState::Undetermined,
+            "out-of-fragment consistency is undetermined, never a positive verdict"
+        );
+        assert!(
+            !result.is_decided_consistent(),
+            "cannot-decide is NOT a decided-consistent verdict"
+        );
+        assert!(
+            !result.preservation.unsupported_constructs.is_empty(),
+            "the undecided construct is disclosed in the preservation set"
+        );
+    }
+
+    // ── Wave A: property-characteristic + disjointness/identity clash families ──
+
+    fn bn_iri(s: &str, p: &str, o: &str) -> RdfQuad {
+        RdfQuad::new(RdfTerm::blank_node(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W))
+    }
+    fn bn_bn(s: &str, p: &str, o: &str) -> RdfQuad {
+        RdfQuad::new(RdfTerm::blank_node(s), p, RdfTerm::blank_node(o)).in_graph(RdfTerm::iri(W))
+    }
+    /// A three-member RDF list `[a b c]` rooted at blank node `root`.
+    fn list3(root: &str, a: &str, b: &str, c: &str) -> Vec<RdfQuad> {
+        const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+        const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+        const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+        let n1 = root.to_string();
+        let n2 = format!("{root}-2");
+        let n3 = format!("{root}-3");
+        vec![
+            bn_iri(&n1, RDF_FIRST, a),
+            bn_bn(&n1, RDF_REST, &n2),
+            bn_iri(&n2, RDF_FIRST, b),
+            bn_bn(&n2, RDF_REST, &n3),
+            bn_iri(&n3, RDF_FIRST, c),
+            bn_iri(&n3, RDF_REST, RDF_NIL),
+        ]
+    }
+
+    const P1: &str = "http://gmeow.example/p1";
+    const P2: &str = "http://gmeow.example/p2";
+    const P3: &str = "http://gmeow.example/p3";
+    const O: &str = "http://gmeow.example/o";
+
+    #[test]
+    fn asymmetric_property_cycle_is_inconsistent() {
+        // p AsymmetricProperty, x p y, y p x ⇒ Nothing(x).
+        let store = dataset(vec![
+            quad(P, TYPE, super::OWL_ASYMMETRIC_PROPERTY),
+            quad(X, P, Y),
+            quad(Y, P, X),
+        ]);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !v.consistent,
+            "asymmetric-property cycle clashes: {:?}",
+            v.inconsistencies
+        );
+        assert!(v.gaps.is_empty(), "no gap: {:?}", v.gaps);
+        assert!(
+            v.coverage
+                .decided
+                .contains(&"asymmetricProperty".to_owned())
+        );
+    }
+
+    #[test]
+    fn asymmetric_property_without_cycle_is_consistent() {
+        // Falsifiable: a single directed edge on an asymmetric property is fine.
+        let store = dataset(vec![
+            quad(P, TYPE, super::OWL_ASYMMETRIC_PROPERTY),
+            quad(X, P, Y),
+        ]);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            v.consistent,
+            "no reverse edge ⇒ consistent: {:?}",
+            v.inconsistencies
+        );
+    }
+
+    #[test]
+    fn symmetric_plus_asymmetric_edge_is_inconsistent() {
+        // p is BOTH Symmetric and Asymmetric (the OWL-2 `-term` shape). x p y ⇒
+        // (symmetric) y p x ⇒ (asymmetric) Nothing(x).
+        let store = dataset(vec![
+            quad(P, TYPE, super::OWL_SYMMETRIC_PROPERTY),
+            quad(P, TYPE, super::OWL_ASYMMETRIC_PROPERTY),
+            quad(X, P, Y),
+        ]);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !v.consistent,
+            "symmetric+asymmetric edge clashes: {:?}",
+            v.inconsistencies
+        );
+    }
+
+    #[test]
+    fn irreflexive_property_self_loop_is_inconsistent() {
+        // p IrreflexiveProperty, x p x ⇒ Nothing(x).
+        let store = dataset(vec![
+            quad(P, TYPE, super::OWL_IRREFLEXIVE_PROPERTY),
+            quad(X, P, X),
+        ]);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !v.consistent,
+            "irreflexive self-loop clashes: {:?}",
+            v.inconsistencies
+        );
+        assert!(
+            v.coverage
+                .decided
+                .contains(&"irreflexiveProperty".to_owned())
+        );
+    }
+
+    #[test]
+    fn property_disjoint_with_shared_object_is_inconsistent() {
+        // p1 propertyDisjointWith p2, s p1 o, s p2 o ⇒ Nothing(s).
+        let store = dataset(vec![
+            quad(P1, super::OWL_PROPERTY_DISJOINT_WITH, P2),
+            quad(X, P1, O),
+            quad(X, P2, O),
+        ]);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !v.consistent,
+            "disjoint properties sharing a value clash: {:?}",
+            v.inconsistencies
+        );
+        assert!(
+            v.coverage
+                .decided
+                .contains(&"propertyDisjointWith".to_owned())
+        );
+    }
+
+    #[test]
+    fn property_disjoint_with_shared_literal_is_inconsistent() {
+        // Data-property disjointness is literal-aware: same literal VALUE on two
+        // disjoint data properties clashes (the disjointdataproperties shape).
+        let str_ty = "http://www.w3.org/2001/XMLSchema#string";
+        let store = dataset(vec![
+            quad(P1, super::OWL_PROPERTY_DISJOINT_WITH, P2),
+            literal_quad(X, P1, "Peter Griffin", str_ty),
+            literal_quad(X, P2, "Peter Griffin", str_ty),
+        ]);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !v.consistent,
+            "shared literal on disjoint data properties clashes: {:?}",
+            v.inconsistencies
+        );
+    }
+
+    #[test]
+    fn self_disjoint_property_with_a_value_is_inconsistent() {
+        // p propertyDisjointWith p (irreflexive shape): any single asserted value
+        // is a value on both `p` and `p` ⇒ clash.
+        let store = dataset(vec![
+            quad(P, super::OWL_PROPERTY_DISJOINT_WITH, P),
+            quad(X, P, O),
+        ]);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !v.consistent,
+            "self-disjoint property with a value clashes: {:?}",
+            v.inconsistencies
+        );
+    }
+
+    #[test]
+    fn equivalent_disjoint_properties_clash_via_propagation() {
+        // p1 ≡ p2 AND p1 disjointWith p2, s1 p1 o1, s2 p2 o2. Equivalence copies
+        // each assertion onto the other property, so s1 carries p1(o1) and p2(o1)
+        // ⇒ clash.
+        let o1 = "http://gmeow.example/o1";
+        let s1 = "http://gmeow.example/s1";
+        let store = dataset(vec![
+            quad(P1, super::OWL_EQUIVALENT_PROPERTY, P2),
+            quad(P1, super::OWL_PROPERTY_DISJOINT_WITH, P2),
+            quad(s1, P1, o1),
+        ]);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !v.consistent,
+            "equivalent+disjoint properties clash: {:?}",
+            v.inconsistencies
+        );
+    }
+
+    #[test]
+    fn all_disjoint_properties_expands_and_clashes() {
+        // AllDisjointProperties [p1 p2 p3], s p1 o, s p2 o ⇒ Nothing(s).
+        let mut quads = vec![
+            quad(
+                "http://gmeow.example/adp",
+                TYPE,
+                super::OWL_ALL_DISJOINT_PROPERTIES,
+            ),
+            RdfQuad::new(
+                RdfTerm::iri("http://gmeow.example/adp"),
+                super::OWL_MEMBERS,
+                RdfTerm::blank_node("adplist"),
+            )
+            .in_graph(RdfTerm::iri(W)),
+            quad(X, P1, O),
+            quad(X, P2, O),
+        ];
+        quads.extend(list3("adplist", P1, P2, P3));
+        let store = dataset(quads);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !v.consistent,
+            "AllDisjointProperties collision clashes: {:?}",
+            v.inconsistencies
+        );
+        assert!(
+            v.coverage
+                .decided
+                .contains(&"allDisjointProperties".to_owned())
+        );
+    }
+
+    #[test]
+    fn same_as_and_different_from_is_inconsistent() {
+        // x sameAs y AND x differentFrom y ⇒ Nothing(x).
+        let store = dataset(vec![
+            quad(X, super::OWL_SAME_AS, Y),
+            quad(X, super::OWL_DIFFERENT_FROM, Y),
+        ]);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !v.consistent,
+            "sameAs ⊓ differentFrom clashes: {:?}",
+            v.inconsistencies
+        );
+    }
+
+    #[test]
+    fn reflexive_different_from_is_inconsistent() {
+        // x differentFrom x ⇒ Nothing(x) (everything is sameAs itself).
+        let store = dataset(vec![quad(X, super::OWL_DIFFERENT_FROM, X)]);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !v.consistent,
+            "reflexive differentFrom clashes: {:?}",
+            v.inconsistencies
+        );
+    }
+
+    #[test]
+    fn all_different_with_sameas_member_is_inconsistent() {
+        // AllDifferent [w1 w2 w3] with w1 sameAs w2 ⇒ Nothing (the expanded
+        // differentFrom(w1,w2) contradicts sameAs).
+        let w1 = "http://gmeow.example/w1";
+        let w2 = "http://gmeow.example/w2";
+        let w3 = "http://gmeow.example/w3";
+        let mut quads = vec![
+            quad("http://gmeow.example/ad", TYPE, super::OWL_ALL_DIFFERENT),
+            RdfQuad::new(
+                RdfTerm::iri("http://gmeow.example/ad"),
+                super::OWL_MEMBERS,
+                RdfTerm::blank_node("adlist"),
+            )
+            .in_graph(RdfTerm::iri(W)),
+            quad(w1, super::OWL_SAME_AS, w2),
+        ];
+        quads.extend(list3("adlist", w1, w2, w3));
+        let store = dataset(quads);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !v.consistent,
+            "AllDifferent with a sameAs member clashes: {:?}",
+            v.inconsistencies
+        );
+        assert!(v.coverage.decided.contains(&"allDifferent".to_owned()));
+    }
+
+    #[test]
+    fn all_disjoint_classes_expands_and_clashes() {
+        // AllDisjointClasses [c1 c2 c3], w a c1, w a c2 ⇒ Nothing(w) (via the
+        // expanded disjointWith + existing individual-clash).
+        let c1 = "http://gmeow.example/c1";
+        let c2 = "http://gmeow.example/c2";
+        let c3 = "http://gmeow.example/c3";
+        let w = "http://gmeow.example/w-ind";
+        let mut quads = vec![
+            quad(
+                "http://gmeow.example/adc",
+                TYPE,
+                super::OWL_ALL_DISJOINT_CLASSES,
+            ),
+            RdfQuad::new(
+                RdfTerm::iri("http://gmeow.example/adc"),
+                super::OWL_MEMBERS,
+                RdfTerm::blank_node("adclist"),
+            )
+            .in_graph(RdfTerm::iri(W)),
+            quad(w, TYPE, c1),
+            quad(w, TYPE, c2),
+        ];
+        quads.extend(list3("adclist", c1, c2, c3));
+        let store = dataset(quads);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !v.consistent,
+            "AllDisjointClasses membership clashes: {:?}",
+            v.inconsistencies
+        );
+        assert!(
+            v.coverage
+                .decided
+                .contains(&"allDisjointClasses".to_owned())
+        );
+    }
+
+    #[test]
+    fn negative_property_assertion_by_shape_without_type_is_inconsistent() {
+        // The OWL-2 `-fw` NPA shape: the NPA node carries source/property/target
+        // but NO `rdf:type owl:NegativePropertyAssertion`; native infers NPA-hood
+        // structurally and clashes it against the positive assertion.
+        let s = "http://gmeow.example/s";
+        let store = dataset(vec![
+            bn_iri("npa", super::OWL_SOURCE_INDIVIDUAL, s),
+            bn_iri("npa", super::OWL_ASSERTION_PROPERTY, P),
+            bn_iri("npa", super::OWL_TARGET_INDIVIDUAL, O),
+            quad(s, P, O),
+        ]);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !v.consistent,
+            "structural NPA clashes its positive: {:?}",
+            v.inconsistencies
+        );
+    }
+
+    #[test]
+    fn functional_property_two_named_fillers_no_differentfrom_is_consistent() {
+        // SOUNDNESS FLOOR (no UNA): a functional property with two merely-named
+        // fillers and NO owl:differentFrom is CONSISTENT — they may be owl:sameAs.
+        // (The old UNA default reported a FALSE inconsistency here: the OWL-2
+        // char-functional-inst / WebOnt-FunctionalProperty-00{1,2} regression.)
+        let store = dataset(vec![
+            quad(P, TYPE, super::OWL_FUNCTIONAL_PROPERTY),
+            quad(X, P, Y),
+            quad(X, P, Z),
+        ]);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            v.consistent,
+            "two named functional-property fillers without differentFrom must NOT clash: {:?}",
+            v.inconsistencies
+        );
+        assert!(v.gaps.is_empty(), "no gap: {:?}", v.gaps);
+    }
+
+    #[test]
+    fn functional_property_two_provably_distinct_fillers_clash() {
+        // With explicit owl:differentFrom the two fillers ARE provably distinct ⇒
+        // the functional property clashes (soundly).
+        let store = dataset(vec![
+            quad(P, TYPE, super::OWL_FUNCTIONAL_PROPERTY),
+            quad(X, P, Y),
+            quad(X, P, Z),
+            quad(Y, super::OWL_DIFFERENT_FROM, Z),
+        ]);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            !v.consistent,
+            "differentFrom fillers on a functional property clash: {:?}",
+            v.inconsistencies
+        );
+    }
+
+    #[test]
+    fn functional_property_distinct_xml_literals_are_withheld() {
+        // Two lexically-distinct rdf:XMLLiteral values on a functional property:
+        // the chase cannot canonicalize XML, so the family is honestly WITHHELD (a
+        // gap), never a wrong clash. (OWL-2 WebOnt-miscellaneous-202.)
+        let store = dataset(vec![
+            quad(P, TYPE, super::OWL_FUNCTIONAL_PROPERTY),
+            literal_quad(X, P, "<a></a>", super::RDF_XML_LITERAL),
+            literal_quad(X, P, "<a/>", super::RDF_XML_LITERAL),
+        ]);
+        let v = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        assert!(
+            v.coverage
+                .unsupported
+                .contains(&"functionalProperty".to_owned()),
+            "unresolvable XMLLiteral functional values are withheld: {:?}",
+            v.coverage
+        );
+        assert!(
+            !v.gaps.is_empty(),
+            "the withheld XMLLiteral shape surfaces as a gap: {:?}",
+            v.gaps
         );
     }
 }

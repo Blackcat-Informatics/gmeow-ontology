@@ -334,7 +334,7 @@ fn from_dl_verdict_inconsistent_is_both_with_witnesses() {
 }
 
 #[test]
-fn from_dl_verdict_unsupported_constructs_drop_completeness() {
+fn from_dl_verdict_unsupported_constructs_are_undetermined_not_wrong_consistent() {
     let r = ReasoningResult::from_dl_verdict(
         Vec::new(),
         &verdict(true, vec!["http://www.w3.org/2002/07/owl#someValuesFrom"]),
@@ -351,8 +351,13 @@ fn from_dl_verdict_unsupported_constructs_drop_completeness() {
             .polarities
             .contains(&PreservationKind::SoundUnder)
     );
-    // Still conclusive (the run completed), so Supported, not Undetermined.
-    assert_eq!(r.information, InformationState::Supported);
+    // The "consistent" verdict here rests on IGNORING the undecided construct —
+    // there is no genuine proof of satisfiability, so the honest state is
+    // Undetermined (cannot-decide), NEVER a wrong Supported. (Incomplete-never-
+    // wrong: a positive consistency verdict would be unsound.)
+    assert_eq!(r.information, InformationState::Undetermined);
+    assert!(!r.is_decided_consistent());
+    assert!(r.validate().is_ok());
 }
 
 // ── Proof/counterproof schema (from_explanation + from_query) ──────────────────

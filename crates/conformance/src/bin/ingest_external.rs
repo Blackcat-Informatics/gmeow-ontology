@@ -1379,6 +1379,27 @@ fn default_quarantine_dir() -> PathBuf {
         .join("w3c-owl2-el-divergence")
 }
 
+/// The committed accepted-DlGap quarantine baseline directory for a graded corpus.
+///
+/// The EL-profile grade keeps the tight, exactly-pinned `w3c-owl2-el-divergence`
+/// baseline (two honest `owl:Thing oneOf {singleton}` gaps; the on-gate
+/// `el_divergence_gate` asserts its membership is EXACTLY those two). The full
+/// OWL 2 grade — which runs a Horn/EL/DL-clash reasoner against the entire W3C
+/// OWL 2 test suite, DL and Full profiles included — needs its own, larger
+/// baseline: every DL/Full case whose (in)consistency turns on
+/// reasoning-by-contradiction the native chase honestly withholds (a non-empty
+/// `DlVerdict::gaps`), plus the premise-unlowerable cases. Keeping the two
+/// baselines in separate directories lets each grade pin its own accepted set
+/// without cross-contaminating the EL exactness gate.
+fn quarantine_dir_for(corpus_name: &str) -> PathBuf {
+    match corpus_name {
+        "w3c-owl2-full" => gmeow_conformance::paths::cases_root()
+            .join("external")
+            .join("w3c-owl2-full-divergence"),
+        _ => default_quarantine_dir(),
+    }
+}
+
 /// The declared status token of a TPTP problem, tolerant of both the `% SZS status`
 /// result-comment form (used by the vendored corpora) and the real-distribution
 /// header field `% Status : <Token>`. Returns the raw SZS token.
@@ -1916,7 +1937,7 @@ fn grade_suite_corpus(input_rdf: &Path, corpus_name: &str, out_nq: &Path) -> Res
     //     `w3c-owl2-el-divergence/` baseline (the native path cannot soundly
     //     decide a DL/Full-divergent case for this specific slug).
     // All other DlGap rows are unexpected and cause a hard-fail.
-    let quarantine_dir = default_quarantine_dir();
+    let quarantine_dir = quarantine_dir_for(corpus_name);
     let quarantine_slugs = load_quarantine_slugs(&quarantine_dir)?;
 
     soundness_gate(&ledger, &entailment_slugs, &quarantine_slugs).map_err(|offenders| {

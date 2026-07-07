@@ -92,7 +92,10 @@ pub fn reason(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
         }
     };
     let elapsed = elapsed_ms(started);
-    let ok = result.is_consistent();
+    // A positive headline requires a DECIDED consistency proof, not merely the
+    // absence of a glut: an out-of-fragment bundle is honestly cannot-decide, and
+    // reporting it as "consistent" would silently ignore the undecided axioms.
+    let ok = result.is_decided_consistent();
     if let Some(path) = timings_json {
         let payload = serde_json::json!({
             "command": "reason",
@@ -116,6 +119,22 @@ pub fn reason(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
             n = result.inferred().len()
         );
         0
+    } else if result.is_consistent() {
+        // Undetermined: no contradiction was derived, but the native path did not
+        // decide every construct — an honest cannot-decide, never a wrong
+        // "consistent".
+        fail(format!(
+            "cannot decide consistency: {n} out-of-fragment construct(s) the native \
+             path does not decide ({constructs})",
+            n = result.preservation.unsupported_constructs.len(),
+            constructs = result
+                .preservation
+                .unsupported_constructs
+                .iter()
+                .cloned()
+                .collect::<Vec<_>>()
+                .join(", "),
+        ))
     } else {
         fail("inconsistent ontology")
     }
@@ -247,8 +266,19 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
             Err(e) => return fail(format!("cannot reuse the shipped verdict: {e}")),
         }
     };
-    if !result.is_consistent() {
-        return fail("inconsistent ontology");
+    if !result.is_decided_consistent() {
+        // Refuse to verify unless consistency is DECIDED: a glut is inconsistent,
+        // and an undetermined (out-of-fragment) bundle cannot soundly carry a
+        // verification claim — honest cannot-decide, never a wrong pass.
+        return if result.is_consistent() {
+            fail(format!(
+                "cannot decide consistency: {n} out-of-fragment construct(s) the native \
+                 path does not decide; refusing to verify",
+                n = result.preservation.unsupported_constructs.len(),
+            ))
+        } else {
+            fail("inconsistent ontology")
+        };
     }
     let queries = discover_verify_queries(&root);
     let report = if fresh {
