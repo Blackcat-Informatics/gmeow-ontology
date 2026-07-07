@@ -27,7 +27,7 @@ python = ["dep:pyo3", "gmeow-errors/python", ]
 # The `python` feature exposes `gmeow_rdf::py_store::quad_to_py`, so the native RL
 # closure returns live `gmeow_rdf.Quad` objects directly instead of an N-Triples
 # string the Python adapter would have to re-parse (#630 seam removal).
-purrdf = "0.3"
+purrdf = "0.4"
 # The native SPARQL engine over `Arc<RdfDataset>` (#906): the world-store's `select`
 # and the reasoned-graph governance/verify queries evaluate here, replacing the
 # retired oxigraph `SparqlEvaluator`. A leaf-ish crate (rdf-core/sparql-algebra/xsd

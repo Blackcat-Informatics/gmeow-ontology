@@ -6,7 +6,7 @@ expression: "to_markdown(&model, &Page::Landing)"
 
 Version **7**.
 
-This site documents **2453** vocabulary terms across **80** slices.
+This site documents **2446** vocabulary terms across **80** slices.
 
 ## Vocabulary by category
 
@@ -14,7 +14,7 @@ This site documents **2453** vocabulary terms across **80** slices.
 | --- | --- |
 | [Classes](classes/index.md) | 732 |
 | [Properties](properties/index.md) | 1691 |
-| [Individuals](individuals/index.md) | 29 |
+| [Individuals](individuals/index.md) | 22 |
 | [Datatypes](datatypes/index.md) | 1 |
 
 ## Browse

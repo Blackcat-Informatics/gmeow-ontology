@@ -2829,6 +2829,7 @@ enum ScoreEditionEnum {
 
 enum ScoreSemanticsEnum {
   scoreCalibratedProbability
+  scoreEntailment
   scoreLogit
   scoreMargin
   scoreSigmoid
@@ -6345,6 +6346,7 @@ type ModelDeployment {
 type ModelInferenceRun {
   id: String
   iri: String
+  hypothesisTemplate: [String!]
   labelSetRevision: [String!]
   modelFramework: [String!]
   modelIdentifier: String
