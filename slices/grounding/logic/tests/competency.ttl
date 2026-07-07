@@ -546,3 +546,37 @@ ex:rowConjectureEntailsPropagation a gmeow:ExpectedRow ;
     gmeow:rowCell
         [ a gmeow:ExpectedCell ; gmeow:cellVar "phi" ; gmeow:cellValueIri ex:cxGeneralParthood ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "psi" ; gmeow:cellValueIri ex:cxRefutedTotalParthood ] .
+
+# ── Conjecture library: the Lakatos monster-barring chain survives its witness ────
+# Does a refined SUCCESSOR conjecture name both the refuted predecessor it weakens
+# AND the concrete witness that predecessor was killed by — the witness the successor
+# now EXCLUDES? This is the load-bearing consumer of logic:conjectureRefinedFrom and
+# logic:survivesCounterexample. Unlike the promotion legs, a single conjecture_test
+# run cannot synthesize a refinement chain (there is no predecessor conjecture in one
+# run), so these are legitimately AUTHORED (reviewer-asserted) edges — the fixture
+# supplies one chain (ex:cxRefinePartialParthood refinedFrom the refuted
+# ex:cxRefineTotalParthood, survivesCounterexample its witness
+# ex:cxRefineWitnessIncomparablePair). The query joins the survived witness to the
+# predecessor's own refutation witness, so exactly one (successor, predecessor,
+# witness) row is expected; removing either chain edge empties the result.
+ex:cqConjectureRefinementSurvivesWitness a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/conjecture-refinement-survives-witness.rq" ;
+    gmeow:cqDataFile  "tests/fixtures/conjecture-refinement.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The Lakatos monster-barring move must be REPLAYABLE: a refined successor conjecture (logic:conjectureRefinedFrom) weakens a refuted predecessor to exclude its counterexample, and logic:survivesCounterexample pins the concrete logic:ContradictionWitness the successor now excludes to the SAME witness the predecessor was refuted by (logic:conjectureRefutationWitness) — the evidence the refinement did real work. Over the fixture the successor ex:cxRefinePartialParthood is refinedFrom the refuted ex:cxRefineTotalParthood and survivesCounterexample its witness ex:cxRefineWitnessIncomparablePair, so exactly one (successor, predecessor, witness) row is returned; dropping conjectureRefinedFrom or survivesCounterexample (or breaking the predecessor-witness join) empties it, so the question is falsifiable, not a tautology."@x-gmeow-english ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqConjectureRefinementSurvivesWitnessShape ;
+    gmeow:cqExpectRow ex:rowConjectureRefinementSurvivesWitness .
+
+ex:cqConjectureRefinementSurvivesWitnessShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "successor" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "predecessor" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "witness" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowConjectureRefinementSurvivesWitness a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "successor" ; gmeow:cellValueIri ex:cxRefinePartialParthood ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "predecessor" ; gmeow:cellValueIri ex:cxRefineTotalParthood ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "witness" ; gmeow:cellValueIri ex:cxRefineWitnessIncomparablePair ] .
