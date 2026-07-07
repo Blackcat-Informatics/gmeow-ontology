@@ -585,10 +585,13 @@ and [`slices/grounding/lang/design/LANG.md`](./slices/grounding/lang/design/LANG
 sibling charters — the `slices/grounding/` group is the layers' home (the group segment is human
 organization the build never reads); all three grounding charters — `logic`, `math`, and `lang` —
 now live under `slices/grounding/`. *Tested by:* for the `logic:` layer, the Principle 17 gates
-(`meta:gate-logic-conformance`, `meta:gate-logic-round-trip`); the `math:` and `lang:` layers are
-design-stage — enforced by design-set review practice (`meta:practice-grounding-design`) until
-their slices land with the conformance charters their design sets already specify, at which point
-this principle's enforcement is amended to the real gates.
+(`meta:gate-logic-conformance`, `meta:gate-logic-round-trip`); for the `math:` layer,
+`meta:gate-math-conformance` — the native dimensional/ingest structural invariants plus the
+flagship-manifest capstone over the slice competency corpus; and for the `lang:` layer,
+`meta:gate-lang-conformance` — the native form, meaning, translation, projection, and ingestion
+invariants over the slice competency and counter-example corpus. All three layers are now landed
+and gate-enforced; the design-set review practice that stood in while `math:` and `lang:` were
+design-stage is retired.
 
 ---
 

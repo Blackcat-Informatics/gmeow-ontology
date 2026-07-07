@@ -1,0 +1,51 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Conforming GMN fixture: an honest GMN-2 compaction plus the canonical GMN-1 drop-list
+# emission. The gmeow:GmnCompaction names both sources it condenses through
+# gmeow:gmnCompacts and its holding standpoint through gmeow:vantage (satisfying
+# lang:GmnCompactionProvenanceShape), and its correspondence carries the honest weak
+# judgment — logic:ValidationOnly, logic:mnemomorphic false — so
+# lang:GmnCompactionOverclaimShape stays quiet. Alongside it, the canonical
+# lang:ProjectionEmission of the GMN-0 → GMN-1 crossing enumerates the categorical drop
+# list as lang:unsupportedConstruct entries (satisfying
+# lang:ProjectionEmissionDeclaredShape and the native lossy-emission gates: a declared
+# preservation kind and an enumerated drop list).
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/lang/> .
+
+# ── The compacted sources: two older standpoint-held claims ──────────────────
+ex:sensorTeam a gmeow:Agent .
+ex:summarizerStandpoint a gmeow:Agent .
+
+ex:claimDoorOpenMonday a gmeow:StandpointClaim ;
+    gmeow:vantage ex:sensorTeam .
+
+ex:claimDoorOpenTuesday a gmeow:StandpointClaim ;
+    gmeow:vantage ex:sensorTeam .
+
+# ── The honest compaction: provenance-linked, vantage-held, validation-only ──
+ex:corrCompaction a logic:Correspondence ;
+    logic:preservationKind logic:ValidationOnly ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:BridgeView ;
+    logic:hasDeterminacy logic:Vague ;
+    logic:mnemomorphic false .
+
+ex:compactionDoorWeek a gmeow:GmnCompaction ;
+    gmeow:gmnCompacts ex:claimDoorOpenMonday , ex:claimDoorOpenTuesday ;
+    gmeow:vantage ex:summarizerStandpoint ;
+    lang:translationCorrespondence ex:corrCompaction .
+
+# ── The canonical GMN-0 → GMN-1 drop-list emission ───────────────────────────
+ex:emGmnSurface a lang:ProjectionEmission ;
+    lang:projectionTargetName "GMN-1" ;
+    lang:projectsSource gmeow:gmnNormalForm ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    lang:unsupportedConstruct "full IRIs replaced by aliases" ,
+        "annotation properties elided from the compact surface" ,
+        "numeric confidence rounded to two fractional digits" ;
+    lang:roundTripHolds false .

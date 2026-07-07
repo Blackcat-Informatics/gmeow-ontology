@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Conforming GMN fixture: an additive version migration. Two dialect versions sit in one
+# gmeow:VersionSet through reified gmeow:VersionMembership relators; the destination's
+# membership classifies the bump as gmeow:scaleMinor (additive). The migration crossing is
+# a lang:TranslationUnit carrying gmeow:gmnMigratesFrom / gmeow:gmnMigratesTo and a
+# logic:Correspondence with logic:mnemomorphic TRUE — honest over an additive bump, so
+# lang:GmnVersionOverclaimShape stays quiet (and the set's gmeow:gmnAcceptWindow 1 keeps
+# the acceptance-window branch quiet). The unit also satisfies lang:TranslationUnitShape
+# and lang:TranslationAttributionShape (a compositional, grammar-directed crossing).
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/lang/> .
+
+# ── The lineage: two versions in one set, the bump classified additive ───────
+ex:dialectLineage a gmeow:VersionSet ;
+    gmeow:gmnAcceptWindow 1 .
+
+ex:dialectV1 a gmeow:InformationObject ;
+    owl:versionInfo "1" .
+
+ex:dialectV1x1 a gmeow:InformationObject ;
+    owl:versionInfo "1.1" .
+
+ex:membershipV1 a gmeow:VersionMembership ;
+    gmeow:versionMember ex:dialectV1 ;
+    gmeow:versionSet ex:dialectLineage ;
+    gmeow:versionRole gmeow:roleCanonical .
+
+ex:membershipV1x1 a gmeow:VersionMembership ;
+    gmeow:versionMember ex:dialectV1x1 ;
+    gmeow:versionSet ex:dialectLineage ;
+    gmeow:versionRole gmeow:roleLatest ;
+    gmeow:versionScale gmeow:scaleMinor .
+
+# ── The migration crossing: mnemomorphic true over an ADDITIVE bump ──────────
+ex:corrMigration a logic:Correspondence ;
+    logic:preservationKind logic:ExactPreservation ;
+    logic:correspondenceRelation logic:Equiv ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic true .
+
+ex:unitMigration a lang:TranslationUnit ;
+    lang:translationSource ex:dialectV1 ;
+    lang:translationTarget ex:dialectV1x1 ;
+    lang:translationMethod lang:methodCompositional ;
+    lang:translationCorrespondence ex:corrMigration ;
+    gmeow:gmnMigratesFrom ex:dialectV1 ;
+    gmeow:gmnMigratesTo ex:dialectV1x1 .

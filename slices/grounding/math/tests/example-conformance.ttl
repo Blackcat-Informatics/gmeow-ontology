@@ -538,6 +538,45 @@ ex:ecWeightTensorNoParameterSpace a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example names the layer the weight parameterizes but omits the math:ParameterSpace it lives in (sh:minCount 1 on math:WeightTensorShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnframedWeightTensor)." .
 
+# === Numeric layer: an exact rational carrier has a non-zero denominator ===== #
+
+ex:ecRationalValueWellFormed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/rational-value-nonzero-denominator.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:RationalValue carrying an integer math:numerator and a non-zero integer math:denominator (the pair (1, 4)) satisfies math:RationalValueShape and validates with no findings." .
+
+ex:ecRationalValueZeroDenominator a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/rational-value-zero-denominator.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.NotConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example declares math:denominator 0 on a math:RationalValue (sh:not [ sh:hasValue 0 ] on math:RationalValueShape); the numerator is present and both are integers, so validation MUST emit shacl.NotConstraintComponent and NO other finding (math:ZeroDenominator) — the object-layer twin of the dimension-exponent zero-denominator case." .
+
+# === Numeric layer: a norm rests on a positive-definite symmetric form ======= #
+
+ex:ecNormPositiveDefinite a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/norm-positive-definite-form.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Norm induced (math:inducedByForm) by a math:SymmetricBilinearForm whose math:definiteness is math:positiveDefinite satisfies math:NormPositiveDefiniteShape and validates with no findings." .
+
+ex:ecNormIndefiniteForm a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/norm-indefinite-form.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example names its math:inducedByForm (so the sh:minCount branch passes) but that form's math:definiteness is math:indefinite, not math:positiveDefinite (the sh:sparql constraint of math:NormPositiveDefiniteShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:NonPositiveDefiniteNorm)." .
+
+# === Numeric layer: a Gram matrix is symmetric ============================== #
+
+ex:ecGramMatrixSymmetric a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/gram-matrix-symmetric.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:GramMatrix G = [[1, 1/4], [1/4, 1]] naming its math:representsForm (a math:SymmetricBilinearForm) and math:inBasis (a math:Basis), whose off-diagonal entries share the same exact math:RationalValue with their transpose, satisfies math:GramMatrixShape (and its entries satisfy math:RationalValueShape) and validates with no findings." .
+
+ex:ecGramMatrixAsymmetric a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gram-matrix-asymmetric.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's math:GramMatrix carries entry (0, 1) = 1/4 but transpose entry (1, 0) = 1/2 — no transpose entry of equal value (the sh:sparql symmetry constraint of math:GramMatrixShape). It names its math:representsForm and math:inBasis and every entry's math:RationalValue is well-formed, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:AsymmetricGramMatrix)." .
+
 # === Bridges: ingest-run grounding (parseSource + schema/plan witness) ======= #
 
 ex:ecIngestRunGrounded a gmeow:ExampleConformance ;

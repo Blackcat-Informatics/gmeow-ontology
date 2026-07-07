@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a math:Norm induced by a math:SymmetricBilinearForm whose
+# math:definiteness is math:positiveDefinite — ‖x‖ = √⟨x, x⟩ is a genuine norm.
+# Conforms to math:NormPositiveDefiniteShape. Bound by ex:ecNormPositiveDefinite.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:goodNorm a math:Norm ;
+    math:inducedByForm ex:pdForm .
+
+ex:pdForm a math:SymmetricBilinearForm ;
+    math:definiteness math:positiveDefinite .
