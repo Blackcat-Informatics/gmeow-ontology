@@ -239,6 +239,7 @@ Each former artifact is a registered lowering with its own preservation claim, i
 | up-lift (replaces the heuristic) | the `put` leg — *derived* for mnemomorphic cells | complete-over for invertible; validation-only (mint-with-claim) otherwise; `unsupported` where `get` is non-injective and no witness exists |
 | OWL alignment axioms | the relation, DL-expressible band | under-approx; `unsupported` for caveated overlaps and bridges |
 | OAEI / Alignment-API XML | the whole correspondence set | under-approx; carries `align:measure` where SSSOM/OWL drop confidence |
+| GMN (`gmeow:gmnModelNotation`, the `lang:` dialect charter) | the GMN-0 narrow-waist normal form | under-approx (lossy lens, `mnemomorphic false`); aliases collapse IRIs, annotations drop, confidences round; the rate–fidelity contract rides the codebook |
 
 Every lowering is a **legalization** (see [`LOGIC-IR.md`](LOGIC-IR.md) § IR commitments): a total
 function into `⟨ legal output ⊕ flagged residue ⟩`; the loss ledger is the residue set.
