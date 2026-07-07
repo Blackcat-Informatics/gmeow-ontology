@@ -309,39 +309,49 @@ impl ForwardOracle for NativeForwardOracle {
             ));
         }
 
-        // ── Dispatch: binary (named-ternary EL/DL) vs generic (n-ary RL/RDF) ──
+        // ── Dispatch: binary (named-ternary EL/DL) vs generic (n-ary RL/RDF, or
+        //    an arity-3 program that carries a non-ternary HELPER relation) ──
         //
-        // The two native forward encodings are told apart by the EDB fact ARITY —
-        // a PRINCIPLED signal that reflects the encoding, not the rule text:
+        // The binary `seminaive` core keys every relation by a CONSTANT predicate
+        // NAME and models exactly the ternary `<predicate>(subject, object, world)`
+        // shape: `crate::rule_ir::lower_nemo_atom` reads only `terms[0]`/`terms[1]`
+        // and DROPS the rest, so it is faithful ONLY when EVERY atom it sees is
+        // arity-3.  Feed it an arity-4 `triple(?s,?p,?o,?w)` atom or an arity-2
+        // `helper(?x,?y)` atom and it does not error — it silently mis-slots the
+        // terms and produces a WRONG closure.  So the binary path is admissible
+        // ONLY for a program whose EDB *and* whose whole rule set are purely
+        // arity-3 named-ternary.  Everything else routes to the arity-generic
+        // evaluator `crate::physical::generic`, which keeps EVERY term (predicate
+        // position included) and is a strict generalization — it evaluates the
+        // arity-3 named-ternary relations too (a constant predicate name is just
+        // another relation), so the mixed case (arity-3 program rules + a
+        // non-ternary helper, the shape `crate::materialize` accepts from a user
+        // program) runs correctly on it.
         //
-        // * EL/DL encode every quad as the ternary `<predicate>(subject, object,
-        //   world)` fact keyed by the RDF predicate as the relation NAME, so every
-        //   EDB fact has arity 3 → the binary `seminaive` core (below).
-        // * OWL 2 RL/RDF (`crate::reason::rl`) encodes every quad as the 4-ary
-        //   generic-triple relation `triple(?s, ?p, ?o, ?w)` with the predicate as a
-        //   DATA term (so the RL meta-rules can bind the property position to a
-        //   variable), so every EDB fact has arity ≠ 3 → the arity-generic evaluator
-        //   `crate::physical::generic`.
+        // The signal is the ARITY of the encoding, read from BOTH surfaces:
         //
-        // A MIXED-arity EDB (some ternary, some not) is genuinely ambiguous — the
-        // dispatch cannot tell the named-relation encoding from the generic
-        // predicate-as-data encoding — so it HARD-FAILS rather than guess. An empty
-        // EDB has no facts to close over, so it routes to the binary path where the
-        // ternary contract holds vacuously (the closure is empty either way).
-        let all_ternary = facts.facts().all(|f| f.args.len() == 3);
-        let none_ternary = facts.facts().all(|f| f.args.len() != 3);
-        if !all_ternary {
-            if !none_ternary {
-                return Err(
-                    "NativeForwardOracle: mixed-arity EDB (some ternary named-relation facts, \
-                     some generic n-ary): the dispatch cannot tell the binary reasoning encoding \
-                     from the generic predicate-as-data encoding — hard-fail rather than guess"
-                        .to_owned(),
-                );
-            }
-            // Generic (n-ary, predicate-as-data) path: parse the rule text KEEPING all
-            // terms and run the arity-generic positive-Datalog least-fixpoint. This is
-            // the OWL 2 RL/RDF path; the binary core below is left UNTOUCHED.
+        // * EL/DL: every quad → ternary `<predicate>(subject, object, world)` (EDB
+        //   arity 3) and every rule atom is arity-3 named-ternary → BINARY core.
+        // * OWL 2 RL/RDF (`crate::reason::rl`): every quad → the 4-ary
+        //   `triple(?s, ?p, ?o, ?w)` relation (predicate as a DATA term) and the
+        //   meta-rules carry arity-4 / arity-3 generic atoms → GENERIC evaluator.
+        // * A user materialize program (`crate::materialize`): arity-3 EDB but a
+        //   rule set that declares a HELPER predicate of another arity → GENERIC
+        //   evaluator (the binary core cannot represent the helper atom).
+        //
+        // A program is binary-eligible IFF its EDB is all-ternary AND its rule set
+        // is all-ternary (`rules_are_pure_ternary`).  A non-ternary rule set that
+        // ALSO carries negation is genuinely un-runnable by either native path
+        // (binary needs ternary, generic is positive-only): it routes to generic,
+        // where `parse_generic_rules` HARD-FAILS on the negated atom — never a
+        // guess, never a silent approximation.  An empty EDB with an all-ternary
+        // rule set stays binary (the closure is vacuously empty either way).
+        let edb_all_ternary = facts.facts().all(|f| f.args.len() == 3);
+        let binary_eligible = edb_all_ternary && rules_are_pure_ternary(rules)?;
+        if !binary_eligible {
+            // Generic (n-ary) path: parse the rule text KEEPING all terms and run
+            // the arity-generic positive-Datalog least-fixpoint.  The binary core
+            // below is left UNTOUCHED — EL/DL never reach this branch.
             let generic_rules = crate::physical::parse_generic_rules(rules)?;
             return crate::physical::materialize_generic(facts, &generic_rules);
         }
@@ -429,6 +439,48 @@ impl ForwardOracle for NativeForwardOracle {
     fn provides_provenance(&self) -> bool {
         true
     }
+}
+
+/// Whether EVERY atom of EVERY rule in `rules` is arity-3 — the binary
+/// [`crate::physical::seminaive`] core's admissibility test.
+///
+/// The binary core keys a relation by its constant predicate name and models the
+/// ternary `predicate(subject, object, world)` shape only; `lower_nemo_atom`
+/// silently drops all terms past `terms[1]`, so an atom of any other arity (a
+/// 4-ary `triple(?s,?p,?o,?w)`, a 2-ary `helper(?x,?y)`) would be mis-slotted into
+/// a WRONG closure rather than rejected.  This inspection lets the dispatch route
+/// such a program to the arity-generic evaluator BEFORE that silent corruption.
+///
+/// It uses the SAME translation-only Nemo front-end (`parse_unvalidated`) the two
+/// rule lowerings use, so the atom surface it counts is byte-identical to what the
+/// engines see.  It inspects the head plus every positive AND negated body atom;
+/// unlike [`crate::physical::parse_generic_rules`] it does NOT reject a negated
+/// atom — a non-ternary negated rule set is left for the generic path to hard-fail
+/// on (positive-only), and a ternary negated rule set is a legal binary program
+/// (stratified NAF).  A pure syntax error propagates.
+///
+/// `dead_code`-allowed for the same Task-1 reason as [`NativeForwardOracle`]: its
+/// only caller is that adapter, wired in only from the parity tests until a later
+/// task flips [`forward_oracle`].
+#[allow(dead_code)]
+pub(crate) fn rules_are_pure_ternary(rules: &str) -> Result<bool, String> {
+    use crate::nemo_engine::NemoParsedRules;
+    use nemo::rule_model::programs::ProgramRead;
+
+    let program = NemoParsedRules::parse_unvalidated(rules)?.into_program();
+    for rule in program.rules() {
+        let atom_is_ternary =
+            |atom: &nemo::rule_model::components::atom::Atom| atom.terms().count() == 3;
+        let head_ok = rule.head().iter().all(atom_is_ternary);
+        let body_ok = rule
+            .body_positive()
+            .chain(rule.body_negative())
+            .all(atom_is_ternary);
+        if !head_ok || !body_ok {
+            return Ok(false);
+        }
+    }
+    Ok(true)
 }
 
 /// The raw world string of a ternary EDB fact's world term.
@@ -605,5 +657,62 @@ mod tests {
     fn backward_oracle_default_is_scryer() {
         assert_eq!(backward_oracle().name(), "scryer");
         assert_eq!(ReferenceBackwardOracle.name(), "reference-sld");
+    }
+
+    // ── Dispatch predicate: `rules_are_pure_ternary` (Task 5) ──────────────────
+    //
+    // These exercise the rule-arity signal that decides binary vs generic WITHOUT
+    // driving any chase engine (pure Nemo-parse), so they carry no engine-group
+    // token: the fixed EL/DL calculi are pure arity-3 (→ binary), while a rule set
+    // that carries a NON-ternary helper atom or the arity-4 `triple` relation is
+    // not (→ generic).
+
+    /// The fixed EL and DL calculi are pure arity-3 named-ternary, so they are
+    /// binary-eligible — the promotion of EL/DL onto the binary core (Tasks 2/4)
+    /// depends on this staying true.
+    #[test]
+    fn rules_are_pure_ternary_accepts_the_fixed_el_and_dl_calculi() {
+        assert!(
+            rules_are_pure_ternary(crate::reason::el::EL_RULES)
+                .expect("EL rules parse for arity inspection"),
+            "EL_RULES must be pure arity-3 (binary-eligible)"
+        );
+        assert!(
+            rules_are_pure_ternary(&crate::reason::dl::dl_rules())
+                .expect("dl_rules() parse for arity inspection"),
+            "dl_rules() must be pure arity-3 (binary-eligible)"
+        );
+    }
+
+    /// A user materialize program whose rule set declares a BINARY helper predicate
+    /// is NOT binary-eligible: the binary core would silently mis-slot the helper's
+    /// two terms, so the dispatch must route the whole program to the generic
+    /// evaluator. The fixed DL calculus combined with such a helper stays
+    /// non-eligible (one non-ternary atom taints the set).
+    #[test]
+    fn rules_are_pure_ternary_rejects_a_non_ternary_helper() {
+        let helper = "helperEdge(?x, ?y) :- \
+             <http://www.w3.org/2000/01/rdf-schema#subClassOf>(?x, ?y, ?w) .\n";
+        assert!(
+            !rules_are_pure_ternary(helper).expect("helper rule parses"),
+            "a binary helperEdge head is arity-2 → NOT binary-eligible"
+        );
+        let combined = format!("{}\n{helper}", crate::reason::dl::dl_rules());
+        assert!(
+            !rules_are_pure_ternary(&combined).expect("combined rules parse"),
+            "dl_rules() + a binary helper is NOT binary-eligible (one non-ternary atom taints it)"
+        );
+    }
+
+    /// The OWL 2 RL/RDF meta-rules use the arity-4 `triple(?s,?p,?o,?w)` relation
+    /// (predicate-as-data), which is not arity-3, so they are NOT binary-eligible —
+    /// the generic evaluator is the only faithful native path for them (Task 3).
+    #[test]
+    fn rules_are_pure_ternary_rejects_the_arity_four_rl_triple_relation() {
+        assert!(
+            !rules_are_pure_ternary(crate::reason::rl::RL_RULES)
+                .expect("RL rules parse for arity inspection"),
+            "RL_RULES carry the arity-4 `triple` relation → NOT binary-eligible"
+        );
     }
 }
