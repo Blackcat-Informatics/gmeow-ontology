@@ -1793,6 +1793,7 @@ checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 name = "gmeow-affect"
 version = "0.1.0"
 dependencies = [
+ "gmeow-math",
  "purrdf",
 ]
 
@@ -1996,6 +1997,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-math"
+version = "0.1.0"
+dependencies = [
+ "purrdf",
+]
+
+[[package]]
 name = "gmeow-music"
 version = "0.1.0"
 dependencies = [
@@ -2079,6 +2087,7 @@ dependencies = [
  "gmeow-errors",
  "gmeow-license",
  "gmeow-logic",
+ "gmeow-math",
  "insta",
  "jsonschema",
  "purrdf",

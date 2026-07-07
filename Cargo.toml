@@ -41,6 +41,10 @@ members = [
     "crates/logic-compile",
     # Synchronous LSP server for .ttl and .logic files + sarif CLI (#671).
     "crates/lsp",
+    # Reusable exact-rational geometry: an inner-product-space over a metric Gram
+    # matrix + the pure math: graph loaders, shared by affect + the native math:
+    # conformance gates so the "reusable layer" is genuinely reused, not buried.
+    "crates/math",
     # Affect-intensity geometry: exact-rational inner-product-space over a metric
     # Gram matrix, read from an RDF graph, the √(xᵀGx) norm computed OUTSIDE the
     # reasoned core (Principle 12) for the CLI and the EmotionML emitter.

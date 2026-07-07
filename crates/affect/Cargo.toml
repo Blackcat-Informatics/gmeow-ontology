@@ -17,3 +17,6 @@ path = "src/lib.rs"
 
 [dependencies]
 purrdf = "0.3"
+# The reusable exact-rational inner-product-space + pure math: graph loaders. The
+# affect-specific readers compute THROUGH this shared engine rather than owning it.
+gmeow-math = { path = "../math" }
