@@ -143,9 +143,16 @@ pub fn render_diagnostics_artifacts(
             .map_err(|e| stage_err("meta", e))?,
         None => crate::stages::meta_findings::MetaDerivation::default(),
     };
-    let mut enriched = report.clone();
-    crate::stages::meta_findings::enrich_report(&mut enriched, &derivation);
-    let report = &enriched;
+    // Only clone + enrich when the meta chase actually derived findings; on the
+    // common empty-derivation path (meta=None, or a chase that fired nothing) the
+    // original `report` reference is used directly with NO clone — enrichment over an
+    // empty derivation is a no-op, so the two paths are byte-identical.
+    let enriched = (!derivation.is_empty()).then(|| {
+        let mut enriched = report.clone();
+        crate::stages::meta_findings::enrich_report(&mut enriched, &derivation);
+        enriched
+    });
+    let report = enriched.as_ref().unwrap_or(report);
 
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     artifacts.insert(
