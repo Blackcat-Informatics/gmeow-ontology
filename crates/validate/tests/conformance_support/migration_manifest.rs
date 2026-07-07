@@ -369,80 +369,98 @@ pub const MANIFEST: &[ManifestRow] = &[
         "conformance_competency.rs::competency_expertise_expiring_credentials_query",
     ),
     // ── slices/core/gts/tests/test_gts_slice.py (2 fns; no dossier, from source)
-    pending(
+    twin(
         "slices/core/gts/tests/test_gts_slice.py",
         "test_value_vocabulary_cardinality_floors",
+        "conformance_gts_slice.rs::value_vocabulary_cardinality_floors",
     ),
-    pending(
+    twin(
         "slices/core/gts/tests/test_gts_slice.py",
         "test_competency_queries_parse_and_run",
+        "conformance_gts_slice.rs::competency_queries_parse_and_run",
     ),
     // ── slices/extensions/dreaming/tests/test_dreaming.py (5 fns; from source) ──
-    pending(
+    twin(
         "slices/extensions/dreaming/tests/test_dreaming.py",
         "test_dream_experience_composition",
+        "conformance_dreaming.rs::dream_experience_composition",
     ),
-    pending(
+    twin(
         "slices/extensions/dreaming/tests/test_dreaming.py",
         "test_dream_report_composition",
+        "conformance_dreaming.rs::dream_report_composition",
     ),
-    pending(
+    twin(
         "slices/extensions/dreaming/tests/test_dreaming.py",
         "test_dream_element_links",
+        "conformance_dreaming.rs::dream_element_links",
     ),
-    pending(
+    twin(
         "slices/extensions/dreaming/tests/test_dreaming.py",
         "test_lucid_dream_uses_mode_lucid_dreaming",
+        "conformance_dreaming.rs::lucid_dream_uses_mode_lucid_dreaming",
     ),
-    pending(
+    twin(
         "slices/extensions/dreaming/tests/test_dreaming.py",
         "test_memory_consolidation_replay",
+        "conformance_dreaming.rs::memory_consolidation_replay",
     ),
     // ── slices/extensions/music/tests/test_music_competency.py (1 fn; source) ──
-    pending(
+    twin(
         "slices/extensions/music/tests/test_music_competency.py",
         "test_music_competency_query",
+        "conformance_music_competency.rs::music_competency_query",
     ),
     // ── slices/extensions/music/tests/test_music_oral_tradition.py (10; source) ─
-    pending(
+    twin(
         "slices/extensions/music/tests/test_music_oral_tradition.py",
         "test_oral_tradition_work_fixture_exists",
+        "conformance_music_oral_tradition.rs::oral_tradition_work_fixture_exists",
     ),
-    pending(
+    twin(
         "slices/extensions/music/tests/test_music_oral_tradition.py",
         "test_oral_tradition_expressions_have_no_notated_member",
+        "conformance_music_oral_tradition.rs::oral_tradition_expressions_have_no_notated_member",
     ),
-    pending(
+    twin(
         "slices/extensions/music/tests/test_music_oral_tradition.py",
         "test_performance_lineage_derivation_chain",
+        "conformance_music_oral_tradition.rs::performance_lineage_derivation_chain",
     ),
-    pending(
+    twin(
         "slices/extensions/music/tests/test_music_oral_tradition.py",
         "test_tune_family_is_versionset",
+        "conformance_music_oral_tradition.rs::tune_family_is_versionset",
     ),
-    pending(
+    twin(
         "slices/extensions/music/tests/test_music_oral_tradition.py",
         "test_versionset_reused_unchanged",
+        "conformance_music_oral_tradition.rs::versionset_reused_unchanged",
     ),
-    pending(
+    twin(
         "slices/extensions/music/tests/test_music_oral_tradition.py",
         "test_contested_membership_is_suppressed_not_deleted",
+        "conformance_music_oral_tradition.rs::contested_membership_is_suppressed_not_deleted",
     ),
-    pending(
+    twin(
         "slices/extensions/music/tests/test_music_oral_tradition.py",
         "test_transmission_event_and_roles",
+        "conformance_music_oral_tradition.rs::transmission_event_and_roles",
     ),
-    pending(
+    twin(
         "slices/extensions/music/tests/test_music_oral_tradition.py",
         "test_no_shape_requires_notated_expression",
+        "conformance_music_oral_tradition.rs::no_shape_requires_notated_expression",
     ),
-    pending(
+    twin(
         "slices/extensions/music/tests/test_music_oral_tradition.py",
         "test_competency_query_oral_works",
+        "conformance_music_oral_tradition.rs::competency_query_oral_works",
     ),
-    pending(
+    twin(
         "slices/extensions/music/tests/test_music_oral_tradition.py",
         "test_competency_query_gharana_memberships",
+        "conformance_music_oral_tradition.rs::competency_query_gharana_memberships",
     ),
 ];
 
