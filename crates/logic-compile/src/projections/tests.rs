@@ -870,6 +870,60 @@ fn validation_shape_projection_goldens() {
     });
 }
 
+#[test]
+fn derived_validation_shapes_project_golden() {
+    // Dogfood the FULL derive→project spine (not only the emit half): an authored OWL/RDFS
+    // constraint fragment is lowered by the real `derive_validation_shapes` derivation — the same
+    // one the pipeline runs to produce generated/shapes/validation-shapes.{ttl,shex} — and the
+    // resulting shapes are projected and pinned. This proves the authored ground → SHACL/ShEx
+    // path end-to-end, so a regression anywhere from derivation to emit trips a golden.
+    let fixture =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/validation-derive.ttl");
+    let ttl = std::fs::read(&fixture).expect("read validation-derive.ttl fixture");
+    let dataset =
+        purrdf::parse_dataset(&ttl, "text/turtle", None).expect("parse the authored fragment");
+    let shapes =
+        crate::frontend::derive_validation_shapes(dataset.as_ref()).expect("derive shapes");
+    assert!(
+        !shapes.is_empty(),
+        "the authored fragment must derive at least one validation shape"
+    );
+    assert!(
+        shapes.iter().any(|s| !shapes::shacl_residue(s).is_empty()),
+        "the fragment must derive a residue-bearing shape (the faceted-datatype regex on g:bic), \
+         so the dogfood exercises the loss ledger end-to-end"
+    );
+
+    let program =
+        crate::ir::LogicProgram::new(vec![], vec![], vec![], Some("urn:test:1192-derive".into()))
+            .with_validation_shapes(shapes);
+    let arts = compile_program(&program, &Default::default()).expect("compile");
+    let content = |t: &str| {
+        arts.logic_projections
+            .iter()
+            .find(|p| p.target == t)
+            .unwrap_or_else(|| panic!("{t} projection present"))
+            .content
+            .clone()
+    };
+    let shacl = content("shacl-core");
+    let shex = content("shex");
+
+    // Well-formedness independent of the blessed bytes.
+    purrdf::parse_dataset(shacl.as_bytes(), "text/turtle", None)
+        .unwrap_or_else(|e| panic!("derived SHACL Core is not valid Turtle: {e}\n{shacl}"));
+    purrdf::shex::parse_shexc(&shex, None)
+        .unwrap_or_else(|e| panic!("derived ShEx is not valid ShExC: {e}\n{shex}"));
+
+    let mut settings = insta::Settings::clone_current();
+    settings.set_prepend_module_to_snapshot(false);
+    settings.bind(|| {
+        insta::assert_snapshot!("derived-shacl-core", shacl);
+        insta::assert_snapshot!("derived-shacl-core-graph", rdf_snapshot(&shacl));
+        insta::assert_snapshot!("derived-shex", shex);
+    });
+}
+
 // ── G1: path-projection wiring ───────────────────────────────────────────────
 //
 // Verifies that `compile_program` genuinely populates `path_projections` (not
