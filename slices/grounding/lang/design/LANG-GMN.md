@@ -249,8 +249,11 @@ vocabulary, cross-checked so an authored value can never drift from the measurem
   - **⇝** (U+21DD), the translation-leg arrow, costs three tokens, so the translation-leg term
     stays the named key `xl`.
 - **IPA is the phonological encoding.** `lang:Phone` content is notated in IPA. The IPA chart is an
-  imported plane (see below); its segmental symbols join the shared script as graphemes denoting
-  their phones (the worked form /kæt/ glyphs [k], [æ], [t]).
+  imported plane (see below); its symbols join the shared script as graphemes denoting their
+  phones — or, for the primary-stress mark, the prosodic suprasegmental it notates. The worked
+  form **/ˈkæt/** glyphs [k], [æ], [t] plus the IPA primary-stress mark `ˈ` (U+02C8): the three
+  segmental glyphs each measure one token, while `ˈ` measures **two** and carries a two-token
+  cost, so the feed spans distinct measured values rather than a uniform one-token band.
 - **Leipzig glosses are an imported alias plane.** The Leipzig Glossing Rules abbreviations
   (`NOM`, `ACC`, `PL`, `SG`, `PST`, `PRS`, the person values, the `3SG` portmanteau, the morpheme
   boundary) are imported **verbatim by reference** as named-key aliases, each a `lang:Denotation`
