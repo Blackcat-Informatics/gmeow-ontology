@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twin migrated from slices/extensions/music/tests/test_music_timbre.py
-//! (the mapping-file assertion; the TBox seed/property assertions are now
-//! structural.ttl cells, and the fixture-observation assertions remain in Python
-//! for a later batch).
+//! Conformance twins migrated from slices/extensions/music/tests/test_music_timbre.py
+//! (the mapping-file assertion plus the two fixture-observation assertions; the TBox
+//! seed/property assertions are now structural.ttl cells).
 //!
 //! `afo_timbre_mapping_exists` reads the committed music equivalences mapping
 //! artifact (`slices/extensions/music/mappings/equivalences.ttl`) — a
@@ -50,4 +49,69 @@ fn afo_timbre_mapping_exists() {
         subjects.contains(&gm("TimbreDescriptor")),
         "gmeow:eqMu039 alignSubject must include gmeow:TimbreDescriptor; got {subjects:?}"
     );
+}
+
+// ── GraphStore twins migrated from test_music_timbre.py (fixture observations) ─
+//
+// The two timbre fixture observations are worked instances in the music module.ttl
+// (not an examples/ file), so they load into the merged ontology graph — the twins
+// run over `GraphStore::ontology()`, matching the Python `load_merged_graph`.
+
+/// Twin of `test_timbre_fixture_observations_exist`: both fixture observations are
+/// Observations of the shared tone event, each carrying a timbre result.
+#[test]
+fn fixture_observations_exist() {
+    let g = GraphStore::ontology();
+    let tone_event = gm("fixtureTimbreToneEvent");
+    for term in [
+        "fixtureHumanTimbreObservation",
+        "fixtureMIRTimbreObservation",
+    ] {
+        let obs = gm(term);
+        assert!(
+            g.has(Some(&obs), Some(RDF_TYPE), Some(&gm("Observation"))),
+            "gmeow:{term} must be a gmeow:Observation"
+        );
+        assert!(
+            g.has(Some(&obs), Some(&gm("observedFeature")), Some(&tone_event)),
+            "gmeow:{term} must observe the tone event"
+        );
+        assert!(
+            !g.objects(&obs, &gm("timbreObservationResult")).is_empty(),
+            "gmeow:{term} must carry a timbre observation result"
+        );
+    }
+}
+
+/// Twin of `test_timbre_fixture_coequal_vantages`: two co-equal vantages
+/// (human/MIR), two distinct descriptor results, both over the same tone event.
+#[test]
+fn fixture_coequal_vantages() {
+    let g = GraphStore::ontology();
+    let human = gm("fixtureHumanTimbreObservation");
+    let machine = gm("fixtureMIRTimbreObservation");
+    let tone_event = gm("fixtureTimbreToneEvent");
+    let result = gm("timbreObservationResult");
+    let observed = gm("observedFeature");
+    let vantage = gm("vantage");
+
+    assert!(g.has(
+        Some(&human),
+        Some(&vantage),
+        Some(&gm("fixtureHumanListener"))
+    ));
+    assert!(g.has(Some(&machine), Some(&vantage), Some(&gm("fixtureMIRAgent"))));
+    assert!(g.has(
+        Some(&human),
+        Some(&result),
+        Some(&gm("timbreDescriptorBright"))
+    ));
+    assert!(g.has(
+        Some(&machine),
+        Some(&result),
+        Some(&gm("timbreDescriptorGritty"))
+    ));
+    // Co-equal: both observations point at the same tone event.
+    assert!(g.has(Some(&human), Some(&observed), Some(&tone_event)));
+    assert!(g.has(Some(&machine), Some(&observed), Some(&tone_event)));
 }
