@@ -299,6 +299,85 @@ fn preservation_kind_values_match_module_ttl() {
 }
 
 #[test]
+fn preservation_kind_is_a_bounded_lattice() {
+    use gmeow_errors::BoundedLattice;
+
+    // An EXHAUSTIVE proof over all seven variants (mirrors errors::grade's
+    // assert_lattice_laws): a finite carrier means the whole domain is checked, not
+    // sampled. This pins the algebra that governs how two ProjectionLoss witnesses
+    // merging at one ledger anchor combine their preservation readings.
+    let all = PreservationKind::ALL;
+    for &a in &all {
+        assert_eq!(a.join(a), a, "join idempotence");
+        assert_eq!(a.meet(a), a, "meet idempotence");
+        assert_eq!(a.join(PreservationKind::BOTTOM), a, "join bottom identity");
+        assert_eq!(a.meet(PreservationKind::TOP), a, "meet top identity");
+        assert_eq!(
+            a.join(PreservationKind::TOP),
+            PreservationKind::TOP,
+            "join top absorbs"
+        );
+        assert_eq!(
+            a.meet(PreservationKind::BOTTOM),
+            PreservationKind::BOTTOM,
+            "meet bottom absorbs"
+        );
+        for &b in &all {
+            assert_eq!(a.join(b), b.join(a), "join commutative");
+            assert_eq!(a.meet(b), b.meet(a), "meet commutative");
+            assert_eq!(a.join(a.meet(b)), a, "absorption join/meet");
+            assert_eq!(a.meet(a.join(b)), a, "absorption meet/join");
+            assert_eq!(a.leq(b), a.join(b) == b, "leq via join");
+            assert_eq!(a.leq(b), a.meet(b) == a, "leq via meet");
+            for &c in &all {
+                assert_eq!(a.join(b).join(c), a.join(b.join(c)), "join associative");
+                assert_eq!(a.meet(b).meet(c), a.meet(b.meet(c)), "meet associative");
+            }
+        }
+    }
+
+    assert_eq!(PreservationKind::BOTTOM, PreservationKind::Exact);
+    assert_eq!(PreservationKind::TOP, PreservationKind::Unsupported);
+}
+
+#[test]
+fn preservation_join_is_worst_preservation_wins() {
+    use gmeow_errors::BoundedLattice;
+
+    // The load-bearing property for loss-witness merge: the join returns the
+    // LESS-preserving of the two, so the surviving preservation at a shared anchor is
+    // the WORST disclosed reading.
+    assert_eq!(
+        PreservationKind::Exact.join(PreservationKind::Unsupported),
+        PreservationKind::Unsupported,
+        "Exact join Unsupported = Unsupported (worst wins)"
+    );
+    assert_eq!(
+        PreservationKind::SoundUnder.join(PreservationKind::CompleteOver),
+        PreservationKind::CompleteOver,
+        "the higher-rank (less-preserving) reading survives"
+    );
+    assert_eq!(
+        PreservationKind::ValidationOnly.join(PreservationKind::Exact),
+        PreservationKind::ValidationOnly,
+        "ValidationOnly is worse than Exact"
+    );
+    assert_eq!(
+        PreservationKind::Exact.meet(PreservationKind::Unsupported),
+        PreservationKind::Exact,
+        "Exact meet Unsupported = Exact (best survives the meet)"
+    );
+
+    // The chain is total and strictly monotone Exact -> Unsupported.
+    for (i, &lo) in PreservationKind::ALL.iter().enumerate() {
+        for &hi in &PreservationKind::ALL[i..] {
+            assert!(lo.leq(hi), "chain leq");
+            assert_eq!(lo.join(hi), hi, "chain join = hi");
+        }
+    }
+}
+
+#[test]
 fn node_kind_values_match_module_ttl() {
     let from_rust: std::collections::BTreeSet<&str> = [
         NodeKind::ObjectLevelFormula,

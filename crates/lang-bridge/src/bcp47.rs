@@ -29,7 +29,6 @@
 //! ONE honest `SoundUnder` ledger row, exactly like the other projections FROM the model.
 
 use gmeow_logic_compile::ir::PreservationKind;
-use gmeow_logic_compile::projections::ProjectionResult;
 use purrdf::{RdfDataset, TermId};
 
 use crate::bridge::IngestDiagnostic;
@@ -318,18 +317,21 @@ fn emit_tag_set(derivations: &[Bcp47Derivation]) -> LangEmission {
     let correspondence =
         crate::rdf_scan::lossy_lens_correspondence(BCP47_CORR_BASE, &corr_key, BCP47_GET_LEG, None);
 
+    let mut loss = crate::registry::LossLedger::new();
     LangEmission {
         artifacts,
         correspondence,
-        ledger: vec![ProjectionResult {
-            target: "bcp47:tag-set".to_owned(),
-            content: String::new(),
-            is_rdf: true,
-            preservation: PreservationKind::SoundUnder,
-            complexity: "n/a".to_owned(),
-            lossy_drops: Vec::new(),
-            actual_drops: residue.clone(),
-        }],
+        ledger: vec![crate::registry::emit_ledger_row(
+            &mut loss,
+            "bcp47:tag-set".to_owned(),
+            String::new(),
+            true,
+            PreservationKind::SoundUnder,
+            "n/a".to_owned(),
+            Vec::new(),
+            residue.clone(),
+        )],
+        loss,
         leg_pair: None,
         emitted_reading_count: None,
         source_iri,
@@ -487,7 +489,8 @@ ex:conlangVariety a lang:LanguageVariety ; lang:varietyOf ex:conlang .
         // AND the honest absence note in the residue.
         assert!(!is_exact_correspondence(&e.correspondence));
         assert_eq!(e.lossy_kind, PreservationKind::SoundUnder);
-        let residue = e.ledger[0].actual_drops.join("\n");
+        // The residue is read back from the emission's loss store, keyed by the row target.
+        let residue = e.loss.projection_drops_for(&e.ledger[0].target).join("\n");
         assert!(residue.contains("no diachronic history"), "{residue}");
         assert!(
             residue.contains("no derivable BCP-47 primary subtag"),

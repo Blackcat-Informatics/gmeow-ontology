@@ -169,7 +169,12 @@ impl CoherenceOutcome {
             completeness: result.completeness,
             evaluation: result.evaluation,
             contradiction_policy,
-            projection_losses: projection_loss_codes,
+            // The caller-supplied projection-loss codes ARE the sorted set the content
+            // hash folds over — sourced directly from the `BTreeSet`, no ceremonial
+            // round-trip through a throwaway loss store (which was a byte-identical no-op:
+            // interning each code under `preservation.rung.<code>` then stripping the
+            // prefix back recovers the same set).
+            projection_losses: projection_loss_codes.clone(),
             unsupported_constructs: result.preservation.unsupported_constructs.clone(),
             permitted_conflicts,
             forbidden_violations,
