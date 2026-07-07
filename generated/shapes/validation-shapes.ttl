@@ -7,14 +7,6 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/assertionSubject> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/assertionPolarity> ; sh:class <https://blackcatinformatics.ca/gmeow/AccessibilityPolarity> ] .
 
-<https://blackcatinformatics.ca/gmeow/AffectDecision-shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectDecision> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:minCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/decidedLabel> ; sh:minCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/observedFeature> ; sh:minCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/derivedByFunction> ; sh:minCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/decisionCrossedThreshold> ; sh:minCount 1 ] .
-
 <https://blackcatinformatics.ca/gmeow/AffectiveExperience-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectiveExperience> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/mentalProcessType> ; sh:hasValue <https://blackcatinformatics.ca/gmeow/processAffectiveExperience> ] .
