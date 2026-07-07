@@ -259,7 +259,9 @@ vocabulary, cross-checked so an authored value can never drift from the measurem
   boundary) are imported **verbatim by reference** as named-key aliases, each a `lang:Denotation`
   binding the gloss to the `lang:` feature value it abbreviates — never a re-minted parallel code.
   The morpheme boundary `-` stays a named-key alias, never a glyph, because it is confusable with
-  U+2010 / U+2212 / U+00AD.
+  U+2010 / U+2212 / U+00AD; it is authored as a full `lang:WordForm` + `lang:Denotation` on the
+  Leipzig plane whose target is the `lang:MorphemeBoundary` class (the segmentation point between
+  morphs), not a feature value, and it carries no glyph-token cost.
 - **Imported planes are cited and versioned.** An external standard the plane imports — the IPA
   chart, the Leipzig Glossing Rules — is a first-class `lang:GmnImportedPlane` the codebook
   references, and it carries **both** its citation (`gmeow:cites`, typed by a `gmeow:CitationAct`)

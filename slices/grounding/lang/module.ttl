@@ -461,6 +461,13 @@ lang:Morph
     skos:definition "A morph: the concrete realization of a morpheme — /s/, /z/, /ɪz/ realizing the English plural morpheme. Names the morpheme it realizes through lang:morphemeOf and any morph it is an allomorph of through lang:allomorphOf. Carries typed morphological content through lang:morphFeature; morphology is never a free string."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+lang:MorphemeBoundary
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Morpheme Boundary"@x-gmeow-english ;
+    skos:definition "A morpheme boundary: the segmentation point between two adjacent morphs within a word — the division that Leipzig interlinear glossing marks so a word's morphological structure is legible. Not a morph or a morpheme itself but the boundary between them; the thing the Leipzig morpheme-boundary marker denotes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 lang:MorphFeature
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
@@ -3705,6 +3712,25 @@ gmeow:gmnGloss3SgDenotation
     lang:denotedForm gmeow:gmnGloss3Sg ;
     lang:denotationKind lang:denotesEntity ;
     lang:denotationTarget lang:valThirdPerson , lang:valSing ;
+    lang:denotationContext gmeow:gmnLangGlyphContext .
+
+gmeow:gmnFormMorphemeBoundary
+    a lang:WordForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "the Leipzig morpheme-boundary named key `-`"@x-gmeow-english ;
+    skos:definition "The Leipzig morpheme-boundary marker, rendered as the ASCII named key `-` (hyphen-minus, U+002D). It stays a named key rather than entering the glyph table because the ASCII hyphen-minus is confusable with U+2010 (hyphen), U+2212 (minus sign), and U+00AD (soft hyphen); an alias that never leaves the named-key plane cannot be silently substituted by one of those look-alikes at serialization or transport."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:inSignSystem gmeow:leipzigGlossingRules .
+
+gmeow:gmnDenMorphemeBoundary
+    a lang:Denotation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "denotation of the Leipzig morpheme-boundary named key `-`"@x-gmeow-english ;
+    skos:definition "The reified meaning assignment binding the Leipzig morpheme-boundary named key `-` to lang:MorphemeBoundary, the segmentation point between adjacent morphs it marks."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    lang:denotedForm gmeow:gmnFormMorphemeBoundary ;
+    lang:denotationKind lang:denotesClass ;
+    lang:denotationTarget lang:MorphemeBoundary ;
     lang:denotationContext gmeow:gmnLangGlyphContext .
 
 # --- Codebook wiring -------------------------------------------------------- #
