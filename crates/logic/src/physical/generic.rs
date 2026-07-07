@@ -156,6 +156,18 @@ pub(crate) fn parse_generic_rules(rules: &str) -> Result<Vec<GenericRule>, Strin
 /// The N3-surface tuple of a ground row — the dedup / delta key.
 type RowSurface = Vec<String>;
 
+/// A per-round winning derivation: `(head-row, firing rule IRI, matched
+/// antecedent rows)`, keyed by `(relation, head-surface)` in the round map.
+type RoundWinner = (Vec<TermValue>, String, Vec<GenericAntecedent>);
+
+/// One ground antecedent row consumed by a firing: `(relation, row-terms)`.
+///
+/// The pre-reifier premise the [`crate::oracle::ForwardOracle`] seam re-exposes as a
+/// [`crate::oracle::TypedRow`] so the materialize consumer can mint reifiers (and,
+/// crucially, HARD-FAIL on a non-ternary antecedent of a ternary head — a binary
+/// helper premise has no world-scoped reifier).
+type GenericAntecedent = (String, Vec<TermValue>);
+
 /// One ground stored row plus its cached surface and provenance.
 struct GenericEntry {
     relation: String,
@@ -163,6 +175,10 @@ struct GenericEntry {
     surface: RowSurface,
     /// `None` for an asserted EDB row; `Some(rule_iri)` for a derived one.
     rule_iri: Option<String>,
+    /// The matched positive body rows of the winning firing, in body order —
+    /// empty for an EDB row (no antecedents).  Carried so the oracle seam can
+    /// re-expose each as a decoded antecedent `TypedRow`.
+    antecedents: Vec<GenericAntecedent>,
 }
 
 /// The arity-generic fact store: insertion-ordered entries, an O(1) dedup key set,
@@ -187,6 +203,7 @@ impl GenericStore {
         relation: String,
         row: Vec<TermValue>,
         rule_iri: Option<String>,
+        antecedents: Vec<GenericAntecedent>,
     ) -> Option<usize> {
         let surface: RowSurface = row.iter().map(term_display).collect();
         if !self.keys.insert((relation.clone(), surface.clone())) {
@@ -202,6 +219,7 @@ impl GenericStore {
             row,
             surface,
             rule_iri,
+            antecedents,
         });
         Some(idx)
     }
@@ -217,6 +235,15 @@ impl GenericStore {
 
 /// A partial solution: variable name → bound native term.
 type Binding = Vec<(String, TermValue)>;
+
+/// A partial solution paired with the antecedent rows it has matched so far, in
+/// body order.  The join accumulates both in lockstep so a committed head can
+/// record exactly the body rows that produced it (its immediate premises).
+#[derive(Clone)]
+struct GenSolution {
+    binding: Binding,
+    antecedents: Vec<GenericAntecedent>,
+}
 
 /// Match `atom` against ground `row` under `base`, returning the extended binding or
 /// `None`. A repeated variable must agree (byte-equal N3 surface); a constant must
@@ -269,10 +296,10 @@ fn extend(
     store: &GenericStore,
     delta: &HashSet<usize>,
     scan: &Scan,
-    solutions: &[Binding],
-) -> Vec<Binding> {
+    solutions: &[GenSolution],
+) -> Vec<GenSolution> {
     let indices = store.indices_for(&atom.relation);
-    let mut next: Vec<Binding> = Vec::new();
+    let mut next: Vec<GenSolution> = Vec::new();
     for sol in solutions {
         for &i in indices {
             let in_delta = delta.contains(&i);
@@ -284,8 +311,16 @@ fn extend(
             if !keep {
                 continue;
             }
-            if let Some(merged) = match_generic_atom(atom, &store.entries[i].row, sol) {
-                next.push(merged);
+            let entry = &store.entries[i];
+            if let Some(merged) = match_generic_atom(atom, &entry.row, &sol.binding) {
+                // Record the matched body row (relation + terms) as an antecedent,
+                // appended in body order.
+                let mut antecedents = sol.antecedents.clone();
+                antecedents.push((entry.relation.clone(), entry.row.clone()));
+                next.push(GenSolution {
+                    binding: merged,
+                    antecedents,
+                });
             }
         }
     }
@@ -296,14 +331,17 @@ fn extend(
 /// position `p` of `{ a_p ∈ delta, a_{<p} ∈ full, a_{>p} ∈ store∖delta }`. A bodyless
 /// rule yields nothing (the empty solution never touches delta) — RL/RDF has no
 /// bodyless rules, so this is inert there.
-fn join_body(rule: &GenericRule, store: &GenericStore, delta: &HashSet<usize>) -> Vec<Binding> {
+fn join_body(rule: &GenericRule, store: &GenericStore, delta: &HashSet<usize>) -> Vec<GenSolution> {
     let k = rule.body.len();
     if k == 0 {
         return Vec::new();
     }
-    let mut all: Vec<Binding> = Vec::new();
+    let mut all: Vec<GenSolution> = Vec::new();
     for p in 0..k {
-        let mut partial: Vec<Binding> = vec![Vec::new()];
+        let mut partial: Vec<GenSolution> = vec![GenSolution {
+            binding: Vec::new(),
+            antecedents: Vec::new(),
+        }];
         for (j, atom) in rule.body.iter().enumerate() {
             let scan = if j < p {
                 Scan::Full
@@ -355,9 +393,12 @@ fn ground_head(head: &GenericAtom, sol: &Binding) -> Result<Vec<TermValue>, Stri
 ///
 /// The output includes BOTH the echoed EDB rows (`is_edb = true`, `rule_name =
 /// None`) and every derived row (`is_edb = false`, `rule_name = Some(rule_iri)`) —
-/// mirroring Nemo, which `rl_closure` relies on (asserted ∪ derived). Antecedents are
-/// left empty at this seam (parity compares FACTS, not provenance). Rows are sorted
-/// canonically by `(relation, row-surface)` for a byte-stable result.
+/// mirroring Nemo, which `rl_closure` relies on (asserted ∪ derived). Each derived
+/// row carries its matched body rows as antecedents (the production provenance the
+/// materialize consumer mints reifiers from — full-arity, so a non-ternary premise
+/// hard-fails rather than fabricating a reifier); parity still compares FACTS, not
+/// provenance. Rows are sorted canonically by `(relation, row-surface)` for a
+/// byte-stable result.
 pub(crate) fn materialize_generic(
     facts: &TypedFactSet,
     rules: &[GenericRule],
@@ -374,7 +415,7 @@ pub(crate) fn materialize_generic(
             .iter()
             .map(|&id| interner.resolve(id).clone())
             .collect();
-        if let Some(idx) = store.insert(fact.predicate.clone(), row, None) {
+        if let Some(idx) = store.insert(fact.predicate.clone(), row, None, Vec::new()) {
             delta.insert(idx);
         }
     }
@@ -382,27 +423,28 @@ pub(crate) fn materialize_generic(
     // Semi-naive least-fixpoint: each round derives new heads by joining only against
     // the previous round's delta, committing per-round winners in sorted-key order.
     loop {
-        let mut round: BTreeMap<(String, RowSurface), (Vec<TermValue>, String)> = BTreeMap::new();
+        let mut round: BTreeMap<(String, RowSurface), RoundWinner> = BTreeMap::new();
         for rule in rules {
             for sol in join_body(rule, &store, &delta) {
-                let row = ground_head(&rule.head, &sol)?;
+                let row = ground_head(&rule.head, &sol.binding)?;
                 let surface: RowSurface = row.iter().map(term_display).collect();
                 let key = (rule.head.relation.clone(), surface);
                 if store.contains(&key.0, &key.1) {
                     continue; // a prior round already derived it; earlier round wins
                 }
-                // First rule/solution (in rule then enumeration order) wins provenance.
+                // First rule/solution (in rule then enumeration order) wins provenance
+                // — its matched body rows become the head's recorded antecedents.
                 round
                     .entry(key)
-                    .or_insert_with(|| (row, rule.rule_iri.clone()));
+                    .or_insert_with(|| (row, rule.rule_iri.clone(), sol.antecedents));
             }
         }
         if round.is_empty() {
             break; // fixpoint
         }
         let mut new_delta: HashSet<usize> = HashSet::with_capacity(round.len());
-        for ((relation, _surface), (row, rule_iri)) in round {
-            if let Some(idx) = store.insert(relation, row, Some(rule_iri)) {
+        for ((relation, _surface), (row, rule_iri, antecedents)) in round {
+            if let Some(idx) = store.insert(relation, row, Some(rule_iri), antecedents) {
                 new_delta.insert(idx);
             }
         }
@@ -422,6 +464,18 @@ pub(crate) fn materialize_generic(
         .map(|i| {
             let entry = &store.entries[i];
             let is_edb = entry.rule_iri.is_none();
+            // Re-expose each matched body row as an antecedent `TypedRow`, KEEPING
+            // its full arity (a ternary `subClassOf(s,o,w)` premise stays arity-3;
+            // a binary `helper(x,y)` premise stays arity-2 so the materialize
+            // consumer hard-fails on it rather than minting a bogus reifier).
+            let antecedents = entry
+                .antecedents
+                .iter()
+                .map(|(relation, row)| TypedRow {
+                    predicate: relation.clone(),
+                    args: row.clone(),
+                })
+                .collect();
             (
                 TypedRow {
                     predicate: entry.relation.clone(),
@@ -430,7 +484,7 @@ pub(crate) fn materialize_generic(
                 TypedProvenance {
                     is_edb,
                     rule_name: entry.rule_iri.clone(),
-                    antecedents: Vec::new(),
+                    antecedents,
                     attributions: Vec::new(),
                 },
             )

@@ -13,8 +13,10 @@
 //! materialization (least-fixpoint `T_P` closure) and goal resolution (SLD).
 //!
 //! - [`ForwardOracle`] — materialize the deductive closure of a typed EDB under
-//!   a rule program.  The Nemo bridge is the sole implementer today
-//!   ([`NemoForwardOracle`]).
+//!   a rule program.  The PRODUCTION implementer is the native stratified core
+//!   ([`NativeForwardOracle`], returned by [`forward_oracle`]); the Nemo bridge
+//!   ([`NemoForwardOracle`], reached only via [`nemo_forward_oracle`]) is
+//!   retained solely as the bootstrap/parity oracle off the primary path.
 //! - [`BackwardOracle`] — resolve a goal against a world's facts, returning an
 //!   answer set.  Implemented by the Scryer engine ([`ScryerBackwardOracle`])
 //!   and by the declarative SLD reference resolver (`ReferenceBackwardOracle`,
@@ -167,6 +169,12 @@ pub(crate) trait ForwardOracle {
 
 /// The Nemo forward adapter.  Wraps `nemo_engine::run_chase_typed` verbatim; the
 /// process-global `CHASE_LOCK` stays inside that call.
+///
+/// Off the primary path after the native flip: constructed only via
+/// [`nemo_forward_oracle`] (the parity gates + Task-7 cross-check lane), so in a
+/// non-test build it has no live caller yet — `dead_code`-allowed until Task 7
+/// wires the production cross-check consumer.
+#[allow(dead_code)]
 pub(crate) struct NemoForwardOracle;
 
 impl ForwardOracle for NemoForwardOracle {
@@ -199,7 +207,34 @@ impl ForwardOracle for NemoForwardOracle {
 }
 
 /// The default forward oracle — the sole engine-naming site for materialization.
+///
+/// This is the PRODUCTION materialization engine: the native stratified
+/// semi-naive core ([`NativeForwardOracle`]).  Every production reasoning entry
+/// (`reason_all` / `run_reasoning`, the RL fragment, and `materialize`) resolves
+/// its forward chase through here, so the whole-bundle closure runs native.
+///
+/// Nemo is NO LONGER on the primary path.  It is retained ONLY as the bootstrap
+/// oracle for the scheduled cross-check lane and the native↔Nemo parity gates —
+/// reached exclusively via [`nemo_forward_oracle`], never from `reason_all`.
 pub(crate) fn forward_oracle() -> impl ForwardOracle {
+    NativeForwardOracle
+}
+
+/// The Nemo forward oracle — the ONLY remaining Nemo materialization entry point.
+///
+/// After the flip of [`forward_oracle`] onto the native core, Nemo leaves the
+/// primary reasoning path entirely.  This provider is the single seam through
+/// which the retained Nemo engine is reached: the native↔Nemo parity gates and
+/// the scheduled cross-check lane consult it, and nothing on the `reason_all`
+/// production path does.  Keeping it a named provider (rather than constructing
+/// [`NemoForwardOracle`] ad hoc) preserves the "single naming site" discipline
+/// for the bootstrap oracle too.
+///
+/// `dead_code`-allowed: the only current callers are the `#[cfg(test)]` parity
+/// gates; Task 7 adds the production cross-check consumer, at which point this
+/// allow is removed.
+#[allow(dead_code)]
+pub(crate) fn nemo_forward_oracle() -> NemoForwardOracle {
     NemoForwardOracle
 }
 
@@ -274,16 +309,18 @@ impl ForwardOracle for NemoFactsOracle {
 /// least-fixpoint closure, and re-exposes each [`DerivedRow`](crate::rule_ir::DerivedRow)
 /// as a ternary [`TypedRow`].  It reports `provides_provenance() == true`: each
 /// row carries its firing-rule identity (the assert sentinel for echoed EDB, else
-/// the rule IRI).  The FACT set is what the parity ledger compares — provenance is
-/// exempt (`compare_materialization` compares only fact keys) — so the immediate
-/// antecedents are left empty at this seam; the content-addressed derivation lives
-/// on the native `DerivedRow` and is reconstructed downstream, not carried here.
+/// the rule IRI) AND its immediate antecedents, re-exposed from the native
+/// `DerivedRow.antecedents` (the matched body facts) as ternary
+/// `predicate(subject, object, world)` rows — the production provenance the
+/// reason/explain/materialize consumers require (they cannot invert a reifier
+/// hash).  The FACT set is what the parity ledger compares — provenance is exempt
+/// (`compare_materialization` compares only fact keys) — but the antecedents must
+/// be real here, since this is now the primary reasoning path.
 ///
-/// Task 1 ADDS this adapter (its sole consumer is the parity test
-/// `native_forward_oracle_el_ledger_gap_zero`); a later task flips
-/// [`forward_oracle`] to return it, at which point the `dead_code` allow is
-/// removed as this becomes the production materialization path.
-#[allow(dead_code)]
+/// This is the PRODUCTION materialization path: [`forward_oracle`] returns it, so
+/// every production reasoning entry (`reason_all` / `run_reasoning`, the RL
+/// fragment, and `materialize`) runs its forward chase through this adapter.  The
+/// native↔Nemo parity gates additionally construct it directly to check gap-zero.
 pub(crate) struct NativeForwardOracle;
 
 impl ForwardOracle for NativeForwardOracle {
@@ -404,16 +441,37 @@ impl ForwardOracle for NativeForwardOracle {
         // object)` fact key.  `is_edb` keys off the assert sentinel; `rule_name`
         // is the firing rule IRI for a derived fact, `None` for an echoed EDB fact.
         //
-        // NOTE (later tasks): the antecedents are LEFT EMPTY here.  Wiring this
-        // oracle into `crate::materialize::materialize` (which mints reifiers from
-        // `TypedProvenance::antecedents`) would need those populated or a
-        // native-`DerivedRow`-fed reifier path instead; Task 1 does NOT wire that,
-        // so no reifier is minted from this output yet.
+        // The antecedents ARE populated below from `DerivedRow.antecedents` (the
+        // matched body facts): `crate::materialize::materialize` mints reifiers from
+        // `TypedProvenance::antecedents`, and `chase_rows_to_inferred` decodes them
+        // into `InferredAxiom.premises`, so the primary reasoning path now carries
+        // real native provenance end-to-end.
         let typed = rows
             .into_iter()
             .map(|row| {
                 let is_edb = row.rule_iri == crate::provenance::ASSERT_RULE_IRI;
                 let rule_name = if is_edb { None } else { Some(row.rule_iri) };
+                // Re-expose each matched body fact as a ternary antecedent
+                // `predicate(subject, object, world)` — the exact shape
+                // `chase_rows_to_inferred`'s `decode_premise` and
+                // `materialize`'s `reifier_for_antecedent_row` consume.  Every
+                // antecedent of a within-world derivation shares the derived
+                // row's world (`row.graph`), so the world column is that graph
+                // literal (the same `simple_literal(&row.graph)` the derived row
+                // itself carries).  An EDB echo has no antecedents (empty), so the
+                // premise list is correctly empty for asserted rows.
+                let antecedents = row
+                    .antecedents
+                    .into_iter()
+                    .map(|ante| TypedRow {
+                        predicate: ante.predicate,
+                        args: vec![
+                            ante.subject,
+                            ante.object,
+                            TermValue::simple_literal(&row.graph),
+                        ],
+                    })
+                    .collect();
                 (
                     TypedRow {
                         predicate: row.predicate,
@@ -426,7 +484,7 @@ impl ForwardOracle for NativeForwardOracle {
                     TypedProvenance {
                         is_edb,
                         rule_name,
-                        antecedents: Vec::new(),
+                        antecedents,
                         attributions: Vec::new(),
                     },
                 )
@@ -459,10 +517,8 @@ impl ForwardOracle for NativeForwardOracle {
 /// on (positive-only), and a ternary negated rule set is a legal binary program
 /// (stratified NAF).  A pure syntax error propagates.
 ///
-/// `dead_code`-allowed for the same Task-1 reason as [`NativeForwardOracle`]: its
-/// only caller is that adapter, wired in only from the parity tests until a later
-/// task flips [`forward_oracle`].
-#[allow(dead_code)]
+/// Called on the production dispatch path by [`NativeForwardOracle::materialize`]
+/// (now that [`forward_oracle`] returns the native adapter).
 pub(crate) fn rules_are_pure_ternary(rules: &str) -> Result<bool, String> {
     use crate::nemo_engine::NemoParsedRules;
     use nemo::rule_model::programs::ProgramRead;
@@ -489,10 +545,8 @@ pub(crate) fn rules_are_pure_ternary(rules: &str) -> Result<bool, String> {
 /// string-constant treatment `TypedFactSet::push_quad` applies); any other shape
 /// is a hard error — mirroring `crate::reason::world_string`.
 ///
-/// `dead_code`-allowed for the same Task-1 reason as [`NativeForwardOracle`]: its
-/// only caller is that adapter, itself wired in only from the parity test until a
-/// later task flips [`forward_oracle`].
-#[allow(dead_code)]
+/// Called on the production dispatch path by [`NativeForwardOracle::materialize`]
+/// (now that [`forward_oracle`] returns the native adapter).
 fn world_lexical(term: &TermValue) -> Result<String, String> {
     match term {
         TermValue::Literal {
@@ -594,7 +648,9 @@ mod tests {
     /// Nemo adapter reports it provides provenance.
     #[test]
     fn nemo_forward_oracle_materializes_and_provides_provenance() {
-        let oracle = forward_oracle();
+        // Nemo is off the primary path now; reach the retained bootstrap oracle
+        // through its single naming site.
+        let oracle = nemo_forward_oracle();
         assert_eq!(oracle.name(), "nemo");
         assert!(oracle.provides_provenance());
 
@@ -640,7 +696,7 @@ mod tests {
     /// full chase (no seam lie).
     #[test]
     fn nemo_forward_oracle_rejects_a_budget_it_cannot_honor() {
-        let oracle = forward_oracle();
+        let oracle = nemo_forward_oracle();
         let edb = TypedFactSet::new();
         let budget = ForwardBudget {
             max_rule_firings: Some(10),

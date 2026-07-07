@@ -675,6 +675,7 @@ mod tests {
             rule_iri: "http://ex/rule/svf".to_owned(),
             source_quad_ids: vec![],
             derivation_id: format!("http://ex/deriv/{subject}/{predicate}/{object}"),
+            antecedents: vec![],
         }
     }
 

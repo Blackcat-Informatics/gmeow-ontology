@@ -235,6 +235,17 @@ pub(crate) struct DerivedRow {
     pub(crate) source_quad_ids: Vec<String>,
     /// The content-addressed derivation IRI.
     pub(crate) derivation_id: String,
+    /// The matched positive body facts of the winning firing, in body order —
+    /// the pre-reifier `(subject, predicate, object)` antecedents whose reifiers
+    /// are exactly [`source_quad_ids`](Self::source_quad_ids).
+    ///
+    /// Carried so the [`crate::oracle::ForwardOracle`] seam can re-expose each
+    /// antecedent as a decoded [`crate::oracle::TypedRow`] (the production
+    /// provenance the reason/explain/materialize consumers require — they cannot
+    /// invert a reifier hash back to its triple).  Empty for an echoed EDB row
+    /// (an asserted fact has no antecedents) and on the facts-only (Skip) lane
+    /// (which records no provenance at all).
+    pub(crate) antecedents: Vec<Fact>,
 }
 
 /// Sort rows canonically by `(graph, subject, predicate, object)` N3 surfaces —
@@ -667,6 +678,11 @@ pub(crate) struct Provenance {
     pub(crate) max_src_depth: u32,
     /// Sum of derivation depths across matched source facts.
     pub(crate) sum_src_depth: u64,
+    /// The matched positive body facts, in body order — the same facts whose
+    /// reifiers are [`sources`](Self::sources).  Carried into
+    /// [`DerivedRow::antecedents`] so the oracle seam can re-expose the decoded
+    /// antecedent triples (a reifier hash cannot be inverted).
+    pub(crate) source_facts: Vec<Fact>,
 }
 
 #[derive(Clone)]
@@ -788,6 +804,7 @@ pub(crate) fn least_model_of_reduct(
                         rule_iri: rule.rule_iri.clone(),
                         max_src_depth: max_sd,
                         sum_src_depth: sum_sd,
+                        source_facts: sol.source_facts.clone(),
                     }),
                 };
                 round
@@ -831,6 +848,7 @@ pub(crate) fn least_model_of_reduct(
                     rule_iri: prov.rule_iri,
                     source_quad_ids: prov.sources, // body-order, NEVER sorted copy
                     derivation_id: prov.deriv,
+                    antecedents: prov.source_facts,
                 });
             }
         }
@@ -912,6 +930,8 @@ pub(crate) fn echo_asserted(world: &str, edb: &[Fact]) -> Result<Vec<DerivedRow>
             rule_iri: ASSERT_RULE_IRI.to_owned(),
             source_quad_ids: vec![reifier],
             derivation_id: deriv,
+            // An asserted EDB fact has no antecedents (it is echoed, not derived).
+            antecedents: Vec::new(),
         });
     }
     Ok(out)
