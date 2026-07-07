@@ -2036,4 +2036,178 @@ mod tests {
         assert!(NativeForwardOracle.provides_provenance());
         assert_eq!(NativeForwardOracle.name(), "native");
     }
+
+    // ── EL promotion corpus gate + reified correspondence (Task 2) ────────────────
+
+    const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+    const OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
+    const EL_WORLD: &str = "urn:world:el-corpus";
+
+    /// Seed a real EL corpus into a ternary typed EDB: a four-link `subClassOf`
+    /// chain `A ⊑ B ⊑ C ⊑ D`, a `D ≡ E` equivalence, and a `p ⊑ q` sub-property
+    /// edge — enough that the EL closure is non-trivial (transitive `subClassOf`,
+    /// both equivalence directions) rather than one triple.
+    fn el_corpus_edb() -> TypedFactSet {
+        let cls = |n: &str| ex_iri(&format!("http://ex/el/{n}"));
+        let mut facts = TypedFactSet::new();
+        // A ⊑ B ⊑ C ⊑ D (transitive closure derives A⊑C, A⊑D, B⊑D).
+        facts.push_quad(&cls("A"), RDFS_SUBCLASS_OF, &cls("B"), EL_WORLD);
+        facts.push_quad(&cls("B"), RDFS_SUBCLASS_OF, &cls("C"), EL_WORLD);
+        facts.push_quad(&cls("C"), RDFS_SUBCLASS_OF, &cls("D"), EL_WORLD);
+        // D ≡ E (derives D⊑E and E⊑D, and by transitivity A⊑E, B⊑E, C⊑E).
+        facts.push_quad(&cls("D"), OWL_EQUIVALENT_CLASS, &cls("E"), EL_WORLD);
+        // p ⊑ q (sub-property transitivity is in EL_RULES; a lone edge just echoes).
+        facts.push_quad(&cls("p"), SUBCLASS_PROP, &cls("q"), EL_WORLD);
+        facts
+    }
+
+    const SUBCLASS_PROP: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
+
+    /// The `subClassOf` subsumption tuples `(subject, object, world)` of a typed
+    /// closure — the comparable key [`crate::reason::ledger::compare_subsumption`]
+    /// keys on. Restricted to the canonical `subClassOf` subsumption relation so
+    /// the (subject, object) key is unambiguous.
+    fn el_subclass_tuples(closure: &TypedChaseResult) -> Vec<(String, String, String)> {
+        closure
+            .rows
+            .iter()
+            .filter_map(|(row, _prov)| {
+                if row.predicate != RDFS_SUBCLASS_OF || row.args.len() != 3 {
+                    return None;
+                }
+                Some((
+                    term_display(&row.args[0]),
+                    term_display(&row.args[1]),
+                    EL_WORLD.to_owned(),
+                ))
+            })
+            .collect()
+    }
+
+    /// Build the native↔oracle EL divergence ledger over the shared corpus: run
+    /// BOTH forward oracles over the EL rule set, then classify the `subClassOf`
+    /// closures via [`crate::reason::ledger::compare_subsumption`].
+    fn el_divergence_ledger() -> crate::reason::ledger::DivergenceLedger {
+        let facts = el_corpus_edb();
+        let rules = crate::reason::el::EL_RULES;
+        let native = NativeForwardOracle
+            .materialize(&facts, rules, &ForwardBudget::UNBOUNDED)
+            .expect("native EL chase must decide the stratifiable EL rule set");
+        let nemo = NemoForwardOracle
+            .materialize(&facts, rules, &ForwardBudget::UNBOUNDED)
+            .expect("nemo EL chase must succeed");
+        let rows = crate::reason::ledger::compare_subsumption(
+            &el_subclass_tuples(&native),
+            &el_subclass_tuples(&nemo),
+        );
+        crate::reason::ledger::build_ledger(rows, Vec::new(), Vec::new(), Vec::new())
+    }
+
+    /// Part A — the EL promotion parity gate (gap-zero, non-vacuous): over the EL
+    /// fixture corpus the native forward engine SUBSUMES the Nemo oracle. The
+    /// strict verdict must pass (zero OracleOnly / DlGap / CorpusOnly) AND the
+    /// non-vacuity floor `agree > 0` must hold. Any OracleOnly divergence is a
+    /// native-coverage regression to be fixed in the native path — never by
+    /// relaxing this gate.
+    #[test]
+    fn el_native_oracle_ledger_gap_zero() {
+        let ledger = el_divergence_ledger();
+        let verdict = crate::reason::ledger::enforce(&ledger);
+        assert!(
+            verdict.passed,
+            "native ⊉ Nemo on the EL corpus ({} oracle-only, {} dl-gap): {:?}\nrows: {:#?}",
+            ledger.oracle_only,
+            ledger.dl_gap,
+            verdict.reasons,
+            ledger
+                .rows
+                .iter()
+                .filter(|r| r.kind != DivergenceKind::Agree)
+                .collect::<Vec<_>>()
+        );
+        // Non-vacuity floor: the two engines actually AGREE on a real closure.
+        assert!(
+            ledger.agree > 0,
+            "the EL parity ledger must have at least one agreeing subsumption"
+        );
+        // The corpus is genuinely non-trivial: the transitive edge A ⊑ D and both
+        // equivalence directions must be among the agreed subsumptions, proving the
+        // chase ran (not a bare EDB echo).
+        let agreed = |s: &str, o: &str| {
+            let sub = format!("http://ex/el/{s}");
+            let obj = format!("http://ex/el/{o}");
+            ledger
+                .rows
+                .iter()
+                .any(|r| r.kind == DivergenceKind::Agree && r.subject == sub && r.object == obj)
+        };
+        assert!(agreed("A", "D"), "transitive A ⊑ D must be agreed");
+        assert!(agreed("D", "E"), "equivalence D ⊑ E must be agreed");
+        assert!(agreed("E", "D"), "equivalence E ⊑ D must be agreed");
+    }
+
+    /// Part B — the reified `logic:Correspondence`: the gap-zero EL parity verdict
+    /// is emitted as a bundle-borne correspondence recording "native ⊒ Nemo on the
+    /// certified EL fragment", carrying the divergence ledger as its loss cell and
+    /// the native contract hash as its proof-certificate binding.
+    #[test]
+    fn el_subsumption_correspondence_emitted() {
+        let ledger = el_divergence_ledger();
+        // Precondition: only reify a PASSING (gap-zero) verdict.
+        assert!(crate::reason::ledger::enforce(&ledger).passed);
+
+        let contract = crate::reason::native_contract_hash();
+        let ttl = crate::reason::artifacts::build_el_subsumption_correspondence_ttl(
+            &ledger, &contract, "nemo",
+        );
+
+        // The correspondence is a real logic:Correspondence with the declared
+        // relation / law-rung / preservation polarity (all reused vocabulary).
+        assert!(
+            ttl.contains("#type> <https://blackcatinformatics.ca/logic/Correspondence>"),
+            "must reify a logic:Correspondence: {ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "logic/correspondenceRelation> <https://blackcatinformatics.ca/logic/Subsumes>"
+            ),
+            "relation must be logic:Subsumes: {ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "logic/preservationKind> \
+                 <https://blackcatinformatics.ca/logic/CompleteOverApproximation>"
+            ),
+            "preservation must be logic:CompleteOverApproximation: {ttl}"
+        );
+        assert!(
+            ttl.contains(
+                "logic/morphismClass> <https://blackcatinformatics.ca/logic/SectionRetraction>"
+            ),
+            "law-rung must be logic:SectionRetraction: {ttl}"
+        );
+        // "proved in a certified fragment" — the discharged section-law claim.
+        assert!(
+            ttl.contains("logic/lawClaimed> <https://blackcatinformatics.ca/logic/SectionLaw>")
+                && ttl.contains(
+                    "logic/lawDischargeVerdict> \
+                     <https://blackcatinformatics.ca/logic/ObligationDischarged>"
+                )
+                && ttl.contains(
+                    "logic/lawDischargeCondition> \
+                     <https://blackcatinformatics.ca/logic/DischargeCertifiedFragment>"
+                ),
+            "the section law must be discharged within the certified fragment: {ttl}"
+        );
+        // The proof-certificate binding: the contract hash equals native_contract_hash().
+        assert!(
+            ttl.contains(&format!("logic/contractHash> \"{contract}\"")),
+            "contractHash must equal native_contract_hash(): {ttl}"
+        );
+        // A gap-zero ledger carries zero oracle-only findings in its loss cell.
+        assert!(
+            ttl.contains(&format!("gmeow/oracleOnlyCount> {}", ledger.oracle_only)),
+            "the loss cell records the oracle-only tally: {ttl}"
+        );
+    }
 }
