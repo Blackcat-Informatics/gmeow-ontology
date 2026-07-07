@@ -32,9 +32,9 @@
 #   test_two_clocks_stay_distinct -- uses the native statement OWL downcast; same reason.
 #   test_rdf12_artifact_carries_the_standpoint_axis -- reads committed file
 #     content; generated-artifact check, not a TBox assertion.
-#   test_coexistence_fixture_conforms -- run_shacl() call; ExampleConformance.
-#   test_preferred_claim_is_flagged -- run_shacl() call; ExampleConformance.
-#   test_withdrawn_standpoint_warning_does_not_fail -- run_shacl() call.
+#   test_coexistence_fixture_conforms -- SHACL validation call; ExampleConformance.
+#   test_preferred_claim_is_flagged -- SHACL validation call; ExampleConformance.
+#   test_withdrawn_standpoint_warning_does_not_fail -- SHACL validation call.
 #   test_no_frame_collapsing_projection_exists -- filesystem .exists() check.
 #   test_standpoint_owl2_projection_emits_tool_compatible_labels -- runs a
 #     SPARQL query over a coverage fixture; projection check.
@@ -55,8 +55,8 @@
 #     query on fixture; projection check.
 #   test_bbc_projection_exists -- filesystem .exists() check.
 #   test_bbc_projection_emits_news_event -- SPARQL query on fixture.
-#   test_variety_coexistence_fixture_conforms -- run_shacl() call.
-#   test_etymology_coexistence_fixture_conforms -- run_shacl() call.
+#   test_variety_coexistence_fixture_conforms -- SHACL validation call.
+#   test_etymology_coexistence_fixture_conforms -- SHACL validation call.
 #   test_standpoint_claim_maps_to_crminf_i5 -- load_mappings() call;
 #     generated-artifact SSSOM check.
 #   test_standpoint_claim_maps_to_iao_assertion -- load_mappings() call.

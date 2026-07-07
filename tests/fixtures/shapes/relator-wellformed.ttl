@@ -2,7 +2,7 @@
 # closed-world SHACL shapes in shapes/gmeow-shapes.ttl: each facet points at
 # EXACTLY ONE value, the NameUsage binds exactly one entity to exactly one
 # appellation, the superseded facet is suppressed (gmeow:displayable false), and
-# no individual fills two disjoint identity axes. `run_shacl` over this graph
+# no individual fills two disjoint identity axes. `SHACL validation` over this graph
 # MUST conform. Keep this fixture out of tests/fixtures/coverage/ so the
 # coverage/disjointness harness does not pick it up.
 
