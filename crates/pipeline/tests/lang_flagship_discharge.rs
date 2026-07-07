@@ -62,7 +62,7 @@ fn lang_slice_root() -> PathBuf {
 fn repo_catalog() -> purrdf::slice::SliceCatalog {
     purrdf::slice::SliceCatalog::discover(
         &repo_root().join("slices"),
-        gmeow_pipeline::gmeow_ns::gmeow_slice_vocab(),
+        gmeow_pipeline::gmeow_slice_vocab(),
     )
     .expect("discover slice catalog")
 }
