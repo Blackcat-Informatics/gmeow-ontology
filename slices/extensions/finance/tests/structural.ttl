@@ -28,13 +28,13 @@
 #   test_no_transaction_subclass_explosion -- whole-graph sweep asserting
 #     absence of PaymentTransaction / InvoiceTransaction /
 #     TransferTransaction as owl:Class; dynamic, not module-scoped.
-#   test_finance_fixture_conforms -- run_shacl() call; ExampleConformance.
-#   test_double_entry_fixture_conforms -- run_shacl() call;
+#   test_finance_fixture_conforms -- SHACL validation call; ExampleConformance.
+#   test_double_entry_fixture_conforms -- SHACL validation call;
 #     ExampleConformance.
-#   test_invoice_fixture_conforms -- run_shacl() call; ExampleConformance.
-#   test_order_fixture_conforms -- run_shacl() call; ExampleConformance.
-#   test_holding_fixture_conforms -- run_shacl() call; ExampleConformance.
-#   test_crypto_fixture_conforms -- run_shacl() call; ExampleConformance.
+#   test_invoice_fixture_conforms -- SHACL validation call; ExampleConformance.
+#   test_order_fixture_conforms -- SHACL validation call; ExampleConformance.
+#   test_holding_fixture_conforms -- SHACL validation call; ExampleConformance.
+#   test_crypto_fixture_conforms -- SHACL validation call; ExampleConformance.
 #   test_currency_vocab_is_open_values_not_subclasses (negative half) --
 #     absence of BankAccount / CreditAccount / InvestmentAccount /
 #     WalletAccount as owl:Class; dynamic whole-graph sweep.

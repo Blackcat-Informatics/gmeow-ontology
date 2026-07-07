@@ -16,9 +16,9 @@
 #     facet classes (15 pairs); cannot be expressed as a fixed module-scoped ASK
 #     without enumerating every pair inline (which would turn a live sweep into a
 #     finite list and lose coverage if new facets are added).
-#   test_facet_orthogonality_shacl_rejects_two_facets -- run_shacl() call
+#   test_facet_orthogonality_shacl_rejects_two_facets -- SHACL validation call
 #     with ABox graph; ExampleConformance, not a structural TBox assertion.
-#   test_fixture_parses_and_shacl_passes -- run_shacl() fixture conformance.
+#   test_fixture_parses_and_shacl_passes -- SHACL validation fixture conformance.
 #   test_fixture_has_all_five_facets -- fixture ABox individual type checks.
 #   test_fixture_commit_has_content_digest -- fixture ABox predicate check.
 #   test_fixture_ai_contributor_is_first_class -- fixture ABox dynamic subject

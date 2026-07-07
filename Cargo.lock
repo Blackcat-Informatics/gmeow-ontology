@@ -1790,11 +1790,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 
 [[package]]
+name = "gmeow-affect"
+version = "0.1.0"
+dependencies = [
+ "gmeow-math",
+ "purrdf",
+]
+
+[[package]]
 name = "gmeow-cli"
 version = "0.1.0"
 dependencies = [
  "assert_cmd",
  "clap",
+ "gmeow-affect",
  "gmeow-cli-core",
  "gmeow-docs",
  "gmeow-errors",
@@ -1988,6 +1997,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-math"
+version = "0.1.0"
+dependencies = [
+ "purrdf",
+]
+
+[[package]]
 name = "gmeow-music"
 version = "0.1.0"
 dependencies = [
@@ -2021,6 +2037,7 @@ dependencies = [
  "bytes",
  "ciborium",
  "ed25519-dalek",
+ "gmeow-affect",
  "gmeow-cli-core",
  "gmeow-conformance",
  "gmeow-docs",
@@ -2070,6 +2087,7 @@ dependencies = [
  "gmeow-errors",
  "gmeow-license",
  "gmeow-logic",
+ "gmeow-math",
  "insta",
  "jsonschema",
  "purrdf",

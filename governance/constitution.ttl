@@ -175,7 +175,7 @@ meta:tests-claim-spine a meta:TestSuite ;
     meta:artifact "tests/test_provenance.py",
         "slices/core/attestation/tests/structural.ttl",
         "crates/validate/tests/ontology_conformance.rs",
-        "tests/test_trust.py", "tests/test_evidence.py" .
+        "tests/test_trust.py", "crates/validate/tests/conformance_evidence.rs" .
 
 meta:practice-consumer-question a meta:Practice ;
     rdfs:label "issue templates ask who the consumer is"@x-gmeow-english ;

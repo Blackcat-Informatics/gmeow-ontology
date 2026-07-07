@@ -15,9 +15,9 @@
 #   test_no_occurrence_gate — loads fixture files + examples/trust-collapse.ttl
 #     and asserts that no gmeow:Event instances are entailed; this is a
 #     multi-file dynamic ABox check, not a module-scoped TBox invariant.
-#   test_wellformed_risk_fixture_conforms — run_shacl() call;
+#   test_wellformed_risk_fixture_conforms — SHACL validation call;
 #     ExampleConformance, not a structural TBox assertion.
-#   test_malformed_risk_fixture_is_flagged — run_shacl() call with error-text
+#   test_malformed_risk_fixture_is_flagged — SHACL validation call with error-text
 #     assertions; ExampleConformance, not a structural TBox assertion.
 #   test_competency_severity_order_query — reads an external .rq file from
 #     COMPETENCY_DIR and asserts the result set; generated-artifact /

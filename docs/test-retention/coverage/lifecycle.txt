@@ -1,0 +1,9 @@
+Source: tests/test_lifecycle.py
+run_shacl() call-sites (real): 2 (contested + coverage fixtures); the 2 entity-existence cases were migrated in a prior batch
+def test_ functions: 6
+  test_contested_existence_claims_coexist_and_validate -> case contested_existence_conforms + ::contested_existence_claims_coexist
+  test_coverage_fixture_loads_and_validates -> case coverage_fixture_conforms + ::coverage_fixture_abox
+  test_supersession_properties_are_object_properties -> ::supersession_properties_are_object_properties
+  test_lifecycle_event_types_are_individuals_not_classes -> ::lifecycle_event_types_are_individuals_not_classes
+  test_no_lifecycle_event_subclasses_exist -> ::no_lifecycle_event_subclasses_exist
+  test_no_preferred_or_primary_lifecycle_term -> ::no_preferred_or_primary_lifecycle_term
