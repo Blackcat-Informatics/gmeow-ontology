@@ -19,6 +19,13 @@
           "logical": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
         }
       ],
+      "remediation": [
+        {
+          "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value.",
+          "standpoint": "binding",
+          "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-MinCountConstraintComponent"
+        }
+      ],
       "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
     },
     {
@@ -37,6 +44,13 @@
       "related_locations": [
         {
           "logical": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+        }
+      ],
+      "remediation": [
+        {
+          "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value.",
+          "standpoint": "binding",
+          "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-MinCountConstraintComponent"
         }
       ],
       "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
@@ -59,6 +73,13 @@
           "logical": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
         }
       ],
+      "remediation": [
+        {
+          "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value.",
+          "standpoint": "binding",
+          "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-MinCountConstraintComponent"
+        }
+      ],
       "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
     },
     {
@@ -77,6 +98,13 @@
       "related_locations": [
         {
           "logical": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+        }
+      ],
+      "remediation": [
+        {
+          "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value.",
+          "standpoint": "binding",
+          "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-MinCountConstraintComponent"
         }
       ],
       "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"

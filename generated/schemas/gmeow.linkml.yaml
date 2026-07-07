@@ -1056,6 +1056,12 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/CriterionPole
     title: Criterion Pole
     is_a: InformationObject
+  CrossNodeGlutWitness:
+    class_uri: https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness
+    title: Cross-Node Glut Witness
+    is_a: Finding
+    slots:
+    - glutWitnessOf
   CryptoWallet:
     class_uri: https://blackcatinformatics.ca/gmeow/CryptoWallet
     title: Crypto Wallet
@@ -1174,6 +1180,9 @@ classes:
   DeterminationStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/DeterminationStatus
     title: Determination Status
+  DiagnosticMetaRule:
+    class_uri: https://blackcatinformatics.ca/gmeow/DiagnosticMetaRule
+    title: Diagnostic Meta-Rule
   DiagnosticSeverity:
     class_uri: https://blackcatinformatics.ca/gmeow/DiagnosticSeverity
     title: Diagnostic Severity
@@ -1661,16 +1670,29 @@ classes:
     title: Finding
     is_a: Observation
     slots:
+    - crossNodeGlutWith
+    - findingAnchor
+    - findingAntecedent
     - findingCategory
+    - findingCluster
     - findingCode
     - findingGateVerdict
+    - findingHasAntecedent
     - findingHelpUri
     - findingLocation
     - findingMessage
+    - findingRemediation
+    - findingRootCause
     - findingSeverity
     - findingStandpoint
     - findingSuggestion
     - findingTool
+    - findingTraces
+  FindingCluster:
+    class_uri: https://blackcatinformatics.ca/gmeow/FindingCluster
+    title: Finding Cluster
+    slots:
+    - clusterRoot
   ForgePlatform:
     class_uri: https://blackcatinformatics.ca/gmeow/ForgePlatform
     title: Forge Platform
@@ -2869,6 +2891,9 @@ classes:
   NetworkAddressType:
     class_uri: https://blackcatinformatics.ca/gmeow/NetworkAddressType
     title: Network Address Type
+  NonTrivialAnchor:
+    class_uri: https://blackcatinformatics.ca/gmeow/NonTrivialAnchor
+    title: Non-Trivial Anchor
   Norm:
     class_uri: https://blackcatinformatics.ca/gmeow/Norm
     title: Norm
@@ -3715,6 +3740,10 @@ classes:
   RomanticOrientationValue:
     class_uri: https://blackcatinformatics.ca/gmeow/RomanticOrientationValue
     title: Romantic Orientation Value
+  RootFinding:
+    class_uri: https://blackcatinformatics.ca/gmeow/RootFinding
+    title: Root Finding
+    is_a: Finding
   Route:
     class_uri: https://blackcatinformatics.ca/gmeow/Route
     title: Route
@@ -4481,6 +4510,7 @@ classes:
     - ruleCategory
     - ruleCode
     - ruleHelpUri
+    - ruleRemediation
   VectorIndex:
     class_uri: https://blackcatinformatics.ca/gmeow/VectorIndex
     title: Vector Index
@@ -5708,6 +5738,11 @@ slots:
     title: category blocking
     range: BlockingDisposition
     multivalued: true
+  categoryPolarity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/categoryPolarity
+    title: category polarity
+    range: uriorcurie
+    multivalued: true
   causalModality:
     slot_uri: https://blackcatinformatics.ca/gmeow/causalModality
     title: causal modality
@@ -5924,6 +5959,12 @@ slots:
     range: time
     domain: OpeningHoursSpecification
     multivalued: false
+  clusterRoot:
+    slot_uri: https://blackcatinformatics.ca/gmeow/clusterRoot
+    title: cluster root
+    range: Finding
+    domain: FindingCluster
+    multivalued: true
   coarsenGuarded:
     slot_uri: https://blackcatinformatics.ca/gmeow/coarsenGuarded
     title: coarsen guarded
@@ -6557,6 +6598,12 @@ slots:
     title: criterion domain
     range: CriterionDomain
     domain: Criterion
+    multivalued: true
+  crossNodeGlutWith:
+    slot_uri: https://blackcatinformatics.ca/gmeow/crossNodeGlutWith
+    title: cross-node glut with
+    range: Finding
+    domain: Finding
     multivalued: true
   curiousAbout:
     slot_uri: https://blackcatinformatics.ca/gmeow/curiousAbout
@@ -7707,10 +7754,28 @@ slots:
     range: PhysicalObject
     domain: ArchaeologicalFindContext
     multivalued: false
+  findingAnchor:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingAnchor
+    title: finding anchor
+    range: uriorcurie
+    domain: Finding
+    multivalued: true
+  findingAntecedent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingAntecedent
+    title: finding antecedent
+    range: Finding
+    domain: Finding
+    multivalued: true
   findingCategory:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingCategory
     title: finding category
     range: uriorcurie
+    domain: Finding
+    multivalued: true
+  findingCluster:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingCluster
+    title: finding cluster
+    range: FindingCluster
     domain: Finding
     multivalued: true
   findingCode:
@@ -7723,6 +7788,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingGateVerdict
     title: finding gate verdict
     range: GateVerdict
+    domain: Finding
+    multivalued: true
+  findingHasAntecedent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingHasAntecedent
+    title: finding has antecedent
+    range: Finding
     domain: Finding
     multivalued: true
   findingHelpUri:
@@ -7741,6 +7812,18 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingMessage
     title: finding message
     range: string
+    domain: Finding
+    multivalued: true
+  findingRemediation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingRemediation
+    title: finding remediation
+    range: string
+    domain: Finding
+    multivalued: true
+  findingRootCause:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingRootCause
+    title: finding root cause
+    range: Finding
     domain: Finding
     multivalued: true
   findingSeverity:
@@ -7765,6 +7848,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingTool
     title: finding tool
     range: string
+    domain: Finding
+    multivalued: true
+  findingTraces:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingTraces
+    title: finding traces
+    range: Finding
     domain: Finding
     multivalued: true
   fingerprint:
@@ -7995,6 +8084,12 @@ slots:
     title: geometry type
     range: GeometryType
     domain: Geometry
+    multivalued: true
+  glutWitnessOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/glutWitnessOf
+    title: glut witness of
+    range: Finding
+    domain: CrossNodeGlutWitness
     multivalued: true
   gmnAcceptWindow:
     slot_uri: https://blackcatinformatics.ca/gmeow/gmnAcceptWindow
@@ -12625,6 +12720,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/ruleHelpUri
     title: rule help URI
     range: uri
+    domain: ValidationRule
+    multivalued: true
+  ruleRemediation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/ruleRemediation
+    title: rule remediation
+    range: string
     domain: ValidationRule
     multivalued: true
   ruleSeverity:

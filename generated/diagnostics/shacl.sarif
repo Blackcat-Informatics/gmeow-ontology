@@ -14,6 +14,17 @@
       },
       "results": [
         {
+          "fixes": [
+            {
+              "description": {
+                "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value."
+              },
+              "properties": {
+                "gmeow.helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-MinCountConstraintComponent",
+                "gmeow.standpoint": "binding"
+              }
+            }
+          ],
           "level": "warning",
           "locations": [
             {
@@ -48,6 +59,17 @@
           "ruleId": "shacl.MinCountConstraintComponent"
         },
         {
+          "fixes": [
+            {
+              "description": {
+                "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value."
+              },
+              "properties": {
+                "gmeow.helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-MinCountConstraintComponent",
+                "gmeow.standpoint": "binding"
+              }
+            }
+          ],
           "level": "warning",
           "locations": [
             {
@@ -82,6 +104,17 @@
           "ruleId": "shacl.MinCountConstraintComponent"
         },
         {
+          "fixes": [
+            {
+              "description": {
+                "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value."
+              },
+              "properties": {
+                "gmeow.helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-MinCountConstraintComponent",
+                "gmeow.standpoint": "binding"
+              }
+            }
+          ],
           "level": "warning",
           "locations": [
             {
@@ -116,6 +149,17 @@
           "ruleId": "shacl.MinCountConstraintComponent"
         },
         {
+          "fixes": [
+            {
+              "description": {
+                "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value."
+              },
+              "properties": {
+                "gmeow.helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-MinCountConstraintComponent",
+                "gmeow.standpoint": "binding"
+              }
+            }
+          ],
           "level": "warning",
           "locations": [
             {
