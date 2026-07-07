@@ -2669,6 +2669,7 @@ classes:
     title: Model Inference Run
     is_a: Entity
     slots:
+    - hypothesisTemplate
     - labelSetRevision
     - modelFramework
     - modelIdentifier
@@ -9408,6 +9409,12 @@ slots:
     range: string
     domain: InstrumentType
     multivalued: false
+  hypothesisTemplate:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hypothesisTemplate
+    title: hypothesis template
+    range: string
+    domain: ModelInferenceRun
+    multivalued: true
   iban:
     slot_uri: https://blackcatinformatics.ca/gmeow/iban
     title: IBAN
@@ -21497,6 +21504,9 @@ enums:
       scoreCalibratedProbability:
         meaning: https://blackcatinformatics.ca/gmeow/scoreCalibratedProbability
         title: calibrated probability
+      scoreEntailment:
+        meaning: https://blackcatinformatics.ca/gmeow/scoreEntailment
+        title: entailment probability
       scoreLogit:
         meaning: https://blackcatinformatics.ca/gmeow/scoreLogit
         title: logit
