@@ -445,6 +445,11 @@ class CelestialReferenceOriginEnum(str, Enum):
     refOriginTopocentric = "refOriginTopocentric"
 
 
+class CitationActEnum(str, Enum):
+    ipaChartCitation = "ipaChartCitation"
+    leipzigCitation = "leipzigCitation"
+
+
 class CitationIntentEnum(str, Enum):
     intentBridgedByReference = "intentBridgedByReference"
     intentCitesAsDataSource = "intentCitesAsDataSource"
@@ -657,6 +662,11 @@ class CoverageDepthEnum(str, Enum):
     coverageDepthPassingMention = "coverageDepthPassingMention"
     coverageDepthRoutineFiling = "coverageDepthRoutineFiling"
     coverageDepthSignificantCoverage = "coverageDepthSignificantCoverage"
+
+
+class CreativeWorkEnum(str, Enum):
+    ipaChartWork = "ipaChartWork"
+    leipzigWork = "leipzigWork"
 
 
 class CreativeWorkTypeEnum(str, Enum):
@@ -1362,7 +1372,10 @@ class InferenceModeEnum(str, Enum):
 
 
 class InformationObjectEnum(str, Enum):
+    gmnLangGlyphContext = "gmnLangGlyphContext"
     gmnVersionOne = "gmnVersionOne"
+    ipaPlaneSourceRecord = "ipaPlaneSourceRecord"
+    leipzigPlaneSourceRecord = "leipzigPlaneSourceRecord"
 
 
 class InhabitationLocusKindEnum(str, Enum):

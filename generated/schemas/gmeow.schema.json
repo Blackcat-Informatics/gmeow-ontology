@@ -22333,6 +22333,31 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "lang:FeatureValue"
+                  },
+                  {
+                    "contains": {
+                      "const": "lang:FeatureValue"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/lang:FeatureValue"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "lang:Form"
                   },
                   {
@@ -22375,6 +22400,31 @@
           },
           "then": {
             "$ref": "#/$defs/lang:FormSlot"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "lang:GmnImportedPlane"
+                  },
+                  {
+                    "contains": {
+                      "const": "lang:GmnImportedPlane"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/lang:GmnImportedPlane"
           }
         },
         {
@@ -35478,6 +35528,31 @@
       },
       "type": "object"
     },
+    "lang:FeatureValue": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
     "lang:Form": {
       "properties": {
         "@annotation": {
@@ -35547,6 +35622,54 @@
           ]
         }
       },
+      "type": "object"
+    },
+    "lang:GmnImportedPlane": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:cites": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "http://purl.org/dc/terms/hasVersion": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "gmeow:cites",
+        "http://purl.org/dc/terms/hasVersion"
+      ],
       "type": "object"
     },
     "lang:Grapheme": {
