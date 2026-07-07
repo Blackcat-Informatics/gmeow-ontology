@@ -7,4 +7,4 @@ run_shacl() call-sites: 0. def test_ functions: 6 -> crates/validate/tests/label
   test_structural_lint_flags_missing_label_definition_and_isdefinedby -> ::flags_missing_label_definition_and_isdefinedby
   test_structural_lint_covers_individuals -> ::covers_individuals
   test_structural_lint_covers_annotation_properties -> ::covers_annotation_properties
-Removes the last consumer of tests/_graph_nt.structural_lint, unblocking the _graph_nt.py deletion (Task 14).
+Removes the last consumer of tests/_graph_nt.structural_lint, unblocking the _graph_nt.py deletion.
