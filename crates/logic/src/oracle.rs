@@ -260,6 +260,164 @@ impl ForwardOracle for NemoFactsOracle {
     }
 }
 
+/// The native forward adapter — gmeow's own stratified semi-naive core.
+///
+/// Wraps [`crate::physical::materialize_native`] (the native chase
+/// `crate::materialize::materialize_routed` already runs) behind the
+/// [`ForwardOracle`] seam, so the fixed OWL-profile rule texts can be routed onto
+/// the native engine instead of Nemo.  This is the substitution point the oracle
+/// boundary was built for.
+///
+/// The native chase is a pure Horn/stratified evaluator: it takes the ternary
+/// `predicate(subject, object, world)` EDB, reconstructs the world-indexed
+/// [`WorldStore`](crate::store::WorldStore) it materializes over, runs the fixed
+/// least-fixpoint closure, and re-exposes each [`DerivedRow`](crate::rule_ir::DerivedRow)
+/// as a ternary [`TypedRow`].  It reports `provides_provenance() == true`: each
+/// row carries its firing-rule identity (the assert sentinel for echoed EDB, else
+/// the rule IRI).  The FACT set is what the parity ledger compares — provenance is
+/// exempt (`compare_materialization` compares only fact keys) — so the immediate
+/// antecedents are left empty at this seam; the content-addressed derivation lives
+/// on the native `DerivedRow` and is reconstructed downstream, not carried here.
+///
+/// Task 1 ADDS this adapter (its sole consumer is the parity test
+/// `native_forward_oracle_el_ledger_gap_zero`); a later task flips
+/// [`forward_oracle`] to return it, at which point the `dead_code` allow is
+/// removed as this becomes the production materialization path.
+#[allow(dead_code)]
+pub(crate) struct NativeForwardOracle;
+
+impl ForwardOracle for NativeForwardOracle {
+    fn name(&self) -> &'static str {
+        "native"
+    }
+
+    fn materialize(
+        &self,
+        facts: &crate::facts::TypedFactSet,
+        rules: &str,
+        budget: &ForwardBudget,
+    ) -> Result<TypedChaseResult, String> {
+        // Forward-budget governance is a router/native-governor concern layered
+        // ABOVE the oracle boundary (the 5-field incomplete-never-wrong result is
+        // minted there): this seam stays UNBOUNDED, exactly like Nemo's.  A
+        // non-default budget is a hard error, never a silently-unbudgeted chase.
+        if budget.is_bounded() {
+            return Err(format!(
+                "NativeForwardOracle cannot honor a forward budget inline ({budget:?}); \
+                 forward-budget governance is a router/native-governor concern above \
+                 the oracle boundary"
+            ));
+        }
+
+        // Reconstruct the world-indexed store the native chase materializes over
+        // from the ternary typed EDB.  Every reasoning fact is
+        // `predicate(subject, object, world)`; a non-ternary fact is a rule-text /
+        // EDB-construction bug (the fixed reasoning rule texts declare only ternary
+        // relations), so it is a hard error — mirroring `run_reasoning`'s ternary
+        // contract, not a silent skip.
+        let interner = facts.interner();
+        let store = crate::store::WorldStore::new();
+        for fact in facts.facts() {
+            if fact.args.len() != 3 {
+                return Err(format!(
+                    "NativeForwardOracle EDB fact for predicate {:?} has arity {} \
+                     (expected 3): the ternary reasoning encoding is \
+                     predicate(subject, object, world)",
+                    fact.predicate,
+                    fact.args.len()
+                ));
+            }
+            let subject = interner.resolve(fact.args[0]).clone();
+            let object = interner.resolve(fact.args[1]).clone();
+            let world = world_lexical(interner.resolve(fact.args[2]))?;
+            store
+                .insert_quad_terms(&world, subject, TermValue::iri(&fact.predicate), object)
+                .map_err(|e| format!("NativeForwardOracle store seed failed: {e}"))?;
+        }
+
+        // Parse the rule text into the Horn/stratified IR and run the native
+        // least-fixpoint closure UNBOUNDED (`None` max_steps — the governor never
+        // cuts, so the full least model is produced).
+        let eval_rules = crate::rule_ir::parse_eval_rules(rules)?;
+        let rows = match crate::physical::materialize_native(&store, &eval_rules, None)? {
+            crate::physical::NativeOutcome::Decided(budgeted) => budgeted.rows,
+            // A non-stratifiable program is a DECLARED gap the native engine does
+            // not decide — never approximate it into a fabricated closure.
+            crate::physical::NativeOutcome::Unsupported(kind) => {
+                return Err(format!(
+                    "NativeForwardOracle: the native chase does not decide this rule set \
+                     (Unsupported({kind:?})); it must not approximate an undecided fragment"
+                ));
+            }
+        };
+
+        // Re-expose each native `DerivedRow` as a ternary `TypedRow`
+        // `predicate(subject, object, world)` — the shape `run_reasoning`'s decoder
+        // and `typed_row_fact_key` both coerce back to a `(subject, predicate,
+        // object)` fact key.  `is_edb` keys off the assert sentinel; `rule_name`
+        // is the firing rule IRI for a derived fact, `None` for an echoed EDB fact.
+        //
+        // NOTE (later tasks): the antecedents are LEFT EMPTY here.  Wiring this
+        // oracle into `crate::materialize::materialize` (which mints reifiers from
+        // `TypedProvenance::antecedents`) would need those populated or a
+        // native-`DerivedRow`-fed reifier path instead; Task 1 does NOT wire that,
+        // so no reifier is minted from this output yet.
+        let typed = rows
+            .into_iter()
+            .map(|row| {
+                let is_edb = row.rule_iri == crate::provenance::ASSERT_RULE_IRI;
+                let rule_name = if is_edb { None } else { Some(row.rule_iri) };
+                (
+                    TypedRow {
+                        predicate: row.predicate,
+                        args: vec![
+                            row.subject,
+                            row.object,
+                            TermValue::simple_literal(&row.graph),
+                        ],
+                    },
+                    TypedProvenance {
+                        is_edb,
+                        rule_name,
+                        antecedents: Vec::new(),
+                        attributions: Vec::new(),
+                    },
+                )
+            })
+            .collect();
+
+        Ok(TypedChaseResult { rows: typed })
+    }
+
+    fn provides_provenance(&self) -> bool {
+        true
+    }
+}
+
+/// The raw world string of a ternary EDB fact's world term.
+///
+/// The world position is always a plain `xsd:string` literal (the Nemo
+/// string-constant treatment `TypedFactSet::push_quad` applies); any other shape
+/// is a hard error — mirroring `crate::reason::world_string`.
+///
+/// `dead_code`-allowed for the same Task-1 reason as [`NativeForwardOracle`]: its
+/// only caller is that adapter, itself wired in only from the parity test until a
+/// later task flips [`forward_oracle`].
+#[allow(dead_code)]
+fn world_lexical(term: &TermValue) -> Result<String, String> {
+    match term {
+        TermValue::Literal {
+            lexical_form,
+            datatype,
+            language: None,
+            ..
+        } if datatype == "http://www.w3.org/2001/XMLSchema#string" => Ok(lexical_form.clone()),
+        other => Err(format!(
+            "NativeForwardOracle EDB world term must be a plain string literal, got {other:?}"
+        )),
+    }
+}
+
 // ── Backward oracle ───────────────────────────────────────────────────────────
 
 /// A backward reasoner: resolve `program`'s goal against `world`'s facts.

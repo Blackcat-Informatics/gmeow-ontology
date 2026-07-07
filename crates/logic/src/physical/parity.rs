@@ -544,8 +544,8 @@ mod tests {
 
     use super::*;
     use crate::oracle::{
-        ForwardBudget, ForwardOracle, NemoFactsOracle, NemoForwardOracle, ReferenceBackwardOracle,
-        TypedChaseResult, TypedProvenance, TypedRow,
+        ForwardBudget, ForwardOracle, NativeForwardOracle, NemoFactsOracle, NemoForwardOracle,
+        ReferenceBackwardOracle, TypedChaseResult, TypedProvenance, TypedRow,
     };
     use crate::physical::chase::{ChaseAdmission, ExistentialRule, chase_world, route_chase};
     use crate::physical::magic::resolve_native;
@@ -1919,5 +1919,121 @@ mod tests {
         let verdict = ledger.enforce();
         assert!(!verdict.passed, "an oracle-only row must fail the gate");
         assert!(verdict.reasons.iter().any(|r| r.contains("oracle-only")));
+    }
+
+    // ── NativeForwardOracle ↔ NemoForwardOracle parity (Task 1 seam check) ────────────
+
+    /// Classify two forward oracles' materialized fact sets into a [`ParityLedger`]:
+    /// `native` (the engine under test) vs `oracle` (the parity reference). Only arity-3
+    /// [`TypedRow`]s are fact-level comparands ([`typed_row_fact_key`]); the world is the
+    /// single-world constant carried on each row.
+    fn ledger_between_oracles(
+        native: &TypedChaseResult,
+        oracle: &TypedChaseResult,
+        world: &str,
+    ) -> ParityLedger {
+        let native_keys: BTreeSet<FactKey> = native
+            .rows
+            .iter()
+            .filter_map(|(row, _prov)| typed_row_fact_key(row))
+            .collect();
+        let oracle_keys: BTreeSet<FactKey> = oracle
+            .rows
+            .iter()
+            .filter_map(|(row, _prov)| typed_row_fact_key(row))
+            .collect();
+
+        let row_of = |kind: DivergenceKind, key: &FactKey| {
+            let (subject, predicate, object) = key.clone();
+            LedgerRow {
+                kind,
+                category: "materialization".to_owned(),
+                detail: format!("native↔nemo {subject} {predicate} {object}"),
+                subject,
+                object,
+                world: world.to_owned(),
+            }
+        };
+
+        let mut rows: Vec<LedgerRow> = Vec::new();
+        for key in native_keys.intersection(&oracle_keys) {
+            rows.push(row_of(DivergenceKind::Agree, key));
+        }
+        for key in native_keys.difference(&oracle_keys) {
+            rows.push(row_of(DivergenceKind::NativeOnly, key));
+        }
+        for key in oracle_keys.difference(&native_keys) {
+            rows.push(row_of(DivergenceKind::OracleOnly, key));
+        }
+        ParityLedger::from_rows(rows)
+    }
+
+    /// The Task-1 seam check: [`NativeForwardOracle`] (gmeow's native semi-naive core,
+    /// behind the [`ForwardOracle`] seam) agrees EXACTLY with [`NemoForwardOracle`] on the
+    /// EL subsumption closure of a `subClassOf` chain — gap-zero, non-vacuously.
+    ///
+    /// A ⊑ B, B ⊑ C in one world under [`EL_RULES`](crate::reason::el::EL_RULES): both
+    /// engines must echo the two asserted edges AND derive the transitive A ⊑ C.
+    #[test]
+    fn native_forward_oracle_el_ledger_gap_zero() {
+        const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+        const WORLD: &str = "urn:world:el";
+        let a = ex_iri("http://ex/A");
+        let b = ex_iri("http://ex/B");
+        let c = ex_iri("http://ex/C");
+
+        // EL EDB: A ⊑ B, B ⊑ C (ternary subClassOf facts in one world).
+        let mut facts = TypedFactSet::new();
+        facts.push_quad(&a, SUBCLASS, &b, WORLD);
+        facts.push_quad(&b, SUBCLASS, &c, WORLD);
+
+        let rules = crate::reason::el::EL_RULES;
+
+        // Drive BOTH oracles over the SAME typed EDB + rule text, unbudgeted.
+        let native = NativeForwardOracle
+            .materialize(&facts, rules, &ForwardBudget::UNBOUNDED)
+            .expect("native EL chase must decide the stratifiable EL rule set");
+        let nemo = NemoForwardOracle
+            .materialize(&facts, rules, &ForwardBudget::UNBOUNDED)
+            .expect("nemo EL chase must succeed");
+
+        let ledger = ledger_between_oracles(&native, &nemo, WORLD);
+        let verdict = ledger.enforce();
+        assert!(
+            verdict.passed,
+            "NativeForwardOracle↔Nemo DIVERGED on the EL closure ({} native-only, {} oracle-only): \
+             {:?}\ndivergent rows: {:?}",
+            ledger.native_only,
+            ledger.oracle_only,
+            verdict.reasons,
+            ledger
+                .rows
+                .iter()
+                .filter(|r| r.kind != DivergenceKind::Agree)
+                .collect::<Vec<_>>()
+        );
+        // Non-vacuity floor: they must actually AGREE on facts, not trivially both-empty.
+        assert!(
+            ledger.agree > 0,
+            "the parity ledger must have at least one agreeing fact"
+        );
+
+        // The native oracle must genuinely DERIVE the transitive edge A ⊑ C (not just echo
+        // the two asserted edges) — proving the native chase, not a pass-through, ran.
+        let derived_a_c = native.rows.iter().any(|(row, prov)| {
+            !prov.is_edb
+                && row.predicate == SUBCLASS
+                && typed_row_fact_key(row)
+                    == Some((term_display(&a), SUBCLASS.to_owned(), term_display(&c)))
+        });
+        assert!(
+            derived_a_c,
+            "native oracle must DERIVE A ⊑ C by subClassOf-transitivity; rows: {:#?}",
+            native.rows
+        );
+
+        // The native adapter advertises provenance (firing-rule identity per row).
+        assert!(NativeForwardOracle.provides_provenance());
+        assert_eq!(NativeForwardOracle.name(), "native");
     }
 }
