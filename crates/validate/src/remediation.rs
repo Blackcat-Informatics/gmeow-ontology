@@ -45,6 +45,13 @@ const STAGE: &str = "stage-validate";
 /// remediation (annotate itself dedups).
 pub fn attach_remediations(report: &mut Report) {
     let stage = StageId::new(STAGE);
+    // Built ONCE and reused across findings: the ledger interns each witness under its
+    // content-address fingerprint, so distinct fingerprints never cross-talk (a hashmap
+    // lookup), and a fingerprint collision resolves to the SAME node carrying the SAME
+    // remediation — the remediation is a pure function of `finding.code` (which the
+    // fingerprint keys on) and `annotate` dedups by equality. The readback is therefore
+    // byte-identical to a fresh-per-finding ledger, so hoisting is behavior-preserving.
+    let mut ledger = DiagLedger::new();
     for finding in &mut report.findings {
         let Some(prose) = remediation_for(&finding.code) else {
             continue;
@@ -59,7 +66,6 @@ pub fn attach_remediations(report: &mut Report) {
         let standpoint = finding.standpoint.unwrap_or(Standpoint::Binding);
         let location = finding.primary_location().cloned().unwrap_or_default();
 
-        let mut ledger = DiagLedger::new();
         let diag = Diag::new(
             register_code(&finding.code),
             Grade::new(finding.severity, category, standpoint),
