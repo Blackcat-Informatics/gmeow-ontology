@@ -142,61 +142,54 @@ fn sarif_artifacts(report: &Report) -> Vec<Value> {
         .collect()
 }
 
-/// A stable, dependency-free 64-bit FNV-1a hash, hex-encoded. Used for SARIF
-/// `partialFingerprints` so GitHub code-scanning can dedupe a finding across
-/// runs even as line numbers shift. Deterministic across platforms (unlike
-/// `std::hash::DefaultHasher`).
+/// A stable, dependency-free `blake3` fingerprint (first 8 bytes, hex-encoded).
+/// Used for SARIF `partialFingerprints` so GitHub code-scanning can dedupe a
+/// finding across runs even as line numbers shift, and as the fallback subject IRI
+/// for a NON-ledger finding that carries no `finding_iri`. Deterministic across
+/// platforms; the SINGLE hash the diagnostics surface uses now that the FNV-1a
+/// scheme is retired — ledger witnesses and this fallback both hash with `blake3`.
 ///
-/// **v2**: now incorporates canonical attribution roles + slice IRIs so that two
+/// **v2**: incorporates canonical attribution roles + slice IRIs so that two
 /// otherwise-identical findings (same severity/code/location/message) produce
 /// different fingerprints when their structured attribution differs. Attributions
-/// are sorted by `(role, slice_iri)` for order-independence.
+/// are sorted by `(role, slice_iri)` for order-independence. Separator bytes keep
+/// `"ab|c"` distinct from `"a|bc"`.
 fn stable_fingerprint(finding: &Finding) -> String {
-    const FNV_OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
-    const FNV_PRIME: u64 = 0x0000_0100_0000_01b3;
     let (severity, code, location, message) = finding.sort_key();
-    let mut hash = FNV_OFFSET;
+    let mut hasher = blake3::Hasher::new();
 
-    // Hash the primary finding fields (same as v1).
+    // The primary finding fields, each followed by a field separator.
     for part in [severity.as_str(), code, location.as_str(), message] {
-        for byte in part.as_bytes() {
-            hash ^= u64::from(*byte);
-            hash = hash.wrapping_mul(FNV_PRIME);
-        }
-        // Field separator keeps "ab|c" distinct from "a|bc".
-        hash ^= 0x1f;
-        hash = hash.wrapping_mul(FNV_PRIME);
+        hasher.update(part.as_bytes());
+        hasher.update(&[0x1f]);
     }
 
-    // Hash sorted attributions (role, slice_iri) so that different attribution
-    // roles on an otherwise-identical finding produce a different fingerprint.
-    // Sorted for order-independence.
+    // The sorted attributions (role, slice_iri) so that different attribution
+    // roles on an otherwise-identical finding produce a different fingerprint;
+    // sorted for order-independence, behind a primary/attribution separator.
     let mut sorted_attrs: Vec<(&str, &str)> = finding
         .attributions
         .iter()
         .map(|a| (a.role.as_str(), a.slice_iri.as_str()))
         .collect();
     sorted_attrs.sort_unstable();
-
-    // Separator between primary fields and attribution section.
-    hash ^= 0x1e;
-    hash = hash.wrapping_mul(FNV_PRIME);
-
+    hasher.update(&[0x1e]);
     for (role, iri) in &sorted_attrs {
         for part in [*role, *iri] {
-            for byte in part.as_bytes() {
-                hash ^= u64::from(*byte);
-                hash = hash.wrapping_mul(FNV_PRIME);
-            }
-            hash ^= 0x1f;
-            hash = hash.wrapping_mul(FNV_PRIME);
+            hasher.update(part.as_bytes());
+            hasher.update(&[0x1f]);
         }
         // Attribution entry separator.
-        hash ^= 0x1d;
-        hash = hash.wrapping_mul(FNV_PRIME);
+        hasher.update(&[0x1d]);
     }
 
-    format!("{hash:016x}")
+    let digest = hasher.finalize();
+    let mut out = String::with_capacity(16);
+    use std::fmt::Write;
+    for byte in &digest.as_bytes()[..8] {
+        let _ = write!(out, "{byte:02x}");
+    }
+    out
 }
 
 /// The GMEOW namespace IRI prefix.
@@ -315,9 +308,11 @@ pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
         // The subject IRI is the ledger's canonical blake3 fingerprint IRI when the
         // finding is a ledger witness — the SAME IRI downstream findings' antecedent
         // edges point at (via `finding.antecedents`), so subject and
-        // antecedent-object IRIs CLOSE and the Task-2 meta-rules can join on them.
-        // A hand-built finding that was never a ledger witness carries no
-        // fingerprint IRI and falls back to the content-hash `{fnv}-{index}` scheme.
+        // antecedent-object IRIs CLOSE and the meta-rules can join on them. Every
+        // production finding is now a ledger witness (SHACL + compile-logic both
+        // route through the DiagLedger). A NON-ledger finding (an ad-hoc report built
+        // off the pipeline path) carries no fingerprint IRI and falls back to the
+        // same blake3 `stable_fingerprint` content hash, disambiguated by index.
         let subject_iri = match &finding.finding_iri {
             Some(iri) => iri.clone(),
             None => format!(
