@@ -5264,6 +5264,20 @@ logic:morphismKind
     skos:definition "Relates a logic:Correspondence to its logic:MorphismKind — the satisfaction-preserving / commitment-shifting split orthogonal to the rung. A logic:CommitmentShiftingBridge value makes the loss ledger refuse owl:equivalentClass. Range logic:MorphismKind (domain stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:supersededTerm
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "superseded term"@x-gmeow-english ;
+    skos:definition "Relates a supersession logic:Correspondence to the old term it records as superseded — the source endpoint of a greenfield migration crossing (e.g. a removed class or property the correspondence maps onto its replacement at a rung). Names the endpoint so the supersession ledger is queryable by the migrated-from term. Domain logic:Correspondence, range any term (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:supersedingTerm
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "superseding term"@x-gmeow-english ;
+    skos:definition "Relates a supersession logic:Correspondence to the replacement term it records as superseding the old one — the target endpoint of a greenfield migration crossing. Paired with logic:supersededTerm, it makes the correspondence's rung (logic:morphismClass) queryable per migrated term. Domain logic:Correspondence, range any term (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:hasDeterminacy
     a owl:ObjectProperty ;
     rdfs:range logic:Determinacy ;

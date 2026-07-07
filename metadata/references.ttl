@@ -1964,13 +1964,6 @@
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/extensions/accessibility/mappings/equivalences.ttl> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/478ee0be8b80c32d> .
 
-<https://blackcatinformatics.ca/gmeow/references/citation/479c34c9a1976219> a gmeow:CitationAct ;
-    rdfs:label "scripts/generate_languages_reference.py"@en ;
-    gmeow:citationIntent gmeow:intentBridgedByReference ;
-    gmeow:citedEntity <https://query.wikidata.org/sparql> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/scripts/generate_languages_reference.py> ;
-    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/479c34c9a1976219> .
-
 <https://blackcatinformatics.ca/gmeow/references/citation/48982dfd48516ee9> a gmeow:CitationAct ;
     rdfs:label "slices/core/events/mappings/equivalences.ttl"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
@@ -6325,13 +6318,6 @@
     gmeow:citingEntity <https://github.com/Blackcat-Informatics/gmeow-ontology/pull/401#discussion_r3405604646> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/ec458d4596c92b5a> .
 
-<https://blackcatinformatics.ca/gmeow/references/citation/ec994ee850288a6e> a gmeow:CitationAct ;
-    rdfs:label "scripts/generate_languages_reference.py"@en ;
-    gmeow:citationIntent gmeow:intentBridgedByReference ;
-    gmeow:citedEntity <https://iso639-3.sil.org/sites/iso639-3/files/downloads/iso-639-3.tab> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/scripts/generate_languages_reference.py> ;
-    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/ec994ee850288a6e> .
-
 <https://blackcatinformatics.ca/gmeow/references/citation/ecc7baa3e48f9c98> a gmeow:CitationAct ;
     rdfs:label "crates/gts/src/stream.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
@@ -9127,9 +9113,6 @@ foaf:homepage a gmeow:CreativeWork ;
 <https://blackcatinformatics.ca/gmeow/references/selector/478ee0be8b80c32d> a gmeow:Selector ;
     gmeow:selectorLocator "slices/extensions/accessibility/mappings/equivalences.ttl:57" .
 
-<https://blackcatinformatics.ca/gmeow/references/selector/479c34c9a1976219> a gmeow:Selector ;
-    gmeow:selectorLocator "scripts/generate_languages_reference.py:51" .
-
 <https://blackcatinformatics.ca/gmeow/references/selector/48982dfd48516ee9> a gmeow:Selector ;
     gmeow:selectorLocator "slices/core/events/mappings/equivalences.ttl:12" .
 
@@ -10997,9 +10980,6 @@ foaf:homepage a gmeow:CreativeWork ;
 
 <https://blackcatinformatics.ca/gmeow/references/selector/ec458d4596c92b5a> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/pull/401#discussion_r3405604646:18" .
-
-<https://blackcatinformatics.ca/gmeow/references/selector/ec994ee850288a6e> a gmeow:Selector ;
-    gmeow:selectorLocator "scripts/generate_languages_reference.py:49" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/ecc7baa3e48f9c98> a gmeow:Selector ;
     gmeow:selectorLocator "crates/gts/src/stream.rs:25" .
@@ -14179,10 +14159,6 @@ repo:CONTRIBUTING.md a gmeow:CreativeWork ;
 <https://blackcatinformatics.ca/gmeow/repo/metadata/gmeow-self.ttl> a gmeow:CreativeWork ;
     rdfs:label "metadata/gmeow-self.ttl"@en ;
     gmeow:sourceLocation "metadata/gmeow-self.ttl" .
-
-<https://blackcatinformatics.ca/gmeow/repo/scripts/generate_languages_reference.py> a gmeow:CreativeWork ;
-    rdfs:label "scripts/generate_languages_reference.py"@en ;
-    gmeow:sourceLocation "scripts/generate_languages_reference.py" .
 
 <https://blackcatinformatics.ca/gmeow/repo/slices/core/accounts/examples/online-presence.ttl> a gmeow:CreativeWork ;
     rdfs:label "slices/core/accounts/examples/online-presence.ttl"@en ;

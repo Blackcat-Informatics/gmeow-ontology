@@ -9,6 +9,7 @@
 # always SOMEONE's, never a global "preferred name" (P9). Pronouns ride the
 # person, not any one name.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/names/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
@@ -38,9 +39,13 @@ ex:nameDead a gmeow:PersonName ;
     gmeow:displayable false .
 
 # --- A Han-script form, co-equal with the Latin one — no privileged "main" name.
+#     Its script is a first-class lang:Script (the lang: graft, Principle 19),
+#     not a bare ISO 15924 tag: gmeow:nameScript references lang:hanScript, whose
+#     "Hani" code rides its skos:notation.
 ex:nameHan a gmeow:PersonName ;
     gmeow:fullName "陳"@x-gmeow-chinese ;
     gmeow:namePurpose gmeow:namePurposeLegal ;
+    gmeow:nameScript lang:hanScript ;
     gmeow:displayable true .
 
 # --- A perspectival NameUsage: among close friends, in a familiar register, this
@@ -54,3 +59,28 @@ ex:usageRobFriends a gmeow:NameUsage ;
     gmeow:usageNamed ex:robin ;
     gmeow:usageAppellation ex:nickRob ;
     gmeow:usageRegister gmeow:registerIntimate .
+
+# --- The naming→referent bridge, grounded in the lang: layer (Principle 19,
+#     Task 4 floor). The chosen name's form MEANS the person it names: that
+#     meaning is a reified lang:Denotation (the reference corner of the Frege
+#     triangle), reached from the appellation through gmeow:appellationDenotation.
+#     The denotation names the appellation's analyzed lang:Form (never a surface
+#     form — meaning attaches above the byte level), fixes lang:denotesEntity as
+#     its kind, targets the named gmeow:Person, and scopes the reading with a
+#     lang:denotationContext. Bearing (gmeow:hasName) stays untouched; this adds
+#     the meaning reading on top. Co-reference would be established by a second
+#     appellation whose denotation shares this lang:denotationTarget.
+ex:nameChosen gmeow:appellationDenotation ex:chosenDenotation .
+
+ex:chosenForm a lang:WordForm ;
+    rdfs:label "analyzed form of the chosen name"@x-gmeow-english ;
+    lang:inSignSystem lang:english .
+
+ex:chosenDenotation a lang:Denotation ;
+    lang:denotedForm ex:chosenForm ;
+    lang:denotationKind lang:denotesEntity ;
+    lang:denotationTarget ex:robin ;
+    lang:denotationContext ex:everydayAddressContext .
+
+ex:everydayAddressContext
+    rdfs:label "everyday self-identifying address"@x-gmeow-english .
