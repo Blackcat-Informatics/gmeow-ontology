@@ -510,6 +510,366 @@ fn parity_relator_mediation() {
     run_case("relator-mediation");
 }
 
+// ── Validation-shape projection goldens (shacl-core / shex) ───────────────────
+//
+// Byte-exact + graph-isomorphic + well-formedness + determinism goldens over the
+// REAL `compile_program` emit path for the two closed-world shape surfaces. The
+// three `run_case` conformance cases carry no `logic:ValidationShape`, so these
+// surfaces need a purpose-built, full-surface fixture to be pinned non-vacuously.
+
+/// A fixture `LogicProgram` whose ONLY populated content is `validation_shapes`
+/// (no axioms/rules/vocabulary/FoldView), exercising every `ConstraintComponent`
+/// variant and every `ShapeTarget` kind, so the projection goldens saturate the
+/// emitter and a non-empty ShEx block PROVES the surface is derived from the shared
+/// shape node — not from a vocabulary domain/range re-derivation.
+fn full_surface_validation_program() -> crate::ir::LogicProgram {
+    use crate::ir::{
+        ConstraintComponent as C, ConstraintProvenance, LogicProgram, PropertyConstraintIr as P,
+        ShaclNodeKind, ShaclSeverity, ShapeTarget, ShapeValue, ValidationShapeIr as V,
+    };
+    let base = "https://example.org/test/1192/";
+    let x = |frag: &str| format!("{base}{frag}");
+
+    // Shape A: a class target exercising the faithful + lossy component surface.
+    let a = V::new(
+        x("A-shape"),
+        ShapeTarget::Class(x("A")),
+        vec![
+            // Faithful string facets on a string-typed property (min/max LENGTH, not numeric).
+            P::new(
+                x("p-scalar"),
+                Some(1),
+                Some(1),
+                Some(ConstraintProvenance::OwlRestriction),
+                vec![
+                    C::Datatype("http://www.w3.org/2001/XMLSchema#string".into()),
+                    C::MinLength(2),
+                    C::MaxLength(64),
+                ],
+            )
+            .unwrap(),
+            // A whole-valued numeric interval on a numeric-typed property (numeric facets belong on
+            // a numeric datatype — the ShEx well-formedness gate rejects them on xsd:string).
+            P::new(
+                x("p-numeric"),
+                None,
+                None,
+                None,
+                vec![
+                    C::Datatype("http://www.w3.org/2001/XMLSchema#decimal".into()),
+                    C::NumericRange {
+                        min: Some(0.0),
+                        max: Some(10.0),
+                        min_inclusive: true,
+                        max_inclusive: false,
+                    },
+                ],
+            )
+            .unwrap(),
+            // An out-of-i64 numeric bound to hit the decimal branch of `format_bound`.
+            P::new(
+                x("p-bignum"),
+                None,
+                None,
+                None,
+                vec![
+                    C::Datatype("http://www.w3.org/2001/XMLSchema#decimal".into()),
+                    C::NumericRange {
+                        min: Some(1.0e16),
+                        max: None,
+                        min_inclusive: true,
+                        max_inclusive: false,
+                    },
+                ],
+            )
+            .unwrap(),
+            // A closed value set of mixed term kinds, plus OPT-native cardinality.
+            P::new(
+                x("p-in"),
+                Some(0),
+                Some(3),
+                Some(ConstraintProvenance::OptNative),
+                vec![C::In(vec![
+                    ShapeValue::Iri(x("v1")),
+                    ShapeValue::Literal {
+                        lexical: "typed".into(),
+                        datatype: Some("http://www.w3.org/2001/XMLSchema#token".into()),
+                        lang: None,
+                    },
+                    ShapeValue::Literal {
+                        lexical: "bonjour".into(),
+                        datatype: None,
+                        lang: Some("fr".into()),
+                    },
+                ])],
+            )
+            .unwrap(),
+            // Faithful-in-SHACL / lossy-in-ShEx facets (DateTimeRange, LanguageIn), + a lossy
+            // regex-dialect Pattern; carried at Warning severity.
+            P::new(
+                x("p-mixed"),
+                None,
+                None,
+                None,
+                vec![
+                    C::Pattern {
+                        regex: "^[A-Z]".into(),
+                        flags: Some("i".into()),
+                    },
+                    C::LanguageIn(vec!["en".into(), "fr".into()]),
+                    C::DateTimeRange {
+                        min: Some("2020-01-01T00:00:00Z".into()),
+                        max: None,
+                        min_inclusive: true,
+                        max_inclusive: false,
+                    },
+                ],
+            )
+            .unwrap()
+            .with_severity(ShaclSeverity::Warning),
+            // hasValue + qualified value-shape + negation, with a bespoke message.
+            P::new(
+                x("p-logical"),
+                None,
+                None,
+                None,
+                vec![
+                    C::HasValue(ShapeValue::Iri(x("fixed"))),
+                    C::QualifiedValueShape {
+                        shape: vec![C::Class(x("Q"))],
+                        min: Some(1),
+                        max: None,
+                    },
+                    C::Not(Box::new(C::Class(x("Disjoint")))),
+                ],
+            )
+            .unwrap()
+            .with_message("p-logical must satisfy the qualified value shape")
+            .unwrap(),
+            // An inverse path with a node-kind constraint (owl:InverseFunctionalProperty reading).
+            P::new(
+                x("p-inv"),
+                Some(0),
+                Some(1),
+                Some(ConstraintProvenance::OwlRestriction),
+                vec![C::NodeKindShacl(ShaclNodeKind::Iri)],
+            )
+            .unwrap()
+            .inverted(),
+            // OPT-lossy family: precision, terminology, ordinal, datetime pattern.
+            P::new(
+                x("p-opt"),
+                None,
+                None,
+                None,
+                vec![
+                    C::PrecisionRange {
+                        min: Some(0.0),
+                        max: Some(2.0),
+                        min_inclusive: true,
+                        max_inclusive: true,
+                    },
+                    C::TerminologyBinding {
+                        terminology_id: "SNOMED-CT".into(),
+                        codes: vec!["12345".into(), "67890".into()],
+                    },
+                    C::OrdinalSet {
+                        pairs: vec![(0, x("low")), (1, x("high"))],
+                    },
+                    C::DateTimePattern("yyyy-mm-ddTHH:MM:SS".into()),
+                ],
+            )
+            .unwrap(),
+        ],
+        None,
+        None,
+        false,
+    )
+    .unwrap()
+    .with_label("Full-surface validation shape A")
+    .unwrap();
+
+    // Shape B: a subjects-of (rdfs:domain closed-world) target with focus-node components.
+    let b = V::new(
+        x("p-domain-shape"),
+        ShapeTarget::SubjectsOf(x("p-domain")),
+        vec![],
+        None,
+        None,
+        false,
+    )
+    .unwrap()
+    .with_node_components(vec![
+        C::Class(x("DomainClass")),
+        C::Not(Box::new(C::Class(x("ExcludedClass")))),
+    ])
+    .unwrap();
+
+    // Shape C: an objects-of (rdfs:range closed-world) target.
+    let c = V::new(
+        x("p-range-shape"),
+        ShapeTarget::ObjectsOf(x("p-range")),
+        vec![],
+        None,
+        None,
+        false,
+    )
+    .unwrap()
+    .with_node_components(vec![C::Datatype(
+        "http://www.w3.org/2001/XMLSchema#anyURI".into(),
+    )])
+    .unwrap();
+
+    // Shape D: a value-keyed (sh:SPARQLTarget) selection — no ShEx form.
+    let d = V::new(
+        x("D-shape"),
+        ShapeTarget::ValueKeyed {
+            predicate: x("kind"),
+            value: x("SpecialKind"),
+        },
+        vec![
+            P::new(
+                x("p-d"),
+                Some(1),
+                None,
+                Some(ConstraintProvenance::OptNative),
+                vec![C::Class(x("DTarget"))],
+            )
+            .unwrap(),
+        ],
+        None,
+        None,
+        false,
+    )
+    .unwrap();
+
+    // Shape E: RDF-1.2 reifier + reification-required + standpoint-indexed (all ShEx residue).
+    let e = V::new(
+        x("E-shape"),
+        ShapeTarget::Class(x("E")),
+        vec![
+            P::new(
+                x("p-e"),
+                None,
+                None,
+                None,
+                vec![C::NodeKindShacl(ShaclNodeKind::Iri)],
+            )
+            .unwrap(),
+        ],
+        Some(x("standpoint-clinical")),
+        Some(x("E-reifier-shape")),
+        true,
+    )
+    .unwrap();
+
+    LogicProgram::new(vec![], vec![], vec![], Some(x("program")))
+        .with_validation_shapes(vec![a, b, c, d, e])
+}
+
+#[test]
+fn validation_shape_projection_goldens() {
+    use crate::ir::PreservationKind;
+    use std::collections::BTreeSet;
+
+    let program = full_surface_validation_program();
+
+    // The REAL production path: the ledgered projections the pipeline writes to
+    // generated/shapes/validation-shapes.{ttl,shex}. Hard-fail if a target is absent.
+    let arts = compile_program(&program, &Default::default()).expect("compile");
+    let find = |t: &str| {
+        arts.logic_projections
+            .iter()
+            .find(|p| p.target == t)
+            .unwrap_or_else(|| panic!("{t} projection present"))
+    };
+    let shacl = find("shacl-core");
+    let shex = find("shex");
+
+    // C1 determinism: compiling the same program twice yields byte-identical surfaces.
+    let arts2 = compile_program(&program, &Default::default()).expect("recompile");
+    let find2 = |t: &str| {
+        arts2
+            .logic_projections
+            .iter()
+            .find(|p| p.target == t)
+            .unwrap()
+            .content
+            .clone()
+    };
+    assert_eq!(
+        shacl.content,
+        find2("shacl-core"),
+        "shacl-core is non-deterministic"
+    );
+    assert_eq!(shex.content, find2("shex"), "shex is non-deterministic");
+
+    // C2 ledger polarity: both surfaces validate, never entail.
+    assert_eq!(shacl.preservation, PreservationKind::ValidationOnly);
+    assert_eq!(shex.preservation, PreservationKind::ValidationOnly);
+
+    // C3 shared shape node: the fixture set ONLY validation_shapes (no vocabulary/FoldView),
+    // so a non-empty ShEx shape block proves the surface is derived from the shape node.
+    assert!(!shex.content.trim().is_empty(), "shex document is empty");
+    assert!(
+        shex.content.contains('{'),
+        "shex carries no shape block:\n{}",
+        shex.content
+    );
+    assert!(
+        shacl.content.contains("sh:targetClass") && shacl.content.contains("sh:reifierShape"),
+        "shacl-core missing target/reifier:\n{}",
+        shacl.content
+    );
+
+    // Well-formedness, independent of the blessed bytes: the SHACL parses as Turtle and the
+    // ShEx parses through purrdf's conformance-tested ShExC parser.
+    purrdf::parse_dataset(shacl.content.as_bytes(), "text/turtle", None).unwrap_or_else(|e| {
+        panic!(
+            "emitted SHACL Core is not valid Turtle: {e}\n{}",
+            shacl.content
+        )
+    });
+    purrdf::shex::parse_shexc(&shex.content, None)
+        .unwrap_or_else(|e| panic!("emitted ShEx is not valid ShExC: {e}\n{}", shex.content));
+
+    // Per-shape residue: shex_residue ⊇ shacl_residue by MEMBERSHIP for every shape (the
+    // "different residue sets" acceptance claim), and a rendering that localizes a flip.
+    let mut residue_render = String::new();
+    for s in &program.validation_shapes {
+        let sc: BTreeSet<String> = shapes::shacl_residue(s).into_iter().collect();
+        let sx: BTreeSet<String> = shapes::shex_residue(s).into_iter().collect();
+        assert!(
+            sc.is_subset(&sx),
+            "shex residue must be a superset of shacl residue for {}:\nshacl={sc:#?}\nshex={sx:#?}",
+            s.iri
+        );
+        residue_render.push_str(&format!("== {} ==\n-- shacl-core --\n", s.iri));
+        for line in &sc {
+            residue_render.push_str(line);
+            residue_render.push('\n');
+        }
+        residue_render.push_str("-- shex (delta over shacl) --\n");
+        for line in sx.difference(&sc) {
+            residue_render.push_str(line);
+            residue_render.push('\n');
+        }
+        residue_render.push('\n');
+    }
+
+    let mut settings = insta::Settings::clone_current();
+    settings.set_prepend_module_to_snapshot(false);
+    settings.bind(|| {
+        // Text surfaces (is_rdf:false) → raw byte golden, like datalog/n3/nemo.
+        insta::assert_snapshot!("validation-shacl-core", shacl.content);
+        insta::assert_snapshot!("validation-shex", shex.content);
+        // Graph-isomorphic view of the SHACL — pins semantic content independent of ordering.
+        insta::assert_snapshot!("validation-shacl-core-graph", rdf_snapshot(&shacl.content));
+        // Per-shape residue — pins the ledger drops and localizes a classification flip.
+        insta::assert_snapshot!("validation-residue", residue_render);
+    });
+}
+
 // ── G1: path-projection wiring ───────────────────────────────────────────────
 //
 // Verifies that `compile_program` genuinely populates `path_projections` (not

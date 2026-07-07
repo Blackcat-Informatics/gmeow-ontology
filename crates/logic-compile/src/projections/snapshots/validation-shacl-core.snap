@@ -1,0 +1,37 @@
+---
+source: crates/logic-compile/src/projections/tests.rs
+expression: shacl.content
+---
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/test/1192/A-shape> a sh:NodeShape ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Full-surface validation shape A" ;
+    sh:targetClass <https://example.org/test/1192/A> ;
+    sh:property [ sh:path <https://example.org/test/1192/p-in> ; sh:minCount 0 ; sh:maxCount 3 ; sh:in ( <https://example.org/test/1192/v1> "bonjour"@fr "typed"^^<http://www.w3.org/2001/XMLSchema#token> ) ] ;
+    sh:property [ sh:path [ sh:inversePath <https://example.org/test/1192/p-inv> ] ; sh:minCount 0 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ;
+    sh:property [ sh:path <https://example.org/test/1192/p-opt> ; sh:in ( <https://example.org/test/1192/low> <https://example.org/test/1192/high> ) ; sh:minInclusive 0 ; sh:maxInclusive 2 ] ;
+    sh:property [ sh:path <https://example.org/test/1192/p-mixed> ; sh:minInclusive "2020-01-01T00:00:00Z"^^xsd:dateTime ; sh:languageIn ( "en" "fr" ) ; sh:pattern "^[A-Z]" ; sh:flags "i" ; sh:severity sh:Warning ] ;
+    sh:property [ sh:path <https://example.org/test/1192/p-bignum> ; sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> ; sh:minInclusive 10000000000000000 ] ;
+    sh:property [ sh:path <https://example.org/test/1192/p-scalar> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ; sh:maxLength 64 ; sh:minLength 2 ] ;
+    sh:property [ sh:path <https://example.org/test/1192/p-logical> ; sh:hasValue <https://example.org/test/1192/fixed> ; sh:not [ sh:class <https://example.org/test/1192/Disjoint> ] ; sh:qualifiedValueShape [ sh:class <https://example.org/test/1192/Q> ] ; sh:qualifiedMinCount 1 ; sh:message "p-logical must satisfy the qualified value shape" ] ;
+    sh:property [ sh:path <https://example.org/test/1192/p-numeric> ; sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> ; sh:minInclusive 0 ; sh:maxExclusive 10 ] .
+
+<https://example.org/test/1192/D-shape> a sh:NodeShape ;
+    sh:target [ a sh:SPARQLTarget ; sh:select """SELECT ?this WHERE { ?this <https://example.org/test/1192/kind> <https://example.org/test/1192/SpecialKind> }""" ] ;
+    sh:property [ sh:path <https://example.org/test/1192/p-d> ; sh:minCount 1 ; sh:class <https://example.org/test/1192/DTarget> ] .
+
+<https://example.org/test/1192/E-shape> a sh:NodeShape ;
+    sh:targetClass <https://example.org/test/1192/E> ;
+    sh:reifierShape <https://example.org/test/1192/E-reifier-shape> ;
+    sh:reificationRequired true ;
+    sh:property [ sh:path <https://example.org/test/1192/p-e> ; sh:nodeKind sh:IRI ] .
+
+<https://example.org/test/1192/p-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://example.org/test/1192/p-domain> ;
+    sh:class <https://example.org/test/1192/DomainClass> ;
+    sh:not [ sh:class <https://example.org/test/1192/ExcludedClass> ] .
+
+<https://example.org/test/1192/p-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://example.org/test/1192/p-range> ;
+    sh:datatype <http://www.w3.org/2001/XMLSchema#anyURI> .

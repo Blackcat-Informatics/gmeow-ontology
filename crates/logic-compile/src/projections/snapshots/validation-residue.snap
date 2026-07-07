@@ -1,0 +1,37 @@
+---
+source: crates/logic-compile/src/projections/tests.rs
+expression: residue_render
+---
+== https://example.org/test/1192/A-shape ==
+-- shacl-core --
+datetime validity pattern (yyyy-mm-ddTHH:MM:SS) on https://example.org/test/1192/p-opt is a format template, not an XPath regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would reject every valid datetime), so its meaning is carried in the canonical logic: layer
+ordinal set on https://example.org/test/1192/p-opt projects only its coded symbols (sh:in); the ordinal integer values (0, 1) and their ordering have no SHACL/ShEx form and are carried in the canonical logic: layer
+sh:pattern on https://example.org/test/1192/p-mixed carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): ^[A-Z]
+terminology binding on https://example.org/test/1192/p-opt to SNOMED-CT (2 code(s)) has no faithful SHACL Core form; carried in the canonical logic: layer
+-- shex (delta over shacl) --
+datetime range on https://example.org/test/1192/p-mixed has no ShEx facet; only the value's presence is projected, the interval is carried in the canonical logic: layer
+languageIn on https://example.org/test/1192/p-mixed has no ShEx form; carried in the canonical logic: layer
+negated constraint (sh:not) on https://example.org/test/1192/p-logical has no ShEx Core form (ShEx Core has no negation); carried in the canonical logic: layer
+qualified value-shape count (min=Some(1), max=None) on https://example.org/test/1192/p-logical has no independent ShEx form (ShEx cardinality is on the triple constraint); the qualified count is carried in the canonical logic: layer
+
+== https://example.org/test/1192/D-shape ==
+-- shacl-core --
+-- shex (delta over shacl) --
+sh:class https://example.org/test/1192/DTarget on https://example.org/test/1192/p-d has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer
+value-keyed target has no ShEx form (ShEx associates shapes via an external ShapeMap, not a SPARQL target); carried in the canonical logic: layer
+
+== https://example.org/test/1192/E-shape ==
+-- shacl-core --
+standpoint scope https://example.org/test/1192/standpoint-clinical has no SHACL/ShEx form; the shape would be applied universally by a standpoint-blind engine, so its scope is carried in the canonical logic: layer
+-- shex (delta over shacl) --
+RDF-1.2 reifier/reification-required conditions have no ShEx form; carried in the canonical logic: layer
+
+== https://example.org/test/1192/p-domain-shape ==
+-- shacl-core --
+-- shex (delta over shacl) --
+2 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer
+
+== https://example.org/test/1192/p-range-shape ==
+-- shacl-core --
+-- shex (delta over shacl) --
+1 focus-node-level constraint(s) (domain/range/disjointness) have no ShEx shape-level form; carried in the canonical logic: layer
