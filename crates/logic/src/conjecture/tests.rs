@@ -1,0 +1,369 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+use super::*;
+use gmeow_logic_compile::ir::{Formula, Term};
+use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+
+const SCN: &str = "http://world/scenario";
+const STANDPOINT: &str = "http://world/standpoint/alice";
+
+// Vocabulary IRIs.
+const TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+const DISJOINT: &str = "http://www.w3.org/2002/07/owl#disjointWith";
+
+const KNOWS: &str = "http://ex/knows";
+const TRUSTS: &str = "http://ex/trusts";
+const ALICE: &str = "http://ex/alice";
+const BOB: &str = "http://ex/bob";
+const SAM_P: &str = "http://ex/sam";
+
+const A_CLS: &str = "http://ex/A";
+const B_CLS: &str = "http://ex/B";
+const C_CLS: &str = "http://ex/C";
+const D_CLS: &str = "http://ex/D";
+const IND_A: &str = "http://ex/a";
+const IND_X: &str = "http://ex/x";
+
+/// A dataset of `(subject, predicate, object)` IRI triples all in the scenario world.
+fn kb(triples: &[(&str, &str, &str)]) -> std::sync::Arc<purrdf::RdfDataset> {
+    let mut builder = RdfDatasetBuilder::new();
+    for (s, p, o) in triples {
+        let quad = RdfQuad::new(RdfTerm::iri(*s), *p, RdfTerm::iri(*o)).in_graph(RdfTerm::iri(SCN));
+        builder.push_owned_quad(&quad);
+    }
+    builder.freeze().expect("valid test dataset")
+}
+
+fn binary_atom(rel: &str, s: &str, o: &str) -> Formula {
+    Formula::atom(
+        Term::iri(rel.to_owned()).unwrap(),
+        vec![
+            Term::iri(s.to_owned()).unwrap(),
+            Term::iri(o.to_owned()).unwrap(),
+        ],
+    )
+    .unwrap()
+}
+
+/// `∀x. rel₁(x, c₁) → rel₂(x, c₂)` — a universally-quantified Horn implication.
+fn forall_horn(rel1: &str, c1: &str, rel2: &str, c2: &str) -> Formula {
+    Formula::Forall {
+        vars: vec!["x".into()],
+        body: Box::new(Formula::Implies(
+            Box::new(
+                Formula::atom(
+                    Term::iri(rel1.to_owned()).unwrap(),
+                    vec![Term::var("x").unwrap(), Term::iri(c1.to_owned()).unwrap()],
+                )
+                .unwrap(),
+            ),
+            Box::new(
+                Formula::atom(
+                    Term::iri(rel2.to_owned()).unwrap(),
+                    vec![Term::var("x").unwrap(), Term::iri(c2.to_owned()).unwrap()],
+                )
+                .unwrap(),
+            ),
+        )),
+    }
+}
+
+// ── Test 1: ∀-Horn lowered & resolved (THE BINDING FIX) ──────────────────────
+
+#[test]
+fn forall_horn_already_satisfied_is_corroborated_not_unsupported() {
+    // ∀x. knows(x, alice) → trusts(x, bob); KB has knows(sam, alice) AND trusts(sam, bob).
+    // The rule is already satisfied (redundant) ⇒ has_proof, Corroborated. NOT Unsupported.
+    let store = kb(&[(SAM_P, KNOWS, ALICE), (SAM_P, TRUSTS, BOB)]);
+    let candidate = forall_horn(KNOWS, ALICE, TRUSTS, BOB);
+    let ans = conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &Budget::default())
+        .expect("conjecture_test ok");
+
+    assert_eq!(
+        ans.verdict.evaluation,
+        EvaluationStatus::Completed,
+        "a ∀-Horn implication MUST lower and RESOLVE, never be refused as Unsupported"
+    );
+    assert_ne!(ans.verdict.evaluation, EvaluationStatus::Unsupported);
+    assert_eq!(ans.verdict.information, InformationState::Supported);
+    assert_eq!(ans.lifecycle, ConjectureLifecycleState::Corroborated);
+    assert_eq!(ans.discharge, ConjectureDischarge::Discharged);
+    assert!(ans.witness.is_none());
+}
+
+#[test]
+fn forall_horn_fires_new_fact_is_open_not_unsupported() {
+    // Same rule, but KB has knows(sam, alice) and NOT trusts(sam, bob). The rule FIRES,
+    // deriving trusts(sam, bob) (a new, consistent fact) ⇒ not already entailed ⇒ Open.
+    let store = kb(&[(SAM_P, KNOWS, ALICE)]);
+    let candidate = forall_horn(KNOWS, ALICE, TRUSTS, BOB);
+    let ans = conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &Budget::default())
+        .expect("conjecture_test ok");
+
+    assert_eq!(ans.verdict.evaluation, EvaluationStatus::Completed);
+    assert_ne!(ans.verdict.evaluation, EvaluationStatus::Unsupported);
+    assert_eq!(
+        ans.verdict.information,
+        InformationState::Neither,
+        "the KB does not already entail the head, so neither proof nor counterproof"
+    );
+    assert_eq!(ans.lifecycle, ConjectureLifecycleState::Open);
+    assert_eq!(ans.discharge, ConjectureDischarge::Discharged);
+    // The Horn formula evaluated exactly — no residue disclosed.
+    assert!(
+        ans.verdict.preservation.unsupported_constructs.is_empty(),
+        "a fully-Horn formula discloses no residue: {:?}",
+        ans.verdict.preservation
+    );
+}
+
+// ── Test 2: ground atom already derivable ⇒ Supported/Corroborated ───────────
+
+#[test]
+fn ground_atom_already_derivable_is_supported() {
+    // candidate rdf:type(a, B); KB: a:A, A ⊑ B ⇒ DL derives a:B, so φ is redundant ⇒ Supported.
+    let store = kb(&[(IND_A, TYPE, A_CLS), (A_CLS, SUBCLASS, B_CLS)]);
+    let candidate = binary_atom(TYPE, IND_A, B_CLS);
+    let ans = conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &Budget::default())
+        .expect("conjecture_test ok");
+
+    assert_eq!(ans.verdict.information, InformationState::Supported);
+    assert_eq!(ans.lifecycle, ConjectureLifecycleState::Corroborated);
+    assert_eq!(ans.discharge, ConjectureDischarge::Discharged);
+    assert!(ans.witness.is_none(), "a corroboration carries no witness");
+}
+
+// ── Test 3: KB REFUTES φ ⇒ Opposed/Both, RefutedInStandpoint, witness ─────────
+
+#[test]
+fn kb_refutes_candidate_is_refuted_in_standpoint_with_witness() {
+    // candidate rdf:type(a, B); KB: a:A, A disjointWith B ⇒ asserting a:B forces a into
+    // owl:Nothing ⇒ inconsistent ⇒ Opposed, RefutedInStandpoint, with a sorted witness.
+    let store = kb(&[(IND_A, TYPE, A_CLS), (A_CLS, DISJOINT, B_CLS)]);
+    let candidate = binary_atom(TYPE, IND_A, B_CLS);
+    let ans = conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &Budget::default())
+        .expect("conjecture_test ok");
+
+    assert!(
+        matches!(
+            ans.verdict.information,
+            InformationState::Opposed | InformationState::Both
+        ),
+        "a refutation is Opposed or Both, got {:?}",
+        ans.verdict.information
+    );
+    assert_eq!(ans.lifecycle, ConjectureLifecycleState::RefutedInStandpoint);
+    assert_eq!(ans.discharge, ConjectureDischarge::Discharged);
+    let witness = ans.witness.expect("a refutation MUST name a witness");
+    assert_eq!(witness.individual, IND_A);
+    assert!(
+        !witness.premises.is_empty(),
+        "the witness carries the premises that entailed the clash"
+    );
+    // ContradictionWitness derives Ord over sorted premises; run_reasoning sorts them.
+    let mut sorted = witness.premises.clone();
+    sorted.sort();
+    assert_eq!(witness.premises, sorted, "premises must be sorted");
+}
+
+// ── Test 4: conclusively independent ⇒ Neither, Open, Discharged ──────────────
+
+#[test]
+fn conclusively_independent_is_neither_open_discharged() {
+    // candidate rdf:type(a, C); KB: a:A only (C unrelated). φ adds a new consistent fact,
+    // neither entailed nor refuted ⇒ Neither (conclusive) ⇒ Open, Discharged.
+    let store = kb(&[(IND_A, TYPE, A_CLS)]);
+    let candidate = binary_atom(TYPE, IND_A, C_CLS);
+    let ans = conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &Budget::default())
+        .expect("conjecture_test ok");
+
+    assert_eq!(ans.verdict.information, InformationState::Neither);
+    assert!(ans.verdict.is_conclusive());
+    assert_eq!(ans.lifecycle, ConjectureLifecycleState::Open);
+    assert_eq!(ans.discharge, ConjectureDischarge::Discharged);
+    assert!(ans.witness.is_none());
+}
+
+// ── Test 5: budget-truncated ⇒ BudgetExhausted, Open, Unknown ─────────────────
+
+#[test]
+fn budget_truncation_is_budget_exhausted_open_unknown() {
+    // A subclass chain A ⊑ B ⊑ C ⊑ D with x:A derives a closure far larger than max=1.
+    let store = kb(&[
+        (A_CLS, SUBCLASS, B_CLS),
+        (B_CLS, SUBCLASS, C_CLS),
+        (C_CLS, SUBCLASS, D_CLS),
+        (IND_X, TYPE, A_CLS),
+    ]);
+    // A redundant ground atom candidate — the verdict is dominated by the budget ceiling.
+    let candidate = binary_atom(TYPE, IND_X, A_CLS);
+    let budget = Budget {
+        max_answers: Some(1),
+        max_steps: Some(1),
+    };
+    let ans = conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &budget)
+        .expect("conjecture_test ok");
+
+    assert_eq!(
+        ans.verdict.evaluation,
+        EvaluationStatus::BudgetExhausted,
+        "the derived closure exceeds the declared budget ceiling"
+    );
+    assert_eq!(ans.verdict.information, InformationState::Undetermined);
+    assert_eq!(ans.lifecycle, ConjectureLifecycleState::Open);
+    assert_eq!(ans.discharge, ConjectureDischarge::Unknown);
+    assert_ne!(ans.lifecycle, ConjectureLifecycleState::RefutedInStandpoint);
+    assert_ne!(ans.verdict.information, InformationState::Neither);
+}
+
+// ── Test 6: beyond-fragment candidate ⇒ Unsupported + disclosed residue ───────
+
+#[test]
+fn disjunctive_head_is_unsupported_with_disclosed_residue() {
+    // ∀x. knows(x, alice) → (trusts(x, bob) ∨ trusts(x, sam)) — a disjunctive head does NOT
+    // lower to a rule ⇒ Unsupported, NotEvaluated, residue disclosed.
+    let candidate = Formula::Forall {
+        vars: vec!["x".into()],
+        body: Box::new(Formula::Implies(
+            Box::new(
+                Formula::atom(
+                    Term::iri(KNOWS.to_owned()).unwrap(),
+                    vec![
+                        Term::var("x").unwrap(),
+                        Term::iri(ALICE.to_owned()).unwrap(),
+                    ],
+                )
+                .unwrap(),
+            ),
+            Box::new(Formula::Or(vec![
+                Formula::atom(
+                    Term::iri(TRUSTS.to_owned()).unwrap(),
+                    vec![Term::var("x").unwrap(), Term::iri(BOB.to_owned()).unwrap()],
+                )
+                .unwrap(),
+                Formula::atom(
+                    Term::iri(TRUSTS.to_owned()).unwrap(),
+                    vec![
+                        Term::var("x").unwrap(),
+                        Term::iri(SAM_P.to_owned()).unwrap(),
+                    ],
+                )
+                .unwrap(),
+            ])),
+        )),
+    };
+    let store = kb(&[(SAM_P, KNOWS, ALICE)]);
+    let ans = conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &Budget::default())
+        .expect("conjecture_test ok");
+
+    assert_eq!(
+        ans.verdict.evaluation,
+        EvaluationStatus::Unsupported,
+        "a fully beyond-fragment candidate was never evaluated"
+    );
+    assert_eq!(ans.verdict.information, InformationState::NotEvaluated);
+    assert!(
+        !ans.verdict.preservation.unsupported_constructs.is_empty(),
+        "the beyond-fragment residue MUST be disclosed, not silently absent: {:?}",
+        ans.verdict.preservation
+    );
+    assert_eq!(ans.lifecycle, ConjectureLifecycleState::Open);
+    assert_eq!(ans.discharge, ConjectureDischarge::Unknown);
+}
+
+// ── Test 7: already-inconsistent KB ⇒ hard Err ───────────────────────────────
+
+#[test]
+fn already_inconsistent_kb_is_hard_error() {
+    // KB already forces a into owl:Nothing (a:A, a:B, A disjointWith B) BEFORE any candidate:
+    // a conjecture cannot be tested against a contradictory world ⇒ Err.
+    let store = kb(&[
+        (IND_A, TYPE, A_CLS),
+        (IND_A, TYPE, B_CLS),
+        (A_CLS, DISJOINT, B_CLS),
+    ]);
+    let candidate = binary_atom(TYPE, IND_A, C_CLS);
+    let err =
+        conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &Budget::default()).unwrap_err();
+    assert!(
+        err.contains("ALREADY") && err.contains("inconsistent"),
+        "the hard inconsistent-KB surface must be reported: {err}"
+    );
+}
+
+// ── Test 8: isolation — the input KB dataset is never mutated ─────────────────
+
+#[test]
+fn input_kb_dataset_is_never_mutated() {
+    let store = kb(&[(IND_A, TYPE, A_CLS), (A_CLS, DISJOINT, B_CLS)]);
+    let before = store.owned_quads().count();
+    // A refuting candidate (exercises witness + inconsistency inside the isolated copy).
+    let candidate = binary_atom(TYPE, IND_A, B_CLS);
+    let _ = conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &Budget::default())
+        .expect("conjecture_test ok");
+    let after = store.owned_quads().count();
+    assert_eq!(before, after, "the borrowed KB dataset must be unchanged");
+}
+
+// ── standpoint is required (Principle 9) ─────────────────────────────────────
+
+#[test]
+fn empty_standpoint_is_rejected() {
+    let store = kb(&[(IND_A, TYPE, A_CLS)]);
+    let candidate = binary_atom(TYPE, IND_A, C_CLS);
+    let err = conjecture_test(&store, SCN, &candidate, "", &[], &Budget::default()).unwrap_err();
+    assert!(err.contains("standpoint"), "got: {err}");
+}
+
+// ── assume_context is layered into the scenario EDB ──────────────────────────
+
+#[test]
+fn assume_context_facts_participate_in_the_scenario() {
+    // KB has only the disjointness TBox; the assume-context supplies a:A. The candidate a:B
+    // then clashes ⇒ refuted. Proves assume_context reaches the chase.
+    let store = kb(&[(A_CLS, DISJOINT, B_CLS)]);
+    let assume = vec![(IND_A.to_owned(), TYPE.to_owned(), A_CLS.to_owned())];
+    let candidate = binary_atom(TYPE, IND_A, B_CLS);
+    let ans = conjecture_test(
+        &store,
+        SCN,
+        &candidate,
+        STANDPOINT,
+        &assume,
+        &Budget::default(),
+    )
+    .expect("conjecture_test ok");
+    assert_eq!(ans.lifecycle, ConjectureLifecycleState::RefutedInStandpoint);
+    assert!(ans.witness.is_some());
+}
+
+// ── lifecycle / discharge enum round-trips ───────────────────────────────────
+
+#[test]
+fn lifecycle_and_discharge_local_names_round_trip() {
+    for s in ConjectureLifecycleState::ALL {
+        assert_eq!(
+            ConjectureLifecycleState::from_local(s.local_name()),
+            Some(*s)
+        );
+        assert_eq!(ConjectureLifecycleState::from_wire(s.wire()), Some(*s));
+        assert!(s.iri().ends_with(s.local_name()));
+    }
+    for d in [
+        ConjectureDischarge::Discharged,
+        ConjectureDischarge::Unknown,
+    ] {
+        assert_eq!(ConjectureDischarge::from_local(d.local_name()), Some(d));
+    }
+    // The module.ttl individual names.
+    assert_eq!(
+        ConjectureLifecycleState::Corroborated.local_name(),
+        "ConjectureCorroborated"
+    );
+    assert_eq!(
+        ConjectureDischarge::Discharged.local_name(),
+        "ObligationDischarged"
+    );
+}
