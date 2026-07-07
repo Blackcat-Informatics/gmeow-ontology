@@ -114,5 +114,5 @@ PROV-O, and the DOAP downcast. Depends on `attestation`, `kernel`, `creative-wor
 
 `gmeow:projectHomepage` (functional) is the project's homepage →
 `doap:homepage` / `schema:url`. `gmeow:programmingLanguage` points at a first-class
-`gmeow:Language` (the language slice's ProgrammingLanguage), non-functional →
+`gmeow:Language` (distinguished by `lang:signSystemKind lang:programmingLanguageKind`), non-functional →
 `doap:programming-language` / `schema:programmingLanguage`.

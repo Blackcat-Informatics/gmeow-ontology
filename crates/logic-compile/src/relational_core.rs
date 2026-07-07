@@ -22,12 +22,18 @@
 //! empty — but the mechanism (and its fixture, in the tests) MUST exist so the lane is
 //! honest by construction.
 //!
-//! When the full-FOL Formula AST lands (a separate, larger effort whose NNF→Skolem→Horn
-//! lowering produces richer non-Horn shapes — disjunctive heads, quantifier alternation,
-//! non-binary atoms), its lowering plugs into THIS SAME lane: it produces the same
-//! [`RcRule`]s for its Horn-expressible fragment and feeds the rest through
-//! [`RelationalCoreProgram::push_residue`], so the carrier, the named-graph projection,
-//! and the typed handle never change shape.
+//! The full-FOL Formula AST lowering plugs into THIS SAME lane. Its Horn-expressible
+//! fragment produces the same binary [`RcRule`]s. **Fixed-arity n-ary predication** is
+//! evaluable here too: at the lowering boundary a fixed-arity atom `Rel(a₀…aₙ)` is
+//! **reified** into a conjunction of binary atoms over one reifier node —
+//! `logic:instanceOf(R, Rel) ∧ logic:naryArg0(R, a₀) ∧ …` — so the relational core stays
+//! **binary after reification**. A body atom binds a fresh reifier variable; a head atom
+//! derives a new tuple over an existential reifier (carried in [`RcRule::head_conjuncts`]),
+//! whose node the restricted chase mints by content identity. Only what genuinely exceeds
+//! the fragment (a disjunctive head, a Skolem *function*, a genuinely unbounded
+//! sequence-marker atom, or an n-ary head argument the body does not bind) is fed through
+//! [`RelationalCoreProgram::push_residue`], so the carrier, the named-graph projection, and
+//! the typed handle never change shape.
 //!
 //! # Dual carriage
 //!
@@ -47,6 +53,30 @@ use crate::ir::{
 
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+/// Whether an atom occupies the head or a body position of the clause being
+/// lowered. n-ary reification differs by position: a body n-ary atom binds a fresh
+/// join variable over its reified conjunction, whereas a head n-ary atom *derives*
+/// a new tuple and needs a content-addressed existential reifier witness.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum AtomPosition {
+    Head,
+    Body,
+}
+
+/// The HiLog-reflection typing predicate: `logic:instanceOf(R, Rel)` types a
+/// reified n-ary tuple `R` by its relation individual `Rel` (see the reified n-ary
+/// vocabulary in the `logic:` module). Reused rather than `rdf:type` so the object
+/// level stays first-order and the certifier treats it as an ordinary binary atom.
+fn instance_of_iri() -> String {
+    format!("{LOGIC_NAMESPACE}instanceOf")
+}
+
+/// The flat positional predicate `logic:naryArg{i}(R, aᵢ)` carrying argument `i` of
+/// a reified n-ary tuple.
+fn nary_arg_iri(i: usize) -> String {
+    format!("{LOGIC_NAMESPACE}naryArg{i}")
+}
 
 // ── Vocabulary IRIs (the queryable `logic:` surface of the projection) ──────────
 
@@ -95,6 +125,9 @@ fn p_rc_negated() -> String {
 }
 fn p_rc_head() -> String {
     format!("{LOGIC_NAMESPACE}rcHead")
+}
+fn p_rc_head_conjunct() -> String {
+    format!("{LOGIC_NAMESPACE}rcHeadConjunct")
 }
 fn p_rc_body() -> String {
     format!("{LOGIC_NAMESPACE}rcBody")
@@ -248,6 +281,12 @@ impl RcAtom {
 pub struct RcRule {
     /// The derived head atom.
     pub head: RcAtom,
+    /// The EXTRA reified head atoms beyond [`Self::head`] — the positional
+    /// `logic:naryArg{i}(R, aᵢ)` conjunction of a derived n-ary tuple whose typing
+    /// atom `logic:instanceOf(R, Rel)` is carried in [`Self::head`]. EMPTY for every
+    /// ordinary binary/unary-head rule; non-empty only for an n-ary head-derivation
+    /// rule (the shared existential reifier `R` is the head subject).
+    pub head_conjuncts: Vec<RcAtom>,
     /// The body atoms, in canonical (sorted) order.
     pub body: Vec<RcAtom>,
     /// Inequality guards (each pair internally sorted, the set sorted).
@@ -258,6 +297,14 @@ impl RcRule {
     /// A deterministic content key for this rule (head · body atoms · distinct guards),
     /// used by the projection, the parse inverse, and the engine adapter's rule-IRI minting.
     pub fn key(&self) -> String {
+        // The head segment folds the head atom then every head conjunct (in order),
+        // so it is empty-suffix-stable: an ordinary rule (no conjuncts) keys exactly
+        // as before, while an n-ary head-derivation rule keys distinctly.
+        let mut head = self.head.key();
+        for conjunct in &self.head_conjuncts {
+            head.push('\u{1d}');
+            head.push_str(&conjunct.key());
+        }
         let body = self
             .body
             .iter()
@@ -270,10 +317,15 @@ impl RcRule {
             .map(|(a, b)| format!("{a}\u{1f}{b}"))
             .collect::<Vec<_>>()
             .join("\u{1d}");
-        format!("{}\u{1c}{body}\u{1c}{distinct}", self.head.key())
+        format!("{head}\u{1c}{body}\u{1c}{distinct}")
     }
 
     fn key_with_blanks(&self, blanks: &BTreeMap<String, String>) -> String {
+        let mut head = self.head.key_with_blanks(blanks);
+        for conjunct in &self.head_conjuncts {
+            head.push('\u{1d}');
+            head.push_str(&conjunct.key_with_blanks(blanks));
+        }
         let body = self
             .body
             .iter()
@@ -286,14 +338,14 @@ impl RcRule {
             .map(|(a, b)| format!("{a}\u{1f}{b}"))
             .collect::<Vec<_>>()
             .join("\u{1d}");
-        format!(
-            "{}\u{1c}{body}\u{1c}{distinct}",
-            self.head.key_with_blanks(blanks)
-        )
+        format!("{head}\u{1c}{body}\u{1c}{distinct}")
     }
 
     fn collect_blanks(&self, blanks: &mut BTreeSet<String>) {
         self.head.collect_blanks(blanks);
+        for atom in &self.head_conjuncts {
+            atom.collect_blanks(blanks);
+        }
         for atom in &self.body {
             atom.collect_blanks(blanks);
         }
@@ -536,6 +588,7 @@ fn lower_rule(rule: &LogicRule) -> Result<RcRule, String> {
             negated: false,
             ..head
         },
+        head_conjuncts: Vec::new(),
         body,
         distinct_pairs,
     })
@@ -726,42 +779,234 @@ fn lower_formula_clause(clause: &Formula) -> Result<RcRule, &'static str> {
     }
 
     let head = head.ok_or("headless clause (no positive literal; an integrity constraint)")?;
-    let head_atom = formula_atom_to_rc(head)?;
-    let body: Result<Vec<RcAtom>, &'static str> =
-        body_atoms.iter().map(|a| formula_atom_to_rc(a)).collect();
+    // Build the reified body FIRST — a head n-ary atom's range-restriction check needs the
+    // set of variables the body binds. Each body atom lowers to one (binary/unary) or
+    // several (reified n-ary) atoms.
+    let mut body: Vec<RcAtom> = Vec::with_capacity(body_atoms.len());
+    for a in &body_atoms {
+        body.extend(formula_atom_to_rc_atoms(a, AtomPosition::Body)?);
+    }
     // Sort the body atoms in the canonical order that mirrors `LogicRule::new`'s
     // `sort_by_cached_key(LogicAxiom::sort_key)` so the formula lane and the Horn rule
     // lane produce identical body orderings for any equivalent clause.
-    let mut body = body?;
     body.sort_by_cached_key(rc_atom_sort_key);
+
+    // An n-ary head atom (arity ≥ 3, IRI relation) DERIVES a new tuple: it reifies into a
+    // conjunctive-head existential rule over a fresh content-addressed reifier `R`, handled
+    // here (not by the per-atom converter, whose `AtomPosition::Head` arm stays a residue
+    // seam for the single-head path).
+    if let Formula::Atom {
+        relation: Term::Iri(rel),
+        args,
+    } = head
+        && args.len() >= 3
+    {
+        return lower_nary_head_clause(rel, args, body);
+    }
+
+    // A binary/unary head reifies to exactly one head atom (a Horn rule has a single head).
+    let head_atoms = formula_atom_to_rc_atoms(head, AtomPosition::Head)?;
+    let [head_atom] = head_atoms.as_slice() else {
+        return Err("head atom did not reduce to a single relational-core atom");
+    };
+    let head_atom = head_atom.clone();
     Ok(RcRule {
         head: head_atom,
+        head_conjuncts: Vec::new(),
         body,
         distinct_pairs: Vec::new(),
     })
 }
 
-/// Convert a binary [`Formula::Atom`] to an [`RcAtom`] (the relational core is binary:
-/// subject / predicate / object). A clause literal is always positive in the rule (strong
-/// negation `¬B` was peeled into a positive body atom by [`lower_formula_clause`]).
-fn formula_atom_to_rc(atom: &Formula) -> Result<RcAtom, &'static str> {
+/// Lower an n-ary (arity ≥ 3) HEAD atom `Rel(a₀,…,aₙ)` into a conjunctive-head existential
+/// rule: `logic:instanceOf(R, Rel) ∧ logic:naryArg0(R, a₀) ∧ … :- <reified body>`, where `R`
+/// is a fresh existential reifier variable the chase mints once per firing and shares across
+/// the whole head conjunction (the reified tuple's node). `R` is keyed on the atom's raw
+/// syntactic form (relation + ordered authored arg keys) so re-authoring the same head atom
+/// reuses one reifier while a distinct head atom gets a distinct one.
+///
+/// # Range restriction (the one head hard-fail)
+///
+/// Every head argument that is a variable MUST be bound by the body: a head variable the
+/// body does not bind is a non-range-restricted (unsafe) existential, so the clause is
+/// carried as residue (`Err`) rather than lowered to an unsafe rule. The reifier `R` is the
+/// existential and is NOT expected to be body-bound.
+fn lower_nary_head_clause(
+    rel: &str,
+    args: &[Term],
+    body: Vec<RcAtom>,
+) -> Result<RcRule, &'static str> {
+    // Reified argument terms (object position: variables, IRIs, literals all legal; a
+    // sequence-marker argument rejects, keeping a genuinely-variadic head as residue).
+    let arg_terms: Vec<RcTerm> = args
+        .iter()
+        .map(|a| formula_term_to_rc(a, true))
+        .collect::<Result<_, _>>()?;
+
+    // Range-restriction hard-fail: every variable head argument must be bound by the body.
+    let body_bound = body_bound_vars(&body);
+    for t in &arg_terms {
+        if let RcTerm::Var(v) = t
+            && !body_bound.contains(v)
+        {
+            return Err(
+                "n-ary head argument not bound by the body (a non-range-restricted existential \
+                 is unsafe)",
+            );
+        }
+    }
+
+    // Fresh existential reifier keyed on the raw syntactic head atom (relation + ordered
+    // authored argument term keys — NOT the alpha-normalized content_key, which would
+    // unsoundly collapse distinct head atoms).
+    let mut syntactic_key = rel.to_owned();
+    for t in &arg_terms {
+        syntactic_key.push('\u{1f}');
+        syntactic_key.push_str(&t.key());
+    }
+    // Underscore-free, letter-first (Nemo variable grammar rejects a leading underscore);
+    // `naryH` = the reified HEAD reifier, a distinct namespace from the `naryB` body reifier.
+    let reifier = RcTerm::Var(format!("?naryH{}", sha256_12(&syntactic_key)));
+
+    let head = RcAtom {
+        subject: reifier.clone(),
+        predicate: instance_of_iri(),
+        object: RcTerm::Iri(rel.to_owned()),
+        negated: false,
+    };
+    let head_conjuncts: Vec<RcAtom> = arg_terms
+        .into_iter()
+        .enumerate()
+        .map(|(i, obj)| RcAtom {
+            subject: reifier.clone(),
+            predicate: nary_arg_iri(i),
+            object: obj,
+            negated: false,
+        })
+        .collect();
+
+    Ok(RcRule {
+        head,
+        head_conjuncts,
+        body,
+        distinct_pairs: Vec::new(),
+    })
+}
+
+/// The set of variable names the body binds (either subject or object position of any body
+/// atom) — the frontier available to a head atom's range-restriction check.
+fn body_bound_vars(body: &[RcAtom]) -> BTreeSet<String> {
+    let mut vars = BTreeSet::new();
+    for atom in body {
+        if let RcTerm::Var(v) = &atom.subject {
+            vars.insert(v.clone());
+        }
+        if let RcTerm::Var(v) = &atom.object {
+            vars.insert(v.clone());
+        }
+    }
+    vars
+}
+
+/// Lower a [`Formula::Atom`] to one or more binary [`RcAtom`]s. A binary atom is a
+/// direct triple; every other fixed arity is **reified** into a conjunction of
+/// ordinary binary atoms over a single reifier node `R` (the flat-binary n-ary
+/// encoding): `logic:instanceOf(R, Rel) ∧ logic:naryArg0(R, a₀) ∧ …`. A clause
+/// literal is always positive in the rule (strong negation `¬B` was peeled into a
+/// positive body atom by [`lower_formula_clause`]).
+///
+/// - arity 2 → the direct `subject predicate object` triple (unchanged binary path).
+/// - arity 1 → `logic:instanceOf(a₀, Rel)` — unary predication under the HiLog reflection.
+/// - arity ≥ 3, **body** → the reified conjunction over a fresh join variable `R`.
+///   `R` is keyed on the atom's *raw syntactic form* (relation + ordered argument
+///   term keys, with authored variable names intact) via [`sha256_12`], so distinct
+///   atoms `rel(?x,?y,?z)` and `rel(?u,?v,?w)` get distinct reifier vars (their raw
+///   keys differ) while two occurrences of the *same* atom share one `R`. This keying
+///   is order-independent of body position, so the canonical body sort in
+///   [`lower_formula_clause`] keeps rule identity stable regardless of authored order —
+///   and it is NOT the alpha-normalized `content_key`, which would unsoundly collapse
+///   `rel(?x,?y,?z)` and `rel(?u,?v,?w)` into one variable.
+/// - arity ≥ 3, **head** → deriving a new n-ary tuple; handled by the head-derivation
+///   lowering (a conjunctive existential rule), not this per-atom converter.
+fn formula_atom_to_rc_atoms(
+    atom: &Formula,
+    pos: AtomPosition,
+) -> Result<Vec<RcAtom>, &'static str> {
     let Formula::Atom { relation, args } = atom else {
         return Err("clause literal is not an atom");
     };
-    if args.len() != 2 {
-        return Err("non-binary atom (the relational core is binary; arity != 2)");
-    }
-    let Term::Iri(pred) = relation else {
+    let Term::Iri(rel) = relation else {
         return Err("non-IRI relation in atom");
     };
-    let subject = formula_term_to_rc(&args[0], false)?;
-    let object = formula_term_to_rc(&args[1], true)?;
-    Ok(RcAtom {
-        subject,
-        predicate: pred.clone(),
-        object,
-        negated: false,
-    })
+    match args.len() {
+        2 => {
+            let subject = formula_term_to_rc(&args[0], false)?;
+            let object = formula_term_to_rc(&args[1], true)?;
+            Ok(vec![RcAtom {
+                subject,
+                predicate: rel.clone(),
+                object,
+                negated: false,
+            }])
+        }
+        1 => {
+            // Unary predication Rel(a) ≡ instanceOf(a, Rel) under the HiLog reflection.
+            let subject = formula_term_to_rc(&args[0], false)?;
+            Ok(vec![RcAtom {
+                subject,
+                predicate: instance_of_iri(),
+                object: RcTerm::Iri(rel.clone()),
+                negated: false,
+            }])
+        }
+        0 => {
+            Err("nullary atom (a proposition constant is not representable in the relational core)")
+        }
+        _ => match pos {
+            AtomPosition::Body => {
+                // Reified argument terms (object position: variables, IRIs, literals
+                // are all legal). A sequence-marker argument rejects here, keeping a
+                // genuinely-variadic atom as residue.
+                let arg_terms: Vec<RcTerm> = args
+                    .iter()
+                    .map(|a| formula_term_to_rc(a, true))
+                    .collect::<Result<_, _>>()?;
+                // Reifier join variable keyed on the raw syntactic atom (relation +
+                // ordered argument term keys). Order-independent of body position;
+                // distinct atoms → distinct vars; identical atoms → shared var.
+                let mut syntactic_key = rel.clone();
+                for t in &arg_terms {
+                    syntactic_key.push('\u{1f}');
+                    syntactic_key.push_str(&t.key());
+                }
+                // The reifier name is deliberately underscore-free and letter-first: the
+                // physical engine adapter renders these rules to Nemo `.rls`, whose variable
+                // grammar rejects an underscore-leading identifier. `naryB` = the reified BODY
+                // join reifier (distinct namespace from the `naryH` head reifier).
+                let reifier = RcTerm::Var(format!("?naryB{}", sha256_12(&syntactic_key)));
+                let mut out = Vec::with_capacity(arg_terms.len() + 1);
+                out.push(RcAtom {
+                    subject: reifier.clone(),
+                    predicate: instance_of_iri(),
+                    object: RcTerm::Iri(rel.clone()),
+                    negated: false,
+                });
+                for (i, obj) in arg_terms.into_iter().enumerate() {
+                    out.push(RcAtom {
+                        subject: reifier.clone(),
+                        predicate: nary_arg_iri(i),
+                        object: obj,
+                        negated: false,
+                    });
+                }
+                Ok(out)
+            }
+            // An n-ary atom deriving a new tuple in the head is handled by the
+            // head-derivation lowering, which [`lower_formula_clause`] dispatches
+            // before reaching this per-atom converter.
+            AtomPosition::Head => Err("n-ary atom in rule head (deriving a new tuple)"),
+        },
+    }
 }
 
 /// Convert an IR [`Term`] to an [`RcTerm`]. `is_object` gates a literal to the object slot.
@@ -1089,6 +1334,23 @@ pub fn project_relational_core(program: &RelationalCoreProgram) -> String {
         lines.push(triple_iri(&r_iri, RDF_TYPE, &class_rule()));
         let head_iri = emit_atom(&mut lines, &rule.head, "head");
         lines.push(triple_iri(&r_iri, &p_rc_head(), &head_iri));
+        // The reified n-ary head conjunction (empty for an ordinary rule): each extra head
+        // atom is emitted as a positional, rcIndex-ordered node so the parse inverse
+        // reconstructs `head_conjuncts` in order. Scoped by rule key + `hc{index}` so a
+        // repeated conjunct at different positions gets a distinct node (no rcIndex collision).
+        for (index, hc) in rule.head_conjuncts.iter().enumerate() {
+            let hc_scope_key = format!("{}\u{1c}hc{index}\u{1c}{}", rule.key(), hc.key());
+            let hc_iri = atom_node_iri("headconjunct", &hc_scope_key);
+            lines.push(triple_iri(&hc_iri, RDF_TYPE, &class_atom()));
+            lines.push(triple(&hc_iri, &p_rc_subject(), &term_nt(&hc.subject)));
+            lines.push(triple_iri(&hc_iri, &p_rc_predicate(), &hc.predicate));
+            lines.push(triple(&hc_iri, &p_rc_object(), &term_nt(&hc.object)));
+            if matches!(hc.object, RcTerm::Literal(_)) {
+                lines.push(triple_bool(&hc_iri, &p_rc_object_literal(), true));
+            }
+            lines.push(triple_iri(&r_iri, &p_rc_head_conjunct(), &hc_iri));
+            lines.push(triple_int(&hc_iri, &p_rc_index(), index));
+        }
         for (index, body_atom) in rule.body.iter().enumerate() {
             // Scope the body-atom node IRI by rule key AND atom index so that the same
             // atom appearing at different positions (or in different rules) gets a
@@ -1225,6 +1487,37 @@ pub fn parse_relational_core(dataset: &RdfDataset) -> Result<RelationalCoreProgr
             .ok_or_else(|| format!("relational-core rule <{r_iri}> missing rcHead"))?;
         let head = parse_atom(&head_iri)?;
 
+        // Head conjuncts (the reified n-ary tail), ordered by their stored index. Empty for
+        // an ordinary rule.
+        let mut hc_indexed: Vec<(usize, RcAtom)> = Vec::new();
+        for hc_node in objs_of(&r_iri, &p_rc_head_conjunct()) {
+            let Some(hc_iri) = iri_obj(&hc_node) else {
+                continue;
+            };
+            let atom = parse_atom(&hc_iri)?;
+            let index = int_obj(obj_of(&hc_iri, &p_rc_index())).ok_or_else(|| {
+                format!("relational-core head-conjunct atom <{hc_iri}> missing rcIndex")
+            })?;
+            hc_indexed.push((index, atom));
+        }
+        hc_indexed.sort_by_key(|(i, _)| *i);
+        // The reified n-ary head conjuncts carry positional `rcIndex` values that map to the
+        // `naryArg{i}` slots the runtime reifier is content-addressed over. This path re-reads
+        // an externally serializable relational-core projection, so a duplicate or gapped index
+        // must HARD-FAIL — a silently mis-positioned conjunction would mint a wrong reifier
+        // downstream (no-optionality).
+        for (position, (i, _)) in hc_indexed.iter().enumerate() {
+            if *i != position {
+                return Err(format!(
+                    "relational-core rule <{r_iri}> has non-contiguous or duplicate head-conjunct \
+                     rcIndex values {:?} (expected 0..{})",
+                    hc_indexed.iter().map(|(i, _)| *i).collect::<Vec<_>>(),
+                    hc_indexed.len()
+                ));
+            }
+        }
+        let head_conjuncts: Vec<RcAtom> = hc_indexed.into_iter().map(|(_, a)| a).collect();
+
         // Body atoms, ordered by their stored index.
         let mut indexed: Vec<(usize, RcAtom)> = Vec::new();
         for body_node in objs_of(&r_iri, &p_rc_body()) {
@@ -1255,6 +1548,7 @@ pub fn parse_relational_core(dataset: &RdfDataset) -> Result<RelationalCoreProgr
 
         rules.push(RcRule {
             head,
+            head_conjuncts,
             body,
             distinct_pairs,
         });
@@ -1410,7 +1704,7 @@ mod tests {
             &horn_program(),
             [
                 "disjunctive head: clause is not Horn (>1 positive literal)",
-                "non-binary atom (the relational core is binary; arity != 2)",
+                "sequence marker (variadic) is not representable in the relational core",
             ],
         );
         let nt = project_relational_core(&lowered);
@@ -1594,18 +1888,324 @@ mod tests {
         );
     }
 
-    /// A non-binary (ternary) atom is beyond the binary relational core: carried + tagged Variadic.
+    /// A fixed-arity ternary atom in a rule BODY is now evaluable: it reifies into a
+    /// conjunction of binary atoms over a fresh reifier variable, so the rule is
+    /// carried (not residue) and preservation is Exact.
     #[test]
-    fn variadic_atom_is_carried_and_named() {
-        let f = fatom("rA", vec![fvar("x"), fvar("y"), fvar("z")]);
+    fn nary_body_atom_lowers_to_reified_rules() {
+        // ∀x y z. relA(x,y,z) → pA(x,z)
+        let body = fatom("relA", vec![fvar("x"), fvar("y"), fvar("z")]);
+        let head = fatom("pA", vec![fvar("x"), fvar("z")]);
+        let f = Formula::Forall {
+            vars: vec!["x".into(), "y".into(), "z".into()],
+            body: Box::new(Formula::Implies(Box::new(body), Box::new(head))),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
+        let lowered = lower_program_with_formulas(&program);
+        assert!(
+            lowered.residue.is_empty(),
+            "a fixed-arity n-ary body atom is evaluable, not residue: {:?}",
+            lowered.residue
+        );
+        assert_eq!(lowered.preservation(), PreservationKind::Exact);
+        assert_eq!(lowered.rules.len(), 1, "the implication lowers to one rule");
+        // The ternary body atom reifies into instanceOf + naryArg0 + naryArg1 + naryArg2.
+        assert_eq!(
+            lowered.rules[0].body.len(),
+            4,
+            "ternary body atom → 4 reified binary atoms"
+        );
+        let preds: Vec<&str> = lowered.rules[0]
+            .body
+            .iter()
+            .map(|a| a.predicate.as_str())
+            .collect();
+        assert!(preds.iter().any(|p| p.ends_with("instanceOf")), "{preds:?}");
+        for i in 0..3 {
+            assert!(
+                preds.iter().any(|p| p.ends_with(&format!("naryArg{i}"))),
+                "missing naryArg{i}: {preds:?}"
+            );
+        }
+        // The reifier variable is shared across the whole reified conjunction.
+        let reifier_subjects: BTreeSet<&RcTerm> =
+            lowered.rules[0].body.iter().map(|a| &a.subject).collect();
+        assert_eq!(
+            reifier_subjects.len(),
+            1,
+            "all reified atoms share one reifier variable: {reifier_subjects:?}"
+        );
+    }
+
+    /// Two DISTINCT same-relation ternary body atoms must NOT be unified: their reifier
+    /// variables are keyed on the raw syntactic atom (authored variable names intact),
+    /// so `rel(?a,?b,?c)` and `rel(?d,?e,?f)` get different reifiers. Keying on the
+    /// alpha-normalized content_key would unsoundly collapse them into one tuple.
+    #[test]
+    fn distinct_nary_body_atoms_do_not_collide() {
+        // ∀ a b c d e f. relA(a,b,c) ∧ relA(d,e,f) → pA(a,d)
+        let body = Formula::And(vec![
+            fatom("relA", vec![fvar("a"), fvar("b"), fvar("c")]),
+            fatom("relA", vec![fvar("d"), fvar("e"), fvar("f")]),
+        ]);
+        let head = fatom("pA", vec![fvar("a"), fvar("d")]);
+        let f = Formula::Forall {
+            vars: vec![
+                "a".into(),
+                "b".into(),
+                "c".into(),
+                "d".into(),
+                "e".into(),
+                "f".into(),
+            ],
+            body: Box::new(Formula::Implies(Box::new(body), Box::new(head))),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
+        let lowered = lower_program_with_formulas(&program);
+        assert!(lowered.residue.is_empty(), "{:?}", lowered.residue);
+        assert_eq!(lowered.rules.len(), 1);
+        // Two distinct ternary atoms → two distinct reifier variables (2 × 4 = 8 atoms).
+        assert_eq!(
+            lowered.rules[0].body.len(),
+            8,
+            "two distinct ternary atoms reify without collision"
+        );
+        let reifier_vars: BTreeSet<&RcTerm> = lowered.rules[0]
+            .body
+            .iter()
+            .filter(|a| a.predicate.ends_with("instanceOf"))
+            .map(|a| &a.subject)
+            .collect();
+        assert_eq!(
+            reifier_vars.len(),
+            2,
+            "distinct atoms must NOT share a reifier variable: {reifier_vars:?}"
+        );
+    }
+
+    /// A genuine sequence-marker atom (`rA(x, ...rest)`) is truly variadic — it stays
+    /// carried as residue and tagged Variadic; only *fixed*-arity atoms reify.
+    #[test]
+    fn sequence_marker_atom_is_carried_and_named() {
+        let f = fatom(
+            "rA",
+            vec![fvar("x"), Term::SequenceMarker("rest".to_owned())],
+        );
         let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
         let lowered = lower_program_with_formulas(&program);
         assert_eq!(lowered.preservation(), PreservationKind::SoundUnder);
         assert!(lowered.rules.is_empty());
         assert_eq!(lowered.residue.len(), 1);
         let r = &lowered.residue[0].reason;
-        assert!(r.contains("non-binary atom"), "names the reason: {r}");
+        assert!(r.contains("sequence marker"), "names the reason: {r}");
         assert!(r.contains("Variadic"), "names the Variadic tag: {r}");
+    }
+
+    /// A fixed-arity ternary atom in the rule HEAD now DERIVES a reified tuple: it lowers to
+    /// a conjunctive-head existential rule (`instanceOf(R, Rel)` head + `naryArg{i}(R, aᵢ)`
+    /// conjuncts over a fresh existential reifier `R`), carried (not residue), preservation
+    /// Exact. `matMul` is ternary in the BODY (reified) and `mul` ternary in the HEAD.
+    #[test]
+    fn nary_head_atom_derives_a_reified_tuple() {
+        // ∀A B AB dA dB dAB. matMul(A,B,AB) ∧ det(A,dA) ∧ det(B,dB) ∧ det(AB,dAB) → mul(dA,dB,dAB)
+        let body = Formula::And(vec![
+            fatom("matMul", vec![fvar("A"), fvar("B"), fvar("AB")]),
+            fatom("det", vec![fvar("A"), fvar("dA")]),
+            fatom("det", vec![fvar("B"), fvar("dB")]),
+            fatom("det", vec![fvar("AB"), fvar("dAB")]),
+        ]);
+        let head = fatom("mul", vec![fvar("dA"), fvar("dB"), fvar("dAB")]);
+        let f = Formula::Forall {
+            vars: vec![
+                "A".into(),
+                "B".into(),
+                "AB".into(),
+                "dA".into(),
+                "dB".into(),
+                "dAB".into(),
+            ],
+            body: Box::new(Formula::Implies(Box::new(body), Box::new(head))),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
+        let lowered = lower_program_with_formulas(&program);
+        assert!(
+            lowered.residue.is_empty(),
+            "a range-restricted n-ary head is evaluable, not residue: {:?}",
+            lowered.residue
+        );
+        assert_eq!(lowered.preservation(), PreservationKind::Exact);
+        assert_eq!(lowered.rules.len(), 1, "the implication lowers to one rule");
+        let rule = &lowered.rules[0];
+        // Head is instanceOf(R, mul); the tail is naryArg0..2(R, dA/dB/dAB).
+        assert!(
+            rule.head.predicate.ends_with("instanceOf"),
+            "head types the reifier: {}",
+            rule.head.predicate
+        );
+        assert!(
+            matches!(&rule.head.object, RcTerm::Iri(i) if i.ends_with("mul")),
+            "head instanceOf object is the relation IRI: {:?}",
+            rule.head.object
+        );
+        assert_eq!(
+            rule.head_conjuncts.len(),
+            3,
+            "ternary head → 3 naryArg conjuncts: {:?}",
+            rule.head_conjuncts
+        );
+        for i in 0..3 {
+            assert!(
+                rule.head_conjuncts[i]
+                    .predicate
+                    .ends_with(&format!("naryArg{i}")),
+                "conjunct {i} predicate: {}",
+                rule.head_conjuncts[i].predicate
+            );
+        }
+        // The reifier `R` is one fresh existential var shared across head + every conjunct,
+        // and it is NOT bound by the body (it is the invented tuple node).
+        let reifier = &rule.head.subject;
+        assert!(matches!(reifier, RcTerm::Var(v) if v.starts_with("?naryH")));
+        assert!(
+            rule.head_conjuncts.iter().all(|c| &c.subject == reifier),
+            "all conjuncts share the reifier subject"
+        );
+        let body_bound = body_bound_vars(&rule.body);
+        if let RcTerm::Var(v) = reifier {
+            assert!(
+                !body_bound.contains(v),
+                "the existential reifier is not body-bound"
+            );
+        }
+    }
+
+    /// A head variable the body does not bind is a non-range-restricted existential (unsafe):
+    /// the clause is carried as residue tagged with the "not bound by the body" reason, never
+    /// lowered to an unsafe rule.
+    #[test]
+    fn nary_head_with_unbound_arg_is_residue() {
+        // ∀A B AB dA dB. matMul(A,B,AB) ∧ det(A,dA) ∧ det(B,dB) → mul(dA, dB, dAB)
+        // `dAB` appears only in the head — the body binds nothing to it.
+        let body = Formula::And(vec![
+            fatom("matMul", vec![fvar("A"), fvar("B"), fvar("AB")]),
+            fatom("det", vec![fvar("A"), fvar("dA")]),
+            fatom("det", vec![fvar("B"), fvar("dB")]),
+        ]);
+        let head = fatom("mul", vec![fvar("dA"), fvar("dB"), fvar("dAB")]);
+        let f = Formula::Forall {
+            vars: vec![
+                "A".into(),
+                "B".into(),
+                "AB".into(),
+                "dA".into(),
+                "dB".into(),
+                "dAB".into(),
+            ],
+            body: Box::new(Formula::Implies(Box::new(body), Box::new(head))),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
+        let lowered = lower_program_with_formulas(&program);
+        assert_eq!(lowered.preservation(), PreservationKind::SoundUnder);
+        assert!(lowered.rules.is_empty(), "an unsafe head does not lower");
+        assert_eq!(lowered.residue.len(), 1);
+        assert!(
+            lowered.residue[0].reason.contains("not bound by the body"),
+            "the residue names the range-restriction failure: {}",
+            lowered.residue[0].reason
+        );
+    }
+
+    /// An n-ary head-derivation rule (carrying `head_conjuncts`) survives the lane's RDF
+    /// projection round-trip value-identically — the conjuncts re-derive in order.
+    #[test]
+    fn nary_head_rule_round_trips_through_the_graph() {
+        let body = Formula::And(vec![
+            fatom("matMul", vec![fvar("A"), fvar("B"), fvar("AB")]),
+            fatom("det", vec![fvar("A"), fvar("dA")]),
+            fatom("det", vec![fvar("B"), fvar("dB")]),
+            fatom("det", vec![fvar("AB"), fvar("dAB")]),
+        ]);
+        let head = fatom("mul", vec![fvar("dA"), fvar("dB"), fvar("dAB")]);
+        let f = Formula::Forall {
+            vars: vec![
+                "A".into(),
+                "B".into(),
+                "AB".into(),
+                "dA".into(),
+                "dB".into(),
+                "dAB".into(),
+            ],
+            body: Box::new(Formula::Implies(Box::new(body), Box::new(head))),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
+        let lowered = lower_program_with_formulas(&program);
+        assert_eq!(lowered.rules.len(), 1);
+        assert_eq!(lowered.rules[0].head_conjuncts.len(), 3);
+        let nt = project_relational_core(&lowered);
+        let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+            .expect("parse projection");
+        let re_derived = parse_relational_core(ds.as_ref()).expect("re-derive");
+        assert_eq!(
+            re_derived, lowered,
+            "an n-ary head-derivation rule round-trips value-identically"
+        );
+    }
+
+    /// A relational-core projection whose reified head-conjunct positional `rcIndex` values are
+    /// corrupted into a duplicate (non-contiguous) set must HARD-FAIL on re-derivation: this
+    /// path re-reads an externally serializable projection, and a silently mis-positioned
+    /// conjunction would mint a wrong content-addressed reifier at chase time (no-optionality).
+    #[test]
+    fn nary_head_rule_with_duplicate_rc_index_is_rejected() {
+        let body = Formula::And(vec![
+            fatom("matMul", vec![fvar("A"), fvar("B"), fvar("AB")]),
+            fatom("det", vec![fvar("A"), fvar("dA")]),
+            fatom("det", vec![fvar("B"), fvar("dB")]),
+            fatom("det", vec![fvar("AB"), fvar("dAB")]),
+        ]);
+        let head = fatom("mul", vec![fvar("dA"), fvar("dB"), fvar("dAB")]);
+        let f = Formula::Forall {
+            vars: vec![
+                "A".into(),
+                "B".into(),
+                "AB".into(),
+                "dA".into(),
+                "dB".into(),
+                "dAB".into(),
+            ],
+            body: Box::new(Formula::Implies(Box::new(body), Box::new(head))),
+        };
+        let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![f]);
+        let lowered = lower_program_with_formulas(&program);
+        let nt = project_relational_core(&lowered);
+        // Rewrite the head conjunct at positional index 2 to a DUPLICATE of index 0. Only the
+        // one `/headconjunct/` node carries rcIndex "2" (body atoms live under `/body/`).
+        let corrupted: String = nt
+            .lines()
+            .map(|line| {
+                if line.contains("/headconjunct/")
+                    && line.contains("rcIndex")
+                    && line.contains("\"2\"^^")
+                {
+                    line.replace("\"2\"^^", "\"0\"^^")
+                } else {
+                    line.to_owned()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert_ne!(
+            corrupted, nt,
+            "the corruption must have hit a head-conjunct rcIndex line"
+        );
+        let ds = purrdf::parse_dataset(corrupted.as_bytes(), "application/n-triples", None)
+            .expect("parse corrupted projection");
+        let err =
+            parse_relational_core(ds.as_ref()).expect_err("duplicate rcIndex must be rejected");
+        assert!(
+            err.contains("non-contiguous or duplicate head-conjunct"),
+            "the error names the malformed head-conjunct indices: {err}"
+        );
     }
 
     /// The Horn-expressible formula fragment survives the lane's RDF projection round-trip,

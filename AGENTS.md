@@ -338,7 +338,15 @@ whole-bundle CLI tests past budget —
 serialize / export / project-a-view over the WHOLE bundle, irreducibly
 O(bundle size), the same whole-committed-bundle class as `fanout_parity` /
 `end_to_end`; the written serializations stay drift-gated on every `make check`
-via `make check-generated`, and all three stay on-gate on `maint-heavy`).
+via `make check-generated`, and all three stay on-gate on `maint-heavy`). The
+same lang: graft + correspondence-laws surface growth pushed one whole-site docs
+test past budget — `gmeow-docs::extract_roundtrip::rendered_tree_is_disk_faithful`
+(32.6 s; it drives the real `render::write_site` over the WHOLE primed
+documentation site, writing every page to disk and reading each back to prove
+on-disk bytes equal the in-memory Site — irreducibly O(site size), and the render
+itself is primed so the cost is the per-file disk round-trip over the grown tree,
+not fixture cost; the docs write contract stays drift-gated on every `make check`
+via `make check-generated` and the test stays on-gate on `maint-heavy`).
 The `lang:` GMN dialect graft grew the bundle again and nudged the two
 whole-bundle inverse-ingest acceptance tests past budget —
 `gmeow-pipeline::projections::tests::up_project_recovers_message_superclass_via_prp_dom`
