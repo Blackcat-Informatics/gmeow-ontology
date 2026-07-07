@@ -47,7 +47,7 @@ GMEOW runs four complementary verification lanes. Each owns a distinct class of 
 |---|---|---|---|---|
 | **Native EL/DL gate** | `gmeow_logic` | open | Docker-free profile, consistency, and entailment authority | `make reason` |
 | **Entailment cross-check oracle** | `purrdf::entail` (in-process OWL-RL + OWL-Direct tableau) | open | on-gate cross-check of the native lane's **subsumption** closure (native ⊇ oracle); consistency is decided by the native lane, off this gate | `gmeow-dev reason-crosscheck`, `make reason-crosscheck` |
-| **Entailment tests** | `owlrl` (pure-Python OWL 2 RL) | open | positive derivations — property chains, transitivity, sub-property closure | `tests/test_reasoning_entailments.py`, `crates/logic/tests/ontology_entailments.rs` |
+| **Entailment tests** | native OWL 2 RL chase (`gmeow_logic::reason::rl_closure`) | open | positive derivations — property chains, transitivity, sub-property closure | `crates/logic/tests/ontology_entailments.rs` |
 | **Closed-world validation** | SHACL (`gmeow_shacl`) + native `verify` | closed | cardinality, required shapes, display contract, orthogonality data-checks | `make validate`, `make verify`, `tests/test_shapes.py` |
 
 Reasoning order is **reason first to enrich, then validate the enriched graph**. The native
@@ -66,10 +66,11 @@ individual placed in two disjoint identity axes, or two disjoint Kinds (Person �
 makes the native reasoner report an inconsistency. These are the *open-world* gates:
 unsatisfiability and inconsistency, nothing else.
 
-### Lane 3 — `owlrl` entailment tests (pure-Python, Docker-free)
+### Lane 3 — native OWL 2 RL entailment tests (Docker-free)
 
-For *positive* entailments we use `owlrl` (OWL 2 RL) so the tests run on every `pytest`
-invocation without Docker. They load a **real authored module** plus a tiny A-Box and assert a
+For *positive* entailments we run the native OWL 2 RL chase (`gmeow_logic::reason::rl_closure`, in
+`crates/logic/tests/ontology_entailments.rs`) so the tests run on every Rust test invocation without
+Docker. They load a **real authored module** plus a tiny A-Box and assert a
 triple the reasoner *derives*:
 
 - `hasParent ∘ hasParent ⊑ hasAncestor` — derived ancestry (a property chain);
@@ -145,7 +146,8 @@ make validate   # Rust SHACL + syntax + term-annotation lint (always-on)
 make reason     # native Docker-free EL/DL reasoning authority
 make reason-verify  # native reason + verify + on-gate purrdf-entail cross-check oracle
 make verify     # reasoned-graph SPARQL QC — native EL/DL closure (Java/Docker-free)
-uv run pytest   # owlrl entailment tests + SHACL data-shape tests + native verify tests
+make rust-test  # native OWL 2 RL entailment tests (crates/logic) + conformance tests
+uv run pytest   # SHACL data-shape tests + native verify tests
 ```
 
 ## References
