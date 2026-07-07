@@ -104,6 +104,14 @@ Removed because a Rust artifact already asserts the same behavior:
   `test_music_performance` → `conformance_music_performance.rs`;
   `test_music_structure` → `conformance_music_structure.rs`;
   `test_label_completeness` → `crates/validate/tests/label_completeness.rs` (native structural_lint sweeps).
+- Orphaned dossiers (5): `test_shacl_engine`, `test_events`, `test_names`,
+  `test_organization`, `test_standpoint` — their subject pytests were already
+  retired in prior migration batches, so the dossiers named a mechanism that no
+  longer exists (one still asserted a live `run_shacl` helper that has since been
+  deleted). Removed as deletion orders. The
+  `gmeow_tools.validate.run_shacl` test surface and the `tests/_graph_nt.py`
+  rdflib→N-Triples adapter are now permanently sealed by
+  `check_no_run_shacl_seam` in `crates/validate/src/repo_static.rs`.
 
 Relocated out of the mainline test tree (dossier removed with the test):
 
