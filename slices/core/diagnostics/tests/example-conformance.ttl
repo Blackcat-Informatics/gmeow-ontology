@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative example-conformance fixtures for the diagnostics slice — the R4
+# firing fixtures for gmeow:GateFatalUpsetShape, the closed-world SHACL projection
+# of logic:ruleGateFatalVerdict. The harness (crates/slicetest run_conformance_cell)
+# unions diagnostics/module.ttl + the one bound gmeow:exampleFile and validates
+# against diagnostics/shapes.ttl, comparing the emitted finding codes.
+#
+# The categoryBlocking projection each fixture relies on
+# (logic:FindingContradictionWitness gmeow:categoryBlocking gmeow:blockingBlocking)
+# is carried in module.ttl, so the up-set antecedent resolves through the union.
+#
+# CODE VERIFICATION: gmeow:GateFatalUpsetShape is a sh:sparql (sh:SPARQLConstraint)
+# shape, so its violation code is shacl.SPARQLConstraintComponent — the same code
+# the learning slice's teacher≠learner sh:sparql rule emits. The conforming fixture
+# carries the fatal verdict (up-set antecedent satisfied AND findingGateVerdict
+# gateFatal present) so the FILTER NOT EXISTS arm never selects it; the violating
+# fixture omits the verdict, so the constraint fires exactly once and no other
+# shape (gmeow:FindingShape's severity/code/message min/max are all satisfied).
+#
+# The conforming fixture lives under tests/conformance-fixtures/ and the
+# counter-example under tests/counter-examples/, so the global make validate gate
+# never loads them as data; they are validated SLICE-SCOPED only.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/diagnostics/tests/> .
+
+# --- Conforming: an up-set finding that carries its derived fatal verdict -------
+ex:ecGateFatalPresent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/gate-fatal-verdict-present.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The finding sits on the gate-fatal up-set (findingSeverity gmeow:severityError, its findingCategory logic:FindingContradictionWitness projecting through gmeow:categoryBlocking to gmeow:blockingBlocking, findingStandpoint gmeow:standpointBinding) AND carries gmeow:findingGateVerdict gmeow:gateFatal, so gmeow:GateFatalUpsetShape's FILTER NOT EXISTS arm does not select it and validation emits no findings. The SHACL projection agrees with logic:ruleGateFatalVerdict." .
+
+# --- Violating: an up-set finding MISSING its derived fatal verdict -------------
+ex:ecGateFatalMissing a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gate-fatal-verdict-missing.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The finding meets the gate-fatal up-set antecedent (severity error, category projecting to gmeow:blockingBlocking, standpoint binding) but LACKS gmeow:findingGateVerdict gmeow:gateFatal, so gmeow:GateFatalUpsetShape's sh:sparql constraint MUST emit shacl.SPARQLConstraintComponent and no other finding — proving the shape discriminates the up-set boundary (non-vacuous)." .
