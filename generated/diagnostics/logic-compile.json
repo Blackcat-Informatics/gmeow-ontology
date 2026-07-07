@@ -32526,6 +32526,11 @@
         {
           "path": "slices/grounding/logic/module.ttl"
         }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
       ]
     },
     {
