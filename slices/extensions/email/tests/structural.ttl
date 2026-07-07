@@ -18,7 +18,7 @@ ASK {
     gmeow:MailingList a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:MailingList MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject. Replaces the stale gufo:Kind pytest assertion." .
+    gmeow:saRationale "gmeow:MailingList MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject. Replaces the stale gufo:Kind assertion." .
 
 ex:saEmailPatchDiffIsBodyPartSubKind a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -31,7 +31,7 @@ ASK {
     gmeow:EmailPatchDiff a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:BodyPart .
 }""" ;
-    gmeow:saRationale "gmeow:EmailPatchDiff MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:BodyPart. Replaces the stale gufo:SubKind pytest assertion." .
+    gmeow:saRationale "gmeow:EmailPatchDiff MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:BodyPart. Replaces the stale gufo:SubKind assertion." .
 
 ex:saEmailValueVocabsUseLogicQualityValue a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -46,7 +46,7 @@ ASK {
     gmeow:MessageKind a owl:Class ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:CalendarMethod and gmeow:MessageKind MUST be logic:QualityValue vocabularies. Replaces stale gufo:QualityValue pytest assertions." .
+    gmeow:saRationale "gmeow:CalendarMethod and gmeow:MessageKind MUST be logic:QualityValue vocabularies. Replaces stale gufo:QualityValue assertions." .
 
 ex:saMessageKindSeedsExist a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;

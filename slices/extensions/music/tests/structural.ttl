@@ -20,7 +20,7 @@ ASK {
     gmeow:CollectionMemberRole  a owl:Class ; rdfs:subClassOf logic:QualityValue .
     gmeow:InstrumentModification a owl:Class ; rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "Music value-vocabulary classes MUST be subclasses of logic:QualityValue. Replaces stale gufo:QualityValue pytest assertions for tuning, pitch collection, collection-member role, and instrument modification." .
+    gmeow:saRationale "Music value-vocabulary classes MUST be subclasses of logic:QualityValue. Replaces stale gufo:QualityValue assertions for tuning, pitch collection, collection-member role, and instrument modification." .
 
 ex:saPitchSpellingSystemIsInformationObjectKind a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -50,7 +50,7 @@ ASK {
     gmeow:PitchSpelling a owl:Class ;
         rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "The music configuration and pitch-relation classes MUST be logic:Relator subclasses. Replaces stale gufo:Relator pytest assertions." .
+    gmeow:saRationale "The music configuration and pitch-relation classes MUST be logic:Relator subclasses. Replaces stale gufo:Relator assertions." .
 
 ex:saPerformanceParticipationIsParticipationSubKind a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -63,7 +63,7 @@ ASK {
     gmeow:PerformanceParticipation a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:Participation .
 }""" ;
-    gmeow:saRationale "gmeow:PerformanceParticipation MUST be a logic:SubKind of gmeow:Participation. Replaces the stale gufo:SubKind pytest assertion." .
+    gmeow:saRationale "gmeow:PerformanceParticipation MUST be a logic:SubKind of gmeow:Participation. Replaces the stale gufo:SubKind assertion." .
 
 ex:saTimbreDescriptorValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -76,7 +76,7 @@ ASK {
     gmeow:TimbreDescriptor a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:TimbreDescriptor MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue. Replaces stale gufo:AbstractIndividualType/QualityValue pytest assertions." .
+    gmeow:saRationale "gmeow:TimbreDescriptor MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue. Replaces stale gufo:AbstractIndividualType/QualityValue assertions." .
 
 ex:saTimbreDescriptorSeedsExist a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;

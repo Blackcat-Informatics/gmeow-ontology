@@ -37,7 +37,7 @@ ex:saTimeScopedRelationIsLogicSituation a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:TimeScopedRelation rdfs:subClassOf logic:Situation . }""" ;
-    gmeow:saRationale "gmeow:TimeScopedRelation reifies a relation that holds over an interval: it MUST be a subClassOf logic:Situation (the migrated stereotype) so residence and tenure are situations, not relators. Mirrors test_time_scoped_relation_is_a_logic_situation." .
+    gmeow:saRationale "gmeow:TimeScopedRelation reifies a relation that holds over an interval: it MUST be a subClassOf logic:Situation (the migrated stereotype) so residence and tenure are situations, not relators." .
 
 # --- 2. validFrom / validUntil are AnnotationProperties (MUST hold) ----------
 ex:saValidityPredicatesAreAnnotationProperties a gmeow:StructuralAssertion ;
@@ -49,7 +49,7 @@ ASK {
     gmeow:validFrom  a owl:AnnotationProperty .
     gmeow:validUntil a owl:AnnotationProperty .
 }""" ;
-    gmeow:saRationale "The lightweight RDF-star validity clocks gmeow:validFrom / gmeow:validUntil MUST each be an owl:AnnotationProperty — statement-layer annotations, not first-class object/datatype edges. Mirrors test_validity_predicates_are_annotation_properties." .
+    gmeow:saRationale "The lightweight RDF-star validity clocks gmeow:validFrom / gmeow:validUntil MUST each be an owl:AnnotationProperty — statement-layer annotations, not first-class object/datatype edges." .
 
 # --- 3. Instant ⊑ logic:AbstractIndividual (MUST hold) -----------------------
 ex:saInstantSubclassesLogicAbstractIndividual a gmeow:StructuralAssertion ;
@@ -59,7 +59,7 @@ ex:saInstantSubclassesLogicAbstractIndividual a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:Instant rdfs:subClassOf logic:AbstractIndividual . }""" ;
-    gmeow:saRationale "A gmeow:Instant is a reified zero-duration point: it MUST be a subClassOf logic:AbstractIndividual (the migrated stereotype). Mirrors test_instant_subclasses_logic_abstract_individual." .
+    gmeow:saRationale "A gmeow:Instant is a reified zero-duration point: it MUST be a subClassOf logic:AbstractIndividual (the migrated stereotype)." .
 
 # --- 4. TimeInterval has start and end Instants (MUST hold) ------------------
 ex:saTimeIntervalHasStartAndEndInstants a gmeow:StructuralAssertion ;
@@ -76,7 +76,7 @@ ASK {
         rdfs:domain gmeow:TimeInterval ;
         rdfs:range gmeow:Instant .
 }""" ;
-    gmeow:saRationale "gmeow:hasStartInstant / gmeow:hasEndInstant MUST each be an owl:ObjectProperty with domain gmeow:TimeInterval and range gmeow:Instant — the interval's two reified endpoints. Mirrors test_time_interval_has_start_and_end_instants." .
+    gmeow:saRationale "gmeow:hasStartInstant / gmeow:hasEndInstant MUST each be an owl:ObjectProperty with domain gmeow:TimeInterval and range gmeow:Instant — the interval's two reified endpoints." .
 
 # --- 5. TimeInterval can carry a TemporalFrame (MUST hold) -------------------
 ex:saTimeIntervalCanHaveTemporalFrame a gmeow:StructuralAssertion ;
@@ -90,7 +90,7 @@ ASK {
         rdfs:domain gmeow:TimeInterval ;
         rdfs:range gmeow:TemporalFrame .
 }""" ;
-    gmeow:saRationale "gmeow:hasTemporalFrame MUST be an owl:ObjectProperty with domain gmeow:TimeInterval and range gmeow:TemporalFrame — the frame edge satisfying the interval's frame-relativity requirement (P11). Mirrors test_time_interval_can_have_temporal_frame." .
+    gmeow:saRationale "gmeow:hasTemporalFrame MUST be an owl:ObjectProperty with domain gmeow:TimeInterval and range gmeow:TemporalFrame — the frame edge satisfying the interval's frame-relativity requirement (P11)." .
 
 # --- 6. TemporalMeasurement ⊑ logic:Relator (MUST hold) ----------------------
 ex:saTemporalMeasurementIsLogicRelator a gmeow:StructuralAssertion ;
@@ -100,7 +100,7 @@ ex:saTemporalMeasurementIsLogicRelator a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:TemporalMeasurement rdfs:subClassOf logic:Relator . }""" ;
-    gmeow:saRationale "gmeow:TemporalMeasurement reifies a dating claim (method, age, uncertainty): it MUST be a subClassOf logic:Relator (the migrated stereotype), not a Situation. Mirrors test_temporal_measurement_is_logic_relator." .
+    gmeow:saRationale "gmeow:TemporalMeasurement reifies a dating claim (method, age, uncertainty): it MUST be a subClassOf logic:Relator (the migrated stereotype), not a Situation." .
 # ===========================================================================
 # EDTF / Instant vocabulary (migrated from tests/test_edtf.py)
 # ===========================================================================
@@ -112,7 +112,7 @@ ex:saEdtfValueIsDatatypeProperty a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:edtfValue a owl:DatatypeProperty . }""" ;
-    gmeow:saRationale "gmeow:edtfValue MUST be an owl:DatatypeProperty — the ISO 8601-2 EDTF expression of an instant or interval is carried as a plain literal (Principle 3). Mirrors test_edtf_value_is_datatype_property." .
+    gmeow:saRationale "gmeow:edtfValue MUST be an owl:DatatypeProperty — the ISO 8601-2 EDTF expression of an instant or interval is carried as a plain literal (Principle 3)." .
 
 # --- 8. edtfValue ranges over rdfs:Literal (MUST) ----------------------------
 ex:saEdtfValueRangeIsLiteral a gmeow:StructuralAssertion ;
@@ -121,7 +121,7 @@ ex:saEdtfValueRangeIsLiteral a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:edtfValue rdfs:range rdfs:Literal . }""" ;
-    gmeow:saRationale "gmeow:edtfValue MUST range over rdfs:Literal — EDTF strings are plain literals, not xsd:dateTime (Principle 3). Mirrors test_edtf_value_range_is_literal." .
+    gmeow:saRationale "gmeow:edtfValue MUST range over rdfs:Literal — EDTF strings are plain literals, not xsd:dateTime (Principle 3)." .
 
 # --- 9. Instant exists and instantValue has correct shape (MUST) -------------
 ex:saInstantExistsAndHasInstantValue a gmeow:StructuralAssertion ;
@@ -137,7 +137,7 @@ ASK {
         rdfs:domain gmeow:Instant ;
         rdfs:range xsd:dateTime .
 }""" ;
-    gmeow:saRationale "gmeow:Instant MUST exist as an owl:Class and gmeow:instantValue MUST be an owl:DatatypeProperty with domain gmeow:Instant and range xsd:dateTime — the crisp, machine-computable point value (Principle 3). Mirrors test_instant_exists_and_has_instant_value." .
+    gmeow:saRationale "gmeow:Instant MUST exist as an owl:Class and gmeow:instantValue MUST be an owl:DatatypeProperty with domain gmeow:Instant and range xsd:dateTime — the crisp, machine-computable point value (Principle 3)." .
 
 # ===========================================================================
 # Allen interval relations (migrated from tests/test_allen_jepd.py)
@@ -167,7 +167,7 @@ ASK {
     }
     ?rel a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "All thirteen interval-level Allen relations MUST exist as owl:ObjectProperty — the complete JEPD relation set for TimeInterval ordering. Mirrors test_all_interval_level_allen_relations_exist." .
+    gmeow:saRationale "All thirteen interval-level Allen relations MUST exist as owl:ObjectProperty — the complete JEPD relation set for TimeInterval ordering." .
 
 # --- 11. intervalBefore and intervalAfter are transitive (MUST) --------------
 ex:saIntervalBeforeAndAfterAreTransitive a gmeow:StructuralAssertion ;
@@ -179,7 +179,7 @@ ASK {
     gmeow:intervalBefore a owl:TransitiveProperty .
     gmeow:intervalAfter  a owl:TransitiveProperty .
 }""" ;
-    gmeow:saRationale "gmeow:intervalBefore and gmeow:intervalAfter MUST each be owl:TransitiveProperty — strict ordering chains across a sequence of intervals. Mirrors test_interval_before_and_after_are_transitive." .
+    gmeow:saRationale "gmeow:intervalBefore and gmeow:intervalAfter MUST each be owl:TransitiveProperty — strict ordering chains across a sequence of intervals." .
 
 # --- 12. intervalCoincidesWith is symmetric and transitive (MUST) ------------
 ex:saIntervalCoincidesWithIsSymmetricAndTransitive a gmeow:StructuralAssertion ;
@@ -190,7 +190,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     gmeow:intervalCoincidesWith a owl:SymmetricProperty , owl:TransitiveProperty .
 }""" ;
-    gmeow:saRationale "gmeow:intervalCoincidesWith MUST be both owl:SymmetricProperty and owl:TransitiveProperty — Allen EQUALS is co-extensionality, which is symmetric and transitive (but not identity: distinct intervals may coincide). Mirrors test_interval_coincides_with_is_symmetric_and_transitive." .
+    gmeow:saRationale "gmeow:intervalCoincidesWith MUST be both owl:SymmetricProperty and owl:TransitiveProperty — Allen EQUALS is co-extensionality, which is symmetric and transitive (but not identity: distinct intervals may coincide)." .
 
 # --- 13. No event/interval relation pair is property-disjoint in OWL (MUST-NOT)
 ex:saNoEventIntervalPropertyDisjointnessInOwl a gmeow:StructuralAssertion ;
@@ -218,7 +218,7 @@ ASK {
     UNION
     { ?intervalRel owl:propertyDisjointWith ?eventRel }
 }""" ;
-    gmeow:saRationale "No event-level Allen relation and its interval-level twin MUST be declared owl:propertyDisjointWith in OWL — several interval relations are transitive (non-simple), and OWL 2 DL forbids DisjointObjectProperties over non-simple properties. JEPD disjointness is enforced in SHACL / solver instead. Mirrors test_no_event_interval_property_disjointness_in_owl." .
+    gmeow:saRationale "No event-level Allen relation and its interval-level twin MUST be declared owl:propertyDisjointWith in OWL — several interval relations are transitive (non-simple), and OWL 2 DL forbids DisjointObjectProperties over non-simple properties. JEPD disjointness is enforced in SHACL / solver instead." .
 
 # ===========================================================================
 # Named periods (migrated from tests/test_named_period.py)
@@ -235,7 +235,7 @@ ASK {
     gmeow:NamedPeriod a owl:Class ;
         rdfs:subClassOf gmeow:Entity .
 }""" ;
-    gmeow:saRationale "gmeow:NamedPeriod MUST be an owl:Class and a subclass of gmeow:Entity — a geologic era, dynasty, or fiscal year is a first-class identifiable entity. Mirrors test_named_period_subclasses_entity." .
+    gmeow:saRationale "gmeow:NamedPeriod MUST be an owl:Class and a subclass of gmeow:Entity — a geologic era, dynasty, or fiscal year is a first-class identifiable entity." .
 
 # --- 15. PeriodType exists (MUST) --------------------------------------------
 ex:saPeriodTypeExists a gmeow:StructuralAssertion ;
@@ -244,7 +244,7 @@ ex:saPeriodTypeExists a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:PeriodType a owl:Class . }""" ;
-    gmeow:saRationale "gmeow:PeriodType MUST exist as an owl:Class — the value vocabulary that classifies named periods by kind (geologic rank, historical era, fiscal year). Mirrors test_period_type_exists." .
+    gmeow:saRationale "gmeow:PeriodType MUST exist as an owl:Class — the value vocabulary that classifies named periods by kind (geologic rank, historical era, fiscal year)." .
 
 # --- 16. Seed geologic periods exist (MUST) ----------------------------------
 ex:saSeedGeologicPeriodsExist a gmeow:StructuralAssertion ;
@@ -257,7 +257,7 @@ ASK {
     gmeow:periodQuaternary  a gmeow:NamedPeriod .
     gmeow:periodHolocene    a gmeow:NamedPeriod .
 }""" ;
-    gmeow:saRationale "The four seed geologic periods (Phanerozoic, Cenozoic, Quaternary, Holocene) MUST exist as gmeow:NamedPeriod individuals — they bootstrap the geologic-timescale examples. Mirrors test_seed_geologic_periods_exist." .
+    gmeow:saRationale "The four seed geologic periods (Phanerozoic, Cenozoic, Quaternary, Holocene) MUST exist as gmeow:NamedPeriod individuals — they bootstrap the geologic-timescale examples." .
 
 # --- 17. periodPartOf is transitive (MUST) -----------------------------------
 ex:saPeriodPartOfIsTransitive a gmeow:StructuralAssertion ;
@@ -266,7 +266,7 @@ ex:saPeriodPartOfIsTransitive a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:periodPartOf a owl:TransitiveProperty . }""" ;
-    gmeow:saRationale "gmeow:periodPartOf MUST be owl:TransitiveProperty — epoch-within-period-within-era nesting chains transitively. Mirrors test_period_part_of_is_transitive." .
+    gmeow:saRationale "gmeow:periodPartOf MUST be owl:TransitiveProperty — epoch-within-period-within-era nesting chains transitively." .
 
 # --- 18. periodPartOf seed links form the geologic ladder (MUST) -------------
 ex:saPeriodPartOfLinks a gmeow:StructuralAssertion ;
@@ -278,7 +278,7 @@ ASK {
     gmeow:periodQuaternary gmeow:periodPartOf gmeow:periodCenozoic .
     gmeow:periodCenozoic   gmeow:periodPartOf gmeow:periodPhanerozoic .
 }""" ;
-    gmeow:saRationale "The seed geologic periods MUST be linked by gmeow:periodPartOf in the expected ladder (Holocene → Quaternary → Cenozoic → Phanerozoic). Mirrors test_period_part_of_links." .
+    gmeow:saRationale "The seed geologic periods MUST be linked by gmeow:periodPartOf in the expected ladder (Holocene → Quaternary → Cenozoic → Phanerozoic)." .
 
 # --- 19. periodContainsPeriod is inverse of periodPartOf (MUST) --------------
 ex:saPeriodContainsPeriodIsInverse a gmeow:StructuralAssertion ;
@@ -289,7 +289,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     gmeow:periodContainsPeriod owl:inverseOf gmeow:periodPartOf .
 }""" ;
-    gmeow:saRationale "gmeow:periodContainsPeriod MUST be the owl:inverseOf gmeow:periodPartOf — the whole-rooted view of period nesting. Mirrors test_period_contains_period_is_inverse." .
+    gmeow:saRationale "gmeow:periodContainsPeriod MUST be the owl:inverseOf gmeow:periodPartOf — the whole-rooted view of period nesting." .
 
 # ===========================================================================
 # Temporal frame profile (migrated from tests/test_temporal_frame.py)
