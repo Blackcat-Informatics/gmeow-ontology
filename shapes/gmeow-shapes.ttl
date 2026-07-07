@@ -4303,6 +4303,75 @@ gmeow:AffectClassifierOutputShape
         """ ;
     ] .
 
+# Label-set exclusivity twins — three RELATIONAL invariants no OWL restriction can
+# hold, so hand-authored sh:sparql here. The single-valued and mandatory cardinalities
+# (gmeow:decidedLabel maxCount/minCount, gmeow:labelSetDecision, etc.) are PROJECTED from
+# the module's owl:FunctionalProperty / owl:minCardinality axioms into generated/shapes/
+# (Principle 17), never duplicated here.
+
+gmeow:AffectDecisionShape
+    a sh:NodeShape ;
+    rdfs:label "Affect Decision Shape"@x-gmeow-english ;
+    sh:targetClass gmeow:AffectDecision ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A gmeow:AffectDecision may only be recorded over a single-label (gmeow:decisionArgmax) label set — a categorical argmax decision over a multi-label set has no single winner (a hard fail)." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/decidedLabel> ?label .
+                ?label <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ?set .
+                ?set <https://blackcatinformatics.ca/gmeow/labelSetDecision> ?rule .
+                FILTER(?rule != <https://blackcatinformatics.ca/gmeow/decisionArgmax>)
+            }
+        """ ;
+    ] .
+
+gmeow:AffectDecisionRuleConsistencyShape
+    a sh:NodeShape ;
+    rdfs:label "Affect Decision Rule Consistency Shape"@x-gmeow-english ;
+    sh:targetClass gmeow:AffectClassifierOutput ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "A classifier output's gmeow:scoreSemantics implies a label-set decision rule (softmax → argmax, sigmoid → independent-threshold) that MUST match its emitted label's set gmeow:labelSetDecision — a softmax score over a multi-label set (or a sigmoid over an exclusive set) is an inconsistency (a hard fail)." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/scoreSemantics> ?sem ;
+                      <https://blackcatinformatics.ca/gmeow/emittedLabel> ?label .
+                ?sem <https://blackcatinformatics.ca/gmeow/impliesLabelSetDecision> ?implied .
+                ?label <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ?set .
+                ?set <https://blackcatinformatics.ca/gmeow/labelSetDecision> ?declared .
+                FILTER(?implied != ?declared)
+            }
+        """ ;
+    ] .
+
+gmeow:ExclusiveClaimShape
+    a sh:NodeShape ;
+    rdfs:label "Exclusive Claim Shape"@x-gmeow-english ;
+    sh:targetClass gmeow:AffectiveClaim ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:message "At most one gmeow:AffectiveClaim may be routed over one target from a single-label (gmeow:decisionArgmax) classifier run — a threshold policy admitting two mutually-exclusive claims over an exclusive label set is a hard fail." ;
+        sh:severity sh:Violation ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/observedFeature> ?target .
+                ?out1 <https://blackcatinformatics.ca/gmeow/supportsAffectiveClaim> $this ;
+                      <https://blackcatinformatics.ca/gmeow/emittedLabel> ?l1 .
+                ?l1 <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ?set .
+                ?set <https://blackcatinformatics.ca/gmeow/labelSetDecision> <https://blackcatinformatics.ca/gmeow/decisionArgmax> .
+                ?other a <https://blackcatinformatics.ca/gmeow/AffectiveClaim> ;
+                       <https://blackcatinformatics.ca/gmeow/observedFeature> ?target .
+                FILTER(?other != $this)
+                ?out2 <https://blackcatinformatics.ca/gmeow/supportsAffectiveClaim> ?other ;
+                      <https://blackcatinformatics.ca/gmeow/emittedLabel> ?l2 .
+                ?l2 <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ?set .
+            }
+        """ ;
+    ] .
+
 # --------------------------------------------------------------------------- #
 # Narrative-interior shapes (#361 / #362 / #363, EPIC #358).
 # --------------------------------------------------------------------------- #
