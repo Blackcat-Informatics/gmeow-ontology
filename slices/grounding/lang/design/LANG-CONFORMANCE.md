@@ -117,6 +117,21 @@ machine fixtures are seeded from.
 | No record before the `@gmn` header pins the dialect coordinates | Rust validator (`LANG-GMN.md`, the invalid-missing-header block) | `lang:GmnUndeclaredDialectVersion` |
 | The declared `LL(1)` determinism class survives parse-table construction | Rust validator (the `grammars/gmn.ebnf` exact round-trip lift) | `lang:GmnNonDecodableGrammar` |
 | A compaction run never silently collapses co-resident readings (`gmeow:GmnCompaction` inputs included) | Rust validator (`tests/counter-examples/gmn-compaction-silent-disambiguation.ttl`, native lint) | `lang:SilentDisambiguation` (reused discipline) |
+| Every emitted morphological feature value is dispositioned — glyphed, alias-planed, or named-key-ruled — with no silent gap | SHACL-SPARQL (`tests/counter-examples/gmn-undispositioned-feature-value.ttl`) | `lang:GmnUndispositionedTerm` |
+| Every imported alias plane carries both its citation and its version | SHACL Core (`tests/counter-examples/gmn-plane-missing-version.ttl`) | `lang:GmnUnattributedPlane` |
+| Every GMN-script glyph carries its measured per-glyph token-cost feed — no silent gap in the glyph plane | SHACL-SPARQL (`tests/counter-examples/gmn-uncosted-script-glyph.ttl`) | `lang:GmnUncostedScriptGlyph` |
+| The `@λ` lang-AST tabular batch reuses the CoNLL-U column order verbatim (`ID FORM LEMMA UPOS XPOS FEATS HEAD DEPREL DEPS MISC`), never a rival scheme | Projection test (`GMN_LANG_AST_COLUMNS` pinned to the `ConlluToken` serializer order) | — (drift is a build failure) |
+
+The coverage row is the graph-side reading of the charter's coverage gate: `lang:GmnUncoveredTerm`
+is the writer-tier failure of a document token the pinned dictionary cannot resolve at emit time,
+while `lang:GmnUndispositionedTerm` is the authoring-time completeness a SHACL shape sees in the
+graph — every feature value the surface emits is bound to a disposition, the denominator derived by
+type over the `lang:FeatureValue` population rather than a hand-listed set, so a value added without
+a disposition reds the gate. The coverage report is green exactly when that gate finds nothing. The
+glyph-plane sibling `lang:GmnUncostedScriptGlyph` closes the same silent gap over the glyph
+inventory: every `lang:Grapheme` in `gmeow:gmnScript` — the IPA graphemes and the `*` operator glyph
+— must carry its measured `gmeow:gmnGlyphTokenCost`, the denominator derived by the script
+repertoire, so a glyph admitted without its cost feed reds `lang:GmnScriptGlyphCoverageShape`.
 
 ## Preservation vocabulary — reuse, do not re-mint
 

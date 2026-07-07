@@ -2669,6 +2669,7 @@ classes:
     title: Model Inference Run
     is_a: Entity
     slots:
+    - hypothesisTemplate
     - labelSetRevision
     - modelFramework
     - modelIdentifier
@@ -8050,6 +8051,11 @@ slots:
     title: gmn glyph table version
     range: string
     multivalued: true
+  gmnGlyphTokenCost:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnGlyphTokenCost
+    title: gmn glyph token cost
+    range: uriorcurie
+    multivalued: true
   gmnMigratesFrom:
     slot_uri: https://blackcatinformatics.ca/gmeow/gmnMigratesFrom
     title: gmn migrates from
@@ -8096,6 +8102,11 @@ slots:
     range: GovernanceModel
     domain: Project
     multivalued: true
+  gradeOrdinal:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gradeOrdinal
+    title: grade ordinal
+    range: integer
+    multivalued: true
   graphBoxRole:
     slot_uri: https://blackcatinformatics.ca/gmeow/graphBoxRole
     title: graph box role
@@ -8128,6 +8139,11 @@ slots:
     title: grounds claim
     range: ClaimToken
     domain: MentalMoment
+    multivalued: true
+  groundsContextAxis:
+    slot_uri: https://blackcatinformatics.ca/gmeow/groundsContextAxis
+    title: grounds context axis
+    range: uriorcurie
     multivalued: true
   groupAccentWeight:
     slot_uri: https://blackcatinformatics.ca/gmeow/groupAccentWeight
@@ -9398,6 +9414,12 @@ slots:
     range: string
     domain: InstrumentType
     multivalued: false
+  hypothesisTemplate:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hypothesisTemplate
+    title: hypothesis template
+    range: string
+    domain: ModelInferenceRun
+    multivalued: true
   iban:
     slot_uri: https://blackcatinformatics.ca/gmeow/iban
     title: IBAN
@@ -11969,6 +11991,11 @@ slots:
     title: propagation mutation distance
     range: integer
     domain: Event
+    multivalued: true
+  proseSurface:
+    slot_uri: https://blackcatinformatics.ca/gmeow/proseSurface
+    title: prose surface
+    range: uriorcurie
     multivalued: true
   provenance:
     slot_uri: https://blackcatinformatics.ca/gmeow/provenance
@@ -15593,6 +15620,15 @@ enums:
       refOriginTopocentric:
         meaning: https://blackcatinformatics.ca/gmeow/refOriginTopocentric
         title: topocentric (observatory site)
+  CitationActEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/CitationAct
+    permissible_values:
+      ipaChartCitation:
+        meaning: https://blackcatinformatics.ca/gmeow/ipaChartCitation
+        title: IPA plane conformance citation
+      leipzigCitation:
+        meaning: https://blackcatinformatics.ca/gmeow/leipzigCitation
+        title: Leipzig plane conformance citation
   CitationIntentEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CitationIntent
     permissible_values:
@@ -16109,6 +16145,15 @@ enums:
       coverageDepthSignificantCoverage:
         meaning: https://blackcatinformatics.ca/gmeow/coverageDepthSignificantCoverage
         title: significant coverage
+  CreativeWorkEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/CreativeWork
+    permissible_values:
+      ipaChartWork:
+        meaning: https://blackcatinformatics.ca/gmeow/ipaChartWork
+        title: the IPA Chart
+      leipzigWork:
+        meaning: https://blackcatinformatics.ca/gmeow/leipzigWork
+        title: the Leipzig Glossing Rules
   CreativeWorkTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CreativeWorkType
     permissible_values:
@@ -17816,9 +17861,18 @@ enums:
   InformationObjectEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/InformationObject
     permissible_values:
+      gmnLangGlyphContext:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnLangGlyphContext
+        title: the GMN linguistic glyph-table context
       gmnVersionOne:
         meaning: https://blackcatinformatics.ca/gmeow/gmnVersionOne
         title: GMN dialect version 1
+      ipaPlaneSourceRecord:
+        meaning: https://blackcatinformatics.ca/gmeow/ipaPlaneSourceRecord
+        title: IPA plane source record
+      leipzigPlaneSourceRecord:
+        meaning: https://blackcatinformatics.ca/gmeow/leipzigPlaneSourceRecord
+        title: Leipzig plane source record
   InhabitationLocusKindEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/InhabitationLocusKind
     permissible_values:
@@ -21482,6 +21536,9 @@ enums:
       scoreCalibratedProbability:
         meaning: https://blackcatinformatics.ca/gmeow/scoreCalibratedProbability
         title: calibrated probability
+      scoreEntailment:
+        meaning: https://blackcatinformatics.ca/gmeow/scoreEntailment
+        title: entailment probability
       scoreLogit:
         meaning: https://blackcatinformatics.ca/gmeow/scoreLogit
         title: logit

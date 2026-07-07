@@ -473,7 +473,7 @@ fn blame_deflection_example_doxastic_claims() {
          ASK { { ?s gmeow:heldStandpoint ?o } UNION { ?s gmeow:projectedStandpoint ?o } }"
         .to_string();
     assert!(
-        g.ask(&any_standpoint),
+        g.ask(&[], &any_standpoint),
         "expected at least one held/projected standpoint in the example"
     );
 
@@ -484,7 +484,7 @@ fn blame_deflection_example_doxastic_claims() {
          }"
     .to_string();
     assert!(
-        !g.ask(&non_doxastic),
+        !g.ask(&[], &non_doxastic),
         "a held/projected standpoint is not a DoxasticStandpointClaim"
     );
 }

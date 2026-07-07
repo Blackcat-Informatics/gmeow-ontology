@@ -421,6 +421,11 @@ export enum CelestialReferenceOriginEnum {
     refOriginTopocentric = "refOriginTopocentric",
 }
 
+export enum CitationActEnum {
+    ipaChartCitation = "ipaChartCitation",
+    leipzigCitation = "leipzigCitation",
+}
+
 export enum CitationIntentEnum {
     intentBridgedByReference = "intentBridgedByReference",
     intentCitesAsDataSource = "intentCitesAsDataSource",
@@ -633,6 +638,11 @@ export enum CoverageDepthEnum {
     coverageDepthPassingMention = "coverageDepthPassingMention",
     coverageDepthRoutineFiling = "coverageDepthRoutineFiling",
     coverageDepthSignificantCoverage = "coverageDepthSignificantCoverage",
+}
+
+export enum CreativeWorkEnum {
+    ipaChartWork = "ipaChartWork",
+    leipzigWork = "leipzigWork",
 }
 
 export enum CreativeWorkTypeEnum {
@@ -1338,7 +1348,10 @@ export enum InferenceModeEnum {
 }
 
 export enum InformationObjectEnum {
+    gmnLangGlyphContext = "gmnLangGlyphContext",
     gmnVersionOne = "gmnVersionOne",
+    ipaPlaneSourceRecord = "ipaPlaneSourceRecord",
+    leipzigPlaneSourceRecord = "leipzigPlaneSourceRecord",
 }
 
 export enum InhabitationLocusKindEnum {
@@ -2816,6 +2829,7 @@ export enum ScoreEditionEnum {
 
 export enum ScoreSemanticsEnum {
     scoreCalibratedProbability = "scoreCalibratedProbability",
+    scoreEntailment = "scoreEntailment",
     scoreLogit = "scoreLogit",
     scoreMargin = "scoreMargin",
     scoreSigmoid = "scoreSigmoid",
@@ -5496,6 +5510,7 @@ export interface ModelDeployment {
 }
 
 export interface ModelInferenceRun extends Entity {
+    hypothesisTemplate?: string[],
     labelSetRevision?: string[],
     modelFramework?: string[],
     modelIdentifier?: string,

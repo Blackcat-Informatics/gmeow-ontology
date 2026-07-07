@@ -41,7 +41,6 @@
       "actual: logic:body on <https://example.org/decidability/stratified-certifies/ruleIsolated> has no gUFO bridge equivalent",
       "actual: logic:body on <https://example.org/decidability/stratified-certifies/ruleReachableBase> has no gUFO bridge equivalent",
       "actual: logic:body on <https://example.org/decidability/stratified-certifies/ruleReachableStep> has no gUFO bridge equivalent",
-      "actual: logic:body on <https://example.org/decidability/stratified-certifies/ruleReachableStep> has no gUFO bridge equivalent",
       "actual: logic:head on <https://example.org/decidability/stratified-certifies/ruleIsolated> has no gUFO bridge equivalent",
       "actual: logic:head on <https://example.org/decidability/stratified-certifies/ruleReachableBase> has no gUFO bridge equivalent",
       "actual: logic:head on <https://example.org/decidability/stratified-certifies/ruleReachableStep> has no gUFO bridge equivalent",
@@ -52,8 +51,6 @@
       "actual: rdf:type logic:Rule on <https://example.org/decidability/stratified-certifies/ruleIsolated> has no gUFO equivalent",
       "actual: rdf:type logic:Rule on <https://example.org/decidability/stratified-certifies/ruleReachableBase> has no gUFO equivalent",
       "actual: rdf:type logic:Rule on <https://example.org/decidability/stratified-certifies/ruleReachableStep> has no gUFO equivalent",
-      "actual: rule head <?X> dropped (gUFO bridge has no rule surface)",
-      "actual: rule head <?X> dropped (gUFO bridge has no rule surface)",
       "actual: rule head <?X> dropped (gUFO bridge has no rule surface)"
     ],
     "preservation": "ValidationOnly"
@@ -83,7 +80,6 @@
       "actual: logic:body on <https://example.org/decidability/stratified-certifies/ruleIsolated> has no OWL DL equivalent",
       "actual: logic:body on <https://example.org/decidability/stratified-certifies/ruleReachableBase> has no OWL DL equivalent",
       "actual: logic:body on <https://example.org/decidability/stratified-certifies/ruleReachableStep> has no OWL DL equivalent",
-      "actual: logic:body on <https://example.org/decidability/stratified-certifies/ruleReachableStep> has no OWL DL equivalent",
       "actual: logic:head on <https://example.org/decidability/stratified-certifies/ruleIsolated> has no OWL DL equivalent",
       "actual: logic:head on <https://example.org/decidability/stratified-certifies/ruleReachableBase> has no OWL DL equivalent",
       "actual: logic:head on <https://example.org/decidability/stratified-certifies/ruleReachableStep> has no OWL DL equivalent",
@@ -92,7 +88,6 @@
       "actual: logic:provenance on <https://example.org/decidability/stratified-certifies/ruleReachableBase> has no OWL DL equivalent",
       "actual: logic:provenance on <https://example.org/decidability/stratified-certifies/ruleReachableStep> has no OWL DL equivalent",
       "actual: rule head <?X> 'https://example.org/decidability/stratified-certifies/isolated' not expressible in OWL DL (body complexity)",
-      "actual: rule head <?X> 'https://example.org/decidability/stratified-certifies/reachable' not expressible in OWL DL (body complexity)",
       "actual: rule head <?X> 'https://example.org/decidability/stratified-certifies/reachable' not expressible in OWL DL (body complexity)"
     ],
     "preservation": "SoundUnderApproximation"
@@ -108,7 +103,6 @@
       "actual: logic:body on <https://example.org/decidability/stratified-certifies/ruleIsolated> has no EL equivalent",
       "actual: logic:body on <https://example.org/decidability/stratified-certifies/ruleReachableBase> has no EL equivalent",
       "actual: logic:body on <https://example.org/decidability/stratified-certifies/ruleReachableStep> has no EL equivalent",
-      "actual: logic:body on <https://example.org/decidability/stratified-certifies/ruleReachableStep> has no EL equivalent",
       "actual: logic:head on <https://example.org/decidability/stratified-certifies/ruleIsolated> has no EL equivalent",
       "actual: logic:head on <https://example.org/decidability/stratified-certifies/ruleReachableBase> has no EL equivalent",
       "actual: logic:head on <https://example.org/decidability/stratified-certifies/ruleReachableStep> has no EL equivalent",
@@ -116,8 +110,6 @@
       "actual: logic:provenance on <https://example.org/decidability/stratified-certifies/ruleIsolated> has no EL equivalent",
       "actual: logic:provenance on <https://example.org/decidability/stratified-certifies/ruleReachableBase> has no EL equivalent",
       "actual: logic:provenance on <https://example.org/decidability/stratified-certifies/ruleReachableStep> has no EL equivalent",
-      "actual: rule head <?X> dropped (EL has no rule surface)",
-      "actual: rule head <?X> dropped (EL has no rule surface)",
       "actual: rule head <?X> dropped (EL has no rule surface)"
     ],
     "preservation": "SoundUnderApproximation"

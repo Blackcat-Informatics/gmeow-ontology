@@ -421,6 +421,11 @@ enum CelestialReferenceOriginEnum {
   refOriginTopocentric
 }
 
+enum CitationActEnum {
+  ipaChartCitation
+  leipzigCitation
+}
+
 enum CitationIntentEnum {
   intentBridgedByReference
   intentCitesAsDataSource
@@ -633,6 +638,11 @@ enum CoverageDepthEnum {
   coverageDepthPassingMention
   coverageDepthRoutineFiling
   coverageDepthSignificantCoverage
+}
+
+enum CreativeWorkEnum {
+  ipaChartWork
+  leipzigWork
 }
 
 enum CreativeWorkTypeEnum {
@@ -1338,7 +1348,10 @@ enum InferenceModeEnum {
 }
 
 enum InformationObjectEnum {
+  gmnLangGlyphContext
   gmnVersionOne
+  ipaPlaneSourceRecord
+  leipzigPlaneSourceRecord
 }
 
 enum InhabitationLocusKindEnum {
@@ -2816,6 +2829,7 @@ enum ScoreEditionEnum {
 
 enum ScoreSemanticsEnum {
   scoreCalibratedProbability
+  scoreEntailment
   scoreLogit
   scoreMargin
   scoreSigmoid
@@ -6332,6 +6346,7 @@ type ModelDeployment {
 type ModelInferenceRun {
   id: String
   iri: String
+  hypothesisTemplate: [String!]
   labelSetRevision: [String!]
   modelFramework: [String!]
   modelIdentifier: String

@@ -27,10 +27,10 @@ projection of it:
 
 ## Wire coordinates
 
-`Location` mirrors `gmeow_rdf::RdfLocation`'s GTS wire coordinates. The
-`gmeow-validate::findings` bridge (`finding_from_rdf` / `finding_from_shacl`)
-carries them — plus SHACL focus nodes — from the validation pipeline into the
-single `Report`, so all projections anchor a diagnostic to the same bundle
+`Location` mirrors `gmeow_rdf::RdfLocation`'s GTS wire coordinates. `Diag::from_rdf`
+(here) carries them from the RDF diagnostics model, and the
+`gmeow-validate::findings` bridge (`finding_from_shacl`) carries SHACL focus nodes,
+into the single `Report`, so all projections anchor a diagnostic to the same bundle
 position.
 
 ## Self-describing feedback bundle

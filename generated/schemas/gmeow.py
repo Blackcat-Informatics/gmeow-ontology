@@ -445,6 +445,11 @@ class CelestialReferenceOriginEnum(str, Enum):
     refOriginTopocentric = "refOriginTopocentric"
 
 
+class CitationActEnum(str, Enum):
+    ipaChartCitation = "ipaChartCitation"
+    leipzigCitation = "leipzigCitation"
+
+
 class CitationIntentEnum(str, Enum):
     intentBridgedByReference = "intentBridgedByReference"
     intentCitesAsDataSource = "intentCitesAsDataSource"
@@ -657,6 +662,11 @@ class CoverageDepthEnum(str, Enum):
     coverageDepthPassingMention = "coverageDepthPassingMention"
     coverageDepthRoutineFiling = "coverageDepthRoutineFiling"
     coverageDepthSignificantCoverage = "coverageDepthSignificantCoverage"
+
+
+class CreativeWorkEnum(str, Enum):
+    ipaChartWork = "ipaChartWork"
+    leipzigWork = "leipzigWork"
 
 
 class CreativeWorkTypeEnum(str, Enum):
@@ -1362,7 +1372,10 @@ class InferenceModeEnum(str, Enum):
 
 
 class InformationObjectEnum(str, Enum):
+    gmnLangGlyphContext = "gmnLangGlyphContext"
     gmnVersionOne = "gmnVersionOne"
+    ipaPlaneSourceRecord = "ipaPlaneSourceRecord"
+    leipzigPlaneSourceRecord = "leipzigPlaneSourceRecord"
 
 
 class InhabitationLocusKindEnum(str, Enum):
@@ -2840,6 +2853,7 @@ class ScoreEditionEnum(str, Enum):
 
 class ScoreSemanticsEnum(str, Enum):
     scoreCalibratedProbability = "scoreCalibratedProbability"
+    scoreEntailment = "scoreEntailment"
     scoreLogit = "scoreLogit"
     scoreMargin = "scoreMargin"
     scoreSigmoid = "scoreSigmoid"
@@ -6535,6 +6549,7 @@ class ModelDeployment(ConfiguredBaseModel):
 class ModelInferenceRun(Entity):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ModelInferenceRun"
     is_a: ClassVar[str] = "Entity"
+    hypothesisTemplate: list[str] | None = Field(default=None)
     labelSetRevision: list[str] | None = Field(default=None)
     modelFramework: list[str] | None = Field(default=None)
     modelIdentifier: str | None = Field(default=None)

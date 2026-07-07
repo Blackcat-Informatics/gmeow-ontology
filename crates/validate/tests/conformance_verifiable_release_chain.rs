@@ -316,11 +316,14 @@ fn fixture_swhid_on_commit() {
     let g = fixture_store();
     // contentDigest values are literals, so objects() returns nothing; collect
     // the literal lexical forms via SPARQL SELECT.
-    let (vars, rows) = g.select(&format!(
-        "PREFIX ex: <{EX}>\n\
+    let (vars, rows) = g.select(
+        &[],
+        &format!(
+            "PREFIX ex: <{EX}>\n\
          PREFIX gmeow: <{GMEOW}>\n\
          SELECT ?d WHERE {{ ex:releaseCommit gmeow:contentDigest ?d }}"
-    ));
+        ),
+    );
     let idx = vars.iter().position(|v| v == "d").expect("?d projected");
     let values: Vec<String> = rows
         .into_iter()
@@ -344,8 +347,10 @@ fn combined_store() -> GraphStore {
 #[test]
 fn query_key_that_signed_commit() {
     let g = combined_store();
-    let (vars, rows) = g.select(&format!(
-        "PREFIX gmeow: <{GMEOW}>\n\
+    let (vars, rows) = g.select(
+        &[],
+        &format!(
+            "PREFIX gmeow: <{GMEOW}>\n\
          SELECT ?key WHERE {{\n\
              ?release a gmeow:Release ;\n\
                       gmeow:releaseTag ?tag .\n\
@@ -353,7 +358,8 @@ fn query_key_that_signed_commit() {
              ?commit gmeow:hasSignature ?sig .\n\
              ?sig gmeow:signingKey ?key .\n\
          }}"
-    ));
+        ),
+    );
     let idx = vars
         .iter()
         .position(|v| v == "key")
@@ -374,7 +380,7 @@ fn query_key_that_signed_commit() {
 #[test]
 fn query_build_that_produced_artifact() {
     let g = combined_store();
-    let (vars, rows) = g.select(&format!(
+    let (vars, rows) = g.select(&[], &format!(
         "PREFIX gmeow: <{GMEOW}>\n\
          SELECT ?build WHERE {{\n\
              ?commit gmeow:contentDigest \"swh:1:rev:0123456789abcdef0123456789abcdef01234567\"^^<http://www.w3.org/2001/XMLSchema#string> .\n\
@@ -403,8 +409,10 @@ fn query_build_that_produced_artifact() {
 #[test]
 fn query_rekor_entry_for_attestation() {
     let g = combined_store();
-    assert!(g.ask(&format!(
-        "PREFIX ex: <{EX}>\n\
+    assert!(g.ask(
+        &[],
+        &format!(
+            "PREFIX ex: <{EX}>\n\
          PREFIX gmeow: <{GMEOW}>\n\
          ASK {{\n\
              ex:v1_0_0 a gmeow:Release ;\n\
@@ -418,5 +426,6 @@ fn query_rekor_entry_for_attestation() {
                           gmeow:transparencyLogEntry ?rekor .\n\
              ?rekor a gmeow:TransparencyLogEntry .\n\
          }}"
-    )));
+        )
+    ));
 }
