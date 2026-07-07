@@ -4303,16 +4303,30 @@ gmeow:AffectClassifierOutputShape
         """ ;
     ] .
 
-# Label-set exclusivity twins — three RELATIONAL invariants no OWL restriction can
-# hold, so hand-authored sh:sparql here. The single-valued and mandatory cardinalities
-# (gmeow:decidedLabel maxCount/minCount, gmeow:labelSetDecision, etc.) are PROJECTED from
-# the module's owl:FunctionalProperty / owl:minCardinality axioms into generated/shapes/
-# (Principle 17), never duplicated here.
+# Label-set exclusivity twins — RELATIONAL invariants no OWL restriction can hold, so
+# hand-authored sh:sparql here.
+#
+# The categorical winner-take-all bound — a gmeow:AffectDecision decides EXACTLY ONE
+# gmeow:decidedLabel — is authored in the module as owl:FunctionalProperty + owl:minCardinality
+# and projects to generated/shapes/validation-shapes.ttl (Principle 17). That projected file is
+# EXCLUDED from the enforced shape corpus (purrdf::shapes::shape_union::EXCLUDED — its open-world
+# someValuesFrom siblings over-flag valid data), so the projection alone makes the bound a hard
+# fail ONLY on the shipped gmeow.gts bundle and leaves it unenforced on the make-check gate. A
+# single-valued bound over a functional property does not over-flag, so it is stated declaratively
+# here too, keeping "exactly one decided label" a genuine on-gate hard fail (LOW/NO-OPTIONALITY)
+# rather than a claim only the shipped surface honours.
 
 gmeow:AffectDecisionShape
     a sh:NodeShape ;
     rdfs:label "Affect Decision Shape"@x-gmeow-english ;
     sh:targetClass gmeow:AffectDecision ;
+    sh:property [
+        sh:path gmeow:decidedLabel ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:AffectDecision decides EXACTLY ONE gmeow:decidedLabel — the categorical argmax winner-take-all bound (a hard fail): a decision with no decided label is meaningless, and two labels is not a single-label decision." ;
+    ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;
         sh:message "A gmeow:AffectDecision may only be recorded over a single-label (gmeow:decisionArgmax) label set — a categorical argmax decision over a multi-label set has no single winner (a hard fail)." ;
