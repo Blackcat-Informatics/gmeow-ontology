@@ -1245,6 +1245,16 @@ pub const MIGRATION_FEATURE_REGISTRY: &[(&str, &[Feature])] = &[
         &[Feature::ConstructGraph],
     ),
     ("sparql-features/init-bindings", &[Feature::InitBindings]),
+    // Migrated narrative-interior cluster cases (conformance_{narration,disclosure}.rs).
+    ("narrative/narration-cooccurrence", &[Feature::Union]),
+    (
+        "disclosure/public-candidates",
+        &[Feature::FilterNotExists, Feature::InitBindings],
+    ),
+    (
+        "disclosure/schema-org-projection",
+        &[Feature::ConstructGraph, Feature::FilterNotExists],
+    ),
 ];
 
 /// The de-duplicated union of every feature tag in [`MIGRATION_FEATURE_REGISTRY`].

@@ -44,3 +44,118 @@ use rstest::rstest;
 fn disclosure(#[case] case: Case) {
     case.run();
 }
+
+// ── SPARQL / GraphStore twins migrated from tests/test_disclosure.py ───────────
+
+const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+const EX_DISCLOSURE: &str = "https://example.org/disclosure/";
+const SCHEMA: &str = "https://schema.org/";
+
+fn gm(local: &str) -> String {
+    format!("{GMEOW}{local}")
+}
+
+fn ex_disc(local: &str) -> String {
+    format!("{EX_DISCLOSURE}{local}")
+}
+
+fn schema(local: &str) -> String {
+    format!("{SCHEMA}{local}")
+}
+
+/// Twin of `test_no_preferred_or_primary_disclosure_term`: no `gmeow:` term in the
+/// kernel module whose local name (no `/`) starts with `primary`/`preferred`.
+/// Native re-expression of the Python subject sweep via a DISTINCT-subject SELECT.
+#[test]
+fn no_preferred_or_primary_disclosure_term() {
+    let g = GraphStore::parse_ttl_file(&repo_root().join("slices/core/kernel/module.ttl"));
+    let (_vars, rows) = g.select(&[], "SELECT DISTINCT ?s WHERE { ?s ?p ?o }");
+    let mut offenders = Vec::new();
+    for row in &rows {
+        let Some(Some(term)) = row.first() else {
+            continue;
+        };
+        let Some(iri) = term.as_iri() else {
+            continue;
+        };
+        if let Some(local) = iri.strip_prefix(GMEOW) {
+            let lower = local.to_lowercase();
+            if !local.contains('/')
+                && (lower.starts_with("primary") || lower.starts_with("preferred"))
+            {
+                offenders.push(iri.to_owned());
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "primary/preferred disclosure term leaked: {offenders:?}"
+    );
+}
+
+/// Twin of `test_project_when_in_sparql_query`: re-expressed as native semantics.
+/// The generated `schema-org.rq` projection carries the projectWhen guard
+/// (`FILTER EXISTS { ?ent gmeow:eligibleForConsumer gmeow:consumerPublicSite }`)
+/// on the description branch. Running the CONSTRUCT over the disclosure fixture,
+/// the public-eligible entity's description projects while the non-eligible one is
+/// dropped — the guard's behaviour, asserted as semantics rather than source text.
+#[test]
+fn project_when_gates_description_on_public_eligibility() {
+    let g = GraphStore::parse_ttl_file(&repo_root().join("tests/fixtures/coverage/disclosure.ttl"));
+    let query = read_query("generated/queries/schema-org.rq");
+    let projected = g.construct(&[], &query);
+    // Alice IS eligible for consumerPublicSite → her description projects.
+    assert!(
+        projected.contains_triple(
+            &iri(&ex_disc("alice")),
+            &iri(&schema("description")),
+            &lit("Alice Public"),
+        ),
+        "public-eligible entity's description must project"
+    );
+    // Bob is NOT public-eligible → the projectWhen FILTER EXISTS guard drops him.
+    assert!(
+        !projected.contains_triple(
+            &iri(&ex_disc("bob")),
+            &iri(&schema("description")),
+            &lit("Bob Internal"),
+        ),
+        "non-eligible entity's description must be gated out"
+    );
+}
+
+/// Twin of `test_public_candidates_query_runnable`: `public-candidates.rq`, run
+/// with `?consumer` pre-bound to consumerPublicSite (initBindings) over the
+/// ontology+fixture, returns the public-safe alice (FILTER NOT EXISTS displayable
+/// false, FILTER ?policy NOT IN sensitive policies).
+#[test]
+fn public_candidates_query_runnable() {
+    QueryCase::new(
+        "disclosure/public-candidates",
+        &[Feature::FilterNotExists, Feature::InitBindings],
+    )
+    .over_ontology_plus("tests/fixtures/coverage/disclosure.ttl")
+    .query_file("public-candidates.rq")
+    .bind("consumer", iri(&gm("consumerPublicSite")))
+    .select_contains_rows(vec![vec![
+        iri(&ex_disc("alice")),
+        iri(&gm("policyPublicSafe")),
+    ]])
+    .run();
+}
+
+/// Twin of `test_privacy_leaks_query_runnable`: `privacy-leaks.rq` (FILTER ?policy
+/// IN neverPublic/internalOnly, FILTER ?consumer IN the public allowlist) finds
+/// the leak — secretPlace is neverPublic yet eligible for consumerWikidata.
+#[test]
+fn privacy_leaks_query_runnable() {
+    QueryCase::new("disclosure/privacy-leaks", &[])
+        .over_ontology_plus("tests/fixtures/coverage/disclosure.ttl")
+        .query_file("privacy-leaks.rq")
+        .select_contains_rows(vec![vec![
+            iri(&ex_disc("secretPlace")),
+            iri(&gm("policyNeverPublic")),
+            iri(&gm("consumerWikidata")),
+        ]])
+        .run();
+}
