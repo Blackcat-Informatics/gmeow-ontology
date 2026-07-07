@@ -48,12 +48,17 @@ const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 // ── Out-of-fragment DL/Full constructs the native path CANNOT soundly decide ───
 //
 // These are inventoried in `CONSTRUCT_COVERAGE` so `scan_coverage` marks them
-// `present`, and `classify_coverage` deliberately NEVER promotes them to
-// `decided`: the native DL consistency chase implements no datatype-value
-// reasoning, so an ontology whose (in)consistency turns on a datatype/facet
-// restriction can only be soundly reported as *cannot-decide* (a non-empty
+// `present`. The native DL consistency chase implements no datatype-value
+// reasoning, so an ontology whose (in)consistency actually TURNS ON a datatype/
+// facet restriction can only be soundly reported as *cannot-decide* (a non-empty
 // `DlVerdict::gaps`), never as a wrong `consistent` by silently ignoring the
-// axiom (the incomplete-never-wrong doctrine).
+// axiom (the incomplete-never-wrong doctrine). The withhold is PRECISE, not
+// presence-based: a facet-restricted datatype that is merely DEFINED but
+// constrains no asserted/inferred literal is INERT (it cannot cause an
+// inconsistency), so `classify_coverage` decides the datatype-facet families in
+// that case and only withholds when a literal is actually subject to a facet
+// (see `datatype_facet_has_live_obligation`). The universal top
+// properties (`owl:topObjectProperty`/`owl:topDataProperty`) are NEVER decided.
 //
 // NOTE — property irreflexivity/asymmetry (`owl:IrreflexiveProperty`,
 // `owl:AsymmetricProperty`) are NOT out-of-fragment: the DL consistency post-pass
@@ -274,12 +279,15 @@ const CONSTRUCT_COVERAGE: &[(&str, &str, &str)] = &[
         "owl:InverseFunctionalProperty",
         "inverseFunctionalProperty",
     ),
-    // ── Out-of-fragment constructs (always `unsupported`, never `decided`) ──
+    // ── Out-of-fragment constructs ──
     // Datatype/facet restrictions (OWL 2 DL/Full) — the native chase carries no
     // datatype-value reasoning, so a facet that would make the ontology
     // inconsistent (e.g. a value outside a `xsd:minInclusive`/`maxInclusive`
-    // range) is invisible to it. Any of these predicates present forces an
-    // honest gap rather than a silently-ignored axiom.
+    // range) is invisible to it. A facet is withheld (honest gap) ONLY when it
+    // actually constrains an asserted/inferred literal; a facet-restricted
+    // datatype that is merely DEFINED but constrains no literal is inert and
+    // decided (see `datatype_facet_has_live_obligation`). The universal
+    // top properties below are always `unsupported`, never `decided`.
     (
         OWL_DATATYPE_COMPLEMENT_OF,
         "owl:datatypeComplementOf",
@@ -314,6 +322,30 @@ const CONSTRUCT_COVERAGE: &[(&str, &str, &str)] = &[
         "owl:topDataProperty",
         "topDataProperty",
     ),
+];
+
+/// The OWL 2 datatype-facet construct families (coverage suffixes). The native
+/// chase carries no datatype value-space reasoning, so these are undecidable ONLY
+/// when a facet actually constrains a literal; a facet-restricted datatype that is
+/// merely DEFINED is inert and decided (see
+/// [`datatype_facet_has_live_obligation`]). Deliberately EXCLUDES the
+/// universal top properties (`owl:topObjectProperty`/`owl:topDataProperty`), which
+/// are never decided.
+const DATATYPE_FACET_FAMILIES: &[&str] = &[
+    "datatypeComplementOf",
+    "withRestrictions",
+    "onDatatype",
+    "minInclusive",
+    "maxInclusive",
+    "minExclusive",
+    "maxExclusive",
+    "pattern",
+    "length",
+    "minLength",
+    "maxLength",
+    "totalDigits",
+    "fractionDigits",
+    "langRange",
 ];
 
 /// The clash-detection rules layered on top of [`EL_RULES`], in the
@@ -3337,14 +3369,123 @@ fn classify_coverage(edb: &RdfDataset, present: &[String]) -> BTreeSet<String> {
         }
     }
 
-    // Out-of-fragment constructs (the datatype/facet-restriction family and the
-    // universal top properties) are DELIBERATELY never inserted into `decided`: the
-    // native chase implements no semantics for them, so a bundle asserting them can
-    // only be reported as cannot-decide (they remain in `present \ decided` =
-    // `unsupported`, populating `DlVerdict::gaps`). This is the incomplete-never-
-    // wrong contract — never a silently-ignored axiom.
+    // Datatype-facet family: PRECISE withhold. A facet-restricted datatype that is
+    // merely DEFINED but constrains no asserted/inferred literal is INERT — it
+    // cannot cause an inconsistency, so the native path decides it and the facet
+    // families stay out of `gaps`. Only when a literal is actually subject to a
+    // facet-restricted datatype (a value the native chase cannot validate) is the
+    // family left UNDECIDED (→ honest gap). See
+    // `datatype_facet_has_live_obligation`.
+    if !datatype_facet_has_live_obligation(edb) {
+        for family in DATATYPE_FACET_FAMILIES {
+            if present_set.contains(family) {
+                decided.insert((*family).to_owned());
+            }
+        }
+    }
+
+    // The universal top properties (`owl:topObjectProperty`/`owl:topDataProperty`)
+    // are DELIBERATELY never inserted into `decided`: the native chase implements no
+    // top-property semantics, so a bundle asserting them can only be reported as
+    // cannot-decide (they remain in `present \ decided` = `unsupported`, populating
+    // `DlVerdict::gaps`). This is the incomplete-never-wrong contract — never a
+    // silently-ignored axiom.
 
     decided
+}
+
+/// True iff the EDB contains a LIVE undecidable datatype-facet obligation — a
+/// facet-restricted datatype the native chase would actually have to reason over
+/// to decide (in)consistency. There are two live shapes.
+///
+/// SHAPE 1, an existential into a facet datatype: a facet-restricted datatype as
+/// the filler of an `owl:someValuesFrom` restriction (`∃p.D`). The existential
+/// forces a datatype value to EXIST; native cannot decide the datatype's
+/// (non)emptiness (e.g. the discrete `xsd:float` range `(0.0, 1.4e-45)` is empty),
+/// so an instance typed into it is undecidable — regardless of any asserted literal.
+///
+/// SHAPE 2, a constrained literal: an asserted (or inferred) literal value on a
+/// property whose `rdfs:range` or an `owl:allValuesFrom`/`owl:someValuesFrom`
+/// restriction resolves to a facet-restricted datatype, or a literal directly typed
+/// to such a datatype. Native cannot validate the literal against the facet.
+///
+/// A facet-restricted datatype — an `rdfs:Datatype` node carrying both
+/// `owl:onDatatype` and `owl:withRestrictions`, or an `owl:datatypeComplementOf`
+/// datatype — that is
+/// merely DEFINED, or used only in a UNIVERSAL (`owl:allValuesFrom`) position with
+/// no asserted value, is INERT: `∀p.D` over an empty value set is trivially
+/// satisfied, so it cannot make the ontology inconsistent and the native path
+/// decides it soundly (the datatype-facet families stay out of `gaps`). Matching
+/// is name-scoped (world-agnostic) — a facet definition in a TBox world still
+/// withholds against an obligation in any ABox world (soundness-first).
+fn datatype_facet_has_live_obligation(edb: &RdfDataset) -> bool {
+    // Facet-restricted datatype node keys (world-agnostic: a datatype's identity is
+    // its node, and a constrained property may reference it from any world).
+    let mut facet_dt: BTreeSet<String> = BTreeSet::new();
+    for (subject, predicate, _object, _world) in quads_by_subject(edb) {
+        if predicate == OWL_ON_DATATYPE
+            || predicate == OWL_WITH_RESTRICTIONS
+            || predicate == OWL_DATATYPE_COMPLEMENT_OF
+        {
+            facet_dt.insert(subject);
+        }
+    }
+    if facet_dt.is_empty() {
+        return false;
+    }
+
+    // Shape 1 — an existential (`someValuesFrom`) into a facet datatype forces a
+    // value to exist; the datatype's (non)emptiness is undecidable natively.
+    // (`allValuesFrom` is universal and is NOT a standalone obligation — it only
+    // constrains values that are actually asserted, handled by Shape 2.)
+    let restrictions = read_restrictions(edb);
+    for r in restrictions.values() {
+        if let Some(filler) = r.some_values_from.as_ref()
+            && facet_dt.contains(filler)
+        {
+            return true;
+        }
+    }
+
+    // Shape 2 — properties whose values must lie in a facet datatype: an
+    // `rdfs:range` edge, or a value restriction (`all`/`someValuesFrom`) whose
+    // filler is a facet datatype.
+    let mut constrained_props: BTreeSet<String> = BTreeSet::new();
+    for (subject, predicate, object, _world) in quads_by_subject(edb) {
+        if predicate == RDFS_RANGE
+            && let Some(dt) = term_resource_key(&object)
+            && facet_dt.contains(&dt)
+        {
+            constrained_props.insert(subject);
+        }
+    }
+    for r in restrictions.values() {
+        let Some(prop) = r.on_property.as_ref() else {
+            continue;
+        };
+        if let Some(filler) = r.all_values_from.as_ref().or(r.some_values_from.as_ref())
+            && facet_dt.contains(filler)
+        {
+            constrained_props.insert(prop.clone());
+        }
+    }
+
+    // A live obligation: an asserted literal on a constrained property, or a literal
+    // directly typed to a facet-restricted (named) datatype.
+    for quad in edb.owned_quads() {
+        let RdfTerm::Literal(lit) = &quad.object else {
+            continue;
+        };
+        if constrained_props.contains(&quad.predicate) {
+            return true;
+        }
+        if let Some(dt) = lit.datatype.as_deref()
+            && facet_dt.contains(dt)
+        {
+            return true;
+        }
+    }
+    false
 }
 
 /// True iff some `owl:FunctionalProperty` carries two lexically-distinct
@@ -4683,16 +4824,19 @@ mod tests {
         );
     }
 
-    /// A datatype facet restriction that WOULD hide an inconsistency — `x` typed
-    /// into a class whose property range is restricted to `xsd:integer[<= 5]`
-    /// while `x` carries the value `10` — is invisible to the native chase (no
-    /// datatype-value reasoning). Its presence must force an honest cannot-decide
-    /// (non-empty `gaps`) rather than a wrong `consistent`.
+    /// A datatype facet restriction that WOULD hide an inconsistency — `p`'s range
+    /// is restricted to `xsd:integer[<= 5]` while `x` carries the value `10` on `p`
+    /// — is invisible to the native chase (no datatype-value reasoning). Because a
+    /// literal is ACTUALLY subject to the facet-restricted datatype, its presence
+    /// must force an honest cannot-decide (non-empty `gaps`) rather than a wrong
+    /// `consistent`. (Falsifiable case (b): a facet WITH a constrained literal is
+    /// withheld.)
     #[test]
-    fn datatype_facet_restriction_is_an_honest_gap_never_a_wrong_consistent() {
+    fn datatype_facet_restriction_with_constrained_literal_is_an_honest_gap() {
         const WITH_RESTRICTIONS: &str = super::OWL_WITH_RESTRICTIONS;
         const ON_DATATYPE: &str = super::OWL_ON_DATATYPE;
         const MAX_INCLUSIVE: &str = super::XSD_MAX_INCLUSIVE;
+        const RANGE: &str = super::RDFS_RANGE;
         let dt = "http://gmeow.example/SmallInt";
         let facet = "http://gmeow.example/facet0";
         let store = dataset(vec![
@@ -4700,21 +4844,162 @@ mod tests {
             quad(dt, ON_DATATYPE, super::XSD_INTEGER),
             quad(dt, WITH_RESTRICTIONS, facet),
             literal_quad(facet, MAX_INCLUSIVE, "5", super::XSD_INTEGER),
-            // x carries the out-of-range value 10 on p — an inconsistency the
-            // native path cannot see.
+            // p ranges into the facet-restricted datatype, and x carries the
+            // out-of-range value 10 on p — a LIVE obligation the native path
+            // cannot validate.
+            quad(P, RANGE, dt),
             literal_quad(X, P, "10", super::XSD_INTEGER),
         ]);
         let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
 
         assert!(
             !verdict.gaps.is_empty(),
-            "datatype/facet restriction is out of fragment ⇒ honest gap: {:?}",
+            "a constrained literal under a facet restriction is out of fragment ⇒ honest gap: {:?}",
             verdict.coverage
         );
         for family in ["onDatatype", "withRestrictions", "maxInclusive"] {
             assert!(
                 verdict.coverage.unsupported.contains(&family.to_owned()),
-                "{family} must be unsupported (never decided): {:?}",
+                "{family} must be unsupported when a literal is constrained: {:?}",
+                verdict.coverage
+            );
+        }
+    }
+
+    /// A facet-restricted datatype that is merely DEFINED but constrains no
+    /// asserted/inferred literal is INERT — it cannot cause an inconsistency, so
+    /// the native path DECIDES it: the datatype-facet families do NOT appear in the
+    /// gaps, and the verdict stays decided consistent. This mirrors the production
+    /// `gmeow:bic` datatype (a TBox-only facet definition with no ABox literal
+    /// subject to it). (Falsifiable case (a): a facet WITHOUT a constrained literal
+    /// is decided.)
+    #[test]
+    fn datatype_facet_definition_without_constrained_literal_is_decided_inert() {
+        const WITH_RESTRICTIONS: &str = super::OWL_WITH_RESTRICTIONS;
+        const ON_DATATYPE: &str = super::OWL_ON_DATATYPE;
+        const MIN_LENGTH: &str = super::XSD_MIN_LENGTH;
+        const ALL_VALUES_FROM: &str = super::OWL_ALL_VALUES_FROM;
+        const ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
+        let dt = "dt"; // blank-node facet datatype (as in the production bundle)
+        let facet = "facet0";
+        let restriction = "http://gmeow.example/BicClass";
+        let store = dataset(vec![
+            // A facet-restricted datatype: onDatatype xsd:string, minLength 8.
+            RdfQuad::new(
+                RdfTerm::blank_node(dt),
+                ON_DATATYPE,
+                RdfTerm::iri("http://www.w3.org/2001/XMLSchema#string"),
+            )
+            .in_graph(RdfTerm::iri(W)),
+            RdfQuad::new(
+                RdfTerm::blank_node(dt),
+                WITH_RESTRICTIONS,
+                RdfTerm::blank_node(facet),
+            )
+            .in_graph(RdfTerm::iri(W)),
+            RdfQuad::new(
+                RdfTerm::blank_node(facet),
+                MIN_LENGTH,
+                RdfTerm::Literal(RdfLiteral::typed("8", super::XSD_NON_NEGATIVE_INTEGER)),
+            )
+            .in_graph(RdfTerm::iri(W)),
+            // A class restricts property p's values to the facet datatype — but NO
+            // individual asserts any literal on p, so the facet is inert.
+            quad(restriction, ON_PROPERTY, P),
+            RdfQuad::new(
+                RdfTerm::iri(restriction),
+                ALL_VALUES_FROM,
+                RdfTerm::blank_node(dt),
+            )
+            .in_graph(RdfTerm::iri(W)),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            verdict.consistent,
+            "an inert (defined-but-unused) facet datatype is consistent: {:?}",
+            verdict.inconsistencies
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "an inert facet definition must NOT surface as a gap: {:?}",
+            verdict.gaps
+        );
+        for family in ["onDatatype", "withRestrictions", "minLength"] {
+            assert!(
+                !verdict.coverage.unsupported.contains(&family.to_owned()),
+                "{family} must NOT be unsupported for an inert facet: {:?}",
+                verdict.coverage
+            );
+            assert!(
+                verdict.coverage.decided.contains(&family.to_owned()),
+                "{family} must be decided (inert) for an unused facet: {:?}",
+                verdict.coverage
+            );
+        }
+    }
+
+    /// A facet-restricted datatype used as the filler of an `owl:someValuesFrom`
+    /// existential (`∃p.D`) is a LIVE obligation even with NO asserted literal: the
+    /// existential forces a datatype value to exist, and native cannot decide the
+    /// datatype's (non)emptiness (the W3C `Datatype-Float-Discrete-001` shape — the
+    /// discrete `xsd:float` range `(0.0, 1.4e-45)` is empty). It must stay withheld
+    /// (facet families NOT decided ⇒ honest gap), never a wrong `consistent`.
+    #[test]
+    fn datatype_facet_somevaluesfrom_existential_is_withheld_without_a_literal() {
+        const WITH_RESTRICTIONS: &str = super::OWL_WITH_RESTRICTIONS;
+        const ON_DATATYPE: &str = super::OWL_ON_DATATYPE;
+        const MIN_EXCLUSIVE: &str = super::XSD_MIN_EXCLUSIVE;
+        const SOME_VALUES_FROM: &str = super::OWL_SOME_VALUES_FROM;
+        const ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
+        let dt = "dt";
+        let facet = "facet0";
+        let restriction = "restriction";
+        let store = dataset(vec![
+            // dt = xsd:float restricted by [ xsd:minExclusive "0.0" ] (a facet datatype)
+            RdfQuad::new(
+                RdfTerm::blank_node(dt),
+                ON_DATATYPE,
+                RdfTerm::iri("http://www.w3.org/2001/XMLSchema#float"),
+            )
+            .in_graph(RdfTerm::iri(W)),
+            RdfQuad::new(
+                RdfTerm::blank_node(dt),
+                WITH_RESTRICTIONS,
+                RdfTerm::blank_node(facet),
+            )
+            .in_graph(RdfTerm::iri(W)),
+            RdfQuad::new(
+                RdfTerm::blank_node(facet),
+                MIN_EXCLUSIVE,
+                RdfTerm::Literal(RdfLiteral::typed(
+                    "0.0",
+                    "http://www.w3.org/2001/XMLSchema#float",
+                )),
+            )
+            .in_graph(RdfTerm::iri(W)),
+            // a rdf:type [ ∃dp.dt ] — the existential obligation, no asserted literal.
+            quad(restriction, ON_PROPERTY, P),
+            RdfQuad::new(
+                RdfTerm::blank_node(restriction),
+                SOME_VALUES_FROM,
+                RdfTerm::blank_node(dt),
+            )
+            .in_graph(RdfTerm::iri(W)),
+            RdfQuad::new(RdfTerm::iri(X), TYPE, RdfTerm::blank_node(restriction))
+                .in_graph(RdfTerm::iri(W)),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            !verdict.gaps.is_empty(),
+            "an existential into a facet datatype is a live obligation ⇒ honest gap: {:?}",
+            verdict.coverage
+        );
+        for family in ["onDatatype", "withRestrictions", "minExclusive"] {
+            assert!(
+                verdict.coverage.unsupported.contains(&family.to_owned()),
+                "{family} must be unsupported for an existential into a facet datatype: {:?}",
                 verdict.coverage
             );
         }
