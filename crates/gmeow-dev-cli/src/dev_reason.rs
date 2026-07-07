@@ -92,7 +92,10 @@ pub fn reason(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
         }
     };
     let elapsed = elapsed_ms(started);
-    let ok = result.is_consistent();
+    // A positive headline requires a DECIDED consistency proof, not merely the
+    // absence of a glut: an out-of-fragment bundle is honestly cannot-decide, and
+    // reporting it as "consistent" would silently ignore the undecided axioms.
+    let ok = result.is_decided_consistent();
     if let Some(path) = timings_json {
         let payload = serde_json::json!({
             "command": "reason",
@@ -116,6 +119,22 @@ pub fn reason(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
             n = result.inferred().len()
         );
         0
+    } else if result.is_consistent() {
+        // Undetermined: no contradiction was derived, but the native path did not
+        // decide every construct — an honest cannot-decide, never a wrong
+        // "consistent".
+        fail(format!(
+            "cannot decide consistency: {n} out-of-fragment construct(s) the native \
+             path does not decide ({constructs})",
+            n = result.preservation.unsupported_constructs.len(),
+            constructs = result
+                .preservation
+                .unsupported_constructs
+                .iter()
+                .cloned()
+                .collect::<Vec<_>>()
+                .join(", "),
+        ))
     } else {
         fail("inconsistent ontology")
     }
@@ -247,8 +266,19 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
             Err(e) => return fail(format!("cannot reuse the shipped verdict: {e}")),
         }
     };
-    if !result.is_consistent() {
-        return fail("inconsistent ontology");
+    if !result.is_decided_consistent() {
+        // Refuse to verify unless consistency is DECIDED: a glut is inconsistent,
+        // and an undetermined (out-of-fragment) bundle cannot soundly carry a
+        // verification claim — honest cannot-decide, never a wrong pass.
+        return if result.is_consistent() {
+            fail(format!(
+                "cannot decide consistency: {n} out-of-fragment construct(s) the native \
+                 path does not decide; refusing to verify",
+                n = result.preservation.unsupported_constructs.len(),
+            ))
+        } else {
+            fail("inconsistent ontology")
+        };
     }
     let queries = discover_verify_queries(&root);
     let report = if fresh {
@@ -363,6 +393,98 @@ pub fn reason_crosscheck() -> i32 {
         }
         fail("reason-crosscheck: native↔oracle divergence")
     }
+}
+
+/// `gmeow-dev reason-nemo-crosscheck` — the scheduled native ↔ Nemo differential
+/// subsumption cross-check.
+///
+/// This is Nemo's ONLY remaining production home after the Task-6 native flip: a
+/// scheduled (maint-lane) differential oracle, never on the primary reasoning path.
+/// It dual-runs the committed reasoning corpus (the same snapshot import
+/// `reason-verify` uses) through BOTH the native forward oracle (`forward_oracle()`)
+/// and the retained Nemo oracle (`nemo_forward_oracle()`, reached through its sole
+/// off-path provider) over the fixed DL calculus, folds the two subsumption closures
+/// into the [`crate::reason::ledger::DivergenceLedger`], and HARD-FAILS unless
+/// `enforce(&ledger).passed` AND `ledger.agree > 0` (non-vacuity: a real dual-run
+/// that actually agreed on something, not an empty pass).
+///
+/// A Nemo-only subsumption is an `OracleOnly` row `enforce` fails on (native ⊇ Nemo
+/// coverage regression); a native-only row is expected superset richness and passes.
+/// The whole fixed DL calculus is gap-zero on the committed bundle, so a healthy run
+/// is pure agreement. The reused emitters record the run: `divergence_findings`
+/// projects every divergence into a `gmeow:Finding`, and `build_dl_el_ledger_ttl`
+/// serializes the native subsumption ledger as the recorded `gmeow:Finding` graph.
+pub fn reason_nemo_crosscheck() -> i32 {
+    use gmeow_logic::reason::artifacts::build_dl_el_ledger_ttl;
+    use gmeow_logic::reason::{crosscheck_native_vs_nemo, divergence_findings, enforce};
+
+    let root = project_root();
+    let dataset = match snapshot_dataset(&root) {
+        Ok(d) => d,
+        Err(code) => return code,
+    };
+
+    // The native reasoning result the ledger TTL records (the native subsumption
+    // graph); it also proves the native path decides the committed corpus.
+    let native_result = match reason_all(dataset.as_ref()) {
+        Ok(r) => r,
+        Err(e) => {
+            return fail(format!(
+                "reason-nemo-crosscheck: native reasoning failed: {e}"
+            ));
+        }
+    };
+
+    // The differential itself: dual-run native vs Nemo, fold into the ledger.
+    let ledger = match crosscheck_native_vs_nemo(dataset.as_ref()) {
+        Ok(l) => l,
+        Err(e) => {
+            return fail(format!(
+                "reason-nemo-crosscheck: native↔Nemo dual-run failed: {e}"
+            ));
+        }
+    };
+    let verdict = enforce(&ledger);
+
+    println!(
+        "native ↔ Nemo differential subsumption cross-check (scheduled, Docker-free): \
+         {agree} agree, {native_only} native-only (expected richness), \
+         {nemo_only} nemo-only, {dl_gap} dl-gap",
+        agree = ledger.agree,
+        native_only = ledger.native_only,
+        nemo_only = ledger.oracle_only,
+        dl_gap = ledger.dl_gap,
+    );
+
+    // Record the ledger as the reused gmeow:Finding graph (native subsumption + gap
+    // header) and project every divergence into a gmeow:Finding — the canonical
+    // emitters, not a parallel vocabulary.
+    print!("{}", build_dl_el_ledger_ttl(&native_result));
+    for finding in divergence_findings(&ledger) {
+        eprintln!("  [{}] {}", finding.code, finding.message);
+    }
+
+    // Hard-fail unless the strict superset verdict passes AND the run was non-vacuous
+    // (both engines actually agreed on ≥1 subsumption — never an empty green).
+    if !verdict.passed {
+        for reason in &verdict.reasons {
+            eprintln!("reason-nemo-crosscheck: {reason}");
+        }
+        return fail("reason-nemo-crosscheck: native↔Nemo subsumption divergence");
+    }
+    if ledger.agree == 0 {
+        return fail(
+            "reason-nemo-crosscheck: VACUOUS cross-check — native and Nemo agreed on zero \
+             subsumptions; the dual-run produced no comparable evidence",
+        );
+    }
+    println!(
+        "reason-nemo-crosscheck: native ⊇ Nemo — no divergence over {agree} agreed \
+         subsumption(s) ({native_only} native-only enrichment(s))",
+        agree = ledger.agree,
+        native_only = ledger.native_only,
+    );
+    0
 }
 
 /// `gmeow-dev explain` — explain unsatisfiable classes / inconsistency.

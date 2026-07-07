@@ -279,7 +279,7 @@ pub fn lift_opt_to_validation_shape(c: &OptConstraintIr) -> Result<ValidationSha
             vec![ConstraintComponent::DateTimePattern(pattern.clone())],
         )?],
     };
-    ValidationShapeIr::new(&c.shape_iri, target, properties, None, None, false)
+    ValidationShapeIr::new(&c.shape_iri, target, properties, None)
 }
 
 /// Recover an [`OptConstraintIr`] from a lifted [`ValidationShapeIr`] (the `u`/up leg). This
@@ -745,8 +745,6 @@ mod tests {
             ShapeTarget::Class("https://ex/C".into()),
             vec![],
             None,
-            None,
-            false,
         )
         .unwrap();
         assert!(recover_opt_from_shape(&empty).is_err());
@@ -786,8 +784,6 @@ mod tests {
             ShapeTarget::Class("https://ex/C".into()),
             vec![dt, pat],
             None,
-            None,
-            false,
         )
         .unwrap();
         let err = recover_opt_from_shape(&shape).unwrap_err();

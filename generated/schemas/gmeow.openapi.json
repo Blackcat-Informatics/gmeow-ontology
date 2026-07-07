@@ -37486,6 +37486,15 @@
               }
             ]
           },
+          "gmeow:tenurePosition": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "type": "array"
+              }
+            ]
+          },
           "gmeow:tenureStandpoint": {
             "anyOf": [
               {
