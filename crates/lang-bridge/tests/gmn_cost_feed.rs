@@ -39,7 +39,9 @@ fn load_lang_module() -> std::sync::Arc<RdfDataset> {
 /// (space-separated groups for multi-codepoint glyphs).
 fn glyph_from_codepoints(spelling: &str) -> String {
     spelling
+        .trim()
         .split(' ')
+        .filter(|group| !group.is_empty())
         .map(|group| {
             let hex = group.strip_prefix("U+").expect("canonical U+ prefix");
             let cp = u32::from_str_radix(hex, 16).expect("hex codepoint");
