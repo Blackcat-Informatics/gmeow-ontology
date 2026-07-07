@@ -934,8 +934,8 @@ mod tests {
             annotation_predicates: default_annotation_predicates().into_iter().collect(),
         };
         let report = structural_lint_dataset(&dataset, &cfg);
-        let attestation_errors: Vec<&String> = report
-            .errors
+        let report_errors = report.errors();
+        let attestation_errors: Vec<&String> = report_errors
             .iter()
             .filter(|e| {
                 e.contains("/attestation/") || e.contains("/artifact/") || e.contains("agent/")

@@ -17,12 +17,18 @@ gmeow-lang-form = { path = "../lang-form" }
 gmeow-logic-compile = { path = "../logic-compile" }
 # The OntoLex-Lemon lexicon lift parses RDF Turtle with the ONE canonical parser
 # (never a second, hand-rolled RDF parser) — the same `purrdf` every other crate depends on.
-purrdf = "0.3"
+purrdf = "0.4"
 sha2 = "0.10"
 # The plain-text bridge declares each lifted surface's Unicode normalization form
 # HONESTLY (NFC/NFD/NFKC/NFKD) via a quick-check, never assuming NFC — the declared
 # frame must match the actual bytes the surface hash is taken over.
 unicode-normalization = "0.1"
+# The GMN glyph-cost primitive measures a symbol's REAL token cost over the LLM token
+# channel with a pinned, embedded BPE vocabulary (`cl100k_base`) — deterministic (the vocab
+# is compiled in; no network, no filesystem I/O) and pure Rust (no Python binding). It is
+# both the ⟦·⟧ fragmentation benchmark and the token-cost feed the machine-compression
+# sibling consumes. Default features only — the `async-openai` feature is intentionally off.
+tiktoken-rs = "0.12"
 
 [dev-dependencies]
 insta = { version = "1.48", features = ["json"] }

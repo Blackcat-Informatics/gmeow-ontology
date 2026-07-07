@@ -48,7 +48,6 @@
       "actual: logic:provenance on <https://example.org/profiles/stable-model/ruleOutSet> has no gUFO bridge equivalent",
       "actual: rdf:type logic:Rule on <https://example.org/profiles/stable-model/ruleInSet> has no gUFO equivalent",
       "actual: rdf:type logic:Rule on <https://example.org/profiles/stable-model/ruleOutSet> has no gUFO equivalent",
-      "actual: rule head <?X> dropped (gUFO bridge has no rule surface)",
       "actual: rule head <?X> dropped (gUFO bridge has no rule surface)"
     ],
     "preservation": "ValidationOnly"
@@ -104,7 +103,6 @@
       "actual: logic:negatedBody on <https://example.org/profiles/stable-model/ruleOutSet> has no EL equivalent",
       "actual: logic:provenance on <https://example.org/profiles/stable-model/ruleInSet> has no EL equivalent",
       "actual: logic:provenance on <https://example.org/profiles/stable-model/ruleOutSet> has no EL equivalent",
-      "actual: rule head <?X> dropped (EL has no rule surface)",
       "actual: rule head <?X> dropped (EL has no rule surface)"
     ],
     "preservation": "SoundUnderApproximation"

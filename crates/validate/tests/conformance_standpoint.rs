@@ -106,11 +106,9 @@ fn gmeow(local: &str) -> String {
 
 // ── Local helpers ─────────────────────────────────────────────────────────────
 
-/// Read the text of a generated projection query (`generated/queries/<name>`).
-fn read_query(name: &str) -> String {
-    let path = repo_root().join("generated").join("queries").join(name);
-    std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()))
-}
+// `read_query` is now the shared `conformance_support::read_query` (imported via
+// the glob `use conformance_support::*;`): a bare `standpoint-*.rq` name resolves
+// against `generated/queries/` exactly as this file's former local copy did.
 
 /// The literal string objects of `<subject> <pred> ?o` (bnode-aware; drops IRIs).
 fn literal_objects(g: &GraphStore, subject: &str, pred: &str) -> Vec<String> {
@@ -235,7 +233,7 @@ fn according_to_references_vantage_as_reified_counterpart() {
 #[test]
 fn no_preferred_or_primary_term_is_declared() {
     let g = GraphStore::ontology();
-    let (_, rows) = g.select("SELECT DISTINCT ?s WHERE { ?s ?p ?o }");
+    let (_, rows) = g.select(&[], "SELECT DISTINCT ?s WHERE { ?s ?p ?o }");
     let mut offenders: Vec<String> = Vec::new();
     for row in rows {
         let Some(Some(purrdf::TermValue::Iri(iri))) = row.into_iter().next() else {
@@ -295,7 +293,7 @@ fn no_frame_collapsing_projection_exists() {
 /// Twin of `test_standpoint_owl2_projection_emits_tool_compatible_labels`.
 #[test]
 fn standpoint_owl2_projection_emits_tool_compatible_labels() {
-    let out = standpoint_fixture().construct(&read_query("standpoint-owl2.rq"));
+    let out = standpoint_fixture().construct(&[], &read_query("standpoint-owl2.rq"));
 
     assert!(STANDPOINT_LABEL.ends_with("#standpointLabel")); // tool convention
 
@@ -324,7 +322,7 @@ fn standpoint_owl2_projection_emits_tool_compatible_labels() {
 /// Twin of `test_crminf_projection_is_at_least_as_expressive`.
 #[test]
 fn crminf_projection_is_at_least_as_expressive() {
-    let out = standpoint_fixture().construct(&read_query("standpoint-crminf.rq"));
+    let out = standpoint_fixture().construct(&[], &read_query("standpoint-crminf.rq"));
 
     assert!(out.has(
         None,
@@ -343,7 +341,7 @@ fn crminf_projection_is_at_least_as_expressive() {
     let j5 = format!("{CRMINF}J5_holds_to_be");
     for value in ["true", "possible", "false"] {
         assert!(
-            out.ask(&format!("ASK {{ ?s <{j5}> \"{value}\" }}")),
+            out.ask(&[], &format!("ASK {{ ?s <{j5}> \"{value}\" }}")),
             "CRMinf belief values must include {value:?}"
         );
     }
@@ -364,7 +362,7 @@ fn crminf_projection_is_at_least_as_expressive() {
 /// Twin of `test_prov_projection_attributes_every_standpoint`.
 #[test]
 fn prov_projection_attributes_every_standpoint() {
-    let out = standpoint_fixture().construct(&read_query("standpoint-prov.rq"));
+    let out = standpoint_fixture().construct(&[], &read_query("standpoint-prov.rq"));
 
     for sp in ["standpoint-ru", "standpoint-un", "standpoint-intl-law"] {
         assert!(
@@ -393,7 +391,7 @@ fn prov_projection_attributes_every_standpoint() {
 /// Twin of `test_oa_projection_annotates_each_claim`.
 #[test]
 fn oa_projection_annotates_each_claim() {
-    let out = standpoint_fixture().construct(&read_query("standpoint-oa.rq"));
+    let out = standpoint_fixture().construct(&[], &read_query("standpoint-oa.rq"));
 
     assert!(out.has(None, Some(RDF_TYPE), Some(&format!("{OA}Annotation"))));
     for sp in ["standpoint-ru", "standpoint-un", "standpoint-intl-law"] {
@@ -422,7 +420,7 @@ fn oa_projection_annotates_each_claim() {
 /// Twin of `test_schema_projection_emits_per_standpoint_claims`.
 #[test]
 fn schema_projection_emits_per_standpoint_claims() {
-    let out = standpoint_fixture().construct(&read_query("standpoint-schema.rq"));
+    let out = standpoint_fixture().construct(&[], &read_query("standpoint-schema.rq"));
 
     assert!(out.has(None, Some(RDF_TYPE), Some(&format!("{SCHEMA}Claim"))));
     // The asserting standpoints appear; the denying one (refuted) is excluded.
@@ -486,7 +484,7 @@ fn standpoint_crminf_projection_from_standpoint_claim_reified() {
     let fixture = GraphStore::parse_ttl_file(
         &repo_root().join("tests/fixtures/coverage/standpoint-claim-reified.ttl"),
     );
-    let out = fixture.construct(&read_query("standpoint-crminf.rq"));
+    let out = fixture.construct(&[], &read_query("standpoint-crminf.rq"));
 
     assert!(out.has(
         None,
@@ -497,7 +495,7 @@ fn standpoint_crminf_projection_from_standpoint_claim_reified() {
     let j5 = format!("{CRMINF}J5_holds_to_be");
     for value in ["true", "possible", "false"] {
         assert!(
-            out.ask(&format!("ASK {{ ?s <{j5}> \"{value}\" }}")),
+            out.ask(&[], &format!("ASK {{ ?s <{j5}> \"{value}\" }}")),
             "CRMinf belief values must include {value:?}"
         );
     }
@@ -509,7 +507,7 @@ fn standpoint_crminf_projection_from_standpoint_claim_entity() {
     let fixture = GraphStore::parse_ttl_file(
         &repo_root().join("tests/fixtures/coverage/standpoint-claim-entity.ttl"),
     );
-    let out = fixture.construct(&read_query("standpoint-crminf.rq"));
+    let out = fixture.construct(&[], &read_query("standpoint-crminf.rq"));
 
     assert!(out.has(
         None,
@@ -530,10 +528,13 @@ fn standpoint_schema_projection_from_standpoint_claim_entity() {
     let fixture = GraphStore::parse_ttl_file(
         &repo_root().join("tests/fixtures/coverage/standpoint-claim-entity.ttl"),
     );
-    let out = fixture.construct(&read_query("standpoint-schema.rq"));
+    let out = fixture.construct(&[], &read_query("standpoint-schema.rq"));
 
     assert!(
-        out.ask(&format!("ASK {{ ?c <{SCHEMA}text> \"{EX_TEST}place1\" }}")),
+        out.ask(
+            &[],
+            &format!("ASK {{ ?c <{SCHEMA}text> \"{EX_TEST}place1\" }}")
+        ),
         "the entity IRI must render as schema:text"
     );
 }
@@ -554,7 +555,7 @@ fn bbc_projection_exists() {
 fn bbc_projection_emits_news_event() {
     let fixture =
         GraphStore::parse_ttl_file(&repo_root().join("tests/fixtures/coverage/standpoint-bbc.ttl"));
-    let out = fixture.construct(&read_query("standpoint-bbc.rq"));
+    let out = fixture.construct(&[], &read_query("standpoint-bbc.rq"));
 
     assert!(out.has(None, Some(RDF_TYPE), Some(&format!("{BBC}NewsEvent"))));
     assert!(out.has(

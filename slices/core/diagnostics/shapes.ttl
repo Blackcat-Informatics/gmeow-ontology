@@ -6,6 +6,7 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 # =========================================================================== #
 # Finding well-formedness: a projected finding carries exactly one
@@ -42,4 +43,53 @@ gmeow:FindingShape
         sh:datatype xsd:string ;
         sh:severity sh:Violation ;
         sh:message "A Finding must carry exactly one xsd:string gmeow:findingMessage." ;
+    ] .
+
+# =========================================================================== #
+# The gate-fatal up-set projection (Principle 17): the closed-world SHACL image
+# of logic:ruleGateFatalVerdict. A gmeow:Finding on the principal up-set
+# ↑(gmeow:severityError, gmeow:blockingBlocking, gmeow:standpointBinding) — its
+# severity is error, its category projects (through gmeow:categoryBlocking) to
+# gmeow:blockingBlocking, AND its standpoint is gmeow:standpointBinding — MUST
+# carry the derived verdict gmeow:findingGateVerdict gmeow:gateFatal. A finding on
+# the up-set that lacks the fatal verdict is the violation: the projection agrees
+# with the derivation only when the reasoner has fired. The sh:SPARQLTarget selects
+# the up-set findings; the sh:SPARQLConstraint fires on those missing the verdict.
+# purrdf's SHACL engine supports sh:sparql (the learning slice proves it).
+# =========================================================================== #
+
+gmeow:GateFatalUpsetShape
+    a sh:NodeShape ;
+    rdfs:label "Gate-fatal up-set shape"@x-gmeow-english ;
+    skos:definition "The closed-world SHACL projection of logic:ruleGateFatalVerdict (Principle 17): a gmeow:Finding on the principal up-set ↑(gmeow:severityError, gmeow:blockingBlocking, gmeow:standpointBinding) — severity error, category projecting through gmeow:categoryBlocking to gmeow:blockingBlocking, and standpoint gmeow:standpointBinding — must carry gmeow:findingGateVerdict gmeow:gateFatal. A finding meeting the up-set antecedent but lacking the fatal verdict violates the shape, so the SHACL surface agrees with the reasoner's derived verdict over the up-set boundary. A lossy projection of the canonical logic: rule, sealed by logic:formalizes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    logic:formalizes logic:ruleGateFatalVerdict ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+            SELECT ?this WHERE {
+                ?this a gmeow:Finding ;
+                      gmeow:findingSeverity gmeow:severityError ;
+                      gmeow:findingStandpoint gmeow:standpointBinding ;
+                      gmeow:findingCategory ?cat .
+                ?cat gmeow:categoryBlocking gmeow:blockingBlocking .
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A finding on the gate-fatal up-set (severity error, category projecting to blocking, standpoint binding) must carry gmeow:findingGateVerdict gmeow:gateFatal — the derived verdict of logic:ruleGateFatalVerdict is missing." ;
+        sh:select """
+            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+            SELECT $this WHERE {
+                $this a gmeow:Finding ;
+                      gmeow:findingSeverity gmeow:severityError ;
+                      gmeow:findingStandpoint gmeow:standpointBinding ;
+                      gmeow:findingCategory ?cat .
+                ?cat gmeow:categoryBlocking gmeow:blockingBlocking .
+                FILTER NOT EXISTS { $this gmeow:findingGateVerdict gmeow:gateFatal . }
+            }
+        """ ;
     ] .

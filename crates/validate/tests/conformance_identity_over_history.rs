@@ -211,7 +211,7 @@ fn mailmap_projection_emits_canonical_and_suppressed_lines() {
     let src = GraphStore::parse_ttl_file(&repo_root().join(FIXTURE_REL));
     let query = std::fs::read_to_string(repo_root().join(MAILMAP_RQ_REL))
         .expect("committed mailmap.rq must exist");
-    let projected = src.construct(&query);
+    let projected = src.construct(&[], &query);
 
     // (a) The canonical mailmap line for the displayable current identity.
     assert!(

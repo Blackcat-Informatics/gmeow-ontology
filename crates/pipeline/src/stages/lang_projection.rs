@@ -52,6 +52,7 @@ use gmeow_lang_bridge::registry::{
 };
 use gmeow_lang_bridge::{exact_round_trip_holds, is_exact_correspondence, ntriples_sorted};
 use gmeow_logic_compile::ir::PreservationKind;
+use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::{ProjectionResult, assert_no_overclaim};
 
 const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
@@ -73,8 +74,12 @@ pub struct LangProjectionCorpus {
     /// the lifted source `lang:` structure they project.
     pub ntriples: Vec<u8>,
     /// One or more `ProjectionResult` rows per emission (plus one honest no-source row per
-    /// target with no source in the composed model).
+    /// target with no source in the composed model). The rows carry only identity/judgment;
+    /// their drops live in [`loss`](Self::loss).
     pub ledger: Vec<ProjectionResult>,
+    /// The loss store every emission's drops are unioned into (keyed by target focus). The
+    /// mappings stage unions it into the single report loss store.
+    pub loss: LossLedger,
     /// The generated external projection files, keyed by their committed logical path.
     pub artifacts: Vec<(String, Vec<u8>)>,
 }
@@ -95,6 +100,7 @@ pub fn build_corpus(
 
     let mut lines: Vec<String> = Vec::new();
     let mut ledger: Vec<ProjectionResult> = Vec::new();
+    let mut loss = LossLedger::new();
     let mut artifacts: Vec<(String, Vec<u8>)> = Vec::new();
 
     for target in registry() {
@@ -111,7 +117,7 @@ pub fn build_corpus(
             // Honest no-source row: the target is registered but the composed model carries
             // no source it lowers FROM — vacuously exact (nothing projected, nothing
             // dropped), exactly like the initially-empty prose-lift corpus.
-            ledger.push(no_source_row(name));
+            ledger.push(no_source_row(name, &mut loss));
             continue;
         }
 
@@ -119,15 +125,13 @@ pub fn build_corpus(
             let derived = derived_kind(&emission);
             enforce_invariants(name, &emission, derived)?;
 
-            // Overclaim floor (Invariant 2): route every folded ledger row through the
-            // shared gate before it enters the ledger.
+            // Fold this emission's loss store into the corpus store, then route every folded
+            // ledger row through the shared overclaim gate (Invariant 2) reading its residue
+            // back from the SAME store — never the (now drop-less) `ProjectionResult`.
+            loss.union(&emission.loss);
             for row in &emission.ledger {
-                let residue: Vec<&str> = row
-                    .lossy_drops
-                    .iter()
-                    .chain(row.actual_drops.iter())
-                    .map(String::as_str)
-                    .collect();
+                let residue_owned = emission.loss.projection_drops_for(&row.target);
+                let residue: Vec<&str> = residue_owned.iter().map(String::as_str).collect();
                 assert_no_overclaim(&row.target, row.preservation, &residue)
                     .map_err(|e| stage_err(e.to_string()))?;
                 ledger.push(row.clone());
@@ -156,6 +160,7 @@ pub fn build_corpus(
     Ok(LangProjectionCorpus {
         ntriples: ntriples_sorted(lines),
         ledger,
+        loss,
         artifacts,
     })
 }
@@ -293,9 +298,12 @@ fn emit_projection_record(
 /// The honest no-source ledger row for a registered target the composed model carries no
 /// source for: vacuously exact (nothing projected, nothing dropped) so the overclaim gate
 /// accepts it, with a descriptive content note.
-fn no_source_row(target: &str) -> ProjectionResult {
+fn no_source_row(target: &str, loss: &mut LossLedger) -> ProjectionResult {
+    let row_target = format!("lang-projection:{target}");
+    // Vacuously exact: nothing projected, nothing dropped (interns no drops).
+    loss.record_projection_drops(&row_target, PreservationKind::Exact, &[], &[]);
     ProjectionResult {
-        target: format!("lang-projection:{target}"),
+        target: row_target,
         content: format!(
             "no {target} projection source in the composed model; target registered, nothing \
              projected"
@@ -303,8 +311,6 @@ fn no_source_row(target: &str) -> ProjectionResult {
         is_rdf: false,
         preservation: PreservationKind::Exact,
         complexity: "n/a".to_owned(),
-        lossy_drops: Vec::new(),
-        actual_drops: Vec::new(),
     }
 }
 
@@ -558,12 +564,10 @@ mod tests {
         let catalog = repo_catalog();
         let corpus = build_corpus(Some(&catalog)).expect("build corpus");
         for row in &corpus.ledger {
-            let residue: Vec<&str> = row
-                .lossy_drops
-                .iter()
-                .chain(row.actual_drops.iter())
-                .map(String::as_str)
-                .collect();
+            // The residue is read back from the corpus loss store (the single source of truth),
+            // never the now-drop-less `ProjectionResult`.
+            let residue_owned = corpus.loss.projection_drops_for(&row.target);
+            let residue: Vec<&str> = residue_owned.iter().map(String::as_str).collect();
             assert_no_overclaim(&row.target, row.preservation, &residue)
                 .unwrap_or_else(|e| panic!("overclaim floor violated: {e}"));
         }

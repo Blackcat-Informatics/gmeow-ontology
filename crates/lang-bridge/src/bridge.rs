@@ -7,6 +7,7 @@
 
 use gmeow_lang_form::{Form, SurfaceForm};
 use gmeow_logic_compile::ir::{Correspondence, DischargeVerdict, LegPath};
+use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
 
 /// The `lang:` namespace base, kept byte-identical to the translation producer so every
@@ -45,9 +46,12 @@ pub struct Lifted {
     /// The `logic:Correspondence` this lift carries — the single law spine the round-trip
     /// and exactness judgments are decided over.
     pub correspondence: Correspondence,
-    /// The loss-ledger rows accumulated by the lift, each declaring its preservation kind
-    /// and residue.
+    /// The loss-ledger rows accumulated by the lift, each declaring its preservation kind.
+    /// The rows carry only identity/judgment; their drops live in [`loss`](Self::loss).
     pub ledger: Vec<ProjectionResult>,
+    /// The loss store the lift interned every row's drops into (keyed by target focus). Read
+    /// each row's residue back through `loss.projection_drops_for(&row.target)`.
+    pub loss: LossLedger,
 }
 
 /// The typed "lift fully or hard-fail" carrier: a bridge that cannot account for a

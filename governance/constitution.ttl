@@ -124,7 +124,7 @@ meta:lint-no-preferred-rank a meta:Lint ;
 
 meta:tests-identity-orthogonality a meta:TestSuite ;
     rdfs:label "identity-axis orthogonality matrix (7 co-equal axes)"@x-gmeow-english ;
-    meta:artifact "crates/validate/tests/conformance_identity_orthogonality.rs", "tests/test_gender.py",
+    meta:artifact "crates/validate/tests/conformance_identity_orthogonality.rs", "crates/validate/tests/conformance_gender.rs",
         "crates/validate/tests/conformance_standpoint.rs" .
 
 meta:shapes-core a meta:Shape ;
@@ -140,7 +140,7 @@ meta:gate-suppression a meta:Gate ;
 meta:tests-suppression a meta:TestSuite ;
     rdfs:label "suppression and disclosure tests"@x-gmeow-english ;
     meta:artifact "crates/pipeline/tests/edoal_sparql_correspondence_parity.rs",
-        "tests/test_disclosure.py", "tests/test_privacy.py",
+        "crates/validate/tests/conformance_disclosure.rs", "tests/test_privacy.py",
         "tests/test_suppression_conformance.py" .
 
 meta:tests-reference-frames a meta:TestSuite ;

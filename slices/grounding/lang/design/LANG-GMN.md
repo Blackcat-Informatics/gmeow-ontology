@@ -129,6 +129,13 @@ gate1 locatedIn yardNorth 0.95
 gate2 locatedIn yardSouth 0.88
 ```
 
+**The `@λ` lang-AST column ruling.** A `@λ` (lang-AST) tabular batch of morphosyntactic rows reuses
+the **existing CoNLL-U column order verbatim** — `ID FORM LEMMA UPOS XPOS FEATS HEAD DEPREL DEPS
+MISC`, the ten Universal-Dependencies columns of the slice's CoNLL-U projection — never a rival
+column scheme. The ruling is machine-pinned, not prose: the `GMN_LANG_AST_COLUMNS` constant is
+asserted equal to the `ConlluToken` serializer's field order, so a reordering of either fails the
+build. `@λ` is the lang-AST record role opened by the sigil `@λ` (`gmeow:gmnSigilLangAst`).
+
 **Escaping.** GMN-1 has no escape syntax because it has no free-string production: a value is an
 identifier, a canonical number, or a list of values, and nothing else. Prose and arbitrary
 literals ride **by reference** — a dictionary alias or a record identifier — never as raw text
@@ -220,6 +227,56 @@ codebook wearing documentation's clothes.
   symbols. Symbol provenance is a **citation**: the citations vocabulary (`gmeow:cites`, promoted
   to a `gmeow:CitationAct` with a typed `gmeow:citationIntent`) on the glyph's source record,
   never a new provenance property.
+
+## The linguistic symbology plane
+
+The `lang:` plane of the shared glyph inventory. It is authored, not declared: every glyph is a
+`lang:Denotation` fact carrying its codepoint-explicit spelling on the `lang:Grapheme` and its
+**measured** token cost through `gmeow:gmnGlyphTokenCost` — a `math:Quantity` whose value is what
+the crate-side token-cost primitive encodes for the glyph's rendering under the pinned codebook
+vocabulary, cross-checked so an authored value can never drift from the measurement.
+
+- **Disposition is read off the measurement.** A symbol earns a glyph slot **iff it costs a single
+  token**; a dearer symbol is not paying its way against a one-token named key and stays a key.
+  The disposition is computed, never pre-committed: the crate-side benchmark decides.
+  - **`*`** (U+002A) is one token — it earns a glyph for the ungrammatical form, its reading pinned
+    to the lang-AST record scope through `gmeow:gmnSigilScope` because the codepoint is reused by
+    mathematical multiplication in the shared inventory.
+  - **⟦·⟧** (U+27E6 / U+27E7), the formal-semantics denotation brackets, each fragment to two
+    tokens — the pair costs four against the one-token key `den`, so the denotation term stays the
+    named key and **no ⟦/⟧ grapheme enters the script**. This is the executable form of the
+    charter's "token-benchmark before adopting": the ruling is the measurement's output.
+  - **⇝** (U+21DD), the translation-leg arrow, costs three tokens, so the translation-leg term
+    stays the named key `xl`.
+- **IPA is the phonological encoding.** `lang:Phone` content is notated in IPA. The IPA chart is an
+  imported plane (see below); its symbols join the shared script as graphemes denoting their
+  phones — or, for the primary-stress mark, the prosodic suprasegmental it notates. The worked
+  form **/ˈkæt/** glyphs [k], [æ], [t] plus the IPA primary-stress mark `ˈ` (U+02C8): the three
+  segmental glyphs each measure one token, while `ˈ` measures **two** and carries a two-token
+  cost, so the feed spans distinct measured values rather than a uniform one-token band.
+- **Leipzig glosses are an imported alias plane.** The Leipzig Glossing Rules abbreviations
+  (`NOM`, `ACC`, `PL`, `SG`, `PST`, `PRS`, the person values, the `3SG` portmanteau, the morpheme
+  boundary) are imported **verbatim by reference** as named-key aliases, each a `lang:Denotation`
+  binding the gloss to the `lang:` feature value it abbreviates — never a re-minted parallel code.
+  The morpheme boundary `-` stays a named-key alias, never a glyph, because it is confusable with
+  U+2010 / U+2212 / U+00AD; it is authored as a full `lang:WordForm` + `lang:Denotation` on the
+  Leipzig plane whose target is the `lang:MorphemeBoundary` class (the segmentation point between
+  morphs), not a feature value, and it carries no glyph-token cost.
+- **Imported planes are cited and versioned.** An external standard the plane imports — the IPA
+  chart, the Leipzig Glossing Rules — is a first-class `lang:GmnImportedPlane` the codebook
+  references, and it carries **both** its citation (`gmeow:cites`, typed by a `gmeow:CitationAct`)
+  **and** its version (`dcterms:hasVersion`). A plane missing either is `lang:GmnUnattributedPlane`.
+- **Coverage is total and derived.** Every morphological feature value the surface emits is bound
+  to a disposition — a glyph, a named key, or an imported alias — with the population derived by
+  type over `lang:FeatureValue`, so a value added without a disposition is
+  `lang:GmnUndispositionedTerm`. This graph-side completeness is distinct from the writer-tier
+  `lang:GmnUncoveredTerm`. **Glyph-cost coverage is total the same way:** every `lang:Grapheme`
+  admitted to the GMN script (`lang:inScript gmeow:gmnScript`) — the IPA phonological graphemes,
+  the `*` operator glyph — carries its measured per-glyph token-cost feed through
+  `gmeow:gmnGlyphTokenCost`, with the population derived by the `gmeow:gmnScript` repertoire rather
+  than a hand-listed set, so a script glyph admitted without its cost feed is
+  `lang:GmnUncostedScriptGlyph`. The two coverage rules close both the feature-value plane and the
+  glyph plane against silent gaps.
 
 ## Decodability is a property of the grammar object
 

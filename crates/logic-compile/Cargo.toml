@@ -24,7 +24,7 @@ path = "src/lib.rs"
 # OFF. Supplies RdfDataset/RdfDatasetBuilder/DatasetView/TermValue/RdfLiteral/
 # TermRef + parse_dataset/serialize_dataset/canonicalize, all oxigraph-free, so the
 # compiler's RDF parse/serialize path builds for wasm32 with no Store dependency.
-purrdf = "0.3"
+purrdf = "0.4"
 # SPARQL property-path algebra: the projection target for logic:PathShape (#1010).
 # A wasm-clean leaf (gmeow-iri/gmeow-xsd only) — no oxigraph-family dep.
 # roxmltree: the read-only XML DOM parser for the XCL dialect reader. A pure-Rust,
@@ -33,6 +33,11 @@ purrdf = "0.3"
 # it rather than a hand-rolled scanner so the meta carrier decodes losslessly (the
 # Exact round-trip guarantee); the writer emits XML directly (roxmltree is parse-only).
 roxmltree = "0.20"
+# gmeow-errors: the diagnostics substrate. Loss unification (Phase 4) grades
+# PreservationKind as a BoundedLattice (worst-preservation-wins) and collapses the
+# projection-loss accumulators onto one DiagLedger of FindingCategory::ProjectionLoss
+# witnesses. A wasm-clean rlib leaf (serde/serde_json/purrdf/blake3 only, python OFF).
+gmeow-errors = { path = "../errors" }
 # sha2: the canonical-rdf12 projection mints content-stable reifier IRIs as
 # sha256(sort_key)[:12], matching the legacy compiler byte-for-byte.
 sha2 = "0.10"

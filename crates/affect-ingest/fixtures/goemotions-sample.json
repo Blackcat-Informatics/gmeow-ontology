@@ -1,0 +1,368 @@
+{
+  "model_identifier": "SamLowe/roberta-base-go_emotions",
+  "model_revision": "d75048347613a25d77de8cf6412eaae9fa7b26be",
+  "model_framework": "transformers",
+  "model_task": "text-classification",
+  "function_to_apply": "sigmoid",
+  "return_all_scores": true,
+  "label_set_id": "GoEmotions",
+  "score_semantics": "sigmoid",
+  "tokenizer_revision": "d75048347613a25d77de8cf6412eaae9fa7b26be",
+  "threshold_policy": {
+    "kind": "global",
+    "value": 0.5
+  },
+  "targets": [
+    {
+      "target_iri": "https://blackcatinformatics.ca/gmeow/examples/affect/goemotions/gratitude",
+      "scores": [
+        {
+          "label": "admiration",
+          "score": 0.4484741687774658
+        },
+        {
+          "label": "amusement",
+          "score": 0.003301645163446665
+        },
+        {
+          "label": "anger",
+          "score": 0.0011498633539304137
+        },
+        {
+          "label": "annoyance",
+          "score": 0.0029370721895247698
+        },
+        {
+          "label": "approval",
+          "score": 0.020811831578612328
+        },
+        {
+          "label": "caring",
+          "score": 0.004335390403866768
+        },
+        {
+          "label": "confusion",
+          "score": 0.002243618480861187
+        },
+        {
+          "label": "curiosity",
+          "score": 0.002186677884310484
+        },
+        {
+          "label": "desire",
+          "score": 0.001507015898823738
+        },
+        {
+          "label": "disappointment",
+          "score": 0.0015307748690247536
+        },
+        {
+          "label": "disapproval",
+          "score": 0.0032087622676044703
+        },
+        {
+          "label": "disgust",
+          "score": 0.0009270655573345721
+        },
+        {
+          "label": "embarrassment",
+          "score": 0.0004404271603561938
+        },
+        {
+          "label": "excitement",
+          "score": 0.006547019816935062
+        },
+        {
+          "label": "fear",
+          "score": 0.000544674345292151
+        },
+        {
+          "label": "gratitude",
+          "score": 0.9768034219741821
+        },
+        {
+          "label": "grief",
+          "score": 0.0007554808398708701
+        },
+        {
+          "label": "joy",
+          "score": 0.02184857800602913
+        },
+        {
+          "label": "love",
+          "score": 0.003906348720192909
+        },
+        {
+          "label": "nervousness",
+          "score": 0.00026814438751898706
+        },
+        {
+          "label": "neutral",
+          "score": 0.004305499605834484
+        },
+        {
+          "label": "optimism",
+          "score": 0.006762133911252022
+        },
+        {
+          "label": "pride",
+          "score": 0.002803022740408778
+        },
+        {
+          "label": "realization",
+          "score": 0.0053137377835810184
+        },
+        {
+          "label": "relief",
+          "score": 0.003459027037024498
+        },
+        {
+          "label": "remorse",
+          "score": 0.0011635016417130828
+        },
+        {
+          "label": "sadness",
+          "score": 0.0023800635244697332
+        },
+        {
+          "label": "surprise",
+          "score": 0.001720387488603592
+        }
+      ]
+    },
+    {
+      "target_iri": "https://blackcatinformatics.ca/gmeow/examples/affect/goemotions/joy",
+      "scores": [
+        {
+          "label": "admiration",
+          "score": 0.03548435866832733
+        },
+        {
+          "label": "amusement",
+          "score": 0.006664961576461792
+        },
+        {
+          "label": "anger",
+          "score": 0.0029639543499797583
+        },
+        {
+          "label": "annoyance",
+          "score": 0.004869533237069845
+        },
+        {
+          "label": "approval",
+          "score": 0.016902048140764236
+        },
+        {
+          "label": "caring",
+          "score": 0.008993768133223057
+        },
+        {
+          "label": "confusion",
+          "score": 0.004038515035063028
+        },
+        {
+          "label": "curiosity",
+          "score": 0.005637576803565025
+        },
+        {
+          "label": "desire",
+          "score": 0.003906242549419403
+        },
+        {
+          "label": "disappointment",
+          "score": 0.0019370311638340354
+        },
+        {
+          "label": "disapproval",
+          "score": 0.0038396334275603294
+        },
+        {
+          "label": "disgust",
+          "score": 0.0008931711781769991
+        },
+        {
+          "label": "embarrassment",
+          "score": 0.0011388666462153196
+        },
+        {
+          "label": "excitement",
+          "score": 0.41701939702033997
+        },
+        {
+          "label": "fear",
+          "score": 0.0023705563507974148
+        },
+        {
+          "label": "gratitude",
+          "score": 0.01908380538225174
+        },
+        {
+          "label": "grief",
+          "score": 0.0012987530790269375
+        },
+        {
+          "label": "joy",
+          "score": 0.762346088886261
+        },
+        {
+          "label": "love",
+          "score": 0.010893389582633972
+        },
+        {
+          "label": "nervousness",
+          "score": 0.0041854288429021835
+        },
+        {
+          "label": "neutral",
+          "score": 0.019563786685466766
+        },
+        {
+          "label": "optimism",
+          "score": 0.005620230920612812
+        },
+        {
+          "label": "pride",
+          "score": 0.007147504016757011
+        },
+        {
+          "label": "realization",
+          "score": 0.004989475477486849
+        },
+        {
+          "label": "relief",
+          "score": 0.014055661857128143
+        },
+        {
+          "label": "remorse",
+          "score": 0.0007179650710895658
+        },
+        {
+          "label": "sadness",
+          "score": 0.002787845442071557
+        },
+        {
+          "label": "surprise",
+          "score": 0.014300976879894733
+        }
+      ]
+    },
+    {
+      "target_iri": "https://blackcatinformatics.ca/gmeow/examples/affect/goemotions/fear",
+      "scores": [
+        {
+          "label": "admiration",
+          "score": 0.015413873828947544
+        },
+        {
+          "label": "amusement",
+          "score": 0.008624108508229256
+        },
+        {
+          "label": "anger",
+          "score": 0.007257309276610613
+        },
+        {
+          "label": "annoyance",
+          "score": 0.009972628206014633
+        },
+        {
+          "label": "approval",
+          "score": 0.015774480998516083
+        },
+        {
+          "label": "caring",
+          "score": 0.015390490181744099
+        },
+        {
+          "label": "confusion",
+          "score": 0.011223104782402515
+        },
+        {
+          "label": "curiosity",
+          "score": 0.006706429645419121
+        },
+        {
+          "label": "desire",
+          "score": 0.00701278168708086
+        },
+        {
+          "label": "disappointment",
+          "score": 0.011486038565635681
+        },
+        {
+          "label": "disapproval",
+          "score": 0.010300437919795513
+        },
+        {
+          "label": "disgust",
+          "score": 0.012601848691701889
+        },
+        {
+          "label": "embarrassment",
+          "score": 0.004511435050517321
+        },
+        {
+          "label": "excitement",
+          "score": 0.009833745658397675
+        },
+        {
+          "label": "fear",
+          "score": 0.9103205800056458
+        },
+        {
+          "label": "gratitude",
+          "score": 0.004578953608870506
+        },
+        {
+          "label": "grief",
+          "score": 0.005794570781290531
+        },
+        {
+          "label": "joy",
+          "score": 0.010551385581493378
+        },
+        {
+          "label": "love",
+          "score": 0.006856672465801239
+        },
+        {
+          "label": "nervousness",
+          "score": 0.09076188504695892
+        },
+        {
+          "label": "neutral",
+          "score": 0.02531181089580059
+        },
+        {
+          "label": "optimism",
+          "score": 0.016478294506669044
+        },
+        {
+          "label": "pride",
+          "score": 0.0016709642950445414
+        },
+        {
+          "label": "realization",
+          "score": 0.016569958999753
+        },
+        {
+          "label": "relief",
+          "score": 0.0035727322101593018
+        },
+        {
+          "label": "remorse",
+          "score": 0.0022356321569532156
+        },
+        {
+          "label": "sadness",
+          "score": 0.029230330139398575
+        },
+        {
+          "label": "surprise",
+          "score": 0.010630397126078606
+        }
+      ]
+    }
+  ]
+}

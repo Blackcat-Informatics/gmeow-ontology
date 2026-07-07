@@ -16,4 +16,4 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-purrdf = "0.3"
+purrdf = "0.4"

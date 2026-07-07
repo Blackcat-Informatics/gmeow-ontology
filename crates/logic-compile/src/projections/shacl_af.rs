@@ -241,7 +241,10 @@ fn emit_rule_shape(
 /// modal/scoped rule (no faithful SHACL-AF context form) and a ground-subject or
 /// existential rule are NOT emitted — each is recorded as a ledgered drop. The full-FOL
 /// `program.formulas` residue rides in via [`contract_drop_notes`].
-pub fn project_shacl_af(program: &LogicProgram) -> ProjectionResult {
+pub fn project_shacl_af(
+    program: &LogicProgram,
+    loss: &mut crate::loss_ledger::LossLedger,
+) -> ProjectionResult {
     let (kind, complexity, drops) = target_meta("shacl-af");
 
     let mut blocks: Vec<String> = vec![format!(
@@ -459,14 +462,14 @@ pub fn project_shacl_af(program: &LogicProgram) -> ProjectionResult {
     actual_drops.extend(contract_drop_notes(program, "SHACL-AF", &|_| false));
 
     let content = format!("{}\n", blocks.join("\n\n"));
+    let structural: Vec<String> = drops.into_iter().map(str::to_owned).collect();
+    loss.record_projection_drops("shacl-af", kind, &structural, &actual_drops);
     ProjectionResult {
         target: "shacl-af".to_owned(),
         content,
         is_rdf: false,
         preservation: kind,
         complexity: complexity.to_owned(),
-        lossy_drops: drops.into_iter().map(str::to_owned).collect(),
-        actual_drops,
     }
 }
 
@@ -477,8 +480,27 @@ mod tests {
     };
     use super::*;
 
+    use crate::loss_ledger::LossLedger;
+
     fn var_axiom(s: &str, p: &str, o: &str, o_lit: bool) -> LogicAxiom {
         LogicAxiom::new(s, p, o, o_lit, false, ContextualScope::default()).unwrap()
+    }
+
+    /// Run the projection with a fresh loss store and return both — the store is where every
+    /// per-run drop now lives (the `ProjectionResult` no longer carries `actual_drops`).
+    fn project(program: &LogicProgram) -> (ProjectionResult, LossLedger) {
+        let mut loss = LossLedger::new();
+        let result = project_shacl_af(program, &mut loss);
+        (result, loss)
+    }
+
+    /// The per-run ACTUAL drop notes for `shacl-af`, recovered from the loss store with the
+    /// report's `actual: ` read-back prefix stripped — exactly the old `result.actual_drops`.
+    fn actual_drops(loss: &LossLedger) -> Vec<String> {
+        loss.projection_drops_for("shacl-af")
+            .iter()
+            .filter_map(|d| d.strip_prefix("actual: ").map(str::to_owned))
+            .collect()
     }
 
     /// A small program with one Horn derivation rule:
@@ -511,7 +533,7 @@ mod tests {
 
     #[test]
     fn projects_a_horn_rule_to_a_sparql_rule_node_shape() {
-        let result = project_shacl_af(&ladder_program());
+        let (result, _loss) = project(&ladder_program());
         let ttl = &result.content;
         // The doc declares its preservation honestly.
         assert_eq!(result.target, "shacl-af");
@@ -570,7 +592,7 @@ mod tests {
             ContextualScope::default(),
         );
         let program = LogicProgram::new(vec![], vec![rule], vec![], None);
-        let ttl = project_shacl_af(&program).content;
+        let ttl = project(&program).0.content;
         assert!(
             ttl.contains("FILTER NOT EXISTS"),
             "negation-as-failure must lower to FILTER NOT EXISTS:\n{ttl}"
@@ -601,7 +623,7 @@ mod tests {
         )];
         let rule = LogicRule::new(head, body, vec![], scope);
         let program = LogicProgram::new(vec![], vec![rule], vec![], None);
-        let result = project_shacl_af(&program);
+        let (result, loss) = project(&program);
         // A context-scoped rule is NOT emitted as a SPARQLRule …
         assert!(
             !result.content.contains("scopedDerived"),
@@ -609,13 +631,10 @@ mod tests {
             result.content
         );
         // … and the drop is disclosed, never silent.
+        let drops = actual_drops(&loss);
         assert!(
-            result
-                .actual_drops
-                .iter()
-                .any(|d| d.contains("context-scoped")),
-            "the skipped modal rule must be recorded as a drop: {:?}",
-            result.actual_drops
+            drops.iter().any(|d| d.contains("context-scoped")),
+            "the skipped modal rule must be recorded as a drop: {drops:?}"
         );
     }
 
@@ -648,16 +667,16 @@ mod tests {
         ];
         let rule = LogicRule::new(head, body, vec![], ContextualScope::default());
         let program = LogicProgram::new(vec![], vec![rule], vec![], None);
-        let result = project_shacl_af(&program);
+        let (result, loss) = project(&program);
         assert!(
             result.content.contains("a sh:SPARQLRule"),
             "a rule whose head vars are bound as literal-variable body objects must emit:\n{}",
             result.content
         );
+        let drops = actual_drops(&loss);
         assert!(
-            result.actual_drops.is_empty(),
-            "no drop expected for a fully-bound rule: {:?}",
-            result.actual_drops
+            drops.is_empty(),
+            "no drop expected for a fully-bound rule: {drops:?}"
         );
     }
 
@@ -687,19 +706,18 @@ mod tests {
         neg.negated = true;
         let rule = LogicRule::new(head, vec![pos, neg], vec![], ContextualScope::default());
         let program = LogicProgram::new(vec![], vec![rule], vec![], None);
-        let result = project_shacl_af(&program);
+        let (result, loss) = project(&program);
         assert!(
             !result.content.contains("a sh:SPARQLRule"),
             "a rule with a negation-only head object must NOT be emitted:\n{}",
             result.content
         );
+        let drops = actual_drops(&loss);
         assert!(
-            result
-                .actual_drops
+            drops
                 .iter()
                 .any(|d| d.contains("existential") && d.contains("head object")),
-            "the unbound head object must be a ledgered drop, never silent: {:?}",
-            result.actual_drops
+            "the unbound head object must be a ledgered drop, never silent: {drops:?}"
         );
     }
 
@@ -728,19 +746,18 @@ mod tests {
         neg.negated = true;
         let rule = LogicRule::new(head, vec![pos, neg], vec![], ContextualScope::default());
         let program = LogicProgram::new(vec![], vec![rule], vec![], None);
-        let result = project_shacl_af(&program);
+        let (result, loss) = project(&program);
         assert!(
             !result.content.contains("a sh:SPARQLRule"),
             "a rule with a negation-only head subject must NOT be emitted:\n{}",
             result.content
         );
+        let drops = actual_drops(&loss);
         assert!(
-            result
-                .actual_drops
+            drops
                 .iter()
                 .any(|d| d.contains("head subject") && d.contains("not positively bound")),
-            "the unbound head subject must be a ledgered drop, never silent: {:?}",
-            result.actual_drops
+            "the unbound head subject must be a ledgered drop, never silent: {drops:?}"
         );
     }
 
@@ -793,7 +810,7 @@ mod tests {
         )];
         let rule = LogicRule::new(head, body, vec![], ContextualScope::default());
         let program = LogicProgram::new(vec![], vec![rule], vec![], None);
-        let ttl = project_shacl_af(&program).content;
+        let ttl = project(&program).0.content;
         // Exactly one opening and one closing triple-quote per embedded SPARQL string (select +
         // construct = 4 total); a leaked `"""` from the literal would push this higher.
         assert_eq!(
@@ -822,7 +839,7 @@ mod tests {
             AggregateSpec::new("SUM", "?x", "?sum", vec!["?g".to_owned()]),
         );
         let program = LogicProgram::new(vec![], vec![rule], vec![], None);
-        let ttl = project_shacl_af(&program).content;
+        let ttl = project(&program).0.content;
         assert!(
             ttl.contains("a sh:SPARQLRule"),
             "the reduce rule must project to a SPARQLRule:\n{ttl}"
@@ -901,7 +918,7 @@ mod tests {
             vec![],
             None,
         );
-        let result = project_shacl_af(&program);
+        let (result, loss) = project(&program);
         // 2 inputs are projectable → 2 NodeShapes.
         assert_eq!(
             result.content.matches("a sh:NodeShape").count(),
@@ -911,11 +928,11 @@ mod tests {
         );
         // The other 2 inputs are carried → 2 ledger drops (no contracts/formulas here, so the
         // ledger holds only the skip notes).
+        let drops = actual_drops(&loss);
         assert_eq!(
-            result.actual_drops.len(),
+            drops.len(),
             2,
-            "every non-projected input must be a ledgered drop, never silent: {:?}",
-            result.actual_drops
+            "every non-projected input must be a ledgered drop, never silent: {drops:?}"
         );
     }
 
@@ -931,7 +948,7 @@ mod tests {
         )
         .unwrap();
         let program = LogicProgram::new(vec![axiom], vec![], vec![], None);
-        let result = project_shacl_af(&program);
+        let (result, _loss) = project(&program);
         let ttl = &result.content;
         assert!(
             ttl.contains("a sh:SPARQLRule"),
@@ -959,19 +976,18 @@ mod tests {
         )
         .unwrap();
         let program = LogicProgram::new(vec![axiom], vec![], vec![], None);
-        let result = project_shacl_af(&program);
+        let (result, loss) = project(&program);
         assert!(
             !result.content.contains("a sh:SPARQLRule"),
             "a non-subsumption ground axiom must NOT be projected as a rule:\n{}",
             result.content
         );
+        let drops = actual_drops(&loss);
         assert!(
-            result
-                .actual_drops
+            drops
                 .iter()
                 .any(|d| d.contains("ground axiom") && d.contains("asserted fact")),
-            "the non-projected ground axiom must be a ledgered drop, never silent: {:?}",
-            result.actual_drops
+            "the non-projected ground axiom must be a ledgered drop, never silent: {drops:?}"
         );
     }
 }

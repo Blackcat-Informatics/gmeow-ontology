@@ -981,3 +981,67 @@ lang:GmnCompactionOverclaimShape
             }
         """ ;
     ] .
+
+# =========================================================================== #
+# Linguistic symbology plane gates: coverage and imported-plane attribution   #
+# =========================================================================== #
+
+lang:GmnLangCoverageShape
+    a sh:NodeShape ;
+    rdfs:label "GMN linguistic coverage shape"@x-gmeow-english ;
+    skos:definition "Every morphological lang:FeatureValue the GMN linguistic surface emits carries a disposition in the symbology plane: a lang:Denotation binds it to a glyph, a named key, or an imported alias. The denominator is derived — the shape quantifies over the lang:FeatureValue population by type, not over a hand-listed set — so a value added without a disposition is a silent gap the gate catches. Coverage is total by rule; an undispositioned value is lang:GmnUndispositionedTerm."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:GmnUndispositionedTerm ;
+    sh:targetClass lang:FeatureValue ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A lang:FeatureValue carries no lang:Denotation dispositioning it in the GMN symbology plane; coverage is total, so every emitted term is glyphed, alias-planed, or named-key-ruled." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                FILTER NOT EXISTS {
+                    ?d a <https://blackcatinformatics.ca/lang/Denotation> .
+                    ?d <https://blackcatinformatics.ca/lang/denotationTarget> $this .
+                }
+            }
+        """ ;
+    ] .
+
+lang:GmnImportedPlaneAttributionShape
+    a sh:NodeShape ;
+    rdfs:label "GMN imported-plane attribution shape"@x-gmeow-english ;
+    skos:definition "Every lang:GmnImportedPlane carries both its citation and its version: at least one gmeow:cites edge naming the source work and at least one dcterms:hasVersion literal pinning the edition. An external standard imported verbatim is meaningless without the source it cites and the edition it was drawn from; a plane missing either is lang:GmnUnattributedPlane."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:GmnUnattributedPlane ;
+    sh:targetClass lang:GmnImportedPlane ;
+    sh:property [
+        sh:path <https://blackcatinformatics.ca/gmeow/cites> ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:GmnImportedPlane must cite its source work through gmeow:cites." ;
+    ] ;
+    sh:property [
+        sh:path <http://purl.org/dc/terms/hasVersion> ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:GmnImportedPlane must pin its edition through dcterms:hasVersion." ;
+    ] .
+
+lang:GmnScriptGlyphCoverageShape
+    a sh:NodeShape ;
+    rdfs:label "GMN script-glyph token-cost coverage shape"@x-gmeow-english ;
+    skos:definition "Every lang:Grapheme in the GMN script (lang:inScript gmeow:gmnScript) carries a measured token cost through gmeow:gmnGlyphTokenCost: the per-glyph feed the glyph-versus-named-key disposition is read off. The population is derived — the shape scopes to the gmeow:gmnScript repertoire by lang:inScript, not to a hand-listed set — so a glyph admitted to the shared inventory (an IPA grapheme, the `*` operator glyph) without its cost feed is a silent gap the gate catches, complementing the lang:FeatureValue coverage of lang:GmnLangCoverageShape. A GMN-script glyph with no gmeow:gmnGlyphTokenCost is lang:GmnUncostedScriptGlyph."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:GmnUncostedScriptGlyph ;
+    sh:targetClass lang:Grapheme ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A lang:Grapheme in the GMN script carries no gmeow:gmnGlyphTokenCost; the GMN glyph inventory is cost-covered by rule, so every admitted glyph carries its measured token-cost feed." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/lang/inScript> <https://blackcatinformatics.ca/gmeow/gmnScript> .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/gmeow/gmnGlyphTokenCost> ?c .
+                }
+            }
+        """ ;
+    ] .

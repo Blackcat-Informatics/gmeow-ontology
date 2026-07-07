@@ -16,7 +16,10 @@
 //! There is no I/O and no TTL emission here — this module produces only the
 //! in-memory structured ledger; serialization is a separate concern.
 
-use gmeow_errors::{Finding, Severity};
+use gmeow_errors::{
+    Diag, DiagLedger, Finding, FindingCategory, GateVerdict, Grade, Severity, StageId, Standpoint,
+    register_code,
+};
 use purrdf::RdfLoss;
 use std::collections::BTreeSet;
 
@@ -104,6 +107,13 @@ pub struct LedgerVerdict {
 /// condition, not a divergence.
 ///
 /// Each remaining non-zero tally contributes one deterministic English reason.
+///
+/// The pass/fail decision now flows through the single diagnostics gate morphism:
+/// the ledger's non-`Agree` rows are interned into a [`gmeow_errors::DiagLedger`]
+/// ([`divergence_diag_ledger`]) and `passed` is `verdict() == Collected` — the same
+/// `gate()`/`verdict()` join-fold every other verdict surface reduces to (dogfooding
+/// the one gate authority). The `reasons` remain the per-failing-category English
+/// counts consumed and printed by the ingest CLI and surfaced by the cross-check.
 pub fn enforce(ledger: &DivergenceLedger) -> LedgerVerdict {
     let mut reasons: Vec<String> = Vec::new();
     if ledger.oracle_only > 0 {
@@ -126,10 +136,12 @@ pub fn enforce(ledger: &DivergenceLedger) -> LedgerVerdict {
             ledger.corpus_only
         ));
     }
-    LedgerVerdict {
-        passed: reasons.is_empty(),
-        reasons,
-    }
+    // Derive the gate decision from the single gate()/verdict() morphism rather
+    // than re-implementing it: the ledger is Collected exactly when it holds no
+    // Fatal witness, i.e. no OracleOnly/DlGap/CorpusOnly row (a NativeOnly row is
+    // graded non-blocking, so it never gates) — identical to `reasons.is_empty()`.
+    let passed = divergence_diag_ledger(ledger).verdict() == GateVerdict::Collected;
+    LedgerVerdict { passed, reasons }
 }
 
 /// Strip a single surrounding pair of angle brackets from `s`.
@@ -401,33 +413,95 @@ fn divergence_code_suffix(kind: &DivergenceKind) -> Option<&'static str> {
     }
 }
 
+/// The [`gmeow_errors::StageId`] every divergence witness is attached under — the
+/// conformance divergence producer on the single diagnostics substrate.
+const DIVERGENCE_STAGE: &str = "conformance.divergence";
+
+/// The ASCII unit separator (`U+001F`) joining a row's structural distinctness
+/// fields into a message-independent fingerprint `focus`. It cannot occur in an
+/// IRI, a verdict token, or a category label, so the joined key is unambiguous.
+const FOCUS_SEP: &str = "\u{1f}";
+
+/// The diagnostic [`Grade`] a non-`Agree` divergence row is interned at, chosen so
+/// the ledger's [`gate`](gmeow_errors::gate)/[`verdict`](DiagLedger::verdict)
+/// reproduces [`enforce`]'s pass/fail EXACTLY:
+///
+/// * the FAILING kinds (`OracleOnly`, `DlGap`, `CorpusOnly`) take a BLOCKING
+///   category ([`FindingCategory::ContradictionWitness`]) at [`Standpoint::Binding`]
+///   and [`Severity::Error`], so each one gates `Fatal` — the gate fails the lane;
+/// * `NativeOnly` is expected superset richness, never a failure, so it takes a
+///   NON-blocking category ([`FindingCategory::IncompleteCheck`]) — still emitted as
+///   a finding, but `Collected`, so it never gates.
+///
+/// (`Agree` never reaches this — it has no code and is filtered before interning —
+/// but is mapped to the non-blocking grade defensively so it could never gate.)
+fn divergence_grade(kind: &DivergenceKind) -> Grade {
+    let category = match kind {
+        DivergenceKind::OracleOnly | DivergenceKind::DlGap | DivergenceKind::CorpusOnly => {
+            FindingCategory::ContradictionWitness
+        }
+        DivergenceKind::NativeOnly | DivergenceKind::Agree => FindingCategory::IncompleteCheck,
+    };
+    Grade::new(Severity::Error, category, Standpoint::Binding)
+}
+
+/// Intern a [`DivergenceLedger`]'s NON-`Agree` rows into a fresh
+/// [`gmeow_errors::DiagLedger`] — one [`Diag`] per divergence row — so both the
+/// diagnostic PROJECTION ([`divergence_findings`]) and the gate VERDICT
+/// ([`enforce`]) flow through the single diagnostics substrate.
+///
+/// Each witness carries:
+///
+/// * `code` = `reason.divergence.{suffix}` (the existing [`divergence_code_suffix`]
+///   kind the native⊇external coverage gate keys on), registered via
+///   [`register_code`];
+/// * `message` = the row's `detail`, UNCHANGED — for a `CorpusOnly` row this still
+///   carries the native verdict AND the raw published external expected verbatim
+///   (the external ground-truth provenance the N-Quads projection depends on);
+/// * `grade` = [`divergence_grade`] (blocking for the failing kinds, non-blocking
+///   for `NativeOnly`), so [`verdict`](DiagLedger::verdict) reproduces [`enforce`];
+/// * `focus` = a message-INDEPENDENT distinctness key over the row's structural
+///   fields (`subject`, `object`, `world`, `category`, kind), joined by
+///   [`FOCUS_SEP`], so distinct rows never hash-cons-merge and no row is dropped.
+///
+/// [`DivergenceLedger`]/[`LedgerRow`] remain the structured comparison layer; only
+/// the findings projection and the verdict now flow through the [`DiagLedger`].
+pub fn divergence_diag_ledger(ledger: &DivergenceLedger) -> DiagLedger {
+    let mut diag_ledger = DiagLedger::new();
+    let stage = StageId::new(DIVERGENCE_STAGE);
+    for row in &ledger.rows {
+        let Some(suffix) = divergence_code_suffix(&row.kind) else {
+            continue;
+        };
+        let code = register_code(&format!("reason.divergence.{suffix}"));
+        let focus = [
+            row.subject.as_str(),
+            row.object.as_str(),
+            row.world.as_str(),
+            row.category.as_str(),
+            suffix,
+        ]
+        .join(FOCUS_SEP);
+        let diag =
+            Diag::new(code, divergence_grade(&row.kind), row.detail.clone()).with_focus(focus);
+        diag_ledger.attach(diag, stage.clone());
+    }
+    diag_ledger
+}
+
 /// Project a [`DivergenceLedger`] into restricted [`gmeow_errors::Finding`]s —
-/// one per NON-`Agree` row.
+/// one per NON-`Agree` row — as the conformance-tool projection of the
+/// [`divergence_diag_ledger`] witnesses.
 ///
 /// The diagnostics doctrine declares the native↔oracle / native↔corpus
 /// divergence-ledger entries to BE `gmeow:Finding`s (a `gmeow:Observation` whose
 /// vantage is the conformance tooling), so this reuses the canonical Finding model
-/// rather than minting a parallel vocabulary. Every divergence is gate-failing, so
-/// the severity is [`Severity::Error`]; the `code` carries the structured kind
-/// (`reason.divergence.{kind}`) the native⊇external coverage gate keys on; the `message` is the
-/// row's `detail`, which for a `CorpusOnly` row carries the native verdict AND the
-/// raw published external expected verbatim (the external ground-truth provenance).
+/// rather than minting a parallel vocabulary. Each finding keeps its
+/// [`Severity::Error`], its `reason.divergence.{kind}` `code`, its `message` (the
+/// row's `detail`), and `tool` = `"conformance"`; it now ADDITIONALLY carries the
+/// grade's category + standpoint (additive enrichment from the shared substrate).
 pub fn divergence_findings(ledger: &DivergenceLedger) -> Vec<Finding> {
-    ledger
-        .rows
-        .iter()
-        .filter_map(|row| {
-            let suffix = divergence_code_suffix(&row.kind)?;
-            Some(
-                Finding::new(
-                    Severity::Error,
-                    format!("reason.divergence.{suffix}"),
-                    row.detail.clone(),
-                )
-                .with_tool("conformance"),
-            )
-        })
-        .collect()
+    divergence_diag_ledger(ledger).findings("conformance")
 }
 
 #[cfg(test)]

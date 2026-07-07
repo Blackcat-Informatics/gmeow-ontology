@@ -240,6 +240,7 @@ fn who_played_what_on_take_3() {
     // The fixture SPARQL query returns bassist + drummer on take 3.
     let s = module();
     let (vars, rows) = s.select(
+        &[],
         "
         PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
         SELECT ?participant ?instrument ?technique

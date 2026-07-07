@@ -55,6 +55,9 @@ pub mod graphutil;
 // the correspondence lowerings consume; file I/O + parsing live in the caller).
 pub mod ingest;
 pub mod ir;
+// The single loss store: one substrate DiagLedger every loss serialization
+// (transcode / coherence certificate / F2 projection report) projects from.
+pub mod loss_ledger;
 // Shared N-Triples term codecs (escape only, no bracket/quote wrapping) used by the
 // xcl/clif/cgif dialects' embedded canonical N-Triples RDF channel.
 mod nt;

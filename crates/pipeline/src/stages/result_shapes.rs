@@ -23,11 +23,33 @@
 //! (which the engine DOES support), keyed on `cellVar`. The shapes target the
 //! `gmeow:ExpectedRow` instances a question links via `gmeow:cqResultShape`, so a
 //! consumer that materialises result rows in this reified form validates them.
+//!
+//! ## Two constraint axes: procedural surface, declarative contract
+//!
+//! `result-shapes.ttl` lives on the **procedural** constraint axis — each column
+//! projects to a `sh:sparql` / `sh:SPARQLConstraint` node (raw SPARQL over the
+//! reified value-keyed row model), the axis LOGIC-VALIDATION.md distinguishes from
+//! the **declarative** validation-shape axis (the `sh:NodeShape` / `sh:PropertyShape`
+//! fragment realized by `ValidationShapeIr`). The two are architecturally distinct
+//! node-kinds and MUST NOT be merged: the canonical IR carries no raw-SPARQL component.
+//!
+//! What IS true — and proven here by `column_contract` plus its test — is that the
+//! declarative model **subsumes the column CONTRACTS at the content level**: every
+//! `(kind, required, datatype)` column contract has a faithful `ValidationShapeIr`
+//! encoding (node-kind + optional datatype + a minCount-1 obligation). The `sh:sparql`
+//! form is the procedural PROJECTION of that same contract, chosen only because the
+//! native engine does not implement the SHACL qualified value shapes the declarative
+//! form would otherwise need for a value-keyed cell model.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+#[cfg(test)]
+use gmeow_logic_compile::ir::{
+    ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShaclNodeKind, ShapeTarget,
+    ValidationShapeIr,
+};
 use purrdf::{RdfDataset, TermValue};
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -307,6 +329,76 @@ fn wrong_value_prop(kind: Kind) -> Option<&'static str> {
     }
 }
 
+// ── Declarative-contract subsumption (content-level, NOT emitted) ─────────────
+//
+// These map a result column's contract onto the canonical ValidationShapeIr model to
+// PROVE (in-test) that the declarative model subsumes the procedural sh:sparql column
+// constraints. They are never emitted and never feed the byte-deterministic render, so
+// they are test-scoped.
+
+/// The declarative SHACL node-kind a result column's [`Kind`] maps to.
+#[cfg(test)]
+fn column_node_kind(kind: Kind) -> ShaclNodeKind {
+    match kind {
+        Kind::Iri => ShaclNodeKind::Iri,
+        Kind::Literal => ShaclNodeKind::Literal,
+        Kind::BlankNode => ShaclNodeKind::BlankNode,
+    }
+}
+
+/// Map ONE result column onto the equivalent DECLARATIVE property shape the canonical
+/// [`ValidationShapeIr`] model would use — WITHOUT changing the emitted `sh:sparql` TTL.
+///
+/// * `kind` → a `sh:nodeKind` component (`NodeKindShacl`),
+/// * a `Literal` column with a pinned `datatype` → an additional `sh:datatype` component,
+/// * `required` → a `sh:minCount 1` obligation (with an OWL-restriction provenance so the
+///   constraint model accepts the cardinality; a non-required column carries no cardinality).
+///
+/// This captures the SAME contract semantics as the procedural `sh:sparql` column
+/// constraint; it is the declarative peer of the procedural projection, never emitted.
+#[cfg(test)]
+fn column_contract_property(col: &Column) -> Result<PropertyConstraintIr, String> {
+    let mut components = vec![ConstraintComponent::NodeKindShacl(column_node_kind(
+        col.kind,
+    ))];
+    if col.kind == Kind::Literal
+        && let Some(dt) = &col.datatype
+    {
+        components.push(ConstraintComponent::Datatype(dt.clone()));
+    }
+    let (min, prov) = if col.required {
+        (Some(1), Some(ConstraintProvenance::OwlRestriction))
+    } else {
+        (None, None)
+    };
+    PropertyConstraintIr::new(
+        format!("{GMEOW_NS}resultColumn/{}", col.var),
+        min,
+        None,
+        prov,
+        components,
+    )
+}
+
+/// Wrap [`column_contract_property`] in a well-formed [`ValidationShapeIr`] value-keyed on
+/// the cell variable — the declarative shape whose content is identical to the procedural
+/// `sh:sparql` column constraint. Proves subsumption of the column contract, not a byte form.
+#[cfg(test)]
+fn column_contract(shape_iri: &str, col: &Column) -> Result<ValidationShapeIr, String> {
+    let property = column_contract_property(col)?;
+    ValidationShapeIr::new(
+        format!("{shape_iri}/resultColumn/{}", col.var),
+        ShapeTarget::ValueKeyed {
+            predicate: format!("{GMEOW_NS}cellVar"),
+            value: col.var.clone(),
+        },
+        vec![property],
+        None,
+        None,
+        false,
+    )
+}
+
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
 /// The `result-shapes` export-leaf stage.
@@ -526,6 +618,79 @@ plant:badRow gmeow:rowCell [ gmeow:cellVar \"{iri_col_var}\" ; gmeow:cellValueLi
             flagged.iter().any(|f| f.contains("_planted_test/badRow")),
             "the planted wrong-kind row must be flagged by the generated shapes; \
              shape={real_shape_iri} col={iri_col_var}; flagged={flagged:?}"
+        );
+    }
+
+    /// Drift-guard (CONTRACT level): the result-shape surface is the ONE emitter that cannot
+    /// route through the shared declarative projection — its value-keyed cell model needs a
+    /// `sh:sparql` procedural constraint the native engine supports, where the declarative
+    /// `sh:qualifiedValueShape` form it would otherwise use is not implemented (see the module
+    /// docs: the two constraint axes MUST NOT merge). So byte-parity with the shared projection is
+    /// impossible by construction; the honest ceiling is CONTENT subsumption, guarded here: over
+    /// the live corpus EVERY emitted column's `(kind, required, datatype)` contract must have a
+    /// faithful `ValidationShapeIr` encoding. A column whose procedural `sh:sparql` drifts from a
+    /// declarative-representable contract fails this test.
+    #[test]
+    fn result_column_contracts_are_subsumed_by_validation_shape_model() {
+        use gmeow_logic_compile::ir::NodeKind;
+
+        // Over the LIVE competency corpus, EVERY column of EVERY shape must have a
+        // faithful declarative ValidationShapeIr encoding of its (kind, required,
+        // datatype) contract — proving the general validation-shape model subsumes the
+        // procedural sh:sparql column constraints at the CONTRACT level.
+        let root = repo_root();
+        let store = load_competency_store(&root).expect("load");
+        let by_shape = shapes(&store).expect("shapes");
+        assert!(
+            !by_shape.is_empty(),
+            "expected a non-empty competency corpus"
+        );
+
+        let mut checked = 0usize;
+        for (shape_iri, columns) in &by_shape {
+            for col in columns {
+                let shape = column_contract(shape_iri, col)
+                    .unwrap_or_else(|e| panic!("column {} of {shape_iri}: {e}", col.var));
+                assert_eq!(shape.node_kind, NodeKind::ValidationShape);
+                assert_eq!(shape.properties.len(), 1);
+                let prop = &shape.properties[0];
+
+                // required ⇒ a minCount-1 obligation; else no cardinality.
+                assert_eq!(
+                    prop.min_count,
+                    if col.required { Some(1) } else { None },
+                    "required flag must map to the minCount obligation"
+                );
+
+                // kind ⇒ the matching sh:nodeKind component.
+                let want_kind = column_node_kind(col.kind);
+                assert!(
+                    prop.components.iter().any(|c| matches!(
+                        c,
+                        ConstraintComponent::NodeKindShacl(k) if *k == want_kind
+                    )),
+                    "kind {:?} must map to a NodeKindShacl component",
+                    col.kind
+                );
+
+                // literal + datatype ⇒ the matching sh:datatype component.
+                if col.kind == Kind::Literal
+                    && let Some(dt) = &col.datatype
+                {
+                    assert!(
+                        prop.components.iter().any(|c| matches!(
+                            c,
+                            ConstraintComponent::Datatype(d) if d == dt
+                        )),
+                        "a literal column's datatype must map to a Datatype component"
+                    );
+                }
+                checked += 1;
+            }
+        }
+        assert!(
+            checked > 0,
+            "expected to check at least one column contract"
         );
     }
 

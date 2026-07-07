@@ -17,7 +17,10 @@ use std::time::Instant;
 use crate::put_executor;
 use crate::stages::native_query;
 use crate::transform::{self, CellInput};
-use gmeow_errors::{Finding, Location, Report, ResultExt, Severity};
+use gmeow_errors::{
+    Diag, DiagLedger, FindingCategory, Grade, Location, Report, ResultExt, Severity, StageId,
+    Standpoint, register_code,
+};
 use purrdf::{
     DatasetView, GraphMatch, RdfDataset, RdfLiteral, RdfTerm, SerializeGraph, TermRef, TermValue,
     flat_dataset_from_quads, parse_dataset, serialize_dataset,
@@ -444,7 +447,11 @@ pub fn render_claim_audit_json(report: &ClaimAuditReport) -> gmeow_errors::Resul
 }
 
 pub fn claim_audit_diagnostics(report: &ClaimAuditReport) -> Report {
-    let mut out = Report::new("audit");
+    let stage = StageId::new("scoreboard.audit");
+    let mut ledger = DiagLedger::new();
+    // Headline claim-audit rows are non-gating policy warnings (Perspectival): a
+    // coherent PolicyWarning never contributes to gate fatality whatever its
+    // Warning severity, so `make check` is unaffected.
     for (stem, suffix) in [
         ("claims-without-evidence", "ungrounded-claim"),
         (
@@ -455,36 +462,68 @@ pub fn claim_audit_diagnostics(report: &ClaimAuditReport) -> Report {
     ] {
         for row in report.findings.get(stem).into_iter().flatten() {
             let subject = row.first().cloned().unwrap_or_default();
-            let mut finding = Finding::new(
-                Severity::Warning,
-                format!("audit.{suffix}"),
-                if row.is_empty() {
-                    stem.to_owned()
-                } else {
-                    row.join(" | ")
-                },
+            let message = if row.is_empty() {
+                stem.to_owned()
+            } else {
+                row.join(" | ")
+            };
+            let mut diag = Diag::new(
+                register_code(&format!("audit.{suffix}")),
+                Grade::new(
+                    Severity::Warning,
+                    FindingCategory::PolicyWarning,
+                    Standpoint::Perspectival,
+                ),
+                message,
             )
-            .with_tool("audit");
+            // Distinct rows sharing (code, category, subject) must not hash-cons
+            // merge and drop; a message-independent per-row focus keeps each
+            // finding a distinct fingerprint. The subject IRI (mirrored in the
+            // logical location) keys the anchor.
+            .with_focus(subject.clone());
             if !subject.is_empty() {
-                finding.add_location(Location {
+                diag = diag.with_location(Location {
                     logical: Some(subject),
                     ..Location::default()
                 });
             }
-            out.add_finding(finding);
+            ledger.attach(diag, stage.clone());
         }
     }
+    // SHACL errors gate (DataShapeViolation is Blocking, Binding standpoint) ⇒
+    // gate Fatal, so a shape violation still fails the diagnostics fold.
     for message in &report.shacl_errors {
-        out.add_finding(
-            Finding::new(Severity::Error, "audit.shacl-error", message).with_tool("audit"),
+        ledger.attach(
+            Diag::new(
+                register_code("audit.shacl-error"),
+                Grade::new(
+                    Severity::Error,
+                    FindingCategory::DataShapeViolation,
+                    Standpoint::Binding,
+                ),
+                message,
+            )
+            .with_focus(message.clone()),
+            stage.clone(),
         );
     }
+    // SHACL warnings are the same shape kind surfaced non-gating (Perspectival).
     for message in &report.shacl_warnings {
-        out.add_finding(
-            Finding::new(Severity::Warning, "audit.shacl-warning", message).with_tool("audit"),
+        ledger.attach(
+            Diag::new(
+                register_code("audit.shacl-warning"),
+                Grade::new(
+                    Severity::Warning,
+                    FindingCategory::DataShapeViolation,
+                    Standpoint::Perspectival,
+                ),
+                message,
+            )
+            .with_focus(message.clone()),
+            stage.clone(),
         );
     }
-    out
+    ledger.project_report("audit")
 }
 
 /// A report-only gate disclosing the lawful executor's lift counts and the heuristic
@@ -807,19 +846,26 @@ pub fn render_acceptance_report(results: &[FileAcceptance]) -> String {
 }
 
 pub fn acceptance_diagnostics(results: &[FileAcceptance]) -> Report {
-    let mut out = Report::new("acceptance");
+    let stage = StageId::new("scoreboard.acceptance");
+    let mut ledger = DiagLedger::new();
     // The HARD corpus-aggregate recall floor (GAP 3): a pooled recall below
-    // ACCEPTANCE_MIN_RECALL_PCT is a real coverage regression, surfaced as an Error so
-    // the diagnostics fold consumed by `make check` fails on it.
+    // ACCEPTANCE_MIN_RECALL_PCT is a real coverage regression. A blocking
+    // ModelingDisciplineViolation asserted from a Binding standpoint gates Fatal,
+    // so the diagnostics fold consumed by `make check` still fails on it.
     let aggregate_gate = aggregate_recall_gate(results, ACCEPTANCE_MIN_RECALL_PCT);
     if !aggregate_gate.passed {
-        out.add_finding(
-            Finding::new(
-                Severity::Error,
-                format!("acceptance.{}", aggregate_gate.name),
+        ledger.attach(
+            Diag::new(
+                register_code(&format!("acceptance.{}", aggregate_gate.name)),
+                Grade::new(
+                    Severity::Error,
+                    FindingCategory::ModelingDisciplineViolation,
+                    Standpoint::Binding,
+                ),
                 aggregate_gate.summary.clone(),
             )
-            .with_tool("acceptance"),
+            .with_focus(aggregate_gate.name.clone()),
+            stage.clone(),
         );
     }
     for file in results {
@@ -827,27 +873,43 @@ pub fn acceptance_diagnostics(results: &[FileAcceptance]) -> Report {
             if gate.passed {
                 continue;
             }
-            let mut finding = Finding::new(
-                if gate.hard {
-                    Severity::Error
-                } else {
-                    Severity::Note
-                },
-                format!("acceptance.{}", gate.name),
+            // Hard gates gate Fatal (blocking ModelingDisciplineViolation, Binding);
+            // soft gates are non-gating policy notes (Perspectival) that never fail
+            // the fold.
+            let grade = if gate.hard {
+                Grade::new(
+                    Severity::Error,
+                    FindingCategory::ModelingDisciplineViolation,
+                    Standpoint::Binding,
+                )
+            } else {
+                Grade::new(
+                    Severity::Note,
+                    FindingCategory::PolicyWarning,
+                    Standpoint::Perspectival,
+                )
+            };
+            let mut diag = Diag::new(
+                register_code(&format!("acceptance.{}", gate.name)),
+                grade,
                 format!("{}: {}", file.source, gate.summary),
             )
-            .with_tool("acceptance");
-            finding.add_location(Location {
+            // A message-independent per-(file, gate) focus so two distinct
+            // per-file gates can never hash-cons merge and drop a finding.
+            .with_focus(format!("{}\u{1f}{}", file.source, gate.name))
+            .with_location(Location {
                 path: Some(file.source.clone()),
                 ..Location::default()
             });
             if !gate.detail.is_empty() {
-                finding.detail = Some(gate.detail.join("\n"));
+                // Detail rides as a context frame (excluded from the fingerprint)
+                // so `to_finding` folds it into the projected finding's detail.
+                diag = diag.with_context(gate.detail.join("\n"));
             }
-            out.add_finding(finding);
+            ledger.attach(diag, stage.clone());
         }
     }
-    out
+    ledger.project_report("acceptance")
 }
 
 fn ontology_source_files(root: &Path, include_imports: bool) -> gmeow_errors::Result<Vec<PathBuf>> {

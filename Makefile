@@ -335,7 +335,7 @@ rust-gate: rust-build carrier-purity ## Warm Rust once, then run the carrier-pur
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
 
-coherence-gate-teeth: rust-build ## Run the whole-ontology coherence + relator-mediation gate teeth proofs on-gate (budget-exempt, ~95s).
+coherence-gate-teeth: rust-build ## Run the whole-ontology coherence + relator-mediation gate teeth proofs on-gate (budget-exempt, ~570s).
 	cargo nextest run $(RUST_TEST_WORKSPACE_ARGS) --ignore-default-filter -E 'package(gmeow-logic) & test(/whole_bundle_.*gate/)'
 
 clippy: rust-build ## Run cargo clippy on all Rust targets with warnings as errors.
