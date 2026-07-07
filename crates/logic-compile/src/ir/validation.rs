@@ -41,6 +41,12 @@ fn key_list<I: IntoIterator<Item = String>>(items: I) -> String {
 pub enum ShapeTarget {
     /// Focus nodes are instances of this class IRI (`sh:targetClass`).
     Class(String),
+    /// Focus nodes are the SUBJECTS of a predicate (`sh:targetSubjectsOf`): the closed-world
+    /// reading of an `rdfs:domain P C` axiom (every subject of `P` must satisfy the shape).
+    SubjectsOf(String),
+    /// Focus nodes are the OBJECTS of a predicate (`sh:targetObjectsOf`): the closed-world
+    /// reading of an `rdfs:range P C` axiom (every object of `P` must satisfy the shape).
+    ObjectsOf(String),
     /// Focus nodes are selected by a required value on a predicate (projected to an
     /// `sh:SPARQLTarget`): the discriminating predicate IRI and the value IRI it must carry.
     ValueKeyed {
@@ -52,11 +58,12 @@ pub enum ShapeTarget {
 }
 
 impl ShapeTarget {
-    /// A deterministic content-key fragment (variant-tagged so a `Class` and a
-    /// `ValueKeyed` never collide).
+    /// A deterministic content-key fragment (variant-tagged so the variants never collide).
     fn content_key(&self) -> String {
         match self {
             ShapeTarget::Class(c) => format!("class={}", key_field(c)),
+            ShapeTarget::SubjectsOf(p) => format!("subjectsof={}", key_field(p)),
+            ShapeTarget::ObjectsOf(p) => format!("objectsof={}", key_field(p)),
             ShapeTarget::ValueKeyed { predicate, value } => {
                 format!("valuekeyed={}{}", key_field(predicate), key_field(value))
             }
@@ -91,6 +98,29 @@ impl ShaclNodeKind {
             ShaclNodeKind::IriOrLiteral => "IRIOrLiteral",
             ShaclNodeKind::BlankNodeOrIri => "BlankNodeOrIRI",
             ShaclNodeKind::BlankNodeOrLiteral => "BlankNodeOrLiteral",
+        }
+    }
+}
+
+/// The `sh:severity` vocabulary (verbatim SHACL local names). Carried per property shape so
+/// a projected surface reproduces the authored severity of a shape a bespoke renderer emitted.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum ShaclSeverity {
+    /// `sh:Violation` (the SHACL default).
+    Violation,
+    /// `sh:Warning`.
+    Warning,
+    /// `sh:Info`.
+    Info,
+}
+
+impl ShaclSeverity {
+    /// The SHACL local name (`Violation`, `Warning`, `Info`).
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ShaclSeverity::Violation => "Violation",
+            ShaclSeverity::Warning => "Warning",
+            ShaclSeverity::Info => "Info",
         }
     }
 }
@@ -241,6 +271,27 @@ pub enum ConstraintComponent {
     /// recovery does not collapse it to a string pattern; projected to `sh:pattern` on the
     /// lexical (lossy: an openEHR validity pattern is not an XPath regex).
     DateTimePattern(String),
+    /// A fixed required value (`sh:hasValue`): the closed-world reading of an `owl:hasValue`
+    /// restriction — every focus node must have this exact value on the path.
+    HasValue(ShapeValue),
+    /// A qualified value-shape constraint (`sh:qualifiedValueShape [ … ]` with
+    /// `sh:qualifiedMinCount`/`sh:qualifiedMaxCount`): the faithful closed-world reading of an
+    /// `owl:someValuesFrom` (min 1) and of an `owl:onClass` + `owl:qualifiedCardinality`
+    /// restriction — a count of values that additionally satisfy an inner shape, NOT a plain
+    /// count over all values. The inner shape is a small set of components (typically one
+    /// `Class`/`Datatype`/`NodeKindShacl`), sorted at construction.
+    QualifiedValueShape {
+        /// The inner value-shape the counted values must satisfy.
+        shape: Vec<ConstraintComponent>,
+        /// `sh:qualifiedMinCount` (`None` ⇒ unconstrained below).
+        min: Option<u32>,
+        /// `sh:qualifiedMaxCount` (`None` ⇒ unconstrained above).
+        max: Option<u32>,
+    },
+    /// A negated constraint (`sh:not [ … ]`): the closed-world reading of `owl:disjointWith`
+    /// (`sh:not [ sh:class D ]`), `owl:complementOf`, and each pair of a named
+    /// `owl:AllDisjointClasses`. The inner component is what a focus node must NOT satisfy.
+    Not(Box<ConstraintComponent>),
 }
 
 impl ConstraintComponent {
@@ -248,13 +299,18 @@ impl ConstraintComponent {
     /// (regex-dialect residue) or a terminology binding (external terminology). Used by the
     /// derivation/ledger so a lossy component is never claimed exact.
     pub fn is_lossy(&self) -> bool {
-        matches!(
-            self,
+        match self {
             ConstraintComponent::Pattern { .. }
-                | ConstraintComponent::TerminologyBinding { .. }
-                | ConstraintComponent::OrdinalSet { .. }
-                | ConstraintComponent::DateTimePattern(_)
-        )
+            | ConstraintComponent::TerminologyBinding { .. }
+            | ConstraintComponent::OrdinalSet { .. }
+            | ConstraintComponent::DateTimePattern(_) => true,
+            // A nested constraint is lossy iff its inner shape is.
+            ConstraintComponent::QualifiedValueShape { shape, .. } => {
+                shape.iter().any(ConstraintComponent::is_lossy)
+            }
+            ConstraintComponent::Not(inner) => inner.is_lossy(),
+            _ => false,
+        }
     }
 
     /// Canonicalize the component's inner collections — sort the `In` value-set members, the
@@ -289,6 +345,24 @@ impl ConstraintComponent {
             ConstraintComponent::LanguageIn(langs) => langs.sort(),
             ConstraintComponent::TerminologyBinding { codes, .. } => codes.sort(),
             ConstraintComponent::OrdinalSet { pairs } => pairs.sort(),
+            ConstraintComponent::HasValue(ShapeValue::Literal {
+                datatype: Some(_),
+                lang: Some(_),
+                ..
+            }) => {
+                return Err(
+                    "ConstraintComponent::HasValue: a literal value may carry a \
+                            datatype XOR a language tag, never both"
+                        .to_owned(),
+                );
+            }
+            ConstraintComponent::QualifiedValueShape { shape, .. } => {
+                for c in shape.iter_mut() {
+                    c.normalize()?;
+                }
+                shape.sort_by_cached_key(ConstraintComponent::content_key);
+            }
+            ConstraintComponent::Not(inner) => inner.normalize()?,
             _ => {}
         }
         Ok(())
@@ -365,6 +439,16 @@ impl ConstraintComponent {
             ConstraintComponent::DateTimePattern(p) => {
                 format!("datetimepattern={}", key_field(p))
             }
+            ConstraintComponent::HasValue(v) => format!("hasvalue={}", v.content_key()),
+            ConstraintComponent::QualifiedValueShape { shape, min, max } => format!(
+                "qvs={}{SEP}qmin={}{SEP}qmax={}",
+                key_list(shape.iter().map(ConstraintComponent::content_key)),
+                min.map(|n| n.to_string()).unwrap_or_default(),
+                max.map(|n| n.to_string()).unwrap_or_default(),
+            ),
+            ConstraintComponent::Not(inner) => {
+                format!("not={}", key_field(&inner.content_key()))
+            }
         }
     }
 }
@@ -385,6 +469,15 @@ pub struct PropertyConstraintIr {
     /// Value-level components (datatype, range, pattern, value set, …), sorted at
     /// construction.
     pub components: Vec<ConstraintComponent>,
+    /// Whether the path is inverted (`sh:path [ sh:inversePath P ]`): the closed-world reading
+    /// of `owl:InverseFunctionalProperty` (each object has ≤1 subject via `P`). Default `false`.
+    pub inverse: bool,
+    /// The `sh:severity` of a violation (`None` ⇒ the SHACL default `sh:Violation`, emitted
+    /// implicitly). Carried so a projected surface reproduces a bespoke renderer's severity.
+    pub severity: Option<ShaclSeverity>,
+    /// The `sh:message` attached to a violation (`None` ⇒ none). Carried for byte-parity with
+    /// the bespoke frame/result renderers and for better validation-failure UX.
+    pub message: Option<String>,
 }
 
 impl PropertyConstraintIr {
@@ -430,15 +523,45 @@ impl PropertyConstraintIr {
             max_count,
             cardinality_provenance,
             components,
+            inverse: false,
+            severity: None,
+            message: None,
         })
+    }
+
+    /// Mark the path inverted (`sh:path [ sh:inversePath P ]`) — the `owl:InverseFunctionalProperty`
+    /// reading. Chainable so `new()`'s signature (and every existing caller) is untouched.
+    pub fn inverted(mut self) -> Self {
+        self.inverse = true;
+        self
+    }
+
+    /// Attach an `sh:severity`. Chainable; leaves the content key byte-identical when unset.
+    pub fn with_severity(mut self, severity: ShaclSeverity) -> Self {
+        self.severity = Some(severity);
+        self
+    }
+
+    /// Attach an `sh:message`. Chainable; leaves the content key byte-identical when unset.
+    /// A blank message is rejected (a required presentation string that says nothing is a
+    /// determinism hazard, not a silent no-op).
+    pub fn with_message(mut self, message: impl Into<String>) -> Result<Self, String> {
+        let message = message.into();
+        if message.trim().is_empty() {
+            return Err("PropertyConstraintIr.with_message: message must be non-empty".to_owned());
+        }
+        self.message = Some(message);
+        Ok(self)
     }
 
     /// A deterministic content-key over a FIXED field order. Every free-form field is
     /// length-prefixed and the component list is count-prefixed ([`key_field`] / [`key_list`])
-    /// so no path or component value can forge a field boundary.
+    /// so no path or component value can forge a field boundary. The `inverse`/`severity`/
+    /// `message` presentation fields are appended at the TAIL and **only when non-default**, so
+    /// a plain property shape folds byte-identically to before these fields existed.
     fn content_key(&self) -> String {
         let comps = key_list(self.components.iter().map(ConstraintComponent::content_key));
-        format!(
+        let mut key = format!(
             "path={}{SEP}min={}{SEP}max={}{SEP}prov={}{SEP}comps={comps}",
             key_field(&self.path),
             self.min_count.map(|n| n.to_string()).unwrap_or_default(),
@@ -446,7 +569,17 @@ impl PropertyConstraintIr {
             self.cardinality_provenance
                 .map(|p| p.as_str())
                 .unwrap_or(""),
-        )
+        );
+        if self.inverse {
+            key.push_str(&format!("{SEP}inverse=true"));
+        }
+        if let Some(sev) = self.severity {
+            key.push_str(&format!("{SEP}sev={}", sev.as_str()));
+        }
+        if let Some(msg) = &self.message {
+            key.push_str(&format!("{SEP}msg={}", key_field(msg)));
+        }
+        key
     }
 }
 
@@ -472,6 +605,15 @@ pub struct ValidationShapeIr {
     pub reifier_shape: Option<String>,
     /// Whether a matching statement must be reified (`sh:reificationRequired`).
     pub reification_required: bool,
+    /// Focus-NODE-level constraints (not on a property path): the `sh:class` / `sh:datatype` /
+    /// `sh:nodeKind` / `sh:not` a focus node itself must satisfy. Populated by the domain /
+    /// range / disjointness readings (`sh:targetSubjectsOf`/`ObjectsOf` + a node-level class).
+    /// Empty by default so existing shapes' content keys are byte-unchanged. Sorted at
+    /// construction.
+    pub node_components: Vec<ConstraintComponent>,
+    /// The `rdfs:label` of the shape (`None` ⇒ none). Carried for byte-parity with the bespoke
+    /// frame renderer and for human-readable shapes. Empty/`None` by default.
+    pub label: Option<String>,
 }
 
 impl ValidationShapeIr {
@@ -493,6 +635,18 @@ impl ValidationShapeIr {
         match &target {
             ShapeTarget::Class(c) if c.trim().is_empty() => {
                 return Err("ValidationShapeIr target class must be a non-empty IRI".to_owned());
+            }
+            ShapeTarget::SubjectsOf(p) if p.trim().is_empty() => {
+                return Err(
+                    "ValidationShapeIr subjects-of target must be a non-empty predicate IRI"
+                        .to_owned(),
+                );
+            }
+            ShapeTarget::ObjectsOf(p) if p.trim().is_empty() => {
+                return Err(
+                    "ValidationShapeIr objects-of target must be a non-empty predicate IRI"
+                        .to_owned(),
+                );
             }
             ShapeTarget::ValueKeyed { predicate, value }
                 if predicate.trim().is_empty() || value.trim().is_empty() =>
@@ -532,7 +686,38 @@ impl ValidationShapeIr {
             standpoint,
             reifier_shape,
             reification_required,
+            node_components: Vec::new(),
+            label: None,
         })
+    }
+
+    /// Attach focus-node-level constraints (`sh:class`/`sh:datatype`/`sh:nodeKind`/`sh:not` on
+    /// the focus node itself, not a path) — the domain / range / disjointness node conditions.
+    /// Chainable; normalizes + sorts the components so supply order never affects identity, and
+    /// leaves the content key byte-identical when the list is empty.
+    pub fn with_node_components(
+        mut self,
+        node_components: Vec<ConstraintComponent>,
+    ) -> Result<Self, String> {
+        let mut node_components = node_components;
+        for component in &mut node_components {
+            component.normalize()?;
+        }
+        node_components.sort_by_cached_key(ConstraintComponent::content_key);
+        self.node_components = node_components;
+        Ok(self)
+    }
+
+    /// Attach an `rdfs:label`. Chainable; leaves the content key byte-identical when unset. A
+    /// blank label is rejected (a required presentation string that says nothing is a
+    /// determinism hazard, not a silent no-op).
+    pub fn with_label(mut self, label: impl Into<String>) -> Result<Self, String> {
+        let label = label.into();
+        if label.trim().is_empty() {
+            return Err("ValidationShapeIr.with_label: label must be non-empty".to_owned());
+        }
+        self.label = Some(label);
+        Ok(self)
     }
 
     /// Stable sort key for canonical ordering — the shape IRI is unique.
@@ -546,17 +731,24 @@ impl ValidationShapeIr {
         self.properties
             .iter()
             .any(|p| p.components.iter().any(ConstraintComponent::is_lossy))
+            || self
+                .node_components
+                .iter()
+                .any(ConstraintComponent::is_lossy)
     }
 
     /// A deterministic full-content key for canonical equality. Public to the crate so
-    /// `LogicProgram::canonical_key` can fold it into the program key at the fixed tail.
+    /// `LogicProgram::canonical_key` can fold it into the program key at the fixed tail. The
+    /// `node_components`/`label` fields are appended at the TAIL and **only when non-default**,
+    /// so a shape without them folds byte-identically to before these fields existed (the
+    /// content-addressed `LogicProgram` key cannot drift for the historical shape corpus).
     pub(crate) fn content_key(&self) -> String {
         let props = key_list(
             self.properties
                 .iter()
                 .map(PropertyConstraintIr::content_key),
         );
-        format!(
+        let mut key = format!(
             "{}{SEP}kind={}{SEP}{}{SEP}sp={}{SEP}reifier={}{SEP}reifreq={}{SEP}PROPS={props}",
             key_field(&self.iri),
             self.node_kind.as_str(),
@@ -564,7 +756,21 @@ impl ValidationShapeIr {
             key_field(self.standpoint.as_deref().unwrap_or("")),
             key_field(self.reifier_shape.as_deref().unwrap_or("")),
             self.reification_required,
-        )
+        );
+        if !self.node_components.is_empty() {
+            key.push_str(&format!(
+                "{SEP}NODECOMPS={}",
+                key_list(
+                    self.node_components
+                        .iter()
+                        .map(ConstraintComponent::content_key)
+                )
+            ));
+        }
+        if let Some(label) = &self.label {
+            key.push_str(&format!("{SEP}label={}", key_field(label)));
+        }
+        key
     }
 }
 
@@ -630,6 +836,191 @@ mod tests {
             x.content_key(),
             y.content_key(),
             "distinct value-keyed targets must not share a content key"
+        );
+    }
+
+    #[test]
+    fn default_presentation_fields_leave_property_key_byte_identical() {
+        // The type-migration / new-field hazard the empty-attach test does NOT catch: a plain
+        // property shape (no inverse path, no severity, no message) must fold to the SAME bytes
+        // the key produced before those fields existed — i.e. the tail markers must be ABSENT.
+        let p = PropertyConstraintIr::new(
+            "https://ex/p",
+            Some(1),
+            Some(1),
+            Some(ConstraintProvenance::OwlRestriction),
+            vec![ConstraintComponent::Class("https://ex/C".into())],
+        )
+        .unwrap();
+        let key = p.content_key();
+        assert!(
+            !key.contains("inverse="),
+            "default key must not carry inverse: {key}"
+        );
+        assert!(
+            !key.contains("sev="),
+            "default key must not carry severity: {key}"
+        );
+        assert!(
+            !key.contains("msg="),
+            "default key must not carry message: {key}"
+        );
+        // And the presentation setters DO perturb the key (falsifiable).
+        assert_ne!(p.content_key(), p.clone().inverted().content_key());
+        assert_ne!(
+            p.content_key(),
+            p.clone()
+                .with_severity(ShaclSeverity::Warning)
+                .content_key()
+        );
+    }
+
+    #[test]
+    fn default_node_components_and_label_leave_shape_key_byte_identical() {
+        // A shape with no node_components and no label must fold to a key with NO NODECOMPS/label
+        // tail — the guarantee that the historical shape corpus's content-addressed key cannot
+        // drift now that these fields exist.
+        let shape = ValidationShapeIr::new(
+            "https://ex/S-shape",
+            ShapeTarget::Class("https://ex/S".into()),
+            vec![
+                PropertyConstraintIr::new(
+                    "https://ex/p",
+                    None,
+                    None,
+                    None,
+                    vec![ConstraintComponent::Class("https://ex/C".into())],
+                )
+                .unwrap(),
+            ],
+            None,
+            None,
+            false,
+        )
+        .unwrap();
+        let key = shape.content_key();
+        assert!(
+            key.ends_with(&format!("PROPS={}", {
+                key_list(
+                    shape
+                        .properties
+                        .iter()
+                        .map(PropertyConstraintIr::content_key),
+                )
+            })),
+            "a plain shape's key must end at PROPS with no NODECOMPS/label tail: {key}"
+        );
+        assert!(!key.contains("NODECOMPS="));
+        assert!(!key.contains("label="));
+        // Attaching a node component / label DOES perturb the key.
+        let with_nc = shape
+            .clone()
+            .with_node_components(vec![ConstraintComponent::Class("https://ex/D".into())])
+            .unwrap();
+        assert_ne!(shape.content_key(), with_nc.content_key());
+        assert!(with_nc.content_key().contains("NODECOMPS="));
+    }
+
+    #[test]
+    fn new_components_round_trip_content_key_and_order_independence() {
+        // HasValue, QualifiedValueShape, and Not all fold deterministically, and a qualified
+        // value shape's inner components are order-independent.
+        let mk = |inner_a: &str, inner_b: &str| {
+            PropertyConstraintIr::new(
+                "https://ex/p",
+                None,
+                None,
+                None,
+                vec![
+                    ConstraintComponent::HasValue(ShapeValue::Iri("https://ex/v".into())),
+                    ConstraintComponent::QualifiedValueShape {
+                        shape: vec![
+                            ConstraintComponent::Class(inner_a.into()),
+                            ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri),
+                            ConstraintComponent::Datatype(inner_b.into()),
+                        ],
+                        min: Some(1),
+                        max: None,
+                    },
+                    ConstraintComponent::Not(Box::new(ConstraintComponent::Class(
+                        "https://ex/Disjoint".into(),
+                    ))),
+                ],
+            )
+            .unwrap()
+        };
+        // Inner shape supplied in two different orders → identical key (order-independence).
+        let x = mk("https://ex/A", "https://ex/dt");
+        let mut reordered = PropertyConstraintIr::new(
+            "https://ex/p",
+            None,
+            None,
+            None,
+            vec![
+                ConstraintComponent::Not(Box::new(ConstraintComponent::Class(
+                    "https://ex/Disjoint".into(),
+                ))),
+                ConstraintComponent::QualifiedValueShape {
+                    shape: vec![
+                        ConstraintComponent::Datatype("https://ex/dt".into()),
+                        ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri),
+                        ConstraintComponent::Class("https://ex/A".into()),
+                    ],
+                    min: Some(1),
+                    max: None,
+                },
+                ConstraintComponent::HasValue(ShapeValue::Iri("https://ex/v".into())),
+            ],
+        )
+        .unwrap();
+        // sanity: normalization made reordered structurally equal to x
+        reordered.message = None;
+        assert_eq!(x.content_key(), reordered.content_key());
+        assert_eq!(x, reordered);
+    }
+
+    #[test]
+    fn has_value_literal_with_datatype_and_lang_is_rejected() {
+        let err = PropertyConstraintIr::new(
+            "https://ex/p",
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::HasValue(ShapeValue::Literal {
+                lexical: "x".into(),
+                datatype: Some("https://ex/dt".into()),
+                lang: Some("en".into()),
+            })],
+        )
+        .unwrap_err();
+        assert!(err.contains("XOR"), "got: {err}");
+    }
+
+    #[test]
+    fn new_targets_and_qualified_shape_are_lossy_transparent() {
+        // A Not wrapping a lossy inner is lossy; a QualifiedValueShape over lossy inner is lossy.
+        let not_pattern = ConstraintComponent::Not(Box::new(ConstraintComponent::Pattern {
+            regex: "a".into(),
+            flags: None,
+        }));
+        assert!(not_pattern.is_lossy());
+        let qvs_clean = ConstraintComponent::QualifiedValueShape {
+            shape: vec![ConstraintComponent::Class("https://ex/C".into())],
+            min: Some(1),
+            max: None,
+        };
+        assert!(!qvs_clean.is_lossy());
+        // Subjects-of / objects-of targets validate their predicate.
+        assert!(
+            ValidationShapeIr::new(
+                "https://ex/s",
+                ShapeTarget::SubjectsOf("  ".into()),
+                vec![],
+                None,
+                None,
+                false,
+            )
+            .is_err()
         );
     }
 

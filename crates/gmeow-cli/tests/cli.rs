@@ -138,13 +138,21 @@ fn validate_fail_file_json_is_well_formed() {
     let text = String::from_utf8(output).expect("utf-8 json");
     let parsed: serde_json::Value = serde_json::from_str(&text).expect("valid JSON report");
     let findings = parsed["findings"].as_array().expect("findings array");
-    assert_eq!(findings.len(), 3, "two errors + one warning: {findings:?}");
+    // The closed-world validation-shape derivation adds disjointness shapes, so
+    // fail.nq trips 4 errors + 1 warning: the original P9 disjointness
+    // (IdentityAxisDisjointnessConstraintShape), the P17 sh:not pair
+    // (Honorific-shape / PronounSet-shape), the under-mediated Commitment
+    // (CommitmentShape), and the frame-relativity warning
+    // (EventFrameRequirementShape). rdfs:domain/range are open-world by default
+    // (inference axioms, no ClosedWorldClosure opt-in), so no domain/range shape
+    // fires.
+    assert_eq!(findings.len(), 5, "four errors + one warning: {findings:?}");
     let errors = findings.iter().filter(|f| f["severity"] == "error").count();
     let warnings = findings
         .iter()
         .filter(|f| f["severity"] == "warning")
         .count();
-    assert_eq!(errors, 2, "{findings:?}");
+    assert_eq!(errors, 4, "{findings:?}");
     assert_eq!(warnings, 1, "{findings:?}");
 }
 
@@ -165,7 +173,7 @@ fn validate_fail_file_sarif_is_well_formed() {
     let results = sarif["runs"][0]["results"]
         .as_array()
         .expect("sarif results array");
-    assert_eq!(results.len(), 3, "two errors + one warning");
+    assert_eq!(results.len(), 5, "four errors + one warning");
 }
 
 #[test]
