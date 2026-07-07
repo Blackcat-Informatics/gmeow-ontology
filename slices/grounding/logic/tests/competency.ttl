@@ -185,7 +185,7 @@ ex:cqKeystoneNoCrossTypeSuperpropertyShape a logic:ResultShape ;
 # back-link (logic:candidateFormalizes + logic:candidateSourceField) ties a
 # harvested axiom to the exact prose it formalized: the term, the prose field
 # kind, and the annotation property that field stands for. Over the production
-# ontology (the merged logic module, no synthetic data file) exactly eighteen accepted
+# ontology (the merged logic module, no synthetic data file) exactly twenty-four accepted
 # candidates carry the full back-link:
 #   - logic:candidateProperPartOfAsymmetric   (formalizing logic:properPartOf,   skos:definition)
 #   - logic:candidateFunctionalComplexKindDisjoint (formalizing logic:FunctionalComplex, skos:definition)
@@ -205,9 +205,15 @@ ex:cqKeystoneNoCrossTypeSuperpropertyShape a logic:ResultShape ;
 #   - logic:candidateCounterpartNonTransitive  (formalizing gmeow:counterpartOf,   skos:definition)
 #   - logic:candidateFrameRelativity           (formalizing logic:referenceFrame,  skos:definition)
 #   - logic:candidateNoOverTyping              (formalizing logic:MixIden,         skos:definition)
+#   - logic:candidateGateFatalVerdict          (formalizing gmeow:findingGateVerdict, skos:definition)
+#   - logic:candidateFindingTraces             (formalizing gmeow:findingAntecedent, skos:definition)
+#   - logic:candidateFindingRootCause          (formalizing gmeow:findingRootCause, skos:definition)
+#   - logic:candidateFindingCluster            (formalizing gmeow:FindingCluster,  skos:definition)
+#   - logic:candidateCrossNodeGlut             (formalizing gmeow:findingAnchor,   skos:definition)
+#   - logic:candidateDiagnosticMetaExtensibility (formalizing gmeow:DiagnosticMetaRule, skos:definition)
 # The foundational-partition candidates for Event/Situation and the two class
 # coverings (Entity, Object) carry NO harvest back-link and therefore do not appear
-# here. This set demonstrates both prose-field kinds: sixteen sourced from a
+# here. This set demonstrates both prose-field kinds: twenty-two sourced from a
 # logic:ProseFieldDefinition (skos:definition) and two from a logic:ProseFieldAvoidWhen
 # (gmeow:avoidWhen).
 

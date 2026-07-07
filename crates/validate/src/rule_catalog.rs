@@ -610,19 +610,26 @@ pub fn remediation_for(code: &str) -> Option<&'static str> {
     if codes::ALL_CODES.contains(&code) {
         return None;
     }
-    for (prefix, _, _) in FAMILY_PREFIXES {
-        if code.starts_with(prefix)
-            && let Some((_, prose)) = REMEDIATIONS.iter().find(|(c, _)| c == prefix)
-        {
-            return Some(prose);
-        }
+    // Resolve to the FIRST matching family, mirroring `classify` /
+    // `catalog_anchor_uri` precedence exactly (prefix families win over suffix
+    // families, first match wins). Once a family matches it is authoritative:
+    // return that family's remediation, or `None` if the family has none (an
+    // honest absence, e.g. the `advice.` family). We must NOT continue scanning to
+    // a later family once the first has matched — doing so would let an
+    // allowlisted advisory code like `advice.foo-dsl.nonconforming` skip its own
+    // (remediation-less) `advice.` family and pick up unrelated SHACL fix text
+    // from the `-dsl.nonconforming` suffix family.
+    if let Some((prefix, _, _)) = FAMILY_PREFIXES.iter().find(|(p, _, _)| code.starts_with(p)) {
+        return REMEDIATIONS
+            .iter()
+            .find(|(c, _)| c == prefix)
+            .map(|(_, prose)| *prose);
     }
-    for (suffix, _, _) in FAMILY_SUFFIXES {
-        if code.ends_with(suffix)
-            && let Some((_, prose)) = REMEDIATIONS.iter().find(|(c, _)| c == suffix)
-        {
-            return Some(prose);
-        }
+    if let Some((suffix, _, _)) = FAMILY_SUFFIXES.iter().find(|(s, _, _)| code.ends_with(s)) {
+        return REMEDIATIONS
+            .iter()
+            .find(|(c, _)| c == suffix)
+            .map(|(_, prose)| *prose);
     }
     None
 }
