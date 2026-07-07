@@ -1,0 +1,7 @@
+{
+  "slug": "webont-description-logic-641",
+  "native_verdict": "incomplete",
+  "w3c_published_verdict": "inconsistent",
+  "lane": "divergence",
+  "reason": "native Horn/EL/DL-clash chase honestly withholds (non-empty DlVerdict.gaps): the case's (in)consistency turns on reasoning-by-contradiction or premise ingestion the native path does not perform"
+}
