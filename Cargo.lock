@@ -2037,6 +2037,7 @@ dependencies = [
 name = "gmeow-music"
 version = "0.1.0"
 dependencies = [
+ "gmeow-errors",
  "purrdf",
  "pyo3",
  "roxmltree",

@@ -34,6 +34,7 @@ pub mod ledger;
 pub mod lower;
 pub mod model;
 pub mod project;
+pub mod pyerr;
 pub mod rdf;
 pub mod render;
 
@@ -59,6 +60,7 @@ pub use ledger::{
 pub use model::{
     DiagnosticAttribution, Finding, FindingCategory, Location, RelatedLabel, Report, Rule, Severity,
 };
+pub use pyerr::{PyErrKind, pyerr_kind};
 pub use rdf::severity_from_rdf;
 // Re-export the module-registration entrypoint so the unified `gmeow_native`
 // cdylib can populate the `gmeow_native.diagnostics` submodule.

@@ -932,15 +932,44 @@ struct NativeReasonArtifacts {
 }
 
 fn map_native_reason_error(err: NativeReasonPyError) -> PyErr {
-    match err {
-        NativeReasonPyError::GtsRead(m) => pyo3::exceptions::PyValueError::new_err(m),
-        NativeReasonPyError::Reason(m) => {
-            pyo3::exceptions::PyRuntimeError::new_err(format!("reason error: {m}"))
-        }
-        NativeReasonPyError::Verify(m) => {
-            pyo3::exceptions::PyRuntimeError::new_err(format!("verify error: {m}"))
-        }
-    }
+    use gmeow_errors::code::foreign_code;
+    use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint};
+    // Funnel every variant through the ONE `Diag` → `PyErr` bridge. Each
+    // constructed diagnostic's grade reproduces the exception CLASS its variant
+    // has always surfaced, so observable behavior is unchanged: a GTS read/parse
+    // failure is a value/data problem (`DataShapeViolation` → `ValueError`); a
+    // reasoning or verification failure is a runtime contradiction
+    // (`ContradictionWitness` → `RuntimeError`).
+    let diag = match err {
+        NativeReasonPyError::GtsRead(m) => Diag::new(
+            foreign_code(),
+            Grade::new(
+                Severity::Error,
+                FindingCategory::DataShapeViolation,
+                Standpoint::Binding,
+            ),
+            m,
+        ),
+        NativeReasonPyError::Reason(m) => Diag::new(
+            foreign_code(),
+            Grade::new(
+                Severity::Error,
+                FindingCategory::ContradictionWitness,
+                Standpoint::Binding,
+            ),
+            format!("reason error: {m}"),
+        ),
+        NativeReasonPyError::Verify(m) => Diag::new(
+            foreign_code(),
+            Grade::new(
+                Severity::Error,
+                FindingCategory::ContradictionWitness,
+                Standpoint::Binding,
+            ),
+            format!("verify error: {m}"),
+        ),
+    };
+    gmeow_errors::py::diag_to_pyerr(&diag)
 }
 
 fn native_reason_payload(bytes: Vec<u8>) -> Result<NativeReasonPayload, NativeReasonPyError> {

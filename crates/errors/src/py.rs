@@ -6,11 +6,41 @@
 use std::fs;
 use std::path::PathBuf;
 
+use pyo3::exceptions::{PyOSError, PyRuntimeError, PyRuntimeWarning, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
 
+use crate::code::code_str;
+use crate::diag::Diag;
 use crate::model::{Finding, Location, Report, Severity};
+use crate::pyerr::{PyErrKind, pyerr_kind};
 use crate::render;
+
+/// The ONE `Diag` → [`PyErr`] contract.
+///
+/// Total and deterministic over the grade lattice: the exception class is chosen
+/// by the pure [`pyerr_kind`] decision (exhaustively verified without a Python
+/// runtime in [`crate::pyerr`]), with a single content-level refinement — a
+/// diagnostic that still carries a live `std::io::Error` source keeps the
+/// `OSError` class every filesystem failure has always surfaced as, which the
+/// grade alone cannot express. The diagnostic's `code` and message are folded
+/// into the exception text in a fixed `[code] message` shape, so two diagnostics
+/// with the same content produce byte-identical exception strings. This replaces
+/// the per-crate ad-hoc `Result<_, String>` → `PyErr` mappers with a single
+/// funnel, so there is exactly one Diag→PyErr path across the whole extension.
+pub fn diag_to_pyerr(diag: &Diag) -> PyErr {
+    let message = format!("[{}] {}", code_str(diag.code()), diag.message());
+    // A live OS/filesystem error keeps the `OSError` class every I/O failure has
+    // always surfaced as — a content refinement the grade alone cannot carry.
+    if diag.downcast_ref::<std::io::Error>().is_some() {
+        return PyOSError::new_err(message);
+    }
+    match pyerr_kind(&diag.grade()) {
+        PyErrKind::Value => PyValueError::new_err(message),
+        PyErrKind::Runtime => PyRuntimeError::new_err(message),
+        PyErrKind::Warning => PyRuntimeWarning::new_err(message),
+    }
+}
 
 #[pyclass(name = "Finding", skip_from_py_object)]
 #[derive(Clone)]

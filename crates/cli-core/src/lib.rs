@@ -25,7 +25,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use gmeow_errors::render;
-use gmeow_errors::{Finding, Report};
+use gmeow_errors::{Diag, DiagLedger, Finding, Report, StageId};
 use serde::Serialize;
 
 /// The output surface a CLI run presents on, resolved once at startup.
@@ -438,6 +438,32 @@ impl Reporter for NdjsonReporter {
     }
 }
 
+/// Lower a single [`Diag`] to a one-finding [`Report`] WITHOUT a pipeline carrier.
+///
+/// A CLI or config error can arise *before* any pipeline carrier (and its
+/// [`DiagLedger`]) exists — yet it must still be emitted as the same graded
+/// witness a mid-pipeline finding is, not a bare string. The canonical
+/// Diag→Finding lowering lives on the ledger projection
+/// ([`DiagLedger::project_report`]), so this constructor stands up a fresh local
+/// ledger, attaches the one diagnostic stamped with the emitting `tool` as its
+/// stage, and returns the projected, normalized report. The single diagnostic
+/// keeps its grade, so [`Report::ok`] / [`exit_code`] read the same gate a
+/// carrier-borne finding would.
+pub fn report_diag(diag: Diag, tool: &str) -> Report {
+    let mut ledger = DiagLedger::new();
+    ledger.attach(diag, StageId::new(tool));
+    ledger.project_report(tool).normalized()
+}
+
+/// Emit one pre-carrier [`Diag`] through `reporter` and return the process exit
+/// code it maps to — the one-call CLI/config-error path built on
+/// [`report_diag`] and [`exit_code`].
+pub fn emit_and_exit(reporter: &dyn Reporter, diag: Diag, tool: &str) -> i32 {
+    let report = report_diag(diag, tool);
+    reporter.report(&report);
+    exit_code(&report)
+}
+
 /// The process exit code a report maps to: `0` when the report is clean
 /// ([`Report::ok`]), else `1`.
 ///
@@ -523,5 +549,41 @@ mod tests {
         let mut failed = Report::new("t");
         failed.add_finding(Finding::new(gmeow_errors::Severity::Error, "x", "boom"));
         assert_eq!(exit_code(&failed), 1);
+    }
+
+    #[test]
+    fn report_diag_of_an_error_grade_gates() {
+        // An Error-grade pre-carrier Diag lowers to a report that is NOT ok and
+        // exits 1 — the same gate a carrier-borne Error finding hits.
+        use gmeow_errors::grade::{FindingCategory, Grade, Severity, Standpoint};
+        let code = gmeow_errors::code::register_code("test.cli-core.pre-carrier.error");
+        let diag = Diag::new(
+            code,
+            Grade::new(
+                Severity::Error,
+                FindingCategory::ModelingDisciplineViolation,
+                Standpoint::Binding,
+            ),
+            "config could not be resolved",
+        );
+        let report = report_diag(diag, "gmeow");
+        assert!(!report.ok());
+        assert_eq!(report.error_count(), 1);
+        assert_eq!(exit_code(&report), 1);
+    }
+
+    #[test]
+    fn report_diag_of_transient_chatter_is_clean() {
+        // A Note/Info Transient chatter Diag lowers to an ok report and exits 0 —
+        // chatter never gates.
+        let code = gmeow_errors::code::register_code("test.cli-core.pre-carrier.note");
+        let report = report_diag(Diag::note(code, "just narrating progress"), "gmeow");
+        assert!(report.ok());
+        assert_eq!(exit_code(&report), 0);
+
+        let info_code = gmeow_errors::code::register_code("test.cli-core.pre-carrier.info");
+        let info_report = report_diag(Diag::info(info_code, "low-severity witness"), "gmeow");
+        assert!(info_report.ok());
+        assert_eq!(exit_code(&info_report), 0);
     }
 }
