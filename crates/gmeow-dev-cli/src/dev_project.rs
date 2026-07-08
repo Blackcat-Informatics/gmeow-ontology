@@ -7,7 +7,7 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use crate::dev_common::{fail, fail_code, project_root, snapshot_bytes};
+use crate::dev_common::{emit_error, fail, fail_code, note, project_root, snapshot_bytes};
 
 /// `gmeow-dev describe TERM [--gts --lang]` — render one term card.
 pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
@@ -29,7 +29,7 @@ pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
     if code == 0 {
         println!("{text}");
     } else {
-        eprintln!("{text}");
+        emit_error("gmeow-dev.describe.error", text);
     }
     code
 }
@@ -122,9 +122,15 @@ pub fn temporal(
     let query_dir = root.join("slices/core/temporal/queries/tql");
     let queries = gmeow_pipeline::cli_ops::temporal::temporal_queries();
     if !queries.contains_key(query) {
-        eprintln!("unknown TQL query {query:?}. Available:");
+        note(
+            "gmeow-dev.temporal.available",
+            format!("unknown TQL query {query:?}. Available:"),
+        );
         for (name, q) in &queries {
-            eprintln!("  {name:<20} {}", q.summary);
+            note(
+                "gmeow-dev.temporal.available",
+                format!("  {name:<20} {}", q.summary),
+            );
         }
         return fail(format!("unknown TQL query {query:?}"));
     }
@@ -231,7 +237,7 @@ pub fn crossref() -> i32 {
         Ok(problems) if problems.is_empty() => {}
         Ok(problems) => {
             for p in &problems {
-                eprintln!("doi-lint {p}");
+                note("gmeow-dev.crossref.doi-lint", format!("doi-lint {p}"));
             }
             return fail(format!("{} doi-lint problem(s)", problems.len()));
         }
@@ -362,7 +368,7 @@ pub fn up_projection_audit(report_path: Option<&Path>, show_gaps: bool) -> i32 {
     println!("gaps {} distinct terms", ledger.gaps.len());
     if show_gaps {
         for term in &ledger.gaps {
-            eprintln!("gap {term}");
+            note("gmeow-dev.up-projection-audit.gap", format!("gap {term}"));
         }
     }
     0
@@ -446,7 +452,12 @@ pub fn refresh_target_axioms(target: &str) -> i32 {
     if selected.is_empty() {
         // A named target that is not IMPORT_OK is skipped with a clear note, never
         // vendored (reference-only targets are fetched live at lint time).
-        eprintln!("skip {target}: not an IMPORT_OK vendorable target (reference-only or unknown)");
+        note(
+            "gmeow-dev.refresh-target-axioms.skip",
+            format!(
+                "skip {target}: not an IMPORT_OK vendorable target (reference-only or unknown)"
+            ),
+        );
         return 0;
     }
     let mut written = 0usize;

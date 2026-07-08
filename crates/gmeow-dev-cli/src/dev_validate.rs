@@ -14,11 +14,12 @@
 use std::collections::{BTreeSet, HashSet};
 use std::path::Path;
 
-use gmeow_errors::render;
 use gmeow_validate::lint::{LintConfig, default_annotation_predicates};
 use gmeow_validate::validate_all::{SignatureConfig, ValidateOptions, ValidationRun};
 
-use crate::dev_common::{NAMESPACE, ONTOLOGY_IRI, fail, project_root, write_timings_json};
+use crate::dev_common::{
+    NAMESPACE, ONTOLOGY_IRI, emit_report, fail, project_root, write_timings_json,
+};
 
 /// `gmeow-dev validate [--gts --trust-policy --require-signed --trusted-key --deep …]`.
 #[allow(clippy::too_many_arguments)]
@@ -98,10 +99,7 @@ pub fn validate(
     };
     let report = run.report;
 
-    let text = render::to_text(&report.normalized());
-    if !text.trim().is_empty() {
-        eprintln!("{text}");
-    }
+    emit_report(&report);
     if let Some(path) = timings_json {
         let payload = serde_json::json!({
             "command": "validate",

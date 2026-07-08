@@ -21,7 +21,7 @@ use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::projections::compile_program;
 use gmeow_pipeline::run::{RunMode, run_full};
 
-use crate::dev_common::{LOGIC_DRIFT_PREFIXES, fail, project_root};
+use crate::dev_common::{LOGIC_DRIFT_PREFIXES, fail, note, project_root};
 
 /// One resolved answer binding, `var → canonical-value`, plus an optional weight.
 struct Answer {
@@ -185,7 +185,10 @@ fn render_query(answers: &[Answer], status: &str, as_json: bool) -> i32 {
             }
         }
     }
-    eprintln!("{} answer(s); status={status}", answers.len());
+    note(
+        "gmeow-dev.logic-query.status",
+        format!("{} answer(s); status={status}", answers.len()),
+    );
     0
 }
 
@@ -234,7 +237,7 @@ pub fn compile(check: bool, mode: Option<&str>) -> i32 {
             let mut sorted = drift.clone();
             sorted.sort();
             for rel in sorted {
-                eprintln!("drift {rel}");
+                note("gmeow-dev.logic-compile.drift", format!("drift {rel}"));
             }
             return fail(format!(
                 "{} logic artifact(s) out of date — run `gmeow-dev logic compile`",
@@ -303,7 +306,10 @@ fn compile_one_mode(root: &Path, mode: &str, check: bool) -> i32 {
         Err(e) => return fail(format!("logic: parse failed: {}", e.0)),
     };
     for d in &diagnostics {
-        eprintln!("{} [{}] {}", d.severity.as_str(), d.code, d.message);
+        note(
+            "gmeow-dev.logic-compile.diagnostic",
+            format!("{} [{}] {}", d.severity.as_str(), d.code, d.message),
+        );
     }
     // Discharge every authored correspondence's lens law by EXECUTION so the five
     // correspondence gates inside `compile_program` read a real per-correspondence verdict.
@@ -330,7 +336,7 @@ fn compile_one_mode(root: &Path, mode: &str, check: bool) -> i32 {
     if check {
         let committed = std::fs::read_to_string(&target).unwrap_or_default();
         if &committed != content {
-            eprintln!("drift {rel}");
+            note("gmeow-dev.logic-compile.drift", format!("drift {rel}"));
             return fail(format!("--mode {mode}: committed artifact drifted"));
         }
         println!("--mode {mode}: no drift");
