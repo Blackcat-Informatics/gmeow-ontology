@@ -87,8 +87,8 @@ impl ValidationCache {
     /// Mirrors Python `generator.source_hash`: paths are resolved and sorted,
     /// then each contributes its path (relative to the project root when
     /// possible), file size, and raw content to a SHA-256 hash. Missing paths
-    /// are skipped with a warning to stderr rather than failing, matching the
-    /// Python lenient behavior.
+    /// are skipped with a `tracing` warning rather than failing, matching the
+    /// lenient behavior.
     pub fn files_cache_key(&self, paths: &[PathBuf]) -> Result<String, String> {
         Self::files_cache_key_with_root(paths, &self.project_root)
     }
@@ -103,7 +103,11 @@ impl ValidationCache {
         sorted.sort();
         for path in sorted {
             if !path.exists() {
-                eprintln!("validation cache input missing: {}", path.display());
+                tracing::warn!(
+                    target: "validation_cache",
+                    path = %path.display(),
+                    "validation cache input missing; skipping",
+                );
                 continue;
             }
             let rel = if let Ok(r) = path.strip_prefix(root) {

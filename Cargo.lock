@@ -1868,6 +1868,7 @@ name = "gmeow-conformance"
 version = "0.1.0"
 dependencies = [
  "datatest-stable",
+ "gmeow-cli-core",
  "gmeow-errors",
  "gmeow-license",
  "gmeow-logic",
@@ -2013,6 +2014,7 @@ dependencies = [
 name = "gmeow-lsp"
 version = "0.1.0"
 dependencies = [
+ "gmeow-cli-core",
  "gmeow-errors",
  "gmeow-logic",
  "gmeow-logic-compile",
@@ -2090,6 +2092,7 @@ dependencies = [
  "sha1",
  "sha2",
  "tempfile",
+ "tracing",
  "ureq",
 ]
 
@@ -2107,6 +2110,10 @@ dependencies = [
 [[package]]
 name = "gmeow-test-budget"
 version = "0.1.0"
+dependencies = [
+ "gmeow-cli-core",
+ "gmeow-errors",
+]
 
 [[package]]
 name = "gmeow-validate"
@@ -2133,6 +2140,7 @@ dependencies = [
  "sha2",
  "tempfile",
  "toml",
+ "tracing",
  "ureq",
 ]
 

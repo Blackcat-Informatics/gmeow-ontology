@@ -82,6 +82,21 @@ use gmeow_license::{LicensePolicy, policy_for_license};
 use gmeow_logic::foundation::{AntiRigidityPolicy, FoundationQuad};
 use purrdf::TermRef;
 
+/// Route a Transient disclosure witness (never gating) through the shared console
+/// sink — human text on stderr, an NDJSON `finding` line for agents, dropped by a
+/// silent sink. The grading lanes print their runner verdict / N-Quads product on
+/// stdout, so these capability-gap and license disclosures default to the stderr
+/// surface (maximal information flow, never a silent pass).
+fn note(code: &str, message: impl Into<String>) {
+    let mode = gmeow_cli_core::ConsoleMode::resolve_stderr_default(
+        None,
+        std::env::var("GMEOW_CONSOLE").ok().as_deref(),
+        std::io::IsTerminal::is_terminal(&std::io::stderr()),
+    );
+    let reporter = gmeow_cli_core::reporter_for(mode);
+    gmeow_cli_core::note(reporter.as_ref(), "ingest-external", code, message);
+}
+
 const USAGE: &str = "\
 usage:
   ingest-external --szs <problem.p> [--world <iri> --quads <n>]
@@ -1503,7 +1518,10 @@ fn grade_tptp_corpus(problem_dir: &Path, corpus_name: &str, out_nq: &Path) -> Re
             Ok(formulas) => match lower_and_decide(&formulas, &world) {
                 Ok((outcome, _)) => outcome.verdict_status().as_str().to_string(),
                 Err(gap) => {
-                    eprintln!("{}: capability gap: {}", problem.display(), gap.reason);
+                    note(
+                        "gmeow-conformance.ingest.capability-gap",
+                        format!("{}: capability gap: {}", problem.display(), gap.reason),
+                    );
                     capability_gaps += 1;
                     "incomplete".to_string()
                 }
@@ -1512,9 +1530,12 @@ fn grade_tptp_corpus(problem_dir: &Path, corpus_name: &str, out_nq: &Path) -> Re
                 return Err(format!("{}: malformed TPTP: {m}", problem.display()));
             }
             Err(TptpError::Unsupported(m)) => {
-                eprintln!(
-                    "{}: capability gap (out of fragment): {m}",
-                    problem.display()
+                note(
+                    "gmeow-conformance.ingest.capability-gap",
+                    format!(
+                        "{}: capability gap (out of fragment): {m}",
+                        problem.display()
+                    ),
                 );
                 capability_gaps += 1;
                 "incomplete".to_string()
@@ -1670,9 +1691,15 @@ fn grade_ontouml_corpus(
                     LicensePolicy::ImportOk => "ImportOk",
                     LicensePolicy::ReferenceOnly => "ReferenceOnly",
                 };
-                eprintln!("LICENSE {}: {license} → {policy}", model_path.display());
+                note(
+                    "gmeow-conformance.ingest.license",
+                    format!("LICENSE {}: {license} → {policy}", model_path.display()),
+                );
             }
-            None => eprintln!("LICENSE {}: unknown", model_path.display()),
+            None => note(
+                "gmeow-conformance.ingest.license",
+                format!("LICENSE {}: unknown", model_path.display()),
+            ),
         }
 
         let text = std::fs::read_to_string(model_path)
@@ -1701,9 +1728,12 @@ fn grade_ontouml_corpus(
                 return Err(format!("{}: malformed OntoUML: {m}", model_path.display()));
             }
             Err(OntoumlError::Unsupported(reason)) => {
-                eprintln!(
-                    "{}: capability gap (out of fragment): {reason}",
-                    model_path.display()
+                note(
+                    "gmeow-conformance.ingest.capability-gap",
+                    format!(
+                        "{}: capability gap (out of fragment): {reason}",
+                        model_path.display()
+                    ),
                 );
                 capability_gaps += 1;
                 comparisons.push(gmeow_logic::reason::ExternalComparison {
@@ -1729,7 +1759,10 @@ fn grade_ontouml_corpus(
                 ));
             }
             Err(OntoumlError::Unsupported(reason)) => {
-                eprintln!("{}: capability gap: {reason}", model_path.display());
+                note(
+                    "gmeow-conformance.ingest.capability-gap",
+                    format!("{}: capability gap: {reason}", model_path.display()),
+                );
                 capability_gaps += 1;
                 "incomplete".to_string()
             }
