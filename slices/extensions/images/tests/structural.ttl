@@ -50,7 +50,6 @@
 #   test_media_object_missing_colourspace_warns_shacl -- SHACL validation call;
 #     warning-text assertion, not a structural TBox invariant.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/images/tests/> .

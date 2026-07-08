@@ -42,7 +42,6 @@
 #   test_notes_as_projection_executable -- same reason.
 #   test_notes_markdown_projection_executable -- same reason.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/notes/tests/> .

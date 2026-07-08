@@ -13,8 +13,7 @@
 # test_no_aboutness_truth_bridge assert ABSENCE over the whole merged graph
 # across axes (gmeow:confidence, gmeow:hasGranularity, …) and a seed
 # (gmeow:aboutnessEnacts) that are also declared/used in 10+ other slices, so
-# they cannot be faithfully reduced to module scope and are RETAINED in pytest
-# (see dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping).
+# they cannot be faithfully reduced to module scope.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/kernel/tests/> .

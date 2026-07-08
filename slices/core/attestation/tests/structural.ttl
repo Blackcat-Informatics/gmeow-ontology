@@ -22,7 +22,6 @@
 #   test_all_fixture_files_load -- iterates over 6 fixture files and calls
 #     SHACL validation on each; ExampleConformance, not a structural TBox assertion.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/attestation/tests/> .

@@ -111,7 +111,6 @@ Related packages:
 - `gmeow-shacl` — Rust SHACL Core validator
 - `gmeow-logic` — world-indexed reasoning engine (Rust)
 - `gmeow-gts` — Graph Transport Substrate format engine (Rust)
-- Python oracle: `src/gmeow_tools/` (PyPI: `gmeow`)
 
 ---
 

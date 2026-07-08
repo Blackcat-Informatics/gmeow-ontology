@@ -54,7 +54,6 @@
 #     gmeow:roleAttendee are defined in this events module, so the cell now lives
 #     here as ex:saOrganizerAndAttendeeRolesExist.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/events/tests/> .
