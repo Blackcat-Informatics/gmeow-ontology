@@ -230,7 +230,7 @@ DOCTRINE.
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Declarative constraint axioms (#1194 WAVE 2 — core slices) — the closed-world
+# Declarative constraint axioms (core slices) — the closed-world
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
 # NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
@@ -238,7 +238,7 @@ DOCTRINE.
 # owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
 # sh:datatype property shape. The cross-node / value-range / disjunctive
 # (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL
-# antecedent and remain the procedural fragment (Task 6).
+# antecedent and remain the procedural fragment .
 # =========================================================================== #
 
 gmeow:Teaching rdfs:subClassOf

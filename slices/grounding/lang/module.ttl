@@ -3806,14 +3806,14 @@ gmeow:gmnCodebookCurrent gmeow:references
     gmeow:leipzigGlossingRules .
 
 # =========================================================================== #
-# Declarative constraint axioms (#1194 WAVE 1) — the closed-world presence /
+# Declarative constraint axioms (grounding slices) — the closed-world presence /
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
 # NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl (Principle 17). A restriction that
 # carries owl:allValuesFrom owl:Thing projects to sh:nodeKind sh:BlankNodeOrIRI
 # (the "a present value is a resource, not a literal" obligation). The
 # cross-node / value-set / targetSubjectsOf conditions have no OWL antecedent
-# and remain the procedural sh:sparql shapes (the Task-6 fragment).
+# and remain the procedural sh:sparql constraint fragment.
 # =========================================================================== #
 
 lang:Form rdfs:subClassOf

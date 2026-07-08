@@ -11,9 +11,16 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
+# The identity-axis value individuals, each typed to its axis value class.
+gmeow:genderNonBinary a gmeow:Gender .
+gmeow:genderMan a gmeow:Gender .
+gmeow:expressionAndrogynous a gmeow:GenderExpressionStyle .
+gmeow:orientBisexual a gmeow:SexualOrientationValue .
+gmeow:romanticBiromantic a gmeow:RomanticOrientationValue .
+
 # --- A person with one well-formed facet on each axis ----------------------- #
 
-ex:dana a gmeow:Person ;
+ex:dana a gmeow:Person , gmeow:Entity ;
     gmeow:hasGenderIdentity ex:danaGi ;
     gmeow:hasGenderExpression ex:danaExpr ;
     gmeow:hasSexualOrientation ex:danaSexual ;
@@ -54,5 +61,5 @@ ex:danaUsage a gmeow:NameUsage ;
     gmeow:usageNamed ex:dana ;
     gmeow:usageAppellation ex:danaName .
 
-ex:danaName a gmeow:PersonName ;
+ex:danaName a gmeow:PersonName , gmeow:Appellation ;
     gmeow:fullName "Dana Example" .

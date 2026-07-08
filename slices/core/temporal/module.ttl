@@ -1434,7 +1434,7 @@ gmeow:validUntil
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Declarative constraint axioms (#1194 WAVE 2 — core slices) — the closed-world
+# Declarative constraint axioms (core slices) — the closed-world
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
 # NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
@@ -1442,10 +1442,15 @@ gmeow:validUntil
 # owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
 # sh:datatype property shape. The cross-node / value-range / disjunctive
 # (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL
-# antecedent and remain the procedural fragment (Task 6).
+# antecedent and remain the procedural fragment .
 # =========================================================================== #
 
 gmeow:TemporalFrame rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:frameTimeScale ; owl:cardinality 1 ; owl:allValuesFrom gmeow:TimeScale ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:frameRealm ; owl:cardinality 1 ; owl:allValuesFrom gmeow:FrameRealm ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:frameKind ; owl:cardinality 1 ; owl:allValuesFrom gmeow:FrameKind ] .
+
+# Closed-world cardinality axiom backing the hand-authored core observation
+# method well-formedness shape (a temporal measurement records exactly one method).
+gmeow:TemporalMeasurement rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:cardinality 1 ; owl:allValuesFrom gmeow:ObservationMethod ] .

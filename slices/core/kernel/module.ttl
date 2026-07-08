@@ -863,7 +863,7 @@ vann:preferredNamespaceUri
     a owl:AnnotationProperty .
 
 # =========================================================================== #
-# Declarative constraint axioms (#1194 WAVE 2 — core slice) — the consumer-
+# Declarative constraint axioms (core slice) — the consumer-
 # advisory RANGE shapes (gmeow:useForConsumer / gmeow:avoidForConsumer must
 # point at a declared gmeow:ProjectionContext individual). rdfs:range is an
 # OPEN-WORLD inference axiom, so its closed-world validation reading is derived

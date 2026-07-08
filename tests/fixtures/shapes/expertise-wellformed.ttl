@@ -7,15 +7,18 @@
 ex:alice a gmeow:Agent .
 ex:python a gmeow:Skill .
 
+gmeow:dreyfusExpert a gmeow:ProficiencyLevel .
+gmeow:scaleDreyfus a gmeow:ProficiencyScale .
+
 ex:alicePython a gmeow:SkillProficiency ;
     gmeow:skillProficiencyAgent ex:alice ;
     gmeow:skillProficiencyOf ex:python ;
     gmeow:skillProficiencyLevel gmeow:dreyfusExpert ;
     gmeow:skillProficiencyScale gmeow:scaleDreyfus .
 
-ex:amazon a gmeow:Organization .
+ex:amazon a gmeow:Organization , gmeow:Agent .
 
-ex:awsCert a gmeow:Credential ;
+ex:awsCert a gmeow:Credential , gmeow:Entity ;
     gmeow:credentialIssuer ex:amazon ;
     gmeow:credentialFor ex:python ;
     gmeow:validUntil "2027-06-01T00:00:00"^^xsd:dateTime .

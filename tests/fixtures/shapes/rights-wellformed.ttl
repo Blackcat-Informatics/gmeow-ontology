@@ -8,8 +8,8 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
-ex:work a gmeow:MediaObject ; rdfs:label "A work"@en .
-ex:alice a gmeow:Person ; rdfs:label "Alice"@en .
+ex:work a gmeow:MediaObject , gmeow:Entity , gmeow:InformationObject ; rdfs:label "A work"@en .
+ex:alice a gmeow:Person , gmeow:Agent ; rdfs:label "Alice"@en .
 
 ex:rights a gmeow:RightsStatement ;
     gmeow:statementAbout ex:work ;

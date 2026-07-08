@@ -2050,3 +2050,25 @@ _:b0
 _:b1
     a owl:AllDisjointClasses ;
     owl:members ( gmeow:AtomicConstraint gmeow:LogicalConstraint ) .
+
+# Closed-world cardinality axioms backing the hand-authored SHACL well-formedness
+# shapes for the rights relators (the OWL antecedent the validation-shape
+# projection reads; procedural range/suppression checks stay in the shape layer).
+gmeow:RightsStatement rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:statementAbout ; owl:cardinality 1 ] .
+
+gmeow:Permission rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:cardinality 1 ] .
+
+gmeow:Prohibition rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:cardinality 1 ] .
+
+gmeow:Duty rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:cardinality 1 ] .
+
+gmeow:License rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:licensor ; owl:minCardinality 1 ] .
+
+gmeow:Trademark rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:trademarkMark ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:trademarkHolder ; owl:minCardinality 1 ] .

@@ -6,6 +6,8 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
+ex:rome a gmeow:Entity .
+
 ex:romeInterval a gmeow:TimeInterval ;
     gmeow:startedAtTime "-0753-04-21T00:00:00Z"^^xsd:dateTime .
 

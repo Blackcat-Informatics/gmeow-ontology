@@ -8712,7 +8712,7 @@ logic:candidateNoOverTyping
     logic:candidateSourceField logic:ProseFieldDefinition .
 
 # =========================================================================== #
-# Declarative constraint axioms (#1194 WAVE 1) — the closed-world presence /
+# Declarative constraint axioms (grounding slices) — the closed-world presence /
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
 # NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
@@ -8720,7 +8720,7 @@ logic:candidateNoOverTyping
 # owl:allValuesFrom lowers to the paired sh:minCount/maxCount +
 # sh:class/sh:datatype property shape. The vantage-scoped dual-authority and
 # conditional-witness conditions have no OWL antecedent and remain the
-# procedural sh:sparql shapes (the Task-6 fragment).
+# procedural sh:sparql constraint fragment.
 # =========================================================================== #
 
 logic:FormalizationCandidate rdfs:subClassOf
