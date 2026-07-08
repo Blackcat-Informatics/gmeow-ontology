@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The committed slice-quality tier RATCHET FLOOR: the minimum tier each opted-in
+# slice's manifest may declare. A slice's `gmeow:sliceQualityTier` may be RAISED
+# above its floor freely; lowering the manifest declaration below the floor recorded
+# here fails `make slice-quality-gate`. Raising a floor is a deliberate, reviewed
+# commit that pins the new guarantee. Format: <slice-iri>\t<tier-local-name>.
+https://blackcatinformatics.ca/gmeow/slices/logic	tierRegistered
+https://blackcatinformatics.ca/gmeow/slices/math	tierRegistered
+https://blackcatinformatics.ca/gmeow/slices/lang	tierRegistered
+https://blackcatinformatics.ca/gmeow/slices/tags	tierRegistered
+https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric	tierRegistered

@@ -30,7 +30,6 @@ the no-debug-symbol policy, and `nemo` build-memory caps intact.
 ## Regenerate & gates
 
 * Regenerate with `make regenerate` — never a bare `gmeow-dev regenerate` (it drops the diagnostics fold).
-* In a fresh worktree, build the native PyO3 extensions (`make native-py`) **before** `make regenerate` / `make validate`.
 * `generated/dist/gmeow.gts` is `merge=ours`: after integrating `main`, **regenerate it** — the drift gates do not catch a stale bundle.
 * Verify with the full `make check` — `make validate` / `make reason` alone are not sufficient. CI builds the PR **merged into `main`**, so integrate current `main` before final verification.
 
@@ -56,11 +55,9 @@ the no-debug-symbol policy, and `nemo` build-memory caps intact.
 
 ## Testing Commands
 
-* Run Python tests: `make test`
-* Run fast Python gate lane: `make test-fast`
 * Run Rust tests: `make rust-test`
 * Run Rust clippy: `make clippy`
-* Run specific test file: `uv run pytest tests/test_names.py`
+* Run a single crate's tests: `cargo nextest run -p <crate>`
 
 ## Generated and Release Outputs
 
@@ -72,8 +69,8 @@ the no-debug-symbol policy, and `nemo` build-memory caps intact.
 ## Maintainer Tasks
 
 Maintainer-only targets are prefixed with `maint-`. Use `make help` for the
-complete list. Common lanes are `make maint-wikidata-live`,
-`make maint-test-heavy`, and `make maint-test-network`. The native,
+complete list. Common lanes are `make maint-wikidata-live` and
+`make maint-rust-heavy` (the off-gate heavy Rust suite). The native,
 Docker-free reasoning-oracle cross-check (`gmeow-dev reason-crosscheck` over
 `purrdf::entail`) runs on-gate as its own `make check` target
 (`make reason-crosscheck`), not as a `maint-` lane.

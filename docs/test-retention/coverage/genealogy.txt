@@ -1,8 +1,0 @@
-Source: tests/test_genealogy.py
-run_shacl() call-sites (real): 3 (all on tests/fixtures/coverage/genealogy-contested.ttl)
-def test_ functions: 5
-  test_contested_parentage_coexists -> case contested_parentage_conforms + ::contested_parentage_coexists
-  test_contested_birth_date_coexists -> case contested_birth_date_conforms + ::contested_birth_date_coexists (SPARQL count=2)
-  test_withdrawn_parentage_suppressed_not_deleted -> case withdrawn_parentage_conforms + ::withdrawn_parentage_suppressed_not_deleted
-  test_former_event_subclasses_are_not_reintroduced -> ::former_event_subclasses_are_not_reintroduced (ontology sweep)
-  test_no_preferred_or_primary_genealogy_term -> ::no_preferred_or_primary_genealogy_term (ontology sweep)

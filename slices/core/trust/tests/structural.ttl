@@ -20,7 +20,6 @@
 #     _graph() (include_imports=False merged graph); cannot be expressed as a
 #     module-scoped ASK without narrowing the live-set.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/trust/tests/> .

@@ -26,7 +26,7 @@ Every design decision, code modification, and schema change is governed by the t
 
 ## 2. Core Toolchain & Commands
 
-The repository uses Python (`uv`), Rust/Cargo, and Docker only for explicit
+The repository is built on Rust/Cargo, with Docker used only for explicit
 maintainer/oracle lanes. The Makefile is the definitive task-oriented plan:
 run `make help` first when you need the current target surface, and use `make`
 targets rather than calling `gmeow-dev`, `cargo`, or helper scripts directly
@@ -44,18 +44,18 @@ There are two CLIs, and a single razor decides where a command belongs:
 
 > **`gmeow` does not need a repo; `gmeow-dev` does.**
 
-* **`gmeow`** ([crates/gmeow-cli](./crates/gmeow-cli)) is the public, PyPI-facing surface. Every command must work from the installed binary alone — backed by the embedded `generated/dist/gmeow.gts` snapshot — with **no source checkout, Docker, generator inputs, or repo-local query trees**. Transpiling a user's own RDF, describing a term, verifying the bundle: consumer operations, so `gmeow`.
+* **`gmeow`** ([crates/gmeow-cli](./crates/gmeow-cli)) is the public consumer surface — a native Rust binary. Every command must work from the installed binary alone — backed by the embedded `generated/dist/gmeow.gts` snapshot — with **no source checkout, Docker, generator inputs, or repo-local query trees**. Transpiling a user's own RDF, describing a term, verifying the bundle: consumer operations, so `gmeow`.
 * **`gmeow-dev`** ([crates/gmeow-dev-cli](./crates/gmeow-dev-cli)) is repository maintenance. It may read anything in the tree — `dsl/`, `generated/`, `imports/`, `tests/fixtures/` — because it only ever runs inside a checkout. Regenerating artifacts, scoring coverage against the dev corpus, refreshing vendored snapshots: developer operations, so `gmeow-dev`.
 
-When adding a command, ask the razor first. If it needs a repo path that the wheel does not bundle, it is `gmeow-dev` — or the data it needs must first be bundled so it can be `gmeow`.
+When adding a command, ask the razor first. If it needs a repo path that the binary does not bundle, it is `gmeow-dev` — or the data it needs must first be bundled so it can be `gmeow`.
 
 ### Environment & Formatting
 
 ```bash
 make help            # Show the grouped task plan
-make install         # Sync uv and configure repo-local Git merge drivers
-make fmt             # Auto-format Python files with ruff
-make lint            # Run ruff check, ruff format --check, and mypy
+make install         # Build the Rust CLIs and configure repo-local Git merge drivers
+make fmt             # Auto-format Rust sources with cargo fmt
+make lint            # Run the issue-ref lint and the pre-commit hygiene suite (Rust fmt/clippy, spelling, YAML, actions, secrets)
 make clean           # Remove ephemeral build artifacts and native build stamps
 ```
 
@@ -99,12 +99,12 @@ annotation properties:
   owns the term
 
 The gate applies to ontology headers, classes, object/datatype/annotation
-properties, datatypes, and individuals. It is implemented in both Python
-(`structural_lint()` in `src/gmeow_tools/validate.py`) and SHACL
+properties, datatypes, and individuals. It is implemented in both native Rust
+(`structural_lint_dataset` in [crates/validate](./crates/validate)) and SHACL
 (`shapes/gmeow-shapes.ttl`, `shapes/mapping-dsl-shapes.ttl`,
 `shapes/statement-dsl-shapes.ttl`). Missing annotations are **violations**, not
-warnings. The DSL vocabularies are gated separately through
-`_dsl_shacl()`. New terms that lack these annotations will fail `make validate`
+warnings. The DSL vocabularies are gated separately through their own SHACL
+pass. New terms that lack these annotations will fail `make validate`
 and CI (Principles 1, 6, 7).
 
 ### Refreshing & Committing Generated Artifacts
@@ -163,13 +163,14 @@ consistency, 70/70 W3C-entailment conformance-tested) on-gate as part of
 ### Testing & Verification
 
 ```bash
-make test            # Run the pytest test suite (Python/SPARQL competency tests)
-make check           # Run FULL gate: lint, validate, compilation check, reason, verify, tests
+make check           # Run FULL gate: lint, validate, compilation check, reason, verify, Rust tests
 make rust-test       # Run the Rust workspace tests (cargo nextest + doctests)
 make clippy          # Run cargo clippy on all Rust targets with warnings as errors
 make rust-build      # Compile Rust workspace test binaries without running them
-make test-fast       # Run the fast Python test lane used by make check
 ```
+
+The entire toolchain is native Rust; there is no Python test suite. To run a
+single crate's tests, use `cargo nextest run -p <crate>`.
 
 ### Maintainer Tasks
 
@@ -179,16 +180,13 @@ are intentionally outside the normal local `make check` path unless a workflow
 calls them explicitly.
 
 ```bash
-make maint-reasoning-cases          # Docker-backed reasoning fixture cases
-make maint-statements-docker-check  # Jena/ROBOT statement artifact oracle checks
-make maint-crosscheck               # rdflib/native query-answer cross-check
+make maint-crosscheck               # Native purrdf query-answer cross-check
 make maint-extract TARGET=foaf      # Import/extract policy for one target
 make maint-refresh-target-axioms    # Re-vendor minimal target-axiom snapshots
 make maint-wikidata-live            # Network existence checks for Wikidata IDs
 make maint-wikidata-coverage        # Report Wikidata mapping coverage by domain
 make maint-wikidata-audit           # Audit fixtures/modules for Wikidata misuse
-make maint-test-heavy               # Kept Python maintainer tests
-make maint-test-network             # Live network tests
+make maint-rust-heavy               # Off-gate heavy Rust suite (maint-heavy profile)
 make maint-quality                  # OOPS! network pitfall scan
 make maint-evals-score              # Score committed model emissions
 make maint-compliance-report-full   # Full compliance-report emission
@@ -236,7 +234,7 @@ make bench-compare   # report-only perf scoreboard: live criterion run vs commit
                      # bench/baseline.json (ok|watch|regressed; always exits 0).
                      #   maint-bench-baseline refreshes the committed baseline + leaderboard.
 make rust-coverage   # cargo-llvm-cov region coverage (lcov + HTML, --include-ffi); report-only.
-                     #   Named NOT `coverage` — that is the Python entity-coverage gate.
+                     #   Named NOT `coverage` — that is the entity-coverage gate.
 make mutants         # cargo-mutants over the logic+validate cores (mutants.toml). Grades whether
                      #   the suite catches regressions. The full logic run is HOURS (nemo) — scope
                      #   locally with MUTANTS_ARGS="-p gmeow-validate -f <file>".
@@ -320,7 +318,18 @@ corpus, so they carry the same H8 `sh:sparql`-constraint cost as
 so the cost is the ontology-union validation and is fixture-independent — the four
 ride the 25 s cliff together and CI jitter alone decides which trip, so the whole
 class is carved out; the ~35 fixture-only `conformance_*` domain tests stay on-gate
-against the same shape corpus and the union path stays covered on `maint-heavy`); and
+against the same shape corpus and the union path stays covered on `maint-heavy`);
+`gmeow-pipeline::stages::carrier::quality_assessment_tests::quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate`
+(86.2 s; it builds the full self-description carrier, scoring every one of the ~81
+slices to attach the `graph/quality-assessment` named graph that folds into
+`gmeow.gts` — irreducibly O(slice count), the same whole-repo class as
+`end_to_end`/`fold_parity`; the attach↔fanout-path bijection and N-Triples fold form
+stay on-gate via the fast sibling units
+`quality_assessment_fanout_path_is_registered_and_folds_as_ntriples` and
+`superset::tests::quality_assessment_nt_folds_as_ntriples_via_its_own_fanout_graph`,
+the folded `generated/quality/gmeow.quality-assessment.nt` is drift-gated on every
+`make check` via `make check-generated`, and the exhaustive proof stays on-gate on
+`maint-heavy`); and
 `gmeow-logic::whole_bundle_coherence_gate_catches_injected_clash` (~95 s locally;
 it imports the WHOLE committed `gmeow.gts` bundle and drives the native Nemo
 chase over it twice, proving the shipped ontology is coherent and that an
@@ -400,10 +409,11 @@ maint-heavy. Off-gate is for the genuinely irreducible.
 
 The four GTS engines (Python, Rust, Go, TypeScript) and the frozen conformance
 corpus now live in the standalone
-[`gmeow-gts`](https://github.com/Blackcat-Informatics/gmeow-gts) repo. The ontology
-consumes the published `gts` Python package (PyPI: `gmeow-gts`) through the
-narrow-waist glue in `src/gmeow_tools/gts_*`. The `gts` CLI, when needed, is
-available via `cargo install gmeow-gts`, `pip install gmeow-gts`, or
+[`gmeow-gts`](https://github.com/Blackcat-Informatics/gmeow-gts) repo. This
+ontology reads and writes the GTS format natively through the Rust `gts` codec
+(the `purrdf` path); it does not depend on the external GTS package at build
+time. The standalone `gts` CLI, when needed, is available via
+`pip install gmeow-gts` or
 `go install go.blackcatinformatics.ca/gts/cmd/gts@latest`.
 
 > [!IMPORTANT]
@@ -413,7 +423,7 @@ available via `cargo install gmeow-gts`, `pip install gmeow-gts`, or
 
 ## 3. How the Compilers Work
 
-The Makefile is only a task runner. The actual compiler and validation logic lives in [src/gmeow_tools/](./src/gmeow_tools/), and the `gmeow` CLI is a thin orchestration layer over focused Python modules.
+The Makefile is only a task runner. The actual compiler and validation logic lives in the native Rust crates under [crates/](./crates/) (e.g. the pipeline stages in `crates/pipeline` and structural linting in `crates/validate`), and the `gmeow` CLI is a native Rust binary ([crates/gmeow-cli](./crates/gmeow-cli)).
 
 ### Mapping Compiler
 
@@ -496,8 +506,8 @@ generated/               # EVERY committed generated artifact, one root:
                          #   mappings/ projections/ queries/ statements/ schemas/
                          #   lpg/ metadata/ apache/ module-status.md
 dist/                    # Ephemeral build products (one .gitignore line)
-src/gmeow_tools/         # The toolchain (CLI: `gmeow …`)
-                         #   gts_* = narrow-waist glue over the external gmeow-gts package
+crates/                  # The native Rust toolchain: gmeow-cli (`gmeow …`),
+                         #   gmeow-dev-cli, pipeline, validate, rdf/purrdf, gts codec, …
 tests/                   # Cross-slice tests (slice-local tests live IN slices)
 ```
 
@@ -591,7 +601,7 @@ make check
 
 All Docker-free local gates must pass: lint, validate, generated-artifact drift
 check, native reasoning, native verify (including the on-gate in-process
-`purrdf::entail` cross-check oracle), Rust tests, and Python tests.
+`purrdf::entail` cross-check oracle), and the Rust tests.
 
 ### Push
 
