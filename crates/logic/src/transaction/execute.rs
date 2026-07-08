@@ -96,12 +96,13 @@ pub fn execute_transaction(
     store.load_nquads(nquads)?;
     let facts = WorldFacts::read(&store, world);
 
-    let (start, sits) = root_start(&facts, root)?;
-    let program = parse_program(&facts, root, 0)?;
+    let (start, sits) = root_start(&facts, root).map_err(|e| e.message().to_owned())?;
+    let program = parse_program(&facts, root, 0).map_err(|e| e.message().to_owned())?;
     // Ground the outcome on the root's `logic:transitionFromState` quad — a REAL input quad.
     // A primitive root has no `rdf:type` to reify, and the explain engine refuses a dangling
     // reifier; mirror `trajectory::emit_trajectory_audits`, which grounds on the same anchor.
-    let source = triple_reifier(root, &logic(TRANSITION_FROM_STATE), &start)?;
+    let source = triple_reifier(root, &logic(TRANSITION_FROM_STATE), &start)
+        .map_err(|e| e.message().to_owned())?;
 
     let exec_mode = match mode {
         CommitMode::Committed => ExecutionMode::Committed,
@@ -109,7 +110,8 @@ pub fn execute_transaction(
     };
     let quads = emit_program_outcome(
         &facts, world, root, &program, exec_mode, &start, &sits, &source,
-    )?;
+    )
+    .map_err(|e| e.message().to_owned())?;
 
     let succeeds_pred = logic(TRANSACTION_SUCCEEDS);
     let succeeded_true = xsd_bool(true);

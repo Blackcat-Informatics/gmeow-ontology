@@ -963,7 +963,7 @@ fn resolve_query(
     }
     let world = worlds.into_iter().next().expect("len == 1");
 
-    let program = parse_query_program(query_text).map_err(err)?;
+    let program = parse_query_program(query_text).map_err(|e| err(e.message().to_owned()))?;
     let max_answers_usize = max_answers.map(|n| n as usize);
 
     // Probabilistic profile: weighted model counting; each binding carries a

@@ -285,7 +285,7 @@ pub fn verify_with_reasoning_result(
 /// Call [`verify_with_reasoning_result`] when the caller has already run
 /// [`reason_all`] and needs to avoid a second Nemo chase.
 pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, String> {
-    let result = reason_all(edb)?;
+    let result = reason_all(edb).map_err(|e| e.message().to_owned())?;
     verify_with_reasoning_result(edb, &result, queries)
 }
 

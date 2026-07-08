@@ -347,7 +347,8 @@ fn query(
     };
 
     // 3. Parse the query program (rules + goal).
-    let program = parse_query_program(query_program).map_err(value_err)?;
+    let program =
+        parse_query_program(query_program).map_err(|e| value_err(e.message().to_owned()))?;
 
     // 3b. Probabilistic profile (v6): marginal inference by weighted model
     //     counting routes here instead of the backward-goal dispatcher. Each binding
@@ -976,7 +977,7 @@ fn native_reason_payload(bytes: Vec<u8>) -> Result<NativeReasonPayload, NativeRe
     let bundle = purrdf::import_gts_events(&bytes)
         .map_err(|e| NativeReasonPyError::GtsRead(format!("GTS read error: {e}")))?;
     let (closure, verdict) = crate::reason::reason_closure(bundle.dataset.as_ref())
-        .map_err(NativeReasonPyError::Reason)?;
+        .map_err(|e| NativeReasonPyError::Reason(e.message().to_owned()))?;
     let typed = crate::reason::typed_result(closure, &verdict);
     Ok(NativeReasonPayload { typed, verdict })
 }
@@ -993,8 +994,8 @@ fn native_reason_payload_with_artifacts(
     let bundle = purrdf::import_gts_events(&bytes)
         .map_err(|e| NativeReasonPyError::GtsRead(format!("GTS read error: {e}")))?;
     let dataset = bundle.dataset.as_ref();
-    let (closure, verdict) =
-        crate::reason::reason_closure(dataset).map_err(NativeReasonPyError::Reason)?;
+    let (closure, verdict) = crate::reason::reason_closure(dataset)
+        .map_err(|e| NativeReasonPyError::Reason(e.message().to_owned()))?;
     let typed = crate::reason::typed_result(closure, &verdict);
 
     let merge_store = if merge { Some(dataset) } else { None };
@@ -1028,8 +1029,8 @@ fn native_reason_verify_payload_with_artifacts(
     let bundle = purrdf::import_gts_events(&bytes)
         .map_err(|e| NativeReasonPyError::GtsRead(format!("GTS read error: {e}")))?;
     let dataset = bundle.dataset.as_ref();
-    let (closure, verdict) =
-        crate::reason::reason_closure(dataset).map_err(NativeReasonPyError::Reason)?;
+    let (closure, verdict) = crate::reason::reason_closure(dataset)
+        .map_err(|e| NativeReasonPyError::Reason(e.message().to_owned()))?;
     let typed = crate::reason::typed_result(closure, &verdict);
 
     let merge_store = if merge { Some(dataset) } else { None };
@@ -1298,7 +1299,8 @@ fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyR
         let bundle = purrdf::import_gts_events(&bytes)
             .map_err(|e| ArtifactsError::GtsRead(format!("GTS read error: {e}")))?;
         let dataset = bundle.dataset.as_ref();
-        let result = crate::reason::reason_all(dataset).map_err(ArtifactsError::Reason)?;
+        let result = crate::reason::reason_all(dataset)
+            .map_err(|e| ArtifactsError::Reason(e.message().to_owned()))?;
 
         let merge_store = if merge { Some(dataset) } else { None };
         let closure =

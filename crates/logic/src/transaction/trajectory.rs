@@ -42,6 +42,12 @@ use super::{
     TransactionProgram, emit_program_outcome, logic, plan_path, root_execution_mode, root_start,
 };
 
+/// Wrap a transaction-trajectory condition message as a typed diagnostic on the
+/// shared substrate, preserving the authored text verbatim.
+fn trajectory_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Transaction { detail })
+}
+
 /// The `gmeow:` namespace.
 const GMEOW_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 
@@ -82,7 +88,7 @@ pub(crate) struct TrajectoryRoot {
 /// HARD FAIL on: a bound ToolCall with no (or more than one) `logic:properPartOf` anchor; an
 /// anchor with no `logic:transitionFromState`; a call with no `gmeow:atTime` or no
 /// `gmeow:eventTemporalFrame`; or a trajectory mixing `gmeow:eventTemporalFrame` values.
-pub(crate) fn trajectory_roots(facts: &WorldFacts) -> Result<Vec<TrajectoryRoot>, String> {
+pub(crate) fn trajectory_roots(facts: &WorldFacts) -> gmeow_errors::Result<Vec<TrajectoryRoot>> {
     let mut groups: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for call in facts.subjects_with_type(&gmeow(TOOL_CALL)) {
         // Only ToolCalls bound to an action schema participate in the audit.
@@ -93,27 +99,27 @@ pub(crate) fn trajectory_roots(facts: &WorldFacts) -> Result<Vec<TrajectoryRoot>
         let anchor = match anchors.len() {
             1 => anchors[0].to_owned(),
             0 => {
-                return Err(format!(
+                return Err(trajectory_err(format!(
                     "bound gmeow:ToolCall {call:?} has no logic:properPartOf trajectory anchor \
                      (a bound ToolCall must be a proper part of an anchor bearing \
                      logic:transitionFromState)"
-                ));
+                )));
             }
             n => {
-                return Err(format!(
+                return Err(trajectory_err(format!(
                     "bound gmeow:ToolCall {call:?} has {n} logic:properPartOf anchors \
                      (exactly one trajectory anchor required)"
-                ));
+                )));
             }
         };
         if facts
             .object(&anchor, &logic(TRANSITION_FROM_STATE))
             .is_none()
         {
-            return Err(format!(
+            return Err(trajectory_err(format!(
                 "trajectory anchor {anchor:?} (logic:properPartOf whole of bound gmeow:ToolCall \
                  {call:?}) has no logic:transitionFromState start state"
-            ));
+            )));
         }
         groups.entry(anchor).or_default().push(call);
     }
@@ -132,7 +138,7 @@ fn order_steps(
     facts: &WorldFacts,
     anchor: &str,
     calls: Vec<String>,
-) -> Result<Vec<(String, String)>, String> {
+) -> gmeow_errors::Result<Vec<(String, String)>> {
     // Enforce a single temporal frame across the trajectory (Principle 11): a lexical sort of
     // gmeow:atTime literals is coherent only within one frame.
     let mut frames: BTreeSet<&str> = BTreeSet::new();
@@ -143,25 +149,25 @@ fn order_steps(
                 frames.insert(call_frames[0]);
             }
             0 => {
-                return Err(format!(
+                return Err(trajectory_err(format!(
                     "gmeow:ToolCall {call:?} in trajectory {anchor:?} declares no \
                      gmeow:eventTemporalFrame (Principle 11: every crisp timestamp names its \
                      frame)"
-                ));
+                )));
             }
             n => {
-                return Err(format!(
+                return Err(trajectory_err(format!(
                     "gmeow:ToolCall {call:?} in trajectory {anchor:?} has {n} \
                      gmeow:eventTemporalFrame values (exactly one is required)"
-                ));
+                )));
             }
         }
     }
     if frames.len() > 1 {
-        return Err(format!(
+        return Err(trajectory_err(format!(
             "trajectory {anchor:?} mixes gmeow:eventTemporalFrame values {frames:?}; a single \
              frame is required to order gmeow:atTime coherently"
-        ));
+        )));
     }
 
     // (atTime literal, call IRI, schema IRI) — sorting on the leading two fields gives a total,
@@ -172,31 +178,31 @@ fn order_steps(
         let at_time = match at_times.len() {
             1 => at_times[0].to_owned(),
             0 => {
-                return Err(format!(
+                return Err(trajectory_err(format!(
                     "gmeow:ToolCall {call:?} in trajectory {anchor:?} has no gmeow:atTime"
-                ));
+                )));
             }
             n => {
-                return Err(format!(
+                return Err(trajectory_err(format!(
                     "gmeow:ToolCall {call:?} in trajectory {anchor:?} has {n} gmeow:atTime \
                      values (exactly one is required)"
-                ));
+                )));
             }
         };
         let schemas = facts.objects(&call, &logic(INSTANTIATES_SCHEMA));
         let schema = match schemas.len() {
             1 => schemas[0].to_owned(),
             0 => {
-                return Err(format!(
+                return Err(trajectory_err(format!(
                     "gmeow:ToolCall {call:?} in trajectory {anchor:?} lost its \
                      logic:instantiatesSchema target"
-                ));
+                )));
             }
             n => {
-                return Err(format!(
+                return Err(trajectory_err(format!(
                     "gmeow:ToolCall {call:?} in trajectory {anchor:?} has {n} \
                      logic:instantiatesSchema values (exactly one is required)"
-                ));
+                )));
             }
         };
         keyed.push((at_time, call, schema));
@@ -269,7 +275,7 @@ struct ResolvedTrajectory {
 pub(crate) fn emit_trajectory_audits(
     facts: &WorldFacts,
     world: &str,
-) -> Result<Vec<TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<TeleologyQuad>> {
     // Resolve each trajectory and group by its shared start state (content-sorted keys for
     // deterministic emission order).
     let mut by_start: BTreeMap<String, Vec<ResolvedTrajectory>> = BTreeMap::new();
@@ -341,11 +347,11 @@ pub(crate) fn emit_trajectory_audits(
                 )?);
             }
             many => {
-                return Err(format!(
+                return Err(trajectory_err(format!(
                     "start state {start:?} is shared by {} trajectories; conflict-serializability \
                      composes exactly two concurrent legs (split a >2-way schedule into pairs)",
                     many.len()
-                ));
+                )));
             }
         }
     }
@@ -374,7 +380,7 @@ fn goal_reachability(
     program: &TransactionProgram,
     start: &str,
     sits: &BTreeSet<String>,
-) -> Result<Vec<TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<TeleologyQuad>> {
     let goal = match facts.object(anchor, &logic(PLAN_GOAL)) {
         Some(g) => g,
         None => return Ok(Vec::new()),
@@ -382,10 +388,10 @@ fn goal_reachability(
     let goal_situation = facts
         .object(anchor, &logic(PLAN_GOAL_SITUATION))
         .ok_or_else(|| {
-            format!(
+            trajectory_err(format!(
                 "trajectory anchor {anchor:?} names a logic:planGoal but no \
                  logic:planGoalSituation (the situation that counts as reaching the goal)"
-            )
+            ))
         })?;
 
     // The verdict (path existence + the situations obtaining at the end) is mode-independent —

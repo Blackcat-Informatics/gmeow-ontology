@@ -91,7 +91,7 @@ pub struct ElClosure {
 /// chase fails to parse/validate/evaluate, or if a derived row fails to decode.
 pub fn el_closure(edb: &RdfDataset) -> Result<ElClosure, String> {
     // 1. Run the fixed EL rule set through the shared chase machinery.
-    let all = crate::reason::run_reasoning(edb, EL_RULES)?;
+    let all = crate::reason::run_reasoning(edb, EL_RULES).map_err(|e| e.message().to_owned())?;
 
     // 2. `total_facts` counts every decoded ternary row; filter the surfaced
     //    closure to the subsumption predicates.

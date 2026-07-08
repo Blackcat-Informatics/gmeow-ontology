@@ -68,6 +68,12 @@ fn logic(local: &str) -> String {
     format!("{LOGIC_NS}{local}")
 }
 
+/// Wrap a teleology-derivation condition message as a typed diagnostic on the
+/// shared substrate, preserving the authored text verbatim.
+fn teleology_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Teleology { detail })
+}
+
 // ── Goal-expression kinds (closed nine-member value set) ────────────────────────
 
 /// The closed nine-member value set of `logic:GoalExpressionKind`.
@@ -102,7 +108,7 @@ impl GoalKind {
     /// # Errors
     ///
     /// Returns `Err` for any IRI outside the closed nine-member set.
-    pub fn from_iri(iri: &str) -> Result<Self, String> {
+    pub fn from_iri(iri: &str) -> gmeow_errors::Result<Self> {
         let local = iri.strip_prefix(LOGIC_NS).unwrap_or(iri);
         match local {
             "AtomicGoal" => Ok(Self::Atomic),
@@ -114,12 +120,12 @@ impl GoalKind {
             "OptimizationGoal" => Ok(Self::Optimization),
             "ConditionalGoal" => Ok(Self::Conditional),
             "DeadlineWindowGoal" => Ok(Self::DeadlineWindow),
-            other => Err(format!(
+            other => Err(teleology_err(format!(
                 "Unknown logic:GoalExpressionKind {other:?}; must be one of the nine \
                  closed variants (AtomicGoal, ConjunctiveGoal, DisjunctiveGoal, \
                  AchievementGoal, MaintenanceGoal, AvoidanceGoal, OptimizationGoal, \
                  ConditionalGoal, DeadlineWindowGoal)"
-            )),
+            ))),
         }
     }
 }
@@ -227,10 +233,10 @@ pub(crate) fn n3(iri: &str) -> String {
 }
 
 /// Reifier IRI for an explicit `(s, p, o)` IRI triple, via the golden-pinned recipe.
-pub(crate) fn triple_reifier(s: &str, p: &str, o: &str) -> Result<String, String> {
+pub(crate) fn triple_reifier(s: &str, p: &str, o: &str) -> gmeow_errors::Result<String> {
     let sn = TermValue::iri(s);
     let on = TermValue::iri(o);
-    mint_reifier(&sn, p, &on)
+    mint_reifier(&sn, p, &on).map_err(teleology_err)
 }
 
 // ── EDB: insertion-ordered, content-sorted fact view of one world ───────────────
@@ -415,7 +421,7 @@ const SITUATION_OBTAINS: &str = "situationObtains";
 ///
 /// Returns `Err` for a non-linear path (a fork, a cycle, more than one start, or a
 /// disconnected component).
-pub fn ordered_states(facts: &WorldFacts) -> Result<Vec<String>, String> {
+pub fn ordered_states(facts: &WorldFacts) -> gmeow_errors::Result<Vec<String>> {
     let succ_iri = logic(TEMPORALLY_SUCCEEDS);
     let mut succ_of: BTreeMap<String, String> = BTreeMap::new();
     let mut pred_of: BTreeMap<String, String> = BTreeMap::new();
@@ -426,14 +432,14 @@ pub fn ordered_states(facts: &WorldFacts) -> Result<Vec<String>, String> {
         {
             let b = t.subject.clone();
             if succ_of.insert(a.to_owned(), b.clone()).is_some() {
-                return Err(format!(
+                return Err(teleology_err(format!(
                     "logic:Path is not linear: state {a:?} has two successors"
-                ));
+                )));
             }
             if pred_of.insert(b.clone(), a.to_owned()).is_some() {
-                return Err(format!(
+                return Err(teleology_err(format!(
                     "logic:Path is not linear: state {b:?} has two predecessors"
-                ));
+                )));
             }
             nodes.insert(a.to_owned());
             nodes.insert(b);
@@ -455,24 +461,24 @@ pub fn ordered_states(facts: &WorldFacts) -> Result<Vec<String>, String> {
         if nodes.len() == 1 {
             return Ok(vec![nodes.into_iter().next().expect("len==1")]);
         }
-        return Err(format!(
+        return Err(teleology_err(format!(
             "logic:Path has {} states but no logic:temporallySucceeds ordering edges              (cannot order a multi-state path)",
             nodes.len()
-        ));
+        )));
     }
     let starts: Vec<&String> = nodes.iter().filter(|n| !pred_of.contains_key(*n)).collect();
     if starts.len() != 1 {
-        return Err(format!(
+        return Err(teleology_err(format!(
             "logic:Path must have exactly one start state (states with no predecessor); found {}",
             starts.len()
-        ));
+        )));
     }
     let mut seq = Vec::with_capacity(nodes.len());
     let mut cur = starts[0].clone();
     let mut seen: HashSet<String> = HashSet::new();
     loop {
         if !seen.insert(cur.clone()) {
-            return Err("logic:Path contains a cycle".to_owned());
+            return Err(teleology_err("logic:Path contains a cycle".to_owned()));
         }
         seq.push(cur.clone());
         match succ_of.get(&cur) {
@@ -481,9 +487,9 @@ pub fn ordered_states(facts: &WorldFacts) -> Result<Vec<String>, String> {
         }
     }
     if seq.len() != nodes.len() {
-        return Err(
+        return Err(teleology_err(
             "logic:Path is disconnected (not all states reachable from the start)".to_owned(),
-        );
+        ));
     }
     Ok(seq)
 }
@@ -518,7 +524,7 @@ pub fn evaluate_goal_over_path(
     facts: &WorldFacts,
     goal_expr: &str,
     states: &[String],
-) -> Result<GoalVerdict, String> {
+) -> gmeow_errors::Result<GoalVerdict> {
     let (sat, status, degree) = eval_goal(facts, goal_expr, states, 0)?;
     Ok(GoalVerdict {
         goal_expression: goal_expr.to_owned(),
@@ -534,17 +540,19 @@ fn eval_goal(
     goal_expr: &str,
     states: &[String],
     depth: usize,
-) -> Result<(Satisfaction, EvaluationStatus, Option<String>), String> {
+) -> gmeow_errors::Result<(Satisfaction, EvaluationStatus, Option<String>)> {
     if depth > MAX_GOAL_DEPTH {
-        return Err(format!(
+        return Err(teleology_err(format!(
             "logic:GoalExpression operand graph exceeds depth {MAX_GOAL_DEPTH} \
              (malformed cyclic operands?) at {goal_expr:?}"
-        ));
+        )));
     }
     let kind_iri = facts
         .object(goal_expr, &logic(GOAL_EXPR_KIND))
         .ok_or_else(|| {
-            format!("logic:GoalExpression {goal_expr:?} has no logic:goalExpressionKind")
+            teleology_err(format!(
+                "logic:GoalExpression {goal_expr:?} has no logic:goalExpressionKind"
+            ))
         })?;
     let kind = GoalKind::from_iri(kind_iri)?;
 
@@ -562,11 +570,15 @@ fn eval_goal(
 }
 
 /// Read the bound situation type of an atomic/achievement/maintenance/avoidance goal.
-fn bound_situation(facts: &WorldFacts, goal_expr: &str) -> Result<String, String> {
+fn bound_situation(facts: &WorldFacts, goal_expr: &str) -> gmeow_errors::Result<String> {
     facts
         .object(goal_expr, &logic(BOUND_SITUATION_TYPE))
         .map(str::to_owned)
-        .ok_or_else(|| format!("goal {goal_expr:?} has no logic:boundSituationType"))
+        .ok_or_else(|| {
+            teleology_err(format!(
+                "goal {goal_expr:?} has no logic:boundSituationType"
+            ))
+        })
 }
 
 /// Atomic: satisfied iff the bound situation obtains at the LAST (most recent) state.
@@ -574,7 +586,7 @@ fn eval_atomic(
     facts: &WorldFacts,
     goal_expr: &str,
     states: &[String],
-) -> Result<(Satisfaction, EvaluationStatus, Option<String>), String> {
+) -> gmeow_errors::Result<(Satisfaction, EvaluationStatus, Option<String>)> {
     let sit = bound_situation(facts, goal_expr)?;
     let met = states.last().is_some_and(|s| obtains_at(facts, s, &sit));
     Ok((
@@ -593,7 +605,7 @@ fn eval_achievement(
     facts: &WorldFacts,
     goal_expr: &str,
     states: &[String],
-) -> Result<(Satisfaction, EvaluationStatus, Option<String>), String> {
+) -> gmeow_errors::Result<(Satisfaction, EvaluationStatus, Option<String>)> {
     let sit = bound_situation(facts, goal_expr)?;
     let met = states.iter().any(|s| obtains_at(facts, s, &sit));
     Ok((
@@ -617,7 +629,7 @@ fn eval_maintenance(
     goal_expr: &str,
     states: &[String],
     avoidance: bool,
-) -> Result<(Satisfaction, EvaluationStatus, Option<String>), String> {
+) -> gmeow_errors::Result<(Satisfaction, EvaluationStatus, Option<String>)> {
     let sit = bound_situation(facts, goal_expr)?;
     for s in states {
         let obtains = obtains_at(facts, s, &sit);
@@ -640,17 +652,17 @@ fn eval_junction(
     states: &[String],
     depth: usize,
     conjunctive: bool,
-) -> Result<(Satisfaction, EvaluationStatus, Option<String>), String> {
+) -> gmeow_errors::Result<(Satisfaction, EvaluationStatus, Option<String>)> {
     let operands_ref = facts.objects(goal_expr, &logic(OPERAND));
     if operands_ref.is_empty() {
-        return Err(format!(
+        return Err(teleology_err(format!(
             "{} goal {goal_expr:?} has no logic:operand",
             if conjunctive {
                 "conjunctive"
             } else {
                 "disjunctive"
             }
-        ));
+        )));
     }
     let operands: Vec<String> = operands_ref.iter().map(|s| (*s).to_owned()).collect();
     let mut all_completed = true;
@@ -707,14 +719,22 @@ fn eval_conditional(
     goal_expr: &str,
     states: &[String],
     depth: usize,
-) -> Result<(Satisfaction, EvaluationStatus, Option<String>), String> {
+) -> gmeow_errors::Result<(Satisfaction, EvaluationStatus, Option<String>)> {
     let guard = facts
         .object(goal_expr, &logic(GUARD_SITUATION))
-        .ok_or_else(|| format!("conditional goal {goal_expr:?} has no logic:guardSituation"))?
+        .ok_or_else(|| {
+            teleology_err(format!(
+                "conditional goal {goal_expr:?} has no logic:guardSituation"
+            ))
+        })?
         .to_owned();
     let operand = facts
         .object(goal_expr, &logic(OPERAND))
-        .ok_or_else(|| format!("conditional goal {goal_expr:?} has no logic:operand (target)"))?
+        .ok_or_else(|| {
+            teleology_err(format!(
+                "conditional goal {goal_expr:?} has no logic:operand (target)"
+            ))
+        })?
         .to_owned();
     let guard_holds = states.last().is_some_and(|s| obtains_at(facts, s, &guard));
     if !guard_holds {
@@ -737,10 +757,14 @@ fn eval_deadline_window(
     goal_expr: &str,
     states: &[String],
     depth: usize,
-) -> Result<(Satisfaction, EvaluationStatus, Option<String>), String> {
+) -> gmeow_errors::Result<(Satisfaction, EvaluationStatus, Option<String>)> {
     let operand = facts
         .object(goal_expr, &logic(OPERAND))
-        .ok_or_else(|| format!("deadline-window goal {goal_expr:?} has no logic:operand (target)"))?
+        .ok_or_else(|| {
+            teleology_err(format!(
+                "deadline-window goal {goal_expr:?} has no logic:operand (target)"
+            ))
+        })?
         .to_owned();
     let closed = facts
         .object_n3(goal_expr, &logic("deadlineWindowClosed"))
@@ -765,7 +789,7 @@ fn eval_deadline_window(
 fn eval_optimization(
     facts: &WorldFacts,
     goal_expr: &str,
-) -> Result<(Satisfaction, EvaluationStatus, Option<String>), String> {
+) -> gmeow_errors::Result<(Satisfaction, EvaluationStatus, Option<String>)> {
     let degree = facts
         .object_n3(goal_expr, &logic("satisfactionDegree"))
         .map(|n| literal_lexical(n).to_owned());
@@ -806,7 +830,7 @@ fn emit_goal_evaluation(
     goal_iri: &str,
     verdict: &GoalVerdict,
     out: &mut Vec<TeleologyQuad>,
-) -> Result<(), String> {
+) -> gmeow_errors::Result<()> {
     let source = triple_reifier(
         goal_iri,
         &logic(HAS_GOAL_CONDITION),
@@ -898,7 +922,7 @@ fn gmeow(local: &str) -> String {
 /// Reifier IRI for a `(subject, gmeow:satisfiedBy, object)` triple — the reified
 /// statement node that carries the edge's vantage (`gmeow:accordingTo`), via the
 /// golden-pinned [`mint_reifier`] recipe.
-fn satisfied_by_reifier(goal: &str, situation: &str) -> Result<String, String> {
+fn satisfied_by_reifier(goal: &str, situation: &str) -> gmeow_errors::Result<String> {
     triple_reifier(goal, &gmeow(SATISFIED_BY), situation)
 }
 
@@ -989,7 +1013,7 @@ fn satisfied_completed_evals(facts: &WorldFacts) -> Vec<SatisfiedEval> {
 pub fn bridge_generate_satisfied_by(
     facts: &WorldFacts,
     world: &str,
-) -> Result<Vec<TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<TeleologyQuad>> {
     let mut out: Vec<TeleologyQuad> = Vec::new();
     for ev in satisfied_completed_evals(facts) {
         // The antecedent: the satisfaction-status quad of the SOURCE evaluation.
@@ -1036,7 +1060,7 @@ struct AuthoredEdge {
 /// each edge's vantage from the `gmeow:accordingTo` of its reified statement (the
 /// [`mint_reifier`] node of the flat triple); an edge with no such index defaults to
 /// `gmeow:unspecifiedStandpoint` (unspecified, NOT universal).
-fn authored_satisfied_by(facts: &WorldFacts) -> Result<Vec<AuthoredEdge>, String> {
+fn authored_satisfied_by(facts: &WorldFacts) -> gmeow_errors::Result<Vec<AuthoredEdge>> {
     let default_vantage = gmeow(UNSPECIFIED_STANDPOINT);
     let mut edges: Vec<(String, String)> = facts
         .triples
@@ -1112,7 +1136,7 @@ fn mint_default_eval_iri(goal: &str, situation: &str, vantage: &str) -> String {
 pub fn bridge_expand_authored_satisfied_by(
     facts: &WorldFacts,
     world: &str,
-) -> Result<Vec<TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<TeleologyQuad>> {
     // Index the (goal, situation, vantage) tuples ALREADY backed by a satisfied+completed
     // evaluation, so an authored edge with a real backing under its vantage is left alone.
     let backed: BTreeSet<(String, String, String)> = satisfied_completed_evals(facts)
@@ -1172,7 +1196,7 @@ pub fn bridge_expand_authored_satisfied_by(
 /// # Errors
 ///
 /// Returns `Err` for an invalid IRI in either direction.
-pub fn bridge(facts: &WorldFacts, world: &str) -> Result<Vec<TeleologyQuad>, String> {
+pub fn bridge(facts: &WorldFacts, world: &str) -> gmeow_errors::Result<Vec<TeleologyQuad>> {
     let mut out = bridge_generate_satisfied_by(facts, world)?;
     out.extend(bridge_expand_authored_satisfied_by(facts, world)?);
     canonical_sort(&mut out);
@@ -1243,12 +1267,12 @@ pub fn classify_plan_success(
     facts: &WorldFacts,
     schema: &str,
     goal_situation: &str,
-) -> Result<PlanSuccess, String> {
+) -> gmeow_errors::Result<PlanSuccess> {
     let outcomes_ref = facts.objects(schema, &logic(NONDETERMINISTIC_OUTCOME));
     if outcomes_ref.is_empty() {
-        return Err(format!(
+        return Err(teleology_err(format!(
             "logic:ActionSchema {schema:?} declares no logic:nondeterministicOutcome branch"
-        ));
+        )));
     }
     let outcomes: Vec<String> = outcomes_ref.iter().map(|s| (*s).to_owned()).collect();
     let mut any_reaches = false;
@@ -1287,11 +1311,15 @@ pub fn classify_plan_success(
 /// # Errors
 ///
 /// Returns `Err` if the outcome names no `logic:compensation`.
-pub fn compensation_for_outcome(facts: &WorldFacts, outcome: &str) -> Result<String, String> {
+pub fn compensation_for_outcome(facts: &WorldFacts, outcome: &str) -> gmeow_errors::Result<String> {
     facts
         .object(outcome, &logic(COMPENSATION))
         .map(str::to_owned)
-        .ok_or_else(|| format!("logic:Outcome {outcome:?} names no logic:compensation"))
+        .ok_or_else(|| {
+            teleology_err(format!(
+                "logic:Outcome {outcome:?} names no logic:compensation"
+            ))
+        })
 }
 
 // ── 3. Deontic obligation / prohibition evaluation ──────────────────────────────
@@ -1338,7 +1366,7 @@ pub fn evaluate_deontic(
     ideal_world_facts: &BTreeMap<String, WorldFacts>,
     goal_situation: &str,
     proscribed_situation: &str,
-) -> Result<DeonticVerdict, String> {
+) -> gmeow_errors::Result<DeonticVerdict> {
     let _ = base_world;
     let mut ideals: Vec<&str> = base_facts
         .triples
@@ -1494,7 +1522,7 @@ pub fn emit_serialization_anomaly(
     cycle: &[String],
     criterion_iri: &str,
     edges: &[ConflictEdge],
-) -> Result<Vec<TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<TeleologyQuad>> {
     let mut sources: Vec<String> = Vec::new();
     for e in edges {
         sources.push(triple_reifier(&e.from, &logic("precedes"), &e.to)?);
@@ -1707,7 +1735,7 @@ pub fn apply_effect(
     facts: &WorldFacts,
     schema: &str,
     from_state: &str,
-) -> Result<SuccessorSupport, String> {
+) -> gmeow_errors::Result<SuccessorSupport> {
     // The predecessor support of an authored step is the situations obtaining at the
     // authored `from_state` (`logic:situationObtains`).
     let predecessor: BTreeSet<String> = facts
@@ -1737,10 +1765,14 @@ pub(crate) fn apply_effect_over(
     facts: &WorldFacts,
     schema: &str,
     predecessor: &BTreeSet<String>,
-) -> Result<SuccessorSupport, String> {
+) -> gmeow_errors::Result<SuccessorSupport> {
     let effect = facts
         .object(schema, &logic(EFFECT))
-        .ok_or_else(|| format!("logic:ActionSchema {schema:?} names no logic:effect node"))?
+        .ok_or_else(|| {
+            teleology_err(format!(
+                "logic:ActionSchema {schema:?} names no logic:effect node"
+            ))
+        })?
         .to_owned();
     let ins: BTreeSet<String> = facts
         .objects(&effect, &logic(INS))
@@ -1837,24 +1869,38 @@ fn emit_effect_application(
     facts: &WorldFacts,
     world: &str,
     step: &str,
-) -> Result<Vec<TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<TeleologyQuad>> {
     let schema = facts
         .object(step, &logic(INSTANTIATES_SCHEMA))
         .ok_or_else(|| {
-            format!("transaction step {step:?} has no logic:instantiatesSchema action schema")
+            teleology_err(format!(
+                "transaction step {step:?} has no logic:instantiatesSchema action schema"
+            ))
         })?
         .to_owned();
     let from_state = facts
         .object(step, &logic(TRANSITION_FROM_STATE))
-        .ok_or_else(|| format!("transaction step {step:?} has no logic:transitionFromState"))?
+        .ok_or_else(|| {
+            teleology_err(format!(
+                "transaction step {step:?} has no logic:transitionFromState"
+            ))
+        })?
         .to_owned();
     let to_state = facts
         .object(step, &logic(TRANSITION_TO_STATE))
-        .ok_or_else(|| format!("transaction step {step:?} has no logic:transitionToState"))?
+        .ok_or_else(|| {
+            teleology_err(format!(
+                "transaction step {step:?} has no logic:transitionToState"
+            ))
+        })?
         .to_owned();
     let effect = facts
         .object(&schema, &logic(EFFECT))
-        .ok_or_else(|| format!("logic:ActionSchema {schema:?} names no logic:effect node"))?
+        .ok_or_else(|| {
+            teleology_err(format!(
+                "logic:ActionSchema {schema:?} names no logic:effect node"
+            ))
+        })?
         .to_owned();
     let support = apply_effect(facts, &schema, &from_state)?;
 
@@ -1909,7 +1955,7 @@ fn emit_observation_policy(
     facts: &WorldFacts,
     world: &str,
     schema: &str,
-) -> Result<Vec<TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<TeleologyQuad>> {
     let observations: Vec<String> = facts
         .objects(schema, &logic(OBSERVATION))
         .iter()
@@ -2094,7 +2140,7 @@ fn literal_lex(n3: &str) -> Option<String> {
 /// # Errors
 ///
 /// Returns `Err` for a malformed lexical form, a nominal designator, or a negative span.
-fn parse_xsd_duration_seconds(lex: &str) -> Result<i64, String> {
+fn parse_xsd_duration_seconds(lex: &str) -> gmeow_errors::Result<i64> {
     // xsd:duration's negative form is a leading '-' BEFORE 'P' (e.g. "-P3D"); strip it and
     // track the sign so a negative horizon is rejected with the intended "is negative"
     // message rather than the generic "must start with 'P'". The scan below only ever
@@ -2104,10 +2150,14 @@ fn parse_xsd_duration_seconds(lex: &str) -> Result<i64, String> {
         None => (false, lex),
     };
     let body = rest.strip_prefix('P').ok_or_else(|| {
-        format!("xsd:duration {lex:?} must start with 'P' (optionally preceded by '-')")
+        teleology_err(format!(
+            "xsd:duration {lex:?} must start with 'P' (optionally preceded by '-')"
+        ))
     })?;
     if body.is_empty() {
-        return Err(format!("xsd:duration {lex:?} carries no components"));
+        return Err(teleology_err(format!(
+            "xsd:duration {lex:?} carries no components"
+        )));
     }
     let (date_part, time_part) = match body.split_once('T') {
         Some((d, t)) => (d, Some(t)),
@@ -2115,7 +2165,7 @@ fn parse_xsd_duration_seconds(lex: &str) -> Result<i64, String> {
     };
     let mut total = 0f64;
     // Accumulate a number/designator scan; `in_time` selects the M meaning.
-    let scan = |part: &str, in_time: bool, total: &mut f64| -> Result<(), String> {
+    let scan = |part: &str, in_time: bool, total: &mut f64| -> gmeow_errors::Result<()> {
         let mut num = String::new();
         for c in part.chars() {
             if c.is_ascii_digit() || c == '.' {
@@ -2123,13 +2173,15 @@ fn parse_xsd_duration_seconds(lex: &str) -> Result<i64, String> {
                 continue;
             }
             if num.is_empty() {
-                return Err(format!(
+                return Err(teleology_err(format!(
                     "xsd:duration {lex:?} has a designator with no number"
-                ));
+                )));
             }
-            let value: f64 = num
-                .parse()
-                .map_err(|_| format!("xsd:duration {lex:?} has a malformed number {num:?}"))?;
+            let value: f64 = num.parse().map_err(|_| {
+                teleology_err(format!(
+                    "xsd:duration {lex:?} has a malformed number {num:?}"
+                ))
+            })?;
             let secs = match c {
                 'W' if !in_time => value * 604_800.0,
                 'D' if !in_time => value * 86_400.0,
@@ -2137,39 +2189,39 @@ fn parse_xsd_duration_seconds(lex: &str) -> Result<i64, String> {
                 'M' if in_time => value * 60.0,
                 'S' if in_time => value,
                 'Y' | 'M' => {
-                    return Err(format!(
+                    return Err(teleology_err(format!(
                         "xsd:duration {lex:?} uses a nominal-length designator ({c}); a freshness horizon must be a fixed span (weeks/days/hours/minutes/seconds)"
-                    ));
+                    )));
                 }
                 _ => {
-                    return Err(format!(
+                    return Err(teleology_err(format!(
                         "xsd:duration {lex:?} has an unexpected designator {c:?}"
-                    ));
+                    )));
                 }
             };
             *total += secs;
             num.clear();
         }
         if !num.is_empty() {
-            return Err(format!(
+            return Err(teleology_err(format!(
                 "xsd:duration {lex:?} has a trailing number {num:?} with no designator"
-            ));
+            )));
         }
         Ok(())
     };
     scan(date_part, false, &mut total)?;
     if let Some(tp) = time_part {
         if tp.is_empty() {
-            return Err(format!(
+            return Err(teleology_err(format!(
                 "xsd:duration {lex:?} has an empty time part after 'T'"
-            ));
+            )));
         }
         scan(tp, true, &mut total)?;
     }
     if negative {
-        return Err(format!(
+        return Err(teleology_err(format!(
             "xsd:duration {lex:?} is negative; a freshness horizon must be non-negative"
-        ));
+        )));
     }
     Ok(total.round() as i64)
 }
@@ -2192,7 +2244,7 @@ fn freshness_verdict(
     facts: &WorldFacts,
     schema: &str,
     decision_time: Option<&str>,
-) -> Result<Option<(String, String)>, String> {
+) -> gmeow_errors::Result<Option<(String, String)>> {
     use chrono::DateTime;
     let guards: Vec<String> = facts
         .objects(schema, &logic(FRESHNESS_GUARD))
@@ -2203,7 +2255,9 @@ fn freshness_verdict(
         let sit = facts
             .object(guard, &logic(GUARDS_PRECONDITION))
             .ok_or_else(|| {
-                format!("logic:FreshnessGuard {guard:?} has no logic:guardsPrecondition")
+                teleology_err(format!(
+                    "logic:FreshnessGuard {guard:?} has no logic:guardsPrecondition"
+                ))
             })?
             .to_owned();
         // Absent-horizon semantics: a guard that declares no logic:freshnessHorizon
@@ -2218,23 +2272,27 @@ fn freshness_verdict(
         };
         let horizon_secs = parse_xsd_duration_seconds(&horizon_lex)?;
         let decision_lex = decision_time.ok_or_else(|| {
-            format!(
+            teleology_err(format!(
                 "logic:GateProbe gates schema {schema:?} whose logic:FreshnessGuard {guard:?} requires a logic:decisionTime, but the probe declares none"
-            )
+            ))
         })?;
         let recorded_lex = facts
             .object_n3(&sit, &logic(DATUM_RECORDED_AT))
             .and_then(literal_lex)
             .ok_or_else(|| {
-                format!(
+                teleology_err(format!(
                     "precondition {sit:?} guarded by logic:FreshnessGuard {guard:?} has no logic:datumRecordedAt"
-                )
+                ))
             })?;
         let decision = DateTime::parse_from_rfc3339(decision_lex).map_err(|e| {
-            format!("logic:decisionTime {decision_lex:?} is not a timezoned xsd:dateTime: {e}")
+            teleology_err(format!(
+                "logic:decisionTime {decision_lex:?} is not a timezoned xsd:dateTime: {e}"
+            ))
         })?;
         let recorded = DateTime::parse_from_rfc3339(&recorded_lex).map_err(|e| {
-            format!("logic:datumRecordedAt {recorded_lex:?} is not a timezoned xsd:dateTime: {e}")
+            teleology_err(format!(
+                "logic:datumRecordedAt {recorded_lex:?} is not a timezoned xsd:dateTime: {e}"
+            ))
         })?;
         let age_secs = decision.signed_duration_since(recorded).num_seconds();
         if age_secs > horizon_secs {
@@ -2275,7 +2333,7 @@ fn window_verdict(
     facts: &WorldFacts,
     schema: &str,
     decision_time: Option<&str>,
-) -> Result<Option<(String, String)>, String> {
+) -> gmeow_errors::Result<Option<(String, String)>> {
     use chrono::DateTime;
     let guards: Vec<String> = facts
         .objects(schema, &logic(FRESHNESS_GUARD))
@@ -2290,39 +2348,45 @@ fn window_verdict(
         }
         // A declared window without a decision time is a hard error — no reference point.
         let decision_lex = decision_time.ok_or_else(|| {
-            format!(
+            teleology_err(format!(
                 "logic:GateProbe gates schema {schema:?} whose logic:FreshnessGuard {guard:?} declares a logic:freshnessWindow, but the probe declares no logic:decisionTime"
-            )
+            ))
         })?;
         let start_lex = facts
             .object_n3(guard, &logic(FRESHNESS_WINDOW_START))
             .and_then(literal_lex)
             .ok_or_else(|| {
-                format!(
+                teleology_err(format!(
                     "logic:FreshnessGuard {guard:?} declares a logic:freshnessWindow but no logic:freshnessWindowStart"
-                )
+                ))
             })?;
         let end_lex = facts
             .object_n3(guard, &logic(FRESHNESS_WINDOW_END))
             .and_then(literal_lex)
             .ok_or_else(|| {
-                format!(
+                teleology_err(format!(
                     "logic:FreshnessGuard {guard:?} declares a logic:freshnessWindow but no logic:freshnessWindowEnd"
-                )
+                ))
             })?;
         let decision = DateTime::parse_from_rfc3339(decision_lex).map_err(|e| {
-            format!("logic:decisionTime {decision_lex:?} is not a timezoned xsd:dateTime: {e}")
+            teleology_err(format!(
+                "logic:decisionTime {decision_lex:?} is not a timezoned xsd:dateTime: {e}"
+            ))
         })?;
         let start = DateTime::parse_from_rfc3339(&start_lex).map_err(|e| {
-            format!("logic:freshnessWindowStart {start_lex:?} is not a timezoned xsd:dateTime: {e}")
+            teleology_err(format!(
+                "logic:freshnessWindowStart {start_lex:?} is not a timezoned xsd:dateTime: {e}"
+            ))
         })?;
         let end = DateTime::parse_from_rfc3339(&end_lex).map_err(|e| {
-            format!("logic:freshnessWindowEnd {end_lex:?} is not a timezoned xsd:dateTime: {e}")
+            teleology_err(format!(
+                "logic:freshnessWindowEnd {end_lex:?} is not a timezoned xsd:dateTime: {e}"
+            ))
         })?;
         if end < start {
-            return Err(format!(
+            return Err(teleology_err(format!(
                 "logic:FreshnessGuard {guard:?} valid-time window ends {end_lex} before it starts {start_lex}"
-            ));
+            )));
         }
         // Closed interval [start, end]: outside ⇒ undetermined on the WINDOW axis (this is
         // a different cause than the horizon — the datum is off-episode, not merely aged).
@@ -2372,14 +2436,22 @@ fn emit_gate_probe(
     facts: &WorldFacts,
     world: &str,
     probe: &str,
-) -> Result<Vec<TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<TeleologyQuad>> {
     let schema = facts
         .object(probe, &logic(PROBES_SCHEMA))
-        .ok_or_else(|| format!("logic:GateProbe {probe:?} has no logic:probesSchema"))?
+        .ok_or_else(|| {
+            teleology_err(format!(
+                "logic:GateProbe {probe:?} has no logic:probesSchema"
+            ))
+        })?
         .to_owned();
     let state = facts
         .object(probe, &logic(PROBES_STATE))
-        .ok_or_else(|| format!("logic:GateProbe {probe:?} has no logic:probesState"))?
+        .ok_or_else(|| {
+            teleology_err(format!(
+                "logic:GateProbe {probe:?} has no logic:probesState"
+            ))
+        })?
         .to_owned();
     let caps: BTreeSet<String> = facts
         .objects(&state, &logic(CAPABILITY_AVAILABLE))
@@ -2495,7 +2567,10 @@ const ACTION_SCHEMA_CLASS: &str = "ActionSchema";
 /// # Errors
 ///
 /// Returns `Err` for any malformed goal expression or non-linear path.
-pub fn evaluate_world_goals(store: &WorldStore, world: &str) -> Result<Vec<TeleologyQuad>, String> {
+pub fn evaluate_world_goals(
+    store: &WorldStore,
+    world: &str,
+) -> gmeow_errors::Result<Vec<TeleologyQuad>> {
     let facts = WorldFacts::read(store, world);
     let states = ordered_states(&facts)?;
     let mut goal_links: Vec<(String, String)> = facts
@@ -2660,7 +2735,7 @@ const DEFAULT_SERIALIZABILITY_CRITERION: &str = "ConflictSerializability";
 /// conflict edge, or any provenance recipe failure.
 pub fn materialize_teleology(
     store: &WorldStore,
-) -> Result<(Vec<TeleologyQuad>, PreservationClaim), String> {
+) -> gmeow_errors::Result<(Vec<TeleologyQuad>, PreservationClaim)> {
     let mut worlds = store.worlds();
     worlds.sort();
     worlds.dedup();
@@ -2846,14 +2921,18 @@ fn emit_plan_success(
     facts: &WorldFacts,
     world: &str,
     plan: &str,
-) -> Result<Vec<TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<TeleologyQuad>> {
     let schema = facts
         .object(plan, &logic(PLAN_SCHEMA))
-        .ok_or_else(|| format!("logic:Plan {plan:?} has no logic:planSchema"))?
+        .ok_or_else(|| teleology_err(format!("logic:Plan {plan:?} has no logic:planSchema")))?
         .to_owned();
     let goal_situation = facts
         .object(plan, &logic(PLAN_GOAL_SITUATION))
-        .ok_or_else(|| format!("logic:Plan {plan:?} has no logic:planGoalSituation"))?
+        .ok_or_else(|| {
+            teleology_err(format!(
+                "logic:Plan {plan:?} has no logic:planGoalSituation"
+            ))
+        })?
         .to_owned();
     let mode = classify_plan_success(facts, &schema, &goal_situation)?;
 
@@ -2930,7 +3009,7 @@ fn emit_dag_certification(
     facts: &WorldFacts,
     world: &str,
     plan: &str,
-) -> Result<(Vec<TeleologyQuad>, bool), String> {
+) -> gmeow_errors::Result<(Vec<TeleologyQuad>, bool)> {
     // A plan's flow graph is reachable only through logic:planFlowEdge; without edges
     // there is nothing to certify (the build pipeline uses its own gmeow:hasStage /
     // gmeow:dataflowConsumes form, certified at load time, not here).
@@ -2956,11 +3035,11 @@ fn emit_dag_certification(
     for e in &edges {
         let from = facts
             .object(e, &logic(FLOW_FROM))
-            .ok_or_else(|| format!("logic flow edge {e:?} has no logic:flowFrom"))?
+            .ok_or_else(|| teleology_err(format!("logic flow edge {e:?} has no logic:flowFrom")))?
             .to_owned();
         let to = facts
             .object(e, &logic(FLOW_TO))
-            .ok_or_else(|| format!("logic flow edge {e:?} has no logic:flowTo"))?
+            .ok_or_else(|| teleology_err(format!("logic flow edge {e:?} has no logic:flowTo")))?
             .to_owned();
         pairs.push((from, to));
     }
@@ -3027,15 +3106,21 @@ fn emit_deontic_evaluation(
     world: &str,
     ctx: &str,
     world_facts: &BTreeMap<String, WorldFacts>,
-) -> Result<Vec<TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<TeleologyQuad>> {
     let goal = facts
         .object(ctx, &logic(PRESCRIBES_GOAL))
-        .ok_or_else(|| format!("logic:DeonticContext {ctx:?} has no logic:prescribesGoal"))?
+        .ok_or_else(|| {
+            teleology_err(format!(
+                "logic:DeonticContext {ctx:?} has no logic:prescribesGoal"
+            ))
+        })?
         .to_owned();
     let goal_situation = facts
         .object(ctx, &logic(PRESCRIBED_GOAL_SITUATION))
         .ok_or_else(|| {
-            format!("logic:DeonticContext {ctx:?} has no logic:prescribedGoalSituation")
+            teleology_err(format!(
+                "logic:DeonticContext {ctx:?} has no logic:prescribedGoalSituation"
+            ))
         })?
         .to_owned();
     // A proscribed situation is optional: a context that names none can never witness
@@ -3100,7 +3185,7 @@ fn emit_history_anomaly(
     facts: &WorldFacts,
     world: &str,
     history: &str,
-) -> Result<Vec<TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<TeleologyQuad>> {
     let _ = history;
     // The conflict edges are the world's logic:precedes facts (a single history per
     // world in the conformance scenarios), enumerated in content order.
