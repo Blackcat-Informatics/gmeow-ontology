@@ -27,6 +27,7 @@ repos:
             crates/validate/tests/goldens/crossref/.*|
             crates/rdf/tests/corpus/w3c/.*|
             crates/lang-bridge/tests/fixtures/.*|
+            crates/slice-quality/tests/fixtures/goldens/.*|
             .*\.(tsv|svg|conllu)
           )$
       - id: end-of-file-fixer

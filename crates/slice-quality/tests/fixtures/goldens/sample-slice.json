@@ -1,0 +1,149 @@
+{
+  "tool": "slice-quality",
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "slice-quality.documentation.no-docs",
+      "message": "the slice ships no docs.md.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.linkage.no-calculus-eligible-correspondence",
+      "message": "the slice authors no identity-strength correspondence (none, or only lossy closeMatch-class alignments the lens calculus cannot carry) — the correspondence-calculus adoption axis is not applicable (vacuous 1.0), not a full-adoption pass.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.testing.no-cells",
+      "message": "the slice ships no test cells or competency queries (SLICE_QA).",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.incomplete",
+      "message": "fr covers 0/4 label+definition literals; the top tier requires 100% en+fr+cmn.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.translation.incomplete",
+      "message": "zh covers 0/4 label+definition literals; the top tier requires 100% en+fr+cmn.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
+      "message": "axisDocumentation: Registered (score 0.00)",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
+      "message": "axisMaximalGrounding: Maximal (score 1.00)",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
+      "message": "axisMaximalInformation: Maximal (score 1.00)",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
+      "message": "axisMaximalLinkage: Maximal (score 1.00)",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
+      "message": "axisMaximalProjection: Maximal (score 1.00)",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
+      "message": "axisOptimalTesting: Registered (score 0.00)",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
+      "message": "axisProseQuality: Maximal (score 1.00)",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
+      "message": "axisProvenanceHonesty: Maximal (score 1.00)",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
+      "message": "axisReasonerDerived: Maximal (score 1.00)",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
+      "message": "axisTranslationCoverage: Registered (score 0.33)",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.rollup",
+      "message": "roll-up tier: Registered (https://blackcatinformatics.ca/gmeow/slices/sample-slice)",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    }
+  ],
+  "rules": [
+    {
+      "id": "slice-quality.documentation.no-docs",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-documentation-no-docs",
+      "default_severity": "warning"
+    },
+    {
+      "id": "slice-quality.grade",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-grade",
+      "default_severity": "info"
+    },
+    {
+      "id": "slice-quality.linkage.no-calculus-eligible-correspondence",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-linkage-no-calculus-eligible-correspondence",
+      "default_severity": "warning"
+    },
+    {
+      "id": "slice-quality.rollup",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-rollup",
+      "default_severity": "info"
+    },
+    {
+      "id": "slice-quality.testing.no-cells",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-testing-no-cells",
+      "default_severity": "warning"
+    },
+    {
+      "id": "slice-quality.translation.incomplete",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-translation-incomplete",
+      "default_severity": "warning"
+    }
+  ]
+}
