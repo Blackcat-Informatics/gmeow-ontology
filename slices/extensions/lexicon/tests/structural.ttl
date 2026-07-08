@@ -14,7 +14,6 @@
 # All subjects tested below are defined in slices/extensions/lexicon/module.ttl;
 # no cross-slice subjects are tested here.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lexicon/tests/> .

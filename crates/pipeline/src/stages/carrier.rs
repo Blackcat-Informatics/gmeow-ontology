@@ -12,9 +12,8 @@
 //! and the documentation projection each riding their own named graph, plus the
 //! RDF 1.2 reifier/annotation tables and the content-addressed blob channel.
 //!
-//! It assembles a [`purrdf::gts_compose::SnapshotBuilder`] directly — the same
-//! pyo3-free core the `purrdf` Python producer now delegates to — routing each
-//! source into the named graph `gts_gen.py` assigns it.
+//! It assembles a [`purrdf::gts_compose::SnapshotBuilder`] directly, routing each
+//! source into its named graph.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};

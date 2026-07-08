@@ -32,10 +32,6 @@ pub mod render;
 mod store;
 pub mod svg;
 
-// PyO3 bindings — enabled only for the unified native extension.
-#[cfg(feature = "python")]
-pub mod py;
-
 pub use describe::{DescribeGraph, build_card, describe, resolve_term};
 pub use exec::{ExecutableDocsData, InferenceDiff, example_key};
 pub use i18n::{Translations, UiCatalog, available_languages, ui_string};
@@ -51,7 +47,3 @@ pub use render::{
     Page, Site, okf_doc_reference, render_site, render_site_lang, render_site_lang_exec, to_html,
     to_markdown,
 };
-// Re-export the module-registration entrypoint so the unified `gmeow_native`
-// cdylib can populate the `gmeow_native.docs` submodule.
-#[cfg(feature = "python")]
-pub use py::register;
