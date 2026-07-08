@@ -4,7 +4,7 @@
 
 A renderer composing existing structure with the Tier-1 documentation
 properties: definition, gUFO stereotype, domain/range, owning slice + tier,
-SSSOM alignments, scope/avoid notes, worked example, the
+scope/avoid notes, worked example, the
 flat-first/reify-on-demand pairing (``gmeow:pairsWith``), and the pointer to
 the slice's Tier-2 guide. Works offline against any ``.gts`` file (the
 documentation rides the package — Principle 14; ``describe`` is a
@@ -77,7 +77,6 @@ class TermCard:
     pairs_with: list[str] = field(default_factory=list)
     paired_from: list[str] = field(default_factory=list)
     box_roles: list[str] = field(default_factory=list)
-    alignments: list[str] = field(default_factory=list)
     guide: str = ""
 
 
@@ -198,7 +197,7 @@ def build_card(
     selector: LangSelector,
     tag_map: dict[str, str],
 ) -> TermCard:
-    """Compose the term card from the graph + SSSOM mappings."""
+    """Compose the term card from the graph."""
     local = str(term)[len(NAMESPACE) :]
     card = TermCard(iri=term, local=local)
     card.label, card.label_fallback = _selected_single(
@@ -289,19 +288,6 @@ def build_card(
                     card.guide = str(guide_path)
         except Exception:
             card.guide = ""
-    try:
-        from gmeow_tools.mappings import load_mappings
-
-        curie = f"gmeow:{local}"
-        for mapping in load_mappings():
-            if mapping.subject_id == curie:
-                conf = f" ({mapping.confidence})" if mapping.confidence else ""
-                card.alignments.append(
-                    f"{mapping.predicate_id} {mapping.object_id}{conf}"
-                )
-    except Exception:
-        pass
-    card.alignments = sorted(set(card.alignments))
     return card
 
 
@@ -358,8 +344,6 @@ def render_card(card: TermCard) -> str:
         lines.append(f"  [magenta]Flat form[/magenta]  {source} — the 80% shortcut")
     if card.box_roles:
         lines.append("  [blue]Box roles[/blue]  " + " · ".join(card.box_roles))
-    if card.alignments:
-        lines.append("  [green]Aligned[/green]  " + " · ".join(card.alignments[:8]))
     if card.guide:
         lines.append(f"  [dim]Guide: {card.guide}[/dim]")
     return "\n".join(lines)
