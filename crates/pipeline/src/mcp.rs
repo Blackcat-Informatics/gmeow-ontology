@@ -1067,7 +1067,7 @@ impl McpServer {
     fn tool_slice_quality(&self, args: &Value) -> gmeow_errors::Result<String> {
         let root = self.root_path()?;
         let rel = required_str(args, "path")?;
-        let slice_dir = root.join(rel);
+        let slice_dir = resolve_slice_dir(&root, rel)?;
         let report = gmeow_slice_quality::report::score_slice(&root, &slice_dir).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!("slice_quality: {e}"),
@@ -1643,6 +1643,38 @@ fn rpc_error(id: Value, code: i64, message: &str) -> String {
         "error": {"code": code, "message": message},
     })
     .to_string()
+}
+
+/// Resolve the `path` argument of the `slice_quality` tool to a concrete slice
+/// directory, enforcing that it stays inside the repository's `slices/` tree.
+///
+/// The raw argument is joined onto the repo root (so callers keep passing a
+/// root-relative `slices/<group>/<name>`), then canonicalized and checked for
+/// containment under the canonical `slices/` directory. An absolute path or a `../`
+/// sequence that escapes `slices/` — the classic path-traversal vectors — is
+/// rejected rather than scored, so the tool can never be steered to read outside the
+/// slice tree.
+fn resolve_slice_dir(root: &Path, rel: &str) -> gmeow_errors::Result<PathBuf> {
+    let err = |message: String| gmeow_errors::Diag::of_kind(crate::error::Mcp { message });
+    let slices_root = root.join("slices");
+    let canon_root = slices_root.canonicalize().map_err(|e| {
+        err(format!(
+            "slice_quality: cannot resolve slices root {}: {e}",
+            slices_root.display()
+        ))
+    })?;
+    let candidate = root.join(rel);
+    let canon = candidate.canonicalize().map_err(|e| {
+        err(format!(
+            "slice_quality: cannot resolve slice path {rel:?} under the slices tree: {e}"
+        ))
+    })?;
+    if !canon.starts_with(&canon_root) {
+        return Err(err(format!(
+            "slice_quality: path {rel:?} escapes the slices/ tree (path traversal rejected)"
+        )));
+    }
+    Ok(canon)
 }
 
 fn required_str<'a>(args: &'a Value, key: &str) -> gmeow_errors::Result<&'a str> {
@@ -2359,6 +2391,70 @@ mod tests {
         assert!(dev_tools.contains("\"constitution\""));
         assert!(dev_tools.contains("\"slice_quality\""));
         assert!(dev.resources_result().to_string().contains("constitution"));
+    }
+
+    #[test]
+    fn slice_quality_tool_reports_grades_and_advice() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let dev = McpServer::from_snapshot(&bytes, Some(root), McpMode::Dev).unwrap();
+
+        // Functional dispatch: the tool returns the documented JSON shape — grades as
+        // {axis, tier, score} and advice as {code, message}.
+        let out = text_payload(dev.call_tool_result(
+            "slice_quality",
+            &json!({"path": "slices/core/slice-quality-rubric"}),
+        ));
+        assert!(
+            out.get("ok").is_none(),
+            "a successful score carries no error envelope: {out}"
+        );
+        assert!(out["slice"].is_string(), "slice IRI present: {out}");
+        assert!(
+            out["rollup_tier"].is_string(),
+            "roll-up tier present: {out}"
+        );
+        let grades = out["grades"].as_array().expect("grades array");
+        assert!(!grades.is_empty(), "at least one axis grade: {out}");
+        for g in grades {
+            assert!(g["axis"].is_string(), "grade.axis is a string: {g}");
+            assert!(g["tier"].is_string(), "grade.tier is a string: {g}");
+            assert!(g["score"].is_number(), "grade.score is a number: {g}");
+        }
+        for a in out["advice"].as_array().expect("advice array") {
+            assert!(a["code"].is_string(), "advice.code is a string: {a}");
+            assert!(a["message"].is_string(), "advice.message is a string: {a}");
+        }
+    }
+
+    #[test]
+    fn slice_quality_tool_rejects_path_traversal() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let dev = McpServer::from_snapshot(&bytes, Some(root), McpMode::Dev).unwrap();
+
+        // An absolute path escapes the slices/ tree and must be rejected, not scored.
+        let abs = text_payload(dev.call_tool_result("slice_quality", &json!({"path": "/etc"})));
+        assert_eq!(abs["ok"], false, "absolute path must be rejected: {abs}");
+
+        // A `../` sequence that climbs out of slices/ is rejected too.
+        let up = text_payload(dev.call_tool_result(
+            "slice_quality",
+            &json!({"path": "slices/../../../etc/passwd"}),
+        ));
+        assert_eq!(up["ok"], false, "../ traversal must be rejected: {up}");
     }
 
     #[test]
