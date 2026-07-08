@@ -1,0 +1,10 @@
+<http://www.w3.org/2002/03owlt/Restriction/inconsistent001#a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> _:rdfxml_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/webont-restriction-001/w> .
+<http://www.w3.org/2002/03owlt/Restriction/inconsistent001#b> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> _:rdfxml_00000000000000000000000002 <https://gmeow.example/w3c-owl2-full/webont-restriction-001/w> .
+<http://www.w3.org/2002/03owlt/Restriction/inconsistent001#op> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/webont-restriction-001/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-restriction-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> <https://gmeow.example/w3c-owl2-full/webont-restriction-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#onProperty> <http://www.w3.org/2002/03owlt/Restriction/inconsistent001#op> <https://gmeow.example/w3c-owl2-full/webont-restriction-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#someValuesFrom> <http://www.w3.org/2002/07/owl#Nothing> <https://gmeow.example/w3c-owl2-full/webont-restriction-001/w> .
+_:rdfxml_00000000000000000000000002 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> <https://gmeow.example/w3c-owl2-full/webont-restriction-001/w> .
+_:rdfxml_00000000000000000000000002 <http://www.w3.org/2002/07/owl#onProperty> <http://www.w3.org/2002/03owlt/Restriction/inconsistent001#op> <https://gmeow.example/w3c-owl2-full/webont-restriction-001/w> .
+_:rdfxml_00000000000000000000000002 <http://www.w3.org/2002/07/owl#someValuesFrom> <http://www.w3.org/2002/07/owl#Nothing> <https://gmeow.example/w3c-owl2-full/webont-restriction-001/w> .

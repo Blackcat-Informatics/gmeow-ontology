@@ -3,7 +3,7 @@
 
 [package]
 name = "gmeow-docs"
-description = "GMEOW typed documentation model built from the slice catalog, exposed to Python via PyO3 (#853)"
+description = "GMEOW typed documentation model built from the slice catalog (#853)"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
@@ -12,23 +12,17 @@ readme = "README.md"
 keywords = ["documentation", "ontology", "slices", "rdf", "gmeow"]
 
 [lib]
-# rlib-only: this crate does NOT ship a standalone PyO3 extension. Its bindings
-# are linked into the single `gmeow_native` cdylib (crates/native, #630).
+# rlib-only: a pure-Rust engine crate consumed by the workspace.
 crate-type = ["rlib"]
 path = "src/lib.rs"
-
-[features]
-python = ["dep:pyo3", "gmeow-errors/python"]
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }
 regex = "1"
 sha1 = "0.10"
 purrdf = "0.4"
-# Pure-Rust catalog only: the `python` feature is NOT enabled here (we consume the
-# Rust SliceCatalog/ownership surface, not gmeow-slice's own PyO3 register fn).
+# Pure-Rust catalog only: we consume the Rust SliceCatalog/ownership surface.
 gmeow-errors = { path = "../errors" }
 # The wasm-clean logic compiler — the source of truth for the projection loss
 # ledger (`projection_ledger_rows`), surfaced verbatim on the compiler-products
@@ -38,8 +32,7 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # catalog page anchors each `gmeow:ValidationRule` by
 # `gmeow_validate::rule_catalog::slugify(code)` — the identical slug the validator
 # stamps into a finding's `helpUri` fragment — so a finding's help link resolves to
-# its rule entry. Pure-Rust rlib (the `python` feature stays off here); acyclic
-# (validate does not depend on docs).
+# its rule entry. Pure-Rust rlib; acyclic (validate does not depend on docs).
 gmeow-validate = { path = "../validate" }
 # Static-site renderers (T1, #853). minijinja is a pure-Rust template engine (no
 # build scripts, deterministic rendering); pulldown-cmark converts the per-page

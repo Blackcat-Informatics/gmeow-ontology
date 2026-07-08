@@ -22,21 +22,14 @@ env:
   CARGO_ENV_CFLAGS_FORCE: "true"
   CARGO_ENV_CXXFLAGS_FORCE: "true"
 
-# The quality gate is split into independent jobs that run in parallel; each
-# restores the uv cache (setup-uv) so `uv sync` is fast. The lint job runs the
-# canonical `make lint` target; the python job keeps a separate mypy invocation
-# only to emit per-category diagnostics SARIF.
+# The quality gate is split into independent jobs that run in parallel. The repo
+# is Rust-only: every job builds the gmeow-dev / gmeow-lsp binaries from the Rust
+# workspace (nightly toolchain + Swatinem rust-cache); there is no Python surface,
+# Python package environment, or prebuilt CPython extension wheel anymore.
 #
-# Diagnostics SARIF taxonomy: each job's per-category SARIF is uploaded to
-# code scanning under a category == the JOB name, and its artifacts land under
-# `dist/diagnostics/<category>/`. Wired here: `python` (mypy via the external-tool
-# wrapper). Still a
-# documented follow-up — `lint` and `rust` need the native `gmeow_diagnostics`
-# extension / a Python toolchain added to those jobs, and `ontology` a dedicated
-# feedback run; that work is coordinated with the effort that restructures the
-# reason/statements jobs into a single native reason lane (the classic Java/Docker
-# oracle lane having been removed). Per the owner's rule, whichever lands second
-# renames the categories in one place.
+# Diagnostics SARIF taxonomy: each job's per-category SARIF is uploaded to code
+# scanning under a category == the JOB name, and its artifacts land under
+# `dist/diagnostics/<category>/`. Wired here: `rust` (gmeow-lsp rust diagnostics).
 # Uploads are fork-safe: only push + same-repo PRs hit code scanning; fork PRs
 # fall back to a workflow artifact (their token lacks security-events: write).
 jobs:
@@ -47,14 +40,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
-        with:
-          enable-cache: true
-
-      - name: Sync environment
-        run: uv sync --all-packages --frozen
-
       - name: Install Rust (nightly)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
@@ -63,6 +48,13 @@ jobs:
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      # `make lint` runs the pre-commit hygiene suite directly (the Rust-only
+      # config: cargo fmt/clippy, spelling, YAML, actions, secrets). pre-commit is
+      # installed via pipx (preinstalled on the runner image); each hook manages
+      # its own environment.
+      - name: Install pre-commit
+        run: pipx install pre-commit
 
       - name: Cache pre-commit hook environments
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -82,111 +74,11 @@ jobs:
       - name: Lint gate
         run: make lint
 
-  python:
-    runs-on: ubuntu-latest
-    # security-events: write lets this job's per-category (python/mypy) SARIF
-    # surface in the Security tab via upload-sarif.
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
-        with:
-          enable-cache: true
-
-      - name: Sync environment
-        run: uv sync --all-packages --frozen
-
-      - name: Type-check (mypy)
-        run: uv run mypy
-
-      # Build the gmeow_logic PyO3 extension into the same venv so that the
-      # AC2/AC4 tests in test_logic_engine.py cannot silently skip in CI.
-      # VIRTUAL_ENV tells maturin develop which interpreter to target without
-      # activating the shell; uv sync above has already created .venv.
-      - name: Install Rust (nightly, native only)
-        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
-        with:
-          toolchain: nightly
-
-      - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
-
-      - name: Build + install the unified gmeow_native extension
-        # One cdylib folds in rdf + diagnostics + shacl + validate + logic, so the
-        # diagnostics Report/Finding pyclasses are a single shared type. The legacy
-        # import names (gmeow_logic etc.) are Python shims aliasing the submodules.
-        run: make native-py
-
-      - name: gmeow_logic extension imports (AC2/AC4 are now un-skippable)
-        run: uv run python -c "import gmeow_logic; print('gmeow_logic at', gmeow_logic.__file__)"
-
-      - name: gmeow_diagnostics extension imports
-        run: uv run python -c "import gmeow_diagnostics; print('gmeow_diagnostics at', gmeow_diagnostics.__file__)"
-
-      - name: purrdf native SHACL seam imports
-        # `shacl` is a compiled submodule of the purrdf native extension, not a
-        # Python shim package, so it has no `__file__`. Assert the capability the
-        # seam actually depends on (a callable `validate`) instead of a file path.
-        run: uv run python -c "from purrdf.purrdf_native import shacl; assert callable(shacl.validate), 'purrdf shacl.validate missing'; print('purrdf shacl seam OK:', shacl.__name__)"
-
-      # Per-category diagnostics: re-run mypy through the external-tool
-      # wrapper purely to emit a `python`-category SARIF of any type errors. The
-      # AUTHORITATIVE mypy gate is the "Type-check (mypy)" step above (which runs
-      # before the native exts, against the stubs); this step is continue-on-error
-      # so it never gates — it only projects findings for code scanning.
-      - name: mypy diagnostics SARIF (per-category python, non-gating)
-        continue-on-error: true
-        env:
-          GMEOW_DIAGNOSTICS_DIR: dist/diagnostics/python
-        run: uv run --package gmeow-dev gmeow-dev external-tool --name mypy --diagnostics-category python -- uv run mypy
-
-      # Upload to code scanning only for push + same-repo PRs (a fork PR's token
-      # lacks security-events: write). Fork PRs fall back to a workflow artifact.
-      - name: Upload python diagnostics SARIF
-        uses: ./.github/actions/upload-diagnostics-sarif
-        with:
-          sarif_file: dist/diagnostics/python/gmeow-feedback.sarif
-          artifact_path: dist/diagnostics/python/
-          category: python
-          artifact_name: diagnostics-python
-
-      - name: gmeow-lsp rust diagnostics SARIF (per-category rust, non-gating)
-        continue-on-error: true
-        run: make diagnostics-rust-sarif
-
-      - name: Upload rust diagnostics SARIF
-        uses: ./.github/actions/upload-diagnostics-sarif
-        with:
-          sarif_file: dist/diagnostics/rust/gmeow-feedback.sarif
-          artifact_path: dist/diagnostics/rust/
-          category: rust
-          artifact_name: diagnostics-rust
-
-      # Pure-Python tests only. Docker-backed checks run through explicit
-      # gmeow/Make lanes in parallel jobs below, not through pytest. Network
-      # tests are auto-skipped (conftest) unless GMEOW_RUN_NETWORK=1.
-      # test_logic_engine.py and test_logic_oracle_engine_parity.py run here:
-      # the gmeow_logic extension above ensures importorskip no longer skips
-      # (AC2/AC4 and the oracle≡engine parity gate run in every CI build).
-      - name: Unit tests (pure Python)
-        timeout-minutes: 60
-        # --durations=25 surfaces the slowest tests in every run — the migration
-        # worklist for moving the pytest suite into high-performance Rust.
-        run: make test-fast
-
   # Sharded across 3 runners via nextest's `--partition count:N/3` (balances the
   # test set across shards). All shards share the same Swatinem rust-cache key, so
   # each restores the same compiled `target/` and only pays an incremental recompile
   # plus ~1/3 of the test runtime. The whole-workspace gates (fmt/clippy/doctests)
-  # run ONLY on shard 1 — they need not run 3×. nextest/doctests skip the single
-  # CPython extension cdylib package: native-build covers that wheel, while normal
-  # Rust test binaries must not inherit pyo3/extension-module link semantics from it.
+  # run ONLY on shard 1 — they need not run 3×.
   # Each shard is its own runner, so the nextest `engine = { max-threads = 2 }` OOM
   # cap is honored per shard (3×2 across shards is fine — the cap is a per-process
   # bound, not a cluster bound).
@@ -196,9 +88,12 @@ jobs:
       matrix:
         shard: [1, 2, 3]
     runs-on: ubuntu-latest
+    # security-events: write lets shard 1's rust-category SARIF surface in the
+    # Security tab via upload-sarif.
     permissions:
       contents: read
       checks: write
+      security-events: write
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
@@ -236,7 +131,7 @@ jobs:
         run: cargo run -q --package gmeow-docs --example prime-docs-fixture
 
       - name: Workspace tests (cargo-nextest) (shard ${{ matrix.shard }}/3)
-        run: cargo nextest run --profile ci --workspace --exclude gmeow-native --partition count:${{ matrix.shard }}/3
+        run: cargo nextest run --profile ci --workspace --partition count:${{ matrix.shard }}/3
 
       # 25s per-test budget gate: hard-fail if any test on this shard's slice
       # of the ci profile exceeded the always-on budget. Runs against the exact
@@ -246,7 +141,24 @@ jobs:
 
       - name: Doctests
         if: ${{ matrix.shard == 1 }}
-        run: cargo test --doc --workspace --exclude gmeow-native
+        run: cargo test --doc --workspace
+
+      # Per-category diagnostics: emit the user-facing rust diagnostics SARIF via
+      # gmeow-lsp. Non-gating (continue-on-error) — it only projects findings for
+      # code scanning. Shard 1 only (it need not run 3×).
+      - name: gmeow-lsp rust diagnostics SARIF (per-category rust, non-gating)
+        if: ${{ matrix.shard == 1 }}
+        continue-on-error: true
+        run: make diagnostics-rust-sarif
+
+      - name: Upload rust diagnostics SARIF
+        if: ${{ matrix.shard == 1 }}
+        uses: ./.github/actions/upload-diagnostics-sarif
+        with:
+          sarif_file: dist/diagnostics/rust/gmeow-feedback.sarif
+          artifact_path: dist/diagnostics/rust/
+          category: rust
+          artifact_name: diagnostics-rust
 
       - name: Upload JUnit report
         if: always()
@@ -264,59 +176,13 @@ jobs:
           path: target/nextest/ci/junit.xml
           reporter: java-junit
 
-  # Prebuild the unified gmeow_native extension ONCE. The four ontology
-  # consumer jobs below download+install this wheel instead of each running the full
-  # `maturin develop` (nightly toolchain + rust-cache + native compile), which cuts
-  # the per-job setup from minutes to seconds so each lane lands under the 5-minute
-  # target. This job builds ONLY the wheel (no gates), so it stays well under 5 min.
-  # The wheel is a plain linux wheel (same ubuntu-latest image across jobs), --release —
-  # matching the `maturin develop --release` it replaces: the optimized reasoner cuts
-  # every pipeline gate (regenerate/check-generated/validate) ~4.4x, and Nemo's
-  # release build RAM is capped to 7.37 GB by the `[profile.release]` overrides.
-  native-build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          persist-credentials: false
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
-        with:
-          enable-cache: true
-
-      - name: Sync environment
-        run: uv sync --all-packages --frozen
-
-      - name: Install Rust (nightly, native only)
-        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
-        with:
-          toolchain: nightly
-
-      - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
-
-      - name: Build the unified gmeow_native wheel
-        run: make native-py-wheel
-
-      - name: Upload the gmeow_native wheel
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: gmeow-native-wheel
-          path: dist/wheels/*.whl
-          if-no-files-found: error
-          retention-days: 1
-
   # === ONTOLOGY GATE LANES ===
-  # The single `ontology` job was split into four parallel jobs. Each downloads the
-  # prebuilt gmeow_native wheel from the `native-build` job and installs it (no per-job
-  # cargo build), then runs a disjoint slice of the gmeow-dev gates. GitHub Actions has
-  # no native step-reuse, so the uv-sync + wheel-install setup is repeated per job, but
-  # the expensive native compile happens once in `native-build`. Grouping balances
-  # wall-time, isolating the long poles (validate, check-generated ~178s) into separate
-  # jobs. The `python` job keeps its own in-job build: it independently needs the rust
-  # toolchain for the gmeow-lsp diagnostics SARIF, so converting it would serialize it
-  # behind native-build for no net gain.
+  # Four parallel jobs, each building the gmeow-dev binary from the Rust workspace
+  # (nightly toolchain + rust-cache) and running a disjoint slice of the gmeow-dev
+  # gates. GitHub Actions has no native step-reuse, so the toolchain setup is
+  # repeated per job; the rust-cache keeps the compile incremental. Grouping
+  # balances wall-time, isolating the long poles (validate, check-generated ~178s)
+  # into separate jobs.
   #
   # Every original gate lands in exactly one job:
   #   ontology-validate  : validate
@@ -324,23 +190,25 @@ jobs:
   #   ontology-reason    : verify --mode native, acceptance, coverage
   #   ontology-misc      : mappings, wikidata, lint-alignment, audit, compliance-report
   ontology-validate:
-    needs: [native-build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+      - name: Install Rust (nightly)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          enable-cache: true
+          toolchain: nightly
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Cache generator stamps
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .stamps/generators
-          key: generator-stamps-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/**/*.py', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
+          key: generator-stamps-${{ runner.os }}-${{ hashFiles('crates/**', 'Cargo.lock', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
           restore-keys: |
             generator-stamps-${{ runner.os }}-
 
@@ -348,24 +216,9 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache/ontology-docs
-          key: ontology-docs-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/ontology_docs.py', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
+          key: ontology-docs-${{ runner.os }}-${{ hashFiles('crates/**', 'Cargo.lock', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
           restore-keys: |
             ontology-docs-${{ runner.os }}-
-
-      - name: Sync environment
-        run: uv sync --all-packages --frozen
-
-      # The validate gate runs SHACL through purrdf's native engine
-      # (purrdf.purrdf_native); the unified gmeow extension is prebuilt once in
-      # `native-build` and installed here from the wheel rather than compiled per-job.
-      - name: Download the prebuilt gmeow_native wheel
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
-        with:
-          name: gmeow-native-wheel
-          path: dist/wheels
-
-      - name: Install the unified gmeow_native extension from the wheel
-        run: make native-py-install
 
       # Persist the content-addressed `.cache/validate` across runs. Every
       # validate phase (merged-SHACL, the per-example SHACL passes, the DSL passes)
@@ -387,23 +240,25 @@ jobs:
         run: make validate
 
   ontology-generated:
-    needs: [native-build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+      - name: Install Rust (nightly)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          enable-cache: true
+          toolchain: nightly
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Cache generator stamps
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .stamps/generators
-          key: generator-stamps-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/**/*.py', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
+          key: generator-stamps-${{ runner.os }}-${{ hashFiles('crates/**', 'Cargo.lock', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
           restore-keys: |
             generator-stamps-${{ runner.os }}-
 
@@ -411,21 +266,9 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache/ontology-docs
-          key: ontology-docs-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/ontology_docs.py', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
+          key: ontology-docs-${{ runner.os }}-${{ hashFiles('crates/**', 'Cargo.lock', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
           restore-keys: |
             ontology-docs-${{ runner.os }}-
-
-      - name: Sync environment
-        run: uv sync --all-packages --frozen
-
-      - name: Download the prebuilt gmeow_native wheel
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
-        with:
-          name: gmeow-native-wheel
-          path: dist/wheels
-
-      - name: Install the unified gmeow_native extension from the wheel
-        run: make native-py-install
 
       - name: Engine cross-check (rdflib ≡ purrdf on every query)
         run: make maint-crosscheck
@@ -437,23 +280,25 @@ jobs:
         run: make constitution-check
 
   ontology-reason:
-    needs: [native-build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+      - name: Install Rust (nightly)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          enable-cache: true
+          toolchain: nightly
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Cache generator stamps
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .stamps/generators
-          key: generator-stamps-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/**/*.py', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
+          key: generator-stamps-${{ runner.os }}-${{ hashFiles('crates/**', 'Cargo.lock', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
           restore-keys: |
             generator-stamps-${{ runner.os }}-
 
@@ -461,21 +306,9 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache/ontology-docs
-          key: ontology-docs-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/ontology_docs.py', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
+          key: ontology-docs-${{ runner.os }}-${{ hashFiles('crates/**', 'Cargo.lock', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
           restore-keys: |
             ontology-docs-${{ runner.os }}-
-
-      - name: Sync environment
-        run: uv sync --all-packages --frozen
-
-      - name: Download the prebuilt gmeow_native wheel
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
-        with:
-          name: gmeow-native-wheel
-          path: dist/wheels
-
-      - name: Install the unified gmeow_native extension from the wheel
-        run: make native-py-install
 
       - name: Reasoned-graph negative tests (native verify, Docker-free)
         run: make verify
@@ -490,23 +323,25 @@ jobs:
         run: make reason-crosscheck
 
   ontology-misc:
-    needs: [native-build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+      - name: Install Rust (nightly)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
-          enable-cache: true
+          toolchain: nightly
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Cache generator stamps
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .stamps/generators
-          key: generator-stamps-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/**/*.py', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
+          key: generator-stamps-${{ runner.os }}-${{ hashFiles('crates/**', 'Cargo.lock', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
           restore-keys: |
             generator-stamps-${{ runner.os }}-
 
@@ -514,21 +349,9 @@ jobs:
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: .cache/ontology-docs
-          key: ontology-docs-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/ontology_docs.py', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
+          key: ontology-docs-${{ runner.os }}-${{ hashFiles('crates/**', 'Cargo.lock', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
           restore-keys: |
             ontology-docs-${{ runner.os }}-
-
-      - name: Sync environment
-        run: uv sync --all-packages --frozen
-
-      - name: Download the prebuilt gmeow_native wheel
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
-        with:
-          name: gmeow-native-wheel
-          path: dist/wheels
-
-      - name: Install the unified gmeow_native extension from the wheel
-        run: make native-py-install
 
       - name: Mappings → axioms + linksets, QID syntax
         run: make mappings
@@ -627,15 +450,13 @@ jobs:
   # the gmeow-rdf codec inside the `ontology` job's `check-generated` — there is no
   # separate statements lane.
   quality:
-    needs: [native-build, lint, python, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
+    needs: [lint, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Require all quality jobs to have succeeded
         env:
-          NATIVE_BUILD: ${{ needs.native-build.result }}
           LINT: ${{ needs.lint.result }}
-          PYTHON: ${{ needs.python.result }}
           RUST: ${{ needs.rust.result }}
           WASM: ${{ needs.wasm.result }}
           ONTOLOGY_VALIDATE: ${{ needs.ontology-validate.result }}
@@ -643,8 +464,8 @@ jobs:
           ONTOLOGY_REASON: ${{ needs.ontology-reason.result }}
           ONTOLOGY_MISC: ${{ needs.ontology-misc.result }}
         run: |
-          echo "results: native-build=$NATIVE_BUILD lint=$LINT python=$PYTHON rust=$RUST wasm=$WASM ontology-validate=$ONTOLOGY_VALIDATE ontology-generated=$ONTOLOGY_GENERATED ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
-          for r in "$NATIVE_BUILD" "$LINT" "$PYTHON" "$RUST" "$WASM" "$ONTOLOGY_VALIDATE" "$ONTOLOGY_GENERATED" "$ONTOLOGY_REASON" "$ONTOLOGY_MISC"; do
+          echo "results: lint=$LINT rust=$RUST wasm=$WASM ontology-validate=$ONTOLOGY_VALIDATE ontology-generated=$ONTOLOGY_GENERATED ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
+          for r in "$LINT" "$RUST" "$WASM" "$ONTOLOGY_VALIDATE" "$ONTOLOGY_GENERATED" "$ONTOLOGY_REASON" "$ONTOLOGY_MISC"; do
             if [ "$r" != "success" ]; then
               echo "::error::a quality job did not succeed ($r)"
               exit 1

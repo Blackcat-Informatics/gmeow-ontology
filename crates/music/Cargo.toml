@@ -17,9 +17,7 @@ path = "src/lib.rs"
 
 [features]
 default = []
-python = ["dep:pyo3"]
 
 [dependencies]
 purrdf = "0.4"
-pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }
 roxmltree = "0.20"

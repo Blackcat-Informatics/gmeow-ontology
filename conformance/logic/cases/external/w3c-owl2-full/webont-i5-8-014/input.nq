@@ -1,0 +1,2 @@
+<http://www.w3.org/2002/03owlt/I5.8/consistent014#prop> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> <https://gmeow.example/w3c-owl2-full/webont-i5-8-014/w> .
+<http://www.w3.org/2002/03owlt/I5.8/consistent014#prop> <http://www.w3.org/2000/01/rdf-schema#range> <http://example.org/user/data#type> <https://gmeow.example/w3c-owl2-full/webont-i5-8-014/w> .

@@ -73,6 +73,7 @@ fn decimal_projection_expands_scientific_notation() {
         Some(1e20),
         None,
         None,
+        None,
     )
     .expect("valid finite decimal correspondence");
     let program =
@@ -147,6 +148,7 @@ fn overclaim_gate_allows_equivalence_for_true_equiv() {
         None,
         None,
         None,
+        None,
     )
     .expect("valid");
     assert_no_overclaim_correspondence(&equiv, true)
@@ -168,6 +170,7 @@ fn overclaim_gate_refuses_equivalence_for_commitment_shifting_bridge() {
         None,
         None,
         vec![],
+        None,
         None,
         None,
         None,

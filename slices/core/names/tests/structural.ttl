@@ -30,7 +30,6 @@
 #     provided by saNoPreferredOrPrimaryNameTerm (cell 30) which covers
 #     the full set of banned IRIs.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/names/tests/> .

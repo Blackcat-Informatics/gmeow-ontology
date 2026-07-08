@@ -1,0 +1,2 @@
+<http://example.net/myVocab#hasBrother> <http://www.w3.org/2002/07/owl#inverseOf> <http://example.net/yourVocab#isBrotherOf> <https://gmeow.example/w3c-owl2-full/webont-inverseof-001/w> .
+<http://example.net/vocab#joe> <http://example.net/myVocab#hasBrother> <http://example.net/vocab#bob> <https://gmeow.example/w3c-owl2-full/webont-inverseof-001/w> .

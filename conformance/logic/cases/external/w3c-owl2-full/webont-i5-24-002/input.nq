@@ -1,0 +1,3 @@
+<http://www.w3.org/2002/03owlt/I5.24/premises002#prop> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Property> <https://gmeow.example/w3c-owl2-full/webont-i5-24-002/w> .
+<http://www.w3.org/2002/03owlt/I5.24/premises002#prop> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/03owlt/I5.24/premises002#A> <https://gmeow.example/w3c-owl2-full/webont-i5-24-002/w> .
+<http://www.w3.org/2002/03owlt/I5.24/premises002#prop> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2002/03owlt/I5.24/premises002#B> <https://gmeow.example/w3c-owl2-full/webont-i5-24-002/w> .

@@ -1,0 +1,3 @@
+<http://www.w3.org/2002/03owlt/equivalentClass/premises006#A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-equivalentclass-006/w> .
+<http://www.w3.org/2002/03owlt/equivalentClass/premises006#B> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-equivalentclass-006/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-equivalentclass-006/w> .

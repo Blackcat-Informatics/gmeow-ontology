@@ -104,6 +104,7 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/places/examples/located-place.ttl", // gmeow:vantage → Agent not typed standalone (the survey team is gmeow:Organization)
     "slices/core/profiles/examples/named-profile-membership.ttl", // gmeow:profileAppliesTo → owl:Class target not typed standalone
     "slices/core/quality/examples/dataset-completeness.ttl", // gmeow:assessedEntity → Entity not typed standalone (the dataset is gmeow:Dataset)
+    "slices/core/slice-quality-rubric/examples/rubric-assessment.ttl", // reuses the quality Observation stack exactly like dataset-completeness.ttl: gmeow:assessedEntity → Dataset not typed standalone, gmeow:observationMethod / gmeow:qualityDimension → shared value individuals defined in module.ttl, untyped standalone
     "slices/core/rights/examples/licensed-dataset.ttl", // gmeow:licensedWork/copyrightWork/statementAbout → InformationObject/Entity not typed standalone; gmeow:licensor/copyrightHolder → Agent not typed standalone
     "slices/core/sexuality/examples/split-attraction.ttl", // gmeow:romanticOrientationValue/sexualOrientationValue → shared RomanticOrientationValue/SexualOrientationValue individuals untyped standalone
     "slices/core/standpoint/examples/contested-authorship.ttl", // gmeow:observationMethod → shared method individual untyped standalone

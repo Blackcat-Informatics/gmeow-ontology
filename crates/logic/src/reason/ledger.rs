@@ -109,8 +109,9 @@ pub struct LedgerVerdict {
 /// Each remaining non-zero tally contributes one deterministic English reason.
 ///
 /// The pass/fail decision now flows through the single diagnostics gate morphism:
-/// the ledger's non-`Agree` rows are interned into a [`gmeow_errors::DiagLedger`]
-/// ([`divergence_diag_ledger`]) and `passed` is `verdict() == Collected` — the same
+/// the ledger's rows are interned into a [`gmeow_errors::DiagLedger`]
+/// ([`divergence_diag_ledger`]) — agreements as NON-blocking corroboration witnesses
+/// that can never gate — and `passed` is `verdict() == Collected` — the same
 /// `gate()`/`verdict()` join-fold every other verdict surface reduces to (dogfooding
 /// the one gate authority). The `reasons` remain the per-failing-category English
 /// counts consumed and printed by the ingest CLI and surfaced by the cross-check.
@@ -401,11 +402,12 @@ pub fn build_ledger(
 }
 
 /// The stable kebab code suffix for a divergence kind (the structured signal
-/// that feeds the native⊇external coverage gate). `Agree` has no code — agreement is not a
-/// divergence and never becomes a finding.
+/// that feeds the native⊇external coverage gate). `Agree` now carries the
+/// `agreement` suffix so a native↔published agreement folds as a NON-blocking
+/// corroboration finding (positive evidence), rather than being dropped.
 fn divergence_code_suffix(kind: &DivergenceKind) -> Option<&'static str> {
     match kind {
-        DivergenceKind::Agree => None,
+        DivergenceKind::Agree => Some("agreement"),
         DivergenceKind::NativeOnly => Some("native-only"),
         DivergenceKind::OracleOnly => Some("oracle-only"),
         DivergenceKind::DlGap => Some("dl-gap"),
@@ -422,33 +424,36 @@ const DIVERGENCE_STAGE: &str = "conformance.divergence";
 /// IRI, a verdict token, or a category label, so the joined key is unambiguous.
 const FOCUS_SEP: &str = "\u{1f}";
 
-/// The diagnostic [`Grade`] a non-`Agree` divergence row is interned at, chosen so
-/// the ledger's [`gate`](gmeow_errors::gate)/[`verdict`](DiagLedger::verdict)
-/// reproduces [`enforce`]'s pass/fail EXACTLY:
+/// The diagnostic [`Grade`] a divergence row is interned at, chosen so the ledger's
+/// [`gate`](gmeow_errors::gate)/[`verdict`](DiagLedger::verdict) reproduces
+/// [`enforce`]'s pass/fail EXACTLY:
 ///
 /// * the FAILING kinds (`OracleOnly`, `DlGap`, `CorpusOnly`) take a BLOCKING
 ///   category ([`FindingCategory::ContradictionWitness`]) at [`Standpoint::Binding`]
 ///   and [`Severity::Error`], so each one gates `Fatal` — the gate fails the lane;
 /// * `NativeOnly` is expected superset richness, never a failure, so it takes a
 ///   NON-blocking category ([`FindingCategory::IncompleteCheck`]) — still emitted as
-///   a finding, but `Collected`, so it never gates.
-///
-/// (`Agree` never reaches this — it has no code and is filtered before interning —
-/// but is mapped to the non-blocking grade defensively so it could never gate.)
+///   a finding, but `Collected`, so it never gates;
+/// * `Agree` is a native↔published agreement — the opposite of an incomplete check —
+///   so it takes the honest NON-blocking [`FindingCategory::Corroboration`] at the
+///   lowest severity ([`Severity::Info`]). The Corroboration category is Coherent, so
+///   the corroboration finding stays `Collected` and never gates, whatever its
+///   standpoint; it is retained as positive corroborating evidence rather than dropped.
 fn divergence_grade(kind: &DivergenceKind) -> Grade {
-    let category = match kind {
+    let (severity, category) = match kind {
         DivergenceKind::OracleOnly | DivergenceKind::DlGap | DivergenceKind::CorpusOnly => {
-            FindingCategory::ContradictionWitness
+            (Severity::Error, FindingCategory::ContradictionWitness)
         }
-        DivergenceKind::NativeOnly | DivergenceKind::Agree => FindingCategory::IncompleteCheck,
+        DivergenceKind::NativeOnly => (Severity::Error, FindingCategory::IncompleteCheck),
+        DivergenceKind::Agree => (Severity::Info, FindingCategory::Corroboration),
     };
-    Grade::new(Severity::Error, category, Standpoint::Binding)
+    Grade::new(severity, category, Standpoint::Binding)
 }
 
-/// Intern a [`DivergenceLedger`]'s NON-`Agree` rows into a fresh
-/// [`gmeow_errors::DiagLedger`] — one [`Diag`] per divergence row — so both the
-/// diagnostic PROJECTION ([`divergence_findings`]) and the gate VERDICT
-/// ([`enforce`]) flow through the single diagnostics substrate.
+/// Intern a [`DivergenceLedger`]'s rows into a fresh [`gmeow_errors::DiagLedger`] —
+/// one [`Diag`] per row (agreements included, as NON-blocking corroboration
+/// findings) — so both the diagnostic PROJECTION ([`divergence_findings`]) and the
+/// gate VERDICT ([`enforce`]) flow through the single diagnostics substrate.
 ///
 /// Each witness carries:
 ///
@@ -490,8 +495,8 @@ pub fn divergence_diag_ledger(ledger: &DivergenceLedger) -> DiagLedger {
 }
 
 /// Project a [`DivergenceLedger`] into restricted [`gmeow_errors::Finding`]s —
-/// one per NON-`Agree` row — as the conformance-tool projection of the
-/// [`divergence_diag_ledger`] witnesses.
+/// one per row, agreements folded as NON-blocking corroboration findings — as the
+/// conformance-tool projection of the [`divergence_diag_ledger`] witnesses.
 ///
 /// The diagnostics doctrine declares the native↔oracle / native↔corpus
 /// divergence-ledger entries to BE `gmeow:Finding`s (a `gmeow:Observation` whose
@@ -802,11 +807,12 @@ mod tests {
     // ── divergence_findings projection (divergence rows ARE gmeow:Findings) ─────
 
     #[test]
-    fn divergence_findings_skip_agree_and_carry_kind_and_provenance() {
+    fn divergence_findings_fold_agree_as_corroboration_and_carry_kind_and_provenance() {
+        use gmeow_errors::FindingCategory;
         let external = compare_external_corpus(
             "w3c-owl2-el",
             &[
-                cmp("consistency/open", "w", "consistent", "consistent"), // Agree → dropped
+                cmp("consistency/open", "w", "consistent", "consistent"), // Agree → corroboration
                 cmp("clash", "w", "consistent", "inconsistent"),          // CorpusOnly
                 cmp("beyond/card", "w", "incomplete", "consistent"),      // DlGap
             ],
@@ -814,22 +820,33 @@ mod tests {
         let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), external);
         let findings = divergence_findings(&ledger);
 
+        // Agreements are now findings too: one corroboration + one corpus-only + one dl-gap.
         assert_eq!(
             findings.len(),
-            2,
-            "Agree row is not a finding: {findings:?}"
+            3,
+            "agreement folds as a corroboration finding: {findings:?}"
         );
-        assert!(findings.iter().all(|f| f.severity == Severity::Error));
         assert!(
             findings
                 .iter()
                 .all(|f| f.tool.as_deref() == Some("conformance"))
         );
 
+        // The agreement is a NON-blocking corroboration finding at the lowest severity —
+        // graded Coherent, so it can never gate the lane.
+        let agree = findings
+            .iter()
+            .find(|f| f.code == "reason.divergence.agreement")
+            .expect("an agreement (corroboration) finding");
+        assert_eq!(agree.severity, Severity::Info);
+        assert_eq!(agree.category, Some(FindingCategory::Corroboration));
+
+        // The failing divergences stay at Error severity.
         let corpus = findings
             .iter()
             .find(|f| f.code == "reason.divergence.corpus-only")
             .expect("a corpus-only finding");
+        assert_eq!(corpus.severity, Severity::Error);
         // The raw published expected verdict rides verbatim in the message.
         assert!(
             corpus.message.contains("inconsistent"),
@@ -840,6 +857,28 @@ mod tests {
             findings
                 .iter()
                 .any(|f| f.code == "reason.divergence.dl-gap")
+        );
+
+        // The gate still passes on the failing set only through the blocking kinds:
+        // an all-agree ledger yields only corroboration findings and stays Collected.
+        let all_agree = build_ledger(
+            Vec::new(),
+            Vec::new(),
+            Vec::new(),
+            compare_external_corpus(
+                "w3c-owl2-el",
+                &[cmp("consistency/open", "w", "consistent", "consistent")],
+            ),
+        );
+        let agree_findings = divergence_findings(&all_agree);
+        assert_eq!(
+            agree_findings.len(),
+            1,
+            "an all-agree ledger still emits its corroboration finding"
+        );
+        assert!(
+            enforce(&all_agree).passed,
+            "an all-agree ledger must still pass the gate"
         );
     }
 }

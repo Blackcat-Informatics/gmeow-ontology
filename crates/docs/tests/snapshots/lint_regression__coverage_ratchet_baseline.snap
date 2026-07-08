@@ -4,10 +4,10 @@ assertion_line: 176
 expression: coverage
 ---
 {
-  "docs/missing-alignment": 1803,
+  "docs/missing-alignment": 1839,
   "docs/missing-definition": 1,
-  "docs/missing-example": 1058,
+  "docs/missing-example": 1075,
   "docs/missing-label": 1,
-  "docs/missing-scope-note": 2392,
-  "docs/missing-usage-advice": 1053
+  "docs/missing-scope-note": 2428,
+  "docs/missing-usage-advice": 1070
 }

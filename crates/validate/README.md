@@ -24,14 +24,8 @@ end-to-end. Further lints migrate here in subsequent tasks.
 
 This crate is **native-only** and carries **no architecture cfg guards**: a
 capability cfg would be optionality, not compliance. The engine core
-(`store.rs`, `model.rs`) is deliberately **PyO3-free** — it links as a plain
-`rlib` into a future Rust compiler without any Python dependency. Only `py.rs`
-imports pyo3.
-
-The Python `gmeow_validate` extension (PyO3/maturin) exposes:
-
-- `check_syntax(paths)` → `{"errors": [...], "warnings": [...]}`
-- `check_sameas_ban(paths, namespace, allowlist)` → `{"errors": [...], "warnings": [...]}`
+(`store.rs`, `model.rs`) links as a plain `rlib` into the native Rust
+toolchain.
 
 ---
 
@@ -117,7 +111,6 @@ Related packages:
 - `gmeow-shacl` — Rust SHACL Core validator
 - `gmeow-logic` — world-indexed reasoning engine (Rust)
 - `gmeow-gts` — Graph Transport Substrate format engine (Rust)
-- Python oracle: `src/gmeow_tools/` (PyPI: `gmeow`)
 
 ---
 

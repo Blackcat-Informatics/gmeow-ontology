@@ -1,0 +1,6 @@
+<http://owl2.test/rules/Y1> <http://owl2.test/rules/unique_employee_id> "123" <https://gmeow.example/w3c-owl2-full/owl2-rl-rules-ifp-askey/w> .
+<http://owl2.test/rules/Y1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/owl2-rl-rules-ifp-askey/w> .
+<http://owl2.test/rules/Y2> <http://owl2.test/rules/unique_employee_id> "123" <https://gmeow.example/w3c-owl2-full/owl2-rl-rules-ifp-askey/w> .
+<http://owl2.test/rules/Y2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/owl2-rl-rules-ifp-askey/w> .
+<http://owl2.test/rules/unique_employee_id> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#InverseFunctionalProperty> <https://gmeow.example/w3c-owl2-full/owl2-rl-rules-ifp-askey/w> .
+<http://owl2.test/rules/unique_employee_id> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/owl2-rl-rules-ifp-askey/w> .
