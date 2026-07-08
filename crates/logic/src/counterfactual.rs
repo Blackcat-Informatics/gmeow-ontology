@@ -814,6 +814,39 @@ mod tests {
         assert_eq!(ans.bindings[0]["Z"], "<https://ex/fired>");
     }
 
+    // ── Native production path: recursion resolves inside the constructed world ─
+    //
+    // Each closest world's goal is resolved via `dispatch_query` (native magic-sets
+    // first), so a counterfactual whose consequent needs RECURSION exercises the
+    // promoted native path end-to-end on the counterfactual production surface: the
+    // assumed edge a→b joins the base chain b→c→d, so `reach(a, Y)` closes over
+    // {b, c, d} inside the constructed world. (The native↔Scryer gap-zero proof for
+    // this fragment is `dispatch_parity_counterfactual_fragment_native_matches_scryer`
+    // in `physical::parity`.)
+    #[test]
+    fn counterfactual_native_resolves_recursion_in_constructed_world() {
+        let store = WorldStore::new();
+        store.insert_quad(BASE, "https://ex/b", "https://ex/edge", "https://ex/c");
+        store.insert_quad(BASE, "https://ex/c", "https://ex/edge", "https://ex/d");
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://ex/').\n\
+             :- counterfactual('http://world/cf', 'http://world/base').\n\
+             :- assume(ex:edge(ex:a, ex:b)).\n\
+             ex:reach(X, Y) :- ex:edge(X, Y).\n\
+             ex:reach(X, Y) :- ex:edge(X, Z), ex:reach(Z, Y).\n\
+             ?- ex:reach(ex:a, Y).\n",
+        )
+        .unwrap();
+        let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4, None).unwrap();
+        assert_eq!(ans.status_str(), "ok", "ans: {ans:?}");
+        let zs: BTreeSet<&str> = ans.bindings.iter().map(|b| b["Y"].as_str()).collect();
+        assert_eq!(
+            zs,
+            BTreeSet::from(["<https://ex/b>", "<https://ex/c>", "<https://ex/d>"]),
+            "native recursion inside the constructed counterfactual world: {ans:?}"
+        );
+    }
+
     // ── AC-2: no leakage — the base store is never mutated ────────────────────
     #[test]
     fn no_leakage_base_store_unchanged() {
