@@ -420,7 +420,7 @@ pub enum Commands {
         /// Sweep every slice under slices/ instead of one path.
         #[arg(long = "all")]
         all: bool,
-        /// Output rendering: text (default), json, or sarif.
+        /// Output rendering: text (default), json, sarif, or rdf.
         #[arg(long = "format")]
         format: Option<String>,
     },
