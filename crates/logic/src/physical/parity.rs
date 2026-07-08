@@ -550,7 +550,9 @@ mod tests {
     use crate::physical::chase::{ChaseAdmission, ExistentialRule, chase_world, route_chase};
     use crate::physical::magic::resolve_native;
     use crate::physical::seminaive::{NativeOutcome, materialize_native};
-    use crate::query_ir::{Budget, QProgram, parse_query_program};
+    use crate::query_ir::{
+        Budget, QAtom, QBodyLit, QGoal, QProgram, QRule, QTerm, parse_query_program,
+    };
     use crate::rule_ir::{EvalAtom, EvalTerm, Fact, parse_eval_rules};
     use crate::seam::{BudgetStatus, WorldStoreForeign};
     use crate::store::WorldStore;
@@ -1913,6 +1915,144 @@ mod tests {
              exactly ({} native-only) — native still subsumes it, but the completeness gap this \
              test documents did not materialise; re-verify the reference-resolver contract",
             ref_ledger.native_only
+        );
+    }
+
+    // ── Per-consumer gate: counterfactual per-world resolution native ≡ Scryer ────────
+    //
+    // `crate::counterfactual::resolve_in_world` resolves each closest world's goal via
+    // `crate::dispatch::dispatch_query`, which runs `resolve_native` (native magic-sets)
+    // FIRST and demotes only the declared `Unsupported` residual (cut / procedural) to the
+    // Scryer oracle. So the non-cut counterfactual fragment already resolves natively; a
+    // cut-bearing counterfactual honestly demotes. This gate proves that promotion is
+    // gap-zero over a corpus representative of what counterfactual resolves per world:
+    //   * a RECURSIVE closure (reachability over a cyclic a→b→c→a graph) — native
+    //     magic-sets decides completely, Scryer tables the cyclic IDB; native ≡ Scryer
+    //     gap-zero (`edge`, the referenced EDB predicate, is present so the Scryer
+    //     comparand is well-defined);
+    //   * an N-ARY (world-carrying generic-triple `triple/4`) sub-property program —
+    //     native decides the predicate-as-data goal a binary store cannot express. This is
+    //     a native-only capability: the world snapshot Scryer loads is keyed by the ACTUAL
+    //     predicate IRI, so the generic `triple` relation has no Scryer comparand; the gate
+    //     asserts native `Decided`;
+    //   * a CUT program — `resolve_native` returns `Unsupported(Cut)`, the honest demotion
+    //     to the procedural oracle, NOT a native cut simulation.
+
+    /// The n-ary (world-carrying generic-triple `triple/4`) sub-property program:
+    /// `triple(?s,<p2>,?o,?w) :- triple(?s,<p1>,?o,?w)` with the arity-4 backward goal
+    /// `triple(?s,<p2>,?o,?w)`. The predicate rides in a DATA position, so this is the
+    /// native n-ary backward capability a binary store cannot express.
+    fn cf_nary_subproperty_program() -> QProgram {
+        let triple_atom = |pred: &str| QAtom {
+            pred: "triple".to_owned(),
+            args: vec![
+                QTerm::Var("s".to_owned()),
+                QTerm::Const(format!("<{pred}>")),
+                QTerm::Var("o".to_owned()),
+                QTerm::Var("w".to_owned()),
+            ],
+        };
+        QProgram {
+            rules: vec![QRule {
+                head: triple_atom("http://ex/p2"),
+                body: vec![QBodyLit::Atom(triple_atom("http://ex/p1"))],
+            }],
+            goal: QGoal {
+                atoms: vec![triple_atom("http://ex/p2")],
+            },
+            counterfactual: None,
+            prob_facts: vec![],
+            prob_model: None,
+            confidences: vec![],
+        }
+    }
+
+    #[test]
+    fn dispatch_parity_counterfactual_fragment_native_matches_scryer() {
+        // (1) RECURSIVE closure — reachability over the cyclic edge graph a→b→c→a. Native
+        // saturates the finite Herbrand base (magic-sets); Scryer tables the cyclic IDB.
+        // native ≡ Scryer gap-zero — the promotion the counterfactual consumer relies on.
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:reach(X, Y) :- ex:edge(X, Y).\n\
+             ex:reach(X, Y) :- ex:edge(X, Z), ex:reach(Z, Y).\n\
+             ?- ex:reach(X, Y).\n"
+        );
+        let (native, store, world, program) = native_over_cyclic(&src);
+        assert!(
+            !native.bindings.is_empty(),
+            "cyclic reachability must decide a non-empty answer set"
+        );
+        let foreign = WorldStoreForeign::from_world(&store, &world, PROFILE).expect("from_world");
+        let ledger = compare_answers(
+            &native,
+            &TablingScryerOracle,
+            &foreign,
+            &world,
+            &program,
+            &Budget::default(),
+        )
+        .expect("Scryer oracle solve");
+        let verdict = ledger.enforce();
+        assert!(
+            verdict.passed,
+            "counterfactual recursive fragment: native↔Scryer DIVERGED ({} native-only, {} \
+             oracle-only): {:?}",
+            ledger.native_only, ledger.oracle_only, verdict.reasons
+        );
+
+        // (2) N-ARY generic-triple sub-property — native-only capability (no Scryer
+        // comparand, since Scryer's world snapshot is keyed by the actual predicate IRI,
+        // not a generic `triple` relation). Assert native `Decided` with the derived edge.
+        const NW: &str = "http://logic.test/world/cf-nary";
+        let nstore = WorldStore::new();
+        nstore.insert_quad(NW, "http://ex/x", "http://ex/p1", "http://ex/y");
+        let nforeign = WorldStoreForeign::from_world(&nstore, NW, PROFILE).expect("from_world");
+        let nprog = cf_nary_subproperty_program();
+        assert_eq!(
+            nprog.goal.atoms[0].args.len(),
+            4,
+            "arity-4 generic-triple goal ⇒ native n-ary backward path"
+        );
+        let nanswer = match resolve_native(&nforeign, NW, &nprog, &Budget::default())
+            .expect("resolve_native must not error on the n-ary generic program")
+        {
+            NativeOutcome::Decided(a) => a,
+            NativeOutcome::Unsupported(k) => panic!(
+                "n-ary generic-triple backward must DECIDE natively (predicate-as-data \
+                 resolution the binary store cannot express), got Unsupported({k:?})"
+            ),
+        };
+        assert_eq!(
+            nanswer.bindings.len(),
+            1,
+            "exactly one derived <p2> edge: {nanswer:?}"
+        );
+        assert_eq!(nanswer.bindings[0]["s"], "<http://ex/x>", "subject binding");
+        assert_eq!(nanswer.bindings[0]["o"], "<http://ex/y>", "object binding");
+
+        // (3) CUT — a declared native gap: `resolve_native` returns `Unsupported(Cut)`, the
+        // honest demotion to the procedural Scryer oracle, NOT a native cut simulation.
+        const CW: &str = "http://logic.test/world/cf-cut";
+        let cstore = WorldStore::new();
+        cstore.insert_quad(CW, &p("a"), &p("edge"), &p("b"));
+        cstore.insert_quad(CW, &p("a"), &p("edge"), &p("c"));
+        let cforeign = WorldStoreForeign::from_world(&cstore, CW, PROFILE).expect("from_world");
+        let cut_src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:first(X, Y) :- ex:edge(X, Y), !.\n\
+             ?- ex:first(ex:a, Y).\n"
+        );
+        let cut_prog = parse_query_program(&cut_src).expect("parse cut program");
+        let cut_outcome =
+            resolve_native(&cforeign, CW, &cut_prog, &Budget::default()).expect("resolve_native");
+        assert!(
+            matches!(
+                cut_outcome,
+                NativeOutcome::Unsupported(crate::physical::seminaive::UnsupportedKind::Cut)
+            ),
+            "a cut-bearing counterfactual goal must be a DECLARED native gap (honest demotion \
+             to the procedural oracle), never a native cut simulation: {cut_outcome:?}"
         );
     }
 
