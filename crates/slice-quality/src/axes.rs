@@ -251,6 +251,12 @@ fn prose_axis(ctx: &ScoreContext) -> AxisScore {
 
     for iri in &ctx.terms {
         let Some(sid) = id(ds, iri) else { continue };
+        // Boundary-stating definitions and worked examples are a TBox-term bar
+        // (SLICE_GUIDE §6.2/§6.6); A-Box value-vocabulary individuals (tiers,
+        // dimensions, thresholds) carry their lighter coat, not the boundary rule.
+        if !is_tbox_term(ctx, iri) {
+            continue;
+        }
         if let Some(def) = def_p.and_then(|p| one_lit(ds, sid, p)) {
             checks += 1;
             if states_boundary(&def) {
@@ -345,10 +351,10 @@ fn provenance_honesty(ctx: &ScoreContext) -> AxisScore {
 /// Namespaces that never require an external alignment (GMEOW-native + standard
 /// value vocabularies): a term here is covered by authorship, not by a mapping.
 const NATIVE_NS: &[&str] = &[
-    crate::model::GMEOW,
-    LOGIC_NS,
-    "https://blackcatinformatics.ca/lang/",
-    "https://blackcatinformatics.ca/math/",
+    // Every blackcatinformatics.ca IRI is GMEOW-native — the gmeow: super-vocabulary,
+    // the logic:/lang:/math: grounding layers, and the ontology/slice root IRIs
+    // (some of which have no trailing slash, e.g. the …/gmeow ontology root).
+    "https://blackcatinformatics.ca/",
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
     "http://www.w3.org/2000/01/rdf-schema#",
     "http://www.w3.org/2002/07/owl#",
@@ -366,21 +372,34 @@ fn mappings_text(ctx: &ScoreContext) -> Option<String> {
     std::fs::read_to_string(ctx.slice_dir.join("mappings/equivalences.ttl")).ok()
 }
 
-/// Linkage: of the external IRIs the slice uses, the fraction that appear in its
-/// mapping file. A slice using no external terms is vacuously fully linked.
-fn linkage_axis(ctx: &ScoreContext) -> AxisScore {
+/// The external (non-native) IRIs the slice's OWN terms reference — the slice's
+/// alignment surface. Example-fixture data (subjects that are not slice terms) is
+/// illustrative, not an alignment obligation, so it is excluded.
+fn external_alignment_surface(ctx: &ScoreContext) -> std::collections::BTreeSet<String> {
     let ds = ctx.graph;
-    // External IRIs used as predicates or objects anywhere in the slice graph.
-    let mut external: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
-        for t in [ds.resolve(q.p), ds.resolve(q.o)] {
-            if let TermRef::Iri(iri) = t
-                && !is_native(iri)
-            {
-                external.insert(iri.to_owned());
+    let terms: std::collections::BTreeSet<&str> = ctx.terms.iter().map(String::as_str).collect();
+    let mut external = std::collections::BTreeSet::new();
+    for iri in &ctx.terms {
+        let Some(sid) = id(ds, iri) else { continue };
+        for q in ds.quads_for_pattern(Some(sid), None, None, GraphMatch::Any) {
+            for t in [ds.resolve(q.p), ds.resolve(q.o)] {
+                if let TermRef::Iri(t_iri) = t
+                    && !is_native(t_iri)
+                    && !terms.contains(t_iri)
+                {
+                    external.insert(t_iri.to_owned());
+                }
             }
         }
     }
+    external
+}
+
+/// Linkage: of the external IRIs the slice's own vocabulary references, the
+/// fraction aligned in its mapping file. A slice referencing no external terms is
+/// vacuously fully linked.
+fn linkage_axis(ctx: &ScoreContext) -> AxisScore {
+    let external = external_alignment_surface(ctx);
     if external.is_empty() {
         return AxisScore::clean(1.0);
     }
@@ -424,14 +443,12 @@ fn projection_axis(ctx: &ScoreContext) -> AxisScore {
         } else {
             findings.push(advisory(
                 "slice-quality.projection.no-shapes",
-                "the slice declares structural constraints but ships no shapes.ttl projection source (#1201 projection purity).".to_owned(),
+                "the slice declares structural constraints but ships no shapes.ttl projection source (projection purity).".to_owned(),
             ));
         }
     }
-    // A slice that links out should carry a mapping file (SSSOM/EDOAL/FnO source).
-    let links_out = ds
-        .quads_for_pattern(None, None, None, GraphMatch::Any)
-        .any(|q| matches!(ds.resolve(q.o), TermRef::Iri(iri) if !is_native(iri)));
+    // A slice whose own vocabulary links out should carry a mapping file.
+    let links_out = !external_alignment_surface(ctx).is_empty();
     if links_out {
         expected += 1;
         if ctx.slice_dir.join("mappings/equivalences.ttl").is_file() {
