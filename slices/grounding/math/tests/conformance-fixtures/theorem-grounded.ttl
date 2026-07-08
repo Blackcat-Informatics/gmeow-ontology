@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a math:Theorem carrying a theory context (math:roleInTheory) and warranted
+# by an in-graph math:Proof (math:provesStatement it). Theorem-hood is a theory-scoped,
+# proof-backed role, not a truth bit. Conforms to math:TheoremGroundingShape.
+# Bound by ex:ecTheoremGrounded.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:groundedTheorem a math:Theorem ;
+    math:roleInTheory ex:euclideanGeometryV2 .
+
+ex:groundedTheoremProof a math:Proof ;
+    math:provesStatement ex:groundedTheorem .

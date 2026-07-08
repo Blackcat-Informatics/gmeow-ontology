@@ -49,7 +49,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:NarrativeReferenceFrame rdfs:subClassOf gmeow:ReferenceFrame .
 }""" ;
-    gmeow:saRationale "gmeow:NarrativeReferenceFrame MUST be rdfs:subClassOf gmeow:ReferenceFrame -- canon supplies coordinate topology for in-universe claims; the gUFO MixIden rule forbids a second Kind inheritance (Standpoint). Mirrors test_narrative_reference_frame_is_reference_frame." .
+    gmeow:saRationale "gmeow:NarrativeReferenceFrame MUST be rdfs:subClassOf gmeow:ReferenceFrame -- canon supplies coordinate topology for in-universe claims; the gUFO MixIden rule forbids a second Kind inheritance (Standpoint)." .
 
 # --- 2. NarrativeFrameRelation is a logic:AbstractIndividualType value vocab ----
 ex:saNarrativeFrameRelationIsValueVocab a gmeow:StructuralAssertion ;
@@ -63,7 +63,7 @@ ASK {
     gmeow:NarrativeFrameRelation a logic:AbstractIndividualType , owl:Class ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:NarrativeFrameRelation MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- frame-relation types are value-vocabulary individuals, never subclasses (Principle 9). Mirrors test_narrative_frame_relation_value_vocab (class part)." .
+    gmeow:saRationale "gmeow:NarrativeFrameRelation MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- frame-relation types are value-vocabulary individuals, never subclasses (Principle 9)." .
 
 # --- 3. Six NarrativeFrameRelation seed individuals exist (MUST) ---------------
 ex:saNarrativeFrameRelationSeeds a gmeow:StructuralAssertion ;
@@ -78,7 +78,7 @@ ASK {
     gmeow:relationCrossover           a gmeow:NarrativeFrameRelation .
     gmeow:relationAdaptationOf        a gmeow:NarrativeFrameRelation .
 }""" ;
-    gmeow:saRationale "All six NarrativeFrameRelation seed individuals (canon, alternate continuity, expanded universe, fanon, crossover, adaptation) MUST be present -- they seed the open value vocabulary. Mirrors test_narrative_frame_relation_value_vocab (individuals part)." .
+    gmeow:saRationale "All six NarrativeFrameRelation seed individuals (canon, alternate continuity, expanded universe, fanon, crossover, adaptation) MUST be present -- they seed the open value vocabulary." .
 
 # --- 4. sourceFor is an owl:ObjectProperty with domain and range (MUST) --------
 ex:saSourceForProperty a gmeow:StructuralAssertion ;
@@ -92,7 +92,7 @@ ASK {
         rdfs:domain gmeow:CreativeWork ;
         rdfs:range gmeow:NarrativeReferenceFrame .
 }""" ;
-    gmeow:saRationale "gmeow:sourceFor MUST be an owl:ObjectProperty with rdfs:domain gmeow:CreativeWork and rdfs:range gmeow:NarrativeReferenceFrame -- out-of-universe artifacts source narrative frames, not the reverse. Mirrors test_source_for_property_exists." .
+    gmeow:saRationale "gmeow:sourceFor MUST be an owl:ObjectProperty with rdfs:domain gmeow:CreativeWork and rdfs:range gmeow:NarrativeReferenceFrame -- out-of-universe artifacts source narrative frames, not the reverse." .
 
 # --- 5. NarrativeFrameLink subclasses logic:Relator (MUST) ---------------------
 ex:saNarrativeFrameLinkIsRelator a gmeow:StructuralAssertion ;
@@ -104,7 +104,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:NarrativeFrameLink rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:NarrativeFrameLink MUST be rdfs:subClassOf logic:Relator -- a reified binding of source frame, target frame, and relation type into a single node (the NarrationUsage/Tagging idiom). Mirrors test_narrative_frame_link_is_relatore_subclass." .
+    gmeow:saRationale "gmeow:NarrativeFrameLink MUST be rdfs:subClassOf logic:Relator -- a reified binding of source frame, target frame, and relation type into a single node (the NarrationUsage/Tagging idiom)." .
 
 # --- 6. narrativeFrameLinkSource, Target, Relation are ObjectProperties (MUST) -
 ex:saNarrativeFrameLinkPropertiesAreObjectProperties a gmeow:StructuralAssertion ;
@@ -117,7 +117,7 @@ ASK {
     gmeow:narrativeFrameLinkTarget   a owl:ObjectProperty .
     gmeow:narrativeFrameLinkRelation a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:narrativeFrameLinkSource, narrativeFrameLinkTarget, and narrativeFrameLinkRelation MUST all be owl:ObjectProperty -- all three link roles of the NarrativeFrameLink relator are object relations. Mirrors test_narrative_frame_link_properties_exist (ObjectProperty part)." .
+    gmeow:saRationale "gmeow:narrativeFrameLinkSource, narrativeFrameLinkTarget, and narrativeFrameLinkRelation MUST all be owl:ObjectProperty -- all three link roles of the NarrativeFrameLink relator are object relations." .
 
 # --- 7. narrativeFrameLinkSource domain and range (MUST) ----------------------
 ex:saNarrativeFrameLinkSourceDomainRange a gmeow:StructuralAssertion ;
@@ -129,7 +129,7 @@ ASK {
     gmeow:narrativeFrameLinkSource rdfs:domain gmeow:NarrativeFrameLink ;
         rdfs:range gmeow:NarrativeReferenceFrame .
 }""" ;
-    gmeow:saRationale "gmeow:narrativeFrameLinkSource MUST have rdfs:domain gmeow:NarrativeFrameLink and rdfs:range gmeow:NarrativeReferenceFrame -- the source end of the reified frame-to-frame binding. Mirrors test_narrative_frame_link_properties_exist (source domain/range part)." .
+    gmeow:saRationale "gmeow:narrativeFrameLinkSource MUST have rdfs:domain gmeow:NarrativeFrameLink and rdfs:range gmeow:NarrativeReferenceFrame -- the source end of the reified frame-to-frame binding." .
 
 # --- 8. narrativeFrameLinkTarget domain and range (MUST) ----------------------
 ex:saNarrativeFrameLinkTargetDomainRange a gmeow:StructuralAssertion ;
@@ -141,7 +141,7 @@ ASK {
     gmeow:narrativeFrameLinkTarget rdfs:domain gmeow:NarrativeFrameLink ;
         rdfs:range gmeow:NarrativeReferenceFrame .
 }""" ;
-    gmeow:saRationale "gmeow:narrativeFrameLinkTarget MUST have rdfs:domain gmeow:NarrativeFrameLink and rdfs:range gmeow:NarrativeReferenceFrame -- the target end of the reified frame-to-frame binding. Mirrors test_narrative_frame_link_properties_exist (target domain/range part)." .
+    gmeow:saRationale "gmeow:narrativeFrameLinkTarget MUST have rdfs:domain gmeow:NarrativeFrameLink and rdfs:range gmeow:NarrativeReferenceFrame -- the target end of the reified frame-to-frame binding." .
 
 # --- 9. narrativeFrameLinkRelation domain and range (MUST) --------------------
 ex:saNarrativeFrameLinkRelationDomainRange a gmeow:StructuralAssertion ;
@@ -153,7 +153,7 @@ ASK {
     gmeow:narrativeFrameLinkRelation rdfs:domain gmeow:NarrativeFrameLink ;
         rdfs:range gmeow:NarrativeFrameRelation .
 }""" ;
-    gmeow:saRationale "gmeow:narrativeFrameLinkRelation MUST have rdfs:domain gmeow:NarrativeFrameLink and rdfs:range gmeow:NarrativeFrameRelation -- the relation-type slot of the reified binding. Mirrors test_narrative_frame_link_properties_exist (relation domain/range part)." .
+    gmeow:saRationale "gmeow:narrativeFrameLinkRelation MUST have rdfs:domain gmeow:NarrativeFrameLink and rdfs:range gmeow:NarrativeFrameRelation -- the relation-type slot of the reified binding." .
 
 # --- 10. contributesToFrame is an ObjectProperty with domain and range (MUST) --
 ex:saContributesToFrameProperty a gmeow:StructuralAssertion ;
@@ -167,7 +167,7 @@ ASK {
         rdfs:domain gmeow:InformationObject ;
         rdfs:range gmeow:NarrativeReferenceFrame .
 }""" ;
-    gmeow:saRationale "gmeow:contributesToFrame MUST be an owl:ObjectProperty with rdfs:domain gmeow:InformationObject and rdfs:range gmeow:NarrativeReferenceFrame -- broader than sourceFor; a segment may contribute claims without being the primary source. Mirrors test_contributes_to_frame_exists." .
+    gmeow:saRationale "gmeow:contributesToFrame MUST be an owl:ObjectProperty with rdfs:domain gmeow:InformationObject and rdfs:range gmeow:NarrativeReferenceFrame -- broader than sourceFor; a segment may contribute claims without being the primary source." .
 
 # --- 11. CharacterArc subclasses InformationObject (MUST) ---------------------
 ex:saCharacterArcSubclassesInformationObject a gmeow:StructuralAssertion ;
@@ -178,7 +178,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:CharacterArc rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:CharacterArc MUST be rdfs:subClassOf gmeow:InformationObject -- a first-class interpretive information object, not an event or participant (standpoint-scoped analysis). Mirrors test_character_arc_subclasses_information_object." .
+    gmeow:saRationale "gmeow:CharacterArc MUST be rdfs:subClassOf gmeow:InformationObject -- a first-class interpretive information object, not an event or participant (standpoint-scoped analysis)." .
 
 # --- 12. arcSubject, arcFrame, arcType are functional ObjectProperties (MUST) --
 ex:saArcCorePropsFunctional a gmeow:StructuralAssertion ;
@@ -191,7 +191,7 @@ ASK {
     gmeow:arcFrame   a owl:ObjectProperty , owl:FunctionalProperty .
     gmeow:arcType    a owl:ObjectProperty , owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:arcSubject, arcFrame, and arcType MUST each be owl:ObjectProperty and owl:FunctionalProperty -- one subject, one frame, and one type per CharacterArc instance (cross-continuity arcs are separate instances). Mirrors test_character_arc_properties_exist (arcSubject/arcFrame/arcType part)." .
+    gmeow:saRationale "gmeow:arcSubject, arcFrame, and arcType MUST each be owl:ObjectProperty and owl:FunctionalProperty -- one subject, one frame, and one type per CharacterArc instance (cross-continuity arcs are separate instances)." .
 
 # --- 13. arcEvidence is an owl:ObjectProperty (NOT functional) (MUST) ---------
 ex:saArcEvidenceIsObjectProperty a gmeow:StructuralAssertion ;
@@ -202,7 +202,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     gmeow:arcEvidence a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:arcEvidence MUST be owl:ObjectProperty -- an arc may be evidenced by many segments or works, so it is NOT functional. Mirrors test_character_arc_properties_exist (arcEvidence part)." .
+    gmeow:saRationale "gmeow:arcEvidence MUST be owl:ObjectProperty -- an arc may be evidenced by many segments or works, so it is NOT functional." .
 
 # --- 14. arcEvidence must NOT be functional (MUST-NOT) ------------------------
 ex:saArcEvidenceNotFunctional a gmeow:StructuralAssertion ;
@@ -213,7 +213,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     gmeow:arcEvidence a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:arcEvidence MUST NOT be owl:FunctionalProperty -- an arc may be evidenced by many works or segments, and those coexist (Principle 9). Mirrors test_character_arc_properties_exist (arcEvidence not-functional part)." .
+    gmeow:saRationale "gmeow:arcEvidence MUST NOT be owl:FunctionalProperty -- an arc may be evidenced by many works or segments, and those coexist (Principle 9)." .
 
 # --- 15. ArcType is a logic:AbstractIndividualType value vocab (MUST) -----------
 ex:saArcTypeIsValueVocab a gmeow:StructuralAssertion ;
@@ -227,7 +227,7 @@ ASK {
     gmeow:ArcType a logic:AbstractIndividualType , owl:Class ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:ArcType MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- arc types are an open value vocabulary (individuals, never subclasses, Principle 9). Mirrors test_arc_type_value_vocab (class part)." .
+    gmeow:saRationale "gmeow:ArcType MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- arc types are an open value vocabulary (individuals, never subclasses, Principle 9)." .
 
 # --- 16. Six ArcType seed individuals exist (MUST) ----------------------------
 ex:saArcTypeSeeds a gmeow:StructuralAssertion ;
@@ -242,7 +242,7 @@ ASK {
     gmeow:arcTypeQuest       a gmeow:ArcType .
     gmeow:arcTypeRecovery    a gmeow:ArcType .
 }""" ;
-    gmeow:saRationale "All six ArcType seed individuals (coming-of-age, redemption, fall, corruption, quest, recovery) MUST be present as gmeow:ArcType instances -- they seed the open interpretive vocabulary. Mirrors test_arc_type_value_vocab (individuals part)." .
+    gmeow:saRationale "All six ArcType seed individuals (coming-of-age, redemption, fall, corruption, quest, recovery) MUST be present as gmeow:ArcType instances -- they seed the open interpretive vocabulary." .
 
 # --- 17. NarrativeTimeFrame is a logic:SubKind ReferenceFrame (MUST) ---------
 ex:saNarrativeTimeFrameIsReferenceFrame a gmeow:StructuralAssertion ;
@@ -256,7 +256,7 @@ ASK {
     gmeow:NarrativeTimeFrame a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:ReferenceFrame .
 }""" ;
-    gmeow:saRationale "gmeow:NarrativeTimeFrame MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:ReferenceFrame. Replaces the stale gufo:SubKind pytest assertion." .
+    gmeow:saRationale "gmeow:NarrativeTimeFrame MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:ReferenceFrame. Replaces the stale gufo:SubKind assertion." .
 
 # --- 18. NarrativeTimeAxis is a two-seed value vocabulary (MUST) -------------
 ex:saNarrativeTimeAxisValueVocab a gmeow:StructuralAssertion ;
@@ -272,7 +272,7 @@ ASK {
     gmeow:axisDiscourseTime a gmeow:NarrativeTimeAxis .
     gmeow:axisStoryTime     a gmeow:NarrativeTimeAxis .
 }""" ;
-    gmeow:saRationale "gmeow:NarrativeTimeAxis MUST be a logic:QualityValue vocabulary seeded by discourse-time and story-time axis values. Replaces stale gufo:AbstractIndividualType/QualityValue pytest assertions." .
+    gmeow:saRationale "gmeow:NarrativeTimeAxis MUST be a logic:QualityValue vocabulary seeded by discourse-time and story-time axis values. Replaces stale gufo:AbstractIndividualType/QualityValue assertions." .
 
 # --- 19. NarrativePosition is a logic:Kind object with ordinal/label properties (MUST) ---
 ex:saNarrativePositionFrameOrdinalLabel a gmeow:StructuralAssertion ;
@@ -287,7 +287,7 @@ ASK {
         rdfs:subClassOf gmeow:Entity .
     gmeow:positionOrdinal a owl:DatatypeProperty .
 }""" ;
-    gmeow:saRationale "gmeow:NarrativePosition MUST be a logic:Kind entity with a datatype ordinal property. Replaces the stale gufo:Kind pytest assertion." .
+    gmeow:saRationale "gmeow:NarrativePosition MUST be a logic:Kind entity with a datatype ordinal property. Replaces the stale gufo:Kind assertion." .
 
 ex:saPositionLabelNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
@@ -311,7 +311,7 @@ ASK {
     gmeow:narrationSegment a owl:FunctionalProperty .
     gmeow:narrationSubject a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:NarrationUsage MUST be a logic:Kind relator with functional segment and subject roles. Replaces stale gufo:Kind/Relator pytest assertions." .
+    gmeow:saRationale "gmeow:NarrationUsage MUST be a logic:Kind relator with functional segment and subject roles. Replaces stale gufo:Kind/Relator assertions." .
 
 ex:saNarrationSubjectRangeOpen a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
@@ -341,7 +341,7 @@ ASK {
     gmeow:Myth a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:SocialObject .
 }""" ;
-    gmeow:saRationale "gmeow:Myth MUST be an owl:Class typed logic:Kind and a subclass of gmeow:SocialObject. Replaces the stale gufo:Kind pytest assertion." .
+    gmeow:saRationale "gmeow:Myth MUST be an owl:Class typed logic:Kind and a subclass of gmeow:SocialObject. Replaces the stale gufo:Kind assertion." .
 
 # --- 22. RoleInNarrative is a scoped interpretive logic:Relator (MUST) -------
 ex:saRoleInNarrativeScopedRelator a gmeow:StructuralAssertion ;
@@ -361,4 +361,4 @@ ASK {
     gmeow:ContentSegment rdfs:subClassOf gmeow:NarrativeScope .
     gmeow:NarrativeReferenceFrame rdfs:subClassOf gmeow:NarrativeScope .
 }""" ;
-    gmeow:saRationale "gmeow:RoleInNarrative MUST be a logic:Relator whose bearer, scope, and role value are functional, with the narrative scope graft asserted extension-side. Replaces the stale gufo:Relator pytest assertion." .
+    gmeow:saRationale "gmeow:RoleInNarrative MUST be a logic:Relator whose bearer, scope, and role value are functional, with the narrative scope graft asserted extension-side. Replaces the stale gufo:Relator assertion." .
