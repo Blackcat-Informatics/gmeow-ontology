@@ -203,6 +203,17 @@
           "ruleId": "shacl.MinCountConstraintComponent"
         },
         {
+          "fixes": [
+            {
+              "description": {
+                "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value."
+              },
+              "properties": {
+                "gmeow.helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-SPARQLConstraintComponent",
+                "gmeow.standpoint": "binding"
+              }
+            }
+          ],
           "level": "warning",
           "locations": [
             {
@@ -229,14 +240,26 @@
             "text": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "1cddf48ba122c923"
+            "gmeowFindingHash/v2": "684e141c8d284a7d"
           },
           "properties": {
-            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+            "gmeow.category": "data-shape-violation"
           },
           "ruleId": "shacl.SPARQLConstraintComponent"
         },
         {
+          "fixes": [
+            {
+              "description": {
+                "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value."
+              },
+              "properties": {
+                "gmeow.helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-SPARQLConstraintComponent",
+                "gmeow.standpoint": "binding"
+              }
+            }
+          ],
           "level": "warning",
           "locations": [
             {
@@ -263,14 +286,26 @@
             "text": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "e55a6cbe08290d5f"
+            "gmeowFindingHash/v2": "085e260819763d20"
           },
           "properties": {
-            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+            "gmeow.category": "data-shape-violation"
           },
           "ruleId": "shacl.SPARQLConstraintComponent"
         },
         {
+          "fixes": [
+            {
+              "description": {
+                "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value."
+              },
+              "properties": {
+                "gmeow.helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-SPARQLConstraintComponent",
+                "gmeow.standpoint": "binding"
+              }
+            }
+          ],
           "level": "warning",
           "locations": [
             {
@@ -297,14 +332,26 @@
             "text": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "97e0badcadc55370"
+            "gmeowFindingHash/v2": "cd3858d5f534d09a"
           },
           "properties": {
-            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+            "gmeow.category": "data-shape-violation"
           },
           "ruleId": "shacl.SPARQLConstraintComponent"
         },
         {
+          "fixes": [
+            {
+              "description": {
+                "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value."
+              },
+              "properties": {
+                "gmeow.helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-SPARQLConstraintComponent",
+                "gmeow.standpoint": "binding"
+              }
+            }
+          ],
           "level": "warning",
           "locations": [
             {
@@ -331,14 +378,26 @@
             "text": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "8995ecb3bcc1f808"
+            "gmeowFindingHash/v2": "8ed6b7dbd0218047"
           },
           "properties": {
-            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+            "gmeow.category": "data-shape-violation"
           },
           "ruleId": "shacl.SPARQLConstraintComponent"
         },
         {
+          "fixes": [
+            {
+              "description": {
+                "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value."
+              },
+              "properties": {
+                "gmeow.helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-SPARQLConstraintComponent",
+                "gmeow.standpoint": "binding"
+              }
+            }
+          ],
           "level": "warning",
           "locations": [
             {
@@ -365,14 +424,26 @@
             "text": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "e89bddb0f1c9dd2b"
+            "gmeowFindingHash/v2": "2554f5309329451f"
           },
           "properties": {
-            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+            "gmeow.category": "data-shape-violation"
           },
           "ruleId": "shacl.SPARQLConstraintComponent"
         },
         {
+          "fixes": [
+            {
+              "description": {
+                "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value."
+              },
+              "properties": {
+                "gmeow.helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-SPARQLConstraintComponent",
+                "gmeow.standpoint": "binding"
+              }
+            }
+          ],
           "level": "warning",
           "locations": [
             {
@@ -399,10 +470,11 @@
             "text": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "a2b23d84a08f3bf5"
+            "gmeowFindingHash/v2": "e9ddd09893396530"
           },
           "properties": {
-            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+            "gmeow.category": "data-shape-violation"
           },
           "ruleId": "shacl.SPARQLConstraintComponent"
         }
