@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:TheoremGroundingShape: a math:Theorem with a theory context
+# (math:roleInTheory) but NEITHER an in-graph math:Proof (nothing math:provesStatement it)
+# NOR a declared math:externalWarrant — theorem-hood asserted with no warrant, a truth bit.
+# It fails the sh:sparql proof-or-warrant constraint, so validation MUST emit
+# shacl.SPARQLConstraintComponent and NO other finding (math:UngroundedTheoremClaim).
+# Bound by ex:ecTheoremUnwarranted.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:unwarrantedTheorem a math:Theorem ;
+    math:roleInTheory ex:euclideanGeometryV2 .

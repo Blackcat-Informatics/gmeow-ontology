@@ -1,0 +1,15 @@
+# Standpoint scoping required: every logic:Conjecture MUST name the reified
+# standpoint its verdict is scoped to (logic:conjectureStandpoint). A conjecture
+# with no standpoint would carry a global-false verdict, which Principle 9 forbids —
+# a verdict is always 'refuted FROM a standpoint', never simpliciter. This selects
+# conjectures with no logic:conjectureStandpoint. Any returned row is a violation
+# (LOGIC-FOUNDATION.md, the conjecture-and-refutation section).
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?conj WHERE {
+    ?conj a logic:Conjecture .
+    FILTER NOT EXISTS {
+        ?conj logic:conjectureStandpoint ?standpoint .
+    }
+}
+ORDER BY ?conj

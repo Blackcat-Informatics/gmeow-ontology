@@ -746,6 +746,29 @@ mod tests {
         );
     }
 
+    /// Pin the registry to the suppression leak sweep's coverage set. This
+    /// crate registers the projection profiles; `gmeow-validate` declares which
+    /// profiles the P10 leak sweep covers. They MUST be identical — otherwise a
+    /// newly registered projection profile silently escapes the leak sweep (or a
+    /// swept name has no CONSTRUCT). Full set-equality, so add / remove / swap all
+    /// trip the gate, restoring the dynamic coverage the Python parametrization had.
+    #[test]
+    fn registry_equals_the_suppression_leak_sweep_set() {
+        let registered: std::collections::BTreeSet<String> = profiles().into_keys().collect();
+        let swept: std::collections::BTreeSet<String> =
+            gmeow_validate::projection_profiles::PROJECTION_PROFILES
+                .iter()
+                .map(|s| (*s).to_owned())
+                .collect();
+        let unswept: Vec<&String> = registered.difference(&swept).collect();
+        let unregistered: Vec<&String> = swept.difference(&registered).collect();
+        assert!(
+            unswept.is_empty() && unregistered.is_empty(),
+            "projection registry drifted from the suppression leak sweep — \
+             registered-but-unswept: {unswept:?}; swept-but-unregistered: {unregistered:?}"
+        );
+    }
+
     #[test]
     fn project_graph_runs_a_construct_to_schema_org() {
         // A minimal gmeow A-box projected by a hand-written CONSTRUCT emits the

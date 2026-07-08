@@ -25,6 +25,7 @@ use purrdf::slice::rdf_query::{Dataset as SliceDataset, GraphSel, Object, Subjec
 use purrdf::shapes::engine::{parse_shapes, validate_dataset};
 use purrdf::shapes::report::{Severity, ValidationReport};
 use purrdf::shapes::shapes::Shapes;
+use purrdf::shapes::term::Term;
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{
     DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, SerializeGraph, SparqlEngine,
@@ -58,9 +59,14 @@ pub const DSL_SHAPE_FILENAMES: &[&str] = &[
     "test-dsl-shapes.ttl",
     "slice-manifest-shapes.ttl",
     // The derived validation-shape surface is a DECLARED ValidationOnly projection (the OPT
-    // constraint axis + the OWL-restriction reading), carried in gmeow.gts but NOT
-    // enforced against the corpus — an open-world someValuesFrom reading over-flags valid
-    // data. Excluded here exactly as `purrdf::shapes::shape_union::EXCLUDED` excludes it.
+    // constraint axis + the OWL-restriction reading). This exclusion is LOCAL to the
+    // fixture-conformance corpus assembled here (`collect_shapes_dir`), where an open-world
+    // someValuesFrom reading would over-flag hand-built fixture data. It is NOT mirrored by
+    // `purrdf::shapes::shape_union::EXCLUDED`, which lists only the four DSL shape files —
+    // the production shape union (`shape_union::load_shapes`) DOES enforce
+    // `validation-shapes.ttl`, and the reasoning-layer cardinality bounds reach the gate
+    // through it. Tests that must exercise the projected bounds validate against that
+    // production union directly, not this fixture corpus.
     "validation-shapes.ttl",
 ];
 
@@ -296,6 +302,34 @@ pub fn validate_with_ontology(fixture_nt: &str) -> ValidationReport {
     validate_dataset(&dataset, whole_shapes()).expect("native SHACL validation must succeed")
 }
 
+/// Parsed SHACL shape model for the LIVE production shape union.
+///
+/// `purrdf::shapes::shape_union::load_shapes` assembles exactly the corpus the
+/// live validator (`gmeow validate` / `stage-validate`) runs — including
+/// `generated/shapes/validation-shapes.ttl`, the OWL-restriction cardinality
+/// projection that [`whole_shapes`] deliberately EXCLUDES. Cached in a
+/// [`OnceLock`] so the disk I/O + parse happens at most once per test process.
+pub fn production_shapes() -> &'static Shapes {
+    static CACHE: OnceLock<Shapes> = OnceLock::new();
+    CACHE.get_or_init(|| {
+        let (_store, shapes) = purrdf::shapes::shape_union::load_shapes(&repo_root())
+            .expect("load production SHACL shape union");
+        shapes
+    })
+}
+
+/// Validate `base_ontology + fixture` against the LIVE production shape union
+/// (`purrdf::shapes::shape_union::load_shapes`, what `gmeow validate` /
+/// `stage-validate` run) — this INCLUDES generated/shapes/validation-shapes.ttl (the
+/// OWL-derived cardinality projection), unlike `whole_shapes()`.
+pub fn validate_with_ontology_shape_union(fixture_nt: &str) -> ValidationReport {
+    let mut merged: Vec<purrdf::RdfQuad> = flat_rdf_quads_from_dataset(base_ontology_dataset());
+    let fixture = nt_to_dataset(fixture_nt);
+    merged.extend(flat_rdf_quads_from_dataset(&fixture));
+    let dataset = flat_dataset_from_quads(&merged).expect("merged dataset must freeze");
+    validate_dataset(&dataset, production_shapes()).expect("native SHACL validation must succeed")
+}
+
 // ── Fixture helpers ───────────────────────────────────────────────────────────
 
 /// Parse a fixture `.ttl` file into an in-memory oxigraph store and emit as
@@ -467,6 +501,31 @@ impl GraphStore {
         }
     }
 
+    /// Return a new store containing the merged ontology plus each Turtle file in
+    /// `paths` (parsed in the given order), flattened to the default graph. The
+    /// explicit-path twin of [`Self::ontology_plus_ttl_dir`], mirroring the Python
+    /// originals that closed the merged graph with two successive `graph.parse(f)`
+    /// calls over a fixed pair of fixtures (e.g. the suppression canary + coarsen
+    /// corpora).
+    pub fn ontology_plus_ttl_files(paths: &[PathBuf]) -> Self {
+        let mut quads: Vec<purrdf::RdfQuad> = flat_rdf_quads_from_dataset(base_ontology_dataset());
+        for path in paths {
+            let ttl = std::fs::read_to_string(path)
+                .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
+            let fixture = parse_dataset(ttl.as_bytes(), "text/turtle", None)
+                .unwrap_or_else(|e| panic!("fixture parse failed: {e}\n{ttl}"));
+            for mut quad in flat_rdf_quads_from_dataset(&fixture) {
+                quad.graph_name = None;
+                quads.push(quad);
+            }
+        }
+        let merged = flat_dataset_from_quads(&quads).expect("merged dataset must freeze");
+        Self {
+            ds: merged,
+            slice_ds: Arc::new(OnceLock::new()),
+        }
+    }
+
     /// Return a new store containing the merged ontology plus every `*.ttl` file in
     /// `dir` (sorted by path), flattened to the default graph. The multi-file twin of
     /// [`Self::ontology_plus_ttl_file`], mirroring the Python originals that closed the
@@ -569,6 +628,29 @@ impl GraphStore {
         }
     }
 
+    /// Return every object of `<s> <p> ?o` rendered as its string form — an IRI's
+    /// full string OR a literal's lexical form — sorted + deduped. The native twin of
+    /// Python's `{str(o) for o in graph.objects(s, p)}`, where `str(URIRef)` is the IRI
+    /// and `str(Literal)` is its lexical value. Unlike [`Self::objects`] (IRI-only),
+    /// this surfaces literal-valued objects so a projection's flattened string values
+    /// (`spdx:licenseId`, `cc:attributionName`, `dcterms:rights`, …) can be asserted.
+    pub fn objects_lex(&self, s: &str, p: &str) -> BTreeSet<String> {
+        let s_id = self.iri_id(s);
+        let p_id = self.iri_id(p);
+        match (s_id, p_id) {
+            (Some(s), Some(p)) => self
+                .ds
+                .quads_for_pattern(Some(s), Some(p), None, GraphMatch::Default)
+                .filter_map(|q| match self.ds.resolve(q.o) {
+                    purrdf::TermRef::Iri(iri) => Some(iri.to_owned()),
+                    purrdf::TermRef::Literal { lexical, .. } => Some(lexical.to_owned()),
+                    _ => None,
+                })
+                .collect(),
+            _ => BTreeSet::new(),
+        }
+    }
+
     /// Return every IRI subject of `?s <p> <o>` in the default graph, sorted + deduped.
     pub fn subjects(&self, p: &str, o: &str) -> BTreeSet<String> {
         let p_id = self.iri_id(p);
@@ -586,6 +668,51 @@ impl GraphStore {
     /// Return the set of `rdf:type` subjects for a given class IRI.
     pub fn subjects_of_type(&self, type_iri: &str) -> BTreeSet<String> {
         self.subjects(RDF_TYPE, type_iri)
+    }
+
+    /// The reflexive-transitive closure over `rdfs:subClassOf` edges from `start`
+    /// (`start` plus all its ancestor classes). One shared walk so the domain
+    /// conformance twins assert over the same closure instead of hand-rolled copies.
+    pub fn subclass_closure(&self, start: &str) -> BTreeSet<String> {
+        let mut seen: BTreeSet<String> = BTreeSet::new();
+        let mut stack: Vec<String> = vec![start.to_owned()];
+        while let Some(node) = stack.pop() {
+            if !seen.insert(node.clone()) {
+                continue;
+            }
+            for parent in self.objects(&node, RDFS_SUBCLASS_OF) {
+                if !seen.contains(&parent) {
+                    stack.push(parent);
+                }
+            }
+        }
+        seen
+    }
+
+    /// Every `gmeow:`-namespaced subject IRI whose local name starts with `primary`
+    /// or `preferred` (case-insensitive) — the Principle-9 selector-term offenders.
+    /// One shared whole-graph sweep so each domain twin asserts over the SAME dynamic
+    /// scan instead of a hand-rolled copy that could silently narrow it.
+    pub fn primary_or_preferred_terms(&self) -> Vec<String> {
+        let (_vars, rows) = self.select(&[], "SELECT DISTINCT ?s WHERE { ?s ?p ?o }");
+        let mut offenders: Vec<String> = Vec::new();
+        for row in &rows {
+            let Some(Some(term)) = row.first() else {
+                continue;
+            };
+            let Some(iri) = term.as_iri() else {
+                continue;
+            };
+            if let Some(local) = iri.strip_prefix(GMEOW_NS) {
+                let lower = local.to_lowercase();
+                if !local.contains('/')
+                    && (lower.starts_with("primary") || lower.starts_with("preferred"))
+                {
+                    offenders.push(iri.to_owned());
+                }
+            }
+        }
+        offenders
     }
 
     // ── SPARQL entry-points (single bindings path) ────────────────────────────
@@ -675,6 +802,14 @@ impl GraphStore {
     /// `len(graph)`. Used by [`QueryCase::construct_len`].
     pub fn triple_count(&self) -> usize {
         self.ds.quad_count()
+    }
+
+    /// Serialize the (default-graph-only) store to N-Triples text — the native twin
+    /// of rdflib `Graph.serialize(format=...)`. Used by the projection leak sweeps to
+    /// assert a canary substring never (or always) surfaces in a projection's output,
+    /// exactly as the Python originals scanned the serialized projection string.
+    pub fn to_nt(&self) -> String {
+        dataset_default_graph_to_nt(&self.ds)
     }
 
     /// True iff the exact triple `s p o` (each a [`TermValue`]) is present in the
@@ -841,6 +976,11 @@ impl GraphStore {
 }
 
 pub const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// `rdfs:subClassOf` — the closure edge for [`GraphStore::subclass_closure`].
+pub const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+/// The `gmeow:` namespace base — for local-name sweeps like
+/// [`GraphStore::primary_or_preferred_terms`].
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
 /// `owl:onProperty` — the property a restriction constrains.
 pub const OWL_ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
@@ -907,6 +1047,7 @@ pub enum Source {
 pub struct Case {
     source: Source,
     with_ontology: bool,
+    shape_union: bool,
     expect_conforms: bool,
     expected_violations: Vec<&'static str>,
     expected_warnings: Vec<&'static str>,
@@ -916,6 +1057,11 @@ pub struct Case {
     any_violations: Vec<Vec<&'static str>>,
     any_violations_ci: Vec<Vec<&'static str>>,
     forbidden_warnings: Vec<&'static str>,
+    /// `(result-path IRI, constraint-component substring)` pairs each requiring at
+    /// least one `Violation` result whose `sh:resultPath` is that IRI AND whose
+    /// `sh:sourceConstraintComponent` contains that substring. Used to assert on the
+    /// PROJECTED (message-less) cardinality shapes by component + path.
+    expected_path_components: Vec<(&'static str, &'static str)>,
 }
 
 impl Case {
@@ -923,6 +1069,7 @@ impl Case {
         Self {
             source,
             with_ontology: false,
+            shape_union: false,
             expect_conforms: true,
             expected_violations: Vec::new(),
             expected_warnings: Vec::new(),
@@ -932,6 +1079,7 @@ impl Case {
             any_violations: Vec::new(),
             any_violations_ci: Vec::new(),
             forbidden_warnings: Vec::new(),
+            expected_path_components: Vec::new(),
         }
     }
 
@@ -960,6 +1108,27 @@ impl Case {
     /// Validate against the merged ontology + fixture (`validate_with_ontology`).
     pub fn with_ontology(mut self) -> Self {
         self.with_ontology = true;
+        self
+    }
+
+    /// Validate against the LIVE production shape union
+    /// ([`validate_with_ontology_shape_union`]) — the corpus `gmeow validate` runs,
+    /// which INCLUDES `generated/shapes/validation-shapes.ttl`. Implies the ontology
+    /// merge (the projected cardinality shapes' class constraints need the merged
+    /// class/subclass declarations), so it need not be combined with
+    /// [`Case::with_ontology`].
+    pub fn shape_union(mut self) -> Self {
+        self.shape_union = true;
+        self
+    }
+
+    /// Require at least one `Violation` result whose `sh:resultPath` is `path` (a
+    /// property IRI) AND whose `sh:sourceConstraintComponent` contains `component`
+    /// (e.g. `"MaxCountConstraintComponent"`). Asserts directly on the report's
+    /// structured results, so it matches the PROJECTED cardinality shapes that carry
+    /// no `sh:message`.
+    pub fn fails_on_path(mut self, path: &'static str, component: &'static str) -> Self {
+        self.expected_path_components.push((path, component));
         self
     }
 
@@ -1029,7 +1198,9 @@ impl Case {
             Source::File { subdir, name } => fixture_as_nt(subdir, name),
             Source::RepoPath(rel) => ttl_file_to_nt(&repo_root().join(rel)),
         };
-        let report = if self.with_ontology {
+        let report = if self.shape_union {
+            validate_with_ontology_shape_union(&nt)
+        } else if self.with_ontology {
             validate_with_ontology(&nt)
         } else {
             validate(&nt)
@@ -1112,6 +1283,34 @@ impl Case {
             assert!(
                 !got_warnings.iter().any(|w| w.contains(sub)),
                 "expected NO warning containing {sub:?}; got: {got_warnings:?}"
+            );
+        }
+        for (path, component) in &self.expected_path_components {
+            let hit = report
+                .results
+                .iter()
+                .filter(|r| r.severity == Severity::Violation)
+                .any(|r| {
+                    let path_ok = matches!(
+                        r.result_path.as_ref(),
+                        Some(Term::NamedNode(p)) if p.as_str().contains(path)
+                    );
+                    let component_ok = r.source_constraint_component.as_str().contains(component);
+                    path_ok && component_ok
+                });
+            assert!(
+                hit,
+                "expected a Violation on path {path:?} with constraint component \
+                 containing {component:?}; results: {:?}",
+                report
+                    .results
+                    .iter()
+                    .map(|r| (
+                        r.result_path.as_ref().map(ToString::to_string),
+                        r.source_constraint_component.to_string(),
+                        r.severity.clone(),
+                    ))
+                    .collect::<Vec<_>>()
             );
         }
     }
@@ -1728,6 +1927,14 @@ fn multiset_eq(a: &[Vec<Option<TermValue>>], b: &[Vec<Option<TermValue>>]) -> bo
 // count gate reads `MANIFEST`); its own `#[test]`s run in every test binary.
 
 pub mod migration_manifest;
+
+// ── graph-API traversal migration: fn -> twin reconciliation manifest ─────────
+//
+// Sibling of `migration_manifest` for the rdflib `load_merged_graph` traversal
+// cluster. Its `#[test]`s run in every test binary; `migration_is_reconciled_and_complete`
+// is RED (Pending rows) until every fn is twinned.
+
+pub mod graph_migration_manifest;
 
 // ── Unit tests for the blank-node-aware `GraphStore` helpers ──────────────────
 //
