@@ -4185,6 +4185,10 @@ export interface CriterionDomain {
 export interface CriterionPole extends InformationObject {
 }
 
+export interface CrossNodeGlutWitness extends Finding {
+    glutWitnessOf?: Finding[],
+}
+
 export interface CryptoWallet extends FinancialAccount {
     walletAddress?: string[],
     walletKey?: CryptographicKey[],
@@ -4282,6 +4286,9 @@ export interface DeterminationForce {
 }
 
 export interface DeterminationStatus {
+}
+
+export interface DiagnosticMetaRule {
 }
 
 export interface DiagnosticSeverity {
@@ -4695,16 +4702,28 @@ export interface FinancialTransaction extends Event {
 }
 
 export interface Finding extends Observation {
+    crossNodeGlutWith?: Finding[],
+    findingAnchor?: string[],
+    findingAntecedent?: Finding[],
     findingCategory?: string[],
+    findingCluster?: FindingCluster[],
     findingCode?: string[],
     findingGateVerdict?: GateVerdict[],
+    findingHasAntecedent?: Finding[],
     findingHelpUri?: string[],
     findingLocation?: string[],
     findingMessage?: string[],
+    findingRemediation?: string[],
+    findingRootCause?: Finding[],
     findingSeverity?: DiagnosticSeverity[],
     findingStandpoint?: DiagnosticStandpoint[],
     findingSuggestion?: string[],
     findingTool?: string[],
+    findingTraces?: Finding[],
+}
+
+export interface FindingCluster {
+    clusterRoot?: Finding[],
 }
 
 export interface ForgePlatform extends Entity {
@@ -5692,6 +5711,9 @@ export interface NetworkAddress extends Entity {
 export interface NetworkAddressType {
 }
 
+export interface NonTrivialAnchor {
+}
+
 export interface Norm extends Entity {
     deonticModality?: DeonticModality,
     hasAuthorityLevel?: AuthorityLevel[],
@@ -6387,6 +6409,9 @@ export interface RomanticOrientation extends IdentityFacet {
 export interface RomanticOrientationValue {
 }
 
+export interface RootFinding extends Finding {
+}
+
 export interface Route extends Entity {
     hasRouteSegment?: Route[],
     routeEnd?: string,
@@ -7012,6 +7037,7 @@ export interface ValidationRule extends InformationObject {
     ruleCategory?: string[],
     ruleCode?: string[],
     ruleHelpUri?: string[],
+    ruleRemediation?: string[],
 }
 
 export interface VectorIndex extends InformationObject {

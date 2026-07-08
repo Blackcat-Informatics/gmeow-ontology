@@ -76,6 +76,10 @@ pub struct RuleSeed {
     /// than a single literal code. Family entries anchor one catalog entry for the
     /// whole family; the generator renders them as a pattern.
     pub family: bool,
+    /// The DSL-authored rule-level remediation prose ([`remediation_for`]), or `None`
+    /// for a code on the honest-absence allowlist. The constraint-catalog generator
+    /// projects it as `gmeow:ruleRemediation`.
+    pub remediation: Option<&'static str>,
 }
 
 /// Every statically-known finding code the validator can emit, with its default
@@ -361,6 +365,275 @@ pub fn help_uri_for(code: &str) -> String {
     format!("{CATALOG_BASE_URI}#{}", slugify(code))
 }
 
+/// The DSL-authored rule-level remediation prose — the standing "how to fix a
+/// violation of this rule" guidance, keyed by a static [`codes`] const or a dynamic
+/// family base. It is the SINGLE source of the fix guidance rendered on both the
+/// rule registry (`gmeow:ruleRemediation`, via [`rule_for`]) and, through the
+/// pipeline's annotate-by-fingerprint pass, on each finding's SARIF `fixes`.
+///
+/// A static code carries EXACTLY its own entry (or an honest absence — see
+/// [`REMEDIATION_ABSENT`]); a dynamic family member (e.g.
+/// `shacl.MinCountConstraintComponent`) inherits its family base's entry.
+pub const REMEDIATIONS: &[(&str, &str)] = &[
+    // ── Modelling disciplines ──
+    (
+        codes::DISCIPLINE_STEREOTYPE,
+        "Assign the class exactly one OntoUML/gUFO stereotype consistent with its identity supplier; a sortal must specialize a single ultimate kind.",
+    ),
+    (
+        codes::DISCIPLINE_IDENTITY_OVERLAP,
+        "Give the entity identity from exactly one ultimate sortal (kind): remove the conflicting identity supplier, or split the class if it genuinely mixes two identities.",
+    ),
+    (
+        codes::DISCIPLINE_ANTI_RIGIDITY,
+        "Do not let a rigid type specialize an anti-rigid one; re-classify the phase/role as anti-rigid, or make the supertype non-rigid.",
+    ),
+    (
+        codes::DISCIPLINE_RELATOR_MEDIATION,
+        "Have the relator mediate every relatum through gmeow:mediates so each participating endpoint is reachable from the relator.",
+    ),
+    (
+        codes::DISCIPLINE_COEQUAL_ORTHOGONALITY,
+        "Keep co-equal facets on orthogonal axes; move the overlapping distinction onto a separate facet so the two partitions do not intersect.",
+    ),
+    (
+        codes::DISCIPLINE_FRAME_COMPLETENESS,
+        "Declare every role the frame requires; add the missing frame-participant declarations so the frame is complete.",
+    ),
+    // ── SHACL data-shape ──
+    (
+        codes::SHACL_NONCONFORMING,
+        "SHACL reported non-conformance with no per-result detail; re-run validation to surface the offending focus nodes, or repair the shape that produced an empty result set.",
+    ),
+    (
+        codes::SHACL_FAMILY,
+        "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value.",
+    ),
+    // ── Bundle trust / signature ──
+    (
+        codes::SIGNATURE_VERIFY,
+        "Re-sign the bundle with a trusted key or supply the correct verification key; the top-level signature check failed.",
+    ),
+    (
+        codes::SIGNATURE_INVALID,
+        "Provide a well-formed signing/transport key; the supplied key could not be loaded.",
+    ),
+    (
+        codes::SIGNATURE_MISSING,
+        "Sign the bundle before shipping it; no signed frames were found.",
+    ),
+    (
+        codes::SIGNATURE_UNVERIFIED,
+        "Supply the signer's public key so the signature can be resolved and checked.",
+    ),
+    (
+        codes::SIGNATURE_UNTRUSTED,
+        "Add the signer to the trusted-key set, or re-sign the bundle with a trusted key.",
+    ),
+    (
+        codes::SIGNATURE_FAMILY,
+        "Address the bundle-signature profile failure: re-sign with a trusted key or supply the correct verification key.",
+    ),
+    (
+        codes::GTS_FAMILY,
+        "Resolve the GTS reader diagnostic named in the message; re-mint the bundle if it is malformed.",
+    ),
+    // ── Deep-reason (`--deep`) semantic outcomes ──
+    (
+        codes::VALIDATE_DEEP_SKIPPED,
+        "Provide a reasoned bundle so the deep (--deep) pass can run; it was requested without one.",
+    ),
+    (
+        codes::VALIDATE_DEEP_PERMITTED_CONFLICT,
+        "Review the disclosed within-world conflict and confirm the glut-admitting reasoning contract is intended; tighten the contract if the conflict should be forbidden.",
+    ),
+    (
+        codes::VALIDATE_DEEP_INCONSISTENT,
+        "Resolve the forbidden contradiction: inspect the clash witness and remove or reconcile one of the conflicting assertions.",
+    ),
+    (
+        codes::VALIDATE_DEEP_UNSATISFIABLE,
+        "The class is provably empty; relax the over-constraining axioms, or remove the class if its emptiness is unintended.",
+    ),
+    (
+        codes::VALIDATE_DEEP_UNSUPPORTED_CONSTRUCT,
+        "The DL construct is outside the decided profile; simplify the axiom into a supported construct, or accept the undecided verdict.",
+    ),
+    (
+        codes::VALIDATE_DEEP_PROJECTION_LOSS,
+        "A lowering could not carry the construct exactly; consult the loss ledger and prefer a construct that projects losslessly if exactness is required.",
+    ),
+    (
+        codes::VALIDATE_DEEP_INCOMPLETE,
+        "The check ran out of budget; raise the reasoning budget or reduce the input so the verdict completes.",
+    ),
+    (
+        codes::VALIDATE_DEEP_CONTRACT_INVALID,
+        "Fix the declared reasoning-contract policy; it was garbled and could not be parsed.",
+    ),
+    (
+        codes::VALIDATE_DEEP_FAMILY,
+        "Review the deep-reasoning outcome and act on the specific verdict (inconsistency, unsatisfiability, or incompleteness) it reports.",
+    ),
+    // ── Dev-governance / repo-structural ──
+    (
+        codes::CONSTITUTION_HONOR_SYSTEM,
+        "This principle is enforced by review practice, not a gate; confirm the change respects it during review.",
+    ),
+    (
+        codes::CONSTITUTION_ORPHANED_ENFORCEMENT,
+        "Link the enforcement to the Constitution principle it enforces via logic:formalizes, or remove the orphaned enforcement.",
+    ),
+    (
+        codes::CONSTITUTION_FAMILY,
+        "Reconcile the enforcement with the Constitution principle it maps to (declare it, or link it via logic:formalizes).",
+    ),
+    (
+        codes::SLICE_OWNERSHIP_UNOWNED,
+        "Declare an owner for the slice in the ownership table.",
+    ),
+    (
+        codes::SLICE_OWNERSHIP_CONFLICT,
+        "Resolve the conflicting ownership claims so exactly one owner is declared for the slice.",
+    ),
+    (
+        codes::SLICE_OWNERSHIP_MISMATCH,
+        "Reconcile the ownership table with the slice's declared owner so the two agree.",
+    ),
+    (
+        codes::SLICE_OWNERSHIP_UNDECLARED_DEPENDENCY,
+        "Declare the used dependency in the slice's dependency list.",
+    ),
+    (
+        codes::SLICE_OWNERSHIP_STALE_DEPENDENCY,
+        "Remove the declared dependency that is no longer referenced, or start using it.",
+    ),
+    (
+        codes::SLICE_OWNERSHIP_UNPARSEABLE_QUERY,
+        "Fix the malformed slice query so it parses.",
+    ),
+    (
+        codes::SLICE_OWNERSHIP_FAMILY,
+        "Fix the slice-ownership table entry the finding names (owner, dependency, or query).",
+    ),
+    (
+        codes::CRATE_LAYERING_VIOLATION,
+        "Remove the cross-layer dependency; route through the allowed layer boundary instead.",
+    ),
+    (
+        codes::CRATE_LAYERING_OBSERVATION,
+        "Review the layering observation and tighten the crate boundary if the dependency is unintended.",
+    ),
+    (
+        codes::REPO_STATIC_VIOLATION,
+        "Fix the repo-structural violation the static check flagged (the message names the offending path).",
+    ),
+    (
+        codes::REPO_STATIC_OBSERVATION,
+        "Review the structural observation and adjust the repo layout if it is unintended.",
+    ),
+    (
+        codes::COVERAGE_GAP_CLASS,
+        "Add an alignment (e.g. skos:exactMatch / skos:closeMatch) for the external class so it is not used unaligned.",
+    ),
+    (
+        codes::COVERAGE_GAP_PREDICATE,
+        "Add an alignment for the external predicate so it is not used unaligned.",
+    ),
+    (
+        codes::BOX_ROLES_MISSING,
+        "Add the missing box-role coverage the audit requires.",
+    ),
+    (
+        codes::BOX_ROLES_INVALID,
+        "Correct the invalid box-role assignment so it matches the audit's expectations.",
+    ),
+    (
+        codes::WIKIDATA_QID_SYNTAX,
+        "Use a well-formed Wikidata QID (Q followed by digits).",
+    ),
+    (
+        codes::WIKIDATA_NAMESPACE_MISUSE,
+        "Use the correct Wikidata namespace for the entity (wd: for items, wdt:/p: for properties).",
+    ),
+    (
+        codes::STATEMENT_INVARIANT,
+        "Repair the statement-metadata invariant: ground the base triple, use DL-safe datatypes, and keep annotation soundness / preferred-rank consistent.",
+    ),
+    (
+        codes::STATEMENT_COMPILE_LOSSLESS_ROUND_TRIP,
+        "Adjust the RDF-1.2 statement so the OWL round-trip is lossless, or record the loss in the projection-loss ledger.",
+    ),
+    // ── Input well-formedness ──
+    (
+        codes::EXAMPLE_PARSE,
+        "Fix the syntax of the example file so it parses.",
+    ),
+    // ── Dynamic per-DSL SHACL failure suffix ──
+    (
+        codes::DSL_NONCONFORMING_SUFFIX,
+        "Repair the DSL input so it satisfies its SHACL shape; the per-DSL result names the offending node.",
+    ),
+];
+
+/// The honest-absence allowlist: codes with genuinely NO rule-level fix — purely
+/// informational or positive-verdict outcomes — for which [`remediation_for`]
+/// returns `None` by design. The coverage gate
+/// (`tests::every_rule_code_has_remediation_or_is_allowlisted`) permits exactly
+/// these to lack a remediation, so authoring one example cannot satisfy it.
+pub const REMEDIATION_ABSENT: &[&str] = &[
+    // Info: reports the resolved signing key — nothing to fix.
+    codes::SIGNATURE_KEY,
+    // Note: a consistent, fully-covered verdict — nothing to fix.
+    codes::VALIDATE_DEEP_CONSISTENT,
+    // Note: the Tier-2 deep pass was unavailable (graceful degradation) — no
+    // rule-level fix; the outcome is a disclosure, not a violation.
+    codes::VALIDATE_DEEP_UNAVAILABLE,
+    // The advice.* family carries its OWN per-occurrence guidance (the advisory
+    // demonstrator supplies its help URI), so there is no rule-level remediation.
+    codes::ADVICE_FAMILY,
+];
+
+/// The rule-level remediation prose for a code, if the catalogue authors one.
+///
+/// A statically-declared code (in [`codes::ALL_CODES`]) carries EXACTLY its own
+/// [`REMEDIATIONS`] entry, or an honest `None` — it never inherits a family's
+/// generic prose. A dynamic family member (a code not itself declared, e.g.
+/// `shacl.MinCountConstraintComponent`) inherits its family base's entry, with the
+/// same static-over-prefix-over-suffix precedence as [`classify`].
+pub fn remediation_for(code: &str) -> Option<&'static str> {
+    if let Some((_, prose)) = REMEDIATIONS.iter().find(|(c, _)| *c == code) {
+        return Some(prose);
+    }
+    // A known static code has no family fallback: it is exactly its authored entry
+    // or an honest absence.
+    if codes::ALL_CODES.contains(&code) {
+        return None;
+    }
+    // Resolve to the FIRST matching family, mirroring `classify` /
+    // `catalog_anchor_uri` precedence exactly (prefix families win over suffix
+    // families, first match wins). Once a family matches it is authoritative:
+    // return that family's remediation, or `None` if the family has none (an
+    // honest absence, e.g. the `advice.` family). We must NOT continue scanning to
+    // a later family once the first has matched — doing so would let an
+    // allowlisted advisory code like `advice.foo-dsl.nonconforming` skip its own
+    // (remediation-less) `advice.` family and pick up unrelated SHACL fix text
+    // from the `-dsl.nonconforming` suffix family.
+    if let Some((prefix, _, _)) = FAMILY_PREFIXES.iter().find(|(p, _, _)| code.starts_with(p)) {
+        return REMEDIATIONS
+            .iter()
+            .find(|(c, _)| c == prefix)
+            .map(|(_, prose)| *prose);
+    }
+    if let Some((suffix, _, _)) = FAMILY_SUFFIXES.iter().find(|(s, _, _)| code.ends_with(s)) {
+        return REMEDIATIONS
+            .iter()
+            .find(|(c, _)| c == suffix)
+            .map(|(_, prose)| *prose);
+    }
+    None
+}
+
 /// The enforcement kind + default grade for a code, if the registry knows it.
 /// Static rows win over families; families match by prefix then suffix.
 pub fn classify(code: &str) -> Option<(Severity, Enforcement)> {
@@ -416,6 +689,11 @@ pub fn catalog_anchor_uri(code: &str) -> String {
 pub fn rule_for(code: &str, default_severity: Severity) -> Rule {
     let mut rule = Rule::new(code, default_severity);
     rule.help_uri = Some(catalog_anchor_uri(code));
+    // Thread the DSL-authored rule-level remediation onto the built Rule so the
+    // renderers surface `gmeow:ruleRemediation`. Honest absence for allowlisted codes.
+    if let Some(remediation) = remediation_for(code) {
+        rule = rule.with_remediation(remediation);
+    }
     rule
 }
 
@@ -454,6 +732,7 @@ pub fn all_rules() -> Vec<RuleSeed> {
             default_severity: *sev,
             enforcement: *enf,
             family: false,
+            remediation: remediation_for(code),
         })
         .collect();
     for (prefix, sev, enf) in FAMILY_PREFIXES {
@@ -466,6 +745,7 @@ pub fn all_rules() -> Vec<RuleSeed> {
             default_severity: *sev,
             enforcement: *enf,
             family: true,
+            remediation: remediation_for(prefix),
         });
     }
     for (suffix, sev, enf) in FAMILY_SUFFIXES {
@@ -474,6 +754,7 @@ pub fn all_rules() -> Vec<RuleSeed> {
             default_severity: *sev,
             enforcement: *enf,
             family: true,
+            remediation: remediation_for(suffix),
         });
     }
     seeds
@@ -609,6 +890,55 @@ mod tests {
         assert_eq!(
             catalog_anchor_uri("signature.verify"),
             "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#signature-verify"
+        );
+    }
+
+    /// D2a coverage gate: EVERY enumerated rule code (static rows + family reps)
+    /// must carry EITHER an authored rule-level remediation OR appear on the honest
+    /// absence allowlist — never both, never neither. Because it enumerates the whole
+    /// `all_rules()` set (not one example), authoring a single remediation cannot
+    /// satisfy it: a code with neither fails right here.
+    #[test]
+    fn every_rule_code_has_remediation_or_is_allowlisted() {
+        for seed in all_rules() {
+            let has = remediation_for(seed.code).is_some();
+            let absent = REMEDIATION_ABSENT.contains(&seed.code);
+            assert!(
+                has != absent,
+                "code `{}` must have EITHER an authored rule-level remediation OR appear on \
+                 the honest-absence allowlist (REMEDIATION_ABSENT), never both nor neither",
+                seed.code
+            );
+            // The seed's projected field mirrors the lookup exactly.
+            assert_eq!(seed.remediation, remediation_for(seed.code));
+        }
+        // The allowlist must be honest: every entry genuinely resolves to no remediation.
+        for code in REMEDIATION_ABSENT {
+            assert!(
+                remediation_for(code).is_none(),
+                "allowlisted code `{code}` must genuinely have NO remediation"
+            );
+        }
+    }
+
+    /// A dynamic family member (never a declared static code) inherits its family
+    /// base's remediation, so a real `shacl.*` / `-dsl.nonconforming` finding gets fix
+    /// guidance through the same lookup the annotate pass uses.
+    #[test]
+    fn dynamic_family_members_inherit_the_family_remediation() {
+        assert_eq!(
+            remediation_for("shacl.MinCountConstraintComponent"),
+            remediation_for(codes::SHACL_FAMILY),
+        );
+        assert_eq!(
+            remediation_for("mylabel-dsl.nonconforming"),
+            remediation_for(codes::DSL_NONCONFORMING_SUFFIX),
+        );
+        // A rule built for a dynamic member carries the inherited remediation.
+        let rule = rule_for("shacl.MinCountConstraintComponent", Severity::Error);
+        assert_eq!(
+            rule.remediation.as_deref(),
+            remediation_for(codes::SHACL_FAMILY)
         );
     }
 

@@ -6528,6 +6528,56 @@
         },
         "type": "object"
       },
+      "CrossNodeGlutWitness": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:glutWitnessOf": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Finding"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          }
+        },
+        "required": [
+          "gmeow:glutWitnessOf"
+        ],
+        "type": "object"
+      },
       "CryptoWallet": {
         "properties": {
           "@annotation": {
@@ -19230,6 +19280,31 @@
             },
             "then": {
               "$ref": "#/$defs/Criterion"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:CrossNodeGlutWitness"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:CrossNodeGlutWitness"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/CrossNodeGlutWitness"
             }
           },
           {
