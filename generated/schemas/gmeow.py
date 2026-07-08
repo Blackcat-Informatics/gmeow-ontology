@@ -255,6 +255,12 @@ class AwarenessModeEnum(str, Enum):
     modeWaking = "modeWaking"
 
 
+class AxisContextScopeEnum(str, Enum):
+    scopeDepsClosure = "scopeDepsClosure"
+    scopeMergedClosure = "scopeMergedClosure"
+    scopeSliceLocal = "scopeSliceLocal"
+
+
 class AxisEnum(str, Enum):
     axisAddressLocality = "axisAddressLocality"
     axisAddressRegion = "axisAddressRegion"
@@ -358,6 +364,55 @@ class AxisEnum(str, Enum):
     axisYear = "axisYear"
     axisYellow = "axisYellow"
     axisZ = "axisZ"
+
+
+class AxisExemptionEnum(str, Enum):
+    exemptionDocMaturity = "exemptionDocMaturity"
+    exemptionDocsPanels = "exemptionDocsPanels"
+    exemptionGmnProjection = "exemptionGmnProjection"
+
+
+class AxisThresholdEnum(str, Enum):
+    thrDocumentationExemplified = "thrDocumentationExemplified"
+    thrDocumentationGrounded = "thrDocumentationGrounded"
+    thrDocumentationLinked = "thrDocumentationLinked"
+    thrDocumentationMaximal = "thrDocumentationMaximal"
+    thrGroundingExemplified = "thrGroundingExemplified"
+    thrGroundingGrounded = "thrGroundingGrounded"
+    thrGroundingLinked = "thrGroundingLinked"
+    thrGroundingMaximal = "thrGroundingMaximal"
+    thrInformationExemplified = "thrInformationExemplified"
+    thrInformationGrounded = "thrInformationGrounded"
+    thrInformationLinked = "thrInformationLinked"
+    thrInformationMaximal = "thrInformationMaximal"
+    thrLinkageExemplified = "thrLinkageExemplified"
+    thrLinkageGrounded = "thrLinkageGrounded"
+    thrLinkageLinked = "thrLinkageLinked"
+    thrLinkageMaximal = "thrLinkageMaximal"
+    thrProjectionExemplified = "thrProjectionExemplified"
+    thrProjectionGrounded = "thrProjectionGrounded"
+    thrProjectionLinked = "thrProjectionLinked"
+    thrProjectionMaximal = "thrProjectionMaximal"
+    thrProseExemplified = "thrProseExemplified"
+    thrProseGrounded = "thrProseGrounded"
+    thrProseLinked = "thrProseLinked"
+    thrProseMaximal = "thrProseMaximal"
+    thrProvenanceExemplified = "thrProvenanceExemplified"
+    thrProvenanceGrounded = "thrProvenanceGrounded"
+    thrProvenanceLinked = "thrProvenanceLinked"
+    thrProvenanceMaximal = "thrProvenanceMaximal"
+    thrReasonerExemplified = "thrReasonerExemplified"
+    thrReasonerGrounded = "thrReasonerGrounded"
+    thrReasonerLinked = "thrReasonerLinked"
+    thrReasonerMaximal = "thrReasonerMaximal"
+    thrTestingExemplified = "thrTestingExemplified"
+    thrTestingGrounded = "thrTestingGrounded"
+    thrTestingLinked = "thrTestingLinked"
+    thrTestingMaximal = "thrTestingMaximal"
+    thrTranslationExemplified = "thrTranslationExemplified"
+    thrTranslationGrounded = "thrTranslationGrounded"
+    thrTranslationLinked = "thrTranslationLinked"
+    thrTranslationMaximal = "thrTranslationMaximal"
 
 
 class BlockingDispositionEnum(str, Enum):
@@ -2483,6 +2538,7 @@ class ProfileEnum(str, Enum):
     profileReferenceFrame = "profileReferenceFrame"
     profileTemporalFrame = "profileTemporalFrame"
     profileTemporalProvenance = "profileTemporalProvenance"
+    sliceQualityRubric = "sliceQualityRubric"
 
 
 class ProjectionContextEnum(str, Enum):
@@ -2547,14 +2603,44 @@ class PronounSetEnum(str, Enum):
     pronounZheZher = "pronounZheZher"
 
 
+class QualityAxisEnum(str, Enum):
+    axisDocumentation = "axisDocumentation"
+    axisMaximalGrounding = "axisMaximalGrounding"
+    axisMaximalInformation = "axisMaximalInformation"
+    axisMaximalLinkage = "axisMaximalLinkage"
+    axisMaximalProjection = "axisMaximalProjection"
+    axisOptimalTesting = "axisOptimalTesting"
+    axisProseQuality = "axisProseQuality"
+    axisProvenanceHonesty = "axisProvenanceHonesty"
+    axisReasonerDerived = "axisReasonerDerived"
+    axisTranslationCoverage = "axisTranslationCoverage"
+
+
 class QualityDimensionEnum(str, Enum):
     qualityDimensionCompleteness = "qualityDimensionCompleteness"
+    qualityDimensionDocumentation = "qualityDimensionDocumentation"
+    qualityDimensionGrounding = "qualityDimensionGrounding"
+    qualityDimensionInferentialDensity = "qualityDimensionInferentialDensity"
     qualityDimensionLineage = "qualityDimensionLineage"
+    qualityDimensionLinkage = "qualityDimensionLinkage"
     qualityDimensionLogicalConsistency = "qualityDimensionLogicalConsistency"
     qualityDimensionPositionalAccuracy = "qualityDimensionPositionalAccuracy"
+    qualityDimensionProjection = "qualityDimensionProjection"
+    qualityDimensionProseQuality = "qualityDimensionProseQuality"
+    qualityDimensionProvenanceHonesty = "qualityDimensionProvenanceHonesty"
     qualityDimensionTemporalAccuracy = "qualityDimensionTemporalAccuracy"
+    qualityDimensionTesting = "qualityDimensionTesting"
     qualityDimensionThematicAccuracy = "qualityDimensionThematicAccuracy"
     qualityDimensionTopologicalConsistency = "qualityDimensionTopologicalConsistency"
+    qualityDimensionTranslationCoverage = "qualityDimensionTranslationCoverage"
+
+
+class QualityTierEnum(str, Enum):
+    tierExemplified = "tierExemplified"
+    tierGrounded = "tierGrounded"
+    tierLinked = "tierLinked"
+    tierMaximal = "tierMaximal"
+    tierRegistered = "tierRegistered"
 
 
 class QuestionTypeEnum(str, Enum):
@@ -4110,6 +4196,25 @@ class Axis(Entity):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Axis"
     is_a: ClassVar[str] = "Entity"
     pass
+
+
+class AxisContextScope(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AxisContextScope"
+    pass
+
+
+class AxisExemption(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AxisExemption"
+    exemptionDate: str | None = Field(default=None)
+    exemptionProducer: str | None = Field(default=None)
+    exemptionReason: str | None = Field(default=None)
+    exemptsAxis: list[QualityAxis] | None = Field(default=None)
+
+
+class AxisThreshold(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AxisThreshold"
+    thresholdFloor: float | None = Field(default=None)
+    thresholdTier: QualityTier | None = Field(default=None)
 
 
 class BiologicalParentChild(ParentChildRelationship):
@@ -7473,9 +7578,24 @@ class QualityAssessment(Observation):
     qualityDimension: list[QualityDimension] | None = Field(default=None)
 
 
+class QualityAxis(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/QualityAxis"
+    axisAdviceTemplate: str | None = Field(default=None)
+    axisContextScope: AxisContextScope | None = Field(default=None)
+    axisDimension: list[QualityDimension] | None = Field(default=None)
+    axisProducer: str | None = Field(default=None)
+    axisThreshold: list[AxisThreshold] | None = Field(default=None)
+    axisWeight: float | None = Field(default=None)
+
+
 class QualityDimension(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/QualityDimension"
     pass
+
+
+class QualityTier(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/QualityTier"
+    tierRank: int | None = Field(default=None)
 
 
 class Quantity(Entity):

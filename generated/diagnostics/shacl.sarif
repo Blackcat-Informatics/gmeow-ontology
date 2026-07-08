@@ -5,6 +5,11 @@
       "artifacts": [
         {
           "location": {
+            "uri": "slices/core/quality/module.ttl"
+          }
+        },
+        {
+          "location": {
             "uri": "slices/extensions/music/module.ttl"
           }
         }
@@ -148,6 +153,210 @@
             "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
           },
           "ruleId": "shacl.MinCountConstraintComponent"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/qualityDimensionThematicAccuracy"
+                },
+                {
+                  "fullyQualifiedName": "value https://blackcatinformatics.ca/gmeow/qualityDimensionThematicAccuracy"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/quality/module.ttl"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 103
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1cddf48ba122c923"
+          },
+          "properties": {
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+          },
+          "ruleId": "shacl.SPARQLConstraintComponent"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/qualityDimensionTopologicalConsistency"
+                },
+                {
+                  "fullyQualifiedName": "value https://blackcatinformatics.ca/gmeow/qualityDimensionTopologicalConsistency"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/quality/module.ttl"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 110
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e55a6cbe08290d5f"
+          },
+          "properties": {
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+          },
+          "ruleId": "shacl.SPARQLConstraintComponent"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/qualityDimensionLineage"
+                },
+                {
+                  "fullyQualifiedName": "value https://blackcatinformatics.ca/gmeow/qualityDimensionLineage"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/quality/module.ttl"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 74
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "97e0badcadc55370"
+          },
+          "properties": {
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+          },
+          "ruleId": "shacl.SPARQLConstraintComponent"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/qualityDimensionLogicalConsistency"
+                },
+                {
+                  "fullyQualifiedName": "value https://blackcatinformatics.ca/gmeow/qualityDimensionLogicalConsistency"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/quality/module.ttl"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 81
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "8995ecb3bcc1f808"
+          },
+          "properties": {
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+          },
+          "ruleId": "shacl.SPARQLConstraintComponent"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/qualityDimensionPositionalAccuracy"
+                },
+                {
+                  "fullyQualifiedName": "value https://blackcatinformatics.ca/gmeow/qualityDimensionPositionalAccuracy"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/quality/module.ttl"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 88
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e89bddb0f1c9dd2b"
+          },
+          "properties": {
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+          },
+          "ruleId": "shacl.SPARQLConstraintComponent"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/qualityDimensionTemporalAccuracy"
+                },
+                {
+                  "fullyQualifiedName": "value https://blackcatinformatics.ca/gmeow/qualityDimensionTemporalAccuracy"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/quality/module.ttl"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 95
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a2b23d84a08f3bf5"
+          },
+          "properties": {
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+          },
+          "ruleId": "shacl.SPARQLConstraintComponent"
         }
       ],
       "tool": {
@@ -160,6 +369,12 @@
                 "level": "warning"
               },
               "id": "shacl.MinCountConstraintComponent"
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "id": "shacl.SPARQLConstraintComponent"
             }
           ]
         }

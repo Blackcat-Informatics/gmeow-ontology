@@ -80,6 +80,126 @@
         }
       ],
       "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+    },
+    {
+      "severity": "warning",
+      "code": "shacl.SPARQLConstraintComponent",
+      "message": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard.",
+      "tool": "shacl",
+      "locations": [
+        {
+          "path": "slices/core/quality/module.ttl",
+          "line": 103,
+          "column": 1,
+          "logical": "https://blackcatinformatics.ca/gmeow/qualityDimensionThematicAccuracy"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionThematicAccuracy"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+    },
+    {
+      "severity": "warning",
+      "code": "shacl.SPARQLConstraintComponent",
+      "message": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard.",
+      "tool": "shacl",
+      "locations": [
+        {
+          "path": "slices/core/quality/module.ttl",
+          "line": 110,
+          "column": 1,
+          "logical": "https://blackcatinformatics.ca/gmeow/qualityDimensionTopologicalConsistency"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionTopologicalConsistency"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+    },
+    {
+      "severity": "warning",
+      "code": "shacl.SPARQLConstraintComponent",
+      "message": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard.",
+      "tool": "shacl",
+      "locations": [
+        {
+          "path": "slices/core/quality/module.ttl",
+          "line": 74,
+          "column": 1,
+          "logical": "https://blackcatinformatics.ca/gmeow/qualityDimensionLineage"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionLineage"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+    },
+    {
+      "severity": "warning",
+      "code": "shacl.SPARQLConstraintComponent",
+      "message": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard.",
+      "tool": "shacl",
+      "locations": [
+        {
+          "path": "slices/core/quality/module.ttl",
+          "line": 81,
+          "column": 1,
+          "logical": "https://blackcatinformatics.ca/gmeow/qualityDimensionLogicalConsistency"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionLogicalConsistency"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+    },
+    {
+      "severity": "warning",
+      "code": "shacl.SPARQLConstraintComponent",
+      "message": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard.",
+      "tool": "shacl",
+      "locations": [
+        {
+          "path": "slices/core/quality/module.ttl",
+          "line": 88,
+          "column": 1,
+          "logical": "https://blackcatinformatics.ca/gmeow/qualityDimensionPositionalAccuracy"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionPositionalAccuracy"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
+    },
+    {
+      "severity": "warning",
+      "code": "shacl.SPARQLConstraintComponent",
+      "message": "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard.",
+      "tool": "shacl",
+      "locations": [
+        {
+          "path": "slices/core/quality/module.ttl",
+          "line": 95,
+          "column": 1,
+          "logical": "https://blackcatinformatics.ca/gmeow/qualityDimensionTemporalAccuracy"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionTemporalAccuracy"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape"
     }
   ],
   "metadata": {
@@ -87,8 +207,8 @@
     "shaclConforms": false,
     "shaclErrorCount": 0,
     "shaclGatePassed": true,
-    "shaclResultCount": 4,
-    "shaclWarningCount": 4,
+    "shaclResultCount": 10,
+    "shaclWarningCount": 10,
     "stage": "stage-validate"
   }
 }

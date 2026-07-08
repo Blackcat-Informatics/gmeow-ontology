@@ -642,7 +642,7 @@ gmeow:sliceQualityRubric
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Slice-Quality Rubric"@x-gmeow-english ;
     skos:definition "The single, ontology-resident rubric the slice-quality advisor binds to: a Profile over gmeow:Slice whose descriptor properties are the axis bindings and whose open value vocabularies are the axes, tiers, and context scopes. Tuning a threshold, minting a tier, or adding an axis is a slice edit and regenerate — never a code fork; Rust supplies only the closed measurement primitives the descriptors name. It is NOT the assessment output (that is gmeow:QualityAssessment) — it is the schema the scorer reads."@x-gmeow-english ;
-    skos:example "gmeow:sliceQualityRubric a gmeow:Profile ; gmeow:profileDescriptor gmeow:axisProducer ; gmeow:profileOpenValue gmeow:QualityAxis ."@x-gmeow-english ;
+    skos:example "gmeow:sliceQualityRubric a gmeow:Profile ; gmeow:profileDescriptor gmeow:axisProducer ; gmeow:profileOpenValue gmeow:AxisContextScope ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid encoding an axis, threshold, tier, or advice string in Rust (they are all descriptor data here) and avoid a second rubric Profile — there is one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
@@ -654,8 +654,7 @@ gmeow:sliceQualityRubric
         gmeow:axisAdviceTemplate ,
         gmeow:axisWeight ,
         gmeow:axisContextScope ;
-    gmeow:profileOpenValue gmeow:QualityAxis ,
-        gmeow:QualityTier ,
+    gmeow:profileOpenValue gmeow:QualityDimension ,
         gmeow:AxisContextScope .
 
 #################################################################
