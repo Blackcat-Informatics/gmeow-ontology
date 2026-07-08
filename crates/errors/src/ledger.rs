@@ -28,7 +28,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-use crate::diag::{Advice, Diag, DiagRef, Label, Slot, SourceContext, StageId};
+use crate::diag::{Advice, Diag, DiagRef, Label, Remediation, Slot, SourceContext, StageId};
 use crate::grade::{Belnap, BoundedLattice, FindingCategory, GateVerdict, Grade, gate};
 use crate::lower::lower;
 use crate::model::DiagnosticAttribution;
@@ -47,6 +47,46 @@ fn feed(hasher: &mut blake3::Hasher, tag: &[u8], bytes: &[u8]) {
     hasher.update(bytes);
 }
 
+/// Feed the **code-blind source-position identity** — `(path, line, column,
+/// logical, term_role, focus)` in this EXACT order — into `hasher`. The SINGLE
+/// definition of the anchor field-feed, shared by [`DiagFingerprint::compute`]
+/// (after its `code`+`category` prefix) and [`DiagFingerprint::anchor`], so the two
+/// paths are structurally identical and cannot silently drift apart — a drift would
+/// break the cross-node join key the glut meta-rule depends on.
+fn feed_source_ctx(hasher: &mut blake3::Hasher, ctx: &SourceContext) {
+    feed(
+        hasher,
+        b"path",
+        ctx.location.path.as_deref().unwrap_or("").as_bytes(),
+    );
+    feed(
+        hasher,
+        b"line",
+        &ctx.location.line.unwrap_or(0).to_le_bytes(),
+    );
+    feed(
+        hasher,
+        b"column",
+        &ctx.location.column.unwrap_or(0).to_le_bytes(),
+    );
+    feed(
+        hasher,
+        b"logical",
+        ctx.location.logical.as_deref().unwrap_or("").as_bytes(),
+    );
+    let role = ctx.term_role.map(|r| format!("{r:?}")).unwrap_or_default();
+    feed(hasher, b"role", role.as_bytes());
+    feed(
+        hasher,
+        b"focus",
+        ctx.focus
+            .as_ref()
+            .map(|f| f.0.as_str())
+            .unwrap_or("")
+            .as_bytes(),
+    );
+}
+
 impl DiagFingerprint {
     /// Compute the fingerprint from the identity fields — `(code, category,
     /// source-context anchor, focus)`. Never keys on message/frames/grade.
@@ -54,37 +94,23 @@ impl DiagFingerprint {
         let mut hasher = blake3::Hasher::new();
         feed(&mut hasher, b"code", code.as_bytes());
         feed(&mut hasher, b"category", category.as_str().as_bytes());
-        feed(
-            &mut hasher,
-            b"path",
-            ctx.location.path.as_deref().unwrap_or("").as_bytes(),
-        );
-        feed(
-            &mut hasher,
-            b"line",
-            &ctx.location.line.unwrap_or(0).to_le_bytes(),
-        );
-        feed(
-            &mut hasher,
-            b"column",
-            &ctx.location.column.unwrap_or(0).to_le_bytes(),
-        );
-        feed(
-            &mut hasher,
-            b"logical",
-            ctx.location.logical.as_deref().unwrap_or("").as_bytes(),
-        );
-        let role = ctx.term_role.map(|r| format!("{r:?}")).unwrap_or_default();
-        feed(&mut hasher, b"role", role.as_bytes());
-        feed(
-            &mut hasher,
-            b"focus",
-            ctx.focus
-                .as_ref()
-                .map(|f| f.0.as_str())
-                .unwrap_or("")
-                .as_bytes(),
-        );
+        feed_source_ctx(&mut hasher, ctx);
+        let digest = hasher.finalize();
+        let mut bytes = [0u8; 16];
+        bytes.copy_from_slice(&digest.as_bytes()[..16]);
+        DiagFingerprint(bytes)
+    }
+
+    /// The **code-blind source anchor** fingerprint: `blake3` over the source
+    /// position `(path, line, column, logical, term_role, focus)` ONLY —
+    /// deliberately EXCLUDING `code` and `category`. Two findings with DIFFERENT
+    /// codes at the SAME source anchor therefore share one anchor fingerprint,
+    /// which is the cross-node join key the same-fingerprint merge (which keys on
+    /// the code) structurally cannot make — the seam the cross-node-glut meta-rule
+    /// joins on.
+    pub fn anchor(ctx: &SourceContext) -> Self {
+        let mut hasher = blake3::Hasher::new();
+        feed_source_ctx(&mut hasher, ctx);
         let digest = hasher.finalize();
         let mut bytes = [0u8; 16];
         bytes.copy_from_slice(&digest.as_bytes()[..16]);
@@ -112,6 +138,16 @@ impl fmt::Display for DiagFingerprint {
 pub fn fingerprint_iri(fingerprint: &DiagFingerprint) -> String {
     format!(
         "https://blackcatinformatics.ca/gmeow/diagnostics/finding/{}",
+        fingerprint.hex()
+    )
+}
+
+/// The stable **anchor IRI** for a code-blind [`anchor`](DiagFingerprint::anchor)
+/// fingerprint — the `gmeow:findingAnchor` value two different-code findings at
+/// one source position share.
+pub fn anchor_iri(fingerprint: &DiagFingerprint) -> String {
+    format!(
+        "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/{}",
         fingerprint.hex()
     )
 }
@@ -170,6 +206,12 @@ pub struct DiagNode {
     pub source_ctx: SourceContext,
     pub attributions: Vec<DiagnosticAttribution>,
     pub advice: Vec<Advice>,
+    /// DSL-authored remediations — the "how to fix" payload projected as
+    /// `gmeow:findingRemediation`. Not part of the identity fingerprint (like
+    /// [`advice`](DiagNode::advice)), so a later annotation pass can append one to
+    /// an interned node without changing its content address.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub remediation: Vec<Remediation>,
     pub labels: Vec<Label>,
     pub tags: Vec<String>,
     /// The Belnap knowledge value; [`Belnap::Both`] flags a merged glut.
@@ -235,6 +277,57 @@ impl DiagLedger {
         for node in nodes {
             self.insert_inner(node, false);
         }
+    }
+
+    /// Resolve an interned node by its content address, without mutating. `None`
+    /// when no witness with that fingerprint has landed.
+    pub fn node_by_fingerprint(&self, fingerprint: &DiagFingerprint) -> Option<&DiagNode> {
+        self.intern
+            .get(fingerprint)
+            .map(|&dref| &self.arena[dref.index()])
+    }
+
+    /// Attach a [`Remediation`] to an already-interned witness, addressed by its
+    /// content-address fingerprint — the D1 annotate-by-fingerprint seam a later
+    /// pass uses to hang "how to fix" guidance on a finding the producers already
+    /// emitted. This is deliberately NOT the [`attach`](DiagLedger::attach) merge
+    /// path: it appends to the existing node in place and does not re-lower,
+    /// re-fingerprint, or fold in a new witness. Because remediation is not part of
+    /// the [`DiagFingerprint`], the node's content address is unchanged and the F1
+    /// pin-digest self-consistency invariant stays valid. It is **idempotent**:
+    /// appending a remediation the node already carries is a no-op, so a cache
+    /// replay or a second annotation pass never grows the vec. Returns the handle
+    /// to the annotated node, or `None` when no witness with that fingerprint
+    /// exists (annotation of an absent finding is a caller error to surface, never
+    /// a silent create).
+    pub fn annotate(
+        &mut self,
+        fingerprint: &DiagFingerprint,
+        remediation: Remediation,
+    ) -> Option<DiagRef> {
+        let &dref = self.intern.get(fingerprint)?;
+        let node = &mut self.arena[dref.index()];
+        if !node.remediation.contains(&remediation) {
+            node.remediation.push(remediation);
+        }
+        Some(dref)
+    }
+
+    /// Attach an [`Advice`] to an already-interned witness by content address — the
+    /// [`Advice`] twin of [`annotate`](DiagLedger::annotate). Same discipline: in
+    /// place, no merge, no re-fingerprint, idempotent (dedup by equality), and
+    /// `None` when the finding is absent.
+    pub fn annotate_advice(
+        &mut self,
+        fingerprint: &DiagFingerprint,
+        advice: Advice,
+    ) -> Option<DiagRef> {
+        let &dref = self.intern.get(fingerprint)?;
+        let node = &mut self.arena[dref.index()];
+        if !node.advice.contains(&advice) {
+            node.advice.push(advice);
+        }
+        Some(dref)
     }
 
     /// The nodes in total deterministic order: `(stage, fingerprint)`. Because the
@@ -361,6 +454,11 @@ impl DiagLedger {
         for advice in incoming.advice {
             if !slot.advice.contains(&advice) {
                 slot.advice.push(advice);
+            }
+        }
+        for remediation in incoming.remediation {
+            if !slot.remediation.contains(&remediation) {
+                slot.remediation.push(remediation);
             }
         }
         for label in incoming.labels {
@@ -561,6 +659,7 @@ mod tests {
             source_ctx: SourceContext::default(),
             attributions: Vec::new(),
             advice: Vec::new(),
+            remediation: Vec::new(),
             labels: Vec::new(),
             tags: Vec::new(),
             knowledge: Belnap::Supported,
@@ -601,6 +700,7 @@ mod tests {
             source_ctx: ctx,
             attributions: Vec::new(),
             advice: Vec::new(),
+            remediation: Vec::new(),
             labels: Vec::new(),
             tags: Vec::new(),
             knowledge: Belnap::Supported,
@@ -716,6 +816,99 @@ mod tests {
         // And the surviving stage is the lexicographic minimum in both.
         assert_eq!(ledger_b_first.emit_sorted()[0].stage.as_str(), "stage-a");
         assert_eq!(ledger_a_first.emit_sorted()[0].stage.as_str(), "stage-a");
+    }
+
+    #[test]
+    fn annotate_by_fingerprint_is_idempotent_and_preserves_identity() {
+        // D1: a later pass hangs a remediation on an already-interned witness by
+        // fingerprint — in place, no merge, no new node — and a second call (or a
+        // cache replay) does NOT grow the remediation vec. The content address is
+        // unchanged (remediation is not in the fingerprint), so F1 stays valid.
+        use crate::diag::Remediation;
+        use crate::grade::Standpoint;
+        let mut ledger = DiagLedger::new();
+        let d = diag_at(
+            "test.ledger.annotate",
+            FindingCategory::DataShapeViolation,
+            "a.ttl",
+            "boom",
+        );
+        ledger.attach(d, StageId::new("s"));
+        let fp = ledger.emit_sorted()[0].fingerprint;
+        let iri_before = fingerprint_iri(&fp);
+        let arena_len_before = ledger.len();
+
+        let rem = Remediation::new("introduce the mediating relator", Standpoint::Advisory);
+        // First annotation lands.
+        let r1 = ledger.annotate(&fp, rem.clone()).expect("finding present");
+        assert_eq!(
+            ledger.node_by_fingerprint(&fp).unwrap().remediation.len(),
+            1
+        );
+        // Second identical annotation (or a replay) is a no-op — the vec does not grow.
+        let r2 = ledger.annotate(&fp, rem.clone()).expect("still present");
+        assert_eq!(r1, r2);
+        assert_eq!(
+            ledger.node_by_fingerprint(&fp).unwrap().remediation.len(),
+            1,
+            "idempotent annotate must not grow the vec on replay"
+        );
+        // Identity is untouched: same fingerprint IRI, same arena size (no new node).
+        assert_eq!(fingerprint_iri(&fp), iri_before);
+        assert_eq!(ledger.len(), arena_len_before);
+        // Annotating an absent finding is None, never a silent create.
+        let absent = DiagFingerprint::compute(
+            "test.ledger.absent",
+            FindingCategory::DataShapeViolation,
+            &SourceContext::default(),
+        );
+        assert!(ledger.annotate(&absent, rem).is_none());
+        assert_eq!(ledger.len(), arena_len_before);
+    }
+
+    #[test]
+    fn anchor_is_code_blind_and_trivial_when_locationless() {
+        // D3: the anchor fingerprint drops code+category, so two DIFFERENT-code
+        // findings at ONE source position share it (the cross-code join key the
+        // same-fingerprint merge cannot make); and a locationless context is a
+        // TRIVIAL anchor the cross-node-glut guard excludes.
+        use crate::diag::Focus;
+        use crate::model::Location;
+        let anchored = SourceContext {
+            location: Location {
+                path: Some("x.ttl".to_owned()),
+                ..Location::default()
+            },
+            focus: Some(Focus("https://ex/f".to_owned())),
+            ..SourceContext::default()
+        };
+        // Different code strings, one anchor.
+        let a =
+            DiagFingerprint::compute("code.one", FindingCategory::ContradictionWitness, &anchored);
+        let b = DiagFingerprint::compute(
+            "code.two",
+            FindingCategory::PermittedEpistemicConflict,
+            &anchored,
+        );
+        assert_ne!(
+            a, b,
+            "different-code fingerprints differ (they key on the code)"
+        );
+        assert_eq!(
+            DiagFingerprint::anchor(&anchored),
+            DiagFingerprint::anchor(&anchored),
+        );
+        // The anchor is code-blind: recomputed from a context differing ONLY in
+        // (irrelevant) code — anchor ignores code entirely — it is stable.
+        assert!(anchored.is_non_trivial(), "path+focus is a real position");
+        assert!(
+            anchor_iri(&DiagFingerprint::anchor(&anchored))
+                .starts_with("https://blackcatinformatics.ca/gmeow/diagnostics/anchor/")
+        );
+
+        // A locationless / focusless context is a TRIVIAL anchor.
+        let trivial = SourceContext::default();
+        assert!(!trivial.is_non_trivial());
     }
 
     #[test]

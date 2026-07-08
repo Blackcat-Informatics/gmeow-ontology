@@ -7,6 +7,14 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
+use crate::diag::{Advice, Remediation};
+
+/// Serde skip-helper: `true` for `false` so a defaulted `bool` flag stays out of
+/// the wire form (keeps existing JSON/SARIF goldens byte-unchanged).
+fn is_false(value: &bool) -> bool {
+    !*value
+}
+
 /// Normalized diagnostic severity.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -316,6 +324,18 @@ pub struct Rule {
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub help_uri: Option<String>,
+    /// The standing, DSL-authored `gmeow:ruleRemediation` fix guidance for this
+    /// rule — the "how to fix a violation" prose the doc/catalog graph carries per
+    /// code, joined onto the report's rule registry by the producer so the
+    /// renderer can surface it once per finding code. `None` when the rule authors
+    /// no remediation (never fabricated at render time).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub remediation: Option<String>,
+    /// The `gmeow:howToUse` guidance prose for the governing term of this rule —
+    /// the deep/verify-surface usage guidance the doc graph carries. `None` when
+    /// the governing term authors none.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub how_to_use: Option<String>,
     pub default_severity: Severity,
 }
 
@@ -326,8 +346,22 @@ impl Rule {
             title: None,
             description: None,
             help_uri: None,
+            remediation: None,
+            how_to_use: None,
             default_severity,
         }
+    }
+
+    /// Attach the DSL-authored `gmeow:ruleRemediation` fix guidance.
+    pub fn with_remediation(mut self, remediation: impl Into<String>) -> Self {
+        self.remediation = Some(remediation.into());
+        self
+    }
+
+    /// Attach the governing term's `gmeow:howToUse` guidance prose.
+    pub fn with_how_to_use(mut self, how_to_use: impl Into<String>) -> Self {
+        self.how_to_use = Some(how_to_use.into());
+        self
     }
 }
 
@@ -371,6 +405,56 @@ pub struct Finding {
     pub related_locations: Vec<Location>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub suggestions: Vec<String>,
+    /// Structured, standpoint-bearing advice — the faithful projection of the
+    /// witness node's [`Advice`] that keeps each suggestion's standpoint and
+    /// outward help URI (the flat [`suggestions`](Finding::suggestions) strings are
+    /// the lossy text-only twin kept for the existing renderers). Empty for
+    /// hand-built findings that carry no structured advice.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub advice: Vec<Advice>,
+    /// DSL-authored remediations projected from the witness node — the "how to fix"
+    /// payload rendered into SARIF `fixes` and the CLI/HTML remediation line. Empty
+    /// when the finding's rule authors no remediation (never fabricated).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub remediation: Vec<Remediation>,
+    /// The canonical `blake3` fingerprint IRI when this finding is a ledger
+    /// witness — the SAME IRI the antecedent edges of downstream findings point at,
+    /// so the projected diagnostic graph's subject/antecedent-object IRIs close.
+    /// `None` for hand-built findings that were never ledger witnesses (they fall
+    /// back to the content-hash subject IRI in the RDF projection).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub finding_iri: Option<String>,
+    /// The code-blind source-anchor IRI (`gmeow:findingAnchor`) — the cross-node
+    /// join key two different-code findings at one source position share. `None`
+    /// for hand-built findings.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub anchor_iri: Option<String>,
+    /// Whether [`anchor_iri`](Finding::anchor_iri) names a genuine source position
+    /// (a `gmeow:NonTrivialAnchor`) as opposed to the shared empty default anchor —
+    /// the guard the cross-node-glut join reads.
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub anchor_non_trivial: bool,
+    /// The finding IRIs this finding derives FROM (`gmeow:findingAntecedent`) — the
+    /// provenance-DAG edges, keyed on the antecedents' canonical fingerprint IRIs.
+    /// Empty for a root finding.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub antecedents: Vec<String>,
+    /// The reasoner-derived shared root antecedent (`gmeow:findingRootCause`) —
+    /// present only after the diagnostic meta-reasoning fold has run over the
+    /// projected graph and been read back. `None` on a freshly-projected finding.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub root_cause: Option<String>,
+    /// The reasoner-derived cluster node (`gmeow:findingCluster`) this finding
+    /// belongs to — the "N findings share root R" grouping. `None` until the fold
+    /// has run and been read back.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cluster: Option<String>,
+    /// The reasoner-derived cross-node glut edges (`gmeow:crossNodeGlutWith`) — the
+    /// other findings at one non-trivial anchor whose coherence polarity opposes
+    /// this one's, a conflict the same-fingerprint merge cannot see across codes.
+    /// Empty until the fold has run and been read back.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub cross_node_glut_with: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub tags: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -408,6 +492,15 @@ impl Finding {
             locations: Vec::new(),
             related_locations: Vec::new(),
             suggestions: Vec::new(),
+            advice: Vec::new(),
+            remediation: Vec::new(),
+            finding_iri: None,
+            anchor_iri: None,
+            anchor_non_trivial: false,
+            antecedents: Vec::new(),
+            root_cause: None,
+            cluster: None,
+            cross_node_glut_with: Vec::new(),
             tags: Vec::new(),
             detail: None,
             category: None,
@@ -462,6 +555,13 @@ impl Finding {
         self.suggestions.dedup();
         self.locations.sort_by_key(Location::display);
         self.related_locations.sort_by_key(Location::display);
+        // The provenance-DAG edges and cross-node glut edges are content-addressed
+        // IRIs; sort+dedup them so the projected graph is deterministic regardless
+        // of the ledger's antecedent-union order.
+        self.antecedents.sort();
+        self.antecedents.dedup();
+        self.cross_node_glut_with.sort();
+        self.cross_node_glut_with.dedup();
     }
 }
 

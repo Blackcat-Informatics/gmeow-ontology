@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the cross-node-glut rule: two findings at ONE non-trivial
+# anchor whose categories carry the SAME polarity (both logic:InfoSupported). A
+# glut is an OPPOSING Belnap clash (Supported vs Opposed), never an agreement, so
+# the rule must derive NO gmeow:crossNodeGlutWith. Consumed ONLY by
+# crates/conformance/tests/diagnostics_meta_findings.rs; lives under tests/ so the
+# global make validate gate never loads it as data.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/diagnostics/tests/> .
+
+ex:spAnchor a gmeow:NonTrivialAnchor .
+
+ex:spA
+    a gmeow:Finding ;
+    gmeow:findingAnchor ex:spAnchor ;
+    gmeow:findingCategory logic:FindingContradictionWitness .
+
+ex:spB
+    a gmeow:Finding ;
+    gmeow:findingAnchor ex:spAnchor ;
+    gmeow:findingCategory logic:FindingDataShapeViolation .

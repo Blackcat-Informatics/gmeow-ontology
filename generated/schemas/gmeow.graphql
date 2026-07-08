@@ -4523,6 +4523,12 @@ type CriterionPole {
   iri: String
 }
 
+type CrossNodeGlutWitness {
+  id: String
+  iri: String
+  glutWitnessOf: [Finding!]
+}
+
 type CryptoWallet {
   id: String
   iri: String
@@ -4660,6 +4666,11 @@ type DeterminationForce {
 }
 
 type DeterminationStatus {
+  id: String
+  iri: String
+}
+
+type DiagnosticMetaRule {
   id: String
   iri: String
 }
@@ -5195,16 +5206,30 @@ type FinancialTransaction {
 type Finding {
   id: String
   iri: String
+  crossNodeGlutWith: [Finding!]
+  findingAnchor: [String!]
+  findingAntecedent: [Finding!]
   findingCategory: [String!]
+  findingCluster: [FindingCluster!]
   findingCode: [String!]
   findingGateVerdict: [GateVerdict!]
+  findingHasAntecedent: [Finding!]
   findingHelpUri: [String!]
   findingLocation: [String!]
   findingMessage: [String!]
+  findingRemediation: [String!]
+  findingRootCause: [Finding!]
   findingSeverity: [DiagnosticSeverity!]
   findingStandpoint: [DiagnosticStandpoint!]
   findingSuggestion: [String!]
   findingTool: [String!]
+  findingTraces: [Finding!]
+}
+
+type FindingCluster {
+  id: String
+  iri: String
+  clusterRoot: [Finding!]
 }
 
 type ForgePlatform {
@@ -6596,6 +6621,11 @@ type NetworkAddressType {
   iri: String
 }
 
+type NonTrivialAnchor {
+  id: String
+  iri: String
+}
+
 type Norm {
   id: String
   iri: String
@@ -7549,6 +7579,11 @@ type RomanticOrientationValue {
   iri: String
 }
 
+type RootFinding {
+  id: String
+  iri: String
+}
+
 type Route {
   id: String
   iri: String
@@ -8446,6 +8481,7 @@ type ValidationRule {
   ruleCategory: [String!]
   ruleCode: [String!]
   ruleHelpUri: [String!]
+  ruleRemediation: [String!]
 }
 
 type VectorIndex {
