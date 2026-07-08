@@ -61,6 +61,58 @@ fn scoring_is_deterministic() {
 }
 
 #[test]
+fn emitted_codes_are_registered_and_carry_help_uris() {
+    // Every finding a slice-quality report emits must carry a REGISTERED diagnostic
+    // code (never a bare string) and a help URI pointing into the generated
+    // constraint catalog — the AC1/H1 requirement. Scoring a real slice through
+    // `to_report` seeds the codes and attaches the rule descriptors.
+    let root = repo_root();
+    let dir = root.join("slices/core/slice-quality-rubric");
+    let report = score_slice(&root, &dir).expect("the rubric slice scores");
+    let diag = report.to_report();
+    assert!(!diag.findings.is_empty(), "the report emits findings");
+
+    // The full code enumeration is registered in the process-wide registry.
+    for code in gmeow_slice_quality::report::FINDING_CODES {
+        assert!(
+            gmeow_errors::intern_code(code).is_ok(),
+            "slice-quality code `{code}` must be registered after to_report()"
+        );
+    }
+
+    // Every distinct emitted finding code resolves to a rule carrying a help URI
+    // anchored in the generated constraint catalog.
+    let base = "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#";
+    let mut codes: Vec<&str> = diag.findings.iter().map(|f| f.code.as_str()).collect();
+    codes.sort_unstable();
+    codes.dedup();
+    for code in codes {
+        assert!(
+            gmeow_errors::intern_code(code).is_ok(),
+            "emitted finding code `{code}` is registered"
+        );
+        let rule = diag
+            .rules
+            .iter()
+            .find(|r| r.id == code)
+            .unwrap_or_else(|| panic!("finding code `{code}` has a rule descriptor"));
+        let uri = rule
+            .help_uri
+            .as_deref()
+            .unwrap_or_else(|| panic!("rule `{code}` carries a help URI"));
+        assert!(
+            uri.starts_with(base),
+            "help URI `{uri}` for `{code}` points into the generated catalog"
+        );
+        let slug = gmeow_validate::rule_catalog::help_uri_for(code);
+        assert_eq!(
+            uri, slug,
+            "help URI uses the canonical `help_uri_for` anchor"
+        );
+    }
+}
+
+#[test]
 fn scores_the_logic_slice_green_vs_advisory() {
     // The SLICE_QA baseline: the logic slice scores without error and produces a
     // per-axis grade vector; findings are advisory (the report never gates).

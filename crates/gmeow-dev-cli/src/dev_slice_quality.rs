@@ -8,11 +8,15 @@
 //! The command itself never gates (it is advisory); the `make check` tier ratchet
 //! is a separate gate. `--all` sweeps every slice.
 
+use std::io::IsTerminal;
 use std::path::Path;
 
+use gmeow_cli_core::{ConsoleMode, DiagnosticsConfig};
+use gmeow_errors::Report;
 use gmeow_slice_quality::report::{SliceReport, score_slice, score_slice_with_rubric};
 
 use crate::dev_common::{fail, project_root};
+use crate::dev_feedback::{diagnostics_env, write_artifacts};
 
 /// The output rendering the caller asked for.
 #[derive(Clone, Copy)]
@@ -55,15 +59,45 @@ fn render(report: &SliceReport, format: Format) -> Result<String, String> {
 }
 
 /// Run the command. `path` is a slice directory; `all` sweeps every slice.
-pub fn slice_quality(path: Option<&Path>, all: bool, format: Option<&str>) -> i32 {
+///
+/// `format` controls the stdout rendering (the advisory human/JSON/SARIF/RDF
+/// surface); the `--diagnostics-*` family controls first-class artifact emission
+/// on the shared diagnostics rail, exactly as `feedback`/`external-tool` do. The
+/// two compose: the stdout render is unchanged, and when `--diagnostics-artifacts`
+/// names any of `{json,sarif,html}` the same-named projections of the advisory
+/// report are written under the resolved directory.
+#[allow(clippy::too_many_arguments)]
+pub fn slice_quality(
+    path: Option<&Path>,
+    all: bool,
+    format: Option<&str>,
+    console: Option<ConsoleMode>,
+    artifacts: Option<&str>,
+    directory: Option<&Path>,
+    stem: Option<&str>,
+    category: Option<&str>,
+) -> i32 {
     let format = match Format::parse(format) {
         Ok(f) => f,
         Err(e) => return fail(e),
     };
     let root = project_root();
+    let config = match DiagnosticsConfig::resolve(
+        console.map(ConsoleMode::as_str),
+        artifacts,
+        directory,
+        stem,
+        category,
+        &diagnostics_env(),
+        std::io::stderr().is_terminal(),
+        &root.join("dist"),
+    ) {
+        Ok(c) => c,
+        Err(e) => return fail(e.to_string()),
+    };
 
     if all {
-        return sweep(&root, format);
+        return sweep(&root, format, &config);
     }
 
     let Some(dir) = path else {
@@ -74,6 +108,12 @@ pub fn slice_quality(path: Option<&Path>, all: bool, format: Option<&str>) -> i3
             match render(&report, format) {
                 Ok(text) => print!("{text}"),
                 Err(e) => return fail(e),
+            }
+            let mut diag = report.to_report();
+            diag.metadata
+                .insert("category".into(), serde_json::json!(config.category));
+            if let Err(code) = write_artifacts(&diag, &config) {
+                return code;
             }
             0 // advisory — the command never gates
         }
@@ -92,13 +132,16 @@ pub fn slice_quality(path: Option<&Path>, all: bool, format: Option<&str>) -> i3
 /// `generated/quality/gmeow.quality-assessment.nt`). Both surfaces score the SAME slice
 /// set through [`gmeow_slice_quality::discover_slice_dirs`], so the printed roll-up and
 /// the shipped graph never diverge.
-fn sweep(root: &Path, format: Format) -> i32 {
+fn sweep(root: &Path, format: Format, config: &DiagnosticsConfig) -> i32 {
     let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
     let rubric = match gmeow_slice_quality::load_repo_rubric(root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality: {e}")),
     };
     let mut printed = 0usize;
+    // The aggregate diagnostics report: every scored slice's advisory findings +
+    // help-URI rules folded into one report, projected to the requested artifacts.
+    let mut aggregate = Report::new("slice-quality");
     for dir in &dirs {
         match score_slice_with_rubric(dir, rubric.clone()) {
             Ok(report) => {
@@ -116,6 +159,15 @@ fn sweep(root: &Path, format: Format) -> i32 {
                         Err(e) => return fail(e),
                     },
                 }
+                if !config.artifacts.is_empty() {
+                    let diag = report.to_report();
+                    for finding in diag.findings {
+                        aggregate.add_finding(finding);
+                    }
+                    for rule in diag.rules {
+                        aggregate.add_rule(rule);
+                    }
+                }
                 printed += 1;
             }
             // A slice that cannot be scored is reported, not silently skipped.
@@ -124,6 +176,12 @@ fn sweep(root: &Path, format: Format) -> i32 {
     }
     if printed == 0 {
         return fail("slice-quality: no slices scored");
+    }
+    aggregate
+        .metadata
+        .insert("category".into(), serde_json::json!(config.category));
+    if let Err(code) = write_artifacts(&aggregate, config) {
+        return code;
     }
     0
 }
