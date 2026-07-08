@@ -25,6 +25,7 @@ use purrdf::slice::rdf_query::{Dataset as SliceDataset, GraphSel, Object, Subjec
 use purrdf::shapes::engine::{parse_shapes, validate_dataset};
 use purrdf::shapes::report::{Severity, ValidationReport};
 use purrdf::shapes::shapes::Shapes;
+use purrdf::shapes::term::Term;
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{
     DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, SerializeGraph, SparqlEngine,
@@ -1184,15 +1185,11 @@ impl Case {
                 .iter()
                 .filter(|r| r.severity == Severity::Violation)
                 .any(|r| {
-                    let path_ok = r
-                        .result_path
-                        .as_ref()
-                        .map(ToString::to_string)
-                        .is_some_and(|p| p.contains(path));
-                    let component_ok = r
-                        .source_constraint_component
-                        .to_string()
-                        .contains(component);
+                    let path_ok = matches!(
+                        r.result_path.as_ref(),
+                        Some(Term::NamedNode(p)) if p.as_str().contains(path)
+                    );
+                    let component_ok = r.source_constraint_component.as_str().contains(component);
                     path_ok && component_ok
                 });
             assert!(
