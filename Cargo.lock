@@ -2118,6 +2118,7 @@ dependencies = [
  "gmeow-errors",
  "gmeow-license",
  "gmeow-logic",
+ "gmeow-logic-compile",
  "gmeow-math",
  "insta",
  "jsonschema",
