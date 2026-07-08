@@ -31,6 +31,11 @@ pub fn resolve(producer: &str) -> Option<Primitive> {
         "information_axis" => Some(information_axis),
         "prose_axis" => Some(prose_axis),
         "provenance_honesty" => Some(provenance_honesty),
+        "linkage_axis" => Some(linkage_axis),
+        "projection_axis" => Some(projection_axis),
+        "testing_axis" => Some(testing_axis),
+        "documentation_axis" => Some(documentation_axis),
+        "translation_axis" => Some(translation_axis),
         _ => None,
     }
 }
@@ -42,6 +47,11 @@ pub const IMPLEMENTED: &[&str] = &[
     "information_axis",
     "prose_axis",
     "provenance_honesty",
+    "linkage_axis",
+    "projection_axis",
+    "testing_axis",
+    "documentation_axis",
+    "translation_axis",
 ];
 
 // ── Axis 1: Maximal grounding ─────────────────────────────────────────────
@@ -325,6 +335,277 @@ fn provenance_honesty(ctx: &ScoreContext) -> AxisScore {
     } else {
         clean as f64 / total as f64
     };
+    AxisScore { score, findings }
+}
+
+// ── Axis 4: Maximal linkage ────────────────────────────────────────────────
+
+/// Namespaces that never require an external alignment (GMEOW-native + standard
+/// value vocabularies): a term here is covered by authorship, not by a mapping.
+const NATIVE_NS: &[&str] = &[
+    crate::model::GMEOW,
+    LOGIC_NS,
+    "https://blackcatinformatics.ca/lang/",
+    "https://blackcatinformatics.ca/math/",
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "http://www.w3.org/2000/01/rdf-schema#",
+    "http://www.w3.org/2002/07/owl#",
+    "http://www.w3.org/2001/XMLSchema#",
+    "http://www.w3.org/2004/02/skos/core#",
+    "http://purl.org/dc/terms/",
+];
+
+fn is_native(iri: &str) -> bool {
+    NATIVE_NS.iter().any(|ns| iri.starts_with(ns))
+}
+
+/// Read the slice's mapping file text, if present.
+fn mappings_text(ctx: &ScoreContext) -> Option<String> {
+    std::fs::read_to_string(ctx.slice_dir.join("mappings/equivalences.ttl")).ok()
+}
+
+/// Linkage: of the external IRIs the slice uses, the fraction that appear in its
+/// mapping file. A slice using no external terms is vacuously fully linked.
+fn linkage_axis(ctx: &ScoreContext) -> AxisScore {
+    let ds = ctx.graph;
+    // External IRIs used as predicates or objects anywhere in the slice graph.
+    let mut external: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
+        for t in [ds.resolve(q.p), ds.resolve(q.o)] {
+            if let TermRef::Iri(iri) = t
+                && !is_native(iri)
+            {
+                external.insert(iri.to_owned());
+            }
+        }
+    }
+    if external.is_empty() {
+        return AxisScore::clean(1.0);
+    }
+    let map_text = mappings_text(ctx).unwrap_or_default();
+    let mut covered = 0usize;
+    let mut findings = Vec::new();
+    for iri in &external {
+        if map_text.contains(iri.as_str()) {
+            covered += 1;
+        } else {
+            findings.push(advisory(
+                "slice-quality.linkage.unmapped-external",
+                format!("external term {iri} has no alignment in mappings/equivalences.ttl (Principle 17)."),
+            ));
+        }
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = covered as f64 / external.len() as f64;
+    AxisScore { score, findings }
+}
+
+// ── Axis 5: Maximal projection ─────────────────────────────────────────────
+
+/// Projection: does the slice provide its projectable source surfaces? SHACL
+/// shapes when it has structural constraints, mappings when it links out.
+fn projection_axis(ctx: &ScoreContext) -> AxisScore {
+    let ds = ctx.graph;
+    let mut expected = 0usize;
+    let mut present = 0usize;
+    let mut findings = Vec::new();
+
+    // A slice with owl:Restriction / disjointness should source SHACL from logic:.
+    let has_constraints = id(ds, "http://www.w3.org/2002/07/owl#Restriction")
+        .is_some_and(|c| id(ds, graph::RDF_TYPE).is_some_and(|t| graph::has_any_object(ds, t, c)))
+        || id(ds, "http://www.w3.org/2002/07/owl#disjointWith")
+            .is_some_and(|p| graph::predicate_used(ds, p));
+    if has_constraints {
+        expected += 1;
+        if ctx.slice_dir.join("shapes.ttl").is_file() {
+            present += 1;
+        } else {
+            findings.push(advisory(
+                "slice-quality.projection.no-shapes",
+                "the slice declares structural constraints but ships no shapes.ttl projection source (#1201 projection purity).".to_owned(),
+            ));
+        }
+    }
+    // A slice that links out should carry a mapping file (SSSOM/EDOAL/FnO source).
+    let links_out = ds
+        .quads_for_pattern(None, None, None, GraphMatch::Any)
+        .any(|q| matches!(ds.resolve(q.o), TermRef::Iri(iri) if !is_native(iri)));
+    if links_out {
+        expected += 1;
+        if ctx.slice_dir.join("mappings/equivalences.ttl").is_file() {
+            present += 1;
+        } else {
+            findings.push(advisory(
+                "slice-quality.projection.no-mappings",
+                "the slice links to external terms but ships no mappings/equivalences.ttl projection source (Principles 4/7/17).".to_owned(),
+            ));
+        }
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = if expected == 0 {
+        1.0
+    } else {
+        present as f64 / expected as f64
+    };
+    AxisScore { score, findings }
+}
+
+// ── Axis 6: Optimal testing ────────────────────────────────────────────────
+
+/// Concatenated text of every `.ttl`/`.rq` under `tests/` and `queries/`.
+fn test_corpus(ctx: &ScoreContext) -> String {
+    let mut buf = String::new();
+    for sub in ["tests", "queries"] {
+        collect_text(&ctx.slice_dir.join(sub), &mut buf);
+    }
+    buf
+}
+
+fn collect_text(dir: &std::path::Path, buf: &mut String) {
+    let Ok(rd) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for e in rd.flatten() {
+        let p = e.path();
+        if p.is_dir() {
+            collect_text(&p, buf);
+        } else if p.extension().is_some_and(|x| x == "ttl" || x == "rq")
+            && let Ok(t) = std::fs::read_to_string(&p)
+        {
+            buf.push_str(&t);
+            buf.push('\n');
+        }
+    }
+}
+
+/// Testing: fraction of the slice's terms named by at least one test cell / query.
+fn testing_axis(ctx: &ScoreContext) -> AxisScore {
+    if ctx.terms.is_empty() {
+        return AxisScore::clean(0.0);
+    }
+    let corpus = test_corpus(ctx);
+    if corpus.is_empty() {
+        return AxisScore {
+            score: 0.0,
+            findings: vec![advisory(
+                "slice-quality.testing.no-cells",
+                "the slice ships no test cells or competency queries (SLICE_QA).".to_owned(),
+            )],
+        };
+    }
+    let mut reached = 0usize;
+    let mut findings = Vec::new();
+    for iri in &ctx.terms {
+        let local = iri.rsplit(['/', '#']).next().unwrap_or(iri);
+        if corpus.contains(local) {
+            reached += 1;
+        } else {
+            findings.push(advisory(
+                "slice-quality.testing.untested-term",
+                format!(
+                    "{iri} is exercised by no competency/structural/example cell (SLICE_GUIDE §9)."
+                ),
+            ));
+        }
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = reached as f64 / ctx.terms.len() as f64;
+    AxisScore { score, findings }
+}
+
+// ── Axis 7: Documentation ──────────────────────────────────────────────────
+
+/// A narrative thesis is a docs.md with substantive prose beyond its headings.
+fn documentation_axis(ctx: &ScoreContext) -> AxisScore {
+    let mut checks = 0usize;
+    let mut passed = 0usize;
+    let mut findings = Vec::new();
+
+    checks += 1;
+    match std::fs::read_to_string(ctx.slice_dir.join("docs.md")) {
+        Ok(md) => {
+            let prose: usize = md
+                .lines()
+                .filter(|l| !l.trim_start().starts_with('#') && !l.trim_start().starts_with("<!--"))
+                .map(str::len)
+                .sum();
+            if prose > 200 {
+                passed += 1;
+            } else {
+                findings.push(advisory(
+                    "slice-quality.documentation.thin-thesis",
+                    "docs.md carries no narrative thesis (SLICE_GUIDE documentation doctrine)."
+                        .to_owned(),
+                ));
+            }
+        }
+        Err(_) => findings.push(advisory(
+            "slice-quality.documentation.no-docs",
+            "the slice ships no docs.md.".to_owned(),
+        )),
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = if checks == 0 {
+        0.0
+    } else {
+        passed as f64 / checks as f64
+    };
+    AxisScore { score, findings }
+}
+
+// ── Axis 9: Translation coverage ───────────────────────────────────────────
+
+/// The project languages beyond the authored English.
+const TRANSLATION_LANGS: &[&str] = &["fr", "zh"];
+
+/// Translation: per-language coverage of the slice's label+definition literals,
+/// audited via `.po` catalogs. Full coverage requires English (authored) plus
+/// French and Mandarin.
+fn translation_axis(ctx: &ScoreContext) -> AxisScore {
+    let ds = ctx.graph;
+    let label_p = id(ds, "http://www.w3.org/2000/01/rdf-schema#label");
+    let def_p = id(ds, "http://www.w3.org/2004/02/skos/core#definition");
+    let mut expected = 0usize;
+    for iri in &ctx.terms {
+        let Some(sid) = id(ds, iri) else { continue };
+        if label_p.is_some_and(|p| graph::has_any(ds, sid, p)) {
+            expected += 1;
+        }
+        if def_p.is_some_and(|p| graph::has_any(ds, sid, p)) {
+            expected += 1;
+        }
+    }
+    if expected == 0 {
+        return AxisScore::clean(1.0);
+    }
+
+    // English is authored, so it is always fully covered.
+    let mut lang_cov = vec![1.0_f64];
+    let mut findings = Vec::new();
+    for lang in TRANSLATION_LANGS {
+        let po = ctx.slice_dir.join(format!("i18n/{lang}.po"));
+        let entries = std::fs::read_to_string(&po)
+            .map(|t| {
+                t.lines()
+                    .filter(|l| {
+                        l.starts_with("msgctxt")
+                            && (l.contains("|rdfs:label") || l.contains("|skos:definition"))
+                    })
+                    .count()
+            })
+            .unwrap_or(0);
+        #[allow(clippy::cast_precision_loss)]
+        let cov = (entries as f64 / expected as f64).min(1.0);
+        if cov < 1.0 {
+            findings.push(advisory(
+                "slice-quality.translation.incomplete",
+                format!("{lang} covers {entries}/{expected} label+definition literals; the top tier requires 100% en+fr+cmn."),
+            ));
+        }
+        lang_cov.push(cov);
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = lang_cov.iter().sum::<f64>() / lang_cov.len() as f64;
     AxisScore { score, findings }
 }
 

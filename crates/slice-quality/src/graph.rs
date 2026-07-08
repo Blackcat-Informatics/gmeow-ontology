@@ -85,6 +85,23 @@ pub fn has_any(ds: &RdfDataset, subject: TermId, pred: TermId) -> bool {
         .is_some()
 }
 
+/// True if `pred` is used by any triple in the dataset.
+#[must_use]
+pub fn predicate_used(ds: &RdfDataset, pred: TermId) -> bool {
+    ds.quads_for_pattern(None, Some(pred), None, GraphMatch::Any)
+        .next()
+        .is_some()
+}
+
+/// True if any triple has `pred` as predicate and `object` as object — including
+/// blank-node subjects (unlike [`instances_of`], which yields only IRI subjects).
+#[must_use]
+pub fn has_any_object(ds: &RdfDataset, pred: TermId, object: TermId) -> bool {
+    ds.quads_for_pattern(None, Some(pred), Some(object), GraphMatch::Any)
+        .next()
+        .is_some()
+}
+
 /// Every subject IRI typed `class_iri`, sorted and deduped.
 #[must_use]
 pub fn instances_of(ds: &RdfDataset, class_iri: &str) -> Vec<String> {
