@@ -1,0 +1,17 @@
+ghprsq PR head backlink metadata
+
+parent_hashes: 54f10e373fdb79d16a4b17fabf839ba7cea17f86
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1455
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1455
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: abed2db8e71362b4ada2a7fa8fcbcf271cd689df
+GhpRsq-Head-Ref: paudley/1366-native-sensory-sssom
+GhpRsq-Head-OID: 54f10e373fdb79d16a4b17fabf839ba7cea17f86
+GhpRsq-Result-Tree: b7250cea3b10cbb6a58a3299ca1209dc3b1a18b9
+GhpRsq-Result-Commit: 31b61654fedc44b178a471399b3552dbc525c38e
+GhpRsq-Parent-Hashes: 54f10e373fdb79d16a4b17fabf839ba7cea17f86
+GhpRsq-Squash-Notes-SHA256: 8f64a106f8949de95d5f2111f8376e26d2acfed7e7f7eb5d28ad0f444dd17f23
