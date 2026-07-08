@@ -52,7 +52,7 @@ pub fn render_catalog(root: &Path) -> Result<String, gmeow_errors::Diag> {
     out.push_str("     import closure (gUFO spine + GMEOW slices) resolves offline for\n");
     out.push_str("     ROBOT, Protégé, and the reasoning pipeline. Paths are relative\n");
     out.push_str("     to this file (the repository root). Derived from the slice\n");
-    out.push_str("     manifests by src/gmeow_tools/catalog_gen.py. -->\n");
+    out.push_str("     manifests by the gmeow catalog generator. -->\n");
     out.push_str(
         "<catalog prefer=\"public\" xmlns=\"urn:oasis:names:tc:entity:xmlns:xml:catalog\">\n",
     );

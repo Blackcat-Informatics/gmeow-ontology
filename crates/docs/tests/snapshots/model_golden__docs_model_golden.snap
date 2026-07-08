@@ -154,7 +154,7 @@ expression: summary
         "role": "TestDsl",
         "logical_path": "tests/structural.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "5359385b4171821408d1c13f9fc69d9df956634a5288b69f3436e35af1fc7b1f",
+        "raw_digest": "6b4491bb3bb19bd71b398d870bc523defccf0f988e8f61b93dcbc97a6c14d83b",
         "semantic_digest": "35af3d2678d7c140f60873a03fc610f7d4e875f9ea8239f4a85c8710ef69fcf1"
       }
     ]

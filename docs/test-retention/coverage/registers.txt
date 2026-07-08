@@ -1,6 +1,0 @@
-Source: tests/test_registers.py
-run_shacl() call-sites (real): 1 (in the divergence hybrid test); the 2 fixture-only cases were migrated in a prior batch
-def test_ functions: 2
-  test_no_primary_persona_machinery -> conformance_registers.rs::no_primary_persona_machinery (ontology subject sweep)
-  test_divergence_query_surfaces_legal_divergence -> conformance_registers.rs::divergence_query_surfaces_legal_divergence
-    (injects private-only norm, validates SHACL conforms, runs the competency divergence query via native SPARQL)

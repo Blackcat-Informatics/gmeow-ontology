@@ -18,7 +18,6 @@
 #   NOTE: because there are only two properties in the axes dict, the combinations
 #   are fully enumerable, so ALL four mustNot checks are migrated here.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/accessibility/tests/> .

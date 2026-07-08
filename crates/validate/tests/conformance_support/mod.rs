@@ -1921,21 +1921,6 @@ fn multiset_eq(a: &[Vec<Option<TermValue>>], b: &[Vec<Option<TermValue>>]) -> bo
     true
 }
 
-// ── fn -> twin reconciliation manifest ────────────────────────────────────────
-//
-// Accessed via the `conformance_support::migration_manifest::…` path (Task 7's
-// count gate reads `MANIFEST`); its own `#[test]`s run in every test binary.
-
-pub mod migration_manifest;
-
-// ── graph-API traversal migration: fn -> twin reconciliation manifest ─────────
-//
-// Sibling of `migration_manifest` for the rdflib `load_merged_graph` traversal
-// cluster. Its `#[test]`s run in every test binary; `migration_is_reconciled_and_complete`
-// is RED (Pending rows) until every fn is twinned.
-
-pub mod graph_migration_manifest;
-
 // ── Unit tests for the blank-node-aware `GraphStore` helpers ──────────────────
 //
 // This support module is compiled into every sibling integration binary, so plain
