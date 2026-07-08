@@ -1,82 +1,33 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Closed-world halves of the inference slice . Cardinality and
-# disjointness constraints that OWL EL cannot (or should not, to keep the DL
-# profile clean) express live here as SHACL: exactly-one conclusion, at-least-one
-# premise, premise != conclusion, competesWith irreflexivity, and the mode-scoped
-# well-formedness of abductive and analogical inferences. The four Peircean modes
-# stay one class (no taxonomy); their structural obligations are enforced by value,
-# not by subclass — the deception discipline (doctrine in SHACL, never in axioms).
+# Residual, not-yet-migratable closed-world shapes of the inference slice.
+#
+# Under equivalence-before-deletion (design/LOGIC-VALIDATION.md), the closed-world
+# well-formedness that the projector CAN reproduce has been lifted into the canon:
+# the cardinality / class / datatype obligations of InferenceCommitment, Correspondence,
+# Analogy, Argument, ArgumentEvaluation, PremiseUse and InferenceApplication are now
+# authored as OWL restrictions in module.ttl (projected to
+# generated/shapes/validation-shapes.ttl); the premise != conclusion cross-node check
+# and competesWith irreflexivity are authored as logic: FOL constraints in the logic
+# module (projected to generated/shapes/constraint-shapes.ttl). Their former hand-authored
+# blocks were deleted only once `gmeow-dev shape-equivalence` proved the projection is
+# enforcement-equivalent on the covered fragment and the residue is grounded in the canon.
+#
+# The three blocks BELOW remain hand-authored because their conditions have NO faithful
+# projection with the current machinery (they are carried in the loss ledger / canon):
+#   * AttackShape — the sh:or type-disjunction on gmeow:attackTarget and the two conditional
+#     cross-node checks (kind<->target agreement; no argument-component self-attack) have no
+#     OWL/RDFS or FOL-axiom-signature antecedent the derive can lower.
+#   * SupportShape — the sh:or type-disjunction on gmeow:supportSource (Argument | StandpointClaim)
+#     has no shape-projectable antecedent (the derive emits no sh:or).
+#   * AbductionCommitmentShape — a value-keyed sh:SPARQLTarget (mode = modeAbduction) that the
+#     dataset-derive never produces.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-
-# --------------------------------------------------------------------------- #
-# The reified argument: exactly one conclusion, at least one premise.
-# --------------------------------------------------------------------------- #
-
-gmeow:InferenceCommitmentShape
-    a sh:NodeShape ;
-    rdfs:label "Inference commitment shape"@x-gmeow-english ;
-    skos:definition "Well-formedness of a reified gmeow:InferenceCommitment: exactly one conclusion (a gmeow:StandpointClaim), at least one premise, at most one mode, and no premise that is also the conclusion (an argument cannot assume what it proves)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
-    sh:targetClass gmeow:InferenceCommitment ;
-    sh:property [
-        sh:path gmeow:conclusion ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:class gmeow:StandpointClaim ;
-        sh:severity sh:Violation ;
-        sh:message "An InferenceCommitment must have exactly one conclusion (gmeow:conclusion), and it must be a gmeow:StandpointClaim — two conclusions are two commitments." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:premise ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An InferenceCommitment must rest on at least one premise (gmeow:premise) — an inference from nothing is not an inference." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:inferenceModeOf ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An InferenceCommitment has at most one mode (gmeow:inferenceModeOf) — a step that is both inductive and abductive is two commitments." ;
-    ] ;
-    sh:sparql [
-        a sh:SPARQLConstraint ;
-        sh:severity sh:Violation ;
-        sh:message "A premise must not also be the conclusion (gmeow:premise = gmeow:conclusion) — an argument cannot assume what it proves." ;
-        sh:select """
-            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-            SELECT $this WHERE {
-                $this gmeow:premise ?p ; gmeow:conclusion ?p .
-            }
-        """ ;
-    ] .
-
-# --------------------------------------------------------------------------- #
-# competesWith is symmetric (OWL) but irreflexive (SHACL, keeping DL clean).
-# --------------------------------------------------------------------------- #
-
-gmeow:CompetesWithShape
-    a sh:NodeShape ;
-    rdfs:label "Competes-with irreflexivity shape"@x-gmeow-english ;
-    skos:definition "A gmeow:StandpointClaim never competes with itself: gmeow:competesWith is symmetric but irreflexive. Irreflexivity is enforced here, not as an OWL axiom, to keep the reasoned profile within OWL 2 DL (the deception discipline)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
-    sh:targetSubjectsOf gmeow:competesWith ;
-    sh:sparql [
-        a sh:SPARQLConstraint ;
-        sh:severity sh:Violation ;
-        sh:message "A claim must not gmeow:competesWith itself — competition between rival hypotheses is irreflexive." ;
-        sh:select """
-            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-            SELECT $this WHERE {
-                $this gmeow:competesWith $this .
-            }
-        """ ;
-    ] .
 
 # --------------------------------------------------------------------------- #
 # Abductive commitments (mode = modeAbduction): an explanandum + candidates.
@@ -111,95 +62,11 @@ gmeow:AbductionCommitmentShape
     ] .
 
 # --------------------------------------------------------------------------- #
-# Analogical mappings: a source, a target, and at least one correspondence.
+# The argumentation layer (Dung / ASPIC+): a typed Attack names exactly one target
+# and one kind and never attacks itself or an argument-component; Support accrues and
+# never supports itself. The sh:or target-typing and the conditional cross-node checks
+# have no faithful projection yet, so these two blocks remain hand-authored.
 # --------------------------------------------------------------------------- #
-
-gmeow:AnalogyShape
-    a sh:NodeShape ;
-    rdfs:label "Analogy shape"@x-gmeow-english ;
-    skos:definition "Well-formedness of a gmeow:Analogy: it must map a source domain (gmeow:analogicalSource) to a target domain (gmeow:analogicalTarget) through at least one element-pair (gmeow:hasCorrespondence). A mapping with no correspondences carries no transferable structure."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
-    sh:targetClass gmeow:Analogy ;
-    sh:property [
-        sh:path gmeow:analogicalSource ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An Analogy must map from a source domain (gmeow:analogicalSource)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:analogicalTarget ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An Analogy must map onto a target domain (gmeow:analogicalTarget)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:hasCorrespondence ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An Analogy must hold at least one gmeow:hasCorrespondence — a mapping with no correspondences transfers no structure." ;
-    ] .
-
-# --------------------------------------------------------------------------- #
-# A correspondence maps exactly one source element to one target element.
-# --------------------------------------------------------------------------- #
-
-gmeow:CorrespondenceShape
-    a sh:NodeShape ;
-    rdfs:label "Correspondence shape"@x-gmeow-english ;
-    skos:definition "A gmeow:Correspondence maps exactly one source element (gmeow:correspondingSource) to exactly one target element (gmeow:correspondingTarget) — the atom of structure-mapping."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
-    sh:targetClass gmeow:Correspondence ;
-    sh:property [
-        sh:path gmeow:correspondingSource ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Correspondence must map exactly one source element (gmeow:correspondingSource)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:correspondingTarget ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A Correspondence must map exactly one target element (gmeow:correspondingTarget)." ;
-    ] .
-
-# --------------------------------------------------------------------------- #
-# The argumentation layer (Dung / ASPIC+): an Argument concludes exactly once
-# and wraps at most one step; a typed Attack names exactly one target + one kind
-# and never attacks itself; Support accrues and never supports itself; an
-# ArgumentEvaluation carries exactly one semantics + one status (closed-world
-# twins of the functional object properties — kept in SHACL, not OWL).
-# --------------------------------------------------------------------------- #
-
-gmeow:ArgumentShape
-    a sh:NodeShape ;
-    rdfs:label "Argument shape"@x-gmeow-english ;
-    skos:definition "Well-formedness of a gmeow:Argument: exactly one conclusion (gmeow:argumentConclusion) and at most one wrapped Toulmin step (gmeow:argumentInferenceStep)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
-    sh:targetClass gmeow:Argument ;
-    sh:property [
-        sh:path gmeow:argumentConclusion ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An Argument must establish exactly one conclusion (gmeow:argumentConclusion)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:argumentInferenceStep ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An Argument wraps at most one Toulmin step (gmeow:argumentInferenceStep) — a multi-step chain is a chain of Arguments linked by gmeow:Support." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:hasPremiseUse ;
-        sh:class gmeow:PremiseUse ;
-        sh:severity sh:Violation ;
-        sh:message "If present, a premise use (gmeow:hasPremiseUse) must be a gmeow:PremiseUse." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:hasInferenceApplication ;
-        sh:class gmeow:InferenceApplication ;
-        sh:severity sh:Violation ;
-        sh:message "If present, an inference application (gmeow:hasInferenceApplication) must be a gmeow:InferenceApplication." ;
-    ] .
 
 gmeow:AttackShape
     a sh:NodeShape ;
@@ -316,63 +183,4 @@ gmeow:SupportShape
                 $this gmeow:supportSource ?x ; gmeow:supportTarget ?x .
             }
         """ ;
-    ] .
-
-gmeow:ArgumentEvaluationShape
-    a sh:NodeShape ;
-    rdfs:label "Argument evaluation shape"@x-gmeow-english ;
-    skos:definition "Well-formedness of a gmeow:ArgumentEvaluation: exactly one evaluated argument (gmeow:evaluatesArgument), exactly one named semantics (gmeow:underSemantics), and exactly one acceptance status (gmeow:acceptanceStatus). The status is solver-set; the shape only checks that the verdict bundle is complete."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
-    sh:targetClass gmeow:ArgumentEvaluation ;
-    sh:property [
-        sh:path gmeow:evaluatesArgument ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:class gmeow:Argument ;
-        sh:severity sh:Violation ;
-        sh:message "An ArgumentEvaluation must assess exactly one gmeow:Argument (gmeow:evaluatesArgument)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:underSemantics ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An ArgumentEvaluation must name exactly one acceptability semantics (gmeow:underSemantics, a logic:ArgumentationSemantics)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:acceptanceStatus ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:class gmeow:AcceptanceStatus ;
-        sh:severity sh:Violation ;
-        sh:message "An ArgumentEvaluation must carry exactly one acceptance status (gmeow:acceptanceStatus) — gmeow:acceptanceIn / acceptanceOut / acceptanceUndecided." ;
-    ] .
-
-gmeow:PremiseUseShape
-    a sh:NodeShape ;
-    rdfs:label "Premise use shape"@x-gmeow-english ;
-    skos:definition "A gmeow:PremiseUse bases on exactly one premise (gmeow:premiseUsed) — the closed-world twin of the functional property."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
-    sh:targetClass gmeow:PremiseUse ;
-    sh:property [
-        sh:path gmeow:premiseUsed ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A PremiseUse must base on exactly one premise (gmeow:premiseUsed)." ;
-    ] .
-
-gmeow:InferenceApplicationShape
-    a sh:NodeShape ;
-    rdfs:label "Inference application shape"@x-gmeow-english ;
-    skos:definition "A gmeow:InferenceApplication applies exactly one rule (gmeow:appliedRule) — the closed-world twin of the functional property."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
-    sh:targetClass gmeow:InferenceApplication ;
-    sh:property [
-        sh:path gmeow:appliedRule ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An InferenceApplication must apply exactly one rule (gmeow:appliedRule)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:appliedSubstitution ;
-        sh:datatype xsd:string ;
-        sh:severity sh:Violation ;
-        sh:message "If present, gmeow:appliedSubstitution must be an xsd:string." ;
     ] .

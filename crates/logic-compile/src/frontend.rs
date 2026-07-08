@@ -1185,6 +1185,79 @@ fn read_list_member_subjects(store: &RdfDataset, head: &Node) -> Vec<Subject> {
 /// Hard-fails (`Err`) rather than silently dropping a malformed REQUIRED constraint: a
 /// cardinality with `min > max` (via [`PropertyConstraintIr::new`]), a qualified cardinality
 /// with no `owl:onClass`, or an `owl:hasValue` whose fixed value is an anonymous node.
+/// Conjunctively merge the property shapes that share the same `(path, inverse)` on one shape
+/// target. FAMILY 1 emits one [`PropertyConstraintIr`] per restriction axiom, so a class that
+/// authors a cardinality restriction AND an `owl:allValuesFrom` class restriction on ONE property
+/// yields two same-path property shapes. SHACL reads several property shapes on one path
+/// CONJUNCTIVELY — identical in enforcement to one `sh:property` block carrying every conjunct —
+/// so a hand-authored legacy shape states them as a single merged block. Emitting them unmerged
+/// keys distinctly from that block ([`PropertyConstraintIr::enforcement_key`] is per-path), which
+/// would defeat the equivalence-before-deletion oracle for a shape whose covered fragment is
+/// genuinely equivalent. Merging is sound: the lower bound is the tightest present (max of mins),
+/// the upper bound the tightest present (min of maxes), the components the de-duplicated union, and
+/// the reifier obligation the strengthened one (present shape / required OR). A same-path but
+/// opposite-`inverse` pair constrains different statements (forward vs. inverse) and is never
+/// merged. Deterministic: groups keep first-seen path order, and [`PropertyConstraintIr::new`]
+/// sorts the merged components into canonical order. A merged `min > max` is a genuine
+/// contradiction and hard-fails through the constructor, never a silent drop.
+fn merge_same_path_properties(
+    props: Vec<PropertyConstraintIr>,
+) -> Result<Vec<PropertyConstraintIr>, String> {
+    let mut order: Vec<(String, bool)> = Vec::new();
+    let mut groups: BTreeMap<(String, bool), Vec<PropertyConstraintIr>> = BTreeMap::new();
+    for p in props {
+        let key = (p.path.clone(), p.inverse);
+        if !groups.contains_key(&key) {
+            order.push(key.clone());
+        }
+        groups.entry(key).or_default().push(p);
+    }
+    let mut out = Vec::with_capacity(order.len());
+    for key in order {
+        let mut group = groups
+            .remove(&key)
+            .expect("group was inserted for every ordered key");
+        if group.len() == 1 {
+            out.push(group.pop().expect("a one-element group has its element"));
+            continue;
+        }
+        let (path, inverse) = key;
+        let mut min_count: Option<u32> = None;
+        let mut max_count: Option<u32> = None;
+        let mut components: Vec<ConstraintComponent> = Vec::new();
+        let mut reifier_shape: Option<String> = None;
+        let mut reification_required = false;
+        for p in group {
+            if let Some(lo) = p.min_count {
+                min_count = Some(min_count.map_or(lo, |cur| cur.max(lo)));
+            }
+            if let Some(hi) = p.max_count {
+                max_count = Some(max_count.map_or(hi, |cur| cur.min(hi)));
+            }
+            for c in p.components {
+                if !components.contains(&c) {
+                    components.push(c);
+                }
+            }
+            if p.reifier_shape.is_some() {
+                reifier_shape = p.reifier_shape;
+            }
+            reification_required |= p.reification_required;
+        }
+        let provenance = (min_count.is_some() || max_count.is_some())
+            .then_some(ConstraintProvenance::OwlRestriction);
+        let mut pc = PropertyConstraintIr::new(path, min_count, max_count, provenance, components)?;
+        if inverse {
+            pc = pc.inverted();
+        }
+        if reifier_shape.is_some() || reification_required {
+            pc = pc.with_reifier(reifier_shape, reification_required)?;
+        }
+        out.push(pc);
+    }
+    Ok(out)
+}
+
 pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShapeIr>, String> {
     // The per-property/per-class closed-world-reading opt-out (R3). Default is derive-all; a
     // property/class named by an `OpenWorldClosure` closure entry is suppressed below.
@@ -1823,7 +1896,7 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
     let mut shapes = Vec::new();
     for (iri, (target, node_components, properties)) in acc {
         let node_components = dedup_eq(node_components);
-        let properties = dedup_eq(properties);
+        let properties = merge_same_path_properties(dedup_eq(properties))?;
         if node_components.is_empty() && properties.is_empty() {
             continue;
         }
