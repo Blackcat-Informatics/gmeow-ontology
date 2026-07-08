@@ -33,6 +33,12 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # feature pulls the native text codecs; `gmeow-rdf-core` carries the RdfDiagnostic
 # location type the analyzer reports positions from.
 purrdf = "0.4"
+# The substrate SHACL validator: the `.ttl` analyzer routes a parsed data graph
+# through `data_validate::shacl_report_via_ledger` (the repo-free Tier-1 consumer
+# path) so publishDiagnostics READS THE SUBSTRATE — a shape violation surfaces with
+# the SHACL result-path / offending-value secondary labels the ledger projection
+# carries. Default (non-`python`) features only: the LSP needs the PyO3-free core.
+gmeow-validate = { path = "../validate" }
 
 [dev-dependencies]
 insta = { version = "1.48", features = ["json"] }

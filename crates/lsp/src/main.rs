@@ -374,9 +374,72 @@ fn uri_to_virtual_path(uri_str: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{params_from_report, uri_to_virtual_path};
+    use super::{build_publish_params, params_from_report, uri_to_virtual_path};
     use gmeow_errors::model::{Finding, Location, RelatedLabel, Report, Severity};
     use lsp_types::Uri;
+
+    /// The END-TO-END production publish path — `didOpen` → `build_publish_params` →
+    /// `publishDiagnostics` — over a REAL `.ttl` document that VIOLATES a bundled SHACL
+    /// shape. `build_publish_params` is the exact value the server serializes into the
+    /// notification: it classifies the `.ttl` URI, runs `analyze` (which now READS THE
+    /// SUBSTRATE — routing the parsed graph through the bundled shapes and a
+    /// `DiagLedger`), and projects to `PublishDiagnosticsParams`.
+    ///
+    /// The fixture is a `gmeow:DoxasticState` with no `gmeow:epistemicAgent`. The
+    /// bundled `gmeow:DoxasticStateShape` pins `sh:path gmeow:epistemicAgent ;
+    /// sh:minCount 1`, so the substrate emits `shacl.MinCountConstraintComponent` with
+    /// a result-path secondary span — projected by the ledger into a text-bearing
+    /// `related_label` whose message is `"path"`. The assertion is that a REAL secondary
+    /// label produced by the substrate (not an injected one) rides in the published
+    /// diagnostic's `related_information`.
+    #[test]
+    fn publish_path_over_real_shape_violation_carries_shacl_secondary_label() {
+        let doc_uri: Uri = "file:///tmp/agentless-belief.ttl"
+            .parse()
+            .expect("valid uri");
+        // A DoxasticState omitting the required epistemicAgent — a genuine violation of
+        // the bundled gmeow:DoxasticStateShape (sh:minCount 1 on gmeow:epistemicAgent).
+        let ttl = concat!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
+            "@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/lsp/> .\n",
+            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n",
+            "ex:agentlessBelief a gmeow:DoxasticState ;\n",
+            "    rdfs:label \"an agent-less doxastic state\"@x-gmeow-english .\n",
+        );
+
+        let params = build_publish_params(&doc_uri, ttl);
+
+        assert_eq!(params.uri.as_str(), doc_uri.as_str());
+        assert!(
+            !params.diagnostics.is_empty(),
+            "the substrate must surface at least one SHACL violation for an \
+             agent-less DoxasticState"
+        );
+
+        // A MinCount violation must be present with a text-bearing "path" secondary
+        // label — the REAL SHACL result-path span the substrate produced.
+        let mincount = params
+            .diagnostics
+            .iter()
+            .find(|d| {
+                matches!(
+                    &d.code,
+                    Some(lsp_types::NumberOrString::String(code))
+                        if code == "shacl.MinCountConstraintComponent"
+                )
+            })
+            .expect("a shacl.MinCountConstraintComponent diagnostic must be published");
+
+        let infos = mincount
+            .related_information
+            .as_ref()
+            .expect("the MinCount diagnostic must carry SHACL secondary labels");
+        assert!(
+            infos.iter().any(|i| i.message == "path"),
+            "the published related_information must carry the substrate's SHACL \
+             result-path secondary label (\"path\"): {infos:?}"
+        );
+    }
 
     /// Drive the SERVER publish path — the same `params_from_report` seam
     /// `publish_diagnostics` sends over the connection after `didOpen` — with a

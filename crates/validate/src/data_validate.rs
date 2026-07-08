@@ -134,6 +134,58 @@ pub fn run_tier1(
     Ok(report)
 }
 
+/// Validate `data_bytes` (an RDF graph in `data_format`) against the bundle's
+/// data-graph SHACL shapes, routing every [`ValidationResult`](purrdf::shapes::report::ValidationResult)
+/// THROUGH a [`DiagLedger`](gmeow_errors::DiagLedger) so the projected [`Report`]'s
+/// findings carry `related_labels` — the SHACL result-path / offending-value secondary
+/// spans a multi-label consumer (the LSP's `DiagnosticRelatedInformation`) renders.
+///
+/// This is the SHACL-only twin of [`run_tier1`]: [`run_tier1`] hand-builds each
+/// finding through [`finding_from_shacl`](crate::findings::finding_from_shacl) (which
+/// carries the secondary spans only as bare `related_locations`, with no label text),
+/// whereas this routes each result through [`diag_from_shacl`](crate::findings::diag_from_shacl)
+/// and the ledger, so `to_finding` populates the text-bearing `related_labels` twin.
+/// It runs no gUFO disciplines — the secondary-label surface is a SHACL property, and
+/// the disciplines carry no result-path/value spans.
+///
+/// The shapes are the SAME bundle-carried data-graph shape union [`run_tier1`] uses
+/// (`shapes-archive` minus the DSL/manifest lint shapes), the data is validated in
+/// isolation (no ontology merge — every data-graph shape is self-contained), and named
+/// graphs are flattened to the default graph. The projected report's tool is `tool`.
+///
+/// # Errors
+///
+/// Returns `Err` for the same reasons as [`run_tier1`]: the bundle carries no
+/// `shapes-archive` blob, the archive is malformed, the shapes fail to parse, or the
+/// data graph fails to parse.
+pub fn shacl_report_via_ledger(
+    data_bytes: &[u8],
+    data_format: &str,
+    gts_bytes: &[u8],
+    tool: &str,
+) -> Result<Report, String> {
+    use gmeow_errors::{DiagLedger, StageId};
+
+    use crate::findings::diag_from_shacl;
+
+    let shapes_ttl = data_graph_shapes_from_gts(gts_bytes)?;
+    let dataset = data_dataset_flat(data_bytes, data_format)?;
+
+    let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl)
+        .map_err(|e| format!("bundled SHACL shapes failed to parse: {e}"))?;
+    let shacl_report = store::shacl_validate_dataset(&dataset, &shapes);
+
+    // The single carrier: every SHACL result interns onto ONE hash-consed ledger via
+    // the ledger-native `diag_from_shacl` (which carries the result-path / offending
+    // value as text-bearing `Label`s), and the projected report is its projection —
+    // so each finding gains the `related_labels` the bare `finding_from_shacl` lacks.
+    let mut ledger = DiagLedger::new();
+    for result in &shacl_report.results {
+        ledger.attach(diag_from_shacl(result), StageId::new("validate.data.shacl"));
+    }
+    Ok(ledger.project_report(tool))
+}
+
 /// Run Tier-1 conformance and return the [`Report`] as a JSON string — the
 /// deep-less, Python-free entry for the wasm/CLI boundary.
 ///
