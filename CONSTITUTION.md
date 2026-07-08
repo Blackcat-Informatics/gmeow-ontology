@@ -393,8 +393,7 @@ never the consumer's prerequisite (Principle 13): the canon is maximal; the proj
 anyone else consumes.
 
 *Embodied in:* the `logic:` implementation — the [`crates/logic`](./crates/logic) Rust core
-(the reasoning authority) and the Python runner / oracle in
-[`src/gmeow_tools/`](./src/gmeow_tools/), authored from the GMEOW Logic design set
+(the reasoning authority), authored from the GMEOW Logic design set
 ([`slices/grounding/logic/design/LOGIC.md`](./slices/grounding/logic/design/LOGIC.md) and its semantics /
 runtime / migration / conformance siblings). The logic EPIC has landed. *Tested by:* the logic
 conformance corpus (native solver ≡ committed goldens,

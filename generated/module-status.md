@@ -26,7 +26,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | coreference | core | core | 3 | 0 | 6 | 0 | 1 | 6/6 | full |
 | creative-works | core | core | 4 | 16 | 42 | 0 | 1 | 58/58 | full |
 | deception | core | core | 5 | 2 | 10 | 0 | 1 | 12/12 | full |
-| diagnostics | core | core | 3 | 14 | 46 | 3 | 1 | 46/60 | full |
+| diagnostics | core | core | 3 | 11 | 35 | 0 | 1 | 46/46 | full |
 | documents | core | core | 7 | 22 | 37 | 0 | 1 | 59/59 | full |
 | dreaming | extension | extensions | 10 | 1 | 1 | 0 | 3 | - | full |
 | email | extension | extensions | 8 | 24 | 94 | 0 | 1 | - | full |
@@ -54,7 +54,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | learning | core | core | 7 | 3 | 8 | 0 | 2 | 11/11 | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 8/8 | full |
-| logic | core | grounding | 0 | 189 | 359 | 388 | 7 | 0/548 | full |
+| logic | core | grounding | 0 | 185 | 356 | 375 | 7 | 0/541 | full |
 | math | core | grounding | 2 | 0 | 0 | 0 | 14 | 0/0 | full |
 | mentation | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
 | metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
@@ -78,6 +78,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | sensory | extension | extensions | 3 | 4 | 6 | 0 | 1 | - | full |
 | sensory-environment | extension | extensions | 4 | 5 | 11 | 0 | 1 | - | full |
 | sexuality | core | core | 2 | 4 | 4 | 0 | 1 | 8/8 | full |
+| slice-quality-rubric | core | core | 5 | 5 | 14 | 0 | 1 | 19/19 | full |
 | software | extension | extensions | 10 | 33 | 53 | 0 | 1 | - | full |
 | sources | core | core | 1 | 0 | 3 | 0 | 1 | 3/3 | full |
 | standpoint | core | core | 3 | 11 | 22 | 0 | 1 | 23/33 | full |
@@ -87,4 +88,4 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 13 | 0 | 1 | 19/19 | full |
 
-**79 slices** · documentation: 79 full guides, 0 stubs remaining; advisory coverage: 1315/2101 core class/property terms.
+**80 slices** · documentation: 80 full guides, 0 stubs remaining; advisory coverage: 1334/2099 core class/property terms.

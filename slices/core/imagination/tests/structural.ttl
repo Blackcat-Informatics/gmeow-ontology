@@ -23,10 +23,10 @@
 # (<the 15 stereotypes>)) quantifies over the WHOLE module graph, so a future
 # logic:World / modal-logic leak is caught even though no such term exists today.
 #
-# ONE test stays in tests/test_imagination.py (genuinely unreachable by this
-# module-scoped harness): test_manifest_depends_only_on_kernel — set-equality
-# over manifest.ttl, which run_structural_cell never loads (store = module.ttl +
-# examples/ only).
+# ONE invariant is unreachable by this module-scoped ASK harness and lives as a
+# native Rust conformance twin in crates/validate/tests/conformance_imagination.rs:
+# slice_depends_on_is_exactly_kernel — set-equality over manifest.ttl, which
+# run_structural_cell never loads (store = module.ttl + examples/ only).
 #
 # The annotation-completeness test (test_every_declared_term_is_annotated) is
 # subsumed by the global `make validate` gate (SHACL Gmeow*Shape for the class
@@ -38,7 +38,6 @@
 # reddening `make validate`. That pytest function is therefore deleted rather
 # than migrated.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/imagination/tests/> .

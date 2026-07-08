@@ -61,17 +61,12 @@ candidate has no pre-reviewed closeMatch, so the claim/evidence boundary holds.
 
 ## Reproducing these fixtures
 
-Everything needed to regenerate the fixtures byte-for-byte is recorded here and in
-the maintainer artifact. Run it off-gate in an ephemeral environment (nothing is
-added to the repo's own environment):
-
-```console
-$ uv run --no-project --python 3.12 \
-      --with 'torch==2.*' --with 'transformers==4.*' --with 'numpy<3' \
-      python maintenance/affect-classifier-capture/capture_fixtures.py \
-      --out crates/affect-ingest/fixtures
-$ git diff --stat crates/affect-ingest/fixtures   # unchanged ⇒ deterministic capture
-```
+These fixtures are **frozen, committed inputs** — the authoritative capture of the
+three target texts run through each affect classifier. The one-shot Python capture
+harness that produced them (a torch/transformers script) was retired with the
+repo-wide Python purge; a native re-capture path would have to be reimplemented if
+the models or targets ever change. Until then the committed fixtures below are the
+source of truth and the `crates/affect-ingest` tests consume them directly.
 
 **The three target texts** (verbatim), run through every model, one classified
 target per `(model, text)` at IRI `…/gmeow/examples/affect/<model-dir>/<slug>`:

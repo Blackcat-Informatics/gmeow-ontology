@@ -12,7 +12,6 @@
 #   test_ingestion_procedure_has_six_steps — counts g.objects() for hasProcedureStep;
 #     a numeric / cardinality count that cannot be expressed as a module-scoped ASK.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/procedures/tests/> .

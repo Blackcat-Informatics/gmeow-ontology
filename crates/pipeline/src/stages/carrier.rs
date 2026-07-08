@@ -12,9 +12,8 @@
 //! and the documentation projection each riding their own named graph, plus the
 //! RDF 1.2 reifier/annotation tables and the content-addressed blob channel.
 //!
-//! It assembles a [`purrdf::gts_compose::SnapshotBuilder`] directly — the same
-//! pyo3-free core the `purrdf` Python producer now delegates to — routing each
-//! source into the named graph `gts_gen.py` assigns it.
+//! It assembles a [`purrdf::gts_compose::SnapshotBuilder`] directly, routing each
+//! source into its named graph.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -43,6 +42,27 @@ pub(crate) const GRAPH_ALIGNMENTS: &str = "https://blackcatinformatics.ca/gmeow/
 pub(crate) const GRAPH_STATEMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/statements";
 const GRAPH_VERIFY: &str = "https://blackcatinformatics.ca/gmeow/graph/verify";
 const GRAPH_SLICE_ANALYSIS: &str = "https://blackcatinformatics.ca/gmeow/graph/slice-analysis";
+/// The per-slice quality-assessment corpus: every slice scored against the
+/// ontology-resident rubric, projected as `gmeow:QualityAssessment` observations (each
+/// per-axis grade a scalar reading + a categorical tier, plus a roll-up meet tier) by
+/// [`gmeow_slice_quality::assessment_nquads`]. Attached at the parallel DAG root
+/// (`build_self_description_dataset`, a per-slice sweep over the authored slices — the
+/// natural sibling of `graph/slice-analysis`) and read back by the presenter via
+/// `source_load_graph`. Folded as its own queryable named graph so a repo-free consumer
+/// reads every slice's quality grades straight out of `gmeow.gts` (the issue's headline
+/// dogfooding deliverable). Excluded from the reasoned object-level EDB exactly like
+/// `graph/slice-analysis` (it asserts a self-description corpus, not object-level axioms —
+/// the reasoned EDB reads named graphs by IRI, so this one never pollutes it).
+pub(crate) const GRAPH_QUALITY_ASSESSMENT: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/quality-assessment";
+/// The committed on-disk projection of the quality-assessment corpus (PIPELINE_SPINE §5:
+/// RDF travels as RDF, so the `gmeow:QualityAssessment` triples are reconstructible from
+/// `gmeow.gts` as a flat `generated/` file, not only as a bundle-internal named graph).
+/// Its `graph/fanout/<path>` reconstruction graph carries the SAME triples as
+/// [`GRAPH_QUALITY_ASSESSMENT`]; the base graph serves the queryable bundle graph, the
+/// fanout copy serves the superset gate / fanout writer (the correspondence-laws corpus
+/// follows the same twin-graph pattern).
+pub(crate) const QUALITY_ASSESSMENT_PATH: &str = "generated/quality/gmeow.quality-assessment.nt";
 pub(crate) const GRAPH_DOCUMENTATION: &str =
     "https://blackcatinformatics.ca/gmeow/graph/documentation";
 pub(crate) const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
@@ -407,6 +427,12 @@ pub(crate) fn self_description_source_files(
     // `generated/` from disk to cache-key a stage is the stale-disk-fold class this change
     // retires — freshness rides the consumes chain, not a disk enumeration here.
     files.extend(slice_named_files(root, "shapes.ttl")?);
+    // The quality-assessment graph is built here by scoring every slice, so the cache must
+    // bust when ANY scored input changes (rubric module, each slice's manifest / module /
+    // examples / tests). `gmeow_slice_quality::scored_source_files` is the single authority
+    // for what the scorer reads — sharing it keeps the cache key and the score set from
+    // drifting (a stale scored input would ship a stale assessment in gmeow.gts).
+    files.extend(gmeow_slice_quality::scored_source_files(root));
     files.sort();
     files.dedup();
     Ok(files)
@@ -453,12 +479,25 @@ pub(crate) fn build_self_description_dataset(
         run_verify_attestation(root, &edb)?
     };
     let provenance_nt = build_provenance_projection(root)?;
+    // graph/quality-assessment — every slice scored against the ontology-resident rubric,
+    // projected as `gmeow:QualityAssessment` observations. A per-slice sweep over the
+    // authored slices (the natural sibling of the slice-analysis graph), built ONCE here
+    // and read back by the presenter via `source_load_graph`. The producer re-emits the
+    // per-slice `graph/slice-quality` N-Quads; `parse_into_graph` re-roots them into the
+    // carrier's `graph/quality-assessment` label.
+    let quality_assessment = gmeow_slice_quality::assessment_nquads(root)
+        .map_err(|e| stage_err(&format!("quality-assessment sweep: {e}")))?;
 
     let datasets: Vec<std::sync::Arc<purrdf::RdfDataset>> = vec![
         rooted_in_graph(&base, GRAPH_AUTHORED_DEFAULT)?,
         parse_into_graph(&imports, "application/n-quads", GRAPH_IMPORTS)?,
         parse_into_graph(&metadata, "application/n-quads", GRAPH_METADATA)?,
         parse_into_graph(&slice_analysis, "application/n-quads", GRAPH_SLICE_ANALYSIS)?,
+        parse_into_graph(
+            quality_assessment.as_bytes(),
+            "application/n-quads",
+            GRAPH_QUALITY_ASSESSMENT,
+        )?,
         parse_into_graph(&verify_attestation, "application/n-quads", GRAPH_VERIFY)?,
         parse_into_graph(
             provenance_nt.as_bytes(),
@@ -580,6 +619,19 @@ fn assemble_carrier(
             .ok_or_else(|| stage_err("correspondence-laws fanout path is not an RDF path"))?;
         rooted_in_graph(correspondence_laws.as_ref(), &iri)?
     };
+    // graph/quality-assessment — the per-slice `gmeow:QualityAssessment` corpus, read off
+    // the stage-source-load product's attached graph (a pure keyed fold, PIPELINE_SPINE §4;
+    // it was scored + attached ONCE at the DAG root). The base graph ships as a queryable
+    // bundle graph; its fanout twin re-roots the SAME triples into their
+    // `graph/fanout/<path>` reconstruction graph so the superset gate folds them to
+    // `generated/quality/gmeow.quality-assessment.nt` (RDF travels as RDF — the assessment
+    // lands in `generated/` too, not only as a bundle-internal named graph).
+    let quality_assessment = source_load_graph(upstream, GRAPH_QUALITY_ASSESSMENT)?;
+    let quality_assessment_fanout = {
+        let iri = crate::stages::superset::rdf_fanout_graph_iri(QUALITY_ASSESSMENT_PATH)
+            .ok_or_else(|| stage_err("quality-assessment fanout path is not an RDF path"))?;
+        rooted_in_graph(quality_assessment.as_ref(), &iri)?
+    };
 
     // ── the carried graphs ride in from the producers' carriers ────────────────
     let reason = upstream
@@ -610,6 +662,8 @@ fn assemble_carrier(
         lang_docs_rendering_corpus,
         correspondence_laws,
         correspondence_laws_fanout,
+        quality_assessment,
+        quality_assessment_fanout,
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
     datasets.push(rooted_in_graph(
@@ -5453,6 +5507,90 @@ ex:rex a ex:Dog .
                 .chain(full.cross_example.iter())
                 .all(|l| !l.contains("ImportedExtra")),
             "import-world axiom leaked into cross_example"
+        );
+    }
+}
+
+#[cfg(test)]
+mod quality_assessment_tests {
+    use super::*;
+
+    fn repo_root() -> std::path::PathBuf {
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .unwrap()
+    }
+
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const QUALITY_ASSESSMENT_CLASS: &str = "https://blackcatinformatics.ca/gmeow/QualityAssessment";
+
+    /// Count `?s a gmeow:QualityAssessment` in a projected graph.
+    fn count_quality_assessments(ds: &purrdf::RdfDataset) -> usize {
+        ds.owned_quads()
+            .filter(|q| {
+                q.predicate.as_str() == RDF_TYPE
+                    && matches!(&q.object, RdfTerm::Iri(o) if o == QUALITY_ASSESSMENT_CLASS)
+            })
+            .count()
+    }
+
+    #[test]
+    fn quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate() {
+        // G2 dogfooding: scoring every slice attaches the `graph/quality-assessment`
+        // named graph to the source-load self-description carrier, so it folds into
+        // gmeow.gts (the presenter reads it back and also emits the fanout twin).
+        //
+        // Off-gate (`_heavy_offgate`): builds the full self-description carrier, which
+        // scores all ~81 slices (~86 s) — irreducibly O(slice count), the same
+        // whole-repo class as `end_to_end`/`fold_parity`. The attach↔fanout bijection
+        // and N-Triples fold form stay on-gate via the fast sibling tests
+        // `quality_assessment_fanout_path_is_registered_and_folds_as_ntriples` and
+        // `superset::tests::quality_assessment_nt_folds_as_ntriples_via_its_own_fanout_graph`,
+        // and any real drift is caught on every `make check` by `make check-generated`.
+        let root = repo_root();
+        let ds = build_self_description_dataset(&root).expect("self-description dataset");
+
+        let base = ds.project_named_graph(GRAPH_QUALITY_ASSESSMENT);
+        assert!(
+            base.quad_count() > 0,
+            "graph/quality-assessment must carry the scored slice corpus"
+        );
+        let n = count_quality_assessments(&base);
+        assert!(
+            n >= 1,
+            "graph/quality-assessment must carry real gmeow:QualityAssessment triples, got {n}"
+        );
+
+        // The fanout twin (the superset gate's on-disk fold) carries the SAME triples
+        // re-rooted into the `graph/fanout/<path>` reconstruction container.
+        let fanout_iri = crate::stages::superset::rdf_fanout_graph_iri(QUALITY_ASSESSMENT_PATH)
+            .expect("quality-assessment path is an RDF path");
+        let fanout = rooted_in_graph(&base, &fanout_iri).expect("re-root into fanout container");
+        assert_eq!(
+            count_quality_assessments(&fanout.project_named_graph(&fanout_iri)),
+            n,
+            "the fanout twin must carry the same QualityAssessment triples as the base graph"
+        );
+    }
+
+    #[test]
+    fn quality_assessment_fanout_path_is_registered_and_folds_as_ntriples() {
+        // The attach ↔ committed-path bijection the superset gate enforces: the carrier
+        // attaches `graph/fanout/quality/gmeow.quality-assessment.nt` and the gate claims
+        // the same committed path as an N-Triples fanout fold. A committed path with no
+        // attaching stage (or vice-versa) is a wiring contradiction — this pins both legs.
+        assert!(
+            crate::stages::superset::is_rdf_fanout_class(QUALITY_ASSESSMENT_PATH),
+            "the quality-assessment committed path must be a registered RDF-fanout class"
+        );
+        let iri = crate::stages::superset::rdf_fanout_graph_iri(QUALITY_ASSESSMENT_PATH)
+            .expect("committed path yields a fanout graph IRI");
+        assert_eq!(
+            crate::stages::superset::rdf_fanout_path_for_graph_iri(&iri).as_deref(),
+            Some(QUALITY_ASSESSMENT_PATH),
+            "the fanout IRI must invert back to the committed path (bijection)"
         );
     }
 }

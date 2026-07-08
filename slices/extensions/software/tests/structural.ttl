@@ -39,7 +39,6 @@
 #   test_fixture_repository_has_materialization_depth -- fixture ABox numeric
 #     check (datatype + value); not expressible as a module-scoped TBox ASK.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/software/tests/> .
