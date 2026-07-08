@@ -500,7 +500,7 @@ ASK {
     FILTER NOT EXISTS { gmeow:listHelp a owl:FunctionalProperty }
     FILTER NOT EXISTS { gmeow:listArchive a owl:FunctionalProperty }
 }""" ;
-    gmeow:saRationale """gmeow:listSubscribe, listUnsubscribe, listHelp, and listArchive MUST be ObjectProperties from EmailMessage to owl:Thing and MUST NOT be functional because multiple URIs may be listed. Mirrors the corresponding list_*_is_object_property tests.""" .
+    gmeow:saRationale """gmeow:listSubscribe, listUnsubscribe, listHelp, and listArchive MUST be ObjectProperties from EmailMessage to owl:Thing and MUST NOT be functional because multiple URIs may be listed.""" .
 
 ex:saListPostDatatypeProperty a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
