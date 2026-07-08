@@ -57,7 +57,7 @@
                 edoal:uri gmeow:conditionsOfAccess ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:accessRights ;
             ] ;
             align:relation "=" ;
@@ -85,7 +85,7 @@
                 edoal:uri gmeow:copyrightHolder ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:rightsHolder ;
             ] ;
             align:relation "<=" ;
@@ -267,7 +267,7 @@
                 edoal:uri gmeow:hasLicense ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:license ;
             ] ;
             align:relation "=" ;

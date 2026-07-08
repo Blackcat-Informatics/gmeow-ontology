@@ -44,7 +44,7 @@
                 edoal:uri gmeow:attributionUrl ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri cc:attributionURL ;
             ] ;
             align:relation "=" ;
@@ -58,7 +58,7 @@
                 edoal:uri gmeow:hasLicense ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri cc:license ;
             ] ;
             align:relation "<=" ;

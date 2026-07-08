@@ -1202,7 +1202,7 @@
                 edoal:uri gmeow:copyrightHolder ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri schema:copyrightHolder ;
             ] ;
             align:relation "<=" ;
@@ -1449,7 +1449,7 @@
                 edoal:uri gmeow:hasLicense ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri schema:license ;
             ] ;
             align:relation "<=" ;

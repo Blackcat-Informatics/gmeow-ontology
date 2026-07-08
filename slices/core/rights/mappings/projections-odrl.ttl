@@ -144,6 +144,7 @@ gmeow:mapOdrlActionExtensionPassthrough a gmeow:ProjectionMapping ;
         gmeow:toPredicate odrl:action ;
         gmeow:relation "<=" ;
         gmeow:confidence 0.6 ;
+        gmeow:edoalTargetKind "relation" ;
         gmeow:lossyDrop "GMEOW extension RightsAction values with no exact ODRL action IRI are passed through under odrl:action; the rule remains machine-readable without fabricating a target vocabulary term" ;
         gmeow:templateAtoms ( [ gmeow:tSubj "arExtension" ; gmeow:tPred odrl:action ; gmeow:tObj "action" ] ) ] .
 
@@ -1146,6 +1147,7 @@ gmeow:mapOdrlConsequence a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:ruleConsequence ] ;
     gmeow:hasBinding [
         gmeow:profile "odrl" ; gmeow:toPredicate odrl:consequence ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:edoalTargetKind "relation" ;
         gmeow:emitSssom true ; gmeow:sssomPredicate skos:relatedMatch ;
         gmeow:sssomFile "gmeow-rights.sssom.tsv" ] .
 
@@ -1159,6 +1161,7 @@ gmeow:mapOdrlRemedy a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:ruleConsequence ] ;
     gmeow:hasBinding [
         gmeow:profile "odrl" ; gmeow:toPredicate odrl:remedy ; gmeow:relation "<=" ; gmeow:confidence 0.65 ;
+        gmeow:edoalTargetKind "relation" ;
         gmeow:emitSssom true ; gmeow:sssomPredicate skos:relatedMatch ;
         gmeow:sssomFile "gmeow-rights.sssom.tsv" ] .
 
@@ -1214,6 +1217,7 @@ gmeow:mapOdrlHasPolicy a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:hasRightsStatement ] ;
     gmeow:hasBinding [
         gmeow:profile "odrl" ; gmeow:toPredicate odrl:hasPolicy ; gmeow:relation "=" ; gmeow:confidence 0.9 ; gmeow:mnemomorphic true ;
+        gmeow:edoalTargetKind "relation" ;
         gmeow:emitSssom true ; gmeow:sssomPredicate skos:closeMatch ;
         gmeow:sssomFile "gmeow-rights.sssom.tsv" ] .
 
@@ -1237,6 +1241,7 @@ gmeow:mapOdrlUid a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:RightsStatement ; gmeow:edoalSourceKind "class" ] ;
     gmeow:hasBinding [
         gmeow:profile "odrl" ; gmeow:toPredicate odrl:uid ; gmeow:relation "<=" ; gmeow:confidence 0.95 ;
+        gmeow:edoalTargetKind "relation" ;
         gmeow:lossyDrop "odrl:uid is the policy node's own IRI; no independent GMEOW uid predicate exists to recover from the target property alone" ;
         gmeow:templateAtoms ( [ gmeow:tSubj "ouRs" ; gmeow:tPred odrl:uid ; gmeow:tObj "ouRs" ] ) ] .
 
@@ -1251,6 +1256,7 @@ gmeow:mapOdrlProfile a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:conformsTo ] ;
     gmeow:hasBinding [
         gmeow:profile "odrl" ; gmeow:toPredicate odrl:profile ; gmeow:relation "=" ; gmeow:confidence 0.9 ; gmeow:mnemomorphic true ;
+        gmeow:edoalTargetKind "relation" ;
         gmeow:emitSssom true ; gmeow:sssomPredicate skos:closeMatch ;
         gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
         gmeow:lossyDrop "the conformance claim is carried exactly as declared by the policy author — the transpiler never verifies it" ] .

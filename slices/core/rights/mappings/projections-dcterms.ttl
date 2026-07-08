@@ -17,6 +17,7 @@ gmeow:mapDctermsLicense a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:hasLicense ] ;
     gmeow:hasBinding [
         gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:license ; gmeow:relation "=" ; gmeow:confidence 0.9 ; gmeow:mnemomorphic true ;
+        gmeow:edoalTargetKind "relation" ;
         gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
         gmeow:sssomFile "gmeow-rights.sssom.tsv" ] .
 
@@ -30,6 +31,7 @@ gmeow:mapDctermsRightsHolder a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:copyrightHolder ] ;
     gmeow:hasBinding [
         gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:rightsHolder ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:edoalTargetKind "relation" ;
         gmeow:emitSssom true ; gmeow:sssomPredicate skos:closeMatch ;
         gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
         gmeow:lossyDrop "the Copyright relator (year, notice, status) collapses to a flat dcterms:rightsHolder edge" ] .
@@ -69,5 +71,6 @@ gmeow:mapDctermsAccessRights a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:conditionsOfAccess ] ;
     gmeow:hasBinding [
         gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:accessRights ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:edoalTargetKind "relation" ;
         gmeow:emitSssom true ; gmeow:sssomPredicate skos:closeMatch ;
         gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ] .

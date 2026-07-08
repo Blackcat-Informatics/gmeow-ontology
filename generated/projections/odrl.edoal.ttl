@@ -30,7 +30,7 @@
                 edoal:uri gmeow:RightsStatement ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri odrl:uid ;
             ] ;
             align:relation "<=" ;
@@ -44,7 +44,7 @@
                 edoal:uri gmeow:conformsTo ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri odrl:profile ;
             ] ;
             align:relation "=" ;
@@ -58,7 +58,7 @@
                 edoal:uri gmeow:hasRightsStatement ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri odrl:hasPolicy ;
             ] ;
             align:relation "=" ;
@@ -72,7 +72,7 @@
                 edoal:uri gmeow:ruleAction ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri odrl:action ;
             ] ;
             align:relation "<=" ;
@@ -86,7 +86,7 @@
                 edoal:uri gmeow:ruleConsequence ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri odrl:consequence ;
             ] ;
             align:relation "<=" ;
@@ -100,7 +100,7 @@
                 edoal:uri gmeow:ruleConsequence ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri odrl:remedy ;
             ] ;
             align:relation "<=" ;
