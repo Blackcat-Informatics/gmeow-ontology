@@ -14,7 +14,7 @@
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/slice-quality-rubric/tests/> .
 
 ex:cqAxesBindProducers a gmeow:CompetencyQuestion ;
-    gmeow:cqQueryFile "queries/qc/axes-without-producer.rq" ;
+    gmeow:cqQueryFile "slices/core/slice-quality-rubric/queries/qc/axes-without-producer.rq" ;
     gmeow:cqRationale "Every quality axis must bind a measurement primitive with gmeow:axisProducer, because an axis the kernel cannot resolve to a primitive is unscorable; the query that finds producerless axes must return the empty set." ;
     gmeow:cqResultShape ex:cqAxesBindProducersShape ;
     gmeow:cqExpectRowCount 0 .
