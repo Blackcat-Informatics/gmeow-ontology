@@ -2036,7 +2036,7 @@ DOCTRINE.
   * Open value vocabularies, no overtyping (Principle 9): the kinds of action, licence family, trademark status and copyright status are OPEN individuals, never per-value subclasses, and there is no preferred / primary right.
   * DL-clean (Principle 3): year / notice / credit datatypes are rdfs:Literal in the TBox (xsd:gYear / xsd:date are not OWL 2 DL datatypes); typed literals live in data, which is outside the reasoned closure.
 
-REUSE. gmeow:Agreement / gmeow:hasParty (agreements), gmeow:wasAttributedTo / gmeow:wasDerivedFrom (provenance), gmeow:CreativeWork / gmeow:InformationObject / gmeow:Agent (documents / core), gmeow:validFrom / gmeow:validUntil (temporal), gmeow:confidence (provenance). See docs/rights.md and docs/rights-mapping.md."""@x-gmeow-english ;
+REUSE. gmeow:Agreement / gmeow:hasParty (agreements), gmeow:wasAttributedTo / gmeow:wasDerivedFrom (provenance), gmeow:CreativeWork / gmeow:InformationObject / gmeow:Agent (documents / core), gmeow:validFrom / gmeow:validUntil (temporal), gmeow:confidence (provenance). See the rights slice documentation."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "GMEOW Rights & IP Module"@x-gmeow-english ;
     skos:definition "The GMEOW Rights & IP Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;

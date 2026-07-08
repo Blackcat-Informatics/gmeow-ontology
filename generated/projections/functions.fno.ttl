@@ -39,18 +39,18 @@ gmeow:fnBirthEventToDate
 gmeow:fnCoarsenToGranularity
     a gmeow:ProjectionFunction ,
         fno:Function ;
-    rdfs:label "coarsen coordinates to the enclosing region (generalization, P10)"@en ;
+    rdfs:label "coarsen coordinates to the enclosing region (generalization, Principle 10)"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> ;
-    skos:definition "Disclosure control by generalization (#72, CONSTITUTION P10): a place that carries gmeow:coarsenTo a target gmeow:GranularityLevel is projected with the coordinates of the enclosing ancestor at that level INSTEAD of its precise point — a coarser region rather than exact coordinates, never deletion. Aligns by reference to dpv:Generalisation. Ancestor SELECTION is performed declaratively in the SPARQL projection (the gmeow:containedInPlace+ path matching the ancestor whose gmeow:hasGranularity is the target level); this transform documents the resulting generalization, receiving the already-selected ancestor's coordinates (paramLatitude/paramLongitude) and re-emitting them as the place's location. Heavier geomasking / k-anonymity stays in the solver layer (P12)."@en ;
+    skos:definition "Disclosure control by generalization (Principle 10): a place that carries gmeow:coarsenTo a target gmeow:GranularityLevel is projected with the coordinates of the enclosing ancestor at that level INSTEAD of its precise point — a coarser region rather than exact coordinates, never deletion. Aligns by reference to dpv:Generalisation. Ancestor SELECTION is performed declaratively in the SPARQL projection (the gmeow:containedInPlace+ path matching the ancestor whose gmeow:hasGranularity is the target level); this transform documents the resulting generalization, receiving the already-selected ancestor's coordinates (paramLatitude/paramLongitude) and re-emitting them as the place's location. Heavier geomasking / k-anonymity stays in the solver layer (Principle 12)."@en ;
     fno:expects ( gmeow:paramCoarsenTo gmeow:paramLatitude gmeow:paramLongitude ) ;
     fno:returns ( gmeow:outCoarsenToGranularity ) .
 
 gmeow:fnCoarsenToGranularityGeoJson
     a gmeow:ProjectionFunction ,
         fno:Function ;
-    rdfs:label "coarsen GeoJSON coordinates to the enclosing region (generalization, P10)"@en ;
+    rdfs:label "coarsen GeoJSON coordinates to the enclosing region (generalization, Principle 10)"@en ;
     rdfs:seeAlso <https://blackcatinformatics.ca/gmeow/queries/projections/geosparql.rq> ;
-    skos:definition "Disclosure control by generalization (#72, CONSTITUTION P10): a place that carries gmeow:coarsenTo a target gmeow:GranularityLevel is projected with the coordinates of the enclosing ancestor at that level INSTEAD of its precise GeoJSON — a coarser region rather than exact coordinates, never deletion. Receives the already-selected ancestor's GeoJSON and re-emitting it as the place's location. Heavier geomasking / k-anonymity stays in the solver layer (P12)."@en ;
+    skos:definition "Disclosure control by generalization (Principle 10): a place that carries gmeow:coarsenTo a target gmeow:GranularityLevel is projected with the coordinates of the enclosing ancestor at that level INSTEAD of its precise GeoJSON — a coarser region rather than exact coordinates, never deletion. Receives the already-selected ancestor's GeoJSON and re-emitting it as the place's location. Heavier geomasking / k-anonymity stays in the solver layer (Principle 12)."@en ;
     fno:expects ( gmeow:paramAsGeoJSON gmeow:paramCoarsenTo ) ;
     fno:returns ( gmeow:outCoarsenToGranularityGeoJson ) .
 

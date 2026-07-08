@@ -1,0 +1,1288 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix odrl:  <http://www.w3.org/ns/odrl/2/> .
+
+# Projection mappings: GMEOW rights → a pure W3C ODRL 2.2 policy (the machine-
+# readable deontic target). Authored in the rights slice and consumed by the
+# registered mappings generator. The gmeow:RightsStatement relator becomes an
+# odrl:Set; its Permission / Prohibition / Duty rules become the odrl:permission /
+# odrl:prohibition / odrl:obligation rule trio. Shared action-value cells below
+# rewrite gmeow:RightsAction values to their exact odrl:action IRIs; rule-shell
+# cells carry odrl:target (the governed asset) and odrl:assignee. A gmeow:License
+# becomes an odrl:Offer with its odrl:assigner. Every emitted odrl: term is
+# declared in slice-local equivalence or projection metadata, so the no-drift gate
+# can verify the projection.
+
+gmeow:mapOdrlPolicy a gmeow:ProjectionMapping ;
+    rdfs:label "RightsStatement → odrl:Set"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "rs" ;
+        gmeow:atom ( [ gmeow:subjectVar "rs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "rs" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Set ] ) ] .
+
+gmeow:mapOdrlPermission a gmeow:ProjectionMapping ;
+    rdfs:label "RightsStatement permission rule → odrl:permission"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "rs" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "rs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ]
+            [ gmeow:subjectVar "rs" ; gmeow:predicate gmeow:statementAbout ; gmeow:objectVar "asset" ]
+            [ gmeow:subjectVar "rs" ; gmeow:predicate gmeow:hasPermission ; gmeow:objectVar "perm" ]
+            [ gmeow:subjectVar "perm" ; gmeow:predicate gmeow:ruleAssignee ; gmeow:objectVar "permAssignee" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "rs" ; gmeow:tPred odrl:permission ; gmeow:tObj "perm" ]
+            [ gmeow:tSubj "perm" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Permission ]
+            [ gmeow:tSubj "perm" ; gmeow:tPred odrl:target ; gmeow:tObj "asset" ]
+            [ gmeow:tSubj "perm" ; gmeow:tPred odrl:assignee ; gmeow:tObj "permAssignee" ] ) ] .
+
+gmeow:mapOdrlProhibition a gmeow:ProjectionMapping ;
+    rdfs:label "RightsStatement prohibition rule → odrl:prohibition"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "rs" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "rs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ]
+            [ gmeow:subjectVar "rs" ; gmeow:predicate gmeow:statementAbout ; gmeow:objectVar "asset" ]
+            [ gmeow:subjectVar "rs" ; gmeow:predicate gmeow:hasProhibition ; gmeow:objectVar "proh" ]
+            [ gmeow:subjectVar "proh" ; gmeow:predicate gmeow:ruleAssignee ; gmeow:objectVar "prohAssignee" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "rs" ; gmeow:tPred odrl:prohibition ; gmeow:tObj "proh" ]
+            [ gmeow:tSubj "proh" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Prohibition ]
+            [ gmeow:tSubj "proh" ; gmeow:tPred odrl:target ; gmeow:tObj "asset" ]
+            [ gmeow:tSubj "proh" ; gmeow:tPred odrl:assignee ; gmeow:tObj "prohAssignee" ] ) ] .
+
+gmeow:mapOdrlDuty a gmeow:ProjectionMapping ;
+    rdfs:label "RightsStatement duty rule → odrl:obligation"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "rs" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "rs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ]
+            [ gmeow:subjectVar "rs" ; gmeow:predicate gmeow:statementAbout ; gmeow:objectVar "asset" ]
+            [ gmeow:subjectVar "rs" ; gmeow:predicate gmeow:hasDuty ; gmeow:objectVar "dutyR" ]
+            [ gmeow:subjectVar "dutyR" ; gmeow:predicate gmeow:ruleAssignee ; gmeow:objectVar "dutyAssignee" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "rs" ; gmeow:tPred odrl:obligation ; gmeow:tObj "dutyR" ]
+            [ gmeow:tSubj "dutyR" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Duty ]
+            [ gmeow:tSubj "dutyR" ; gmeow:tPred odrl:target ; gmeow:tObj "asset" ]
+            [ gmeow:tSubj "dutyR" ; gmeow:tPred odrl:assignee ; gmeow:tObj "dutyAssignee" ] ) ] .
+
+# Shared action-value table. These cells rewrite GMEOW action individuals into
+# ODRL action individuals for every rule node that carries gmeow:ruleAction. A
+# guarded fallback below preserves GMEOW extension actions that have no exact
+# ODRL action IRI, without duplicating the exact rewrites.
+
+gmeow:mapOdrlActionExtensionPassthrough a gmeow:ProjectionMapping ;
+    rdfs:label "Extension RightsAction passthrough → odrl:action"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arExtension" ;
+        gmeow:value "action" ;
+        gmeow:atom ( [ gmeow:subjectVar "arExtension" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectVar "action" ] ) ;
+        gmeow:filter [
+            gmeow:exprOp gmeow:opNot ;
+            gmeow:exprArgs ( [
+                gmeow:exprOp gmeow:opIn ;
+                gmeow:exprArgs (
+                    [ gmeow:exprVar "action" ]
+                    gmeow:actionAcceptTracking
+                    gmeow:actionAggregate
+                    gmeow:actionAnnotate
+                    gmeow:actionAnonymize
+                    gmeow:actionArchive
+                    gmeow:actionAttribute
+                    gmeow:actionCommercialize
+                    gmeow:actionCompensate
+                    gmeow:actionConcurrentUse
+                    gmeow:actionDelete
+                    gmeow:actionDerive
+                    gmeow:actionDigitize
+                    gmeow:actionDisplay
+                    gmeow:actionDistribute
+                    gmeow:actionEnsureExclusivity
+                    gmeow:actionExecute
+                    gmeow:actionExtract
+                    gmeow:actionGive
+                    gmeow:actionGrantUse
+                    gmeow:actionInclude
+                    gmeow:actionIndex
+                    gmeow:actionInform
+                    gmeow:actionInstall
+                    gmeow:actionLease
+                    gmeow:actionLend
+                    gmeow:actionModify
+                    gmeow:actionMove
+                    gmeow:actionNextPolicy
+                    gmeow:actionObtainConsent
+                    gmeow:actionPlay
+                    gmeow:actionPresent
+                    gmeow:actionPrint
+                    gmeow:actionRead
+                    gmeow:actionReproduce
+                    gmeow:actionReviewPolicy
+                    gmeow:actionSell
+                    gmeow:actionShareAlike
+                    gmeow:actionStream
+                    gmeow:actionSynchronize
+                    gmeow:actionTextToSpeech
+                    gmeow:actionTransfer
+                    gmeow:actionTransform
+                    gmeow:actionTranslate
+                    gmeow:actionUninstall
+                    gmeow:actionUse
+                    gmeow:actionWatermark ) ] ) ] ;
+        gmeow:edoalSource gmeow:ruleAction ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ;
+        gmeow:toPredicate odrl:action ;
+        gmeow:relation "<=" ;
+        gmeow:confidence 0.6 ;
+        gmeow:lossyDrop "GMEOW extension RightsAction values with no exact ODRL action IRI are passed through under odrl:action; the rule remains machine-readable without fabricating a target vocabulary term" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arExtension" ; gmeow:tPred odrl:action ; gmeow:tObj "action" ] ) ] .
+
+gmeow:mapOdrlActionReproduce a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arReproduce" ;
+        gmeow:atom ( [ gmeow:subjectVar "arReproduce" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionReproduce ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.9 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arReproduce" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:reproduce ] ) ] .
+
+gmeow:mapOdrlActionDistribute a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arDistribute" ;
+        gmeow:atom ( [ gmeow:subjectVar "arDistribute" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionDistribute ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.9 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arDistribute" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:distribute ] ) ] .
+
+gmeow:mapOdrlActionDerive a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arDerive" ;
+        gmeow:atom ( [ gmeow:subjectVar "arDerive" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionDerive ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arDerive" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:derive ] ) ] .
+
+gmeow:mapOdrlActionCommercialize a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arCommercialize" ;
+        gmeow:atom ( [ gmeow:subjectVar "arCommercialize" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionCommercialize ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arCommercialize" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:commercialize ] ) ] .
+
+gmeow:mapOdrlActionPresent a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arPresent" ;
+        gmeow:atom ( [ gmeow:subjectVar "arPresent" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionPresent ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arPresent" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:present ] ) ] .
+
+gmeow:mapOdrlActionUse a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arUse" ;
+        gmeow:atom ( [ gmeow:subjectVar "arUse" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionUse ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arUse" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:use ] ) ] .
+
+gmeow:mapOdrlActionExtract a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arExtract" ;
+        gmeow:atom ( [ gmeow:subjectVar "arExtract" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionExtract ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arExtract" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:extract ] ) ] .
+
+gmeow:mapOdrlActionAttribute a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arAttribute" ;
+        gmeow:atom ( [ gmeow:subjectVar "arAttribute" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionAttribute ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arAttribute" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:attribute ] ) ] .
+
+gmeow:mapOdrlActionShareAlike a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arShareAlike" ;
+        gmeow:atom ( [ gmeow:subjectVar "arShareAlike" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionShareAlike ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arShareAlike" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:shareAlike ] ) ] .
+
+gmeow:mapOdrlActionObtainConsent a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arObtainConsent" ;
+        gmeow:atom ( [ gmeow:subjectVar "arObtainConsent" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionObtainConsent ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.8 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arObtainConsent" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:obtainConsent ] ) ] .
+
+gmeow:mapOdrlActionAcceptTracking a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arAcceptTracking" ;
+        gmeow:atom ( [ gmeow:subjectVar "arAcceptTracking" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionAcceptTracking ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arAcceptTracking" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:acceptTracking ] ) ] .
+
+gmeow:mapOdrlActionAggregate a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arAggregate" ;
+        gmeow:atom ( [ gmeow:subjectVar "arAggregate" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionAggregate ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arAggregate" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:aggregate ] ) ] .
+
+gmeow:mapOdrlActionAnonymize a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arAnonymize" ;
+        gmeow:atom ( [ gmeow:subjectVar "arAnonymize" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionAnonymize ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arAnonymize" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:anonymize ] ) ] .
+
+gmeow:mapOdrlActionAnnotate a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arAnnotate" ;
+        gmeow:atom ( [ gmeow:subjectVar "arAnnotate" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionAnnotate ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arAnnotate" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:annotate ] ) ] .
+
+gmeow:mapOdrlActionArchive a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arArchive" ;
+        gmeow:atom ( [ gmeow:subjectVar "arArchive" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionArchive ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arArchive" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:archive ] ) ] .
+
+gmeow:mapOdrlActionCompensate a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arCompensate" ;
+        gmeow:atom ( [ gmeow:subjectVar "arCompensate" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionCompensate ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arCompensate" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:compensate ] ) ] .
+
+gmeow:mapOdrlActionConcurrentUse a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arConcurrentUse" ;
+        gmeow:atom ( [ gmeow:subjectVar "arConcurrentUse" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionConcurrentUse ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arConcurrentUse" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:concurrentUse ] ) ] .
+
+gmeow:mapOdrlActionDelete a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arDelete" ;
+        gmeow:atom ( [ gmeow:subjectVar "arDelete" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionDelete ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arDelete" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:delete ] ) ] .
+
+gmeow:mapOdrlActionDigitize a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arDigitize" ;
+        gmeow:atom ( [ gmeow:subjectVar "arDigitize" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionDigitize ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arDigitize" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:digitize ] ) ] .
+
+gmeow:mapOdrlActionDisplay a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arDisplay" ;
+        gmeow:atom ( [ gmeow:subjectVar "arDisplay" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionDisplay ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arDisplay" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:display ] ) ] .
+
+gmeow:mapOdrlActionEnsureExclusivity a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arEnsureExclusivity" ;
+        gmeow:atom ( [ gmeow:subjectVar "arEnsureExclusivity" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionEnsureExclusivity ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arEnsureExclusivity" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:ensureExclusivity ] ) ] .
+
+gmeow:mapOdrlActionExecute a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arExecute" ;
+        gmeow:atom ( [ gmeow:subjectVar "arExecute" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionExecute ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arExecute" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:execute ] ) ] .
+
+gmeow:mapOdrlActionGive a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arGive" ;
+        gmeow:atom ( [ gmeow:subjectVar "arGive" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionGive ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arGive" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:give ] ) ] .
+
+gmeow:mapOdrlActionGrantUse a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arGrantUse" ;
+        gmeow:atom ( [ gmeow:subjectVar "arGrantUse" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionGrantUse ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arGrantUse" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:grantUse ] ) ] .
+
+gmeow:mapOdrlActionInclude a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arInclude" ;
+        gmeow:atom ( [ gmeow:subjectVar "arInclude" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionInclude ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arInclude" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:include ] ) ] .
+
+gmeow:mapOdrlActionIndex a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arIndex" ;
+        gmeow:atom ( [ gmeow:subjectVar "arIndex" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionIndex ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arIndex" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:index ] ) ] .
+
+gmeow:mapOdrlActionInform a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arInform" ;
+        gmeow:atom ( [ gmeow:subjectVar "arInform" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionInform ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arInform" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:inform ] ) ] .
+
+gmeow:mapOdrlActionInstall a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arInstall" ;
+        gmeow:atom ( [ gmeow:subjectVar "arInstall" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionInstall ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arInstall" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:install ] ) ] .
+
+gmeow:mapOdrlActionLease a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arLease" ;
+        gmeow:atom ( [ gmeow:subjectVar "arLease" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionLease ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arLease" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:lease ] ) ] .
+
+gmeow:mapOdrlActionLend a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arLend" ;
+        gmeow:atom ( [ gmeow:subjectVar "arLend" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionLend ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arLend" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:lend ] ) ] .
+
+gmeow:mapOdrlActionModify a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arModify" ;
+        gmeow:atom ( [ gmeow:subjectVar "arModify" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionModify ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arModify" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:modify ] ) ] .
+
+gmeow:mapOdrlActionMove a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arMove" ;
+        gmeow:atom ( [ gmeow:subjectVar "arMove" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionMove ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arMove" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:move ] ) ] .
+
+gmeow:mapOdrlActionNextPolicy a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arNextPolicy" ;
+        gmeow:atom ( [ gmeow:subjectVar "arNextPolicy" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionNextPolicy ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arNextPolicy" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:nextPolicy ] ) ] .
+
+gmeow:mapOdrlActionPlay a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arPlay" ;
+        gmeow:atom ( [ gmeow:subjectVar "arPlay" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionPlay ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arPlay" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:play ] ) ] .
+
+gmeow:mapOdrlActionPrint a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arPrint" ;
+        gmeow:atom ( [ gmeow:subjectVar "arPrint" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionPrint ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arPrint" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:print ] ) ] .
+
+gmeow:mapOdrlActionRead a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arRead" ;
+        gmeow:atom ( [ gmeow:subjectVar "arRead" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionRead ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arRead" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:read ] ) ] .
+
+gmeow:mapOdrlActionReviewPolicy a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arReviewPolicy" ;
+        gmeow:atom ( [ gmeow:subjectVar "arReviewPolicy" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionReviewPolicy ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arReviewPolicy" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:reviewPolicy ] ) ] .
+
+gmeow:mapOdrlActionSell a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arSell" ;
+        gmeow:atom ( [ gmeow:subjectVar "arSell" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionSell ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arSell" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:sell ] ) ] .
+
+gmeow:mapOdrlActionStream a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arStream" ;
+        gmeow:atom ( [ gmeow:subjectVar "arStream" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionStream ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arStream" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:stream ] ) ] .
+
+gmeow:mapOdrlActionSynchronize a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arSynchronize" ;
+        gmeow:atom ( [ gmeow:subjectVar "arSynchronize" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionSynchronize ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arSynchronize" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:synchronize ] ) ] .
+
+gmeow:mapOdrlActionTextToSpeech a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arTextToSpeech" ;
+        gmeow:atom ( [ gmeow:subjectVar "arTextToSpeech" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionTextToSpeech ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arTextToSpeech" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:textToSpeech ] ) ] .
+
+gmeow:mapOdrlActionTransfer a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arTransfer" ;
+        gmeow:atom ( [ gmeow:subjectVar "arTransfer" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionTransfer ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arTransfer" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:transfer ] ) ] .
+
+gmeow:mapOdrlActionTransform a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arTransform" ;
+        gmeow:atom ( [ gmeow:subjectVar "arTransform" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionTransform ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arTransform" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:transform ] ) ] .
+
+gmeow:mapOdrlActionTranslate a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arTranslate" ;
+        gmeow:atom ( [ gmeow:subjectVar "arTranslate" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionTranslate ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arTranslate" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:translate ] ) ] .
+
+gmeow:mapOdrlActionUninstall a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arUninstall" ;
+        gmeow:atom ( [ gmeow:subjectVar "arUninstall" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionUninstall ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arUninstall" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:uninstall ] ) ] .
+
+gmeow:mapOdrlActionWatermark a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "arWatermark" ;
+        gmeow:atom ( [ gmeow:subjectVar "arWatermark" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionWatermark ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "arWatermark" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:watermark ] ) ] .
+
+gmeow:mapOdrlOffer a gmeow:ProjectionMapping ;
+    rdfs:label "License → odrl:Offer (+ assigner, target)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "lic" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "lic" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:License ]
+            [ gmeow:subjectVar "lic" ; gmeow:predicate gmeow:licensor ; gmeow:objectVar "licensor" ; gmeow:optional true ]
+            [ gmeow:subjectVar "lic" ; gmeow:predicate gmeow:licensedWork ; gmeow:objectVar "lwork" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "the licence's gmeow:licenseFamily / validFrom / validUntil / spdxLicenseId are dropped; only the ODRL offer skeleton survives" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "lic" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Offer ]
+            [ gmeow:tSubj "lic" ; gmeow:tPred odrl:assigner ; gmeow:tObj "licensor" ]
+            [ gmeow:tSubj "lic" ; gmeow:tPred odrl:target ; gmeow:tObj "lwork" ] ) ] .
+
+# --- ODRL constraint algebra + deontic logic -------------------------------- #
+
+gmeow:mapOdrlConstraint a gmeow:ProjectionMapping ;
+    rdfs:label "Atomic constraint on a rule → odrl:constraint"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "r" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "r" ; gmeow:predicate gmeow:ruleConstraint ; gmeow:objectVar "c" ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectVar "lo" ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:constraintOperator ; gmeow:objectVar "op" ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:rightOperand ; gmeow:objectVar "rv" ; gmeow:optional true ]
+            [ gmeow:subjectVar "c" ; gmeow:predicate gmeow:rightOperandReference ; gmeow:objectVar "rr" ; gmeow:optional true ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "ODRL logical-constraint boolean operators (and/or/xone) are not emitted; atomic-constraint shells and right operands project here, while left operands and comparison operators are rewritten by the exact value-table cells below" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "r" ; gmeow:tPred odrl:constraint ; gmeow:tObj "c" ]
+            [ gmeow:tSubj "c" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Constraint ]
+            [ gmeow:tSubj "c" ; gmeow:tPred odrl:rightOperand ; gmeow:tObj "rv" ]
+            [ gmeow:tSubj "c" ; gmeow:tPred odrl:rightOperandReference ; gmeow:tObj "rr" ] ) ] .
+
+gmeow:mapOdrlLeftOperandAbsolutePosition a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clAbsolutePosition" ;
+        gmeow:atom ( [ gmeow:subjectVar "clAbsolutePosition" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpAbsolutePosition ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clAbsolutePosition" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:absolutePosition ] ) ] .
+
+gmeow:mapOdrlLeftOperandAbsoluteSize a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clAbsoluteSize" ;
+        gmeow:atom ( [ gmeow:subjectVar "clAbsoluteSize" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpAbsoluteSize ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clAbsoluteSize" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:absoluteSize ] ) ] .
+
+gmeow:mapOdrlLeftOperandAbsoluteSpatialPosition a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clAbsoluteSpatialPosition" ;
+        gmeow:atom ( [ gmeow:subjectVar "clAbsoluteSpatialPosition" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpAbsoluteSpatialPosition ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clAbsoluteSpatialPosition" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:absoluteSpatialPosition ] ) ] .
+
+gmeow:mapOdrlLeftOperandAbsoluteTemporalPosition a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clAbsoluteTemporalPosition" ;
+        gmeow:atom ( [ gmeow:subjectVar "clAbsoluteTemporalPosition" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpAbsoluteTemporalPosition ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clAbsoluteTemporalPosition" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:absoluteTemporalPosition ] ) ] .
+
+gmeow:mapOdrlLeftOperandCount a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clCount" ;
+        gmeow:atom ( [ gmeow:subjectVar "clCount" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpCount ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clCount" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:count ] ) ] .
+
+gmeow:mapOdrlLeftOperandDateTime a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clDateTime" ;
+        gmeow:atom ( [ gmeow:subjectVar "clDateTime" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpDateTime ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clDateTime" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:dateTime ] ) ] .
+
+gmeow:mapOdrlLeftOperandDelayPeriod a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clDelayPeriod" ;
+        gmeow:atom ( [ gmeow:subjectVar "clDelayPeriod" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpDelayPeriod ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clDelayPeriod" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:delayPeriod ] ) ] .
+
+gmeow:mapOdrlLeftOperandDeliveryChannel a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clDeliveryChannel" ;
+        gmeow:atom ( [ gmeow:subjectVar "clDeliveryChannel" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpDeliveryChannel ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clDeliveryChannel" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:deliveryChannel ] ) ] .
+
+gmeow:mapOdrlLeftOperandDevice a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clDevice" ;
+        gmeow:atom ( [ gmeow:subjectVar "clDevice" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpDevice ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clDevice" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:device ] ) ] .
+
+gmeow:mapOdrlLeftOperandElapsedTime a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clElapsedTime" ;
+        gmeow:atom ( [ gmeow:subjectVar "clElapsedTime" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpElapsedTime ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clElapsedTime" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:elapsedTime ] ) ] .
+
+gmeow:mapOdrlLeftOperandEvent a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clEvent" ;
+        gmeow:atom ( [ gmeow:subjectVar "clEvent" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpEvent ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clEvent" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:event ] ) ] .
+
+gmeow:mapOdrlLeftOperandFileFormat a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clFileFormat" ;
+        gmeow:atom ( [ gmeow:subjectVar "clFileFormat" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpFileFormat ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clFileFormat" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:fileFormat ] ) ] .
+
+gmeow:mapOdrlLeftOperandIndustry a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clIndustry" ;
+        gmeow:atom ( [ gmeow:subjectVar "clIndustry" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpIndustry ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clIndustry" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:industry ] ) ] .
+
+gmeow:mapOdrlLeftOperandLanguage a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clLanguage" ;
+        gmeow:atom ( [ gmeow:subjectVar "clLanguage" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpLanguage ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clLanguage" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:language ] ) ] .
+
+gmeow:mapOdrlLeftOperandMedia a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clMedia" ;
+        gmeow:atom ( [ gmeow:subjectVar "clMedia" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpMedia ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clMedia" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:media ] ) ] .
+
+gmeow:mapOdrlLeftOperandMeteredTime a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clMeteredTime" ;
+        gmeow:atom ( [ gmeow:subjectVar "clMeteredTime" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpMeteredTime ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clMeteredTime" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:meteredTime ] ) ] .
+
+gmeow:mapOdrlLeftOperandPayAmount a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clPayAmount" ;
+        gmeow:atom ( [ gmeow:subjectVar "clPayAmount" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpPayAmount ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clPayAmount" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:payAmount ] ) ] .
+
+gmeow:mapOdrlLeftOperandPercentage a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clPercentage" ;
+        gmeow:atom ( [ gmeow:subjectVar "clPercentage" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpPercentage ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clPercentage" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:percentage ] ) ] .
+
+gmeow:mapOdrlLeftOperandProduct a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clProduct" ;
+        gmeow:atom ( [ gmeow:subjectVar "clProduct" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpProduct ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clProduct" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:product ] ) ] .
+
+gmeow:mapOdrlLeftOperandPurpose a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clPurpose" ;
+        gmeow:atom ( [ gmeow:subjectVar "clPurpose" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpPurpose ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clPurpose" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:purpose ] ) ] .
+
+gmeow:mapOdrlLeftOperandRecipient a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clRecipient" ;
+        gmeow:atom ( [ gmeow:subjectVar "clRecipient" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpRecipient ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clRecipient" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:recipient ] ) ] .
+
+gmeow:mapOdrlLeftOperandRelativePosition a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clRelativePosition" ;
+        gmeow:atom ( [ gmeow:subjectVar "clRelativePosition" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpRelativePosition ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clRelativePosition" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:relativePosition ] ) ] .
+
+gmeow:mapOdrlLeftOperandRelativeSize a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clRelativeSize" ;
+        gmeow:atom ( [ gmeow:subjectVar "clRelativeSize" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpRelativeSize ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clRelativeSize" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:relativeSize ] ) ] .
+
+gmeow:mapOdrlLeftOperandRelativeSpatialPosition a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clRelativeSpatialPosition" ;
+        gmeow:atom ( [ gmeow:subjectVar "clRelativeSpatialPosition" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpRelativeSpatialPosition ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clRelativeSpatialPosition" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:relativeSpatialPosition ] ) ] .
+
+gmeow:mapOdrlLeftOperandRelativeTemporalPosition a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clRelativeTemporalPosition" ;
+        gmeow:atom ( [ gmeow:subjectVar "clRelativeTemporalPosition" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpRelativeTemporalPosition ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clRelativeTemporalPosition" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:relativeTemporalPosition ] ) ] .
+
+gmeow:mapOdrlLeftOperandResolution a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clResolution" ;
+        gmeow:atom ( [ gmeow:subjectVar "clResolution" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpResolution ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clResolution" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:resolution ] ) ] .
+
+gmeow:mapOdrlLeftOperandSpatial a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clSpatial" ;
+        gmeow:atom ( [ gmeow:subjectVar "clSpatial" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpSpatial ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clSpatial" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:spatial ] ) ] .
+
+gmeow:mapOdrlLeftOperandSpatialCoordinates a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clSpatialCoordinates" ;
+        gmeow:atom ( [ gmeow:subjectVar "clSpatialCoordinates" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpSpatialCoordinates ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clSpatialCoordinates" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:spatialCoordinates ] ) ] .
+
+gmeow:mapOdrlLeftOperandSystem a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clSystem" ;
+        gmeow:atom ( [ gmeow:subjectVar "clSystem" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpSystem ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clSystem" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:system ] ) ] .
+
+gmeow:mapOdrlLeftOperandSystemDevice a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clSystemDevice" ;
+        gmeow:atom ( [ gmeow:subjectVar "clSystemDevice" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpSystemDevice ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clSystemDevice" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:systemDevice ] ) ] .
+
+gmeow:mapOdrlLeftOperandTimeInterval a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clTimeInterval" ;
+        gmeow:atom ( [ gmeow:subjectVar "clTimeInterval" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpTimeInterval ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clTimeInterval" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:timeInterval ] ) ] .
+
+gmeow:mapOdrlLeftOperandUnitOfCount a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clUnitOfCount" ;
+        gmeow:atom ( [ gmeow:subjectVar "clUnitOfCount" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpUnitOfCount ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clUnitOfCount" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:unitOfCount ] ) ] .
+
+gmeow:mapOdrlLeftOperandVersion a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clVersion" ;
+        gmeow:atom ( [ gmeow:subjectVar "clVersion" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpVersion ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clVersion" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:version ] ) ] .
+
+gmeow:mapOdrlLeftOperandVirtualLocation a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "clVirtualLocation" ;
+        gmeow:atom ( [ gmeow:subjectVar "clVirtualLocation" ; gmeow:predicate gmeow:leftOperand ; gmeow:objectValue gmeow:leftOpVirtualLocation ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "clVirtualLocation" ; gmeow:tPred odrl:leftOperand ; gmeow:tObjValue odrl:virtualLocation ] ) ] .
+
+gmeow:mapOdrlOperatorEq a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "coEq" ;
+        gmeow:atom ( [ gmeow:subjectVar "coEq" ; gmeow:predicate gmeow:constraintOperator ; gmeow:objectValue gmeow:operatorEq ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "coEq" ; gmeow:tPred odrl:operator ; gmeow:tObjValue odrl:eq ] ) ] .
+
+gmeow:mapOdrlOperatorGt a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "coGt" ;
+        gmeow:atom ( [ gmeow:subjectVar "coGt" ; gmeow:predicate gmeow:constraintOperator ; gmeow:objectValue gmeow:operatorGt ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "coGt" ; gmeow:tPred odrl:operator ; gmeow:tObjValue odrl:gt ] ) ] .
+
+gmeow:mapOdrlOperatorGteq a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "coGteq" ;
+        gmeow:atom ( [ gmeow:subjectVar "coGteq" ; gmeow:predicate gmeow:constraintOperator ; gmeow:objectValue gmeow:operatorGteq ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "coGteq" ; gmeow:tPred odrl:operator ; gmeow:tObjValue odrl:gteq ] ) ] .
+
+gmeow:mapOdrlOperatorHasPart a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "coHasPart" ;
+        gmeow:atom ( [ gmeow:subjectVar "coHasPart" ; gmeow:predicate gmeow:constraintOperator ; gmeow:objectValue gmeow:operatorHasPart ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "coHasPart" ; gmeow:tPred odrl:operator ; gmeow:tObjValue odrl:hasPart ] ) ] .
+
+gmeow:mapOdrlOperatorIsA a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "coIsA" ;
+        gmeow:atom ( [ gmeow:subjectVar "coIsA" ; gmeow:predicate gmeow:constraintOperator ; gmeow:objectValue gmeow:operatorIsA ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "coIsA" ; gmeow:tPred odrl:operator ; gmeow:tObjValue odrl:isA ] ) ] .
+
+gmeow:mapOdrlOperatorIsAllOf a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "coIsAllOf" ;
+        gmeow:atom ( [ gmeow:subjectVar "coIsAllOf" ; gmeow:predicate gmeow:constraintOperator ; gmeow:objectValue gmeow:operatorIsAllOf ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "coIsAllOf" ; gmeow:tPred odrl:operator ; gmeow:tObjValue odrl:isAllOf ] ) ] .
+
+gmeow:mapOdrlOperatorIsAnyOf a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "coIsAnyOf" ;
+        gmeow:atom ( [ gmeow:subjectVar "coIsAnyOf" ; gmeow:predicate gmeow:constraintOperator ; gmeow:objectValue gmeow:operatorIsAnyOf ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "coIsAnyOf" ; gmeow:tPred odrl:operator ; gmeow:tObjValue odrl:isAnyOf ] ) ] .
+
+gmeow:mapOdrlOperatorIsNoneOf a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "coIsNoneOf" ;
+        gmeow:atom ( [ gmeow:subjectVar "coIsNoneOf" ; gmeow:predicate gmeow:constraintOperator ; gmeow:objectValue gmeow:operatorIsNoneOf ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "coIsNoneOf" ; gmeow:tPred odrl:operator ; gmeow:tObjValue odrl:isNoneOf ] ) ] .
+
+gmeow:mapOdrlOperatorIsPartOf a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "coIsPartOf" ;
+        gmeow:atom ( [ gmeow:subjectVar "coIsPartOf" ; gmeow:predicate gmeow:constraintOperator ; gmeow:objectValue gmeow:operatorIsPartOf ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "coIsPartOf" ; gmeow:tPred odrl:operator ; gmeow:tObjValue odrl:isPartOf ] ) ] .
+
+gmeow:mapOdrlOperatorLt a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "coLt" ;
+        gmeow:atom ( [ gmeow:subjectVar "coLt" ; gmeow:predicate gmeow:constraintOperator ; gmeow:objectValue gmeow:operatorLt ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "coLt" ; gmeow:tPred odrl:operator ; gmeow:tObjValue odrl:lt ] ) ] .
+
+gmeow:mapOdrlOperatorLteq a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "coLteq" ;
+        gmeow:atom ( [ gmeow:subjectVar "coLteq" ; gmeow:predicate gmeow:constraintOperator ; gmeow:objectValue gmeow:operatorLteq ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "coLteq" ; gmeow:tPred odrl:operator ; gmeow:tObjValue odrl:lteq ] ) ] .
+
+gmeow:mapOdrlOperatorNeq a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "coNeq" ;
+        gmeow:atom ( [ gmeow:subjectVar "coNeq" ; gmeow:predicate gmeow:constraintOperator ; gmeow:objectValue gmeow:operatorNeq ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "coNeq" ; gmeow:tPred odrl:operator ; gmeow:tObjValue odrl:neq ] ) ] .
+
+gmeow:mapOdrlConflictPerm a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cfPerm" ;
+        gmeow:atom ( [ gmeow:subjectVar "cfPerm" ; gmeow:predicate gmeow:conflictStrategy ; gmeow:objectValue gmeow:conflictPerm ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "cfPerm" ; gmeow:tPred odrl:conflict ; gmeow:tObjValue odrl:perm ] ) ] .
+
+gmeow:mapOdrlConflictProhibit a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cfProhibit" ;
+        gmeow:atom ( [ gmeow:subjectVar "cfProhibit" ; gmeow:predicate gmeow:conflictStrategy ; gmeow:objectValue gmeow:conflictProhibit ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "cfProhibit" ; gmeow:tPred odrl:conflict ; gmeow:tObjValue odrl:prohibit ] ) ] .
+
+gmeow:mapOdrlConflictInvalid a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cfInvalid" ;
+        gmeow:atom ( [ gmeow:subjectVar "cfInvalid" ; gmeow:predicate gmeow:conflictStrategy ; gmeow:objectValue gmeow:conflictInvalid ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "cfInvalid" ; gmeow:tPred odrl:conflict ; gmeow:tObjValue odrl:invalid ] ) ] .
+
+# ODRL distinguishes a duty's consequence (odrl:consequence) from a prohibition's
+# remedy (odrl:remedy); the projection keys on the rule type to emit the right one.
+gmeow:mapOdrlConsequence a gmeow:ProjectionMapping ;
+    rdfs:label "Duty consequence → odrl:consequence"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "r" ; gmeow:value "d" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "r" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Duty ]
+            [ gmeow:subjectVar "r" ; gmeow:predicate gmeow:ruleConsequence ; gmeow:objectVar "d" ] ) ;
+        gmeow:edoalSource gmeow:ruleConsequence ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:toPredicate odrl:consequence ; gmeow:relation "<=" ; gmeow:confidence 0.7 ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:relatedMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ] .
+
+gmeow:mapOdrlRemedy a gmeow:ProjectionMapping ;
+    rdfs:label "Prohibition consequence → odrl:remedy"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "r" ; gmeow:value "d" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "r" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Prohibition ]
+            [ gmeow:subjectVar "r" ; gmeow:predicate gmeow:ruleConsequence ; gmeow:objectVar "d" ] ) ;
+        gmeow:edoalSource gmeow:ruleConsequence ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:toPredicate odrl:remedy ; gmeow:relation "<=" ; gmeow:confidence 0.65 ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:relatedMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ] .
+
+gmeow:mapOdrlAsset a gmeow:ProjectionMapping ;
+    rdfs:label "governed asset → odrl:Asset"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "asset" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "rs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ]
+            [ gmeow:subjectVar "rs" ; gmeow:predicate gmeow:statementAbout ; gmeow:objectVar "asset" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "asset" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Asset ] ) ] .
+
+gmeow:mapOdrlParty a gmeow:ProjectionMapping ;
+    rdfs:label "rule assignee → odrl:Party"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "p" ;
+        gmeow:atom ( [ gmeow:subjectVar "anyrule" ; gmeow:predicate gmeow:ruleAssignee ; gmeow:objectVar "p" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "p" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Party ] ) ] .
+
+gmeow:mapOdrlAssignerParty a gmeow:ProjectionMapping ;
+    rdfs:label "licensor (assigner) → odrl:Party"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "lp" ;
+        gmeow:atom ( [ gmeow:subjectVar "anylic" ; gmeow:predicate gmeow:licensor ; gmeow:objectVar "lp" ] ) ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "lp" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Party ] ) ] .
+
+# --- ODRL policy identity and profile details ------------------------------ #
+# odrl:uid (audit-overturned): ODRL's uid IS the policy's own IRI — the
+# projected RightsStatement node self-identifies truthfully (no document
+# identity is minted).
+# odrl:profile (audit-overturned, round 2): conformance is an ASSERTABLE
+# FACT like any other — when the policy author asserts gmeow:conformsTo on
+# the RightsStatement, the projection carries it as odrl:profile (asserted
+# + attributable, never invented; GMEOW verifies no other claim
+# independently either).
+# REFUSED (P5 — scope mismatch): odrl:duty (the PERMISSION-scoped duty,
+# e.g. attribution-on-use). GMEOW scopes duties to the RightsStatement
+# (already projected as odrl:obligation by mapOdrlDuty above); there is no
+# permission-level duty source, and re-homing the statement duty onto each
+# permission would assert a tighter binding than the data holds.
+
+gmeow:mapOdrlHasPolicy a gmeow:ProjectionMapping ;
+    rdfs:label "hasRightsStatement → odrl:hasPolicy"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ohpEnt" ; gmeow:value "ohpRs" ;
+        gmeow:atom ( [ gmeow:subjectVar "ohpEnt" ; gmeow:predicate gmeow:hasRightsStatement ; gmeow:objectVar "ohpRs" ] ) ;
+        gmeow:edoalSource gmeow:hasRightsStatement ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:toPredicate odrl:hasPolicy ; gmeow:relation "=" ; gmeow:confidence 0.9 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:closeMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ] .
+
+gmeow:mapOdrlPolicyType a gmeow:ProjectionMapping ;
+    rdfs:label "RightsStatement → odrl:Policy (the Set's superclass, alongside it)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "optRs" ;
+        gmeow:atom ( [ gmeow:subjectVar "optRs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ] ) ;
+        gmeow:edoalSource gmeow:RightsStatement ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:toClass odrl:Policy ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:closeMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ] .
+
+
+gmeow:mapOdrlUid a gmeow:ProjectionMapping ;
+    rdfs:label "RightsStatement → odrl:uid (the policy's own IRI)"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "ouRs" ;
+        gmeow:atom ( [ gmeow:subjectVar "ouRs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ] ) ;
+        gmeow:edoalSource gmeow:RightsStatement ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:toPredicate odrl:uid ; gmeow:relation "<=" ; gmeow:confidence 0.95 ;
+        gmeow:lossyDrop "odrl:uid is the policy node's own IRI; no independent GMEOW uid predicate exists to recover from the target property alone" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "ouRs" ; gmeow:tPred odrl:uid ; gmeow:tObj "ouRs" ] ) ] .
+
+
+gmeow:mapOdrlProfile a gmeow:ProjectionMapping ;
+    rdfs:label "RightsStatement conformsTo → odrl:profile"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "opfRs" ; gmeow:value "opfProfile" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "opfRs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ]
+            [ gmeow:subjectVar "opfRs" ; gmeow:predicate gmeow:conformsTo ; gmeow:objectVar "opfProfile" ] ) ;
+        gmeow:edoalSource gmeow:conformsTo ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:toPredicate odrl:profile ; gmeow:relation "=" ; gmeow:confidence 0.9 ; gmeow:mnemomorphic true ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:closeMatch ;
+        gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
+        gmeow:lossyDrop "the conformance claim is carried exactly as declared by the policy author — the transpiler never verifies it" ] .
+
+# --------------------------------------------------------------------------- #
+# Permission-scoped duties: ODRL's odrl:duty is a duty bound to ONE permission —
+# the CC-attribution pattern ("you may reproduce, PROVIDED you attribute").
+# gmeow:hasDuty's domain is the union of RightsStatement and Permission, so the
+# rule-level binding is already representable; this cell gives it its ODRL leg.
+# Statement-scoped duties keep
+# projecting as odrl:obligation (mapOdrlDuty above) — the two scopes coexist.
+# odrl:target rides the duty when the statement names an asset: ODRL 2.2 does
+# not inherit the permission's target onto its duties (target is 0..1 per
+# rule), so the duty's asset must be stated explicitly to be present.
+# --------------------------------------------------------------------------- #
+
+gmeow:mapOdrlPermissionDuty a gmeow:ProjectionMapping ;
+    rdfs:label "Permission duty rule → odrl:duty on the permission node"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "pdRs" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "pdRs" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:RightsStatement ]
+            [ gmeow:subjectVar "pdRs" ; gmeow:predicate gmeow:hasPermission ; gmeow:objectVar "pdPerm" ]
+            [ gmeow:subjectVar "pdPerm" ; gmeow:predicate gmeow:hasDuty ; gmeow:objectVar "pdDuty" ]
+            [ gmeow:optionalGroup ( [ gmeow:subjectVar "pdRs" ; gmeow:predicate gmeow:statementAbout ; gmeow:objectVar "pdAsset" ] ) ]
+            [ gmeow:subjectVar "pdDuty" ; gmeow:predicate gmeow:ruleAssignee ; gmeow:objectVar "pdAssignee" ; gmeow:optional true ] ) ;
+        gmeow:edoalSource gmeow:hasDuty ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "<=" ;
+        gmeow:lossyDrop "the permission's own odrl:constraint (e.g. temporal validity) does not propagate to the duty — ODRL 2.2 does not inherit a permission's constraints onto its duties, so the duty's constraint scope must be stated separately on the duty rule" ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "pdPerm" ; gmeow:tPred odrl:duty ; gmeow:tObj "pdDuty" ]
+            [ gmeow:tSubj "pdDuty" ; gmeow:tPred rdf:type ; gmeow:tObjValue odrl:Duty ]
+            [ gmeow:tSubj "pdDuty" ; gmeow:tPred odrl:target ; gmeow:tObj "pdAsset" ]
+            [ gmeow:tSubj "pdDuty" ; gmeow:tPred odrl:assignee ; gmeow:tObj "pdAssignee" ] ) ] .
