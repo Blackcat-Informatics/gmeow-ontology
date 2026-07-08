@@ -781,8 +781,9 @@ pub fn config_for_evidence(
     sssom_texts: &[String],
     turtle: &str,
 ) -> Result<IngestConfig, IngestError> {
-    let ev =
-        index_turtle(turtle.as_bytes()).map_err(|detail| IngestError::MalformedGraph { detail })?;
+    let ev = index_turtle(turtle.as_bytes()).map_err(|d| IngestError::MalformedGraph {
+        detail: d.to_string(),
+    })?;
     let output_type = g("AffectClassifierOutput");
     let emitted_label = g("emittedLabel");
     let emitted: BTreeSet<String> = subjects(&ev)
@@ -1404,8 +1405,9 @@ impl ScoreSemantics {
 /// data, so `recover` reads only the run + outputs. The result equals
 /// [`canonicalize`] of the original capture — the losslessness proof.
 pub fn recover(turtle: &str, config: &IngestConfig) -> Result<ClassifierRunCapture, IngestError> {
-    let index =
-        index_turtle(turtle.as_bytes()).map_err(|detail| IngestError::MalformedGraph { detail })?;
+    let index = index_turtle(turtle.as_bytes()).map_err(|d| IngestError::MalformedGraph {
+        detail: d.to_string(),
+    })?;
 
     let run = sole_subject_of_type(&index, &g("ModelInferenceRun"))?;
     let model_identifier = required_literal(&index, &run, &g("modelIdentifier"))?;

@@ -40,7 +40,6 @@ use gmeow_math::{
 use gmeow_errors::Diag;
 
 pub mod error;
-use error::compute_err;
 
 const GM: &str = "https://blackcatinformatics.ca/gmeow/";
 const MATH: &str = "https://blackcatinformatics.ca/math/";
@@ -139,7 +138,7 @@ fn load_cells(
                 property: "gmeow:coreAxisIndex".to_owned(),
             })
         })?;
-        let axis = bounded_index(axis, "core axis").map_err(compute_err)?;
+        let axis = bounded_index(axis, "core axis")?;
         let value = Rational::parse_decimal(
             &first_literal(index, &cell, &gm("appraisalValue")).ok_or_else(|| {
                 Diag::of_kind(error::MissingAffectProperty {
@@ -147,8 +146,7 @@ fn load_cells(
                     property: "gmeow:appraisalValue".to_owned(),
                 })
             })?,
-        )
-        .map_err(compute_err)?;
+        )?;
         cells.push((axis, dimension, value));
     }
     cells.sort_by_key(|(axis, _, _)| *axis);
@@ -205,8 +203,7 @@ fn load_inputs(index: &TripleIndex, observation: &str) -> gmeow_errors::Result<I
                 property: "gmeow:profileRangeMin".to_owned(),
             })
         })?,
-    )
-    .map_err(compute_err)?;
+    )?;
     let range_max = Rational::parse_decimal(
         &first_literal(index, &profile, &gm("profileRangeMax")).ok_or_else(|| {
             Diag::of_kind(error::MissingAffectProperty {
@@ -214,10 +211,9 @@ fn load_inputs(index: &TripleIndex, observation: &str) -> gmeow_errors::Result<I
                 property: "gmeow:profileRangeMax".to_owned(),
             })
         })?,
-    )
-    .map_err(compute_err)?;
+    )?;
 
-    let gram_cells = load_gram(index, &gram_iri).map_err(compute_err)?;
+    let gram_cells = load_gram(index, &gram_iri)?;
     let vector_cells = load_cells(index, &basis)?;
 
     let dim = gram_cells
@@ -248,7 +244,7 @@ fn load_inputs(index: &TripleIndex, observation: &str) -> gmeow_errors::Result<I
     }
 
     Ok(Inputs {
-        space: InnerProductSpace::new(gram).map_err(compute_err)?,
+        space: InnerProductSpace::new(gram)?,
         vector,
         axis_to_dim,
         cells: vector_cells,
@@ -259,16 +255,10 @@ fn load_inputs(index: &TripleIndex, observation: &str) -> gmeow_errors::Result<I
 
 fn compute_geometry(index: &TripleIndex, observation: &str) -> gmeow_errors::Result<Geometry> {
     let inputs = load_inputs(index, observation)?;
-    let quadratic = inputs
-        .space
-        .quadratic_form(&inputs.vector)
-        .map_err(compute_err)?;
-    let intensity = sqrt_rational_decimal(quadratic).map_err(compute_err)?;
-    let pivots = inputs.space.ldlt_pivots().map_err(compute_err)?; // hard-fails on non-PD G
-    let dominant = inputs
-        .space
-        .dominant_axis(&inputs.vector)
-        .map_err(compute_err)?;
+    let quadratic = inputs.space.quadratic_form(&inputs.vector)?;
+    let intensity = sqrt_rational_decimal(quadratic)?;
+    let pivots = inputs.space.ldlt_pivots()?; // hard-fails on non-PD G
+    let dominant = inputs.space.dominant_axis(&inputs.vector)?;
     let dominant_axis = inputs.axis_to_dim.get(&dominant).cloned().ok_or_else(|| {
         Diag::of_kind(error::MissingAffectProperty {
             node: format!("dominant axis {dominant}"),
@@ -282,8 +272,7 @@ fn compute_geometry(index: &TripleIndex, observation: &str) -> gmeow_errors::Res
             Ok(NormalizedAxis {
                 axis: *axis,
                 dimension: dimension.clone(),
-                value: normalize_to_unit(value, &inputs.range_min, &inputs.range_max)
-                    .map_err(compute_err)?,
+                value: normalize_to_unit(value, &inputs.range_min, &inputs.range_max)?,
             })
         })
         .collect::<gmeow_errors::Result<Vec<_>>>()?;
@@ -369,7 +358,7 @@ pub fn crosscheck_authored_definiteness(
 
     // Fill the declared SYMMETRIC Gram from the graph cells; the max bounded
     // index sizes the matrix (every index is bounded below `MAX_BASIS_DIM`).
-    let cells = load_gram(&index, gram_iri).map_err(compute_err)?;
+    let cells = load_gram(&index, gram_iri)?;
     let dim = cells
         .iter()
         .flat_map(|(r, c, _)| [*r, *c])
@@ -387,7 +376,7 @@ pub fn crosscheck_authored_definiteness(
         gram[col][row] = value; // declared symmetric fill
     }
 
-    let space = InnerProductSpace::new(gram).map_err(compute_err)?;
+    let space = InnerProductSpace::new(gram)?;
     let pivots = space.ldlt_pivots();
     let computed_pd = pivots.is_ok();
 
@@ -398,7 +387,7 @@ pub fn crosscheck_authored_definiteness(
                 if computed_pd {
                     "positive-definite".to_string()
                 } else {
-                    pivots.unwrap_err()
+                    pivots.unwrap_err().message().to_string()
                 }
             ),
         }));
@@ -437,11 +426,8 @@ pub fn distance_and_cosine(
             ),
         }));
     }
-    let distance = a
-        .space
-        .distance(&a.vector, &b.vector)
-        .map_err(compute_err)?;
-    let cosine = a.space.cosine(&a.vector, &b.vector).map_err(compute_err)?;
+    let distance = a.space.distance(&a.vector, &b.vector)?;
+    let cosine = a.space.cosine(&a.vector, &b.vector)?;
     Ok((distance, cosine))
 }
 

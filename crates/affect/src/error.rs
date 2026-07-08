@@ -9,11 +9,10 @@
 //! basis mismatch must surface loudly rather than degrade to a meaningless number.
 //! Each defect is a [`DiagKind`](gmeow_errors::DiagKind) minted by
 //! [`define_diag_kind!`](gmeow_errors::define_diag_kind). The shared `gmeow-math`
-//! engine still reports its exact-rational failures as `String`; those are folded
-//! into [`AffectComputeFailed`] at the crate boundary so every affect error path is
-//! a `Diag`.
+//! engine reports its own exact-rational failures as typed diagnostics under the
+//! `math.*` code namespace, which propagate through this crate unchanged.
 
-use gmeow_errors::{Code, Diag, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
+use gmeow_errors::{Code, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
 
 define_diag_kind! {
     /// A node in the affect graph is missing a required property. `node` is the
@@ -85,23 +84,6 @@ define_diag_kind! {
     message = "{}", detail;
 }
 
-define_diag_kind! {
-    /// The shared exact-rational `gmeow-math` engine reported a failure (overflow,
-    /// non-positive-definite Gram, out-of-range index, unparsable decimal, …). Its
-    /// `String` message is preserved verbatim at the affect crate boundary.
-    pub struct AffectComputeFailed { message: String }
-    code = "affect.compute.math-engine";
-    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "{}", message;
-}
-
-/// Fold a `gmeow-math` `String` error into the [`AffectComputeFailed`] diagnostic.
-/// The shared engine predates the substrate, so its exact-rational failures cross
-/// the affect boundary as `String` and are lifted to a typed `Diag` here.
-pub fn compute_err(message: String) -> Diag {
-    Diag::of_kind(AffectComputeFailed { message })
-}
-
 /// The complete affect diagnostic-code catalog, in registration order.
 pub const AFFECT_DIAG_CODES: &[&str] = &[
     MissingAffectProperty::CODE,
@@ -112,7 +94,6 @@ pub const AFFECT_DIAG_CODES: &[&str] = &[
     GramHasNoEntries::CODE,
     DefinitenessCrosscheckFailed::CODE,
     MetricBasisMismatch::CODE,
-    AffectComputeFailed::CODE,
 ];
 
 /// Eagerly intern every affect diagnostic code (idempotent).
@@ -126,7 +107,6 @@ pub fn register_all() -> Vec<Code> {
         GramHasNoEntries::register(),
         DefinitenessCrosscheckFailed::register(),
         MetricBasisMismatch::register(),
-        AffectComputeFailed::register(),
     ]
 }
 
