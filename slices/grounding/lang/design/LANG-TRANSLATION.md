@@ -45,11 +45,12 @@ Rendering is the general theory behind several relations the repository already 
 | Turtle/GTS emission of any graph | a rendering whose convention is a formal grammar ([`LANG-FORMS.md`](LANG-FORMS.md)); parsing is the same record read backwards ([`LANG-RUNTIME.md`](LANG-RUNTIME.md)) |
 | docs-tree page generation | renderings of term content under a documentation convention, per language tree |
 
-Because `math:` sits *above* `lang:` in the grounding order fixed by the manifesto, the grafting
-direction is clean: the mathematics slice adds `lang` to its dependency set and re-bases
-`math:ExpressionRendering` on `lang:Rendering` — a queued migration executed with this slice's
-implementation, removing the duplicated vocabulary under the greenfield principle rather than
-maintaining a twin.
+The grafting direction is clean and the migration is **executed**: the mathematics slice declares
+`lang` in its dependency set and `math:ExpressionRendering` is realized as a subclass of
+`lang:Rendering` — the rendering seam registered in the grounding contract
+([`docs/GROUNDING.md`](../../../../docs/GROUNDING.md)) — with `lang:renderedContent`,
+`lang:renderingConvention`, and `lang:renderingPreservation` read directly off the math record; no
+duplicated display vocabulary survives, per the greenfield principle.
 
 The hard rules:
 

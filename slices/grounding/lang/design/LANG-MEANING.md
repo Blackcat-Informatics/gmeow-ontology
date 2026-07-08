@@ -118,7 +118,8 @@ architecture the `math:` layer uses for its expression lowering:
 
 The bridge runs **one way**: `lang:` → `logic:`. `logic:` never depends back on `lang:`; its own
 prose fields and labels remain ordinary annotations until and unless a `lang:` analysis lifts
-them. This preserves the acyclic grounding order fixed in the manifesto.
+them. This is the denotation seam registered in the grounding contract
+([`docs/GROUNDING.md`](../../../../docs/GROUNDING.md)).
 
 Nothing here re-implements reasoning. Whether *cats chase mice* entails *some mouse is chased* is
 `logic:`'s question about the lowered formulas; `lang:` owns only the audited path from the
