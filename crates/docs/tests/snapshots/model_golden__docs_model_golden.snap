@@ -5,14 +5,14 @@ expression: summary
 {
   "title": "GMEOW Ontology Documentation",
   "version": "7",
-  "slice_count": 80,
-  "term_count": 2481,
-  "dependency_edge_count": 993,
+  "slice_count": 81,
+  "term_count": 2500,
+  "dependency_edge_count": 1003,
   "term_count_by_category": {
-    "Class": 739,
+    "Class": 744,
     "Datatype": 1,
     "Individual": 29,
-    "Property": 1712
+    "Property": 1726
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -87,6 +87,7 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/sensory",
     "https://blackcatinformatics.ca/gmeow/slices/sensory-environment",
     "https://blackcatinformatics.ca/gmeow/slices/sexuality",
+    "https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric",
     "https://blackcatinformatics.ca/gmeow/slices/software",
     "https://blackcatinformatics.ca/gmeow/slices/sources",
     "https://blackcatinformatics.ca/gmeow/slices/standpoint",
@@ -305,7 +306,7 @@ expression: summary
   ],
   "mapping_set_count": 80,
   "linkage_count": 1986,
-  "example_count": 140,
+  "example_count": 143,
   "concern_count": 7,
   "external_term_count": 1726,
   "sample_mapping_set": {
@@ -426,7 +427,7 @@ expression: summary
     ]
   },
   "shape_count": 322,
-  "competency_count": 127,
+  "competency_count": 133,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",
