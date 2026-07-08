@@ -11,7 +11,10 @@
 //! or a surviving retired top-level `semantic_profile` key is an error, never a
 //! silently-coerced default.
 
+use gmeow_errors::Diag;
 use serde_json::{Map, Value};
+
+use crate::error::ProfileInvalid;
 
 /// The semantic profiles the native engine recognises. An unknown localname is
 /// a hard failure — the case author must declare a real profile.
@@ -134,20 +137,27 @@ impl Profile {
 ///
 /// Returns the typed [`Profile`], or a human-readable error string on the first
 /// malformed/unknown field (hard-fail).
-pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
-    let obj = value
-        .as_object()
-        .ok_or_else(|| format!("case {case_id}: profile.json must be a JSON object"))?;
+/// Build a profile-invalid diagnostic from a preserved message.
+fn invalid(detail: String) -> Diag {
+    Diag::of_kind(ProfileInvalid { detail })
+}
+
+pub fn parse_profile(case_id: &str, value: &Value) -> gmeow_errors::Result<Profile> {
+    let obj = value.as_object().ok_or_else(|| {
+        invalid(format!(
+            "case {case_id}: profile.json must be a JSON object"
+        ))
+    })?;
 
     // Greenfield (no shim): the preset is carried under the nested
     // `reasoning_contract` object as `preset`. A surviving top-level
     // `semantic_profile` key is the retired surface and is a HARD failure — never
     // a silent fallback or dual-read.
     if obj.contains_key("semantic_profile") {
-        return Err(format!(
+        return Err(invalid(format!(
             "case {case_id}: profile.json uses the retired top-level semantic_profile key; \
              migrate to reasoning_contract.preset"
-        ));
+        )));
     }
 
     let semantic_profile = match obj.get("reasoning_contract") {
@@ -156,10 +166,10 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
         Some(rc) => parse_reasoning_contract(case_id, rc)?,
     };
     if !VALID_SEMANTIC_PROFILES.contains(&semantic_profile.as_str()) {
-        return Err(format!(
+        return Err(invalid(format!(
             "case {case_id}: unknown reasoning_contract.preset {semantic_profile:?} in \
              profile.json — must be one of {VALID_SEMANTIC_PROFILES:?}"
-        ));
+        )));
     }
 
     let budget_params = parse_budget_params(case_id, obj)?;
@@ -222,14 +232,14 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
 fn parse_szs_status_field(
     case_id: &str,
     obj: &Map<String, Value>,
-) -> Result<Option<String>, String> {
+) -> gmeow_errors::Result<Option<String>> {
     match obj.get("szs_status") {
         None | Some(Value::Null) => Ok(None),
         Some(Value::String(s)) if !s.trim().is_empty() => Ok(Some(s.clone())),
-        Some(other) => Err(format!(
+        Some(other) => Err(invalid(format!(
             "case {case_id}: profile.json szs_status must be a non-empty string (the raw \
              TPTP SZS token), got {other}"
-        )),
+        ))),
     }
 }
 
@@ -242,14 +252,14 @@ fn parse_szs_status_field(
 fn parse_documented_antipattern_field(
     case_id: &str,
     obj: &Map<String, Value>,
-) -> Result<Option<String>, String> {
+) -> gmeow_errors::Result<Option<String>> {
     match obj.get("documented_antipattern") {
         None | Some(Value::Null) => Ok(None),
         Some(Value::String(s)) if !s.trim().is_empty() => Ok(Some(s.clone())),
-        Some(other) => Err(format!(
+        Some(other) => Err(invalid(format!(
             "case {case_id}: profile.json documented_antipattern must be a non-empty string \
              (the documented OntoUML anti-pattern label), got {other}"
-        )),
+        ))),
     }
 }
 
@@ -259,28 +269,34 @@ fn parse_documented_antipattern_field(
 fn parse_compositions(
     case_id: &str,
     obj: &Map<String, Value>,
-) -> Result<Vec<(String, String, Option<String>)>, String> {
+) -> gmeow_errors::Result<Vec<(String, String, Option<String>)>> {
     let raw = match obj.get("compositions") {
         None => return Ok(Vec::new()),
         Some(v) => v.as_array().ok_or_else(|| {
-            format!("case {case_id}: profile.json compositions must be a JSON array")
+            invalid(format!(
+                "case {case_id}: profile.json compositions must be a JSON array"
+            ))
         })?,
     };
     let mut out = Vec::with_capacity(raw.len());
     for (i, entry) in raw.iter().enumerate() {
         let arr = entry.as_array().ok_or_else(|| {
-            format!("case {case_id}: profile.json compositions[{i}] must be an array")
+            invalid(format!(
+                "case {case_id}: profile.json compositions[{i}] must be an array"
+            ))
         })?;
         if arr.len() != 2 && arr.len() != 3 {
-            return Err(format!(
+            return Err(invalid(format!(
                 "case {case_id}: profile.json compositions[{i}] must have 2 or 3 elements \
                  ([left, right] or [left, right, composite]), got {}",
                 arr.len()
-            ));
+            )));
         }
-        let s = |j: usize| -> Result<String, String> {
+        let s = |j: usize| -> gmeow_errors::Result<String> {
             arr[j].as_str().map(String::from).ok_or_else(|| {
-                format!("case {case_id}: profile.json compositions[{i}][{j}] must be a string IRI")
+                invalid(format!(
+                    "case {case_id}: profile.json compositions[{i}][{j}] must be a string IRI"
+                ))
             })
         };
         out.push((
@@ -297,16 +313,19 @@ fn parse_compositions(
 /// Absent ⇒ [`VerdictMode::Materialization`]. The only accepted values are the
 /// strings `"materialization"`, `"consistency"`, and `"cl-roundtrip"`; any other
 /// value (including a non-string) is a hard error — no silent coercion to the default.
-fn parse_verdict_mode(case_id: &str, obj: &Map<String, Value>) -> Result<VerdictMode, String> {
+fn parse_verdict_mode(
+    case_id: &str,
+    obj: &Map<String, Value>,
+) -> gmeow_errors::Result<VerdictMode> {
     match obj.get("verdict_mode") {
         None | Some(Value::Null) => Ok(VerdictMode::Materialization),
         Some(Value::String(s)) if s == "materialization" => Ok(VerdictMode::Materialization),
         Some(Value::String(s)) if s == "consistency" => Ok(VerdictMode::Consistency),
         Some(Value::String(s)) if s == "cl-roundtrip" => Ok(VerdictMode::CommonLogic),
-        Some(other) => Err(format!(
+        Some(other) => Err(invalid(format!(
             "case {case_id}: profile.json verdict_mode must be \"materialization\", \
              \"consistency\", or \"cl-roundtrip\", got {other}"
-        )),
+        ))),
     }
 }
 
@@ -317,9 +336,11 @@ fn parse_verdict_mode(case_id: &str, obj: &Map<String, Value>) -> Result<Verdict
 /// carrying a string `preset` and no other keys. A non-object contract, a missing or
 /// non-string `preset`, or any unknown key is an error (the `preset` value is itself
 /// range-checked against [`VALID_SEMANTIC_PROFILES`] by the caller).
-fn parse_reasoning_contract(case_id: &str, value: &Value) -> Result<String, String> {
+fn parse_reasoning_contract(case_id: &str, value: &Value) -> gmeow_errors::Result<String> {
     let obj = value.as_object().ok_or_else(|| {
-        format!("case {case_id}: profile.json reasoning_contract must be a JSON object")
+        invalid(format!(
+            "case {case_id}: profile.json reasoning_contract must be a JSON object"
+        ))
     })?;
 
     // Only `preset` is allowed for now (keeps the surface closed; new facets are an
@@ -332,19 +353,21 @@ fn parse_reasoning_contract(case_id: &str, value: &Value) -> Result<String, Stri
         .collect();
     unknown.sort_unstable();
     if !unknown.is_empty() {
-        return Err(format!(
+        return Err(invalid(format!(
             "case {case_id}: profile.json reasoning_contract has unknown key(s) {unknown:?}; \
              allowed keys are {ALLOWED:?}"
-        ));
+        )));
     }
 
     let preset = obj.get("preset").ok_or_else(|| {
-        format!(
+        invalid(format!(
             "case {case_id}: profile.json reasoning_contract is missing the required preset key"
-        )
+        ))
     })?;
     let preset = preset.as_str().ok_or_else(|| {
-        format!("case {case_id}: profile.json reasoning_contract.preset must be a string")
+        invalid(format!(
+            "case {case_id}: profile.json reasoning_contract.preset must be a string"
+        ))
     })?;
     Ok(preset.to_string())
 }
@@ -357,13 +380,15 @@ fn parse_reasoning_contract(case_id: &str, value: &Value) -> Result<String, Stri
 fn parse_budget_params(
     case_id: &str,
     obj: &Map<String, Value>,
-) -> Result<Option<BudgetParams>, String> {
+) -> gmeow_errors::Result<Option<BudgetParams>> {
     let raw = match obj.get("budget_params") {
         None | Some(Value::Null) => return Ok(None),
         Some(v) => v,
     };
     let raw = raw.as_object().ok_or_else(|| {
-        format!("case {case_id}: profile.json budget_params must be a JSON object")
+        invalid(format!(
+            "case {case_id}: profile.json budget_params must be a JSON object"
+        ))
     })?;
 
     const ALLOWED: [&str; 4] = ["time_ms", "max_rule_firings", "max_answers", "max_steps"];
@@ -374,13 +399,13 @@ fn parse_budget_params(
         .collect();
     unknown.sort_unstable();
     if !unknown.is_empty() {
-        return Err(format!(
+        return Err(invalid(format!(
             "case {case_id}: profile.json budget_params has unknown key(s) {unknown:?}; \
              allowed keys are {ALLOWED:?}"
-        ));
+        )));
     }
 
-    let ceiling = |key: &str| -> Result<Option<u64>, String> {
+    let ceiling = |key: &str| -> gmeow_errors::Result<Option<u64>> {
         match raw.get(key) {
             None => Ok(None),
             Some(value) => {
@@ -388,22 +413,22 @@ fn parse_budget_params(
                 // from numbers, but guard anyway so `true`/`false` cannot pass as a
                 // 1/0 ceiling. `as_u64` rejects negatives, floats and non-numbers.
                 if value.is_boolean() {
-                    return Err(format!(
+                    return Err(invalid(format!(
                         "case {case_id}: profile.json budget_params.{key} must be a \
                          positive integer, got {value}"
-                    ));
+                    )));
                 }
                 let n = value.as_u64().ok_or_else(|| {
-                    format!(
+                    invalid(format!(
                         "case {case_id}: profile.json budget_params.{key} must be a \
                          positive integer, got {value}"
-                    )
+                    ))
                 })?;
                 if n == 0 {
-                    return Err(format!(
+                    return Err(invalid(format!(
                         "case {case_id}: profile.json budget_params.{key} must be a \
                          positive integer, got {n}"
-                    ));
+                    )));
                 }
                 Ok(Some(n))
             }
@@ -511,7 +536,7 @@ mod tests {
     fn verdict_mode_unknown_value_hard_fails() {
         // No silent coercion to the default (no-optionality doctrine).
         let err = parse_profile("c", &json!({ "verdict_mode": "satisfiable" })).unwrap_err();
-        assert!(err.contains("verdict_mode must be"), "{err}");
+        assert!(err.message().contains("verdict_mode must be"), "{err}");
         // A non-string is equally a hard error.
         assert!(parse_profile("c", &json!({ "verdict_mode": 1 })).is_err());
     }
@@ -557,7 +582,10 @@ mod tests {
             &json!({ "reasoning_contract": { "preset": "NopeProfile" } }),
         )
         .unwrap_err();
-        assert!(err.contains("unknown reasoning_contract.preset"), "{err}");
+        assert!(
+            err.message().contains("unknown reasoning_contract.preset"),
+            "{err}"
+        );
     }
 
     #[test]
@@ -567,30 +595,34 @@ mod tests {
         let err =
             parse_profile("c", &json!({ "semantic_profile": "PositiveHornProfile" })).unwrap_err();
         assert!(
-            err.contains("retired top-level semantic_profile key"),
+            err.message()
+                .contains("retired top-level semantic_profile key"),
             "{err}"
         );
-        assert!(err.contains("reasoning_contract.preset"), "{err}");
+        assert!(err.message().contains("reasoning_contract.preset"), "{err}");
     }
 
     #[test]
     fn reasoning_contract_missing_preset_is_a_hard_error() {
         let err = parse_profile("c", &json!({ "reasoning_contract": {} })).unwrap_err();
-        assert!(err.contains("missing the required preset key"), "{err}");
+        assert!(
+            err.message().contains("missing the required preset key"),
+            "{err}"
+        );
     }
 
     #[test]
     fn reasoning_contract_non_string_preset_is_a_hard_error() {
         let err =
             parse_profile("c", &json!({ "reasoning_contract": { "preset": 7 } })).unwrap_err();
-        assert!(err.contains("preset must be a string"), "{err}");
+        assert!(err.message().contains("preset must be a string"), "{err}");
     }
 
     #[test]
     fn reasoning_contract_non_object_is_a_hard_error() {
         let err = parse_profile("c", &json!({ "reasoning_contract": "PositiveHornProfile" }))
             .unwrap_err();
-        assert!(err.contains("must be a JSON object"), "{err}");
+        assert!(err.message().contains("must be a JSON object"), "{err}");
     }
 
     #[test]
@@ -600,7 +632,7 @@ mod tests {
             &json!({ "reasoning_contract": { "preset": "PositiveHornProfile", "nope": 1 } }),
         )
         .unwrap_err();
-        assert!(err.contains("unknown key"), "{err}");
+        assert!(err.message().contains("unknown key"), "{err}");
     }
 
     #[test]
@@ -642,7 +674,7 @@ mod tests {
     #[test]
     fn budget_params_unknown_key_hard_fails() {
         let err = parse_profile("c", &json!({ "budget_params": { "nope": 1 } })).unwrap_err();
-        assert!(err.contains("unknown key"));
+        assert!(err.message().contains("unknown key"));
     }
 
     #[test]
