@@ -5343,3 +5343,10 @@ CADASTRAL / LAND ADMINISTRATION REALM — LADM / INSPIRE (cadastral design). Par
 _:b0
     a owl:AllDisjointProperties ;
     owl:members ( gmeow:rcc8dc gmeow:rcc8ec gmeow:rcc8po gmeow:rcc8tpp gmeow:rcc8ntpp gmeow:rcc8tppi gmeow:rcc8ntppi gmeow:rcc8eq ) .
+
+# Closed-world cardinality/value axioms backing the hand-authored SHACL
+# well-formedness shapes.
+gmeow:ProximityMeasurement rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:proximityTo ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:cardinality 1 ] .

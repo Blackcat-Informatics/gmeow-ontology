@@ -270,3 +270,13 @@ DOCTRINE.
 _:b0
     a owl:AllDisjointClasses ;
     owl:members ( gmeow:Desire gmeow:Intention ) .
+
+# Closed-world cardinality/value axioms backing the hand-authored SHACL
+# well-formedness shapes.
+gmeow:Desire rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:intentBearer ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:intentionGoal ; owl:cardinality 1 ] .
+
+gmeow:IntentionTenure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureAgent ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureIntention ; owl:cardinality 1 ] .

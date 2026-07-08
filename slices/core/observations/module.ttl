@@ -734,3 +734,11 @@ Also home to the universal Quantity / MeasuredValue construct (ScalarQuantity al
     skos:definition "The GMEOW Observations Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# Closed-world cardinality axioms backing the hand-authored core observation
+# method well-formedness shape (a core observation records exactly one method).
+gmeow:Measurement rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:cardinality 1 ; owl:allValuesFrom gmeow:ObservationMethod ] .
+
+gmeow:SensoryObservation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:cardinality 1 ; owl:allValuesFrom gmeow:ObservationMethod ] .

@@ -1742,3 +1742,16 @@ DOCTRINE.
     skos:definition "The GMEOW Affect Module — emotions as intrinsic affective modes (kernel gmeow:MentalMoment family) and appraisals as vantage-indexed observations. Core; the fuller affect model is specified canonically in design/AFFECT-DESIGN.md."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# Closed-world cardinality/value axioms backing the hand-authored SHACL
+# well-formedness shapes.
+gmeow:Emotion rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:emotionBearer ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:emotionType ; owl:minCardinality 1 ] .
+
+gmeow:Appraisal rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:appraisalOf ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:appraisalDimension ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:appraisalValue ; owl:maxCardinality 1 ; owl:allValuesFrom xsd:decimal ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:appraisalScaleProfile ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:AffectScaleProfile ] .

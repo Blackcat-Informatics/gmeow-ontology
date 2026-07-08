@@ -1557,3 +1557,9 @@ This module ABSORBS the former genealogy event hierarchy (Principle 6 — refact
     skos:definition "The GMEOW Events Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# Closed-world cardinality/value axioms backing the hand-authored SHACL
+# well-formedness shapes.
+gmeow:Participation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:participationEvent ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:participationParticipant ; owl:minCardinality 1 ] .

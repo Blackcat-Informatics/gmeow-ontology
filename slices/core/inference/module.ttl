@@ -616,7 +616,7 @@ ALIGNMENT (by reference — see mappings/equivalences.ttl). PROV-O (InferencePro
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Declarative constraint axioms (#1194 WAVE 2 — core slices) — the closed-world
+# Declarative constraint axioms (core slices) — the closed-world
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
 # NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
@@ -624,7 +624,7 @@ ALIGNMENT (by reference — see mappings/equivalences.ttl). PROV-O (InferencePro
 # owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
 # sh:datatype property shape. The cross-node / disjunctive-range / value-keyed
 # (sh:sparql, sh:or, SPARQLTarget) conditions have no OWL antecedent and remain
-# the procedural fragment (Task 6).
+# the procedural fragment .
 # =========================================================================== #
 
 gmeow:InferenceCommitment rdfs:subClassOf
@@ -651,7 +651,7 @@ gmeow:Argument rdfs:subClassOf
 # (PremiseUse|InferenceApplication|StandpointClaim resp. Argument|StandpointClaim)
 # that OWL allValuesFrom cannot state without a union filler the derive does not
 # classify; only the exact-one cardinality lowers here, the disjoint-range check
-# stays procedural (Task 6).
+# stays procedural .
 gmeow:Attack rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:attackTarget ; owl:cardinality 1 ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:attackKind ; owl:cardinality 1 ; owl:allValuesFrom gmeow:AttackKind ] ,

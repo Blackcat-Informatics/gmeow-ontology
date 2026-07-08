@@ -850,12 +850,12 @@ DOCTRINE.
         gmeow:boxTBox .
 
 # =========================================================================== #
-# Declarative constraint axioms (#1194 WAVE 2 — core slices) — the closed-world
+# Declarative constraint axioms (core slices) — the closed-world
 # cardinality / class / datatype obligations the hand-authored shapes.ttl
 # NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
 # to generated/shapes/validation-shapes.ttl by derive_validation_shapes
 # (Principle 17). Cross-node / value-keyed (sh:sparql, SPARQLTarget) conditions
-# have no OWL antecedent and remain the procedural fragment (Task 6).
+# have no OWL antecedent and remain the procedural fragment .
 # =========================================================================== #
 
 gmeow:DoxasticStandpointClaim rdfs:subClassOf
@@ -905,3 +905,8 @@ gmeow:KnowledgeAttribution rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:attributingAgent ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:attributedKnower ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:attributedProposition ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Proposition ] .
+
+# Closed-world cardinality/value axioms backing the hand-authored SHACL
+# well-formedness shapes.
+gmeow:StandpointClaim rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:cardinality 1 ; owl:allValuesFrom gmeow:ObservationMethod ] .

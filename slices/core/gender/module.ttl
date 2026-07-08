@@ -402,3 +402,10 @@ gmeow:identityAxisDisjointness
 _:b1
     a owl:AllDisjointClasses ;
     owl:members ( gmeow:Gender gmeow:GenderExpressionStyle gmeow:SexAssignedAtBirth gmeow:SexualOrientationValue gmeow:RomanticOrientationValue ) .
+
+# Closed-world cardinality/value axioms backing the hand-authored SHACL
+# well-formedness shapes.
+gmeow:GenderIdentity rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:genderValue ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:facetSubject ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:facetVantage ; owl:cardinality 1 ] .

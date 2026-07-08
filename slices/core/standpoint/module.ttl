@@ -804,3 +804,9 @@ FORMAL GROUNDING. The facility realises Standpoint Logic (Gómez Álvarez & Rudo
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# Closed-world cardinality/value axioms backing the hand-authored SHACL
+# well-formedness shapes.
+gmeow:StandpointTenure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureStandpoint ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:standpointClaim ; owl:cardinality 1 ; owl:allValuesFrom gmeow:StandpointClaim ] .

@@ -1359,3 +1359,65 @@ DOCTRINE.
     skos:definition "The GMEOW Norms Module — generalized deontics with indexed authority."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# Closed-world cardinality/value axioms backing the hand-authored SHACL
+# well-formedness shapes for the norms relators.
+gmeow:Exemplar rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:exemplarPolarity ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:citingEntity ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:citedEntity ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:citationIntent ; owl:cardinality 1 ] .
+
+gmeow:ScoreAnchor rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:anchorMeaning ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:anchorRangeMin ; owl:cardinality 1 ; owl:allValuesFrom xsd:decimal ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:anchorRangeMax ; owl:cardinality 1 ; owl:allValuesFrom xsd:decimal ] .
+
+gmeow:Norm rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:deonticModality ; owl:maxCardinality 1 ] .
+
+gmeow:Persona rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:personaBearer ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:personaRegister ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:expressesNorm ; owl:allValuesFrom gmeow:Norm ] .
+
+gmeow:StyleGuide rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:styleGuideFor ; owl:minCardinality 1 ] .
+
+gmeow:Assessment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:assessmentTarget ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assessmentScoreValue ; owl:cardinality 1 ; owl:allValuesFrom xsd:decimal ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assessmentCriterion ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Criterion ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assessmentRubric ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Rubric ] .
+
+gmeow:ConditionEvaluation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:evaluatedCondition ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:evaluationVerdict ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minCardinality 1 ] .
+
+gmeow:ConditionGroup rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:groupOperator ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:groupMember ; owl:minCardinality 2 ] .
+
+gmeow:ConditionParameter rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:parameterName ; owl:cardinality 1 ] .
+
+gmeow:Criterion rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:rewardPole ; owl:cardinality 1 ; owl:allValuesFrom gmeow:CriterionPole ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:penaltyPole ; owl:cardinality 1 ; owl:allValuesFrom gmeow:CriterionPole ] .
+
+gmeow:ScoreScale rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:scaleMin ; owl:cardinality 1 ; owl:allValuesFrom xsd:decimal ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:scaleMax ; owl:cardinality 1 ; owl:allValuesFrom xsd:decimal ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:scaleStep ; owl:maxCardinality 1 ; owl:allValuesFrom xsd:decimal ] .
+
+# Range + functional axioms backing the authored gmeow:usesScale target shape
+# (at most one scale per holder; every value is a ScoreScale). The range is an
+# open-world axiom opted in to closed-world validation via a ClosureEntry.
+gmeow:usesScale a owl:FunctionalProperty ;
+    rdfs:range gmeow:ScoreScale .
+
+[ a logic:ClosureEntry ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/usesScale" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
