@@ -13,6 +13,7 @@ use std::path::Path;
 
 use gmeow_cli_core::{ConsoleMode, DiagnosticsConfig};
 use gmeow_errors::Report;
+use gmeow_slice_quality::model::{Rubric, Tier};
 use gmeow_slice_quality::report::{SliceReport, score_slice, score_slice_with_rubric};
 
 use crate::dev_common::{fail, project_root};
@@ -66,11 +67,20 @@ fn render(report: &SliceReport, format: Format) -> Result<String, String> {
 /// two compose: the stdout render is unchanged, and when `--diagnostics-artifacts`
 /// names any of `{json,sarif,html}` the same-named projections of the advisory
 /// report are written under the resolved directory.
+///
+/// `min_tier` is the G11 gate: when `None` the command is advisory and always
+/// exits 0 (today's behavior); when `Some(tier)` the measured roll-up is compared
+/// against the named tier using the rubric ladder's total order, and the command
+/// exits non-zero if the slice measures below it (naming measured vs required).
+/// With `--all` this gates the whole sweep — it fails if ANY swept slice is below
+/// the required tier, naming every failing slice — which is more useful than a
+/// single-slice-only gate.
 #[allow(clippy::too_many_arguments)]
 pub fn slice_quality(
     path: Option<&Path>,
     all: bool,
     format: Option<&str>,
+    min_tier: Option<&str>,
     console: Option<ConsoleMode>,
     artifacts: Option<&str>,
     directory: Option<&Path>,
@@ -97,7 +107,7 @@ pub fn slice_quality(
     };
 
     if all {
-        return sweep(&root, format, &config);
+        return sweep(&root, format, min_tier, &config);
     }
 
     let Some(dir) = path else {
@@ -119,10 +129,62 @@ pub fn slice_quality(
             if let Err(code) = write_artifacts(&diag, &config) {
                 return code;
             }
-            0 // advisory — the command never gates
+            // G11 gate: render/emit above always happen; the gate only decides the
+            // exit code. Unset (`min_tier == None`) preserves the advisory exit 0.
+            let Some(required) = min_tier else {
+                return 0; // advisory — the command never gates without --min-tier
+            };
+            let required = match resolve_min_tier(&report.rubric, required) {
+                Ok(t) => t,
+                Err(e) => return fail(e),
+            };
+            let measured = &report.assessment.rollup;
+            if !tier_gate_passes(measured, Some(required)) {
+                return fail(format!(
+                    "slice-quality: {} measures {} but --min-tier requires {} — below the required tier",
+                    report.assessment.slice, measured.label, required.label
+                ));
+            }
+            0
         }
         Err(e) => fail(format!("slice-quality: {e}")),
     }
+}
+
+/// The G11 gate decision for one slice: does `measured` satisfy the `--min-tier`
+/// bar? `required == None` is the advisory case (always passes / exit 0); otherwise
+/// the ladder's total order (`Tier::sort_key`) decides, so measured must be at or
+/// above the required tier. This is the single source of truth for both the
+/// single-slice and `--all` sweep gates.
+#[must_use]
+fn tier_gate_passes(measured: &Tier, required: Option<&Tier>) -> bool {
+    match required {
+        None => true,
+        Some(req) => measured.sort_key() >= req.sort_key(),
+    }
+}
+
+/// Resolve a `--min-tier` argument against the rubric ladder, accepting either a
+/// tier's human label (`Grounded`) or its IRI local name (`tierGrounded`),
+/// case-insensitively. Returns a clear error naming the available rungs on an
+/// unknown tier — a HARD FAIL, never a silently-ignored gate request.
+fn resolve_min_tier<'a>(rubric: &'a Rubric, name: &str) -> Result<&'a Tier, String> {
+    let local_of =
+        |iri: &str| -> String { iri.rsplit(['/', '#']).next().unwrap_or(iri).to_owned() };
+    if let Some(t) = rubric
+        .tiers
+        .iter()
+        .find(|t| t.label.eq_ignore_ascii_case(name) || local_of(&t.iri).eq_ignore_ascii_case(name))
+    {
+        return Ok(t);
+    }
+    let mut rungs: Vec<&Tier> = rubric.tiers.iter().collect();
+    rungs.sort_by(|a, b| a.sort_key().cmp(&b.sort_key()));
+    let known: Vec<String> = rungs.iter().map(|t| t.label.clone()).collect();
+    Err(format!(
+        "slice-quality: unknown --min-tier {name:?} (want one of: {})",
+        known.join(", ")
+    ))
 }
 
 /// Score every discovered slice against one loaded rubric and print a roll-up
@@ -136,12 +198,24 @@ pub fn slice_quality(
 /// `generated/quality/gmeow.quality-assessment.nt`). Both surfaces score the SAME slice
 /// set through [`gmeow_slice_quality::discover_slice_dirs`], so the printed roll-up and
 /// the shipped graph never diverge.
-fn sweep(root: &Path, format: Format, config: &DiagnosticsConfig) -> i32 {
+fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &DiagnosticsConfig) -> i32 {
     let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
     let rubric = match gmeow_slice_quality::load_repo_rubric(root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality: {e}")),
     };
+    // G11 sweep gate: resolve the required tier once, up front, so an unknown tier
+    // is a clear error before any slice is scored. Gating the sweep (fail if ANY
+    // slice is below) is the more useful choice than conflicting with --all.
+    let required = match min_tier {
+        Some(name) => match resolve_min_tier(&rubric, name) {
+            Ok(t) => Some(t.clone()),
+            Err(e) => return fail(e),
+        },
+        None => None,
+    };
+    // Slices measuring below the required tier, collected to name every failure.
+    let mut below: Vec<(String, String)> = Vec::new();
     let mut printed = 0usize;
     // The aggregate diagnostics report: every scored slice's advisory findings +
     // help-URI rules folded into ONE report. It is both the single stdout document
@@ -177,6 +251,11 @@ fn sweep(root: &Path, format: Format, config: &DiagnosticsConfig) -> i32 {
                 for rule in diag.rules {
                     aggregate.add_rule(rule);
                 }
+                // Record slices below the --min-tier bar (measured < required).
+                let measured = &report.assessment.rollup;
+                if !tier_gate_passes(measured, required.as_ref()) {
+                    below.push((report.assessment.slice.clone(), measured.label.clone()));
+                }
                 printed += 1;
             }
             // A slice that cannot be scored is reported, not silently skipped.
@@ -204,6 +283,23 @@ fn sweep(root: &Path, format: Format, config: &DiagnosticsConfig) -> i32 {
         .insert("category".into(), serde_json::json!(config.category));
     if let Err(code) = write_artifacts(&aggregate, config) {
         return code;
+    }
+    // G11 sweep gate: render/emit above always happen; only now does the exit code
+    // reflect the tier bar. Name every failing slice so the failure is actionable.
+    if let Some(required) = &required
+        && !below.is_empty()
+    {
+        for (slice, measured) in &below {
+            eprintln!(
+                "FAIL {slice} measures {measured} — below --min-tier {}",
+                required.label
+            );
+        }
+        return fail(format!(
+            "slice-quality: {} slice(s) below --min-tier {}",
+            below.len(),
+            required.label
+        ));
     }
     0
 }
@@ -396,6 +492,86 @@ fn scan_rs(dir: &Path, f: &mut impl FnMut(&str)) {
         {
             f(&text);
         }
+    }
+}
+
+#[cfg(test)]
+mod min_tier_tests {
+    use super::*;
+
+    /// A five-rung ladder mirroring the shipped rubric (Registered..Maximal).
+    fn ladder() -> Rubric {
+        let rung = |local: &str, label: &str, rank: i64| Tier {
+            iri: format!("{}{local}", gmeow_slice_quality::model::GMEOW),
+            label: label.to_owned(),
+            rank,
+        };
+        Rubric {
+            tiers: vec![
+                rung("tierRegistered", "Registered", 0),
+                rung("tierGrounded", "Grounded", 1),
+                rung("tierLinked", "Linked", 2),
+                rung("tierExemplified", "Exemplified", 3),
+                rung("tierMaximal", "Maximal", 4),
+            ],
+            axes: vec![],
+            exemptions: vec![],
+        }
+    }
+
+    fn tier(r: &Rubric, label: &str) -> Tier {
+        resolve_min_tier(r, label).unwrap().clone()
+    }
+
+    #[test]
+    fn gate_below_required_fails() {
+        // Measured Grounded(1) vs required Maximal(4) → below the bar, gate fails.
+        let r = ladder();
+        let measured = tier(&r, "Grounded");
+        let required = tier(&r, "Maximal");
+        assert!(
+            !tier_gate_passes(&measured, Some(&required)),
+            "measured below required must not pass"
+        );
+    }
+
+    #[test]
+    fn gate_at_or_above_required_passes() {
+        let r = ladder();
+        let required = tier(&r, "Linked");
+        // Exactly at the bar passes.
+        assert!(tier_gate_passes(&tier(&r, "Linked"), Some(&required)));
+        // Above the bar passes.
+        assert!(tier_gate_passes(&tier(&r, "Maximal"), Some(&required)));
+    }
+
+    #[test]
+    fn gate_unset_is_advisory_pass() {
+        // --min-tier unset → advisory, always passes even at the floor tier.
+        let r = ladder();
+        assert!(tier_gate_passes(&tier(&r, "Registered"), None));
+    }
+
+    #[test]
+    fn resolve_accepts_label_and_local_case_insensitively() {
+        let r = ladder();
+        assert_eq!(resolve_min_tier(&r, "Grounded").unwrap().rank, 1);
+        assert_eq!(resolve_min_tier(&r, "grounded").unwrap().rank, 1);
+        // The IRI local name is also accepted.
+        assert_eq!(resolve_min_tier(&r, "tierMaximal").unwrap().rank, 4);
+    }
+
+    #[test]
+    fn resolve_unknown_tier_errors_naming_the_rungs() {
+        let r = ladder();
+        let err = resolve_min_tier(&r, "Platinum").unwrap_err();
+        assert!(err.contains("unknown --min-tier"), "{err}");
+        assert!(err.contains("Platinum"), "names the bad input: {err}");
+        // Lists the available rungs, ladder-ordered.
+        assert!(
+            err.contains("Registered, Grounded, Linked, Exemplified, Maximal"),
+            "lists rungs: {err}"
+        );
     }
 }
 
