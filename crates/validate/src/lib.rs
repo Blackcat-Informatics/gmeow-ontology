@@ -36,6 +36,7 @@ pub mod data_validate;
 pub mod findings;
 pub mod gufo;
 pub mod model;
+pub mod projection_profiles;
 pub mod report_bridge;
 pub mod store;
 

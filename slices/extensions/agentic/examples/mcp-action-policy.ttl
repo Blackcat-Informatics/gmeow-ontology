@@ -80,6 +80,20 @@ ex:claimSuppressed
     rdfs:label "the claim is suppressed"@x-gmeow-english ;
     rdfs:comment "revise_belief's effect: the claim is suppressed (P10 — superseded, never erased)."@x-gmeow-english .
 
+# Conjecture-library situations (conjecture_test's precondition + effect, and the
+# withdraw-conjecture compensation's effect). Untyped like the memory situations above.
+ex:conjectureVerdictPresented
+    rdfs:label "a conjecture verdict has been presented"@x-gmeow-english ;
+    rdfs:comment "conjecture_test's precondition: the engine has produced a verdict ready to persist."@x-gmeow-english .
+
+ex:conjectureInLibrary
+    rdfs:label "the conjecture verdict is in the library"@x-gmeow-english ;
+    rdfs:comment "conjecture_test's effect: the content-addressed verdict node has been appended to the append-only conjecture library."@x-gmeow-english .
+
+ex:conjectureWithdrawn
+    rdfs:label "the conjecture verdict is withdrawn"@x-gmeow-english ;
+    rdfs:comment "withdraw-conjecture's effect: the persisted conjecture node is superseded (P10 — never erased)."@x-gmeow-english .
+
 # --------------------------------------------------------------------------- #
 # store_claim — a GOVERNED WRITE action (logic:McpActionSchema).
 # Compensation is revise_belief: suppression undoes the store (P10).
@@ -125,6 +139,48 @@ ex:reviseBeliefEffect
     logic:ins ex:claimSuppressed ;
     logic:del ex:claimInMemory ;
     logic:del ex:targetClaimExists .
+
+# --------------------------------------------------------------------------- #
+# persistConjecture — a GOVERNED WRITE action (logic:McpActionSchema). Appends one
+# content-addressed conjecture verdict to the append-only conjecture library. Its
+# compensation is withdraw-conjecture: a persisted verdict is reversible by
+# SUPERSESSION (P10), never by erasure — the library is append-only.
+# --------------------------------------------------------------------------- #
+
+ex:persistConjecture a logic:McpActionSchema ;
+    rdfs:label "conjecture_test — append a conjecture verdict to the library"@x-gmeow-english ;
+    logic:capability   ex:memoryWriteCapability ;
+    logic:precondition ex:conjectureVerdictPresented ;
+    logic:effect       ex:persistConjectureEffect ;
+    logic:compensation ex:withdrawConjecture .
+
+# persistConjecture's transaction-layer effect: the conjecture verdict is now in the
+# library. Append-only — it inserts conjecture-in-library and DELETES NOTHING (a persist
+# only adds; the library never mutates a prior segment).
+ex:persistConjectureEffect
+    rdfs:label "effect of conjecture_test"@x-gmeow-english ;
+    rdfs:comment "Inserts conjecture-in-library; deletes nothing — an append-only persist only adds."@x-gmeow-english ;
+    logic:ins ex:conjectureInLibrary .
+
+# --------------------------------------------------------------------------- #
+# withdrawConjecture — a GOVERNED WRITE action (logic:McpActionSchema). The P10
+# supersession compensation for persistConjecture: it retires the conjecture-in-library
+# situation and asserts conjecture-withdrawn (supersession, never erasure). Its
+# compensation is persistConjecture: a withdrawal is reversible by RE-PERSISTING.
+# --------------------------------------------------------------------------- #
+
+ex:withdrawConjecture a logic:McpActionSchema ;
+    rdfs:label "withdraw a persisted conjecture verdict (P10, never delete)"@x-gmeow-english ;
+    logic:capability   ex:memoryWriteCapability ;
+    logic:precondition ex:conjectureInLibrary ;
+    logic:effect       ex:withdrawConjectureEffect ;
+    logic:compensation ex:persistConjecture .
+
+ex:withdrawConjectureEffect
+    rdfs:label "effect of withdraw-conjecture"@x-gmeow-english ;
+    rdfs:comment "Inserts conjecture-withdrawn; deletes conjecture-in-library (supersession, never erasure — P10)."@x-gmeow-english ;
+    logic:ins ex:conjectureWithdrawn ;
+    logic:del ex:conjectureInLibrary .
 
 # --------------------------------------------------------------------------- #
 # recall — a PLAIN read action (logic:ActionSchema, NOT McpActionSchema). It has a

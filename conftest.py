@@ -12,29 +12,7 @@ from __future__ import annotations
 
 import os
 
-import purrdf
 import pytest
-from rdflib import Graph
-
-from gmeow_tools import sparql
-from gmeow_tools.graph import shared_merged_graph
-
-
-@pytest.fixture(scope="session")
-def merged_graph() -> Graph:
-    """The merged ontology as a shared, read-only rdflib graph (no per-test copy).
-
-    Built once per session. Tests MUST NOT mutate it; use ``load_merged_graph()``
-    when a mutable graph is needed.
-    """
-    return shared_merged_graph(include_imports=False)
-
-
-@pytest.fixture(scope="session")
-def merged_store() -> purrdf.Store:
-    """The merged ontology as a shared, read-only purrdf store (query only)."""
-    return sparql.merged_store(include_imports=False)
-
 
 #: Opt-in environment variable for the ``network``-marked tests. They reach LIVE
 #: external endpoints (Wikidata, BFO, OOPS!/FOOPS!), so they MUST NOT run in any
