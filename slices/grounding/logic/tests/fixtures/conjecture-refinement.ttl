@@ -1,0 +1,85 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the Lakatos monster-barring competency question
+# (gmeow:cqDataFile overlay, reasoningNone). It carries a minimal but real
+# refinement CHAIN — the thing a single conjecture_test run cannot synthesize
+# (there is no predecessor conjecture in one run), so the two chain edges are
+# legitimately AUTHORED (reviewer-asserted) rather than engine-produced.
+#
+# The chain:
+#   * ex:cxRefineTotalParthood — a REFUTED-IN-STANDPOINT predecessor conjecture
+#     ("parthood is a total order") whose logic:ContradictionWitness
+#     ex:cxRefineWitnessIncomparablePair records the incomparable pair that forced
+#     the total-order reading to owl:Nothing.
+#   * ex:cxRefinePartialParthood — the monster-barring SUCCESSOR ("parthood is a
+#     partial order") that WEAKENS the predecessor to exclude that counterexample.
+#     It links back through logic:conjectureRefinedFrom to the refuted predecessor
+#     and forward through logic:survivesCounterexample to the very witness that
+#     killed the predecessor and which the successor now EXCLUDES.
+#
+# Every node carries the full universal + conjecture-specific carriers so the
+# fixture is SHACL-valid against logic:ConjectureShape / logic:ContradictionWitnessShape.
+# logic:VerdictReviewerAsserted marks the chain edges as reviewer-authored, not a
+# single engine run's output. This overlay is loaded ONLY by
+# ex:cqConjectureRefinementSurvivesWitness, so it does not perturb the exact row
+# sets of the other conjecture fixture questions.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# ── The reified standpoint the verdicts are scoped to (Principle 9) ──────────────
+ex:cxRefineStandpointMereology
+    a gmeow:Standpoint ;
+    rdfs:label "the endurant strict-parthood standpoint (refinement fixture)"@x-gmeow-english .
+
+# ── The REFUTED predecessor and its concrete refutation witness ──────────────────
+ex:cxRefineTotalParthood
+    a logic:Conjecture ;
+    rdfs:label "parthood is a total order (refuted predecessor)"@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:c0de…refine-parthood-total"^^xsd:string ;
+    logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"^^xsd:string ;
+    logic:candidateScope "total comparability of logic:properPartOf over the endurant spine"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateProposed ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:conjectureFormula "forall x y . properPartOf(x,y) or properPartOf(y,x) or x = y"^^xsd:string ;
+    logic:conjectureStandpoint ex:cxRefineStandpointMereology ;
+    logic:conjectureLifecycleState logic:ConjectureRefutedInStandpoint ;
+    logic:verdictProvenance logic:VerdictEngineProduced ;
+    logic:conjectureRefutationWitness ex:cxRefineWitnessIncomparablePair .
+
+ex:cxRefineWitnessIncomparablePair
+    a logic:ContradictionWitness ;
+    rdfs:label "incomparable parthood pair (refutation witness)"@x-gmeow-english ;
+    logic:witnessIndividual "ex:leftHand"^^xsd:string ;
+    logic:witnessWorld "ex:worldActual"^^xsd:string ;
+    logic:witnessPremise "ex:leftHand logic:properPartOf ex:body"^^xsd:string ,
+        "ex:rightHand logic:properPartOf ex:body"^^xsd:string ,
+        "ex:leftHand owl:differentFrom ex:rightHand"^^xsd:string .
+
+# ── The monster-barring SUCCESSOR: weaker claim that excludes the witness ─────────
+# It refinedFrom the refuted predecessor and survivesCounterexample the SAME witness
+# that refuted it — the evidence the refinement did real work, not just relabelled.
+ex:cxRefinePartialParthood
+    a logic:Conjecture ;
+    rdfs:label "parthood is a partial order (refined successor)"@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:d1ff…refine-parthood-partial"^^xsd:string ;
+    logic:candidateExtractionProvenance "reviewer-asserted Lakatos refinement of ex:cxRefineTotalParthood after refutation"^^xsd:string ;
+    logic:candidateScope "antisymmetry + transitivity of logic:properPartOf over the endurant spine"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateProposed ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:conjectureFormula "forall x y z . properPartOf(x,y) and properPartOf(y,z) -> properPartOf(x,z)"^^xsd:string ;
+    logic:conjectureStandpoint ex:cxRefineStandpointMereology ;
+    logic:conjectureLifecycleState logic:ConjectureOpen ;
+    logic:verdictProvenance logic:VerdictReviewerAsserted ;
+    logic:conjectureRefinedFrom ex:cxRefineTotalParthood ;
+    logic:survivesCounterexample ex:cxRefineWitnessIncomparablePair .
