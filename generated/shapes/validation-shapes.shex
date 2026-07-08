@@ -1537,9 +1537,24 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/currencyCode> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/decidedLabel> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/decidedLabel-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/decidedLabel> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/decisionConstraint> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/decisionConstraint-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/decisionConstraint> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/decisionCrossedThreshold> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/decisionCrossedThreshold-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/decisionCrossedThreshold> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/decisionMargin> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/decisionMargin-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/decisionMargin> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/decisionPerformance> (associate via ShapeMap)
@@ -2215,6 +2230,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/knownProposition> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/knownProposition-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/knownProposition> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/labelSetDecision> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/labelSetDecision-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/labelSetDecision> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/ledgerAccountType> (associate via ShapeMap)
