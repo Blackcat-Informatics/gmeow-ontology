@@ -17,6 +17,7 @@ use gmeow_errors::{Finding, Report, Severity, render};
 use crate::dev_common::{
     NAMESPACE, ONTOLOGY_IRI, emit_report, fail, note, project_root, snapshot_bytes,
 };
+use crate::error;
 
 /// The authored term sources the default repo-only audit covers: every slice
 /// `module.ttl` + `manifest.ttl` plus the shared slice `vocabulary.ttl`.
@@ -614,12 +615,15 @@ pub fn crosscheck_queries() -> i32 {
 /// (mirroring [`crosscheck_queries`]); a query that parses but errors at evaluation
 /// is a divergence from the committed corpus and becomes an
 /// `engine-cross-check.diverge` error in the folded feedback report.
-pub fn crosscheck_queries_report(root: &Path) -> Result<Report, String> {
-    let dataset = merged_query_dataset(root)
-        .map_err(|code| format!("cannot build the query dataset (exit {code})"))?;
+pub fn crosscheck_queries_report(root: &Path) -> gmeow_errors::Result<Report> {
+    let dataset = merged_query_dataset(root).map_err(|code| {
+        error::crosscheck(format!("cannot build the query dataset (exit {code})"))
+    })?;
     let queries = committed_query_files(root);
     if queries.is_empty() {
-        return Err("no committed queries found under queries/".to_owned());
+        return Err(error::crosscheck(
+            "no committed queries found under queries/",
+        ));
     }
     let outcome = run_query_crosscheck(&dataset, &queries);
     let mut report = Report::new("engine-cross-check");

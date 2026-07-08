@@ -277,7 +277,8 @@ fn schadenfreude_geometry(onto: &RdfDataset) -> Result<gmeow_affect::Geometry, S
         DEFAULT_RSYNCABLE_THRESHOLD,
     )
     .map_err(|e| format!("emit affect fixture gts: {e}"))?;
-    gmeow_affect::geometry_from_gts_bytes(&gts, Some(SF_INTENSITY_IRI))?
+    gmeow_affect::geometry_from_gts_bytes(&gts, Some(SF_INTENSITY_IRI))
+        .map_err(|e| e.to_string())?
         .into_iter()
         .next()
         .ok_or_else(|| format!("no affect geometry computed for {SF_INTENSITY_IRI}"))

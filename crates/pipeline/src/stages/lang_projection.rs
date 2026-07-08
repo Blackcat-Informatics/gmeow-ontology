@@ -93,7 +93,7 @@ pub fn build_corpus(
     // Functor totality (Invariant 4): every emission-worthy class must map to a registered
     // target BEFORE any emission runs — a gap is a hard fail, not a silent omission.
     for (class, _) in EMISSION_WORTHY_CLASSES {
-        assert_registry_covers(class).map_err(stage_err)?;
+        assert_registry_covers(class)?;
     }
 
     let input = collect_input(catalog)?;

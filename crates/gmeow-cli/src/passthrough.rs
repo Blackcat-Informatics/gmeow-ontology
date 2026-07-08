@@ -113,11 +113,13 @@ pub(crate) fn music(reporter: &dyn Reporter, command: &MusicCommands) -> i32 {
             }
             0
         }
-        Err(message) => {
-            // Mirror `ext/music/cli.py`: an unsupported-format ValueError maps to a
+        Err(diag) => {
+            // Mirror `ext/music/cli.py`: an unsupported-format failure maps to a
             // usage error (exit 2); any other failure is a runtime error (exit 1).
-            let code = if message.starts_with("unsupported format:")
-                || message.starts_with("MusicXML import only supports")
+            // The class is read structurally off the typed music `Diag`, never by
+            // sniffing the message text.
+            let code = if diag.is::<gmeow_music::error::UnsupportedFormat>()
+                || diag.is::<gmeow_music::error::UnsupportedImportSuffix>()
             {
                 2
             } else {
@@ -126,7 +128,7 @@ pub(crate) fn music(reporter: &dyn Reporter, command: &MusicCommands) -> i32 {
             fail_code(
                 reporter,
                 "gmeow-cli.music.failed",
-                format!("Error: {message}"),
+                format!("Error: {diag}"),
                 code,
             )
         }
@@ -149,9 +151,12 @@ fn read_source(path: &std::path::Path) -> std::io::Result<String> {
 /// label→emotion `skos:closeMatch` cells the pipeline keeps out of the base graph
 /// (the claim-routing map's single source of truth). The registered label set and
 /// canonical EmotionType typing come from the base graph itself.
-fn bundled_sssom_texts() -> Result<Vec<String>, String> {
-    let sssom = gmeow_pipeline::bundle_blobs::bundled_sssom(BUNDLE_GTS)
-        .map_err(|e| format!("cannot read bundled SSSOM: {e}"))?;
+fn bundled_sssom_texts() -> gmeow_errors::Result<Vec<String>> {
+    let sssom = gmeow_pipeline::bundle_blobs::bundled_sssom(BUNDLE_GTS).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::BundleReadFailed {
+            detail: format!("cannot read bundled SSSOM: {e}"),
+        })
+    })?;
     Ok(sssom
         .values()
         .map(|bytes| String::from_utf8_lossy(bytes).into_owned())

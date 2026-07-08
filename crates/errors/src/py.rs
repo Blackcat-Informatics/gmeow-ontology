@@ -26,7 +26,7 @@ use crate::render;
 /// grade alone cannot express. The diagnostic's `code` and message are folded
 /// into the exception text in a fixed `[code] message` shape, so two diagnostics
 /// with the same content produce byte-identical exception strings. This replaces
-/// the per-crate ad-hoc `Result<_, String>` → `PyErr` mappers with a single
+/// the per-crate ad-hoc string-typed error → `PyErr` mappers with a single
 /// funnel, so there is exactly one Diag→PyErr path across the whole extension.
 pub fn diag_to_pyerr(diag: &Diag) -> PyErr {
     let message = format!("[{}] {}", code_str(diag.code()), diag.message());
@@ -84,8 +84,7 @@ impl PyFinding {
         tags: Option<Vec<String>>,
         suggestions: Option<Vec<String>>,
     ) -> PyResult<Self> {
-        let severity =
-            Severity::parse(&severity).map_err(pyo3::exceptions::PyValueError::new_err)?;
+        let severity = Severity::parse(&severity).map_err(|diag| diag_to_pyerr(&diag))?;
         let mut finding = Finding::new(severity, code, message);
         finding.tool = tool;
         finding.detail = detail;

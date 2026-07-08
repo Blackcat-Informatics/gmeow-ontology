@@ -9,29 +9,11 @@ use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use pyo3::wrap_pyfunction;
 
-fn music_error(err: String) -> PyErr {
-    use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint};
-    // Funnel through the ONE `Diag` → `PyErr` bridge, preserving the exception
-    // CLASS each case has always surfaced. A filesystem failure is carried as a
-    // live `std::io::Error` so the bridge keeps the `OSError` class every I/O
-    // failure has surfaced; every other failure is a value/data problem
-    // (`DataShapeViolation` → `ValueError`).
-    let diag = if err.starts_with("failed to read ")
-        || err.starts_with("failed to write ")
-        || err.starts_with("failed to create ")
-    {
-        Diag::from(std::io::Error::other(err))
-    } else {
-        Diag::new(
-            gmeow_errors::code::foreign_code(),
-            Grade::new(
-                Severity::Error,
-                FindingCategory::DataShapeViolation,
-                Standpoint::Binding,
-            ),
-            err,
-        )
-    };
+fn music_error(diag: gmeow_errors::Diag) -> PyErr {
+    // Funnel through the ONE `Diag` → `PyErr` bridge. Each crate error path is now a
+    // typed `Diag` carrying its own registered code and grade; a filesystem failure
+    // keeps its live `std::io::Error` source (attached by the `.with_ctx` seam), so
+    // the bridge preserves the `OSError` class every I/O failure has surfaced.
     gmeow_errors::py::diag_to_pyerr(&diag)
 }
 
@@ -66,7 +48,7 @@ pub fn import_file_py(source: &str, out: &str) -> PyResult<Vec<String>> {
 
 #[pyfunction]
 pub fn manifest_turtle(format_name: &str, provenance: Option<&str>) -> PyResult<String> {
-    crate::manifest_turtle(format_name, provenance).map_err(pyo3::exceptions::PyValueError::new_err)
+    crate::manifest_turtle(format_name, provenance).map_err(music_error)
 }
 
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {

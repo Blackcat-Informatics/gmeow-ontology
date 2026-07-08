@@ -12,7 +12,9 @@ use std::path::{Path, PathBuf};
 use gmeow_cli_core::{Reporter, report_diag};
 use gmeow_errors::grade::{Belnap, BoundedLattice};
 use gmeow_errors::model::Finding;
-use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
+use gmeow_errors::{
+    Diag, FindingCategory, Grade, ResultExt, Severity, Standpoint, define_diag_kind,
+};
 use gmeow_pipeline::diagnostics_reader::{
     FindingIndex, explain_finding, minimal_fatal_cut, read_findings, render_shared_dag, verdict,
 };
@@ -89,16 +91,27 @@ fn read_bytes(reporter: &dyn Reporter, path: &Path) -> Result<Vec<u8>, i32> {
 
 /// Build the internal→BCP-47 language tag map from a snapshot (its default-graph
 /// N-Triples projection), for the language selector.
-fn bundle_tag_map(bytes: &[u8]) -> Result<HashMap<String, String>, String> {
-    let dataset = purrdf::gts::flattened_dataset_from_bytes(bytes)
-        .map_err(|e| format!("cannot fold snapshot: {e}"))?;
+fn bundle_tag_map(bytes: &[u8]) -> gmeow_errors::Result<HashMap<String, String>> {
+    let dataset = purrdf::gts::flattened_dataset_from_bytes(bytes).map_err(|e| {
+        Diag::of_kind(crate::error::RdfPipelineFailed {
+            detail: format!("cannot fold snapshot: {e}"),
+        })
+    })?;
     let nt = purrdf::serialize_dataset(
         &dataset,
         "application/n-triples",
         purrdf::SerializeGraph::DefaultGraph,
     )
-    .map_err(|e| format!("cannot project snapshot to N-Triples: {e}"))?;
-    gmeow_validate::language_tags::load_tag_map(&nt, "n-triples")
+    .map_err(|e| {
+        Diag::of_kind(crate::error::RdfPipelineFailed {
+            detail: format!("cannot project snapshot to N-Triples: {e}"),
+        })
+    })?;
+    gmeow_validate::language_tags::load_tag_map(&nt, "n-triples").map_err(|e| {
+        Diag::of_kind(crate::error::RdfPipelineFailed {
+            detail: format!("cannot load language tag map: {e}"),
+        })
+    })
 }
 
 /// Resolve the `--lang` / `GMEOW_LANG` request against a snapshot's tag map into a
@@ -109,7 +122,8 @@ fn resolve_selector(
     lang: Option<&str>,
     bytes: &[u8],
 ) -> Result<gmeow_validate::language_tags::LangSelector, i32> {
-    let tag_map = bundle_tag_map(bytes).map_err(|e| fail(reporter, "gmeow-cli.lang.tag-map", e))?;
+    let tag_map = bundle_tag_map(bytes)
+        .map_err(|e| fail(reporter, "gmeow-cli.lang.tag-map", e.to_string()))?;
     let raw: Option<String> = lang
         .map(str::to_owned)
         .or_else(|| std::env::var("GMEOW_LANG").ok());
@@ -652,15 +666,23 @@ pub fn build(reporter: &dyn Reporter, out: &Path, gts: Option<&Path>) -> i32 {
 // ── project ──────────────────────────────────────────────────────────────────
 
 /// Re-serialize an N-Triples document as Turtle for the projection output.
-fn nt_to_turtle(nt: &str) -> Result<Vec<u8>, String> {
-    let dataset = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
-        .map_err(|e| format!("projected N-Triples parse failed: {e}"))?;
+fn nt_to_turtle(nt: &str) -> gmeow_errors::Result<Vec<u8>> {
+    let dataset =
+        purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None).map_err(|e| {
+            Diag::of_kind(crate::error::RdfPipelineFailed {
+                detail: format!("projected N-Triples parse failed: {e}"),
+            })
+        })?;
     purrdf::serialize_dataset(
         &dataset,
         "text/turtle",
         purrdf::SerializeGraph::DefaultGraph,
     )
-    .map_err(|e| format!("Turtle serialization failed: {e}"))
+    .map_err(|e| {
+        Diag::of_kind(crate::error::RdfPipelineFailed {
+            detail: format!("Turtle serialization failed: {e}"),
+        })
+    })
 }
 
 /// `gmeow project` — a per-profile CONSTRUCT over a data file, or a view filter
@@ -798,7 +820,7 @@ pub fn project(
                 println!("wrote {}", target.display());
                 0
             }
-            Err(e) => fail(reporter, "gmeow-cli.project.turtle", e),
+            Err(e) => fail(reporter, "gmeow-cli.project.turtle", e.to_string()),
         },
         Err(e) => fail(reporter, "gmeow-cli.project.subset", e.to_string()),
     }
@@ -858,7 +880,7 @@ fn project_data_file(
     };
     let ontology_nt = match quads_to_nt(&base) {
         Ok(nt) => nt,
-        Err(e) => return fail(reporter, "gmeow-cli.project.ntriples", e),
+        Err(e) => return fail(reporter, "gmeow-cli.project.ntriples", e.to_string()),
     };
     let instance_bytes = match read_bytes(reporter, source) {
         Ok(b) => b,
@@ -904,23 +926,34 @@ fn project_data_file(
                 println!("wrote {}", target.display());
                 0
             }
-            Err(e) => fail(reporter, "gmeow-cli.project.turtle", e),
+            Err(e) => fail(reporter, "gmeow-cli.project.turtle", e.to_string()),
         },
         Err(e) => fail(reporter, "gmeow-cli.project.graph", e.to_string()),
     }
 }
 
 /// Serialize a flat default-graph quad stream to canonical N-Triples.
-fn quads_to_nt(quads: &[purrdf::RdfQuad]) -> Result<String, String> {
-    let flat = purrdf::flat_dataset_from_quads(quads)
-        .map_err(|e| format!("N-Triples flatten failed: {e}"))?;
+fn quads_to_nt(quads: &[purrdf::RdfQuad]) -> gmeow_errors::Result<String> {
+    let flat = purrdf::flat_dataset_from_quads(quads).map_err(|e| {
+        Diag::of_kind(crate::error::RdfPipelineFailed {
+            detail: format!("N-Triples flatten failed: {e}"),
+        })
+    })?;
     let bytes = purrdf::serialize_dataset(
         &flat,
         "application/n-triples",
         purrdf::SerializeGraph::DefaultGraph,
     )
-    .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
-    String::from_utf8(bytes).map_err(|e| format!("N-Triples output is not UTF-8: {e}"))
+    .map_err(|e| {
+        Diag::of_kind(crate::error::RdfPipelineFailed {
+            detail: format!("N-Triples serialization failed: {e}"),
+        })
+    })?;
+    String::from_utf8(bytes).map_err(|e| {
+        Diag::of_kind(crate::error::OutputEncodingFailed {
+            detail: format!("N-Triples output is not UTF-8: {e}"),
+        })
+    })
 }
 
 // ── transpile ────────────────────────────────────────────────────────────────
@@ -963,7 +996,7 @@ pub fn transpile(
     // Assemble the lawful up-projection + maximal inputs from the embedded bundle.
     let (up_inputs, maximal_inputs) = match assemble_transpile_inputs() {
         Ok(pair) => pair,
-        Err(e) => return fail(reporter, "gmeow-cli.transpile.inputs", e),
+        Err(e) => return fail(reporter, "gmeow-cli.transpile.inputs", e.to_string()),
     };
 
     // An OKF bundle directory routes through the OKF lift lane.
@@ -992,7 +1025,7 @@ pub fn transpile(
     // A source RDF file (Turtle) or stdin (`-`).
     let (source_nt, stem) = match load_transpile_source(source) {
         Ok(pair) => pair,
-        Err(e) => return fail(reporter, "gmeow-cli.transpile.source", e),
+        Err(e) => return fail(reporter, "gmeow-cli.transpile.source", e.to_string()),
     };
     match projections::transpile_graph(&source_nt, &stem, &up_inputs, &maximal_inputs, &tag_map) {
         Ok(report) => {
@@ -1023,26 +1056,33 @@ pub fn transpile(
 }
 
 /// Read a transpile source: Turtle from a file, or Turtle from stdin (`-`).
-fn load_transpile_source(source: &Path) -> Result<(String, String), String> {
+fn load_transpile_source(source: &Path) -> gmeow_errors::Result<(String, String)> {
     let is_stdin = source.as_os_str() == "-";
     let bytes = if is_stdin {
         use std::io::Read;
         let mut buf = Vec::new();
         std::io::stdin()
             .read_to_end(&mut buf)
-            .map_err(|e| format!("cannot read stdin: {e}"))?;
+            .ctx("cannot read stdin")?;
         buf
     } else {
-        std::fs::read(source).map_err(|e| format!("cannot read {}: {e}", source.display()))?
+        std::fs::read(source).with_ctx(|| format!("cannot read {}", source.display()))?
     };
-    let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)
-        .map_err(|e| format!("cannot parse Turtle source: {e}"))?;
+    let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+        Diag::of_kind(crate::error::SourceReadFailed {
+            detail: format!("cannot parse Turtle source: {e}"),
+        })
+    })?;
     let nt = purrdf::serialize_dataset(
         &dataset,
         "application/n-triples",
         purrdf::SerializeGraph::DefaultGraph,
     )
-    .map_err(|e| format!("cannot project source to N-Triples: {e}"))?;
+    .map_err(|e| {
+        Diag::of_kind(crate::error::RdfPipelineFailed {
+            detail: format!("cannot project source to N-Triples: {e}"),
+        })
+    })?;
     let stem = if is_stdin {
         "stdin".to_owned()
     } else {
@@ -1057,17 +1097,18 @@ fn load_transpile_source(source: &Path) -> Result<(String, String), String> {
 /// Assemble the lawful up-projection + maximal inputs from the embedded bundle:
 /// the SSSOM lift maps, the projection/EDOAL TTLs, the ontology base graph, the
 /// per-profile CONSTRUCT queries, and the saturation refusal set.
-fn assemble_transpile_inputs() -> Result<
-    (
-        gmeow_pipeline::projections::UpProjectionInputs,
-        gmeow_pipeline::projections::MaximalInputs,
-    ),
-    String,
-> {
+fn assemble_transpile_inputs() -> gmeow_errors::Result<(
+    gmeow_pipeline::projections::UpProjectionInputs,
+    gmeow_pipeline::projections::MaximalInputs,
+)> {
     use gmeow_pipeline::bundle_blobs;
 
     let sssom_texts: Vec<String> = bundle_blobs::bundled_sssom(BUNDLE_GTS)
-        .map_err(|e| format!("cannot read bundled SSSOM: {e}"))?
+        .map_err(|e| {
+            Diag::of_kind(crate::error::BundleReadFailed {
+                detail: format!("cannot read bundled SSSOM: {e}"),
+            })
+        })?
         .into_values()
         .map(|v| String::from_utf8_lossy(&v).into_owned())
         .collect();
@@ -1075,9 +1116,17 @@ fn assemble_transpile_inputs() -> Result<
     // archive holds only the SSSOM surface). Reading REP_CELLS is what puts the EDOAL `=` cells
     // in front of the lawful-lift program; the old REP_MAPPINGS read folded an EMPTY `.ttl` set.
     let projection_ttls: Vec<String> = bundle_blobs::Bundle::from_snapshot(BUNDLE_GTS)
-        .map_err(|e| format!("cannot fold bundle: {e}"))?
+        .map_err(|e| {
+            Diag::of_kind(crate::error::RdfPipelineFailed {
+                detail: format!("cannot fold bundle: {e}"),
+            })
+        })?
         .archive(bundle_blobs::REP_CELLS)
-        .map_err(|e| format!("cannot read bundled cells: {e}"))?
+        .map_err(|e| {
+            Diag::of_kind(crate::error::BundleReadFailed {
+                detail: format!("cannot read bundled cells: {e}"),
+            })
+        })?
         .into_iter()
         .filter(|(k, _)| k.ends_with(".ttl"))
         .map(|(_, v)| String::from_utf8_lossy(&v).into_owned())
@@ -1085,13 +1134,26 @@ fn assemble_transpile_inputs() -> Result<
     // The A→B authorization channel: the discharged mnemomorphic `=` cells (Deliverable A),
     // read from the bundle's `graph/correspondence-laws`.
     let discharged_section_cells =
-        gmeow_pipeline::projections::discharged_section_cells_from_bundle(BUNDLE_GTS)?;
-    let base =
-        gmeow_pipeline::projections::gts_base_graph(BUNDLE_GTS).map_err(|e| e.to_string())?;
+        gmeow_pipeline::projections::discharged_section_cells_from_bundle(BUNDLE_GTS).map_err(
+            |e| {
+                Diag::of_kind(crate::error::BundleReadFailed {
+                    detail: format!("cannot read discharged section cells: {e}"),
+                })
+            },
+        )?;
+    let base = gmeow_pipeline::projections::gts_base_graph(BUNDLE_GTS).map_err(|e| {
+        Diag::of_kind(crate::error::RdfPipelineFailed {
+            detail: format!("cannot read bundled base graph: {e}"),
+        })
+    })?;
     let ontology_nt = quads_to_nt(&base)?;
 
     let projection_queries: Vec<(String, String)> = bundle_blobs::bundled_queries(BUNDLE_GTS)
-        .map_err(|e| format!("cannot read bundled queries: {e}"))?
+        .map_err(|e| {
+            Diag::of_kind(crate::error::BundleReadFailed {
+                detail: format!("cannot read bundled queries: {e}"),
+            })
+        })?
         .into_iter()
         .filter(|(k, _)| k.ends_with(".rq"))
         .map(|(k, v)| {
@@ -1103,7 +1165,11 @@ fn assemble_transpile_inputs() -> Result<
         })
         .collect();
     let denied = bundle_blobs::bundled_denied_cells(BUNDLE_GTS)
-        .map_err(|e| format!("cannot read denied cells: {e}"))?
+        .map_err(|e| {
+            Diag::of_kind(crate::error::BundleReadFailed {
+                detail: format!("cannot read denied cells: {e}"),
+            })
+        })?
         .unwrap_or_default();
 
     let up_inputs = gmeow_pipeline::projections::UpProjectionInputs {
@@ -1536,12 +1602,18 @@ define_diag_kind! {
 /// graph. Reads the segments into a dataset that PRESERVES named graphs
 /// (`dataset_from_gts_graph`, not the flattening loader), which the reader then
 /// projects — a flattened dataset would drop the graph label and read empty.
-fn finding_index(bytes: &[u8]) -> Result<FindingIndex, String> {
-    let graph = purrdf::gts::read_all_segments(bytes)
-        .map_err(|e| format!("cannot read GTS segments: {e}"))?;
-    let dataset = purrdf::gts::dataset_from_gts_graph(&graph)
-        .map_err(|e| format!("cannot fold GTS dataset: {e}"))?;
-    read_findings(&dataset).map_err(|d| format!("cannot read graph/diagnostics: {d}"))
+fn finding_index(bytes: &[u8]) -> gmeow_errors::Result<FindingIndex> {
+    let graph = purrdf::gts::read_all_segments(bytes).map_err(|e| {
+        Diag::of_kind(crate::error::SourceReadFailed {
+            detail: format!("cannot read GTS segments: {e}"),
+        })
+    })?;
+    let dataset = purrdf::gts::dataset_from_gts_graph(&graph).map_err(|e| {
+        Diag::of_kind(crate::error::RdfPipelineFailed {
+            detail: format!("cannot fold GTS dataset: {e}"),
+        })
+    })?;
+    read_findings(&dataset).ctx("cannot read graph/diagnostics")
 }
 
 /// The always-emitted substrate algebra: the ledger [`verdict`] and the
@@ -1707,7 +1779,13 @@ pub fn explain(reporter: &dyn Reporter, target_iri: String, file: Option<PathBuf
     };
     let index = match finding_index(&bytes) {
         Ok(i) => i,
-        Err(msg) => return fail(reporter, "gmeow-cli.explain.read-diagnostics", msg),
+        Err(msg) => {
+            return fail(
+                reporter,
+                "gmeow-cli.explain.read-diagnostics",
+                msg.to_string(),
+            );
+        }
     };
     match render_explanation(&index, &target_iri) {
         Ok(text) => {

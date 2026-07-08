@@ -18,6 +18,7 @@
 //! a passthrough child's own exit code for `gts` / `music`.
 
 mod commands;
+mod error;
 mod passthrough;
 
 use std::path::PathBuf;

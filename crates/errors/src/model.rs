@@ -27,7 +27,7 @@ pub enum Severity {
 
 impl Severity {
     /// Parse a user/tool supplied severity label.
-    pub fn parse(value: &str) -> Result<Self, String> {
+    pub fn parse(value: &str) -> crate::Result<Self> {
         let trimmed = value.trim();
         if trimmed.eq_ignore_ascii_case("error")
             || trimmed.eq_ignore_ascii_case("failure")
@@ -44,8 +44,10 @@ impl Severity {
         {
             Ok(Self::Info)
         } else {
-            Err(format!(
-                "unknown diagnostic severity `{trimmed}`; expected error, warning, note, or info"
+            Err(crate::diag::Diag::of_kind(
+                crate::error::UnknownSeverityLabel {
+                    value: trimmed.to_owned(),
+                },
             ))
         }
     }
@@ -157,7 +159,7 @@ pub enum FindingCategory {
 
 impl FindingCategory {
     /// Parse a kebab-case category label.
-    pub fn parse(value: &str) -> Result<Self, String> {
+    pub fn parse(value: &str) -> crate::Result<Self> {
         let trimmed = value.trim();
         if trimmed.eq_ignore_ascii_case("data-shape-violation") {
             Ok(Self::DataShapeViolation)
@@ -178,9 +180,10 @@ impl FindingCategory {
         } else if trimmed.eq_ignore_ascii_case("transient-chatter") {
             Ok(Self::Transient)
         } else {
-            Err(format!(
-                "unknown finding category `{trimmed}`; expected one of the nine \
-                 logic:FindingCategory wire values"
+            Err(crate::diag::Diag::of_kind(
+                crate::error::UnknownFindingCategory {
+                    value: trimmed.to_owned(),
+                },
             ))
         }
     }
@@ -843,7 +846,7 @@ mod tests {
             // serde rename == as_str == the kebab wire value parse() accepts.
             let json = serde_json::to_string(&category).expect("serialize");
             assert_eq!(json, format!("\"{}\"", category.as_str()));
-            assert_eq!(FindingCategory::parse(category.as_str()), Ok(category));
+            assert_eq!(FindingCategory::parse(category.as_str()).unwrap(), category);
             let round: FindingCategory = serde_json::from_str(&json).expect("deserialize");
             assert_eq!(round, category);
         }
