@@ -1794,13 +1794,14 @@ logic:SzsResourceOut
     skos:definition "The SZS status asserting the prover exhausted a resource bound (memory, inferences) before deciding. Projects to logic:ConfIncomplete. A logic:SzsNoSuccess status; the resource-bounded outcome."@x-gmeow-english .
 
 logic:corrSzsToVerdict
-    a owl:NamedIndividual ,
-        logic:Correspondence ;
+    a logic:Correspondence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "SZS status → conformance verdict correspondence"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
     logic:preservationKind logic:SoundUnderApproximation ;
     logic:correspondenceRelation logic:Subsumes ;
     logic:morphismClass logic:LossyLens ;
+    logic:morphismKind logic:InstitutionMorphism ;
     logic:hasDeterminacy logic:Crisp ;
     logic:mnemomorphic false ;
     skos:definition "The first-class correspondence recording the SZS-status → logic:ConformanceVerdict collapse as a monotone (Galois) lossy projection. It carries logic:preservationKind logic:SoundUnderApproximation because the three-bucket view drops the logic:SzsContradictoryAxioms/logic:SzsUnsatisfiable and logic:SzsCounterSatisfiable/logic:SzsSatisfiable distinctions (a logic:LossyLens, logic:mnemomorphic false — the coarse verdict cannot recover the source token, which is why logic:rawStatusToken preserves it). Modelling the collapse as a logic:Correspondence rather than a bespoke check means its preservation rung is verified by the standing correspondence overclaim and composition gates: the claimed rung must be satisfiable by the lowered legs (the FnO gmeow:fnSzsToVerdict and the per-status logic:projectsToVerdict edges), never overclaimed (design/LOGIC-CONFORMANCE.md, the loss ledger and correspondence gates)."@x-gmeow-english .
