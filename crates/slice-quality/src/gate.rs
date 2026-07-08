@@ -107,6 +107,12 @@ pub fn completeness_gate(rubric: &Rubric) -> Vec<String> {
         if ex.axis_iri.is_empty() {
             errs.push(format!("exemption {} names no axis", ex.iri));
         }
+        if ex.reason.trim().is_empty() {
+            errs.push(format!(
+                "exemption {} has an empty/whitespace reason — a dated exemption must carry a doctrine-anchored justification",
+                ex.iri
+            ));
+        }
         if ex.date.is_empty() {
             errs.push(format!("exemption {} is undated", ex.iri));
         }
@@ -256,6 +262,42 @@ mod tests {
             stale.len(),
             1,
             "a resolved producer makes its exemption stale"
+        );
+    }
+
+    #[test]
+    fn completeness_gate_reds_on_empty_exemption_reason() {
+        // (d) An exemption whose reason is empty/whitespace must red — a dated
+        // exemption cannot pass without a doctrine-anchored justification.
+        use crate::model::{Axis, ContextScope, Exemption, Threshold};
+        let axis = Axis {
+            iri: "ex:a".to_owned(),
+            label: String::new(),
+            producer: "p".to_owned(),
+            dimension_iri: "ex:d".to_owned(),
+            thresholds: vec![Threshold {
+                tier_iri: "ex:t".to_owned(),
+                floor: 0.0,
+            }],
+            weight: 1.0,
+            scope: ContextScope::SliceLocal,
+            advice: String::new(),
+        };
+        let rubric = Rubric {
+            tiers: vec![],
+            axes: vec![axis],
+            exemptions: vec![Exemption {
+                iri: "ex:e".to_owned(),
+                axis_iri: "ex:a".to_owned(),
+                reason: "   ".to_owned(),
+                date: "2026-07-08".to_owned(),
+                producer: "DocMaturity".to_owned(),
+            }],
+        };
+        let errs = completeness_gate(&rubric);
+        assert!(
+            errs.iter().any(|e| e.contains("empty/whitespace reason")),
+            "empty exemption reason must red: {errs:#?}"
         );
     }
 
