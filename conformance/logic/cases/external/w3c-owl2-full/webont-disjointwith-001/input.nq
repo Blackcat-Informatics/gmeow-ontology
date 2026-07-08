@@ -1,0 +1,8 @@
+<http://www.w3.org/2002/03owlt/disjointWith/premises001#A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-disjointwith-001/w> .
+<http://www.w3.org/2002/03owlt/disjointWith/premises001#A> <http://www.w3.org/2002/07/owl#disjointWith> <http://www.w3.org/2002/03owlt/disjointWith/premises001#B> <https://gmeow.example/w3c-owl2-full/webont-disjointwith-001/w> .
+<http://www.w3.org/2002/03owlt/disjointWith/premises001#B> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-disjointwith-001/w> .
+<http://www.w3.org/2002/03owlt/disjointWith/premises001#a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/03owlt/disjointWith/premises001#A> <https://gmeow.example/w3c-owl2-full/webont-disjointwith-001/w> .
+<http://www.w3.org/2002/03owlt/disjointWith/premises001#a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/webont-disjointwith-001/w> .
+<http://www.w3.org/2002/03owlt/disjointWith/premises001#b> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/03owlt/disjointWith/premises001#B> <https://gmeow.example/w3c-owl2-full/webont-disjointwith-001/w> .
+<http://www.w3.org/2002/03owlt/disjointWith/premises001#b> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/webont-disjointwith-001/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-disjointwith-001/w> .

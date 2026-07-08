@@ -1,0 +1,10 @@
+<http://owl2.test/rules/X1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NamedIndividual> <https://gmeow.example/w3c-owl2-full/owl2-rl-rules-fp-differentfrom/w> .
+<http://owl2.test/rules/X1> <http://www.w3.org/2002/07/owl#differentFrom> <http://owl2.test/rules/X2> <https://gmeow.example/w3c-owl2-full/owl2-rl-rules-fp-differentfrom/w> .
+<http://owl2.test/rules/X2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NamedIndividual> <https://gmeow.example/w3c-owl2-full/owl2-rl-rules-fp-differentfrom/w> .
+<http://owl2.test/rules/Y1> <http://owl2.test/rules/fp> <http://owl2.test/rules/X1> <https://gmeow.example/w3c-owl2-full/owl2-rl-rules-fp-differentfrom/w> .
+<http://owl2.test/rules/Y1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NamedIndividual> <https://gmeow.example/w3c-owl2-full/owl2-rl-rules-fp-differentfrom/w> .
+<http://owl2.test/rules/Y2> <http://owl2.test/rules/fp> <http://owl2.test/rules/X2> <https://gmeow.example/w3c-owl2-full/owl2-rl-rules-fp-differentfrom/w> .
+<http://owl2.test/rules/Y2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NamedIndividual> <https://gmeow.example/w3c-owl2-full/owl2-rl-rules-fp-differentfrom/w> .
+<http://owl2.test/rules/fp> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> <https://gmeow.example/w3c-owl2-full/owl2-rl-rules-fp-differentfrom/w> .
+<http://owl2.test/rules/fp> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/owl2-rl-rules-fp-differentfrom/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/owl2-rl-rules-fp-differentfrom/w> .

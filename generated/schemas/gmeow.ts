@@ -3331,6 +3331,12 @@ export enum TuningSystemKindEnum {
     tuningSystemKindWellTemperament = "tuningSystemKindWellTemperament",
 }
 
+export enum VerdictLatticeRelationEnum {
+    VerdictEquivalent = "VerdictEquivalent",
+    VerdictIncomparable = "VerdictIncomparable",
+    VerdictWeaker = "VerdictWeaker",
+}
+
 export enum VerificationStatusEnum {
     verificationStatusExpired = "verificationStatusExpired",
     verificationStatusFailed = "verificationStatusFailed",
@@ -4064,6 +4070,9 @@ export interface ConditionParameter extends InformationObject {
 export interface ConflictStrategy {
 }
 
+export interface ConformanceComparison {
+}
+
 export interface Connection {
     connectionSource?: string,
     connectionTarget?: string,
@@ -4191,6 +4200,9 @@ export interface CoreAffectDimension extends AppraisalDimension {
 
 export interface Corpus extends InformationObject {
     corpusMember?: InformationObject[],
+}
+
+export interface CorpusAgreementTally {
 }
 
 export interface Correspondence {
@@ -7158,6 +7170,9 @@ export interface VectorIndex extends InformationObject {
     indexAlgorithm?: IndexAlgorithm,
     indexParameters?: string[],
     indexesCorpus?: Corpus[],
+}
+
+export interface VerdictLatticeRelation {
 }
 
 export interface VerificationActivity extends Activity {

@@ -1,0 +1,3 @@
+<http://www.example.org#c1> <http://www.w3.org/2002/07/owl#disjointWith> <http://www.example.org#c2> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-disclass-inst/w> .
+<http://www.example.org#w> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.example.org#c1> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-disclass-inst/w> .
+<http://www.example.org#w> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.example.org#c2> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-disclass-inst/w> .

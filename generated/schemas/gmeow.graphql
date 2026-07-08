@@ -3331,6 +3331,12 @@ enum TuningSystemKindEnum {
   tuningSystemKindWellTemperament
 }
 
+enum VerdictLatticeRelationEnum {
+  VerdictEquivalent
+  VerdictIncomparable
+  VerdictWeaker
+}
+
 enum VerificationStatusEnum {
   verificationStatusExpired
   verificationStatusFailed
@@ -4326,6 +4332,11 @@ type ConflictStrategy {
   iri: String
 }
 
+type ConformanceComparison {
+  id: String
+  iri: String
+}
+
 type Connection {
   id: String
   iri: String
@@ -4511,6 +4522,11 @@ type Corpus {
   id: String
   iri: String
   corpusMember: [InformationObject!]
+}
+
+type CorpusAgreementTally {
+  id: String
+  iri: String
 }
 
 type Correspondence {
@@ -8614,6 +8630,11 @@ type VectorIndex {
   indexAlgorithm: IndexAlgorithm
   indexParameters: [String!]
   indexesCorpus: [Corpus!]
+}
+
+type VerdictLatticeRelation {
+  id: String
+  iri: String
 }
 
 type VerificationActivity {

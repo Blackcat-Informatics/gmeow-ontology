@@ -1,0 +1,10 @@
+<http://example.org/> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/footnote-not-about-self/w> .
+<http://example.org/about> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/footnote-not-about-self/w> .
+<http://example.org/about> <http://www.w3.org/2000/01/rdf-schema#label> "about" <https://gmeow.example/w3c-owl2-full/footnote-not-about-self/w> .
+<http://example.org/footenote1> <http://example.org/about> <http://example.org/footenote1> <https://gmeow.example/w3c-owl2-full/footnote-not-about-self/w> .
+<http://example.org/footenote1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/footnote> <https://gmeow.example/w3c-owl2-full/footnote-not-about-self/w> .
+<http://example.org/footnote> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/footnote-not-about-self/w> .
+<http://example.org/footnote> <http://www.w3.org/2002/07/owl#disjointWith> _:rdfxml_00000000000000000000000000 <https://gmeow.example/w3c-owl2-full/footnote-not-about-self/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> <https://gmeow.example/w3c-owl2-full/footnote-not-about-self/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/2002/07/owl#hasSelf> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> <https://gmeow.example/w3c-owl2-full/footnote-not-about-self/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/2002/07/owl#onProperty> <http://example.org/about> <https://gmeow.example/w3c-owl2-full/footnote-not-about-self/w> .

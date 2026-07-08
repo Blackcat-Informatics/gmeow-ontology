@@ -825,6 +825,9 @@ classes:
   ConflictStrategy:
     class_uri: https://blackcatinformatics.ca/gmeow/ConflictStrategy
     title: Conflict Strategy
+  ConformanceComparison:
+    class_uri: https://blackcatinformatics.ca/gmeow/ConformanceComparison
+    title: Conformance Comparison
   Connection:
     class_uri: https://blackcatinformatics.ca/gmeow/Connection
     title: Connection
@@ -978,6 +981,9 @@ classes:
     is_a: InformationObject
     slots:
     - corpusMember
+  CorpusAgreementTally:
+    class_uri: https://blackcatinformatics.ca/gmeow/CorpusAgreementTally
+    title: Corpus Agreement Tally
   Correspondence:
     class_uri: https://blackcatinformatics.ca/gmeow/Correspondence
     title: Correspondence
@@ -4566,6 +4572,9 @@ classes:
     - indexAlgorithm
     - indexParameters
     - indexesCorpus
+  VerdictLatticeRelation:
+    class_uri: https://blackcatinformatics.ca/gmeow/VerdictLatticeRelation
+    title: Verdict Lattice Relation
   VerificationActivity:
     class_uri: https://blackcatinformatics.ca/gmeow/VerificationActivity
     title: Verification Activity
@@ -6174,6 +6183,36 @@ slots:
     title: community member
     range: ExtractedEntity
     domain: Community
+    multivalued: true
+  comparisonCase:
+    slot_uri: https://blackcatinformatics.ca/gmeow/comparisonCase
+    title: comparison case
+    range: string
+    multivalued: true
+  comparisonCorpus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/comparisonCorpus
+    title: comparison corpus
+    range: string
+    multivalued: true
+  comparisonLatticeRelation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/comparisonLatticeRelation
+    title: comparison lattice relation
+    range: uriorcurie
+    multivalued: true
+  comparisonNativeVerdict:
+    slot_uri: https://blackcatinformatics.ca/gmeow/comparisonNativeVerdict
+    title: comparison native verdict
+    range: uriorcurie
+    multivalued: true
+  comparisonPublishedVerdict:
+    slot_uri: https://blackcatinformatics.ca/gmeow/comparisonPublishedVerdict
+    title: comparison published verdict
+    range: uriorcurie
+    multivalued: true
+  comparisonWorld:
+    slot_uri: https://blackcatinformatics.ca/gmeow/comparisonWorld
+    title: comparison world
+    range: string
     multivalued: true
   competesWith:
     slot_uri: https://blackcatinformatics.ca/gmeow/competesWith
@@ -13865,6 +13904,31 @@ slots:
     title: takes as known
     range: uriorcurie
     domain: Agent
+    multivalued: true
+  tallyAgree:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tallyAgree
+    title: tally agree
+    range: string
+    multivalued: true
+  tallyCases:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tallyCases
+    title: tally cases
+    range: string
+    multivalued: true
+  tallyCorpus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tallyCorpus
+    title: tally corpus
+    range: string
+    multivalued: true
+  tallyCorpusOnly:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tallyCorpusOnly
+    title: tally corpus-only
+    range: string
+    multivalued: true
+  tallyDlGap:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tallyDlGap
+    title: tally dl-gap
+    range: string
     multivalued: true
   taskDueDate:
     slot_uri: https://blackcatinformatics.ca/gmeow/taskDueDate
@@ -22962,6 +23026,18 @@ enums:
       tuningSystemKindWellTemperament:
         meaning: https://blackcatinformatics.ca/gmeow/tuningSystemKindWellTemperament
         title: well temperament
+  VerdictLatticeRelationEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/VerdictLatticeRelation
+    permissible_values:
+      VerdictEquivalent:
+        meaning: https://blackcatinformatics.ca/gmeow/VerdictEquivalent
+        title: Verdict Equivalent
+      VerdictIncomparable:
+        meaning: https://blackcatinformatics.ca/gmeow/VerdictIncomparable
+        title: Verdict Incomparable
+      VerdictWeaker:
+        meaning: https://blackcatinformatics.ca/gmeow/VerdictWeaker
+        title: Verdict Weaker
   VerificationStatusEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/VerificationStatus
     permissible_values:

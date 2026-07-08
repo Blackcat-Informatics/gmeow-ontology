@@ -1,0 +1,17 @@
+<http://www.w3.org/2002/03owlt/unionOf/premises003#A-and-B> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .
+<http://www.w3.org/2002/03owlt/unionOf/premises003#A-and-B> <http://www.w3.org/2002/07/owl#oneOf> _:rdfxml_list_00000000000000000000000002 <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .
+<http://www.w3.org/2002/03owlt/unionOf/premises003#A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .
+<http://www.w3.org/2002/03owlt/unionOf/premises003#A> <http://www.w3.org/2002/07/owl#oneOf> _:rdfxml_list_00000000000000000000000000 <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .
+<http://www.w3.org/2002/03owlt/unionOf/premises003#B> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .
+<http://www.w3.org/2002/03owlt/unionOf/premises003#B> <http://www.w3.org/2002/07/owl#oneOf> _:rdfxml_list_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .
+<http://www.w3.org/2002/03owlt/unionOf/premises003#a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .
+<http://www.w3.org/2002/03owlt/unionOf/premises003#b> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.w3.org/2002/03owlt/unionOf/premises003#a> <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.w3.org/2002/03owlt/unionOf/premises003#b> <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .
+_:rdfxml_list_00000000000000000000000002 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.w3.org/2002/03owlt/unionOf/premises003#a> <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .
+_:rdfxml_list_00000000000000000000000002 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_list_00000000000000000000000003 <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .
+_:rdfxml_list_00000000000000000000000003 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.w3.org/2002/03owlt/unionOf/premises003#b> <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .
+_:rdfxml_list_00000000000000000000000003 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/webont-unionof-003/w> .

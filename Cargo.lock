@@ -1868,6 +1868,7 @@ dependencies = [
 name = "gmeow-conformance"
 version = "0.1.0"
 dependencies = [
+ "blake3",
  "datatest-stable",
  "gmeow-errors",
  "gmeow-license",

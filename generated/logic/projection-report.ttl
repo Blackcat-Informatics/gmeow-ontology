@@ -117,6 +117,16 @@
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ExactPreservation .
 
+<https://blackcatinformatics.ca/logic/target/correspondence:693dca551ec34fc1>
+    a logic:ProjectionTarget ;
+    rdfs:label "correspondence:693dca551ec34fc1" ;
+    gmeow:lossyDrop "a lossy correspondence's get leg is many-to-one (non-injective): the coarse view cannot recover the source distinctions its finer domain drew, so the lowering is a sound under-approximation, never exact — the dropped source distinctions survive only in the canonical logic: layer" ,
+        "actual: correspondence: https://blackcatinformatics.ca/logic/corrSzsToVerdict" ,
+        "actual: logic:SzsContradictoryAxioms and logic:SzsUnsatisfiable collapse to logic:ConfInconsistent; the CAX≠UNS distinction survives only via logic:rawStatusToken" ,
+        "actual: logic:SzsCounterSatisfiable and logic:SzsSatisfiable collapse to logic:ConfConsistent; the CSA≠SAT distinction survives only via logic:rawStatusToken" ;
+    logic:complexityClass "decidable/graph-iso lens-law check" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/datalog>
     a logic:ProjectionTarget ;
     rdfs:label "datalog" ;
@@ -7335,6 +7345,7 @@
         "actual: logic:characterizes on <https://blackcatinformatics.ca/logic/sharpensTransitivity> has no gUFO bridge equivalent" ,
         "actual: logic:characterizes on <https://blackcatinformatics.ca/logic/subEventOfTransitivity> has no gUFO bridge equivalent" ,
         "actual: logic:characterizes on <https://blackcatinformatics.ca/logic/versionOfFunctionality> has no gUFO bridge equivalent" ,
+        "actual: logic:correspondenceRelation on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:defeasibleStrength on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no gUFO bridge equivalent" ,
         "actual: logic:distinctBody on <https://blackcatinformatics.ca/logic/ruleCrossNodeGlut> has no gUFO bridge equivalent" ,
         "actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/causalLinkDistinctness> has no gUFO bridge equivalent" ,
@@ -7390,6 +7401,7 @@
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/sharpensTransitivity> has no gUFO bridge equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/subEventOfTransitivity> has no gUFO bridge equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/versionOfFunctionality> has no gUFO bridge equivalent" ,
+        "actual: logic:hasDeterminacy on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no gUFO bridge equivalent" ,
         "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleClusterRoot> has no gUFO bridge equivalent" ,
         "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleCrossNodeGlut> has no gUFO bridge equivalent" ,
@@ -7444,6 +7456,9 @@
         "actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelStrong> has no gUFO bridge equivalent" ,
         "actual: logic:mediates on <https://blackcatinformatics.ca/logic/ControlFlowEdge> has no gUFO bridge equivalent" ,
         "actual: logic:mediates on <https://blackcatinformatics.ca/logic/DataFlowEdge> has no gUFO bridge equivalent" ,
+        "actual: logic:mnemomorphic on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no gUFO bridge equivalent" ,
+        "actual: logic:morphismClass on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no gUFO bridge equivalent" ,
+        "actual: logic:morphismKind on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:negatedBody on <https://blackcatinformatics.ca/logic/ruleFindingRootCause> has no gUFO bridge equivalent" ,
         "actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> has no gUFO bridge equivalent" ,
         "actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/IndirectContributorNotAttributionObligation> has no gUFO bridge equivalent" ,
@@ -7460,11 +7475,21 @@
         "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfConstructModel> has no gUFO bridge equivalent" ,
         "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfMaterializeEdb> has no gUFO bridge equivalent" ,
         "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfResolveFixpoint> has no gUFO bridge equivalent" ,
+        "actual: logic:preservationKind on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no gUFO bridge equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowAwareness> has no gUFO bridge equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowConceptual> has no gUFO bridge equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no gUFO bridge equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowProceduralMastery> has no gUFO bridge equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowTransferMastery> has no gUFO bridge equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsContradictoryAxioms> has no gUFO bridge equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsCounterSatisfiable> has no gUFO bridge equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsGaveUp> has no gUFO bridge equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsResourceOut> has no gUFO bridge equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsSatisfiable> has no gUFO bridge equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsTheorem> has no gUFO bridge equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsTimeout> has no gUFO bridge equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsUnknown> has no gUFO bridge equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsUnsatisfiable> has no gUFO bridge equivalent" ,
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen> has no gUFO bridge equivalent" ,
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldDefinition> has no gUFO bridge equivalent" ,
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldUseWhen> has no gUFO bridge equivalent" ,
@@ -7487,6 +7512,15 @@
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleRootFinding> has no gUFO bridge equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> has no gUFO bridge equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> has no gUFO bridge equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsContradictoryAxioms> has no gUFO bridge equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsCounterSatisfiable> has no gUFO bridge equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsGaveUp> has no gUFO bridge equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsResourceOut> has no gUFO bridge equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsSatisfiable> has no gUFO bridge equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsTheorem> has no gUFO bridge equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsTimeout> has no gUFO bridge equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsUnknown> has no gUFO bridge equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsUnsatisfiable> has no gUFO bridge equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference> has no gUFO bridge equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive> has no gUFO bridge equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateCrossNodeGlut> has no gUFO bridge equivalent" ,
@@ -7521,6 +7555,7 @@
         "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no gUFO bridge equivalent" ,
         "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowProceduralMastery> has no gUFO bridge equivalent" ,
         "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowTransferMastery> has no gUFO bridge equivalent" ,
+        "actual: logic:szsStrengthens on <https://blackcatinformatics.ca/logic/SzsContradictoryAxioms> has no gUFO bridge equivalent" ,
         "actual: logic:thresholdLevel on <https://blackcatinformatics.ca/logic/ladderRowAwareness> has no gUFO bridge equivalent" ,
         "actual: logic:thresholdLevel on <https://blackcatinformatics.ca/logic/ladderRowConceptual> has no gUFO bridge equivalent" ,
         "actual: logic:thresholdLevel on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no gUFO bridge equivalent" ,
@@ -11095,6 +11130,7 @@
         "actual: logic:characterizes on <https://blackcatinformatics.ca/logic/sharpensTransitivity> has no OWL DL equivalent" ,
         "actual: logic:characterizes on <https://blackcatinformatics.ca/logic/subEventOfTransitivity> has no OWL DL equivalent" ,
         "actual: logic:characterizes on <https://blackcatinformatics.ca/logic/versionOfFunctionality> has no OWL DL equivalent" ,
+        "actual: logic:correspondenceRelation on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no OWL DL equivalent" ,
         "actual: logic:defeasibleStrength on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no OWL DL equivalent" ,
         "actual: logic:distinctBody on <https://blackcatinformatics.ca/logic/ruleCrossNodeGlut> has no OWL DL equivalent" ,
         "actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/causalLinkDistinctness> has no OWL DL equivalent" ,
@@ -11150,6 +11186,7 @@
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/sharpensTransitivity> has no OWL DL equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/subEventOfTransitivity> has no OWL DL equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/versionOfFunctionality> has no OWL DL equivalent" ,
+        "actual: logic:hasDeterminacy on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no OWL DL equivalent" ,
         "actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no OWL DL equivalent" ,
         "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleClusterRoot> has no OWL DL equivalent" ,
         "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleCrossNodeGlut> has no OWL DL equivalent" ,
@@ -11204,6 +11241,9 @@
         "actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelStrong> has no OWL DL equivalent" ,
         "actual: logic:mediates on <https://blackcatinformatics.ca/logic/ControlFlowEdge> has no OWL DL equivalent" ,
         "actual: logic:mediates on <https://blackcatinformatics.ca/logic/DataFlowEdge> has no OWL DL equivalent" ,
+        "actual: logic:mnemomorphic on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no OWL DL equivalent" ,
+        "actual: logic:morphismClass on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no OWL DL equivalent" ,
+        "actual: logic:morphismKind on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no OWL DL equivalent" ,
         "actual: logic:negatedBody on <https://blackcatinformatics.ca/logic/ruleFindingRootCause> has no OWL DL equivalent" ,
         "actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> has no OWL DL equivalent" ,
         "actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/IndirectContributorNotAttributionObligation> has no OWL DL equivalent" ,
@@ -11220,11 +11260,21 @@
         "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfConstructModel> has no OWL DL equivalent" ,
         "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfMaterializeEdb> has no OWL DL equivalent" ,
         "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfResolveFixpoint> has no OWL DL equivalent" ,
+        "actual: logic:preservationKind on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no OWL DL equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowAwareness> has no OWL DL equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowConceptual> has no OWL DL equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no OWL DL equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowProceduralMastery> has no OWL DL equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowTransferMastery> has no OWL DL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsContradictoryAxioms> has no OWL DL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsCounterSatisfiable> has no OWL DL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsGaveUp> has no OWL DL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsResourceOut> has no OWL DL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsSatisfiable> has no OWL DL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsTheorem> has no OWL DL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsTimeout> has no OWL DL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsUnknown> has no OWL DL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsUnsatisfiable> has no OWL DL equivalent" ,
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen> has no OWL DL equivalent" ,
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldDefinition> has no OWL DL equivalent" ,
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldUseWhen> has no OWL DL equivalent" ,
@@ -11247,6 +11297,15 @@
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleRootFinding> has no OWL DL equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> has no OWL DL equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> has no OWL DL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsContradictoryAxioms> has no OWL DL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsCounterSatisfiable> has no OWL DL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsGaveUp> has no OWL DL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsResourceOut> has no OWL DL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsSatisfiable> has no OWL DL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsTheorem> has no OWL DL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsTimeout> has no OWL DL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsUnknown> has no OWL DL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsUnsatisfiable> has no OWL DL equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference> has no OWL DL equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive> has no OWL DL equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateCrossNodeGlut> has no OWL DL equivalent" ,
@@ -11281,6 +11340,7 @@
         "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no OWL DL equivalent" ,
         "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowProceduralMastery> has no OWL DL equivalent" ,
         "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowTransferMastery> has no OWL DL equivalent" ,
+        "actual: logic:szsStrengthens on <https://blackcatinformatics.ca/logic/SzsContradictoryAxioms> has no OWL DL equivalent" ,
         "actual: logic:thresholdLevel on <https://blackcatinformatics.ca/logic/ladderRowAwareness> has no OWL DL equivalent" ,
         "actual: logic:thresholdLevel on <https://blackcatinformatics.ca/logic/ladderRowConceptual> has no OWL DL equivalent" ,
         "actual: logic:thresholdLevel on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no OWL DL equivalent" ,
@@ -11693,6 +11753,7 @@
         "actual: logic:characterizes on <https://blackcatinformatics.ca/logic/sharpensTransitivity> has no EL equivalent" ,
         "actual: logic:characterizes on <https://blackcatinformatics.ca/logic/subEventOfTransitivity> has no EL equivalent" ,
         "actual: logic:characterizes on <https://blackcatinformatics.ca/logic/versionOfFunctionality> has no EL equivalent" ,
+        "actual: logic:correspondenceRelation on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no EL equivalent" ,
         "actual: logic:defeasibleStrength on <https://blackcatinformatics.ca/logic/skillEvidenceForKnowsAbout> has no EL equivalent" ,
         "actual: logic:distinctBody on <https://blackcatinformatics.ca/logic/ruleCrossNodeGlut> has no EL equivalent" ,
         "actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/causalLinkDistinctness> has no EL equivalent" ,
@@ -11748,6 +11809,7 @@
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/sharpensTransitivity> has no EL equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/subEventOfTransitivity> has no EL equivalent" ,
         "actual: logic:formalizes on <https://blackcatinformatics.ca/logic/versionOfFunctionality> has no EL equivalent" ,
+        "actual: logic:hasDeterminacy on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no EL equivalent" ,
         "actual: logic:hasThresholdRow on <https://blackcatinformatics.ca/logic/defaultLadderProfile> has no EL equivalent" ,
         "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleClusterRoot> has no EL equivalent" ,
         "actual: logic:head on <https://blackcatinformatics.ca/logic/ruleCrossNodeGlut> has no EL equivalent" ,
@@ -11802,6 +11864,9 @@
         "actual: logic:levelAtOrAbove on <https://blackcatinformatics.ca/logic/levelStrong> has no EL equivalent" ,
         "actual: logic:mediates on <https://blackcatinformatics.ca/logic/ControlFlowEdge> has no EL equivalent" ,
         "actual: logic:mediates on <https://blackcatinformatics.ca/logic/DataFlowEdge> has no EL equivalent" ,
+        "actual: logic:mnemomorphic on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no EL equivalent" ,
+        "actual: logic:morphismClass on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no EL equivalent" ,
+        "actual: logic:morphismKind on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no EL equivalent" ,
         "actual: logic:negatedBody on <https://blackcatinformatics.ca/logic/ruleFindingRootCause> has no EL equivalent" ,
         "actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/CounterpartNonTransitivityObligation> has no EL equivalent" ,
         "actual: logic:obligationDischargeCondition on <https://blackcatinformatics.ca/logic/IndirectContributorNotAttributionObligation> has no EL equivalent" ,
@@ -11818,11 +11883,21 @@
         "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfConstructModel> has no EL equivalent" ,
         "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfMaterializeEdb> has no EL equivalent" ,
         "actual: logic:precondition on <https://blackcatinformatics.ca/logic/wfResolveFixpoint> has no EL equivalent" ,
+        "actual: logic:preservationKind on <https://blackcatinformatics.ca/logic/corrSzsToVerdict> has no EL equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowAwareness> has no EL equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowConceptual> has no EL equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no EL equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowProceduralMastery> has no EL equivalent" ,
         "actual: logic:projectsLadderEdge on <https://blackcatinformatics.ca/logic/ladderRowTransferMastery> has no EL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsContradictoryAxioms> has no EL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsCounterSatisfiable> has no EL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsGaveUp> has no EL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsResourceOut> has no EL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsSatisfiable> has no EL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsTheorem> has no EL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsTimeout> has no EL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsUnknown> has no EL equivalent" ,
+        "actual: logic:projectsToVerdict on <https://blackcatinformatics.ca/logic/SzsUnsatisfiable> has no EL equivalent" ,
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen> has no EL equivalent" ,
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldDefinition> has no EL equivalent" ,
         "actual: logic:proseFieldProperty on <https://blackcatinformatics.ca/logic/ProseFieldUseWhen> has no EL equivalent" ,
@@ -11845,6 +11920,15 @@
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleRootFinding> has no EL equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature> has no EL equivalent" ,
         "actual: logic:provenance on <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage> has no EL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsContradictoryAxioms> has no EL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsCounterSatisfiable> has no EL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsGaveUp> has no EL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsResourceOut> has no EL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsSatisfiable> has no EL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsTheorem> has no EL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsTimeout> has no EL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsUnknown> has no EL equivalent" ,
+        "actual: logic:rawStatusToken on <https://blackcatinformatics.ca/logic/SzsUnsatisfiable> has no EL equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateBullshitTruthIndifference> has no EL equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive> has no EL equivalent" ,
         "actual: logic:reviewedBy on <https://blackcatinformatics.ca/logic/candidateCrossNodeGlut> has no EL equivalent" ,
@@ -11879,6 +11963,7 @@
         "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no EL equivalent" ,
         "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowProceduralMastery> has no EL equivalent" ,
         "actual: logic:sourceDimension on <https://blackcatinformatics.ca/logic/ladderRowTransferMastery> has no EL equivalent" ,
+        "actual: logic:szsStrengthens on <https://blackcatinformatics.ca/logic/SzsContradictoryAxioms> has no EL equivalent" ,
         "actual: logic:thresholdLevel on <https://blackcatinformatics.ca/logic/ladderRowAwareness> has no EL equivalent" ,
         "actual: logic:thresholdLevel on <https://blackcatinformatics.ca/logic/ladderRowConceptual> has no EL equivalent" ,
         "actual: logic:thresholdLevel on <https://blackcatinformatics.ca/logic/ladderRowDeclarative> has no EL equivalent" ,
@@ -12007,6 +12092,25 @@
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ProseFieldAvoidWhen> <https://blackcatinformatics.ca/logic/proseFieldProperty> <https://blackcatinformatics.ca/gmeow/avoidWhen> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ProseFieldDefinition> <https://blackcatinformatics.ca/logic/proseFieldProperty> <http://www.w3.org/2004/02/skos/core#definition> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/ProseFieldUseWhen> <https://blackcatinformatics.ca/logic/proseFieldProperty> <https://blackcatinformatics.ca/gmeow/useWhen> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsContradictoryAxioms> <https://blackcatinformatics.ca/logic/projectsToVerdict> <https://blackcatinformatics.ca/logic/ConfInconsistent> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsContradictoryAxioms> <https://blackcatinformatics.ca/logic/rawStatusToken> \"ContradictoryAxioms\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsContradictoryAxioms> <https://blackcatinformatics.ca/logic/szsStrengthens> <https://blackcatinformatics.ca/logic/SzsUnsatisfiable> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsCounterSatisfiable> <https://blackcatinformatics.ca/logic/projectsToVerdict> <https://blackcatinformatics.ca/logic/ConfConsistent> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsCounterSatisfiable> <https://blackcatinformatics.ca/logic/rawStatusToken> \"CounterSatisfiable\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsGaveUp> <https://blackcatinformatics.ca/logic/projectsToVerdict> <https://blackcatinformatics.ca/logic/ConfIncomplete> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsGaveUp> <https://blackcatinformatics.ca/logic/rawStatusToken> \"GaveUp\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsResourceOut> <https://blackcatinformatics.ca/logic/projectsToVerdict> <https://blackcatinformatics.ca/logic/ConfIncomplete> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsResourceOut> <https://blackcatinformatics.ca/logic/rawStatusToken> \"ResourceOut\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsSatisfiable> <https://blackcatinformatics.ca/logic/projectsToVerdict> <https://blackcatinformatics.ca/logic/ConfConsistent> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsSatisfiable> <https://blackcatinformatics.ca/logic/rawStatusToken> \"Satisfiable\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsTheorem> <https://blackcatinformatics.ca/logic/projectsToVerdict> <https://blackcatinformatics.ca/logic/ConfInconsistent> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsTheorem> <https://blackcatinformatics.ca/logic/rawStatusToken> \"Theorem\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsTimeout> <https://blackcatinformatics.ca/logic/projectsToVerdict> <https://blackcatinformatics.ca/logic/ConfIncomplete> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsTimeout> <https://blackcatinformatics.ca/logic/rawStatusToken> \"Timeout\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsUnknown> <https://blackcatinformatics.ca/logic/projectsToVerdict> <https://blackcatinformatics.ca/logic/ConfIncomplete> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsUnknown> <https://blackcatinformatics.ca/logic/rawStatusToken> \"Unknown\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsUnsatisfiable> <https://blackcatinformatics.ca/logic/projectsToVerdict> <https://blackcatinformatics.ca/logic/ConfInconsistent> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/SzsUnsatisfiable> <https://blackcatinformatics.ca/logic/rawStatusToken> \"Unsatisfiable\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/TransactionStep> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/TemporalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/TruthAlgebra> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ParaconsistentFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/World> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/ModalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
@@ -12373,6 +12477,12 @@
         "actual: ground axiom <https://blackcatinformatics.ca/logic/commitmentBeneficiaryDistinctness> <https://blackcatinformatics.ca/logic/distinctnessRole> <https://blackcatinformatics.ca/gmeow/committedAgent> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/commitmentBeneficiaryDistinctness> <https://blackcatinformatics.ca/logic/distinctnessTarget> <https://blackcatinformatics.ca/gmeow/Commitment> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/commitmentBeneficiaryDistinctness> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/commitmentBeneficiary> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/corrSzsToVerdict> <https://blackcatinformatics.ca/logic/correspondenceRelation> <https://blackcatinformatics.ca/logic/Subsumes> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/corrSzsToVerdict> <https://blackcatinformatics.ca/logic/hasDeterminacy> <https://blackcatinformatics.ca/logic/Crisp> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/corrSzsToVerdict> <https://blackcatinformatics.ca/logic/mnemomorphic> \"false\" is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/corrSzsToVerdict> <https://blackcatinformatics.ca/logic/morphismClass> <https://blackcatinformatics.ca/logic/LossyLens> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/corrSzsToVerdict> <https://blackcatinformatics.ca/logic/morphismKind> <https://blackcatinformatics.ca/logic/InstitutionMorphism> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
+        "actual: ground axiom <https://blackcatinformatics.ca/logic/corrSzsToVerdict> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> <https://blackcatinformatics.ca/logic/characteristicSort> <https://blackcatinformatics.ca/logic/irreflexiveProperty> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> <https://blackcatinformatics.ca/logic/characterizes> <https://blackcatinformatics.ca/gmeow/counterGoal> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
         "actual: ground axiom <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/counterGoal> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer" ,
@@ -19478,6 +19588,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:050c718948db1f0a>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:050c718948db1f0a" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/logic/ConfInconsistent|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveEntailment" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:05126d337e9bb598>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:05126d337e9bb598" ;
@@ -23673,6 +23794,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:36295f9a0d68c520" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/Concept|http://www.w3.org/2004/02/skos/core#relatedMatch|http://www.w3.org/ns/lemon/ontolex#LexicalConcept" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:363a1c9622444747>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:363a1c9622444747" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/logic/ConfConsistent|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeEntailment" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -32781,6 +32913,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:a2217bb242f1150d>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:a2217bb242f1150d" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/logic/ConfConsistent|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.w3.org/2007/OWL/testOntology#ConsistencyTest" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:a25b9e2a7ab67d38>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:a25b9e2a7ab67d38" ;
@@ -34208,6 +34351,17 @@
     a logic:ProjectionTarget ;
     rdfs:label "sssom:b2befdc0565088e8" ;
     gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/gmeow/notationMEI|http://www.w3.org/2004/02/skos/core#exactMatch|http://www.wikidata.org/entity/Q6808199" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/sssom:b2e3a33c390a26c8>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:b2e3a33c390a26c8" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/logic/ConfInconsistent|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.w3.org/2007/OWL/testOntology#InconsistencyTest" ,
         "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
         "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
         "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
@@ -40714,7 +40868,7 @@
 
 logic:projection-report
     a logic:ProjectionReport ;
-    logic:axiomCount 636 ;
+    logic:axiomCount 661 ;
     logic:claimedUpliftCount 479 ;
     logic:correspondenceCount 592 ;
     logic:formulaCount 6 ;
@@ -40727,6 +40881,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/clif> ,
         <https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentCatsChaseMice> ,
         <https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentSawHerDuck> ,
+        <https://blackcatinformatics.ca/logic/target/correspondence:693dca551ec34fc1> ,
         <https://blackcatinformatics.ca/logic/target/datalog> ,
         <https://blackcatinformatics.ca/logic/target/ebnf:gmn> ,
         <https://blackcatinformatics.ca/logic/target/ebnf:gts> ,
@@ -42355,6 +42510,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:04bbcb4afd78b952> ,
         <https://blackcatinformatics.ca/logic/target/sssom:04d1dcee6b1b53eb> ,
         <https://blackcatinformatics.ca/logic/target/sssom:04f8bb0bdc6d2362> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:050c718948db1f0a> ,
         <https://blackcatinformatics.ca/logic/target/sssom:05126d337e9bb598> ,
         <https://blackcatinformatics.ca/logic/target/sssom:0514711c67c8b6e7> ,
         <https://blackcatinformatics.ca/logic/target/sssom:0529c5531ae9c5d5> ,
@@ -42737,6 +42893,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:35a71cf90fb3bc86> ,
         <https://blackcatinformatics.ca/logic/target/sssom:36202c64c1e50950> ,
         <https://blackcatinformatics.ca/logic/target/sssom:36295f9a0d68c520> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:363a1c9622444747> ,
         <https://blackcatinformatics.ca/logic/target/sssom:3643f777ece8070f> ,
         <https://blackcatinformatics.ca/logic/target/sssom:366f8e4360c3d242> ,
         <https://blackcatinformatics.ca/logic/target/sssom:36b0c923e6ffe157> ,
@@ -43564,6 +43721,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:a154f6f241187bc7> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a1923e6ddaa5f7c4> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a20dc7557b67bcad> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:a2217bb242f1150d> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a25b9e2a7ab67d38> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a288ba133924fb78> ,
         <https://blackcatinformatics.ca/logic/target/sssom:a2d0d4c8f1421ac0> ,
@@ -43694,6 +43852,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:b297849fe7f59bcf> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b2a5d6318fabccee> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b2befdc0565088e8> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:b2e3a33c390a26c8> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b34a6fa4d2eb9d87> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b37554e841e7927f> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b3df74046ffed35a> ,

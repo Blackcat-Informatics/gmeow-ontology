@@ -1,0 +1,9 @@
+<http://www.example.org/> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-ontology-004/w> .
+<http://www.w3.org/2002/03owlt/Ontology/premises004#Automobile> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-ontology-004/w> .
+<http://www.w3.org/2002/03owlt/Ontology/premises004#Car> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-ontology-004/w> .
+<http://www.w3.org/2002/03owlt/Ontology/premises004#Car> <http://www.w3.org/2002/07/owl#equivalentClass> <http://www.w3.org/2002/03owlt/Ontology/premises004#Automobile> <https://gmeow.example/w3c-owl2-full/webont-ontology-004/w> .
+<http://www.w3.org/2002/03owlt/Ontology/premises004#auto> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/03owlt/Ontology/premises004#Automobile> <https://gmeow.example/w3c-owl2-full/webont-ontology-004/w> .
+<http://www.w3.org/2002/03owlt/Ontology/premises004#auto> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/webont-ontology-004/w> .
+<http://www.w3.org/2002/03owlt/Ontology/premises004#car> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/03owlt/Ontology/premises004#Car> <https://gmeow.example/w3c-owl2-full/webont-ontology-004/w> .
+<http://www.w3.org/2002/03owlt/Ontology/premises004#car> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/webont-ontology-004/w> .
+<http://www.w3.org/2002/03owlt/Ontology/premises004> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-ontology-004/w> .

@@ -1,0 +1,2 @@
+<http://www.w3.org/2002/03owlt/FunctionalProperty/premises003#prop> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> <https://gmeow.example/w3c-owl2-full/webont-functionalproperty-003/w> .
+<http://www.w3.org/2002/03owlt/FunctionalProperty/premises003#prop> <http://www.w3.org/2002/07/owl#inverseOf> <http://www.w3.org/2002/03owlt/FunctionalProperty/premises003#inv> <https://gmeow.example/w3c-owl2-full/webont-functionalproperty-003/w> .
