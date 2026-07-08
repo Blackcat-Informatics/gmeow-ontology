@@ -1662,12 +1662,13 @@ fn derive_all_values_from_faceted_datatype_emits_length_and_pattern_facets() {
 
 #[test]
 fn derive_non_faceted_blank_filler_is_skipped() {
-    // A blank allValuesFrom filler that is NOT a faceted datatype (no owl:withRestrictions) is an
-    // anonymous class expression — carried in the canon, never a bare blank shape → no component.
+    // A blank allValuesFrom filler that is neither a faceted datatype nor a readable class
+    // expression (union / disjoint-union / complement) — here an `owl:intersectionOf`, which has
+    // no faithful single-component shape form — is carried in the canon, never a bare blank shape.
     let ds = shape_dataset(
         "g:C a owl:Class ; rdfs:subClassOf \
          [ a owl:Restriction ; owl:onProperty g:p ; owl:allValuesFrom \
-           [ a owl:Class ; owl:unionOf ( g:A g:B ) ] ] .",
+           [ a owl:Class ; owl:intersectionOf ( g:A g:B ) ] ] .",
     );
     let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
     assert!(
@@ -1813,5 +1814,119 @@ fn derive_closed_world_closure_entry_does_not_suppress() {
     assert!(
         shapes.iter().any(|s| s.iri.contains("Article")),
         "a ClosedWorldClosure entry is the default reading, not an opt-out: {shapes:?}"
+    );
+}
+
+// ── Shape-migration additions (sh:or / range facets / complement / value-keyed) ──
+
+#[test]
+fn derive_union_of_filler_lowers_to_sh_or() {
+    // A someValuesFrom whose filler is an anonymous `owl:unionOf ( A B )` class expression
+    // reads closed-world as `sh:or ( [ sh:class A ] [ sh:class B ] )`.
+    let ds = shape_dataset(
+        "g:A a owl:Class . g:B a owl:Class . \
+         g:Attack a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:attackTarget ; \
+           owl:someValuesFrom [ owl:unionOf ( g:A g:B ) ] ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let or = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .flat_map(|p| &p.components)
+        .find_map(|c| match c {
+            ConstraintComponent::Or(branches) => Some(branches.clone()),
+            _ => None,
+        })
+        .expect("expected an Or component");
+    assert_eq!(or.len(), 2, "two union branches: {or:?}");
+    assert!(
+        or.iter().all(
+            |b| matches!(b, ConstraintComponent::Class(c) if c.ends_with("/A") || c.ends_with("/B"))
+        ),
+        "each branch is an sh:class over A/B: {or:?}"
+    );
+}
+
+#[test]
+fn derive_range_facets_lower_to_numeric_range() {
+    // A faceted datatype filler carrying xsd:minInclusive/maxExclusive lowers to ONE NumericRange.
+    let ds = shape_dataset(
+        "g:M a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:magnitude ; owl:allValuesFrom \
+           [ a rdfs:Datatype ; owl:onDatatype xsd:decimal ; owl:withRestrictions \
+             ( [ xsd:minInclusive 0 ] [ xsd:maxExclusive 100 ] ) ] ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let range = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .flat_map(|p| &p.components)
+        .find_map(|c| match c {
+            ConstraintComponent::NumericRange {
+                min,
+                max,
+                min_inclusive,
+                max_inclusive,
+            } => Some((*min, *max, *min_inclusive, *max_inclusive)),
+            _ => None,
+        })
+        .expect("expected a NumericRange");
+    assert_eq!(range.0, Some(0.0));
+    assert_eq!(range.1, Some(100.0));
+    assert!(range.2, "minInclusive");
+    assert!(!range.3, "maxExclusive");
+}
+
+#[test]
+fn derive_complement_has_value_lowers_to_not_has_value() {
+    // owl:allValuesFrom [ owl:complementOf [ owl:hasValue v ] ] → sh:not [ sh:hasValue v ].
+    let ds = shape_dataset(
+        "g:C a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:p ; owl:allValuesFrom \
+           [ owl:complementOf [ owl:hasValue g:forbidden ] ] ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let found = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .flat_map(|p| &p.components)
+        .any(|c| {
+            matches!(c,
+            ConstraintComponent::Not(inner)
+                if matches!(inner.as_ref(),
+                    ConstraintComponent::HasValue(ShapeValue::Iri(v)) if v.ends_with("/forbidden")))
+        });
+    assert!(found, "expected Not(HasValue(forbidden)): {shapes:?}");
+}
+
+#[test]
+fn derive_value_keyed_general_class_inclusion() {
+    // `[ owl:onProperty mode ; owl:hasValue modeAbduction ] rdfs:subClassOf
+    //  [ owl:onProperty explanandum ; owl:minCardinality 1 ]` → a ValueKeyed(mode, modeAbduction)
+    // shape requiring explanandum ≥ 1 (the modes-ride-one-class idiom).
+    let ds = shape_dataset(
+        "[ a owl:Restriction ; owl:onProperty g:inferenceModeOf ; owl:hasValue g:modeAbduction ] \
+           rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:explanandum ; owl:minCardinality 1 ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let vk = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::ValueKeyed { .. }))
+        .expect("expected a value-keyed shape");
+    match &vk.target {
+        ShapeTarget::ValueKeyed { predicate, value } => {
+            assert!(predicate.ends_with("/inferenceModeOf"), "{predicate}");
+            assert!(value.ends_with("/modeAbduction"), "{value}");
+        }
+        other => panic!("expected ValueKeyed, got {other:?}"),
+    }
+    assert!(
+        vk.properties
+            .iter()
+            .any(|p| p.path.ends_with("/explanandum") && p.min_count == Some(1)),
+        "explanandum minCount 1: {:?}",
+        vk.properties
     );
 }
