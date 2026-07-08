@@ -224,15 +224,20 @@ impl MetaProgram {
     /// none of which parse into a logic rule, is a HARD FAIL (`Err`): a real defect
     /// in a REQUIRED input must stop the pipeline, never silently collapse to the
     /// no-rules path and ship a byte-unchanged projection.
-    pub fn from_source(source_nquads: &[u8]) -> Result<Option<MetaProgram>, String> {
-        let dataset = dataset_from_bytes(source_nquads, NativeRdfFormat::NQuads)
-            .map_err(|e| format!("parse diagnostic meta-fold source graph: {e}"))?;
+    pub fn from_source(source_nquads: &[u8]) -> gmeow_errors::Result<Option<MetaProgram>> {
+        let dataset = dataset_from_bytes(source_nquads, NativeRdfFormat::NQuads).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::MetaFold {
+                message: format!("parse diagnostic meta-fold source graph: {e}"),
+            })
+        })?;
         Self::from_source_dataset(&dataset)
     }
 
     /// The dataset-native entry [`from_source`](MetaProgram::from_source) wraps —
     /// the seam the unit test drives with a Turtle-parsed source graph.
-    pub fn from_source_dataset(dataset: &Arc<RdfDataset>) -> Result<Option<MetaProgram>, String> {
+    pub fn from_source_dataset(
+        dataset: &Arc<RdfDataset>,
+    ) -> gmeow_errors::Result<Option<MetaProgram>> {
         let meta_iris = select_iris(
             dataset,
             &format!("SELECT ?r WHERE {{ ?r <{RDF_TYPE}> <{DIAGNOSTIC_META_RULE}> . }}"),
@@ -244,16 +249,21 @@ impl MetaProgram {
         }
         // The source graph DOES carry `gmeow:DiagnosticMetaRule` subjects, so a parse
         // failure past this point is a real defect, not an absence — surface it.
-        let (program, diags) = parse_logic_dataset(dataset, None)
-            .map_err(|e| format!("parse authored diagnostic meta-rules: {e}"))?;
+        let (program, diags) = parse_logic_dataset(dataset, None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::MetaFold {
+                message: format!("parse authored diagnostic meta-rules: {e}"),
+            })
+        })?;
         let error_diags = diags
             .iter()
             .filter(|d| d.severity == gmeow_logic_compile::frontend::Severity::Error)
             .count();
         if error_diags > 0 {
-            return Err(format!(
-                "authored diagnostic meta-rules carry {error_diags} parse error(s); refusing to ship a partial fold"
-            ));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::MetaFold {
+                message: format!(
+                    "authored diagnostic meta-rules carry {error_diags} parse error(s); refusing to ship a partial fold"
+                ),
+            }));
         }
         // Select ALL and ONLY the meta rules, matched to their parsed LogicRule via
         // logic:provenance (each rule carries its own IRI there) — the class-based
@@ -269,10 +279,12 @@ impl MetaProgram {
             })
             .collect();
         if rules.is_empty() {
-            return Err(format!(
-                "source graph types {} gmeow:DiagnosticMetaRule subject(s) but none parsed into a logic rule",
-                meta_iris.len()
-            ));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::MetaFold {
+                message: format!(
+                    "source graph types {} gmeow:DiagnosticMetaRule subject(s) but none parsed into a logic rule",
+                    meta_iris.len()
+                ),
+            }));
         }
         let category_polarity = select_pairs(
             dataset,
@@ -294,7 +306,7 @@ impl MetaProgram {
     ///
     /// Hard-fails (`Err`) on a malformed `finding_nq` or a chase failure (e.g. an
     /// unstratifiable program) — never a silent fallback.
-    pub fn derive(&self, finding_nq: &str) -> Result<MetaDerivation, String> {
+    pub fn derive(&self, finding_nq: &str) -> gmeow_errors::Result<MetaDerivation> {
         let facts = iri_triples(finding_nq)?;
         if facts.is_empty() {
             return Ok(MetaDerivation::default());
@@ -306,11 +318,16 @@ impl MetaProgram {
         for (c, p) in &self.category_polarity {
             push_world(&mut builder, c, CATEGORY_POLARITY, p);
         }
-        let edb = builder
-            .freeze()
-            .map_err(|e| format!("freeze meta-derivation EDB: {e}"))?;
-        let result = reason_program(&self.program, edb.as_ref())
-            .map_err(|e| format!("reason diagnostic meta-rules: {e}"))?;
+        let edb = builder.freeze().map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::MetaFold {
+                message: format!("freeze meta-derivation EDB: {e}"),
+            })
+        })?;
+        let result = reason_program(&self.program, edb.as_ref()).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::MetaFold {
+                message: format!("reason diagnostic meta-rules: {e}"),
+            })
+        })?;
 
         let mut derivation = MetaDerivation::default();
         for atom in result.inferred() {
@@ -534,20 +551,21 @@ fn run_select(
 /// facts the meta-rules join on — `gmeow:findingAntecedent`, `gmeow:findingAnchor`,
 /// the `gmeow:NonTrivialAnchor` type, `gmeow:findingCategory`). Literal-object
 /// triples (message/code/label) are not part of any meta-rule body and are dropped.
-fn iri_triples(nq: &str) -> Result<Vec<(String, String, String)>, String> {
+fn iri_triples(nq: &str) -> gmeow_errors::Result<Vec<(String, String, String)>> {
+    let mf = |message: String| gmeow_errors::Diag::of_kind(crate::error::MetaFold { message });
     let dataset = dataset_from_bytes(nq.as_bytes(), NativeRdfFormat::NQuads)
-        .map_err(|e| format!("parse diagnostics N-Quads: {e}"))?;
+        .map_err(|e| mf(format!("parse diagnostics N-Quads: {e}")))?;
     let (variables, rows) = run_select(
         &dataset,
         "SELECT ?s ?p ?o WHERE { { ?s ?p ?o } UNION { GRAPH ?g { ?s ?p ?o } } }",
     )
-    .ok_or_else(|| "meta EDB extraction query must be a SELECT".to_owned())?;
+    .ok_or_else(|| mf("meta EDB extraction query must be a SELECT".to_owned()))?;
     let (Some(si), Some(pi), Some(oi)) = (
         variables.iter().position(|v| v == "s"),
         variables.iter().position(|v| v == "p"),
         variables.iter().position(|v| v == "o"),
     ) else {
-        return Err("meta EDB query missing a column".to_owned());
+        return Err(mf("meta EDB query missing a column".to_owned()));
     };
     let mut out = Vec::new();
     for sol in &rows {

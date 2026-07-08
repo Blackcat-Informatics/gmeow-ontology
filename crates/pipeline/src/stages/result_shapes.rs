@@ -357,7 +357,7 @@ fn column_node_kind(kind: Kind) -> ShaclNodeKind {
 /// This captures the SAME contract semantics as the procedural `sh:sparql` column
 /// constraint; it is the declarative peer of the procedural projection, never emitted.
 #[cfg(test)]
-fn column_contract_property(col: &Column) -> Result<PropertyConstraintIr, String> {
+fn column_contract_property(col: &Column) -> gmeow_errors::Result<PropertyConstraintIr> {
     let mut components = vec![ConstraintComponent::NodeKindShacl(column_node_kind(
         col.kind,
     ))];
@@ -378,13 +378,14 @@ fn column_contract_property(col: &Column) -> Result<PropertyConstraintIr, String
         prov,
         components,
     )
+    .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))
 }
 
 /// Wrap [`column_contract_property`] in a well-formed [`ValidationShapeIr`] value-keyed on
 /// the cell variable — the declarative shape whose content is identical to the procedural
 /// `sh:sparql` column constraint. Proves subsumption of the column contract, not a byte form.
 #[cfg(test)]
-fn column_contract(shape_iri: &str, col: &Column) -> Result<ValidationShapeIr, String> {
+fn column_contract(shape_iri: &str, col: &Column) -> gmeow_errors::Result<ValidationShapeIr> {
     let property = column_contract_property(col)?;
     ValidationShapeIr::new(
         format!("{shape_iri}/resultColumn/{}", col.var),
@@ -395,6 +396,7 @@ fn column_contract(shape_iri: &str, col: &Column) -> Result<ValidationShapeIr, S
         vec![property],
         None,
     )
+    .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────

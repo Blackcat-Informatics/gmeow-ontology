@@ -131,7 +131,7 @@ pub fn lower_all(
     // base-graph A-Box (the same in-memory `onto` carrier the lane already folds) over
     // gmeow:coreAffectGram — never a fabricated constant and never a disk re-read. A missing
     // observation or a compute failure is a HARD FAIL here (no fallback literal).
-    let worked = compute_worked_envelope(&onto).map_err(SliceError::Parse)?;
+    let worked = compute_worked_envelope(&onto).map_err(|e| SliceError::Parse(e.to_string()))?;
     let emotionml = emotionml::lower_emotionml(&onto_view, &worked);
 
     // Aggregate the per-correspondence ledger across all four dialects plus the EmotionML
@@ -189,23 +189,25 @@ pub fn lower_all(
 pub fn discharged_section_cells_from_cells(
     projection_ttls: &[String],
     ontology_nt: &str,
-) -> Result<std::collections::BTreeSet<String>, String> {
+) -> gmeow_errors::Result<std::collections::BTreeSet<String>> {
     use gmeow_logic_compile::ir::{CorrespondenceLaw, DischargeVerdict};
 
+    let up = |message: String| gmeow_errors::Diag::of_kind(crate::error::UpProjection { message });
     let mut dsl_b = RdfDatasetBuilder::new();
     for ttl in projection_ttls {
         let ds = parse_dataset(ttl.as_bytes(), NativeRdfFormat::Turtle.media_type(), None)
-            .map_err(|e| format!("parse projection cell: {e}"))?;
+            .map_err(|e| up(format!("parse projection cell: {e}")))?;
         dsl_b.push_dataset(&ds);
     }
-    let dsl = dsl_b.freeze().map_err(|e| e.to_string())?;
+    let dsl = dsl_b.freeze().map_err(|e| up(e.to_string()))?;
     let onto = parse_dataset(ontology_nt.as_bytes(), "application/n-triples", None)
-        .map_err(|e| format!("parse ontology: {e}"))?;
+        .map_err(|e| up(format!("parse ontology: {e}")))?;
     let dsl_view = DslView::new(&dsl);
     let onto_view = DslView::new(&onto);
     let (correspondences, lookup) =
-        transpile_correspondences_indexed(&dsl_view, &onto_view).map_err(|e| e.to_string())?;
-    let sparql = sparql::lower_sparql(&dsl_view, &onto_view, &lookup).map_err(|e| e.to_string())?;
+        transpile_correspondences_indexed(&dsl_view, &onto_view).map_err(|e| up(e.to_string()))?;
+    let sparql =
+        sparql::lower_sparql(&dsl_view, &onto_view, &lookup).map_err(|e| up(e.to_string()))?;
     let profiles = lookup.binding_profiles();
 
     let mut cells = std::collections::BTreeSet::new();
@@ -240,7 +242,7 @@ pub fn discharged_section_cells_from_cells(
 /// per-axis unit-clamp values to the emitter's plain data. Every emitted number is COMPUTED —
 /// the emitter is forbidden a hand-typed constant. A missing observation or a compute failure
 /// is a HARD FAIL (`Err`), never a fallback literal.
-fn compute_worked_envelope(onto: &RdfDataset) -> Result<emotionml::WorkedEnvelope, String> {
+fn compute_worked_envelope(onto: &RdfDataset) -> gmeow_errors::Result<emotionml::WorkedEnvelope> {
     let geometry = schadenfreude_geometry(onto)?;
     Ok(emotionml::WorkedEnvelope {
         intensity: geometry.intensity,
@@ -258,13 +260,15 @@ fn compute_worked_envelope(onto: &RdfDataset) -> Result<emotionml::WorkedEnvelop
 /// through the same GTS path the `gmeow affect` CLI uses, so this compute is byte-identical to
 /// the shipped CLI's — and it reads NOTHING from disk (the projection is a true projection of
 /// the carrier, per PIPELINE_SPINE).
-fn schadenfreude_geometry(onto: &RdfDataset) -> Result<gmeow_affect::Geometry, String> {
+fn schadenfreude_geometry(onto: &RdfDataset) -> gmeow_errors::Result<gmeow_affect::Geometry> {
     use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
 
+    let transform =
+        |message: String| gmeow_errors::Diag::of_kind(crate::error::Transform { message });
     let mut builder = SnapshotBuilder::new();
     builder
         .add_dataset(onto)
-        .map_err(|e| format!("add ontology carrier: {e}"))?;
+        .map_err(|e| transform(format!("add ontology carrier: {e}")))?;
     let gts = emit_gts(
         &builder,
         "dist",
@@ -276,12 +280,16 @@ fn schadenfreude_geometry(onto: &RdfDataset) -> Result<gmeow_affect::Geometry, S
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
     )
-    .map_err(|e| format!("emit affect fixture gts: {e}"))?;
+    .map_err(|e| transform(format!("emit affect fixture gts: {e}")))?;
     gmeow_affect::geometry_from_gts_bytes(&gts, Some(SF_INTENSITY_IRI))
-        .map_err(|e| e.to_string())?
+        .map_err(|e| transform(e.to_string()))?
         .into_iter()
         .next()
-        .ok_or_else(|| format!("no affect geometry computed for {SF_INTENSITY_IRI}"))
+        .ok_or_else(|| {
+            transform(format!(
+                "no affect geometry computed for {SF_INTENSITY_IRI}"
+            ))
+        })
 }
 
 fn parse_turtle(bytes: &[u8], context: &str) -> Result<Arc<RdfDataset>, SliceError> {
