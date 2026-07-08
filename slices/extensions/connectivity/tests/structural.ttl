@@ -16,7 +16,6 @@
 #   test_genealogy_subproperties_of_...   — hasSpouse/hasSibling/hasParent/hasChild
 #                                           live in the genealogy slice, not here
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/connectivity/tests/> .

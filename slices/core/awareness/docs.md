@@ -180,10 +180,12 @@ so the slice stays DL-clean standalone.
 
 ## Verified by construction
 
-`tests/test_awareness.py` pins the term set, the value-vocab discipline (individuals,
-never subclasses), the rank set `{0,1,2,3,4,5}`, the OPEN domains of the awareness
-edges, the `gmeow:AwarenessTenure` ⊑ `gmeow:TimeScopedRelation` reification, the
-absence of any truth/reality bit or `gufo:inheresIn` usage, and the manifest's
-`sliceDependsOn` = `{kernel, temporal}`. The two `examples/` graphs — a human sleep
-episode and an AI inference regime — load and validate against the merged SHACL
-shapes.
+The slice-resident structural cells (`tests/structural.ttl`, run by `make slicetest`)
+pin the term set, the value-vocab discipline (individuals, never subclasses), the OPEN
+domains of the awareness edges, the `gmeow:AwarenessTenure` ⊑ `gmeow:TimeScopedRelation`
+reification, and the absence of any truth/reality bit or `gufo:inheresIn` usage. The two
+exact-set invariants a module-scoped `ASK` cannot express — the rank set `{0,1,2,3,4,5}`
+and the manifest's `sliceDependsOn` = `{kernel, temporal}` — are pinned by the native Rust
+conformance twins in `crates/validate/tests/conformance_awareness.rs`. The two `examples/`
+graphs — a human sleep episode and an AI inference regime — load and validate against the
+merged SHACL shapes.

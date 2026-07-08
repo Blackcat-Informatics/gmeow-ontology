@@ -57,9 +57,6 @@ members = [
     # Music-package toolchain: piece model, GTS package I/O, notation renderers,
     # MusicXML import, and loss manifests.
     "crates/music",
-    # The single PyO3 cdylib: engine crates fold into `gmeow_native` so
-    # the diagnostics `Report`/`Finding` pyclasses are ONE shared type (#630).
-    "crates/native",
     # DAG-driven single-pass build executor (#861): typed stages over an
     # in-memory RDF dataflow, dogfooding the build graph from gmeow: individuals.
     "crates/pipeline",
@@ -200,8 +197,8 @@ opt-level = 1
 # Workspace-wide thin-LTO. `lto` is profile-global — it cannot be
 # scoped away from nemo the way codegen-units is — so enabling it was gated on a
 # measurement of peak link RSS against the 16 GB `ubuntu-latest` wheel runner.
-# MEASURED 2026-06-24: a cold `cargo build --release -p gmeow-native` (the full
-# nemo graph + the unified cdylib link) with `lto = "thin"` peaked at 7.37 GB RSS
+# MEASURED 2026-06-24: a cold `cargo build --release` (the full
+# nemo graph + workspace link) with `lto = "thin"` peaked at 7.37 GB RSS
 # across the whole build tree at full 32-core local parallelism. A 4-core CI
 # runner has fewer concurrent rustc compiles (lower compile-phase peak) and the
 # same single-process LTO link, so its peak is ≤ that figure — well under 16 GB
@@ -259,9 +256,6 @@ codegen-units = 1
 codegen-units = 1
 
 [profile.release.package.gmeow-docs]
-codegen-units = 1
-
-[profile.release.package.gmeow-native]
 codegen-units = 1
 
 [profile.release.package.gmeow-pipeline]

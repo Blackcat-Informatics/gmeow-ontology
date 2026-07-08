@@ -21,7 +21,6 @@
 #   test_no_primary_or_preferred_skill_term — sweeps ALL property types across
 #     the full merged graph; a module-scoped ASK would silently narrow the sweep.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/expertise/tests/> .
