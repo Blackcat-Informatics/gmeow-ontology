@@ -36,7 +36,7 @@ fn slice_iri_of(slice_dir: &Path) -> Result<String, String> {
 }
 
 /// Every `.ttl` under `slice_dir`'s `module.ttl`, `examples/`, and `tests/`.
-fn slice_ttl_paths(slice_dir: &Path) -> Vec<PathBuf> {
+pub(crate) fn slice_ttl_paths(slice_dir: &Path) -> Vec<PathBuf> {
     let mut paths = vec![slice_dir.join("module.ttl")];
     for sub in ["examples", "tests"] {
         collect_ttl(&slice_dir.join(sub), &mut paths);

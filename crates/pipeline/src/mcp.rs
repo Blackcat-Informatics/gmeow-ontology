@@ -1058,6 +1058,12 @@ impl McpServer {
         .to_string())
     }
 
+    /// Score ONE slice on demand and return its grades + advice as JSON. This is a
+    /// read-only advisory surface: it computes a fresh assessment for the caller and
+    /// folds nothing. The whole-repo `gmeow:QualityAssessment` graph is instead attached
+    /// to the carrier by the regeneration pipeline (`stage-source-load` via
+    /// [`gmeow_slice_quality::assessment_nquads`]) so it ships inside `gmeow.gts`; this
+    /// tool never mutates the bundle.
     fn tool_slice_quality(&self, args: &Value) -> gmeow_errors::Result<String> {
         let root = self.root_path()?;
         let rel = required_str(args, "path")?;
