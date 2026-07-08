@@ -62,7 +62,6 @@
 #   test_content_segment_without_container_fails_shacl -- SHACL validation call;
 #     ExampleConformance.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/creative-works/tests/> .

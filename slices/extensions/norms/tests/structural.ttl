@@ -28,7 +28,6 @@
 #   test_competency_authority_order_query — reads an external .rq file from
 #     COMPETENCY_DIR and asserts the result set; same reason.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/norms/tests/> .

@@ -43,7 +43,6 @@
 #     `make validate` — the SHACL guardian.
 # That pytest function is therefore deleted rather than migrated.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/awareness/tests/> .
