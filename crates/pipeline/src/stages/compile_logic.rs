@@ -145,6 +145,11 @@ pub const SHACL_AF_PATH: &str = "generated/shacl-af/gmeow.shacl-af.ttl";
 pub const VALIDATION_SHAPES_TTL_PATH: &str = "generated/shapes/validation-shapes.ttl";
 /// The ShEx projection of the same validation shapes (a strictly narrower surface).
 pub const VALIDATION_SHAPES_SHEX_PATH: &str = "generated/shapes/validation-shapes.shex";
+/// The procedural-constraint SHACL projection: every closed-world `logic:Constraint`
+/// integrity condition projected to a `sh:SPARQLConstraint` NodeShape carrying
+/// `logic:formalizes` (the validation twin of the SHACL-AF rule surface). Lives under
+/// generated/shapes/; header-only until constraints are authored (Task 6).
+pub const PROCEDURAL_CONSTRAINTS_PATH: &str = "generated/shapes/procedural-constraints.ttl";
 /// The vendored openEHR OPT the constraint axis lifts (GECCO blood pressure).
 pub const OPT_SOURCE_PATH: &str = "validations/openehr-bloodpressure/Blutdruck.opt";
 /// A second vendored openEHR OPT — the CaboLabs "Test all datatypes" template, the one real OPT
@@ -452,6 +457,10 @@ impl Stage for CompileLogicStage {
         artifacts.insert(
             VALIDATION_SHAPES_SHEX_PATH.to_string(),
             vs_content("shex")?.into_bytes(),
+        );
+        artifacts.insert(
+            PROCEDURAL_CONSTRAINTS_PATH.to_string(),
+            vs_content("procedural-constraint")?.into_bytes(),
         );
 
         // The COMMITTED projection report is no longer emitted here: the loss ledger
