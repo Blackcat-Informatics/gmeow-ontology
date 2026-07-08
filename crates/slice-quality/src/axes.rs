@@ -222,25 +222,92 @@ fn information_axis(ctx: &ScoreContext) -> AxisScore {
     AxisScore { score, findings }
 }
 
+// ── Word-boundary matching (shared by the ratchet-gated heuristics) ─────────
+
+/// True if `word` occurs in `corpus` at identifier/word boundaries — the char on
+/// each side of the match is neither an ASCII alphanumeric nor `_`/`-`. This is the
+/// discriminator that keeps an INCIDENTAL substring (`"whenever"` containing
+/// `"never"`, `"NOTE"` containing `"not"`, `FooBar` containing `Foo`) from counting
+/// as a real occurrence — critical because every caller feeds a ratchet-gated score,
+/// where a false positive silently inflates the tier. Phrase words (e.g.
+/// `"rather than"`) match as a contiguous span, their outer ends boundary-checked.
+fn word_at_boundary(corpus: &str, word: &str) -> bool {
+    if word.is_empty() {
+        return false;
+    }
+    let is_ident = |c: char| c.is_ascii_alphanumeric() || c == '_' || c == '-';
+    corpus.match_indices(word).any(|(idx, _)| {
+        let before = corpus[..idx].chars().next_back();
+        let after = corpus[idx + word.len()..].chars().next();
+        before.is_none_or(|c| !is_ident(c)) && after.is_none_or(|c| !is_ident(c))
+    })
+}
+
+/// True if `s` carries a turtle CURIE token (`prefix:local`): a `:` with a name
+/// char before it and an alphanumeric/`_` after. Deliberately conservative — it
+/// rejects a bare prose colon (`"section 3: ..."`) and a full-IRI scheme
+/// (`<http://…>`, whose `:` is followed by `/`), so a definition without a real
+/// term reference is not mistaken for a worked triple.
+fn has_curie(s: &str) -> bool {
+    let bytes = s.as_bytes();
+    let is_name = |c: u8| c.is_ascii_alphanumeric() || c == b'_' || c == b'-';
+    for (i, &c) in bytes.iter().enumerate() {
+        if c != b':' {
+            continue;
+        }
+        let before = i.checked_sub(1).map(|j| bytes[j]);
+        let after = bytes.get(i + 1).copied();
+        if before.is_some_and(is_name)
+            && after.is_some_and(|a| a.is_ascii_alphanumeric() || a == b'_')
+        {
+            return true;
+        }
+    }
+    false
+}
+
 // ── Axis 8: Prose quality ──────────────────────────────────────────────────
 
 /// Negation cues that signal a boundary-stating ("what it is NOT") definition.
+///
+/// Cues are matched at word boundaries on the lowercased text ([`word_at_boundary`]),
+/// so `"whenever"` no longer counts as `"never"` and `"NOTE"` no longer counts as
+/// `"not"`. The heuristic is deliberately CONSERVATIVE (it prefers a false negative
+/// to a false positive): the score it feeds is ratchet-gated, so wrongly passing a
+/// non-boundary definition would silently inflate the tier, whereas missing a
+/// boundary phrased with an unlisted cue only under-credits and stays advisory.
 fn states_boundary(def: &str) -> bool {
+    const CUES: &[&str] = &[
+        "not",
+        "never",
+        "nor",
+        "cannot",
+        "rather than",
+        "as opposed to",
+        "instead of",
+        "unlike",
+        "distinct from",
+    ];
     let d = def.to_lowercase();
-    d.contains(" not ")
-        || d.contains("never")
-        || d.contains("rather than")
-        || d.contains("as opposed to")
-        || d.contains("instead of")
-        || d.contains(" nor ")
-        || def.contains("NOT")
+    CUES.iter().any(|cue| word_at_boundary(&d, cue))
 }
 
-/// A worked triple mentions a subject, a predicate, and an object — heuristically,
-/// it contains a prefixed name and a statement separator.
+/// A worked triple names a term via a CURIE (`prefix:local`) and carries turtle
+/// statement structure (the `a` type keyword or a `; , .` terminator).
+///
+/// Conservative on both axes: a bare prose colon is not a CURIE ([`has_curie`]), and
+/// prose punctuation alone does not pass without a CURIE present — so an ordinary
+/// sentence (`"See section 3: important."`) is NOT scored as a worked triple. As with
+/// [`states_boundary`], a false negative (under-crediting an oddly-formatted example)
+/// is preferred to a false positive that would inflate this ratchet-gated score.
 fn is_worked_triple(example: &str) -> bool {
-    (example.contains(':'))
-        && (example.contains(" a ") || example.contains(';') || example.contains('.'))
+    has_curie(example)
+        && (word_at_boundary(example, "a")
+            || example.contains(" ;")
+            || example.contains(" .")
+            || example.contains(" ,")
+            || example.ends_with('.')
+            || example.ends_with(';'))
 }
 
 /// Average prose-quality across the slice's terms with a definition.
@@ -296,6 +363,11 @@ fn prose_axis(ctx: &ScoreContext) -> AxisScore {
 // ── Axis 8 sub-metric: Provenance honesty ("a test is not a rationale") ────
 
 /// The test-artifact patterns a rationale must not name.
+///
+/// The pattern is a compile-time-constant literal; the `.expect` fires only if this
+/// exact literal is malformed, which is a programming error caught in CI by
+/// [`tests::test_artifact_regex_is_valid`] (which forces the `LazyLock` to compile),
+/// never a data-dependent runtime panic on the library path.
 static TEST_ARTIFACT: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(\btest_[A-Za-z0-9_]+)|(\.rs::)|(\.py\b)|(Mirrors\s)").expect("valid regex")
 });
@@ -756,7 +828,10 @@ fn testing_axis(ctx: &ScoreContext) -> AxisScore {
     let mut findings = Vec::new();
     for iri in &ctx.terms {
         let local = iri.rsplit(['/', '#']).next().unwrap_or(iri);
-        if corpus.contains(local) {
+        // Word-boundary match, not a raw substring: an incidental hit (a term whose
+        // local name is a prefix of another, e.g. `Foo` inside `FooBar`) must not
+        // count as "reached" — that inflates this ratchet-gated testing score.
+        if word_at_boundary(&corpus, local) {
             reached += 1;
         } else {
             findings.push(advisory(
@@ -887,12 +962,47 @@ mod tests {
     fn boundary_detection() {
         assert!(states_boundary("A widget. It is NOT a gadget."));
         assert!(states_boundary("A relator, never a mere pair."));
+        assert!(states_boundary("A process, as opposed to an endurant."));
+        assert!(states_boundary("A quality, distinct from its bearer."));
         assert!(!states_boundary("A widget of the system."));
+        // Incidental substrings must NOT pass through the ratchet: "whenever" is not
+        // "never", "denote"/"NOTE" are not "not", "cannon" is not "cannot".
+        assert!(!states_boundary(
+            "Applies whenever a bearer exists; denote it clearly."
+        ));
+        assert!(!states_boundary(
+            "A note about the cannon on the annotation."
+        ));
     }
 
     #[test]
     fn worked_triple_detection() {
         assert!(is_worked_triple("ex:x a gmeow:Foo ."));
+        assert!(is_worked_triple("ex:s ex:p ex:o ;"));
         assert!(!is_worked_triple("a plain sentence with no triple"));
+        // A bare prose colon and a period is NOT a worked triple (old false positive).
+        assert!(!is_worked_triple("See section 3: this is important."));
+        // A full-IRI scheme colon is not a CURIE either.
+        assert!(!is_worked_triple("visit http://example.org/ for details."));
+    }
+
+    #[test]
+    fn test_artifact_regex_is_valid() {
+        // Forces the LazyLock initializer to run: proves the regex literal compiles
+        // (so the `.expect` can never fire at runtime) and pins its intended matches.
+        assert!(TEST_ARTIFACT.is_match("see test_foo_bar for evidence"));
+        assert!(TEST_ARTIFACT.is_match("crates/foo.rs::bar"));
+        assert!(TEST_ARTIFACT.is_match("tests/thing.py behaviour"));
+        assert!(TEST_ARTIFACT.is_match("Mirrors the fixture"));
+        assert!(!TEST_ARTIFACT.is_match("a genuine ontological rationale"));
+    }
+
+    #[test]
+    fn word_boundary_rejects_incidental_substrings() {
+        assert!(word_at_boundary("ex:Foo a owl:Class .", "Foo"));
+        assert!(!word_at_boundary("ex:FooBar a owl:Class .", "Foo"));
+        assert!(!word_at_boundary("prefixFoo", "Foo"));
+        // Phrase cue spans a word gap but is boundary-checked at its ends.
+        assert!(word_at_boundary("a, rather than b", "rather than"));
     }
 }

@@ -103,7 +103,11 @@ pub fn slice_quality(
     let Some(dir) = path else {
         return fail("slice-quality: a slice path is required (or pass --all)");
     };
-    match score_slice(&root, dir) {
+    // Resolve the slice path against the repo root (consistent with `--all` and the
+    // MCP tool), so a relative `slices/<group>/<name>` is not accidentally read
+    // against the caller's CWD. An absolute path is left untouched by `join`.
+    let dir = root.join(dir);
+    match score_slice(&root, &dir) {
         Ok(report) => {
             match render(&report, format) {
                 Ok(text) => print!("{text}"),
@@ -140,8 +144,14 @@ fn sweep(root: &Path, format: Format, config: &DiagnosticsConfig) -> i32 {
     };
     let mut printed = 0usize;
     // The aggregate diagnostics report: every scored slice's advisory findings +
-    // help-URI rules folded into one report, projected to the requested artifacts.
+    // help-URI rules folded into ONE report. It is both the single stdout document
+    // for the structured (json/sarif) formats and the source of the written
+    // artifacts — so `--all --format json|sarif` emits ONE parseable document, not a
+    // JSON-Lines stream of one object per slice.
     let mut aggregate = Report::new("slice-quality");
+    // The RDF projection concatenates validly (deterministic N-Quads, one graph), so
+    // it is streamed into a single buffer and printed once.
+    let mut rdf_out = String::new();
     for dir in &dirs {
         match score_slice_with_rubric(dir, rubric.clone()) {
             Ok(report) => {
@@ -154,19 +164,18 @@ fn sweep(root: &Path, format: Format, config: &DiagnosticsConfig) -> i32 {
                             report.advisories.len()
                         );
                     }
-                    Format::Json | Format::Sarif | Format::Rdf => match render(&report, format) {
-                        Ok(t) => println!("{t}"),
-                        Err(e) => return fail(e),
-                    },
+                    Format::Rdf => rdf_out.push_str(&report.to_gmeow_rdf()),
+                    // Json/Sarif are emitted once, after the loop, from `aggregate`.
+                    Format::Json | Format::Sarif => {}
                 }
-                if !config.artifacts.is_empty() {
-                    let diag = report.to_report();
-                    for finding in diag.findings {
-                        aggregate.add_finding(finding);
-                    }
-                    for rule in diag.rules {
-                        aggregate.add_rule(rule);
-                    }
+                // Always fold each slice's diagnostics into the aggregate: it backs
+                // both the single structured stdout document and the artifacts.
+                let diag = report.to_report();
+                for finding in diag.findings {
+                    aggregate.add_finding(finding);
+                }
+                for rule in diag.rules {
+                    aggregate.add_rule(rule);
                 }
                 printed += 1;
             }
@@ -176,6 +185,19 @@ fn sweep(root: &Path, format: Format, config: &DiagnosticsConfig) -> i32 {
     }
     if printed == 0 {
         return fail("slice-quality: no slices scored");
+    }
+    // Emit the structured formats as a SINGLE parseable artifact.
+    match format {
+        Format::Json => match gmeow_errors::render::to_json(&aggregate) {
+            Ok(t) => println!("{t}"),
+            Err(e) => return fail(e.to_string()),
+        },
+        Format::Sarif => match gmeow_errors::render::to_sarif(&aggregate) {
+            Ok(t) => println!("{t}"),
+            Err(e) => return fail(e.to_string()),
+        },
+        Format::Rdf => print!("{rdf_out}"),
+        Format::Text => {}
     }
     aggregate
         .metadata

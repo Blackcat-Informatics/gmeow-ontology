@@ -21,18 +21,9 @@ fn slice_dir() -> PathBuf {
 }
 
 fn slice_graph() -> std::sync::Arc<purrdf::RdfDataset> {
-    let dir = slice_dir();
-    let mut paths: Vec<PathBuf> = vec![dir.join("module.ttl")];
-    for sub in ["examples", "tests"] {
-        if let Ok(rd) = std::fs::read_dir(dir.join(sub)) {
-            for e in rd.flatten() {
-                if e.path().extension().is_some_and(|x| x == "ttl") {
-                    paths.push(e.path());
-                }
-            }
-        }
-    }
-    paths.sort();
+    // The crate's SINGLE path-collection authority (module + examples/ + tests/), so
+    // the test graph matches the graph the sweep actually scores.
+    let paths = gmeow_slice_quality::report::slice_ttl_paths(&slice_dir());
     let refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
     gmeow_slice_quality::dataset_from_paths(&refs).unwrap()
 }

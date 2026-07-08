@@ -30,7 +30,7 @@ ex:groundingGrade a gmeow:QualityAssessment ;
     gmeow:observationResult ex:groundingScore .
 
 ex:groundingScore a gmeow:ScalarQuantity ;
-    gmeow:quantityValue "0.97"^^xsd:decimal ;
+    gmeow:quantityValue "97.0"^^xsd:decimal ;
     gmeow:unit <http://qudt.org/vocab/unit/PERCENT> .
 
 # --- The epistemically hard case: translation coverage is CONTESTED and low. ----

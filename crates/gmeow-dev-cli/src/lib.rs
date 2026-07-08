@@ -416,6 +416,7 @@ pub enum Commands {
     #[command(name = "slice-quality")]
     SliceQuality {
         /// The slice directory to score (omit with --all).
+        #[arg(conflicts_with = "all")]
         path: Option<PathBuf>,
         /// Sweep every slice under slices/ instead of one path.
         #[arg(long = "all")]

@@ -309,6 +309,9 @@ codegen-units = 1
 [profile.release.package.gmeow-dev-cli]
 codegen-units = 1
 
+[profile.release.package.gmeow-slice-quality]
+codegen-units = 1
+
 [profile.bench]
 lto = false
 
