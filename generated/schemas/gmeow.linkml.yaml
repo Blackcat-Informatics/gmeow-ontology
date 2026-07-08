@@ -96,6 +96,14 @@ classes:
     is_a: Emotion
     slots:
     - affectiveConstituent
+  AffectDecision:
+    class_uri: https://blackcatinformatics.ca/gmeow/AffectDecision
+    title: Affect Decision
+    is_a: Observation
+    slots:
+    - decidedLabel
+    - decisionCrossedThreshold
+    - decisionMargin
   AffectEvaluationConcluded:
     class_uri: https://blackcatinformatics.ca/gmeow/AffectEvaluationConcluded
     title: Affect Evaluation Concluded
@@ -107,6 +115,8 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/AffectLabelSet
     title: Affect Label Set
     is_a: InformationObject
+    slots:
+    - labelSetDecision
   AffectScaleProfile:
     class_uri: https://blackcatinformatics.ca/gmeow/AffectScaleProfile
     title: Affect Scale Profile
@@ -1073,6 +1083,12 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/CriterionPole
     title: Criterion Pole
     is_a: InformationObject
+  CrossNodeGlutWitness:
+    class_uri: https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness
+    title: Cross-Node Glut Witness
+    is_a: Finding
+    slots:
+    - glutWitnessOf
   CryptoWallet:
     class_uri: https://blackcatinformatics.ca/gmeow/CryptoWallet
     title: Crypto Wallet
@@ -1173,7 +1189,6 @@ classes:
     title: Derived Affect Intensity Observation
     is_a: Observation
     slots:
-    - derivedByFunction
     - intensityBasis
     - metricProfile
     - normFunction
@@ -1191,6 +1206,9 @@ classes:
   DeterminationStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/DeterminationStatus
     title: Determination Status
+  DiagnosticMetaRule:
+    class_uri: https://blackcatinformatics.ca/gmeow/DiagnosticMetaRule
+    title: Diagnostic Meta-Rule
   DiagnosticSeverity:
     class_uri: https://blackcatinformatics.ca/gmeow/DiagnosticSeverity
     title: Diagnostic Severity
@@ -1678,16 +1696,29 @@ classes:
     title: Finding
     is_a: Observation
     slots:
+    - crossNodeGlutWith
+    - findingAnchor
+    - findingAntecedent
     - findingCategory
+    - findingCluster
     - findingCode
     - findingGateVerdict
+    - findingHasAntecedent
     - findingHelpUri
     - findingLocation
     - findingMessage
+    - findingRemediation
+    - findingRootCause
     - findingSeverity
     - findingStandpoint
     - findingSuggestion
     - findingTool
+    - findingTraces
+  FindingCluster:
+    class_uri: https://blackcatinformatics.ca/gmeow/FindingCluster
+    title: Finding Cluster
+    slots:
+    - clusterRoot
   ForgePlatform:
     class_uri: https://blackcatinformatics.ca/gmeow/ForgePlatform
     title: Forge Platform
@@ -2209,6 +2240,9 @@ classes:
     - knowledgeProficiencyLevel
     - knowledgeProficiencyScale
     - knowledgeProficiencySubject
+  LabelSetDecisionRule:
+    class_uri: https://blackcatinformatics.ca/gmeow/LabelSetDecisionRule
+    title: Label Set Decision Rule
   LandTenure:
     class_uri: https://blackcatinformatics.ca/gmeow/LandTenure
     title: Land Tenure
@@ -2886,6 +2920,9 @@ classes:
   NetworkAddressType:
     class_uri: https://blackcatinformatics.ca/gmeow/NetworkAddressType
     title: Network Address Type
+  NonTrivialAnchor:
+    class_uri: https://blackcatinformatics.ca/gmeow/NonTrivialAnchor
+    title: Non-Trivial Anchor
   Norm:
     class_uri: https://blackcatinformatics.ca/gmeow/Norm
     title: Norm
@@ -2954,6 +2991,7 @@ classes:
     title: Observation
     slots:
     - credibilityScore
+    - derivedByFunction
     - facetSubject
     - facetVantage
     - observationEvent
@@ -3747,6 +3785,10 @@ classes:
   RomanticOrientationValue:
     class_uri: https://blackcatinformatics.ca/gmeow/RomanticOrientationValue
     title: Romantic Orientation Value
+  RootFinding:
+    class_uri: https://blackcatinformatics.ca/gmeow/RootFinding
+    title: Root Finding
+    is_a: Finding
   Route:
     class_uri: https://blackcatinformatics.ca/gmeow/Route
     title: Route
@@ -3852,6 +3894,8 @@ classes:
   ScoreSemantics:
     class_uri: https://blackcatinformatics.ca/gmeow/ScoreSemantics
     title: Score Semantics
+    slots:
+    - impliesLabelSetDecision
   ScriptLanguageAttribution:
     class_uri: https://blackcatinformatics.ca/gmeow/ScriptLanguageAttribution
     title: Script Language Attribution
@@ -4513,6 +4557,7 @@ classes:
     - ruleCategory
     - ruleCode
     - ruleHelpUri
+    - ruleRemediation
   VectorIndex:
     class_uri: https://blackcatinformatics.ca/gmeow/VectorIndex
     title: Vector Index
@@ -5774,6 +5819,11 @@ slots:
     title: category blocking
     range: BlockingDisposition
     multivalued: true
+  categoryPolarity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/categoryPolarity
+    title: category polarity
+    range: uriorcurie
+    multivalued: true
   causalModality:
     slot_uri: https://blackcatinformatics.ca/gmeow/causalModality
     title: causal modality
@@ -5990,6 +6040,12 @@ slots:
     range: time
     domain: OpeningHoursSpecification
     multivalued: false
+  clusterRoot:
+    slot_uri: https://blackcatinformatics.ca/gmeow/clusterRoot
+    title: cluster root
+    range: Finding
+    domain: FindingCluster
+    multivalued: true
   coarsenGuarded:
     slot_uri: https://blackcatinformatics.ca/gmeow/coarsenGuarded
     title: coarsen guarded
@@ -6624,6 +6680,12 @@ slots:
     range: CriterionDomain
     domain: Criterion
     multivalued: true
+  crossNodeGlutWith:
+    slot_uri: https://blackcatinformatics.ca/gmeow/crossNodeGlutWith
+    title: cross-node glut with
+    range: Finding
+    domain: Finding
+    multivalued: true
   curiousAbout:
     slot_uri: https://blackcatinformatics.ca/gmeow/curiousAbout
     title: curious about
@@ -6720,11 +6782,29 @@ slots:
     range: StandpointClaim
     domain: Event
     multivalued: true
+  decidedLabel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/decidedLabel
+    title: decided label
+    range: AffectClassifierLabel
+    domain: AffectDecision
+    multivalued: false
   decisionConstraint:
     slot_uri: https://blackcatinformatics.ca/gmeow/decisionConstraint
     title: decision constraint
     range: TraversalConstraint
     domain: PerformanceDecision
+    multivalued: false
+  decisionCrossedThreshold:
+    slot_uri: https://blackcatinformatics.ca/gmeow/decisionCrossedThreshold
+    title: decision crossed threshold
+    range: boolean
+    domain: AffectDecision
+    multivalued: false
+  decisionMargin:
+    slot_uri: https://blackcatinformatics.ca/gmeow/decisionMargin
+    title: decision margin
+    range: decimal
+    domain: AffectDecision
     multivalued: false
   decisionPerformance:
     slot_uri: https://blackcatinformatics.ca/gmeow/decisionPerformance
@@ -6901,7 +6981,7 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/derivedByFunction
     title: derived by function
     range: AffectFunction
-    domain: DerivedAffectIntensityObservation
+    domain: Observation
     multivalued: true
   derivedFromSpectrum:
     slot_uri: https://blackcatinformatics.ca/gmeow/derivedFromSpectrum
@@ -7795,10 +7875,28 @@ slots:
     range: PhysicalObject
     domain: ArchaeologicalFindContext
     multivalued: false
+  findingAnchor:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingAnchor
+    title: finding anchor
+    range: uriorcurie
+    domain: Finding
+    multivalued: true
+  findingAntecedent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingAntecedent
+    title: finding antecedent
+    range: Finding
+    domain: Finding
+    multivalued: true
   findingCategory:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingCategory
     title: finding category
     range: uriorcurie
+    domain: Finding
+    multivalued: true
+  findingCluster:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingCluster
+    title: finding cluster
+    range: FindingCluster
     domain: Finding
     multivalued: true
   findingCode:
@@ -7811,6 +7909,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingGateVerdict
     title: finding gate verdict
     range: GateVerdict
+    domain: Finding
+    multivalued: true
+  findingHasAntecedent:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingHasAntecedent
+    title: finding has antecedent
+    range: Finding
     domain: Finding
     multivalued: true
   findingHelpUri:
@@ -7829,6 +7933,18 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingMessage
     title: finding message
     range: string
+    domain: Finding
+    multivalued: true
+  findingRemediation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingRemediation
+    title: finding remediation
+    range: string
+    domain: Finding
+    multivalued: true
+  findingRootCause:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingRootCause
+    title: finding root cause
+    range: Finding
     domain: Finding
     multivalued: true
   findingSeverity:
@@ -7853,6 +7969,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingTool
     title: finding tool
     range: string
+    domain: Finding
+    multivalued: true
+  findingTraces:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingTraces
+    title: finding traces
+    range: Finding
     domain: Finding
     multivalued: true
   fingerprint:
@@ -8083,6 +8205,12 @@ slots:
     title: geometry type
     range: GeometryType
     domain: Geometry
+    multivalued: true
+  glutWitnessOf:
+    slot_uri: https://blackcatinformatics.ca/gmeow/glutWitnessOf
+    title: glut witness of
+    range: Finding
+    domain: CrossNodeGlutWitness
     multivalued: true
   gmnAcceptWindow:
     slot_uri: https://blackcatinformatics.ca/gmeow/gmnAcceptWindow
@@ -9561,6 +9689,12 @@ slots:
     range: Entity
     domain: Event
     multivalued: true
+  impliesLabelSetDecision:
+    slot_uri: https://blackcatinformatics.ca/gmeow/impliesLabelSetDecision
+    title: implies label set decision
+    range: LabelSetDecisionRule
+    domain: ScoreSemantics
+    multivalued: true
   importance:
     slot_uri: https://blackcatinformatics.ca/gmeow/importance
     title: importance
@@ -10093,6 +10227,12 @@ slots:
     range: uriorcurie
     domain: Agent
     multivalued: true
+  labelSetDecision:
+    slot_uri: https://blackcatinformatics.ca/gmeow/labelSetDecision
+    title: label set decision
+    range: LabelSetDecisionRule
+    domain: AffectLabelSet
+    multivalued: false
   labelSetRevision:
     slot_uri: https://blackcatinformatics.ca/gmeow/labelSetRevision
     title: label-set revision
@@ -12715,6 +12855,12 @@ slots:
     range: uri
     domain: ValidationRule
     multivalued: true
+  ruleRemediation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/ruleRemediation
+    title: rule remediation
+    range: string
+    domain: ValidationRule
+    multivalued: true
   ruleSeverity:
     slot_uri: https://blackcatinformatics.ca/gmeow/ruleSeverity
     title: rule severity
@@ -14806,6 +14952,9 @@ enums:
       fnAffectiveIntensity:
         meaning: https://blackcatinformatics.ca/gmeow/fnAffectiveIntensity
         title: affective intensity
+      fnArgmax:
+        meaning: https://blackcatinformatics.ca/gmeow/fnArgmax
+        title: argmax (categorical mode)
   AffectScaleProfileEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/AffectScaleProfile
     permissible_values:
@@ -18292,6 +18441,15 @@ enums:
       knowledgeUnderstands:
         meaning: https://blackcatinformatics.ca/gmeow/knowledgeUnderstands
         title: 'knowledge: understands'
+  LabelSetDecisionRuleEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/LabelSetDecisionRule
+    permissible_values:
+      decisionArgmax:
+        meaning: https://blackcatinformatics.ca/gmeow/decisionArgmax
+        title: argmax (single-label)
+      decisionIndependentThreshold:
+        meaning: https://blackcatinformatics.ca/gmeow/decisionIndependentThreshold
+        title: independent threshold (multi-label)
   LandTenureTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/LandTenureType
     permissible_values:

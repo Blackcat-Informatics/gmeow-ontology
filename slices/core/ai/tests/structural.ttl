@@ -18,7 +18,7 @@ ASK {
     gmeow:MemoryItem a owl:Class , logic:Role ;
         rdfs:subClassOf gmeow:Observation .
 }""" ;
-    gmeow:saRationale "gmeow:MemoryItem MUST be a logic:Role on the universal Observation claim construct. Replaces the stale gufo:Role pytest assertion." .
+    gmeow:saRationale "gmeow:MemoryItem MUST be a logic:Role on the universal Observation claim construct. Replaces the stale gufo:Role assertion." .
 
 ex:saContradictionIsOpenClaimRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -29,7 +29,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:Contradiction rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:Contradiction MUST be a logic:Relator surfacing claim conflict without choosing a winner. Replaces the stale gufo:Relator pytest assertion." .
+    gmeow:saRationale "gmeow:Contradiction MUST be a logic:Relator surfacing claim conflict without choosing a winner. Replaces the stale gufo:Relator assertion." .
 
 ex:saContradictsClaimRangeOpen a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;

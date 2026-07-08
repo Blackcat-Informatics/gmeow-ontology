@@ -1,0 +1,21 @@
+# Competency question: "Which grammars govern a serialization that round-trips exactly?"
+# This exercises Flagship 4 (GMEOW's serializations as grammars): a serialization is a
+# lang:Rendering whose lang:renderingConvention is a lang:Grammar and whose
+# lang:renderingPreservation is logic:ExactPreservation — the byte-for-byte survival on
+# emit/parse round-trip that makes the serialization a lossless crossing. The query pins
+# the JOIN grammar -> serialization rendering -> exact preservation, so a grammar with no
+# exact-preserving rendering does NOT answer it. Over the Turtle-emit fixture the answer
+# is exactly the Turtle grammar at logic:ExactPreservation.
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT DISTINCT ?grammar ?preservation WHERE {
+    ?rendering a lang:Rendering ;
+               lang:renderingKind lang:renderingSerialization ;
+               lang:renderingConvention ?grammar ;
+               lang:renderingPreservation ?preservation .
+    ?grammar a lang:Grammar .
+    FILTER(?preservation = logic:ExactPreservation)
+    FILTER(STRSTARTS(STR(?grammar), "http://example.org/lang/"))
+}
+ORDER BY ?grammar

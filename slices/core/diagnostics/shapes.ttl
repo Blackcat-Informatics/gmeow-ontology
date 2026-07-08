@@ -93,3 +93,26 @@ gmeow:GateFatalUpsetShape
             }
         """ ;
     ] .
+
+# =========================================================================== #
+# Cross-node glut witness INTEGRITY (not presence): a reasoner-minted
+# gmeow:CrossNodeGlutWitness records a two-sided coherence conflict, so it must
+# carry EXACTLY two gmeow:glutWitnessOf links — one per conflicting finding. This
+# gates the STRUCTURE of the meta-finding, never its presence (root-cause / glut
+# meta-findings are informational, never gate-failing).
+# =========================================================================== #
+
+gmeow:CrossNodeGlutWitnessShape
+    a sh:NodeShape ;
+    rdfs:label "Cross-node glut witness integrity shape"@x-gmeow-english ;
+    skos:definition "SHACL structural integrity for gmeow:CrossNodeGlutWitness: a cross-node glut witness records a two-sided coherence conflict, so it must carry EXACTLY two gmeow:glutWitnessOf links, each to a gmeow:Finding. This gates the SHAPE of the reasoner-minted meta-finding only — never its presence, since a cross-node glut is informational and never gate-failing."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    sh:targetClass gmeow:CrossNodeGlutWitness ;
+    sh:property [
+        sh:path gmeow:glutWitnessOf ;
+        sh:minCount 2 ;
+        sh:maxCount 2 ;
+        sh:class gmeow:Finding ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:CrossNodeGlutWitness must carry exactly two gmeow:glutWitnessOf links (one per conflicting finding)." ;
+    ] .

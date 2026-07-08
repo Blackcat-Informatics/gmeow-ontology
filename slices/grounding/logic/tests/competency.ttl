@@ -185,7 +185,7 @@ ex:cqKeystoneNoCrossTypeSuperpropertyShape a logic:ResultShape ;
 # back-link (logic:candidateFormalizes + logic:candidateSourceField) ties a
 # harvested axiom to the exact prose it formalized: the term, the prose field
 # kind, and the annotation property that field stands for. Over the production
-# ontology (the merged logic module, no synthetic data file) exactly eighteen accepted
+# ontology (the merged logic module, no synthetic data file) exactly twenty-four accepted
 # candidates carry the full back-link:
 #   - logic:candidateProperPartOfAsymmetric   (formalizing logic:properPartOf,   skos:definition)
 #   - logic:candidateFunctionalComplexKindDisjoint (formalizing logic:FunctionalComplex, skos:definition)
@@ -205,16 +205,22 @@ ex:cqKeystoneNoCrossTypeSuperpropertyShape a logic:ResultShape ;
 #   - logic:candidateCounterpartNonTransitive  (formalizing gmeow:counterpartOf,   skos:definition)
 #   - logic:candidateFrameRelativity           (formalizing logic:referenceFrame,  skos:definition)
 #   - logic:candidateNoOverTyping              (formalizing logic:MixIden,         skos:definition)
+#   - logic:candidateGateFatalVerdict          (formalizing gmeow:findingGateVerdict, skos:definition)
+#   - logic:candidateFindingTraces             (formalizing gmeow:findingAntecedent, skos:definition)
+#   - logic:candidateFindingRootCause          (formalizing gmeow:findingRootCause, skos:definition)
+#   - logic:candidateFindingCluster            (formalizing gmeow:FindingCluster,  skos:definition)
+#   - logic:candidateCrossNodeGlut             (formalizing gmeow:findingAnchor,   skos:definition)
+#   - logic:candidateDiagnosticMetaExtensibility (formalizing gmeow:DiagnosticMetaRule, skos:definition)
 # The foundational-partition candidates for Event/Situation and the two class
 # coverings (Entity, Object) carry NO harvest back-link and therefore do not appear
-# here. This set demonstrates both prose-field kinds: sixteen sourced from a
+# here. This set demonstrates both prose-field kinds: twenty-two sourced from a
 # logic:ProseFieldDefinition (skos:definition) and two from a logic:ProseFieldAvoidWhen
 # (gmeow:avoidWhen).
 
 ex:cqHarvestCoverage a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/logic/queries/competency/harvest-coverage.rq" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "Bidirectional prose→axiom harvest coverage must be queryable: each accepted FormalizationCandidate ties to the exact prose it formalized, identified by the term it formalizes, the prose field kind it was sourced from, and the annotation property that field stands for. Over the production ontology exactly nineteen accepted candidates carry the full harvest back-link — seventeen sourced from a term's skos:definition and two from a term's gmeow:avoidWhen." ;
+    gmeow:cqRationale "Bidirectional prose→axiom harvest coverage must be queryable: each accepted FormalizationCandidate ties to the exact prose it formalized, identified by the term it formalizes, the prose field kind it was sourced from, and the annotation property that field stands for. Over the production ontology exactly twenty-four accepted candidates carry the full harvest back-link — twenty-two sourced from a term's skos:definition and two from a term's gmeow:avoidWhen." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqHarvestCoverageShape ;
     gmeow:cqExpectRow ex:rowHarvestProperPart, ex:rowHarvestFunctionalComplex,
@@ -226,7 +232,9 @@ ex:cqHarvestCoverage a gmeow:CompetencyQuestion ;
         ex:rowHarvestOrgMembership, ex:rowHarvestTenureClaim,
         ex:rowHarvestIntentNotEntailed, ex:rowHarvestCounterpartNonTransitive,
         ex:rowHarvestFrameRelativity, ex:rowHarvestNoOverTyping,
-        ex:rowHarvestGateFatalVerdict .
+        ex:rowHarvestGateFatalVerdict, ex:rowHarvestFindingTraces,
+        ex:rowHarvestFindingRootCause, ex:rowHarvestFindingCluster,
+        ex:rowHarvestCrossNodeGlut, ex:rowHarvestDiagnosticMetaExtensibility .
 
 ex:cqHarvestCoverageShape a logic:ResultShape ;
     logic:declaresColumn
@@ -369,6 +377,41 @@ ex:rowHarvestGateFatalVerdict a gmeow:ExpectedRow ;
         [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
 
+ex:rowHarvestFindingTraces a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateFindingTraces ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:findingAntecedent ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestFindingRootCause a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateFindingRootCause ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:findingRootCause ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestFindingCluster a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateFindingCluster ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:FindingCluster ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestCrossNodeGlut a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateCrossNodeGlut ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:findingAnchor ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestDiagnosticMetaExtensibility a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateDiagnosticMetaExtensibility ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:DiagnosticMetaRule ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
 # ── The deliberate-non-assertion report ─────────────────────────────────────────
 # Every intentional boundary the ontology commits to must be enumerable, not merely
 # respected. Over the production ontology (no synthetic data file) exactly five accepted
@@ -451,3 +494,132 @@ ex:cqNativeArithmeticDecidedShape a logic:ResultShape ;
 
 ex:rowNativeArithmeticBuiltin a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "b" ; gmeow:cellValueIri logic:builtinArithmetic ] .
+
+# ── Conjecture library: the closed epistemic lifecycle state set ──────────────────
+# Is the EPISTEMIC conjecture lifecycle — open / corroborated / refuted-in-standpoint
+# / withdrawn — carried as a closed set of first-class declared individuals, ORTHOGONAL
+# to the governance lifecycle a conjecture inherits from the candidate spine (Principle
+# 9)? The query runs over the production ontology (the merged logic module, no synthetic
+# data file) and selects every member of logic:ConjectureLifecycleState. cqExactRows
+# pins that the set is EXACTLY the four states — a missing or misspelt member is a
+# coverage gap.
+ex:cqConjectureLifecycleStates a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/conjecture-lifecycle-states.rq" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The conjecture library carries a conjecture's EPISTEMIC state (open / corroborated / refuted-in-standpoint / withdrawn) as the closed value class logic:ConjectureLifecycleState, ORTHOGONAL to the GOVERNANCE lifecycle it inherits from logic:FormalizationCandidate (Principle 9 refuses to collapse the two axes). A SELECT DISTINCT over the declared members of that class must return exactly the four: logic:ConjectureOpen, logic:ConjectureCorroborated, logic:ConjectureRefutedInStandpoint and logic:ConjectureWithdrawn." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqConjectureLifecycleStatesShape ;
+    gmeow:cqExpectRow
+        ex:rowConjectureOpen, ex:rowConjectureCorroborated,
+        ex:rowConjectureRefutedInStandpoint, ex:rowConjectureWithdrawn .
+
+ex:cqConjectureLifecycleStatesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "state" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowConjectureOpen a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "state" ; gmeow:cellValueIri logic:ConjectureOpen ] .
+
+ex:rowConjectureCorroborated a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "state" ; gmeow:cellValueIri logic:ConjectureCorroborated ] .
+
+ex:rowConjectureRefutedInStandpoint a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "state" ; gmeow:cellValueIri logic:ConjectureRefutedInStandpoint ] .
+
+ex:rowConjectureWithdrawn a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "state" ; gmeow:cellValueIri logic:ConjectureWithdrawn ] .
+
+# ── Conjecture library: every refutation is replayable ───────────────────────────
+# Does a refuted-in-standpoint conjecture expose a REPLAYABLE witness — the individual
+# forced to owl:Nothing, the world it was found in, and a jointly-inconsistent premise?
+# The query runs over the merged ontology UNIONED with the tests/fixtures/conjectures.ttl
+# overlay (reasoningNone), joining a refuted conjecture through logic:conjectureRefutationWitness
+# to its logic:ContradictionWitness and unpacking the witness carriers. The fixture
+# carries exactly one refuted conjecture with a one-premise witness, so exactly one row
+# (?conj ?ind ?world ?premise) is expected.
+ex:cqRefutedConjectureHasWitness a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/refuted-conjecture-has-witness.rq" ;
+    gmeow:cqDataFile  "tests/fixtures/conjectures.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A conjecture in logic:ConjectureRefutedInStandpoint MUST name a concrete logic:ContradictionWitness (Principle 9: a refutation is standpoint-scoped and replayable, never a bare global-false claim). Over the fixture the single refuted conjecture ex:cxRefutedTotalParthood joins through logic:conjectureRefutationWitness to ex:cxWitnessIncomparablePair, whose logic:witnessIndividual, logic:witnessWorld and single logic:witnessPremise unpack to exactly one row — the replayable counterexample." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqRefutedConjectureHasWitnessShape ;
+    gmeow:cqExpectRow ex:rowRefutedConjectureWitness .
+
+ex:cqRefutedConjectureHasWitnessShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "conj" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "ind" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnDatatype <http://www.w3.org/2001/XMLSchema#string> ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "world" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnDatatype <http://www.w3.org/2001/XMLSchema#string> ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "premise" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnDatatype <http://www.w3.org/2001/XMLSchema#string> ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowRefutedConjectureWitness a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "conj" ; gmeow:cellValueIri ex:cxRefutedTotalParthood ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "ind" ; gmeow:cellValueLiteral "ex:leftHand" ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "world" ; gmeow:cellValueLiteral "ex:worldActual" ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "premise" ; gmeow:cellValueLiteral "ex:leftHand logic:properPartOf ex:body" ] .
+
+# ── Conjecture library: contrapositive propagation frontier ──────────────────────
+# Does the corpus entailment pre-order support CONTRAPOSITIVE propagation of refutation
+# — if phi entails psi and psi is refuted, phi is on the re-test frontier? This is the
+# load-bearing consumer of logic:conjectureEntails. The query runs over the merged
+# ontology UNIONED with the tests/fixtures/conjectures.ttl overlay (reasoningNone),
+# selecting each ?phi that entails a refuted ?psi. The fixture supplies one such edge
+# (ex:cxGeneralParthood entails the refuted ex:cxRefutedTotalParthood), so exactly one
+# (?phi ?psi) row is expected.
+ex:cqConjectureEntailsPropagation a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/conjecture-entails-propagation.rq" ;
+    gmeow:cqDataFile  "tests/fixtures/conjectures.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "logic:conjectureEntails carries the corpus pre-order phi models psi; its purpose is contrapositive propagation — a refutation of psi puts every phi that entails it on the re-test frontier. Over the fixture the edge ex:cxGeneralParthood conjectureEntails ex:cxRefutedTotalParthood, whose target is logic:ConjectureRefutedInStandpoint, yields exactly one propagation row (phi = ex:cxGeneralParthood, psi = ex:cxRefutedTotalParthood)." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqConjectureEntailsPropagationShape ;
+    gmeow:cqExpectRow ex:rowConjectureEntailsPropagation .
+
+ex:cqConjectureEntailsPropagationShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "phi" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "psi" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowConjectureEntailsPropagation a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "phi" ; gmeow:cellValueIri ex:cxGeneralParthood ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "psi" ; gmeow:cellValueIri ex:cxRefutedTotalParthood ] .
+
+# ── Conjecture library: the Lakatos monster-barring chain survives its witness ────
+# Does a refined SUCCESSOR conjecture name both the refuted predecessor it weakens
+# AND the concrete witness that predecessor was killed by — the witness the successor
+# now EXCLUDES? This is the load-bearing consumer of logic:conjectureRefinedFrom and
+# logic:survivesCounterexample. Unlike the promotion legs, a single conjecture_test
+# run cannot synthesize a refinement chain (there is no predecessor conjecture in one
+# run), so these are legitimately AUTHORED (reviewer-asserted) edges — the fixture
+# supplies one chain (ex:cxRefinePartialParthood refinedFrom the refuted
+# ex:cxRefineTotalParthood, survivesCounterexample its witness
+# ex:cxRefineWitnessIncomparablePair). The query joins the survived witness to the
+# predecessor's own refutation witness, so exactly one (successor, predecessor,
+# witness) row is expected; removing either chain edge empties the result.
+ex:cqConjectureRefinementSurvivesWitness a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/conjecture-refinement-survives-witness.rq" ;
+    gmeow:cqDataFile  "tests/fixtures/conjecture-refinement.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The Lakatos monster-barring move must be REPLAYABLE: a refined successor conjecture (logic:conjectureRefinedFrom) weakens a refuted predecessor to exclude its counterexample, and logic:survivesCounterexample pins the concrete logic:ContradictionWitness the successor now excludes to the SAME witness the predecessor was refuted by (logic:conjectureRefutationWitness) — the evidence the refinement did real work. Over the fixture the successor ex:cxRefinePartialParthood is refinedFrom the refuted ex:cxRefineTotalParthood and survivesCounterexample its witness ex:cxRefineWitnessIncomparablePair, so exactly one (successor, predecessor, witness) row is returned; dropping conjectureRefinedFrom or survivesCounterexample (or breaking the predecessor-witness join) empties it, so the question is falsifiable, not a tautology."@x-gmeow-english ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqConjectureRefinementSurvivesWitnessShape ;
+    gmeow:cqExpectRow ex:rowConjectureRefinementSurvivesWitness .
+
+ex:cqConjectureRefinementSurvivesWitnessShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "successor" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "predecessor" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "witness" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowConjectureRefinementSurvivesWitness a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "successor" ; gmeow:cellValueIri ex:cxRefinePartialParthood ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "predecessor" ; gmeow:cellValueIri ex:cxRefineTotalParthood ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "witness" ; gmeow:cellValueIri ex:cxRefineWitnessIncomparablePair ] .

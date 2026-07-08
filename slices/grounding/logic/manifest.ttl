@@ -9,10 +9,12 @@
 <https://blackcatinformatics.ca/gmeow/slices/logic>
     a gmeow:Slice ;
     rdfs:label "logic"@x-gmeow-english ;
-    skos:definition "The logic slice (core tier): the home of GMEOW Logic — the maximally expressive, RDF 1.2-native reasoning layer (`logic:`) of which OWL, Datalog, SHACL, Prolog, N3, and the gUFO/BFO/DOLCE upper ontologies are generated lossy projections (Principle 17). The normative design is the five-document set in `design/`; the foundation vocabulary (UFO+ sorts, foundation relations, semantic profiles, world/modal terms, quantitative axes, and preservation-polarity terms) is minted as bare standalone declarations. The rules, solver, and generators are deferred to later rungs of the logic roadmap. The manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    skos:definition "The logic slice (core tier): the home of GMEOW Logic — the maximally expressive, RDF 1.2-native reasoning layer (`logic:`) of which OWL, Datalog, SHACL, Prolog, N3, and the gUFO/BFO/DOLCE upper ontologies are generated lossy projections (Principle 17). The normative design is the document set in `design/` (see LOGIC.md § The document set); the foundation vocabulary (UFO+ sorts, foundation relations, semantic profiles, world/modal terms, quantitative axes, and preservation-polarity terms) is minted as bare standalone declarations. The native physical engine is the production reasoning runtime, and the generators emit every projection surface. The manifest is the sole source of slice identity and tier."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     dcterms:title "GMEOW Logic"@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
-    gmeow:sliceConsumer "The reasoning layer and every projection consumer: the native `logic:` solver is the reasoning authority, and OWL/Datalog/SHACL/Prolog/N3 reasoners consume generated views of it (Principle 17). Foundational by Principle 15: it serves every consumer by construction. The foundation vocabulary is now minted; the solver and generators are deferred to later rungs of the logic roadmap."@x-gmeow-english ;
+    gmeow:sliceCoFoundationalWith <https://blackcatinformatics.ca/gmeow/slices/lang> ,
+        <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:sliceConsumer "The reasoning layer and every projection consumer: the native `logic:` solver is the production reasoning authority, and OWL/Datalog/SHACL/Prolog/N3 reasoners consume generated views of it (Principle 17). Foundational by Principle 15: it serves every consumer by construction, and it anchors the co-foundational grounding kernel (docs/GROUNDING.md) as the semantic target of the `lang:` denotation seam and the `math:` compilation seam."@x-gmeow-english ;
     gmeow:sliceQualityTier gmeow:tierRegistered .

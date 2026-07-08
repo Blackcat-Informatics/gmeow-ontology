@@ -99,7 +99,7 @@ meta:tests-alignment a meta:TestSuite ;
     rdfs:label "alignment direction / bridging tests"@x-gmeow-english ;
     meta:artifact "crates/logic-compile/src/projections/correspondence_soundness.rs",
         "crates/pipeline/tests/correspondence_soundness_parity.rs",
-        "tests/test_coreference.py" .
+        "crates/validate/tests/conformance_coreference.rs" .
 
 meta:gate-crosscheck a meta:Gate ;
     rdfs:label "committed-query soundness crosscheck — every committed query answers on the native purrdf engine (rdflib retired)"@x-gmeow-english ;
@@ -140,8 +140,8 @@ meta:gate-suppression a meta:Gate ;
 meta:tests-suppression a meta:TestSuite ;
     rdfs:label "suppression and disclosure tests"@x-gmeow-english ;
     meta:artifact "crates/pipeline/tests/edoal_sparql_correspondence_parity.rs",
-        "crates/validate/tests/conformance_disclosure.rs", "tests/test_privacy.py",
-        "tests/test_suppression_conformance.py" .
+        "crates/validate/tests/conformance_disclosure.rs", "crates/validate/tests/conformance_privacy.rs",
+        "crates/validate/tests/conformance_suppression.rs" .
 
 meta:tests-reference-frames a meta:TestSuite ;
     rdfs:label "reference-frame relativity tests"@x-gmeow-english ;
@@ -172,10 +172,10 @@ meta:tests-products a meta:TestSuite ;
 
 meta:tests-claim-spine a meta:TestSuite ;
     rdfs:label "claim provenance, attestation, and trust tests"@x-gmeow-english ;
-    meta:artifact "tests/test_provenance.py",
+    meta:artifact "crates/validate/tests/conformance_provenance.rs",
         "slices/core/attestation/tests/structural.ttl",
         "crates/validate/tests/ontology_conformance.rs",
-        "tests/test_trust.py", "crates/validate/tests/conformance_evidence.rs" .
+        "crates/validate/tests/conformance_trust.rs", "crates/validate/tests/conformance_evidence.rs" .
 
 meta:practice-consumer-question a meta:Practice ;
     rdfs:label "issue templates ask who the consumer is"@x-gmeow-english ;
@@ -221,7 +221,7 @@ meta:gate-suppression-injection a meta:Gate ;
 
 meta:tests-leak-conformance a meta:TestSuite ;
     rdfs:label "generated per-profile leak-conformance suite"@x-gmeow-english ;
-    meta:artifact "tests/test_suppression_conformance.py" .
+    meta:artifact "crates/validate/tests/conformance_suppression.rs" .
 
 meta:shapes-frame-generated a meta:Shape ;
     rdfs:label "frame-relativity SHACL generated from gmeow:requiresFrame"@x-gmeow-english ;

@@ -23,6 +23,7 @@ use purrdf::TermValue;
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const EX_MAIL: &str = "https://example.org/mail/";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
+const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
 
 fn gm(local: &str) -> String {
     format!("{GMEOW}{local}")
@@ -320,4 +321,177 @@ fn collision_flags_and_fingerprints() {
         "Please review the attached Q2 report.",
         XSD_STRING,
     ));
+}
+
+// ── mailbox twins (tests/test_email_mailbox.py) ───────────────────────────────
+
+/// Twin of `test_fixture_nested_hierarchy`: a three-level mailbox hierarchy —
+/// inbox → workFolder → projectsFolder — with reciprocal parent/child links.
+#[test]
+fn nested_hierarchy() {
+    let g = email_store();
+    let inbox = ex_mail("inbox");
+    let work = ex_mail("workFolder");
+    let projects = ex_mail("projectsFolder");
+    assert!(g.has(Some(&inbox), Some(&gm("childMailbox")), Some(&work)));
+    assert!(g.has(Some(&work), Some(&gm("parentMailbox")), Some(&inbox)));
+    assert!(g.has(Some(&work), Some(&gm("childMailbox")), Some(&projects)));
+    assert!(g.has(Some(&projects), Some(&gm("parentMailbox")), Some(&work)));
+}
+
+/// Twin of `test_fixture_mailbox_paths`: derived path strings on nested mailboxes.
+#[test]
+fn mailbox_paths() {
+    let g = email_store();
+    assert!(g.has_literal(
+        &ex_mail("workFolder"),
+        &gm("mailboxPath"),
+        "INBOX/Work",
+        XSD_STRING,
+    ));
+    assert!(g.has_literal(
+        &ex_mail("projectsFolder"),
+        &gm("mailboxPath"),
+        "INBOX/Work/Projects",
+        XSD_STRING,
+    ));
+}
+
+/// Twin of `test_fixture_sort_orders`: integer sort orders on nested mailboxes.
+#[test]
+fn sort_orders() {
+    let g = email_store();
+    assert!(g.has_literal(
+        &ex_mail("workFolder"),
+        &gm("mailboxSortOrder"),
+        "1",
+        XSD_INTEGER,
+    ));
+    assert!(g.has_literal(
+        &ex_mail("projectsFolder"),
+        &gm("mailboxSortOrder"),
+        "0",
+        XSD_INTEGER,
+    ));
+}
+
+/// Twin of `test_fixture_destroyed_mailbox_uses_lifecycle`: a destroyed mailbox
+/// uses `hasDestructionEvent` + `displayable false`, NOT a boolean flag. The
+/// negative check (no `isDestroyedMailbox` object) is load-bearing: the lifecycle
+/// event replaces the retired boolean flag.
+#[test]
+fn destroyed_mailbox_uses_lifecycle() {
+    let g = email_store();
+    let old_folder = ex_mail("oldFolder");
+    assert!(g.has(
+        Some(&old_folder),
+        Some(&gm("hasDestructionEvent")),
+        Some(&ex_mail("oldFolderDestroyed")),
+    ));
+    assert!(g.has_literal(&old_folder, &gm("displayable"), "false", XSD_BOOLEAN));
+    assert!(
+        g.objects(&old_folder, &gm("isDestroyedMailbox")).is_empty(),
+        "the lifecycle event must replace the retired isDestroyedMailbox boolean flag"
+    );
+}
+
+/// Twin of `test_fixture_messages_in_nested_mailbox`: msg4 and msg5 reside in the
+/// nested projectsFolder.
+#[test]
+fn messages_in_nested_mailbox() {
+    let g = email_store();
+    let projects = ex_mail("projectsFolder");
+    assert!(g.has(
+        Some(&ex_mail("msg4")),
+        Some(&gm("residesIn")),
+        Some(&projects)
+    ));
+    assert!(g.has(
+        Some(&ex_mail("msg5")),
+        Some(&gm("residesIn")),
+        Some(&projects)
+    ));
+}
+
+// ── calendar twin (tests/test_email_calendar.py) ──────────────────────────────
+
+/// Twin of `test_fixture_calendar_invitation_links_to_event`: a calendar
+/// invitation message describes an event via a text/calendar attachment, carrying
+/// the calendar method, UID, message kind, attachment media type / filename, and
+/// the event's type and dateTime.
+#[test]
+fn calendar_invitation_links_to_event() {
+    let g = email_store();
+    let msg_invite = ex_mail("msgCalendarInvite");
+    let event = ex_mail("meetingEvent");
+    let att = ex_mail("calendarAtt");
+    assert!(g.has(Some(&msg_invite), Some(&gm("describesEvent")), Some(&event)));
+    assert!(g.has(
+        Some(&msg_invite),
+        Some(&gm("calendarAttachment")),
+        Some(&att)
+    ));
+    assert!(g.has(
+        Some(&msg_invite),
+        Some(&gm("hasCalendarMethod")),
+        Some(&gm("calendarMethodRequest")),
+    ));
+    assert!(g.has_literal(
+        &msg_invite,
+        &gm("calendarUid"),
+        "meeting-123@example.org",
+        XSD_STRING,
+    ));
+    assert!(g.has(
+        Some(&msg_invite),
+        Some(&gm("hasMessageKind")),
+        Some(&gm("messageKindCalendarInvitation")),
+    ));
+    assert!(g.has_literal(&att, &gm("mediaType"), "text/calendar", XSD_STRING));
+    assert!(g.has_literal(&att, &gm("filename"), "meeting.ics", XSD_STRING));
+    assert!(g.has(Some(&event), Some(RDF_TYPE), Some(&gm("Event"))));
+    assert!(g.has_literal(
+        &event,
+        &gm("eventTime"),
+        "2026-06-08T14:00:00Z",
+        XSD_DATETIME,
+    ));
+}
+
+// ── JMAP twin (tests/test_email_jmap.py) ──────────────────────────────────────
+
+/// Twin of `test_fixture_includes_jmap_identifiers`: JMAP structural identifiers.
+/// The Python wildcard-object membership `(s, p, None) in graph` becomes a
+/// wildcard-object `has(Some(s), Some(p), None)` existence check (these objects
+/// are literals, so an IRI-only `objects` sweep would miss them); the two concrete
+/// IRI triples stay exact.
+#[test]
+fn includes_jmap_identifiers() {
+    let g = email_store();
+    let msg = ex_mail("msgMultipart");
+    assert!(g.has(Some(&msg), Some(&gm("blobId")), None));
+    assert!(g.has(Some(&msg), Some(&gm("bodyStructure")), None));
+    assert!(g.has(Some(&msg), Some(&gm("hasBodyPart")), None));
+    let plain_part = ex_mail("plainPart");
+    assert!(g.has(Some(&plain_part), Some(&gm("partId")), None));
+    assert!(g.has(Some(&plain_part), Some(&gm("blobId")), None));
+    let body_value = ex_mail("plainBodyValue");
+    assert!(g.has(Some(&body_value), Some(RDF_TYPE), Some(&gm("BodyValue"))));
+    assert!(g.has(
+        Some(&body_value),
+        Some(&gm("wasDerivedFrom")),
+        Some(&plain_part),
+    ));
+}
+
+// ── thread-subject twin (tests/test_email_thread_subject.py) ───────────────────
+
+/// Twin of `test_fixture_has_thread_subject_and_prefix`: a Thread carries a
+/// `threadSubject` and a reply message carries a `subjectPrefix`. Both objects are
+/// literals, so the wildcard membership becomes `has(Some(s), Some(p), None)`.
+#[test]
+fn has_thread_subject_and_prefix() {
+    let g = email_store();
+    assert!(g.has(Some(&ex_mail("thread1")), Some(&gm("threadSubject")), None));
+    assert!(g.has(Some(&ex_mail("msg2")), Some(&gm("subjectPrefix")), None));
 }

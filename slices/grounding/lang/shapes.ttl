@@ -1045,3 +1045,75 @@ lang:GmnScriptGlyphCoverageShape
             }
         """ ;
     ] .
+
+# =========================================================================== #
+# Flagship acceptance manifest — the epic depth-bar gate
+#
+# A lang:FlagshipScenario reifies one flagship acceptance scenario and MUST bind its
+# worked example, its competency question, its counter-example, and an enforcing failure
+# class, and that failure class MUST be a lang:LangConformanceFailure subclass. The
+# competency reference is checked only for node kind here (the gmeow:CompetencyQuestion
+# individual lives in the tests dataset, which SHACL never loads); its resolution and
+# cqExpectRow expectation are confirmed by the native flagship cross-check. The producer
+# binding is checked for cardinality only (at most one); the execution-discharge harness
+# runs it.
+# =========================================================================== #
+
+lang:FlagshipScenarioShape
+    a sh:NodeShape ;
+    rdfs:label "Flagship scenario wiring shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for lang:FlagshipScenario: it binds exactly one worked example (lang:demonstratedByExample), one competency question (lang:demonstratedByCompetency), one counter-example (lang:guardedByCounterExample), and one enforcing failure class (lang:enforcesFailureClass), and that failure class is a lang:LangConformanceFailure subclass. A producer (lang:demonstratedByProducer) is optional-cardinality but at most one. An acceptance scenario that does not wire its realizing artifacts to a real failure class cannot claim the scenario is met (lang:UnwiredFlagshipScenario)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    lang:enforcesFailureClass lang:UnwiredFlagshipScenario ;
+    sh:targetClass lang:FlagshipScenario ;
+    sh:property [
+        sh:path lang:demonstratedByExample ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:FlagshipScenario must name exactly one worked example through lang:demonstratedByExample (a slice-relative path); an acceptance scenario with no realizing example is unwired." ;
+    ] ;
+    sh:property [
+        sh:path lang:demonstratedByCompetency ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:FlagshipScenario must name exactly one competency question through lang:demonstratedByCompetency (an IRI into tests/competency.ttl); an acceptance scenario with no pinning competency question is unwired." ;
+    ] ;
+    sh:property [
+        sh:path lang:demonstratedByProducer ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:FlagshipScenario names at most one native producer through lang:demonstratedByProducer; the execution-discharge harness runs every named producer." ;
+    ] ;
+    sh:property [
+        sh:path lang:guardedByCounterExample ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:FlagshipScenario must name exactly one counter-example through lang:guardedByCounterExample (a slice-relative path); a rule with no negative fixture is not considered enforced." ;
+    ] ;
+    sh:property [
+        sh:path lang:enforcesFailureClass ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:FlagshipScenario must name exactly one enforcing failure class through lang:enforcesFailureClass; an acceptance scenario whose gate raises no named failure is unwired." ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A lang:FlagshipScenario's lang:enforcesFailureClass must name a lang:LangConformanceFailure subclass — the typed failure its counter-example raises; naming a class that is not a conformance failure leaves the scenario unwired (lang:UnwiredFlagshipScenario)." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/lang/enforcesFailureClass> ?fc .
+                FILTER NOT EXISTS {
+                    ?fc <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ <https://blackcatinformatics.ca/lang/LangConformanceFailure> .
+                }
+            }
+        """ ;
+    ] .

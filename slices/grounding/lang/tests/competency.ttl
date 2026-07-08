@@ -296,3 +296,53 @@ ex:rowGmnVersionLatest a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueIri gmeow:gmnVersionOne ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri gmeow:roleLatest ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "window" ; gmeow:cellValueLiteral "1" ] .
+
+# === Q11 (flagship 2) — a lifted prose surface carries its prose-hash and exact round-trip = #
+# The shape-pin for Flagship 2 (GMEOW reading its own prose): the prose-lift discipline
+# types a surface with its logic:candidateSourceHash (prose-hash) AND a
+# lang:surfaceCorrespondence at logic:ExactPreservation. This pins the JOIN; the totality
+# ("every @x-gmeow-english literal") is discharged by executing lang_form::build_corpus.
+
+ex:cqProseLiftHashed a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/prose-lift-hashed.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/meaning-prose-lift-hashed.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A lifted prose surface carries its prose-hash (logic:candidateSourceHash) and exactly one lang:surfaceCorrespondence whose logic:Correspondence holds logic:ExactPreservation — the verbatim byte round-trip. Over the shape-pin fixture the answer is exactly the one lifted surface at ExactPreservation; a surface carrying the literal but no hash or no exact round-trip does not answer." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqProseLiftHashedShape ;
+    gmeow:cqExpectRow ex:rowProseLiftHashed .
+
+ex:cqProseLiftHashedShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "surface" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "preservation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowProseLiftHashed a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "surface" ; gmeow:cellValueIri exf:proseSurface ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:ExactPreservation ] .
+
+# === Q12 (flagship 4) — a grammar governing an exact-preserving serialization =========== #
+# The shape-pin for Flagship 4 (GMEOW's serializations as grammars): a serialization
+# rendering names its governing lang:Grammar and carries logic:ExactPreservation — the
+# lossless emit/parse round-trip. The totality (every grammars/*.ebnf round-trips) is
+# discharged by executing lang_projection::build_corpus.
+
+ex:cqGrammarRoundTrip a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/grammar-round-trip.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/rendering-turtle-emit.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A serialization is a lang:Rendering whose lang:renderingConvention is a lang:Grammar and whose lang:renderingPreservation is logic:ExactPreservation — the byte-for-byte round-trip. Over the Turtle-emit fixture the answer is exactly the Turtle grammar at ExactPreservation." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqGrammarRoundTripShape ;
+    gmeow:cqExpectRow ex:rowGrammarRoundTrip .
+
+ex:cqGrammarRoundTripShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "grammar" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "preservation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowGrammarRoundTrip a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "grammar" ; gmeow:cellValueIri exf:turtleGrammar ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:ExactPreservation ] .

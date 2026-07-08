@@ -102,7 +102,31 @@ gmeow:GenComputeRule_indirectContributor_r7
         sh:construct """CONSTRUCT { $this <https://blackcatinformatics.ca/gmeow/indirectContributor> ?agent } WHERE { ?activity <https://blackcatinformatics.ca/gmeow/wasAssociatedWith> ?agent . $this <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> ?activity . }""" ;
     ] .
 
-gmeow:GenComputeRule_findingGateVerdict_r8
+gmeow:GenComputeRule_crossNodeGlutWith_r8
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: rule deriving <https://blackcatinformatics.ca/gmeow/crossNodeGlutWith> (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?anchor a <https://blackcatinformatics.ca/gmeow/NonTrivialAnchor> . ?category1 <https://blackcatinformatics.ca/gmeow/categoryPolarity> <https://blackcatinformatics.ca/logic/InfoSupported> . ?category2 <https://blackcatinformatics.ca/gmeow/categoryPolarity> <https://blackcatinformatics.ca/logic/InfoOpposed> . ?this <https://blackcatinformatics.ca/gmeow/findingAnchor> ?anchor . ?this <https://blackcatinformatics.ca/gmeow/findingCategory> ?category1 . ?f2 <https://blackcatinformatics.ca/gmeow/findingAnchor> ?anchor . ?f2 <https://blackcatinformatics.ca/gmeow/findingCategory> ?category2 . FILTER ( ?this != ?f2 ) }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this <https://blackcatinformatics.ca/gmeow/crossNodeGlutWith> ?f2 } WHERE { ?anchor a <https://blackcatinformatics.ca/gmeow/NonTrivialAnchor> . ?category1 <https://blackcatinformatics.ca/gmeow/categoryPolarity> <https://blackcatinformatics.ca/logic/InfoSupported> . ?category2 <https://blackcatinformatics.ca/gmeow/categoryPolarity> <https://blackcatinformatics.ca/logic/InfoOpposed> . $this <https://blackcatinformatics.ca/gmeow/findingAnchor> ?anchor . $this <https://blackcatinformatics.ca/gmeow/findingCategory> ?category1 . ?f2 <https://blackcatinformatics.ca/gmeow/findingAnchor> ?anchor . ?f2 <https://blackcatinformatics.ca/gmeow/findingCategory> ?category2 . FILTER ( $this != ?f2 ) }""" ;
+    ] .
+
+gmeow:GenComputeRule_findingCluster_r9
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: rule deriving <https://blackcatinformatics.ca/gmeow/findingCluster> (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?this <https://blackcatinformatics.ca/gmeow/findingRootCause> ?root . }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this <https://blackcatinformatics.ca/gmeow/findingCluster> ?root } WHERE { $this <https://blackcatinformatics.ca/gmeow/findingRootCause> ?root . }""" ;
+    ] .
+
+gmeow:GenComputeRule_findingGateVerdict_r10
     a sh:NodeShape ;
     rdfs:label "SHACL-AF projection of the logic: rule deriving <https://blackcatinformatics.ca/gmeow/findingGateVerdict> (generated)"@en ;
     sh:target [
@@ -114,7 +138,55 @@ gmeow:GenComputeRule_findingGateVerdict_r8
         sh:construct """CONSTRUCT { $this <https://blackcatinformatics.ca/gmeow/findingGateVerdict> <https://blackcatinformatics.ca/gmeow/gateFatal> } WHERE { ?category <https://blackcatinformatics.ca/gmeow/categoryBlocking> <https://blackcatinformatics.ca/gmeow/blockingBlocking> . $this <https://blackcatinformatics.ca/gmeow/findingCategory> ?category . $this <https://blackcatinformatics.ca/gmeow/findingSeverity> <https://blackcatinformatics.ca/gmeow/severityError> . $this <https://blackcatinformatics.ca/gmeow/findingStandpoint> <https://blackcatinformatics.ca/gmeow/standpointBinding> . }""" ;
     ] .
 
-gmeow:GenComputeRule_instantiatesWork_r9
+gmeow:GenComputeRule_findingHasAntecedent_r11
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: rule deriving <https://blackcatinformatics.ca/gmeow/findingHasAntecedent> (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?this <https://blackcatinformatics.ca/gmeow/findingAntecedent> ?antecedent . }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this <https://blackcatinformatics.ca/gmeow/findingHasAntecedent> $this } WHERE { $this <https://blackcatinformatics.ca/gmeow/findingAntecedent> ?antecedent . }""" ;
+    ] .
+
+gmeow:GenComputeRule_findingRootCause_r12
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: rule deriving <https://blackcatinformatics.ca/gmeow/findingRootCause> (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?this <https://blackcatinformatics.ca/gmeow/findingTraces> ?root . FILTER NOT EXISTS { ?root <https://blackcatinformatics.ca/gmeow/findingHasAntecedent> ?root . } }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this <https://blackcatinformatics.ca/gmeow/findingRootCause> ?root } WHERE { $this <https://blackcatinformatics.ca/gmeow/findingTraces> ?root . FILTER NOT EXISTS { ?root <https://blackcatinformatics.ca/gmeow/findingHasAntecedent> ?root . } }""" ;
+    ] .
+
+gmeow:GenComputeRule_findingTraces_r13
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: rule deriving <https://blackcatinformatics.ca/gmeow/findingTraces> (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?this <https://blackcatinformatics.ca/gmeow/findingAntecedent> ?antecedent . }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this <https://blackcatinformatics.ca/gmeow/findingTraces> ?antecedent } WHERE { $this <https://blackcatinformatics.ca/gmeow/findingAntecedent> ?antecedent . }""" ;
+    ] .
+
+gmeow:GenComputeRule_findingTraces_r14
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: rule deriving <https://blackcatinformatics.ca/gmeow/findingTraces> (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?this <https://blackcatinformatics.ca/gmeow/findingAntecedent> ?intermediate . ?intermediate <https://blackcatinformatics.ca/gmeow/findingTraces> ?root . }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this <https://blackcatinformatics.ca/gmeow/findingTraces> ?root } WHERE { $this <https://blackcatinformatics.ca/gmeow/findingAntecedent> ?intermediate . ?intermediate <https://blackcatinformatics.ca/gmeow/findingTraces> ?root . }""" ;
+    ] .
+
+gmeow:GenComputeRule_instantiatesWork_r15
     a sh:NodeShape ;
     rdfs:label "SHACL-AF projection of the logic: rule deriving <https://blackcatinformatics.ca/gmeow/instantiatesWork> (generated)"@en ;
     sh:target [
@@ -124,4 +196,40 @@ gmeow:GenComputeRule_instantiatesWork_r9
     sh:rule [
         a sh:SPARQLRule ;
         sh:construct """CONSTRUCT { $this <https://blackcatinformatics.ca/gmeow/instantiatesWork> ?work } WHERE { ?expression <https://blackcatinformatics.ca/gmeow/realizes> ?work . $this <https://blackcatinformatics.ca/gmeow/exemplifies> ?manifestation . ?manifestation <https://blackcatinformatics.ca/gmeow/embodies> ?expression . }""" ;
+    ] .
+
+gmeow:GenComputeRule_type_r16
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: rule deriving <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?finding <https://blackcatinformatics.ca/gmeow/findingRootCause> ?this . }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this a <https://blackcatinformatics.ca/gmeow/FindingCluster> } WHERE { ?finding <https://blackcatinformatics.ca/gmeow/findingRootCause> $this . }""" ;
+    ] .
+
+gmeow:GenComputeRule_type_r17
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: rule deriving <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?finding <https://blackcatinformatics.ca/gmeow/findingRootCause> ?this . }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this a <https://blackcatinformatics.ca/gmeow/RootFinding> } WHERE { ?finding <https://blackcatinformatics.ca/gmeow/findingRootCause> $this . }""" ;
+    ] .
+
+gmeow:GenComputeRule_clusterRoot_r18
+    a sh:NodeShape ;
+    rdfs:label "SHACL-AF projection of the logic: rule deriving <https://blackcatinformatics.ca/gmeow/clusterRoot> (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """SELECT ?this WHERE { ?finding <https://blackcatinformatics.ca/gmeow/findingRootCause> ?this . }""" ;
+    ] ;
+    sh:rule [
+        a sh:SPARQLRule ;
+        sh:construct """CONSTRUCT { $this <https://blackcatinformatics.ca/gmeow/clusterRoot> $this } WHERE { ?finding <https://blackcatinformatics.ca/gmeow/findingRootCause> $this . }""" ;
     ] .

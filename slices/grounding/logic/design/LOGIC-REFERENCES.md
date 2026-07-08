@@ -109,6 +109,42 @@ unless they themselves cite an external work; they are cross-references within G
   Journal of the ACM 43(1). (SLG resolution / tabling.)
 - Green, T., Karvounarakis, G. & Tannen, V. (2007). *Provenance Semirings.* PODS. (Why-provenance;
   proof-trace provenance.)
+- Bry, F. (1990). *Query Evaluation in Recursive Databases: Bottom-Up and Top-Down Reconciled.*
+  Data & Knowledge Engineering 5(4). (Magic sets and tabling as one Backward Fixpoint Procedure —
+  the demand doctrine's one-engine-two-directions claim, see LOGIC-PERFORMANCE.md.)
+- Tekle, K. T. & Liu, Y. A. (2011). *More Efficient Datalog Queries: Subsumptive Tabling Beats
+  Magic Sets.* SIGMOD. (Subsumptive demand transformation — the sanctioned goal-directed rewrite,
+  see LOGIC-PERFORMANCE.md.)
+- Cuenca Grau, B., Horrocks, I., Krötzsch, M., Kupke, C., Magka, D., Motik, B. & Wang, Z. (2013).
+  *Acyclicity Notions for Existential Rules and Their Application to Query Answering in
+  Ontologies.* JAIR 47. (The chase-termination ladder — joint/super-weak acyclicity, MSA, MFA and
+  the critical-instance check, see LOGIC-PERFORMANCE.md.)
+- Carral, D., Dragoste, I. & Krötzsch, M. (2017). *Restricted Chase (Non)Termination for
+  Existential Rules with Disjunctions.* IJCAI. — Krötzsch, M. et al. (2023). *Do Repeat Yourself:
+  Understanding Sufficient Conditions for Restricted Chase Non-Termination.* KR. (Restricted-chase
+  acyclicity refinements and the repaired non-termination criteria; the caution on non-termination
+  verdicts.)
+- Motik, B., Nenov, Y., Piro, R. & Horrocks, I. (2015). *Incremental Update of Datalog
+  Materialisation: the Backward/Forward Algorithm.* AAAI. (Delete-heavy incremental maintenance —
+  the fallback beside the Z-set circuits.)
+- Ngo, H. Q., Porat, E., Ré, C. & Rudra, A. (2012). *Worst-Case Optimal Join Algorithms.* PODS /
+  JACM 65(3) (2018). — Wang, Y. R., Willsey, M. & Suciu, D. (2023). *Free Join: Unifying
+  Worst-Case Optimal and Traditional Joins.* SIGMOD. (WCOJ theory and the hybrid binary/multiway
+  operator with column-oriented lazy tries — the join doctrine's cyclic-sub-plan lever.)
+- McSherry, F., Lattuada, A., Schwarzkopf, M. & Roscoe, T. (2020). *Shared Arrangements: Practical
+  Inter-Query Sharing for Streaming Dataflows.* PVLDB 13(10). (Sorted immutable batches with
+  amortized merging — the data-shape doctrine's relation substrate.)
+- Zhao, D., Subotić, P. & Scholz, B. (2020). *Debugging Large-Scale Datalog: A Scalable Provenance
+  Evaluation Strategy.* ACM TOPLAS 42(2). (Minimal-proof-height annotations with lazy proof-tree
+  reconstruction — the provenance doctrine's Record-mode cost bound.)
+- Deutch, D., Milo, T., Roy, S. & Tannen, V. (2014). *Circuits for Datalog Provenance.* ICDT.
+  (Absorptive semirings admit compact provenance circuits where full polynomial lineage does not.)
+- Hu, X., Zhao, D., Jordan, H. & Scholz, B. (2021). *An Efficient Interpreter for Datalog by
+  De-specializing Relations.* PLDI. (A well-built plan interpreter sits within a small constant
+  factor of synthesized code — why machine-code generation stays in reserve, see
+  LOGIC-PERFORMANCE.md.)
+- Benedikt, M. et al. (2017). *Benchmarking the Chase.* PODS. (ChaseBench — the external corpus
+  the measurement doctrine's existential-fragment lanes run on.)
 - de Kleer, J. (1986). *An Assumption-Based TMS.* Artificial Intelligence 28. — Doyle, J. (1979). *A
   Truth Maintenance System.* Artificial Intelligence 12. (Contradiction witnesses / ATMS·JTMS.)
 - Dung, P. M. (1995). *On the Acceptability of Arguments and Its Fundamental Role in Nonmonotonic
@@ -172,7 +208,10 @@ unless they themselves cite an external work; they are cross-references within G
 
 - Oxigraph — an RDF store with SPARQL and RDF 1.2 support (Rust). <https://oxigraph.org/>
 - Nemo — a Datalog-based rule engine with existential rules and stratified negation (knowsys, Rust).
-  <https://knowsys.github.io/nemo/>
+  <https://knowsys.github.io/nemo/> — Ivliev, A., Gerlach, L., Meusel, S., Steinberg, J. &
+  Krötzsch, M. (2024). *Nemo: Your Friendly and Versatile Rule Reasoning Toolkit.* KR. (Columnar
+  tries, leapfrog triejoin, semi-naive evaluation, restricted chase; single-threaded and
+  non-incremental by its own account — the beat-line of LOGIC-PERFORMANCE.md.)
 - Soufflé — Jordan, H., Scholz, B. & Subotić, P. (2016). *Soufflé: On Synthesis of Program
   Analyzers.* CAV. <https://souffle-lang.github.io/>
 - RDFox — Nenov, Y., Piro, R., Motik, B., Horrocks, I., Wu, Z. & Banerjee, J. (2015). *RDFox: A

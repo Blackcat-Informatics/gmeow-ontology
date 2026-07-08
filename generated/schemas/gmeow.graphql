@@ -51,6 +51,7 @@ enum AffectCompositeEnum {
 
 enum AffectFunctionEnum {
   fnAffectiveIntensity
+  fnArgmax
 }
 
 enum AffectScaleProfileEnum {
@@ -1479,6 +1480,11 @@ enum KnowledgeLevelEnum {
   knowledgeKnowsAbout
   knowledgeMastered
   knowledgeUnderstands
+}
+
+enum LabelSetDecisionRuleEnum {
+  decisionArgmax
+  decisionIndependentThreshold
 }
 
 enum LandTenureTypeEnum {
@@ -3499,6 +3505,14 @@ type AffectComposite {
   affectiveConstituent: [String!]
 }
 
+type AffectDecision {
+  id: String
+  iri: String
+  decidedLabel: AffectClassifierLabel
+  decisionCrossedThreshold: Boolean
+  decisionMargin: Float
+}
+
 type AffectEvaluationConcluded {
   id: String
   iri: String
@@ -3512,6 +3526,7 @@ type AffectFunction {
 type AffectLabelSet {
   id: String
   iri: String
+  labelSetDecision: LabelSetDecisionRule
 }
 
 type AffectScaleProfile {
@@ -4615,6 +4630,12 @@ type CriterionPole {
   iri: String
 }
 
+type CrossNodeGlutWitness {
+  id: String
+  iri: String
+  glutWitnessOf: [Finding!]
+}
+
 type CryptoWallet {
   id: String
   iri: String
@@ -4730,7 +4751,6 @@ type DerivationType {
 type DerivedAffectIntensityObservation {
   id: String
   iri: String
-  derivedByFunction: [AffectFunction!]
   intensityBasis: AffectVectorObservation
   metricProfile: AffectScaleProfile
   normFunction: String
@@ -4753,6 +4773,11 @@ type DeterminationForce {
 }
 
 type DeterminationStatus {
+  id: String
+  iri: String
+}
+
+type DiagnosticMetaRule {
   id: String
   iri: String
 }
@@ -5288,16 +5313,30 @@ type FinancialTransaction {
 type Finding {
   id: String
   iri: String
+  crossNodeGlutWith: [Finding!]
+  findingAnchor: [String!]
+  findingAntecedent: [Finding!]
   findingCategory: [String!]
+  findingCluster: [FindingCluster!]
   findingCode: [String!]
   findingGateVerdict: [GateVerdict!]
+  findingHasAntecedent: [Finding!]
   findingHelpUri: [String!]
   findingLocation: [String!]
   findingMessage: [String!]
+  findingRemediation: [String!]
+  findingRootCause: [Finding!]
   findingSeverity: [DiagnosticSeverity!]
   findingStandpoint: [DiagnosticStandpoint!]
   findingSuggestion: [String!]
   findingTool: [String!]
+  findingTraces: [Finding!]
+}
+
+type FindingCluster {
+  id: String
+  iri: String
+  clusterRoot: [Finding!]
 }
 
 type ForgePlatform {
@@ -5912,6 +5951,11 @@ type KnowledgeProficiency {
   knowledgeProficiencyLevel: KnowledgeLevel
   knowledgeProficiencyScale: ProficiencyScale
   knowledgeProficiencySubject: Entity
+}
+
+type LabelSetDecisionRule {
+  id: String
+  iri: String
 }
 
 type LandTenure {
@@ -6684,6 +6728,11 @@ type NetworkAddressType {
   iri: String
 }
 
+type NonTrivialAnchor {
+  id: String
+  iri: String
+}
+
 type Norm {
   id: String
   iri: String
@@ -6755,6 +6804,7 @@ type Observation {
   id: String
   iri: String
   credibilityScore: [Float!]
+  derivedByFunction: [AffectFunction!]
   facetSubject: [Person!]
   facetVantage: [Agent!]
   observationEvent: [Event!]
@@ -7653,6 +7703,11 @@ type RomanticOrientationValue {
   iri: String
 }
 
+type RootFinding {
+  id: String
+  iri: String
+}
+
 type Route {
   id: String
   iri: String
@@ -7775,6 +7830,7 @@ type ScoreScale {
 type ScoreSemantics {
   id: String
   iri: String
+  impliesLabelSetDecision: [LabelSetDecisionRule!]
 }
 
 type ScriptLanguageAttribution {
@@ -8549,6 +8605,7 @@ type ValidationRule {
   ruleCategory: [String!]
   ruleCode: [String!]
   ruleHelpUri: [String!]
+  ruleRemediation: [String!]
 }
 
 type VectorIndex {

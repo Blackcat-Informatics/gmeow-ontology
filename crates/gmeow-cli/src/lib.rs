@@ -213,6 +213,48 @@ pub enum Commands {
         #[command(subcommand)]
         command: AffectCommands,
     },
+    /// Conjecture-and-refutation tools over the `logic:` engine.
+    Conjecture {
+        #[command(subcommand)]
+        command: ConjectureCommands,
+    },
+}
+
+/// The `gmeow conjecture` nested subcommands (native `gmeow_pipeline` engine).
+#[derive(Debug, Subcommand)]
+pub enum ConjectureCommands {
+    /// Test a candidate `logic:` formula against a KB in an isolated, standpoint-scoped
+    /// scenario world, print the engine verdict, and — unless `--dry-run` — APPEND it to the
+    /// append-only conjecture library (`GMEOW_CONJECTURE_PATH`, else `~/.gmeow/conjectures.gts`).
+    Test {
+        /// A Turtle `logic:` document naming exactly one candidate formula.
+        #[arg(long = "formula")]
+        formula: PathBuf,
+        /// A Turtle KB the candidate is tested against.
+        #[arg(long = "kb")]
+        kb: PathBuf,
+        /// The REQUIRED reified standpoint scope IRI (Principle 9).
+        #[arg(long = "standpoint")]
+        standpoint: String,
+        /// Optionally, the `math:Conjecture` twin IRI. When given, the statement is bridged to
+        /// the runtime `logic:Conjecture` node via `math:conjectureUnderTest` (on every
+        /// verdict), and a refutation's counterexample is additionally re-exposed via
+        /// `math:hasCounterexample`.
+        #[arg(long = "math-conjecture")]
+        math_conjecture: Option<String>,
+        /// Compute and print the verdict but WRITE NOTHING to the library.
+        #[arg(long = "dry-run")]
+        dry_run: bool,
+        /// Optional derived-closure-size ceiling on the isolated scenario evaluation: when the
+        /// derived (non-EDB) closure exceeds this many steps the run is stamped BudgetExhausted
+        /// → lifecycle open → discharge Unknown. Omitted = unbounded.
+        #[arg(long = "max-steps")]
+        max_steps: Option<u64>,
+        /// Optional derived-closure-size ceiling in answer bindings (the binding-count twin of
+        /// `--max-steps`). Omitted = unbounded.
+        #[arg(long = "max-answers")]
+        max_answers: Option<usize>,
+    },
 }
 
 /// The `gmeow affect` nested subcommands (native `gmeow_affect` engine).
@@ -351,5 +393,24 @@ pub fn run() -> i32 {
         Commands::Gts { args } => passthrough::gts(&args),
         Commands::Music { command } => passthrough::music(&command),
         Commands::Affect { command } => passthrough::affect(&command),
+        Commands::Conjecture { command } => match command {
+            ConjectureCommands::Test {
+                formula,
+                kb,
+                standpoint,
+                math_conjecture,
+                dry_run,
+                max_steps,
+                max_answers,
+            } => commands::conjecture_test(
+                &formula,
+                &kb,
+                &standpoint,
+                math_conjecture.as_deref(),
+                dry_run,
+                max_steps,
+                max_answers,
+            ),
+        },
     }
 }
