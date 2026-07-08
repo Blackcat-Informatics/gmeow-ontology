@@ -1,0 +1,17 @@
+<http://example.org/a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .
+<http://example.org/a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#TransitiveProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .
+<http://example.org/b> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .
+<http://example.org/b> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ReflexiveProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .
+<http://example.org/c> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#IrreflexiveProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .
+<http://example.org/c> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .
+<http://example.org/d> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .
+<http://example.org/d> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#SymmetricProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .
+<http://example.org/e> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#AsymmetricProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .
+<http://example.org/e> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .
+<http://example.org/f> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .
+<http://example.org/f> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .
+<http://example.org/g> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#InverseFunctionalProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .
+<http://example.org/g> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .
+<http://example.org/h> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .
+<http://example.org/h> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/fs2rdf-property-attributes-ar/w> .

@@ -199,6 +199,7 @@ fn comprehensive_round_trip_is_isomorphic() {
         None,
         None,
         None,
+        None,
     )
     .unwrap();
 
@@ -613,6 +614,7 @@ fn transaction_program_round_trips() {
         Some(leg_put.clone()),
         Vec::new(),
         Some(0.9),
+        None,
         None,
         None,
         None,

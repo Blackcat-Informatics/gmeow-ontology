@@ -1,0 +1,4 @@
+<http://www.w3.org/2002/03owlt/equivalentClass/premises002#Automobile> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-equivalentclass-002/w> .
+<http://www.w3.org/2002/03owlt/equivalentClass/premises002#Car> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-equivalentclass-002/w> .
+<http://www.w3.org/2002/03owlt/equivalentClass/premises002#Car> <http://www.w3.org/2002/07/owl#equivalentClass> <http://www.w3.org/2002/03owlt/equivalentClass/premises002#Automobile> <https://gmeow.example/w3c-owl2-full/webont-equivalentclass-002/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-equivalentclass-002/w> .

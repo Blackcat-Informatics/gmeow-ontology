@@ -87,6 +87,7 @@ usage:
   ingest-external --szs <problem.p> [--world <iri> --quads <n>]
   ingest-external --manifest <manifest.ttl>
   ingest-external --vendor-el <input.rdf> <out-dir>
+  ingest-external --vendor-full <input.rdf> <out-dir>
   ingest-external --vendor-tptp <corpus-dir>
   ingest-external --vendor-ontouml <corpus-dir>
   ingest-external --grade-suite <input.rdf> <corpus-name> <out.nq>
@@ -98,6 +99,7 @@ fn main() -> Result<(), String> {
     let mut szs: Option<PathBuf> = None;
     let mut manifest: Option<PathBuf> = None;
     let mut vendor_el: Option<(PathBuf, PathBuf)> = None;
+    let mut vendor_full: Option<(PathBuf, PathBuf)> = None;
     let mut vendor_tptp: Option<PathBuf> = None;
     let mut vendor_ontouml: Option<PathBuf> = None;
     let mut grade_suite: Option<(PathBuf, String, PathBuf)> = None;
@@ -116,6 +118,11 @@ fn main() -> Result<(), String> {
                 let input = PathBuf::from(next(&mut args, "--vendor-el")?);
                 let out = PathBuf::from(next(&mut args, "--vendor-el <out-dir>")?);
                 vendor_el = Some((input, out));
+            }
+            "--vendor-full" => {
+                let input = PathBuf::from(next(&mut args, "--vendor-full")?);
+                let out = PathBuf::from(next(&mut args, "--vendor-full <out-dir>")?);
+                vendor_full = Some((input, out));
             }
             "--vendor-tptp" => {
                 vendor_tptp = Some(PathBuf::from(next(
@@ -172,6 +179,7 @@ fn main() -> Result<(), String> {
     let mode_count = szs.is_some() as u8
         + manifest.is_some() as u8
         + vendor_el.is_some() as u8
+        + vendor_full.is_some() as u8
         + vendor_tptp.is_some() as u8
         + vendor_ontouml.is_some() as u8
         + grade_suite.is_some() as u8
@@ -180,9 +188,17 @@ fn main() -> Result<(), String> {
         + grade_ontouml.is_some() as u8;
     if mode_count > 1 {
         return Err(format!(
-            "--szs, --manifest, --vendor-el, --vendor-tptp, --vendor-ontouml, --grade-suite, \
-             --grade-ore, --grade-tptp, and --grade-ontouml are mutually exclusive\n{USAGE}"
+            "--szs, --manifest, --vendor-el, --vendor-full, --vendor-tptp, --vendor-ontouml, \
+             --grade-suite, --grade-ore, --grade-tptp, and --grade-ontouml are mutually \
+             exclusive\n{USAGE}"
         ));
+    }
+
+    // `--vendor-full` shares the Lane-A vendoring path with `--vendor-el` but binds
+    // the full W3C suite manifest; dispatched here so the tuple match below stays
+    // the pre-existing arity.
+    if let Some((input, out)) = vendor_full {
+        return vendor_full_corpus(&input, &out);
     }
 
     match (
@@ -1078,7 +1094,16 @@ fn parse_consistency_entries(
 /// Reads `<input_rdf>` (RDF/XML), keeps only ConsistencyTest / InconsistencyTest
 /// entries, runs the native DL consistency path on each, and emits the ones the
 /// native path decides AND agrees with the W3C declared outcome.
-fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
+fn vendor_lane_a_from_manifest(
+    input_rdf: &Path,
+    out_dir: &Path,
+    corpus_name: &str,
+    source_url: &str,
+    refresh_command: &str,
+) -> Result<(), String> {
+    let divergence_name = format!("{corpus_name}-divergence");
+    let base_iri = format!("https://gmeow.example/{corpus_name}/");
+
     let (consistency_entries, entailment_entries_lane_b) = parse_consistency_entries(input_rdf)?;
     let entailment_skipped = entailment_entries_lane_b.len();
 
@@ -1108,7 +1133,7 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
     // We need a stable slug→entry list for deterministic output; entries are
     // already sorted by IRI from the manifest parser. Collect slugs in order.
     for entry in &consistency_entries {
-        let lowered = match lower_entry(entry, "https://gmeow.example/w3c-owl2-el/") {
+        let lowered = match lower_entry(entry, &base_iri) {
             Some(l) => l,
             None => {
                 skipped_unparsable += 1;
@@ -1163,7 +1188,7 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
         if !verdict.gaps.is_empty() {
             write_case(
                 &divergence_dir,
-                "w3c-owl2-el-divergence",
+                &divergence_name,
                 &slug,
                 &world_iri,
                 &input_nq,
@@ -1195,7 +1220,7 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
         if native_status != declared_status {
             write_case(
                 &divergence_dir,
-                "w3c-owl2-el-divergence",
+                &divergence_name,
                 &slug,
                 &world_iri,
                 &input_nq,
@@ -1223,7 +1248,7 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
         // full regardless of count.
         write_case(
             out_dir,
-            "w3c-owl2-el",
+            corpus_name,
             &slug,
             &world_iri,
             &input_nq,
@@ -1241,13 +1266,15 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
     }
 
     // ── Write corpus.json for both buckets ────────────────────────────────────
-    let corpus_json = "{\n  \
-        \"name\": \"w3c-owl2-el\",\n  \
+    let corpus_json = format!(
+        "{{\n  \
+        \"name\": \"{corpus_name}\",\n  \
         \"spdx_license\": \"W3C\",\n  \
-        \"source_url\": \"https://www.w3.org/2009/11/owl-test/profile-EL.rdf\",\n  \
+        \"source_url\": \"{source_url}\",\n  \
         \"version_or_commit\": \"w3c-2009-11-archive\",\n  \
-        \"refresh_command\": \"curl -sSL https://www.w3.org/2009/11/owl-test/profile-EL.rdf -o .tmp/w3c-owl2/profile-EL.rdf && cargo run -p gmeow-conformance --bin ingest-external -- --vendor-el .tmp/w3c-owl2/profile-EL.rdf conformance/logic/cases/external/w3c-owl2-el\",\n  \
-        \"lane\": \"a\"\n}\n";
+        \"refresh_command\": \"{refresh_command}\",\n  \
+        \"lane\": \"a\"\n}}\n"
+    );
     std::fs::write(out_dir.join("corpus.json"), corpus_json)
         .map_err(|e| format!("cannot write corpus.json: {e}"))?;
 
@@ -1255,13 +1282,15 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
     // by construction (honest DlGap), so the soundness gate that asserts
     // committed==declared must EXCLUDE this lane; the dedicated divergence gate
     // pins it instead.
-    let divergence_corpus_json = "{\n  \
-        \"name\": \"w3c-owl2-el-divergence\",\n  \
+    let divergence_corpus_json = format!(
+        "{{\n  \
+        \"name\": \"{divergence_name}\",\n  \
         \"spdx_license\": \"W3C\",\n  \
-        \"source_url\": \"https://www.w3.org/2009/11/owl-test/profile-EL.rdf\",\n  \
+        \"source_url\": \"{source_url}\",\n  \
         \"version_or_commit\": \"w3c-2009-11-archive\",\n  \
-        \"refresh_command\": \"curl -sSL https://www.w3.org/2009/11/owl-test/profile-EL.rdf -o .tmp/w3c-owl2/profile-EL.rdf && cargo run -p gmeow-conformance --bin ingest-external -- --vendor-el .tmp/w3c-owl2/profile-EL.rdf conformance/logic/cases/external/w3c-owl2-el\",\n  \
-        \"lane\": \"divergence\"\n}\n";
+        \"refresh_command\": \"{refresh_command}\",\n  \
+        \"lane\": \"divergence\"\n}}\n"
+    );
     std::fs::write(divergence_dir.join("corpus.json"), divergence_corpus_json)
         .map_err(|e| format!("cannot write divergence corpus.json: {e}"))?;
 
@@ -1271,6 +1300,34 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
     );
 
     Ok(())
+}
+
+/// Vendor the W3C OWL 2 **EL** profile suite as a Lane-A corpus (plus its
+/// honest-DlGap divergence sibling).  A thin binding of
+/// [`vendor_lane_a_from_manifest`] to the EL profile manifest constants.
+fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
+    vendor_lane_a_from_manifest(
+        input_rdf,
+        out_dir,
+        "w3c-owl2-el",
+        "https://www.w3.org/2009/11/owl-test/profile-EL.rdf",
+        "curl -sSL https://www.w3.org/2009/11/owl-test/profile-EL.rdf -o .tmp/w3c-owl2/profile-EL.rdf && cargo run -p gmeow-conformance --bin ingest-external -- --vendor-el .tmp/w3c-owl2/profile-EL.rdf conformance/logic/cases/external/w3c-owl2-el",
+    )
+}
+
+/// Vendor the **full** W3C OWL 2 test suite (`all.rdf`, DL/Full) as a Lane-A
+/// corpus (plus its divergence sibling).  The native engine is EL/Horn, so the
+/// agreeing subset it can soundly decide becomes graded Lane-A cases and every
+/// DL/Full case it cannot decide (or that disagrees) is vendored to the
+/// `w3c-owl2-full-divergence` sibling as honest, queryable divergence data.
+fn vendor_full_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
+    vendor_lane_a_from_manifest(
+        input_rdf,
+        out_dir,
+        "w3c-owl2-full",
+        "https://www.w3.org/2009/11/owl-test/all.rdf",
+        "curl -sSL https://www.w3.org/2009/11/owl-test/all.rdf -o .tmp/w3c-owl2/all.rdf && cargo run -p gmeow-conformance --bin ingest-external -- --vendor-full .tmp/w3c-owl2/all.rdf conformance/logic/cases/external/w3c-owl2-full",
+    )
 }
 
 /// Read the quarantine baseline — the set of case slugs in the committed
@@ -2568,11 +2625,16 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             nq.contains("reason.divergence.dl-gap"),
             "format-gap ontology must surface as a dl-gap Finding: {nq:?}"
         );
-        // Exactly one Finding (the DlGap); the consistent ontology agrees → no row.
+        // Two Findings: the DlGap plus the consistent ontology's agreement, which now
+        // folds as a NON-blocking corroboration finding rather than being dropped.
         let finding_count = nq.lines().filter(|l| l.contains("/Finding>")).count();
         assert_eq!(
-            finding_count, 1,
-            "exactly one dl-gap Finding expected (consistent ontology emits none): {nq:?}"
+            finding_count, 2,
+            "expected a dl-gap Finding + the consistent ontology's corroboration Finding: {nq:?}"
+        );
+        assert!(
+            nq.contains("reason.divergence.agreement"),
+            "the consistent ontology folds as a corroboration Finding: {nq:?}"
         );
         assert!(
             !nq.contains("reason.divergence.corpus-only"),
@@ -2762,9 +2824,9 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     }
 
     /// `grade_ontouml_corpus` over a synthetic catalog: one clean model (fires
-    /// nothing → `clean` → Agree, no Finding) and one FreeRole anti-pattern model
-    /// (fires `FreeRole` → native != published `"clean"` → CorpusOnly Finding). The
-    /// FreeRole divergence must surface as a `corpus-only` Finding.
+    /// nothing → `clean` → Agree → non-blocking corroboration Finding) and one FreeRole
+    /// anti-pattern model (fires `FreeRole` → native != published `"clean"` → CorpusOnly
+    /// Finding). The FreeRole divergence must surface as a `corpus-only` Finding.
     #[test]
     fn grade_ontouml_surfaces_fired_discipline_as_corpus_only() {
         let base = std::env::temp_dir().join(format!("gmeow-ontouml-grade-{}", std::process::id()));
@@ -2799,11 +2861,16 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             nq.contains("reason.divergence.corpus-only"),
             "fired FreeRole must surface as a corpus-only Finding: {nq}"
         );
-        // Exactly one Finding (the clean model agrees → no row).
+        // Two Findings: the corpus-only FreeRole divergence plus the clean model's
+        // agreement, which now folds as a NON-blocking corroboration Finding.
         let finding_count = nq.lines().filter(|l| l.contains("/Finding>")).count();
         assert_eq!(
-            finding_count, 1,
-            "exactly one corpus-only Finding expected: {nq}"
+            finding_count, 2,
+            "expected a corpus-only Finding + the clean model's corroboration Finding: {nq}"
+        );
+        assert!(
+            nq.contains("reason.divergence.agreement"),
+            "the clean model folds as a corroboration Finding: {nq}"
         );
 
         let _ = std::fs::remove_dir_all(&base);

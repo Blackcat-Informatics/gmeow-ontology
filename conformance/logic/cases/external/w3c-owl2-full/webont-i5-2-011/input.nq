@@ -1,0 +1,6 @@
+<http://www.example.org/user#Bag> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-i5-2-011/w> .
+<http://www.example.org/user#Bag> <http://www.w3.org/2000/01/rdf-schema#comment> "The class of unordered containers." <https://gmeow.example/w3c-owl2-full/webont-i5-2-011/w> .
+<http://www.example.org/user#_1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/webont-i5-2-011/w> .
+_:rdfxml_00000000000000000000000000 <http://www.example.org/user#_1> _:rdfxml_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/webont-i5-2-011/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.example.org/user#Bag> <https://gmeow.example/w3c-owl2-full/webont-i5-2-011/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/webont-i5-2-011/w> .

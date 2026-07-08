@@ -1,0 +1,5 @@
+<http://www.example.org#c1> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.example.org#c2> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-restrict-allvalues-cmp-class/w> .
+<http://www.example.org#x1> <http://www.w3.org/2002/07/owl#allValuesFrom> <http://www.example.org#c1> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-restrict-allvalues-cmp-class/w> .
+<http://www.example.org#x1> <http://www.w3.org/2002/07/owl#onProperty> <http://www.example.org#p> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-restrict-allvalues-cmp-class/w> .
+<http://www.example.org#x2> <http://www.w3.org/2002/07/owl#allValuesFrom> <http://www.example.org#c2> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-restrict-allvalues-cmp-class/w> .
+<http://www.example.org#x2> <http://www.w3.org/2002/07/owl#onProperty> <http://www.example.org#p> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-restrict-allvalues-cmp-class/w> .

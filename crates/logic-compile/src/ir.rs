@@ -1717,6 +1717,13 @@ pub struct Correspondence {
     /// IRI of the standpoint (`logic:accordingTo`); `None` ⇒ unspecified standpoint
     /// (unspecified, not universal).
     pub according_to: Option<String>,
+    /// The declared preservation judgment (`logic:preservationKind`) — the loss residue
+    /// this correspondence's lowering carries (Principle 17: the logic core is canonical,
+    /// every dialect a lossy projection). `None` when the correspondence authors no rung; a
+    /// lossy correspondence authoring a non-[`PreservationKind::Exact`] kind is folded into
+    /// the loss ledger as ONE per-correspondence preservation row (the canonical doc's "one
+    /// preservation row per correspondence"), so the dropped construct is never DARK.
+    pub preservation: Option<PreservationKind>,
 }
 
 impl Correspondence {
@@ -1739,6 +1746,7 @@ impl Correspondence {
         weight: Option<f64>,
         probability: Option<f64>,
         according_to: Option<String>,
+        preservation: Option<PreservationKind>,
     ) -> Result<Self, String> {
         let iri = iri.into();
         if iri.is_empty() {
@@ -1796,6 +1804,7 @@ impl Correspondence {
             weight,
             probability,
             according_to,
+            preservation,
         })
     }
 
@@ -1811,7 +1820,7 @@ impl Correspondence {
         format!(
             "{}{SEP}rel={}{SEP}class={}{SEP}kind={}{SEP}mnemo={}{SEP}det={}{SEP}\
              get={}{SEP}put={}{SEP}conf={}{SEP}ev={}{SEP}w={}{SEP}prob={}{SEP}\
-             at={}{SEP}laws={claims}",
+             at={}{SEP}pres={}{SEP}laws={claims}",
             self.iri,
             self.relation.as_str(),
             self.morphism_class.as_str(),
@@ -1825,6 +1834,7 @@ impl Correspondence {
             opt_axis_key(self.weight),
             opt_axis_key(self.probability),
             self.according_to.as_deref().unwrap_or(""),
+            self.preservation.map(|p| p.as_str()).unwrap_or(""),
         )
     }
 }

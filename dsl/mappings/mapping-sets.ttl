@@ -52,6 +52,13 @@ gmeow:mapsetClasses a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
     gmeow:setComment "Canonical GMEOW class alignments to the surface vocabularies in the slice (the superset layer). schema.org is reference-only (linked, never imported)." .
 
+gmeow:mapsetConformanceCorpus a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/conformance-corpus" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """logic:↔external correctness-corpus verdict bridge (by reference). The community-decided ground-truth vocabularies the external corpora carry — the W3C test-manifest entailment kinds (mf:PositiveEntailment/NegativeEntailment) and the OWL test ontology (otest:ConsistencyTest/InconsistencyTest) — are subsumed onto the logic:ConformanceVerdict lattice; each names a test whose expected outcome IS the verdict, hence skos:closeMatch. The alignment is BY REFERENCE (real W3C IRIs in full form; no axioms vendored). This is the ontological-use/dogfooding twin of the external FOL/DL soundness corpora (conformance/logic/cases/external/), which grade the native reasoner against these same ground-truth verdicts.""" ;
+    gmeow:setTrailer "# REFUSED (Principle 5 — no stable RDF namespace): the TPTP SZS result-status tokens (Theorem, Unsatisfiable, ContradictoryAxioms, Satisfiable, CounterSatisfiable, Unknown, GaveUp, Timeout, ResourceOut) publish no RDF/OWL namespace, so they are NOT aligned to fabricated per-token IRIs. They are subsumed instead as first-class logic:SzsStatus individuals (partitioned logic:SzsSuccess/SzsNoSuccess, ordered by logic:szsStrengthens) each carrying its verbatim token via logic:rawStatusToken, and the SZS→logic:ConformanceVerdict collapse is authored as the FnO function gmeow:fnSzsToVerdict (dsl/mappings/transforms.fno.ttl) — the declarative twin of the native crates/conformance status table. The lossy 3-bucket projection carries a logic:SoundUnderApproximation preservation claim.\n# NOTE (by reference, Principle 5): the W3C test-manifest and OWL-test vocabularies are W3C-Document-licensed; no imports/targets snapshot is committed because the alignment links real IRIs rather than vendoring axioms." .
+
 gmeow:mapsetDeterminacy a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-determinacy.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/determinacy" ;

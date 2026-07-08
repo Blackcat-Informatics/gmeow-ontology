@@ -1,0 +1,4 @@
+<http://www.w3.org/2002/03owlt/AnnotationProperty/consistent003#A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-annotationproperty-003/w> .
+<http://www.w3.org/2002/03owlt/AnnotationProperty/consistent003#A> <http://www.w3.org/2002/03owlt/AnnotationProperty/consistent003#ap> <http://www.w3.org/2002/03owlt/AnnotationProperty/consistent003#B> <https://gmeow.example/w3c-owl2-full/webont-annotationproperty-003/w> .
+<http://www.w3.org/2002/03owlt/AnnotationProperty/consistent003#ap> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#AnnotationProperty> <https://gmeow.example/w3c-owl2-full/webont-annotationproperty-003/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-annotationproperty-003/w> .
