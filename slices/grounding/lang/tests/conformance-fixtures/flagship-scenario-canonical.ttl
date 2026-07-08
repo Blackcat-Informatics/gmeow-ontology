@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a lang:FlagshipScenario binding all realizing/enforcing artifacts — a
+# worked example, a competency question, a producer, a counter-example, and an enforcing
+# failure class that IS a lang:LangConformanceFailure subclass (lang:UnderspecifiedDenotation,
+# resolved against module.ttl). Conforms to lang:FlagshipScenarioShape (all cardinalities
+# and the sh:sparql subclass check) and validates with no findings.
+# Bound by ex:ecFlagshipCanonical.
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:wiredScenario a lang:FlagshipScenario ;
+    lang:demonstratedByExample "tests/conformance-fixtures/meaning-cats-chase-mice.ttl" ;
+    lang:demonstratedByCompetency <https://blackcatinformatics.ca/gmeow/examples/lang/tests/cqDenotationsToFormula> ;
+    lang:demonstratedByProducer "pipeline::stages::lang_lowering::build_corpus" ;
+    lang:guardedByCounterExample "tests/counter-examples/meaning-underspecified-denotation.ttl" ;
+    lang:enforcesFailureClass lang:UnderspecifiedDenotation .

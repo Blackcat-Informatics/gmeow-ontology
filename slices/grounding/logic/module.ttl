@@ -8067,6 +8067,411 @@ logic:candidateGateFatalVerdict
     logic:candidateFormalizes gmeow:findingGateVerdict ;
     logic:candidateSourceField logic:ProseFieldDefinition .
 
+# ════════════════════════════════════════════════════════════════════════════
+# Diagnostic meta-reasoning — findings ABOUT findings over the projected graph.
+#
+# Every rule below is a gmeow:DiagnosticMetaRule (subClassOf logic:Rule): the
+# carrier-compose reasoner discovers each by TYPE and runs it over the projected
+# diagnostic graph, so a new meta-finding is added by authoring a new tagged rule
+# with zero engine change (design-decision-2's class selection). The fold derives
+# the root-cause / cluster / cross-node-glut meta-findings whose schema lives in
+# the diagnostics slice. Root-cause uses negation-as-failure (a childless root is
+# a finding NOT in the derived gmeow:findingHasAntecedent set), so its rule is
+# logic:StratifiedNAFProfile; the transitive-closure, cluster, glut, and
+# root-finding rules are positive Horn. Fresh witness-node minting is not
+# expressible in the reified-Horn chase, so the cross-node glut is carried as the
+# derived gmeow:crossNodeGlutWith edge (Supported-polarity → Opposed-polarity).
+
+# ── Root-cause step 1/2: the transitive closure of gmeow:findingAntecedent ──────
+logic:ruleFindingTracesBase
+    a logic:Rule ,
+        gmeow:DiagnosticMetaRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "base case: a finding traces to its direct antecedent"@x-gmeow-english ;
+    skos:definition "Emits gmeow:findingTraces(finding, antecedent) whenever a finding gmeow:findingAntecedent an antecedent: the base case of the transitive closure of the witness-DAG derivation edge. Positive Horn (logic:PositiveHornProfile); monotone; materialized natively (logic:ExactPreservation). Paired with logic:ruleFindingTracesStep, which closes it recursively up the chain."@x-gmeow-english ;
+    logic:provenance logic:ruleFindingTracesBase ;
+    logic:formalizes gmeow:findingTraces ;
+    logic:head [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingTraces ;
+        rdf:object    "?antecedent"
+    ] ;
+    logic:body [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingAntecedent ;
+        rdf:object    "?antecedent"
+    ] .
+
+# ── Root-cause step 2/2: the recursive step of the closure ──────────────────────
+logic:ruleFindingTracesStep
+    a logic:Rule ,
+        gmeow:DiagnosticMetaRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "recursive step: a finding traces to its antecedent's antecedents"@x-gmeow-english ;
+    skos:definition "Emits gmeow:findingTraces(finding, root) whenever a finding gmeow:findingAntecedent an intermediate finding that gmeow:findingTraces the root: the recursive step that closes gmeow:findingTraces transitively up the witness DAG. Positive Horn (logic:PositiveHornProfile); monotone recursion the native chase settles to fixpoint; materialized natively (logic:ExactPreservation). Paired with logic:ruleFindingTracesBase."@x-gmeow-english ;
+    logic:provenance logic:ruleFindingTracesStep ;
+    logic:formalizes gmeow:findingTraces ;
+    logic:head [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingTraces ;
+        rdf:object    "?root"
+    ] ;
+    logic:body [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingAntecedent ;
+        rdf:object    "?intermediate"
+    ] , [
+        rdf:subject   "?intermediate" ;
+        rdf:predicate gmeow:findingTraces ;
+        rdf:object    "?root"
+    ] .
+
+logic:cqFindingTracesHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a finding traces to every antecedent up its chain"@x-gmeow-english ;
+    skos:definition "The positive competency case the transitive-closure rules must satisfy — 'every antecedent this finding derives from, directly or transitively': given F4 gmeow:findingAntecedent F2 and F2 gmeow:findingAntecedent F1, the reasoner must derive BOTH gmeow:findingTraces(F4, F2) and gmeow:findingTraces(F4, F1), closing the witness DAG up past the intermediate."@x-gmeow-english .
+
+logic:cqFindingTracesNonReachRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a finding never traces to an unconnected finding"@x-gmeow-english ;
+    skos:definition "The negative countermodel the transitive-closure rules must respect: gmeow:findingTraces is exactly the reachability closure of gmeow:findingAntecedent — a finding with no antecedent chain to another finding never traces to it, and the closure is directed (a root antecedent does not trace DOWN to its downstream witnesses). Two findings in disjoint witness DAGs share no gmeow:findingTraces edge."@x-gmeow-english .
+
+logic:candidateFindingTraces
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "finding-traces is the transitive closure of the antecedent edge"@x-gmeow-english ;
+    skos:definition "The derivation-rule formalization candidate governing logic:ruleFindingTracesBase and logic:ruleFindingTracesStep: it harvests the transitive-reachability commitment in gmeow:findingAntecedent's skos:definition (the reasoner joins UP the witness DAG, following the edge transitively to the root antecedent) into two enforced positive-Horn rules deriving the closure gmeow:findingTraces, materialized natively as logic:ExactPreservation. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqFindingTracesHolds) and a negative countermodel (logic:cqFindingTracesNonReachRejected). Its harvest back-link (logic:candidateFormalizes gmeow:findingAntecedent, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:1c235478a61c8445e999099c51c2bbe90abc6d16b003a1c4defda617077e531f"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:findingAntecedent's skos:definition, which states the reasoner can join up the witness DAG for root-cause analysis and a childless finding up the chain is a root antecedent (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "derivation: gmeow:findingAntecedent ⇒ gmeow:findingTraces (base), and gmeow:findingAntecedent ∘ gmeow:findingTraces ⇒ gmeow:findingTraces (recursive step), the transitive closure up the witness DAG"^^xsd:string ;
+    logic:candidateContract logic:PositiveHornProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqFindingTracesHolds ;
+    logic:candidateNegativeCase logic:cqFindingTracesNonReachRejected ;
+    logic:candidateProjectionBehavior logic:ExactPreservation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:findingAntecedent ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ── Root-cause helper: mark every finding that carries an antecedent ─────────────
+logic:ruleFindingHasAntecedent
+    a logic:Rule ,
+        gmeow:DiagnosticMetaRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "mark a finding that has at least one antecedent"@x-gmeow-english ;
+    skos:definition "Emits the self-edge gmeow:findingHasAntecedent(finding, finding) whenever a finding gmeow:findingAntecedent anything: the positive one-place marker of a non-root finding, carried on a DEDICATED relation (not rdf:type). Positive Horn (logic:PositiveHornProfile); monotone; materialized natively. It exists so the stratified root-cause rule can express 'has no antecedent of its own' as a single negation-as-failure over gmeow:findingHasAntecedent — the marker settles in a lower stratum than the NAF that reads it. Its own relation (rather than rdf:type) is load-bearing: negating rdf:type would form a negative cycle with the downstream rules that derive rdf:type from gmeow:findingRootCause, breaking stratification."@x-gmeow-english ;
+    logic:provenance logic:ruleFindingHasAntecedent ;
+    logic:formalizes gmeow:findingHasAntecedent ;
+    logic:head [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingHasAntecedent ;
+        rdf:object    "?finding"
+    ] ;
+    logic:body [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingAntecedent ;
+        rdf:object    "?antecedent"
+    ] .
+
+# ── Root cause: a traced antecedent that itself has no antecedent (NAF) ──────────
+logic:ruleFindingRootCause
+    a logic:Rule ,
+        gmeow:DiagnosticMetaRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "derive a finding's root cause as a traced childless antecedent"@x-gmeow-english ;
+    skos:definition "Emits gmeow:findingRootCause(finding, root) whenever a finding gmeow:findingTraces a root that is NOT a gmeow:findingHasAntecedent of itself — i.e. the finding reaches the root up the witness DAG and the root has no antecedent of its own. The negation-as-failure over gmeow:findingHasAntecedent makes this logic:StratifiedNAFProfile (the marker is derived in a lower stratum than this rule reads it); materialized natively (logic:ExactPreservation). Honestly the shared ROOT antecedent, not a lowest-common-dominator: it names a childless root the finding derives from, without claiming uniqueness."@x-gmeow-english ;
+    logic:provenance logic:ruleFindingRootCause ;
+    logic:formalizes gmeow:findingRootCause ;
+    logic:head [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingRootCause ;
+        rdf:object    "?root"
+    ] ;
+    logic:body [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingTraces ;
+        rdf:object    "?root"
+    ] ;
+    logic:negatedBody [
+        rdf:subject   "?root" ;
+        rdf:predicate gmeow:findingHasAntecedent ;
+        rdf:object    "?root"
+    ] .
+
+logic:cqFindingRootCauseHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "findings sharing one root all derive that childless root"@x-gmeow-english ;
+    skos:definition "The positive competency case the root-cause rule must satisfy — 'the root of all findings sharing root R': given F2 and F3 that each gmeow:findingAntecedent the childless F1 (F1 has no antecedent), the reasoner must derive gmeow:findingRootCause(F2, F1) AND gmeow:findingRootCause(F3, F1), and transitively gmeow:findingRootCause(F4, F1) for an F4 that traces to F1 through F2 — the shared childless root, agreeing with the witness-DAG root-cause harvest."@x-gmeow-english .
+
+logic:cqFindingRootCauseNonRootRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an intermediate antecedent is never a root cause"@x-gmeow-english ;
+    skos:definition "The negative countermodel the root-cause rule must respect: a traced antecedent that ITSELF carries a gmeow:findingAntecedent is never derived a gmeow:findingRootCause — only a childless root qualifies. For F4 → F2 → F1, F4's root cause is F1, NEVER the intermediate F2 (which is a gmeow:findingHasAntecedent of itself); and an independent finding with no antecedent chain derives no root cause at all. The boundary the negation-as-failure over gmeow:findingHasAntecedent keeps."@x-gmeow-english .
+
+logic:candidateFindingRootCause
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a finding's root cause is a traced childless antecedent"@x-gmeow-english ;
+    skos:definition "The derivation-rule formalization candidate governing logic:ruleFindingHasAntecedent and logic:ruleFindingRootCause: it harvests the root-cause commitment in gmeow:findingRootCause's skos:definition (the shared root antecedent reached by following gmeow:findingAntecedent transitively up the witness DAG to a childless witness, honestly the shared root and not a dominator) into an enforced stratified-negation rule set, materialized natively as logic:ExactPreservation. The childless test is a negation-as-failure over the derived gmeow:findingHasAntecedent marker, so the contract is logic:StratifiedNAFProfile. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqFindingRootCauseHolds) and a negative countermodel (logic:cqFindingRootCauseNonRootRejected). Its harvest back-link (logic:candidateFormalizes gmeow:findingRootCause, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:0148fb862caa467b2cfbcea7d4fdd89b1841272bcf87ec188ee85b8654036b6f"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:findingRootCause's skos:definition, which states the root is a childless witness reached by following gmeow:findingAntecedent transitively up the witness DAG, honestly the shared root antecedent and not a lowest-common-dominator (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "derivation: gmeow:findingAntecedent ⇒ gmeow:findingHasAntecedent (self-edge), and gmeow:findingTraces to a root NOT gmeow:findingHasAntecedent of itself ⇒ gmeow:findingRootCause (stratified negation as failure)"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqFindingRootCauseHolds ;
+    logic:candidateNegativeCase logic:cqFindingRootCauseNonRootRejected ;
+    logic:candidateProjectionBehavior logic:ExactPreservation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:findingRootCause ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ── Cluster: group findings sharing a root under the root-keyed cluster node ─────
+# Fresh cluster-node minting is not expressible in the reified-Horn chase, so the
+# cluster is IDENTIFIED BY its shared root finding: the root doubles as the
+# gmeow:FindingCluster node, carrying gmeow:clusterRoot to itself, and every
+# finding sharing that root links to it through gmeow:findingCluster.
+logic:ruleFindingCluster
+    a logic:Rule ,
+        gmeow:DiagnosticMetaRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "link a finding to the cluster keyed by its root cause"@x-gmeow-english ;
+    skos:definition "Emits gmeow:findingCluster(finding, root) whenever a finding gmeow:findingRootCause a root: the finding's membership in the cluster keyed by that shared root. Positive Horn (logic:PositiveHornProfile) over the root-cause output (stratified above it); monotone; materialized natively. The cluster node is the root finding itself (fresh-node minting is not expressible in the reified-Horn chase), so gmeow:findingCluster points at the shared root, which logic:ruleFindingClusterType types gmeow:FindingCluster and logic:ruleClusterRoot links to itself."@x-gmeow-english ;
+    logic:provenance logic:ruleFindingCluster ;
+    logic:formalizes gmeow:findingCluster ;
+    logic:head [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingCluster ;
+        rdf:object    "?root"
+    ] ;
+    logic:body [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingRootCause ;
+        rdf:object    "?root"
+    ] .
+
+logic:ruleClusterRoot
+    a logic:Rule ,
+        gmeow:DiagnosticMetaRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "carry the shared root on the root-keyed cluster node"@x-gmeow-english ;
+    skos:definition "Emits gmeow:clusterRoot(root, root) whenever some finding gmeow:findingRootCause a root: the root-keyed cluster node carries its shared root once. Positive Horn (logic:PositiveHornProfile); monotone; materialized natively. The self-edge follows from identifying the cluster with its root finding — the cluster node (the root) names R exactly once, matching every member's gmeow:findingRootCause."@x-gmeow-english ;
+    logic:provenance logic:ruleClusterRoot ;
+    logic:formalizes gmeow:clusterRoot ;
+    logic:head [
+        rdf:subject   "?root" ;
+        rdf:predicate gmeow:clusterRoot ;
+        rdf:object    "?root"
+    ] ;
+    logic:body [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingRootCause ;
+        rdf:object    "?root"
+    ] .
+
+logic:ruleFindingClusterType
+    a logic:Rule ,
+        gmeow:DiagnosticMetaRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "type the root-keyed cluster node as a finding cluster"@x-gmeow-english ;
+    skos:definition "Emits rdf:type(root, gmeow:FindingCluster) whenever some finding gmeow:findingRootCause a root: the root-keyed grouping node is a gmeow:FindingCluster. Positive Horn (logic:PositiveHornProfile); monotone; materialized natively. Types the shared root as the cluster it heads, so the readable 'N findings share root R' surface is a first-class typed node."@x-gmeow-english ;
+    logic:provenance logic:ruleFindingClusterType ;
+    logic:formalizes gmeow:FindingCluster ;
+    logic:head [
+        rdf:subject   "?root" ;
+        rdf:predicate rdf:type ;
+        rdf:object    gmeow:FindingCluster
+    ] ;
+    logic:body [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingRootCause ;
+        rdf:object    "?root"
+    ] .
+
+logic:cqFindingClusterHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "all findings sharing root R group under one cluster"@x-gmeow-english ;
+    skos:definition "The positive competency case the cluster rules must satisfy — 'all findings sharing root R': given F2 and F3 that each gmeow:findingRootCause the root F1, the reasoner must derive gmeow:findingCluster(F2, F1), gmeow:findingCluster(F3, F1), gmeow:clusterRoot(F1, F1), and rdf:type(F1, gmeow:FindingCluster) — every finding sharing R gathered under the one root-keyed cluster node, which carries R exactly once."@x-gmeow-english .
+
+logic:cqFindingClusterDistinctRootsRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "findings under different roots never share a cluster"@x-gmeow-english ;
+    skos:definition "The negative countermodel the cluster rules must respect: findings with DIFFERENT gmeow:findingRootCause values land in different clusters — a finding whose root is R1 is never linked by gmeow:findingCluster to the cluster keyed by a distinct R2, and each cluster node carries only its own root. The boundary that keeps unrelated root-cause groups from merging."@x-gmeow-english .
+
+logic:candidateFindingCluster
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "findings sharing a root cause group under one cluster node"@x-gmeow-english ;
+    skos:definition "The derivation-rule formalization candidate governing logic:ruleFindingCluster, logic:ruleClusterRoot, and logic:ruleFindingClusterType: it harvests the grouping commitment in gmeow:FindingCluster's skos:definition (a grouping of findings that share one gmeow:findingRootCause, its members linked by gmeow:findingCluster and its shared root carried by gmeow:clusterRoot) into three enforced positive-Horn rules over the root-cause output, materialized natively as logic:ExactPreservation. Because fresh-node minting is not expressible in the reified-Horn chase, the cluster is identified by its root finding. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqFindingClusterHolds) and a negative countermodel (logic:cqFindingClusterDistinctRootsRejected). Its harvest back-link (logic:candidateFormalizes gmeow:FindingCluster, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:c95215b1f377631247322939147176f00d05a7b6736cce41562c74f0ee064f44"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:FindingCluster's skos:definition, which states it is a grouping of findings that share one gmeow:findingRootCause, its members linked by gmeow:findingCluster and its shared root carried by gmeow:clusterRoot (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "derivation: gmeow:findingRootCause ⇒ gmeow:findingCluster (member), gmeow:clusterRoot (root-keyed self-edge), and rdf:type gmeow:FindingCluster (grouping node), the cluster identified by its shared root finding"^^xsd:string ;
+    logic:candidateContract logic:PositiveHornProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqFindingClusterHolds ;
+    logic:candidateNegativeCase logic:cqFindingClusterDistinctRootsRejected ;
+    logic:candidateProjectionBehavior logic:ExactPreservation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:FindingCluster ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ── Cross-node glut: two opposing-polarity findings at one non-trivial anchor ────
+logic:ruleCrossNodeGlut
+    a logic:Rule ,
+        gmeow:DiagnosticMetaRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "derive a cross-node glut edge from opposing polarities at one anchor"@x-gmeow-english ;
+    skos:definition "Emits gmeow:crossNodeGlutWith(f1, f2) whenever two DISTINCT findings share one gmeow:findingAnchor that is a gmeow:NonTrivialAnchor, f1's gmeow:findingCategory has gmeow:categoryPolarity logic:InfoSupported, and f2's has logic:InfoOpposed: an opposing-polarity Belnap clash at one real source position, the cross-code coherence conflict the same-fingerprint merge (which keys on the code) cannot see. Positive Horn (logic:PositiveHornProfile) with a logic:distinctBody inequality guard (f1 ≠ f2) and the gmeow:NonTrivialAnchor guard that keeps it off the shared empty anchor of locationless findings; monotone; materialized natively (logic:ExactPreservation). Because the reified-Horn chase cannot mint a fresh witness node, the glut is carried as this directed edge (Supported → Opposed) rather than a minted gmeow:CrossNodeGlutWitness."@x-gmeow-english ;
+    logic:provenance logic:ruleCrossNodeGlut ;
+    logic:formalizes gmeow:crossNodeGlutWith ;
+    logic:head [
+        rdf:subject   "?f1" ;
+        rdf:predicate gmeow:crossNodeGlutWith ;
+        rdf:object    "?f2"
+    ] ;
+    logic:body [
+        rdf:subject   "?f1" ;
+        rdf:predicate gmeow:findingAnchor ;
+        rdf:object    "?anchor"
+    ] , [
+        rdf:subject   "?f2" ;
+        rdf:predicate gmeow:findingAnchor ;
+        rdf:object    "?anchor"
+    ] , [
+        rdf:subject   "?anchor" ;
+        rdf:predicate rdf:type ;
+        rdf:object    gmeow:NonTrivialAnchor
+    ] , [
+        rdf:subject   "?f1" ;
+        rdf:predicate gmeow:findingCategory ;
+        rdf:object    "?category1"
+    ] , [
+        rdf:subject   "?category1" ;
+        rdf:predicate gmeow:categoryPolarity ;
+        rdf:object    logic:InfoSupported
+    ] , [
+        rdf:subject   "?f2" ;
+        rdf:predicate gmeow:findingCategory ;
+        rdf:object    "?category2"
+    ] , [
+        rdf:subject   "?category2" ;
+        rdf:predicate gmeow:categoryPolarity ;
+        rdf:object    logic:InfoOpposed
+    ] ;
+    logic:distinctBody [
+        rdf:subject "?f1" ;
+        rdf:object  "?f2"
+    ] .
+
+logic:cqCrossNodeGlutHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "all cross-node gluts at one anchor"@x-gmeow-english ;
+    skos:definition "The positive competency case the cross-node-glut rule must satisfy — 'all cross-node gluts at one anchor': given two distinct findings at one gmeow:NonTrivialAnchor whose categories carry opposing gmeow:categoryPolarity (one logic:InfoSupported, one logic:InfoOpposed), the reasoner must derive gmeow:crossNodeGlutWith linking them — the Supported/Opposed clash across codes the same-fingerprint merge structurally misses."@x-gmeow-english .
+
+logic:cqCrossNodeGlutTrivialAnchorRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a glut never fires on the shared empty anchor"@x-gmeow-english ;
+    skos:definition "The first negative countermodel the cross-node-glut rule must respect: two opposing-polarity findings that share an anchor which is NOT a gmeow:NonTrivialAnchor (the default empty anchor locationless findings collapse onto) derive NO gmeow:crossNodeGlutWith — the gmeow:NonTrivialAnchor guard keeps the join off the shared placeholder, so the rule fires only at anchors that name a real source position. The boundary that prevents the false-join over locationless findings."@x-gmeow-english .
+
+logic:cqCrossNodeGlutSamePolarityRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "same-polarity findings at one anchor are not a glut"@x-gmeow-english ;
+    skos:definition "The second negative countermodel the cross-node-glut rule must respect: two findings at one gmeow:NonTrivialAnchor whose categories carry the SAME gmeow:categoryPolarity (both logic:InfoSupported, say) derive NO gmeow:crossNodeGlutWith — a glut is an OPPOSING Belnap clash (Supported vs Opposed), never an agreement; and findings at DIFFERENT anchors never join at all. The boundary that keeps the edge to genuine coherence conflicts."@x-gmeow-english .
+
+logic:candidateCrossNodeGlut
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a cross-node glut is opposing polarities at one shared anchor"@x-gmeow-english ;
+    skos:definition "The derivation-rule formalization candidate governing logic:ruleCrossNodeGlut: it harvests the cross-node-glut commitment in gmeow:findingAnchor's skos:definition (the anchor is the code-blind join key that lets a reasoner join two different-code findings at one place and detect an opposing-polarity conflict the same-fingerprint merge misses) into an enforced positive-Horn rule with an inequality guard and a non-trivial-anchor guard, materialized natively as logic:ExactPreservation. Because the reified-Horn chase cannot mint a fresh witness node, the glut is carried as the gmeow:crossNodeGlutWith edge rather than a minted gmeow:CrossNodeGlutWitness. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqCrossNodeGlutHolds) and two countermodels (logic:cqCrossNodeGlutTrivialAnchorRejected, logic:cqCrossNodeGlutSamePolarityRejected). Its harvest back-link (logic:candidateFormalizes gmeow:findingAnchor, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:8b2aa3227645ac27452770bbb7393bef455a9049875ded598a4ca9545d39903f"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:findingAnchor's skos:definition, which states the anchor is the join key for cross-node glut detection: a reasoner joins two different-code findings at one place and detects an opposing-polarity conflict the same-fingerprint merge misses (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "derivation: shared gmeow:findingAnchor typed gmeow:NonTrivialAnchor, distinct findings, gmeow:categoryPolarity logic:InfoSupported ∧ logic:InfoOpposed ⇒ gmeow:crossNodeGlutWith"^^xsd:string ;
+    logic:candidateContract logic:PositiveHornProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqCrossNodeGlutHolds ;
+    logic:candidateNegativeCase logic:cqCrossNodeGlutTrivialAnchorRejected ,
+        logic:cqCrossNodeGlutSamePolarityRejected ;
+    logic:candidateProjectionBehavior logic:ExactPreservation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:findingAnchor ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
+# ── Extensibility demonstrator: a third tagged rule, discovered by TYPE ──────────
+# Marks a finding that is some finding's derived root cause. It fires through the
+# SAME gmeow:DiagnosticMetaRule class selection as the rules above, with zero
+# engine change — the proof that a new meta-finding is added by authoring a tagged
+# rule, not by touching the reasoner (design-decision-2).
+logic:ruleRootFinding
+    a logic:Rule ,
+        gmeow:DiagnosticMetaRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "mark a finding that is some finding's root cause"@x-gmeow-english ;
+    skos:definition "Emits rdf:type(root, gmeow:RootFinding) whenever some finding gmeow:findingRootCause a root: the childless root antecedent surfaced as a one-place marker. Positive Horn (logic:PositiveHornProfile) over the root-cause output (stratified above it); monotone; materialized natively (logic:ExactPreservation). Authored as the third member of the diagnostic meta-fold to demonstrate that a new meta-finding is added by tagging a rule gmeow:DiagnosticMetaRule — the reasoner discovers and runs it by TYPE, with no engine change."@x-gmeow-english ;
+    logic:provenance logic:ruleRootFinding ;
+    logic:formalizes gmeow:RootFinding ;
+    logic:head [
+        rdf:subject   "?root" ;
+        rdf:predicate rdf:type ;
+        rdf:object    gmeow:RootFinding
+    ] ;
+    logic:body [
+        rdf:subject   "?finding" ;
+        rdf:predicate gmeow:findingRootCause ;
+        rdf:object    "?root"
+    ] .
+
+logic:cqRootFindingHolds
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a witnessed root is marked a root finding"@x-gmeow-english ;
+    skos:definition "The positive competency case the root-finding rule must satisfy — 'which findings are root causes': given F2 gmeow:findingRootCause F1, the reasoner must derive rdf:type(F1, gmeow:RootFinding); and it must fire through the gmeow:DiagnosticMetaRule class discovery exactly like the other meta-rules, so a consumer selecting rules by that type runs it with no engine change."@x-gmeow-english .
+
+logic:cqRootFindingNonRootRejected
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a non-root finding is never a root finding"@x-gmeow-english ;
+    skos:definition "The negative countermodel the root-finding rule must respect: a finding that is NOT the gmeow:findingRootCause of any finding is never typed gmeow:RootFinding — the marker names exactly the witnessed roots, so a downstream witness or an independent finding with no dependents carries no gmeow:RootFinding type."@x-gmeow-english .
+
+logic:candidateDiagnosticMetaExtensibility
+    a owl:NamedIndividual ,
+        logic:FormalizationCandidate ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a new meta-finding is added by tagging a rule, with no engine change"@x-gmeow-english ;
+    skos:definition "The derivation-rule formalization candidate governing logic:ruleRootFinding, the extensibility demonstrator: it harvests the extension-point commitment in gmeow:DiagnosticMetaRule's skos:definition (the reasoner enumerates every gmeow:DiagnosticMetaRule and applies it, so a new meta-finding is added by authoring a new tagged rule with zero engine change) into an enforced positive-Horn rule deriving gmeow:RootFinding, materialized natively as logic:ExactPreservation. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqRootFindingHolds) and a negative countermodel (logic:cqRootFindingNonRootRejected). Its harvest back-link (logic:candidateFormalizes gmeow:DiagnosticMetaRule, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:6c55898bf91f86ff60aed9ed10787e4e1f6823d7f4eb148072946975d509eabc"^^xsd:string ;
+    logic:candidateExtractionProvenance "hand-harvested from gmeow:DiagnosticMetaRule's skos:definition, which states the reasoner enumerates every gmeow:DiagnosticMetaRule and applies it, so a new meta-finding is added by authoring a new tagged rule with zero engine change (design/LOGIC-FOUNDATION.md, §Typed formalization governance)"^^xsd:string ;
+    logic:candidateScope "derivation: gmeow:findingRootCause ⇒ rdf:type gmeow:RootFinding, discovered and run by the gmeow:DiagnosticMetaRule class selection with no engine change"^^xsd:string ;
+    logic:candidateContract logic:PositiveHornProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateAccepted ;
+    logic:reviewedBy logic:reviewerLogicFoundation ;
+    logic:candidatePositiveCase logic:cqRootFindingHolds ;
+    logic:candidateNegativeCase logic:cqRootFindingNonRootRejected ;
+    logic:candidateProjectionBehavior logic:ExactPreservation ;
+    logic:candidateSemanticRisk logic:RiskCoreContaminating ;
+    logic:candidateFormalizes gmeow:DiagnosticMetaRule ;
+    logic:candidateSourceField logic:ProseFieldDefinition .
+
 # ── Standpoint: surface a tenure's frame and position onto its generated claim ─
 # A gmeow:StandpointTenure generates a gmeow:StandpointClaim (a subClassOf
 # gmeow:Observation). Two rules surface the tenure's standpoint and held position

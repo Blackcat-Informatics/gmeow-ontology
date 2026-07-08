@@ -103,6 +103,16 @@ pub(crate) const GRAPH_LANG_FORM_CORPUS: &str =
 /// self-description corpus, not object-level axioms).
 pub(crate) const GRAPH_LANG_PROJECTION_CORPUS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/lang-projection-corpus";
+/// The compositional-lowering corpus: the flagship quantified-SVO sentence "every cat chases a
+/// mouse" lowered — one declared stage at a time — to its first-order
+/// `lang:CompositionalLowering` formula `∀x(cat(x) → ∃y(mouse(y) ∧ chase(x, y)))`, each
+/// `lang:LoweringStage` carrying its `logic:preservationKind`. Folded as its own queryable named
+/// graph so a repo-free consumer reaches the compositional lowering without re-running the native
+/// bridge. Excluded from the reasoned object-level EDB exactly like `graph/lang-projection-corpus`
+/// (it asserts a self-description corpus, not object-level axioms — `gts_compose` folds only the
+/// default graph, so this named graph never pollutes the composed EDB).
+pub(crate) const GRAPH_LANG_LOWERING_CORPUS: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/lang-lowering-corpus";
 /// The docs-rendering corpus: the `.po`-derived documentation language trees re-typed as
 /// reified crossings — one `lang:Rendering` (`lang:renderingDocsPage`) per non-English page,
 /// one `lang:Translation` per (page, language) pairing rolling up the page's live
@@ -553,6 +563,8 @@ fn assemble_carrier(
     let lang_form_corpus = producer_graph(upstream, "stage-mappings", GRAPH_LANG_FORM_CORPUS)?;
     let lang_projection_corpus =
         producer_graph(upstream, "stage-mappings", GRAPH_LANG_PROJECTION_CORPUS)?;
+    let lang_lowering_corpus =
+        producer_graph(upstream, "stage-mappings", GRAPH_LANG_LOWERING_CORPUS)?;
     let lang_docs_rendering_corpus =
         producer_graph(upstream, "stage-mappings", GRAPH_LANG_DOCS_RENDERING_CORPUS)?;
     let correspondence_laws =
@@ -594,6 +606,7 @@ fn assemble_carrier(
         lang_translation_corpus,
         lang_form_corpus,
         lang_projection_corpus,
+        lang_lowering_corpus,
         lang_docs_rendering_corpus,
         correspondence_laws,
         correspondence_laws_fanout,

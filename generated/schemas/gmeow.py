@@ -75,6 +75,7 @@ class AffectCompositeEnum(str, Enum):
 
 class AffectFunctionEnum(str, Enum):
     fnAffectiveIntensity = "fnAffectiveIntensity"
+    fnArgmax = "fnArgmax"
 
 
 class AffectScaleProfileEnum(str, Enum):
@@ -1448,6 +1449,11 @@ class KnowledgeLevelEnum(str, Enum):
     knowledgeKnowsAbout = "knowledgeKnowsAbout"
     knowledgeMastered = "knowledgeMastered"
     knowledgeUnderstands = "knowledgeUnderstands"
+
+
+class LabelSetDecisionRuleEnum(str, Enum):
+    decisionArgmax = "decisionArgmax"
+    decisionIndependentThreshold = "decisionIndependentThreshold"
 
 
 class LandTenureTypeEnum(str, Enum):
@@ -3473,6 +3479,7 @@ class AdequacyVerdict(ConfiguredBaseModel):
 class Observation(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Observation"
     credibilityScore: list[float] | None = Field(default=None)
+    derivedByFunction: list[AffectFunction] | None = Field(default=None)
     facetSubject: list[Person] | None = Field(default=None)
     facetVantage: list[Agent] | None = Field(default=None)
     observationEvent: list[Event] | None = Field(default=None)
@@ -3620,6 +3627,14 @@ class AffectComposite(Emotion):
     affectiveConstituent: list[str] | None = Field(default=None)
 
 
+class AffectDecision(Observation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectDecision"
+    is_a: ClassVar[str] = "Observation"
+    decidedLabel: AffectClassifierLabel | None = Field(default=None)
+    decisionCrossedThreshold: bool | None = Field(default=None)
+    decisionMargin: float | None = Field(default=None)
+
+
 class AffectEvaluationConcluded(Observation):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectEvaluationConcluded"
     is_a: ClassVar[str] = "Observation"
@@ -3634,7 +3649,7 @@ class AffectFunction(ConfiguredBaseModel):
 class AffectLabelSet(InformationObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AffectLabelSet"
     is_a: ClassVar[str] = "InformationObject"
-    pass
+    labelSetDecision: LabelSetDecisionRule | None = Field(default=None)
 
 
 class AffectScaleProfile(InformationObject):
@@ -4887,6 +4902,35 @@ class CriterionPole(InformationObject):
     pass
 
 
+class Finding(Observation):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Finding"
+    is_a: ClassVar[str] = "Observation"
+    crossNodeGlutWith: list[Finding] | None = Field(default=None)
+    findingAnchor: list[str] | None = Field(default=None)
+    findingAntecedent: list[Finding] | None = Field(default=None)
+    findingCategory: list[str] | None = Field(default=None)
+    findingCluster: list[FindingCluster] | None = Field(default=None)
+    findingCode: list[str] | None = Field(default=None)
+    findingGateVerdict: list[GateVerdict] | None = Field(default=None)
+    findingHasAntecedent: list[Finding] | None = Field(default=None)
+    findingHelpUri: list[str] | None = Field(default=None)
+    findingLocation: list[str] | None = Field(default=None)
+    findingMessage: list[str] | None = Field(default=None)
+    findingRemediation: list[str] | None = Field(default=None)
+    findingRootCause: list[Finding] | None = Field(default=None)
+    findingSeverity: list[DiagnosticSeverity] | None = Field(default=None)
+    findingStandpoint: list[DiagnosticStandpoint] | None = Field(default=None)
+    findingSuggestion: list[str] | None = Field(default=None)
+    findingTool: list[str] | None = Field(default=None)
+    findingTraces: list[Finding] | None = Field(default=None)
+
+
+class CrossNodeGlutWitness(Finding):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness"
+    is_a: ClassVar[str] = "Finding"
+    glutWitnessOf: list[Finding] | None = Field(default=None)
+
+
 class FinancialAccount(InformationObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/FinancialAccount"
     is_a: ClassVar[str] = "InformationObject"
@@ -5020,7 +5064,6 @@ class DerivationType(ConfiguredBaseModel):
 class DerivedAffectIntensityObservation(Observation):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation"
     is_a: ClassVar[str] = "Observation"
-    derivedByFunction: list[AffectFunction] | None = Field(default=None)
     intensityBasis: AffectVectorObservation | None = Field(default=None)
     metricProfile: AffectScaleProfile | None = Field(default=None)
     normFunction: str | None = Field(default=None)
@@ -5051,6 +5094,11 @@ class DeterminationForce(ConfiguredBaseModel):
 
 class DeterminationStatus(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DeterminationStatus"
+    pass
+
+
+class DiagnosticMetaRule(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DiagnosticMetaRule"
     pass
 
 
@@ -5499,19 +5547,9 @@ class FinancialTransaction(Event):
     transactionType: list[TransactionType] | None = Field(default=None)
 
 
-class Finding(Observation):
-    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Finding"
-    is_a: ClassVar[str] = "Observation"
-    findingCategory: list[str] | None = Field(default=None)
-    findingCode: list[str] | None = Field(default=None)
-    findingGateVerdict: list[GateVerdict] | None = Field(default=None)
-    findingHelpUri: list[str] | None = Field(default=None)
-    findingLocation: list[str] | None = Field(default=None)
-    findingMessage: list[str] | None = Field(default=None)
-    findingSeverity: list[DiagnosticSeverity] | None = Field(default=None)
-    findingStandpoint: list[DiagnosticStandpoint] | None = Field(default=None)
-    findingSuggestion: list[str] | None = Field(default=None)
-    findingTool: list[str] | None = Field(default=None)
+class FindingCluster(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/FindingCluster"
+    clusterRoot: list[Finding] | None = Field(default=None)
 
 
 class ForgePlatform(Entity):
@@ -6071,6 +6109,11 @@ class KnowledgeProficiency(ConfiguredBaseModel):
     knowledgeProficiencyLevel: KnowledgeLevel | None = Field(default=None)
     knowledgeProficiencyScale: ProficiencyScale | None = Field(default=None)
     knowledgeProficiencySubject: Entity | None = Field(default=None)
+
+
+class LabelSetDecisionRule(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/LabelSetDecisionRule"
+    pass
 
 
 class LandTenure(TimeScopedRelation):
@@ -6784,6 +6827,11 @@ class NetworkAddress(Entity):
 
 class NetworkAddressType(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/NetworkAddressType"
+    pass
+
+
+class NonTrivialAnchor(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/NonTrivialAnchor"
     pass
 
 
@@ -7678,6 +7726,12 @@ class RomanticOrientationValue(ConfiguredBaseModel):
     pass
 
 
+class RootFinding(Finding):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/RootFinding"
+    is_a: ClassVar[str] = "Finding"
+    pass
+
+
 class Route(Entity):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Route"
     is_a: ClassVar[str] = "Entity"
@@ -7790,7 +7844,7 @@ class ScoreScale(InformationObject):
 
 class ScoreSemantics(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ScoreSemantics"
-    pass
+    impliesLabelSetDecision: list[LabelSetDecisionRule] | None = Field(default=None)
 
 
 class ScriptLanguageAttribution(Observation):
@@ -8502,6 +8556,7 @@ class ValidationRule(InformationObject):
     ruleCategory: list[str] | None = Field(default=None)
     ruleCode: list[str] | None = Field(default=None)
     ruleHelpUri: list[str] | None = Field(default=None)
+    ruleRemediation: list[str] | None = Field(default=None)
 
 
 class VectorIndex(InformationObject):

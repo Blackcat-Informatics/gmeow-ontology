@@ -71,6 +71,8 @@ pub mod lint;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod mapping_eval;
 #[cfg(not(target_arch = "wasm32"))]
+pub mod remediation;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod repo_static;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod rule_catalog;

@@ -185,7 +185,7 @@ ex:cqKeystoneNoCrossTypeSuperpropertyShape a logic:ResultShape ;
 # back-link (logic:candidateFormalizes + logic:candidateSourceField) ties a
 # harvested axiom to the exact prose it formalized: the term, the prose field
 # kind, and the annotation property that field stands for. Over the production
-# ontology (the merged logic module, no synthetic data file) exactly eighteen accepted
+# ontology (the merged logic module, no synthetic data file) exactly twenty-four accepted
 # candidates carry the full back-link:
 #   - logic:candidateProperPartOfAsymmetric   (formalizing logic:properPartOf,   skos:definition)
 #   - logic:candidateFunctionalComplexKindDisjoint (formalizing logic:FunctionalComplex, skos:definition)
@@ -205,16 +205,22 @@ ex:cqKeystoneNoCrossTypeSuperpropertyShape a logic:ResultShape ;
 #   - logic:candidateCounterpartNonTransitive  (formalizing gmeow:counterpartOf,   skos:definition)
 #   - logic:candidateFrameRelativity           (formalizing logic:referenceFrame,  skos:definition)
 #   - logic:candidateNoOverTyping              (formalizing logic:MixIden,         skos:definition)
+#   - logic:candidateGateFatalVerdict          (formalizing gmeow:findingGateVerdict, skos:definition)
+#   - logic:candidateFindingTraces             (formalizing gmeow:findingAntecedent, skos:definition)
+#   - logic:candidateFindingRootCause          (formalizing gmeow:findingRootCause, skos:definition)
+#   - logic:candidateFindingCluster            (formalizing gmeow:FindingCluster,  skos:definition)
+#   - logic:candidateCrossNodeGlut             (formalizing gmeow:findingAnchor,   skos:definition)
+#   - logic:candidateDiagnosticMetaExtensibility (formalizing gmeow:DiagnosticMetaRule, skos:definition)
 # The foundational-partition candidates for Event/Situation and the two class
 # coverings (Entity, Object) carry NO harvest back-link and therefore do not appear
-# here. This set demonstrates both prose-field kinds: sixteen sourced from a
+# here. This set demonstrates both prose-field kinds: twenty-two sourced from a
 # logic:ProseFieldDefinition (skos:definition) and two from a logic:ProseFieldAvoidWhen
 # (gmeow:avoidWhen).
 
 ex:cqHarvestCoverage a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/logic/queries/competency/harvest-coverage.rq" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "Bidirectional prose→axiom harvest coverage must be queryable: each accepted FormalizationCandidate ties to the exact prose it formalized, identified by the term it formalizes, the prose field kind it was sourced from, and the annotation property that field stands for. Over the production ontology exactly nineteen accepted candidates carry the full harvest back-link — seventeen sourced from a term's skos:definition and two from a term's gmeow:avoidWhen." ;
+    gmeow:cqRationale "Bidirectional prose→axiom harvest coverage must be queryable: each accepted FormalizationCandidate ties to the exact prose it formalized, identified by the term it formalizes, the prose field kind it was sourced from, and the annotation property that field stands for. Over the production ontology exactly twenty-four accepted candidates carry the full harvest back-link — twenty-two sourced from a term's skos:definition and two from a term's gmeow:avoidWhen." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqHarvestCoverageShape ;
     gmeow:cqExpectRow ex:rowHarvestProperPart, ex:rowHarvestFunctionalComplex,
@@ -226,7 +232,9 @@ ex:cqHarvestCoverage a gmeow:CompetencyQuestion ;
         ex:rowHarvestOrgMembership, ex:rowHarvestTenureClaim,
         ex:rowHarvestIntentNotEntailed, ex:rowHarvestCounterpartNonTransitive,
         ex:rowHarvestFrameRelativity, ex:rowHarvestNoOverTyping,
-        ex:rowHarvestGateFatalVerdict .
+        ex:rowHarvestGateFatalVerdict, ex:rowHarvestFindingTraces,
+        ex:rowHarvestFindingRootCause, ex:rowHarvestFindingCluster,
+        ex:rowHarvestCrossNodeGlut, ex:rowHarvestDiagnosticMetaExtensibility .
 
 ex:cqHarvestCoverageShape a logic:ResultShape ;
     logic:declaresColumn
@@ -366,6 +374,41 @@ ex:rowHarvestGateFatalVerdict a gmeow:ExpectedRow ;
     gmeow:rowCell
         [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateGateFatalVerdict ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:findingGateVerdict ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestFindingTraces a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateFindingTraces ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:findingAntecedent ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestFindingRootCause a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateFindingRootCause ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:findingRootCause ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestFindingCluster a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateFindingCluster ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:FindingCluster ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestCrossNodeGlut a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateCrossNodeGlut ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:findingAnchor ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
+
+ex:rowHarvestDiagnosticMetaExtensibility a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "candidate" ; gmeow:cellValueIri logic:candidateDiagnosticMetaExtensibility ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri gmeow:DiagnosticMetaRule ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "field" ; gmeow:cellValueIri logic:ProseFieldDefinition ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "fieldProperty" ; gmeow:cellValueIri skos:definition ] .
 

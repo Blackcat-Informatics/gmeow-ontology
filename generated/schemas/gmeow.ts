@@ -51,6 +51,7 @@ export enum AffectCompositeEnum {
 
 export enum AffectFunctionEnum {
     fnAffectiveIntensity = "fnAffectiveIntensity",
+    fnArgmax = "fnArgmax",
 }
 
 export enum AffectScaleProfileEnum {
@@ -1424,6 +1425,11 @@ export enum KnowledgeLevelEnum {
     knowledgeKnowsAbout = "knowledgeKnowsAbout",
     knowledgeMastered = "knowledgeMastered",
     knowledgeUnderstands = "knowledgeUnderstands",
+}
+
+export enum LabelSetDecisionRuleEnum {
+    decisionArgmax = "decisionArgmax",
+    decisionIndependentThreshold = "decisionIndependentThreshold",
 }
 
 export enum LandTenureTypeEnum {
@@ -3381,6 +3387,12 @@ export interface AffectComposite extends Emotion {
     affectiveConstituent?: string[],
 }
 
+export interface AffectDecision extends Observation {
+    decidedLabel?: AffectClassifierLabel,
+    decisionCrossedThreshold?: boolean,
+    decisionMargin?: number,
+}
+
 export interface AffectEvaluationConcluded extends Observation {
 }
 
@@ -3388,6 +3400,7 @@ export interface AffectFunction {
 }
 
 export interface AffectLabelSet extends InformationObject {
+    labelSetDecision?: LabelSetDecisionRule,
 }
 
 export interface AffectScaleProfile extends InformationObject {
@@ -4172,6 +4185,10 @@ export interface CriterionDomain {
 export interface CriterionPole extends InformationObject {
 }
 
+export interface CrossNodeGlutWitness extends Finding {
+    glutWitnessOf?: Finding[],
+}
+
 export interface CryptoWallet extends FinancialAccount {
     walletAddress?: string[],
     walletKey?: CryptographicKey[],
@@ -4253,7 +4270,6 @@ export interface DerivationType {
 }
 
 export interface DerivedAffectIntensityObservation extends Observation {
-    derivedByFunction?: AffectFunction[],
     intensityBasis?: AffectVectorObservation,
     metricProfile?: AffectScaleProfile,
     normFunction?: string,
@@ -4270,6 +4286,9 @@ export interface DeterminationForce {
 }
 
 export interface DeterminationStatus {
+}
+
+export interface DiagnosticMetaRule {
 }
 
 export interface DiagnosticSeverity {
@@ -4683,16 +4702,28 @@ export interface FinancialTransaction extends Event {
 }
 
 export interface Finding extends Observation {
+    crossNodeGlutWith?: Finding[],
+    findingAnchor?: string[],
+    findingAntecedent?: Finding[],
     findingCategory?: string[],
+    findingCluster?: FindingCluster[],
     findingCode?: string[],
     findingGateVerdict?: GateVerdict[],
+    findingHasAntecedent?: Finding[],
     findingHelpUri?: string[],
     findingLocation?: string[],
     findingMessage?: string[],
+    findingRemediation?: string[],
+    findingRootCause?: Finding[],
     findingSeverity?: DiagnosticSeverity[],
     findingStandpoint?: DiagnosticStandpoint[],
     findingSuggestion?: string[],
     findingTool?: string[],
+    findingTraces?: Finding[],
+}
+
+export interface FindingCluster {
+    clusterRoot?: Finding[],
 }
 
 export interface ForgePlatform extends Entity {
@@ -5115,6 +5146,9 @@ export interface KnowledgeProficiency {
     knowledgeProficiencyLevel?: KnowledgeLevel,
     knowledgeProficiencyScale?: ProficiencyScale,
     knowledgeProficiencySubject?: Entity,
+}
+
+export interface LabelSetDecisionRule {
 }
 
 export interface LandTenure extends TimeScopedRelation {
@@ -5677,6 +5711,9 @@ export interface NetworkAddress extends Entity {
 export interface NetworkAddressType {
 }
 
+export interface NonTrivialAnchor {
+}
+
 export interface Norm extends Entity {
     deonticModality?: DeonticModality,
     hasAuthorityLevel?: AuthorityLevel[],
@@ -5730,6 +5767,7 @@ export interface ObservableProperty {
 
 export interface Observation {
     credibilityScore?: number[],
+    derivedByFunction?: AffectFunction[],
     facetSubject?: Person[],
     facetVantage?: Agent[],
     observationEvent?: Event[],
@@ -6371,6 +6409,9 @@ export interface RomanticOrientation extends IdentityFacet {
 export interface RomanticOrientationValue {
 }
 
+export interface RootFinding extends Finding {
+}
+
 export interface Route extends Entity {
     hasRouteSegment?: Route[],
     routeEnd?: string,
@@ -6455,6 +6496,7 @@ export interface ScoreScale extends InformationObject {
 }
 
 export interface ScoreSemantics {
+    impliesLabelSetDecision?: LabelSetDecisionRule[],
 }
 
 export interface ScriptLanguageAttribution extends Observation {
@@ -6995,6 +7037,7 @@ export interface ValidationRule extends InformationObject {
     ruleCategory?: string[],
     ruleCode?: string[],
     ruleHelpUri?: string[],
+    ruleRemediation?: string[],
 }
 
 export interface VectorIndex extends InformationObject {
