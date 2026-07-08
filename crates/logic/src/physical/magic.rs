@@ -32,6 +32,23 @@
 //! The magic-predicate IRIs are minted deterministically from the original predicate IRI
 //! (`<base>magic/<localname>_<adorn>`), stable across runs.
 //!
+//! # Subsumptive demand keying (Tekle & Liu, SIGMOD 2011)
+//!
+//! The demand keying is SUBSUMPTIVE, not variant: when a predicate is demanded at several
+//! adornments, only the ⊑-MINIMAL (most-general — fewest bound positions) ones mint a magic
+//! predicate. Under the adornment lattice `A ⊑ B iff bound(A) ⊆ bound(B)` (A more general), a
+//! demand on the kept general `A` serves every more-specific `B` it subsumes — `A`'s answers
+//! ⊇ `B`'s — so a more-specific call reads `A`'s table filtered by the residual on the extra
+//! positions `bound(B) ∖ bound(A)`. On this binary path that residual is discharged for FREE:
+//! each modified rule keeps its ORIGINAL body atoms (whose constants/variables carry the real
+//! join, so the derived fact set stays a subset of the untransformed least model — never
+//! spurious), and the goal projection re-imposes the goal's own bound positions. Widening a
+//! magic guard to a more-general table therefore only derives a superset of a demand slice of
+//! the SAME least model; the goal answer set is byte-identical to the per-adornment (variant)
+//! keying, while fewer magic predicates and derivations are minted (the structural win, an
+//! inspectable [`DemandProfile`]). The `#[cfg(test)] magic_transform_variant` is the retained
+//! byte-identity A/B oracle.
+//!
 //! # The transformation (standard magic-sets, left-to-right SIPS)
 //!
 //! For a goal `g(t0, t1)` with adornment `a` (over `{b, f}`):
@@ -372,37 +389,48 @@ struct MagicProgram {
     seed: Option<EvalAtom>,
 }
 
-/// Magic-transform `rules` w.r.t. the goal atom `goal` and its `goal_adorn`.
+/// A small, inspectable record of the structural demand-collapse the SUBSUMPTIVE transform
+/// achieves — the reusable perf win as a value, not a wall-clock claim.
 ///
-/// Returns the transformed binary program (modified rules + magic rules) plus the ground
-/// seed fact.  The IDB predicate set is the set of original rule-head predicates; only IDB
-/// body atoms are adorned/guarded (an EDB body atom propagates SIPS bindings but carries
-/// no magic).
-fn magic_transform(
+/// `magic_predicates_minted` is the number of magic predicates the subsumptive transform
+/// actually mints (one per ⊑-minimal / most-general demanded adornment per predicate, `ff`
+/// excluded — an all-free demand mints no predicate). `demanded_patterns` is the number the
+/// VARIANT (per-exact-adornment) transform would mint (one per distinct demanded non-`ff`
+/// adornment). `collapse_ratio = minted / demanded` ∈ (0, 1]: strictly below 1 exactly when
+/// some predicate is demanded at two comparable adornments and the more-specific one is
+/// served from the more-general kept magic predicate (Tekle & Liu, SIGMOD 2011 — subsumptive
+/// tabling keeps only the most-general table and serves specific calls from it).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) struct DemandProfile {
+    /// The magic predicates the subsumptive transform mints (kept, non-`ff` adornments).
+    pub(crate) magic_predicates_minted: usize,
+    /// The magic predicates a per-exact-adornment (variant) transform would mint (all
+    /// demanded non-`ff` adornments) — the collapse denominator.
+    pub(crate) demanded_patterns: usize,
+    /// `magic_predicates_minted / demanded_patterns` (1.0 when nothing collapses / nothing
+    /// is demanded); strictly `< 1.0` iff the collapse fired.
+    pub(crate) collapse_ratio: f64,
+}
+
+/// The full demanded adornment set of a magic-sets demand fixpoint: for each IDB predicate,
+/// the set of adornment codes (`BindingPattern::code`) it is demanded at, discovered by the
+/// standard left-to-right-SIPS demand fixpoint rooted at the goal.
+///
+/// This is the RAW variant-keyed demand set — the input the subsumptive collapse operates
+/// on. Codes (not `BindingPattern`s) key the inner set so the map stays deterministic
+/// without an arbitrary total order on the lattice, mirroring the code-string identity the
+/// magic-predicate IRIs already carry.
+fn demand_fixpoint(
     rules: &[EvalRule],
+    idb: &BTreeSet<String>,
     goal: &EvalAtom,
     goal_adorn: BindingPattern,
-) -> MagicProgram {
-    let idb: BTreeSet<String> = rules
-        .iter()
-        .map(|r| r.head.predicate.as_str().to_owned())
-        .collect();
-
-    let mut out: Vec<EvalRule> = Vec::new();
-
-    // (1) Seed: the goal's magic fact (none for an ff goal). Inserted into the EDB by the
-    // caller — a bodyless rule never fires in the semi-naive engine.
-    let seed = magic_seed_atom(goal, goal_adorn);
-
-    // The query corpus has at most one adornment per IDB predicate reachable from a
-    // single goal (the goal binds the head pattern), so we adorn each rule by its head's
-    // adornment derived from the goal demand.  For a predicate reached only as the goal,
-    // the head adornment is the goal adornment; for an IDB predicate reached via a body
-    // atom, its adornment is computed by the SIPS at that occurrence.  We compute the set
-    // of (head_pred, adornment) demands by a fixpoint over the magic rules so every
-    // reachable adorned IDB predicate gets its modified + magic rules.
-    let mut demands: BTreeSet<(String, String)> = BTreeSet::new();
-    demands.insert((goal.predicate.as_str().to_owned(), goal_adorn.code()));
+) -> BTreeMap<String, BTreeSet<String>> {
+    let mut demanded: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    demanded
+        .entry(goal.predicate.as_str().to_owned())
+        .or_default()
+        .insert(goal_adorn.code());
 
     // Fixpoint: expanding a demand (pred, adorn) over every rule whose head is `pred`
     // discovers the adorned IDB body atoms it demands.
@@ -425,10 +453,13 @@ fn magic_transform(
                     // sufficient slice of `p`. It only differs in NOT threading its vars into
                     // the SIPS `bound` set below (NAF binds nothing).
                     let a = adorn_atom(atom, &bound);
-                    let demand = (atom.predicate.as_str().to_owned(), a.code());
-                    // `demands` doubles as the visited-set: insert returns true only the
+                    // The inner set doubles as the visited-set: insert returns true only the
                     // first time a demand is seen, so each frontier node expands once.
-                    if demands.insert(demand) {
+                    if demanded
+                        .entry(atom.predicate.as_str().to_owned())
+                        .or_default()
+                        .insert(a.code())
+                    {
                         frontier.push((atom.predicate.as_str().to_owned(), a));
                     }
                 }
@@ -440,81 +471,304 @@ fn magic_transform(
             }
         }
     }
+    demanded
+}
 
-    // (2) Modified rules + (3) magic rules, for every demanded (head_pred, adorn).
-    for (head_pred, adorn_code) in &demands {
-        let head_adorn = BindingPattern::from_code(adorn_code);
-        for (ri, r) in rules
-            .iter()
-            .enumerate()
-            .filter(|(_, r)| r.head.predicate.as_str() == head_pred.as_str())
-        {
-            let mut bound = head_bound_vars(&r.head, head_adorn);
+/// The ⊑-MINIMAL antichain of a predicate's demanded adornment set — the MOST-GENERAL
+/// (fewest-bound-positions) patterns, keeping each pattern that no OTHER demanded pattern is
+/// strictly more general than.
+///
+/// Under the lattice `A ⊑ B iff bound(A) ⊆ bound(B)` (A more general), a demand keyed on the
+/// kept general `A` serves every more-specific `B` it subsumes: `A`'s answers ⊇ `B`'s, so the
+/// specific call reads `A`'s table filtered by the residual on `bound(B) ∖ bound(A)` — which
+/// on this binary path is discharged for free by the modified rule's ORIGINAL body atoms plus
+/// the goal projection (see `magic_transform_subsumptive`). This is the subsumptive-tabling
+/// collapse: keep only the most-general table per predicate.
+fn minimal_antichain(codes: &BTreeSet<String>) -> Vec<BindingPattern> {
+    let pats: Vec<BindingPattern> = codes.iter().map(|c| BindingPattern::from_code(c)).collect();
+    pats.iter()
+        .copied()
+        .filter(|p| !pats.iter().any(|q| q != p && q.subsumes(p)))
+        .collect()
+}
 
-            // (2) Modified rule body: head magic guard (if any) ++ original body.
-            let mut mod_body: Vec<EvalAtom> = Vec::new();
-            if let Some(guard) = magic_guard_atom(&r.head, head_adorn) {
-                mod_body.push(guard);
-            }
+/// The kept magic-table adornment that SERVES a demanded `pat`: the most-general kept
+/// pattern that subsumes it. Ties (a `pat` subsumed by two incomparable kept minimals, e.g.
+/// `bb` served by either `bf` or `fb`) are broken deterministically by the smallest `code()`,
+/// so the transform output is stable run-to-run.
+///
+/// # Panics
+///
+/// Panics if no kept pattern subsumes `pat` — impossible when `kept` is the minimal antichain
+/// of a demanded set that CONTAINS `pat` (every element of a finite poset is ≥ some minimal
+/// element).
+fn serve(kept: &[BindingPattern], pat: BindingPattern) -> BindingPattern {
+    kept.iter()
+        .copied()
+        .filter(|a| a.subsumes(&pat))
+        .min_by(|a, b| a.code().cmp(&b.code()))
+        .expect("every demanded pattern is subsumed by a kept minimal (most-general) element")
+}
 
-            // Walk the body, emitting per-IDB-atom magic rules along the SIPS chain.
-            let head_guard = magic_guard_atom(&r.head, head_adorn);
-            let mut prefix: Vec<EvalAtom> = Vec::new();
-            for (bi, atom) in r.body.iter().enumerate() {
-                if idb.contains(atom.predicate.as_str()) {
-                    let a = adorn_atom(atom, &bound);
-                    // (3) magic rule: magic_bi :- magic_head, b1..b(i-1)  (none for ff).
-                    if let Some(magic_head) = magic_guard_atom(atom, a) {
-                        let mut mbody: Vec<EvalAtom> = Vec::new();
-                        if let Some(hg) = &head_guard {
-                            mbody.push(hg.clone());
+/// The SUBSUMPTIVE magic-sets transformation — the PRODUCTION demand rewrite.
+///
+/// Runs the standard demand fixpoint ([`demand_fixpoint`]), then COLLAPSES each predicate's
+/// demanded adornment set to its ⊑-minimal (most-general) antichain ([`minimal_antichain`]):
+/// only those most-general adornments mint a magic predicate. A more-specific demanded
+/// adornment `B` is NOT minted — it is SERVED from the kept general `A` that subsumes it
+/// ([`serve`]) plus a residual filter on `bound(B) ∖ bound(A)`. On this binary path that
+/// residual is discharged WITHOUT an extra atom: the modified rule keeps its ORIGINAL body
+/// atoms (which carry the real join constants/variables, so the derived fact set stays a
+/// subset of the untransformed least model — never spurious), and the goal projection
+/// ([`project_answers`]) filters the goal's own bound positions. Widening a magic guard to a
+/// more-general table therefore only DERIVES a superset of a demand-restricted slice of the
+/// same least model, never a wrong answer — the goal answer set is byte-identical to the
+/// variant transform ([`magic_transform_variant`], the `#[cfg(test)]` byte-identity oracle).
+///
+/// Returns the transformed program + seed, and the [`DemandProfile`] recording the collapse.
+fn magic_transform_subsumptive(
+    rules: &[EvalRule],
+    goal: &EvalAtom,
+    goal_adorn: BindingPattern,
+) -> (MagicProgram, DemandProfile) {
+    let idb: BTreeSet<String> = rules
+        .iter()
+        .map(|r| r.head.predicate.as_str().to_owned())
+        .collect();
+
+    // (1) Demand fixpoint: the full variant-keyed (pred → exact adornments) demand set.
+    let demanded = demand_fixpoint(rules, &idb, goal, goal_adorn);
+
+    // (2) Collapse: keep only the most-general (⊑-minimal) adornment per predicate. `serve`
+    //     maps every demanded adornment to the kept table that answers it.
+    let kept: BTreeMap<String, Vec<BindingPattern>> = demanded
+        .iter()
+        .map(|(pred, codes)| (pred.clone(), minimal_antichain(codes)))
+        .collect();
+    let served = |pred: &str, pat: BindingPattern| -> BindingPattern {
+        // A predicate reached only as an EDB body atom is not in `kept` (it is never
+        // demanded); such atoms are never guarded, so `served` is only ever asked about an
+        // IDB predicate present in `kept`.
+        serve(
+            kept.get(pred)
+                .expect("a guarded/adorned atom's predicate is a demanded IDB predicate"),
+            pat,
+        )
+    };
+
+    let mut out: Vec<EvalRule> = Vec::new();
+
+    // (3) Seed: the goal's magic fact, keyed on the KEPT table that serves the goal's
+    //     adornment (the goal projection re-imposes the goal's own residual). None for an
+    //     all-free served goal. Inserted into the EDB by the caller.
+    let seed = magic_seed_atom(goal, served(goal.predicate.as_str(), goal_adorn));
+
+    // (4) Modified rules + magic rules, iterating ONLY the KEPT (most-general) head demands.
+    //     Processing the general demand yields the general body demands; every body magic
+    //     guard is routed through `served`, so it references only kept magic predicates.
+    for (head_pred, kept_pats) in &kept {
+        for &head_adorn in kept_pats {
+            for (ri, r) in rules
+                .iter()
+                .enumerate()
+                .filter(|(_, r)| r.head.predicate.as_str() == head_pred.as_str())
+            {
+                let mut bound = head_bound_vars(&r.head, head_adorn);
+
+                // The head guard is the kept head table (`head_adorn` is itself kept, so it
+                // serves itself). (2) Modified rule body: head magic guard ++ original body.
+                let head_guard = magic_guard_atom(&r.head, head_adorn);
+                let mut mod_body: Vec<EvalAtom> = Vec::new();
+                if let Some(guard) = &head_guard {
+                    mod_body.push(guard.clone());
+                }
+
+                // Walk the body, emitting per-IDB-atom magic rules along the SIPS chain.
+                let mut prefix: Vec<EvalAtom> = Vec::new();
+                for (bi, atom) in r.body.iter().enumerate() {
+                    if idb.contains(atom.predicate.as_str()) {
+                        // The body atom's exact SIPS adornment, then the KEPT table that
+                        // serves it (a superset demand — the residual is discharged by the
+                        // original body atom + goal projection).
+                        let a = adorn_atom(atom, &bound);
+                        let served_a = served(atom.predicate.as_str(), a);
+                        // (3) magic rule: magic_served_a :- magic_head, b1..b(i-1) (none when
+                        // the served table is all-free — an unrestricted demand needs none).
+                        if let Some(magic_head) = magic_guard_atom(atom, served_a) {
+                            let mut mbody: Vec<EvalAtom> = Vec::new();
+                            if let Some(hg) = &head_guard {
+                                mbody.push(hg.clone());
+                            }
+                            mbody.extend(prefix.iter().cloned());
+                            let iri = format!(
+                                "{}::magic/{}/{}#{ri}.{bi}",
+                                atom.predicate.as_str(),
+                                served_a.code(),
+                                head_pred
+                            );
+                            out.push(rule(magic_head, mbody, iri));
                         }
-                        mbody.extend(prefix.iter().cloned());
-                        let iri = format!(
-                            "{}::magic/{}/{}#{ri}.{bi}",
-                            atom.predicate.as_str(),
-                            a.code(),
-                            head_pred
-                        );
-                        out.push(rule(magic_head, mbody, iri));
                     }
-                }
-                // The modified rule always keeps the ORIGINAL body atom (a negated atom stays
-                // negated — its `negated` flag rides through the `clone`); the demand
-                // restriction comes from the head guard + the magic rules that gate which
-                // instances are derived.
-                mod_body.push(atom.clone());
-                if atom.negated {
-                    // NAF binds no SIPS variables. Carry the negated atom (still negated)
-                    // into the SIPS `prefix` — so a LATER atom's magic (demand) rule sees the
-                    // NAF condition under which it is reached, the negative literal that can
-                    // make the transformed program non-stratifiable (recovered soundly by
-                    // `eval_with_base_fallback`) — ONLY when it is fully ground given the
-                    // bindings so far. A partially-bound negated guard inside a magic rule is
-                    // existential NAF, strictly STRONGER than the per-tuple test, and would
-                    // UNDER-demand a later atom (dropping needed instances); omitting it
-                    // instead only WIDENS demand, which is always sound.
-                    if negated_atom_fully_bound(atom, &bound) {
+                    // The modified rule always keeps the ORIGINAL body atom (a negated atom
+                    // stays negated — its `negated` flag rides through the `clone`); the
+                    // demand restriction comes from the head guard + the magic rules that gate
+                    // which instances are derived, and the original body atom's own
+                    // constants/variables discharge any subsumptive residual.
+                    mod_body.push(atom.clone());
+                    if atom.negated {
+                        // NAF binds no SIPS variables. Carry the negated atom (still negated)
+                        // into the SIPS `prefix` — so a LATER atom's magic (demand) rule sees
+                        // the NAF condition under which it is reached, the negative literal
+                        // that can make the transformed program non-stratifiable (recovered
+                        // soundly by `eval_with_base_fallback`) — ONLY when it is fully ground
+                        // given the bindings so far. A partially-bound negated guard inside a
+                        // magic rule is existential NAF, strictly STRONGER than the per-tuple
+                        // test, and would UNDER-demand a later atom (dropping needed
+                        // instances); omitting it instead only WIDENS demand, always sound.
+                        if negated_atom_fully_bound(atom, &bound) {
+                            prefix.push(atom.clone());
+                        }
+                    } else {
                         prefix.push(atom.clone());
+                        bind_atom_vars(atom, &mut bound);
                     }
-                } else {
-                    prefix.push(atom.clone());
-                    bind_atom_vars(atom, &mut bound);
                 }
-            }
 
-            // The modified rule carries the ORIGINAL rule's builtins: the shared
-            // constraint stage evaluates them post-join, generating the head's
-            // arithmetic answer (or filtering).  The magic (demand) rules carry NO
-            // builtins — magic-sets is sound and complete under ANY sideways-
-            // information-passing strategy, so adorning a builtin-bound variable as
-            // free merely loosens demand (never changes the goal answers), and for
-            // the binary arithmetic fragment the builtin is terminal, so the
-            // adornment is in fact exact.
-            let iri = format!("{}::mod/{}#{ri}", r.head.predicate.as_str(), adorn_code);
-            let mut modified = rule(r.head.clone(), mod_body, iri);
-            modified.builtins = r.builtins.clone();
-            out.push(modified);
+                // The modified rule carries the ORIGINAL rule's builtins: the shared
+                // constraint stage evaluates them post-join, generating the head's
+                // arithmetic answer (or filtering).  The magic (demand) rules carry NO
+                // builtins — magic-sets is sound and complete under ANY sideways-
+                // information-passing strategy, so adorning a builtin-bound variable as
+                // free merely loosens demand (never changes the goal answers), and for
+                // the binary arithmetic fragment the builtin is terminal, so the
+                // adornment is in fact exact.
+                let iri = format!(
+                    "{}::mod/{}#{ri}",
+                    r.head.predicate.as_str(),
+                    head_adorn.code()
+                );
+                let mut modified = rule(r.head.clone(), mod_body, iri);
+                modified.builtins = r.builtins.clone();
+                out.push(modified);
+            }
+        }
+    }
+
+    // (5) Profile: the variant transform would mint one magic predicate per demanded non-ff
+    //     adornment; the subsumptive transform mints one per kept non-ff adornment.
+    let has_bound = |c: &String| c.contains('b');
+    let demanded_patterns = demanded.values().flatten().filter(|c| has_bound(c)).count();
+    let magic_predicates_minted = kept.values().flatten().filter(|p| !p.is_all_free()).count();
+    let collapse_ratio = if demanded_patterns == 0 {
+        1.0
+    } else {
+        magic_predicates_minted as f64 / demanded_patterns as f64
+    };
+
+    (
+        MagicProgram { rules: out, seed },
+        DemandProfile {
+            magic_predicates_minted,
+            demanded_patterns,
+            collapse_ratio,
+        },
+    )
+}
+
+/// Magic-transform `rules` w.r.t. the goal atom `goal` and its `goal_adorn` — the PRODUCTION
+/// (subsumptive) demand rewrite.
+///
+/// Returns the transformed binary program (modified rules + magic rules) plus the ground
+/// seed fact.  The IDB predicate set is the set of original rule-head predicates; only IDB
+/// body atoms are adorned/guarded (an EDB body atom propagates SIPS bindings but carries no
+/// magic). Thin wrapper over [`magic_transform_subsumptive`] dropping the [`DemandProfile`]
+/// (the runtime path needs only the program; tests read the profile directly).
+fn magic_transform(
+    rules: &[EvalRule],
+    goal: &EvalAtom,
+    goal_adorn: BindingPattern,
+) -> MagicProgram {
+    magic_transform_subsumptive(rules, goal, goal_adorn).0
+}
+
+/// The VARIANT (per-exact-adornment) magic-sets transformation — the `#[cfg(test)]`
+/// byte-identity reference the production [`magic_transform_subsumptive`] is checked against.
+///
+/// Mints a SEPARATE magic predicate per distinct demanded adornment (no subsumptive collapse):
+/// this is the pre-upgrade demand keying, kept only as the A/B oracle proving the subsumptive
+/// collapse leaves the answer set byte-identical. It is NOT a production path (greenfield: one
+/// production demand rewrite, the subsumptive one).
+#[cfg(test)]
+fn magic_transform_variant(
+    rules: &[EvalRule],
+    goal: &EvalAtom,
+    goal_adorn: BindingPattern,
+) -> MagicProgram {
+    let idb: BTreeSet<String> = rules
+        .iter()
+        .map(|r| r.head.predicate.as_str().to_owned())
+        .collect();
+
+    let mut out: Vec<EvalRule> = Vec::new();
+
+    // (1) Seed: the goal's magic fact (none for an ff goal).
+    let seed = magic_seed_atom(goal, goal_adorn);
+
+    // The full variant-keyed (pred → exact adornments) demand set.
+    let demanded = demand_fixpoint(rules, &idb, goal, goal_adorn);
+
+    // (2) Modified rules + (3) magic rules, for every demanded (head_pred, exact adorn).
+    for (head_pred, codes) in &demanded {
+        for adorn_code in codes {
+            let head_adorn = BindingPattern::from_code(adorn_code);
+            for (ri, r) in rules
+                .iter()
+                .enumerate()
+                .filter(|(_, r)| r.head.predicate.as_str() == head_pred.as_str())
+            {
+                let mut bound = head_bound_vars(&r.head, head_adorn);
+
+                let head_guard = magic_guard_atom(&r.head, head_adorn);
+                let mut mod_body: Vec<EvalAtom> = Vec::new();
+                if let Some(guard) = &head_guard {
+                    mod_body.push(guard.clone());
+                }
+
+                let mut prefix: Vec<EvalAtom> = Vec::new();
+                for (bi, atom) in r.body.iter().enumerate() {
+                    if idb.contains(atom.predicate.as_str()) {
+                        let a = adorn_atom(atom, &bound);
+                        if let Some(magic_head) = magic_guard_atom(atom, a) {
+                            let mut mbody: Vec<EvalAtom> = Vec::new();
+                            if let Some(hg) = &head_guard {
+                                mbody.push(hg.clone());
+                            }
+                            mbody.extend(prefix.iter().cloned());
+                            let iri = format!(
+                                "{}::magic/{}/{}#{ri}.{bi}",
+                                atom.predicate.as_str(),
+                                a.code(),
+                                head_pred
+                            );
+                            out.push(rule(magic_head, mbody, iri));
+                        }
+                    }
+                    mod_body.push(atom.clone());
+                    if atom.negated {
+                        if negated_atom_fully_bound(atom, &bound) {
+                            prefix.push(atom.clone());
+                        }
+                    } else {
+                        prefix.push(atom.clone());
+                        bind_atom_vars(atom, &mut bound);
+                    }
+                }
+
+                let iri = format!("{}::mod/{}#{ri}", r.head.predicate.as_str(), adorn_code);
+                let mut modified = rule(r.head.clone(), mod_body, iri);
+                modified.builtins = r.builtins.clone();
+                out.push(modified);
+            }
         }
     }
 
@@ -2324,6 +2578,371 @@ mod tests {
                 NativeOutcome::Unsupported(_)
             ),
             "n-ary + negation is a declared gap"
+        );
+    }
+
+    // ── Subsumptive demand keying: A/B byte-identity vs the variant transform ─────
+    //
+    // Tekle & Liu (SIGMOD 2011): subsumptive tabling keeps only the most-general demanded
+    // adornment per predicate and serves the more-specific calls from it. The perf win must
+    // be answer-preserving: the subsumptive transform's goal answer set is BYTE-IDENTICAL to
+    // the per-adornment (variant) transform's. `magic_transform_variant` is the retained
+    // reference; these tests are the load-bearing correctness gate for the collapse.
+
+    /// Lower a positive/negated-atom program to binary `EvalRule`s (no builtins) — the shared
+    /// setup for the A/B transform-parity tests.
+    fn eval_rules_of(prog: &QProgram) -> Vec<EvalRule> {
+        prog.rules
+            .iter()
+            .map(|r| {
+                let head = atom_of(&r.head).unwrap();
+                let body = r
+                    .body
+                    .iter()
+                    .filter_map(|l| match l {
+                        QBodyLit::Atom(a) => Some(atom_of(a).unwrap()),
+                        QBodyLit::Neg(a) => Some(EvalAtom {
+                            negated: true,
+                            ..atom_of(a).unwrap()
+                        }),
+                        _ => None,
+                    })
+                    .collect();
+                let rule_iri = format!("{}::rule", head.predicate.as_str());
+                EvalRule {
+                    head,
+                    body,
+                    rule_iri,
+                    distinct_pairs: vec![],
+                    builtins: vec![],
+                }
+            })
+            .collect()
+    }
+
+    /// Resolve `prog` through the given magic transform, returning the canonicalized goal
+    /// binding set — the A/B comparison surface. Evaluates the transformed program directly
+    /// (the stratifiable-transform corpus), so it never needs the base fallback.
+    fn answers_via(
+        transform: impl Fn(&[EvalRule], &EvalAtom, BindingPattern) -> MagicProgram,
+        foreign: &dyn ScryerForeign,
+        world: &str,
+        prog: &QProgram,
+    ) -> Vec<Binding> {
+        let rules = eval_rules_of(prog);
+        let goal = &prog.goal.atoms[0];
+        let goal_atom = atom_of(goal).unwrap();
+        let transformed = transform(&rules, &goal_atom, goal_adornment(goal));
+        let mut edb = extract_edb(foreign, world);
+        if let Some(seed) = &transformed.seed {
+            let f = seed_to_fact(seed).unwrap();
+            edb.insert(&f.predicate, f.subject, f.object);
+        }
+        let facts = match evaluate(edb, &transformed.rules, None).unwrap() {
+            NativeOutcome::Decided(b) => b.rows,
+            other => panic!("expected Decided, got {other:?}"),
+        };
+        let bindings = project_answers(&facts, goal, goal_atom.predicate.as_str());
+        let mut answer = AnswerSet {
+            bindings,
+            status: BudgetStatus::Ok,
+            preservation: crate::result::PreservationClaim::exact(),
+            frontier: crate::query_ir::CompletionFrontier::empty(),
+        };
+        answer.canonicalize();
+        answer.bindings
+    }
+
+    /// Assert the subsumptive transform produces the byte-identical goal answer set to the
+    /// variant transform for `prog`.
+    fn assert_ab_identical(foreign: &dyn ScryerForeign, world: &str, prog: &QProgram, label: &str) {
+        let variant = answers_via(magic_transform_variant, foreign, world, prog);
+        let subsumptive = answers_via(
+            |r, g, a| magic_transform_subsumptive(r, g, a).0,
+            foreign,
+            world,
+            prog,
+        );
+        assert_eq!(
+            variant, subsumptive,
+            "A/B byte-identity failed on {label}: variant {variant:?} vs subsumptive {subsumptive:?}"
+        );
+    }
+
+    /// The distinct magic-predicate IRIs (`.../magic/...`) appearing in a transformed program
+    /// — the count of magic predicates actually MINTED.
+    fn minted_magic_preds(mp: &MagicProgram) -> BTreeSet<String> {
+        let mut preds = BTreeSet::new();
+        for r in &mp.rules {
+            for p in std::iter::once(&r.head).chain(r.body.iter()) {
+                if p.predicate.contains("/magic/") {
+                    preds.insert(p.predicate.clone());
+                }
+            }
+        }
+        preds
+    }
+
+    /// The multi-adornment program: `p` is demanded at BOTH `bf` (from `q`'s first rule and
+    /// `p(c, Y)` in the second) and `bb` (from `p(X, c)` in the second rule). `bf ⊑ bb`, so
+    /// the subsumptive collapse keeps only `magic_p_bf` and serves the `bb` demand from it.
+    fn multi_adornment_program() -> QProgram {
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(X, Y) :- ex:e(X, Y).\n\
+             ex:q(X, Y) :- ex:p(X, Y).\n\
+             ex:q(X, Y) :- ex:p(X, ex:c), ex:p(ex:c, Y).\n\
+             ?- ex:q(ex:a, W).\n"
+        );
+        parse_query_program(&src).unwrap()
+    }
+
+    /// The multi-adornment world: `e(a,b), e(a,c), e(c,d), e(b,z)`. The `e(b,z)` edge is the
+    /// LEAK TRAP: it is reachable only if the general `bf` demand's over-derived `p(a,b)` were
+    /// wrongly used in the `p(X, c)` (bb) join slot of `q`'s second rule.
+    fn multi_adornment_world() -> (WorldStore, String) {
+        make_world(&[
+            (
+                &format!("{BASE}a"),
+                &format!("{BASE}e"),
+                &format!("{BASE}b"),
+            ),
+            (
+                &format!("{BASE}a"),
+                &format!("{BASE}e"),
+                &format!("{BASE}c"),
+            ),
+            (
+                &format!("{BASE}c"),
+                &format!("{BASE}e"),
+                &format!("{BASE}d"),
+            ),
+            (
+                &format!("{BASE}b"),
+                &format!("{BASE}e"),
+                &format!("{BASE}z"),
+            ),
+        ])
+    }
+
+    // ── Test 1: byte-identity over the full existing corpus + the multi-adornment program ─
+
+    #[test]
+    fn magic_subsumptive_matches_variant_over_corpus() {
+        // Single-adornment corpus (subsumptive ≡ variant trivially — each predicate is
+        // demanded at ONE adornment, so nothing collapses) over the tc / reachability worlds.
+        let (tc_store, tc_w) = tc_world();
+        let tc = WorldStoreForeign::from_world(&tc_store, W, PROFILE).unwrap();
+        let bf = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:ancestor(X, Y) :- ex:parentOf(X, Y).\n\
+             ex:ancestor(X, Y) :- ex:parentOf(X, Z), ex:ancestor(Z, Y).\n\
+             ?- ex:ancestor(ex:a, Y).\n"
+        );
+        let bb = bf.replace("?- ex:ancestor(ex:a, Y).", "?- ex:ancestor(ex:a, ex:c).");
+        let fb = bf.replace("?- ex:ancestor(ex:a, Y).", "?- ex:ancestor(X, ex:d).");
+        let ff = bf.replace("?- ex:ancestor(ex:a, Y).", "?- ex:ancestor(X, Y).");
+        let nonrec = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:ancestorOf(X, Y) :- ex:parentOf(X, Y).\n\
+             ?- ex:ancestorOf(ex:a, Y).\n"
+        );
+        for (label, src) in [
+            ("tc-bf", &bf),
+            ("tc-bb", &bb),
+            ("tc-fb", &fb),
+            ("tc-ff", &ff),
+            ("non-recursive", &nonrec),
+        ] {
+            let prog = parse_query_program(src).unwrap();
+            assert_ab_identical(&tc, &tc_w, &prog, label);
+        }
+
+        // Stratified-negation corpus (transform stays stratifiable) over the reachability
+        // world: `unreachable` and the later-bound-negated-var soundness shape.
+        let (rw_store, rw_w) = reachability_world();
+        let rw = WorldStoreForeign::from_world(&rw_store, W, PROFILE).unwrap();
+        let unreachable = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:reachable(X, Y) :- ex:edge(X, Y).\n\
+             ex:reachable(X, Y) :- ex:edge(X, Z), ex:reachable(Z, Y).\n\
+             ex:unreachable(X, Y) :- ex:node(X, X), ex:node(Y, Y), \\+ ex:reachable(X, Y).\n\
+             ?- ex:unreachable(ex:a, Y).\n"
+        );
+        let later_bound = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:r(X, Y) :- ex:edge(X, Y).\n\
+             ex:r(X, Y) :- ex:edge(X, Z), ex:r(Z, Y).\n\
+             ex:q(X, Y) :- ex:edge(X, Y).\n\
+             ex:p(X, Y) :- ex:node(X, X), \\+ ex:q(X, Y), ex:r(X, Y).\n\
+             ?- ex:p(ex:a, Y).\n"
+        );
+        for (label, src) in [
+            ("unreachable", &unreachable),
+            ("later-bound-neg", &later_bound),
+        ] {
+            let prog = parse_query_program(src).unwrap();
+            assert_ab_identical(&rw, &rw_w, &prog, label);
+        }
+
+        // The multi-adornment program — where the collapse actually FIRES — must stay
+        // byte-identical too.
+        let (ma_store, ma_w) = multi_adornment_world();
+        let ma = WorldStoreForeign::from_world(&ma_store, W, PROFILE).unwrap();
+        assert_ab_identical(&ma, &ma_w, &multi_adornment_program(), "multi-adornment");
+    }
+
+    // ── Test 2: the collapse fires — strictly fewer magic predicates on multi-adornment ──
+
+    #[test]
+    fn magic_subsumptive_collapses_multi_adornment_demand() {
+        let (store, world_nn) = multi_adornment_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = multi_adornment_program();
+
+        // (a) Byte-identical goal answers: q(a, W) = {b, c, d}. The leak-trap `z` is absent.
+        let variant = answers_via(magic_transform_variant, &foreign, &world_nn, &prog);
+        let subsumptive = answers_via(
+            |r, g, a| magic_transform_subsumptive(r, g, a).0,
+            &foreign,
+            &world_nn,
+            &prog,
+        );
+        assert_eq!(
+            variant, subsumptive,
+            "collapse must preserve the answer set"
+        );
+        let mut ws: Vec<&str> = subsumptive.iter().map(|b| b["W"].as_str()).collect();
+        ws.sort_unstable();
+        assert_eq!(
+            ws,
+            [
+                format!("<{BASE}b>"),
+                format!("<{BASE}c>"),
+                format!("<{BASE}d>")
+            ]
+            .iter()
+            .map(String::as_str)
+            .collect::<Vec<_>>(),
+            "q(a, W) must be exactly {{b, c, d}}: {subsumptive:?}"
+        );
+
+        // (b) Strictly fewer magic predicates minted than the variant transform.
+        let rules = eval_rules_of(&prog);
+        let goal_atom = atom_of(&prog.goal.atoms[0]).unwrap();
+        let adorn = goal_adornment(&prog.goal.atoms[0]);
+        let variant_mp = magic_transform_variant(&rules, &goal_atom, adorn);
+        let (subsumptive_mp, profile) = magic_transform_subsumptive(&rules, &goal_atom, adorn);
+
+        let variant_preds = minted_magic_preds(&variant_mp);
+        let subsumptive_preds = minted_magic_preds(&subsumptive_mp);
+        assert!(
+            subsumptive_preds.len() < variant_preds.len(),
+            "subsumptive must mint strictly fewer magic predicates: subsumptive {subsumptive_preds:?} vs variant {variant_preds:?}"
+        );
+        // The variant mints `magic/p_bb`; the subsumptive folds it into `magic/p_bf` and mints
+        // NO `p_bb` table (the bb demand is served from the more-general bf table).
+        assert!(
+            variant_preds.iter().any(|p| p.ends_with("p_bb")),
+            "variant mints the separate p_bb table: {variant_preds:?}"
+        );
+        assert!(
+            !subsumptive_preds.iter().any(|p| p.ends_with("p_bb")),
+            "subsumptive must NOT mint p_bb (served by the general p_bf): {subsumptive_preds:?}"
+        );
+        assert!(
+            subsumptive_preds.iter().any(|p| p.ends_with("p_bf")),
+            "subsumptive keeps the most-general p_bf table: {subsumptive_preds:?}"
+        );
+
+        // (c) DemandProfile agrees with the emitted program and shows collapse_ratio < 1.
+        assert_eq!(
+            profile.magic_predicates_minted,
+            subsumptive_preds.len(),
+            "profile mint count must match the emitted magic predicates"
+        );
+        assert_eq!(
+            profile.demanded_patterns,
+            variant_preds.len(),
+            "profile demanded count must match the variant mint count"
+        );
+        assert!(
+            profile.collapse_ratio < 1.0,
+            "the collapse fired ⇒ ratio < 1: {profile:?}"
+        );
+        // Concretely: demanded {q_bf, p_bf, p_bb} = 3, minted {q_bf, p_bf} = 2.
+        assert_eq!(profile.demanded_patterns, 3, "q_bf + p_bf + p_bb");
+        assert_eq!(profile.magic_predicates_minted, 2, "q_bf + p_bf");
+    }
+
+    // ── Test 3: residual no-leak — the general demand over-derives, the answer stays exact ─
+
+    #[test]
+    fn magic_subsumptive_residual_no_leak() {
+        let (store, world_nn) = multi_adornment_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = multi_adornment_program();
+        let rules = eval_rules_of(&prog);
+        let goal_atom = atom_of(&prog.goal.atoms[0]).unwrap();
+        let adorn = goal_adornment(&prog.goal.atoms[0]);
+
+        // Evaluate the SUBSUMPTIVE transformed program and inspect the derived `p` facts.
+        let (mp, _profile) = magic_transform_subsumptive(&rules, &goal_atom, adorn);
+        let mut edb = extract_edb(&foreign, &world_nn);
+        if let Some(seed) = &mp.seed {
+            let f = seed_to_fact(seed).unwrap();
+            edb.insert(&f.predicate, f.subject, f.object);
+        }
+        let facts = match evaluate(edb, &mp.rules, None).unwrap() {
+            NativeOutcome::Decided(b) => b.rows,
+            other => panic!("expected Decided, got {other:?}"),
+        };
+        let p = format!("{BASE}p");
+        let derived_p: BTreeSet<(String, String)> = facts
+            .iter()
+            .filter(|f| f.predicate.as_str() == p)
+            .map(|f| (term_display(&f.subject), term_display(&f.object)))
+            .collect();
+
+        // The general `bf` demand for `p(a, _)` OVER-DERIVES: it materializes BOTH `p(a, b)`
+        // and `p(a, c)` (a superset of the `bb` request `p(a, c)`). This is the widened demand
+        // the collapse produces — the residual on the extra bound position is NOT enforced at
+        // the magic table.
+        assert!(
+            derived_p.contains(&(format!("<{BASE}a>"), format!("<{BASE}b>"))),
+            "the general bf demand over-derives p(a, b): {derived_p:?}"
+        );
+        assert!(
+            derived_p.contains(&(format!("<{BASE}a>"), format!("<{BASE}c>"))),
+            "the general bf demand derives the bb-requested p(a, c): {derived_p:?}"
+        );
+
+        // Despite the over-derivation, the goal answer is EXACT: the `p(X, ex:c)` (bb) body
+        // atom in q's second rule carries the constant `c`, so the over-derived `p(a, b)` is
+        // filtered out of the join — it can NEVER reach `p(c, Y)` and drag in the `e(b, z)`
+        // trap edge. The residual is discharged by the ORIGINAL body atom's own constant.
+        let answers = answers_via(
+            |r, g, a| magic_transform_subsumptive(r, g, a).0,
+            &foreign,
+            &world_nn,
+            &prog,
+        );
+        let ws: BTreeSet<&str> = answers.iter().map(|b| b["W"].as_str()).collect();
+        assert!(
+            !ws.contains(format!("<{BASE}z>").as_str()),
+            "the over-derived p(a, b) must NOT leak the z trap into the answer: {answers:?}"
+        );
+        assert_eq!(
+            ws,
+            [
+                format!("<{BASE}b>"),
+                format!("<{BASE}c>"),
+                format!("<{BASE}d>")
+            ]
+            .iter()
+            .map(String::as_str)
+            .collect::<BTreeSet<_>>(),
+            "the specific request yields exactly the correct instances, no leak: {answers:?}"
         );
     }
 }
