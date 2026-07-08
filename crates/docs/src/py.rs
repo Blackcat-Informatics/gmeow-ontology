@@ -20,7 +20,7 @@ use pyo3::types::{PyBytes, PyDict, PyList};
 use crate::model::DocsModel;
 use crate::render::{self, Site};
 use crate::{i18n_compile, lint, rdf};
-use gmeow_errors::py::PyReport;
+use gmeow_errors::py::{PyReport, diag_to_pyerr};
 
 /// Build the documentation model from the repo `root` and return it as a
 /// deterministic JSON string.
@@ -57,7 +57,7 @@ fn i18n_extract(
         lang.as_deref(),
         terms_only,
     )
-    .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    .map_err(|d| diag_to_pyerr(&d))?;
     let out = PyDict::new(py);
     out.set_item("groups", report.groups)?;
     out.set_item("total_keys", report.total_keys)?;
@@ -74,7 +74,7 @@ fn i18n_sync_english_file(
 ) -> PyResult<Py<PyAny>> {
     let report =
         i18n_compile::sync_english_file(Path::new(&po_path), Path::new(&source_path), dry_run)
-            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+            .map_err(|d| diag_to_pyerr(&d))?;
     let out = PyDict::new(py);
     out.set_item(
         "changed_files",
@@ -112,7 +112,7 @@ fn i18n_merge(
 ) -> PyResult<Py<PyAny>> {
     let output_path = output.as_deref().map(Path::new);
     let report = i18n_compile::merge_terms(Path::new(&root), output_path, lang.as_deref())
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| diag_to_pyerr(&d))?;
     let out = PyDict::new(py);
     out.set_item("po_files", report.po_files)?;
     out.set_item("added", report.added)?;
@@ -125,16 +125,14 @@ fn i18n_merge(
 #[pyfunction]
 fn i18n_export_csv(root: String, output: Option<String>) -> PyResult<String> {
     let output_path = output.as_deref().map(Path::new);
-    i18n_compile::export_csv(Path::new(&root), output_path)
-        .map_err(pyo3::exceptions::PyValueError::new_err)
+    i18n_compile::export_csv(Path::new(&root), output_path).map_err(|d| diag_to_pyerr(&d))
 }
 
 /// Native PO catalog XLIFF export. Returns the emitted XLIFF text.
 #[pyfunction]
 fn i18n_export_xliff(root: String, output: Option<String>) -> PyResult<String> {
     let output_path = output.as_deref().map(Path::new);
-    i18n_compile::export_xliff(Path::new(&root), output_path)
-        .map_err(pyo3::exceptions::PyValueError::new_err)
+    i18n_compile::export_xliff(Path::new(&root), output_path).map_err(|d| diag_to_pyerr(&d))
 }
 
 /// A fully rendered ontology-docs static site.

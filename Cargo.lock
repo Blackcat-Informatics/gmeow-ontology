@@ -2034,6 +2034,7 @@ dependencies = [
 name = "gmeow-math"
 version = "0.1.0"
 dependencies = [
+ "gmeow-errors",
  "purrdf",
 ]
 
@@ -2103,6 +2104,7 @@ name = "gmeow-slicetest"
 version = "0.1.0"
 dependencies = [
  "datatest-stable",
+ "gmeow-errors",
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-validate",
