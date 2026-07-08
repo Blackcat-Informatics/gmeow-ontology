@@ -306,7 +306,7 @@ impl PyValidationStore {
         }
         let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
         let dataset =
-            store::dataset_from_paths(&paths).map_err(pyo3::exceptions::PyValueError::new_err)?;
+            store::dataset_from_paths(&paths).map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
         Ok(Self {
             dataset,
             source_paths,
@@ -317,7 +317,7 @@ impl PyValidationStore {
     #[staticmethod]
     fn from_gts_bytes(gts_bytes: Vec<u8>) -> PyResult<Self> {
         let dataset =
-            store::dataset_from_gts(&gts_bytes).map_err(pyo3::exceptions::PyValueError::new_err)?;
+            store::dataset_from_gts(&gts_bytes).map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
         Ok(Self {
             dataset,
             source_paths: Vec::new(),
@@ -370,7 +370,7 @@ impl PyValidationStore {
 /// rdflib fallback).
 fn build_dataset_or_err(source_paths: &[String]) -> PyResult<std::sync::Arc<purrdf::RdfDataset>> {
     let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
-    store::dataset_from_paths(&paths).map_err(pyo3::exceptions::PyValueError::new_err)
+    store::dataset_from_paths(&paths).map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))
 }
 
 /// Build the native dataset from an N-Triples string (the rdflib-free data seam),
@@ -378,7 +378,7 @@ fn build_dataset_or_err(source_paths: &[String]) -> PyResult<std::sync::Arc<purr
 /// accept graphs as N-Triples now (test shims build a synthetic graph and serialize
 /// it), so this is their ingestion primitive.
 fn build_dataset_from_nt_or_err(data_nt: &str) -> PyResult<std::sync::Arc<purrdf::RdfDataset>> {
-    store::dataset_from_nt(data_nt).map_err(pyo3::exceptions::PyValueError::new_err)
+    store::dataset_from_nt(data_nt).map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))
 }
 
 /// The shape files excluded from the data-graph validation union (the DSL / manifest lints and
@@ -684,7 +684,7 @@ fn coverage_analyze(
     let paths: Vec<PathBuf> = fixture_paths.iter().map(PathBuf::from).collect();
     let aligned_set: BTreeSet<String> = aligned.into_iter().collect();
     let sets = coverage::coverage_analyze(&paths, &aligned_set, &namespace)
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     let out = PyDict::new(py);
     out.set_item(
         "covered_classes",
@@ -723,7 +723,7 @@ fn run_coverage(
         Path::new(&mappings_dir),
         &namespace,
     )
-    .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     let out = PyDict::new(py);
     out.set_item(
         "covered_classes",
@@ -761,7 +761,7 @@ fn coverage_diagnostics_report(
         Path::new(&mappings_dir),
         &namespace,
     )
-    .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     let diag = coverage::coverage_to_diagnostics(&report);
     Ok(Py::new(py, PyReport::from_engine(diag))?.into_any())
 }
@@ -786,7 +786,7 @@ fn audit_box_roles(
 ) -> PyResult<Py<PyAny>> {
     let path_bufs: Vec<PathBuf> = paths.iter().map(PathBuf::from).collect();
     let audit = box_roles::audit_box_roles(&path_bufs, &ontology_iri, &namespace)
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
 
     let finding_list = |findings: &[box_roles::RoleFinding]| -> PyResult<Bound<'_, PyList>> {
         let list = PyList::empty(py);
@@ -835,7 +835,7 @@ fn box_roles_diagnostics_report(
 ) -> PyResult<Py<PyAny>> {
     let path_bufs: Vec<PathBuf> = paths.iter().map(PathBuf::from).collect();
     let audit = box_roles::audit_box_roles(&path_bufs, &ontology_iri, &namespace)
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     let report = box_roles::to_diagnostics_report(&audit, &ontology_iri, &namespace);
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
@@ -890,7 +890,7 @@ fn wikidata_audit_files(py: Python<'_>, paths: Vec<String>) -> PyResult<Py<PyAny
 #[pyfunction]
 fn wikidata_mapping_syntax(py: Python<'_>, mappings_dir: String) -> PyResult<Py<PyAny>> {
     let report = mapping_eval::wikidata_mapping_syntax(&PathBuf::from(mappings_dir))
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     let out = PyDict::new(py);
     out.set_item("valid", PyList::new(py, report.valid.iter())?)?;
     out.set_item("invalid", PyList::new(py, report.invalid.iter())?)?;
@@ -912,13 +912,13 @@ fn wikidata_mapping_syntax(py: Python<'_>, mappings_dir: String) -> PyResult<Py<
 #[pyfunction]
 fn wikidata_collect_ids(mappings_dir: String) -> PyResult<Vec<String>> {
     mapping_eval::collect_wikidata_ids(&PathBuf::from(mappings_dir))
-        .map_err(pyo3::exceptions::PyValueError::new_err)
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))
 }
 
 #[pyfunction]
 fn wikidata_diagnostics_report(py: Python<'_>, mappings_dir: String) -> PyResult<Py<PyAny>> {
     let report = mapping_eval::wikidata_diagnostics(&PathBuf::from(mappings_dir))
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
@@ -961,9 +961,11 @@ fn repo_static_diagnostics_report(py: Python<'_>, project_root: String) -> PyRes
     Ok(Py::new(py, PyReport::from_engine(diagnostics))?.into_any())
 }
 
-fn non_negative_finite_duration(value: f64, name: &str) -> Result<Duration, String> {
+fn non_negative_finite_duration(value: f64, name: &str) -> gmeow_errors::Result<Duration> {
     if value < 0.0 || !value.is_finite() {
-        return Err(format!("{name} must be a non-negative finite float"));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Argument {
+            detail: format!("{name} must be a non-negative finite float"),
+        }));
     }
     Ok(Duration::from_secs_f64(value))
 }
@@ -985,9 +987,9 @@ fn wikidata_check_existence(
     delay: f64,
 ) -> PyResult<Py<PyAny>> {
     let timeout = non_negative_finite_duration(timeout, "timeout")
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     let delay = non_negative_finite_duration(delay, "delay")
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     let statuses = mapping_eval::check_existence(
         &identifiers,
         &PathBuf::from(project_root),
@@ -995,7 +997,7 @@ fn wikidata_check_existence(
         chunk_size,
         delay,
     )
-    .map_err(pyo3::exceptions::PyRuntimeError::new_err)?;
+    .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     let out = PyDict::new(py);
     for (identifier, status) in statuses {
         out.set_item(identifier, status.as_str())?;
@@ -1016,7 +1018,7 @@ fn wikidata_coverage_report(
         &PathBuf::from(mappings_dir),
         threshold,
     )
-    .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     Ok(mapping_eval::render_wikidata_coverage(&report, json_mode))
 }
 
@@ -1024,7 +1026,7 @@ fn wikidata_coverage_report(
 #[pyo3(signature = (mappings_dir, threshold = 0.5, json_mode = false))]
 fn dc_coverage_report(mappings_dir: String, threshold: f64, json_mode: bool) -> PyResult<String> {
     let report = mapping_eval::dc_coverage(&PathBuf::from(mappings_dir), threshold)
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     Ok(mapping_eval::render_dc_coverage(&report, json_mode))
 }
 
@@ -1044,7 +1046,7 @@ fn merge_to_ntriples(source_paths: Vec<String>) -> PyResult<String> {
         ));
     }
     let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
-    dsl::merge_to_ntriples(&paths).map_err(pyo3::exceptions::PyValueError::new_err)
+    dsl::merge_to_ntriples(&paths).map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))
 }
 
 /// Build the merged DSL graph from `dsl_paths` as N-Triples, plus the focus→file
@@ -1067,10 +1069,10 @@ fn dsl_merge_with_provenance(
     }
     let paths: Vec<PathBuf> = dsl_paths.iter().map(PathBuf::from).collect();
     let merge =
-        dsl::merge_with_provenance(&paths).map_err(pyo3::exceptions::PyValueError::new_err)?;
+        dsl::merge_with_provenance(&paths).map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     let data_nt = merge
         .data_ntriples()
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     let pairs = PyList::new(py, &merge.focus_to_file)?;
     Ok((data_nt, pairs.into_any().unbind()))
 }
@@ -1113,7 +1115,7 @@ fn validate_all_native(
         &config.to_engine(),
         &options.to_engine(),
     )
-    .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
 
     let out = PyDict::new(py);
     out.set_item("errors", PyList::new(py, run.errors())?)?;
@@ -1321,7 +1323,7 @@ fn marked(text: &str, fallback: bool, fallback_lang: &str) -> String {
 #[pyfunction]
 fn load_tag_map(py: Python<'_>, rdf_bytes: &[u8], format: &str) -> PyResult<Py<PyAny>> {
     let map = language_tags::load_tag_map(rdf_bytes, format)
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     let d = PyDict::new(py);
     for (k, v) in &map {
         d.set_item(k, v)?;
@@ -1340,7 +1342,7 @@ fn load_tag_map(py: Python<'_>, rdf_bytes: &[u8], format: &str) -> PyResult<Py<P
 #[pyfunction]
 fn load_inverse_tag_map(py: Python<'_>, rdf_bytes: &[u8], format: &str) -> PyResult<Py<PyAny>> {
     let map = language_tags::load_inverse_tag_map(rdf_bytes, format)
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     let d = PyDict::new(py);
     for (k, v) in &map {
         d.set_item(k, v)?;
@@ -1432,7 +1434,7 @@ fn retag_graph(
     tag_map: HashMap<String, String>,
 ) -> PyResult<Py<PyBytes>> {
     let out = language_tags::retag_graph(rdf_bytes, format, &tag_map)
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     Ok(PyBytes::new(py, &out).unbind())
 }
 
@@ -1451,7 +1453,7 @@ fn retag_graph_to_internal(
     inverse_map: HashMap<String, String>,
 ) -> PyResult<Py<PyBytes>> {
     let out = language_tags::retag_graph_to_internal(rdf_bytes, format, &inverse_map)
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     Ok(PyBytes::new(py, &out).unbind())
 }
 
@@ -1473,7 +1475,7 @@ fn filter_graph(
     predicates: Vec<String>,
 ) -> PyResult<Py<PyBytes>> {
     let out = language_tags::filter_graph(rdf_bytes, format, &tag_map, &requested, &predicates)
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     Ok(PyBytes::new(py, &out).unbind())
 }
 
@@ -1490,7 +1492,7 @@ fn build_deposit_xml_native(
     batch_id: String,
 ) -> PyResult<String> {
     crossref::build_deposit_xml(&self_description_json, &timestamp, &batch_id)
-        .map_err(pyo3::exceptions::PyValueError::new_err)
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))
 }
 
 /// Validate a JSON/YAML instance document against a JSON Schema (Task 4).
@@ -1519,7 +1521,7 @@ fn validate_instance(
         }
     };
     let errors = instance::validate_instance(instance_bytes, fmt, schema_bytes)
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     report_dict(py, errors, Vec::new())
 }
 
@@ -1553,7 +1555,7 @@ fn validate_data(
     deep: bool,
 ) -> PyResult<Py<PyAny>> {
     let report = data_validate::run(data_bytes, data_format, gts_bytes, namespace, origin, deep)
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
@@ -1565,7 +1567,7 @@ fn validate_data(
 /// the Rust side never does I/O. Returns ``[]`` when the deposit is sound.
 #[pyfunction]
 fn lint_deposit_native(self_description_json: String) -> PyResult<Vec<String>> {
-    crossref::lint_deposit(&self_description_json).map_err(pyo3::exceptions::PyValueError::new_err)
+    crossref::lint_deposit(&self_description_json).map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))
 }
 
 /// Native license-policy classifier — the RUST-FIRST single source of truth behind

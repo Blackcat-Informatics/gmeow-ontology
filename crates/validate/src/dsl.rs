@@ -18,6 +18,7 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use gmeow_errors::Diag;
 use purrdf::{
     DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, SerializeGraph, TermRef, parse_dataset,
     serialize_dataset,
@@ -40,15 +41,23 @@ impl DslMerge {
     ///
     /// # Errors
     ///
-    /// Returns `Err(message)` if serialization fails.
-    pub fn data_ntriples(&self) -> Result<String, String> {
+    /// Returns `Err` if serialization fails.
+    pub fn data_ntriples(&self) -> gmeow_errors::Result<String> {
         let bytes = serialize_dataset(
             &self.dataset,
             "application/n-quads",
             SerializeGraph::DefaultGraph,
         )
-        .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
-        String::from_utf8(bytes).map_err(|e| format!("N-Triples serialization failed: {e}"))
+        .map_err(|e| {
+            Diag::of_kind(crate::error::Serialize {
+                detail: format!("N-Triples serialization failed: {e}"),
+            })
+        })?;
+        String::from_utf8(bytes).map_err(|e| {
+            Diag::of_kind(crate::error::Serialize {
+                detail: format!("N-Triples serialization failed: {e}"),
+            })
+        })
     }
 }
 
@@ -66,17 +75,24 @@ impl DslMerge {
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if any file fails to read or parse.
-pub fn merge_with_provenance(paths: &[PathBuf]) -> Result<DslMerge, String> {
+/// Returns `Err` if any file fails to read or parse.
+pub fn merge_with_provenance(paths: &[PathBuf]) -> gmeow_errors::Result<DslMerge> {
     let mut builder = RdfDatasetBuilder::new();
     let mut focus_to_file: Vec<(String, String)> = Vec::new();
     let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
 
     for path in paths {
         let path_str = path.display().to_string();
-        let bytes = std::fs::read(path).map_err(|e| format!("failed to read {path_str}: {e}"))?;
-        let dataset = parse_dataset(&bytes, "text/turtle", None)
-            .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
+        let bytes = std::fs::read(path).map_err(|e| {
+            Diag::of_kind(crate::error::Io {
+                detail: format!("failed to read {path_str}: {e}"),
+            })
+        })?;
+        let dataset = parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+            Diag::of_kind(crate::error::Parse {
+                detail: format!("syntax error in {path_str}: {e}"),
+            })
+        })?;
         // Record the first source file for each named-IRI subject, in document order
         // (the parsed per-file dataset preserves source order in its quad table).
         for q in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {
@@ -89,9 +105,11 @@ pub fn merge_with_provenance(paths: &[PathBuf]) -> Result<DslMerge, String> {
         builder.push_dataset(&dataset);
     }
 
-    let dataset = builder
-        .freeze()
-        .map_err(|e| format!("dataset freeze failed: {e}"))?;
+    let dataset = builder.freeze().map_err(|e| {
+        Diag::of_kind(crate::error::Serialize {
+            detail: format!("dataset freeze failed: {e}"),
+        })
+    })?;
     Ok(DslMerge {
         dataset,
         focus_to_file,
@@ -108,16 +126,24 @@ pub fn merge_with_provenance(paths: &[PathBuf]) -> Result<DslMerge, String> {
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if any file fails to read or parse, or serialization fails.
-pub fn merge_to_ntriples(paths: &[PathBuf]) -> Result<String, String> {
+/// Returns `Err` if any file fails to read or parse, or serialization fails.
+pub fn merge_to_ntriples(paths: &[PathBuf]) -> gmeow_errors::Result<String> {
     let dataset = crate::store::dataset_from_paths(paths)?;
     let bytes = serialize_dataset(
         &dataset,
         "application/n-quads",
         SerializeGraph::DefaultGraph,
     )
-    .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
-    String::from_utf8(bytes).map_err(|e| format!("N-Triples serialization failed: {e}"))
+    .map_err(|e| {
+        Diag::of_kind(crate::error::Serialize {
+            detail: format!("N-Triples serialization failed: {e}"),
+        })
+    })?;
+    String::from_utf8(bytes).map_err(|e| {
+        Diag::of_kind(crate::error::Serialize {
+            detail: format!("N-Triples serialization failed: {e}"),
+        })
+    })
 }
 
 #[cfg(test)]
@@ -185,6 +211,6 @@ mod tests {
         let bad = write_tmp("gmeow_validate_dsl_bad.ttl", "this is not turtle @@@ <<<");
         let err = merge_to_ntriples(std::slice::from_ref(&bad)).unwrap_err();
         std::fs::remove_file(&bad).ok();
-        assert!(err.contains("gmeow_validate_dsl_bad.ttl"));
+        assert!(err.message().contains("gmeow_validate_dsl_bad.ttl"));
     }
 }

@@ -619,7 +619,11 @@ impl AcceptanceContext {
     fn load(root: &Path) -> gmeow_errors::Result<Self> {
         let ontology_nt = ontology_nt(root)?;
         let tag_map = gmeow_validate::language_tags::load_tag_map(ontology_nt.as_bytes(), "nt")
-            .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message: e }))?;
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+                    message: e.message().to_string(),
+                })
+            })?;
         let inverse_tag_map = invert_tag_map(&tag_map);
         let sssom_texts = sssom_texts(root)?;
         let projection_ttls = projection_ttls(root)?;
