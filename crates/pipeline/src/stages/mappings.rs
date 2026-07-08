@@ -102,6 +102,12 @@ pub struct CompiledMappings {
     /// projects. Carried as a named graph by [`MappingsStage::run`], excluded from the
     /// reasoned EDB exactly like the other `lang:` corpus graphs.
     pub lang_projection_corpus: Vec<u8>,
+    /// The compositional-lowering corpus N-Triples graph (`graph/lang-lowering-corpus`): the
+    /// flagship quantified-SVO sentence lowered — one declared stage at a time — to its
+    /// first-order `lang:CompositionalLowering` formula, each `lang:LoweringStage` carrying its
+    /// `logic:preservationKind`. Carried as a named graph by [`MappingsStage::run`], excluded
+    /// from the reasoned EDB exactly like the other `lang:` corpus graphs.
+    pub lang_lowering_corpus: Vec<u8>,
     /// The docs-rendering corpus N-Triples graph (`graph/lang-docs-rendering-corpus`): the
     /// `.po`-derived documentation language trees re-typed as `lang:Rendering`
     /// (`lang:renderingDocsPage`) per non-English page, a `lang:Translation` per (page,
@@ -273,6 +279,16 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
         artifacts.insert(path, bytes);
     }
 
+    // Compositional-lowering corpus (the "a sentence to a formula, compositionally" flagship):
+    // lower the authored flagship quantified-SVO sentence to its first-order formula through the
+    // native Montagovian lowering, fold the one honest exact ledger row, and carry the
+    // `lang:CompositionalLowering` graph as a named graph by the stage `run` below (never a
+    // `generated/` file), excluded from the reasoned EDB exactly like the other `lang:` corpora.
+    let lowering_corpus = crate::stages::lang_lowering::build_corpus()?;
+    ledger.extend(lowering_corpus.ledger);
+    loss.union(&lowering_corpus.loss);
+    let lang_lowering_corpus = lowering_corpus.ntriples;
+
     // Docs-tree re-typing (Principle 15 consumer wiring): re-type the EXISTING `.po`-derived
     // documentation language trees — one `lang:Rendering` (`lang:renderingDocsPage`) per
     // non-English page, one `lang:Translation` per (page, language) pairing that
@@ -343,6 +359,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
         lang_translation_corpus,
         lang_form_corpus,
         lang_projection_corpus,
+        lang_lowering_corpus,
         lang_docs_rendering_corpus,
         correspondence_laws_corpus,
     })
@@ -954,6 +971,16 @@ impl Stage for MappingsStage {
             "application/n-triples",
             crate::stages::carrier::GRAPH_LANG_PROJECTION_CORPUS,
         )?;
+        // graph/lang-lowering-corpus — the flagship quantified-SVO sentence lowered to its
+        // compositional first-order `lang:CompositionalLowering` formula, one
+        // `lang:LoweringStage` per lowering step. Carried as a named graph so the presenter reads
+        // it via `producer_graph`; like the other `lang:` corpus graphs it stays OUT of the
+        // reasoned EDB (`gts_compose` folds only the default graph).
+        let lang_lowering_graph = crate::stages::carrier::parse_into_graph(
+            &compiled.lang_lowering_corpus,
+            "application/n-triples",
+            crate::stages::carrier::GRAPH_LANG_LOWERING_CORPUS,
+        )?;
         // graph/lang-docs-rendering-corpus — the `.po`-derived documentation language trees
         // re-typed as `lang:Rendering` / `lang:Translation` crossings plus the exec-docs
         // English-only boundary gap. Carried as a named graph so the presenter reads it via
@@ -982,6 +1009,7 @@ impl Stage for MappingsStage {
             lang_translation_graph.as_ref(),
             lang_form_graph.as_ref(),
             lang_projection_graph.as_ref(),
+            lang_lowering_graph.as_ref(),
             lang_docs_rendering_graph.as_ref(),
             correspondence_laws_graph.as_ref(),
         ]));

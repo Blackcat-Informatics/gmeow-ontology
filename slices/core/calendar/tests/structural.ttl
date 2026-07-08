@@ -50,7 +50,7 @@ ASK {
     gmeow:Calendar a owl:Class ;
         rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:Calendar MUST be an owl:Class and a subclass of gmeow:InformationObject — a calendar is a CalDAV-style information object aggregating event members. Mirrors test_calendar_is_information_object." .
+    gmeow:saRationale "gmeow:Calendar MUST be an owl:Class and a subclass of gmeow:InformationObject — a calendar is a CalDAV-style information object aggregating event members." .
 
 # --- 2. EventSchedule is a logic:Relator (MUST) -------------------------------
 ex:saEventScheduleIsRelator a gmeow:StructuralAssertion ;
@@ -64,7 +64,7 @@ ASK {
     gmeow:EventSchedule a owl:Class ;
         rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:EventSchedule MUST be an owl:Class and a subclass of logic:Relator — it mediates the template event, recurrence rule, and generated occurrences. Mirrors test_event_schedule_is_relator." .
+    gmeow:saRationale "gmeow:EventSchedule MUST be an owl:Class and a subclass of logic:Relator — it mediates the template event, recurrence rule, and generated occurrences." .
 
 # --- 3. ScheduleException is a logic:Relator (MUST) --------------------------
 ex:saScheduleExceptionIsRelator a gmeow:StructuralAssertion ;
@@ -78,7 +78,7 @@ ASK {
     gmeow:ScheduleException a owl:Class ;
         rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:ScheduleException MUST be an owl:Class and a subclass of logic:Relator — it mediates the schedule, original date, and optional replacement event. Mirrors test_schedule_exception_is_relator." .
+    gmeow:saRationale "gmeow:ScheduleException MUST be an owl:Class and a subclass of logic:Relator — it mediates the schedule, original date, and optional replacement event." .
 
 # --- 4. EventInvitation is an Agreement and a logic:Relator (MUST) ------------
 ex:saEventInvitationIsAgreementAndRelator a gmeow:StructuralAssertion ;
@@ -93,7 +93,7 @@ ASK {
         rdfs:subClassOf gmeow:Agreement ;
         rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:EventInvitation MUST be an owl:Class and a subclass of both gmeow:Agreement and logic:Relator — it reifies the invitation social act as a relator and inherits the agreement spine. Mirrors test_event_invitation_is_agreement_and_relator." .
+    gmeow:saRationale "gmeow:EventInvitation MUST be an owl:Class and a subclass of both gmeow:Agreement and logic:Relator — it reifies the invitation social act as a relator and inherits the agreement spine." .
 
 # --- 5. Availability is a TimeScopedRelation (MUST) --------------------------
 ex:saAvailabilityIsTimeScopedRelation a gmeow:StructuralAssertion ;
@@ -106,7 +106,7 @@ ASK {
     gmeow:Availability a owl:Class ;
         rdfs:subClassOf gmeow:TimeScopedRelation .
 }""" ;
-    gmeow:saRationale "gmeow:Availability MUST be an owl:Class and a subclass of gmeow:TimeScopedRelation — an availability holds only across its named interval, reusing the time-scoped spine. Mirrors test_availability_is_time_scoped_relation." .
+    gmeow:saRationale "gmeow:Availability MUST be an owl:Class and a subclass of gmeow:TimeScopedRelation — an availability holds only across its named interval, reusing the time-scoped spine." .
 
 # --- 6. Reminder is an Entity (MUST) ----------------------------------------
 ex:saReminderIsEntity a gmeow:StructuralAssertion ;
@@ -119,7 +119,7 @@ ASK {
     gmeow:Reminder a owl:Class ;
         rdfs:subClassOf gmeow:Entity .
 }""" ;
-    gmeow:saRationale "gmeow:Reminder MUST be an owl:Class and a subclass of gmeow:Entity — it is an alert object, not an event itself. Mirrors test_reminder_is_entity." .
+    gmeow:saRationale "gmeow:Reminder MUST be an owl:Class and a subclass of gmeow:Entity — it is an alert object, not an event itself." .
 
 # --- 7. Task is an Event (MUST) ---------------------------------------------
 ex:saTaskIsEvent a gmeow:StructuralAssertion ;
@@ -132,7 +132,7 @@ ASK {
     gmeow:Task a owl:Class ;
         rdfs:subClassOf gmeow:Event .
 }""" ;
-    gmeow:saRationale "gmeow:Task MUST be an owl:Class and a subclass of gmeow:Event — tasks inherit the full event spine (temporal placement, location, participation, scheduling). Mirrors test_task_is_event." .
+    gmeow:saRationale "gmeow:Task MUST be an owl:Class and a subclass of gmeow:Event — tasks inherit the full event spine (temporal placement, location, participation, scheduling)." .
 
 # --- 8. TimeZone is an Entity (MUST) ----------------------------------------
 ex:saTimeZoneIsEntity a gmeow:StructuralAssertion ;
@@ -145,7 +145,7 @@ ASK {
     gmeow:TimeZone a owl:Class ;
         rdfs:subClassOf gmeow:Entity .
 }""" ;
-    gmeow:saRationale "gmeow:TimeZone MUST be an owl:Class and a subclass of gmeow:Entity — a time zone is a named civil offset object, not a temporal frame. Mirrors test_time_zone_is_entity." .
+    gmeow:saRationale "gmeow:TimeZone MUST be an owl:Class and a subclass of gmeow:Entity — a time zone is a named civil offset object, not a temporal frame." .
 
 # ===========================================================================
 # Value vocabulary structure — status classes are logic:AbstractIndividualType
@@ -163,7 +163,7 @@ ASK {
     gmeow:InvitationStatus a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:InvitationStatus MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — invitation states are an individuals-based value vocabulary, never subclasses (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (InvitationStatus)." .
+    gmeow:saRationale "gmeow:InvitationStatus MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — invitation states are an individuals-based value vocabulary, never subclasses (Principle 9)." .
 
 # --- 10. RsvpStatus is a logic:AbstractIndividualType value vocab (MUST) ------
 ex:saRsvpStatusIsValueVocab a gmeow:StructuralAssertion ;
@@ -177,7 +177,7 @@ ASK {
     gmeow:RsvpStatus a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:RsvpStatus MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — RSVP states are a distinct value vocabulary from InvitationStatus so organizer and invitee views can coexist (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (RsvpStatus)." .
+    gmeow:saRationale "gmeow:RsvpStatus MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — RSVP states are a distinct value vocabulary from InvitationStatus so organizer and invitee views can coexist (Principle 9)." .
 
 # --- 11. AvailabilityStatus is a logic:AbstractIndividualType value vocab (MUST)
 ex:saAvailabilityStatusIsValueVocab a gmeow:StructuralAssertion ;
@@ -191,7 +191,7 @@ ASK {
     gmeow:AvailabilityStatus a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:AvailabilityStatus MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — free-busy states are an individuals-based value vocabulary (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (AvailabilityStatus)." .
+    gmeow:saRationale "gmeow:AvailabilityStatus MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — free-busy states are an individuals-based value vocabulary (Principle 9)." .
 
 # --- 12. ReminderAction is a logic:AbstractIndividualType value vocab (MUST) --
 ex:saReminderActionIsValueVocab a gmeow:StructuralAssertion ;
@@ -205,7 +205,7 @@ ASK {
     gmeow:ReminderAction a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:ReminderAction MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — alarm actions are an individuals-based value vocabulary, never Reminder subclasses (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (ReminderAction)." .
+    gmeow:saRationale "gmeow:ReminderAction MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — alarm actions are an individuals-based value vocabulary, never Reminder subclasses (Principle 9)." .
 
 # --- 13. TaskStatus is a logic:AbstractIndividualType value vocab (MUST) ------
 ex:saTaskStatusIsValueVocab a gmeow:StructuralAssertion ;
@@ -219,7 +219,7 @@ ASK {
     gmeow:TaskStatus a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:TaskStatus MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — task progress states are individuals, never Task subclasses (Principles 9, 10). Mirrors test_calendar_value_vocabularies_are_object_properties (TaskStatus)." .
+    gmeow:saRationale "gmeow:TaskStatus MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — task progress states are individuals, never Task subclasses (Principles 9, 10)." .
 
 # --- 14. ExceptionType is a logic:AbstractIndividualType value vocab (MUST) ---
 ex:saExceptionTypeIsValueVocab a gmeow:StructuralAssertion ;
@@ -233,7 +233,7 @@ ASK {
     gmeow:ExceptionType a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:ExceptionType MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — exception kinds are individuals on the open-value axis, never ScheduleException subclasses (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (ExceptionType)." .
+    gmeow:saRationale "gmeow:ExceptionType MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — exception kinds are individuals on the open-value axis, never ScheduleException subclasses (Principle 9)." .
 
 # ===========================================================================
 # Value vocabulary object properties — axes range over vocab classes
@@ -250,7 +250,7 @@ ASK {
     gmeow:invitationStatus a owl:ObjectProperty ;
         rdfs:range gmeow:InvitationStatus .
 }""" ;
-    gmeow:saRationale "gmeow:invitationStatus MUST be an owl:ObjectProperty ranging over gmeow:InvitationStatus — the organizer's view is a vocab value, never a subclass or datatype (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (invitationStatus property)." .
+    gmeow:saRationale "gmeow:invitationStatus MUST be an owl:ObjectProperty ranging over gmeow:InvitationStatus — the organizer's view is a vocab value, never a subclass or datatype (Principle 9)." .
 
 # --- 16. rsvpStatus is an ObjectProperty ranging over RsvpStatus -------------
 ex:saRsvpStatusProperty a gmeow:StructuralAssertion ;
@@ -263,7 +263,7 @@ ASK {
     gmeow:rsvpStatus a owl:ObjectProperty ;
         rdfs:range gmeow:RsvpStatus .
 }""" ;
-    gmeow:saRationale "gmeow:rsvpStatus MUST be an owl:ObjectProperty ranging over gmeow:RsvpStatus — the invitee's reply is a vocab value distinct from InvitationStatus (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (rsvpStatus property)." .
+    gmeow:saRationale "gmeow:rsvpStatus MUST be an owl:ObjectProperty ranging over gmeow:RsvpStatus — the invitee's reply is a vocab value distinct from InvitationStatus (Principle 9)." .
 
 # --- 17. availabilityStatus is an ObjectProperty ranging over AvailabilityStatus
 ex:saAvailabilityStatusProperty a gmeow:StructuralAssertion ;
@@ -276,7 +276,7 @@ ASK {
     gmeow:availabilityStatus a owl:ObjectProperty ;
         rdfs:range gmeow:AvailabilityStatus .
 }""" ;
-    gmeow:saRationale "gmeow:availabilityStatus MUST be an owl:ObjectProperty ranging over gmeow:AvailabilityStatus — the FBTYPE state is a vocab value, never a subclass (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (availabilityStatus property)." .
+    gmeow:saRationale "gmeow:availabilityStatus MUST be an owl:ObjectProperty ranging over gmeow:AvailabilityStatus — the FBTYPE state is a vocab value, never a subclass (Principle 9)." .
 
 # --- 18. reminderAction is an ObjectProperty ranging over ReminderAction -----
 ex:saReminderActionProperty a gmeow:StructuralAssertion ;
@@ -289,7 +289,7 @@ ASK {
     gmeow:reminderAction a owl:ObjectProperty ;
         rdfs:range gmeow:ReminderAction .
 }""" ;
-    gmeow:saRationale "gmeow:reminderAction MUST be an owl:ObjectProperty ranging over gmeow:ReminderAction — the alarm kind is a vocab value (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (reminderAction property)." .
+    gmeow:saRationale "gmeow:reminderAction MUST be an owl:ObjectProperty ranging over gmeow:ReminderAction — the alarm kind is a vocab value (Principle 9)." .
 
 # --- 19. taskStatus is an ObjectProperty ranging over TaskStatus --------------
 ex:saTaskStatusProperty a gmeow:StructuralAssertion ;
@@ -302,7 +302,7 @@ ASK {
     gmeow:taskStatus a owl:ObjectProperty ;
         rdfs:range gmeow:TaskStatus .
 }""" ;
-    gmeow:saRationale "gmeow:taskStatus MUST be an owl:ObjectProperty ranging over gmeow:TaskStatus — the progress state is a vocab value, never a Task subclass (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (taskStatus property)." .
+    gmeow:saRationale "gmeow:taskStatus MUST be an owl:ObjectProperty ranging over gmeow:TaskStatus — the progress state is a vocab value, never a Task subclass (Principle 9)." .
 
 # --- 20. exceptionType is an ObjectProperty ranging over ExceptionType -------
 ex:saExceptionTypeProperty a gmeow:StructuralAssertion ;
@@ -315,7 +315,7 @@ ASK {
     gmeow:exceptionType a owl:ObjectProperty ;
         rdfs:range gmeow:ExceptionType .
 }""" ;
-    gmeow:saRationale "gmeow:exceptionType MUST be an owl:ObjectProperty ranging over gmeow:ExceptionType — the exception kind is a vocab value, never a ScheduleException subclass (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (exceptionType property)." .
+    gmeow:saRationale "gmeow:exceptionType MUST be an owl:ObjectProperty ranging over gmeow:ExceptionType — the exception kind is a vocab value, never a ScheduleException subclass (Principle 9)." .
 
 # ===========================================================================
 # Anti-subclass guard — status individuals are NOT classes
@@ -336,7 +336,7 @@ ASK {
     }
     ?v a owl:Class .
 }""" ;
-    gmeow:saRationale "The four InvitationStatus seed values MUST NOT be typed owl:Class — status values are individuals on the open vocabulary axis, never event subclasses (Principle 9). Mirrors test_calendar_statuses_are_individuals_not_classes (InvitationStatus mustNot half)." .
+    gmeow:saRationale "The four InvitationStatus seed values MUST NOT be typed owl:Class — status values are individuals on the open vocabulary axis, never event subclasses (Principle 9)." .
 
 # --- 22. RsvpStatus individuals are NOT classes (MUST-NOT) ------------------
 ex:saRsvpStatusIndividualsNotClasses a gmeow:StructuralAssertion ;
@@ -353,7 +353,7 @@ ASK {
     }
     ?v a owl:Class .
 }""" ;
-    gmeow:saRationale "The four RsvpStatus seed values MUST NOT be typed owl:Class (Principle 9). Mirrors test_calendar_statuses_are_individuals_not_classes (RsvpStatus mustNot half)." .
+    gmeow:saRationale "The four RsvpStatus seed values MUST NOT be typed owl:Class (Principle 9)." .
 
 # --- 23. AvailabilityStatus individuals are NOT classes (MUST-NOT) -----------
 ex:saAvailabilityStatusIndividualsNotClasses a gmeow:StructuralAssertion ;
@@ -370,7 +370,7 @@ ASK {
     }
     ?v a owl:Class .
 }""" ;
-    gmeow:saRationale "The four AvailabilityStatus seed values MUST NOT be typed owl:Class (Principle 9). Mirrors test_calendar_statuses_are_individuals_not_classes (AvailabilityStatus mustNot half)." .
+    gmeow:saRationale "The four AvailabilityStatus seed values MUST NOT be typed owl:Class (Principle 9)." .
 
 # --- 24. ReminderAction individuals are NOT classes (MUST-NOT) ---------------
 ex:saReminderActionIndividualsNotClasses a gmeow:StructuralAssertion ;
@@ -386,7 +386,7 @@ ASK {
     }
     ?v a owl:Class .
 }""" ;
-    gmeow:saRationale "The three ReminderAction seed values MUST NOT be typed owl:Class (Principle 9). Mirrors test_calendar_statuses_are_individuals_not_classes (ReminderAction mustNot half)." .
+    gmeow:saRationale "The three ReminderAction seed values MUST NOT be typed owl:Class (Principle 9)." .
 
 # --- 25. TaskStatus individuals are NOT classes (MUST-NOT) -------------------
 ex:saTaskStatusIndividualsNotClasses a gmeow:StructuralAssertion ;
@@ -403,7 +403,7 @@ ASK {
     }
     ?v a owl:Class .
 }""" ;
-    gmeow:saRationale "The four TaskStatus seed values MUST NOT be typed owl:Class (Principle 9). Mirrors test_calendar_statuses_are_individuals_not_classes (TaskStatus mustNot half)." .
+    gmeow:saRationale "The four TaskStatus seed values MUST NOT be typed owl:Class (Principle 9)." .
 
 # --- 26. ExceptionType individuals are NOT classes (MUST-NOT) ----------------
 ex:saExceptionTypeIndividualsNotClasses a gmeow:StructuralAssertion ;
@@ -418,7 +418,7 @@ ASK {
     }
     ?v a owl:Class .
 }""" ;
-    gmeow:saRationale "The two ExceptionType seed values MUST NOT be typed owl:Class (Principle 9). Mirrors test_calendar_statuses_are_individuals_not_classes (ExceptionType mustNot half)." .
+    gmeow:saRationale "The two ExceptionType seed values MUST NOT be typed owl:Class (Principle 9)." .
 
 # ===========================================================================
 # Anti-subclass guard — no CancelledEvent / RescheduledEvent class
@@ -434,7 +434,7 @@ ASK {
     VALUES ?banned { gmeow:CancelledEvent gmeow:CanceledEvent gmeow:RescheduledEvent }
     ?banned a owl:Class .
 }""" ;
-    gmeow:saRationale "gmeow:CancelledEvent, CanceledEvent, and RescheduledEvent MUST NOT exist as owl:Class — cancellation is a ScheduleException + displayable false, not a subclass (Principle 10). Mirrors test_no_cancelled_event_subclass_exists." .
+    gmeow:saRationale "gmeow:CancelledEvent, CanceledEvent, and RescheduledEvent MUST NOT exist as owl:Class — cancellation is a ScheduleException + displayable false, not a subclass (Principle 10)." .
 
 # ===========================================================================
 # Relator mediation axioms (open-world EL someValuesFrom)
@@ -453,7 +453,7 @@ ASK {
         owl:someValuesFrom gmeow:Event
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:EventSchedule MUST carry a someValuesFrom restriction on gmeow:scheduleTemplateEvent with filler gmeow:Event — the EL mediation axiom ensuring every schedule is bound to at least one template event. Mirrors test_event_schedule_mediation_axiom_present." .
+    gmeow:saRationale "gmeow:EventSchedule MUST carry a someValuesFrom restriction on gmeow:scheduleTemplateEvent with filler gmeow:Event — the EL mediation axiom ensuring every schedule is bound to at least one template event." .
 
 # --- 29. ScheduleException has someValuesFrom on exceptionSchedule (MUST) ----
 ex:saScheduleExceptionMediationSchedule a gmeow:StructuralAssertion ;
@@ -468,7 +468,7 @@ ASK {
         owl:someValuesFrom gmeow:EventSchedule
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:ScheduleException MUST carry a someValuesFrom restriction on gmeow:exceptionSchedule — every exception must be anchored to its schedule. Mirrors test_schedule_exception_mediation_axiom_present (exceptionSchedule)." .
+    gmeow:saRationale "gmeow:ScheduleException MUST carry a someValuesFrom restriction on gmeow:exceptionSchedule — every exception must be anchored to its schedule." .
 
 # --- 30. ScheduleException has someValuesFrom on exceptionOriginalDate (MUST) -
 ex:saScheduleExceptionMediationOriginalDate a gmeow:StructuralAssertion ;
@@ -484,7 +484,7 @@ ASK {
         owl:someValuesFrom xsd:dateTime
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:ScheduleException MUST carry a someValuesFrom restriction on gmeow:exceptionOriginalDate with filler xsd:dateTime — the RFC 5545 RECURRENCE-ID anchor must be present. Mirrors test_schedule_exception_mediation_axiom_present (exceptionOriginalDate)." .
+    gmeow:saRationale "gmeow:ScheduleException MUST carry a someValuesFrom restriction on gmeow:exceptionOriginalDate with filler xsd:dateTime — the RFC 5545 RECURRENCE-ID anchor must be present." .
 
 # --- 31. EventInvitation has someValuesFrom on invitationEvent (MUST) --------
 ex:saEventInvitationMediationEvent a gmeow:StructuralAssertion ;
@@ -499,7 +499,7 @@ ASK {
         owl:someValuesFrom gmeow:Event
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:EventInvitation MUST carry a someValuesFrom restriction on gmeow:invitationEvent — every invitation is about a concrete event. Mirrors test_event_invitation_mediation_axiom_present (invitationEvent)." .
+    gmeow:saRationale "gmeow:EventInvitation MUST carry a someValuesFrom restriction on gmeow:invitationEvent — every invitation is about a concrete event." .
 
 # --- 32. EventInvitation has someValuesFrom on invitationInvitee (MUST) ------
 ex:saEventInvitationMediationInvitee a gmeow:StructuralAssertion ;
@@ -514,7 +514,7 @@ ASK {
         owl:someValuesFrom gmeow:Agent
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:EventInvitation MUST carry a someValuesFrom restriction on gmeow:invitationInvitee — every invitation targets at least one agent. Mirrors test_event_invitation_mediation_axiom_present (invitationInvitee)." .
+    gmeow:saRationale "gmeow:EventInvitation MUST carry a someValuesFrom restriction on gmeow:invitationInvitee — every invitation targets at least one agent." .
 
 # --- 33. Availability has someValuesFrom on availabilityAgent (MUST) ---------
 ex:saAvailabilityMediationAgent a gmeow:StructuralAssertion ;
@@ -529,7 +529,7 @@ ASK {
         owl:someValuesFrom gmeow:Agent
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:Availability MUST carry a someValuesFrom restriction on gmeow:availabilityAgent — every free-busy statement names whose availability it describes. Mirrors test_availability_mediation_axiom_present (availabilityAgent)." .
+    gmeow:saRationale "gmeow:Availability MUST carry a someValuesFrom restriction on gmeow:availabilityAgent — every free-busy statement names whose availability it describes." .
 
 # --- 34. Availability has someValuesFrom on availabilitySlot (MUST) ----------
 ex:saAvailabilityMediationSlot a gmeow:StructuralAssertion ;
@@ -544,7 +544,7 @@ ASK {
         owl:someValuesFrom gmeow:TimeInterval
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:Availability MUST carry a someValuesFrom restriction on gmeow:availabilitySlot — every free-busy statement is bounded by an interval. Mirrors test_availability_mediation_axiom_present (availabilitySlot)." .
+    gmeow:saRationale "gmeow:Availability MUST carry a someValuesFrom restriction on gmeow:availabilitySlot — every free-busy statement is bounded by an interval." .
 
 # --- 35. Reminder has someValuesFrom on reminderTarget (MUST) ----------------
 ex:saReminderMediationTarget a gmeow:StructuralAssertion ;
@@ -559,7 +559,7 @@ ASK {
         owl:someValuesFrom gmeow:Event
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:Reminder MUST carry a someValuesFrom restriction on gmeow:reminderTarget — every reminder is attached to a concrete event. Mirrors test_reminder_mediation_axiom_present." .
+    gmeow:saRationale "gmeow:Reminder MUST carry a someValuesFrom restriction on gmeow:reminderTarget — every reminder is attached to a concrete event." .
 
 # ===========================================================================
 # Value vocabulary seeds — individuals exist in the module
@@ -576,7 +576,7 @@ ASK {
     gmeow:invitationStatusDeclined    a gmeow:InvitationStatus .
     gmeow:invitationStatusTentative   a gmeow:InvitationStatus .
 }""" ;
-    gmeow:saRationale "All four iTIP PARTSTAT seed individuals MUST exist as gmeow:InvitationStatus members — they are the base vocabulary for the organizer's invitation view. Mirrors test_invitation_status_vocabulary_seeded." .
+    gmeow:saRationale "All four iTIP PARTSTAT seed individuals MUST exist as gmeow:InvitationStatus members — they are the base vocabulary for the organizer's invitation view." .
 
 # --- 37. RsvpStatus seed individuals exist (MUST) ----------------------------
 ex:saRsvpStatusSeedsExist a gmeow:StructuralAssertion ;
@@ -589,7 +589,7 @@ ASK {
     gmeow:rsvpStatusDeclined    a gmeow:RsvpStatus .
     gmeow:rsvpStatusTentative   a gmeow:RsvpStatus .
 }""" ;
-    gmeow:saRationale "All four RSVP seed individuals MUST exist as gmeow:RsvpStatus members — they seed the invitee's reply vocabulary, distinct from InvitationStatus (Principle 9). Mirrors test_rsvp_status_vocabulary_seeded." .
+    gmeow:saRationale "All four RSVP seed individuals MUST exist as gmeow:RsvpStatus members — they seed the invitee's reply vocabulary, distinct from InvitationStatus (Principle 9)." .
 
 # --- 38. AvailabilityStatus seed individuals exist (MUST) --------------------
 ex:saAvailabilityStatusSeedsExist a gmeow:StructuralAssertion ;
@@ -602,7 +602,7 @@ ASK {
     gmeow:availabilityStatusTentative  a gmeow:AvailabilityStatus .
     gmeow:availabilityStatusOutOfOffice a gmeow:AvailabilityStatus .
 }""" ;
-    gmeow:saRationale "All four iCalendar FBTYPE seed individuals MUST exist as gmeow:AvailabilityStatus members. Mirrors test_availability_status_vocabulary_seeded." .
+    gmeow:saRationale "All four iCalendar FBTYPE seed individuals MUST exist as gmeow:AvailabilityStatus members." .
 
 # --- 39. ReminderAction seed individuals exist (MUST) ------------------------
 ex:saReminderActionSeedsExist a gmeow:StructuralAssertion ;
@@ -614,7 +614,7 @@ ASK {
     gmeow:reminderActionEmail   a gmeow:ReminderAction .
     gmeow:reminderActionAudio   a gmeow:ReminderAction .
 }""" ;
-    gmeow:saRationale "All three iCalendar ACTION seed individuals MUST exist as gmeow:ReminderAction members. Mirrors test_reminder_action_vocabulary_seeded." .
+    gmeow:saRationale "All three iCalendar ACTION seed individuals MUST exist as gmeow:ReminderAction members." .
 
 # --- 40. TaskStatus seed individuals exist (MUST) ----------------------------
 ex:saTaskStatusSeedsExist a gmeow:StructuralAssertion ;
@@ -627,7 +627,7 @@ ASK {
     gmeow:taskStatusCompleted  a gmeow:TaskStatus .
     gmeow:taskStatusCancelled  a gmeow:TaskStatus .
 }""" ;
-    gmeow:saRationale "All four iCalendar VTODO STATUS seed individuals MUST exist as gmeow:TaskStatus members. Mirrors test_task_status_vocabulary_seeded." .
+    gmeow:saRationale "All four iCalendar VTODO STATUS seed individuals MUST exist as gmeow:TaskStatus members." .
 
 # --- 41. ExceptionType seed individuals exist (MUST) -------------------------
 ex:saExceptionTypeSeedsExist a gmeow:StructuralAssertion ;
@@ -638,7 +638,7 @@ ASK {
     gmeow:exceptionTypeCancellation  a gmeow:ExceptionType .
     gmeow:exceptionTypeRescheduling  a gmeow:ExceptionType .
 }""" ;
-    gmeow:saRationale "Both ExceptionType seed individuals MUST exist as gmeow:ExceptionType members. Mirrors test_exception_type_vocabulary_seeded." .
+    gmeow:saRationale "Both ExceptionType seed individuals MUST exist as gmeow:ExceptionType members." .
 
 # ===========================================================================
 # No preferred / primary calendar term (Principle 9)
@@ -662,7 +662,7 @@ ASK {
     UNION { ?banned a owl:AnnotationProperty }
     UNION { ?banned a owl:Class }
 }""" ;
-    gmeow:saRationale "The eight preferred/primary calendar terms MUST NOT exist as any property or class type — the anti-primary-selector doctrine (Principle 9) forbids frozen winner claims on calendar axes. Mirrors test_no_preferred_or_primary_calendar_term." .
+    gmeow:saRationale "The eight preferred/primary calendar terms MUST NOT exist as any property or class type — the anti-primary-selector doctrine (Principle 9) forbids frozen winner claims on calendar axes." .
 
 # ===========================================================================
 # Structural properties — domain/range and functionality
@@ -686,7 +686,7 @@ ASK {
     gmeow:scheduleOccurrence rdfs:domain gmeow:EventSchedule ;
         rdfs:range gmeow:Event .
 }""" ;
-    gmeow:saRationale "gmeow:scheduleTemplateEvent (functional), scheduleRecurrenceRule, scheduleTimeZone, and scheduleOccurrence MUST all have the correct domain, range, and functionality — these are the four mediating properties of EventSchedule. Mirrors test_event_schedule_properties_are_well_typed." .
+    gmeow:saRationale "gmeow:scheduleTemplateEvent (functional), scheduleRecurrenceRule, scheduleTimeZone, and scheduleOccurrence MUST all have the correct domain, range, and functionality — these are the four mediating properties of EventSchedule." .
 
 # --- 44. EventInvitation properties are well-typed (MUST) --------------------
 ex:saInvitationPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -706,7 +706,7 @@ ASK {
     gmeow:rsvpStatus rdfs:domain gmeow:EventInvitation ;
         rdfs:range gmeow:RsvpStatus .
 }""" ;
-    gmeow:saRationale "gmeow:invitationEvent (functional), invitationInvitee, invitationStatus, and rsvpStatus MUST all have the correct domain and range. Mirrors test_invitation_properties_are_well_typed." .
+    gmeow:saRationale "gmeow:invitationEvent (functional), invitationInvitee, invitationStatus, and rsvpStatus MUST all have the correct domain and range." .
 
 # --- 45. Availability properties are well-typed (MUST) -----------------------
 ex:saAvailabilityPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -724,7 +724,7 @@ ASK {
     gmeow:availabilityStatus rdfs:domain gmeow:Availability ;
         rdfs:range gmeow:AvailabilityStatus .
 }""" ;
-    gmeow:saRationale "gmeow:availabilityAgent, availabilitySlot (functional), and availabilityStatus MUST all have the correct domain and range. Mirrors test_availability_properties_are_well_typed." .
+    gmeow:saRationale "gmeow:availabilityAgent, availabilitySlot (functional), and availabilityStatus MUST all have the correct domain and range." .
 
 # --- 46. Reminder properties are well-typed (MUST) ---------------------------
 ex:saReminderPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -741,7 +741,7 @@ ASK {
         rdfs:range gmeow:Event ;
         a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:reminderTrigger (domain only), reminderAction, and reminderTarget (functional) MUST all have the correct domain and range. Mirrors test_reminder_properties_are_well_typed." .
+    gmeow:saRationale "gmeow:reminderTrigger (domain only), reminderAction, and reminderTarget (functional) MUST all have the correct domain and range." .
 
 # --- 47. Task properties are well-typed (MUST) --------------------------------
 ex:saTaskPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -761,7 +761,7 @@ ASK {
     gmeow:taskRecurrenceUntilDone rdfs:domain gmeow:Task ;
         rdfs:range xsd:boolean .
 }""" ;
-    gmeow:saRationale "gmeow:taskDueDate, taskStatus, taskPriority, and taskRecurrenceUntilDone MUST all have the correct domain and range. Mirrors test_task_properties_are_well_typed." .
+    gmeow:saRationale "gmeow:taskDueDate, taskStatus, taskPriority, and taskRecurrenceUntilDone MUST all have the correct domain and range." .
 
 # --- 48. TimeZone properties are well-typed (MUST) ---------------------------
 ex:saTimeZonePropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -779,7 +779,7 @@ ASK {
         rdfs:range gmeow:TimeZone ;
         a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:timeZoneIanaId (functional) and gmeow:eventTimeZone (functional) MUST have the correct domain and range — each event carries at most one civil offset and each zone has one IANA tzid. Mirrors test_time_zone_properties_are_well_typed." .
+    gmeow:saRationale "gmeow:timeZoneIanaId (functional) and gmeow:eventTimeZone (functional) MUST have the correct domain and range — each event carries at most one civil offset and each zone has one IANA tzid." .
 
 # --- 49. Calendar collection properties are well-typed (MUST) ----------------
 ex:saCalendarCollectionPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -795,7 +795,7 @@ ASK {
     gmeow:calendarMember rdfs:domain gmeow:Calendar ;
         rdfs:range gmeow:Event .
 }""" ;
-    gmeow:saRationale "gmeow:calendarTimeZone (functional) and gmeow:calendarMember MUST have the correct domain and range — one default zone per calendar, membership non-functional. Mirrors test_calendar_collection_properties_are_well_typed." .
+    gmeow:saRationale "gmeow:calendarTimeZone (functional) and gmeow:calendarMember MUST have the correct domain and range — one default zone per calendar, membership non-functional." .
 
 # --- 50. ScheduleException properties are well-typed (MUST) ------------------
 ex:saScheduleExceptionPropertiesWellTyped a gmeow:StructuralAssertion ;
@@ -815,4 +815,4 @@ ASK {
     gmeow:exceptionType rdfs:domain gmeow:ScheduleException ;
         rdfs:range gmeow:ExceptionType .
 }""" ;
-    gmeow:saRationale "gmeow:exceptionSchedule, exceptionOriginalDate, exceptionReplacementEvent, and exceptionType MUST all have the correct domain and range. Mirrors test_schedule_exception_properties_are_well_typed." .
+    gmeow:saRationale "gmeow:exceptionSchedule, exceptionOriginalDate, exceptionReplacementEvent, and exceptionType MUST all have the correct domain and range." .
