@@ -318,7 +318,18 @@ corpus, so they carry the same H8 `sh:sparql`-constraint cost as
 so the cost is the ontology-union validation and is fixture-independent — the four
 ride the 25 s cliff together and CI jitter alone decides which trip, so the whole
 class is carved out; the ~35 fixture-only `conformance_*` domain tests stay on-gate
-against the same shape corpus and the union path stays covered on `maint-heavy`); and
+against the same shape corpus and the union path stays covered on `maint-heavy`);
+`gmeow-pipeline::stages::carrier::quality_assessment_tests::quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate`
+(86.2 s; it builds the full self-description carrier, scoring every one of the ~81
+slices to attach the `graph/quality-assessment` named graph that folds into
+`gmeow.gts` — irreducibly O(slice count), the same whole-repo class as
+`end_to_end`/`fold_parity`; the attach↔fanout-path bijection and N-Triples fold form
+stay on-gate via the fast sibling units
+`quality_assessment_fanout_path_is_registered_and_folds_as_ntriples` and
+`superset::tests::quality_assessment_nt_folds_as_ntriples_via_its_own_fanout_graph`,
+the folded `generated/quality/gmeow.quality-assessment.nt` is drift-gated on every
+`make check` via `make check-generated`, and the exhaustive proof stays on-gate on
+`maint-heavy`); and
 `gmeow-logic::whole_bundle_coherence_gate_catches_injected_clash` (~95 s locally;
 it imports the WHOLE committed `gmeow.gts` bundle and drives the native Nemo
 chase over it twice, proving the shipped ontology is coherent and that an
