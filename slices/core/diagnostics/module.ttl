@@ -326,7 +326,7 @@ gmeow:BlockingDisposition
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Blocking Disposition"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The gating PROJECTION of a finding's logic:FindingCategory — the two-element value space Coherent ⊑ Blocking (individuals gmeow:blockingCoherent, gmeow:blockingBlocking) that says whether a KIND of finding is a real failure or is surfaced but never gate-failing. Exactly the three failure kinds (logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, logic:FindingContradictionWitness) project to gmeow:blockingBlocking; the other five — including the load-bearing logic:FindingPermittedEpistemicConflict — project to gmeow:blockingCoherent. Each category's projection is wired by gmeow:categoryBlocking, so the gate never inspects the category directly, only its Blocking image. Members are individuals, never subclasses (Principle 9). Mirrors the Rust gmeow_errors::grade::Blocking lattice and FindingCategory::blocking()."@x-gmeow-english ;
+    skos:definition "The gating PROJECTION of a finding's logic:FindingCategory — the two-element value space Coherent ⊑ Blocking (individuals gmeow:blockingCoherent, gmeow:blockingBlocking) that says whether a KIND of finding is a real failure or is surfaced but never gate-failing. Exactly the three failure kinds (logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, logic:FindingContradictionWitness) project to gmeow:blockingBlocking; the other six — including the load-bearing logic:FindingPermittedEpistemicConflict and the logic:FindingTransientChatter chatter kind — project to gmeow:blockingCoherent. Each category's projection is wired by gmeow:categoryBlocking, so the gate never inspects the category directly, only its Blocking image. Members are individuals, never subclasses (Principle 9). Mirrors the Rust gmeow_errors::grade::Blocking lattice and FindingCategory::blocking()."@x-gmeow-english ;
     skos:example "logic:FindingContradictionWitness gmeow:categoryBlocking gmeow:blockingBlocking ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating it with gmeow:findingSeverity (a Blocking category can still be a warning) or with the gate verdict (that is gmeow:GateVerdict, the meet of all three axes); the Blocking disposition is only the category's gating contribution, one of three axes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -366,7 +366,7 @@ gmeow:categoryBlocking
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "category blocking"@x-gmeow-english ;
     rdfs:range gmeow:BlockingDisposition ;
-    skos:definition "Wires a logic:FindingCategory to its gmeow:BlockingDisposition — the standing, asserted gating projection of the KIND. The three failure kinds map to gmeow:blockingBlocking, the other five to gmeow:blockingCoherent, matching Rust FindingCategory::blocking(). The gate reads only this image, never the category directly, so the projection is the single point where 'which kinds are failures' is stated once and consumed by both the reasoner and every projection."@x-gmeow-english ;
+    skos:definition "Wires a logic:FindingCategory to its gmeow:BlockingDisposition — the standing, asserted gating projection of the KIND. The three failure kinds map to gmeow:blockingBlocking, the other six to gmeow:blockingCoherent, matching Rust FindingCategory::blocking(). The gate reads only this image, never the category directly, so the projection is the single point where 'which kinds are failures' is stated once and consumed by both the reasoner and every projection."@x-gmeow-english ;
     skos:example "logic:FindingPermittedEpistemicConflict gmeow:categoryBlocking gmeow:blockingCoherent ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting more than one gmeow:BlockingDisposition per category (the projection is functional) and avoid using it for the finding's severity or standpoint; categoryBlocking projects only the KIND's gating contribution."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -455,7 +455,7 @@ gmeow:standpointPerspectival
     gmeow:graphBoxRole gmeow:boxABox .
 
 # ── The gating projection of each logic:FindingCategory (FindingCategory::blocking()).
-# The three failure kinds project to gmeow:blockingBlocking; the other five to
+# The three failure kinds project to gmeow:blockingBlocking; the other six to
 # gmeow:blockingCoherent. This is the single asserted source the gate rule reads.
 logic:FindingDataShapeViolation gmeow:categoryBlocking gmeow:blockingBlocking .
 logic:FindingModelingDisciplineViolation gmeow:categoryBlocking gmeow:blockingBlocking .
@@ -465,6 +465,7 @@ logic:FindingUnsupportedSemanticFeature gmeow:categoryBlocking gmeow:blockingCoh
 logic:FindingIncompleteCheck gmeow:categoryBlocking gmeow:blockingCoherent .
 logic:FindingProjectionLoss gmeow:categoryBlocking gmeow:blockingCoherent .
 logic:FindingPolicyWarning gmeow:categoryBlocking gmeow:blockingCoherent .
+logic:FindingTransientChatter gmeow:categoryBlocking gmeow:blockingCoherent .
 
 # ── The MATH grounding of the truth-order chains (Principle 19): a monotone
 # order-embedding of each ⊑-chain into (ℤ, ≤). The integer rank EMBEDS the poset
@@ -643,7 +644,7 @@ gmeow:categoryPolarity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "category polarity"@x-gmeow-english ;
     rdfs:range logic:InformationState ;
-    skos:definition "Wires a logic:FindingCategory to the Belnap coherence POLARITY its KIND asserts — a value of the EXISTING logic:InformationState Belnap value class, reused rather than re-minted. The three failure kinds (logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, logic:FindingContradictionWitness) map to logic:InfoSupported (evidence a defect is present); logic:FindingPermittedEpistemicConflict maps to logic:InfoOpposed (evidence the apparent contradiction is coherent); the other four (logic:FindingUnsupportedSemanticFeature, logic:FindingIncompleteCheck, logic:FindingProjectionLoss, logic:FindingPolicyWarning) map to logic:InfoNeither (no coherence stance). It mirrors the Rust FindingCategory::polarity(); a cross-node-glut rule reads this projection to detect two findings at one anchor whose polarities OPPOSE. Distinct axis from gmeow:categoryBlocking (the gating projection): polarity is the coherence stance, blocking is the gate contribution."@x-gmeow-english ;
+    skos:definition "Wires a logic:FindingCategory to the Belnap coherence POLARITY its KIND asserts — a value of the EXISTING logic:InformationState Belnap value class, reused rather than re-minted. The three failure kinds (logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, logic:FindingContradictionWitness) map to logic:InfoSupported (evidence a defect is present); logic:FindingPermittedEpistemicConflict maps to logic:InfoOpposed (evidence the apparent contradiction is coherent); the other five (logic:FindingUnsupportedSemanticFeature, logic:FindingIncompleteCheck, logic:FindingProjectionLoss, logic:FindingPolicyWarning, logic:FindingTransientChatter) map to logic:InfoNeither (no coherence stance). It mirrors the Rust FindingCategory::polarity(); a cross-node-glut rule reads this projection to detect two findings at one anchor whose polarities OPPOSE. Distinct axis from gmeow:categoryBlocking (the gating projection): polarity is the coherence stance, blocking is the gate contribution."@x-gmeow-english ;
     skos:example "logic:FindingContradictionWitness gmeow:categoryPolarity logic:InfoSupported ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a parallel gmeow: polarity vocabulary (reuse the logic:InformationState Belnap values) and avoid conflating it with gmeow:categoryBlocking (the gating axis) or gmeow:findingSeverity (the grade); categoryPolarity is the coherence stance a kind of finding asserts."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -652,7 +653,7 @@ gmeow:categoryPolarity
 
 # ── The Belnap coherence POLARITY of each logic:FindingCategory (FindingCategory::polarity()).
 # The three failure kinds project to logic:InfoSupported; the permitted-conflict kind to
-# logic:InfoOpposed; the other four to logic:InfoNeither. This is the single asserted source
+# logic:InfoOpposed; the other five to logic:InfoNeither. This is the single asserted source
 # a cross-node-glut rule reads to detect opposing-polarity findings at one anchor.
 logic:FindingDataShapeViolation gmeow:categoryPolarity logic:InfoSupported .
 logic:FindingModelingDisciplineViolation gmeow:categoryPolarity logic:InfoSupported .
@@ -662,6 +663,7 @@ logic:FindingUnsupportedSemanticFeature gmeow:categoryPolarity logic:InfoNeither
 logic:FindingIncompleteCheck gmeow:categoryPolarity logic:InfoNeither .
 logic:FindingProjectionLoss gmeow:categoryPolarity logic:InfoNeither .
 logic:FindingPolicyWarning gmeow:categoryPolarity logic:InfoNeither .
+logic:FindingTransientChatter gmeow:categoryPolarity logic:InfoNeither .
 
 # ════════════════════════════════════════════════════════════════════════════
 # The reasoner-derived meta-findings.

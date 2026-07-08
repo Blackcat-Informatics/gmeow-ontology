@@ -131,6 +131,12 @@ pub enum FindingCategory {
     ProjectionLoss,
     /// A trust / governance advisory (untrusted signer, soft policy note).
     PolicyWarning,
+    /// The closed CHATTER kind for general-purpose logging witnesses — the
+    /// ordinary note/info stream a run emits to narrate its own progress. NOT a
+    /// failure and takes no coherence stance: transient bookkeeping that never
+    /// gates and carries no evidential weight.
+    #[serde(rename = "transient-chatter")]
+    Transient,
 }
 
 impl FindingCategory {
@@ -153,9 +159,11 @@ impl FindingCategory {
             Ok(Self::ProjectionLoss)
         } else if trimmed.eq_ignore_ascii_case("policy-warning") {
             Ok(Self::PolicyWarning)
+        } else if trimmed.eq_ignore_ascii_case("transient-chatter") {
+            Ok(Self::Transient)
         } else {
             Err(format!(
-                "unknown finding category `{trimmed}`; expected one of the eight \
+                "unknown finding category `{trimmed}`; expected one of the nine \
                  logic:FindingCategory wire values"
             ))
         }
@@ -172,6 +180,7 @@ impl FindingCategory {
             Self::IncompleteCheck => "incomplete-check",
             Self::ProjectionLoss => "projection-loss",
             Self::PolicyWarning => "policy-warning",
+            Self::Transient => "transient-chatter",
         }
     }
 
@@ -187,6 +196,7 @@ impl FindingCategory {
             Self::IncompleteCheck => "FindingIncompleteCheck",
             Self::ProjectionLoss => "FindingProjectionLoss",
             Self::PolicyWarning => "FindingPolicyWarning",
+            Self::Transient => "FindingTransientChatter",
         }
     }
 }
@@ -751,16 +761,9 @@ mod tests {
 
     #[test]
     fn finding_category_wire_values_round_trip() {
-        for category in [
-            FindingCategory::DataShapeViolation,
-            FindingCategory::ModelingDisciplineViolation,
-            FindingCategory::ContradictionWitness,
-            FindingCategory::PermittedEpistemicConflict,
-            FindingCategory::UnsupportedSemanticFeature,
-            FindingCategory::IncompleteCheck,
-            FindingCategory::ProjectionLoss,
-            FindingCategory::PolicyWarning,
-        ] {
+        // Iterate the closed `ALL` set so a newly-minted category cannot escape the
+        // serde-rename == as_str == parse() round-trip invariant.
+        for category in FindingCategory::ALL {
             // serde rename == as_str == the kebab wire value parse() accepts.
             let json = serde_json::to_string(&category).expect("serialize");
             assert_eq!(json, format!("\"{}\"", category.as_str()));
