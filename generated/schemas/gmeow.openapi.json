@@ -458,7 +458,6 @@
         "type": "object"
       },
       "AffectDecision": {
-        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
