@@ -1440,6 +1440,39 @@ fn pred(local: &str, args: Vec<Term>) -> Formula {
 }
 
 #[test]
+fn principal_predicate_peels_negation_and_quantifiers() {
+    // A bare atom → its relation IRI.
+    assert_eq!(
+        pred("p", vec![tv("x")]).principal_predicate().as_deref(),
+        Some(format!("{LOGIC}p").as_str())
+    );
+    // ∀x. p(x) → p (the universal-claim anti-conjecture forbids the predicate).
+    let forall = Formula::Forall {
+        vars: vec!["x".into()],
+        body: Box::new(pred("p", vec![tv("x")])),
+    };
+    assert_eq!(forall.principal_predicate(), Some(format!("{LOGIC}p")));
+    // ¬∀x. p(x) → p (strong negation is peeled too).
+    let neg = Formula::Not(Box::new(forall));
+    assert_eq!(neg.principal_predicate(), Some(format!("{LOGIC}p")));
+    // A ∀-Horn rule ∀x. body(x) → head(x) → the HEAD predicate (the conclusion the
+    // anti-conjecture obligation forbids the closure from drawing).
+    let rule = Formula::Forall {
+        vars: vec!["x".into()],
+        body: Box::new(Formula::Implies(
+            Box::new(pred("body", vec![tv("x")])),
+            Box::new(pred("head", vec![tv("x")])),
+        )),
+    };
+    assert_eq!(rule.principal_predicate(), Some(format!("{LOGIC}head")));
+    // A compound formula names no single principal predicate.
+    let conj = Formula::And(vec![pred("p", vec![tv("x")]), pred("q", vec![tv("x")])]);
+    assert_eq!(conj.principal_predicate(), None);
+    let disj = Formula::Or(vec![pred("p", vec![tv("x")]), pred("q", vec![tv("x")])]);
+    assert_eq!(disj.principal_predicate(), None);
+}
+
+#[test]
 fn alpha_equivalence_renames_bound_variable() {
     // ∀x.p(x) ≡ ∀y.p(y)
     let a = Formula::Forall {

@@ -13,6 +13,9 @@
 //! for the unified native extension.
 
 pub mod certificate;
+/// Conjecture-and-refutation runtime: [`conjecture::conjecture_test`] tests a candidate
+/// first-order formula against a KB in an isolated, standpoint-scoped scenario world.
+pub mod conjecture;
 /// Executed lens-law discharge for a `logic:Correspondence`'s realized `LegPath` legs —
 /// the per-correspondence section-law verdict the (execution-free) correspondence gates read.
 pub mod correspondence_exec;

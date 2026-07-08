@@ -1,0 +1,66 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example for the STATEMENT-ROLE layer — a theorem/proof claim built so that
+# theorem-hood is a role under a theory, not a truth bit, and verification splits
+# cleanly into process, result object, and held claim.
+#
+# The load-bearing shape:
+#   - ex:pythagoreanStatement is a math:MathematicalStatement whose theorem-hood is a
+#     ROLE (math:statementRole math:roleTheorem) scoped to a named, versioned theory
+#     (math:roleInTheory ex:euclideanGeometryV2) over declared axioms — never a bare
+#     `a math:Theorem` read as "proved, everywhere, unconditionally".
+#   - ex:pythagoreanProof is the derivation that proves it (math:provesStatement), using
+#     a declared math:ProofMethod.
+#   - ex:coqCheckRun is the PROCESS (a math:ProofCheckActivity, a gmeow:Activity) that
+#     consumed the proof.
+#   - ex:coqCheckResult is the RESULT OBJECT (a math:FormalVerificationResult) carrying
+#     the QED verdict as a math:VerificationOutcome value.
+#   - ex:coqCheckObservation is the HELD CLAIM (a gmeow:Observation) with the checker as
+#     gmeow:vantage. "Verified" answers by whom, over what, through which run, with what
+#     result — and none of the four nodes is typed as another.
+
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/statement/> .
+
+# --- The statement: theorem-hood as a theory-scoped role --------------------- #
+ex:pythagoreanStatement
+    a math:MathematicalStatement ;
+    math:statementRole math:roleTheorem ;
+    math:roleInTheory ex:euclideanGeometryV2 ;
+    math:hasConclusion ex:pythagoreanConclusionExpr ;
+    math:dependsOnAxiom ex:euclidPostulate5 .
+
+ex:euclideanGeometryV2 a math:MathematicalObject .
+ex:pythagoreanConclusionExpr a math:MathematicalObject .
+ex:euclidPostulate5 a math:Axiom .
+
+# --- The proof -------------------------------------------------------------- #
+ex:pythagoreanProof
+    a math:Proof ;
+    math:provesStatement ex:pythagoreanStatement ;
+    math:usesProofMethod ex:proofMethodDirect .
+
+ex:proofMethodDirect a math:ProofMethod .
+
+# --- Process: the proof-check run -------------------------------------------- #
+ex:coqCheckRun
+    a math:ProofCheckActivity ;
+    math:usedProof ex:pythagoreanProof .
+
+# --- Result object: the QED verdict ----------------------------------------- #
+ex:coqCheckResult
+    a math:FormalVerificationResult ;
+    math:verifiedByEngine ex:coqEngineV8 ;
+    math:verificationResult math:verificationPassed .
+
+# --- Held claim: an observation with the engine as vantage ------------------- #
+ex:coqCheckObservation
+    a gmeow:Observation ;
+    gmeow:vantage ex:coqEngineV8 ;
+    gmeow:observedFeature ex:pythagoreanProof ;
+    gmeow:observationResult ex:coqCheckResult ;
+    gmeow:wasGeneratedBy ex:coqCheckRun .
+
+ex:coqEngineV8 a gmeow:Standpoint .

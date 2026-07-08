@@ -1,0 +1,28 @@
+# Competency Q5: "Which theorem does this proof claim to prove, under which axioms and
+# which theory version — and which engine, if any, verified it, with what result?" A
+# math:MathematicalStatement carrying math:statementRole math:roleTheorem is proved by a
+# math:Proof (math:provesStatement), scoped to a theory (math:roleInTheory) over axioms
+# (math:dependsOnAxiom); a math:ProofCheckActivity checked the proof; the verdict is a
+# math:FormalVerificationResult held by a gmeow:Observation with the engine as gmeow:vantage.
+# Exactly one row.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?statement ?proof ?theory ?axiom ?engine ?outcome WHERE {
+    ?proof a math:Proof ;
+           math:provesStatement ?statement .
+    ?statement math:statementRole math:roleTheorem ;
+               math:roleInTheory ?theory ;
+               math:dependsOnAxiom ?axiom .
+    ?check a math:ProofCheckActivity ;
+           math:usedProof ?proof .
+    ?result a math:FormalVerificationResult ;
+            math:verifiedByEngine ?engine ;
+            math:verificationResult ?outcome .
+    ?obs a gmeow:Observation ;
+         gmeow:observedFeature ?proof ;
+         gmeow:observationResult ?result ;
+         gmeow:vantage ?engine .
+    FILTER(STRSTARTS(STR(?proof), "http://example.org/math/statement/"))
+}
+ORDER BY ?statement ?axiom
