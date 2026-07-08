@@ -153,8 +153,8 @@ expression: summary
         "role": "TestDsl",
         "logical_path": "tests/structural.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "72fb3561987c8f30a6cbb5f937491811605a3390635c3ee471ab8b2d0f0aa633",
-        "semantic_digest": "dac747640e2f5ac92f63edaaa345c772d6f385bd7c1dd8a656668130c2e81250"
+        "raw_digest": "5359385b4171821408d1c13f9fc69d9df956634a5288b69f3436e35af1fc7b1f",
+        "semantic_digest": "35af3d2678d7c140f60873a03fc610f7d4e875f9ea8239f4a85c8710ef69fcf1"
       }
     ]
   },

@@ -38,7 +38,7 @@ ASK {
     gmeow:MetacognitiveState a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:MentalMoment .
 }""" ;
-    gmeow:saRationale "MetacognitiveState MUST be an owl:Class, a logic:Kind, and a subClassOf gmeow:MentalMoment — the reflexive mode sibling. Mirrors test_metacognitive_state_is_a_mental_moment_kind." .
+    gmeow:saRationale "MetacognitiveState MUST be an owl:Class, a logic:Kind, and a subClassOf gmeow:MentalMoment — the reflexive mode sibling." .
 
 # --- 1b. MetacognitiveState carries exactly one logic metaclass (MUST-NOT) ----
 ex:saMetacognitiveStateNoExtraLogicMetaclass a gmeow:StructuralAssertion ;
@@ -51,7 +51,7 @@ ASK {
     gmeow:MetacognitiveState rdf:type ?t .
     FILTER(STRSTARTS(STR(?t), "https://blackcatinformatics.ca/logic/") && ?t != logic:Kind)
 }""" ;
-    gmeow:saRationale "MetacognitiveState MUST carry NO logic-namespace type other than logic:Kind — this dynamic ASK mirrors the ORIGINAL test_metacognitive_state_is_a_mental_moment_kind set-equality (the logic-type set must equal {logic:Kind} exactly, for ANY logic metaclass, not just a hardcoded blacklist). Paired with ex:saMetacognitiveStateIsMentalMomentKind which asserts logic:Kind IS present." .
+    gmeow:saRationale "MetacognitiveState MUST carry NO logic-namespace type other than logic:Kind — this dynamic ASK mirrors the ORIGINAL set-equality invariant (the logic-type set must equal {logic:Kind} exactly, for ANY logic metaclass, not just a hardcoded blacklist). Paired with ex:saMetacognitiveStateIsMentalMomentKind which asserts logic:Kind IS present." .
 
 # --- 2. MetacognitiveState is sibling not a sub-mode (MUST-NOT hold) ----------
 ex:saMetacognitiveStateSiblingNotSubMode a gmeow:StructuralAssertion ;
@@ -63,7 +63,7 @@ ASK {
     VALUES ?forbidden { gmeow:CognitiveState gmeow:IntentionalMode gmeow:StandpointClaim }
     gmeow:MetacognitiveState rdfs:subClassOf ?forbidden .
 }""" ;
-    gmeow:saRationale "MetacognitiveState is a co-equal sibling of MentalMoment: it MUST NOT be an rdfs:subClassOf gmeow:CognitiveState, gmeow:IntentionalMode, or gmeow:StandpointClaim (Principle 9 — subsumption erases the reflexive distinction). Mirrors test_metacognitive_state_is_a_sibling_not_a_sub_mode." .
+    gmeow:saRationale "MetacognitiveState is a co-equal sibling of MentalMoment: it MUST NOT be an rdfs:subClassOf gmeow:CognitiveState, gmeow:IntentionalMode, or gmeow:StandpointClaim (Principle 9 — subsumption erases the reflexive distinction)." .
 
 # --- 3a. metaTarget is an ObjectProperty with MetacognitiveState domain (MUST) -
 ex:saMetaTargetObjectPropertyWithDomain a gmeow:StructuralAssertion ;
@@ -76,7 +76,7 @@ ASK {
     gmeow:metaTarget a owl:ObjectProperty ;
         rdfs:domain gmeow:MetacognitiveState .
 }""" ;
-    gmeow:saRationale "gmeow:metaTarget MUST be an owl:ObjectProperty with rdfs:domain gmeow:MetacognitiveState. Mirrors the positive clauses of test_meta_target_is_open_range_and_characteristic_free." .
+    gmeow:saRationale "gmeow:metaTarget MUST be an owl:ObjectProperty with rdfs:domain gmeow:MetacognitiveState." .
 
 # --- 3b. metaTarget has open range: NO rdfs:range (MUST-NOT hold) -------------
 ex:saMetaTargetOpenRange a gmeow:StructuralAssertion ;
@@ -85,7 +85,7 @@ ex:saMetaTargetOpenRange a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:metaTarget rdfs:range ?r . }""" ;
-    gmeow:saRationale "gmeow:metaTarget MUST NOT declare an rdfs:range — the reflexivity target stays open (Principle 13). Mirrors the open-range clause of test_meta_target_is_open_range_and_characteristic_free." .
+    gmeow:saRationale "gmeow:metaTarget MUST NOT declare an rdfs:range — the reflexivity target stays open (Principle 13)." .
 
 # --- 3c. metaTarget is flat: NO rdfs:subPropertyOf (MUST-NOT hold) ------------
 ex:saMetaTargetFlat a gmeow:StructuralAssertion ;
@@ -94,7 +94,7 @@ ex:saMetaTargetFlat a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:metaTarget rdfs:subPropertyOf ?anything . }""" ;
-    gmeow:saRationale "gmeow:metaTarget MUST NOT declare any rdfs:subPropertyOf — it is non-subordinate (flat). Mirrors the non-subordinate clause of test_meta_target_is_open_range_and_characteristic_free." .
+    gmeow:saRationale "gmeow:metaTarget MUST NOT declare any rdfs:subPropertyOf — it is non-subordinate (flat)." .
 
 # --- 3d. metaTarget carries NO property characteristics (MUST-NOT hold) -------
 ex:saMetaTargetCharacteristicFree a gmeow:StructuralAssertion ;
@@ -109,7 +109,7 @@ ASK {
     }
     gmeow:metaTarget a ?characteristic .
 }""" ;
-    gmeow:saRationale "gmeow:metaTarget MUST NOT carry any property characteristic (ReflexiveProperty, IrreflexiveProperty, TransitiveProperty, SymmetricProperty, FunctionalProperty) — conceptual reflexivity is not OWL reflexivity, and reflexivity leaves EL. Mirrors the characteristic-free clause of test_meta_target_is_open_range_and_characteristic_free." .
+    gmeow:saRationale "gmeow:metaTarget MUST NOT carry any property characteristic (ReflexiveProperty, IrreflexiveProperty, TransitiveProperty, SymmetricProperty, FunctionalProperty) — conceptual reflexivity is not OWL reflexivity, and reflexivity leaves EL." .
 
 # --- 4. CalibrationStatus is an AbstractIndividualType (MUST hold) ------------
 ex:saCalibrationStatusIsAbstractIndividualType a gmeow:StructuralAssertion ;
@@ -123,7 +123,7 @@ ASK {
     gmeow:CalibrationStatus a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:CalibrationStatus MUST be an owl:Class AND logic:AbstractIndividualType AND a subClassOf logic:QualityValue — the value-vocabulary genus. Mirrors test_calibration_status_is_an_abstract_individual_type." .
+    gmeow:saRationale "gmeow:CalibrationStatus MUST be an owl:Class AND logic:AbstractIndividualType AND a subClassOf logic:QualityValue — the value-vocabulary genus." .
 
 # --- 5a. The three calibration individuals are seeded (MUST hold) -------------
 ex:saCalibrationStatusesSeeded a gmeow:StructuralAssertion ;
@@ -135,7 +135,7 @@ ASK {
     gmeow:overconfident   a gmeow:CalibrationStatus .
     gmeow:underconfident  a gmeow:CalibrationStatus .
 }""" ;
-    gmeow:saRationale "All three calibration status individuals (wellCalibrated, overconfident, underconfident) MUST be explicitly typed gmeow:CalibrationStatus (closed value vocabulary, members never subclasses). Mirrors the membership clause of test_calibration_statuses_are_seeded_individuals." .
+    gmeow:saRationale "All three calibration status individuals (wellCalibrated, overconfident, underconfident) MUST be explicitly typed gmeow:CalibrationStatus (closed value vocabulary, members never subclasses)." .
 
 # --- 5b. Calibration individuals are NOT subclasses (MUST-NOT hold) -----------
 ex:saCalibrationStatusesNotSubclasses a gmeow:StructuralAssertion ;
@@ -147,7 +147,7 @@ ASK {
     VALUES ?indiv { gmeow:wellCalibrated gmeow:overconfident gmeow:underconfident }
     ?indiv rdfs:subClassOf gmeow:CalibrationStatus .
 }""" ;
-    gmeow:saRationale "None of the three calibration status individuals may declare rdfs:subClassOf gmeow:CalibrationStatus — members are individuals, never subclasses. Mirrors the non-subclass clause of test_calibration_statuses_are_seeded_individuals." .
+    gmeow:saRationale "None of the three calibration status individuals may declare rdfs:subClassOf gmeow:CalibrationStatus — members are individuals, never subclasses." .
 
 # --- 6a. calibration is a non-functional ObjectProperty (MUST hold) ----------
 ex:saCalibrationProperty a gmeow:StructuralAssertion ;
@@ -161,7 +161,7 @@ ASK {
         rdfs:domain gmeow:MetacognitiveState ;
         rdfs:range gmeow:CalibrationStatus .
 }""" ;
-    gmeow:saRationale "gmeow:calibration MUST be an owl:ObjectProperty with domain gmeow:MetacognitiveState and range gmeow:CalibrationStatus. Mirrors the positive clauses of test_calibration_property." .
+    gmeow:saRationale "gmeow:calibration MUST be an owl:ObjectProperty with domain gmeow:MetacognitiveState and range gmeow:CalibrationStatus." .
 
 # --- 6b. calibration is NOT functional (MUST-NOT hold) -----------------------
 ex:saCalibrationNotFunctional a gmeow:StructuralAssertion ;
@@ -170,7 +170,7 @@ ex:saCalibrationNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:calibration a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:calibration MUST NOT be functional — a self-assessment and an external assessment may coexist (Principle 9). Mirrors the non-functional clause of test_calibration_property." .
+    gmeow:saRationale "gmeow:calibration MUST NOT be functional — a self-assessment and an external assessment may coexist (Principle 9)." .
 
 # --- 7. calibrationError is a solver-layer AnnotationProperty (MUST hold) -----
 ex:saCalibrationErrorIsAnnotationProperty a gmeow:StructuralAssertion ;
@@ -179,7 +179,7 @@ ex:saCalibrationErrorIsAnnotationProperty a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:calibrationError a owl:AnnotationProperty . }""" ;
-    gmeow:saRationale "gmeow:calibrationError MUST be an owl:AnnotationProperty — the solver-layer guard (Principle 12): invisible to the reasoner, never a materialised axiom. Mirrors the positive clause of test_calibration_error_is_a_solver_layer_annotation." .
+    gmeow:saRationale "gmeow:calibrationError MUST be an owl:AnnotationProperty — the solver-layer guard (Principle 12): invisible to the reasoner, never a materialised axiom." .
 
 # --- 7b. calibrationError is NOT a datatype or object property (MUST-NOT) -----
 ex:saCalibrationErrorNotDataOrObjectProperty a gmeow:StructuralAssertion ;
@@ -191,7 +191,7 @@ ASK {
     VALUES ?forbidden { owl:DatatypeProperty owl:ObjectProperty }
     gmeow:calibrationError a ?forbidden .
 }""" ;
-    gmeow:saRationale "gmeow:calibrationError MUST NOT be typed owl:DatatypeProperty or owl:ObjectProperty — that would make it visible to the reasoner and violate the solver boundary (Principle 12). Mirrors the negative type clauses of test_calibration_error_is_a_solver_layer_annotation." .
+    gmeow:saRationale "gmeow:calibrationError MUST NOT be typed owl:DatatypeProperty or owl:ObjectProperty — that would make it visible to the reasoner and violate the solver boundary (Principle 12)." .
 
 # --- 7c. calibrationError carries no domain/range (MUST-NOT hold) -------------
 ex:saCalibrationErrorNoDomainRange a gmeow:StructuralAssertion ;
@@ -204,7 +204,7 @@ ASK {
     UNION
     { gmeow:calibrationError rdfs:range ?r . }
 }""" ;
-    gmeow:saRationale "gmeow:calibrationError MUST NOT declare rdfs:domain or rdfs:range — the solver-layer annotation carries no domain/range (Principle 12). Mirrors the no-domain/range clauses of test_calibration_error_is_a_solver_layer_annotation." .
+    gmeow:saRationale "gmeow:calibrationError MUST NOT declare rdfs:domain or rdfs:range — the solver-layer annotation carries no domain/range (Principle 12)." .
 
 # --- 8a. awareOfNotKnowing and epistemicSelfTrust are ObjectProperties (MUST) --
 ex:saKnownUnknownAndSelfTrustObjectProperties a gmeow:StructuralAssertion ;
@@ -219,7 +219,7 @@ ASK {
     gmeow:epistemicSelfTrust a owl:ObjectProperty ;
         rdfs:domain gmeow:Agent .
 }""" ;
-    gmeow:saRationale "gmeow:awareOfNotKnowing and gmeow:epistemicSelfTrust MUST each be an owl:ObjectProperty with rdfs:domain gmeow:Agent. Mirrors the positive clauses of test_known_unknown_and_self_trust_are_flat_open_range_agent_props." .
+    gmeow:saRationale "gmeow:awareOfNotKnowing and gmeow:epistemicSelfTrust MUST each be an owl:ObjectProperty with rdfs:domain gmeow:Agent." .
 
 # --- 8b. awareOfNotKnowing and epistemicSelfTrust are open-range (MUST-NOT) ---
 ex:saKnownUnknownAndSelfTrustOpenRange a gmeow:StructuralAssertion ;
@@ -231,7 +231,7 @@ ASK {
     VALUES ?p { gmeow:awareOfNotKnowing gmeow:epistemicSelfTrust }
     ?p rdfs:range ?r .
 }""" ;
-    gmeow:saRationale "gmeow:awareOfNotKnowing and gmeow:epistemicSelfTrust MUST NOT declare an rdfs:range — their target surfaces stay open (Principle 13). Mirrors the open-range clause of test_known_unknown_and_self_trust_are_flat_open_range_agent_props." .
+    gmeow:saRationale "gmeow:awareOfNotKnowing and gmeow:epistemicSelfTrust MUST NOT declare an rdfs:range — their target surfaces stay open (Principle 13)." .
 
 # --- 8c. awareOfNotKnowing and epistemicSelfTrust are flat (MUST-NOT) ---------
 ex:saKnownUnknownAndSelfTrustFlat a gmeow:StructuralAssertion ;
@@ -243,7 +243,7 @@ ASK {
     VALUES ?p { gmeow:awareOfNotKnowing gmeow:epistemicSelfTrust }
     ?p rdfs:subPropertyOf ?anything .
 }""" ;
-    gmeow:saRationale "gmeow:awareOfNotKnowing and gmeow:epistemicSelfTrust MUST NOT declare any rdfs:subPropertyOf — they are flat (reuse the inquiry/trust slices by reference, not subsumption). Mirrors the flat clause of test_known_unknown_and_self_trust_are_flat_open_range_agent_props." .
+    gmeow:saRationale "gmeow:awareOfNotKnowing and gmeow:epistemicSelfTrust MUST NOT declare any rdfs:subPropertyOf — they are flat (reuse the inquiry/trust slices by reference, not subsumption)." .
 
 # --- 8d. awareOfNotKnowing and epistemicSelfTrust are non-functional (MUST-NOT) -
 ex:saKnownUnknownAndSelfTrustNotFunctional a gmeow:StructuralAssertion ;
@@ -255,7 +255,7 @@ ASK {
     VALUES ?p { gmeow:awareOfNotKnowing gmeow:epistemicSelfTrust }
     ?p a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:awareOfNotKnowing and gmeow:epistemicSelfTrust MUST NOT be owl:FunctionalProperty — an agent recognises many gaps / trusts different faculties. Mirrors the non-functional clause of test_known_unknown_and_self_trust_are_flat_open_range_agent_props." .
+    gmeow:saRationale "gmeow:awareOfNotKnowing and gmeow:epistemicSelfTrust MUST NOT be owl:FunctionalProperty — an agent recognises many gaps / trusts different faculties." .
 
 # --- 9a. eventTypeReflection is an EventType individual (MUST hold) -----------
 ex:saEventTypeReflectionIsIndividual a gmeow:StructuralAssertion ;
@@ -263,7 +263,7 @@ ex:saEventTypeReflectionIsIndividual a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:eventTypeReflection a gmeow:EventType . }""" ;
-    gmeow:saRationale "gmeow:eventTypeReflection MUST be typed gmeow:EventType (the eventTypeDeception pattern — a value individual, never a class). Mirrors the positive clause of test_reflection_is_an_event_type_individual." .
+    gmeow:saRationale "gmeow:eventTypeReflection MUST be typed gmeow:EventType (the eventTypeDeception pattern — a value individual, never a class)." .
 
 # --- 9b. eventTypeReflection is NOT a class or subclass (MUST-NOT hold) -------
 ex:saEventTypeReflectionNotClassOrSubclass a gmeow:StructuralAssertion ;
@@ -277,7 +277,7 @@ ASK {
     UNION
     { gmeow:eventTypeReflection rdfs:subClassOf ?anything . }
 }""" ;
-    gmeow:saRationale "gmeow:eventTypeReflection MUST NOT be typed owl:Class or declare any rdfs:subClassOf — it is a value individual, not a class. Mirrors the negative clauses of test_reflection_is_an_event_type_individual." .
+    gmeow:saRationale "gmeow:eventTypeReflection MUST NOT be typed owl:Class or declare any rdfs:subClassOf — it is a value individual, not a class." .
 
 # --- 10. No status / truth bit in any triple position (MUST-NOT hold) ---------
 ex:saNoStatusOrTruthBit a gmeow:StructuralAssertion ;
@@ -292,7 +292,7 @@ ASK {
     UNION { ?s ?forbidden ?o . }
     UNION { ?s ?p ?forbidden . }
 }""" ;
-    gmeow:saRationale "None of isCalibrated / isReflected / isTrue / isFalse / isMiscalibrated may appear in any subject, predicate, or object position — metacognitive state rides reified claims and the calibration value vocabulary (Principle 6). Mirrors test_no_status_or_truth_bit." .
+    gmeow:saRationale "None of isCalibrated / isReflected / isTrue / isFalse / isMiscalibrated may appear in any subject, predicate, or object position — metacognitive state rides reified claims and the calibration value vocabulary (Principle 6)." .
 
 # --- 10b. No declared property has a boolean range (MUST-NOT hold) ------------
 ex:saNoXsdBooleanRange a gmeow:StructuralAssertion ;
@@ -310,7 +310,7 @@ ASK {
     }
     ?term rdfs:range xsd:boolean .
 }""" ;
-    gmeow:saRationale "No locally-declared metacognition term may carry an xsd:boolean range — no boolean-style truth/status bits are allowed (Principle 6). Mirrors the boolean-range clause of test_no_status_or_truth_bit." .
+    gmeow:saRationale "No locally-declared metacognition term may carry an xsd:boolean range — no boolean-style truth/status bits are allowed (Principle 6)." .
 
 # --- 11. Cross-slice bridges are documented not axiomatised (MUST-NOT hold) ---
 ex:saBridgesDocumentedNotAxiomatised a gmeow:StructuralAssertion ;
@@ -326,4 +326,4 @@ ASK {
     }
     ?sub rdfs:subPropertyOf ?sup .
 }""" ;
-    gmeow:saRationale "Cross-slice bridges (Principle 9) are prose-only: awareOfNotKnowing MUST NOT be rdfs:subPropertyOf gmeow:evokes, and epistemicSelfTrust MUST NOT be rdfs:subPropertyOf gmeow:trustor or gmeow:trustLevel. Mirrors test_bridges_are_documented_not_axiomatised." .
+    gmeow:saRationale "Cross-slice bridges (Principle 9) are prose-only: awareOfNotKnowing MUST NOT be rdfs:subPropertyOf gmeow:evokes, and epistemicSelfTrust MUST NOT be rdfs:subPropertyOf gmeow:trustor or gmeow:trustLevel." .

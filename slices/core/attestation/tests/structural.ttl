@@ -37,7 +37,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:Attestation rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:Attestation MUST be a subclass of logic:Relator -- the reified vouching act mediates between an attester, an attested subject, and optionally an attested claim or artifact (gUFO relator pattern). Mirrors test_attestation_is_relator." .
+    gmeow:saRationale "gmeow:Attestation MUST be a subclass of logic:Relator -- the reified vouching act mediates between an attester, an attested subject, and optionally an attested claim or artifact (gUFO relator pattern)." .
 
 # --- 2. Five InformationObject subclasses (MUST) ------------------------------
 ex:saAttestationInformationObjects a gmeow:StructuralAssertion ;
@@ -52,7 +52,7 @@ ASK {
     gmeow:LedgerTransaction    rdfs:subClassOf gmeow:InformationObject .
     gmeow:Block                rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:AttestationArtifact, VerificationResult, TransparencyLogEntry, LedgerTransaction, and Block MUST each be a subclass of gmeow:InformationObject -- they are stored, citable information records, not occurrents or endurants. Mirrors test_attestation_artifact_is_information_object." .
+    gmeow:saRationale "gmeow:AttestationArtifact, VerificationResult, TransparencyLogEntry, LedgerTransaction, and Block MUST each be a subclass of gmeow:InformationObject -- they are stored, citable information records, not occurrents or endurants." .
 
 # --- 3. VerificationActivity subclasses gmeow:Activity (MUST) -----------------
 ex:saVerificationActivityIsActivity a gmeow:StructuralAssertion ;
@@ -63,7 +63,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:VerificationActivity rdfs:subClassOf gmeow:Activity .
 }""" ;
-    gmeow:saRationale "gmeow:VerificationActivity MUST be a subclass of gmeow:Activity -- the checking act is an occurrent, not the result or the thing checked. Mirrors test_verification_activity_is_activity." .
+    gmeow:saRationale "gmeow:VerificationActivity MUST be a subclass of gmeow:Activity -- the checking act is an occurrent, not the result or the thing checked." .
 
 # --- 4. LedgerEvent subclasses gmeow:Event (MUST) ----------------------------
 ex:saLedgerEventIsEvent a gmeow:StructuralAssertion ;
@@ -74,7 +74,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:LedgerEvent rdfs:subClassOf gmeow:Event .
 }""" ;
-    gmeow:saRationale "gmeow:LedgerEvent MUST be a subclass of gmeow:Event -- a contract log entry is an occurrent on the gmeow:Event spine, distinct from the LedgerTransaction information object that produced it. Mirrors test_ledger_event_is_event." .
+    gmeow:saRationale "gmeow:LedgerEvent MUST be a subclass of gmeow:Event -- a contract log entry is an occurrent on the gmeow:Event spine, distinct from the LedgerTransaction information object that produced it." .
 
 # --- 5. Three blockchain classes subclass gmeow:Entity (MUST) -----------------
 ex:saBlockchainEntitiesAreEntities a gmeow:StructuralAssertion ;
@@ -87,7 +87,7 @@ ASK {
     gmeow:SmartContract      rdfs:subClassOf gmeow:Entity .
     gmeow:BlockchainAccount  rdfs:subClassOf gmeow:Entity .
 }""" ;
-    gmeow:saRationale "gmeow:BlockchainNetwork, SmartContract, and BlockchainAccount MUST each be a subclass of gmeow:Entity -- they are endurant on-chain things, not information objects or occurrents. Mirrors test_blockchain_entities_are_entities." .
+    gmeow:saRationale "gmeow:BlockchainNetwork, SmartContract, and BlockchainAccount MUST each be a subclass of gmeow:Entity -- they are endurant on-chain things, not information objects or occurrents." .
 
 # --- 6. AttestationType subclasses logic:QualityValue (MUST) -------------------
 ex:saAttestationTypeIsQualityValue a gmeow:StructuralAssertion ;
@@ -99,7 +99,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:AttestationType rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:AttestationType MUST be a subclass of logic:QualityValue -- types are an open value vocabulary (individuals, never subclasses). Mirrors test_attestation_type_is_value_vocabulary (subClassOf part)." .
+    gmeow:saRationale "gmeow:AttestationType MUST be a subclass of logic:QualityValue -- types are an open value vocabulary (individuals, never subclasses)." .
 
 # --- 7. Three AttestationType seed individuals exist and are not classes (MUST)
 ex:saAttestationTypeSeeds a gmeow:StructuralAssertion ;
@@ -111,7 +111,7 @@ ASK {
     gmeow:attestationTypeVerifiableCredential a gmeow:AttestationType .
     gmeow:attestationTypeBlockchainClaim      a gmeow:AttestationType .
 }""" ;
-    gmeow:saRationale "The three seeded gmeow:AttestationType individuals (SLSA provenance, VC, blockchain claim) MUST be present as AttestationType individuals. Mirrors test_attestation_type_is_value_vocabulary (seeds existence part)." .
+    gmeow:saRationale "The three seeded gmeow:AttestationType individuals (SLSA provenance, VC, blockchain claim) MUST be present as AttestationType individuals." .
 
 # --- 8. Seeded AttestationType individuals are NOT owl:Class (MUST-NOT) -------
 ex:saAttestationTypeSeedsNotClasses a gmeow:StructuralAssertion ;
@@ -127,7 +127,7 @@ ASK {
     }
     ?seed a owl:Class .
 }""" ;
-    gmeow:saRationale "The three seeded AttestationType individuals MUST NOT be typed owl:Class -- the type vocabulary is open individuals, never subclasses (Principle 9). Mirrors test_attestation_type_is_value_vocabulary (not-class part)." .
+    gmeow:saRationale "The three seeded AttestationType individuals MUST NOT be typed owl:Class -- the type vocabulary is open individuals, never subclasses (Principle 9)." .
 
 # --- 8a. Release-evidence AttestationType individuals exist (MUST) ------
 ex:saAttestationTypeReleaseEvidence a gmeow:StructuralAssertion ;
@@ -165,7 +165,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:SignatureScheme rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:SignatureScheme MUST be a subclass of logic:QualityValue -- cryptographic algorithm names are an open value vocabulary (individuals, never subclasses). Mirrors test_signature_scheme_is_value_vocabulary (subClassOf part)." .
+    gmeow:saRationale "gmeow:SignatureScheme MUST be a subclass of logic:QualityValue -- cryptographic algorithm names are an open value vocabulary (individuals, never subclasses)." .
 
 # --- 10. Two SignatureScheme seed individuals exist (MUST) --------------------
 ex:saSignatureSchemeSeeds a gmeow:StructuralAssertion ;
@@ -176,7 +176,7 @@ ASK {
     gmeow:signatureSchemeRSASHA256 a gmeow:SignatureScheme .
     gmeow:signatureSchemeEd25519   a gmeow:SignatureScheme .
 }""" ;
-    gmeow:saRationale "The two seeded gmeow:SignatureScheme individuals (RSA-SHA256, Ed25519) MUST be present as SignatureScheme individuals. Mirrors test_signature_scheme_is_value_vocabulary (seeds existence part)." .
+    gmeow:saRationale "The two seeded gmeow:SignatureScheme individuals (RSA-SHA256, Ed25519) MUST be present as SignatureScheme individuals." .
 
 # --- 11. Seeded SignatureScheme individuals are NOT owl:Class (MUST-NOT) ------
 ex:saSignatureSchemeSeedsNotClasses a gmeow:StructuralAssertion ;
@@ -191,7 +191,7 @@ ASK {
     }
     ?seed a owl:Class .
 }""" ;
-    gmeow:saRationale "The two seeded SignatureScheme individuals MUST NOT be typed owl:Class -- algorithm names are individuals, never subclasses (Principle 9). Mirrors test_signature_scheme_is_value_vocabulary (not-class part)." .
+    gmeow:saRationale "The two seeded SignatureScheme individuals MUST NOT be typed owl:Class -- algorithm names are individuals, never subclasses (Principle 9)." .
 
 # --- 12. VerificationStatus subclasses logic:QualityValue (MUST) --------------
 ex:saVerificationStatusIsQualityValue a gmeow:StructuralAssertion ;
@@ -203,7 +203,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:VerificationStatus rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:VerificationStatus MUST be a subclass of logic:QualityValue -- verification verdict names are an open value vocabulary (individuals, never subclasses; a 'verified' status is one verifier's observation, not global truth). Mirrors test_verification_status_is_value_vocabulary (subClassOf part)." .
+    gmeow:saRationale "gmeow:VerificationStatus MUST be a subclass of logic:QualityValue -- verification verdict names are an open value vocabulary (individuals, never subclasses; a 'verified' status is one verifier's observation, not global truth)." .
 
 # --- 13. Two VerificationStatus seed individuals exist (MUST) -----------------
 ex:saVerificationStatusSeeds a gmeow:StructuralAssertion ;
@@ -214,7 +214,7 @@ ASK {
     gmeow:verificationStatusVerified a gmeow:VerificationStatus .
     gmeow:verificationStatusRevoked  a gmeow:VerificationStatus .
 }""" ;
-    gmeow:saRationale "The two seeded gmeow:VerificationStatus individuals (verified, revoked) MUST be present. Mirrors test_verification_status_is_value_vocabulary (seeds existence part)." .
+    gmeow:saRationale "The two seeded gmeow:VerificationStatus individuals (verified, revoked) MUST be present." .
 
 # --- 14. Seeded VerificationStatus individuals are NOT owl:Class (MUST-NOT) --
 ex:saVerificationStatusSeedsNotClasses a gmeow:StructuralAssertion ;
@@ -229,7 +229,7 @@ ASK {
     }
     ?seed a owl:Class .
 }""" ;
-    gmeow:saRationale "The two seeded VerificationStatus individuals MUST NOT be typed owl:Class -- verdict names are individuals, never subclasses (Principle 9). Mirrors test_verification_status_is_value_vocabulary (not-class part)." .
+    gmeow:saRationale "The two seeded VerificationStatus individuals MUST NOT be typed owl:Class -- verdict names are individuals, never subclasses (Principle 9)." .
 
 # --- 15. LedgerFinalityStatus subclasses logic:QualityValue (MUST) ------------
 ex:saLedgerFinalityStatusIsQualityValue a gmeow:StructuralAssertion ;
@@ -241,7 +241,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:LedgerFinalityStatus rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:LedgerFinalityStatus MUST be a subclass of logic:QualityValue -- chain settlement state names are an open value vocabulary (individuals, never subclasses). Mirrors test_ledger_finality_status_is_value_vocabulary (subClassOf part)." .
+    gmeow:saRationale "gmeow:LedgerFinalityStatus MUST be a subclass of logic:QualityValue -- chain settlement state names are an open value vocabulary (individuals, never subclasses)." .
 
 # --- 16. Two LedgerFinalityStatus seed individuals exist (MUST) ---------------
 ex:saLedgerFinalityStatusSeeds a gmeow:StructuralAssertion ;
@@ -252,7 +252,7 @@ ASK {
     gmeow:finalityStatusFinalized a gmeow:LedgerFinalityStatus .
     gmeow:finalityStatusOrphaned  a gmeow:LedgerFinalityStatus .
 }""" ;
-    gmeow:saRationale "The two seeded gmeow:LedgerFinalityStatus individuals (finalized, orphaned) MUST be present. Mirrors test_ledger_finality_status_is_value_vocabulary (seeds existence part)." .
+    gmeow:saRationale "The two seeded gmeow:LedgerFinalityStatus individuals (finalized, orphaned) MUST be present." .
 
 # --- 17. Seeded LedgerFinalityStatus individuals are NOT owl:Class (MUST-NOT)-
 ex:saLedgerFinalityStatusSeedsNotClasses a gmeow:StructuralAssertion ;
@@ -267,7 +267,7 @@ ASK {
     }
     ?seed a owl:Class .
 }""" ;
-    gmeow:saRationale "The two seeded LedgerFinalityStatus individuals MUST NOT be typed owl:Class -- settlement state names are individuals, never subclasses (Principle 9). Mirrors test_ledger_finality_status_is_value_vocabulary (not-class part)." .
+    gmeow:saRationale "The two seeded LedgerFinalityStatus individuals MUST NOT be typed owl:Class -- settlement state names are individuals, never subclasses (Principle 9)." .
 
 # --- 18. hasSignature is an owl:ObjectProperty (MUST) ------------------------
 ex:saHasSignatureIsObjectProperty a gmeow:StructuralAssertion ;
@@ -278,7 +278,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     gmeow:hasSignature a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:hasSignature MUST be an owl:ObjectProperty -- the universal domain-free signature spine that anything signed can use. Mirrors test_has_signature_not_domain_locked_to_message (property-exists part)." .
+    gmeow:saRationale "gmeow:hasSignature MUST be an owl:ObjectProperty -- the universal domain-free signature spine that anything signed can use." .
 
 # --- 19. hasSignature does NOT have domain gmeow:Message (MUST-NOT) ----------
 ex:saHasSignatureNotDomainMessage a gmeow:StructuralAssertion ;
@@ -289,7 +289,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:hasSignature rdfs:domain gmeow:Message .
 }""" ;
-    gmeow:saRationale "gmeow:hasSignature MUST NOT carry rdfs:domain gmeow:Message -- the message-specific restriction was removed so hasSignature is a domain-free universal spine (module boundaries). Mirrors test_has_signature_not_domain_locked_to_message (no-domain part)." .
+    gmeow:saRationale "gmeow:hasSignature MUST NOT carry rdfs:domain gmeow:Message -- the message-specific restriction was removed so hasSignature is a domain-free universal spine (module boundaries)." .
 
 # --- 20. hasSignature has no inferential bridge to truth/trust (MUST-NOT) ----
 ex:saHasSignatureNotBridgedToTruth a gmeow:StructuralAssertion ;
@@ -313,7 +313,7 @@ ASK {
         gmeow:hasSignature owl:equivalentProperty ?banned
     }
 }""" ;
-    gmeow:saRationale "gmeow:hasSignature MUST NOT be bridged (subPropertyOf or equivalentProperty, in either direction) to observationResult, trustor, trustee, or endorses -- a valid signature proves integrity and signer key control only, not truth or trust (Principle 1). Mirrors test_signature_does_not_imply_truth." .
+    gmeow:saRationale "gmeow:hasSignature MUST NOT be bridged (subPropertyOf or equivalentProperty, in either direction) to observationResult, trustor, trustee, or endorses -- a valid signature proves integrity and signer key control only, not truth or trust (Principle 1)." .
 
 # --- 21. verificationResult/verifiedBy have no bridge to truth (MUST-NOT) ----
 ex:saVerificationPropsNotBridgedToTruth a gmeow:StructuralAssertion ;
@@ -341,7 +341,7 @@ ASK {
         ?prop owl:equivalentProperty ?banned
     }
 }""" ;
-    gmeow:saRationale "gmeow:verificationResult and gmeow:verifiedBy MUST NOT be bridged to observationResult, trustor, trustee, or endorses -- a verification result is one verifier's observation, never a global truth verdict (Principle 12). Mirrors test_verification_does_not_imply_truth_or_trust." .
+    gmeow:saRationale "gmeow:verificationResult and gmeow:verifiedBy MUST NOT be bridged to observationResult, trustor, trustee, or endorses -- a verification result is one verifier's observation, never a global truth verdict (Principle 12)." .
 
 # --- 22. Ledger properties have no bridge to truth/trust/quality (MUST-NOT) --
 ex:saLedgerPropsNotBridgedToTruth a gmeow:StructuralAssertion ;
@@ -373,7 +373,7 @@ ASK {
         ?prop owl:equivalentProperty ?banned
     }
 }""" ;
-    gmeow:saRationale "gmeow:ledgerInclusionProof, confirmationDepth, finalityStatus, transactionHash, and blockHash MUST NOT be bridged to observationResult, trustor, trustee, endorses, or assessedEntity -- blockchain inclusion proves ledger inclusion under chain rules, NOT real-world truth (Principle 1). Mirrors test_ledger_does_not_imply_real_world_truth." .
+    gmeow:saRationale "gmeow:ledgerInclusionProof, confirmationDepth, finalityStatus, transactionHash, and blockHash MUST NOT be bridged to observationResult, trustor, trustee, endorses, or assessedEntity -- blockchain inclusion proves ledger inclusion under chain rules, NOT real-world truth (Principle 1)." .
 
 # --- 23. Nine attestation properties are NOT transitive (MUST-NOT) -----------
 ex:saAttestationPropertiesNotTransitive a gmeow:StructuralAssertion ;
@@ -395,7 +395,7 @@ ASK {
     }
     ?p a owl:TransitiveProperty .
 }""" ;
-    gmeow:saRationale "None of the nine core attestation properties (attester, attestedSubject, attestedClaim, hasAttestation, attestationArtifact, verificationActivity, verificationResult, verifiedBy, transparencyLogEntry) MUST NOT be owl:TransitiveProperty -- chain composition on vouching properties would infer endorsement, which violates the no-truth-machine doctrine (Principle 12). Mirrors test_attestation_properties_not_transitive_or_symmetric (transitive part)." .
+    gmeow:saRationale "None of the nine core attestation properties (attester, attestedSubject, attestedClaim, hasAttestation, attestationArtifact, verificationActivity, verificationResult, verifiedBy, transparencyLogEntry) MUST NOT be owl:TransitiveProperty -- chain composition on vouching properties would infer endorsement, which violates the no-truth-machine doctrine (Principle 12)." .
 
 # --- 24. Nine attestation properties are NOT symmetric (MUST-NOT) ------------
 ex:saAttestationPropertiesNotSymmetric a gmeow:StructuralAssertion ;
@@ -417,4 +417,4 @@ ASK {
     }
     ?p a owl:SymmetricProperty .
 }""" ;
-    gmeow:saRationale "None of the nine core attestation properties MUST NOT be owl:SymmetricProperty -- attesting X is not the same as X attesting you; vouching acts have a directed polarity (Principle 1). Mirrors test_attestation_properties_not_transitive_or_symmetric (symmetric part)." .
+    gmeow:saRationale "None of the nine core attestation properties MUST NOT be owl:SymmetricProperty -- attesting X is not the same as X attesting you; vouching acts have a directed polarity (Principle 1)." .

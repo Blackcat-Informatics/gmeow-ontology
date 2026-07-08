@@ -1,26 +1,131 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //! Conformance twins migrated from tests/test_notes.py
 //!
-//! Each test builds an inline Turtle graph containing the triples that the
-//! Python test assembled via `g.add(...)`, converts to N-Triples, and validates
-//! against the whole shapes corpus.
+//! Each `rstest` case builds an inline Turtle graph containing the triples that
+//! the Python test assembled via `g.add(...)`, converts to N-Triples, and
+//! validates against the whole shapes corpus.
 //!
-//! Retained in Python (not migrated):
-//!   - `test_evidence_span_is_information_object`: cross-slice TBox check
-//!     (EvidenceSpan subject lives in evidencespan slice, not notes).
-//!   - `test_selector_sub_class_of_evidence_span`: cross-slice TBox check.
-//!   - `test_motivation_values_are_individuals`: dynamic `len(…)==10` count
-//!     check — not expressible as a static instance fixture.
-//!   - `test_notes_are_standpoint_indexed`: cross-slice TBox check
-//!     (accordingTo lives in the standpoint slice).
-//!   - `test_notes_oa_projection_executable`: SPARQL parse test (no SHACL).
-//!   - `test_notes_schema_projection_executable`: SPARQL parse test.
-//!   - `test_notes_as_projection_executable`: SPARQL parse test.
-//!   - `test_notes_markdown_projection_executable`: SPARQL parse test.
+//! The cross-slice TBox membership twins, the exact motivation-count twin, and
+//! the four projection `.rq` parse+eval guards (formerly retained in Python)
+//! now live below as native conformance tests.
 
 mod conformance_support;
 use conformance_support::*;
 use rstest::rstest;
+
+const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+const OWL_ANNOTATION_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AnnotationProperty";
+
+fn gm(local: &str) -> String {
+    format!("{GMEOW}{local}")
+}
+
+/// A minimal graph carrying just the `gmeow:` prefix, used as the source for the
+/// projection `.rq` parse+eval guards below.
+fn empty_gmeow_graph() -> GraphStore {
+    GraphStore::parse_ttl("@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n")
+}
+
+// ── Cross-slice structural guards (subjects not in notes/module.ttl) ──────────
+
+/// Twin of `test_evidence_span_is_information_object`: `gmeow:EvidenceSpan`
+/// (evidencespan slice) is `rdfs:subClassOf gmeow:InformationObject`.
+#[test]
+fn evidence_span_is_information_object() {
+    let g = GraphStore::ontology();
+    assert!(
+        g.has(
+            Some(&gm("EvidenceSpan")),
+            Some(RDFS_SUBCLASS_OF),
+            Some(&gm("InformationObject"))
+        ),
+        "gmeow:EvidenceSpan must be rdfs:subClassOf gmeow:InformationObject"
+    );
+}
+
+/// Twin of `test_selector_sub_class_of_evidence_span`: `gmeow:Selector`
+/// (evidencespan slice) is `rdfs:subClassOf gmeow:EvidenceSpan`.
+#[test]
+fn selector_sub_class_of_evidence_span() {
+    let g = GraphStore::ontology();
+    assert!(
+        g.has(
+            Some(&gm("Selector")),
+            Some(RDFS_SUBCLASS_OF),
+            Some(&gm("EvidenceSpan"))
+        ),
+        "gmeow:Selector must be rdfs:subClassOf gmeow:EvidenceSpan"
+    );
+}
+
+/// Twin of `test_notes_are_standpoint_indexed`: the standpoint machinery
+/// (`gmeow:accordingTo`, standpoint slice) is an `owl:AnnotationProperty`
+/// available to notes via the statement/provenance layer.
+#[test]
+fn notes_are_standpoint_indexed() {
+    let g = GraphStore::ontology();
+    assert!(
+        g.has(
+            Some(&gm("accordingTo")),
+            Some(RDF_TYPE),
+            Some(OWL_ANNOTATION_PROPERTY)
+        ),
+        "gmeow:accordingTo must be an owl:AnnotationProperty"
+    );
+}
+
+// ── Open value vocabulary (dynamic exact count) ───────────────────────────────
+
+/// Twin of `test_motivation_values_are_individuals`: exactly ten seed
+/// `gmeow:AnnotationMotivation` individuals exist (`len(…) == 10`).
+#[test]
+fn motivation_values_are_individuals() {
+    let g = GraphStore::ontology();
+    assert_eq!(
+        g.subjects_of_type(&gm("AnnotationMotivation")).len(),
+        10,
+        "expected exactly 10 gmeow:AnnotationMotivation seed individuals"
+    );
+}
+
+// ── Projection round-trip / parse+eval guards ─────────────────────────────────
+//
+// Strictly stronger than the Python `prepareQuery` syntax-only check: the query
+// must parse AND evaluate as a CONSTRUCT (the non-panicking call IS the
+// assertion). `construct` hard-fails on any parse or eval error.
+
+/// Twin of `test_notes_oa_projection_executable`: `web-annotation.rq`.
+#[test]
+fn notes_oa_projection_executable() {
+    let g = empty_gmeow_graph();
+    let out = g.construct(&[], &read_query("generated/queries/web-annotation.rq"));
+    assert!(out.triple_count() < usize::MAX);
+}
+
+/// Twin of `test_notes_schema_projection_executable`: `schema-org.rq`.
+#[test]
+fn notes_schema_projection_executable() {
+    let g = empty_gmeow_graph();
+    let out = g.construct(&[], &read_query("generated/queries/schema-org.rq"));
+    assert!(out.triple_count() < usize::MAX);
+}
+
+/// Twin of `test_notes_as_projection_executable`: `activitystreams.rq`.
+#[test]
+fn notes_as_projection_executable() {
+    let g = empty_gmeow_graph();
+    let out = g.construct(&[], &read_query("generated/queries/activitystreams.rq"));
+    assert!(out.triple_count() < usize::MAX);
+}
+
+/// Twin of `test_notes_markdown_projection_executable`: `markdown.rq`.
+#[test]
+fn notes_markdown_projection_executable() {
+    let g = empty_gmeow_graph();
+    let out = g.construct(&[], &read_query("generated/queries/markdown.rq"));
+    assert!(out.triple_count() < usize::MAX);
+}
 
 // ── Turtle prefix block shared by all notes tests ─────────────────────────────
 
