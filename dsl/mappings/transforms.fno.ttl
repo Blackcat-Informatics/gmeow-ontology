@@ -6,6 +6,7 @@
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix schema:  <https://schema.org/> .
+@prefix logic:   <https://blackcatinformatics.ca/logic/> .
 
 # FnO catalog of LANGUAGE TRANSFORMATIONS — transliteration, transcription and
 # translation modelled as declarative functions. Unlike functions.fno.ttl (which
@@ -544,4 +545,46 @@ gmeow:fnOutputEvaluatedPitchValue a owl:AnnotationProperty ;
     rdfs:label "output evaluated pitch value"@x-gmeow-english ;
     skos:definition "FnO argument role: a PitchValue output of fnEvaluateTrajectory."@x-gmeow-english ;
     rdfs:range gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+# --- External correctness-corpus verdict projection ------------------------- #
+# The declarative twin of the native external-result → runner-verdict table
+# (crates/conformance/src/external/status.rs::outcome_for_szs for SZS tokens and
+# crates/conformance/src/external/manifest.rs::ManifestKind::outcome() for the W3C
+# manifest kinds). These are FnO SPECS; the executable table lives in Rust and is
+# bound to this spec by the on-gate no-drift check (a green build is impossible if
+# the shipped projection disagrees with the Rust table). The collapse itself is a
+# monotone lossy projection recorded as the logic:Correspondence logic:corrSzsToVerdict.
+
+gmeow:fnSzsToVerdict
+    a fno:Function ;
+    rdfs:label "SZS status → conformance verdict (lossy collapse)"@x-gmeow-english ;
+    dcterms:description "Projects a TPTP SZS status onto the coarse three-valued logic:ConformanceVerdict lattice: SzsTheorem/SzsUnsatisfiable/SzsContradictoryAxioms → ConfInconsistent, SzsSatisfiable/SzsCounterSatisfiable → ConfConsistent, SzsUnknown/SzsGaveUp/SzsTimeout/SzsResourceOut → ConfIncomplete. Lossy (logic:SoundUnderApproximation): the ContradictoryAxioms/Unsatisfiable and CounterSatisfiable/Satisfiable distinctions collapse, preserved as logic:rawStatusToken. The declarative twin of crates/conformance/src/external/status.rs::outcome_for_szs."@x-gmeow-english ;
+    skos:definition "Projects a TPTP SZS status onto the coarse three-valued logic:ConformanceVerdict lattice. The per-status target is authored machine-readably as logic:projectsToVerdict on each logic:SzsStatus individual; this function is the callable signature over that table."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    fno:expects ( gmeow:pSzsStatus ) ;
+    fno:returns ( gmeow:oConformanceVerdict ) ;
+    rdfs:seeAlso logic:corrSzsToVerdict .
+
+gmeow:fnManifestKindToVerdict
+    a fno:Function ;
+    rdfs:label "W3C manifest kind → conformance verdict"@x-gmeow-english ;
+    dcterms:description "Projects a W3C test-manifest / OWL-test entailment kind onto the logic:ConformanceVerdict lattice: mf:PositiveEntailment and otest:InconsistencyTest → ConfInconsistent, mf:NegativeEntailment and otest:ConsistencyTest → ConfConsistent. The declarative twin of crates/conformance/src/external/manifest.rs::ManifestKind::outcome(); the per-kind target is authored as the gmeow:eqConfCorpus SSSOM cells (skos:closeMatch to the logic:ConformanceVerdict individuals)."@x-gmeow-english ;
+    skos:definition "Projects a W3C test-manifest / OWL-test entailment kind onto the logic:ConformanceVerdict lattice; the callable signature over the gmeow:eqConfCorpus SSSOM alignment cells."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    fno:expects ( gmeow:pManifestKind ) ;
+    fno:returns ( gmeow:oConformanceVerdict ) ;
+    rdfs:seeAlso logic:corrSzsToVerdict .
+
+gmeow:pSzsStatus a fno:Parameter ; fno:predicate logic:rawStatusToken ; fno:type logic:SzsStatus ; fno:required true ;
+    rdfs:label "SZS status input"@x-gmeow-english ;
+    skos:definition "The TPTP SZS status supplied to the verdict projection; a logic:SzsStatus individual carrying its verbatim token via logic:rawStatusToken."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:pManifestKind a fno:Parameter ; fno:predicate logic:rawStatusToken ; fno:type rdfs:Resource ; fno:required true ;
+    rdfs:label "manifest kind input"@x-gmeow-english ;
+    skos:definition "The W3C test-manifest / OWL-test entailment kind (a real external class IRI) supplied to the verdict projection."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+gmeow:oConformanceVerdict a fno:Output ; fno:predicate logic:projectsToVerdict ; fno:type logic:ConformanceVerdict ;
+    rdfs:label "conformance verdict output"@x-gmeow-english ;
+    skos:definition "The logic:ConformanceVerdict lattice value produced by the external-result projection."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
