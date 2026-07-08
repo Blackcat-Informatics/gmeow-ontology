@@ -21,6 +21,25 @@ use std::path::PathBuf;
 
 use gmeow_conformance::{discover, paths, run};
 
+/// Route a Transient progress witness (never gating) through the shared console
+/// sink — human text on stderr, an NDJSON `finding` line for agents, dropped by a
+/// silent sink. stdout is not used for product here, but the report artifact is
+/// the product, so diagnostics default to the stderr surface.
+fn note(message: impl Into<String>) {
+    let mode = gmeow_cli_core::ConsoleMode::resolve_stderr_default(
+        None,
+        std::env::var("GMEOW_CONSOLE").ok().as_deref(),
+        std::io::IsTerminal::is_terminal(&std::io::stderr()),
+    );
+    let reporter = gmeow_cli_core::reporter_for(mode);
+    gmeow_cli_core::note(
+        reporter.as_ref(),
+        "conformance-report",
+        "gmeow-conformance.report.note",
+        message,
+    );
+}
+
 fn main() -> Result<(), String> {
     let mut out: Option<PathBuf> = None;
     let mut cases_root: Option<PathBuf> = None;
@@ -91,10 +110,6 @@ fn main() -> Result<(), String> {
     }
     std::fs::write(&out, json).map_err(|e| format!("writing {}: {e}", out.display()))?;
 
-    eprintln!(
-        "conformance-report: {} case(s) → {}",
-        by_case.len(),
-        out.display()
-    );
+    note(format!("{} case(s) → {}", by_case.len(), out.display()));
     Ok(())
 }

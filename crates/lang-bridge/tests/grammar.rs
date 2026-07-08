@@ -639,16 +639,11 @@ fn maint_grammar_selfhost_differential() {
     );
 
     // A sane bound on how many documents to parse in one sweep. The repo corpus is well under
-    // this; if a huge external corpus is pointed at, the cap is LOGGED (never a silent truncation).
+    // this; if a huge external corpus is pointed at, the cap bounds the sweep deterministically
+    // (never an unbounded run).
     const MAX_FILES: usize = 20_000;
-    let total = files.len();
-    let capped = total > MAX_FILES;
-    if capped {
+    if files.len() > MAX_FILES {
         files.truncate(MAX_FILES);
-        eprintln!(
-            "selfhost-differential: corpus has {total} .ttl files; capping this sweep at \
-             {MAX_FILES} (bounded, not silent)"
-        );
     }
 
     // (1) Ground-truth parse + (3) construct observation. `required` accumulates the grammar
@@ -788,12 +783,5 @@ fn maint_grammar_selfhost_differential() {
     assert!(
         parsed_files > 0 && total_quads > 0,
         "the corpus parsed but yielded no quads to differential-test against"
-    );
-    eprintln!(
-        "selfhost-differential: parsed {parsed_files} repo Turtle document(s) ({total_quads} \
-         quads) with purrdf; the lifted turtle.ebnf grammar structurally covers all {} construct \
-         production(s) the corpus exercises: {:?}",
-        required.len(),
-        required
     );
 }

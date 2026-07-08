@@ -20,16 +20,51 @@
 //!   GMEOW_TEST_BUDGET_SECS  override the 25.0 s budget (e.g. CI variance headroom).
 //!
 //! Rust-first (`.goals`): no Python, no XML crate — nextest's JUnit is small and
-//! regular, so a std-only attribute scan is sufficient and dependency-free.
+//! regular, so a std-only attribute scan is sufficient.
 
 use std::env::VarError;
+use std::io::IsTerminal;
 use std::process::ExitCode;
+
+use gmeow_cli_core::{ConsoleMode, Reporter, report_diag};
+use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint};
 
 /// The always-on per-test budget, in seconds.
 const DEFAULT_BUDGET_SECS: f64 = 25.0;
 
 /// The default JUnit location for the `ci` nextest profile.
 const DEFAULT_JUNIT: &str = "target/nextest/ci/junit.xml";
+
+/// The emitting tool name every diagnostic here is stamped with.
+const TOOL: &str = "test-budget";
+
+/// A boxed reporter for this bin. stdout carries the OK product line, so
+/// diagnostics default to the HUMAN stderr surface; an agent opts into the
+/// machine surface with `GMEOW_CONSOLE=jsonl`.
+fn reporter() -> Box<dyn Reporter> {
+    let mode = ConsoleMode::resolve_stderr_default(
+        None,
+        std::env::var("GMEOW_CONSOLE").ok().as_deref(),
+        std::io::stderr().is_terminal(),
+    );
+    gmeow_cli_core::reporter_for(mode)
+}
+
+/// Surface an Error-grade diagnostic (the gate's hard failure) on the console
+/// sink — the substrate replacement for a bare error stderr write. The `code` is
+/// interned once (idempotently); the message carries the specifics.
+fn emit_error(reporter: &dyn Reporter, code: &str, message: impl Into<String>) {
+    let diag = Diag::new(
+        gmeow_errors::code::register_code(code),
+        Grade::new(
+            Severity::Error,
+            FindingCategory::ModelingDisciplineViolation,
+            Standpoint::Binding,
+        ),
+        message,
+    );
+    reporter.report(&report_diag(diag, TOOL));
+}
 
 /// Resolve the test-budget from the environment variable result.
 ///
@@ -69,13 +104,14 @@ fn resolve_budget(var: Result<String, VarError>) -> Result<f64, String> {
 }
 
 fn main() -> ExitCode {
+    let reporter = reporter();
     let mut args = std::env::args().skip(1);
     let junit_path = args.next().unwrap_or_else(|| DEFAULT_JUNIT.to_owned());
 
     let budget = match resolve_budget(std::env::var("GMEOW_TEST_BUDGET_SECS")) {
         Ok(b) => b,
         Err(msg) => {
-            eprintln!("test-budget: {msg}");
+            emit_error(reporter.as_ref(), "gmeow-test-budget.env", msg);
             return ExitCode::FAILURE;
         }
     };
@@ -84,9 +120,13 @@ fn main() -> ExitCode {
         Ok(s) => s,
         Err(e) => {
             // Hard fail (no-optionality): the gate cannot run without the report.
-            eprintln!(
-                "test-budget: cannot read JUnit report at {junit_path}: {e}\n\
-                 run `cargo nextest run --profile ci` (or maint-heavy) first to produce it."
+            emit_error(
+                reporter.as_ref(),
+                "gmeow-test-budget.read",
+                format!(
+                    "cannot read JUnit report at {junit_path}: {e}\n\
+                     run `cargo nextest run --profile ci` (or maint-heavy) first to produce it."
+                ),
             );
             return ExitCode::FAILURE;
         }
@@ -95,13 +135,17 @@ fn main() -> ExitCode {
     let cases = match parse_testcases(&xml) {
         Ok(c) => c,
         Err(msg) => {
-            eprintln!("test-budget: {msg}");
+            emit_error(reporter.as_ref(), "gmeow-test-budget.parse", msg);
             return ExitCode::FAILURE;
         }
     };
     if cases.is_empty() {
-        eprintln!(
-            "test-budget: no <testcase> elements found in {junit_path} — refusing to pass a vacuous gate."
+        emit_error(
+            reporter.as_ref(),
+            "gmeow-test-budget.vacuous",
+            format!(
+                "no <testcase> elements found in {junit_path} — refusing to pass a vacuous gate."
+            ),
         );
         return ExitCode::FAILURE;
     }
@@ -123,18 +167,19 @@ fn main() -> ExitCode {
         return ExitCode::SUCCESS;
     }
 
-    eprintln!(
-        "test-budget: FAIL — {} test(s) exceed the {budget:.0}s always-on budget [{junit_path}]:",
+    let mut message = format!(
+        "FAIL — {} test(s) exceed the {budget:.0}s always-on budget [{junit_path}]:",
         over.len()
     );
     for c in &over {
-        eprintln!("  {:7.1}s  {}::{}", c.time, c.classname, c.name);
+        message.push_str(&format!("\n  {:7.1}s  {}::{}", c.time, c.classname, c.name));
     }
-    eprintln!(
-        "\nEither make the test(s) faster, or — if irreducibly heavy — add them to the\n\
+    message.push_str(
+        "\n\nEither make the test(s) faster, or — if irreducibly heavy — add them to the\n\
          `default-filter` off-gate allowlist in .config/nextest.toml (and AGENTS.md) so\n\
-         they run on the `maint-heavy` profile instead of the per-commit gate."
+         they run on the `maint-heavy` profile instead of the per-commit gate.",
     );
+    emit_error(reporter.as_ref(), "gmeow-test-budget.over-budget", message);
     ExitCode::FAILURE
 }
 

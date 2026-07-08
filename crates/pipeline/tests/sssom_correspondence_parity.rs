@@ -188,17 +188,15 @@ fn sssom_lowering_matches_committed_corpus() {
         }
     }
 
-    eprintln!(
-        "SSSOM corpus parity: {checked} sets, {} byte-exact, {} mismatched",
-        checked - mismatches.len(),
-        mismatches.len()
-    );
-    for m in mismatches.iter().take(8) {
-        eprintln!("MISMATCH {m}");
-    }
     assert!(
         mismatches.is_empty(),
-        "{} SSSOM sets diverged from the committed corpus",
-        mismatches.len()
+        "{} SSSOM sets diverged from the committed corpus (of {checked} checked):\n{}",
+        mismatches.len(),
+        mismatches
+            .iter()
+            .take(8)
+            .cloned()
+            .collect::<Vec<_>>()
+            .join("\n"),
     );
 }

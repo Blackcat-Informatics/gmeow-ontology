@@ -31,14 +31,44 @@ use lsp_types::{
     TextDocumentSyncKind, Uri,
 };
 
-use gmeow_errors::render;
+use gmeow_cli_core::{ConsoleMode, Reporter, report_diag};
+use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint, render};
 use gmeow_lsp::{analyze, classify, report_to_diagnostics};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 const NAME: &str = env!("CARGO_PKG_NAME");
 
+/// A boxed reporter for this bin. stdout is the LSP JSON-RPC channel (in server
+/// mode) / carries no product in the sarif mode, so diagnostics default to the
+/// HUMAN stderr surface and never corrupt the protocol; an agent opts into the
+/// machine surface with `GMEOW_CONSOLE=jsonl`.
+fn reporter() -> Box<dyn Reporter> {
+    let mode = ConsoleMode::resolve_stderr_default(
+        None,
+        std::env::var("GMEOW_CONSOLE").ok().as_deref(),
+        std::io::IsTerminal::is_terminal(&std::io::stderr()),
+    );
+    gmeow_cli_core::reporter_for(mode)
+}
+
+/// Surface an Error-grade diagnostic on the console sink — the substrate
+/// replacement for a bare fatal-error stderr write at a site that exits itself.
+fn emit_error(reporter: &dyn Reporter, code: &str, message: impl Into<String>) {
+    let diag = Diag::new(
+        gmeow_errors::code::register_code(code),
+        Grade::new(
+            Severity::Error,
+            FindingCategory::ModelingDisciplineViolation,
+            Standpoint::Binding,
+        ),
+        message,
+    );
+    reporter.report(&report_diag(diag, NAME));
+}
+
 fn main() {
     let args: Vec<String> = env::args().collect();
+    let reporter = reporter();
 
     match args.get(1).map(String::as_str) {
         Some("--version") | Some("-V") => {
@@ -48,14 +78,14 @@ fn main() {
             print_usage();
         }
         Some("sarif") => {
-            if let Err(e) = run_sarif(&args[2..]) {
-                eprintln!("gmeow-lsp sarif: {e}");
+            if let Err(e) = run_sarif(&args[2..], reporter.as_ref()) {
+                emit_error(reporter.as_ref(), "gmeow-lsp.sarif", e.to_string());
                 std::process::exit(1);
             }
         }
         _ => {
             if let Err(e) = run_lsp_server() {
-                eprintln!("gmeow-lsp: fatal error: {e}");
+                emit_error(reporter.as_ref(), "gmeow-lsp.server", e.to_string());
                 std::process::exit(1);
             }
         }
@@ -82,7 +112,7 @@ fn print_usage() {
 
 // ─── SARIF subcommand ────────────────────────────────────────────────────────
 
-fn run_sarif(argv: &[String]) -> io::Result<()> {
+fn run_sarif(argv: &[String], reporter: &dyn Reporter) -> io::Result<()> {
     let mut out_dir = PathBuf::from(".");
     let mut category: Option<String> = None;
     let mut output_file = "gmeow-feedback.sarif".to_owned();
@@ -152,9 +182,11 @@ fn run_sarif(argv: &[String]) -> io::Result<()> {
     for path in &files {
         let path_str = path.to_string_lossy().into_owned();
         let Some(lang) = classify(&path_str) else {
-            eprintln!(
-                "gmeow-lsp sarif: skipping {} (unrecognised extension)",
-                path.display()
+            gmeow_cli_core::note(
+                reporter,
+                NAME,
+                "gmeow-lsp.sarif.note",
+                format!("skipping {} (unrecognised extension)", path.display()),
             );
             continue;
         };
@@ -174,10 +206,15 @@ fn run_sarif(argv: &[String]) -> io::Result<()> {
     fs::create_dir_all(&out_dir)?;
     let out_path = out_dir.join(&output_file);
     fs::write(&out_path, &sarif)?;
-    eprintln!(
-        "gmeow-lsp sarif: wrote {} finding(s) to {}",
-        combined.findings.len(),
-        out_path.display()
+    gmeow_cli_core::note(
+        reporter,
+        NAME,
+        "gmeow-lsp.sarif.note",
+        format!(
+            "wrote {} finding(s) to {}",
+            combined.findings.len(),
+            out_path.display()
+        ),
     );
     Ok(())
 }

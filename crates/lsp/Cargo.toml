@@ -25,6 +25,11 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 url = "2"
 gmeow-errors = { path = "../errors" }
+# The bin surfaces handled failures (sarif / server) and progress notes through
+# the shared console Reporter. stdout is the LSP JSON-RPC channel, so diagnostics
+# default to the stderr surface and never corrupt the protocol. Acyclic: cli-core
+# depends only on gmeow-errors.
+gmeow-cli-core = { path = "../cli-core" }
 gmeow-logic = { path = "../logic" }
 # The pure compiler surface (parse_logic_str) the LSP analyzer drives, split out of
 # gmeow-logic in #732; the runtime-side diagnostics_report still comes from gmeow-logic.

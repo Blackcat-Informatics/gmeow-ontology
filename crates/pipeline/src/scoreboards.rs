@@ -413,9 +413,11 @@ pub fn claim_audit(root: &Path, files: &[PathBuf]) -> gmeow_errors::Result<Claim
 
 fn trace_claim_audit_phase(enabled: bool, label: &str, started: Instant) {
     if enabled {
-        eprintln!(
-            "claim-audit timing {label}: {:.3}s",
-            started.elapsed().as_secs_f64()
+        tracing::info!(
+            target: "claim_audit_timing",
+            phase = label,
+            secs = started.elapsed().as_secs_f64(),
+            "claim-audit timing",
         );
     }
 }

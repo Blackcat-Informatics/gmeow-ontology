@@ -338,28 +338,32 @@ pub fn run(
     if profile {
         let floor: u128 = level_timings.iter().map(|l| l.elapsed_ms).sum();
         let total: u128 = stage_timings.iter().map(|t| t.elapsed_ms).sum();
-        eprintln!(
-            "[pipeline-timing] {} stages over {} levels; summed {total} ms; level-barrier floor {floor} ms",
-            stage_timings.len(),
-            level_timings.len(),
+        tracing::info!(
+            target: "pipeline_timing",
+            stages = stage_timings.len(),
+            levels = level_timings.len(),
+            summed_ms = total,
+            level_barrier_floor_ms = floor,
+            "pipeline timing summary",
         );
         let mut slowest = stage_timings.clone();
         slowest.sort_by_key(|t| std::cmp::Reverse(t.elapsed_ms));
         for timing in slowest.iter().take(25) {
-            eprintln!(
-                "[pipeline-timing]   {ms:>7} ms  {id}{cached}",
+            tracing::info!(
+                target: "pipeline_timing",
                 ms = timing.elapsed_ms,
-                id = timing.stage_id,
-                cached = if timing.cached { " (cached)" } else { "" }
+                stage = %timing.stage_id,
+                cached = timing.cached,
+                "slowest stage",
             );
         }
-        eprintln!("[pipeline-timing] per-level critical stage:");
         for timing in &level_timings {
-            eprintln!(
-                "[pipeline-timing]   level {idx:>2}: {ms:>7} ms  {id}",
-                idx = timing.level,
+            tracing::info!(
+                target: "pipeline_timing",
+                level = timing.level,
                 ms = timing.elapsed_ms,
-                id = timing.critical_stage
+                critical_stage = %timing.critical_stage,
+                "per-level critical stage",
             );
         }
     }

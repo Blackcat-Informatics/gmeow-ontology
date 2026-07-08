@@ -91,6 +91,9 @@ gmeow-math = { path = "../math" }
 # PyO3-free; only the py modules import it, so the rlib links into a future Rust
 # compiler (and the wasm target) without Python.
 pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }
+# Structured, subscriber-controlled sink for the native cache's lenient
+# missing-input notice — telemetry with no reporter in scope, never a gate.
+tracing = "0.1"
 
 [dev-dependencies]
 # Native RDF 1.2 dataset used directly by integration tests that query generated Turtle.
