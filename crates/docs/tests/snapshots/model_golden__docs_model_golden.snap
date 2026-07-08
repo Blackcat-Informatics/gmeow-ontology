@@ -303,11 +303,11 @@ expression: summary
       ]
     }
   ],
-  "mapping_set_count": 80,
-  "linkage_count": 1986,
+  "mapping_set_count": 81,
+  "linkage_count": 1990,
   "example_count": 140,
   "concern_count": 7,
-  "external_term_count": 1726,
+  "external_term_count": 1730,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
