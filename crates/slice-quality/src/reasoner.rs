@@ -20,7 +20,7 @@ use std::sync::Arc;
 
 use gmeow_errors::Finding;
 use gmeow_logic::reason::{dl_consistency, reason_all};
-use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermRef};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, RdfTerm, TermRef};
 
 use crate::graph::id;
 use crate::model::GMEOW;
@@ -129,8 +129,13 @@ fn named_subclass_triples(ds: &RdfDataset) -> Vec<(String, String)> {
 }
 
 /// Rebuild the dataset without the single IRI triple `(s, p, o)`, preserving every
-/// other IRI-object triple (the structural facts DL reasoning consumes). Literal
-/// and blank triples are dropped — they do not affect the structural closure.
+/// OTHER quad of every kind — blank-node (`owl:Restriction`-encoded) and literal
+/// quads included. Only the exact `(s, p, o)` triple under test is removed; because
+/// OWL restrictions and equivalences are blank-node encoded, dropping them would
+/// corrupt the reasoned closure and thus the redundancy / clash scores. Blank
+/// identity is preserved by round-tripping through the dataset's own
+/// scope-qualified owned model (`owned_quads`), so co-referring blanks stay
+/// co-referring after the rebuild.
 fn edb_without_triple(
     ds: &RdfDataset,
     drop_s: &str,
@@ -138,20 +143,17 @@ fn edb_without_triple(
     drop_o: &str,
 ) -> Arc<RdfDataset> {
     let mut builder = RdfDatasetBuilder::new();
-    for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
-        if let (TermRef::Iri(s), TermRef::Iri(p), TermRef::Iri(o)) =
-            (ds.resolve(q.s), ds.resolve(q.p), ds.resolve(q.o))
+    for quad in ds.owned_quads() {
+        // The target axiom is always an IRI→IRI-predicate→IRI triple; drop exactly
+        // that one and preserve everything else regardless of term kind.
+        if quad.predicate == drop_p
+            && let (RdfTerm::Iri(s), RdfTerm::Iri(o)) = (&quad.subject, &quad.object)
+            && s == drop_s
+            && o == drop_o
         {
-            if s == drop_s && p == drop_p && o == drop_o {
-                continue; // the triple under test — leave it out
-            }
-            let quad = RdfQuad::new(
-                RdfTerm::iri(s.to_owned()),
-                p.to_owned(),
-                RdfTerm::iri(o.to_owned()),
-            );
-            builder.push_owned_quad(&quad);
+            continue; // the triple under test — leave it out
         }
+        builder.push_owned_quad(&quad);
     }
     builder
         .freeze()
@@ -463,4 +465,81 @@ pub fn closure_redundant_subclasses(ds: &RdfDataset) -> Result<Vec<(String, Stri
         }
     }
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn parse(ttl: &str) -> Arc<RdfDataset> {
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse ttl");
+        let mut b = RdfDatasetBuilder::new();
+        b.push_dataset(&ds);
+        b.freeze().expect("freeze")
+    }
+
+    /// The number of quads that mention `owl:Restriction` as an object — the
+    /// blank-node encoding that must survive leave-one-out.
+    fn restriction_quad_count(ds: &RdfDataset) -> usize {
+        let owl_restriction = "http://www.w3.org/2002/07/owl#Restriction";
+        ds.owned_quads()
+            .filter(|q| matches!(&q.object, RdfTerm::Iri(o) if o == owl_restriction))
+            .count()
+    }
+
+    #[test]
+    fn leave_one_out_preserves_blank_node_restrictions() {
+        // A class whose subclass axiom is IRI-encoded AND an owl:Restriction that is
+        // BLANK-node encoded. Dropping the one subclass triple must not disturb the
+        // restriction quads: they are the DL structure the closure depends on.
+        let ds = parse(
+            r#"
+            @prefix ex:   <https://example.org/> .
+            @prefix owl:  <http://www.w3.org/2002/07/owl#> .
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+            ex:A a owl:Class ;
+                rdfs:subClassOf ex:B ;
+                rdfs:subClassOf [ a owl:Restriction ;
+                                  owl:onProperty ex:p ;
+                                  owl:someValuesFrom ex:C ] .
+            ex:B a owl:Class .
+            "#,
+        );
+
+        // Precondition: the source graph carries exactly one owl:Restriction blank.
+        assert_eq!(
+            restriction_quad_count(&ds),
+            1,
+            "fixture has one restriction"
+        );
+
+        let subclass = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+        let reduced = edb_without_triple(
+            &ds,
+            "https://example.org/A",
+            subclass,
+            "https://example.org/B",
+        );
+
+        // The blank-node restriction and its inner axioms survive the leave-one-out.
+        assert_eq!(
+            restriction_quad_count(&reduced),
+            1,
+            "the owl:Restriction blank node must survive leave-one-out (regression: blank/literal quads were silently dropped)"
+        );
+        let onproperty = reduced.owned_quads().any(|q| {
+            q.predicate == "http://www.w3.org/2002/07/owl#onProperty"
+                && matches!(&q.object, RdfTerm::Iri(o) if o == "https://example.org/p")
+        });
+        assert!(onproperty, "the restriction's owl:onProperty edge survives");
+
+        // The single targeted (A subClassOf B) IRI triple is the ONLY thing removed.
+        let a_subclass_b = reduced.owned_quads().any(|q| {
+            q.predicate == subclass
+                && matches!(&q.subject, RdfTerm::Iri(s) if s == "https://example.org/A")
+                && matches!(&q.object, RdfTerm::Iri(o) if o == "https://example.org/B")
+        });
+        assert!(!a_subclass_b, "the targeted triple is removed");
+    }
 }
