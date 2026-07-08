@@ -1,0 +1,4 @@
+<http://www.example.org#s> <http://www.example.org#p> "data" <https://gmeow.example/w3c-owl2-full/rdfbased-sem-npa-dat-fw/w> .
+<http://www.example.org#z> <http://www.w3.org/2002/07/owl#assertionProperty> <http://www.example.org#p> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-npa-dat-fw/w> .
+<http://www.example.org#z> <http://www.w3.org/2002/07/owl#sourceIndividual> <http://www.example.org#s> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-npa-dat-fw/w> .
+<http://www.example.org#z> <http://www.w3.org/2002/07/owl#targetValue> "data" <https://gmeow.example/w3c-owl2-full/rdfbased-sem-npa-dat-fw/w> .

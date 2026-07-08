@@ -1,0 +1,7 @@
+<http://www.w3.org/2002/03owlt/I5.8/premises010#john> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> _:rdfxml_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/webont-i5-8-010/w> .
+<http://www.w3.org/2002/03owlt/I5.8/premises010#p> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> <https://gmeow.example/w3c-owl2-full/webont-i5-8-010/w> .
+<http://www.w3.org/2002/03owlt/I5.8/premises010#p> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> <https://gmeow.example/w3c-owl2-full/webont-i5-8-010/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-i5-8-010/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> <https://gmeow.example/w3c-owl2-full/webont-i5-8-010/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#onProperty> <http://www.w3.org/2002/03owlt/I5.8/premises010#p> <https://gmeow.example/w3c-owl2-full/webont-i5-8-010/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#someValuesFrom> <http://www.w3.org/2001/XMLSchema#nonPositiveInteger> <https://gmeow.example/w3c-owl2-full/webont-i5-8-010/w> .

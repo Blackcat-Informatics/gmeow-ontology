@@ -1,0 +1,4 @@
+<http://www.example.org#o2> <http://www.w3.org/2002/07/owl#sameAs> <http://www.example.org#o1> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-sameas-subst/w> .
+<http://www.example.org#p2> <http://www.w3.org/2002/07/owl#sameAs> <http://www.example.org#p1> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-sameas-subst/w> .
+<http://www.example.org#s1> <http://www.example.org#p1> <http://www.example.org#o1> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-sameas-subst/w> .
+<http://www.example.org#s2> <http://www.w3.org/2002/07/owl#sameAs> <http://www.example.org#s1> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-sameas-subst/w> .

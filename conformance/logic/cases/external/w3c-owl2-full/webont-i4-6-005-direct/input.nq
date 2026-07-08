@@ -1,0 +1,5 @@
+<http://www.w3.org/2002/03owlt/I4.6/nonconclusions005#C1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-i4-6-005-direct/w> .
+<http://www.w3.org/2002/03owlt/I4.6/nonconclusions005#C1> <http://www.w3.org/2000/01/rdf-schema#comment> "An example class." <https://gmeow.example/w3c-owl2-full/webont-i4-6-005-direct/w> .
+<http://www.w3.org/2002/03owlt/I4.6/nonconclusions005#C1> <http://www.w3.org/2002/07/owl#equivalentClass> <http://www.w3.org/2002/03owlt/I4.6/nonconclusions005#C2> <https://gmeow.example/w3c-owl2-full/webont-i4-6-005-direct/w> .
+<http://www.w3.org/2002/03owlt/I4.6/nonconclusions005#C2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-i4-6-005-direct/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-i4-6-005-direct/w> .
