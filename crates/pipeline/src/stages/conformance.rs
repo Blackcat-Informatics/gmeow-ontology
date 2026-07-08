@@ -18,8 +18,8 @@
 //! NON-blocking `logic:FindingCorroboration` finding (positive evidence, never
 //! dropped), a native `incomplete` becomes a `DlGap` row, and a decided native verdict
 //! that differs from the published expected becomes a `CorpusOnly` row. Alongside the
-//! findings, every comparison is reified as a `logic:ConformanceComparison` individual
-//! and each corpus as a `logic:CorpusAgreementTally` individual. The emitter sorts and
+//! findings, every comparison is reified as a `gmeow:ConformanceComparison` individual
+//! and each corpus as a `gmeow:CorpusAgreementTally` individual. The emitter sorts and
 //! content-addresses every finding + individual, so the product is byte-deterministic
 //! and GTS-fold-stable.
 //!
@@ -130,8 +130,8 @@ pub fn grade_external_corpora(
 /// Project the graded corpora into the `graph/conformance` N-Quads, concatenated in
 /// corpus order. EVERY comparison folds: the divergence `gmeow:Finding` graph (now
 /// including non-blocking corroboration findings for agreements), one reified
-/// `logic:ConformanceComparison` individual per comparison, and one aggregate
-/// `logic:CorpusAgreementTally` individual per corpus — so an all-agree corpus now
+/// `gmeow:ConformanceComparison` individual per comparison, and one aggregate
+/// `gmeow:CorpusAgreementTally` individual per corpus — so an all-agree corpus now
 /// contributes a non-empty graph rather than nothing.
 fn divergence_nq_from_corpora(by_corpus: &BTreeMap<String, Vec<ExternalComparison>>) -> Vec<u8> {
     let mut out = String::new();
