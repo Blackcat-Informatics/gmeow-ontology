@@ -33,9 +33,10 @@
 //! # The fragment
 //!
 //! Positive Datalog only ([`materialize_generic`] is unbudgeted and negation-free); an
-//! arithmetic builtin or cut in the goal program is a declared gap
-//! ([`NativeOutcome::Unsupported`]). Negation is a later concern and cannot arise here:
-//! the query IR carries positive atoms + builtins only.
+//! arithmetic builtin, a cut, or a negated body atom in the goal program is a declared gap
+//! ([`NativeOutcome::Unsupported`]). Stratified negation-as-failure is supported ONLY on the
+//! binary backward path ([`super::magic`]); an n-ary program carrying a `\+`/`not` literal
+//! is an explicit, honest gap routed to the oracle, never a silent drop.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -374,7 +375,14 @@ pub(super) fn resolve_native_generic(
                     Ok(g) => body.push(g),
                     Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
                 },
-                // The generic core is positive Datalog only — arithmetic / cut are gaps.
+                // The generic core is positive Datalog only — negation / arithmetic / cut
+                // are declared gaps. Stratified NAF is supported ONLY on the binary backward
+                // path (`super::magic`); an n-ary program that carries a negated body atom
+                // is an explicit, honest gap routed to the oracle (never a silent drop of
+                // the negation).
+                QBodyLit::Neg(_) => {
+                    return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
+                }
                 QBodyLit::Builtin(_) => {
                     return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic));
                 }

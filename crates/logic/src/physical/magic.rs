@@ -48,11 +48,26 @@
 //!    chain): `magic_bi^{a_i} :- magic_h^{a_h}, b1, ..., b(i-1)` (an `ff` body atom adds
 //!    no magic rule — it demands nothing).
 //!
-//! The positive query corpus introduces no negation, so the transformed program is
-//! always stratifiable.  A transform that WOULD break stratification (only possible
-//! once native rules carry negation) falls back to a full stratified evaluation of
-//! the UNTRANSFORMED base program — correct, without the demand pruning — rather than
-//! demoting to an external engine (no-optionality: the native core stays authoritative).
+//! # Stratified negation-as-failure
+//!
+//! The backward surface carries stratified NAF (`\+ p(s, o)`): a negated body atom lowers
+//! to a negated binary [`EvalAtom`] the shared stratified evaluator decides by NAF against
+//! the accumulated lower-stratum least model. Under the transform a negated atom is
+//! demanded exactly like a positive one (its magic rules propagate the demand through its
+//! own recursion, so the NAF test sees a sufficient slice of the negated predicate), is
+//! kept negated in the modified rule, is carried (still negated) into the SIPS prefix, and
+//! binds no SIPS variables. Every negated variable must be range-restricted by a positive
+//! body atom; an unbound one flounders ([`UnsupportedKind::Floundering`]).
+//!
+//! A negative literal inside a magic (demand) rule can make the transformed program
+//! non-stratifiable even when the base program is stratified. Standard magic-sets theory
+//! guarantees the transform is answer-preserving *when its result is stratified*; when the
+//! result is NOT stratifiable, [`eval_with_base_fallback`] evaluates the UNTRANSFORMED base
+//! program — a full stratified materialization (sound and terminating over the finite
+//! Herbrand base, no value invention) — dropping only the demand pruning, and the answer's
+//! preservation is honestly downgraded from `{exact}` to record that. It stays native (no
+//! external-engine demotion: the native core remains authoritative). A base program that is
+//! ALSO non-stratifiable is a genuine gap routed to the oracle.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -255,6 +270,13 @@ fn adorn_atom(atom: &EvalAtom, bound: &BTreeSet<String>) -> BindingPattern {
     BindingPattern::from_bools([pos_bound(&atom.subject), pos_bound(&atom.object)])
 }
 
+/// Whether every variable position of `atom` is already in `bound` (constants count as
+/// bound) — i.e. the atom is fully ground under the current SIPS bindings.
+fn negated_atom_fully_bound(atom: &EvalAtom, bound: &BTreeSet<String>) -> bool {
+    let pos_bound = |t: &EvalTerm| var_name(t).is_none_or(|v| bound.contains(v));
+    pos_bound(&atom.subject) && pos_bound(&atom.object)
+}
+
 /// Add an atom's variable names to the bound set (used to thread SIPS bindings).
 fn bind_atom_vars(atom: &EvalAtom, bound: &mut BTreeSet<String>) {
     if let Some(v) = var_name(&atom.subject) {
@@ -279,6 +301,46 @@ fn head_bound_vars(head: &EvalAtom, pattern: BindingPattern) -> BTreeSet<String>
         bound.insert(v.to_owned());
     }
     bound
+}
+
+/// Whether any negated body atom carries a variable that no POSITIVE literal binds — the
+/// floundering (NAF-safety / allowedness) test.
+///
+/// A rule is allowed for NAF iff every variable appearing in a negated body atom also
+/// appears in a positive body atom (range restriction) or is bound by an arithmetic `is`
+/// generator. When that holds, the positive join grounds the negated atom's variables
+/// before the NAF membership test, so the test is decided against a fully-ground tuple.
+/// A negated variable that no positive literal binds is still free at NAF time — the goal
+/// flounders, and the caller returns [`UnsupportedKind::Floundering`] rather than a wrong
+/// or empty answer.  Body order is irrelevant: the join computes all positive atoms before
+/// applying negation, so a variable bound by ANY positive atom is bound at NAF time.
+fn negated_body_flounders(body: &[EvalAtom], builtins: &[QBuiltin]) -> bool {
+    let mut bound: BTreeSet<String> = BTreeSet::new();
+    for atom in body.iter().filter(|a| !a.negated) {
+        if let Some(v) = var_name(&atom.subject) {
+            bound.insert(v.to_owned());
+        }
+        if let Some(v) = var_name(&atom.object) {
+            bound.insert(v.to_owned());
+        }
+    }
+    // An `is` generator binds its target variable, so a negated atom over it is range-
+    // restricted; a comparison binds nothing.
+    for b in builtins {
+        if let QBuiltin::Is {
+            target: QTerm::Var(v),
+            ..
+        } = b
+        {
+            bound.insert(v.clone());
+        }
+    }
+    body.iter().filter(|a| a.negated).any(|neg| {
+        [&neg.subject, &neg.object]
+            .into_iter()
+            .filter_map(var_name)
+            .any(|v| !bound.contains(v))
+    })
 }
 
 // ── The magic-sets transformation ─────────────────────────────────────────────────
@@ -356,6 +418,12 @@ fn magic_transform(
             let mut bound = head_bound_vars(&r.head, head_adorn);
             for atom in &r.body {
                 if idb.contains(atom.predicate.as_str()) {
+                    // A negated IDB atom is demanded exactly like a positive one (at its
+                    // current-bindings adornment): the demand — propagated through the
+                    // predicate's own recursion by its magic rules — materializes precisely
+                    // the instances the NAF test needs, so `\+ p(s, o)` is decided against a
+                    // sufficient slice of `p`. It only differs in NOT threading its vars into
+                    // the SIPS `bound` set below (NAF binds nothing).
                     let a = adorn_atom(atom, &bound);
                     let demand = (atom.predicate.as_str().to_owned(), a.code());
                     // `demands` doubles as the visited-set: insert returns true only the
@@ -364,8 +432,11 @@ fn magic_transform(
                         frontier.push((atom.predicate.as_str().to_owned(), a));
                     }
                 }
-                // Thread this atom's bindings for the next atom (SIPS).
-                bind_atom_vars(atom, &mut bound);
+                // Thread this atom's bindings for the next atom (SIPS). A negated atom binds
+                // nothing under negation-as-failure, so it never extends `bound`.
+                if !atom.negated {
+                    bind_atom_vars(atom, &mut bound);
+                }
             }
         }
     }
@@ -408,12 +479,28 @@ fn magic_transform(
                         out.push(rule(magic_head, mbody, iri));
                     }
                 }
-                // The modified rule keeps the ORIGINAL body atom (positive, unguarded);
-                // the demand restriction comes from the head guard + the magic rules that
-                // gate which instances are derived.
+                // The modified rule always keeps the ORIGINAL body atom (a negated atom stays
+                // negated — its `negated` flag rides through the `clone`); the demand
+                // restriction comes from the head guard + the magic rules that gate which
+                // instances are derived.
                 mod_body.push(atom.clone());
-                prefix.push(atom.clone());
-                bind_atom_vars(atom, &mut bound);
+                if atom.negated {
+                    // NAF binds no SIPS variables. Carry the negated atom (still negated)
+                    // into the SIPS `prefix` — so a LATER atom's magic (demand) rule sees the
+                    // NAF condition under which it is reached, the negative literal that can
+                    // make the transformed program non-stratifiable (recovered soundly by
+                    // `eval_with_base_fallback`) — ONLY when it is fully ground given the
+                    // bindings so far. A partially-bound negated guard inside a magic rule is
+                    // existential NAF, strictly STRONGER than the per-tuple test, and would
+                    // UNDER-demand a later atom (dropping needed instances); omitting it
+                    // instead only WIDENS demand, which is always sound.
+                    if negated_atom_fully_bound(atom, &bound) {
+                        prefix.push(atom.clone());
+                    }
+                } else {
+                    prefix.push(atom.clone());
+                    bind_atom_vars(atom, &mut bound);
+                }
             }
 
             // The modified rule carries the ORIGINAL rule's builtins: the shared
@@ -557,8 +644,16 @@ fn project_answers(facts: &[crate::rule_ir::Fact], goal: &QAtom, goal_pred: &str
 /// A private mirror of [`NativeOutcome`] specialized to the fallback decision, so the
 /// two-tier evaluate/fall-back-to-base logic lives in one testable place.
 enum FallbackOutcome {
-    /// The (transformed or base) program was decided.
-    Decided(Vec<Fact>, BudgetStatus, CompletionFrontier),
+    /// The (transformed or base) program was decided. `demand_pruning_dropped` is `true`
+    /// iff the DEMAND transform was non-stratifiable and the answer came from evaluating
+    /// the untransformed base program (full materialization, no demand pruning) — the
+    /// honest signal the caller uses to downgrade the answer's preservation claim.
+    Decided {
+        facts: Vec<Fact>,
+        status: BudgetStatus,
+        frontier: CompletionFrontier,
+        demand_pruning_dropped: bool,
+    },
     /// A declared native gap the caller routes to the oracle.
     Unsupported(UnsupportedKind),
 }
@@ -589,26 +684,29 @@ fn eval_with_base_fallback(
     match evaluate(edb, transformed_rules, max_steps)? {
         NativeOutcome::Decided(budgeted) => {
             let frontier = budgeted.frontier();
-            Ok(FallbackOutcome::Decided(
-                budgeted.rows,
-                budgeted.status,
+            Ok(FallbackOutcome::Decided {
+                facts: budgeted.rows,
+                status: budgeted.status,
                 frontier,
-            ))
+                demand_pruning_dropped: false,
+            })
         }
-        // A magic (demand) transform threads a magic guard through the program; a negative
-        // edge in that guarded cycle could make the transformed program non-stratifiable
-        // even though the UNTRANSFORMED program is stratified by construction. Fall back to
-        // the base rules over a freshly extracted EDB (without the demand seed the base
-        // rules never reference).
+        // A magic (demand) transform threads a magic guard — and, under stratified NAF, a
+        // negated guard — through the program; a negative edge in that guarded cycle can
+        // make the transformed program non-stratifiable even though the UNTRANSFORMED
+        // program is stratified. Fall back to the base rules over a freshly extracted EDB
+        // (without the demand seed the base rules never reference); the answer is exact but
+        // the demand pruning was dropped, so the caller downgrades the preservation claim.
         NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable) => {
             match evaluate(base_edb(), base_rules, max_steps)? {
                 NativeOutcome::Decided(budgeted) => {
                     let frontier = budgeted.frontier();
-                    Ok(FallbackOutcome::Decided(
-                        budgeted.rows,
-                        budgeted.status,
+                    Ok(FallbackOutcome::Decided {
+                        facts: budgeted.rows,
+                        status: budgeted.status,
                         frontier,
-                    ))
+                        demand_pruning_dropped: true,
+                    })
                 }
                 // If the BASE program is also non-stratifiable, the program genuinely is —
                 // a real declared gap the caller routes to the oracle.
@@ -621,6 +719,40 @@ fn eval_with_base_fallback(
     }
 }
 
+/// The preservation claim for an answer produced by the base fallback because the demand
+/// transform was non-stratifiable.
+///
+/// The base-fallback answer is complete AND sound (a full stratified materialization of the
+/// untransformed program, projected to the goal), so its ANSWERS are exact. What changed is
+/// the mechanism: the demand pruning was dropped and the evaluation WIDENED to the full
+/// least model. The honest, conservative disclosure of that widening is
+/// [`PreservationKind::CompleteOver`] — a complete over-approximation (every true answer is
+/// present; the evaluation may have materialized more than the demand slice). It is the
+/// correct polarity direction: never `{sound-under}` (which would falsely imply an answer
+/// could be MISSING), and no longer a bare `{exact}` (which would hide that the intended
+/// demand transform did not run). No new global ledger is invented — this downgrade IS the
+/// required honest signal at this layer.
+fn demand_pruning_dropped_claim() -> crate::result::PreservationClaim {
+    let mut claim = crate::result::PreservationClaim::default();
+    claim
+        .insert(gmeow_logic_compile::ir::PreservationKind::CompleteOver)
+        .expect("CompleteOver is a valid answer-preservation polarity (not ValidationOnly)");
+    claim
+}
+
+/// Resolve `program`'s single backward goal against `world` via the native magic-sets core.
+///
+/// # Oracle-soundness contract
+///
+/// The native core is AUTHORITATIVE for every request it decides: a
+/// [`NativeOutcome::Decided`] answer is the whole answer (exact, or an honestly-downgraded
+/// complete over-approximation on the base fallback), and dispatch returns it without
+/// consulting any oracle. The oracle is consulted ONLY where the native core declares a
+/// [`NativeOutcome::Unsupported`] gap — cut, arithmetic residue, a non-binary shape, a
+/// genuinely non-stratifiable program, or a floundering NAF goal. The two never overlap:
+/// native never silently defers a case it can decide, and the oracle never overrides a
+/// native verdict. Stratified negation stays entirely inside this native path (decided or a
+/// declared gap); it is never a silent drop.
 pub(crate) fn resolve_native(
     foreign: &dyn ScryerForeign,
     world: &str,
@@ -657,7 +789,7 @@ pub(crate) fn resolve_native(
         && program.rules.iter().all(|r| {
             r.head.args.len() == 2
                 && r.body.iter().all(|lit| match lit {
-                    QBodyLit::Atom(a) => a.args.len() == 2,
+                    QBodyLit::Atom(a) | QBodyLit::Neg(a) => a.args.len() == 2,
                     QBodyLit::Builtin(_) | QBodyLit::Cut => true,
                 })
         });
@@ -686,10 +818,27 @@ pub(crate) fn resolve_native(
                     Ok(ea) => body.push(ea),
                     Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
                 },
+                // A negated body atom lowers to the same binary `EvalAtom` with the
+                // `negated` flag set: the shared stratified evaluator decides it by NAF
+                // against the accumulated lower-stratum least model.
+                QBodyLit::Neg(a) => match atom_of(a) {
+                    Ok(ea) => body.push(EvalAtom {
+                        negated: true,
+                        ..ea
+                    }),
+                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+                },
                 QBodyLit::Builtin(b) => builtins.push(builtin_of(b)),
                 // Cut already returned above.
                 QBodyLit::Cut => unreachable!("cut handled above"),
             }
+        }
+        // Floundering guard: NAF is sound only when every variable of a negated body
+        // atom is range-restricted by a POSITIVE body atom (or bound by an `is`
+        // generator). A negated variable no positive literal binds is still free when
+        // the NAF goal fires — an unsound goal that must NOT be silently decided.
+        if negated_body_flounders(&body, &builtins) {
+            return Ok(NativeOutcome::Unsupported(UnsupportedKind::Floundering));
         }
         // A synthesized stable rule IRI for the modified/original rule.
         let rule_iri = format!("{}::rule", head.predicate.as_str());
@@ -725,11 +874,16 @@ pub(crate) fn resolve_native(
     // incomplete, and the caller reads `completed < total` to tell that from a conclusive
     // result.  On a non-stratifiable transformed program the helper falls back to the base
     // rules over a lazily re-extracted EDB (see `eval_with_base_fallback`).
-    let (facts, fixpoint_status, frontier) =
+    let (facts, fixpoint_status, frontier, demand_pruning_dropped) =
         match eval_with_base_fallback(edb, &transformed.rules, &rules, budget.max_steps, || {
             extract_edb(foreign, world)
         })? {
-            FallbackOutcome::Decided(f, s, fr) => (f, s, fr),
+            FallbackOutcome::Decided {
+                facts,
+                status,
+                frontier,
+                demand_pruning_dropped,
+            } => (facts, status, frontier, demand_pruning_dropped),
             FallbackOutcome::Unsupported(k) => return Ok(NativeOutcome::Unsupported(k)),
         };
 
@@ -759,10 +913,19 @@ pub(crate) fn resolve_native(
         bindings = tmp.bindings;
     }
 
+    // Preservation: `{exact}` on the demand-transformed happy path; a downgraded claim
+    // when the transform was non-stratifiable and the answer came from the base fallback
+    // (the answer set is still complete and sound, but the demand pruning was dropped —
+    // recorded honestly rather than left as a silent free-transform assumption).
+    let preservation = if demand_pruning_dropped {
+        demand_pruning_dropped_claim()
+    } else {
+        crate::result::PreservationClaim::exact()
+    };
     let mut answer = AnswerSet {
         bindings,
         status,
-        preservation: crate::result::PreservationClaim::exact(),
+        preservation,
         frontier,
     };
 
@@ -1450,13 +1613,25 @@ mod tests {
         let out =
             eval_with_base_fallback(RelationStore::new(), &transformed, &base, None, base_edb)
                 .expect("fallback must not error");
-        let FallbackOutcome::Decided(facts, status, _frontier) = out else {
+        let FallbackOutcome::Decided {
+            facts,
+            status,
+            demand_pruning_dropped,
+            ..
+        } = out
+        else {
             panic!("expected the base fallback to decide, got a declared gap");
         };
         assert_eq!(
             status,
             BudgetStatus::Ok,
             "the base fixpoint runs to its natural end"
+        );
+        // The base fallback fired: the demand pruning was dropped, and the caller must be
+        // told so it can downgrade the answer's preservation claim from `{exact}`.
+        assert!(
+            demand_pruning_dropped,
+            "a base-fallback decision must flag that demand pruning was dropped"
         );
         let keys: BTreeSet<_> = facts.iter().map(Fact::key).collect();
         // The base rule derived exactly derived(x, y) — proof the arm executed the BASE
@@ -1499,6 +1674,273 @@ mod tests {
                 FallbackOutcome::Unsupported(UnsupportedKind::NonStratifiable)
             ),
             "both transformed and base non-stratifiable ⇒ the genuine gap passes through"
+        );
+    }
+
+    // ── Stratified negation-as-failure (backward surface) ────────────────────────
+
+    /// The `unsupported` kind of a native outcome, or a panic if it decided.
+    fn unsupported_kind(outcome: NativeOutcome<AnswerSet>) -> UnsupportedKind {
+        match outcome {
+            NativeOutcome::Unsupported(k) => k,
+            NativeOutcome::Decided(a) => panic!("expected Unsupported, got Decided({a:?})"),
+        }
+    }
+
+    /// A small reachability world: edges a→b, b→c (so a reaches b and c, b reaches c), plus
+    /// a `node(v, v)` self-loop domain marker for a, b, c (a binary encoding of the vertex
+    /// set so the whole program stays on the binary backward path).
+    fn reachability_world() -> (WorldStore, String) {
+        make_world(&[
+            (
+                &format!("{BASE}a"),
+                &format!("{BASE}edge"),
+                &format!("{BASE}b"),
+            ),
+            (
+                &format!("{BASE}b"),
+                &format!("{BASE}edge"),
+                &format!("{BASE}c"),
+            ),
+            (
+                &format!("{BASE}a"),
+                &format!("{BASE}node"),
+                &format!("{BASE}a"),
+            ),
+            (
+                &format!("{BASE}b"),
+                &format!("{BASE}node"),
+                &format!("{BASE}b"),
+            ),
+            (
+                &format!("{BASE}c"),
+                &format!("{BASE}node"),
+                &format!("{BASE}c"),
+            ),
+        ])
+    }
+
+    // (a) A stratified-negation program whose BASE is stratifiable: the native core decides
+    // it with the correct hand-computed answer set. `reachable` is the transitive closure of
+    // `edge`; `unreachable(X, Y)` holds for domain vertices with no path X ⇝ Y.
+    #[test]
+    fn magic_stratified_negation_reachability_decides_correctly() {
+        let (store, world_nn) = reachability_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:reachable(X, Y) :- ex:edge(X, Y).\n\
+             ex:reachable(X, Y) :- ex:edge(X, Z), ex:reachable(Z, Y).\n\
+             ex:unreachable(X, Y) :- ex:node(X, X), ex:node(Y, Y), \\+ ex:reachable(X, Y).\n\
+             ?- ex:unreachable(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let native =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap());
+
+        // `a` reaches {b, c}; the domain is {a, b, c}; so `a` is unreachable only to `a`
+        // itself (no self-loop edge). The sole answer is Y = a.
+        let ys: Vec<&str> = native.bindings.iter().map(|b| b["Y"].as_str()).collect();
+        assert_eq!(
+            ys,
+            vec![format!("<{BASE}a>").as_str()],
+            "unreachable(a, Y) must be exactly {{a}}: {native:?}"
+        );
+        assert_eq!(native.status, BudgetStatus::Ok);
+        // The demand transform of THIS program stays stratifiable (`unreachable` negates
+        // `reachable`, which does not reach back), so the answer is fully demand-pruned and
+        // its preservation is `{exact}` — no base fallback, nothing dropped.
+        assert!(
+            native
+                .preservation
+                .polarities
+                .contains(&gmeow_logic_compile::ir::PreservationKind::Exact),
+            "a stratifiable-transform answer is exact: {:?}",
+            native.preservation
+        );
+    }
+
+    // (a, downgrade) A stratified-negation program whose BASE is stratifiable but whose
+    // DEMAND transform is NOT: a negated recursive IDB atom placed before its positive use
+    // puts a negative literal inside a magic (demand) rule, breaking the transform's
+    // stratification. `eval_with_base_fallback` recovers the SOUND answer from the base
+    // program (full materialization), and the answer's preservation is honestly downgraded
+    // from `{exact}` to `{complete-over}` to record that the demand pruning was dropped.
+    //
+    // `asym(X, Y)`: X reaches Y but Y does not reach X (asymmetric reachability). Over the
+    // chain a→b→c, `asym(a, Y)` = {b, c}. Correctness of this answer set is the primary
+    // assertion; the preservation downgrade is the honest re-stratify signal.
+    #[test]
+    fn magic_negation_transform_nonstratifiable_falls_back_correctly_and_downgrades() {
+        let (store, world_nn) = reachability_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:r(X, Y) :- ex:edge(X, Y).\n\
+             ex:r(X, Y) :- ex:edge(X, Z), ex:r(Z, Y).\n\
+             ex:asym(X, Y) :- ex:node(X, X), ex:node(Y, Y), \\+ ex:r(Y, X), ex:r(X, Y).\n\
+             ?- ex:asym(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let native =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap());
+
+        let mut ys: Vec<&str> = native.bindings.iter().map(|b| b["Y"].as_str()).collect();
+        ys.sort_unstable();
+        assert_eq!(
+            ys,
+            [format!("<{BASE}b>"), format!("<{BASE}c>")]
+                .iter()
+                .map(String::as_str)
+                .collect::<Vec<_>>(),
+            "asym(a, Y) must be exactly {{b, c}} (full-materialization ground truth): {native:?}"
+        );
+        assert_eq!(native.status, BudgetStatus::Ok);
+        // The transform was non-stratifiable ⇒ base fallback ⇒ demand pruning dropped ⇒ the
+        // preservation is downgraded from `{exact}` to the conservative `{complete-over}`.
+        assert_eq!(
+            native.preservation.polarities,
+            std::iter::once(gmeow_logic_compile::ir::PreservationKind::CompleteOver).collect(),
+            "a base-fallback answer downgrades to a single {{complete-over}} polarity: {:?}",
+            native.preservation
+        );
+        assert!(
+            !native
+                .preservation
+                .polarities
+                .contains(&gmeow_logic_compile::ir::PreservationKind::Exact),
+            "the downgraded claim must NOT still assert exact"
+        );
+    }
+
+    // (b) A genuinely non-stratifiable program (a negative cycle p ⇄ q at the BASE level,
+    // over binary atoms with the negated vars range-restricted by `e`): both the demand
+    // transform AND the base are non-stratifiable, so the native core declares the gap and
+    // dispatch routes it to the oracle.
+    #[test]
+    fn magic_negative_cycle_is_unsupported_nonstratifiable() {
+        let (store, world_nn) = make_world(&[(
+            &format!("{BASE}a"),
+            &format!("{BASE}e"),
+            &format!("{BASE}b"),
+        )]);
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(X, Y) :- ex:e(X, Y), \\+ ex:q(X, Y).\n\
+             ex:q(X, Y) :- ex:e(X, Y), \\+ ex:p(X, Y).\n\
+             ?- ex:p(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        assert_eq!(
+            unsupported_kind(
+                resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap()
+            ),
+            UnsupportedKind::NonStratifiable,
+            "a base negative cycle is a genuine non-stratifiable gap"
+        );
+    }
+
+    // (c) A floundering program: the negated atom carries a variable (`Z`) that no positive
+    // body atom binds, so it is still free when NAF fires. NAF over an unbound goal is
+    // unsound — the native core refuses it as a declared gap rather than answer wrongly.
+    #[test]
+    fn magic_floundering_negation_is_unsupported() {
+        let (store, world_nn) = make_world(&[(
+            &format!("{BASE}a"),
+            &format!("{BASE}e"),
+            &format!("{BASE}b"),
+        )]);
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(X, Y) :- ex:e(X, Y), \\+ ex:q(Y, Z).\n\
+             ?- ex:p(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        assert_eq!(
+            unsupported_kind(
+                resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap()
+            ),
+            UnsupportedKind::Floundering,
+            "an unbound variable under NAF flounders"
+        );
+    }
+
+    // Soundness under a negated atom whose variable is bound only by a LATER positive atom:
+    // `\+ q(X, Y)` precedes the recursive `r(X, Y)` that binds `Y`. The negated guard must
+    // NOT leak into `r`'s magic (demand) rule as existential NAF (`\+ q(X, _)`), which would
+    // wrongly prune `r(a, ·)` whenever `a` has ANY `q` edge and drop valid answers. The
+    // correct answer for the chain a→b→c is `p(a, Y) = {c}` (a↛directly-c but a⇝c).
+    #[test]
+    fn magic_negation_var_bound_by_later_atom_stays_sound() {
+        let (store, world_nn) = reachability_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:r(X, Y) :- ex:edge(X, Y).\n\
+             ex:r(X, Y) :- ex:edge(X, Z), ex:r(Z, Y).\n\
+             ex:q(X, Y) :- ex:edge(X, Y).\n\
+             ex:p(X, Y) :- ex:node(X, X), \\+ ex:q(X, Y), ex:r(X, Y).\n\
+             ?- ex:p(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let native =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap());
+        let ys: Vec<&str> = native.bindings.iter().map(|b| b["Y"].as_str()).collect();
+        assert_eq!(
+            ys,
+            vec![format!("<{BASE}c>").as_str()],
+            "p(a, Y) must be exactly {{c}} — the later-bound negated var must not under-demand \
+             r: {native:?}"
+        );
+    }
+
+    // The `not` keyword is an accepted synonym for `\+` on the query surface, decided
+    // identically by the native stratified core.
+    #[test]
+    fn magic_not_keyword_negation_decides_like_backslash_plus() {
+        let (store, world_nn) = reachability_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:reachable(X, Y) :- ex:edge(X, Y).\n\
+             ex:reachable(X, Y) :- ex:edge(X, Z), ex:reachable(Z, Y).\n\
+             ex:unreachable(X, Y) :- ex:node(X, X), ex:node(Y, Y), not ex:reachable(X, Y).\n\
+             ?- ex:unreachable(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let native =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap());
+        let ys: Vec<&str> = native.bindings.iter().map(|b| b["Y"].as_str()).collect();
+        assert_eq!(ys, vec![format!("<{BASE}a>").as_str()]);
+    }
+
+    // An n-ary (non-binary) program that also carries negation is an explicit, honest gap:
+    // stratified NAF lives only on the binary backward path, so the generic n-ary path
+    // refuses it to the oracle rather than silently dropping the negation.
+    #[test]
+    fn magic_nary_with_negation_is_unsupported() {
+        let (store, world_nn) = make_world(&[(
+            &format!("{BASE}a"),
+            &format!("{BASE}e"),
+            &format!("{BASE}b"),
+        )]);
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        // `t(X, Y, Z)` is arity 3 ⇒ the whole program routes to the generic n-ary path,
+        // which declares negation unsupported.
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(X, Y) :- ex:t(X, Y, Z), \\+ ex:q(X, Y).\n\
+             ?- ex:p(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        assert!(
+            matches!(
+                resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap(),
+                NativeOutcome::Unsupported(_)
+            ),
+            "n-ary + negation is a declared gap"
         );
     }
 }
