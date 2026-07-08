@@ -556,6 +556,11 @@ impl McpServer {
                     "Read the checked-out GMEOW Constitution.",
                     &[],
                 ),
+                tool(
+                    "slice_quality",
+                    "Score a slice against the slice-quality rubric and return its per-axis grades and ranked uplift advice.",
+                    &[("path", "string")],
+                ),
             ]);
         }
         json!({ "tools": tools })
@@ -612,6 +617,7 @@ impl McpServer {
             "reason" if self.mode.includes_dev_tools() => self.tool_reason(),
             "regenerate" if self.mode.includes_dev_tools() => self.tool_regenerate(),
             "constitution" if self.mode.includes_dev_tools() => self.tool_constitution(),
+            "slice_quality" if self.mode.includes_dev_tools() => self.tool_slice_quality(args),
             _ => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!("unknown tool: {name}"),
             })),
@@ -936,6 +942,38 @@ impl McpServer {
             "produced": report.produced,
             "reproduced": report.reproduced,
             "drifted": report.drifted,
+        })
+        .to_string())
+    }
+
+    fn tool_slice_quality(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let root = self.root_path()?;
+        let rel = required_str(args, "path")?;
+        let slice_dir = root.join(rel);
+        let report = gmeow_slice_quality::report::score_slice(&root, &slice_dir).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("slice_quality: {e}"),
+            })
+        })?;
+        let grades: Vec<Value> = report
+            .assessment
+            .grades
+            .iter()
+            .map(|g| {
+                let axis = g.axis_iri.rsplit(['/', '#']).next().unwrap_or(&g.axis_iri);
+                json!({ "axis": axis, "tier": g.tier.label, "score": g.score })
+            })
+            .collect();
+        let advice: Vec<Value> = report
+            .advisories
+            .iter()
+            .map(|f| json!({ "code": f.code, "message": f.message }))
+            .collect();
+        Ok(json!({
+            "slice": report.assessment.slice,
+            "rollup_tier": report.assessment.rollup.label,
+            "grades": grades,
+            "advice": advice,
         })
         .to_string())
     }
@@ -1650,6 +1688,7 @@ mod tests {
         assert!(consumer_tools.contains("\"query_docs\""));
         assert!(consumer_tools.contains("\"store_claim\""));
         assert!(!consumer_tools.contains("\"validate\""));
+        assert!(!consumer_tools.contains("\"slice_quality\""));
         assert!(
             !consumer
                 .resources_result()
@@ -1664,6 +1703,7 @@ mod tests {
         assert!(dev_tools.contains("\"reason\""));
         assert!(dev_tools.contains("\"regenerate\""));
         assert!(dev_tools.contains("\"constitution\""));
+        assert!(dev_tools.contains("\"slice_quality\""));
         assert!(dev.resources_result().to_string().contains("constitution"));
     }
 

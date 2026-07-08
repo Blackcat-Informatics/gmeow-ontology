@@ -2077,6 +2077,7 @@ dependencies = [
  "gmeow-lang-form",
  "gmeow-logic",
  "gmeow-logic-compile",
+ "gmeow-slice-quality",
  "gmeow-validate",
  "insta",
  "jsonschema",
