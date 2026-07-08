@@ -1,0 +1,129 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the slice-quality-rubric slice — the
+# MUST / MUST-NOT invariants of the rubric-as-data spine, run as SPARQL ASK over
+# the module graph (gmeow:scopeModule) under the native Rust harness
+# (crates/slicetest). Each rationale states the ONTOLOGICAL reason the invariant
+# holds and names no test artifact — this slice is the exemplar of the
+# provenance-honesty rule it defines.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/slice-quality-rubric/tests/> .
+
+# --- 1. The rubric is one Profile over Slice carrying all six descriptors -----
+ex:saRubricProfileShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:sliceQualityRubric a gmeow:Profile ;
+        gmeow:profileDescriptor gmeow:axisProducer , gmeow:axisDimension ,
+            gmeow:axisThreshold , gmeow:axisAdviceTemplate , gmeow:axisWeight ,
+            gmeow:axisContextScope ;
+        gmeow:profileOpenValue gmeow:QualityAxis , gmeow:QualityTier ,
+            gmeow:AxisContextScope .
+}""" ;
+    gmeow:saRationale "The rubric is data, not code: a single gmeow:Profile over gmeow:Slice must enumerate exactly the six axis-descriptor properties and the three open value vocabularies, so tooling reads the axes, tiers, and scopes from the ontology rather than from a Rust fork." .
+
+# --- 2. QualityTier is an open value vocabulary of individuals (MUST) ----------
+ex:saTierIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:QualityTier a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "The tier ladder is a bounded lattice of grades, so gmeow:QualityTier is an open value vocabulary of individuals subclassing logic:QualityValue — a new tier is a minted individual with a fresh rank, never a subclass (Principle 9)." .
+
+# --- 3. The five tier rungs exist with contiguous distinct ranks (MUST) --------
+ex:saTierLadder a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:tierRegistered  a gmeow:QualityTier ; gmeow:tierRank 0 .
+    gmeow:tierGrounded    a gmeow:QualityTier ; gmeow:tierRank 1 .
+    gmeow:tierLinked      a gmeow:QualityTier ; gmeow:tierRank 2 .
+    gmeow:tierExemplified a gmeow:QualityTier ; gmeow:tierRank 3 .
+    gmeow:tierMaximal     a gmeow:QualityTier ; gmeow:tierRank 4 .
+}""" ;
+    gmeow:saRationale "The lattice order is carried by gmeow:tierRank, so the five rungs must exist with contiguous distinct ranks from 0 to 4; the roll-up tier is the meet (least rank) of a slice's per-axis grades and is undefined without a total order." .
+
+# --- 4. QualityAxis is an open value vocabulary of individuals (MUST) ----------
+ex:saAxisIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:QualityAxis a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "Extensibility-by-construction requires that a new measured axis be a minted individual binding a primitive, not a code fork, so gmeow:QualityAxis is an open value vocabulary of individuals subclassing logic:QualityValue." .
+
+# --- 5. Every axis binds a producer, a dimension, a scope, and a threshold -----
+ex:saAxesFullyBound a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:axisMaximalGrounding    gmeow:axisProducer ?p1 ; gmeow:axisDimension ?d1 ; gmeow:axisContextScope ?s1 ; gmeow:axisThreshold ?t1 .
+    gmeow:axisReasonerDerived     gmeow:axisProducer ?p2 ; gmeow:axisDimension ?d2 ; gmeow:axisContextScope ?s2 ; gmeow:axisThreshold ?t2 .
+    gmeow:axisMaximalInformation  gmeow:axisProducer ?p3 ; gmeow:axisDimension ?d3 ; gmeow:axisContextScope ?s3 ; gmeow:axisThreshold ?t3 .
+    gmeow:axisMaximalLinkage      gmeow:axisProducer ?p4 ; gmeow:axisDimension ?d4 ; gmeow:axisContextScope ?s4 ; gmeow:axisThreshold ?t4 .
+    gmeow:axisMaximalProjection   gmeow:axisProducer ?p5 ; gmeow:axisDimension ?d5 ; gmeow:axisContextScope ?s5 ; gmeow:axisThreshold ?t5 .
+    gmeow:axisOptimalTesting      gmeow:axisProducer ?p6 ; gmeow:axisDimension ?d6 ; gmeow:axisContextScope ?s6 ; gmeow:axisThreshold ?t6 .
+    gmeow:axisDocumentation       gmeow:axisProducer ?p7 ; gmeow:axisDimension ?d7 ; gmeow:axisContextScope ?s7 ; gmeow:axisThreshold ?t7 .
+    gmeow:axisProseQuality        gmeow:axisProducer ?p8 ; gmeow:axisDimension ?d8 ; gmeow:axisContextScope ?s8 ; gmeow:axisThreshold ?t8 .
+    gmeow:axisProvenanceHonesty   gmeow:axisProducer ?p9 ; gmeow:axisDimension ?d9 ; gmeow:axisContextScope ?s9 ; gmeow:axisThreshold ?t9 .
+    gmeow:axisTranslationCoverage gmeow:axisProducer ?p10 ; gmeow:axisDimension ?d10 ; gmeow:axisContextScope ?s10 ; gmeow:axisThreshold ?t10 .
+}""" ;
+    gmeow:saRationale "Every axis must bind a measurement primitive, an emitted quality dimension, a read-scope coeffect, and at least one tier threshold, because an axis with no producer cannot be scored and an unknown producer is a hard fail rather than a silent skip." .
+
+# --- 6. Every exemption is dated and names its producer and axis (MUST) --------
+ex:saExemptionsWellFormed a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?e a gmeow:AxisExemption ;
+        gmeow:exemptsAxis ?ax ;
+        gmeow:exemptionReason ?r ;
+        gmeow:exemptionDate ?d ;
+        gmeow:exemptionProducer ?p .
+}""" ;
+    gmeow:saRationale "An exemption is a dated, self-cleaning artifact, so each must name the axis it covers, a doctrine-anchored reason, the date it was minted, and the producer symbol whose landing retires it — an undated or producerless exemption would be permanent optionality." .
+
+# --- 7. axisWeight and axisContextScope are functional (MUST) ------------------
+ex:saAxisFunctionalProps a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:axisWeight a owl:FunctionalProperty .
+    gmeow:axisContextScope a owl:FunctionalProperty .
+    gmeow:tierRank a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "An axis has exactly one ranking weight and one read scope, and a tier has exactly one rank, so these properties are functional — multiple values would make the advice ordering and the lattice order ill-defined." .
+
+# --- 8. The advice weight never enters the roll-up: it is not the meet (MUST-NOT)
+ex:saWeightNotTierRank a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    { gmeow:axisWeight rdfs:subPropertyOf gmeow:tierRank }
+    UNION
+    { gmeow:axisWeight rdfs:range gmeow:QualityTier }
+}""" ;
+    gmeow:saRationale "The roll-up tier is the unweighted lattice meet of the axis grades, so the advice weight must not be wired into the tier order; a weighted meet would be an ad-hoc average and would break the ratchet-is-lattice-order law." .
