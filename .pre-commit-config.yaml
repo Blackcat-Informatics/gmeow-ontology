@@ -2,7 +2,7 @@
 # locally (`pre-commit install`) and in CI (`pre-commit run --all-files`). The
 # repo is Rust-only: this file covers Rust formatting/lint, spelling, YAML,
 # Markdown, shell, GitHub Actions (lint + security), and secrets. (Full
-# REUSE/SPDX license-header compliance is deferred to a separate follow-up.)
+# REUSE/SPDX license-header compliance is tracked separately, outside this suite.)
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
