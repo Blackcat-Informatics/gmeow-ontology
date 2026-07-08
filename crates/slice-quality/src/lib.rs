@@ -18,6 +18,7 @@ pub mod gate;
 pub mod graph;
 pub mod lattice;
 pub mod model;
+pub mod prioritize;
 pub mod reasoner;
 pub mod report;
 pub mod rubric;
