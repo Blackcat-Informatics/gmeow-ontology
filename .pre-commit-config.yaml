@@ -49,7 +49,10 @@ repos:
         # The correspondence-laws N-Triples fanout is a generated projection of
         # gmeow.gts (the discharged SectionLaw / correspondence-mapping cells)
         # and is large by nature — it must stay a byte-faithful projection.
-        exclude: '^(generated/schemas/.*|generated/catalog/.*|generated/logic/gmeow\.correspondence-laws\.nt|ontology-docs/.*|crates/sparql-conformance/tests/goldens/.*|crates/docs/assets/purrdf/.*)$'
+        # The quality-assessment N-Triples fold is likewise a generated
+        # projection of gmeow.gts (the QualityAssessment graph riding the
+        # carrier) and is large by nature.
+        exclude: '^(generated/schemas/.*|generated/catalog/.*|generated/logic/gmeow\.correspondence-laws\.nt|generated/quality/.*|ontology-docs/.*|crates/sparql-conformance/tests/goldens/.*|crates/docs/assets/purrdf/.*)$'
       - id: mixed-line-ending
         args: ["--fix=lf"]
         exclude: *keep-verbatim
