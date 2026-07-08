@@ -589,7 +589,7 @@ fn identity_hand_authored(ds: &RdfDataset) -> Vec<LegacyRecord> {
         out.push(LegacyRecord {
             record_iri: record.clone(),
             detail: format!(
-                "{record} is a hand-authored identity-strength alignment ({subj} → {obj} via {pred}) not routed through the correspondence calculus — lift it to a gmeow:ProjectionMapping mnemomorphic \"=\" cell so the section-law discharge proves the rename lawful (issue AC4; Principle 17)."
+                "{record} is a hand-authored identity-strength alignment ({subj} → {obj} via {pred}) not routed through the correspondence calculus — lift it to a gmeow:ProjectionMapping mnemomorphic \"=\" cell so the section-law discharge proves the rename lawful (Principle 17)."
             ),
         });
     }
@@ -653,7 +653,7 @@ fn dc_hand_authored(ds: &RdfDataset) -> Vec<LegacyRecord> {
             .unwrap_or_default();
         out.push(LegacyRecord {
             record_iri: record_iri.clone(),
-            detail: format!("{record_iri} is a hand-authored dc: alignment not routed through the correspondence calculus: {} Route it through the dcterms:→dc: dumb-down derivation rather than authoring the dc: alignment by hand (issue AC4; Principle 17).", diag.message),
+            detail: format!("{record_iri} is a hand-authored dc: alignment not routed through the correspondence calculus: {} Route it through the dcterms:→dc: dumb-down derivation rather than authoring the dc: alignment by hand (Principle 17).", diag.message),
         });
     }
     out.sort_by(|a, b| a.record_iri.cmp(&b.record_iri));
