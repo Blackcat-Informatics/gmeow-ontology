@@ -126,6 +126,16 @@ Removed because a Rust artifact already asserts the same behavior:
   `conformance_{gts_slice,dreaming,music_competency,music_oral_tradition}.rs`;
   compat_rdflib → `conformance_sparql_surface.rs` (2 SPARQL fns ported; 24
   external-purrdf PyO3-seam fns dropped as they have no in-repo Rust twin).
+- Awareness / imagination set-equality residue (3): the exact-set invariants a
+  boolean module-scoped `ASK` cannot express — awareness `levelRank == {0,1,2,3,4,5}`
+  and awareness/imagination `sliceDependsOn` exact sets over `manifest.ttl` (a file the
+  structural harness never loads) → `crates/validate/tests/conformance_awareness.rs`
+  (`level_ranks_are_exactly_zero_through_five`,
+  `slice_depends_on_is_exactly_kernel_and_temporal`) and
+  `crates/validate/tests/conformance_imagination.rs`
+  (`slice_depends_on_is_exactly_kernel`), each twin pinning the set in both directions.
+  `slices/core/{awareness,imagination}/tests/test_*.py` deleted (last residue removed);
+  the structural-cell files retain the module-scoped MUST/MUST-NOT invariants.
 
 Relocated out of the mainline test tree (dossier removed with the test):
 
