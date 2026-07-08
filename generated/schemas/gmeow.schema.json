@@ -4825,7 +4825,9 @@
                   ],
                   "type": "object"
                 }
-              ]
+              ],
+              "maximum": 1.0,
+              "minimum": 0.0
             },
             {
               "items": {
@@ -4845,7 +4847,9 @@
                     ],
                     "type": "object"
                   }
-                ]
+                ],
+                "maximum": 1.0,
+                "minimum": 0.0
               },
               "type": "array"
             }

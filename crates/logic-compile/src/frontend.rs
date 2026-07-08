@@ -1285,6 +1285,10 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
     let xsd_pattern = nn(&format!("{xsd}pattern"));
     let xsd_minlength = nn(&format!("{xsd}minLength"));
     let xsd_maxlength = nn(&format!("{xsd}maxLength"));
+    let xsd_mininclusive = nn(&format!("{xsd}minInclusive"));
+    let xsd_maxinclusive = nn(&format!("{xsd}maxInclusive"));
+    let xsd_minexclusive = nn(&format!("{xsd}minExclusive"));
+    let xsd_maxexclusive = nn(&format!("{xsd}maxExclusive"));
     let datatype_facets = |filler: &Subject| -> Vec<ConstraintComponent> {
         let Some(list_head) = value(store, filler, &p_withrestrictions) else {
             return Vec::new();
@@ -1293,6 +1297,13 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
         if let Some(Node::Iri(dt)) = value(store, filler, &p_ondatatype) {
             comps.push(ConstraintComponent::Datatype(dt));
         }
+        // Numeric-bound facets accumulate into a SINGLE `NumericRange` (a min/max pair with per-
+        // endpoint inclusivity) so an interval authored as two facet nodes projects to one
+        // `sh:minInclusive`/`sh:maxInclusive` (or the exclusive peers) component, matching the
+        // direct-emit oracle. An inclusive bound wins over an exclusive one on the same endpoint
+        // (an author who states both means the tighter closed reading).
+        let (mut lo, mut hi): (Option<f64>, Option<f64>) = (None, None);
+        let (mut lo_incl, mut hi_incl) = (true, true);
         for facet in read_list_member_subjects(store, &list_head) {
             if let Some(Node::Lit(regex)) = value(store, &facet, &xsd_pattern) {
                 comps.push(ConstraintComponent::Pattern { regex, flags: None });
@@ -1307,6 +1318,40 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
             {
                 comps.push(ConstraintComponent::MaxLength(n));
             }
+            if let Some(Node::Lit(n)) = value(store, &facet, &xsd_mininclusive)
+                && let Ok(n) = n.trim().parse::<f64>()
+            {
+                lo = Some(n);
+                lo_incl = true;
+            }
+            if let Some(Node::Lit(n)) = value(store, &facet, &xsd_minexclusive)
+                && let Ok(n) = n.trim().parse::<f64>()
+                && lo.is_none()
+            {
+                lo = Some(n);
+                lo_incl = false;
+            }
+            if let Some(Node::Lit(n)) = value(store, &facet, &xsd_maxinclusive)
+                && let Ok(n) = n.trim().parse::<f64>()
+            {
+                hi = Some(n);
+                hi_incl = true;
+            }
+            if let Some(Node::Lit(n)) = value(store, &facet, &xsd_maxexclusive)
+                && let Ok(n) = n.trim().parse::<f64>()
+                && hi.is_none()
+            {
+                hi = Some(n);
+                hi_incl = false;
+            }
+        }
+        if lo.is_some() || hi.is_some() {
+            comps.push(ConstraintComponent::NumericRange {
+                min: lo,
+                max: hi,
+                min_inclusive: lo_incl,
+                max_inclusive: hi_incl,
+            });
         }
         comps
     };

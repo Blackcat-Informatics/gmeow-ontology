@@ -207,6 +207,7 @@
 <https://blackcatinformatics.ca/gmeow/ConceptCategorization-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/ConceptCategorization> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/typicality> ; sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/typicality> ; sh:datatype <http://www.w3.org/2001/XMLSchema#decimal> ; sh:minInclusive 0 ; sh:maxInclusive 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/observedFeature> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/observedFeature> ; sh:minCount 1 ; sh:maxCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/observationResult> ; sh:class <https://blackcatinformatics.ca/gmeow/Concept> ] ;

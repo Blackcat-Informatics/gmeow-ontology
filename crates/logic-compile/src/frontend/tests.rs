@@ -1619,6 +1619,62 @@ fn derive_all_values_from_faceted_datatype_emits_length_and_pattern_facets() {
 }
 
 #[test]
+fn derive_all_values_from_faceted_datatype_emits_numeric_range_facets() {
+    // An owl:allValuesFrom whose filler is a faceted rdfs:Datatype with numeric bound
+    // restrictions (xsd:minInclusive / xsd:maxInclusive and their exclusive peers) reads as a
+    // single SHACL NumericRange the values must satisfy — the closed unit interval [0, 1] and a
+    // half-open lower-bound-exclusive interval.
+    let ds = shape_dataset(
+        "g:ConceptCategorization a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:typicality ; owl:allValuesFrom \
+           [ a rdfs:Datatype ; owl:onDatatype xsd:decimal ; owl:withRestrictions ( \
+              [ xsd:minInclusive \"0\"^^xsd:decimal ] \
+              [ xsd:maxInclusive \"1\"^^xsd:decimal ] ) ] ] .\n\
+         g:RationalValue a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:denominator ; owl:allValuesFrom \
+           [ a rdfs:Datatype ; owl:onDatatype xsd:integer ; owl:withRestrictions ( \
+              [ xsd:minExclusive \"0\"^^xsd:integer ] ) ] ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let typicality: Vec<&ConstraintComponent> = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .filter(|p| p.path.ends_with("typicality"))
+        .flat_map(|p| &p.components)
+        .collect();
+    assert!(
+        typicality.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::NumericRange {
+                min: Some(lo),
+                max: Some(hi),
+                min_inclusive: true,
+                max_inclusive: true,
+            } if *lo == 0.0 && *hi == 1.0
+        )),
+        "closed unit interval → sh:minInclusive 0 / sh:maxInclusive 1: {typicality:?}"
+    );
+    let denominator: Vec<&ConstraintComponent> = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .filter(|p| p.path.ends_with("denominator"))
+        .flat_map(|p| &p.components)
+        .collect();
+    assert!(
+        denominator.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::NumericRange {
+                min: Some(lo),
+                max: None,
+                min_inclusive: false,
+                ..
+            } if *lo == 0.0
+        )),
+        "lower-bound-exclusive → sh:minExclusive 0, no upper: {denominator:?}"
+    );
+}
+
+#[test]
 fn derive_non_faceted_blank_filler_is_skipped() {
     // A blank allValuesFrom filler that is NOT a faceted datatype (no owl:withRestrictions) is an
     // anonymous class expression — carried in the canon, never a bare blank shape → no component.
