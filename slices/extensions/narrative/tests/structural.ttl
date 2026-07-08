@@ -35,7 +35,6 @@
 #     -- SHACL validation negative call with error-text assertions; ExampleConformance,
 #     not a structural TBox assertion.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/narrative/tests/> .

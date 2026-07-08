@@ -29,17 +29,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
-        with:
-          # No cache on the privileged tag-release build: a PR run could write a
-          # cache entry this job would otherwise restore (cache-poisoning path).
-          # Releases are infrequent — a clean, hermetic build is worth more.
-          enable-cache: false
-
-      - name: Sync environment
-        run: uv sync --all-packages --frozen
-
       - name: Install Rust (nightly, native only)
         uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
         with:
@@ -61,8 +50,11 @@ jobs:
           make release-sign-gts SIGN_KEY=/tmp/gpg/signing-key.asc GTS_OUT=dist/gmeow.gts
           rm -f /tmp/gpg/signing-key.asc
 
+      - name: Build the gmeow CLI
+        run: make cli-build
+
       - name: Verify signed gmeow.gts
-        run: uv run gmeow verify dist/gmeow.gts
+        run: dist/bin/gmeow verify dist/gmeow.gts
 
       - name: Upload published artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

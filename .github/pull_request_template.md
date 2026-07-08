@@ -8,11 +8,11 @@
 
 ## Validation
 
-- [ ] `make lint` (ruff + mypy)
+- [ ] `make lint`
 - [ ] `make validate`
 - [ ] `make reason` (if the ontology changed)
 - [ ] `make mappings` / `make wikidata` (if mappings changed)
-- [ ] `uv run pytest`
+- [ ] `make rust-test`
 - [ ] docs updated if behaviour, flags, terms, or outputs changed
 
 ## Checklist

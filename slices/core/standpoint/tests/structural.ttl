@@ -64,7 +64,6 @@
 #   test_standpoint_maps_to_iptc_assertor -- load_mappings() call.
 #   test_claim_modality_maps_to_sosa_has_result -- load_mappings() call.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/standpoint/tests/> .

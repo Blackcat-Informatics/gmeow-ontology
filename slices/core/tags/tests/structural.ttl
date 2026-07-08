@@ -19,7 +19,6 @@
 #   rdf:type-involving pairs are trivially absent and kept in pytest for
 #   whole-graph closed-world proof.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/tags/tests/> .

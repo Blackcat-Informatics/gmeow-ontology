@@ -34,7 +34,6 @@
 #   test_schema_projection_emits_rights_cluster — project_graph();
 #     generated-artifact projection check.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/rights/tests/> .

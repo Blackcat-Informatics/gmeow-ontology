@@ -29,7 +29,6 @@
 #     the native reasoning test
 #     crates/logic/tests/ontology_entailments.rs::mental_reference_frame_hosted_instance_is_consistent.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/sensory-environment/tests/> .
