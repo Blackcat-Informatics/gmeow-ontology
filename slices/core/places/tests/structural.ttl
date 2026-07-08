@@ -42,7 +42,6 @@
 #     numeric Decimal equality checks on ABox fixture values.
 #   test_geometry_has_type_and_geojson -- ABox fixture object sweep.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/tests/> .

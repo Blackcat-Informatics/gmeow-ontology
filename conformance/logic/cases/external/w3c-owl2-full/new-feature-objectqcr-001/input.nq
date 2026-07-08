@@ -1,0 +1,8 @@
+<http://example.org/Chris> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Man> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-001/w> .
+<http://example.org/Man> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-001/w> .
+<http://example.org/Peter> <http://example.org/fatherOf> <http://example.org/Chris> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-001/w> .
+<http://example.org/Peter> <http://example.org/fatherOf> <http://example.org/Stewie> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-001/w> .
+<http://example.org/Stewie> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Man> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-001/w> .
+<http://example.org/Stewie> <http://www.w3.org/2002/07/owl#differentFrom> <http://example.org/Chris> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-001/w> .
+<http://example.org/fatherOf> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-001/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-001/w> .

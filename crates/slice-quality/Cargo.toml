@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-slice-quality"
+description = "Per-slice quality report + opinionated uplift advisor: reads the ontology-resident slice-quality rubric and scores a slice across the quality axes"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["quality", "ontology", "slices", "rubric", "gmeow"]
+
+[lib]
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+regex = "1"
+purrdf = "0.4"
+gmeow-errors = { path = "../errors" }
+# The validate crate owns the annotation invariants and structural lints the
+# information/prose axes report; the slice-quality kernel composes its verdicts
+# rather than re-deriving them.
+gmeow-validate = { path = "../validate" }
+# The typed documentation model + coverage/i18n dimensions the documentation and
+# translation axes bind to.
+gmeow-docs = { path = "../docs" }
+# The correspondence-calculus machinery the linkage axis binds: `extract_correspondences`
+# (the `logic:Correspondence` lens individuals — the calculus-routed set) and
+# `lint_dc_refinement` (names hand-authored `dc:` alignments the calculus should derive).
+# Already in the transitive tree (gmeow-docs / gmeow-logic depend on it); a leaf crate
+# with no reasoning-runtime or pipeline deps, so no dependency cycle.
+gmeow-logic-compile = { path = "../logic-compile" }
+# The native reasoner — the instrument the reasoner-derived axis dogfoods: the DL
+# closure gives inferential density, and leave-one-out over the closure proves
+# closure-redundant authored triples (Principles 8/12/18).
+gmeow-logic = { path = "../logic" }
+
+[dev-dependencies]
+pretty_assertions = "1"
+insta = { version = "1.48", features = ["json"] }

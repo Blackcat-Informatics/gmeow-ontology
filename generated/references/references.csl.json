@@ -66,12 +66,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://gedcomx.org/BiologicalParent",
-    "id": "biologicalparent-3bae741e",
-    "title": "gedcomx.org/BiologicalParent",
-    "type": "webpage"
-  },
-  {
     "URL": "http://gedcomx.org/v1/",
     "id": "v1-ca66d2a1",
     "title": "gedcomx.org/v1",
@@ -153,18 +147,6 @@
     "URL": "http://id.loc.gov/ontologies/bibframe/",
     "id": "bibframe-851bbf5d",
     "title": "id.loc.gov/ontologies/bibframe",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://id.loc.gov/ontologies/bibframe/Doi",
-    "id": "doi-46ce2ec3",
-    "title": "id.loc.gov/ontologies/bibframe/Doi",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://id.loc.gov/ontologies/bibframe/Identifier",
-    "id": "identifier-7d1b10b5",
-    "title": "id.loc.gov/ontologies/bibframe/Identifier",
     "type": "webpage"
   },
   {
@@ -372,18 +354,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://purl.obolibrary.org/obo/BFO_0000050",
-    "id": "bfo-0000050-cc6abbf6",
-    "title": "purl.obolibrary.org/obo/BFO_0000050",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://purl.obolibrary.org/obo/BFO_0000051",
-    "id": "bfo-0000051-852916bf",
-    "title": "purl.obolibrary.org/obo/BFO_0000051",
-    "type": "webpage"
-  },
-  {
     "URL": "http://purl.obolibrary.org/obo/GSSO_",
     "id": "gsso-0cfa3eb5",
     "title": "purl.obolibrary.org/obo/GSSO_",
@@ -462,39 +432,9 @@
     "type": "webpage"
   },
   {
-    "URL": "http://purl.org/dc/terms/hasPart",
-    "id": "haspart-af0cb032",
-    "title": "purl.org/dc/terms/hasPart",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://purl.org/dc/terms/isPartOf",
-    "id": "ispartof-e5728cc0",
-    "title": "purl.org/dc/terms/isPartOf",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://purl.org/dc/terms/isVersionOf",
-    "id": "isversionof-13890de8",
-    "title": "purl.org/dc/terms/isVersionOf",
-    "type": "webpage"
-  },
-  {
     "URL": "http://purl.org/dc/terms/method",
     "id": "method-12ab3c4b",
     "title": "purl.org/dc/terms/method",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://purl.org/dc/terms/modified",
-    "id": "modified-03dc1166",
-    "title": "purl.org/dc/terms/modified",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://purl.org/dc/terms/title",
-    "id": "title-18250c8e",
-    "title": "purl.org/dc/terms/title",
     "type": "webpage"
   },
   {
@@ -516,24 +456,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://purl.org/linked-data/cube#DataSet",
-    "id": "dataset-6a4f6548",
-    "title": "purl.org/linked-data/cube",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://purl.org/linked-data/cube#MeasureProperty",
-    "id": "measureproperty-89bf36a0",
-    "title": "purl.org/linked-data/cube",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://purl.org/linked-data/cube#Observation",
-    "id": "observation-c740850d",
-    "title": "purl.org/linked-data/cube",
-    "type": "webpage"
-  },
-  {
     "URL": "http://purl.org/nanopub/x/",
     "id": "x-3f872f42",
     "title": "purl.org/nanopub/x",
@@ -546,38 +468,14 @@
     "type": "webpage"
   },
   {
-    "URL": "http://purl.org/nemo/gufo#AbstractIndividualType",
-    "id": "abstractindividualtype-3082e06f",
-    "title": "purl.org/nemo/gufo",
-    "type": "webpage"
-  },
-  {
     "URL": "http://purl.org/nemo/gufo#Kind",
     "id": "kind-a1a09997",
     "title": "purl.org/nemo/gufo",
     "type": "webpage"
   },
   {
-    "URL": "http://purl.org/nemo/gufo#QualityValue",
-    "id": "qualityvalue-fb2523cf",
-    "title": "purl.org/nemo/gufo",
-    "type": "webpage"
-  },
-  {
     "URL": "http://purl.org/nemo/gufo#Relator",
     "id": "relator-055165c0",
-    "title": "purl.org/nemo/gufo",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://purl.org/nemo/gufo#TemporaryParthoodSituation",
-    "id": "temporaryparthoodsituation-50b9f332",
-    "title": "purl.org/nemo/gufo",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://purl.org/nemo/gufo#isComponentOf",
-    "id": "iscomponentof-d9c137d8",
     "title": "purl.org/nemo/gufo",
     "type": "webpage"
   },
@@ -630,12 +528,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://purl.org/vocab/bio/0.1/Birth",
-    "id": "birth-48d90034",
-    "title": "purl.org/vocab/bio/0.1/Birth",
-    "type": "webpage"
-  },
-  {
     "URL": "http://purl.org/vocab/frbr/core#",
     "id": "purl-org-24cc4785",
     "title": "purl.org/vocab/frbr/core",
@@ -648,18 +540,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://purl.org/vocab/relationship/childOf",
-    "id": "childof-72bd09fd",
-    "title": "purl.org/vocab/relationship/childOf",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://purl.org/vocab/relationship/hasMet",
-    "id": "hasmet-79fc4ade",
-    "title": "purl.org/vocab/relationship/hasMet",
-    "type": "webpage"
-  },
-  {
     "URL": "http://purl.org/vocab/vann/",
     "id": "vann-52c82103",
     "title": "purl.org/vocab/vann",
@@ -669,24 +549,6 @@
     "URL": "http://qudt.org/schema/qudt/",
     "id": "qudt-0ade1888",
     "title": "qudt.org/schema/qudt",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://qudt.org/schema/qudt/QuantityValue",
-    "id": "quantityvalue-d38a5245",
-    "title": "qudt.org/schema/qudt/QuantityValue",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://qudt.org/schema/qudt/quantityValue",
-    "id": "quantityvalue-719f1314",
-    "title": "qudt.org/schema/qudt/quantityValue",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://qudt.org/schema/qudt/standardUncertainty",
-    "id": "standarduncertainty-caca8c57",
-    "title": "qudt.org/schema/qudt/standardUncertainty",
     "type": "webpage"
   },
   {
@@ -764,12 +626,6 @@
   {
     "URL": "http://rdfs.org/sioc/ns#",
     "id": "rdfs-org-db975fd7",
-    "title": "rdfs.org/sioc/ns",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://rdfs.org/sioc/ns#container_of",
-    "id": "container-of-3c73a393",
     "title": "rdfs.org/sioc/ns",
     "type": "webpage"
   },
@@ -858,18 +714,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://usefulinc.com/ns/doap#Project",
-    "id": "project-95cb3378",
-    "title": "usefulinc.com/ns/doap",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://usefulinc.com/ns/doap#license",
-    "id": "license-2b0aab33",
-    "title": "usefulinc.com/ns/doap",
-    "type": "webpage"
-  },
-  {
     "URL": "http://vocab.getty.edu/ontology#",
     "id": "vocab-getty-edu-b15436b7",
     "title": "vocab.getty.edu/ontology",
@@ -936,18 +780,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://www.cidoc-crm.org/cidoc-crm/P46_is_composed_of",
-    "id": "p46-is-composed-of-b225490c",
-    "title": "www.cidoc-crm.org/cidoc-crm/P46_is_composed_of",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.cidoc-crm.org/cidoc-crm/P46i_forms_part_of",
-    "id": "p46i-forms-part-of-23d73423",
-    "title": "www.cidoc-crm.org/cidoc-crm/P46i_forms_part_of",
-    "type": "webpage"
-  },
-  {
     "URL": "http://www.cidoc-crm.org/crmarchaeo/",
     "id": "crmarchaeo-31bd4302",
     "title": "www.cidoc-crm.org/crmarchaeo",
@@ -969,12 +801,6 @@
     "URL": "http://www.cidoc-crm.org/lrmoo/",
     "id": "lrmoo-a00494b6",
     "title": "www.cidoc-crm.org/lrmoo",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.crossref.org/schema/5.4.0",
-    "id": "5-4-0-f238dd6d",
-    "title": "www.crossref.org/schema/5.4.0",
     "type": "webpage"
   },
   {
@@ -1011,12 +837,6 @@
     "URL": "http://www.ics.forth.gr/isl/CRMinf/",
     "id": "crminf-a4a18b47",
     "title": "www.ics.forth.gr/isl/CRMinf",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.ics.forth.gr/isl/CRMinf/I6_Belief_Value",
-    "id": "i6-belief-value-cacafd5c",
-    "title": "www.ics.forth.gr/isl/CRMinf/I6_Belief_Value",
     "type": "webpage"
   },
   {
@@ -1200,18 +1020,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://www.openarchives.org/OAI/2.0/oai_dc.xsd",
-    "id": "oai-dc-xsd-77455034",
-    "title": "www.openarchives.org/OAI/2.0/oai_dc.xsd",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.openarchives.org/OAI/2.0/oai_dc/",
-    "id": "oai-dc-6e591f0a",
-    "title": "www.openarchives.org/OAI/2.0/oai_dc",
-    "type": "webpage"
-  },
-  {
     "URL": "http://www.opengis.net/def/ont/sensorthings/1.1/",
     "id": "1-1-48a95481",
     "title": "www.opengis.net/def/ont/sensorthings/1.1",
@@ -1221,42 +1029,6 @@
     "URL": "http://www.opengis.net/ont/geosparql#",
     "id": "www-opengis-net-7e4e6084",
     "title": "GeoSPARQL",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.opengis.net/ont/geosparql#Geometry",
-    "id": "geometry-bdcd0972",
-    "title": "www.opengis.net/ont/geosparql",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.opengis.net/ont/geosparql#asWKT",
-    "id": "aswkt-f749d712",
-    "title": "www.opengis.net/ont/geosparql",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.opengis.net/ont/geosparql#geoJSONLiteral",
-    "id": "geojsonliteral-3739ec75",
-    "title": "www.opengis.net/ont/geosparql",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.opengis.net/ont/geosparql#sfContains",
-    "id": "sfcontains-63e4a9ec",
-    "title": "www.opengis.net/ont/geosparql",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.opengis.net/ont/geosparql#sfWithin",
-    "id": "sfwithin-8b21cfdb",
-    "title": "www.opengis.net/ont/geosparql",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.opengis.net/ont/geosparql#wktLiteral",
-    "id": "wktliteral-d0e3bf02",
-    "title": "www.opengis.net/ont/geosparql",
     "type": "webpage"
   },
   {
@@ -1281,12 +1053,6 @@
     "URL": "http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#",
     "id": "www-semanticdesktop-org-5f3142b6",
     "title": "www.semanticdesktop.org/ontologies/2007/03/22/nmo",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.tei-c.org/ns/1.0",
-    "id": "1-0-e07a9660",
-    "title": "www.tei-c.org/ns/1.0",
     "type": "webpage"
   },
   {
@@ -1350,26 +1116,8 @@
     "type": "webpage"
   },
   {
-    "URL": "http://www.w3.org/2000/01/rdf-schema#Literal",
-    "id": "literal-a582fb89",
-    "title": "www.w3.org/2000/01/rdf-schema",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/2000/01/rdf-schema#comment",
-    "id": "comment-badc27ef",
-    "title": "www.w3.org/2000/01/rdf-schema",
-    "type": "webpage"
-  },
-  {
     "URL": "http://www.w3.org/2000/01/rdf-schema#domain",
     "id": "domain-e016b75d",
-    "title": "www.w3.org/2000/01/rdf-schema",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/2000/01/rdf-schema#isDefinedBy",
-    "id": "isdefinedby-86772252",
     "title": "www.w3.org/2000/01/rdf-schema",
     "type": "webpage"
   },
@@ -1404,38 +1152,14 @@
     "type": "webpage"
   },
   {
-    "URL": "http://www.w3.org/2000/10/swap/pim/gedcom#Individual",
-    "id": "individual-515b679e",
-    "title": "www.w3.org/2000/10/swap/pim/gedcom",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/2000/10/swap/pim/gedcom#spouseIn",
-    "id": "spousein-00952d66",
-    "title": "www.w3.org/2000/10/swap/pim/gedcom",
-    "type": "webpage"
-  },
-  {
     "URL": "http://www.w3.org/2000/rdf-schema#",
     "id": "www-w3-org-7bf595b7",
     "title": "www.w3.org/2000/rdf-schema",
     "type": "webpage"
   },
   {
-    "URL": "http://www.w3.org/2000/svg",
-    "id": "svg-dd47c910",
-    "title": "www.w3.org/2000/svg",
-    "type": "webpage"
-  },
-  {
     "URL": "http://www.w3.org/2001/XMLSchema#",
     "id": "www-w3-org-2a1edc6f",
-    "title": "www.w3.org/2001/XMLSchema",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/2001/XMLSchema#boolean",
-    "id": "boolean-679b8dde",
     "title": "www.w3.org/2001/XMLSchema",
     "type": "webpage"
   },
@@ -1467,12 +1191,6 @@
     "URL": "http://www.w3.org/2001/XMLSchema#string",
     "id": "string-24ea0d6e",
     "title": "www.w3.org/2001/XMLSchema",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/2001/XMLSchema-instance",
-    "id": "xmlschema-instance-bd40ddf6",
-    "title": "www.w3.org/2001/XMLSchema-instance",
     "type": "webpage"
   },
   {
@@ -1602,12 +1320,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://www.w3.org/2002/07/owl#sameAs",
-    "id": "sameas-6a473f31",
-    "title": "www.w3.org/2002/07/owl",
-    "type": "webpage"
-  },
-  {
     "URL": "http://www.w3.org/2002/07/owl#someValuesFrom",
     "id": "somevaluesfrom-ce5894a9",
     "title": "www.w3.org/2002/07/owl",
@@ -1638,12 +1350,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://www.w3.org/2003/01/geo/wgs84_pos#lat",
-    "id": "lat-d623cd8c",
-    "title": "www.w3.org/2003/01/geo/wgs84_pos",
-    "type": "webpage"
-  },
-  {
     "URL": "http://www.w3.org/2003/12/exif/ns#",
     "id": "www-w3-org-75ce8e68",
     "title": "www.w3.org/2003/12/exif/ns",
@@ -1662,12 +1368,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://www.w3.org/2004/02/skos/core#definition",
-    "id": "definition-0f50d9b1",
-    "title": "www.w3.org/2004/02/skos/core",
-    "type": "webpage"
-  },
-  {
     "URL": "http://www.w3.org/2004/02/skos/core#exactMatch",
     "id": "exactmatch-8ddc6b8c",
     "title": "www.w3.org/2004/02/skos/core",
@@ -1680,81 +1380,9 @@
     "type": "webpage"
   },
   {
-    "URL": "http://www.w3.org/2006/time#inXSDDateTime",
-    "id": "inxsddatetime-7bc0a62f",
-    "title": "www.w3.org/2006/time",
-    "type": "webpage"
-  },
-  {
     "URL": "http://www.w3.org/2006/vcard/ns#",
     "id": "www-w3-org-1c58c476",
     "title": "vCard RDF vocabulary",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/2006/vcard/ns#Geo",
-    "id": "geo-e4b2cf8e",
-    "title": "www.w3.org/2006/vcard/ns",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/2006/vcard/ns#Name",
-    "id": "name-28980251",
-    "title": "www.w3.org/2006/vcard/ns",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/2006/vcard/ns#hasAddress",
-    "id": "hasaddress-86a2488f",
-    "title": "www.w3.org/2006/vcard/ns",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/2006/vcard/ns#hasGeo",
-    "id": "hasgeo-e9a92c15",
-    "title": "www.w3.org/2006/vcard/ns",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/2006/vcard/ns#hasName",
-    "id": "hasname-d4325c67",
-    "title": "www.w3.org/2006/vcard/ns",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/2006/vcard/ns#label",
-    "id": "label-7f18bff7",
-    "title": "www.w3.org/2006/vcard/ns",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/2006/vcard/ns#latitude",
-    "id": "latitude-f3929852",
-    "title": "www.w3.org/2006/vcard/ns",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/2006/vcard/ns#longitude",
-    "id": "longitude-d7823899",
-    "title": "www.w3.org/2006/vcard/ns",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/2006/vcard/ns#tz",
-    "id": "tz-3f3d1a54",
-    "title": "www.w3.org/2006/vcard/ns",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/ns/anno.jsonld",
-    "id": "anno-jsonld-327a5ba3",
-    "title": "www.w3.org/ns/anno.jsonld",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/ns/csvw",
-    "id": "csvw-7a2bdfb3",
-    "title": "www.w3.org/ns/csvw",
     "type": "webpage"
   },
   {
@@ -1812,38 +1440,8 @@
     "type": "webpage"
   },
   {
-    "URL": "http://www.w3.org/ns/lemon/lime#language",
-    "id": "language-243a8cad",
-    "title": "www.w3.org/ns/lemon/lime",
-    "type": "webpage"
-  },
-  {
     "URL": "http://www.w3.org/ns/lemon/ontolex#",
     "id": "www-w3-org-163f422f",
-    "title": "www.w3.org/ns/lemon/ontolex",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/ns/lemon/ontolex#Form",
-    "id": "form-b1a30d17",
-    "title": "www.w3.org/ns/lemon/ontolex",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/ns/lemon/ontolex#LexicalEntry",
-    "id": "lexicalentry-f12d9eac",
-    "title": "www.w3.org/ns/lemon/ontolex",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/ns/lemon/ontolex#lexicalForm",
-    "id": "lexicalform-0af60656",
-    "title": "www.w3.org/ns/lemon/ontolex",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/ns/lemon/ontolex#writtenRep",
-    "id": "writtenrep-62a48504",
     "title": "www.w3.org/ns/lemon/ontolex",
     "type": "webpage"
   },
@@ -1902,20 +1500,8 @@
     "type": "webpage"
   },
   {
-    "URL": "http://www.w3.org/ns/prov#Activity",
-    "id": "activity-501808b1",
-    "title": "www.w3.org/ns/prov",
-    "type": "webpage"
-  },
-  {
     "URL": "http://www.w3.org/ns/prov#endedAtTime",
     "id": "endedattime-f54d7895",
-    "title": "www.w3.org/ns/prov",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.w3.org/ns/prov#generatedAtTime",
-    "id": "generatedattime-52ce800e",
     "title": "www.w3.org/ns/prov",
     "type": "webpage"
   },
@@ -1944,18 +1530,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://www.wikidata.org/entity/P275",
-    "id": "p275-0210f32d",
-    "title": "www.wikidata.org/entity/P275",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.wikidata.org/entity/Q0",
-    "id": "q0-b27c1526",
-    "title": "www.wikidata.org/entity/Q0",
-    "type": "webpage"
-  },
-  {
     "URL": "http://www.wikidata.org/entity/Q12770764",
     "id": "q12770764-33e399e5",
     "title": "Wikidata Q12770764 (mastery)",
@@ -1965,12 +1539,6 @@
     "URL": "http://www.wikidata.org/entity/Q150",
     "id": "q150-894222d1",
     "title": "www.wikidata.org/entity/Q150",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.wikidata.org/entity/Q170028",
-    "id": "q170028-6d1fb08b",
-    "title": "www.wikidata.org/entity/Q170028",
     "type": "webpage"
   },
   {
@@ -2052,24 +1620,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://www.wikidata.org/prop/direct/P131",
-    "id": "p131-4b9a5c9c",
-    "title": "www.wikidata.org/prop/direct/P131",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.wikidata.org/prop/direct/P31",
-    "id": "p31-2e1eb0e6",
-    "title": "www.wikidata.org/prop/direct/P31",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://www.wikidata.org/prop/direct/Q42",
-    "id": "q42-3f9dc866",
-    "title": "www.wikidata.org/prop/direct/Q42",
-    "type": "webpage"
-  },
-  {
     "URL": "http://www.wikidata.org/prop/statement/",
     "id": "statement-fa0b014d",
     "title": "www.wikidata.org/prop/statement",
@@ -2088,21 +1638,9 @@
     "type": "webpage"
   },
   {
-    "URL": "http://xmlns.com/foaf/0.1/Person",
-    "id": "person-f5910e77",
-    "title": "xmlns.com/foaf/0.1/Person",
-    "type": "webpage"
-  },
-  {
     "URL": "http://xmlns.com/foaf/0.1/focus",
     "id": "focus-be871737",
     "title": "foaf:focus",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://xmlns.com/foaf/0.1/homepage",
-    "id": "homepage-7f647552",
-    "title": "xmlns.com/foaf/0.1/homepage",
     "type": "webpage"
   },
   {
@@ -2118,12 +1656,6 @@
     "type": "webpage"
   },
   {
-    "URL": "http://xmlns.com/foaf/spec/index.rdf",
-    "id": "index-rdf-9a9e6cdd",
-    "title": "xmlns.com/foaf/spec/index.rdf",
-    "type": "webpage"
-  },
-  {
     "URL": "http://xmlns.com/wot/0.1/",
     "id": "0-1-e9fd6724",
     "title": "xmlns.com/wot/0.1",
@@ -2133,24 +1665,6 @@
     "URL": "http://xmlns.com/wot/0.1/Endorsement",
     "id": "endorsement-6ce17b91",
     "title": "xmlns.com/wot/0.1/Endorsement",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://xmlns.com/wot/0.1/PubKey",
-    "id": "pubkey-ce57b9f1",
-    "title": "xmlns.com/wot/0.1/PubKey",
-    "type": "webpage"
-  },
-  {
-    "URL": "http://xmlns.com/wot/0.1/fingerprint",
-    "id": "fingerprint-9075bd94",
-    "title": "xmlns.com/wot/0.1/fingerprint",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://allenai.org/data/atomic",
-    "id": "atomic-1c190d66",
-    "title": "allenai.org/data/atomic",
     "type": "webpage"
   },
   {
@@ -2202,13 +1716,6 @@
     "type": "webpage"
   },
   {
-    "URL": "https://blackcatinformatics.ca/gmeow/references/work/diallo-a-2026-grounded-retrieval-68bdcb49",
-    "id": "diallo-a-2026-grounded-retrieval-68bdcb49-b34bafef",
-    "note": "Diallo, A. (2026). Grounded Retrieval.",
-    "title": "Diallo, A. (2026). Grounded Retrieval.",
-    "type": "webpage"
-  },
-  {
     "URL": "https://blackcatinformatics.ca/gmeow/references/work/diallo-a-2026-grounded-retrieval-over-content-addressed-corpora-291b4a4c",
     "id": "diallo-a-2026-grounded-retrieval-over-content-addressed-corpora-291b4a4c-b2a450d6",
     "note": "Diallo, A. (2026). Grounded Retrieval over Content-Addressed Corpora.",
@@ -2243,12 +1750,6 @@
     "URL": "https://brickschema.org/schema/Brick#",
     "id": "brickschema-org-5e45ca18",
     "title": "brickschema.org/schema/Brick",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://cdn.simplecss.org",
-    "id": "cdn-simplecss-org-64fa6aa6",
-    "title": "cdn.simplecss.org",
     "type": "webpage"
   },
   {
@@ -2459,12 +1960,6 @@
     "URL": "https://commons.wikimedia.org/wiki/Category:Bullshit",
     "id": "category-bullshit-2ad94bab",
     "title": "commons.wikimedia.org/wiki/Category:Bullshit",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://conceptnet.io/",
-    "id": "conceptnet-io-963667c0",
-    "title": "conceptnet.io",
     "type": "webpage"
   },
   {
@@ -3008,24 +2503,10 @@
     "type": "webpage"
   },
   {
-    "DOI": "10.1234/example",
-    "URL": "https://doi.org/10.1234/example",
-    "id": "doi-10-1234-example",
-    "title": "DOI 10.1234/example",
-    "type": "webpage"
-  },
-  {
     "DOI": "10.1234/meowgraph",
     "URL": "https://doi.org/10.1234/meowgraph",
     "id": "doi-10-1234-meowgraph",
     "title": "DOI 10.1234/meowgraph",
-    "type": "webpage"
-  },
-  {
-    "DOI": "10.1234/x",
-    "URL": "https://doi.org/10.1234/x",
-    "id": "doi-10-1234-x",
-    "title": "DOI 10.1234/x",
     "type": "webpage"
   },
   {
@@ -3149,24 +2630,6 @@
     "URL": "https://esco.ec.europa.eu/",
     "id": "esco-ec-europa-eu-01f56c30",
     "title": "esco.ec.europa.eu",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://ex/a",
-    "id": "a-6bff4208",
-    "title": "ex/a",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://ex/p",
-    "id": "p-ac4ff851",
-    "title": "ex/p",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://ex/s",
-    "id": "s-9d220209",
-    "title": "ex/s",
     "type": "webpage"
   },
   {
@@ -3596,12 +3059,6 @@
     "type": "webpage"
   },
   {
-    "URL": "https://mycorp.example/slices/languages",
-    "id": "languages-6b6d159b",
-    "title": "mycorp.example/slices/languages",
-    "type": "webpage"
-  },
-  {
     "URL": "https://nanopub.net/",
     "id": "nanopub-net-1fbd1b84",
     "title": "nanopub.net",
@@ -3623,12 +3080,6 @@
     "URL": "https://nodejs.org/dist/index.json",
     "id": "index-json-3d16d169",
     "title": "nodejs.org/dist/index.json",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://nope.example/",
-    "id": "nope-example-91a0a106",
-    "title": "nope.example",
     "type": "webpage"
   },
   {
@@ -3686,12 +3137,6 @@
     "type": "webpage"
   },
   {
-    "URL": "https://oops.linkeddata.es/rest",
-    "id": "rest-caa59630",
-    "title": "oops.linkeddata.es/rest",
-    "type": "webpage"
-  },
-  {
     "URL": "https://opencitations.net/ontology",
     "id": "ontology-b7f8b1d1",
     "title": "opencitations.net/ontology",
@@ -3701,12 +3146,6 @@
     "URL": "https://opencypher.org/",
     "id": "opencypher-org-266eec44",
     "title": "opencypher.org",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://opengeospatial.github.io/ogc-geosparql/geosparql11/geo.ttl",
-    "id": "geo-ttl-74e1e09c",
-    "title": "opengeospatial.github.io/ogc-geosparql/geosparql11/geo.ttl",
     "type": "webpage"
   },
   {
@@ -4082,57 +3521,15 @@
     "type": "webpage"
   },
   {
-    "URL": "https://schema.org/Brand",
-    "id": "brand-c8f2355d",
-    "title": "schema.org/Brand",
-    "type": "webpage"
-  },
-  {
     "URL": "https://schema.org/Claim",
     "id": "claim-0bd4524b",
     "title": "schema.org/Claim",
     "type": "webpage"
   },
   {
-    "URL": "https://schema.org/ClaimReview",
-    "id": "claimreview-944e362e",
-    "title": "schema.org/ClaimReview",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/CommunicateAction",
-    "id": "communicateaction-f83cc4fb",
-    "title": "schema.org/CommunicateAction",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/CreativeWork",
-    "id": "creativework-ff3b0140",
-    "title": "schema.org/CreativeWork",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/DataDownload",
-    "id": "datadownload-53a2155d",
-    "title": "schema.org/DataDownload",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/DataFeedItem",
-    "id": "datafeeditem-13f3501d",
-    "title": "schema.org/DataFeedItem",
-    "type": "webpage"
-  },
-  {
     "URL": "https://schema.org/EducationalOccupationalCredential",
     "id": "educationaloccupationalcredential-01ef6a46",
     "title": "schema.org/EducationalOccupationalCredential",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/EmailMessage",
-    "id": "emailmessage-67832f74",
-    "title": "schema.org/EmailMessage",
     "type": "webpage"
   },
   {
@@ -4148,51 +3545,9 @@
     "type": "webpage"
   },
   {
-    "URL": "https://schema.org/Organization",
-    "id": "organization-a4081561",
-    "title": "schema.org/Organization",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/Person",
-    "id": "person-34fda86e",
-    "title": "schema.org/Person",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/Place",
-    "id": "place-70319ff5",
-    "title": "schema.org/Place",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/Quotation",
-    "id": "quotation-0de10a3d",
-    "title": "schema.org/Quotation",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/Rating",
-    "id": "rating-661d8f9b",
-    "title": "schema.org/Rating",
-    "type": "webpage"
-  },
-  {
     "URL": "https://schema.org/Schedule",
     "id": "schedule-f3c9a654",
     "title": "schema.org/Schedule",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/VirtualLocation",
-    "id": "virtuallocation-d3ec33fa",
-    "title": "schema.org/VirtualLocation",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/addressLocality",
-    "id": "addresslocality-78476787",
-    "title": "schema.org/addressLocality",
     "type": "webpage"
   },
   {
@@ -4202,99 +3557,15 @@
     "type": "webpage"
   },
   {
-    "URL": "https://schema.org/dataFeedElement",
-    "id": "datafeedelement-93e3e23a",
-    "title": "schema.org/dataFeedElement",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/description",
-    "id": "description-e776daea",
-    "title": "schema.org/description",
-    "type": "webpage"
-  },
-  {
     "URL": "https://schema.org/docs/financial.html",
     "id": "financial-html-10dc5a90",
     "title": "schema.org/docs/financial.html",
     "type": "webpage"
   },
   {
-    "URL": "https://schema.org/hasPart",
-    "id": "haspart-d3dfaed2",
-    "title": "schema.org/hasPart",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/isPartOf",
-    "id": "ispartof-db91337d",
-    "title": "schema.org/isPartOf",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/mainEntityOfPage",
-    "id": "mainentityofpage-1e3bbf89",
-    "title": "schema.org/mainEntityOfPage",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/potentialAction",
-    "id": "potentialaction-b50da962",
-    "title": "schema.org/potentialAction",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/reviewRating",
-    "id": "reviewrating-cd7ccff0",
-    "title": "schema.org/reviewRating",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/sameAs",
-    "id": "sameas-23fb2d71",
-    "title": "schema.org/sameAs",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/sender",
-    "id": "sender-ef1c2aec",
-    "title": "schema.org/sender",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/streetAddress",
-    "id": "streetaddress-fa962ed4",
-    "title": "schema.org/streetAddress",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/target",
-    "id": "target-370fb8e2",
-    "title": "schema.org/target",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/toRecipient",
-    "id": "torecipient-8470eaef",
-    "title": "schema.org/toRecipient",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/url",
-    "id": "url-f1bcc90c",
-    "title": "schema.org/url",
-    "type": "webpage"
-  },
-  {
     "URL": "https://schema.org/validThrough",
     "id": "validthrough-9d955c3c",
     "title": "schema.org/validThrough",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://schema.org/version/latest/schemaorg-current-https.ttl",
-    "id": "schemaorg-current-https-ttl-5be0d357",
-    "title": "schema.org/version/latest/schemaorg-current-https.ttl",
     "type": "webpage"
   },
   {
@@ -4658,21 +3929,9 @@
     "type": "webpage"
   },
   {
-    "URL": "https://w3id.org/bot/bot.ttl",
-    "id": "bot-ttl-297bcb59",
-    "title": "w3id.org/bot/bot.ttl",
-    "type": "webpage"
-  },
-  {
     "URL": "https://w3id.org/dpv#",
     "id": "w3id-org-2bec88ff",
     "title": "w3id.org/dpv",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://w3id.org/foops/assessOntology",
-    "id": "assessontology-c794d828",
-    "title": "w3id.org/foops/assessOntology",
     "type": "webpage"
   },
   {
@@ -4702,12 +3961,6 @@
   {
     "URL": "https://w3id.org/gts/files#digest",
     "id": "digest-ed798cbd",
-    "title": "w3id.org/gts/files",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://w3id.org/gts/files#graph",
-    "id": "graph-00909fe1",
     "title": "w3id.org/gts/files",
     "type": "webpage"
   },
@@ -4832,12 +4085,6 @@
     "type": "webpage"
   },
   {
-    "URL": "https://w3id.org/linkml/",
-    "id": "linkml-cfd6c829",
-    "title": "w3id.org/linkml",
-    "type": "webpage"
-  },
-  {
     "URL": "https://w3id.org/phishing-process-ontology",
     "id": "phishing-process-ontology-45ade74d",
     "title": "w3id.org/phishing-process-ontology",
@@ -4958,12 +4205,6 @@
     "type": "webpage"
   },
   {
-    "URL": "https://www.commoncoreontologies.org/",
-    "id": "www-commoncoreontologies-org-96da8bb0",
-    "title": "www.commoncoreontologies.org",
-    "type": "webpage"
-  },
-  {
     "URL": "https://www.commonwl.org/",
     "id": "www-commonwl-org-879abd9f",
     "title": "www.commonwl.org",
@@ -4991,12 +4232,6 @@
     "URL": "https://www.crossref.org/documentation/schema-library/metadata-deposit-schema/",
     "id": "metadata-deposit-schema-5a085c30",
     "title": "www.crossref.org/documentation/schema-library/metadata-deposit-schema",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://www.crossref.org/schemas/crossref5.4.0.xsd",
-    "id": "crossref5-4-0-xsd-013132b0",
-    "title": "www.crossref.org/schemas/crossref5.4.0.xsd",
     "type": "webpage"
   },
   {
@@ -5163,12 +4398,6 @@
     "type": "webpage"
   },
   {
-    "URL": "https://www.ontologyportal.org/SUMO.owl",
-    "id": "sumo-owl-96b28abe",
-    "title": "www.ontologyportal.org/SUMO.owl",
-    "type": "webpage"
-  },
-  {
     "URL": "https://www.ontologyportal.org/SUMO.owl#knows",
     "id": "knows-bb9e7e11",
     "title": "SUMO knows",
@@ -5328,18 +4557,6 @@
     "URL": "https://www.w3.org/2003/12/exif/",
     "id": "exif-86c43c7f",
     "title": "www.w3.org/2003/12/exif",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://www.w3.org/2006/time.ttl",
-    "id": "time-ttl-9e8cd829",
-    "title": "www.w3.org/2006/time.ttl",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://www.w3.org/2006/vcard/ns.ttl",
-    "id": "ns-ttl-5ac09206",
-    "title": "www.w3.org/2006/vcard/ns.ttl",
     "type": "webpage"
   },
   {
@@ -5637,30 +4854,6 @@
     "type": "webpage"
   },
   {
-    "URL": "https://www.w3.org/ns/lemon/lime.owl",
-    "id": "lime-owl-d5e914d1",
-    "title": "www.w3.org/ns/lemon/lime.owl",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://www.w3.org/ns/lemon/ontolex.owl",
-    "id": "ontolex-owl-aa1b7045",
-    "title": "www.w3.org/ns/lemon/ontolex.owl",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://www.w3.org/ns/org.ttl",
-    "id": "org-ttl-5b3c69ad",
-    "title": "www.w3.org/ns/org.ttl",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://www.w3.org/ns/prov-o.ttl",
-    "id": "prov-o-ttl-75225888",
-    "title": "www.w3.org/ns/prov-o.ttl",
-    "type": "webpage"
-  },
-  {
     "URL": "https://www.w3.org/submissions/SWRL/",
     "id": "swrl-e47c2eb3",
     "title": "www.w3.org/submissions/SWRL",
@@ -5670,12 +4863,6 @@
     "URL": "https://www.w3.org/submissions/sioc-spec/",
     "id": "sioc-spec-bbb2da24",
     "title": "www.w3.org/submissions/sioc-spec",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://www.wikidata.org/entity/",
-    "id": "entity-0b35f8bf",
-    "title": "www.wikidata.org/entity",
     "type": "webpage"
   },
   {
@@ -5703,12 +4890,6 @@
     "type": "webpage"
   },
   {
-    "URL": "https://www.wikidata.org/w/api.php",
-    "id": "api-php-fcaf461b",
-    "title": "www.wikidata.org/w/api.php",
-    "type": "webpage"
-  },
-  {
     "URL": "https://www.wikidata.org/wiki/Help:Data_access",
     "id": "help-data-access-347e5b7c",
     "title": "www.wikidata.org/wiki/Help:Data_access",
@@ -5724,12 +4905,6 @@
     "URL": "https://www.wikidata.org/wiki/Help:Label",
     "id": "help-label-7a834f08",
     "title": "www.wikidata.org/wiki/Help:Label",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://www.wikidata.org/wiki/Property:P6553",
-    "id": "property-p6553-7c9407d3",
-    "title": "www.wikidata.org/wiki/Property:P6553",
     "type": "webpage"
   },
   {
@@ -5823,12 +4998,6 @@
     "type": "webpage"
   },
   {
-    "URL": "https://www.wikidata.org/wiki/Q191067",
-    "id": "q191067-38e30796",
-    "title": "www.wikidata.org/wiki/Q191067",
-    "type": "webpage"
-  },
-  {
     "URL": "https://www.wikidata.org/wiki/Q2063516",
     "id": "q2063516-1a4ecc3d",
     "title": "www.wikidata.org/wiki/Q2063516",
@@ -5850,12 +5019,6 @@
     "URL": "https://www.wikidata.org/wiki/Q3470998",
     "id": "q3470998-7aa2630f",
     "title": "www.wikidata.org/wiki/Q3470998",
-    "type": "webpage"
-  },
-  {
-    "URL": "https://www.wikidata.org/wiki/Q4503831",
-    "id": "q4503831-f893891b",
-    "title": "www.wikidata.org/wiki/Q4503831",
     "type": "webpage"
   },
   {

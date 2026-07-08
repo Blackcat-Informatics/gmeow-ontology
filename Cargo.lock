@@ -1868,6 +1868,7 @@ dependencies = [
 name = "gmeow-conformance"
 version = "0.1.0"
 dependencies = [
+ "blake3",
  "datatest-stable",
  "gmeow-errors",
  "gmeow-license",
@@ -1893,6 +1894,7 @@ dependencies = [
  "gmeow-logic-compile",
  "gmeow-music",
  "gmeow-pipeline",
+ "gmeow-slice-quality",
  "gmeow-validate",
  "predicates",
  "purrdf",
@@ -1915,7 +1917,6 @@ dependencies = [
  "pretty_assertions",
  "pulldown-cmark",
  "purrdf",
- "pyo3",
  "regex",
  "serde",
  "serde_json",
@@ -1929,7 +1930,6 @@ dependencies = [
  "blake3",
  "insta",
  "purrdf",
- "pyo3",
  "serde",
  "serde_json",
  "static_assertions",
@@ -1940,7 +1940,6 @@ name = "gmeow-foundation-corpus"
 version = "0.1.0"
 dependencies = [
  "purrdf",
- "pyo3",
  "serde",
  "serde_json",
  "tempfile",
@@ -1988,7 +1987,6 @@ dependencies = [
  "petgraph",
  "proptest",
  "purrdf",
- "pyo3",
  "rayon",
  "scryer-prolog",
  "serde_json",
@@ -2038,22 +2036,7 @@ name = "gmeow-music"
 version = "0.1.0"
 dependencies = [
  "purrdf",
- "pyo3",
  "roxmltree",
-]
-
-[[package]]
-name = "gmeow-native"
-version = "0.1.0"
-dependencies = [
- "gmeow-docs",
- "gmeow-errors",
- "gmeow-foundation-corpus",
- "gmeow-logic",
- "gmeow-music",
- "gmeow-pipeline",
- "gmeow-validate",
- "pyo3",
 ]
 
 [[package]]
@@ -2076,12 +2059,12 @@ dependencies = [
  "gmeow-lang-form",
  "gmeow-logic",
  "gmeow-logic-compile",
+ "gmeow-slice-quality",
  "gmeow-validate",
  "insta",
  "jsonschema",
  "parquet",
  "purrdf",
- "pyo3",
  "rayon",
  "serde",
  "serde_json",
@@ -2090,6 +2073,23 @@ dependencies = [
  "sha2",
  "tempfile",
  "ureq",
+]
+
+[[package]]
+name = "gmeow-slice-quality"
+version = "0.1.0"
+dependencies = [
+ "gmeow-docs",
+ "gmeow-errors",
+ "gmeow-logic",
+ "gmeow-logic-compile",
+ "gmeow-validate",
+ "insta",
+ "pretty_assertions",
+ "purrdf",
+ "regex",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -2122,7 +2122,6 @@ dependencies = [
  "insta",
  "jsonschema",
  "purrdf",
- "pyo3",
  "rayon",
  "regex",
  "rstest",
@@ -4173,63 +4172,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pyo3"
-version = "0.29.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd274650b21d4bfc26a0a47587962c1edb425f69287324355cd040c3ea66071c"
-dependencies = [
- "libc",
- "once_cell",
- "portable-atomic",
- "pyo3-build-config",
- "pyo3-ffi",
- "pyo3-macros",
-]
-
-[[package]]
-name = "pyo3-build-config"
-version = "0.29.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5e2a7d2f0d013342f295c048ad19237add5154a55b1c5a254c0ec93d4109078"
-dependencies = [
- "target-lexicon",
-]
-
-[[package]]
-name = "pyo3-ffi"
-version = "0.29.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca85c467da1bbc8d866eea5deff9cf29ea5f7785054a17da36e65bda9c05845b"
-dependencies = [
- "libc",
- "pyo3-build-config",
-]
-
-[[package]]
-name = "pyo3-macros"
-version = "0.29.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ac53762fd065daa3194dd09337a38bd793a188100fd1a9304c4ab312d901771"
-dependencies = [
- "proc-macro2",
- "pyo3-macros-backend",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "pyo3-macros-backend"
-version = "0.29.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ca3a1557399783172dc5bf39cfca835157732532cba56b71d2292161e53b362"
-dependencies = [
- "heck 0.5.0",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "quick-error"
 version = "1.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5262,12 +5204,6 @@ name = "tap"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
-
-[[package]]
-name = "target-lexicon"
-version = "0.13.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "adb6935a6f5c20170eeceb1a3835a49e12e19d792f6dd344ccc76a985ca5a6ca"
 
 [[package]]
 name = "tempfile"

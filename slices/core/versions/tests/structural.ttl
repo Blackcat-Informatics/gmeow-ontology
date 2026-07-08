@@ -16,7 +16,6 @@
 #   slices/extensions/languages/module.ttl, not here; a scopeModule cell would
 #   silently miss it.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/versions/tests/> .
@@ -131,8 +130,7 @@ ASK {
 
 # (membershipAuthority's `subPropertyOf vantage` bridge is asserted in the OBSERVATIONS
 #  module, not versions, so it cannot be a versions module-scoped cell — it is already
-#  covered by observations' ex:saPropertyBridges. test_membership_authority_bridges_to_vantage
-#  is therefore retained-with-reason in pytest, see dsl/tests/MIGRATION-LEDGER.md.)
+#  covered by observations' ex:saPropertyBridges.)
 
 # --- 7. versionFingerprint is a DatatypeProperty with domain Entity (MUST) ----
 ex:saVersionFingerprintProperty a gmeow:StructuralAssertion ;

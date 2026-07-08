@@ -21,10 +21,10 @@ a deliberate cost/fidelity trade-off.
 | Declarative slice tests | `slices/**/tests/*.ttl` | `crates/slicetest` (cargo-nextest) | structural invariants, competency questions, example conformance |
 | Bespoke Python tests | `tests/`, `slices/**/tests/test_*.py` | pytest | assertions the declarative form can't express (numeric/temporal logic, generated-artifact checks, dynamic-set sweeps) |
 
-The migration of the repetitive rdflib structural/competency tests into the
-declarative layer is tracked in `dsl/tests/MIGRATION-LEDGER.md`. Nothing is
-silently dropped: every former pytest assertion is either converted (with a
-declarative twin that executes) or retained-with-reason in the ledger.
+The repetitive rdflib structural/competency tests now live entirely in the
+declarative layer, executed by the native Rust harness. Nothing is silently
+dropped: every structural invariant and competency question is expressed as a
+declarative cell that executes on every gate.
 
 ## The declarative test-DSL
 

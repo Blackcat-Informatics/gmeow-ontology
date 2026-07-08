@@ -1,0 +1,7 @@
+<http://www.w3.org/2002/03owlt/oneOf/premises002#TShirt> <http://www.w3.org/2002/07/owl#oneOf> _:rdfxml_list_00000000000000000000000000 <https://gmeow.example/w3c-owl2-full/webont-oneof-002/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.w3.org/2002/03owlt/oneOf/premises002#small> <https://gmeow.example/w3c-owl2-full/webont-oneof-002/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_list_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/webont-oneof-002/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.w3.org/2002/03owlt/oneOf/premises002#medium> <https://gmeow.example/w3c-owl2-full/webont-oneof-002/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_list_00000000000000000000000002 <https://gmeow.example/w3c-owl2-full/webont-oneof-002/w> .
+_:rdfxml_list_00000000000000000000000002 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.w3.org/2002/03owlt/oneOf/premises002#large> <https://gmeow.example/w3c-owl2-full/webont-oneof-002/w> .
+_:rdfxml_list_00000000000000000000000002 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/webont-oneof-002/w> .

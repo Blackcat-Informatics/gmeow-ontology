@@ -1,0 +1,6 @@
+<http://www.example.org#w> <http://www.example.org#p> <http://www.example.org#x> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-restrict-maxqcr-inst-obj-zero/w> .
+<http://www.example.org#w> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.example.org#z> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-restrict-maxqcr-inst-obj-zero/w> .
+<http://www.example.org#x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.example.org#c> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-restrict-maxqcr-inst-obj-zero/w> .
+<http://www.example.org#z> <http://www.w3.org/2002/07/owl#maxQualifiedCardinality> "0"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-restrict-maxqcr-inst-obj-zero/w> .
+<http://www.example.org#z> <http://www.w3.org/2002/07/owl#onClass> <http://www.example.org#c> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-restrict-maxqcr-inst-obj-zero/w> .
+<http://www.example.org#z> <http://www.w3.org/2002/07/owl#onProperty> <http://www.example.org#p> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-restrict-maxqcr-inst-obj-zero/w> .

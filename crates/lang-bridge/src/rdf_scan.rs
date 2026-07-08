@@ -232,6 +232,7 @@ pub(crate) fn lossy_lens_correspondence(
         None,
         None,
         None,
+        None,
     )
     .expect("lossy-lens projection correspondence is well-formed by construction")
 }

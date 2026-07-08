@@ -1,0 +1,3 @@
+<http://www.w3.org/2002/03owlt/disjointWith/premises002#A> <http://www.w3.org/2002/07/owl#disjointWith> <http://www.w3.org/2002/03owlt/disjointWith/premises002#B> <https://gmeow.example/w3c-owl2-full/webont-disjointwith-002/w> .
+<http://www.w3.org/2002/03owlt/disjointWith/premises002#a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/03owlt/disjointWith/premises002#A> <https://gmeow.example/w3c-owl2-full/webont-disjointwith-002/w> .
+<http://www.w3.org/2002/03owlt/disjointWith/premises002#b> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/03owlt/disjointWith/premises002#B> <https://gmeow.example/w3c-owl2-full/webont-disjointwith-002/w> .

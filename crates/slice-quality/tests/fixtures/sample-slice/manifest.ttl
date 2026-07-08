@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A tiny, self-contained fixture slice used ONLY by the byte-golden render test
+# (tests/render_goldens.rs). It is deliberately minimal and machine-independent:
+# its identity is a stable absolute IRI (never a filesystem path), so the four
+# golden renderings (text/json/sarif/rdf) are reproducible on any machine and
+# change only when a render FORMAT changes — not when a real slice changes.
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/sample-slice>
+    a gmeow:Slice ;
+    rdfs:label "sample-slice"@x-gmeow-english ;
+    skos:definition "A synthetic single-term fixture slice used by the slice-quality byte-golden render test — not a real GMEOW slice, and never loaded by the pipeline."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sample-slice> ;
+    dcterms:title "GMEOW Slice-Quality Golden Fixture Slice"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    gmeow:sliceConsumer "The slice-quality byte-golden render test."@x-gmeow-english .

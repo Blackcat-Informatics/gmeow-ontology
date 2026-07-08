@@ -1,8 +1,0 @@
-Source: slices/extensions/music/tests/test_music_time.py
-run_shacl() call-sites (real): 10; def test_ functions: 21
-  11 TBox -> conformance_music_time.rs GraphStore::parse_ttl_file(music module.ttl): subClassOf/subPropertyOf,
-    26 functional + 2 not-functional, individual existence (frame/tempoMap/metricStructure/meterAssignment/
-    polymeterPattern/tuplet/sqrt2-canon incl tempoRatioExpression literal).
-  10 SHACL -> Case::inline (whole corpus, honest ABox completion) with exact substrings:
-    "exactly one MusicalTimeFrame", "positive start denominator", "exactly one encoding" (x2),
-    "exactly one carrier", "rational string"; 4 conforming (span-valid, tuplet, canon, tempo-map-segment).

@@ -70,6 +70,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/quality> ,
         <https://blackcatinformatics.ca/gmeow/slices/rights> ,
         <https://blackcatinformatics.ca/gmeow/slices/sexuality> ,
+        <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ,
         <https://blackcatinformatics.ca/gmeow/slices/sources> ,
         <https://blackcatinformatics.ca/gmeow/slices/standpoint> ,
         <https://blackcatinformatics.ca/gmeow/slices/tags> ,
