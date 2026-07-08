@@ -60,6 +60,22 @@ impl Severity {
         }
     }
 
+    /// The inverse of the RDF projection's severity-individual local name — the
+    /// right-inverse (section) of `render::severity_individual`, which maps
+    /// `Error → "severityError"`, etc. Reads back the `gmeow:findingSeverity`
+    /// object's local name from the `graph/diagnostics` projection. `None` for an
+    /// unknown token so a corrupt projection is a caller-surfaced hard fail, never a
+    /// silent default.
+    pub fn from_individual_local(local: &str) -> Option<Self> {
+        match local {
+            "severityError" => Some(Self::Error),
+            "severityWarning" => Some(Self::Warning),
+            "severityNote" => Some(Self::Note),
+            "severityInfo" => Some(Self::Info),
+            _ => None,
+        }
+    }
+
     /// SARIF level spelling.
     pub fn sarif_level(self) -> &'static str {
         match self {
@@ -181,6 +197,25 @@ impl FindingCategory {
             Self::ProjectionLoss => "projection-loss",
             Self::PolicyWarning => "policy-warning",
             Self::Transient => "transient-chatter",
+        }
+    }
+
+    /// The inverse of [`iri_local`](FindingCategory::iri_local) — read the
+    /// `logic:Finding*` individual's local name (`gmeow:findingCategory` object)
+    /// back into the category. The section of the RDF projection's category leg.
+    /// `None` for an unknown local name (hard fail, never a silent default).
+    pub fn from_iri_local(local: &str) -> Option<Self> {
+        match local {
+            "FindingDataShapeViolation" => Some(Self::DataShapeViolation),
+            "FindingModelingDisciplineViolation" => Some(Self::ModelingDisciplineViolation),
+            "FindingContradictionWitness" => Some(Self::ContradictionWitness),
+            "FindingPermittedEpistemicConflict" => Some(Self::PermittedEpistemicConflict),
+            "FindingUnsupportedSemanticFeature" => Some(Self::UnsupportedSemanticFeature),
+            "FindingIncompleteCheck" => Some(Self::IncompleteCheck),
+            "FindingProjectionLoss" => Some(Self::ProjectionLoss),
+            "FindingPolicyWarning" => Some(Self::PolicyWarning),
+            "FindingTransientChatter" => Some(Self::Transient),
+            _ => None,
         }
     }
 
