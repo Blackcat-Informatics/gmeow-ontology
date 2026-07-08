@@ -84,7 +84,10 @@ use crate::seam::{BudgetStatus, ScryerForeign};
 /// A `Const("<iri>")` → [`EvalTerm::ConstNamed`] (angle brackets stripped); a `Var(v)` →
 /// `EvalTerm::Var("?v")` (the engine's variable surface carries a leading `?`, matching
 /// `parse_eval_rules`); a `Num` is an arithmetic operand the native core does not carry.
-fn term_of(t: &QTerm) -> Result<EvalTerm, UnsupportedKind> {
+///
+/// Shared with the n-ary generic backward path ([`super::magic_generic`]): the same
+/// `QTerm → EvalTerm` codec lowers a generic atom's positional args.
+pub(super) fn term_of(t: &QTerm) -> Result<EvalTerm, UnsupportedKind> {
     match t {
         QTerm::Const(c) => {
             let iri = c
@@ -168,7 +171,11 @@ fn atom_of(atom: &QAtom) -> Result<EvalAtom, UnsupportedKind> {
 ///
 /// Derived from the original predicate IRI: the base (everything up to and including the
 /// last `/` or `#`) plus `magic/<localname>_<adorn>`.  Stable across runs.
-fn magic_pred_iri(pred: &str, adorn: &str) -> String {
+///
+/// A plain, arity-agnostic string transform: the n-ary generic backward path
+/// ([`super::magic_generic`]) mints its magic-relation IRIs through the SAME function, so a
+/// generic magic relation and a binary one share the identical minting rule.
+pub(super) fn magic_pred_iri(pred: &str, adorn: &str) -> String {
     let split = pred.rfind(['/', '#']).map_or(pred.len(), |i| i + 1);
     let (base, local) = pred.split_at(split);
     // `base` ends with the separator; nest the magic predicates under `magic/` so they
@@ -629,14 +636,33 @@ pub(crate) fn resolve_native(
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut));
     }
 
-    // The corpus goal is a single binary atom; the native backward leg handles exactly
-    // that.  A multi-atom conjunctive goal (or a non-binary goal atom) is a declared gap.
+    // The backward leg handles a SINGLE goal atom; a multi-atom conjunctive goal is a
+    // declared gap on either path.
     if program.goal.atoms.len() != 1 {
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
     }
     let goal = &program.goal.atoms[0];
-    if goal.args.len() != 2 {
-        return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
+
+    // ── Arity-eligibility dispatch (mirrors the forward oracle's binary/generic split
+    //    at `crate::oracle`'s `binary_eligible`) ────────────────────────────────────
+    //
+    // The binary fragment stays on the byte-identical binary magic path below (it carries
+    // the arithmetic-builtin seminaive constraint stage the binary corpus depends on).
+    // ANY atom of arity != 2 — the goal, a rule head, or a rule body atom — routes to the
+    // arity-generic n-ary evaluator, which resolves the real predicate-as-data
+    // `triple(s, p, o, w)` shape the binary store cannot query.  A builtin literal is not
+    // an atom (it never carries an argument position) and never disqualifies the binary
+    // path: the binary arithmetic corpus stays binary.
+    let binary_eligible = goal.args.len() == 2
+        && program.rules.iter().all(|r| {
+            r.head.args.len() == 2
+                && r.body.iter().all(|lit| match lit {
+                    QBodyLit::Atom(a) => a.args.len() == 2,
+                    QBodyLit::Builtin(_) | QBodyLit::Cut => true,
+                })
+        });
+    if !binary_eligible {
+        return super::magic_generic::resolve_native_generic(foreign, world, program, budget);
     }
 
     // (1) Convert program rules → binary EvalRules, splitting each body into its atoms
@@ -1216,30 +1242,11 @@ mod tests {
         );
     }
 
-    #[test]
-    fn magic_non_binary_goal_is_unsupported() {
-        let (store, world_nn) = make_world(&[(
-            &format!("{BASE}a"),
-            &format!("{BASE}parentOf"),
-            &format!("{BASE}b"),
-        )]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
-        // get/3 is a non-binary (ternary) IDB atom — outside the binary native fragment.
-        let src = format!(
-            ":- prefix(ex, '{BASE}').\n\
-             ex:get(L, N, X) :- ex:parentOf(L, X).\n\
-             ?- ex:get(ex:a, ex:b, X).\n"
-        );
-        let prog = parse_query_program(&src).unwrap();
-        let outcome = resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
-        assert!(
-            matches!(
-                outcome,
-                NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom)
-            ),
-            "non-binary goal atom must be Unsupported(NonBinaryAtom): {outcome:?}"
-        );
-    }
+    // NOTE: a non-binary goal atom is NO LONGER a binary-path `Unsupported(NonBinaryAtom)`
+    // gap — the arity-eligibility dispatch in `resolve_native` routes it to the arity-generic
+    // n-ary evaluator instead (see `super::magic_generic`, where the `triple(s, p, o, w)`
+    // predicate-as-data resolution and its demand-provenance coverage live). Only a
+    // multi-atom conjunctive goal remains a declared gap on the binary leg.
 
     // ── Budget: max_answers truncation parity ────────────────────────────────────
 

@@ -21,6 +21,7 @@ mod builtin_eval;
 mod chase;
 mod generic;
 mod magic;
+mod magic_generic;
 mod parity;
 mod seminaive;
 mod store;
