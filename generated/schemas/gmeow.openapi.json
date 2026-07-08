@@ -458,7 +458,6 @@
         "type": "object"
       },
       "AffectDecision": {
-        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -486,7 +485,6 @@
               {},
               {
                 "items": {},
-                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -497,7 +495,6 @@
               {},
               {
                 "items": {},
-                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -506,9 +503,7 @@
         "required": [
           "gmeow:decidedLabel",
           "gmeow:decisionCrossedThreshold",
-          "gmeow:derivedByFunction",
-          "gmeow:observedFeature",
-          "gmeow:vantage"
+          "gmeow:observedFeature"
         ],
         "type": "object"
       },
