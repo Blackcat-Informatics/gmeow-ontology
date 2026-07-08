@@ -13,7 +13,7 @@ use std::path::Path;
 
 use gmeow_cli_core::{ConsoleMode, DiagnosticsConfig};
 use gmeow_errors::Report;
-use gmeow_slice_quality::model::{Rubric, Tier};
+use gmeow_slice_quality::model::{Rubric, SliceAssessment, Tier};
 use gmeow_slice_quality::report::{SliceReport, score_slice, score_slice_with_rubric};
 
 use crate::dev_common::{fail, project_root};
@@ -226,17 +226,17 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
     // The RDF projection concatenates validly (deterministic N-Quads, one graph), so
     // it is streamed into a single buffer and printed once.
     let mut rdf_out = String::new();
+    // The text default is the repo-wide PRIORITIZATION view (G12): the per-axis
+    // profile vectors are collected here and, after the sweep, folded into the
+    // deterministic Pareto-frontier + capping-axis prioritization. The assessment
+    // (the primary object) and the advisory count (display only) are all it needs.
+    let mut profiles: Vec<(SliceAssessment, usize)> = Vec::new();
     for dir in &dirs {
         match score_slice_with_rubric(dir, rubric.clone()) {
             Ok(report) => {
                 match format {
                     Format::Text => {
-                        println!(
-                            "{}\t{}\t{} advice",
-                            report.assessment.slice,
-                            report.rollup_label(),
-                            report.advisories.len()
-                        );
+                        profiles.push((report.assessment.clone(), report.advisories.len()));
                     }
                     Format::Rdf => rdf_out.push_str(&report.to_gmeow_rdf()),
                     // Json/Sarif are emitted once, after the loop, from `aggregate`.
@@ -276,7 +276,21 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
             Err(e) => return fail(e.to_string()),
         },
         Format::Rdf => print!("{rdf_out}"),
-        Format::Text => {}
+        Format::Text => {
+            // The enriched text default: the repo-wide Pareto-frontier + capping-axis
+            // prioritization, computed across every swept slice's profile vector.
+            let inputs: Vec<gmeow_slice_quality::prioritize::SliceInput> = profiles
+                .iter()
+                .map(
+                    |(assessment, advice_count)| gmeow_slice_quality::prioritize::SliceInput {
+                        assessment,
+                        advice_count: *advice_count,
+                    },
+                )
+                .collect();
+            let rows = gmeow_slice_quality::prioritize::prioritize(&inputs, &rubric);
+            print!("{}", gmeow_slice_quality::prioritize::render_text(&rows));
+        }
     }
     aggregate
         .metadata
