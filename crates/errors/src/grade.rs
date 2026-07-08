@@ -206,10 +206,12 @@ impl BoundedLattice for Blocking {
 
 impl FindingCategory {
     /// The gating projection of a category. Exactly the three *failure* kinds are
-    /// Blocking; the other five — including [`PermittedEpistemicConflict`] — are
-    /// Coherent and can never contribute to gate fatality.
+    /// Blocking; the other six — including [`PermittedEpistemicConflict`] and the
+    /// [`Transient`] chatter kind — are Coherent and can never contribute to gate
+    /// fatality.
     ///
     /// [`PermittedEpistemicConflict`]: FindingCategory::PermittedEpistemicConflict
+    /// [`Transient`]: FindingCategory::Transient
     pub fn blocking(self) -> Blocking {
         match self {
             Self::DataShapeViolation
@@ -219,7 +221,8 @@ impl FindingCategory {
             | Self::UnsupportedSemanticFeature
             | Self::IncompleteCheck
             | Self::ProjectionLoss
-            | Self::PolicyWarning => Blocking::Coherent,
+            | Self::PolicyWarning
+            | Self::Transient => Blocking::Coherent,
         }
     }
 
@@ -236,12 +239,17 @@ impl FindingCategory {
             Self::UnsupportedSemanticFeature
             | Self::IncompleteCheck
             | Self::ProjectionLoss
-            | Self::PolicyWarning => Belnap::Neither,
+            | Self::PolicyWarning
+            | Self::Transient => Belnap::Neither,
         }
     }
 
     /// A deterministic total order on categories, used only to break ties when two
-    /// equally-blocking categories merge — so the merge is commutative.
+    /// equally-blocking categories merge — so the merge is commutative. The smaller
+    /// rank wins the tie-break, so the [`Transient`] chatter kind sits LAST (the
+    /// weakest): merging it against any real category always keeps the real one.
+    ///
+    /// [`Transient`]: FindingCategory::Transient
     fn merge_rank(self) -> u8 {
         match self {
             Self::DataShapeViolation => 0,
@@ -252,10 +260,11 @@ impl FindingCategory {
             Self::IncompleteCheck => 5,
             Self::ProjectionLoss => 6,
             Self::PolicyWarning => 7,
+            Self::Transient => 8,
         }
     }
 
-    pub const ALL: [FindingCategory; 8] = [
+    pub const ALL: [FindingCategory; 9] = [
         FindingCategory::DataShapeViolation,
         FindingCategory::ModelingDisciplineViolation,
         FindingCategory::ContradictionWitness,
@@ -264,6 +273,7 @@ impl FindingCategory {
         FindingCategory::IncompleteCheck,
         FindingCategory::ProjectionLoss,
         FindingCategory::PolicyWarning,
+        FindingCategory::Transient,
     ];
 }
 
@@ -597,6 +607,24 @@ mod tests {
                 expected,
                 "gate fatal region mismatch at {g:?}"
             );
+        }
+    }
+
+    #[test]
+    fn transient_chatter_never_gates_and_takes_no_stance() {
+        // The closed chatter kind is non-gating at EVERY severity and standpoint,
+        // and carries no coherence stance — it is transient bookkeeping only.
+        assert_eq!(FindingCategory::Transient.blocking(), Blocking::Coherent);
+        assert_eq!(FindingCategory::Transient.polarity(), Belnap::Neither);
+        for &sev in &Severity::ALL {
+            for &standpoint in &Standpoint::ALL {
+                let g = Grade::new(sev, FindingCategory::Transient, standpoint);
+                assert_ne!(
+                    gate(g),
+                    GateVerdict::Fatal,
+                    "transient chatter must never gate: {g:?}"
+                );
+            }
         }
     }
 
