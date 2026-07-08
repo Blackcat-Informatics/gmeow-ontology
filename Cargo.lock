@@ -2093,6 +2093,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-slice-quality"
+version = "0.1.0"
+dependencies = [
+ "gmeow-docs",
+ "gmeow-errors",
+ "gmeow-validate",
+ "insta",
+ "pretty_assertions",
+ "purrdf",
+ "regex",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "gmeow-slicetest"
 version = "0.1.0"
 dependencies = [

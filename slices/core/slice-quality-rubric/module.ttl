@@ -45,6 +45,7 @@ gmeow:tierRegistered
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Registered"@x-gmeow-english ;
     skos:definition "The floor tier: the slice exists, is registered, and parses — but carries no measured grounding, linkage, or exemplification. The bottom of the lattice."@x-gmeow-english ;
+    gmeow:tierRank 0 ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:tierGrounded
@@ -52,6 +53,7 @@ gmeow:tierGrounded
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Grounded"@x-gmeow-english ;
     skos:definition "The slice's concepts are grounded on the triad (logic/math/lang) and carry their annotation coat — but are not yet richly linked, projected, or exemplified."@x-gmeow-english ;
+    gmeow:tierRank 1 ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:tierLinked
@@ -59,6 +61,7 @@ gmeow:tierLinked
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Linked"@x-gmeow-english ;
     skos:definition "Grounded, and additionally linked and projected: mappings at honest rungs, authority links, and content surviving into the projection surfaces."@x-gmeow-english ;
+    gmeow:tierRank 2 ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:tierExemplified
@@ -66,6 +69,7 @@ gmeow:tierExemplified
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Exemplified"@x-gmeow-english ;
     skos:definition "Linked, and additionally exemplified and tested: worked examples including the epistemically hard case, counter-examples that clash, and competency cells that need reasoning."@x-gmeow-english ;
+    gmeow:tierRank 3 ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:tierMaximal
@@ -73,6 +77,7 @@ gmeow:tierMaximal
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Maximal"@x-gmeow-english ;
     skos:definition "The top of the lattice: every axis at its richest configuration — maximal grounding, linkage, projection, testing, documentation, prose quality, and full tri-language translation. The bar the grounding slices and this rubric slice itself must meet."@x-gmeow-english ;
+    gmeow:tierRank 4 ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 #################################################################
