@@ -1,0 +1,15 @@
+# Competency: the corpus entailment pre-order must support CONTRAPOSITIVE
+# propagation of refutation. If phi entails psi (logic:conjectureEntails) and psi is
+# refuted-in-standpoint, then phi cannot stand — phi is on the propagation frontier
+# and must be re-tested. This selects each entailing conjecture ?phi paired with the
+# refuted ?psi it entails, the load-bearing consumer of logic:conjectureEntails. It
+# answers "which standing conjectures does a fresh refutation put in jeopardy?"
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?phi ?psi WHERE {
+    ?phi a logic:Conjecture ;
+         logic:conjectureEntails ?psi .
+    ?psi a logic:Conjecture ;
+         logic:conjectureLifecycleState logic:ConjectureRefutedInStandpoint .
+}
+ORDER BY ?phi ?psi

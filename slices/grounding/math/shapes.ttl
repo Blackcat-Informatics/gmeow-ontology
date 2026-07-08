@@ -1428,6 +1428,33 @@ math:FormalVerificationResultShape
         """ ;
     ] .
 
+# Rule — a theorem claim is not a truth bit: it carries a theory context and a
+# proof or a declared external warrant.
+math:TheoremGroundingShape
+    a sh:NodeShape ;
+    rdfs:label "Theorem grounding shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:Theorem: theorem-hood is not a truth bit read off the type. A theorem claim carries a theory context (math:roleInTheory, sh:minCount 1) AND either an in-graph math:Proof (some resource math:provesStatement it) or a declared math:externalWarrant. A bare `a math:Theorem` with no theory context, or a theorem with a theory context but neither a proof nor an external warrant, is ill-formed (math:UngroundedTheoremClaim)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    math:enforcesFailureClass math:UngroundedTheoremClaim ;
+    sh:targetClass math:Theorem ;
+    sh:property [
+        sh:path math:roleInTheory ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Theorem must carry a theory context through math:roleInTheory (the named, versioned theory its theorem-hood holds in); a bare theorem with no theory context is a truth-bit claim and is ill-formed (math:UngroundedTheoremClaim)." ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:Theorem must be warranted by either an in-graph math:Proof (some resource math:provesStatement it) or a declared math:externalWarrant; a theorem asserted with neither is an unwarranted truth-bit claim (math:UngroundedTheoremClaim)." ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER NOT EXISTS { ?proof <https://blackcatinformatics.ca/math/provesStatement> $this . }
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/externalWarrant> ?warrant . }
+            }
+        """ ;
+    ] .
+
 # =========================================================================== #
 # Flagship acceptance manifest — the epic depth bar gate
 #
