@@ -87,6 +87,25 @@ impl LossLedger {
         self.ledger.union(&other.ledger);
     }
 
+    /// Project the interned loss witnesses to a [`gmeow_errors::Report`] under `tool`,
+    /// delegating to the substrate ledger. Each witness projects through
+    /// `DiagLedger::to_finding`, so every finding carries its stable `finding_iri` /
+    /// `anchor_iri` and — for an actual-drop witness — the wired antecedent DAG edge
+    /// (the causing structural-limitation witness) as both a structured antecedent and a
+    /// related location. This is what lets the diagnostic meta-fold join on a REAL
+    /// provenance DAG and derive `gmeow:findingRootCause` on the shipped bundle, rather
+    /// than the identity-less hand-built loss notes it could not join on.
+    pub fn project_report(&self, tool: &str) -> gmeow_errors::Report {
+        self.ledger.project_report(tool)
+    }
+
+    /// Every loss witness projected to a [`gmeow_errors::Finding`] under `tool`, in the
+    /// ledger's deterministic order — the finding-list twin of
+    /// [`project_report`](Self::project_report).
+    pub fn findings(&self, tool: &str) -> Vec<gmeow_errors::Finding> {
+        self.ledger.findings(tool)
+    }
+
     /// The interned witnesses as owned, serializable nodes — the transport form that
     /// carries the store across a stage boundary (the compile-logic → mappings channel is
     /// JSON, so the live ledger cannot cross it). Round-trips through [`Self::from_nodes`].
