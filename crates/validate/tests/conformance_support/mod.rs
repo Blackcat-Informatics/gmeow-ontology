@@ -58,9 +58,14 @@ pub const DSL_SHAPE_FILENAMES: &[&str] = &[
     "test-dsl-shapes.ttl",
     "slice-manifest-shapes.ttl",
     // The derived validation-shape surface is a DECLARED ValidationOnly projection (the OPT
-    // constraint axis + the OWL-restriction reading), carried in gmeow.gts but NOT
-    // enforced against the corpus — an open-world someValuesFrom reading over-flags valid
-    // data. Excluded here exactly as `purrdf::shapes::shape_union::EXCLUDED` excludes it.
+    // constraint axis + the OWL-restriction reading). This exclusion is LOCAL to the
+    // fixture-conformance corpus assembled here (`collect_shapes_dir`), where an open-world
+    // someValuesFrom reading would over-flag hand-built fixture data. It is NOT mirrored by
+    // `purrdf::shapes::shape_union::EXCLUDED`, which lists only the four DSL shape files —
+    // the production shape union (`shape_union::load_shapes`) DOES enforce
+    // `validation-shapes.ttl`, and the reasoning-layer cardinality bounds reach the gate
+    // through it. Tests that must exercise the projected bounds validate against that
+    // production union directly, not this fixture corpus.
     "validation-shapes.ttl",
 ];
 
