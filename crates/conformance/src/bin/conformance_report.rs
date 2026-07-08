@@ -19,7 +19,9 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
+use gmeow_conformance::error::{CaseAnatomy, Cli, Io, Serialize};
 use gmeow_conformance::{discover, paths, run};
+use gmeow_errors::Diag;
 
 /// Route a Transient progress witness (never gating) through the shared console
 /// sink — human text on stderr, an NDJSON `finding` line for agents, dropped by a
@@ -40,7 +42,7 @@ fn note(message: impl Into<String>) {
     );
 }
 
-fn main() -> Result<(), String> {
+fn main() -> gmeow_errors::Result<()> {
     let mut out: Option<PathBuf> = None;
     let mut cases_root: Option<PathBuf> = None;
 
@@ -48,28 +50,42 @@ fn main() -> Result<(), String> {
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--out" => {
-                out = Some(PathBuf::from(
-                    args.next().ok_or("--out requires a path value")?,
-                ));
+                out = Some(PathBuf::from(args.next().ok_or_else(|| {
+                    Diag::of_kind(Cli {
+                        detail: "--out requires a path value".to_string(),
+                    })
+                })?));
             }
             "--cases-root" => {
-                cases_root = Some(PathBuf::from(
-                    args.next().ok_or("--cases-root requires a path value")?,
-                ));
+                cases_root = Some(PathBuf::from(args.next().ok_or_else(|| {
+                    Diag::of_kind(Cli {
+                        detail: "--cases-root requires a path value".to_string(),
+                    })
+                })?));
             }
-            other => return Err(format!("unknown argument: {other}")),
+            other => {
+                return Err(Diag::of_kind(Cli {
+                    detail: format!("unknown argument: {other}"),
+                }));
+            }
         }
     }
 
-    let out = out.ok_or("--out <path> is required")?;
+    let out = out.ok_or_else(|| {
+        Diag::of_kind(Cli {
+            detail: "--out <path> is required".to_string(),
+        })
+    })?;
     let cases_root = cases_root.unwrap_or_else(paths::cases_root);
 
     let cases = discover::discover_cases(&cases_root)?;
     if cases.is_empty() {
-        return Err(format!(
-            "no conformance cases discovered under {}",
-            cases_root.display()
-        ));
+        return Err(Diag::of_kind(CaseAnatomy {
+            detail: format!(
+                "no conformance cases discovered under {}",
+                cases_root.display()
+            ),
+        }));
     }
 
     // BTreeMap keys → sorted, deterministic ordering independent of discovery.
@@ -103,12 +119,23 @@ fn main() -> Result<(), String> {
         "cases": by_case,
     });
 
-    let json = serde_json::to_string_pretty(&report).map_err(|e| e.to_string())? + "\n";
+    let json = serde_json::to_string_pretty(&report).map_err(|e| {
+        Diag::of_kind(Serialize {
+            detail: e.to_string(),
+        })
+    })? + "\n";
     if let Some(parent) = out.parent() {
-        std::fs::create_dir_all(parent)
-            .map_err(|e| format!("creating {}: {e}", parent.display()))?;
+        std::fs::create_dir_all(parent).map_err(|e| {
+            Diag::of_kind(Io {
+                detail: format!("creating {}: {e}", parent.display()),
+            })
+        })?;
     }
-    std::fs::write(&out, json).map_err(|e| format!("writing {}: {e}", out.display()))?;
+    std::fs::write(&out, json).map_err(|e| {
+        Diag::of_kind(Io {
+            detail: format!("writing {}: {e}", out.display()),
+        })
+    })?;
 
     note(format!("{} case(s) → {}", by_case.len(), out.display()));
     Ok(())
