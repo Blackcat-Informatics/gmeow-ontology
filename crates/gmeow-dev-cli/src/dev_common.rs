@@ -13,7 +13,11 @@ use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
-use gmeow_cli_core::{ConsoleMode, HumanReporter, NdjsonReporter, Reporter};
+use gmeow_cli_core::ConsoleMode;
+// The reporter factory is the shared cli-core surface both bins construct from
+// (no per-crate re-implementation) — re-exported here so the dev command modules
+// keep importing it from `crate::dev_common`.
+pub use gmeow_cli_core::reporter_for;
 
 /// gmeow's canonical ontology IRI (no trailing slash) — the `ONTOLOGY_IRI`.
 pub const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
@@ -74,28 +78,6 @@ pub fn snapshot_bytes(root: &Path) -> Result<Vec<u8>, i32> {
 pub fn resolve_console(flag: Option<ConsoleMode>) -> ConsoleMode {
     let env_val = std::env::var("GMEOW_CONSOLE").ok();
     ConsoleMode::resolve(flag, env_val.as_deref(), std::io::stderr().is_terminal())
-}
-
-/// A boxed [`Reporter`] for the resolved console mode: human-facing stderr text
-/// for interactive/`pretty`/`text` surfaces, line-framed NDJSON for `jsonl`
-/// (agents/pipelines), and a silent sink for `silent`.
-pub fn reporter_for(mode: ConsoleMode) -> Box<dyn Reporter> {
-    match mode {
-        ConsoleMode::Jsonl => Box::new(NdjsonReporter::new()),
-        ConsoleMode::Silent => Box::new(SilentReporter),
-        _ => Box::new(HumanReporter::new()),
-    }
-}
-
-/// A reporter that suppresses all diagnostic chrome (the `silent` surface).
-#[derive(Debug, Default, Clone, Copy)]
-pub struct SilentReporter;
-
-impl Reporter for SilentReporter {
-    fn report(&self, _report: &gmeow_errors::Report) {}
-    fn stage_start(&self, _stage: &str) {}
-    fn stage_end(&self, _stage: &str, _elapsed: std::time::Duration) {}
-    fn summary(&self, _report: &gmeow_errors::Report) {}
 }
 
 /// Reject a non-positive `--jobs` before it reaches the native `usize` boundary
