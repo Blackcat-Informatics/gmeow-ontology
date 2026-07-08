@@ -9,7 +9,7 @@
 //! projection in the ontology (a finding is a shadow of its witness node, not the
 //! other way round).
 
-use crate::ledger::{DiagLedger, DiagNode, fingerprint_iri};
+use crate::ledger::{DiagFingerprint, DiagLedger, DiagNode, anchor_iri, fingerprint_iri};
 use crate::model::{Finding, Location, Report};
 
 impl DiagNode {
@@ -29,7 +29,27 @@ impl DiagNode {
         finding.add_location(self.source_ctx.location.clone());
         finding.tags = self.tags.clone();
         finding.attributions = self.attributions.clone();
+        // The flat text-only suggestion twin (kept so the existing suggestion
+        // renderers are unchanged) AND the faithful structured projection that
+        // preserves each advice's standpoint + outward help URI (the lossy step
+        // this replaces dropped both, keeping only `.text`).
         finding.suggestions = self.advice.iter().map(|a| a.text.clone()).collect();
+        finding.advice = self.advice.clone();
+        // The DSL-authored remediations — the "how to fix" payload for SARIF fixes
+        // and the CLI/HTML remediation line.
+        finding.remediation = self.remediation.clone();
+        // The canonical fingerprint IRI: the SAME IRI downstream findings' antecedent
+        // edges point at, so the projected diagnostic graph's subject and
+        // antecedent-object IRIs close (the join the Task-2 meta-rules match on).
+        finding.finding_iri = Some(fingerprint_iri(&self.fingerprint));
+        // The code-blind source anchor + its non-triviality guard.
+        let anchor = DiagFingerprint::anchor(&self.source_ctx);
+        finding.anchor_iri = Some(anchor_iri(&anchor));
+        finding.anchor_non_trivial = self.source_ctx.is_non_trivial();
+        // The provenance-DAG antecedent edges, keyed on each cause's canonical
+        // fingerprint IRI (the structured `gmeow:findingAntecedent` twin of the
+        // related-location provenance chain emitted just below).
+        finding.antecedents = self.antecedents.iter().map(fingerprint_iri).collect();
         // Secondary labelled spans (Rust-compiler-style "defined here" / SHACL
         // result-path / offending value) ride as related locations, so a
         // multi-anchor witness keeps every secondary anchor through the projection
@@ -220,5 +240,143 @@ mod tests {
                 .any(|l| l.logical.as_deref() == Some(cause_iri.as_str())),
             "the effect finding must relate to its antecedent cause by finding IRI"
         );
+    }
+
+    #[test]
+    fn advice_standpoint_and_help_uri_survive_the_projection() {
+        // D2a: the lossy advice projection used to keep only `.text`; the faithful
+        // projection keeps each advice's standpoint AND outward help URI on the
+        // structured `finding.advice`, while the flat `suggestions` text twin still
+        // renders for the existing surfaces.
+        use crate::diag::Advice;
+        use crate::grade::Standpoint;
+        let mut ledger = DiagLedger::new();
+        let diag = diag_at(
+            "test.project.advice",
+            "a.ttl",
+            Grade::new(
+                Severity::Warning,
+                FindingCategory::PolicyWarning,
+                Standpoint::Advisory,
+            ),
+        )
+        .with_advice(Advice {
+            standpoint: Standpoint::Perspectival,
+            text: "prefer a rigid sortal".to_owned(),
+            help_uri: Some("https://ex/help#sortal".to_owned()),
+        });
+        ledger.attach(diag, StageId::new("s"));
+        let finding = &ledger.findings("validate")[0];
+        // Flat text twin preserved (existing renderers).
+        assert_eq!(
+            finding.suggestions,
+            vec!["prefer a rigid sortal".to_owned()]
+        );
+        // Structured advice keeps the standpoint + help URI the old projection dropped.
+        assert_eq!(finding.advice.len(), 1);
+        assert_eq!(finding.advice[0].standpoint, Standpoint::Perspectival);
+        assert_eq!(
+            finding.advice[0].help_uri.as_deref(),
+            Some("https://ex/help#sortal")
+        );
+    }
+
+    #[test]
+    fn remediation_projects_onto_the_finding() {
+        // D2a: an authored Remediation on the witness rides onto the projected
+        // finding's `remediation` (the SARIF-fixes / CLI "how to fix" payload).
+        use crate::diag::{ArtifactChange, Region, Remediation};
+        use crate::grade::Standpoint;
+        let mut ledger = DiagLedger::new();
+        let diag = diag_at(
+            "test.project.remediation",
+            "a.ttl",
+            Grade::new(
+                Severity::Error,
+                FindingCategory::DataShapeViolation,
+                Standpoint::Binding,
+            ),
+        )
+        .with_remediation(
+            Remediation::new(
+                "attach both relata through gmeow:mediates",
+                Standpoint::Binding,
+            )
+            .with_artifact_change(ArtifactChange {
+                artifact_uri: "core/x.ttl".to_owned(),
+                region: Region {
+                    start_line: Some(12),
+                    ..Region::default()
+                },
+                replacement: "gmeow:mediates ex:r .".to_owned(),
+            }),
+        );
+        ledger.attach(diag, StageId::new("s"));
+        let finding = &ledger.findings("validate")[0];
+        assert_eq!(finding.remediation.len(), 1);
+        assert_eq!(
+            finding.remediation[0].text,
+            "attach both relata through gmeow:mediates"
+        );
+        assert!(finding.remediation[0].artifact_change.is_some());
+    }
+
+    #[test]
+    fn projected_subject_and_antecedent_object_iris_close() {
+        // D3 join-closure: build two findings where one is the other's antecedent,
+        // project, and assert the child's antecedent-edge object IRI textually
+        // equals the parent finding's OWN subject IRI (`finding_iri`). This is the
+        // equality the Task-2 root-cause / cluster meta-rules match on: subject and
+        // antecedent-object must be the SAME blake3 fingerprint IRI.
+        let mut ledger = DiagLedger::new();
+        let cause = diag_at(
+            "test.project.close.cause",
+            "cause.ttl",
+            Grade::new(
+                Severity::Note,
+                FindingCategory::ProjectionLoss,
+                Standpoint::Perspectival,
+            ),
+        );
+        let cause_ref = ledger.attach(cause, StageId::new("s"));
+        let effect = diag_at(
+            "test.project.close.effect",
+            "effect.ttl",
+            Grade::new(
+                Severity::Error,
+                FindingCategory::DataShapeViolation,
+                Standpoint::Binding,
+            ),
+        )
+        .with_antecedents([cause_ref]);
+        ledger.attach(effect, StageId::new("s"));
+
+        let findings = ledger.findings("validate");
+        let cause_finding = findings
+            .iter()
+            .find(|f| f.code == "test.project.close.cause")
+            .expect("cause finding");
+        let effect_finding = findings
+            .iter()
+            .find(|f| f.code == "test.project.close.effect")
+            .expect("effect finding");
+        // The parent's own canonical subject IRI.
+        let parent_subject = cause_finding
+            .finding_iri
+            .as_deref()
+            .expect("ledger witness carries a fingerprint IRI");
+        // The child's structured antecedent edge object.
+        assert_eq!(
+            effect_finding.antecedents,
+            vec![parent_subject.to_owned()],
+            "the antecedent-edge object IRI must equal the parent finding's subject IRI"
+        );
+        // And it closes textually with the ledger's fingerprint_iri for the cause.
+        let node = ledger
+            .emit_sorted()
+            .into_iter()
+            .find(|n| n.code == "test.project.close.cause")
+            .expect("cause node");
+        assert_eq!(parent_subject, fingerprint_iri(&node.fingerprint));
     }
 }
