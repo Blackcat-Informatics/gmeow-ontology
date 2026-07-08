@@ -1222,12 +1222,24 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
     let p_range = nn(&format!("{rdfs}range"));
     let owl_alldisjoint = Node::iri(format!("{owl}AllDisjointClasses"));
 
-    // GMEOW is the authoring ground: derive validation shapes only for our own domain
-    // classes / properties (Principle 4 / maximal dogfooding). Imported ontologies (gUFO,
-    // FOAF, …) are linked, not validated by our surface — and their namespaces are not
-    // registered in the downstream JSON-Schema discriminator. The TARGET of an `sh:class`
-    // may live in any namespace; only the SHAPE-owning class / property must be GMEOW-NS.
-    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+    // GMEOW's authoring ground: derive validation shapes for our own domain classes /
+    // properties across every dogfooded namespace (Principle 4 / maximal dogfooding) — the
+    // core `gmeow:` vocabulary plus the grounding slices (`math:`, `lang:`, `logic:`), whose
+    // hand-authored shapes migrate to these derived projections (declarative-migration wave 1).
+    // Imported
+    // ontologies (gUFO, FOAF, …) are linked, not validated by our surface — and their
+    // namespaces are not registered in the downstream JSON-Schema discriminator. The TARGET of
+    // an `sh:class` may live in any namespace; only the SHAPE-owning class / property must be
+    // authoring-NS.
+    fn is_authoring_ns(iri: &str) -> bool {
+        const AUTHORING_NS: [&str; 4] = [
+            "https://blackcatinformatics.ca/gmeow/",
+            "https://blackcatinformatics.ca/math/",
+            "https://blackcatinformatics.ca/lang/",
+            "https://blackcatinformatics.ca/logic/",
+        ];
+        AUTHORING_NS.iter().any(|ns| iri.starts_with(ns))
+    }
 
     // A range target is a DATATYPE (→ sh:datatype) rather than a class (→ sh:class) when it is
     // in the XSD space, is rdfs:Literal, or is declared `a rdfs:Datatype`.
@@ -1350,7 +1362,7 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
             continue;
         }
         let class_iri = subject_str(class);
-        if !class_iri.starts_with(GMEOW_NS) || optouts.contains(&class_iri) {
+        if !is_authoring_ns(&class_iri) || optouts.contains(&class_iri) {
             continue;
         }
         for restr in objects(store, class, &p_subclass) {
@@ -1563,7 +1575,7 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
             continue;
         }
         let class_iri = subject_str(class);
-        if !class_iri.starts_with(GMEOW_NS) || optouts.contains(&class_iri) {
+        if !is_authoring_ns(&class_iri) || optouts.contains(&class_iri) {
             continue;
         }
         // owl:disjointWith D → sh:not [ sh:class D ]. Blank operand → skip.
@@ -1606,7 +1618,7 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
         };
         let members = read_iri_list(store, &head);
         for ci in &members {
-            if !ci.starts_with(GMEOW_NS) || optouts.contains(ci) {
+            if !is_authoring_ns(ci) || optouts.contains(ci) {
                 continue;
             }
             for cj in &members {
@@ -1632,7 +1644,7 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
     ] {
         for s in subjects_with(store, &nn(RDF_TYPE), &Node::iri(format!("{owl}{ty}"))) {
             if let Subject::Iri(iri) = &s
-                && iri.starts_with(GMEOW_NS)
+                && is_authoring_ns(iri)
             {
                 props.insert(iri.clone());
             }
@@ -1643,7 +1655,7 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
     for q in default_graph_quads(store) {
         if (q.predicate.as_str() == DOMAIN_IRI || q.predicate.as_str() == RANGE_IRI)
             && let Subject::Iri(iri) = &q.subject
-            && iri.starts_with(GMEOW_NS)
+            && is_authoring_ns(iri)
         {
             props.insert(iri.clone());
         }
@@ -1732,7 +1744,7 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
     for q in default_graph_quads(store) {
         if q.predicate.as_str() == haskey_iri
             && let Subject::Iri(iri) = &q.subject
-            && iri.starts_with(GMEOW_NS)
+            && is_authoring_ns(iri)
         {
             haskey_classes.insert(iri.clone());
         }
@@ -1784,7 +1796,7 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
         let Some(Node::Iri(k)) = value(store, &r, &p_rdf_subject) else {
             continue;
         };
-        if !k.starts_with(GMEOW_NS) || !p.starts_with(GMEOW_NS) {
+        if !is_authoring_ns(&k) || !is_authoring_ns(&p) {
             continue;
         }
         // The reifier's GMEOW type `C` names the shape the reifier must conform to. An untyped
@@ -1793,7 +1805,7 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
         let Some(c) = objects(store, &r, &nn(RDF_TYPE))
             .into_iter()
             .find_map(|t| match t {
-                Node::Iri(i) if i.starts_with(GMEOW_NS) => Some(i),
+                Node::Iri(i) if is_authoring_ns(&i) => Some(i),
                 _ => None,
             })
         else {

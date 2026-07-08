@@ -8710,3 +8710,78 @@ logic:candidateNoOverTyping
     logic:candidateSemanticRisk logic:RiskCoreContaminating ;
     logic:candidateFormalizes logic:MixIden ;
     logic:candidateSourceField logic:ProseFieldDefinition .
+
+# =========================================================================== #
+# Declarative constraint axioms (#1194 WAVE 1) — the closed-world presence /
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). A restriction carrying both owl:*Cardinality and
+# owl:allValuesFrom lowers to the paired sh:minCount/maxCount +
+# sh:class/sh:datatype property shape. The vantage-scoped dual-authority and
+# conditional-witness conditions have no OWL antecedent and remain the
+# procedural sh:sparql shapes (the Task-6 fragment).
+# =========================================================================== #
+
+logic:FormalizationCandidate rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:candidateSourceHash ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateExtractionProvenance ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateScope ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateContract ; owl:cardinality 1 ; owl:allValuesFrom logic:ReasoningContract ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateCategory ; owl:cardinality 1 ; owl:allValuesFrom logic:FormalizationCategory ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateLifecycle ; owl:cardinality 1 ; owl:allValuesFrom logic:CandidateLifecycleState ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateProjectionBehavior ; owl:cardinality 1 ; owl:allValuesFrom logic:PreservationKind ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateSemanticRisk ; owl:cardinality 1 ; owl:allValuesFrom logic:SemanticRiskClass ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateFormalizes ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateSourceField ; owl:maxCardinality 1 ; owl:allValuesFrom logic:ProseField ] .
+
+logic:Plan rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:planGoal ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Goal ] ,
+    [ a owl:Restriction ; owl:onProperty logic:planSuccessMode ; owl:cardinality 1 ; owl:allValuesFrom logic:PlanSuccessMode ] .
+
+logic:GoalEvaluation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:satisfactionStatus ; owl:cardinality 1 ; owl:allValuesFrom logic:SatisfactionStatus ] ,
+    [ a owl:Restriction ; owl:onProperty logic:feasibilityStatus ; owl:cardinality 1 ; owl:allValuesFrom logic:FeasibilityStatus ] ,
+    [ a owl:Restriction ; owl:onProperty logic:lifecycleStatus ; owl:cardinality 1 ; owl:allValuesFrom logic:LifecycleStatus ] ,
+    [ a owl:Restriction ; owl:onProperty logic:goalEvaluationStatus ; owl:cardinality 1 ; owl:allValuesFrom logic:GoalEvaluationStatus ] ,
+    [ a owl:Restriction ; owl:onProperty logic:evaluatesGoal ; owl:minCardinality 1 ; owl:allValuesFrom gmeow:Goal ] ,
+    [ a owl:Restriction ; owl:onProperty logic:satisfactionDegree ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty logic:objectiveValue ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty logic:utility ; owl:maxCardinality 1 ] .
+
+logic:ActionSchema rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:precondition ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty logic:capability ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty logic:effect ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty logic:invariant ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty logic:observation ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty logic:actionResource ; owl:maxCardinality 1 ] .
+
+logic:McpActionSchema rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:capability ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty logic:precondition ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty logic:compensation ; owl:minCardinality 1 ] .
+
+logic:NotificationWaitSchema rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:awaitsSignal ; owl:minCardinality 1 ] .
+
+logic:FreshnessGuard rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:guardsPrecondition ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty logic:freshnessHorizon ; owl:maxCardinality 1 ; owl:allValuesFrom xsd:duration ] ,
+    [ a owl:Restriction ; owl:onProperty logic:freshnessWindowStart ; owl:maxCardinality 1 ; owl:allValuesFrom xsd:dateTime ] ,
+    [ a owl:Restriction ; owl:onProperty logic:freshnessWindowEnd ; owl:maxCardinality 1 ; owl:allValuesFrom xsd:dateTime ] .
+
+logic:NonEntailmentObligation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:obligationForbiddenPredicate ; owl:cardinality 1 ; owl:allValuesFrom xsd:anyURI ] ,
+    [ a owl:Restriction ; owl:onProperty logic:obligationDischargeCondition ; owl:minCardinality 1 ; owl:allValuesFrom logic:DischargeCondition ] .
+
+logic:Conjecture rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:conjectureFormula ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:conjectureStandpoint ; owl:cardinality 1 ; owl:allValuesFrom owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:conjectureLifecycleState ; owl:cardinality 1 ; owl:allValuesFrom logic:ConjectureLifecycleState ] ,
+    [ a owl:Restriction ; owl:onProperty logic:verdictProvenance ; owl:cardinality 1 ; owl:allValuesFrom logic:VerdictProvenanceKind ] .
+
+logic:ContradictionWitness rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:witnessIndividual ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:witnessWorld ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:witnessPremise ; owl:minCardinality 1 ; owl:allValuesFrom xsd:string ] .

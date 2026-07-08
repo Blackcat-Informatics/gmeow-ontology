@@ -4880,3 +4880,213 @@ math:UnwiredFlagshipScenario
     rdfs:label "Unwired Flagship Scenario"@x-gmeow-english ;
     skos:definition "The failure raised when a math:FlagshipScenario is not fully wired: it is missing its worked example (math:demonstratedByExample), its competency question (math:demonstratedByCompetency), its counter-example (math:guardedByCounterExample), or its enforcing failure class (math:enforcesFailureClass); or the class it names as enforcing is not a math:MathConformanceFailure subclass. The epic's depth bar is a contract, not a suggestion: an acceptance scenario that does not bind all four realizing/enforcing artifacts cannot claim the scenario is met, and the gate rejects it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+# =========================================================================== #
+# Declarative constraint axioms (#1194 WAVE 1) — the closed-world cardinality/
+# class/datatype/value obligations that the hand-authored shapes.ttl NodeShapes
+# state are authored here once as OWL restriction axioms and PROJECTED to
+# generated/shapes/validation-shapes.ttl by derive_validation_shapes (Principle
+# 17). A restriction carrying both owl:*Cardinality and owl:allValuesFrom lowers
+# to the paired sh:minCount/maxCount + sh:class/sh:datatype/sh:nodeKind property
+# shape. owl:allValuesFrom owl:Thing projects to sh:nodeKind sh:BlankNodeOrIRI
+# (the "a present value is a resource, not a literal" obligation). Genuinely
+# cross-node / value-negation / numeric-range conditions have no OWL antecedent
+# and stay as the procedural sh:sparql shapes (the Task-6 fragment).
+# =========================================================================== #
+
+math:Number rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:inNumberSystem ; owl:cardinality 1 ; owl:allValuesFrom math:NumberSystem ] .
+
+math:ApproximateValue rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:approximates ; owl:cardinality 1 ; owl:allValuesFrom math:Number ] ,
+    [ a owl:Restriction ; owl:onProperty math:approximationError ; owl:minCardinality 1 ] .
+
+# math:isExact must be true, and math:totalMass must be 1 (math:ProbabilityMeasure),
+# are VALUE-EQUALITY constraints. owl:hasValue is the right antecedent, but the frontend
+# term model (graphutil::Node::Lit) is lexical-only and drops the literal datatype, so a
+# projected sh:hasValue would carry an untyped "true"/"1" that never equals the typed
+# value — over-claiming on every well-formed individual. Until the frontend carries typed
+# literals these value-equality obligations stay as the native / procedural check; the
+# derivable presence obligation (math:quantityValue maxCardinality 0, which catches the
+# constant-as-decimal counter-example) is authored here.
+math:MathematicalConstant rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:quantityValue ; owl:maxCardinality 0 ] .
+
+math:SetBuilderExpression rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:memberCondition ; owl:cardinality 1 ; owl:allValuesFrom owl:Thing ] .
+
+math:Complement rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:ambientSpace ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:complementSemantics ; owl:cardinality 1 ; owl:allValuesFrom math:ComplementSemantics ] .
+
+math:Function rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:domain ; owl:cardinality 1 ; owl:allValuesFrom math:Set ] ,
+    [ a owl:Restriction ; owl:onProperty math:codomain ; owl:cardinality 1 ; owl:allValuesFrom math:Set ] .
+
+math:AlgebraicStructure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:underlyingSet ; owl:cardinality 1 ; owl:allValuesFrom math:Set ] ,
+    [ a owl:Restriction ; owl:onProperty math:structureOperation ; owl:minCardinality 1 ; owl:allValuesFrom math:Operation ] ,
+    [ a owl:Restriction ; owl:onProperty math:satisfiesAxiom ; owl:minCardinality 1 ] .
+
+math:Homomorphism rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:preservedOperation ; owl:minCardinality 1 ; owl:allValuesFrom math:Operation ] ,
+    [ a owl:Restriction ; owl:onProperty math:preservationLaw ; owl:minCardinality 1 ; owl:allValuesFrom owl:Thing ] .
+
+math:LieGroup rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:hasRootSystem ; owl:minCardinality 1 ; owl:allValuesFrom math:RootSystem ] .
+
+math:RootSystem rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:cartanMatrix ; owl:minCardinality 1 ; owl:allValuesFrom math:CartanMatrix ] ,
+    [ a owl:Restriction ; owl:onProperty math:weylGroup ; owl:minCardinality 1 ; owl:allValuesFrom math:WeylGroup ] ,
+    [ a owl:Restriction ; owl:onProperty math:rootSystemRank ; owl:minCardinality 1 ] .
+
+math:AutomorphismGroup rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:automorphismGroupOf ; owl:minCardinality 1 ; owl:allValuesFrom owl:Thing ] .
+
+math:HomomorphicEncryptionScheme rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:homomorphicOver ; owl:minCardinality 1 ; owl:allValuesFrom math:Operation ] ,
+    [ a owl:Restriction ; owl:onProperty math:securityAssumption ; owl:minCardinality 1 ; owl:allValuesFrom math:LatticeHardnessAssumption ] ,
+    [ a owl:Restriction ; owl:onProperty math:noiseModel ; owl:minCardinality 1 ] .
+
+math:Ring rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:satisfiesDistributivity ; owl:minCardinality 1 ; owl:allValuesFrom owl:Thing ] .
+
+math:Measure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:measureOn ; owl:cardinality 1 ; owl:allValuesFrom math:MeasurableSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:totalMass ; owl:cardinality 1 ] .
+
+math:Integral rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:integrand ; owl:cardinality 1 ; owl:allValuesFrom math:MeasurableFunction ] ,
+    [ a owl:Restriction ; owl:onProperty math:integrationDomain ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:withRespectTo ; owl:cardinality 1 ; owl:allValuesFrom math:Measure ] .
+
+math:Quantity rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:hasDimension ; owl:cardinality 1 ; owl:allValuesFrom math:Dimension ] .
+
+math:DerivedDimension rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:baseDimensionExponent ; owl:minCardinality 1 ; owl:allValuesFrom math:DimensionExponent ] .
+
+math:DimensionExponent rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:exponentOfDimension ; owl:cardinality 1 ; owl:allValuesFrom math:BaseDimension ] ,
+    [ a owl:Restriction ; owl:onProperty math:exponentNumerator ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] ,
+    [ a owl:Restriction ; owl:onProperty math:exponentDenominator ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] .
+
+math:DimensionalExpression rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:homogeneousOperand ; owl:minCardinality 2 ] .
+
+math:ArgumentSlot rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:slotIndex ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] ,
+    [ a owl:Restriction ; owl:onProperty math:slotExpression ; owl:cardinality 1 ; owl:allValuesFrom owl:Thing ] .
+
+math:ApplicationExpression rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:operator ; owl:cardinality 1 ] .
+
+math:BindingExpression rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:boundVariable ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:argumentSlot ; owl:minCardinality 1 ] .
+
+math:VariableOccurrence rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:declaredVariable ; owl:cardinality 1 ; owl:allValuesFrom owl:Thing ] .
+
+math:Derivative rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:derivativeOf ; owl:cardinality 1 ; owl:allValuesFrom owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:withRespectToVariable ; owl:cardinality 1 ; owl:allValuesFrom owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:derivativeOrder ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] .
+
+math:Limit rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:limitOf ; owl:cardinality 1 ; owl:allValuesFrom owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:limitPoint ; owl:cardinality 1 ] .
+
+math:Convergence rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:convergesTo ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:convergenceMode ; owl:cardinality 1 ; owl:allValuesFrom math:ConvergenceMode ] .
+
+math:Series rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:seriesTerm ; owl:minCardinality 1 ; owl:allValuesFrom owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:hasConvergence ; owl:minCardinality 1 ; owl:allValuesFrom math:Convergence ] .
+
+math:Sequence rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:hasConvergence ; owl:minCardinality 1 ; owl:allValuesFrom math:Convergence ] .
+
+math:ContinuousMap rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:isContinuous ; owl:cardinality 1 ; owl:allValuesFrom xsd:boolean ] .
+
+math:CompactSpace rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:isCompact ; owl:cardinality 1 ; owl:allValuesFrom xsd:boolean ] .
+
+math:ConnectedSpace rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:isConnected ; owl:cardinality 1 ; owl:allValuesFrom xsd:boolean ] .
+
+math:Manifold rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:manifoldDimension ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] ,
+    [ a owl:Restriction ; owl:onProperty math:manifoldStructureKind ; owl:cardinality 1 ; owl:allValuesFrom math:ManifoldStructureKind ] .
+
+math:Chart rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:chartDomain ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:coordinateMap ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:targetCoordinateSpace ; owl:cardinality 1 ] .
+
+math:OrthogonalComplement rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:definedByInnerProduct ; owl:cardinality 1 ; owl:allValuesFrom owl:Thing ] .
+
+math:PCAAnalysis rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:analysisInput ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:centeringPolicy ; owl:cardinality 1 ; owl:allValuesFrom math:CenteringPolicy ] ,
+    [ a owl:Restriction ; owl:onProperty math:scalingPolicy ; owl:cardinality 1 ; owl:allValuesFrom math:ScalingPolicy ] ,
+    [ a owl:Restriction ; owl:onProperty math:covarianceOperator ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:eigensolver ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:principalComponent ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:loadingVector ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:scoreVector ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:explainedVarianceRatio ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:residualSubspace ; owl:minCardinality 1 ] .
+
+math:ResidualInterpretationClaim rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:minCardinality 1 ] .
+
+math:Embedding rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:embeddingSource ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:targetSpace ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:embeddingFunction ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:embeddingModel ; owl:minCardinality 1 ] .
+
+math:TensorComputationGraph rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:computationNode ; owl:minCardinality 1 ; owl:allValuesFrom owl:Thing ] .
+
+math:WeightTensor rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:inParameterSpace ; owl:cardinality 1 ; owl:allValuesFrom math:ParameterSpace ] .
+
+math:RationalValue rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:numerator ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] ,
+    [ a owl:Restriction ; owl:onProperty math:denominator ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] .
+
+math:Norm rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:inducedByForm ; owl:cardinality 1 ; owl:allValuesFrom owl:Thing ] .
+
+math:GramMatrix rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:representsForm ; owl:cardinality 1 ; owl:allValuesFrom math:SymmetricBilinearForm ] ,
+    [ a owl:Restriction ; owl:onProperty math:inBasis ; owl:cardinality 1 ; owl:allValuesFrom math:Basis ] .
+
+math:ModelFormula rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:argumentSlot ; owl:minCardinality 1 ; owl:allValuesFrom math:ArgumentSlot ] .
+
+math:FittedModel rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:fittedToData ; owl:minCardinality 1 ; owl:allValuesFrom math:DatasetMatrix ] ,
+    [ a owl:Restriction ; owl:onProperty math:modelFormula ; owl:minCardinality 1 ; owl:allValuesFrom math:ModelFormula ] .
+
+math:IngestRun rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:parseSource ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty logic:instantiatesSchema ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty logic:instantiatesPlan ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty math:ingestCorrespondence ; owl:minCardinality 1 ; owl:allValuesFrom logic:Correspondence ] .
+
+math:Theorem rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:roleInTheory ; owl:minCardinality 1 ; owl:allValuesFrom owl:Thing ] .
+
+math:FlagshipScenario rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:demonstratedByExample ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty math:demonstratedByCompetency ; owl:cardinality 1 ; owl:allValuesFrom owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:guardedByCounterExample ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty math:enforcesFailureClass ; owl:cardinality 1 ; owl:allValuesFrom owl:Thing ] .
