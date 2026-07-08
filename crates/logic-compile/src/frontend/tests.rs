@@ -1773,3 +1773,32 @@ fn derive_closed_world_closure_entry_does_not_suppress() {
         "a ClosedWorldClosure entry is the default reading, not an opt-out: {shapes:?}"
     );
 }
+
+#[test]
+fn derive_grounding_namespaces_are_authoring_ground() {
+    // declarative-migration wave 1: the dogfooded grounding slices (math:, lang:, logic:) are authoring ground
+    // too — their hand-authored shapes migrate to derived projections, so a restriction on a
+    // math:/lang:/logic: class must derive a shape (not be skipped as an imported ontology).
+    let ttl = "@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+               @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+               @prefix owl:  <http://www.w3.org/2002/07/owl#> .\n\
+               @prefix math: <https://blackcatinformatics.ca/math/> .\n\
+               @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+               @prefix logic:<https://blackcatinformatics.ca/logic/> .\n\
+               math:NumberSystem a owl:Class .\n\
+               math:Number a owl:Class ; rdfs:subClassOf \
+               [ a owl:Restriction ; owl:onProperty math:inNumberSystem ; \
+                 owl:qualifiedCardinality 1 ; owl:onClass math:NumberSystem ] .\n\
+               lang:Form a owl:Class ; rdfs:subClassOf \
+               [ a owl:Restriction ; owl:onProperty lang:inSignSystem ; owl:cardinality 1 ] .\n\
+               logic:Plan a owl:Class ; rdfs:subClassOf \
+               [ a owl:Restriction ; owl:onProperty logic:planGoal ; owl:cardinality 1 ] .";
+    let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse dataset ok");
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    for expect in ["math/Number", "lang/Form", "logic/Plan"] {
+        assert!(
+            shapes.iter().any(|s| s.iri.contains(expect)),
+            "grounding class {expect} must derive a validation shape: {shapes:?}"
+        );
+    }
+}
