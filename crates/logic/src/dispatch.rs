@@ -357,10 +357,46 @@ pub fn dispatch_query(
     profile_gate::check_builtin_profile(program, profile)?;
 
     // (2) Native physical core first — the primary backward path. The magic-sets engine
-    // (`crate::physical::resolve_native`) answers the binary positive query fragment by
-    // bottom-up demand evaluation; it is authoritative for what it decides. A declared
-    // gap (`NativeOutcome::Unsupported` — cut / arithmetic / non-binary / demand-breaks-
-    // stratification) falls through to the demoted fast-path / Scryer fallback below.
+    // (`crate::physical::resolve_native`) answers the query fragment it decides by bottom-up
+    // demand evaluation and is AUTHORITATIVE for that fragment. A `NativeOutcome::Unsupported`
+    // is native declaring an honest DECLINE (incomplete-but-never-wrong), never a fallback
+    // masking a case native could decide. The residual routed here to `backward_oracle()` is
+    // EXACTLY this enumerated `UnsupportedKind` taxonomy — the closed set of gaps the backward
+    // core cannot yet soundly decide, for which the Scryer oracle is the sanctioned decider:
+    //
+    //   - `Cut`                     — a `!` control construct. Constitutionally oracle-only
+    //                                 (P17): cut is procedural, with no declarative bottom-up
+    //                                 meaning, so it can only be discharged by the oracle.
+    //                                 Produced at `physical/magic.rs` (whole-program + per-rule)
+    //                                 and `physical/magic_generic.rs` (n-ary lowering).
+    //   - `Floundering`             — NAF over a variable no positive body atom range-restricts.
+    //                                 Deciding it natively would test one partial grounding, not
+    //                                 the intended universal absence — an UNSOUND answer — so
+    //                                 native refuses it. Produced at `physical/magic.rs`.
+    //   - `NonStratifiable`         — a negative dependency edge inside a cycle: no stratification
+    //                                 exists (or n-ary negation, unsupported on the generic leg).
+    //                                 The demand/magic transform cannot give it a least model, so
+    //                                 native declines. Produced at `physical/seminaive.rs` and
+    //                                 `physical/magic_generic.rs`.
+    //   - `NonTerminatingArithmetic`— a value-generating `is` inside an IDB cycle with no finite
+    //                                 driver and no `max_steps` budget: an unbounded Herbrand
+    //                                 stream. Refused STATICALLY rather than hang (with a step
+    //                                 budget the governor cuts it and native decides it, so it
+    //                                 never reaches here). Produced at `physical/magic.rs`.
+    //   - `NonBinaryAtom`           — an arity the served evaluators cannot query (a non-binary
+    //                                 shape that is not the reserved `triple/4` the generic leg
+    //                                 serves). Emitting its empty demand slice as `Decided` would
+    //                                 be a silent wrong answer; native declines instead. Produced
+    //                                 at `physical/magic.rs` and `physical/magic_generic.rs`.
+    //   - `Arithmetic`              — a residual arithmetic MODE the closed native builtin set
+    //                                 cannot compute (an unbound operand, ÷0, or i64 overflow), or
+    //                                 a builtin on the n-ary generic leg. A single such residual
+    //                                 re-demotes the whole program rather than return a wrong or
+    //                                 truncated answer. Produced at `physical/seminaive.rs` and
+    //                                 `physical/magic_generic.rs`.
+    //
+    // (`NonTerminatingExistential` is a FORWARD-chase-only gap — produced in `physical/chase.rs`,
+    // reached only via `materialize` / `reason`, never through this backward `resolve_native`.)
     //
     // The native engine now HONOURS `max_steps` (its semi-naive governor stamps
     // `BudgetStatus::Exhausted` at the step ceiling — a sound partial answer, never a
