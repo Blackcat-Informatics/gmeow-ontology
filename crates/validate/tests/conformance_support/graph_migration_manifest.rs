@@ -6,7 +6,14 @@
 //! Sibling of [`super::migration_manifest`] (the frozen SPARQL-cluster record);
 //! kept separate so each migration's coverage proof is independent.
 //!
-//! One [`ManifestRow`] per Python test fn across the 35 files in scope, captured
+//! One entry, `tests/test_sensory.py`, has no `load_merged_graph` arm — it is a
+//! pure SSSOM mapping-alignment cluster (`load_mappings()` reads). It is recorded
+//! here by design rather than smuggled: its sibling sensory-family SSSOM twins
+//! (`test_foundational_bridging` / `test_sensory_environment`) already live in this
+//! manifest, so keeping the whole sensory alignment migration in one coverage proof
+//! is clearer than splitting one SSSOM-only file into the SPARQL-cluster record.
+//!
+//! One [`ManifestRow`] per Python test fn across the 36 files in scope, captured
 //! from `grep 'def test_'` at the migration merge-base BEFORE deletion — the LEFT
 //! side (`python_file`, `python_fn`, `case_count`) is the authoritative inventory,
 //! anchored to git history (not re-derivable once the `.py` are deleted). The
@@ -157,7 +164,7 @@ const fn twin(
     }
 }
 
-/// The full reconciliation manifest — 113 rows across the 35 in-scope files.
+/// The full reconciliation manifest — 120 rows across the 36 in-scope files.
 pub const MANIFEST: &[ManifestRow] = &[
     // ── slices/core/temporal/tests/test_temporal_frame.py (7) ──────────────────
     twin(
@@ -989,6 +996,56 @@ pub const MANIFEST: &[ManifestRow] = &[
         QueryBehavioral,
         "conformance_versions.rs::version_label_domain_is_entity",
     ),
+    // ── tests/test_sensory.py (7) — SSSOM-only (no load_merged_graph arm) ────────
+    twin(
+        "tests/test_sensory.py",
+        "test_sensor_mapped_to_sosa_sensor",
+        1,
+        QueryBehavioral,
+        "conformance_sensory.rs::sensor_mapped_to_sosa_sensor",
+    ),
+    twin(
+        "tests/test_sensory.py",
+        "test_sensor_platform_mapped_to_sosa_platform",
+        1,
+        QueryBehavioral,
+        "conformance_sensory.rs::sensor_platform_mapped_to_sosa_platform",
+    ),
+    twin(
+        "tests/test_sensory.py",
+        "test_observable_property_mapped_to_sosa",
+        1,
+        QueryBehavioral,
+        "conformance_sensory.rs::observable_property_mapped_to_sosa",
+    ),
+    twin(
+        "tests/test_sensory.py",
+        "test_sensory_quantity_mapped_to_sosa_result",
+        1,
+        QueryBehavioral,
+        "conformance_sensory.rs::sensory_quantity_mapped_to_sosa_result",
+    ),
+    twin(
+        "tests/test_sensory.py",
+        "test_sensory_property_mapped_to_sosa_observed_property",
+        1,
+        QueryBehavioral,
+        "conformance_sensory.rs::sensory_property_mapped_to_sosa_observed_property",
+    ),
+    twin(
+        "tests/test_sensory.py",
+        "test_platform_location_mapped_to_geo_location",
+        1,
+        QueryBehavioral,
+        "conformance_sensory.rs::platform_location_mapped_to_geo_location",
+    ),
+    twin(
+        "tests/test_sensory.py",
+        "test_sensory_afo_mappings_exist",
+        1,
+        QueryBehavioral,
+        "conformance_sensory.rs::sensory_afo_mappings_exist",
+    ),
 ];
 
 /// Every row whose `python_file` equals `file`.
@@ -996,7 +1053,7 @@ pub fn rows_for(file: &str) -> Vec<&'static ManifestRow> {
     MANIFEST.iter().filter(|r| r.python_file == file).collect()
 }
 
-/// The 35 in-scope files with their pinned `(def test_ count, dropped count)` —
+/// The 36 in-scope files with their pinned `(def test_ count, dropped count)` —
 /// the git-anchored inventory captured at the merge-base before deletion. `total`
 /// is the `grep -c 'def test_'` fn count of the source file (NOT the logical-case
 /// count); the parametrize cardinality lives in each row's `case_count` and is
@@ -1035,6 +1092,7 @@ const EXPECTED: &[(&str, usize, usize)] = &[
     ("tests/test_quality.py", 1, 0),
     ("tests/test_rights.py", 7, 0),
     ("tests/test_rubrics.py", 2, 0),
+    ("tests/test_sensory.py", 7, 0),
     ("tests/test_sensory_environment.py", 4, 0),
     ("tests/test_suppression_conformance.py", 3, 0),
     ("tests/test_tags.py", 1, 0),
@@ -1294,7 +1352,7 @@ fn obligation_kind_tally() {
     );
     assert_eq!(
         MANIFEST.len(),
-        113,
-        "expected 113 source fns in the graph-traversal cluster"
+        120,
+        "expected 120 source fns in the graph-traversal cluster"
     );
 }
