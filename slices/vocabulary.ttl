@@ -85,6 +85,13 @@ gmeow:sliceDependsOn a owl:ObjectProperty ;
     skos:definition "A slice whose terms this slice's canonical sources reference. The dependency gate verifies the declaration against the computed cross-slice reference graph (no undeclared edges, no stale declarations) and rejects any extension→extension edge."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
+gmeow:sliceCoFoundationalWith a owl:ObjectProperty, owl:SymmetricProperty ;
+    rdfs:label "slice co-foundational with"@x-gmeow-english ;
+    rdfs:domain gmeow:Slice ;
+    rdfs:range gmeow:Slice ;
+    skos:definition "A symmetric peerage relation restricted to the grounding slices (Principle 19): the co-foundational grounding layers form one interlocked foundation, not an internal dependency ladder, so mutual term reference among them is declared here rather than forced through the acyclic gmeow:sliceDependsOn. Every cross-slice reference between peered slices must still land on a seam registered in the grounding contract (docs/GROUNDING.md); peerage is a registry of sanctioned mutual seams, never a license for unregistered coupling. Non-grounding slices never use this relation — downstream consumers see the peered triple as one foundation and depend on its members individually through gmeow:sliceDependsOn."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
 gmeow:sliceConsumer a owl:DatatypeProperty ;
     rdfs:label "slice consumer"@x-gmeow-english ;
     rdfs:domain gmeow:Slice ;
@@ -178,6 +185,7 @@ gmeow:builtAgainstCore gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:providesSubcommand gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:slice-dsl gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:sliceConsumer gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:sliceCoFoundationalWith gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:sliceDependsOn gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:sliceProfile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:sliceTier gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
