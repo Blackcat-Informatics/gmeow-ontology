@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the cross-node-glut rule: two opposing-polarity findings at
+# DIFFERENT non-trivial anchors. The join is on a SHARED gmeow:findingAnchor, so
+# findings at distinct anchors never join and the rule must derive NO
+# gmeow:crossNodeGlutWith. Consumed ONLY by
+# crates/conformance/tests/diagnostics_meta_findings.rs; lives under tests/ so the
+# global make validate gate never loads it as data.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/diagnostics/tests/> .
+
+ex:diffAnchor1 a gmeow:NonTrivialAnchor .
+ex:diffAnchor2 a gmeow:NonTrivialAnchor .
+
+ex:diffFindingA
+    a gmeow:Finding ;
+    gmeow:findingAnchor ex:diffAnchor1 ;
+    gmeow:findingCategory logic:FindingContradictionWitness .
+
+ex:diffFindingB
+    a gmeow:Finding ;
+    gmeow:findingAnchor ex:diffAnchor2 ;
+    gmeow:findingCategory logic:FindingPermittedEpistemicConflict .

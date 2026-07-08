@@ -164,3 +164,18 @@ ahash = "0.8"
 # Issue #699 / PR #978: validate sample @annotation fragments against the
 # SHACL-derived JSON Schema from #700.
 jsonschema = { version = "0.46", default-features = false }
+# The lang:FlagshipScenario execution-discharge harness (tests/lang_flagship_discharge.rs)
+# drives BOTH validation channels over each flagship's counter-example and worked example,
+# and RUNS each named native producer. Integration-test crates do NOT inherit the normal
+# dependency table, so the crates the harness touches are redeclared here.
+#   * gmeow-validate — the native structural lint + native SHACL channels
+#     (structural_lint_dataset / shacl_validate_dataset / parse_file_dataset).
+gmeow-validate = { path = "../validate" }
+#   * gmeow-lang-bridge — the FS1 producer `lower::lower_svo` + `flagship_svo_sentence`.
+gmeow-lang-bridge = { path = "../lang-bridge" }
+#   * gmeow-logic-compile — `ir::PreservationKind`, the per-stage preservation record the
+#     FS1 lowering carries.
+gmeow-logic-compile = { path = "../logic-compile" }
+#   * purrdf — the frozen RdfDataset carrier (DatasetView), the parsed SHACL Shapes, the
+#     ValidationReport terms, and the SliceCatalog the FS2/FS4/FS5 producers ingest.
+purrdf = "0.4"

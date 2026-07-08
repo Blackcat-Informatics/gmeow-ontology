@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the conjecture-library competency questions
+# (gmeow:cqDataFile overlay, reasoningNone). It carries ONLY the properties the two
+# fixture-backed queries SELECT on — the competency lane runs no SHACL over this
+# overlay (SHACL is exercised separately in the example-conformance lane), so the
+# eight universal candidate carriers are deliberately omitted here to keep the
+# fixture minimal and the expected row sets exact.
+#
+# Content:
+#   * ex:cxRefutedTotalParthood — a single REFUTED-IN-STANDPOINT conjecture with a
+#     concrete logic:ContradictionWitness (one individual, one world, one premise),
+#     driving refuted-conjecture-has-witness.rq to exactly one row.
+#   * ex:cxGeneralParthood conjectureEntails ex:cxRefutedTotalParthood — a phi-entails-psi
+#     pair whose psi (the refuted conjecture) puts phi on the contrapositive
+#     propagation frontier, driving conjecture-entails-propagation.rq to exactly one row.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+# The refuted conjecture (the psi of the propagation pair) and its witness.
+ex:cxRefutedTotalParthood
+    a logic:Conjecture ;
+    logic:conjectureLifecycleState logic:ConjectureRefutedInStandpoint ;
+    logic:conjectureRefutationWitness ex:cxWitnessIncomparablePair .
+
+ex:cxWitnessIncomparablePair
+    a logic:ContradictionWitness ;
+    logic:witnessIndividual "ex:leftHand" ;
+    logic:witnessWorld "ex:worldActual" ;
+    logic:witnessPremise "ex:leftHand logic:properPartOf ex:body" .
+
+# The general conjecture (the phi of the propagation pair): it entails the refuted
+# one, so a refutation of the latter propagates contrapositively to it.
+ex:cxGeneralParthood
+    a logic:Conjecture ;
+    logic:conjectureEntails ex:cxRefutedTotalParthood .

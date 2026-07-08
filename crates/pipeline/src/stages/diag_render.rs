@@ -109,11 +109,21 @@ fn text_artifact(mut text: String) -> Vec<u8> {
 
 /// Render the four committed diagnostics projections for `report`, keyed by the
 /// supplied `paths`. `stage` names the producing stage for error attribution.
+///
+/// The reasoner-derived DIAGNOSTIC META-FINDINGS run FIRST (before any renderer):
+/// the authored `gmeow:DiagnosticMetaRule` fold (`meta`) reasons the projected
+/// finding graph and derives the root-cause / cluster / cross-node-glut
+/// meta-findings, which ENRICH the report so the user SEES them on every surface
+/// (the JSON serialization, the CLI/HTML text, and the derived `.nq`), not just the
+/// graph. json / sarif / html / nq all then render from the ENRICHED report + the
+/// derived meta N-Quads. A producer with no meta-rules passes `None` and the
+/// projection stays byte-unchanged.
 pub fn render_diagnostics_artifacts(
     stage: &str,
     report: &Report,
     paths: &DiagnosticsPaths<'_>,
     gate: Option<&crate::stages::gate_verdict::GateProgram>,
+    meta: Option<&crate::stages::meta_findings::MetaProgram>,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let stage_err = |what: &str, detail: String| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -121,6 +131,29 @@ pub fn render_diagnostics_artifacts(
             message: format!("render {what} diagnostics: {detail}"),
         })
     };
+    // The projected finding graph BEFORE enrichment — the EDB the meta chase reads
+    // (the derived root-cause/cluster/glut fields the enrichment adds are ignored by
+    // `to_gmeow_rdf`, so this projection is identical to the enriched report's).
+    let projected_nq = gmeow_errors::render::to_gmeow_rdf(report);
+    // Run the authored diagnostic meta-rules over the projected graph, then enrich a
+    // working copy of the report so every renderer surfaces the meta-findings.
+    let derivation = match meta {
+        Some(meta) => meta
+            .derive(&projected_nq)
+            .map_err(|e| stage_err("meta", e))?,
+        None => crate::stages::meta_findings::MetaDerivation::default(),
+    };
+    // Only clone + enrich when the meta chase actually derived findings; on the
+    // common empty-derivation path (meta=None, or a chase that fired nothing) the
+    // original `report` reference is used directly with NO clone — enrichment over an
+    // empty derivation is a no-op, so the two paths are byte-identical.
+    let enriched = (!derivation.is_empty()).then(|| {
+        let mut enriched = report.clone();
+        crate::stages::meta_findings::enrich_report(&mut enriched, &derivation);
+        enriched
+    });
+    let report = enriched.as_ref().unwrap_or(report);
+
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     artifacts.insert(
         paths.json.to_owned(),
@@ -142,7 +175,7 @@ pub fn render_diagnostics_artifacts(
     // The `.nq` diagnostics graph rides as an RDF-fanout named graph: emit the RDFC-1.0
     // canonical N-Quads (keeping the `graph/diagnostics` 4th-column label) so the
     // superset gate reconstructs it byte-for-byte.
-    let mut nq = gmeow_errors::render::to_gmeow_rdf(report);
+    let mut nq = projected_nq;
     // Materialize the REASONER-DERIVED gate verdict: run the AUTHORED
     // logic:ruleGateFatalVerdict up-set rule (via the native chase, NOT the Rust
     // gate() morphism) over the projected finding grades and fold the derived
@@ -157,6 +190,10 @@ pub fn render_diagnostics_artifacts(
             .map_err(|e| stage_err("RDF", format!("derive gate verdict: {e}")))?;
         nq.push_str(&derived);
     }
+    // Fold the derived meta-findings (root-cause / cluster / materialized cross-node
+    // glut witness) right after the gate fold, so both the byte artifact and the
+    // carrier graph carry them alongside the grade coordinates.
+    nq.push_str(&derivation.to_nquads(crate::stages::carrier::GRAPH_DIAGNOSTICS));
     let nq_ds = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
         .map_err(|e| stage_err("RDF", format!("parse N-Quads: {e}")))?;
     artifacts.insert(

@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Deterministic ABox fixture for the statement-role competency question Q5
+# (crates/slicetest run_competency_file, unioned with the merged ontology in the
+# asserted reasoningNone lane). Scoped to http://example.org/math/statement/ so the
+# query's answer is exact. A theorem-role statement, its proof, the proof-check run
+# that consumed it, the verification-result object, and the held observation with the
+# engine as vantage — the three-object process / result / claim split, none typed as
+# another.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/statement/> .
+
+# --- The theorem-role statement, scoped to a versioned theory ---------------- #
+ex:pythStatement a math:MathematicalStatement ;
+    math:statementRole math:roleTheorem ;
+    math:roleInTheory ex:euclideanGeometryV2 ;
+    math:hasConclusion ex:pythConclusion ;
+    math:dependsOnAxiom ex:euclidPostulate5 .
+ex:euclideanGeometryV2 a math:MathematicalObject .
+ex:pythConclusion a math:MathematicalObject .
+ex:euclidPostulate5 a math:Axiom .
+
+# --- The proof (process-independent object) ---------------------------------- #
+ex:pythProof a math:Proof ;
+    math:provesStatement ex:pythStatement ;
+    math:usesProofMethod ex:proofMethodDirect .
+ex:proofMethodDirect a math:ProofMethod .
+
+# --- Process: the proof-check run that consumed the proof -------------------- #
+ex:coqCheckRun a math:ProofCheckActivity ;
+    math:usedProof ex:pythProof .
+
+# --- Result object: the QED verdict ------------------------------------------ #
+ex:coqCheckResult a math:FormalVerificationResult ;
+    math:verifiedByEngine ex:coqEngineV8 ;
+    math:verificationResult math:verificationPassed .
+
+# --- Held claim: an observation with the engine as vantage ------------------- #
+ex:coqCheckObservation a gmeow:Observation ;
+    gmeow:vantage ex:coqEngineV8 ;
+    gmeow:observedFeature ex:pythProof ;
+    gmeow:observationResult ex:coqCheckResult ;
+    gmeow:wasGeneratedBy ex:coqCheckRun .
+ex:coqEngineV8 a gmeow:Standpoint .

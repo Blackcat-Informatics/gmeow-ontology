@@ -2082,9 +2082,11 @@ fn md_logic_diagnostics(model: &DocsModel) -> String {
     );
     push_line(
         &mut out,
-        "- **`logic-compile.lossy-drop` notes** — one finding per structural item a \
-         lossy projection had to drop, so the loss is never silent. These line up \
-         with the per-target rows in the preservation loss ledger.",
+        "- **`preservation.rung.structural` / `preservation.rung.actual` notes** — one \
+         finding per structural limitation a lossy projection carries and per concrete \
+         item it had to drop, so the loss is never silent. Each actual drop carries its \
+         causing structural limitation as an antecedent, and these line up with the \
+         per-target rows in the preservation loss ledger.",
     );
     blank(&mut out);
     line(

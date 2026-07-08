@@ -2074,8 +2074,10 @@ const FORMULA_SUBLINKS: [&str; 8] = [
 
 /// Read top-level `logic:Formula` trees into [`Formula`]s.  Fail-soft, like the rest of
 /// the front-end: a malformed node emits a `MALFORMED_FORMULA` warning and is skipped,
-/// never silently dropped.  A trivially-Horn predication is never a top-level formula by
-/// construction of the projection, so the `with_formulas` invariant is not tripped.
+/// never silently dropped.  A returned formula MAY be trivially-Horn (a reified ordinary
+/// triple) — the caller ([`parse_logic_dataset`]) partitions those out to
+/// [`LogicProgram::axioms`] via [`Formula::as_horn_axiom`] so the `with_formulas` invariant
+/// is enforced by routing, not by assuming the projection never authors one.
 fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<Formula> {
     let formula_ty = Node::iri(logic_iri("Formula"));
     let subjects = subjects_with(store, &nn(RDF_TYPE), &formula_ty);
@@ -2281,12 +2283,44 @@ pub fn parse_logic_dataset(
     let plain_axioms = extract_axioms(store, &mut diagnostics);
     let scoped_axioms = extract_scoped_axioms(store, &mut diagnostics);
 
+    // Read the top-level `logic:Formula` trees, then ROUTE a trivially-Horn leaf (a reified
+    // ordinary triple: an IRI relation over two non-sequence-marker arguments) to its axiom
+    // home. `LogicProgram::with_formulas` hard-asserts against such a leaf — a fact would get
+    // two content-addressed identities — so the invariant is enforced by routing rather than by
+    // the (previously false) assumption that the projection never authors one. The regeneration
+    // projection never emits a trivially-Horn top-level formula, so this partition is a no-op on
+    // the pipeline corpus (byte-identical); a hand-authored / hostile candidate document CAN
+    // emit one, and now becomes a fact (ground) or a rule-shaped axiom (variable) instead of
+    // panicking. A degenerate binary atom with a literal / sequence-marker subject cannot be a
+    // triple subject, so it is neither a formula nor an axiom: emit `MALFORMED_FORMULA`.
+    let mut formulas: Vec<Formula> = Vec::new();
+    let mut horn_axioms: Vec<LogicAxiom> = Vec::new();
+    for f in extract_formulas(store, &mut diagnostics) {
+        if f.is_trivially_horn() {
+            match f.as_horn_axiom() {
+                Some(ax) => horn_axioms.push(ax),
+                None => diagnostics.push(Diagnostic::warning(
+                    "MALFORMED_FORMULA",
+                    "trivially-Horn logic:Formula has a non-subject term (a literal or sequence \
+                     marker) in argument position 0; it is neither a formula nor a fact; skipped",
+                    None,
+                )),
+            }
+        } else {
+            formulas.push(f);
+        }
+    }
+
     // Merge + dedup by full content (mirrors the Python `set(...) | set(...)`),
-    // preserving first-occurrence order (plain then scoped) for deterministic
-    // tie-breaking; `LogicProgram::new` then sorts canonically.
+    // preserving first-occurrence order (plain, then scoped, then the routed Horn leaves) for
+    // deterministic tie-breaking; `LogicProgram::new` then sorts canonically.
     let mut seen: HashSet<String> = HashSet::new();
     let mut all_axioms: Vec<LogicAxiom> = Vec::new();
-    for ax in plain_axioms.into_iter().chain(scoped_axioms) {
+    for ax in plain_axioms
+        .into_iter()
+        .chain(scoped_axioms)
+        .chain(horn_axioms)
+    {
         if seen.insert(content_dedup_key(&ax)) {
             all_axioms.push(ax);
         }
@@ -2301,7 +2335,6 @@ pub fn parse_logic_dataset(
     // leave the canonical key byte-identical (the segment is append-only).
     let transaction_programs =
         crate::projections::correspondence::extract_leg_programs(store, &correspondences);
-    let formulas = extract_formulas(store, &mut diagnostics);
 
     let program = LogicProgram::new(all_axioms, rules, contracts, source_iri)
         .with_path_shapes(path_shapes)
