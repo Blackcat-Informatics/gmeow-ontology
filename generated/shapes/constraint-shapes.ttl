@@ -30,6 +30,17 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/commitmentBeneficiary> ?v . $this <https://blackcatinformatics.ca/gmeow/committedAgent> ?v . }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/CompetesWithIrreflexivityConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/StandpointClaim> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A <https://blackcatinformatics.ca/gmeow/StandpointClaim> instance must never be its own gmeow:competesWith (irreflexive)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/competesWith> $this . }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/CounterGoalIrreflexivityConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> ;
@@ -64,6 +75,17 @@
         sh:severity sh:Violation ;
         sh:message "An individual may fill at most one of these mutually disjoint classes (no overtyping)." ;
         sh:select """SELECT $this WHERE { $this a/rdfs:subClassOf* ?a ; a/rdfs:subClassOf* ?b . FILTER(STR(?a) < STR(?b)) FILTER(?a IN (<https://blackcatinformatics.ca/gmeow/GenderIdentity>, <https://blackcatinformatics.ca/gmeow/GenderExpression>, <https://blackcatinformatics.ca/gmeow/SexAssignedAtBirth>, <https://blackcatinformatics.ca/gmeow/SexualOrientation>, <https://blackcatinformatics.ca/gmeow/RomanticOrientation>, <https://blackcatinformatics.ca/gmeow/PronounSet>, <https://blackcatinformatics.ca/gmeow/Honorific>)) FILTER(?b IN (<https://blackcatinformatics.ca/gmeow/GenderIdentity>, <https://blackcatinformatics.ca/gmeow/GenderExpression>, <https://blackcatinformatics.ca/gmeow/SexAssignedAtBirth>, <https://blackcatinformatics.ca/gmeow/SexualOrientation>, <https://blackcatinformatics.ca/gmeow/RomanticOrientation>, <https://blackcatinformatics.ca/gmeow/PronounSet>, <https://blackcatinformatics.ca/gmeow/Honorific>)) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/InferencePremiseConclusionDistinctnessConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/InferenceCommitment> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A <https://blackcatinformatics.ca/gmeow/InferenceCommitment> instance's gmeow:conclusion and gmeow:premise must be distinct." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/conclusion> ?v . $this <https://blackcatinformatics.ca/gmeow/premise> ?v . }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/LinkNextAcyclicityConstraintShape>

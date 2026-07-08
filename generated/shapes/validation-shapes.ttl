@@ -16,6 +16,12 @@
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/SocialObject> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/InformationObject> ] .
 
+<https://blackcatinformatics.ca/gmeow/Analogy-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Analogy> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analogicalSource> ; sh:minCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/analogicalTarget> ; sh:minCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/hasCorrespondence> ; sh:minCount 1 ] .
+
 <https://blackcatinformatics.ca/gmeow/Annotation-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Annotation> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/annotationTarget> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
@@ -35,6 +41,19 @@
     sh:targetClass <https://blackcatinformatics.ca/gmeow/ArchaeologicalFindContext> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Entity> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/findContextTarget> ; sh:class <https://blackcatinformatics.ca/gmeow/PhysicalObject> ] .
+
+<https://blackcatinformatics.ca/gmeow/Argument-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Argument> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/hasPremiseUse> ; sh:class <https://blackcatinformatics.ca/gmeow/PremiseUse> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/argumentConclusion> ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/argumentInferenceStep> ; sh:maxCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/hasInferenceApplication> ; sh:class <https://blackcatinformatics.ca/gmeow/InferenceApplication> ] .
+
+<https://blackcatinformatics.ca/gmeow/ArgumentEvaluation-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/underSemantics> ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/acceptanceStatus> ; sh:minCount 1 ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/AcceptanceStatus> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/evaluatesArgument> ; sh:minCount 1 ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/Argument> ] .
 
 <https://blackcatinformatics.ca/gmeow/AtomicConstraint-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/AtomicConstraint> ;
@@ -132,6 +151,12 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/containmentChild> ; sh:class <https://blackcatinformatics.ca/gmeow/Place> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/containmentParent> ; sh:class <https://blackcatinformatics.ca/gmeow/Place> ] .
 
+<https://blackcatinformatics.ca/gmeow/ContinuityDetermination-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ContinuityDetermination> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/determinationForce> ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/DeterminationForce> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/determiningAuthority> ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/determinationValidity> ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/TimeInterval> ] .
+
 <https://blackcatinformatics.ca/gmeow/Contradiction-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Contradiction> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contradictsClaim> ; sh:nodeKind sh:BlankNodeOrIRI ] .
@@ -141,6 +166,12 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contributor> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contributionRole> ; sh:class <https://blackcatinformatics.ca/gmeow/ContributionRole> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contributionTarget> ; sh:class <https://blackcatinformatics.ca/gmeow/CreativeWork> ] .
+
+<https://blackcatinformatics.ca/gmeow/ControlAssessment-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ControlAssessment> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/controlAgent> ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/controlLevel> ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/ControlLevel> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/controlInterval> ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/TimeInterval> ] .
 
 <https://blackcatinformatics.ca/gmeow/ControlFlow-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/ControlFlow> ;
@@ -156,6 +187,11 @@
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Copyright> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/copyrightWork> ; sh:class <https://blackcatinformatics.ca/gmeow/InformationObject> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/copyrightHolder> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/Correspondence-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Correspondence> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/correspondingSource> ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/correspondingTarget> ; sh:minCount 1 ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/gmeow/CreativeDerivation-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/CreativeDerivation> ;
@@ -201,6 +237,12 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/diffTo> ; sh:class <https://blackcatinformatics.ca/gmeow/Commit> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/diffFrom> ; sh:class <https://blackcatinformatics.ca/gmeow/Commit> ] .
 
+<https://blackcatinformatics.ca/gmeow/DigitalSubjectTenure-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/DigitalSubjectTenure> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/tenureVantage> ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/tenureSupportedBy> ; sh:class <https://blackcatinformatics.ca/gmeow/Observation> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/tenureSubjectAgent> ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
 <https://blackcatinformatics.ca/gmeow/DoxasticState-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/DoxasticState> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/doxasticClaim> ; sh:class <https://blackcatinformatics.ca/gmeow/StandpointClaim> ] ;
@@ -227,6 +269,11 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/embeddingOf> ; sh:class <https://blackcatinformatics.ca/gmeow/InformationObject> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/distanceMetric> ; sh:class <https://blackcatinformatics.ca/gmeow/DistanceMetric> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/embeddingModel> ; sh:class <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ] .
+
+<https://blackcatinformatics.ca/gmeow/EmbodimentAssignment-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/EmbodimentAssignment> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/assignmentCarrier> ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/EmbodimentCarrierRole> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/assignmentSubject> ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
 
 <https://blackcatinformatics.ca/gmeow/Employment-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Employment> ;
@@ -333,6 +380,12 @@
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/SexAssignedAtBirth> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/RomanticOrientation> ] .
 
+<https://blackcatinformatics.ca/gmeow/IdentityContinuityAssessment-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/IdentityContinuityAssessment> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/assessmentToStage> ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/SubjectStage> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/continuityVerdict> ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/ContinuityVerdict> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/assessmentFromStage> ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/SubjectStage> ] .
+
 <https://blackcatinformatics.ca/gmeow/IdentityFacet-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/IdentityFacet> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/facetSubject> ; sh:class <https://blackcatinformatics.ca/gmeow/Person> ] ;
@@ -341,6 +394,23 @@
 <https://blackcatinformatics.ca/gmeow/ImageRegion-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/ImageRegion> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/regionOf> ; sh:class <https://blackcatinformatics.ca/gmeow/MediaObject> ] .
+
+<https://blackcatinformatics.ca/gmeow/InferenceApplication-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/InferenceApplication> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/appliedRule> ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/appliedSubstitution> ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] .
+
+<https://blackcatinformatics.ca/gmeow/InferenceCommitment-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/InferenceCommitment> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/premise> ; sh:minCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/conclusion> ; sh:minCount 1 ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/StandpointClaim> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/inferenceModeOf> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/InhabitationConfiguration-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/InhabitationConfiguration> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/duringInterval> ; sh:minCount 1 ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/TimeInterval> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/configurationOfTenure> ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/InhabitationTenure> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/configurationEmbodiment> ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/EmbodimentAssignment> ] .
 
 <https://blackcatinformatics.ca/gmeow/InquiryTenure-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/InquiryTenure> ;
@@ -618,6 +688,10 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/postingAccount> ; sh:class <https://blackcatinformatics.ca/gmeow/LedgerAccount> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/postingDirection> ; sh:class <https://blackcatinformatics.ca/gmeow/PostingDirection> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/postingJournalEntry> ; sh:class <https://blackcatinformatics.ca/gmeow/JournalEntry> ] .
+
+<https://blackcatinformatics.ca/gmeow/PremiseUse-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/PremiseUse> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/premiseUsed> ; sh:minCount 1 ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/gmeow/Procedure-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Procedure> ;

@@ -4757,6 +4757,22 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:characteristicSort on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/94ec256c28c9c4dc4be44a8ab7255447"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:characteristicSort on <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -4918,6 +4934,22 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:characterizes on <https://blackcatinformatics.ca/logic/coarserThanTransitivity> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/94ec256c28c9c4dc4be44a8ab7255447"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:characterizes on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -5157,6 +5189,22 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/94ec256c28c9c4dc4be44a8ab7255447"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/precedenceTenureDistinctness> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -5206,6 +5254,22 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:distinctnessTarget on <https://blackcatinformatics.ca/logic/criterionPoleDistinctness> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/94ec256c28c9c4dc4be44a8ab7255447"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:distinctnessTarget on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -5477,6 +5541,22 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/94ec256c28c9c4dc4be44a8ab7255447"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -5574,6 +5654,22 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection gufo drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/falsehoodIsRefutedClaim> has no gUFO bridge equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/94ec256c28c9c4dc4be44a8ab7255447"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection gufo drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no gUFO bridge equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -12716,6 +12812,22 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:characteristicSort on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/175fdb7b439094251e67c931548f9daa"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:characteristicSort on <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -12877,6 +12989,22 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:characterizes on <https://blackcatinformatics.ca/logic/coarserThanTransitivity> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/175fdb7b439094251e67c931548f9daa"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:characterizes on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -13116,6 +13244,22 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/175fdb7b439094251e67c931548f9daa"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/precedenceTenureDistinctness> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -13165,6 +13309,22 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:distinctnessTarget on <https://blackcatinformatics.ca/logic/criterionPoleDistinctness> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/175fdb7b439094251e67c931548f9daa"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:distinctnessTarget on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -13436,6 +13596,22 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/175fdb7b439094251e67c931548f9daa"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -13533,6 +13709,22 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-dl drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/falsehoodIsRefutedClaim> has no OWL DL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/175fdb7b439094251e67c931548f9daa"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-dl drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no OWL DL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -20403,6 +20595,22 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:characteristicSort on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bb15982f8b70d6bf9ddbf5119e518901"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:characteristicSort on <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -20564,6 +20772,22 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:characterizes on <https://blackcatinformatics.ca/logic/coarserThanTransitivity> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bb15982f8b70d6bf9ddbf5119e518901"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:characterizes on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -20803,6 +21027,22 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bb15982f8b70d6bf9ddbf5119e518901"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/precedenceTenureDistinctness> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -20852,6 +21092,22 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:distinctnessTarget on <https://blackcatinformatics.ca/logic/criterionPoleDistinctness> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bb15982f8b70d6bf9ddbf5119e518901"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:distinctnessTarget on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -21123,6 +21379,22 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bb15982f8b70d6bf9ddbf5119e518901"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
@@ -21220,6 +21492,22 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection owl-el drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/falsehoodIsRefutedClaim> has no EL equivalent",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bb15982f8b70d6bf9ddbf5119e518901"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection owl-el drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [
         {
@@ -29002,6 +29290,54 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> <https://blackcatinformatics.ca/logic/characteristicSort> <https://blackcatinformatics.ca/logic/irreflexiveProperty> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/1cbb9de1c410230d68b8f6c8a0491181"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> <https://blackcatinformatics.ca/logic/characterizes> <https://blackcatinformatics.ca/gmeow/competesWith> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/1cbb9de1c410230d68b8f6c8a0491181"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/competesWith> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/1cbb9de1c410230d68b8f6c8a0491181"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> <https://blackcatinformatics.ca/logic/characteristicSort> <https://blackcatinformatics.ca/logic/irreflexiveProperty> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
@@ -29403,6 +29739,70 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/falsehoodIsRefutedClaim> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/refuted> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/1cbb9de1c410230d68b8f6c8a0491181"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> <https://blackcatinformatics.ca/logic/distinctnessRole> <https://blackcatinformatics.ca/gmeow/conclusion> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/1cbb9de1c410230d68b8f6c8a0491181"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> <https://blackcatinformatics.ca/logic/distinctnessRole> <https://blackcatinformatics.ca/gmeow/premise> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/1cbb9de1c410230d68b8f6c8a0491181"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> <https://blackcatinformatics.ca/logic/distinctnessTarget> <https://blackcatinformatics.ca/gmeow/InferenceCommitment> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/1cbb9de1c410230d68b8f6c8a0491181"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/premise> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -32584,6 +32984,22 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/AcceptanceStatus on https://blackcatinformatics.ca/gmeow/acceptanceStatus has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/AccessibilityFacet on https://blackcatinformatics.ca/gmeow/assertionFacet has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
@@ -32617,6 +33033,22 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/accountHolder has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/assignmentSubject has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -32728,7 +33160,39 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/controlAgent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/copyrightHolder has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/determiningAuthority has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -33096,6 +33560,38 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/tenureSubjectAgent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/tenureVantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/trademarkHolder has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
@@ -33193,6 +33689,22 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Appellation on https://blackcatinformatics.ca/gmeow/usageAppellation has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Argument on https://blackcatinformatics.ca/gmeow/evaluatesArgument has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -33416,7 +33928,39 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ContinuityVerdict on https://blackcatinformatics.ca/gmeow/continuityVerdict has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ContributionRole on https://blackcatinformatics.ca/gmeow/contributionRole has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ControlLevel on https://blackcatinformatics.ca/gmeow/controlLevel has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -33576,6 +34120,22 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/DeterminationForce on https://blackcatinformatics.ca/gmeow/determinationForce has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/DeterminationStatus on https://blackcatinformatics.ca/gmeow/dofStatus has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
@@ -33673,6 +34233,38 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/EmailMessage on https://blackcatinformatics.ca/gmeow/participantMessage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/EmbodimentAssignment on https://blackcatinformatics.ca/gmeow/configurationEmbodiment has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/EmbodimentCarrierRole on https://blackcatinformatics.ca/gmeow/assignmentCarrier has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -34248,6 +34840,22 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/InferenceApplication on https://blackcatinformatics.ca/gmeow/hasInferenceApplication has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/InformationObject on https://blackcatinformatics.ca/gmeow/chunkOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
@@ -34329,6 +34937,22 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/InformationObject on https://blackcatinformatics.ca/gmeow/licensedWork has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/InhabitationTenure on https://blackcatinformatics.ca/gmeow/configurationOfTenure has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -34856,6 +35480,22 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Observation on https://blackcatinformatics.ca/gmeow/tenureSupportedBy has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Organization on https://blackcatinformatics.ca/gmeow/membershipOrganization has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
@@ -35225,6 +35865,22 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/PostingDirection on https://blackcatinformatics.ca/gmeow/postingDirection has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/PremiseUse on https://blackcatinformatics.ca/gmeow/hasPremiseUse has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {
@@ -35640,6 +36296,22 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/StandpointClaim on https://blackcatinformatics.ca/gmeow/conclusion has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/StandpointClaim on https://blackcatinformatics.ca/gmeow/doxasticClaim has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
@@ -35672,6 +36344,38 @@
     {
       "severity": "note",
       "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/SubjectStage on https://blackcatinformatics.ca/gmeow/assessmentFromStage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/SubjectStage on https://blackcatinformatics.ca/gmeow/assessmentToStage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Tag on https://blackcatinformatics.ca/gmeow/taggingTag has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
@@ -35689,6 +36393,38 @@
       "severity": "note",
       "code": "logic-compile.lossy-drop",
       "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/TimeInterval on https://blackcatinformatics.ca/gmeow/availabilitySlot has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/TimeInterval on https://blackcatinformatics.ca/gmeow/controlInterval has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+        }
+      ]
+    },
+    {
+      "severity": "note",
+      "code": "logic-compile.lossy-drop",
+      "message": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/TimeInterval on https://blackcatinformatics.ca/gmeow/determinationValidity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer",
       "tool": "logic-compile",
       "locations": [
         {

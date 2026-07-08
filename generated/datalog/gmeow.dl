@@ -346,6 +346,9 @@ distinctnessRole("https://blackcatinformatics.ca/logic/commitmentBeneficiaryDist
 distinctnessRole("https://blackcatinformatics.ca/logic/commitmentBeneficiaryDistinctness", "https://blackcatinformatics.ca/gmeow/committedAgent", "default").
 distinctnessTarget("https://blackcatinformatics.ca/logic/commitmentBeneficiaryDistinctness", "https://blackcatinformatics.ca/gmeow/Commitment", "default").
 formalizes("https://blackcatinformatics.ca/logic/commitmentBeneficiaryDistinctness", "https://blackcatinformatics.ca/gmeow/commitmentBeneficiary", "default").
+characteristicSort("https://blackcatinformatics.ca/logic/competesWithIrreflexivity", "https://blackcatinformatics.ca/logic/irreflexiveProperty", "default").
+characterizes("https://blackcatinformatics.ca/logic/competesWithIrreflexivity", "https://blackcatinformatics.ca/gmeow/competesWith", "default").
+formalizes("https://blackcatinformatics.ca/logic/competesWithIrreflexivity", "https://blackcatinformatics.ca/gmeow/competesWith", "default").
 characteristicSort("https://blackcatinformatics.ca/logic/counterGoalIrreflexivity", "https://blackcatinformatics.ca/logic/irreflexiveProperty", "default").
 characterizes("https://blackcatinformatics.ca/logic/counterGoalIrreflexivity", "https://blackcatinformatics.ca/gmeow/counterGoal", "default").
 formalizes("https://blackcatinformatics.ca/logic/counterGoalIrreflexivity", "https://blackcatinformatics.ca/gmeow/counterGoal", "default").
@@ -372,6 +375,10 @@ characterizes("https://blackcatinformatics.ca/logic/editionOfFunctionality", "ht
 formalizes("https://blackcatinformatics.ca/logic/editionOfFunctionality", "https://blackcatinformatics.ca/gmeow/editionOf", "default").
 instantiatesFramework("https://blackcatinformatics.ca/logic/evidenceStrength", "https://blackcatinformatics.ca/logic/EpistemicFramework", "default").
 formalizes("https://blackcatinformatics.ca/logic/falsehoodIsRefutedClaim", "https://blackcatinformatics.ca/gmeow/refuted", "default").
+distinctnessRole("https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness", "https://blackcatinformatics.ca/gmeow/conclusion", "default").
+distinctnessRole("https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness", "https://blackcatinformatics.ca/gmeow/premise", "default").
+distinctnessTarget("https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness", "https://blackcatinformatics.ca/gmeow/InferenceCommitment", "default").
+formalizes("https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness", "https://blackcatinformatics.ca/gmeow/premise", "default").
 projectsLadderEdge("https://blackcatinformatics.ca/logic/ladderRowAwareness", "https://blackcatinformatics.ca/gmeow/isAwareOf", "default").
 sourceDimension("https://blackcatinformatics.ca/logic/ladderRowAwareness", "https://blackcatinformatics.ca/logic/dimensionAwareness", "default").
 thresholdLevel("https://blackcatinformatics.ca/logic/ladderRowAwareness", "https://blackcatinformatics.ca/logic/levelEmerging", "default").

@@ -4142,6 +4142,16 @@ logic:linkNextAcyclicity
     logic:characteristicSort logic:acyclicProperty ;
     logic:formalizes gmeow:linkNext .
 
+logic:competesWithIrreflexivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "competesWith is irreflexive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:competesWith is irreflexive: a rival standpoint claim never competes with itself, as its skos:definition states. gmeow:competesWith is symmetric (owl:SymmetricProperty) but irreflexive; irreflexivity is enforced here on the canonical carrier — kept out of OWL to hold the reasoned profile within OWL 2 DL (the deception discipline) — and the native coherence gate raises a violation for a claim asserted to compete with itself; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    logic:characterizes gmeow:competesWith ;
+    logic:characteristicSort logic:irreflexiveProperty ;
+    logic:formalizes gmeow:competesWith .
+
 # ── Relatum-distinctness assertions (a relator's two roles must bind distinct values) ──
 # The canonical carrier for a mutual-inequality integrity condition on a relator: two
 # named roles on one focus node must bind DISTINCT values. OWL functionality of each role
@@ -4211,6 +4221,16 @@ logic:causalLinkDistinctness
     logic:distinctnessTarget gmeow:CausalLink ;
     logic:distinctnessRole gmeow:linkAntecedent , gmeow:linkConsequent ;
     logic:formalizes gmeow:linkAntecedent .
+
+logic:inferencePremiseConclusionDistinctness
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an inference commitment's premise and conclusion are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:InferenceCommitment's gmeow:premise and gmeow:conclusion must be distinct: an argument cannot assume what it proves — no premise is also the conclusion. The native coherence gate raises a violation when a premise coincides with the conclusion; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:InferenceCommitment ;
+    logic:distinctnessRole gmeow:premise , gmeow:conclusion ;
+    logic:formalizes gmeow:premise .
 
 # ── A NET-NEW harvested integrity constraint (prose → enforced axiom) ─────────────
 # The harvest mechanism run on a constraint that did NOT exist as an axiom before:

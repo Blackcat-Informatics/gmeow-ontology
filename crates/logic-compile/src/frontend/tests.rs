@@ -1052,6 +1052,48 @@ fn derive_owl_cardinality_lifts_with_owl_provenance() {
 }
 
 #[test]
+fn derive_merges_cardinality_and_class_on_same_path_into_one_property() {
+    // A class that authors a cardinality restriction AND an owl:allValuesFrom class restriction on
+    // ONE property must project to a SINGLE property shape carrying both — the conjunctive SHACL
+    // reading of a single hand-authored `sh:property` block. Unmerged, the two same-path property
+    // shapes would key distinctly from that block and defeat enforcement equivalence.
+    let ds = shape_dataset(
+        "g:StandpointClaim a owl:Class . \
+         g:InferenceCommitment a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:conclusion ; \
+           owl:cardinality \"1\"^^xsd:nonNegativeInteger ] , \
+         [ a owl:Restriction ; owl:onProperty g:conclusion ; \
+           owl:allValuesFrom g:StandpointClaim ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let shape = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::Class(c) if c.ends_with("InferenceCommitment")))
+        .expect("a Class(InferenceCommitment) shape");
+    let on_conclusion: Vec<_> = shape
+        .properties
+        .iter()
+        .filter(|p| p.path.ends_with("conclusion"))
+        .collect();
+    assert_eq!(
+        on_conclusion.len(),
+        1,
+        "cardinality + class on one path must merge into ONE property shape: {:?}",
+        shape.properties
+    );
+    let p = on_conclusion[0];
+    assert_eq!(p.min_count, Some(1), "exact cardinality gives min 1");
+    assert_eq!(p.max_count, Some(1), "exact cardinality gives max 1");
+    assert!(
+        p.components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(d) if d.ends_with("StandpointClaim"))),
+        "the merged property carries the sh:class component: {:?}",
+        p.components
+    );
+}
+
+#[test]
 fn derive_contradictory_cardinality_hard_fails() {
     // min > max is structurally impossible: the derivation HARD-FAILS rather than silently
     // dropping the malformed restriction (no fail-soft).

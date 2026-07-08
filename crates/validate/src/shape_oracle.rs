@@ -64,6 +64,11 @@ const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
 const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 /// `rdfs:label` — a presentation predicate the reader skips silently.
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+/// `rdfs:isDefinedBy` — an ontology-provenance annotation (which slice defines the shape); it
+/// carries no enforcement, so the reader absorbs it exactly like `rdfs:label`.
+const RDFS_ISDEFINEDBY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
+/// `rdfs:comment` — a documentation annotation the reader absorbs.
+const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
 /// The SKOS namespace — every `skos:*` annotation is skipped silently.
 const SKOS: &str = "http://www.w3.org/2004/02/skos/core#";
 /// `xsd:string` / `xsd:integer` / `xsd:dateTime` — the datatype IRIs the reader keys on.
@@ -83,6 +88,8 @@ fn shacl_local(iri: &str) -> Option<&str> {
 /// node / inner level; the rest are pure annotation everywhere.
 fn is_presentation(pred: &str) -> bool {
     pred == RDFS_LABEL
+        || pred == RDFS_ISDEFINEDBY
+        || pred == RDFS_COMMENT
         || pred.starts_with(SKOS)
         || matches!(
             shacl_local(pred),

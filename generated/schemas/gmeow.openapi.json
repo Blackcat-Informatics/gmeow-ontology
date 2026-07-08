@@ -11472,7 +11472,6 @@
         "type": "object"
       },
       "InferenceCommitment": {
-        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -37439,6 +37438,7 @@
         "type": "object"
       },
       "StandpointClaim": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -37458,23 +37458,8 @@
                 "type": "array"
               }
             ]
-          },
-          "gmeow:observationMethod": {
-            "$comment": "gmeow:ObservationMethod has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
           }
         },
-        "required": [
-          "gmeow:observationMethod"
-        ],
         "type": "object"
       },
       "StandpointTenure": {

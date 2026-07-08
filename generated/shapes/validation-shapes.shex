@@ -16,6 +16,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/Agent-shape> {
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/Analogy> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Analogy-shape> {
+  <https://blackcatinformatics.ca/gmeow/analogicalSource> . + ;
+  <https://blackcatinformatics.ca/gmeow/analogicalTarget> . + ;
+  <https://blackcatinformatics.ca/gmeow/hasCorrespondence> . + ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/Annotation> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Annotation-shape> {
   <https://blackcatinformatics.ca/gmeow/annotationTarget> IRI ;
@@ -30,6 +37,21 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/ArchaeologicalFindContext-shape> {
   <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
   <https://blackcatinformatics.ca/gmeow/findContextTarget> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Argument> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Argument-shape> {
+  <https://blackcatinformatics.ca/gmeow/hasPremiseUse> IRI ;
+  <https://blackcatinformatics.ca/gmeow/argumentConclusion> . ;
+  <https://blackcatinformatics.ca/gmeow/argumentInferenceStep> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/hasInferenceApplication> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/ArgumentEvaluation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ArgumentEvaluation-shape> {
+  <https://blackcatinformatics.ca/gmeow/underSemantics> . ;
+  <https://blackcatinformatics.ca/gmeow/acceptanceStatus> IRI ;
+  <https://blackcatinformatics.ca/gmeow/evaluatesArgument> IRI ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/AtomicConstraint> (associate via ShapeMap)
@@ -132,6 +154,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/containmentParent> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/ContinuityDetermination> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ContinuityDetermination-shape> {
+  <https://blackcatinformatics.ca/gmeow/determinationForce> IRI {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/determiningAuthority> IRI {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/determinationValidity> IRI {0,1} ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/Contradiction> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Contradiction-shape> {
   <https://blackcatinformatics.ca/gmeow/contradictsClaim> NONLITERAL ;
@@ -142,6 +171,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/contributor> IRI ;
   <https://blackcatinformatics.ca/gmeow/contributionRole> IRI ;
   <https://blackcatinformatics.ca/gmeow/contributionTarget> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/ControlAssessment> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ControlAssessment-shape> {
+  <https://blackcatinformatics.ca/gmeow/controlAgent> IRI {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/controlLevel> IRI {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/controlInterval> IRI {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/ControlFlow> (associate via ShapeMap)
@@ -160,6 +196,12 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/Copyright-shape> {
   <https://blackcatinformatics.ca/gmeow/copyrightWork> IRI ;
   <https://blackcatinformatics.ca/gmeow/copyrightHolder> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Correspondence> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Correspondence-shape> {
+  <https://blackcatinformatics.ca/gmeow/correspondingSource> . ;
+  <https://blackcatinformatics.ca/gmeow/correspondingTarget> . ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/CreativeDerivation> (associate via ShapeMap)
@@ -206,6 +248,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/diffFrom> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/DigitalSubjectTenure> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/DigitalSubjectTenure-shape> {
+  <https://blackcatinformatics.ca/gmeow/tenureVantage> IRI {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/tenureSupportedBy> IRI ;
+  <https://blackcatinformatics.ca/gmeow/tenureSubjectAgent> IRI {0,1} ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/DoxasticState> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/DoxasticState-shape> {
   <https://blackcatinformatics.ca/gmeow/doxasticClaim> IRI ;
@@ -234,6 +283,12 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/embeddingOf> IRI ;
   <https://blackcatinformatics.ca/gmeow/distanceMetric> IRI ;
   <https://blackcatinformatics.ca/gmeow/embeddingModel> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/EmbodimentAssignment> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/EmbodimentAssignment-shape> {
+  <https://blackcatinformatics.ca/gmeow/assignmentCarrier> IRI {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/assignmentSubject> IRI {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Employment> (associate via ShapeMap)
@@ -332,6 +387,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/Honorific-shape> {
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/IdentityContinuityAssessment> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/IdentityContinuityAssessment-shape> {
+  <https://blackcatinformatics.ca/gmeow/assessmentToStage> IRI {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/continuityVerdict> IRI {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/assessmentFromStage> IRI {0,1} ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/IdentityFacet> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/IdentityFacet-shape> {
   <https://blackcatinformatics.ca/gmeow/facetSubject> IRI ;
@@ -341,6 +403,26 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/gmeow/ImageRegion> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/ImageRegion-shape> {
   <https://blackcatinformatics.ca/gmeow/regionOf> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/InferenceApplication> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/InferenceApplication-shape> {
+  <https://blackcatinformatics.ca/gmeow/appliedRule> . ;
+  <https://blackcatinformatics.ca/gmeow/appliedSubstitution> <http://www.w3.org/2001/XMLSchema#string> ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/InferenceCommitment> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/InferenceCommitment-shape> {
+  <https://blackcatinformatics.ca/gmeow/premise> . + ;
+  <https://blackcatinformatics.ca/gmeow/conclusion> IRI ;
+  <https://blackcatinformatics.ca/gmeow/inferenceModeOf> . {0,1} ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/InhabitationConfiguration> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/InhabitationConfiguration-shape> {
+  <https://blackcatinformatics.ca/gmeow/duringInterval> IRI ;
+  <https://blackcatinformatics.ca/gmeow/configurationOfTenure> IRI {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/configurationEmbodiment> IRI {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/InquiryTenure> (associate via ShapeMap)
@@ -633,6 +715,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/postingAccount> IRI ;
   <https://blackcatinformatics.ca/gmeow/postingDirection> IRI ;
   <https://blackcatinformatics.ca/gmeow/postingJournalEntry> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/PremiseUse> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/PremiseUse-shape> {
+  <https://blackcatinformatics.ca/gmeow/premiseUsed> . ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Procedure> (associate via ShapeMap)

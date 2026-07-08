@@ -21,6 +21,7 @@ mod dev_i18n;
 mod dev_logic;
 mod dev_project;
 mod dev_reason;
+mod dev_shapes;
 mod dev_targets;
 mod dev_transpile;
 mod dev_validate;
@@ -405,6 +406,14 @@ pub enum Commands {
         #[arg(long = "lang", short = 'l')]
         lang: Option<String>,
     },
+    /// Prove legacy `shapes.ttl` blocks are reproduced by the projected validation shapes.
+    #[command(name = "shape-equivalence")]
+    ShapeEquivalence {
+        /// Restrict the scan (and the exit code) to legacy `shapes.ttl` under this directory
+        /// (repo-relative or absolute); default scans every slice.
+        #[arg(long = "path")]
+        path: Option<PathBuf>,
+    },
     /// Statically certify a logic program against its declared profile.
     Certify {
         input_path: PathBuf,
@@ -785,6 +794,7 @@ pub fn run() -> i32 {
             force,
             lang,
         } => dev_project::extract_docs(gts_file.as_deref(), &directory, force, lang.as_deref()),
+        Commands::ShapeEquivalence { path } => dev_shapes::shape_equivalence(path.as_deref()),
         Commands::Certify {
             input_path,
             profile,

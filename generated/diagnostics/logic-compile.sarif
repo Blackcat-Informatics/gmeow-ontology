@@ -7164,6 +7164,30 @@
             }
           ],
           "message": {
+            "text": "projection gufo drops: actual: logic:characteristicSort on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1c4286de36fe49fa"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/94ec256c28c9c4dc4be44a8ab7255447"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection gufo drops: actual: logic:characteristicSort on <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> has no gUFO bridge equivalent"
           },
           "partialFingerprints": {
@@ -7408,6 +7432,30 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "f49c43a4c4c545ff"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/94ec256c28c9c4dc4be44a8ab7255447"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:characterizes on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "09bd97968058aa2d"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -7764,6 +7812,30 @@
             }
           ],
           "message": {
+            "text": "projection gufo drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "19ebda8a04b44dfe"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/94ec256c28c9c4dc4be44a8ab7255447"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection gufo drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/precedenceTenureDistinctness> has no gUFO bridge equivalent"
           },
           "partialFingerprints": {
@@ -7840,6 +7912,30 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "4b4dee0223cdaecb"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/94ec256c28c9c4dc4be44a8ab7255447"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:distinctnessTarget on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "cbe75fc4717bb6fd"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -8244,6 +8340,30 @@
             }
           ],
           "message": {
+            "text": "projection gufo drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "3ea01b2b5cbeef43"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/94ec256c28c9c4dc4be44a8ab7255447"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection gufo drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> has no gUFO bridge equivalent"
           },
           "partialFingerprints": {
@@ -8392,6 +8512,30 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "121569d19d8bb5f1"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/94ec256c28c9c4dc4be44a8ab7255447"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection gufo drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no gUFO bridge equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9ddd74f1c5aca9d7"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -19155,6 +19299,30 @@
             }
           ],
           "message": {
+            "text": "projection owl-dl drops: actual: logic:characteristicSort on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "6d8cb1f735f9f17c"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/175fdb7b439094251e67c931548f9daa"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-dl drops: actual: logic:characteristicSort on <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> has no OWL DL equivalent"
           },
           "partialFingerprints": {
@@ -19399,6 +19567,30 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "7568828073f00553"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/175fdb7b439094251e67c931548f9daa"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:characterizes on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "bc224ab549bb64a5"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -19755,6 +19947,30 @@
             }
           ],
           "message": {
+            "text": "projection owl-dl drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "6bfe0d47ccd389f0"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/175fdb7b439094251e67c931548f9daa"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-dl drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/precedenceTenureDistinctness> has no OWL DL equivalent"
           },
           "partialFingerprints": {
@@ -19831,6 +20047,30 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "69f431d9864c781b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/175fdb7b439094251e67c931548f9daa"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:distinctnessTarget on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "98daf9cceda043a5"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -20235,6 +20475,30 @@
             }
           ],
           "message": {
+            "text": "projection owl-dl drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d0e51c06fbb4baf7"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/175fdb7b439094251e67c931548f9daa"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-dl drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> has no OWL DL equivalent"
           },
           "partialFingerprints": {
@@ -20383,6 +20647,30 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "4d2b036a6f026a21"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/175fdb7b439094251e67c931548f9daa"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-dl drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no OWL DL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "cede0871e8ae259f"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -30698,6 +30986,30 @@
             }
           ],
           "message": {
+            "text": "projection owl-el drops: actual: logic:characteristicSort on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e3156e2623f749e2"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bb15982f8b70d6bf9ddbf5119e518901"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-el drops: actual: logic:characteristicSort on <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> has no EL equivalent"
           },
           "partialFingerprints": {
@@ -30942,6 +31254,30 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "18cb86d943218867"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bb15982f8b70d6bf9ddbf5119e518901"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:characterizes on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5d9d354aac9c63e5"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -31298,6 +31634,30 @@
             }
           ],
           "message": {
+            "text": "projection owl-el drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "75d0dc616f2e0fa0"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bb15982f8b70d6bf9ddbf5119e518901"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-el drops: actual: logic:distinctnessRole on <https://blackcatinformatics.ca/logic/precedenceTenureDistinctness> has no EL equivalent"
           },
           "partialFingerprints": {
@@ -31374,6 +31734,30 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "f303f814c20fc8d5"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bb15982f8b70d6bf9ddbf5119e518901"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:distinctnessTarget on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7cac758f1f4104a9"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -31778,6 +32162,30 @@
             }
           ],
           "message": {
+            "text": "projection owl-el drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0ff15d4c96baf889"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bb15982f8b70d6bf9ddbf5119e518901"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection owl-el drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> has no EL equivalent"
           },
           "partialFingerprints": {
@@ -31926,6 +32334,30 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "48f0b98220ca73df"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bb15982f8b70d6bf9ddbf5119e518901"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection owl-el drops: actual: logic:formalizes on <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> has no EL equivalent"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "93b4dc7a12efc3b3"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -43609,6 +44041,78 @@
             }
           ],
           "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> <https://blackcatinformatics.ca/logic/characteristicSort> <https://blackcatinformatics.ca/logic/irreflexiveProperty> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4650c9880f88ae1d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/1cbb9de1c410230d68b8f6c8a0491181"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> <https://blackcatinformatics.ca/logic/characterizes> <https://blackcatinformatics.ca/gmeow/competesWith> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5762b3ba79dd268b"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/1cbb9de1c410230d68b8f6c8a0491181"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/competesWithIrreflexivity> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/competesWith> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "4aab2756ef5f116f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/1cbb9de1c410230d68b8f6c8a0491181"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/counterGoalIrreflexivity> <https://blackcatinformatics.ca/logic/characteristicSort> <https://blackcatinformatics.ca/logic/irreflexiveProperty> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
           },
           "partialFingerprints": {
@@ -44213,6 +44717,102 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "5c75606ac1536180"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/1cbb9de1c410230d68b8f6c8a0491181"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> <https://blackcatinformatics.ca/logic/distinctnessRole> <https://blackcatinformatics.ca/gmeow/conclusion> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "af0e85c75e99525d"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/1cbb9de1c410230d68b8f6c8a0491181"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> <https://blackcatinformatics.ca/logic/distinctnessRole> <https://blackcatinformatics.ca/gmeow/premise> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "247c688c5da97d7f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/1cbb9de1c410230d68b8f6c8a0491181"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> <https://blackcatinformatics.ca/logic/distinctnessTarget> <https://blackcatinformatics.ca/gmeow/InferenceCommitment> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "8677c9ecb071b4cd"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/1cbb9de1c410230d68b8f6c8a0491181"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shacl-af drops: actual: ground axiom <https://blackcatinformatics.ca/logic/inferencePremiseConclusionDistinctness> <https://blackcatinformatics.ca/logic/formalizes> <https://blackcatinformatics.ca/gmeow/premise> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "75997ebf0e62b808"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -49007,6 +49607,30 @@
             }
           ],
           "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/AcceptanceStatus on https://blackcatinformatics.ca/gmeow/acceptanceStatus has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "11034291aa6dd084"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/AccessibilityFacet on https://blackcatinformatics.ca/gmeow/assertionFacet has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
           },
           "partialFingerprints": {
@@ -49059,6 +49683,30 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "c3e5c9c6805a8894"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/assignmentSubject has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "10ea28c42a85b1da"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -49223,10 +49871,58 @@
             }
           ],
           "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/controlAgent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "8d383186e526a447"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/copyrightHolder has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "48dfcea6f7fe29f2"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/determiningAuthority has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "17a99e8f54a22700"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -49775,6 +50471,54 @@
             }
           ],
           "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/tenureSubjectAgent has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2f1493393cf3cedb"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/tenureVantage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "3fca2a2096b36cf6"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Agent on https://blackcatinformatics.ca/gmeow/trademarkHolder has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
           },
           "partialFingerprints": {
@@ -49923,6 +50667,30 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "a226f4adfd452011"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Argument on https://blackcatinformatics.ca/gmeow/evaluatesArgument has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d7e1c7ea4c01295a"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -50255,10 +51023,58 @@
             }
           ],
           "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ContinuityVerdict on https://blackcatinformatics.ca/gmeow/continuityVerdict has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7c4adaebfd90c014"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ContributionRole on https://blackcatinformatics.ca/gmeow/contributionRole has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "7787722853ac154a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/ControlLevel on https://blackcatinformatics.ca/gmeow/controlLevel has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0f0114b30d92d424"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -50495,6 +51311,30 @@
             }
           ],
           "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/DeterminationForce on https://blackcatinformatics.ca/gmeow/determinationForce has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9704880a19aee78e"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/DeterminationStatus on https://blackcatinformatics.ca/gmeow/dofStatus has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
           },
           "partialFingerprints": {
@@ -50643,6 +51483,54 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "62c7dac61172a369"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/EmbodimentAssignment on https://blackcatinformatics.ca/gmeow/configurationEmbodiment has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "aa8e6ff35c3b7d6f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/EmbodimentCarrierRole on https://blackcatinformatics.ca/gmeow/assignmentCarrier has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "abbbaf9af72afed7"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -51503,6 +52391,30 @@
             }
           ],
           "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/InferenceApplication on https://blackcatinformatics.ca/gmeow/hasInferenceApplication has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "018510282933117a"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/InformationObject on https://blackcatinformatics.ca/gmeow/chunkOf has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
           },
           "partialFingerprints": {
@@ -51627,6 +52539,30 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "08113d71fcde0591"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/InhabitationTenure on https://blackcatinformatics.ca/gmeow/configurationOfTenure has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "84affc7967739707"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -52415,6 +53351,30 @@
             }
           ],
           "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Observation on https://blackcatinformatics.ca/gmeow/tenureSupportedBy has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "aae9abca332973d0"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Organization on https://blackcatinformatics.ca/gmeow/membershipOrganization has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
           },
           "partialFingerprints": {
@@ -52971,6 +53931,30 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "5db43c95d85c1d88"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/PremiseUse on https://blackcatinformatics.ca/gmeow/hasPremiseUse has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5fcdfdb69d63004e"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
@@ -53591,6 +54575,30 @@
             }
           ],
           "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/StandpointClaim on https://blackcatinformatics.ca/gmeow/conclusion has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "549aee752f34892f"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/StandpointClaim on https://blackcatinformatics.ca/gmeow/doxasticClaim has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
           },
           "partialFingerprints": {
@@ -53639,6 +54647,54 @@
             }
           ],
           "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/SubjectStage on https://blackcatinformatics.ca/gmeow/assessmentFromStage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "b8bd02623e403660"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/SubjectStage on https://blackcatinformatics.ca/gmeow/assessmentToStage has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "df786a0492b39ab9"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/Tag on https://blackcatinformatics.ca/gmeow/taggingTag has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
           },
           "partialFingerprints": {
@@ -53667,6 +54723,54 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "790a7dd0010376bf"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/TimeInterval on https://blackcatinformatics.ca/gmeow/controlInterval has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "32b63cec9e4b3af6"
+          },
+          "ruleId": "logic-compile.lossy-drop"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/086f1e1a031414d808b8a4d18d3479c6"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "projection shex drops: actual: sh:class https://blackcatinformatics.ca/gmeow/TimeInterval on https://blackcatinformatics.ca/gmeow/determinationValidity has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "eff94bd0f036bd95"
           },
           "ruleId": "logic-compile.lossy-drop"
         },
