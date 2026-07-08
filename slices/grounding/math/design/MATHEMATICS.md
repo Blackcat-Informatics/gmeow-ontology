@@ -6,7 +6,9 @@
 > The **manifesto** of the GMEOW Mathematics design set; it carries the vision, doctrine, and
 > lineage. The expression calculus, probability layer, statistics layer, and projection contract
 > live in the sibling documents below. Where this document states a thesis once, the siblings make
-> it precise — repetition is replaced by cross-reference on purpose.
+> it precise — repetition is replaced by cross-reference on purpose. The cross-slice contract
+> binding this slice to its co-foundational peers (`logic:`, `lang:`) — the seam registry, shared
+> disciplines, and acceptance bar — is [`docs/GROUNDING.md`](../../../../docs/GROUNDING.md).
 
 ## The document set
 
@@ -62,8 +64,10 @@ truth; each is a generated view with a recorded preservation judgment.
 
 GMEOW has three co-foundational grounding layers (CONSTITUTION.md Principle 19), and mathematics
 is one of them; the third, `lang:` — meaning and expression — is chartered in its own design set
-([`../../lang/design/LANG.md`](../../lang/design/LANG.md)) and does not depend on `math:`, so
-this manifesto's concern remains the `logic:`/`math:` relationship it fixes here. `logic:`
+([`../../lang/design/LANG.md`](../../lang/design/LANG.md)) and meets `math:` at two registered
+seams (rendering, math → lang; quantity, lang → math; see
+[`docs/GROUNDING.md`](../../../../docs/GROUNDING.md)), so this manifesto's concern remains the
+`logic:`/`math:` relationship it fixes here. `logic:`
 grounds **reasoning** — truth, inference, proof, modality — as a Turing-complete computational
 substrate built on a relational core (predicates, rules, resolution). `math:` grounds **quantity
 and structure** — number, space, operation, measure, dimension — as the canonical structural
@@ -175,42 +179,21 @@ the manifest, not the directory, is the source of tier (the build reads the tier
 reads). Core tier is the deliberate
 commitment the manifesto makes: mathematical objects, probability, statistics, proofs, and
 distributions are part of the default mental model that the scientific, research, finance, risk, AI,
-and analysis layers build on, not an optional extension they each re-derive. Because the slice is
-core, its `gmeow:sliceDependsOn` set may reference other core slices freely (the dependency DAG
-forbids only extension→extension edges), and the ten dependencies below are all core.
+and analysis layers build on, not an optional extension they each re-derive.
 
-A skeleton manifest — the actual `manifest.ttl` is authored when implementation begins; this fixes
-the identity, tier, and dependency contract now:
-
-```ttl
-<https://blackcatinformatics.ca/gmeow/slices/math>
-    a gmeow:Slice ;
-    rdfs:label "mathematics"@x-gmeow-english ;
-    dcterms:title "GMEOW Mathematics and Statistics Module"@x-gmeow-english ;
-    gmeow:sliceTier gmeow:tierCore ;
-    gmeow:sliceProfile "claims" , "mathematics" ;   # "claims" is an existing profile; "mathematics" is a new profile individual this slice introduces
-    gmeow:sliceDependsOn
-        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
-        <https://blackcatinformatics.ca/gmeow/slices/entities> ,
-        <https://blackcatinformatics.ca/gmeow/slices/logic> ,
-        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
-        <https://blackcatinformatics.ca/gmeow/slices/evidence> ,
-        <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
-        <https://blackcatinformatics.ca/gmeow/slices/citations> ,
-        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
-        <https://blackcatinformatics.ca/gmeow/slices/versions> ,
-        <https://blackcatinformatics.ca/gmeow/slices/notation> ;
-    gmeow:sliceConsumer "..."@x-gmeow-english .
-```
-
-Two honesty notes on the manifest. First, `gmeow:sliceProfile` is an **open** vocabulary of profile
-individuals; the profiles that already exist in the repository are `claims`, `dreaming`, `memory`,
-`music`, and `narrative`. `"mathematics"` is therefore a **new** profile this slice would introduce,
-not an existing one — the design does not pretend otherwise. Second, `gmeow:sliceDependsOn` is
-gate-verified against the *computed* cross-slice reference graph: the slice must declare exactly the
-slices its terms actually reference — no undeclared and no stale edges — so the final dependency set
-is trimmed to what `module.ttl`/`shapes.ttl` actually use, which is expected to be this set or a
-subset of it.
+The manifest is authored (`manifest.ttl`) and is the sole source of slice identity and tier. Its
+realized dependency set — gate-verified against the *computed* cross-slice reference graph, which
+trims the declaration to exactly the slices whose terms `module.ttl`/`shapes.ttl` actually
+reference — is `logic` and `lang`, together with the co-foundational peerage declaration
+(`gmeow:sliceCoFoundationalWith` naming `logic` and `lang`, per
+[`docs/GROUNDING.md`](../../../../docs/GROUNDING.md)). The broader ten-slice skeleton this
+manifesto once sketched (kernel, entities, observations, evidence, provenance, citations, temporal,
+versions, notation) was trimmed by that computed graph: the slice reaches those spines through
+`gmeow:` core vocabulary (Observation, vantage, Activity) rather than referencing their slice-owned
+terms directly, and the notation seam landed as the `lang:Rendering` graft instead of a `notation`
+dependency. The `lang` dependency carries the registered rendering seam
+(`math:ExpressionRendering ⊑ lang:Rendering`); the `logic` dependency carries the compilation,
+laws, and preservation seams.
 
 ## Lineage and Supersession
 
