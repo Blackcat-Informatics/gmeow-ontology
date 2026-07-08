@@ -650,16 +650,18 @@ killed its parent, rather than silently relabelling the claim.
 (the formula φ entails the formula ψ). Its purpose is contrapositive propagation: if ψ is refuted and
 φ entails ψ, then φ cannot stand and belongs on the re-test frontier. The relation is a pre-order *in
 intent* (reflexive and transitive), and each edge is itself a conjecture test — that φ genuinely
-entails ψ — not a bare assertion. This layer ships as **vocabulary plus the propagation competency
-query** only; full transitive-closure materialization over the corpus is deliberately ruled out of
-this increment, so the pre-order is carried and queryable without committing the engine to close it.
+entails ψ — not a bare assertion. This layer is **vocabulary plus the propagation competency
+query**: the pre-order is carried edge by edge and queried directly, and its full transitive closure
+over the corpus is not materialized as a stored relation — contrapositive propagation reasons over the
+edges without the engine computing that closure as a persisted extension.
 
-Finally, one seam is left open on purpose. Corroboration rank is a natural feed into the AGM
-**entrenchment** ordering — the more a conjecture has survived, the more entrenched the belief it
-grounds should be, and the more costly it should be to give up under a counterfactual revision. Wiring
-corroboration-as-entrenchment is a *deliberate* deferral to a follow-on epic, not an oversight: it
-would change the resolution semantics of every existing counterfactual test at once, so it is held back
-behind its own governed increment rather than smuggled in with the vocabulary.
+Corroboration rank and the AGM **entrenchment** ordering are kept independent by design. Corroboration
+rank is a natural feed into entrenchment — the more a conjecture has survived, the more entrenched the
+belief it grounds could be, and the more costly to give up under a counterfactual revision — but the
+conjecture layer does not couple the two: corroboration is recorded on the conjecture and does not alter
+the entrenchment that governs counterfactual revision. Coupling them would change the resolution
+semantics of every counterfactual test at once, so the two orderings remain separate and the conjecture
+vocabulary carries no entrenchment side effect.
 
 ## The Ithkuil precision ethos
 
