@@ -153,8 +153,10 @@ pub fn reason_program(
     let program_nemo = project_nemo(
         program,
         &mut gmeow_logic_compile::loss_ledger::LossLedger::new(),
-    )?;
-    let program_rules = extract_nemo_rules_section(&program_nemo.content)?;
+    )
+    .map_err(|e| e.to_string())?;
+    let program_rules =
+        extract_nemo_rules_section(&program_nemo.content).map_err(|e| e.to_string())?;
 
     // 3. Run program rules + formula-derived rules ALONGSIDE the fixed DL calculus, so the
     //    program's consequences and DL consistency are computed in one chase.

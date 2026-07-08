@@ -45,6 +45,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use gmeow_errors::Diag;
+
 use crate::projections::correspondence_frontend::CorrespondenceLookup;
 use crate::projections::get_leg::{Atom, ProfileBinding, ProjectionCell, curie, sparql_string};
 use crate::projections::put_derivation::classify_put;
@@ -64,7 +66,7 @@ use crate::projections::{ProjectionResult, correspondence_result};
 /// the SAME [`atom_triple`] the forward branch uses (an empty var map — no language-retag on
 /// the source side), so a class binding yields `?anchor a gmeow:<SourceClass>` and a
 /// predicate binding `?anchor gmeow:<sourcePred> ?value`.
-fn source_atoms(cell: &ProjectionCell, _b: &ProfileBinding) -> Result<Vec<String>, String> {
+fn source_atoms(cell: &ProjectionCell, _b: &ProfileBinding) -> gmeow_errors::Result<Vec<String>> {
     let empty: BTreeMap<String, String> = BTreeMap::new();
     let mut out = Vec::new();
     for atom in cell.pattern.flat_atoms() {
@@ -116,19 +118,23 @@ fn reified_claim_of_atom(
     target_curie: &str,
     import_iri: &str,
     idx: usize,
-) -> Result<ReifiedClaim, String> {
+) -> gmeow_errors::Result<ReifiedClaim> {
     if atom.path.is_some() || !atom.path_alts.is_empty() || atom.predicate_var.is_some() {
-        return Err(format!(
-            "put emitter: ValidationOnly source atom on ?{} is a property path / alternation / \
-             predicate variable, which has no single qPredicate IRI to reify honestly",
-            atom.subject_var
-        ));
+        return Err(Diag::of_kind(crate::error::Put {
+            detail: format!(
+                "put emitter: ValidationOnly source atom on ?{} is a property path / alternation / \
+                 predicate variable, which has no single qPredicate IRI to reify honestly",
+                atom.subject_var
+            ),
+        }));
     }
     let predicate = atom.predicate.clone().ok_or_else(|| {
-        format!(
-            "put emitter: ValidationOnly source atom on ?{} has no predicate IRI to reify",
-            atom.subject_var
-        )
+        Diag::of_kind(crate::error::Put {
+            detail: format!(
+                "put emitter: ValidationOnly source atom on ?{} has no predicate IRI to reify",
+                atom.subject_var
+            ),
+        })
     })?;
     let object = if let Some(value) = &atom.object_value {
         ClaimObject::Iri(curie(value))
@@ -140,10 +146,12 @@ fn reified_claim_of_atom(
     } else if let Some(var) = &atom.object_var {
         ClaimObject::Iri(format!("?{var}"))
     } else {
-        return Err(format!(
-            "put emitter: ValidationOnly source atom on ?{} has no object to reify",
-            atom.subject_var
-        ));
+        return Err(Diag::of_kind(crate::error::Put {
+            detail: format!(
+                "put emitter: ValidationOnly source atom on ?{} has no object to reify",
+                atom.subject_var
+            ),
+        }));
     };
     Ok(ReifiedClaim {
         cell_label: format!("cell{idx}"),
@@ -173,7 +181,7 @@ pub(crate) fn emit_put(
     vocab: &SuppressionVocab,
     lookup: &CorrespondenceLookup,
     loss: &mut crate::loss_ledger::LossLedger,
-) -> Result<Option<EmittedQuery>, String> {
+) -> gmeow_errors::Result<Option<EmittedQuery>> {
     let _ = (vocab, lookup);
     let empty: BTreeMap<String, String> = BTreeMap::new();
     let mut construct: Vec<String> = Vec::new();
@@ -229,12 +237,14 @@ pub(crate) fn emit_put(
                     // no nameable provenance source — a HARD FAIL (no silent skip).
                     let target = b.to_class.as_ref().or(b.to_predicate.as_ref()).ok_or_else(
                         || {
-                            format!(
-                                "put emitter: ValidationOnly binding for profile {profile:?} on \
-                                 <{}> has neither gmeow:toClass nor gmeow:toPredicate, so its \
-                                 mint-with-claim provenance has no nameable forward target",
-                                cell.iri
-                            )
+                            Diag::of_kind(crate::error::Put {
+                                detail: format!(
+                                    "put emitter: ValidationOnly binding for profile {profile:?} on \
+                                     <{}> has neither gmeow:toClass nor gmeow:toPredicate, so its \
+                                     mint-with-claim provenance has no nameable forward target",
+                                    cell.iri
+                                ),
+                            })
                         },
                     )?;
                     let target_curie = curie(target);

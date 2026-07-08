@@ -18,6 +18,8 @@ use std::collections::BTreeMap;
 
 use purrdf::{NativeRdfFormat, parse_dataset};
 
+use gmeow_errors::Diag;
+
 use crate::ingest::DslView;
 use crate::ingest::prefixes::registry_pairs;
 use crate::loss_ledger::LossLedger;
@@ -76,7 +78,7 @@ pub fn lower_edoal(
     dsl: &DslView,
     onto: &DslView,
     lookup: &CorrespondenceLookup,
-) -> Result<EdoalLowering, String> {
+) -> gmeow_errors::Result<EdoalLowering> {
     let cells = projections(dsl)?;
     let tag_map = build_tag_map(onto);
     let prefixes = registry_pairs();
@@ -93,7 +95,11 @@ pub fn lower_edoal(
             NativeRdfFormat::NTriples.media_type(),
             None,
         )
-        .map_err(|e| format!("EDOAL NT parse error: {e}"))?;
+        .map_err(|e| {
+            Diag::of_kind(crate::error::Edoal {
+                detail: format!("EDOAL NT parse error: {e}"),
+            })
+        })?;
         let body = purrdf::turtle_render::render(&dataset, &prefixes);
         let text = format!("{}\n", body.trim_end_matches('\n'));
         alignments.insert(format!("{profile}.edoal.ttl"), text);
@@ -261,7 +267,7 @@ fn emit_edoal_nt(
     tag_map: &BTreeMap<String, String>,
     lookup: &CorrespondenceLookup,
     loss: &mut LossLedger,
-) -> Result<EmittedEdoal, String> {
+) -> gmeow_errors::Result<EmittedEdoal> {
     let mut nt = Nt::new();
     let mut ledger: Vec<ProjectionResult> = Vec::new();
     let align = format!("{ONTOLOGY_IRI}/projections/{profile}");
@@ -310,7 +316,7 @@ fn emit_edoal_nt(
                 typed.morphism_kind,
                 &b.relation,
             )
-            .map_err(|e| e.0)?;
+            .map_err(|e| Diag::of_kind(crate::error::Edoal { detail: e.0 }))?;
 
             for map_cell in edoal_cells(&mut nt, cell, b, &en)? {
                 nt.add_bnode_obj(&align, &format!("{ALIGN}map"), &map_cell);
@@ -383,13 +389,15 @@ fn edoal_cells(
     cell: &ProjectionCell,
     b: &ProfileBinding,
     en: &str,
-) -> Result<Vec<String>, String> {
+) -> gmeow_errors::Result<Vec<String>> {
     let pattern = &cell.pattern;
     let mut cells = Vec::new();
 
     if !b.value_class_map.is_empty() {
         let Some(edoal_source) = &pattern.edoal_source else {
-            return Err(format!("{}: value-class map needs edoalSource", cell.iri));
+            return Err(Diag::of_kind(crate::error::Edoal {
+                detail: format!("{}: value-class map needs edoalSource", cell.iri),
+            }));
         };
         let attr = attr_of(pattern)?;
         for (i, vc) in b.value_class_map.iter().enumerate() {
@@ -416,10 +424,9 @@ fn edoal_cells(
         match edoal_path(nt, pattern)? {
             Some(s) => s,
             None => {
-                return Err(format!(
-                    "{}: edoalPath set but no anchor→value path",
-                    cell.iri
-                ));
+                return Err(Diag::of_kind(crate::error::Edoal {
+                    detail: format!("{}: edoalPath set but no anchor→value path", cell.iri),
+                }));
             }
         }
     } else if let Some(es) = &pattern.edoal_source {
@@ -480,7 +487,7 @@ fn make_cell(
     node
 }
 
-fn attr_of(pattern: &MappingPattern) -> Result<String, String> {
+fn attr_of(pattern: &MappingPattern) -> gmeow_errors::Result<String> {
     for atom in pattern.flat_atoms() {
         if atom.object_var.as_deref() == pattern.value.as_deref()
             && pattern.value.is_some()
@@ -489,7 +496,9 @@ fn attr_of(pattern: &MappingPattern) -> Result<String, String> {
             return Ok(atom.predicate.clone().unwrap());
         }
     }
-    Err("value-class pattern has no value-binding predicate".to_owned())
+    Err(Diag::of_kind(crate::error::Edoal {
+        detail: "value-class pattern has no value-binding predicate".to_owned(),
+    }))
 }
 
 fn edoal_target(b: &ProfileBinding) -> (Option<String>, &str) {
@@ -514,7 +523,7 @@ fn edoal_target(b: &ProfileBinding) -> (Option<String>, &str) {
     (None, "property")
 }
 
-fn edoal_path(nt: &mut Nt, pattern: &MappingPattern) -> Result<Option<String>, String> {
+fn edoal_path(nt: &mut Nt, pattern: &MappingPattern) -> gmeow_errors::Result<Option<String>> {
     let Some(value) = &pattern.value else {
         return Ok(None);
     };
@@ -725,7 +734,7 @@ mod tests {
         let mut loss = LossLedger::new();
         let err = emit_edoal_nt(&[bridge_cell], "schema-org", &tag_map, &lookup, &mut loss)
             .expect_err("a bridge view emitting `=` must be rejected by the lowering");
-        assert!(err.contains("bridge"), "{err}");
-        assert!(err.contains("Principle 5"), "{err}");
+        assert!(err.message().contains("bridge"), "{err}");
+        assert!(err.message().contains("Principle 5"), "{err}");
     }
 }

@@ -378,7 +378,11 @@ fn column_contract_property(col: &Column) -> gmeow_errors::Result<PropertyConstr
         prov,
         components,
     )
-    .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Transform {
+            message: e.to_string(),
+        })
+    })
 }
 
 /// Wrap [`column_contract_property`] in a well-formed [`ValidationShapeIr`] value-keyed on
@@ -396,7 +400,11 @@ fn column_contract(shape_iri: &str, col: &Column) -> gmeow_errors::Result<Valida
         vec![property],
         None,
     )
-    .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Transform {
+            message: e.to_string(),
+        })
+    })
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────

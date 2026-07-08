@@ -43,6 +43,8 @@
 
 use sha2::{Digest, Sha256};
 
+use gmeow_errors::Diag;
+
 use crate::ir::{
     Correspondence, CorrespondenceLaw, DischargeCondition, DischargeVerdict, LawClaimIr,
     MorphismClass, PreservationKind, TransactionProgramIr,
@@ -151,21 +153,25 @@ pub(crate) fn classify_put(
 /// Hard-fails (no-optionality) if the cell carries no `get` leg (there is no view for the
 /// witness to travel in) or already carries a `put` leg (the caller must not re-derive an
 /// authored leg).
-pub fn derive_put(c: &Correspondence) -> Result<PutDerivation, String> {
+pub fn derive_put(c: &Correspondence) -> gmeow_errors::Result<PutDerivation> {
     let Some(get_leg) = c.get_leg.as_deref() else {
-        return Err(format!(
-            "derive_put on <{}>: no logic:getLeg — there is no view for the witness to \
-             travel in, so no lawful put can be derived",
-            c.iri
-        ));
+        return Err(Diag::of_kind(crate::error::Put {
+            detail: format!(
+                "derive_put on <{}>: no logic:getLeg — there is no view for the witness to \
+                 travel in, so no lawful put can be derived",
+                c.iri
+            ),
+        }));
     };
     if c.put_leg.is_some() {
-        return Err(format!(
-            "derive_put on <{}>: already carries a logic:putLeg; the derivation is only for \
-             cells whose put is to be derived from the witness, never to overwrite an \
-             authored leg",
-            c.iri
-        ));
+        return Err(Diag::of_kind(crate::error::Put {
+            detail: format!(
+                "derive_put on <{}>: already carries a logic:putLeg; the derivation is only for \
+                 cells whose put is to be derived from the witness, never to overwrite an \
+                 authored leg",
+                c.iri
+            ),
+        }));
     }
 
     let mint = derived_put_iri(get_leg, c);
@@ -246,7 +252,7 @@ impl CorrespondenceProgram {
     /// `Unsupported` cell keeps its `put`-less form (the residue is carried in the
     /// returned outcome). Hard-fails only on a genuinely malformed cell (a derivation
     /// error or a rebuild that violates the constructor invariants).
-    pub fn with_derived_puts(self) -> Result<(Self, Vec<DerivedPutOutcome>), String> {
+    pub fn with_derived_puts(self) -> gmeow_errors::Result<(Self, Vec<DerivedPutOutcome>)> {
         let CorrespondenceProgram {
             correspondences,
             caveats,

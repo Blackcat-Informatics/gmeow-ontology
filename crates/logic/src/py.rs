@@ -851,8 +851,8 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
     // correspondence-free source yields an empty map (the gates never run).
     let verdicts = crate::correspondence_exec::logic_program_verdicts(&program)
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
-    let arts =
-        compile_program(&program, &verdicts).map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let arts = compile_program(&program, &verdicts)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
 
     // Build the canonical diagnostics Report in Rust: the parse diagnostics
     // become `logic-compile.<code>` findings here, in the core, not via a Python

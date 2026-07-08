@@ -113,14 +113,17 @@ pub fn lower_all(
     // dialect lowerings CONSUME for their overclaim gate / ledger path, so it
     // must exist before they run. The four RENDERED artifacts are unchanged (they still
     // emit the authored predicate/relation token verbatim).
-    let (correspondences, lookup) =
-        transpile_correspondences_indexed(&dsl_view, &onto_view).map_err(SliceError::Parse)?;
+    let (correspondences, lookup) = transpile_correspondences_indexed(&dsl_view, &onto_view)
+        .map_err(|e| SliceError::Parse(e.to_string()))?;
 
     let sssom = sssom::lower_sssom(&dsl_view, &version, &release_date, &lookup)
-        .map_err(SliceError::Parse)?;
-    let fno = fno::lower_fno(&dsl_view, &onto_view).map_err(SliceError::Parse)?;
-    let edoal = edoal::lower_edoal(&dsl_view, &onto_view, &lookup).map_err(SliceError::Parse)?;
-    let sparql = sparql::lower_sparql(&dsl_view, &onto_view, &lookup).map_err(SliceError::Parse)?;
+        .map_err(|e| SliceError::Parse(e.to_string()))?;
+    let fno =
+        fno::lower_fno(&dsl_view, &onto_view).map_err(|e| SliceError::Parse(e.to_string()))?;
+    let edoal = edoal::lower_edoal(&dsl_view, &onto_view, &lookup)
+        .map_err(|e| SliceError::Parse(e.to_string()))?;
+    let sparql = sparql::lower_sparql(&dsl_view, &onto_view, &lookup)
+        .map_err(|e| SliceError::Parse(e.to_string()))?;
 
     // The EmotionML XML lowering enumerates the affect category (gmeow:EmotionType) and
     // dimension (gmeow:AppraisalDimension / gmeow:CoreAffectDimension) vocabularies straight
