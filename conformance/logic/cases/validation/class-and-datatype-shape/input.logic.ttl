@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: validation/class-and-datatype-shape
+# Proves the validation-shape PROJECTION for the CLASS + DATATYPE constraint families:
+# an owl:allValuesFrom whose filler is a class projects to sh:class; one whose filler
+# is a concrete XSD datatype projects to sh:datatype. Both are closed-world readings
+# (ValidationOnly) of the universal (allValuesFrom) restriction, emitted as a bare
+# component on the property shape (never wrapped in a qualified value shape).
+
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix g:    <https://blackcatinformatics.ca/gmeow/bibliography/> .
+
+# The value class an allValuesFrom restriction points at.
+g:Document a owl:Class .
+
+# An article cites only documents (allValuesFrom g:Document → sh:class g:Document) and
+# its word counts are integers (allValuesFrom xsd:integer → sh:datatype xsd:integer).
+g:Article a owl:Class ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty g:cites ;
+        owl:allValuesFrom g:Document
+    ] ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty g:wordCount ;
+        owl:allValuesFrom xsd:integer
+    ] .
+
+g:cites     a owl:ObjectProperty .
+g:wordCount a owl:DatatypeProperty .

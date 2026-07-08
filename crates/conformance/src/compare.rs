@@ -417,6 +417,54 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
             }
         }
 
+        // ── Validation-shape projections (SHACL Core / ShEx / residue) ─────────
+        // The closed-world SHACL Core projection of the program's `logic:ValidationShape`s,
+        // compared by graph isomorphism (like every other RDF target). Opt-in like the report:
+        // a shape-free case commits no golden and produces the empty document, so absence is a
+        // no-op; a validation case pins the derived shape document.
+        let shacl_core_path = proj.join("shacl-core.ttl");
+        if shacl_core_path.exists() {
+            match read_text(&shacl_core_path) {
+                Ok(expected_text) => {
+                    for d in compare_rdf(&out.projections.shacl_core, &expected_text, TURTLE) {
+                        diffs.push(format!("[{case_id}] shacl-core: {d}"));
+                    }
+                }
+                Err(e) => diffs.push(format!("[{case_id}] shacl-core: {e}")),
+            }
+        }
+
+        // The ShEx projection (ShExC), compared by exact text — ShExC carries no blank-node
+        // ambiguity once the front-end canonicalizes, so a byte mismatch is a real regression.
+        let shex_path = proj.join("shapes.shex");
+        if shex_path.exists() {
+            match read_text(&shex_path) {
+                Ok(expected_text) => {
+                    for d in compare_text(&out.projections.shex, &expected_text) {
+                        diffs.push(format!("[{case_id}] shex: {d}"));
+                    }
+                }
+                Err(e) => diffs.push(format!("[{case_id}] shex: {e}")),
+            }
+        }
+
+        // The per-target validation-shape residue set (canonical JSON): the constructs each
+        // shape surface (SHACL Core / ShEx) cannot faithfully hold, carried in the canonical
+        // logic: layer. The ShEx residue is a strict superset of the SHACL one.
+        let residue_path = proj.join("residue.json");
+        if residue_path.exists() {
+            match read_json(&residue_path) {
+                Ok(expected) => {
+                    for d in compare_canonical_json(&out.projections.residue, &expected) {
+                        diffs.push(format!("[{case_id}] residue: {d}"));
+                    }
+                }
+                Err(e) => diffs.push(format!(
+                    "[{case_id}] cannot parse expected residue.json: {e}"
+                )),
+            }
+        }
+
         // ── Projection text targets (Datalog / N3 / Nemo) ─────────────────────
         // Deterministic since the front-end RDFC-1.0-canonicalizes blank labels, so
         // these are gated by exact text equality (parity with the RDF block's

@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: validation/cardinality-shape
+# Proves the validation-shape PROJECTION for the CARDINALITY constraint family: an
+# unqualified owl:min/maxCardinality restriction on a GMEOW-namespace class is read
+# closed-world (ValidationOnly) into sh:minCount / sh:maxCount on a property shape.
+# The projection is exercised through the same `derive_validation_shapes` the pipeline
+# runs over the authored ontology.
+
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix g:    <https://blackcatinformatics.ca/gmeow/cardinality/> .
+
+# A record must carry at least one and at most two identifiers: the open-world
+# min/maxCardinality axiom, read closed-world → sh:minCount 1 / sh:maxCount 2.
+g:Record a owl:Class ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty g:recordId ;
+        owl:minCardinality "1"^^xsd:nonNegativeInteger ;
+        owl:maxCardinality "2"^^xsd:nonNegativeInteger
+    ] .
+
+g:recordId a owl:DatatypeProperty .

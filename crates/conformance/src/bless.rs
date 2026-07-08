@@ -77,6 +77,20 @@ pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> Result<(), String> 
             write_json(p, &out.projections.ledger)
         })?;
 
+        // Validation-shape projections (SHACL Core graph / ShEx text / per-target residue). Same
+        // refresh-or-seed rule as every other projection golden: a validation case commits these
+        // and they are refreshed; a shape-free case produces the empty documents and commits none,
+        // so refresh mode never spawns them (idempotent).
+        write_if(init, &proj.join("shacl-core.ttl"), |p| {
+            write_text(p, &out.projections.shacl_core)
+        })?;
+        write_if(init, &proj.join("shapes.shex"), |p| {
+            write_text(p, &out.projections.shex)
+        })?;
+        write_if(init, &proj.join("residue.json"), |p| {
+            write_json(p, &out.projections.residue)
+        })?;
+
         // Plain-text projections (now deterministic; gated like the RDF set). The three
         // ISO 24707 CL dialects (clif/cgif/xcl) ride the same byte-exact text path; they
         // are produced only for a `cl-roundtrip` case (`out.projections.text` lacks the
