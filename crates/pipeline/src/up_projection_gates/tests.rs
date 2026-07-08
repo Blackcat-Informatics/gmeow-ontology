@@ -190,6 +190,7 @@ fn an_equivalence_overclaim_on_a_lossy_rung_reds() {
         None,
         None,
         None,
+        None,
     )
     .expect("well-formed");
     let program = CorrespondenceProgram::new(vec![corr], Vec::new(), PreservationKind::SoundUnder);
