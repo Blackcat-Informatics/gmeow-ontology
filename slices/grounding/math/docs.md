@@ -50,13 +50,22 @@ constant and number system is anchored to Wikidata (with OEIS locators for the c
 
 The normative design is a set of charters under [`design/`](./design/):
 
-| Document | Genre | Contents |
-| --- | --- | --- |
-| [`design/MATHEMATICS.md`](./design/MATHEMATICS.md) | manifesto | vision, doctrine, the grounding-layer posture |
-| [`design/MATHEMATICS-NUMBERS-AND-SETS.md`](./design/MATHEMATICS-NUMBERS-AND-SETS.md) | charter | the bedrock: number systems and exactness, arithmetic, sets, relations and functions |
-| [`design/MATHEMATICS-EXPRESSIONS.md`](./design/MATHEMATICS-EXPRESSIONS.md) | charter | the mathematical core: the reference, expression-AST, object, and statement/proof layers |
-| [`design/MATHEMATICS-CONFORMANCE.md`](./design/MATHEMATICS-CONFORMANCE.md) | enforcement | the gate matrix — each hard rule, its gate kind, and the `math:` failure class it raises |
-| [`design/MATHEMATICS-REFERENCES.md`](./design/MATHEMATICS-REFERENCES.md) | references | the external-authority landscape (OpenMath, Wikidata, OEIS, DLMF, QUDT, xsd) and the anchoring posture |
+| Document | Genre | Realized state | Contents |
+| --- | --- | --- | --- |
+| [`design/MATHEMATICS.md`](./design/MATHEMATICS.md) | manifesto | realized | vision, doctrine, the grounding-layer posture |
+| [`design/MATHEMATICS-NUMBERS-AND-SETS.md`](./design/MATHEMATICS-NUMBERS-AND-SETS.md) | charter | realized | the bedrock: number systems and exactness, arithmetic, sets, relations and functions |
+| [`design/MATHEMATICS-EXPRESSIONS.md`](./design/MATHEMATICS-EXPRESSIONS.md) | charter | realized (interning/`math:normalForm` pending) | the mathematical core: the reference, expression-AST, object, and statement/proof layers |
+| [`design/MATHEMATICS-MEASURE-AND-DIMENSION.md`](./design/MATHEMATICS-MEASURE-AND-DIMENSION.md) | charter | realized (incl. the native ℚ⁷ homogeneity gate) | measurable spaces, measures, integration, dimensional analysis, units |
+| [`design/MATHEMATICS-ALGEBRA.md`](./design/MATHEMATICS-ALGEBRA.md) | charter | realized | the structure hierarchy, homomorphism laws, E8, homomorphic encryption, secret sharing |
+| [`design/MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](./design/MATHEMATICS-ANALYSIS-AND-GEOMETRY.md) | charter | realized | calculus binders, topology with first-order laws and the second-order compactness boundary, manifolds |
+| [`design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md`](./design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md) | charter | realized (exact-rational numeric core; heavy computation design-only) | inner products, exact Gram/norm layer, PCA, embeddings, tensor graphs, residual meaning |
+| [`design/MATHEMATICS-PROBABILITY.md`](./design/MATHEMATICS-PROBABILITY.md) | charter | **design-only** — no probability classes, shapes, fixtures, or failure classes are authored yet | probability spaces, random variables, distributions with mandatory parameterization, dependency models, the `logic:probabilityModel` seam |
+| [`design/MATHEMATICS-STATISTICS.md`](./design/MATHEMATICS-STATISTICS.md) | charter | **partial** — the R-bridge model/estimand/estimate stub is realized; the inference apparatus (p-values, intervals, hypotheses, estimators, diagnostics, sampling frames) is not | statistical models, estimation, inference, the process/result/claim split |
+| [`design/MATHEMATICS-BRIDGES.md`](./design/MATHEMATICS-BRIDGES.md) | charter | vocabulary realized (ingest-run spine + native unliftable gate); the R/ONNX/proof lifters themselves are design-only | executable-artifact ingestion: R, ONNX, and proof-assistant lifts |
+| [`design/MATHEMATICS-PROJECTIONS.md`](./design/MATHEMATICS-PROJECTIONS.md) | contract | **design-only** — no emitters and no projection failure classes are authored yet | outbound lossy lowerings (MathML, OpenMath, Data Cube, STATO, QUDT) and inbound refusal contracts |
+| [`design/MATHEMATICS-RUNTIME.md`](./design/MATHEMATICS-RUNTIME.md) | runtime | **design-only** (self-declared) | ingestion as projection run backwards, expression interning, the solver-profile handoff, acceptance gates |
+| [`design/MATHEMATICS-CONFORMANCE.md`](./design/MATHEMATICS-CONFORMANCE.md) | enforcement | realized for the structural half; the probability/statistics/projection rows await their layers | the gate matrix — each hard rule, its gate kind, and the `math:` failure class it raises |
+| [`design/MATHEMATICS-REFERENCES.md`](./design/MATHEMATICS-REFERENCES.md) | references | realized (alignment lanes authored in `mappings/equivalences.ttl`) | the external-authority landscape (OpenMath, Wikidata, OEIS, DLMF, QUDT, xsd) and the anchoring posture |
 
 ## The gates
 

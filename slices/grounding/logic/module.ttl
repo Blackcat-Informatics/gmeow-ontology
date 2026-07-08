@@ -7207,7 +7207,7 @@ logic:FirstOrder
         logic:ExpressivenessBoundary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "First-Order"@x-gmeow-english ;
-    skos:definition "The expressiveness boundary of a defining statement authorable as a first-order logic:Formula (∀/∃ over individuals of the reified signature). The topological laws math:continuityLaw/math:connectednessLaw/the T0–T4 separation laws sit here."@x-gmeow-english .
+    skos:definition "The expressiveness boundary of a defining statement authorable as a first-order logic:Formula (∀/∃ over individuals of the reified signature). First-order mathematical laws — continuity, connectedness, the T0–T4 separation axioms — sit here; the grounding peers author them as logic:Formula objects at this boundary."@x-gmeow-english .
 
 logic:SecondOrder
     a owl:NamedIndividual ,
