@@ -50,19 +50,40 @@ fn exemption_producer_for(surface: &str) -> Option<&'static str> {
     }
 }
 
-/// Axis→producer AST-binding gate: the rubric's axes and the kernel's implemented
-/// primitives must be in bijection. A renamed/removed rubric producer becomes an
-/// unbound axis; a renamed/removed Rust primitive becomes an orphan. Either reds.
+/// Axis→producer AST-binding gate. Two independent proofs, both of which must hold:
+///
+/// 1. **Bijection with the kernel's closed set** — the rubric's `gmeow:axisProducer`
+///    strings and [`axes::IMPLEMENTED`] must be in bijection. A renamed/removed
+///    rubric producer becomes an unbound axis; a renamed/removed entry in the closed
+///    set becomes an orphan.
+/// 2. **Real symbol resolution** — every rubric producer must additionally `resolves`
+///    to an actual Rust *item* definition (the caller passes the constitution-gate
+///    AST resolver over the crate source, so this is a real `fn`/item lookup, not a
+///    substring or list-membership test). This catches the drift the bijection alone
+///    cannot: a producer that survives in the hand-kept `IMPLEMENTED` list but whose
+///    backing primitive `fn` in `axes.rs` (or `reasoner.rs`) is gone or renamed reds
+///    here instead of passing. A producer that is a strict *prefix* of a real item
+///    (e.g. `grounding_ax` vs `grounding_axis`) does NOT resolve — the resolver is
+///    identifier-boundary-correct.
+///
+/// Any of the three conditions reds.
 #[must_use]
-pub fn binding_gate(rubric: &Rubric) -> Vec<String> {
+pub fn binding_gate(rubric: &Rubric, resolves: impl Fn(&str) -> bool) -> Vec<String> {
     let implemented: BTreeSet<&str> = axes::IMPLEMENTED.iter().copied().collect();
     let bound: BTreeSet<&str> = rubric.axes.iter().map(|a| a.producer.as_str()).collect();
     let mut errs = Vec::new();
     for axis in &rubric.axes {
-        if !implemented.contains(axis.producer.as_str()) {
+        let producer = axis.producer.as_str();
+        if !implemented.contains(producer) {
             errs.push(format!(
                 "axis {} names producer '{}' with no implemented primitive (stale binding)",
-                axis.iri, axis.producer
+                axis.iri, producer
+            ));
+        }
+        if !resolves(producer) {
+            errs.push(format!(
+                "axis {} names producer '{producer}' that resolves to no Rust primitive item in the crate source (unbound producer — the backing fn is missing or renamed)",
+                axis.iri
             ));
         }
     }
@@ -238,6 +259,75 @@ mod tests {
         assert_eq!(evaluate_ratchet(Some(2), 2, None), RatchetVerdict::Pass);
         // Exceeding the declared tier passes.
         assert_eq!(evaluate_ratchet(Some(1), 3, None), RatchetVerdict::Pass);
+    }
+
+    /// An axis binding the given producer with an otherwise-minimal shape.
+    fn mk_axis(producer: &str) -> crate::model::Axis {
+        use crate::model::{Axis, ContextScope};
+        Axis {
+            iri: format!("ex:{producer}"),
+            label: String::new(),
+            producer: producer.to_owned(),
+            dimension_iri: "ex:d".to_owned(),
+            thresholds: vec![],
+            weight: 1.0,
+            scope: ContextScope::SliceLocal,
+            advice: String::new(),
+        }
+    }
+
+    #[test]
+    fn binding_gate_reds_when_producer_resolves_to_no_item() {
+        // A rubric in perfect bijection with the kernel's closed IMPLEMENTED set
+        // still reds if a producer resolves to no real Rust item — so the gate
+        // proves real resolution, not mere list membership. This is the H4 fix:
+        // a producer left in IMPLEMENTED but whose backing fn is gone must red.
+        let axes: Vec<crate::model::Axis> = axes::IMPLEMENTED.iter().map(|p| mk_axis(p)).collect();
+        let rubric = Rubric {
+            tiers: vec![],
+            axes,
+            exemptions: vec![],
+        };
+        // Every producer resolves → green (bijection holds and all resolve).
+        assert!(
+            binding_gate(&rubric, |_| true).is_empty(),
+            "a full, resolving bijection is green"
+        );
+        // One producer's Rust item is missing → exactly that producer reds, even
+        // though it is still present in IMPLEMENTED and the rubric.
+        let errs = binding_gate(&rubric, |s| s != "grounding_axis");
+        assert_eq!(
+            errs.len(),
+            1,
+            "exactly the unresolved producer reds: {errs:#?}"
+        );
+        assert!(
+            errs[0].contains("resolves to no Rust primitive item")
+                && errs[0].contains("grounding_axis"),
+            "the red names the unresolved producer: {errs:#?}"
+        );
+    }
+
+    #[test]
+    fn binding_gate_reds_on_prefix_producer() {
+        // (a) A producer that is a strict PREFIX of a real item name must red:
+        // the resolver here recognises only the full name `grounding_axis`, so the
+        // prefix `grounding_ax` does not resolve — proving the substring/prefix
+        // false-positive is gone (a naive `contains("fn grounding_ax")` would have
+        // matched `fn grounding_axis`).
+        let real: BTreeSet<&str> = axes::IMPLEMENTED.iter().copied().collect();
+        let rubric = Rubric {
+            tiers: vec![],
+            axes: vec![mk_axis("grounding_ax")],
+            exemptions: vec![],
+        };
+        let errs = binding_gate(&rubric, |s| real.contains(s));
+        assert!(
+            errs.iter()
+                .any(|e| e.contains("grounding_ax")
+                    && e.contains("resolves to no Rust primitive item")),
+            "a strict-prefix producer must red on real resolution: {errs:#?}"
+        );
     }
 
     #[test]
