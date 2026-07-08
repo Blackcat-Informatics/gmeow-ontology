@@ -559,10 +559,7 @@ fn execute_put_legs(
                 crate::stages::correspondence_lower::discharged_section_cells_from_cells(
                     &projection_ttls,
                     &ontology_nt,
-                )
-                .map_err(|message| {
-                    gmeow_errors::Diag::of_kind(crate::error::UpProjection { message })
-                })?;
+                )?;
             crate::put_executor::execute_put_legs(
                 &source_nt,
                 &sssom_texts,

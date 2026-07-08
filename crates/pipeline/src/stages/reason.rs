@@ -239,13 +239,15 @@ const DRIFT_GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 pub fn check_subsumption_correspondence_drift(
     ttl: &str,
     expected_contract_hash: &str,
-) -> Result<(), String> {
+) -> gmeow_errors::Result<()> {
+    let sd =
+        |message: String| gmeow_errors::Diag::of_kind(crate::error::SubsumptionDrift { message });
     let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
-        .map_err(|e| format!("parse subsumption-correspondence bundle: {e}"))?;
+        .map_err(|e| sd(format!("parse subsumption-correspondence bundle: {e}")))?;
     let quads: Vec<purrdf::RdfQuad> = ds.owned_quads().collect();
 
     // Resolve the single IRI object of (subject, predicate); Err naming the miss.
-    let iri_object = |subject: &str, predicate: &str| -> Result<String, String> {
+    let iri_object = |subject: &str, predicate: &str| -> gmeow_errors::Result<String> {
         let mut hits = quads.iter().filter(|q| {
             matches!(&q.subject, purrdf::RdfTerm::Iri(s) if s == subject)
                 && q.predicate == predicate
@@ -253,13 +255,15 @@ pub fn check_subsumption_correspondence_drift(
         match hits.next() {
             Some(q) => match &q.object {
                 purrdf::RdfTerm::Iri(o) => Ok(o.clone()),
-                other => Err(format!("<{subject}> <{predicate}> is not an IRI ({other})")),
+                other => Err(sd(format!(
+                    "<{subject}> <{predicate}> is not an IRI ({other})"
+                ))),
             },
-            None => Err(format!("<{subject}> is missing <{predicate}>")),
+            None => Err(sd(format!("<{subject}> is missing <{predicate}>"))),
         }
     };
     // Resolve the single literal lexical value of (subject, predicate).
-    let literal_object = |subject: &str, predicate: &str| -> Result<String, String> {
+    let literal_object = |subject: &str, predicate: &str| -> gmeow_errors::Result<String> {
         let mut hits = quads.iter().filter(|q| {
             matches!(&q.subject, purrdf::RdfTerm::Iri(s) if s == subject)
                 && q.predicate == predicate
@@ -267,32 +271,34 @@ pub fn check_subsumption_correspondence_drift(
         match hits.next() {
             Some(q) => match &q.object {
                 purrdf::RdfTerm::Literal(l) => Ok(l.lexical_form.clone()),
-                other => Err(format!(
+                other => Err(sd(format!(
                     "<{subject}> <{predicate}> is not a literal ({other})"
-                )),
+                ))),
             },
-            None => Err(format!("<{subject}> is missing <{predicate}>")),
+            None => Err(sd(format!("<{subject}> is missing <{predicate}>"))),
         }
     };
     let logic = |local: &str| format!("{DRIFT_LOGIC_NS}{local}");
     let gmeow = |local: &str| format!("{DRIFT_GMEOW_NS}{local}");
     // Resolve a `gmeow:` count literal on the correspondence subject and parse it to
     // usize; Err naming the miss or the un-parseable lexical form.
-    let count_object = |subject: &str, local: &str| -> Result<usize, String> {
+    let count_object = |subject: &str, local: &str| -> gmeow_errors::Result<usize> {
         let predicate = gmeow(local);
         let lexical = literal_object(subject, &predicate)?;
-        lexical
-            .parse::<usize>()
-            .map_err(|e| format!("<{subject}> <{predicate}> = \"{lexical}\" is not a count: {e}"))
+        lexical.parse::<usize>().map_err(|e| {
+            sd(format!(
+                "<{subject}> <{predicate}> = \"{lexical}\" is not a count: {e}"
+            ))
+        })
     };
-    let assert_iri = |subject: &str, predicate: &str, want: &str| -> Result<(), String> {
+    let assert_iri = |subject: &str, predicate: &str, want: &str| -> gmeow_errors::Result<()> {
         let got = iri_object(subject, predicate)?;
         if got == want {
             Ok(())
         } else {
-            Err(format!(
+            Err(sd(format!(
                 "<{subject}> <{predicate}> = <{got}>, expected <{want}> (weakened/altered claim)"
-            ))
+            )))
         }
     };
 
@@ -323,9 +329,9 @@ pub fn check_subsumption_correspondence_drift(
         )?;
         let linked_claim = iri_object(&correspondence, &logic("hasLawClaim"))?;
         if linked_claim != law_claim {
-            return Err(format!(
+            return Err(sd(format!(
                 "{slug}: hasLawClaim points at <{linked_claim}>, expected <{law_claim}>"
-            ));
+            )));
         }
 
         // 2) the section law is discharged within the certified fragment — not weakened.
@@ -349,10 +355,10 @@ pub fn check_subsumption_correspondence_drift(
         // 3) the claim binds to the CURRENT native contract hash (stale = refused).
         let hash = literal_object(&correspondence, &logic("contractHash"))?;
         if hash != expected_contract_hash {
-            return Err(format!(
+            return Err(sd(format!(
                 "{slug}: contractHash \"{hash}\" != current native contract \
                  \"{expected_contract_hash}\" — engine changed, subsumption claim not re-minted"
-            ));
+            )));
         }
 
         // 4) NON-VACUITY: the certificate must carry the REAL, measured native↔oracle
@@ -364,21 +370,21 @@ pub fn check_subsumption_correspondence_drift(
             "el" => EL_CERTIFIED_AGREE,
             "rl" => RL_CERTIFIED_AGREE,
             "dl" => DL_CERTIFIED_AGREE,
-            other => return Err(format!("unknown fragment slug <{other}>")),
+            other => return Err(sd(format!("unknown fragment slug <{other}>"))),
         };
         let agree = count_object(&correspondence, "agreeCount")?;
         if agree == 0 {
-            return Err(format!(
+            return Err(sd(format!(
                 "{slug}: agreeCount is 0 — the certificate carries ZERO measured evidence \
                  (a hollow / fabricated all-zero proof), refused"
-            ));
+            )));
         }
         if agree != certified_agree {
-            return Err(format!(
+            return Err(sd(format!(
                 "{slug}: agreeCount {agree} != certified native↔oracle agreement \
                  {certified_agree} — the measured parity count drifted; re-mint the committed \
                  constant from the live parity gate and regenerate the certificate"
-            ));
+            )));
         }
 
         // 5) GAP-ZERO invariant: the certified over-approximation must miss no answers —
@@ -386,16 +392,16 @@ pub fn check_subsumption_correspondence_drift(
         // fragment). A non-zero either count means the claim is not gap-zero.
         let oracle_only = count_object(&correspondence, "oracleOnlyCount")?;
         if oracle_only != 0 {
-            return Err(format!(
+            return Err(sd(format!(
                 "{slug}: oracleOnlyCount {oracle_only} != 0 — the oracle derived answers the \
                  native closure missed; native ⊉ oracle, not gap-zero"
-            ));
+            )));
         }
         let dl_gap = count_object(&correspondence, "dlGapCount")?;
         if dl_gap != 0 {
-            return Err(format!(
+            return Err(sd(format!(
                 "{slug}: dlGapCount {dl_gap} != 0 — a native DL coverage defect; not gap-zero"
-            ));
+            )));
         }
     }
     Ok(())
@@ -631,7 +637,8 @@ mod tests {
         let err = check_subsumption_correspondence_drift(&zeroed, &hash)
             .expect_err("a hand-zeroed agreeCount must be refused");
         assert!(
-            err.contains("agreeCount") && (err.contains("ZERO") || err.contains("drifted")),
+            err.message().contains("agreeCount")
+                && (err.message().contains("ZERO") || err.message().contains("drifted")),
             "the refusal names the vacuous / drifted count: {err}"
         );
     }
@@ -648,7 +655,7 @@ mod tests {
         let err = check_subsumption_correspondence_drift(&ttl, "ffff-current-native-contract")
             .expect_err("a stale contract hash must be refused");
         assert!(
-            err.contains("contractHash") && err.contains("not re-minted"),
+            err.message().contains("contractHash") && err.message().contains("not re-minted"),
             "the refusal names the stale-hash cause: {err}"
         );
     }
@@ -662,7 +669,7 @@ mod tests {
         let err = check_subsumption_correspondence_drift(&weakened, &hash)
             .expect_err("a weakened section-law discharge must be refused");
         assert!(
-            err.contains("lawDischargeVerdict"),
+            err.message().contains("lawDischargeVerdict"),
             "the refusal names the weakened discharge: {err}"
         );
     }
@@ -681,7 +688,9 @@ mod tests {
         let err = check_subsumption_correspondence_drift(truncated, &hash)
             .expect_err("a missing DL fragment must be refused");
         assert!(
-            err.contains("dl-native-subsumption-correspondence") && err.contains("missing"),
+            err.message()
+                .contains("dl-native-subsumption-correspondence")
+                && err.message().contains("missing"),
             "the refusal names the dropped fragment: {err}"
         );
     }

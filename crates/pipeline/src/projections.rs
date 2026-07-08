@@ -250,12 +250,17 @@ pub fn gts_base_graph(gts_bytes: &[u8]) -> gmeow_errors::Result<Vec<RdfQuad>> {
 /// verdicts, and the up-projection executor consumes THIS set to promote each mnemomorphic `=` cell
 /// to a lawful FACT rename. Returns the empty set only if the bundle carries no correspondence-laws
 /// graph (a bundle with no discharged section laws) — never a silent partial read.
-pub fn discharged_section_cells_from_bundle(gts_bytes: &[u8]) -> Result<BTreeSet<String>, String> {
+pub fn discharged_section_cells_from_bundle(
+    gts_bytes: &[u8],
+) -> gmeow_errors::Result<BTreeSet<String>> {
     // The correspondence-laws NAMED graph survives only through the structural GTS reader
     // (`read_graph`); the flattened-dataset fold collapses to the object-level default graph and
     // would silently drop it. Read the named graph's triples by term value and extract.
-    let graph = purrdf::gts::read_graph(gts_bytes, true)
-        .map_err(|e| format!("gts read_graph failed: {e}"))?;
+    let graph = purrdf::gts::read_graph(gts_bytes, true).map_err(|e| {
+        Diag::of_kind(Projection {
+            message: format!("gts read_graph failed: {e}"),
+        })
+    })?;
     let corr_graph = crate::stages::carrier::GRAPH_CORRESPONDENCE_LAWS;
     let term = |id: usize| -> String {
         graph
