@@ -471,17 +471,29 @@ fn corpus_gradeability(corpus_dir: &Path) -> Gradeability {
 
 /// Every regular file under `dir`, recursively (deterministic order not required —
 /// the caller only tests presence).
+///
+/// A missing directory yields the empty set (an ungraded corpus legitimately has no
+/// case tree); any OTHER I/O error — a permission fault, an unreadable entry — is a
+/// HARD FAIL, never a silent empty. Swallowing it would let a corpus grade `None`
+/// (skipped) because its tree was *inaccessible* rather than *absent*, inverting the
+/// non-empty gate into "non-empty-or-unreadable".
 fn walk_files(dir: &Path) -> Vec<PathBuf> {
     let mut out = Vec::new();
-    let Ok(entries) = std::fs::read_dir(dir) else {
-        return out;
+    let entries = match std::fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => return out,
+        Err(err) => panic!("read_dir({}) failed: {err}", dir.display()),
     };
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if path.is_dir() {
-            out.extend(walk_files(&path));
+    for entry in entries {
+        let entry = entry
+            .unwrap_or_else(|err| panic!("read_dir entry under {} failed: {err}", dir.display()));
+        let file_type = entry
+            .file_type()
+            .unwrap_or_else(|err| panic!("file_type({}) failed: {err}", entry.path().display()));
+        if file_type.is_dir() {
+            out.extend(walk_files(&entry.path()));
         } else {
-            out.push(path);
+            out.push(entry.path());
         }
     }
     out
