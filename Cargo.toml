@@ -80,6 +80,10 @@ members = [
 
 
     "crates/slicetest",
+    # Per-slice quality report + opinionated uplift advisor: the shared kernel
+    # that reads the ontology-resident slice-quality rubric and scores a slice
+    # across the quality axes, bound by both the dev CLI and the pipeline MCP.
+    "crates/slice-quality",
     # Native SPARQL 1.1/1.2 parser → RDF 1.2-native query algebra AST: the
     # wasm-clean leaf that replaces the oxigraph-family `spargebra` (purrdf S5,
     # EPIC #906). Builds only on `crates/iri` + `crates/xsd`.
