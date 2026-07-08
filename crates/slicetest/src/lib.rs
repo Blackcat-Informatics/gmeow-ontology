@@ -29,6 +29,7 @@
 
 pub mod dsl;
 pub mod exec;
+pub mod flagship;
 pub mod native_query;
 pub mod paths;
 pub mod stores;
