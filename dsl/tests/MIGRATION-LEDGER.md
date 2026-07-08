@@ -23,6 +23,39 @@ The harness runs three cell types over `slices/**/tests/*.ttl`:
 - `gmeow:StructuralAssertion` — SPARQL ASK over the slice module (± examples).
 - `gmeow:ExampleConformance` — native SHACL over module + shapes + the example.
 
+## Graph-traversal native-conformance migration — deletion sweep (supersedes earlier "retained" dispositions)
+
+The rdflib graph-traversal residue named "retained"/"trimmed, not deleted"/"kept
+in pytest" in the per-slice stanzas below has since been fully migrated to native
+Rust conformance (`crates/validate/tests/conformance_*.rs`, plus the reasoning
+twins under `crates/logic`) and/or slice-resident `structural.ttl` cells, and the
+source files were **DELETED**. Wherever an earlier stanza marks one of the files
+below as **retained**/**trimmed**/kept-in-pytest, that disposition is stale: the
+file is now gone and its formerly-retained dynamic tests are native twins. The
+individual per-slice summary lines for the priority slices have also been
+corrected in place.
+
+Files DELETED by this migration (35):
+
+- `slices/core/temporal/tests/test_temporal.py`,
+  `slices/core/temporal/tests/test_temporal_frame.py`,
+  `slices/core/temporal/tests/test_temporal_measurement.py`,
+  `slices/core/temporal/tests/test_temporal_query.py`
+- `slices/extensions/music/tests/test_music_timbre.py`
+- `tests/test_aboutness.py`, `tests/test_aggregation.py`, `tests/test_ai_claims.py`,
+  `tests/test_archaeological_evidence.py`, `tests/test_cognition.py`,
+  `tests/test_contact_fields.py`, `tests/test_coreference.py`,
+  `tests/test_creative_works.py`, `tests/test_determinacy.py`,
+  `tests/test_email_calendar.py`, `tests/test_email_jmap.py`,
+  `tests/test_email_mailbox.py`, `tests/test_email_thread_subject.py`,
+  `tests/test_foundational_bridging.py`, `tests/test_mereology.py`,
+  `tests/test_narrative.py`, `tests/test_notation.py`, `tests/test_notes.py`,
+  `tests/test_observations.py`, `tests/test_privacy.py`, `tests/test_provenance.py`,
+  `tests/test_quality.py`, `tests/test_rights.py`, `tests/test_rubrics.py`,
+  `tests/test_sensory_environment.py`, `tests/test_suppression_conformance.py`,
+  `tests/test_tags.py`, `tests/test_teleology.py`, `tests/test_trust.py`,
+  `tests/test_versions.py`
+
 ## `slices/core/epistemics`
 
 | Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained | Run by |
@@ -202,7 +235,7 @@ The temporal pytest loaded the FULL merged graph (`load_merged_graph(include_imp
 | `test_reified_residence_and_tenure_are_time_scoped` | `tests/test_temporal.py` | — | — | **retained** | CROSS-SLICE: `gmeow:MailboxResidence` (extensions/email) + `gmeow:AddressTenure` (core/contacts) ⊑ TimeScopedRelation — the subclass edges are declared in those OTHER slices' modules, absent from temporal/module.ttl, so the module-scoped harness cannot see them. Faithful only over the merged graph. | pytest |
 | `test_interpersonal_relationship_is_a_gufo_relator` | `tests/test_temporal.py` | `slices/core/contacts/tests/structural.ttl` `ex:saInterpersonalRelationshipIsRelatorKind` | StructuralAssertion | converted | — | `make slicetest` |
 
-**Temporal tally:** 7 converted, 1 retained-with-reason (cross-slice merged-graph). Source file `tests/test_temporal.py` trimmed to the 1 retained function (not deleted).
+**Temporal tally:** 7 converted, 1 then-retained (cross-slice merged-graph). Source file `slices/core/temporal/tests/test_temporal.py` has since been DELETED by the graph-traversal native-conformance migration; the formerly-retained cross-slice function is now a native twin (`crates/validate/tests/conformance_*.rs` / `structural.ttl` cell).
 
 ## `slices/core/temporal` — temporal cluster
 
@@ -317,7 +350,7 @@ RETAINED in pytest (a module-scoped cell would silently narrow its subject set).
 | `test_dimension_seeds_exist` | `tests/test_quality.py` | `ex:saQualityDimensionSeeds` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_no_preferred_or_primary_term_is_declared` | `tests/test_quality.py` | — | — | **retained** | whole-ontology Principle-9 dynamic sweep over the ENTIRE merged graph's subject set — a quality-module-scoped cell would silently narrow it (the Gap-1 trap class). Kept as a dynamic-set sweep | pytest |
 
-**Quality tally:** 5 converted (6 structural cells across 5 fns), 1 retained-with-reason. `tests/test_quality.py` keeps only the whole-ontology sweep.
+**Quality tally:** 5 converted (6 structural cells across 5 fns), 1 then-retained. `tests/test_quality.py` has since been DELETED by the graph-traversal native-conformance migration; the whole-ontology Principle-9 sweep is now a native twin (`crates/validate/tests/conformance_*.rs`).
 
 ## `slices/core/observations`
 
@@ -353,7 +386,7 @@ The observation-module asserted-TBox structural assertions (#66, #69) migrated t
 | `test_spatial_measurement_mapped_to_sosa` | `tests/test_observations.py` | — | — | **retained** | generated SSSOM mapping read | pytest |
 | `test_kin_relationship_bridges_fire` (new, the cross-slice remnant of `test_property_bridges_fire`) | `tests/test_observations.py` | — | — | **retained** | the 3 KinRelationship bridges are asserted in the genealogy module, invisible to a module-scoped observations cell; over the merged graph pending a genealogy migration | pytest |
 
-**Observations tally:** 19 converted + 1 partial (property-bridges: 8 of 11 converted) = 23 structural cells, 5 retained-with-reason (4 generated-SSSOM-mapping reads + 1 cross-slice kin-bridge). `tests/test_observations.py` 24 → 5 fns.
+**Observations tally:** 19 converted + 1 partial (property-bridges: 8 of 11 converted) = 23 structural cells, 5 then-retained (4 generated-SSSOM-mapping reads + 1 cross-slice kin-bridge). `tests/test_observations.py` has since been DELETED by the graph-traversal native-conformance migration; the 5 formerly-retained dynamic tests are now native twins (`crates/validate/tests/conformance_*.rs`).
 
 ## run_shacl → whole-ontology native conformance harness (crates/validate/tests/ontology_conformance.rs)
 
@@ -412,7 +445,7 @@ This harness is the foundational substrate for migrating the remaining ~230
 | `test_all_fixture_files_load` | `tests/test_attestation.py` | converted | `attestation_all_fixture_files_load` | walks fixtures/attestation/ |
 | `test_authority_link_without_match_strength_warns_only` | `tests/test_coreference.py` | converted | `authority_link_without_match_strength_warns_only` | Warning-only |
 
-**Tally:** 17 converted, 0 retained. `tests/test_shapes.py` 14 → 1 fn (nodeshape collision inline test retained — no obvious Rust twin yet for that inline pattern; marked for batch 2). `tests/test_attestation.py` reduced. `tests/test_coreference.py` reduced.
+**Tally:** 17 converted, 0 retained. `tests/test_shapes.py` 14 → 1 fn (nodeshape collision inline test retained — no obvious Rust twin yet for that inline pattern; marked for batch 2). `tests/test_attestation.py` reduced. `tests/test_coreference.py` has since been DELETED by the graph-traversal native-conformance migration; its remaining dynamic tests are now native twins (`crates/validate/tests/conformance_*.rs`).
 
 Slice-shapes glob: `slices/*/shapes.ttl` discovered recursively via directory walk from repo root, sorted ascending.
 
@@ -762,7 +795,7 @@ ASK pattern HELD`); reverted, green again. Cells authored by MEASURING the live 
 retained-with-reason; 1 deleted (`test_every_term_labeled_and_defined` — the per-term
 label+definition sweep is subsumed by `make validate`'s `Gmeow*Shape` SHACL + the
 `structural_lint` annotation sweep; break-and-revert confirmed `make validate` reds on a dropped
-label). `tests/test_aboutness.py` is trimmed to the 2 retained fns + the `_graph()` helper.
+label). `tests/test_aboutness.py` has since been DELETED by the graph-traversal native-conformance migration; the 2 formerly-retained merged-graph fns are now native twins (`crates/validate/tests/conformance_*.rs`).
 
 ## Structural batch 10 (places — the 129-fn slice)
 
@@ -1292,7 +1325,7 @@ and the universal part/whole spine (`partOf` / `hasPart`).
 | `test_universal_part_properties_are_broad_transitive_inverses` | `tests/test_mereology.py` | `ex:saUniversalPartPropertiesAreBroadTransitiveInverses` + `ex:saUniversalPartPropertiesNotFunctionalOrTyped` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_no_preferred_or_primary_term_is_declared` | `tests/test_determinacy.py` | — | — | **retained** | scans the merged graph for any `gmeow:` term starting with `primary`/`preferred`; module-scoped ASK cannot express a cross-module vocabulary-wide absence. | pytest |
 
-**Kernel tally:** 20 converted (25 cells across 20 pytest functions), 1 retained-with-reason (cross-module no-preferred/primary sweep). Source files trimmed, not deleted: `tests/test_determinacy.py`, `tests/test_privacy.py`, `tests/test_mereology.py`. `tests/test_disclosure.py` was subsequently DELETED by the SPARQL→native conformance migration (its structural twins are in `conformance_disclosure.rs`).
+**Kernel tally:** 20 converted (25 cells across 20 pytest functions), 1 then-retained (cross-module no-preferred/primary sweep). Source files `tests/test_determinacy.py`, `tests/test_privacy.py`, and `tests/test_mereology.py` have since been DELETED by the graph-traversal native-conformance migration; the cross-module no-preferred/primary sweep and the other formerly-retained dynamic tests are now native twins (`crates/validate/tests/conformance_*.rs`). `tests/test_disclosure.py` was subsequently DELETED by the SPARQL→native conformance migration (its structural twins are in `conformance_disclosure.rs`).
 
 ## `slices/core/rights`
 

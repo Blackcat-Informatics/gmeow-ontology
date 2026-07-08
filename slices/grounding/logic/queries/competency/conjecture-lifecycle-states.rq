@@ -1,0 +1,13 @@
+# Competency: GMEOW must record the closed set of EPISTEMIC conjecture lifecycle
+# states — open / corroborated / refuted-in-standpoint / withdrawn — as first-class
+# declared individuals, ORTHOGONAL to the governance lifecycle a conjecture inherits
+# from the candidate spine (Principle 9). This selects the members of the closed
+# logic:ConjectureLifecycleState value class from the base graph vocabulary; over the
+# merged ontology it must return exactly the four (a missing or misspelt member is a
+# coverage gap; cqExactRows pins the set).
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT DISTINCT ?state WHERE {
+    ?state a logic:ConjectureLifecycleState .
+}
+ORDER BY ?state
