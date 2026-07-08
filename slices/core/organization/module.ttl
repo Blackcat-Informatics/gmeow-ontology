@@ -25,7 +25,17 @@ gmeow:Identifier
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Identifier"@x-gmeow-english ;
-    rdfs:subClassOf logic:FunctionalComplex ;
+    rdfs:subClassOf logic:FunctionalComplex ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:identifierScheme ;
+            owl:minCardinality 1 ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:identifierUrl ;
+            owl:maxCardinality 1 ;
+        ] ;
     skos:definition "A reified external-identifier record bundling a scheme-local value with its scheme, and optionally the authority URL that resolves it and a human-readable name — an ORCID, a geni profile id, a Nostr nip05, a LEI, a ROR ID, a NAICS code. Reification ensures that when an entity carries multiple identifiers, each value is paired with its correct scheme (and url/name) in projections. The structured sibling of gmeow:authorityLink: a flat authorityLink points at an external record by IRI; an Identifier decomposes the scheme/value/url/name a schema:PropertyValue or DataCite relatedIdentifier carries."@x-gmeow-english ;
     skos:example "ex:acmeLei a gmeow:Identifier ; gmeow:identifierScheme \"lei\" ; gmeow:identifierValue \"529900T8BM49AURSDO55\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a flat scheme-on-the-bearer property (it produces cross-product pairing bugs when several identifiers coexist) and avoid it for a plain see-also IRI (that is the flat gmeow:authorityLink); a name borne by an entity is a gmeow:Appellation, not an Identifier."@x-gmeow-english ;

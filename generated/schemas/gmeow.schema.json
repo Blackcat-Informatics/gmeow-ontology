@@ -4615,8 +4615,21 @@
               "type": "array"
             }
           ]
+        },
+        "gmeow:contentDigest": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
         }
       },
+      "required": [
+        "gmeow:contentDigest"
+      ],
       "type": "object"
     },
     "Commitment": {
@@ -6245,7 +6258,6 @@
       "type": "object"
     },
     "Credential": {
-      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
         "@annotation": {
           "$ref": "#/$defs/Annotation"
@@ -6261,6 +6273,49 @@
             {
               "items": {
                 "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:credentialIssuer": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Organization"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Organization"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               "type": "array"
             }
@@ -10838,17 +10893,7 @@
             }
           ]
         },
-        "gmeow:identifierUrl": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
-        }
+        "gmeow:identifierUrl": {}
       },
       "required": [
         "gmeow:identifierScheme"
@@ -34327,8 +34372,21 @@
               "type": "array"
             }
           ]
+        },
+        "gmeow:repositoryType": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
         }
       },
+      "required": [
+        "gmeow:repositoryType"
+      ],
       "type": "object"
     },
     "RetrievalEvent": {
