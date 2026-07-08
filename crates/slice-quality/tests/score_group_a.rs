@@ -24,20 +24,10 @@ fn slice_dir() -> PathBuf {
 }
 
 /// Assemble the slice's own graph: module + examples + tests (so rationales in the
-/// test cells are visible to the provenance-honesty primitive).
+/// test cells are visible to the provenance-honesty primitive). Uses the crate's
+/// SINGLE path-collection authority so the test graph matches the scored graph.
 fn slice_graph() -> std::sync::Arc<purrdf::RdfDataset> {
-    let dir = slice_dir();
-    let mut paths: Vec<PathBuf> = vec![dir.join("module.ttl")];
-    for sub in ["examples", "tests"] {
-        if let Ok(rd) = std::fs::read_dir(dir.join(sub)) {
-            for e in rd.flatten() {
-                if e.path().extension().is_some_and(|x| x == "ttl") {
-                    paths.push(e.path());
-                }
-            }
-        }
-    }
-    paths.sort();
+    let paths = gmeow_slice_quality::report::slice_ttl_paths(&slice_dir());
     let refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
     gmeow_slice_quality::dataset_from_paths(&refs).expect("slice graph parses")
 }

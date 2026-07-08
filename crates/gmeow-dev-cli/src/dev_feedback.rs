@@ -188,7 +188,10 @@ pub(crate) fn write_artifacts(report: &Report, config: &DiagnosticsConfig) -> Re
         if let Err(e) = std::fs::write(&path, body) {
             return Err(fail(format!("cannot write {}: {e}", path.display())));
         }
-        println!("wrote {}", path.display());
+        // Progress notice on STDERR, never stdout: stdout carries the command's data
+        // render (e.g. `slice-quality --all --format json`), so a "wrote …" line must
+        // not contaminate an otherwise single, parseable JSON/SARIF document.
+        eprintln!("wrote {}", path.display());
     }
     Ok(())
 }

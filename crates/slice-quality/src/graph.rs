@@ -128,10 +128,12 @@ pub fn label_of(ds: &RdfDataset, subject: TermId) -> String {
         .unwrap_or_default()
 }
 
-/// All `gmeow:`-namespaced subject IRIs that are typed as some `owl:Class` or
-/// `owl:*Property` in the dataset — the slice's own authored terms. Sorted,
-/// deduped. A term counts as authored-here when its IRI is in the `gmeow:`
-/// namespace and it carries at least one `rdf:type`.
+/// All `gmeow:`-namespaced subject IRIs that carry at least one `rdf:type` — the
+/// slice's own authored terms, whatever their type. This intentionally accepts ANY
+/// `rdf:type` (not only `owl:Class` / `owl:*Property`): A-Box value-vocabulary
+/// individuals are authored terms too, and the coat/prose/translation axes apply
+/// their lighter bar to them (a TBox-only filter would silently exclude them).
+/// Sorted, deduped.
 #[must_use]
 pub fn gmeow_terms(ds: &RdfDataset) -> Vec<String> {
     let Some(type_id) = id(ds, RDF_TYPE) else {

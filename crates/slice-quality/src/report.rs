@@ -12,7 +12,7 @@ use gmeow_validate::rule_catalog::help_uri_for;
 use crate::graph::{self, instances_of};
 use crate::model::{Axis, AxisGrade, Rubric, SliceAssessment};
 use crate::score::ScoreContext;
-use crate::{axes, lattice, rubric};
+use crate::{axes, lattice};
 
 /// Every diagnostic code a slice-quality report can emit — the two structural
 /// codes minted by [`SliceReport::to_report`] (`grade`/`rollup`) plus every axis
@@ -78,8 +78,12 @@ fn slice_iri_of(slice_dir: &Path) -> Result<String, String> {
         .ok_or_else(|| format!("{} declares no gmeow:Slice", manifest.display()))
 }
 
-/// Every `.ttl` under `slice_dir`'s `module.ttl`, `examples/`, and `tests/`.
-pub(crate) fn slice_ttl_paths(slice_dir: &Path) -> Vec<PathBuf> {
+/// Every `.ttl` under `slice_dir`'s `module.ttl`, `examples/`, and `tests/` —
+/// deterministic (sorted), existing files only. The SINGLE authority for assembling
+/// a slice's own graph: the sweep, the pipeline carrier producer, and the scoring
+/// tests all collect a slice's Turtle through this one helper (no re-implemented,
+/// possibly-divergent path walk).
+pub fn slice_ttl_paths(slice_dir: &Path) -> Vec<PathBuf> {
     let mut paths = vec![slice_dir.join("module.ttl")];
     for sub in ["examples", "tests"] {
         collect_ttl(&slice_dir.join(sub), &mut paths);
@@ -288,9 +292,6 @@ impl SliceReport {
         out
     }
 }
-
-/// Re-export the rubric loader path used by the sweep.
-pub use rubric::load_rubric;
 
 // -----------------------------------------------------------------------------
 // RDF projection of a slice assessment.
