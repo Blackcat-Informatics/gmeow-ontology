@@ -48,7 +48,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 /// The ASCII unit separator joining a content-address key's fields — it cannot occur
 /// in a corpus/case/world name or a verdict token, so the joined key is unambiguous.
-const KEY_SEP: char = '\u{1f}';
+const KEY_SEP: &str = "\u{1f}";
 
 /// Escape a string literal for N-Quads (mirrors the diagnostics render escaping).
 fn nq_escape(value: &str) -> String {
@@ -103,7 +103,7 @@ fn lattice_relation_local(native: &str, published: &str) -> &'static str {
 /// comparison — a blake3 of `corpus|case|world|native|published` (the SAME hash scheme
 /// the diagnostics finding IRIs are minted with), so the folded individual is fold-stable.
 fn comparison_iri(corpus: &str, case: &str, world: &str, native: &str, published: &str) -> String {
-    let key = [corpus, case, world, native, published].join(&KEY_SEP.to_string());
+    let key = [corpus, case, world, native, published].join(KEY_SEP);
     let hash = blake3::hash(key.as_bytes()).to_hex();
     format!("{COMPARISON_BASE}{hash}")
 }
