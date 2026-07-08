@@ -34,3 +34,40 @@ use rstest::rstest;
 fn teleology(#[case] case: Case) {
     case.run();
 }
+
+const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// Principle 9: no preferredGoal / primaryIntention-style selector exists — a
+/// dynamic whole-graph subject sweep over the merged ontology for any gmeow term
+/// whose local name begins with a banned goal/intention prefix.
+#[test]
+fn no_preferred_or_primary_goal_terms() {
+    let g = GraphStore::ontology();
+    let (_, rows) = g.select(&[], "SELECT DISTINCT ?s WHERE { ?s ?p ?o }");
+    let banned = [
+        "primarygoal",
+        "preferredgoal",
+        "primaryintention",
+        "preferredintention",
+    ];
+    let mut offenders: Vec<String> = Vec::new();
+    for row in rows {
+        let Some(Some(purrdf::TermValue::Iri(iri))) = row.into_iter().next() else {
+            continue;
+        };
+        let Some(local) = iri.strip_prefix(GMEOW) else {
+            continue;
+        };
+        if local.contains('/') {
+            continue;
+        }
+        let lower = local.to_lowercase();
+        if banned.iter().any(|b| lower.starts_with(b)) {
+            offenders.push(iri);
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "preferred/primary goal selectors must not exist: {offenders:?}"
+    );
+}

@@ -4502,14 +4502,14 @@ math:hasPremise
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has premise"@x-gmeow-english ;
-    skos:definition "Relates a math:ProofStep to a premise it draws on. Domain math:ProofStep, range the premise (a statement or prior result, stated in prose). The companion of math:hasConclusion; an inference goes from premises to conclusions."@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalStatement or math:ProofStep to a premise it draws on. Domain a math:MathematicalStatement or math:ProofStep, range the premise (a statement or prior result, stated in prose). The companion of math:hasConclusion; a statement states its conclusion under premises, and an inference goes from premises to conclusions."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:hasConclusion
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has conclusion"@x-gmeow-english ;
-    skos:definition "Relates a math:ProofStep to the conclusion it draws. Domain math:ProofStep, range the conclusion (a statement, stated in prose). The companion of math:hasPremise; the conclusion of one step may be a premise of a later one."@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalStatement or math:ProofStep to the conclusion it draws. Domain a math:MathematicalStatement or math:ProofStep, range the conclusion (an expression or statement, stated in prose). The companion of math:hasPremise; a statement asserts its conclusion under premises, and the conclusion of one step may be a premise of a later one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:provesGoal
@@ -4518,6 +4518,247 @@ math:provesGoal
     rdfs:label "proves goal"@x-gmeow-english ;
     skos:definition "Relates a math:Proof or math:ProofStep to the logic:GoalExpression sub-goal it discharges — binding the proof layer to logic:'s teleology so a complex proof is a goal-decomposed process. Domain a math:Proof or math:ProofStep, range logic:GoalExpression (stated in prose). Each lemma is a logic:GoalExpression whose logic:goalExpressionKind is logic:AchievementGoal (the target first obtains) — the kind is a value carried by the property, never a class the goal is typed with."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# The statement-role layer — theorem-hood is a role under a theory, not a bit
+#
+# A theorem label is not a truth bit. A math:MathematicalStatement states a
+# conclusion under premises, depends on axioms under a versioned theory, and holds
+# its status (theorem, lemma, conjecture, …) as a math:statementRole scoped to a
+# named theory through math:roleInTheory — so "a theorem in Euclidean geometry v2"
+# is a theory-relative claim, never an unconditional global fact. The flat classes
+# math:Theorem, math:Lemma, and the rest are retained as convenience PROJECTIONS
+# (shaped subclasses for consumers that want a flat type), never as the canonical
+# bearer of truth. Verification splits three ways: a math:ProofCheckActivity is the
+# occurrent run, a math:FormalVerificationResult is the structured result object, and
+# a gmeow:Observation with the checker as gmeow:vantage is the held claim — none is
+# typed as another.
+# =========================================================================== #
+
+math:MathematicalStatement
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Mathematical Statement"@x-gmeow-english ;
+    skos:definition "The canonical bearer of statement-hood: a mathematical assertion that states a conclusion (math:hasConclusion) under premises (math:hasPremise), depends on axioms (math:dependsOnAxiom) under a named, versioned theory (math:roleInTheory), and is proved by a math:Proof (via math:provesStatement) or backed by a declared external warrant (math:externalWarrant). A subclass of math:MathematicalObject. Its epistemic status is NOT a truth bit read off its type: theorem-hood, lemma-hood, and the rest are carried as a math:statementRole scoped to a theory, never as an unconditional global fact — so a consumer can never read a bare type as 'proved, everywhere, unconditionally'. The flat classes math:Theorem, math:Lemma, math:Corollary, math:Conjecture, and math:DefinitionStatement are convenience projections of this class + its role, retained for consumers wanting a flat type, never the canonical truth bearer."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:statementRole
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "statement role"@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalStatement to the math:StatementRole it holds — the canonical carrier of theorem-hood, lemma-hood, conjecture-hood, and the rest AS A ROLE rather than a bare class assertion. Domain math:MathematicalStatement, range math:StatementRole (a value individual, stated in prose). The role holds math:roleInTheory a named, versioned theory, so the status is theory- and standpoint-relative: 'this statement is a theorem in Euclidean geometry v2' is a scoped claim, not a global truth bit. The flat math:Theorem/math:Lemma/… projections are generated from this role, never the other way round."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:StatementRole
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Statement Role"@x-gmeow-english ;
+    skos:definition "The closed value class of the epistemic ROLE a math:MathematicalStatement holds under a theory — theorem-hood as a role, not a truth bit. Its six named individuals are math:roleTheorem (a proved conclusion, held under a theory with a proof or external warrant), math:roleLemma (an auxiliary result proved en route to a larger theorem), math:roleCorollary (a result following readily from a theorem), math:roleConjecture (a candidate held under active test, not yet proved or refuted), math:roleAxiom (a stated law taken as a foundation of the theory rather than derived within it), and math:roleDefinition (a statement introducing a term or notion, true by stipulation). A statement names exactly one through math:statementRole, and the role holds math:roleInTheory a named, versioned theory; the status is theory-relative, so the same statement may carry different roles under different theories. The set is closed; a misspelt role names no declared value and is rejected rather than silently accepted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:roleTheorem
+    a owl:NamedIndividual , math:StatementRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "theorem role"@x-gmeow-english ;
+    skos:definition "The theorem role: a math:MathematicalStatement held as a proved conclusion under a named, versioned theory (math:roleInTheory), warranted by a math:Proof (math:provesStatement) or a declared external warrant (math:externalWarrant). Theorem-hood is this role scoped to a theory, never a truth bit read off a bare type."@x-gmeow-english .
+
+math:roleLemma
+    a owl:NamedIndividual , math:StatementRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "lemma role"@x-gmeow-english ;
+    skos:definition "The lemma role: an auxiliary proved result held under a theory en route to a larger theorem — a math:MathematicalStatement whose role is subsidiary in the theory's exposition, not a lesser kind of truth. Each lemma is a logic:GoalExpression sub-goal a proof discharges."@x-gmeow-english .
+
+math:roleCorollary
+    a owl:NamedIndividual , math:StatementRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "corollary role"@x-gmeow-english ;
+    skos:definition "The corollary role: a math:MathematicalStatement following readily from a theorem already established under the same theory — the role marks the derivational proximity, held under the theory like any other proved conclusion."@x-gmeow-english .
+
+math:roleConjecture
+    a owl:NamedIndividual , math:StatementRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "conjecture role"@x-gmeow-english ;
+    skos:definition "The conjecture role: a math:MathematicalStatement held as a candidate under active epistemic test within a theory — not yet proved or refuted. A math:Conjecture carrying this role links through math:conjectureUnderTest to the logic:Conjecture that formalizes it for runtime KB testing; a refutation is carried structurally by a math:hasCounterexample witness."@x-gmeow-english .
+
+math:roleAxiom
+    a owl:NamedIndividual , math:StatementRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "axiom role"@x-gmeow-english ;
+    skos:definition "The axiom role: a math:MathematicalStatement taken as a foundation of its theory rather than derived within it — held as a stated law under math:roleInTheory, warranting no proof because it is the theory's starting point. Distinct from math:Axiom, which is the object-layer law an algebraic structure satisfies; this is the statement-role a foundational assertion holds within a theory."@x-gmeow-english .
+
+math:roleDefinition
+    a owl:NamedIndividual , math:StatementRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "definition role"@x-gmeow-english ;
+    skos:definition "The definition role: a math:MathematicalStatement introducing a term or notion, true by stipulation within its theory rather than by proof — held under math:roleInTheory, warranting no proof because it fixes usage rather than asserting a derived fact."@x-gmeow-english .
+
+math:roleInTheory
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "role in theory"@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalStatement to the named, versioned theory its math:statementRole holds in — the theory individual (an axiom system at a stated version, e.g. Euclidean geometry v2), stated in prose. Single-valued: a statement's role is scoped to one theory context, so 'this is a theorem' is always 'a theorem IN this theory version', never an unconditional global fact. This is precisely what makes theorem-hood theory-relative rather than a truth bit; a theorem claim with no theory context is ill-formed (math:UngroundedTheoremClaim)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:externalWarrant
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "external warrant"@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalStatement to a declared external warrant that stands in for an in-graph math:Proof — a cited published proof, a proof-assistant library entry, or another attested basis for the claim, stated in prose. Domain math:MathematicalStatement. A theorem claim discharges the theorem-is-not-a-truth-bit gate through EITHER a math:Proof (via math:provesStatement) OR a declared external warrant; a theorem with a theory context but neither is ill-formed (math:UngroundedTheoremClaim)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Convenience projections — flat subclasses of the role, never the truth --- #
+# Retained as PROJECTIONS ONLY: shaped subclasses of math:MathematicalStatement
+# generated from the role for consumers that want a flat type. They are never the
+# canonical bearer of truth — the canonical carrier is math:statementRole scoped by
+# math:roleInTheory. (math:Axiom and math:Proof already exist and are not redefined.)
+
+math:Theorem
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalStatement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Theorem"@x-gmeow-english ;
+    skos:definition "A convenience PROJECTION of a math:MathematicalStatement carrying math:statementRole math:roleTheorem — a flat type for consumers that want one, NEVER the canonical bearer of truth. The canonical carrier of theorem-hood is the role scoped by math:roleInTheory; a bare `a math:Theorem` must still carry a theory context and either a math:Proof or a declared external warrant, because the type alone is not a truth bit (a bare theorem with no theory context is math:UngroundedTheoremClaim)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Lemma
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalStatement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Lemma"@x-gmeow-english ;
+    skos:definition "A convenience PROJECTION of a math:MathematicalStatement carrying math:statementRole math:roleLemma — a flat type for consumers that want one, never the canonical bearer of truth. The canonical carrier is the role scoped by math:roleInTheory; the flat type is generated from the role, not the other way round."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Corollary
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalStatement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Corollary"@x-gmeow-english ;
+    skos:definition "A convenience PROJECTION of a math:MathematicalStatement carrying math:statementRole math:roleCorollary — a flat type for consumers that want one, never the canonical bearer of truth. The canonical carrier is the role scoped by math:roleInTheory; the flat type is generated from the role."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Conjecture
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalStatement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Conjecture"@x-gmeow-english ;
+    skos:definition "A convenience PROJECTION of a math:MathematicalStatement carrying math:statementRole math:roleConjecture — a candidate held under active test, not yet proved or refuted, never the canonical bearer of truth. The canonical carrier is the role scoped by math:roleInTheory. A math:Conjecture is the STATEMENT-layer object; it links through math:conjectureUnderTest to the logic:Conjecture (the runtime-testable candidate) that formalizes it for KB testing, and a refutation is carried structurally by a math:hasCounterexample witness corresponding to the logic:ContradictionWitness the refutation exposes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DefinitionStatement
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalStatement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Definition Statement"@x-gmeow-english ;
+    skos:definition "A convenience PROJECTION of a math:MathematicalStatement carrying math:statementRole math:roleDefinition — a statement introducing a term or notion, true by stipulation within its theory, never the canonical bearer of truth. The canonical carrier is the role scoped by math:roleInTheory. Named math:DefinitionStatement (not math:Definition) so it never collides with the object-layer notion of a definition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Refutation as structure — a conjecture carries its counterexample -------- #
+
+math:Counterexample
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Counterexample"@x-gmeow-english ;
+    skos:definition "A first-class mathematical object that refutes a math:MathematicalStatement — a witness instance falsifying a conjectured universal, attached through math:hasCounterexample. A subclass of math:MathematicalObject, so a refuted conjecture carries its refutation STRUCTURALLY rather than merely flipping a status flag. The same witness node is what the logic: refutation exposes as a logic:ContradictionWitness (the two-projection witness): math: names the mathematical counterexample object, logic: owns the runtime contradiction it constitutes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:hasCounterexample
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has counterexample"@x-gmeow-english ;
+    skos:definition "Relates a math:MathematicalStatement to a math:Counterexample that refutes it. Domain math:MathematicalStatement, range math:Counterexample. A refuted conjecture carries its refutation structurally through this edge; the counterexample corresponds to the logic:ContradictionWitness the logic: refutation exposes, so this property may point at the SAME witness node the two-projection witness names — math: as the counterexample object, logic: as the runtime contradiction — never a duplicated or shadowed structure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Math→logic bridge (strictly one-way; logic never depends on math) -------- #
+
+math:conjectureUnderTest
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "conjecture under test"@x-gmeow-english ;
+    skos:definition "Relates a math:Conjecture (the statement-layer mathematical object) to the logic:Conjecture (the runtime-testable candidate formula under active epistemic test) that formalizes it for knowledge-base testing. Domain math:Conjecture, range logic:Conjecture. This is a math→logic edge — permitted because math: is last in the acyclic grounding-layer dependency order; the reverse logic→math edge is FORBIDDEN, so logic: never depends on math:. The mathematical statement supplies the human-facing conjecture; the logic:Conjecture carries the standpoint-scoped verdict, the negation-symmetric test, and the logic:ContradictionWitness a refutation exposes (which the statement re-exposes structurally as a math:hasCounterexample witness)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Proof method and the three-object verification split -------------------- #
+
+math:ProofMethod
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Proof Method"@x-gmeow-english ;
+    skos:definition "The method a math:Proof uses to establish its statement — direct proof, proof by contradiction, induction, construction, and the rest. A subclass of math:MathematicalObject naming the shape of the derivation a proof follows (math:usesProofMethod). The method is a first-class object, not an opaque label, so a proof's strategy is queryable alongside its steps and axiom dependencies."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:usesProofMethod
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "uses proof method"@x-gmeow-english ;
+    skos:definition "Relates a math:Proof to the math:ProofMethod it follows — direct, by contradiction, by induction, by construction. Domain math:Proof, range math:ProofMethod (stated in prose). The declared strategy of the derivation, queryable alongside its math:proofStep sequence and math:dependsOnAxiom foundations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:ProofCheckActivity
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Proof Check Activity"@x-gmeow-english ;
+    skos:definition "The occurrent RUN of checking a math:Proof — a proof-assistant execution (Coq, Lean, Isabelle, Metamath) that consumes a proof (math:usedProof). A subclass of gmeow:Activity: the PROCESS half of the process / result / claim separation. The engine it ran under is named as the gmeow:vantage of the grounding gmeow:Observation and through math:verifiedByEngine on the result object. It is NEVER typed as its own result object (a math:FormalVerificationResult) nor as the held claim (a gmeow:Observation); the run produces the result object (tied back through gmeow:wasGeneratedBy) and the observation grounds the verdict from the checker's vantage. A process typed as an observation is ill-formed (math:ProcessObservationConflation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:usedProof
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "used proof"@x-gmeow-english ;
+    skos:definition "Relates a math:ProofCheckActivity to the math:Proof it checked. Domain math:ProofCheckActivity, range math:Proof (stated in prose). The proof the run consumed; the run's verdict is a separate math:FormalVerificationResult held by a gmeow:Observation naming the checker as gmeow:vantage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:verifiedByEngine
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "verified by engine"@x-gmeow-english ;
+    skos:definition "Relates a math:FormalVerificationResult (or the math:Proof it concerns) to the verification engine that produced it — a proof assistant or checker, a gmeow: software agent / standpoint, stated in prose. The engine is the gmeow:vantage of the grounding gmeow:Observation: 'verified' always answers BY WHOM, so a bare 'verified' with no engine is not a claim but a decoration. The result object carries this pointer; the held verdict remains a separate observation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:verificationResult
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "verification result"@x-gmeow-english ;
+    skos:definition "Relates a math:FormalVerificationResult to its math:VerificationOutcome — the structured verdict the checker returned (passed, failed, unknown). Domain math:FormalVerificationResult, range math:VerificationOutcome (stated in prose). The outcome is carried on the RESULT OBJECT; the held claim that this outcome obtains is a separate gmeow:Observation with the checker as gmeow:vantage, so the outcome value is never asserted as a free-floating truth."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:VerificationOutcome
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Verification Outcome"@x-gmeow-english ;
+    skos:definition "The closed value class of the verdict a math:FormalVerificationResult carries through math:verificationResult. Its three named individuals are math:verificationPassed (the checker accepted the proof), math:verificationFailed (the checker rejected it), and math:verificationUnknown (the check was inconclusive — budget-exhausted, timed out, or hit an unsupported construct). A result names exactly one; the set is closed, so a misspelt outcome names no declared value and is rejected. The outcome is a value on the result object, never the held claim — that is a separate gmeow:Observation with the checker as gmeow:vantage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:verificationPassed
+    a owl:NamedIndividual , math:VerificationOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "verification passed"@x-gmeow-english ;
+    skos:definition "The passed outcome: the proof checker accepted the math:Proof — the QED verdict. Carried on the math:FormalVerificationResult; the claim that it obtains is held from the checker's vantage by a separate gmeow:Observation."@x-gmeow-english .
+
+math:verificationFailed
+    a owl:NamedIndividual , math:VerificationOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "verification failed"@x-gmeow-english ;
+    skos:definition "The failed outcome: the proof checker rejected the math:Proof — a gap, an unmet obligation, or an inconsistency. Carried on the math:FormalVerificationResult; the claim that it obtains is held from the checker's vantage by a separate gmeow:Observation."@x-gmeow-english .
+
+math:verificationUnknown
+    a owl:NamedIndividual , math:VerificationOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "verification unknown"@x-gmeow-english ;
+    skos:definition "The inconclusive outcome: the check neither accepted nor rejected — budget-exhausted, timed out, or hit an unsupported construct, mirroring logic:ObligationUnknown. Carried on the math:FormalVerificationResult; never collapsed into a bare failure, because 'not proved' is not 'refuted'."@x-gmeow-english .
+
+# --- The theorem-is-not-a-truth-bit failure class ---------------------------- #
+
+math:UngroundedTheoremClaim
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ungrounded Theorem Claim"@x-gmeow-english ;
+    skos:definition "The failure raised when a theorem claim is stated as a truth bit rather than a theory-scoped, warranted claim: a math:Theorem (or a math:MathematicalStatement carrying math:statementRole math:roleTheorem) that lacks a theory context (math:roleInTheory), or that carries a theory context but neither a math:Proof (via math:provesStatement) nor a declared math:externalWarrant. A bare `a math:Theorem` with no theory context is ill-formed: theorem-hood is a role held under a named, versioned theory with a proof or external warrant, never a fact read off the type. Primary gate: the SHACL requirement (math:TheoremGroundingShape) that a theorem carry math:roleInTheory and a proof-or-warrant."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Process / observation disjointness (process is never the claim) --------- #
 # The OWL-axiom gate backing math:ProcessObservationConflation: an inference or
@@ -4528,6 +4769,7 @@ math:provesGoal
 # typed both a bridge/analysis process and an observation to owl:Nothing.
 math:IngestRun owl:disjointWith gmeow:Observation .
 math:PCAAnalysis owl:disjointWith gmeow:Observation .
+math:ProofCheckActivity owl:disjointWith gmeow:Observation .
 
 # --- Bridge failure classes -------------------------------------------------- #
 

@@ -325,6 +325,21 @@ held claim (`ex:coqCheckObservation`) is an observation with the engine as vanta
 always answers *by whom, over what, through which run, with what result* — and none of the four
 nodes is typed as another.
 
+This statement-role layer is **materialized** in the slice: `math:MathematicalStatement`,
+`math:statementRole`, the closed `math:StatementRole` value class and its six role individuals,
+`math:roleInTheory`, the convenience projections (`math:Theorem`, `math:Lemma`, `math:Corollary`,
+`math:Conjecture`, `math:DefinitionStatement`), `math:Counterexample`/`math:hasCounterexample`,
+`math:ProofMethod`/`math:usesProofMethod`, the three-object verification split
+(`math:ProofCheckActivity` process, `math:FormalVerificationResult` result object, and the
+`gmeow:Observation` held claim) with `math:verifiedByEngine`/`math:verificationResult` and the
+closed `math:VerificationOutcome` value class, and the strictly one-way math→logic bridge
+`math:conjectureUnderTest` all live in `module.ttl`. The theorem-is-not-a-truth-bit gate is
+`math:TheoremGroundingShape` (raising `math:UngroundedTheoremClaim`) and the result-grounding gate
+is `math:FormalVerificationResultShape` (raising `math:UngroundedVerificationResult`), both with
+negative fixtures in `tests/example-conformance.ttl`; the worked example above is
+`examples/theorem-proof-claim.ttl`, and competency question 5 is pinned by
+`queries/competency/theorem-proof-theory-engine.rq`.
+
 ## Shape and lint gates
 
 The core ships with strict `shapes.ttl` and source-lint gates. The expression gates, verbatim to

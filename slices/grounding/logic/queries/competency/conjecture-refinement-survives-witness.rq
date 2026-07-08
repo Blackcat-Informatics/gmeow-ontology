@@ -1,0 +1,20 @@
+# Competency: the Lakatos monster-barring chain must be REPLAYABLE, not just
+# labelled. A refined SUCCESSOR conjecture (logic:conjectureRefinedFrom) must name
+# both the refuted predecessor it weakens AND — via logic:survivesCounterexample —
+# the concrete logic:ContradictionWitness that killed that predecessor and which the
+# successor now EXCLUDES. The join pins the witness the successor survives to be the
+# SAME witness the predecessor was refuted by (logic:conjectureRefutationWitness), so
+# the row is real refinement work, not a relabelled claim. This is the load-bearing
+# consumer of logic:conjectureRefinedFrom and logic:survivesCounterexample: drop
+# either edge (or break the predecessor→witness join) and the row disappears.
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?successor ?predecessor ?witness WHERE {
+    ?successor a logic:Conjecture ;
+               logic:conjectureRefinedFrom ?predecessor ;
+               logic:survivesCounterexample ?witness .
+    ?predecessor a logic:Conjecture ;
+                 logic:conjectureLifecycleState logic:ConjectureRefutedInStandpoint ;
+                 logic:conjectureRefutationWitness ?witness .
+}
+ORDER BY ?successor ?predecessor ?witness

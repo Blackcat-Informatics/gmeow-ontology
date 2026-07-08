@@ -542,8 +542,8 @@ compose over it, reusable with no ontology loaded.
 > its own namespace: `logic:` grounds reasoning (truth, inference, proof, modality), `math:`
 > grounds quantity and structure (number, space, operation, measure, dimension), and `lang:`
 > grounds meaning and expression (sign, form, denotation, interpretation, translation). None
-> reduces to the others; the layers interlock only through declared one-way bridges; and no
-> domain slice re-derives what a grounding layer owns.**
+> reduces to the others; the layers interlock only through registered seams; and no domain slice
+> re-derives what a grounding layer owns.**
 
 Principle 17 established the pattern for one layer: author the maximal canon, project lossily,
 record the loss. This principle generalises it to the complete grounding architecture. The same
@@ -555,14 +555,20 @@ and 7). Almost every real artifact composes all three layers: a claim is a lingu
 p-value was 0.03*" is a sentence realizing a form that denotes a formula that references a framed
 measure.
 
-**Denotation is the interlock, and it is one-way.** A `math:` expression denotes into a `logic:`
-term; a `lang:` form denotes into a `logic:` formula through a reified, kind-typed denotation
-record. `logic:` never depends back on either; and `lang:` does not depend on `math:` —
-formal-language-theoretic facts about grammars (generated languages as sets, automaton
-equivalence) are `math:` objects referencing `lang:` individuals, exactly as `logic:` keeps its
-quantitative facets abstract for `math:` objects to satisfy. The grounding order in the slice
-DAG — `logic:`, then `lang:`, then `math:` — is therefore acyclic by construction, and a new
-inter-layer dependency is a constitutional change, never a convenience edit.
+**The layers interlock through registered seams, and the three form one co-foundational
+kernel.** A `math:` expression denotes into a `logic:` term; a `lang:` form denotes into a
+`logic:` formula through a reified, kind-typed denotation record; `logic:` never depends back on
+either. Between `lang:` and `math:` the seams run both ways and are few: mathematical notation is
+realized on the general `lang:` rendering theory (`math:ExpressionRendering` ⊑ `lang:Rendering`),
+and `lang:`'s own declared and measured magnitudes ground in `math:Quantity` — because rendering
+is language and a dimensioned magnitude is mathematics, wherever each appears.
+Formal-language-theoretic facts about grammars (generated languages as sets, automaton
+equivalence) remain `math:` objects referencing `lang:` individuals, exactly as `logic:` keeps its
+quantitative facets abstract for `math:` objects to satisfy. The kernel is therefore a declared
+peerage (`gmeow:sliceCoFoundationalWith`), not an internal dependency ladder: `gmeow:sliceDependsOn`
+stays acyclic everywhere, every inter-layer reference must land on a seam registered in the
+grounding contract ([`docs/GROUNDING.md`](./docs/GROUNDING.md)), and a new seam is a
+constitutional change, never a convenience edit.
 
 **Each layer carries a signature never-conflate rule** — the Principle 1 never-overclaim
 discipline made structural per layer: in `logic:`, a triple term *groups* a statement and does
