@@ -153,7 +153,7 @@ ASK {
     gmeow:generatedForSubject a owl:ObjectProperty .
     gmeow:generatedUnderConfiguration a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:generatedForSubject and gmeow:generatedUnderConfiguration MUST be declared owl:ObjectProperty — the flat, materialized upper-projections of the de-conflation path (computed, not authored; Principle 12). Their agreement with the nested canon is proven by the projection-agreement gate (tests/perf-recall.ttl + queries/competency/audit.rq)." .
+    gmeow:saRationale "gmeow:generatedForSubject and gmeow:generatedUnderConfiguration MUST be declared owl:ObjectProperty — the flat, materialized upper-projections of the de-conflation path (computed, not authored; Principle 12). Their agreement with the nested canon is proven by the projection-agreement gate." .
 
 # --- 11. The upper-projections are open-range (standalone) (MUST-NOT) ---------
 ex:saUpperProjectionsOpenRange a gmeow:StructuralAssertion ;
