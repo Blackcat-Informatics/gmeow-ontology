@@ -194,6 +194,16 @@ pub enum Commands {
         #[arg(long = "gts")]
         gts: Option<PathBuf>,
     },
+    /// Explain a diagnostic witness by its stable fingerprint IRI (a finding) or
+    /// anchor IRI (a cluster): print its provenance DAG plus the substrate algebra
+    /// (gate verdict, minimal fatal cut, anchor cluster, and any Belnap gluts).
+    Explain {
+        /// A finding fingerprint IRI or an anchor IRI from `graph/diagnostics`.
+        target_iri: String,
+        /// GTS snapshot to read diagnostics from (default: bundled gmeow.gts).
+        #[arg(long)]
+        file: Option<PathBuf>,
+    },
     /// Start the consumer-safe GMEOW MCP server (stdio transport).
     Mcp,
     /// Dispatch to the external Graph Transport Substrate (GTS) CLI.
@@ -347,6 +357,7 @@ pub fn run() -> i32 {
             force,
         } => commands::extract_docs(&directory, file.as_deref(), force, lang.as_deref()),
         Commands::Crossref { out, gts } => commands::crossref(&out, gts.as_deref()),
+        Commands::Explain { target_iri, file } => commands::explain(target_iri, file, console),
         Commands::Mcp => commands::mcp(),
         Commands::Gts { args } => passthrough::gts(&args),
         Commands::Music { command } => passthrough::music(&command),
