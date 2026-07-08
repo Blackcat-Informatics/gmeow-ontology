@@ -5538,10 +5538,18 @@ mod quality_assessment_tests {
     }
 
     #[test]
-    fn quality_assessment_graph_rides_the_self_description_carrier() {
+    fn quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate() {
         // G2 dogfooding: scoring every slice attaches the `graph/quality-assessment`
         // named graph to the source-load self-description carrier, so it folds into
         // gmeow.gts (the presenter reads it back and also emits the fanout twin).
+        //
+        // Off-gate (`_heavy_offgate`): builds the full self-description carrier, which
+        // scores all ~81 slices (~86 s) — irreducibly O(slice count), the same
+        // whole-repo class as `end_to_end`/`fold_parity`. The attach↔fanout bijection
+        // and N-Triples fold form stay on-gate via the fast sibling tests
+        // `quality_assessment_fanout_path_is_registered_and_folds_as_ntriples` and
+        // `superset::tests::quality_assessment_nt_folds_as_ntriples_via_its_own_fanout_graph`,
+        // and any real drift is caught on every `make check` by `make check-generated`.
         let root = repo_root();
         let ds = build_self_description_dataset(&root).expect("self-description dataset");
 
