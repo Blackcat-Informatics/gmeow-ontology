@@ -151,3 +151,24 @@ DOCTRINE.
     skos:definition "The GMEOW Concepts Module — categories, schemas, and abstractions held by agents; vantage-indexed categorization; graded membership; concept structure; and conceptual change."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Declarative constraint axioms (#1194 WAVE 2 — core slices) — the closed-world
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). A restriction carrying both owl:*Cardinality and
+# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# sh:datatype property shape. The cross-node / value-range / disjunctive
+# (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL
+# antecedent and remain the procedural fragment (Task 6).
+# =========================================================================== #
+
+gmeow:ConceptCategorization rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Entity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Concept ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:typicality ; owl:allValuesFrom xsd:decimal ] .
+
+gmeow:ConceptTenure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:conceptHoldsFor ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Concept ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:cardinality 1 ; owl:allValuesFrom gmeow:TimeInterval ] .

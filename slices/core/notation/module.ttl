@@ -516,3 +516,22 @@ gmeow:writingSystemAsNotation
     skos:definition "The GMEOW Notation and Symbolic Systems Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Declarative constraint axioms (#1194 WAVE 2 — core slices) — the closed-world
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). A restriction carrying both owl:*Cardinality and
+# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# sh:datatype property shape. The cross-node / value-range / disjunctive
+# (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL
+# antecedent and remain the procedural fragment (Task 6).
+# =========================================================================== #
+
+gmeow:NotationProjectionProfile rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:notationSystemOf ; owl:cardinality 1 ; owl:allValuesFrom gmeow:NotationSystem ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:projectionFunction ; owl:minCardinality 1 ] .
+
+gmeow:NotationSystem rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:smuflCodepoint ; owl:allValuesFrom xsd:string ] .

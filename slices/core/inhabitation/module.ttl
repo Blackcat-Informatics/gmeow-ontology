@@ -768,3 +768,49 @@ gmeow:transferredView
     skos:definition "The coarse-grained reference to the state a gmeow:TransferManifest carried across a transition — a gmeow:MemoryView individual or a named-graph checkpoint URI, rather than a per-item edge for every claim. The range is left OPEN so the manifest may reference either a memory-slice view or a bare checkpoint URI without a cross-tier dependency."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox .
+
+# =========================================================================== #
+# Declarative constraint axioms (#1194 WAVE 2 — core slices) — the closed-world
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). A restriction carrying both owl:*Cardinality and
+# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# sh:datatype property shape. The cross-node / disjunctive-range / value-keyed
+# (sh:sparql, sh:or, SPARQLTarget) conditions have no OWL antecedent and remain
+# the procedural fragment (Task 6).
+# =========================================================================== #
+
+gmeow:InhabitationTenure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:inhabitationSubject ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:inhabitedHost ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Entity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:inhabitationLocusKind ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:InhabitationLocusKind ] .
+
+gmeow:EmbodimentAssignment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:assignmentSubject ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assignmentCarrier ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:EmbodimentCarrierRole ] .
+
+gmeow:InhabitationConfiguration rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:configurationOfTenure ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:InhabitationTenure ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:cardinality 1 ; owl:allValuesFrom gmeow:TimeInterval ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:configurationEmbodiment ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:EmbodimentAssignment ] .
+
+gmeow:ControlAssessment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:controlAgent ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:controlLevel ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:ControlLevel ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:controlInterval ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:TimeInterval ] .
+
+gmeow:IdentityContinuityAssessment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:assessmentFromStage ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:SubjectStage ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assessmentToStage ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:SubjectStage ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:continuityVerdict ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:ContinuityVerdict ] .
+
+gmeow:ContinuityDetermination rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:determiningAuthority ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:determinationForce ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:DeterminationForce ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:determinationValidity ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:TimeInterval ] .
+
+gmeow:DigitalSubjectTenure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureSubjectAgent ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureVantage ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureSupportedBy ; owl:allValuesFrom gmeow:Observation ] .

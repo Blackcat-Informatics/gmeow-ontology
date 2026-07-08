@@ -614,3 +614,61 @@ ALIGNMENT (by reference — see mappings/equivalences.ttl). PROV-O (InferencePro
     skos:definition "The GMEOW Inference Module — Peirce's tetrad (deduction, induction, abduction, analogy) as the epistemic face of a logic: derivation: what an agent believes when it accepts a reasoning step's conclusion."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Declarative constraint axioms (#1194 WAVE 2 — core slices) — the closed-world
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). A restriction carrying both owl:*Cardinality and
+# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# sh:datatype property shape. The cross-node / disjunctive-range / value-keyed
+# (sh:sparql, sh:or, SPARQLTarget) conditions have no OWL antecedent and remain
+# the procedural fragment (Task 6).
+# =========================================================================== #
+
+gmeow:InferenceCommitment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:conclusion ; owl:cardinality 1 ; owl:allValuesFrom gmeow:StandpointClaim ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:premise ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:inferenceModeOf ; owl:maxCardinality 1 ] .
+
+gmeow:Analogy rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:analogicalSource ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:analogicalTarget ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:hasCorrespondence ; owl:minCardinality 1 ] .
+
+gmeow:Correspondence rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:correspondingSource ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:correspondingTarget ; owl:cardinality 1 ] .
+
+gmeow:Argument rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:argumentConclusion ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:argumentInferenceStep ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:hasPremiseUse ; owl:allValuesFrom gmeow:PremiseUse ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:hasInferenceApplication ; owl:allValuesFrom gmeow:InferenceApplication ] .
+
+# gmeow:attackTarget / gmeow:supportSource carry an sh:or disjunctive range
+# (PremiseUse|InferenceApplication|StandpointClaim resp. Argument|StandpointClaim)
+# that OWL allValuesFrom cannot state without a union filler the derive does not
+# classify; only the exact-one cardinality lowers here, the disjoint-range check
+# stays procedural (Task 6).
+gmeow:Attack rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:attackTarget ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:attackKind ; owl:cardinality 1 ; owl:allValuesFrom gmeow:AttackKind ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:attackSource ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Argument ] .
+
+gmeow:Support rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:supportTarget ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Argument ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:supportSource ; owl:cardinality 1 ] .
+
+gmeow:ArgumentEvaluation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:evaluatesArgument ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Argument ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:underSemantics ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:acceptanceStatus ; owl:cardinality 1 ; owl:allValuesFrom gmeow:AcceptanceStatus ] .
+
+gmeow:PremiseUse rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:premiseUsed ; owl:cardinality 1 ] .
+
+gmeow:InferenceApplication rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:appliedRule ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:appliedSubstitution ; owl:allValuesFrom xsd:string ] .
