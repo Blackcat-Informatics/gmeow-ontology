@@ -72,7 +72,7 @@ fn stable_models_in_world(
     world: &str,
     rules: &[EvalRule],
 ) -> Result<Vec<StableModel>, String> {
-    let edb_facts = world_edb_facts(store, world)?;
+    let edb_facts = world_edb_facts(store, world).map_err(|e| e.message().to_owned())?;
     let mut edb = FactStore::new();
     for f in &edb_facts {
         edb.insert(f.clone());
@@ -81,7 +81,9 @@ fn stable_models_in_world(
 
     // Candidate universe H = least model treating every NAF atom as absent.
     let empty = FactStore::new();
-    let h = least_model_of_reduct(&edb, rules, &empty)?.store;
+    let h = least_model_of_reduct(&edb, rules, &empty)
+        .map_err(|e| e.message().to_owned())?
+        .store;
 
     // Candidate atoms = H \ EDB, sorted by key for canonical bitmask order.
     let mut candidates: Vec<Fact> = h
@@ -121,7 +123,9 @@ fn stable_models_in_world(
         let m_keys = m.key_set();
 
         // Stability: the reduct's least model w.r.t. M must equal M.
-        let reduct = least_model_of_reduct(&edb, rules, &m)?.store;
+        let reduct = least_model_of_reduct(&edb, rules, &m)
+            .map_err(|e| e.message().to_owned())?
+            .store;
         if reduct.key_set() == m_keys {
             let mut atoms: Vec<Fact> = m.facts().to_vec();
             atoms.sort_by_key(Fact::key);
@@ -159,8 +163,8 @@ pub(crate) fn cautious_materialize(
 
     let mut out: Vec<DerivedRow> = Vec::new();
     for world in &worlds {
-        let edb_facts = world_edb_facts(store, world)?;
-        out.extend(echo_asserted(world, &edb_facts)?);
+        let edb_facts = world_edb_facts(store, world).map_err(|e| e.message().to_owned())?;
+        out.extend(echo_asserted(world, &edb_facts).map_err(|e| e.message().to_owned())?);
 
         let mut edb = FactStore::new();
         for f in &edb_facts {
@@ -204,15 +208,17 @@ pub(crate) fn cautious_materialize(
         // can hard-fail (rather than silently emit) on a non-cautious antecedent.
         let mut allowed_reifiers: BTreeSet<String> = BTreeSet::new();
         for f in &edb_facts {
-            allowed_reifiers.insert(f.reifier()?);
+            allowed_reifiers.insert(f.reifier().map_err(|e| e.message().to_owned())?);
         }
         for f in &first.atoms {
             if cautious_keys.contains(&f.key()) {
-                allowed_reifiers.insert(f.reifier()?);
+                allowed_reifiers.insert(f.reifier().map_err(|e| e.message().to_owned())?);
             }
         }
 
-        let derivations = least_model_of_reduct(&edb, rules, &first_model)?.derivations;
+        let derivations = least_model_of_reduct(&edb, rules, &first_model)
+            .map_err(|e| e.message().to_owned())?
+            .derivations;
 
         for row in derivations {
             let key = (

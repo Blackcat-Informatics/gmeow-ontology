@@ -51,6 +51,12 @@ use crate::oracle::{TypedChaseResult, TypedProvenance, TypedRow};
 use crate::provenance::{LOGIC_NAMESPACE, term_display};
 use crate::rule_ir::{EvalTerm, lower_nemo_term};
 
+/// Wrap a physical-chase condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn physical_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Physical { detail })
+}
+
 // ── Generic atom / rule IR ─────────────────────────────────────────────────────
 
 /// One arity-generic atom: a relation NAME applied to a positional term vector.
@@ -88,7 +94,7 @@ pub(crate) struct GenericRule {
 /// "object"`, permissive — a generic relation may carry a literal in any position).
 fn lower_generic_atom(
     atom: &nemo::rule_model::components::atom::Atom,
-) -> Result<GenericAtom, String> {
+) -> gmeow_errors::Result<GenericAtom> {
     let relation = atom.predicate().to_string();
     let mut args: Vec<EvalTerm> = Vec::new();
     for term in atom.terms() {
@@ -108,7 +114,7 @@ fn lower_generic_atom(
 /// Returns the Nemo parse-error string, a lowering error, or — because this fragment
 /// is pure positive Datalog — a HARD ERROR if any rule carries a negated body atom
 /// (RL/RDF has none; a negated atom would be a rule-text bug, never approximated).
-pub(crate) fn parse_generic_rules(rules: &str) -> Result<Vec<GenericRule>, String> {
+pub(crate) fn parse_generic_rules(rules: &str) -> gmeow_errors::Result<Vec<GenericRule>> {
     use crate::nemo_engine::NemoParsedRules;
 
     let program = NemoParsedRules::parse_unvalidated(rules)?.into_program();
@@ -126,7 +132,7 @@ pub(crate) fn parse_generic_rules(rules: &str) -> Result<Vec<GenericRule>, Strin
 /// [`Program`]: nemo::rule_model::programs::program::Program
 pub(crate) fn lower_program_generic_rules(
     program: &nemo::rule_model::programs::program::Program,
-) -> Result<Vec<GenericRule>, String> {
+) -> gmeow_errors::Result<Vec<GenericRule>> {
     use nemo::rule_model::programs::ProgramRead;
 
     let mut out: Vec<GenericRule> = Vec::new();
@@ -134,18 +140,18 @@ pub(crate) fn lower_program_generic_rules(
         let head_atom = rule
             .head()
             .first()
-            .ok_or("generic: rule has no head atom")?;
+            .ok_or_else(|| physical_err("generic: rule has no head atom".to_owned()))?;
         let head = lower_generic_atom(head_atom)?;
 
         // Positive Datalog only: a negated body literal is a hard error (RL/RDF is
         // negation-free; this evaluator must never see one, and must never silently
         // treat it as positive).
         if rule.body_negative().count() != 0 {
-            return Err(format!(
+            return Err(physical_err(format!(
                 "generic: rule {:?} carries a negated body atom, but the generic n-ary \
                  evaluator is pure positive Datalog (OWL 2 RL/RDF has no negation)",
                 rule.name().unwrap_or_else(|| "<anonymous>".to_owned())
-            ));
+            )));
         }
 
         let mut body: Vec<GenericAtom> = Vec::new();
@@ -484,7 +490,7 @@ fn join_body(rule: &GenericRule, store: &GenericStore, delta: &HashSet<usize>) -
 
 /// Ground a head atom into a concrete row under `sol`, failing hard on an unbound
 /// head variable.
-fn ground_head(head: &GenericAtom, sol: &Binding) -> Result<Vec<TermValue>, String> {
+fn ground_head(head: &GenericAtom, sol: &Binding) -> gmeow_errors::Result<Vec<TermValue>> {
     let mut row: Vec<TermValue> = Vec::with_capacity(head.args.len());
     for arg in &head.args {
         match arg {
@@ -496,7 +502,9 @@ fn ground_head(head: &GenericAtom, sol: &Binding) -> Result<Vec<TermValue>, Stri
                     .find(|(k, _, _)| k == name)
                     .map(|(_, v, _)| v.clone())
                     .ok_or_else(|| {
-                        format!("generic: head variable {name:?} unbound after body matching")
+                        physical_err(format!(
+                            "generic: head variable {name:?} unbound after body matching"
+                        ))
                     })?;
                 row.push(value);
             }
@@ -524,7 +532,7 @@ fn ground_head(head: &GenericAtom, sol: &Binding) -> Result<Vec<TermValue>, Stri
 pub(crate) fn materialize_generic(
     facts: &TypedFactSet,
     rules: &[GenericRule],
-) -> Result<TypedChaseResult, String> {
+) -> gmeow_errors::Result<TypedChaseResult> {
     let interner = facts.interner();
     let mut store = GenericStore::default();
 
@@ -837,6 +845,6 @@ mod tests {
         let rls = "#[name(\"ex:neg\")]\n\
              <http://ex/q>(?x, ?y, ?w) :- <http://ex/p>(?x, ?y, ?w), ~<http://ex/r>(?x, ?y, ?w) .\n";
         let err = parse_generic_rules(rls).expect_err("a negated body atom must be rejected");
-        assert!(err.contains("negated body atom"), "got: {err}");
+        assert!(err.message().contains("negated body atom"), "got: {err}");
     }
 }

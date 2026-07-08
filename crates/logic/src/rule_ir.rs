@@ -57,6 +57,12 @@ use crate::provenance::{
 };
 use crate::query_ir::QBuiltin;
 
+/// Wrap a runtime-IR condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn ir_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Ir { detail })
+}
+
 // ── Evaluable term / atom / rule ────────────────────────────────────────────────
 
 /// A head/body term: a `?var` reference, a constant IRI, or a constant literal.
@@ -138,8 +144,8 @@ impl Fact {
     }
 
     /// The reifier IRI for this fact, via the golden-pinned recipe.
-    pub(crate) fn reifier(&self) -> Result<String, String> {
-        mint_reifier(&self.subject, &self.predicate, &self.object)
+    pub(crate) fn reifier(&self) -> gmeow_errors::Result<String> {
+        mint_reifier(&self.subject, &self.predicate, &self.object).map_err(ir_err)
     }
 }
 
@@ -293,7 +299,7 @@ pub(crate) struct ReductResult {
 pub(crate) fn lower_nemo_term(
     term: &nemo::rule_model::components::term::Term,
     slot: &str,
-) -> Result<EvalTerm, String> {
+) -> gmeow_errors::Result<EvalTerm> {
     if term.is_variable() {
         return Ok(EvalTerm::Var(term.to_string()));
     }
@@ -303,10 +309,10 @@ pub(crate) fn lower_nemo_term(
     }
     // A literal (or any non-IRI ground term).  Only an object may be a literal.
     if slot != "object" {
-        return Err(format!(
+        return Err(ir_err(format!(
             "rule_ir: non-IRI constant {rendered:?} in {slot} position — \
              only an object may be a literal (no-optionality)"
-        ));
+        )));
     }
     // Parse the literal's N3 surface into a native term via the shared Nemo-surface
     // decoder — the same `"lex"`/`"lex"@lang`/`"lex"^^<dt>` grammar the encode/decode
@@ -321,9 +327,9 @@ pub(crate) fn lower_nemo_term(
 /// Delegates to [`crate::nemo_engine::codec::decode_nemo_term`], the shared decoder for the
 /// `"lex"`/`"lex"@lang`/`"lex"^^<dt>`/`<iri>` surface grammar — same codec as the
 /// rest of the stack, oxigraph-free.
-fn parse_n3_object_literal(n3: &str) -> Result<TermValue, String> {
+fn parse_n3_object_literal(n3: &str) -> gmeow_errors::Result<TermValue> {
     crate::nemo_engine::codec::decode_nemo_term(n3)
-        .map_err(|e| format!("rule_ir: cannot parse literal object {n3:?}: {e}"))
+        .map_err(|e| ir_err(format!("rule_ir: cannot parse literal object {n3:?}: {e}")))
 }
 
 /// Lower a Nemo atom into an [`EvalAtom`], dropping the arity-3 world slot.
@@ -333,15 +339,15 @@ fn parse_n3_object_literal(n3: &str) -> Result<TermValue, String> {
 pub(crate) fn lower_nemo_atom(
     atom: &nemo::rule_model::components::atom::Atom,
     negated: bool,
-) -> Result<EvalAtom, String> {
+) -> gmeow_errors::Result<EvalAtom> {
     let predicate = atom.predicate().to_string();
     let mut it = atom.terms();
     let subj = it
         .next()
-        .ok_or("rule_ir: atom has no subject term (arity < 1)")?;
+        .ok_or_else(|| ir_err("rule_ir: atom has no subject term (arity < 1)".to_owned()))?;
     let obj = it
         .next()
-        .ok_or("rule_ir: atom has no object term (arity < 2)")?;
+        .ok_or_else(|| ir_err("rule_ir: atom has no object term (arity < 2)".to_owned()))?;
     let subject = lower_nemo_term(subj, "subject")?;
     let object = lower_nemo_term(obj, "object")?;
     Ok(EvalAtom {
@@ -364,7 +370,7 @@ pub(crate) fn lower_nemo_atom(
 ///
 /// Returns the Nemo parse-error string, or a lowering error (e.g. a literal in a
 /// subject slot).
-pub(crate) fn parse_eval_rules(rules: &str) -> Result<Vec<EvalRule>, String> {
+pub(crate) fn parse_eval_rules(rules: &str) -> gmeow_errors::Result<Vec<EvalRule>> {
     use crate::nemo_engine::NemoParsedRules;
 
     let program = NemoParsedRules::parse_unvalidated(rules)?.into_program();
@@ -381,7 +387,7 @@ pub(crate) fn parse_eval_rules(rules: &str) -> Result<Vec<EvalRule>, String> {
 /// [`Program`]: nemo::rule_model::programs::program::Program
 pub(crate) fn lower_program_eval_rules(
     program: &nemo::rule_model::programs::program::Program,
-) -> Result<Vec<EvalRule>, String> {
+) -> gmeow_errors::Result<Vec<EvalRule>> {
     use nemo::rule_model::programs::ProgramRead;
 
     let mut out: Vec<EvalRule> = Vec::new();
@@ -389,7 +395,7 @@ pub(crate) fn lower_program_eval_rules(
         let head_atom = rule
             .head()
             .first()
-            .ok_or("rule_ir: rule has no head atom")?;
+            .ok_or_else(|| ir_err("rule_ir: rule has no head atom".to_owned()))?;
         let head = lower_nemo_atom(head_atom, false)?;
 
         let mut body: Vec<EvalAtom> = Vec::new();
@@ -526,13 +532,17 @@ fn negated_atom_satisfied(atom: &EvalAtom, sol: &Solution, reference: &FactStore
 pub(crate) fn distinct_pairs_satisfied(
     distinct_pairs: &[(String, String)],
     sol: &Solution,
-) -> Result<bool, String> {
+) -> gmeow_errors::Result<bool> {
     for (a, b) in distinct_pairs {
         let va = sol.get(a).ok_or_else(|| {
-            format!("Inequality guard variable {a:?} is unbound after body matching")
+            ir_err(format!(
+                "Inequality guard variable {a:?} is unbound after body matching"
+            ))
         })?;
         let vb = sol.get(b).ok_or_else(|| {
-            format!("Inequality guard variable {b:?} is unbound after body matching")
+            ir_err(format!(
+                "Inequality guard variable {b:?} is unbound after body matching"
+            ))
         })?;
         if va == vb {
             return Ok(false);
@@ -752,7 +762,7 @@ pub(crate) fn least_model_of_reduct(
     edb: &FactStore,
     rules: &[EvalRule],
     reference: &FactStore,
-) -> Result<ReductResult, String> {
+) -> gmeow_errors::Result<ReductResult> {
     let mut store = FactStore::new();
     let edb_keys: HashSet<FactKey> = edb.key_set();
 
@@ -875,12 +885,14 @@ pub(crate) fn least_model_of_reduct(
 
 /// Ground a rule head into a [`Fact`], failing hard on an unbound head variable or
 /// a literal subject/predicate.
-pub(crate) fn ground_head(head: &EvalAtom, sol: &Solution) -> Result<Fact, String> {
+pub(crate) fn ground_head(head: &EvalAtom, sol: &Solution) -> gmeow_errors::Result<Fact> {
     let subject = ground_term_to_value(&head.subject, sol, "head subject")?;
     let object = ground_term_to_value(&head.object, sol, "head object")?;
     // The subject must be an IRI/blank node, never a literal.
     if subject.is_literal() {
-        return Err("rule_ir: head subject grounded to a literal (no-optionality)".to_owned());
+        return Err(ir_err(
+            "rule_ir: head subject grounded to a literal (no-optionality)".to_owned(),
+        ));
     }
     Ok(Fact {
         subject,
@@ -890,14 +902,20 @@ pub(crate) fn ground_head(head: &EvalAtom, sol: &Solution) -> Result<Fact, Strin
 }
 
 /// Ground an [`EvalTerm`] into a concrete native [`TermValue`].
-fn ground_term_to_value(term: &EvalTerm, sol: &Solution, slot: &str) -> Result<TermValue, String> {
+fn ground_term_to_value(
+    term: &EvalTerm,
+    sol: &Solution,
+    slot: &str,
+) -> gmeow_errors::Result<TermValue> {
     match term {
         EvalTerm::ConstNamed(iri) => Ok(TermValue::iri(iri.clone())),
         EvalTerm::ConstLit(t) => Ok(t.clone()),
         EvalTerm::Var(name) => {
-            let surface = sol
-                .get(name)
-                .ok_or_else(|| format!("{slot} variable {name:?} unbound after body matching"))?;
+            let surface = sol.get(name).ok_or_else(|| {
+                ir_err(format!(
+                    "{slot} variable {name:?} unbound after body matching"
+                ))
+            })?;
             surface_to_value(surface)
         }
     }
@@ -905,18 +923,20 @@ fn ground_term_to_value(term: &EvalTerm, sol: &Solution, slot: &str) -> Result<T
 
 /// Re-materialize a native [`TermValue`] from its N3 surface (`<iri>`, `_:blank`, or
 /// a literal).
-pub(crate) fn surface_to_value(surface: &str) -> Result<TermValue, String> {
+pub(crate) fn surface_to_value(surface: &str) -> gmeow_errors::Result<TermValue> {
     if let Some(iri) = surface.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
         if iri.is_empty() {
-            return Err(format!("rule_ir: invalid bound IRI {surface:?}: empty"));
+            return Err(ir_err(format!(
+                "rule_ir: invalid bound IRI {surface:?}: empty"
+            )));
         }
         return Ok(TermValue::iri(iri.to_owned()));
     }
     if let Some(inner) = surface.strip_prefix("_:") {
         if inner.is_empty() {
-            return Err(format!(
+            return Err(ir_err(format!(
                 "rule_ir: invalid bound blank node {surface:?}: empty"
-            ));
+            )));
         }
         return Ok(TermValue::blank(inner.to_owned()));
     }
@@ -931,7 +951,7 @@ pub(crate) fn surface_to_value(surface: &str) -> Result<TermValue, String> {
 /// Each row: `rule_iri = logic:assert`, `source_quad_ids = [self_reifier]`,
 /// `derivation_id = mint_derivation_id(logic:assert, &[self_reifier])`.  The object
 /// surface is the term's N3 form, matching `py.rs` and `foundation.rs`.
-pub(crate) fn echo_asserted(world: &str, edb: &[Fact]) -> Result<Vec<DerivedRow>, String> {
+pub(crate) fn echo_asserted(world: &str, edb: &[Fact]) -> gmeow_errors::Result<Vec<DerivedRow>> {
     let mut out: Vec<DerivedRow> = Vec::with_capacity(edb.len());
     for f in edb {
         let reifier = f.reifier()?;
@@ -962,7 +982,7 @@ pub(crate) fn echo_asserted(world: &str, edb: &[Fact]) -> Result<Vec<DerivedRow>
 pub(crate) fn world_edb_facts(
     store: &crate::store::WorldStore,
     world: &str,
-) -> Result<Vec<Fact>, String> {
+) -> gmeow_errors::Result<Vec<Fact>> {
     let raw = store.quads_in_world(world);
     let mut facts: Vec<Fact> = Vec::with_capacity(raw.len());
     for r in &raw {

@@ -59,6 +59,12 @@ use purrdf::TermValue;
 use crate::provenance::{mint_derivation_id, mint_reifier};
 use crate::store::WorldStore;
 
+/// Wrap a foundation multi-world chase condition message as a typed diagnostic on
+/// the shared substrate, preserving the authored text verbatim.
+fn foundation_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Foundation { detail })
+}
+
 // ── Namespace + vocabulary constants ───────────────────────────────────────────
 
 /// The `logic:` vocabulary namespace — term IRIs are `LOGIC_NS + local`.
@@ -199,15 +205,15 @@ impl AntiRigidityPolicy {
     // Named `from_str` deliberately (the PyO3 seam + the spec call it by this
     // name); the fallible `String`-error signature does not match `std::str::FromStr`.
     #[allow(clippy::should_implement_trait)]
-    pub fn from_str(value: &str) -> Result<Self, String> {
+    pub fn from_str(value: &str) -> gmeow_errors::Result<Self> {
         match value {
             "witness-obligation" => Ok(Self::WitnessObligation),
             "schema-only" => Ok(Self::SchemaOnly),
             "witness-required" => Ok(Self::WitnessRequired),
-            other => Err(format!(
+            other => Err(foundation_err(format!(
                 "Unknown anti_rigidity_policy {other:?}; must be one of \
                  [\"schema-only\", \"witness-obligation\", \"witness-required\"]"
-            )),
+            ))),
         }
     }
 }
@@ -1987,17 +1993,17 @@ fn lower_foundation_rules() -> Vec<crate::rule_ir::EvalRule> {
 /// # Errors
 ///
 /// Returns `Err` on the first non-IRI object.
-fn require_all_iri_objects(store: &WorldStore) -> Result<(), String> {
+fn require_all_iri_objects(store: &WorldStore) -> gmeow_errors::Result<()> {
     let mut worlds = store.worlds();
     worlds.sort();
     for world in &worlds {
         for r in &store.quads_in_world(world) {
             if strip_angle_opt(&r[2]).is_none() {
-                return Err(format!(
+                return Err(foundation_err(format!(
                     "foundation requires IRI triples: non-IRI object {:?} \
                      (subject {:?}, predicate {:?}) in world {world}",
                     r[2], r[0], r[1]
-                ));
+                )));
             }
         }
     }
@@ -2017,7 +2023,7 @@ fn require_all_iri_objects(store: &WorldStore) -> Result<(), String> {
 ///
 /// Returns `Err` for a non-IRI object, an unbound head/guard variable, a provenance
 /// recipe failure, or an unexpected native gap.
-fn chase_all_worlds_physical(store: &WorldStore) -> Result<Vec<FoundationQuad>, String> {
+fn chase_all_worlds_physical(store: &WorldStore) -> gmeow_errors::Result<Vec<FoundationQuad>> {
     require_all_iri_objects(store)?;
     let rules = lower_foundation_rules();
     // Unbounded: the foundation oracle runs to full fixpoint (`BUDGET_OK`).
@@ -2025,10 +2031,10 @@ fn chase_all_worlds_physical(store: &WorldStore) -> Result<Vec<FoundationQuad>, 
     let rows = match outcome {
         crate::physical::NativeOutcome::Decided(budgeted) => budgeted.rows,
         crate::physical::NativeOutcome::Unsupported(kind) => {
-            return Err(format!(
+            return Err(foundation_err(format!(
                 "foundation program unexpectedly unsupported by the native chase: {kind:?} \
                  (the foundation program is stratified by construction)"
-            ));
+            )));
         }
     };
     let mut out: Vec<FoundationQuad> = Vec::with_capacity(rows.len());
@@ -2090,7 +2096,7 @@ fn n3(iri: &str) -> String {
 ///
 /// Never fails today (the inputs are validated IRIs + an N3 object), but returns a
 /// `Result` to keep the call site uniform with the other provenance helpers.
-pub fn quad_reifier(quad: &FoundationQuad) -> Result<String, String> {
+pub fn quad_reifier(quad: &FoundationQuad) -> gmeow_errors::Result<String> {
     Ok(crate::provenance::reifier_from_strings(
         &quad.subject,
         &quad.predicate,
@@ -2099,10 +2105,10 @@ pub fn quad_reifier(quad: &FoundationQuad) -> Result<String, String> {
 }
 
 /// Reifier IRI for an explicit `(s, p, o)` IRI triple — used by the cross-world passes.
-fn triple_reifier(s: &str, p: &str, o: &str) -> Result<String, String> {
+fn triple_reifier(s: &str, p: &str, o: &str) -> gmeow_errors::Result<String> {
     let sn = TermValue::iri(s);
     let on = TermValue::iri(o);
-    mint_reifier(&sn, p, &on)
+    mint_reifier(&sn, p, &on).map_err(foundation_err)
 }
 
 /// Strip a leading `<` and trailing `>` from an N3 IRI form, returning the inner
@@ -2146,7 +2152,7 @@ fn rigid_type_iris(quads: &[FoundationQuad]) -> HashSet<String> {
 /// rule IRI over the reifier of the witnessing typing fact.
 fn cross_world_rigidity_violations(
     quads: &[FoundationQuad],
-) -> Result<Vec<FoundationQuad>, String> {
+) -> gmeow_errors::Result<Vec<FoundationQuad>> {
     let rigid_types = rigid_type_iris(quads);
     if rigid_types.is_empty() {
         return Ok(Vec::new());
@@ -2251,7 +2257,7 @@ fn anti_rigid_type_iris(quads: &[FoundationQuad]) -> HashSet<String> {
 fn anti_rigidity_obligations(
     quads: &[FoundationQuad],
     policy: AntiRigidityPolicy,
-) -> Result<Vec<FoundationQuad>, String> {
+) -> gmeow_errors::Result<Vec<FoundationQuad>> {
     if policy == AntiRigidityPolicy::SchemaOnly {
         return Ok(Vec::new());
     }
@@ -2467,7 +2473,7 @@ fn collect_characteristic_carriers(
 /// Returns `Err` only for a provenance-recipe failure (an un-mintable reifier).
 fn characteristic_carrier_agreement_pass(
     quads: &[FoundationQuad],
-) -> Result<Vec<FoundationQuad>, String> {
+) -> gmeow_errors::Result<Vec<FoundationQuad>> {
     let (owl_sorts, logic_records) = collect_characteristic_carriers(quads);
     let mut emitted: BTreeSet<(String, String)> = BTreeSet::new();
     let mut out: Vec<FoundationQuad> = Vec::new();
@@ -2573,7 +2579,9 @@ type Derivation = (&'static str, Vec<String>);
 /// # Errors
 ///
 /// Returns `Err` only for a provenance-recipe failure (an un-mintable reifier).
-fn property_characteristic_pass(quads: &[FoundationQuad]) -> Result<Vec<FoundationQuad>, String> {
+fn property_characteristic_pass(
+    quads: &[FoundationQuad],
+) -> gmeow_errors::Result<Vec<FoundationQuad>> {
     let prop_sorts = collect_characteristics(quads);
     if prop_sorts.is_empty() {
         return Ok(Vec::new());
@@ -2605,9 +2613,9 @@ fn property_characteristic_pass(quads: &[FoundationQuad]) -> Result<Vec<Foundati
     let mut out: Vec<FoundationQuad> = Vec::new();
     for (world, props) in &edges {
         for (prop, base) in props {
-            let sorts = prop_sorts
-                .get(prop)
-                .ok_or_else(|| format!("missing characteristic sorts for property {prop}"))?;
+            let sorts = prop_sorts.get(prop).ok_or_else(|| {
+                foundation_err(format!("missing characteristic sorts for property {prop}"))
+            })?;
             let transitive = sorts.contains(&CharSort::Transitive);
             let symmetric = sorts.contains(&CharSort::Symmetric);
             let asymmetric = sorts.contains(&CharSort::Asymmetric);
@@ -2814,7 +2822,9 @@ fn property_characteristic_pass(quads: &[FoundationQuad]) -> Result<Vec<Foundati
 /// # Errors
 ///
 /// Returns `Err` only for a provenance-recipe failure (an un-mintable reifier).
-fn relatum_distinctness_pass(quads: &[FoundationQuad]) -> Result<Vec<FoundationQuad>, String> {
+fn relatum_distinctness_pass(
+    quads: &[FoundationQuad],
+) -> gmeow_errors::Result<Vec<FoundationQuad>> {
     // Collect the assertion records: record IRI → target class, record IRI → {roles}.
     // A record is enforced HERE only when its `distinctnessTarget` is present in this
     // fact set: partial projections (e.g. the relator-mediation fact set) carry the
@@ -2846,9 +2856,9 @@ fn relatum_distinctness_pass(quads: &[FoundationQuad]) -> Result<Vec<FoundationQ
     for (rec, target) in &rec_target {
         let role_count = rec_roles.get(rec).map_or(0, BTreeSet::len);
         if role_count != 2 {
-            return Err(format!(
+            return Err(foundation_err(format!(
                 "relatum-distinctness assertion {rec} must name exactly two distinctnessRole values, found {role_count}"
-            ));
+            )));
         }
         let roles = &rec_roles[rec];
         let mut it = roles.iter();
@@ -2941,7 +2951,7 @@ fn relatum_distinctness_pass(quads: &[FoundationQuad]) -> Result<Vec<FoundationQ
 pub fn evaluate(
     store: &WorldStore,
     policy: AntiRigidityPolicy,
-) -> Result<Vec<FoundationQuad>, String> {
+) -> gmeow_errors::Result<Vec<FoundationQuad>> {
     // Chase every world with the single native engine
     // ([`crate::physical::materialize_native`]).  The foundation program is lowered
     // into the shared `EvalRule` IR and run against the whole store; the result
@@ -2997,9 +3007,9 @@ pub fn evaluate(
 pub fn derivation_graph(
     store: &WorldStore,
     policy: AntiRigidityPolicy,
-) -> Result<crate::derivation_graph::DerivationGraph, String> {
+) -> gmeow_errors::Result<crate::derivation_graph::DerivationGraph> {
     let quads = evaluate(store, policy)?;
-    crate::derivation_graph::from_foundation_quads(&quads)
+    crate::derivation_graph::from_foundation_quads(&quads).map_err(foundation_err)
 }
 
 /// The semantic-profile IRI stamped on every emitted quad (exposed for the PyO3 seam).

@@ -237,9 +237,7 @@ pub fn reason_program_closure_dataset(
     let mut builder = RdfDatasetBuilder::new();
     for ax in result.inferred() {
         let subject = RdfTerm::iri(ax.subject.clone());
-        let object = term_value_to_rdf_term(
-            &crate::rule_ir::surface_to_value(&ax.object).map_err(reason_err)?,
-        )?;
+        let object = term_value_to_rdf_term(&crate::rule_ir::surface_to_value(&ax.object)?)?;
         let mut quad = RdfQuad::new(subject, ax.predicate.clone(), object);
         // The world travels as a plain string. The reasoner's default-world sentinel
         // ([`rl::DEFAULT_WORLD`], where un-named / default-graph EDB is reasoned) projects
@@ -312,11 +310,10 @@ fn run_nary_head_chase(
     nary_head_rls: &str,
     edb: &RdfDataset,
 ) -> gmeow_errors::Result<Vec<InferredAxiom>> {
-    let rules = crate::physical::parse_existential_rules(nary_head_rls).map_err(reason_err)?;
+    let rules = crate::physical::parse_existential_rules(nary_head_rls)?;
     let store = WorldStore::new();
     store.load_dataset(edb).map_err(reason_err)?;
-    let (_admission, outcome) =
-        crate::physical::chase_materialize(&store, &rules, None).map_err(reason_err)?;
+    let (_admission, outcome) = crate::physical::chase_materialize(&store, &rules, None)?;
     let budgeted = match outcome {
         crate::physical::NativeOutcome::Decided(budgeted) => budgeted,
         crate::physical::NativeOutcome::Unsupported(kind) => {
@@ -519,9 +516,7 @@ pub(crate) fn run_reasoning_with(
 
     // 3. Run the typed chase through the CHOSEN forward oracle (the adapter renders
     //    the fact lines internally).
-    let chase = oracle
-        .materialize(&edb_facts, rules, &ForwardBudget::UNBOUNDED)
-        .map_err(reason_err)?;
+    let chase = oracle.materialize(&edb_facts, rules, &ForwardBudget::UNBOUNDED)?;
 
     // 4. Coerce every ternary typed row into an InferredAxiom.
     chase_rows_to_inferred(&chase)

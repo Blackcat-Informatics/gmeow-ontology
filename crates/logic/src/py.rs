@@ -52,7 +52,8 @@ fn world_store_from_nquads(input: &str) -> PyResult<WorldStore> {
 
 /// Parse `.rls` text into the native evaluable rule IR.
 fn parse_eval_rules(rules: &str) -> PyResult<Vec<EvalRule>> {
-    crate::rule_ir::parse_eval_rules(rules).map_err(pyo3::exceptions::PyValueError::new_err)
+    crate::rule_ir::parse_eval_rules(rules)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.message().to_owned()))
 }
 
 /// Build the `{polarities, unsupported_constructs}` disclosure dict from a
@@ -478,9 +479,8 @@ fn foundation(
     // Closed enum — unknown value is a hard error (no silent default).  The default
     // when the key is absent is "witness-obligation".
     let policy = match anti_rigidity_policy {
-        Some(value) => {
-            AntiRigidityPolicy::from_str(value).map_err(pyo3::exceptions::PyValueError::new_err)?
-        }
+        Some(value) => AntiRigidityPolicy::from_str(value)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.message().to_owned()))?,
         None => AntiRigidityPolicy::WitnessObligation,
     };
 

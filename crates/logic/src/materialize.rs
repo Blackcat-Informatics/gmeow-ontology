@@ -630,9 +630,12 @@ fn echo_edb_only(input: &str) -> Result<Vec<crate::rule_ir::DerivedRow>, Materia
     worlds.sort();
     let mut rows = Vec::new();
     for world in &worlds {
-        let edb =
-            crate::rule_ir::world_edb_facts(&store, world).map_err(MaterializeError::Chase)?;
-        rows.extend(crate::rule_ir::echo_asserted(world, &edb).map_err(MaterializeError::Chase)?);
+        let edb = crate::rule_ir::world_edb_facts(&store, world)
+            .map_err(|e| MaterializeError::Chase(e.message().to_owned()))?;
+        rows.extend(
+            crate::rule_ir::echo_asserted(world, &edb)
+                .map_err(|e| MaterializeError::Chase(e.message().to_owned()))?,
+        );
     }
     Ok(rows)
 }
@@ -697,8 +700,8 @@ pub fn materialize_routed(
         Some("WellFoundedProfile") => {
             let store = crate::store::WorldStore::new();
             store.load_nquads(input).map_err(MaterializeError::Parse)?;
-            let eval_rules =
-                crate::rule_ir::parse_eval_rules(rules).map_err(MaterializeError::Parse)?;
+            let eval_rules = crate::rule_ir::parse_eval_rules(rules)
+                .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
             Some((
                 crate::wellfounded::materialize(&store, &eval_rules)
                     .map_err(MaterializeError::Chase)?,
@@ -709,8 +712,8 @@ pub fn materialize_routed(
         Some("StableModelProfile") => {
             let store = crate::store::WorldStore::new();
             store.load_nquads(input).map_err(MaterializeError::Parse)?;
-            let eval_rules =
-                crate::rule_ir::parse_eval_rules(rules).map_err(MaterializeError::Parse)?;
+            let eval_rules = crate::rule_ir::parse_eval_rules(rules)
+                .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
             Some((
                 crate::stablemodel::cautious_materialize(&store, &eval_rules)
                     .map_err(MaterializeError::Chase)?,
@@ -733,8 +736,8 @@ pub fn materialize_routed(
             // the restricted chase; an uncertified program with no budget is a declared
             // native gap that demotes to the Nemo FACTS-ONLY oracle (below), exactly like a
             // non-stratifiable Datalog program demotes to the provenance-carrying oracle.
-            let existential_rules =
-                crate::physical::parse_existential_rules(rules).map_err(MaterializeError::Parse)?;
+            let existential_rules = crate::physical::parse_existential_rules(rules)
+                .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
             if existential_rules.iter().any(|r| r.is_existential()) {
                 // A wall-clock budget cannot be honored for a value-inventing program: the
                 // native chase governs by derivation STEPS (not elapsed time), the
@@ -762,7 +765,7 @@ pub fn materialize_routed(
                 };
                 let (admission, chase_outcome) =
                     crate::physical::chase_materialize(&store, &existential_rules, max_steps)
-                        .map_err(MaterializeError::Chase)?;
+                        .map_err(|e| MaterializeError::Chase(e.message().to_owned()))?;
                 match chase_outcome {
                     crate::physical::NativeOutcome::Decided(budgeted) => {
                         let frontier = budgeted.frontier();
@@ -805,8 +808,8 @@ pub fn materialize_routed(
             } else {
                 let store = crate::store::WorldStore::new();
                 store.load_nquads(input).map_err(MaterializeError::Parse)?;
-                let eval_rules =
-                    crate::rule_ir::parse_eval_rules(rules).map_err(MaterializeError::Parse)?;
+                let eval_rules = crate::rule_ir::parse_eval_rules(rules)
+                    .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
                 // The forward step/derivation budget: a rule firing IS a committed
                 // derivation, so `max_rule_firings` maps to the native governor's
                 // `max_steps`; `max_answers` is the same derivation cap under another
@@ -820,7 +823,7 @@ pub fn materialize_routed(
                     (None, None) => None,
                 };
                 match crate::physical::materialize_native(&store, &eval_rules, max_steps)
-                    .map_err(MaterializeError::Chase)?
+                    .map_err(|e| MaterializeError::Chase(e.message().to_owned()))?
                 {
                     crate::physical::NativeOutcome::Decided(budgeted) => {
                         // Surface the forward governor's completion frontier instead of

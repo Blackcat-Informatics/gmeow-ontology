@@ -79,10 +79,10 @@ pub(crate) fn materialize(
 
     let mut out: Vec<DerivedRow> = Vec::new();
     for world in &worlds {
-        let edb_facts = world_edb_facts(store, world)?;
+        let edb_facts = world_edb_facts(store, world).map_err(|e| e.message().to_owned())?;
 
         // Asserted-EDB echo.
-        out.extend(echo_asserted(world, &edb_facts)?);
+        out.extend(echo_asserted(world, &edb_facts).map_err(|e| e.message().to_owned())?);
 
         // Seed the EDB store (sorted-key order already, from world_edb_facts).
         let mut edb = FactStore::new();
@@ -93,8 +93,12 @@ pub(crate) fn materialize(
         // Alternating fixpoint.
         let mut k = edb.clone();
         loop {
-            let u = least_model_of_reduct(&edb, rules, &k)?.store;
-            let k2 = least_model_of_reduct(&edb, rules, &u)?.store;
+            let u = least_model_of_reduct(&edb, rules, &k)
+                .map_err(|e| e.message().to_owned())?
+                .store;
+            let k2 = least_model_of_reduct(&edb, rules, &u)
+                .map_err(|e| e.message().to_owned())?
+                .store;
             if k2.key_set() == k.key_set() {
                 k = k2;
                 break;
@@ -106,7 +110,8 @@ pub(crate) fn materialize(
         // Final reduct against the well-founded model.  In a total model the least
         // model of the reduct reproduces W exactly; a mismatch means an undefined
         // atom (hard error in v1).
-        let final_res = least_model_of_reduct(&edb, rules, &well_founded)?;
+        let final_res = least_model_of_reduct(&edb, rules, &well_founded)
+            .map_err(|e| e.message().to_owned())?;
         if final_res.store.key_set() != well_founded.key_set() {
             return Err(
                 "well-founded model is partial (undefined atoms) — not supported in \
@@ -143,7 +148,7 @@ pub fn bench_wf_materialize(
     rules_text: &str,
 ) -> Result<usize, String> {
     use crate::rule_ir::parse_eval_rules;
-    let rules = parse_eval_rules(rules_text)?;
+    let rules = parse_eval_rules(rules_text).map_err(|e| e.message().to_owned())?;
     let rows = materialize(store, &rules)?;
     Ok(rows.len())
 }

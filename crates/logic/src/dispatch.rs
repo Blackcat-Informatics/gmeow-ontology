@@ -367,7 +367,9 @@ pub fn dispatch_query(
     // wrong verdict), so a step-budgeted query is NO LONGER demoted for lack of a step
     // governor: it runs native for the fragments native decides.  Only a declared native
     // gap still falls through, where the step-honouring Scryer fallback takes over.
-    match crate::physical::resolve_native(foreign, world, program, budget)? {
+    match crate::physical::resolve_native(foreign, world, program, budget)
+        .map_err(|e| e.message().to_owned())?
+    {
         crate::physical::NativeOutcome::Decided(answer) => return Ok(answer),
         crate::physical::NativeOutcome::Unsupported(_) => {}
     }
@@ -384,9 +386,9 @@ pub fn dispatch_query(
         // pure-EDB goal no longer reaches here: native decides it — settled stratum 0 —
         // and returns a complete `Ok` answer, the frontier win at the query surface.)
         Dispatch::Fast if budget.max_steps.is_none() => fast_path(store, world, program, budget),
-        Dispatch::Fast | Dispatch::Scryer => {
-            backward_oracle().solve(foreign, world, program, &table_preds, budget)
-        }
+        Dispatch::Fast | Dispatch::Scryer => backward_oracle()
+            .solve(foreign, world, program, &table_preds, budget)
+            .map_err(|e| e.message().to_owned()),
     }
 }
 

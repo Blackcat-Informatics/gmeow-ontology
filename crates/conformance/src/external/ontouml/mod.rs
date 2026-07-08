@@ -55,7 +55,8 @@ pub fn lower_and_evaluate(
     let (nq, count) = lower_model(model, world_iri)?;
     let store = WorldStore::new();
     store.load_nquads(&nq).map_err(OntoumlError::Syntax)?;
-    let quads = evaluate(&store, policy).map_err(OntoumlError::Syntax)?;
+    let quads =
+        evaluate(&store, policy).map_err(|e| OntoumlError::Syntax(e.message().to_owned()))?;
     Ok((quads, nq, count))
 }
 
