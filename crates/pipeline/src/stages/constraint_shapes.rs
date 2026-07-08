@@ -375,14 +375,16 @@ mod tests {
     }
 
     #[test]
-    fn all_nine_axioms_project() {
+    fn all_eleven_axioms_project() {
         let root = repo_root();
         let ttl = render_constraint_shapes(&root).expect("render");
-        // 2 irreflexivity + 1 acyclicity + 4 distinctness + 2 disjointness = 9 shapes.
+        // 3 irreflexivity + 1 acyclicity + 5 distinctness + 2 disjointness = 11 shapes.
+        // (Grounding the inference slice added the competesWith irreflexivity and the
+        // premise≠conclusion distinctness FOL axioms.)
         assert_eq!(
             ttl.matches("a sh:NodeShape").count(),
-            9,
-            "exactly nine FOL axioms must project to constraint shapes"
+            11,
+            "exactly eleven FOL axioms must project to constraint shapes"
         );
         for anchor in [
             "gmeow:counterGoal",
@@ -391,6 +393,8 @@ mod tests {
             "committedAgent",
             "identityAxisDisjointness",
             "softwareFacetDisjointness",
+            "competesWithIrreflexivity",
+            "inferencePremiseConclusionDistinctness",
         ] {
             assert!(ttl.contains(anchor), "expected {anchor} in the projection");
         }
@@ -398,7 +402,7 @@ mod tests {
         // (the header comment mentions the term in prose, so match the triple form).
         assert_eq!(
             ttl.matches("logic:formalizes <").count(),
-            9,
+            11,
             "every projected shape must carry a logic:formalizes back-reference"
         );
     }
