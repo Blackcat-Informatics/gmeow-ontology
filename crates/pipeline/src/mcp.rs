@@ -11,7 +11,7 @@
 //! site (URLs recovered from the `gmeow:graph/documentation` graph) and the card
 //! is the per-term, context-window-ready twin of the site's `card.md`. `McpServer`
 //! owns the stdio JSON-RPC loop, startup language validation, resource routing,
-//! and grounded-memory triad, leaving Python only as the CLI launcher.
+//! and grounded-memory triad; the native `gmeow`/`gmeow-dev` CLI is the launcher.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::env;
@@ -20,10 +20,6 @@ use std::io::{self, BufRead, Write};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, OnceLock};
 
-#[cfg(feature = "python")]
-use pyo3::exceptions::PyValueError;
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
 use serde_json::{Value, json};
 
 use gmeow_errors::ResultExt;
@@ -61,7 +57,6 @@ const TOOL_AGENT_NS: &str = "urn:gmeow:tool:";
 const EXTERNAL_OVERLAY_GRAPH: &str = "urn:gmeow:mcp:overlay:external";
 
 /// A loaded, bundle-backed view over the GMEOW snapshot for the MCP consumer.
-#[cfg_attr(feature = "python", pyclass(name = "McpView", skip_from_py_object))]
 pub struct McpView {
     /// THIS server's view of the bundled snapshot as the native carrier dataset:
     /// the MCP server is a gts ARCHIVE CONSUMER — it imports `gmeow.gts` to
@@ -86,13 +81,6 @@ pub struct McpView {
 }
 
 impl McpView {
-    #[cfg(feature = "python")]
-    fn from_snapshot(snapshot: &[u8]) -> gmeow_errors::Result<Self> {
-        let bundle = purrdf::import_gts_events(snapshot)
-            .with_ctx(|| "read snapshot gmeow.gts".to_string())?;
-        Self::from_dataset(bundle.dataset)
-    }
-
     fn from_dataset(dataset: Arc<purrdf::RdfDataset>) -> gmeow_errors::Result<Self> {
         let (title, version) = {
             let view = FoldView::new(dataset.as_ref());
@@ -290,46 +278,6 @@ fn sparql_term_to_json(term: &purrdf::TermValue) -> Option<Value> {
     }
 }
 
-#[cfg(feature = "python")]
-#[pymethods]
-impl McpView {
-    /// Load and fold the bundled `gmeow.gts` snapshot bytes. Hard-fails if the
-    /// snapshot does not read or lacks the ontology header (`fold_meta`).
-    #[new]
-    fn new(snapshot: &[u8]) -> PyResult<Self> {
-        Self::from_snapshot(snapshot).map_err(|e| PyValueError::new_err(e.to_string()))
-    }
-
-    /// Resolve a CURIE / local name / IRI / unambiguous prefix to its public
-    /// metadata record (JSON envelope with `"ok"`), or a not-found envelope.
-    fn lookup_term(&self, term: &str, requested: Vec<String>) -> String {
-        self.lookup_term_json(term, requested)
-    }
-
-    /// The standard llmstxt.org vocabulary index (`llms.txt`) for `requested`,
-    /// with bullets linking into the published docs site.
-    fn llms_txt(&self, requested: Vec<String>) -> String {
-        self.llms_txt_text(requested)
-    }
-
-    /// The complete inlined index (`llms-full.txt`) for `requested` — the
-    /// single-file, link-free surface an agent can ingest whole.
-    fn llms_full(&self, requested: Vec<String>) -> String {
-        self.llms_full_text(requested)
-    }
-
-    /// A prompt-ready Markdown card for one term for `requested` — the
-    /// live twin of the docs-site `terms/{slug}/card.md`.
-    fn doc_card(&self, term: &str, requested: Vec<String>) -> String {
-        self.doc_card_text(term, requested)
-    }
-
-    /// The OKF manifest JSON envelope for `requested`.
-    fn okf_index(&self, requested: Vec<String>) -> String {
-        self.okf_index_json(requested)
-    }
-}
-
 impl McpView {
     /// The `term-IRI → site URL` map, built once from the documentation graph and
     /// cached (language-independent).
@@ -367,18 +315,12 @@ pub enum McpMode {
 }
 
 impl McpMode {
-    #[cfg(feature = "python")]
-    fn from_bool(dev: bool) -> Self {
-        if dev { Self::Dev } else { Self::Consumer }
-    }
-
     fn includes_dev_tools(self) -> bool {
         self == Self::Dev
     }
 }
 
 /// A Rust MCP server over the bundled snapshot and optional repository root.
-#[cfg_attr(feature = "python", pyclass(name = "McpServer", skip_from_py_object))]
 pub struct McpServer {
     view: McpView,
     mode: McpMode,
@@ -386,49 +328,6 @@ pub struct McpServer {
     tag_map: BTreeMap<String, String>,
     available: BTreeSet<String>,
     startup_requested: Vec<String>,
-}
-
-#[cfg(feature = "python")]
-#[pymethods]
-impl McpServer {
-    /// Build a Rust MCP server. `dev=true` exposes repository-maintenance tools.
-    #[new]
-    #[pyo3(signature = (snapshot, root = None, dev = false))]
-    fn new(snapshot: &[u8], root: Option<String>, dev: bool) -> PyResult<Self> {
-        Self::from_snapshot(snapshot, root.map(PathBuf::from), McpMode::from_bool(dev))
-            .map_err(|e| PyValueError::new_err(e.to_string()))
-    }
-
-    /// JSON form of the MCP tool list, useful for smoke tests and launchers.
-    fn tools_json(&self) -> String {
-        self.tools_result().to_string()
-    }
-
-    /// JSON form of the MCP resource list, useful for smoke tests and launchers.
-    fn resources_json(&self) -> String {
-        self.resources_result().to_string()
-    }
-
-    /// Call one MCP tool with a JSON object of arguments.
-    #[pyo3(signature = (name, arguments = "{}"))]
-    fn call_tool_json(&self, name: &str, arguments: &str) -> String {
-        let args = serde_json::from_str(arguments).unwrap_or_else(|err| {
-            json!({
-                "__parse_error": err.to_string(),
-            })
-        });
-        self.call_tool_result(name, &args).to_string()
-    }
-
-    /// Read one MCP resource URI.
-    fn read_resource_json(&self, uri: &str) -> String {
-        self.read_resource_result(uri).to_string()
-    }
-
-    /// Handle one JSON-RPC request and return its JSON response.
-    fn handle_message_json(&self, message: &str) -> String {
-        self.handle_message(message)
-    }
 }
 
 impl McpServer {
@@ -1369,26 +1268,6 @@ pub fn run_conjecture_test(
     )?;
     out.committed = true;
     Ok(out)
-}
-
-#[cfg(feature = "python")]
-#[pyfunction]
-pub fn run_consumer_mcp(snapshot: &[u8]) -> PyResult<()> {
-    let server = McpServer::from_snapshot(snapshot, None, McpMode::Consumer)
-        .map_err(|e| PyValueError::new_err(e.to_string()))?;
-    server
-        .run_stdio()
-        .map_err(|e| PyValueError::new_err(e.to_string()))
-}
-
-#[cfg(feature = "python")]
-#[pyfunction]
-pub fn run_dev_mcp(snapshot: &[u8], root: String) -> PyResult<()> {
-    let server = McpServer::from_snapshot(snapshot, Some(PathBuf::from(root)), McpMode::Dev)
-        .map_err(|e| PyValueError::new_err(e.to_string()))?;
-    server
-        .run_stdio()
-        .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
 fn language_tag_map(dataset: &purrdf::RdfDataset) -> BTreeMap<String, String> {
