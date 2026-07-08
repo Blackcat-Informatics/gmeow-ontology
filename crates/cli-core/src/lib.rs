@@ -28,6 +28,10 @@ use gmeow_errors::render;
 use gmeow_errors::{Diag, DiagLedger, Finding, Report, StageId};
 use serde::Serialize;
 
+pub mod error;
+
+use error::{EmptyArtifactSelection, UnknownArtifactKind, UnknownConsoleMode};
+
 /// The output surface a CLI run presents on, resolved once at startup.
 ///
 /// A CLOSED enum: these are the only surfaces the CLI supports, and adding one
@@ -95,31 +99,6 @@ impl ConsoleMode {
     }
 }
 
-/// Errors raised while resolving a [`DiagnosticsConfig`].
-///
-/// Invalid tokens are hard failures: the diagnostics policy has no silent
-/// fallback, so a typo cannot silently degrade output.
-#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-pub enum DiagnosticsConfigError {
-    /// An unrecognized `--diagnostics-console` / `GMEOW_DIAGNOSTICS_CONSOLE` token.
-    #[error("unknown diagnostics console mode: {0:?}")]
-    UnknownConsoleMode(String),
-    /// One or more entries in an artifact selector are not known kinds.
-    #[error(
-        "unknown diagnostics artifact kind(s): {unknown:?} \
-         (expected a subset of {expected:?}, or 'none'/'all')"
-    )]
-    UnknownArtifactKind {
-        /// The unrecognized token(s) from the selector.
-        unknown: Vec<String>,
-        /// The canonical artifact kinds the selector may name.
-        expected: Vec<String>,
-    },
-    /// The artifact selector parsed to an empty set.
-    #[error("empty diagnostics artifact selection: {0:?}")]
-    EmptyArtifactSelection(String),
-}
-
 /// Resolved diagnostics output policy (immutable).
 ///
 /// This is the Rust twin of the retired `src/gmeow_tools/diagnostics_config.py`.
@@ -177,7 +156,7 @@ impl DiagnosticsConfig {
         env: &HashMap<String, String>,
         is_tty: bool,
         dist_dir: &Path,
-    ) -> Result<Self, DiagnosticsConfigError> {
+    ) -> gmeow_errors::Result<Self> {
         let console = Self::resolve_console(
             console
                 .or_else(|| env.get("GMEOW_DIAGNOSTICS_CONSOLE").map(String::as_str))
@@ -231,7 +210,7 @@ impl DiagnosticsConfig {
         })
     }
 
-    fn resolve_console(raw: &str, is_tty: bool) -> Result<ConsoleMode, DiagnosticsConfigError> {
+    fn resolve_console(raw: &str, is_tty: bool) -> gmeow_errors::Result<ConsoleMode> {
         match raw.trim().to_ascii_lowercase().as_str() {
             "auto" => Ok(if is_tty {
                 ConsoleMode::Pretty
@@ -242,11 +221,13 @@ impl DiagnosticsConfig {
             "text" => Ok(ConsoleMode::Text),
             "jsonl" => Ok(ConsoleMode::Jsonl),
             "silent" => Ok(ConsoleMode::Silent),
-            other => Err(DiagnosticsConfigError::UnknownConsoleMode(other.to_owned())),
+            other => Err(Diag::of_kind(UnknownConsoleMode {
+                value: other.to_owned(),
+            })),
         }
     }
 
-    fn parse_artifacts(raw: &str) -> Result<BTreeSet<String>, DiagnosticsConfigError> {
+    fn parse_artifacts(raw: &str) -> gmeow_errors::Result<BTreeSet<String>> {
         let token = raw.trim().to_ascii_lowercase();
         if token == "none" {
             return Ok(BTreeSet::new());
@@ -260,17 +241,17 @@ impl DiagnosticsConfig {
             .filter(|s| !s.is_empty())
             .collect();
         if kinds.is_empty() {
-            return Err(DiagnosticsConfigError::EmptyArtifactSelection(
-                raw.to_owned(),
-            ));
+            return Err(Diag::of_kind(EmptyArtifactSelection {
+                raw: raw.to_owned(),
+            }));
         }
         let known: BTreeSet<String> = Self::ARTIFACT_KINDS.iter().map(|&s| s.to_owned()).collect();
         let unknown: Vec<String> = kinds.difference(&known).cloned().collect();
         if !unknown.is_empty() {
-            return Err(DiagnosticsConfigError::UnknownArtifactKind {
-                unknown,
-                expected: known.into_iter().collect(),
-            });
+            return Err(Diag::of_kind(UnknownArtifactKind {
+                unknown: unknown.join(", "),
+                expected: known.into_iter().collect::<Vec<_>>().join(", "),
+            }));
         }
         Ok(kinds)
     }
