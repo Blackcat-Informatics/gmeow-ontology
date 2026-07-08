@@ -213,6 +213,130 @@ impl McpView {
         let result = crate::stages::native_query::query(&dataset, sparql)?;
         sparql_result_to_json(result)
     }
+
+    /// Explain a diagnostic witness over the bundle's `graph/diagnostics` named
+    /// graph, addressed by its fingerprint IRI (a finding) or its anchor IRI (a
+    /// cluster). Rehydrates the [`FindingIndex`] through the SAME native SPARQL
+    /// reader the CLI `explain` uses, then returns the STRUCTURED witness surface:
+    /// the focus finding (or the cluster's members), each with its provenance DAG,
+    /// the aggregate ledger [`verdict`], the [`minimal_fatal_cut`] (fingerprint IRIs
+    /// with codes), and the anchor cluster. An unknown/malformed target is a HARD
+    /// FAIL (`Err`) — NEVER an empty-but-ok DAG.
+    ///
+    /// [`FindingIndex`]: crate::diagnostics_reader::FindingIndex
+    /// [`verdict`]: crate::diagnostics_reader::verdict
+    /// [`minimal_fatal_cut`]: crate::diagnostics_reader::minimal_fatal_cut
+    fn explain_finding_json(&self, target: &str) -> gmeow_errors::Result<String> {
+        use crate::diagnostics_reader::{
+            explain_finding, minimal_fatal_cut, read_findings, render_shared_dag, verdict,
+        };
+        // The reader projects the `graph/diagnostics` named graph out of THIS
+        // server's held snapshot — the exact carrier the export surfaces query.
+        let index = read_findings(&self.dataset)?;
+
+        let is_finding = index.get(target).is_some();
+        let cluster: Vec<String> = index
+            .findings
+            .iter()
+            .filter(|(_, f)| f.anchor_iri.as_deref() == Some(target))
+            .map(|(iri, _)| iri.clone())
+            .collect();
+        let is_anchor = !cluster.is_empty();
+        // HARD FAIL: neither a known fingerprint IRI nor a known anchor IRI. Never a
+        // fabricated empty DAG rendered as a success.
+        if !is_finding && !is_anchor {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "unknown explain target `{target}`: not a finding fingerprint IRI or an \
+                     anchor IRI in graph/diagnostics"
+                ),
+            }));
+        }
+
+        let walk = |iri: &str| -> gmeow_errors::Result<String> {
+            let dag = explain_finding(&index, iri).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!("cannot walk provenance DAG for `{iri}`: {e}"),
+                })
+            })?;
+            Ok(render_shared_dag(&dag))
+        };
+
+        // The focus: a single finding's DAG, or every cluster member's DAG.
+        let (kind, focus_anchor, focus) = if is_finding {
+            let f = index.get(target).expect("finding present");
+            (
+                "finding",
+                f.anchor_iri.clone(),
+                json!({
+                    "finding_iri": target,
+                    "code": f.code,
+                    "severity": f.severity.as_str(),
+                    "message": f.message,
+                    "provenance_dag": walk(target)?,
+                }),
+            )
+        } else {
+            let mut members = Vec::with_capacity(cluster.len());
+            for iri in &cluster {
+                let f = index.get(iri).expect("cluster member present");
+                members.push(json!({
+                    "finding_iri": iri,
+                    "code": f.code,
+                    "severity": f.severity.as_str(),
+                    "message": f.message,
+                    "provenance_dag": walk(iri)?,
+                }));
+            }
+            (
+                "anchor",
+                Some(target.to_owned()),
+                json!({"anchor_iri": target, "members": members}),
+            )
+        };
+
+        // The always-emitted substrate algebra: gate verdict + minimal fatal cut.
+        let cut: Vec<Value> = minimal_fatal_cut(&index)
+            .into_iter()
+            .map(|iri| {
+                let (code, message) = index
+                    .get(&iri)
+                    .map(|f| (f.code.clone(), f.message.clone()))
+                    .unwrap_or_default();
+                json!({"finding_iri": iri, "code": code, "message": message})
+            })
+            .collect();
+
+        // The anchor cluster: every finding sharing the focus anchor (the code-blind
+        // co-location the glut/Belnap join reads).
+        let anchor_cluster: Vec<Value> = match focus_anchor.as_deref() {
+            Some(anchor) => index
+                .findings
+                .values()
+                .filter(|f| f.anchor_iri.as_deref() == Some(anchor))
+                .map(|f| {
+                    json!({
+                        "finding_iri": f.finding_iri,
+                        "code": f.code,
+                        "severity": f.severity.as_str(),
+                    })
+                })
+                .collect(),
+            None => Vec::new(),
+        };
+
+        Ok(json!({
+            "ok": true,
+            "kind": kind,
+            "target": target,
+            "focus": focus,
+            "anchor": focus_anchor,
+            "anchor_cluster": anchor_cluster,
+            "verdict": format!("{:?}", verdict(&index)),
+            "minimal_fatal_cut": cut,
+        })
+        .to_string())
+    }
 }
 
 /// A native SPARQL result rendered as a JSON envelope under `"ok"`: an ASK boolean,
@@ -502,6 +626,15 @@ impl McpServer {
                 &[("path", "string"), ("query", "string")],
             ),
             tool(
+                "explain_finding",
+                "Explain a diagnostic witness over the bundled graph/diagnostics projection, \
+                 addressed by its fingerprint IRI (a finding) or its anchor IRI (a cluster): \
+                 returns the provenance DAG, the aggregate ledger gate verdict, the minimal fatal \
+                 cut (fingerprint IRIs + codes), and the anchor cluster. An unknown target is a \
+                 hard error (never an empty-but-ok DAG).",
+                &[("target_iri", "string")],
+            ),
+            tool(
                 "store_claim",
                 "Append one attributed memory claim, executed as a Transaction-Logic \
                  transaction (the executional-entailment verdict gates the commit). Pass \
@@ -605,6 +738,7 @@ impl McpServer {
             "okf_index" => self.tool_okf_index(args),
             "query_docs" => self.tool_query_docs(args),
             "query_local" => self.tool_query_local(args),
+            "explain_finding" => self.tool_explain_finding(args),
             "store_claim" => self.tool_store_claim(args),
             "recall" => self.tool_recall(args),
             "revise_belief" => self.tool_revise_belief(args),
@@ -741,6 +875,11 @@ impl McpServer {
         let path = required_str(args, "path")?;
         let query = required_str(args, "query")?;
         Ok(self.view.query_local_json(path, query))
+    }
+
+    fn tool_explain_finding(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let target = required_str(args, "target_iri")?;
+        self.view.explain_finding_json(target)
     }
 
     fn tool_store_claim(&self, args: &Value) -> gmeow_errors::Result<String> {
@@ -1211,7 +1350,7 @@ fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
     let required: Vec<&str> = properties
         .iter()
         .filter_map(|(name, _)| {
-            matches!(*name, "term" | "text" | "claim_id" | "path").then_some(*name)
+            matches!(*name, "term" | "text" | "claim_id" | "path" | "target_iri").then_some(*name)
         })
         .collect();
     let props = properties
@@ -2324,6 +2463,114 @@ mod tests {
                 "advertised tool {name} is not dispatch-callable: {content}"
             );
         }
+        drop(overlay_dir);
+    }
+
+    /// The `explain_finding` tool, driven by DISPATCH BY NAME over a server built
+    /// from the shipped bundle: a real fingerprint IRI returns the finding's code +
+    /// a gate verdict; an unknown IRI is a HARD FAIL (isError), never an empty DAG.
+    #[test]
+    fn explain_finding_tool_walks_a_real_witness_and_hard_fails_unknown() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // Obtain a real fingerprint IRI the SAME way `explain` does: the first key of
+        // the FindingIndex the reader rehydrates from the server's held snapshot. An
+        // empty graph/diagnostics is a blocker, not something to paper over.
+        let index = crate::diagnostics_reader::read_findings(&server.view.dataset)
+            .expect("read graph/diagnostics from shipped bundle");
+        assert!(
+            !index.is_empty(),
+            "shipped bundle graph/diagnostics carries NO findings — explain_finding has no witness"
+        );
+        let real_iri = index.findings.keys().next().unwrap().clone();
+        let expected_code = index.get(&real_iri).unwrap().code.clone();
+
+        let ok = text_payload(
+            server.call_tool_result("explain_finding", &json!({"target_iri": real_iri})),
+        );
+        assert_eq!(ok["ok"], true, "explain_finding must succeed: {ok}");
+        assert_eq!(ok["kind"], "finding");
+        assert_eq!(ok["focus"]["code"], expected_code);
+        assert!(
+            ok["verdict"].as_str().is_some(),
+            "explain_finding must carry a gate verdict: {ok}"
+        );
+        assert!(
+            ok["focus"]["provenance_dag"]
+                .as_str()
+                .unwrap()
+                .contains(&real_iri),
+            "provenance DAG must render the focus finding: {ok}"
+        );
+
+        // Unknown target → hard fail (isError result), never a success with an empty DAG.
+        let bad = server.call_tool_result("explain_finding", &json!({"target_iri": "urn:nope"}));
+        assert_eq!(
+            bad["isError"], true,
+            "unknown IRI must be a hard fail: {bad}"
+        );
+        let bad_text = text_payload(bad);
+        assert_eq!(bad_text["ok"], false);
+        assert!(
+            bad_text["error"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("unknown explain target")
+        );
+    }
+
+    /// The SPARQL half of the acceptance criterion, on the PRODUCTION MCP surface:
+    /// `query_local` runs a SELECT over the bundle's `graph/diagnostics` named graph
+    /// and returns a real finding's code — proving SPARQL over the diagnostics
+    /// projection executes through the shipped query tool (its canon is the full
+    /// signed dataset, which retains the diagnostics graph).
+    #[test]
+    fn query_local_selects_a_finding_code_over_graph_diagnostics() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // query_local requires an overlay path; a trivial annex suffices — the query
+        // itself targets the bundle's graph/diagnostics named graph directly.
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("probe.ttl");
+        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
+
+        let query = "SELECT ?s ?code WHERE { \
+                     GRAPH <https://blackcatinformatics.ca/gmeow/graph/diagnostics> { \
+                     ?s a <https://blackcatinformatics.ca/gmeow/Finding> ; \
+                     <https://blackcatinformatics.ca/gmeow/findingCode> ?code } } LIMIT 1";
+        let res = text_payload(server.call_tool_result(
+            "query_local",
+            &json!({"path": overlay_path.to_str().unwrap(), "query": query}),
+        ));
+        assert_eq!(
+            res["ok"], true,
+            "query_local over graph/diagnostics must succeed: {res}"
+        );
+        let bindings = res["results"]["bindings"]
+            .as_array()
+            .expect("bindings array");
+        assert!(
+            !bindings.is_empty(),
+            "expected at least one Finding binding from graph/diagnostics: {res}"
+        );
+        assert!(
+            bindings[0]["code"]["value"].as_str().is_some(),
+            "the Finding binding must carry a findingCode literal: {res}"
+        );
         drop(overlay_dir);
     }
 }
