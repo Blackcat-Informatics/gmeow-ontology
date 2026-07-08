@@ -2101,6 +2101,7 @@ dependencies = [
  "gmeow-docs",
  "gmeow-errors",
  "gmeow-logic",
+ "gmeow-logic-compile",
  "gmeow-validate",
  "insta",
  "pretty_assertions",

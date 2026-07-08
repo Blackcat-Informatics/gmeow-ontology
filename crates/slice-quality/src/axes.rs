@@ -11,12 +11,16 @@
 //! Each primitive reads only what its axis's `ContextScope` licenses and advises
 //! solely about the target slice.
 
+use std::collections::{BTreeMap, BTreeSet};
+use std::path::Path;
 use std::sync::LazyLock;
 
-use purrdf::{DatasetView, GraphMatch, TermRef};
+use gmeow_logic_compile::projections::correspondence::extract_correspondences;
+use gmeow_logic_compile::projections::correspondence_soundness::{Mapping, lint_dc_refinement};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
 use regex::Regex;
 
-use crate::graph::{self, g, id, one_lit};
+use crate::graph::{self, g, id, instances_of, one_iri, one_lit};
 use crate::score::{AxisScore, ScoreContext, advisory};
 
 /// A measurement primitive: score the slice and surface advisories.
@@ -367,11 +371,6 @@ fn is_native(iri: &str) -> bool {
     NATIVE_NS.iter().any(|ns| iri.starts_with(ns))
 }
 
-/// Read the slice's mapping file text, if present.
-fn mappings_text(ctx: &ScoreContext) -> Option<String> {
-    std::fs::read_to_string(ctx.slice_dir.join("mappings/equivalences.ttl")).ok()
-}
-
 /// The external (non-native) IRIs the slice's OWN terms reference — the slice's
 /// alignment surface. Example-fixture data (subjects that are not slice terms) is
 /// illustrative, not an alignment obligation, so it is excluded.
@@ -395,29 +394,270 @@ fn external_alignment_surface(ctx: &ScoreContext) -> std::collections::BTreeSet<
     external
 }
 
-/// Linkage: of the external IRIs the slice's own vocabulary references, the
-/// fraction aligned in its mapping file. A slice referencing no external terms is
-/// vacuously fully linked.
-fn linkage_axis(ctx: &ScoreContext) -> AxisScore {
-    let external = external_alignment_surface(ctx);
-    if external.is_empty() {
-        return AxisScore::clean(1.0);
+/// The `gmeow:` super-vocabulary namespace (correspondence-cell vocabulary lives here).
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+/// The `dc:` DCMI-elements-1.1 namespace whose alignments the dumb-down calculus derives.
+const DC_ELEMENTS_NS: &str = "http://purl.org/dc/elements/1.1/";
+/// The `dcterms:` namespace (the refinement source the elements alignments dumb down from).
+const DCTERMS_NS: &str = "http://purl.org/dc/terms/";
+
+/// The identity-strength `gmeow:alignPredicate` values — the *only* alignment strengths a
+/// correspondence lens can carry lawfully (an invertible `put ∘ get = id_S` rename). A
+/// lossy `skos:closeMatch`/`relatedMatch`/`broadMatch`/`narrowMatch` is by construction
+/// outside the calculus's remit, so it is never a migration target and never enters the
+/// adoption population.
+const IDENTITY_ALIGN_PREDICATES: &[&str] = &[
+    "http://www.w3.org/2004/02/skos/core#exactMatch",
+    "http://www.w3.org/2002/07/owl#equivalentClass",
+    "http://www.w3.org/2002/07/owl#equivalentProperty",
+];
+
+/// Parse the slice's OWN authored correspondence surface — every `.ttl` under `mappings/`
+/// plus `module.ttl` — into one dataset. This is where a slice authors its alignments:
+/// `gmeow:ProjectionMapping` cells (the EDOAL/pattern form the correspondence-lowering
+/// calculus consumes), `gmeow:TermEquivalence` rows (hand-authored SSSOM curation), and any
+/// `logic:Correspondence` lens. Only THIS slice's directory is read, so every record found
+/// is slice-owned (single-slice scope — the metric never advises on another slice's surface).
+fn correspondence_surface(ctx: &ScoreContext) -> Option<std::sync::Arc<RdfDataset>> {
+    let mut paths = Vec::new();
+    let module = ctx.slice_dir.join("module.ttl");
+    if module.is_file() {
+        paths.push(module);
     }
-    let map_text = mappings_text(ctx).unwrap_or_default();
-    let mut covered = 0usize;
-    let mut findings = Vec::new();
-    for iri in &external {
-        if map_text.contains(iri.as_str()) {
-            covered += 1;
-        } else {
-            findings.push(advisory(
-                "slice-quality.linkage.unmapped-external",
-                format!("external term {iri} has no alignment in mappings/equivalences.ttl (Principle 17)."),
-            ));
+    collect_mapping_ttl(&ctx.slice_dir.join("mappings"), &mut paths);
+    if paths.is_empty() {
+        return None;
+    }
+    paths.sort();
+    let refs: Vec<&Path> = paths.iter().map(std::path::PathBuf::as_path).collect();
+    crate::dataset_from_paths(&refs).ok()
+}
+
+/// Collect every `.ttl` under a mappings directory, recursively.
+fn collect_mapping_ttl(dir: &Path, out: &mut Vec<std::path::PathBuf>) {
+    let Ok(rd) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for e in rd.flatten() {
+        let p = e.path();
+        if p.is_dir() {
+            collect_mapping_ttl(&p, out);
+        } else if p.extension().is_some_and(|x| x == "ttl") {
+            out.push(p);
         }
     }
+}
+
+/// True if the `gmeow:hasBinding` object `binding` is a lawful FACT-rename binding — its
+/// `gmeow:relation` is `"="` or it is flagged `gmeow:mnemomorphic true`. Exactly the
+/// bindings the mappings stage promotes to a discharged `logic:SectionLaw` (the numerator
+/// condition `discharged_section_cells_from_triples` credits, read at the authoring surface).
+fn binding_is_mnemomorphic(ds: &RdfDataset, binding: purrdf::TermId) -> bool {
+    let relation_eq = id(ds, &g("relation"))
+        .into_iter()
+        .flat_map(|p| graph::all_lits(ds, binding, p))
+        .any(|l| l == "=");
+    let mnemomorphic = id(ds, &g("mnemomorphic"))
+        .into_iter()
+        .flat_map(|p| graph::all_lits(ds, binding, p))
+        .any(|l| l == "true");
+    relation_eq || mnemomorphic
+}
+
+/// The `gmeow:ProjectionMapping` cells whose binding is a lawful FACT rename (mnemomorphic
+/// `=`) — the structured EDOAL cells the correspondence-lowering calculus lifts to a
+/// discharged `logic:SectionLaw`. Lossy `<=` projection cells are NOT identity-strength and
+/// never enter the population. Sorted (cell IRI order).
+fn mnemomorphic_projection_cells(ds: &RdfDataset) -> BTreeSet<String> {
+    let has_binding = id(ds, &g("hasBinding"));
+    let mut out = BTreeSet::new();
+    for cell in instances_of(ds, &g("ProjectionMapping")) {
+        let Some(sid) = id(ds, &cell) else { continue };
+        let routed = has_binding.is_some_and(|hb| {
+            ds.quads_for_pattern(Some(sid), Some(hb), None, GraphMatch::Any)
+                .any(|q| binding_is_mnemomorphic(ds, q.o))
+        });
+        if routed {
+            out.insert(cell);
+        }
+    }
+    out
+}
+
+/// One legacy (hand-authored, identity-strength) alignment record the slice owns: the
+/// `gmeow:TermEquivalence` / mapping IRI plus the human detail naming its migration target.
+struct LegacyRecord {
+    record_iri: String,
+    detail: String,
+}
+
+/// The slice's hand-authored `gmeow:TermEquivalence` rows at identity strength — the
+/// records that assert a lawful rename (`skos:exactMatch` / `owl:equivalentClass` /
+/// `owl:equivalentProperty`) but were curated by hand rather than routed through the
+/// correspondence calculus. Each is a real migration target: lift it to a
+/// `gmeow:ProjectionMapping` mnemomorphic `=` cell so the section-law discharge proves the
+/// rename lawful. Sorted by record IRI.
+fn identity_hand_authored(ds: &RdfDataset) -> Vec<LegacyRecord> {
+    let identity: BTreeSet<&str> = IDENTITY_ALIGN_PREDICATES.iter().copied().collect();
+    let mut out = Vec::new();
+    for record in instances_of(ds, &g("TermEquivalence")) {
+        let Some(sid) = id(ds, &record) else { continue };
+        let Some(pred) = id(ds, &g("alignPredicate")).and_then(|p| one_iri(ds, sid, p)) else {
+            continue;
+        };
+        if !identity.contains(pred.as_str()) {
+            continue;
+        }
+        let subj = id(ds, &g("alignSubject"))
+            .and_then(|p| one_iri(ds, sid, p))
+            .unwrap_or_default();
+        let obj = id(ds, &g("alignObject"))
+            .and_then(|p| one_iri(ds, sid, p))
+            .unwrap_or_default();
+        out.push(LegacyRecord {
+            record_iri: record.clone(),
+            detail: format!(
+                "{record} is a hand-authored identity-strength alignment ({subj} → {obj} via {pred}) not routed through the correspondence calculus — lift it to a gmeow:ProjectionMapping mnemomorphic \"=\" cell so the section-law discharge proves the rename lawful (issue AC4; Principle 17)."
+            ),
+        });
+    }
+    out.sort_by(|a, b| a.record_iri.cmp(&b.record_iri));
+    out
+}
+
+/// Compress a `dc:`/`dcterms:` IRI to the CURIE form `lint_dc_refinement` matches on; any
+/// other IRI is returned unchanged (only the `dc:` object drives the hand-authored check).
+fn dc_curie(iri: &str) -> String {
+    if let Some(local) = iri.strip_prefix(DC_ELEMENTS_NS) {
+        format!("dc:{local}")
+    } else if let Some(local) = iri.strip_prefix(DCTERMS_NS) {
+        format!("dcterms:{local}")
+    } else {
+        iri.to_owned()
+    }
+}
+
+/// The slice's `dc:` (DCMI-elements-1.1) hand-authored alignments, named via the real
+/// `lint_dc_refinement` dumb-down lint (code `dc-hand-authored`): a `dc:` element alignment
+/// the `dcterms:`→`dc:` sub-property derivation should have produced, authored by hand
+/// instead. Builds `Mapping` rows from the slice's `gmeow:TermEquivalence` records, runs the
+/// lint, and maps each flagged row back to its record IRI. Sorted by record IRI.
+fn dc_hand_authored(ds: &RdfDataset) -> Vec<LegacyRecord> {
+    // Build one Mapping row per TermEquivalence, keyed back to its record IRI.
+    let mut rows: Vec<(Mapping, String)> = Vec::new();
+    for record in instances_of(ds, &g("TermEquivalence")) {
+        let Some(sid) = id(ds, &record) else { continue };
+        let field = |local: &str| {
+            id(ds, &g(local))
+                .and_then(|p| one_iri(ds, sid, p))
+                .map(|iri| dc_curie(&iri))
+                .unwrap_or_default()
+        };
+        rows.push((
+            Mapping {
+                subject_id: field("alignSubject"),
+                predicate_id: field("alignPredicate"),
+                object_id: field("alignObject"),
+                confidence: String::new(),
+                mapping_justification: String::new(),
+            },
+            record,
+        ));
+    }
+    let mappings: Vec<Mapping> = rows.iter().map(|(m, _)| m.clone()).collect();
+    let mut out = Vec::new();
+    for diag in lint_dc_refinement(&mappings) {
+        if diag.code != "dc-hand-authored" {
+            continue;
+        }
+        // Match the flagged row back to its TermEquivalence record by subject+object CURIE.
+        let record_iri = rows
+            .iter()
+            .find(|(m, _)| {
+                Some(&m.object_id) == diag.object_id.as_ref()
+                    && diag.subject_id.as_ref().is_none_or(|s| s == &m.subject_id)
+            })
+            .map(|(_, iri)| iri.clone())
+            .unwrap_or_default();
+        out.push(LegacyRecord {
+            record_iri: record_iri.clone(),
+            detail: format!("{record_iri} is a hand-authored dc: alignment not routed through the correspondence calculus: {} Route it through the dcterms:→dc: dumb-down derivation rather than authoring the dc: alignment by hand (issue AC4; Principle 17).", diag.message),
+        });
+    }
+    out.sort_by(|a, b| a.record_iri.cmp(&b.record_iri));
+    out
+}
+
+/// Linkage — correspondence-calculus adoption. Of the identity-strength correspondences the
+/// slice authors (the only alignments a lens can carry lawfully), the fraction routed through
+/// the correspondence CALCULUS rather than hand-authored:
+///
+///   adoption = |calculus-routed| / |calculus-routed ∪ hand-authored identity records|
+///
+/// * **Calculus-routed** (numerator): the `logic:Correspondence` lens individuals
+///   ([`extract_correspondences`]) plus the `gmeow:ProjectionMapping` cells whose binding is a
+///   lawful FACT rename (mnemomorphic `=` — the cells the mappings stage lifts to a discharged
+///   `logic:SectionLaw`).
+/// * **Hand-authored** (the migration targets): identity-strength `gmeow:TermEquivalence` rows
+///   and `dc:` alignments the dumb-down calculus should derive ([`lint_dc_refinement`]).
+///
+/// Only this slice's `mappings/` + `module.ttl` are read, so every record is slice-owned.
+/// A slice with no identity-strength correspondence surface (none, or only lossy
+/// `closeMatch`-class alignments the calculus cannot carry) has an empty population: the axis
+/// is not applicable, so it takes the crate's neutral-for-the-meet vacuity score (1.0) but —
+/// unlike a real full-adoption pass — carries an explicit advisory that the axis is vacuous,
+/// so the 1.0 is never silently read as "fully linked".
+fn linkage_axis(ctx: &ScoreContext) -> AxisScore {
+    let Some(ds) = correspondence_surface(ctx) else {
+        return AxisScore {
+            score: 1.0,
+            findings: vec![advisory(
+                "slice-quality.linkage.no-correspondence-surface",
+                "the slice authors no mapping/correspondence surface (no mappings/ or module.ttl) — the correspondence-calculus adoption axis is not applicable (vacuous 1.0).".to_owned(),
+            )],
+        };
+    };
+    let ds: &RdfDataset = &ds;
+
+    // Numerator: the calculus-routed correspondences the slice owns.
+    let (correspondences, _malformed) = extract_correspondences(ds);
+    let mut calculus: BTreeSet<String> = correspondences
+        .into_iter()
+        .filter(|c| c.iri.starts_with(GMEOW_NS))
+        .map(|c| c.iri)
+        .collect();
+    calculus.extend(mnemomorphic_projection_cells(ds));
+
+    // Legacy: the hand-authored identity-strength records — the migration targets.
+    let mut legacy: BTreeMap<String, String> = BTreeMap::new();
+    for rec in identity_hand_authored(ds) {
+        legacy.entry(rec.record_iri).or_insert(rec.detail);
+    }
+    for rec in dc_hand_authored(ds) {
+        legacy.entry(rec.record_iri).or_insert(rec.detail);
+    }
+    // A record cannot be both calculus-routed and legacy (disjoint types), but guard anyway.
+    for iri in &calculus {
+        legacy.remove(iri);
+    }
+
+    let denom = calculus.len() + legacy.len();
+    if denom == 0 {
+        return AxisScore {
+            score: 1.0,
+            findings: vec![advisory(
+                "slice-quality.linkage.no-calculus-eligible-correspondence",
+                "the slice authors no identity-strength correspondence (none, or only lossy closeMatch-class alignments the lens calculus cannot carry) — the correspondence-calculus adoption axis is not applicable (vacuous 1.0), not a full-adoption pass.".to_owned(),
+            )],
+        };
+    }
+
+    let findings: Vec<_> = legacy
+        .into_values()
+        .map(|detail| advisory("slice-quality.linkage.uncalculated-correspondence", detail))
+        .collect();
     #[allow(clippy::cast_precision_loss)]
-    let score = covered as f64 / external.len() as f64;
+    let score = calculus.len() as f64 / denom as f64;
     AxisScore { score, findings }
 }
 
