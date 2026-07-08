@@ -12,7 +12,12 @@ gmeow:Credential
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "Credential"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Entity ;
+    rdfs:subClassOf gmeow:Entity ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:credentialIssuer ;
+            owl:allValuesFrom gmeow:Organization ;
+        ] ;
     skos:definition "An educational or occupational credential held by an agent — a degree, certification, badge, license, or other attestation of qualification. Its issuer is gmeow:credentialIssuer, its subject matter is gmeow:credentialFor, and its verification is borne by a gmeow:Attestation (Principle 4)."@x-gmeow-english ;
     skos:example "ex:rnLicense a gmeow:Credential ; gmeow:credentialIssuer ex:nursingBoard ; gmeow:credentialFor ex:nursing ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the signed verification envelope (that is a gmeow:Attestation, attestation.ttl — expertise supplies the content, attestation the proof) and for the bare skill or occupation a credential certifies (gmeow:Skill, gmeow:Occupation)."@x-gmeow-english ;
