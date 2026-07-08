@@ -17,13 +17,19 @@
 //! `None` when unbound) and interprets the returned [`BuiltinOutcome`] in its own
 //! control flow.
 //!
-//! Evaluation is over checked `i64`. Integer division `//` truncates toward zero
-//! (ISO `//`, matching the subsumed Scryer semantics), and `=:=` is numeric value
-//! equality, never structural unification. A value that cannot be computed is a
-//! first-class declared gap ([`BuiltinOutcome::Unbound`]) or domain/precision
-//! error ([`BuiltinOutcome::Error`]) — never a wrong answer or a panic.
+//! Evaluation is over **arbitrary-precision integers** ([`num_bigint::BigInt`]) —
+//! a true superset of the subsumed Scryer engine's unbounded (dashu) integers, so
+//! an overflowing sum/product yields a bignum answer rather than a demotion.
+//! Integer division `//` truncates toward zero (ISO `//`, matching `BigInt`'s
+//! toward-zero `Div` and the previous checked-i64 semantics), and `=:=` is numeric
+//! value equality, never structural unification. A value that cannot be computed is
+//! a first-class declared gap ([`BuiltinOutcome::Unbound`]) or domain error
+//! ([`BuiltinOutcome::Error`] — only ÷0, which Scryer also raises) — never a wrong
+//! answer or a panic.
 
 use crate::query_ir::{ArithOp, CmpOp, QBuiltin, QTerm};
+use num_bigint::BigInt;
+use num_traits::Zero;
 use std::borrow::Cow;
 
 /// The canonical `xsd:integer` datatype IRI — the type of every computed
@@ -33,18 +39,20 @@ use std::borrow::Cow;
 /// materialized typed literal.
 pub(crate) const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 
-/// Render an `i64` as the canonical typed-integer literal surface
+/// Render an integer as the canonical typed-integer literal surface
 /// `"N"^^<…#integer>` — the single shared helper every producer of a computed
 /// numeric value calls, so byte-identity is by construction rather than asserted.
-pub(crate) fn emit_integer_surface(n: i64) -> String {
-    format!("\"{n}\"^^<{XSD_INTEGER}>")
+/// Accepts anything convertible to a [`BigInt`] (an `i64` IR operand or a computed
+/// bignum value alike), so an out-of-`i64`-range result renders its full decimal.
+pub(crate) fn emit_integer_surface(n: impl Into<BigInt>) -> String {
+    format!("\"{}\"^^<{XSD_INTEGER}>", n.into())
 }
 
-/// Parse a bound surface back to an `i64`, accepting both the canonical
+/// Parse a bound surface back to a [`BigInt`], accepting both the canonical
 /// typed-integer literal `"N"^^<…#integer>` and a bare integer token `N`.
 /// Returns `None` for any non-numeric surface (a domain value that is not an
-/// integer).
-fn parse_integer_surface(surface: &str) -> Option<i64> {
+/// integer). Arbitrary precision — a bignum surface parses back losslessly.
+fn parse_integer_surface(surface: &str) -> Option<BigInt> {
     if let Some(rest) = surface.strip_prefix('"') {
         // `"N"^^<datatype>` — take the lexical form up to the closing quote and
         // require the integer datatype tag.
@@ -53,31 +61,31 @@ fn parse_integer_surface(surface: &str) -> Option<i64> {
         // and compare the datatype IRI directly (no raw indexing, so no
         // out-of-bounds path).
         if tag.strip_prefix("^^<").and_then(|t| t.strip_suffix('>')) == Some(XSD_INTEGER) {
-            return lex.parse::<i64>().ok();
+            return lex.parse::<BigInt>().ok();
         }
         return None;
     }
-    surface.parse::<i64>().ok()
+    surface.parse::<BigInt>().ok()
 }
 
 /// The resolved binding state of a single builtin operand.
 enum Operand {
-    /// The operand is bound to an integer value.
-    Num(i64),
+    /// The operand is bound to an integer value (arbitrary precision).
+    Num(BigInt),
     /// The operand is a variable with no binding under the current substitution.
     Unbound,
     /// The operand is bound to a surface that is not an integer.
     NonNumeric,
 }
 
-/// A domain / precision error raised while computing a builtin — routed by the
-/// caller to a declared gap, never surfaced as a wrong answer.
+/// A domain error raised while computing a builtin — routed by the caller to a
+/// declared gap, never surfaced as a wrong answer. Overflow is no longer a
+/// variant: native arithmetic is arbitrary-precision, so a sum/product that would
+/// overflow a machine word yields a bignum answer instead of demoting.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum BuiltinError {
     /// Integer division / remainder by zero (the oracle raises `zero_divisor`).
     ZeroDivisor,
-    /// A computation overflowed the machine integer (the oracle uses a bignum).
-    Overflow,
 }
 
 /// The outcome of moded builtin evaluation against a partial substitution.
@@ -89,20 +97,21 @@ pub(crate) enum BuiltinOutcome {
     Generate {
         /// The name of the (previously free) target variable.
         var: String,
-        /// The computed integer value.
-        value: i64,
+        /// The computed integer value (arbitrary precision).
+        value: BigInt,
     },
     /// An operand needed for evaluation is still unbound — a declared mode gap
     /// (the caller declines rather than guessing).
     Unbound,
-    /// A domain / precision error (÷0 or i64 overflow) — a declared gap.
+    /// A domain error (÷0) — a declared gap. (Overflow no longer occurs: native
+    /// arithmetic is arbitrary-precision.)
     Error(BuiltinError),
 }
 
 /// Resolve one operand `term` to its binding state under `lookup`.
 fn resolve_operand<'a>(term: &QTerm, lookup: &impl Fn(&str) -> Option<Cow<'a, str>>) -> Operand {
     match term {
-        QTerm::Num(n) => Operand::Num(*n),
+        QTerm::Num(n) => Operand::Num(BigInt::from(*n)),
         QTerm::Var(v) => match lookup(v) {
             None => Operand::Unbound,
             Some(surface) => match parse_integer_surface(&surface) {
@@ -119,28 +128,30 @@ fn resolve_operand<'a>(term: &QTerm, lookup: &impl Fn(&str) -> Option<Cow<'a, st
     }
 }
 
-/// Apply an arithmetic operator with checked `i64` semantics.
+/// Apply an arithmetic operator with arbitrary-precision (`BigInt`) semantics.
 ///
-/// `//` truncates toward zero (Rust `i64` division), matching ISO Prolog `//`.
-/// Division by zero and any overflow are declared errors, never a wrong answer.
-fn apply_arith(lhs: i64, op: ArithOp, rhs: i64) -> Result<i64, BuiltinError> {
+/// `//` truncates toward zero (`BigInt`'s `Div`), matching ISO Prolog `//` and the
+/// previous checked-i64 behaviour. Only division by zero is a declared error;
+/// Add/Sub/Mul never overflow (bignum), so they cannot fail.
+fn apply_arith(lhs: &BigInt, op: ArithOp, rhs: &BigInt) -> Result<BigInt, BuiltinError> {
     match op {
-        ArithOp::Add => lhs.checked_add(rhs).ok_or(BuiltinError::Overflow),
-        ArithOp::Sub => lhs.checked_sub(rhs).ok_or(BuiltinError::Overflow),
-        ArithOp::Mul => lhs.checked_mul(rhs).ok_or(BuiltinError::Overflow),
+        ArithOp::Add => Ok(lhs + rhs),
+        ArithOp::Sub => Ok(lhs - rhs),
+        ArithOp::Mul => Ok(lhs * rhs),
         ArithOp::Div => {
-            if rhs == 0 {
+            if rhs.is_zero() {
+                // Guard BEFORE dividing — `BigInt` division by zero panics.
                 Err(BuiltinError::ZeroDivisor)
             } else {
-                // `checked_div` also guards the i64::MIN / -1 overflow.
-                lhs.checked_div(rhs).ok_or(BuiltinError::Overflow)
+                // `BigInt / BigInt` truncates toward zero (ISO Prolog `//`).
+                Ok(lhs / rhs)
             }
         }
     }
 }
 
 /// Apply a comparison operator as numeric value comparison.
-fn apply_compare(lhs: i64, op: CmpOp, rhs: i64) -> bool {
+fn apply_compare(lhs: &BigInt, op: CmpOp, rhs: &BigInt) -> bool {
     match op {
         CmpOp::Gt => lhs > rhs,
         CmpOp::Lt => lhs < rhs,
@@ -170,7 +181,7 @@ pub(crate) fn eval<'a>(
                 (Operand::Num(l), Operand::Num(r)) => (l, r),
                 _ => return BuiltinOutcome::Unbound,
             };
-            let value = match apply_arith(l, *op, r) {
+            let value = match apply_arith(&l, *op, &r) {
                 Ok(v) => v,
                 Err(e) => return BuiltinOutcome::Error(e),
             };
@@ -188,7 +199,7 @@ pub(crate) fn eval<'a>(
                         None => BuiltinOutcome::Filter(false),
                     },
                 },
-                QTerm::Num(t) => BuiltinOutcome::Filter(*t == value),
+                QTerm::Num(t) => BuiltinOutcome::Filter(BigInt::from(*t) == value),
                 QTerm::Const(c) => match parse_integer_surface(c) {
                     Some(t) => BuiltinOutcome::Filter(t == value),
                     None => BuiltinOutcome::Filter(false),
@@ -198,7 +209,7 @@ pub(crate) fn eval<'a>(
         QBuiltin::Compare { lhs, op, rhs } => {
             match (resolve_operand(lhs, lookup), resolve_operand(rhs, lookup)) {
                 (Operand::Num(l), Operand::Num(r)) => {
-                    BuiltinOutcome::Filter(apply_compare(l, *op, r))
+                    BuiltinOutcome::Filter(apply_compare(&l, *op, &r))
                 }
                 // Either operand unbound or non-numeric → cannot compare; gap.
                 _ => BuiltinOutcome::Unbound,
@@ -242,14 +253,33 @@ mod tests {
         QBuiltin::Compare { lhs, op, rhs }
     }
 
+    /// A `Generate` outcome binding `name` to the integer `v` (bignum surface).
+    fn gen_v(name: &str, v: i64) -> BuiltinOutcome {
+        BuiltinOutcome::Generate {
+            var: name.to_owned(),
+            value: BigInt::from(v),
+        }
+    }
+
     // ── surface round-trip ──────────────────────────────────────────────────
 
     #[test]
     fn emit_and_parse_round_trip() {
         for n in [-7, -1, 0, 1, 42, i64::MAX, i64::MIN] {
             let s = emit_integer_surface(n);
-            assert_eq!(parse_integer_surface(&s), Some(n), "round-trip {n}");
+            assert_eq!(
+                parse_integer_surface(&s),
+                Some(BigInt::from(n)),
+                "round-trip {n}"
+            );
         }
+        // Beyond i64 range: a bignum surface round-trips losslessly.
+        let big = BigInt::from(i64::MAX) * BigInt::from(1_000_000);
+        assert_eq!(
+            parse_integer_surface(&emit_integer_surface(big.clone())),
+            Some(big),
+            "bignum round-trip"
+        );
         // Canonical form.
         assert_eq!(
             emit_integer_surface(3),
@@ -259,8 +289,8 @@ mod tests {
 
     #[test]
     fn parse_accepts_bare_integer_and_rejects_non_numeric() {
-        assert_eq!(parse_integer_surface("5"), Some(5));
-        assert_eq!(parse_integer_surface("-5"), Some(-5));
+        assert_eq!(parse_integer_surface("5"), Some(BigInt::from(5)));
+        assert_eq!(parse_integer_surface("-5"), Some(BigInt::from(-5)));
         assert_eq!(parse_integer_surface("<https://example.org/x>"), None);
         assert_eq!(parse_integer_surface("\"hello\""), None);
         // A decimal-typed literal is not an xsd:integer.
@@ -277,13 +307,7 @@ mod tests {
         // N is M + 1, M = 2, N free → Generate N = 3.
         let lookup = env(&[("M", "\"2\"^^<http://www.w3.org/2001/XMLSchema#integer>")]);
         let b = is(var("N"), var("M"), ArithOp::Add, QTerm::Num(1));
-        assert_eq!(
-            eval(&b, &lookup),
-            BuiltinOutcome::Generate {
-                var: "N".to_owned(),
-                value: 3
-            }
-        );
+        assert_eq!(eval(&b, &lookup), gen_v("N", 3));
     }
 
     #[test]
@@ -291,13 +315,7 @@ mod tests {
         // X is 6 // 4 → 1 (truncation), X free.
         let lookup = env(&[]);
         let b = is(var("X"), QTerm::Num(6), ArithOp::Div, QTerm::Num(4));
-        assert_eq!(
-            eval(&b, &lookup),
-            BuiltinOutcome::Generate {
-                var: "X".to_owned(),
-                value: 1
-            }
-        );
+        assert_eq!(eval(&b, &lookup), gen_v("X", 1));
     }
 
     // ── filter mode (bound target) ──────────────────────────────────────────
@@ -367,20 +385,14 @@ mod tests {
                 &is(var("X"), QTerm::Num(-7), ArithOp::Div, QTerm::Num(2)),
                 &lookup
             ),
-            BuiltinOutcome::Generate {
-                var: "X".to_owned(),
-                value: -3
-            }
+            gen_v("X", -3)
         );
         assert_eq!(
             eval(
                 &is(var("X"), QTerm::Num(7), ArithOp::Div, QTerm::Num(-2)),
                 &lookup
             ),
-            BuiltinOutcome::Generate {
-                var: "X".to_owned(),
-                value: -3
-            }
+            gen_v("X", -3)
         );
     }
 
@@ -392,20 +404,14 @@ mod tests {
                 &is(var("X"), QTerm::Num(-7), ArithOp::Sub, QTerm::Num(-1)),
                 &lookup
             ),
-            BuiltinOutcome::Generate {
-                var: "X".to_owned(),
-                value: -6
-            }
+            gen_v("X", -6)
         );
         assert_eq!(
             eval(
                 &is(var("X"), QTerm::Num(-3), ArithOp::Mul, QTerm::Num(4)),
                 &lookup
             ),
-            BuiltinOutcome::Generate {
-                var: "X".to_owned(),
-                value: -12
-            }
+            gen_v("X", -12)
         );
     }
 
@@ -420,17 +426,38 @@ mod tests {
     }
 
     #[test]
-    fn overflow_is_error_not_wraparound() {
+    fn overflow_promotes_to_bignum_not_error() {
+        // What would overflow i64 now yields a bignum answer — native is a true
+        // superset of Scryer's unbounded integers (the subsumption).
         let lookup = env(&[]);
+        // i64::MAX + 1 = 9223372036854775808 (one past i64::MAX).
         let b = is(var("X"), QTerm::Num(i64::MAX), ArithOp::Add, QTerm::Num(1));
         assert_eq!(
             eval(&b, &lookup),
-            BuiltinOutcome::Error(BuiltinError::Overflow)
+            BuiltinOutcome::Generate {
+                var: "X".to_owned(),
+                value: BigInt::from(i64::MAX) + 1,
+            }
         );
+        // i64::MIN / -1 overflows two's-complement i64 but is exactly -i64::MIN as a
+        // bignum (a positive value one past i64::MAX).
         let b2 = is(var("X"), QTerm::Num(i64::MIN), ArithOp::Div, QTerm::Num(-1));
         assert_eq!(
             eval(&b2, &lookup),
-            BuiltinOutcome::Error(BuiltinError::Overflow)
+            BuiltinOutcome::Generate {
+                var: "X".to_owned(),
+                value: -BigInt::from(i64::MIN),
+            }
+        );
+        // A large product that dwarfs i64: 10^12 * 10^12 = 10^24.
+        let trillion = QTerm::Num(1_000_000_000_000);
+        let b3 = is(var("X"), trillion.clone(), ArithOp::Mul, trillion);
+        assert_eq!(
+            eval(&b3, &lookup),
+            BuiltinOutcome::Generate {
+                var: "X".to_owned(),
+                value: BigInt::from(1_000_000_000_000i64) * BigInt::from(1_000_000_000_000i64),
+            }
         );
     }
 

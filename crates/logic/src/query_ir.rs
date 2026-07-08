@@ -66,9 +66,15 @@ pub enum QBodyLit {
     Cut,
     /// An arithmetic (`X is Y op Z`) or comparison (`L cmp R`) builtin.
     ///
-    /// Gated to `ProceduralPrologProfile` (per `slices/grounding/logic/module.ttl`) and
-    /// evaluated SOLELY by the Scryer engine (the declarative oracle rejects it, as
-    /// it does cut). Used to compute over `rdf:first`/`rdf:rest` chains.
+    /// Gated to `ProceduralPrologProfile` (per `slices/grounding/logic/module.ttl`).
+    /// Evaluated **natively** in body order by the shared moded evaluator
+    /// (`physical::eval_builtin`) across every native engine — the forward
+    /// semi-naive core, the backward magic core, and the declarative reference
+    /// oracle — over arbitrary-precision integers. Only a genuinely-uncomputable mode
+    /// remains a declared gap: an unbound operand (`BuiltinOutcome::Unbound`) or ÷0
+    /// (`BuiltinOutcome::Error`) — both of which the subsumed Scryer engine also
+    /// fails/errors on, so the native gap loses no answer. Used to compute over
+    /// `rdf:first`/`rdf:rest` chains.
     Builtin(QBuiltin),
 }
 

@@ -1985,6 +1985,8 @@ dependencies = [
  "gmeow-logic-compile",
  "insta",
  "nemo",
+ "num-bigint",
+ "num-traits",
  "petgraph",
  "proptest",
  "purrdf",

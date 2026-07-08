@@ -64,6 +64,15 @@ sha2 = "0.10"
 # (determinism contract). The xsd:duration horizon is parsed by a local fixed-length
 # parser (weeks/days/hours/minutes/seconds), not chrono.
 chrono = { version = "0.4", default-features = false, features = ["alloc"] }
+# num-bigint / num-traits: arbitrary-precision integers for the shared moded
+# builtin evaluator (physical::builtin_eval). Native `X is Y op Z` arithmetic must
+# be a true superset of the subsumed Scryer engine, whose integers are unbounded
+# (dashu-int bignums) — so an overflowing sum/product yields a bignum answer, never
+# a demotion. `BigInt` division truncates toward zero, matching ISO Prolog `//` and
+# the previous checked-i64 behaviour; ÷0 is guarded before the operator (which would
+# otherwise panic) and stays a declared error, exactly as Scryer raises `zero_divisor`.
+num-bigint = "0.4"
+num-traits = "0.2"
 
 # pyo3: PyO3 Python bindings. Enabled only for the unified native extension.
 pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }

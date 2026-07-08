@@ -1714,6 +1714,51 @@ mod tests {
         assert!(n_none.bindings.is_empty(), "2 =:= 3 prunes the only answer");
     }
 
+    /// Arithmetic that overflows `i64` is DECIDED natively (bignum) and byte-matches
+    /// Scryer's unbounded-integer answer — the subsumption that lets the flip retire
+    /// Scryer without losing the big-integer answers it used to provide. A
+    /// checked-`i64` evaluator would demote here; the native superset does not.
+    #[test]
+    fn dispatch_parity_bignum_arithmetic_agrees_with_scryer() {
+        let base = BASE;
+        let triples = vec![(p("a"), p("node"), p("b"))];
+
+        // i64::MAX + i64::MAX = 18446744073709551614 — one bit past a machine word,
+        // a value a checked-i64 core cannot represent. Operands each fit i64 (so the
+        // parser accepts them as `QTerm::Num`); the SUM is the overflow.
+        let sum_src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ex:big(X, N) :- ex:node(X, Y), N is 9223372036854775807 + 9223372036854775807.\n\
+             ?- ex:big(ex:a, N).\n"
+        );
+        let (n_sum, s_sum) = native_and_scryer(&sum_src, &triples);
+        assert_eq!(
+            n_sum.bindings, s_sum.bindings,
+            "native ≠ Scryer on an overflowing sum: native={n_sum:?} scryer={s_sum:?}"
+        );
+        assert_eq!(
+            n_sum.bindings[0]["N"],
+            "\"18446744073709551614\"^^<http://www.w3.org/2001/XMLSchema#integer>",
+            "the overflowing sum must render its full bignum decimal"
+        );
+
+        // A product that dwarfs i64: 3037000500^2 = 9223372037000250000 > i64::MAX.
+        let prod_src = format!(
+            ":- prefix(ex, '{base}').\n\
+             ex:big(X, N) :- ex:node(X, Y), N is 3037000500 * 3037000500.\n\
+             ?- ex:big(ex:a, N).\n"
+        );
+        let (n_prod, s_prod) = native_and_scryer(&prod_src, &triples);
+        assert_eq!(
+            n_prod.bindings, s_prod.bindings,
+            "native ≠ Scryer on an overflowing product: native={n_prod:?} scryer={s_prod:?}"
+        );
+        assert_eq!(
+            n_prod.bindings[0]["N"],
+            "\"9223372037000250000\"^^<http://www.w3.org/2001/XMLSchema#integer>"
+        );
+    }
+
     #[test]
     fn arithmetic_division_by_zero_is_declared_gap() {
         // A ÷0 in a supported binary program is a declared native gap
