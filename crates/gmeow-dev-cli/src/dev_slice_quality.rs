@@ -221,8 +221,13 @@ pub fn slice_quality_gate() -> i32 {
         ));
     }
 
-    // Floor ranks by slice IRI, resolved against the ladder.
-    let floors = load_floors(&root, &rubric);
+    // Floor ranks by slice IRI, resolved against the ladder. The gate cannot
+    // enforce a ratchet it cannot read: a missing or malformed floors file is a
+    // HARD FAIL here (.goals no-optionality), never a silently-disabled floor.
+    let floors = match load_floors(&root, &rubric) {
+        Ok(f) => f,
+        Err(e) => return fail(format!("slice-quality-gate: {e}")),
+    };
 
     let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
     let mut failures = 0usize;
@@ -279,27 +284,49 @@ pub fn slice_quality_gate() -> i32 {
 }
 
 /// Load the committed floor ranks keyed by slice IRI.
+///
+/// # Errors
+/// A HARD FAIL (.goals no-optionality) when the gate cannot read the ratchet it
+/// must enforce: the floors file is missing/unreadable, a non-comment line is not
+/// a `<slice-iri>\t<tier-local-name>` pair, or a tier label names no
+/// `gmeow:QualityTier` in the loaded ladder. Never a silently-disabled floor or a
+/// silently-skipped line — the error names the file, the 1-based line, and the
+/// offending label.
 fn load_floors(
     root: &Path,
     rubric: &gmeow_slice_quality::Rubric,
-) -> std::collections::HashMap<String, i64> {
+) -> Result<std::collections::HashMap<String, i64>, String> {
+    let path = root.join(FLOOR_FILE);
+    let text = std::fs::read_to_string(&path).map_err(|e| {
+        format!(
+            "cannot read ratchet floor file {} (the gate cannot enforce a floor it cannot read): {e}",
+            path.display()
+        )
+    })?;
     let mut out = std::collections::HashMap::new();
-    let Ok(text) = std::fs::read_to_string(root.join(FLOOR_FILE)) else {
-        return out;
-    };
-    for line in text.lines() {
-        let line = line.trim();
+    for (idx, raw) in text.lines().enumerate() {
+        let line = raw.trim();
         if line.is_empty() || line.starts_with('#') {
             continue;
         }
-        if let Some((iri, tier_local)) = line.split_once('\t') {
-            let tier_iri = format!("{}{}", gmeow_slice_quality::model::GMEOW, tier_local.trim());
-            if let Some(tier) = rubric.tier(&tier_iri) {
-                out.insert(iri.trim().to_owned(), tier.rank);
-            }
-        }
+        let lineno = idx + 1;
+        let Some((iri, tier_local)) = line.split_once('\t') else {
+            return Err(format!(
+                "{}:{lineno}: malformed floor line (want <slice-iri>\\t<tier-local-name>): {raw:?}",
+                path.display()
+            ));
+        };
+        let tier_local = tier_local.trim();
+        let tier_iri = format!("{}{}", gmeow_slice_quality::model::GMEOW, tier_local);
+        let Some(tier) = rubric.tier(&tier_iri) else {
+            return Err(format!(
+                "{}:{lineno}: unknown tier label {tier_local:?} (names no gmeow:QualityTier in the rubric ladder)",
+                path.display()
+            ));
+        };
+        out.insert(iri.trim().to_owned(), tier.rank);
     }
-    out
+    Ok(out)
 }
 
 /// Whether `symbol` is defined as a Rust item anywhere under `crates/` — the
@@ -337,5 +364,94 @@ fn scan_rs(dir: &Path, f: &mut impl FnMut(&str)) {
         {
             f(&text);
         }
+    }
+}
+
+#[cfg(test)]
+mod load_floors_tests {
+    use super::*;
+
+    /// A minimal one-rung ladder so `load_floors` can resolve `tierRegistered`.
+    fn registered_rubric() -> gmeow_slice_quality::Rubric {
+        let mut r = gmeow_slice_quality::Rubric::default();
+        r.tiers.push(gmeow_slice_quality::Tier {
+            iri: format!("{}tierRegistered", gmeow_slice_quality::model::GMEOW),
+            label: "Registered".to_owned(),
+            rank: 0,
+        });
+        r
+    }
+
+    /// A throwaway repo root with an empty `governance/` directory.
+    fn temp_root(name: &str) -> std::path::PathBuf {
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let mut p = std::env::temp_dir();
+        p.push(format!(
+            "gmeow-floors-{name}-{}-{nanos}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(p.join("governance")).unwrap();
+        p
+    }
+
+    fn write_floors(root: &Path, body: &str) {
+        std::fs::write(root.join(FLOOR_FILE), body).unwrap();
+    }
+
+    #[test]
+    fn missing_floors_file_hard_fails() {
+        // (c) The gate cannot enforce a ratchet it cannot read.
+        let root = temp_root("missing");
+        let err = load_floors(&root, &registered_rubric()).unwrap_err();
+        assert!(
+            err.contains("cannot read ratchet floor file"),
+            "missing floors file must hard-fail: {err}"
+        );
+        std::fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn malformed_line_hard_fails_naming_the_line() {
+        // (a) A non-comment line without a tab is a format error, not a skip.
+        let root = temp_root("malformed");
+        write_floors(
+            &root,
+            "# header\nhttps://x/slices/logic\ttierRegistered\nno-tab-on-this-line\n",
+        );
+        let err = load_floors(&root, &registered_rubric()).unwrap_err();
+        assert!(err.contains("malformed floor line"), "{err}");
+        assert!(err.contains(":3:"), "names the 1-based line: {err}");
+        assert!(
+            err.contains("no-tab-on-this-line"),
+            "quotes the line: {err}"
+        );
+        std::fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn unknown_tier_label_hard_fails_naming_the_label() {
+        // (b) A tier label that names no gmeow:QualityTier is a format error.
+        let root = temp_root("unknown-tier");
+        write_floors(&root, "https://x/slices/logic\ttierBogus\n");
+        let err = load_floors(&root, &registered_rubric()).unwrap_err();
+        assert!(err.contains("unknown tier label"), "{err}");
+        assert!(err.contains("tierBogus"), "names the label: {err}");
+        std::fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn well_formed_floors_load() {
+        // A comment, blank line, and a real rung resolve to the tier's rank.
+        let root = temp_root("ok");
+        write_floors(
+            &root,
+            "# committed floors\n\nhttps://x/slices/logic\ttierRegistered\n",
+        );
+        let floors = load_floors(&root, &registered_rubric()).unwrap();
+        assert_eq!(floors.get("https://x/slices/logic").copied(), Some(0));
+        std::fs::remove_dir_all(&root).ok();
     }
 }

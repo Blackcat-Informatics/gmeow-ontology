@@ -149,6 +149,18 @@ pub fn load_rubric(ds: &RdfDataset) -> Result<Rubric, String> {
                 "exemption {iri} must carry a dated producer symbol"
             ));
         }
+        // Every exemption must name a REAL loaded axis. A missing or unknown
+        // gmeow:exemptsAxis is a hard fail (.goals no-optionality): otherwise the
+        // axis_iri silently defaults to an unresolvable value and the staleness /
+        // completeness gates can never bind the exemption to the surface it exempts.
+        if axis_iri.is_empty() {
+            return Err(format!("exemption {iri} names no gmeow:exemptsAxis"));
+        }
+        if !axes.iter().any(|a| a.iri == axis_iri) {
+            return Err(format!(
+                "exemption {iri} exempts unknown axis {axis_iri} (no such gmeow:QualityAxis in the rubric)"
+            ));
+        }
         exemptions.push(Exemption {
             iri,
             axis_iri,
@@ -164,4 +176,60 @@ pub fn load_rubric(ds: &RdfDataset) -> Result<Rubric, String> {
         axes,
         exemptions,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A minimal but structurally complete rubric: one tier, one axis with a
+    /// threshold, and one exemption whose `gmeow:exemptsAxis` is `exempts_axis`.
+    fn rubric_ttl(exempts_axis: &str) -> String {
+        format!(
+            r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:tierRegistered a gmeow:QualityTier ; gmeow:tierRank 0 .
+gmeow:axisFoo a gmeow:QualityAxis ;
+    gmeow:axisProducer "foo" ;
+    gmeow:axisDimension gmeow:dimFoo ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisThreshold gmeow:thrFoo .
+gmeow:thrFoo a gmeow:AxisThreshold ;
+    gmeow:thresholdTier gmeow:tierRegistered ;
+    gmeow:thresholdFloor 0.0 .
+gmeow:exFoo a gmeow:AxisExemption ;
+    gmeow:exemptsAxis {exempts_axis} ;
+    gmeow:exemptionReason "unlanded" ;
+    gmeow:exemptionDate "2026-07-08" ;
+    gmeow:exemptionProducer "FooProducer" .
+"#
+        )
+    }
+
+    fn load(ttl: &str) -> Result<Rubric, String> {
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
+            .map_err(|e| e.to_string())?;
+        let mut b = purrdf::RdfDatasetBuilder::new();
+        b.push_dataset(&ds);
+        let frozen = b.freeze().map_err(|e| e.to_string())?;
+        load_rubric(&frozen)
+    }
+
+    #[test]
+    fn exemption_naming_a_real_axis_loads() {
+        // Control: the same fixture with a valid axis_iri loads cleanly, proving the
+        // negative test isolates the axis check (not a malformed fixture).
+        let rubric = load(&rubric_ttl("gmeow:axisFoo")).expect("valid rubric loads");
+        assert_eq!(rubric.exemptions.len(), 1);
+        assert_eq!(rubric.exemptions[0].axis_iri, format!("{GMEOW_NS}axisFoo"));
+    }
+
+    #[test]
+    fn exemption_with_unknown_axis_hard_fails() {
+        // (e) An exemption naming an axis the rubric never loaded is a hard fail.
+        let err = load(&rubric_ttl("gmeow:axisNope")).unwrap_err();
+        assert!(err.contains("exempts unknown axis"), "{err}");
+        assert!(err.contains("axisNope"), "names the offending axis: {err}");
+    }
+
+    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 }
