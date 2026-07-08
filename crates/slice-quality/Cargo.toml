@@ -27,6 +27,10 @@ gmeow-validate = { path = "../validate" }
 # The typed documentation model + coverage/i18n dimensions the documentation and
 # translation axes bind to.
 gmeow-docs = { path = "../docs" }
+# The native reasoner — the instrument the reasoner-derived axis dogfoods: the DL
+# closure gives inferential density, and leave-one-out over the closure proves
+# closure-redundant authored triples (Principles 8/12/18).
+gmeow-logic = { path = "../logic" }
 
 [dev-dependencies]
 pretty_assertions = "1"

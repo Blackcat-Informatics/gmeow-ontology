@@ -36,6 +36,7 @@ pub fn resolve(producer: &str) -> Option<Primitive> {
         "testing_axis" => Some(testing_axis),
         "documentation_axis" => Some(documentation_axis),
         "translation_axis" => Some(translation_axis),
+        "reasoner_axis" => Some(crate::reasoner::reasoner_axis),
         _ => None,
     }
 }
@@ -52,6 +53,7 @@ pub const IMPLEMENTED: &[&str] = &[
     "testing_axis",
     "documentation_axis",
     "translation_axis",
+    "reasoner_axis",
 ];
 
 // ── Axis 1: Maximal grounding ─────────────────────────────────────────────

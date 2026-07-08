@@ -17,6 +17,7 @@ pub mod axes;
 pub mod graph;
 pub mod lattice;
 pub mod model;
+pub mod reasoner;
 pub mod rubric;
 pub mod score;
 

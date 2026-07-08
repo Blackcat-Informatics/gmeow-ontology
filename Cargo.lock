@@ -2098,6 +2098,7 @@ version = "0.1.0"
 dependencies = [
  "gmeow-docs",
  "gmeow-errors",
+ "gmeow-logic",
  "gmeow-validate",
  "insta",
  "pretty_assertions",
