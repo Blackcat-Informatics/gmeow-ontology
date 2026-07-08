@@ -7,9 +7,15 @@
 
 use std::borrow::Cow;
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-use gmeow_cli_core::ConsoleMode;
+use gmeow_cli_core::{ConsoleMode, HumanReporter, NdjsonReporter, Reporter};
+use gmeow_errors::grade::{Belnap, BoundedLattice};
+use gmeow_errors::model::Finding;
+use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
+use gmeow_pipeline::diagnostics_reader::{
+    FindingIndex, explain_finding, minimal_fatal_cut, read_findings, render_shared_dag, verdict,
+};
 
 use crate::{BUNDLE_GTS, NAMESPACE};
 
@@ -1096,6 +1102,284 @@ pub fn mcp() -> i32 {
     match server.run_stdio() {
         Ok(()) => 0,
         Err(e) => fail(format!("mcp: {e}")),
+    }
+}
+
+// ── explain ──────────────────────────────────────────────────────────────────
+
+define_diag_kind! {
+    /// The `explain` target is neither a known finding fingerprint IRI nor a known
+    /// anchor IRI in the bundle's `graph/diagnostics` — a hard fail, never an empty
+    /// DAG rendered as a success.
+    pub struct UnknownExplainTarget { target: String }
+    code = "gmeow-cli.explain.unknown-target";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "unknown explain target `{}`: not a finding fingerprint IRI or an anchor IRI in graph/diagnostics", target;
+}
+
+define_diag_kind! {
+    /// The provenance-DAG walk from a resolved finding failed — an unresolved
+    /// antecedent or a cycle in the carried subset. A hard fail the DAG engine owns.
+    pub struct ExplainWalkFailed { target: String, detail: String }
+    code = "gmeow-cli.explain.walk-failed";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "cannot walk provenance DAG for `{}`: {}", target, detail;
+}
+
+/// The diagnostic reporter for a resolved console mode: NDJSON for the machine
+/// surface, human text otherwise (the pre-carrier error rail `explain` emits on).
+fn reporter_for(console: ConsoleMode) -> Box<dyn Reporter> {
+    match console {
+        ConsoleMode::Jsonl => Box::new(NdjsonReporter::new()),
+        _ => Box::new(HumanReporter::new()),
+    }
+}
+
+/// Rehydrate the finding index from a GTS snapshot's `graph/diagnostics` named
+/// graph. Reads the segments into a dataset that PRESERVES named graphs
+/// (`dataset_from_gts_graph`, not the flattening loader), which the reader then
+/// projects — a flattened dataset would drop the graph label and read empty.
+fn finding_index(bytes: &[u8]) -> Result<FindingIndex, String> {
+    let graph = purrdf::gts::read_all_segments(bytes)
+        .map_err(|e| format!("cannot read GTS segments: {e}"))?;
+    let dataset = purrdf::gts::dataset_from_gts_graph(&graph)
+        .map_err(|e| format!("cannot fold GTS dataset: {e}"))?;
+    read_findings(&dataset).map_err(|d| format!("cannot read graph/diagnostics: {d}"))
+}
+
+/// The always-emitted substrate algebra: the ledger [`verdict`] and the
+/// [`minimal_fatal_cut`] (the fingerprint IRIs whose fix flips the gate to pass).
+fn render_algebra(index: &FindingIndex) -> String {
+    let mut out = String::new();
+    out.push_str(&format!("gate verdict: {:?}\n", verdict(index)));
+    let cut = minimal_fatal_cut(index);
+    out.push_str(&format!(
+        "minimal fatal cut ({}): fix these and the gate passes\n",
+        cut.len()
+    ));
+    for iri in &cut {
+        match index.get(iri) {
+            Some(f) => out.push_str(&format!("  · {iri} [{}] {}\n", f.code, f.message)),
+            None => out.push_str(&format!("  · {iri}\n")),
+        }
+    }
+    out
+}
+
+/// The anchor cluster (findings sharing `anchor`) and any Belnap glut it carries.
+/// A glut is cleanly derivable from the carried subset: the `⊑_k`-join of the
+/// members' category polarities is [`Belnap::Both`] exactly when the cluster holds
+/// both Supported and Opposed evidence at one anchor — the opposing pair is then
+/// listed. `exclude` marks the finding the explanation is centered on.
+fn render_anchor_section(
+    index: &FindingIndex,
+    anchor: Option<&str>,
+    exclude: Option<&str>,
+    out: &mut String,
+) {
+    let Some(anchor) = anchor else {
+        out.push_str("anchor cluster: (this finding carries no anchor)\n");
+        return;
+    };
+    let members: Vec<&Finding> = index
+        .findings
+        .values()
+        .filter(|f| f.anchor_iri.as_deref() == Some(anchor))
+        .collect();
+    out.push_str(&format!(
+        "anchor cluster {anchor} ({} member(s)):\n",
+        members.len()
+    ));
+    for f in &members {
+        let iri = f.finding_iri.as_deref().unwrap_or("<no-iri>");
+        let mark = if Some(iri) == exclude {
+            " (this finding)"
+        } else {
+            ""
+        };
+        out.push_str(&format!(
+            "  · {iri} [{}] {}{}\n",
+            f.severity.as_str(),
+            f.code,
+            mark
+        ));
+    }
+    let joined = members.iter().fold(Belnap::Neither, |acc, f| {
+        acc.join(
+            f.category
+                .map(FindingCategory::polarity)
+                .unwrap_or(Belnap::Neither),
+        )
+    });
+    if joined.is_glut() {
+        out.push_str("gluts: this anchor carries CONTRADICTORY evidence (Belnap glut):\n");
+        for f in &members {
+            let pol = f
+                .category
+                .map(FindingCategory::polarity)
+                .unwrap_or(Belnap::Neither);
+            if matches!(pol, Belnap::Supported | Belnap::Opposed) {
+                let iri = f.finding_iri.as_deref().unwrap_or("<no-iri>");
+                out.push_str(&format!("  · {iri} polarity {pol:?} ({:?})\n", f.category));
+            }
+        }
+    } else {
+        out.push_str(
+            "gluts: none at this anchor (gluts are surfaced via the anchor cluster above)\n",
+        );
+    }
+}
+
+/// Render the full explanation of an `explain` target — the production rendering
+/// path `explain` prints. A finding fingerprint IRI walks its provenance DAG; an
+/// anchor IRI resolves the cluster and walks each member. BOTH always append the
+/// substrate algebra. An unknown/malformed target is a hard [`Diag`] fail — never
+/// an empty DAG returned as success.
+fn render_explanation(index: &FindingIndex, target: &str) -> Result<String, Diag> {
+    let is_finding = index.get(target).is_some();
+    let cluster: Vec<String> = index
+        .findings
+        .iter()
+        .filter(|(_, f)| f.anchor_iri.as_deref() == Some(target))
+        .map(|(iri, _)| iri.clone())
+        .collect();
+    let is_anchor = !cluster.is_empty();
+    if !is_finding && !is_anchor {
+        return Err(Diag::of_kind(UnknownExplainTarget {
+            target: target.to_owned(),
+        }));
+    }
+
+    let mut out = String::new();
+    if is_finding {
+        let f = index.get(target).expect("finding present");
+        out.push_str(&format!("finding {target}\n"));
+        out.push_str(&format!("  code     {}\n", f.code));
+        out.push_str(&format!("  severity {}\n", f.severity.as_str()));
+        out.push_str(&format!("  message  {}\n", f.message));
+        out.push_str("provenance DAG:\n");
+        let dag = explain_finding(index, target).map_err(|e| {
+            Diag::of_kind(ExplainWalkFailed {
+                target: target.to_owned(),
+                detail: e.to_string(),
+            })
+        })?;
+        out.push_str(&render_shared_dag(&dag));
+        render_anchor_section(index, f.anchor_iri.as_deref(), Some(target), &mut out);
+    } else {
+        out.push_str(&format!("anchor cluster {target}\n"));
+        out.push_str(&format!(
+            "  {} finding(s) share this anchor\n",
+            cluster.len()
+        ));
+        for iri in &cluster {
+            let f = index.get(iri).expect("cluster member present");
+            out.push_str(&format!(
+                "  · {iri} [{}] {} — {}\n",
+                f.severity.as_str(),
+                f.code,
+                f.message
+            ));
+            out.push_str("    provenance DAG:\n");
+            let dag = explain_finding(index, iri).map_err(|e| {
+                Diag::of_kind(ExplainWalkFailed {
+                    target: iri.clone(),
+                    detail: e.to_string(),
+                })
+            })?;
+            for line in render_shared_dag(&dag).lines() {
+                out.push_str("    ");
+                out.push_str(line);
+                out.push('\n');
+            }
+        }
+        render_anchor_section(index, Some(target), None, &mut out);
+    }
+    out.push_str(&render_algebra(index));
+    Ok(out)
+}
+
+/// `gmeow explain <target_iri>` — address a diagnostic witness by its fingerprint
+/// IRI (a finding) or anchor IRI (a cluster) in a snapshot's `graph/diagnostics`,
+/// and print its provenance DAG plus the substrate algebra. An unknown target is a
+/// hard fail routed through the console error rail.
+pub fn explain(target_iri: String, file: Option<PathBuf>, console: ConsoleMode) -> i32 {
+    let bytes = match gts_bytes(file.as_deref()) {
+        Ok(b) => b,
+        Err(code) => return code,
+    };
+    let index = match finding_index(&bytes) {
+        Ok(i) => i,
+        Err(msg) => return fail(msg),
+    };
+    match render_explanation(&index, &target_iri) {
+        Ok(text) => {
+            print!("{text}");
+            0
+        }
+        Err(diag) => gmeow_cli_core::emit_and_exit(reporter_for(console).as_ref(), diag, "gmeow"),
+    }
+}
+
+#[cfg(test)]
+mod explain_tests {
+    use super::*;
+    use crate::BUNDLE_GTS;
+
+    #[test]
+    fn explain_walks_a_real_shipped_finding_and_hard_fails_unknown() {
+        // The shipped bundle's graph/diagnostics must carry real findings (the
+        // loss-ledger / projection-loss witnesses populate it even when clean). If
+        // it is empty, explain has nothing to walk on the shippable surface — a
+        // blocker to surface, not to paper over.
+        let index = finding_index(BUNDLE_GTS).expect("read diagnostics from shipped bundle");
+        assert!(
+            !index.is_empty(),
+            "shipped bundle graph/diagnostics carries NO findings — explain has no real witness to walk"
+        );
+
+        // Pick the first real fingerprint IRI from the index.
+        let real_iri = index
+            .findings
+            .keys()
+            .next()
+            .expect("at least one finding")
+            .clone();
+        let real_code = index.get(&real_iri).expect("finding present").code.clone();
+
+        // The production rendering path returns the finding's IRI + code + verdict.
+        let text = render_explanation(&index, &real_iri).expect("render a real finding");
+        eprintln!("REAL_FINDING_IRI={real_iri}");
+        eprintln!("{text}");
+        assert!(text.contains(&real_iri), "output names the finding IRI");
+        assert!(text.contains(&real_code), "output names the finding code");
+        assert!(
+            text.contains("gate verdict:"),
+            "output carries a verdict line"
+        );
+        assert!(
+            text.contains("minimal fatal cut"),
+            "output carries the minimal fatal cut"
+        );
+
+        // A real finding explains with exit 0 through the i32 surface.
+        assert_eq!(
+            explain(real_iri, None, ConsoleMode::Text),
+            0,
+            "a real finding explains successfully"
+        );
+
+        // An unknown target is a hard fail: Err from the renderer AND a non-zero
+        // exit through the command surface — never an empty DAG returned as 0.
+        assert!(
+            render_explanation(&index, "not-a-real-iri").is_err(),
+            "an unknown target is a hard fail"
+        );
+        assert_ne!(
+            explain("not-a-real-iri".to_owned(), None, ConsoleMode::Text),
+            0,
+            "an unknown target exits non-zero"
+        );
     }
 }
 
