@@ -138,6 +138,19 @@ gmeow:AffectEvaluationConcluded
     gmeow:howToUse "Record it as an Observation over the checked target when an affect evaluation ran and returned no salient magnitude, so 'concluded flat' is a fact separate from 'never checked'."@x-gmeow-english ;
     gmeow:useWhen "Use to record that an affect check ran and found a flat baseline — the checked-and-flat state, never conflated with the absence of any evaluation."@x-gmeow-english .
 
+gmeow:AffectDecision
+    a logic:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Affect Decision"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Observation ;
+    skos:definition "A single-label classifier's categorical decision over one target — the argmax (gmeow:decidedLabel) recorded as model-vantage EVIDENCE (gmeow:vantage = the run, gmeow:observedFeature = the target), derived by gmeow:fnArgmax over a gmeow:decisionArgmax label set. A fact about the CLASSIFIER'S OUTPUT over external gmeow:AffectClassifierLabel identities, NEVER a gmeow:AffectiveClaim about inner affect and never a gmeow:EmotionType — so it needs no reviewed closeMatch and is recorded even when the argmax falls BELOW the claim threshold (gmeow:decisionCrossedThreshold false). This preserves the model's decision faithfully (maximal information flow) without forcing a claim (the evidence/claim boundary, Principle 9). Only a gmeow:decisionArgmax set carries one: a multi-label set has no single categorical winner. Supersedes gmeow:AffectEvaluationConcluded for single-label sets — a decided winner, even a low-margin one, is the positive 'checked' fact, never silence."@x-gmeow-english ;
+    skos:example "ex:decision a gmeow:AffectDecision ; gmeow:vantage ex:run ; gmeow:observedFeature ex:chunk ; gmeow:decidedLabel gmeow-hf:ekmanJoy ; gmeow:decisionCrossedThreshold false ; gmeow:decisionMargin 0.07 ; gmeow:derivedByFunction gmeow:fnArgmax ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting it for a multi-label (gmeow:decisionIndependentThreshold) set (there is no single argmax winner), avoid treating it as a gmeow:AffectiveClaim about inner affect (it is classifier-output evidence over an external label), and avoid asserting a gmeow:decisionMargin when the run emitted a single top-1 score (no runner-up exists)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "For a gmeow:decisionArgmax label set, mint one gmeow:AffectDecision per (run, target): gmeow:vantage the run, gmeow:observedFeature the target, gmeow:decidedLabel the argmax label, gmeow:decisionCrossedThreshold whether it crossed the claim threshold, gmeow:derivedByFunction gmeow:fnArgmax, and gmeow:decisionMargin (top1−top2) only when ≥2 scores are present."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a single-label classifier's argmax decision as faithful evidence over a target — including the below-threshold case where the model decided but no claim is routed."@x-gmeow-english .
+
 gmeow:AffectFunction
     a logic:AbstractIndividualType ,
         owl:Class ;
@@ -154,6 +167,15 @@ gmeow:WeightingPolicy
     rdfs:label "Weighting Policy"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
     skos:definition "An OPEN value vocabulary naming the declared axis-weighting policy under which a derived affect intensity combines its core-affect axes — seeded with gmeow:weightingEqualCoreAffect (equal-weight axes) and gmeow:weightingValenceDominant (valence-dominant diagonal weights). Weighting is a machine-readable NAMED HANDLE, never a free-text string: applying it is solver work outside the logic (Principle 12), and the individual declares which policy the diagonal/off-diagonal weights of the metric Gram matrix realize. Kept open, never an sh:in enum."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:LabelSetDecisionRule
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "Label Set Decision Rule"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "An OPEN value vocabulary naming the decision structure a gmeow:AffectLabelSet carries — how a classifier turns its scores over the set into a decision. gmeow:decisionArgmax is single-label / winner-take-all: the members form a PARTITION (mutually exclusive and exhaustive), a softmax score is a point on the probability simplex, and the decision is its argmax (the categorical mode) — exactly one label. gmeow:decisionIndependentThreshold is multi-label: per-label independent Bernoulli thresholding over the [0,1] hypercube, zero-or-more labels. This is the formal dual of gmeow:ScoreSemantics (softmax ↔ argmax/exclusive, sigmoid ↔ independent-threshold), machine-coupled by gmeow:impliesLabelSetDecision so a scoring function and its set's decision rule can never silently disagree. Kept open, never an sh:in enum."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:AffectVectorObservation
@@ -215,7 +237,7 @@ gmeow:AffectLabelSet
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affect Label Set"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A named label vocabulary/registry that a classifier or dataset emits over (GoEmotions, Ekman-7, SST-2, CardiffNLP TweetEval). Its members are gmeow:AffectClassifierLabel individuals (gmeow:memberOfLabelSet). An information artifact: a label set is NOT an ontology of emotion and never defines canonical affect semantics. A Hugging Face label not registered in some gmeow:AffectLabelSet fails canonical projection (a hard fail)."@x-gmeow-english ;
+    skos:definition "A named label vocabulary/registry that a classifier or dataset emits over (GoEmotions, Ekman-7, SST-2, CardiffNLP TweetEval). Its members are gmeow:AffectClassifierLabel individuals (gmeow:memberOfLabelSet). An information artifact: a label set is NOT an ontology of emotion and never defines canonical affect semantics. A Hugging Face label not registered in some gmeow:AffectLabelSet fails canonical projection (a hard fail). A REGISTERED (static) label set MUST declare its gmeow:labelSetDecision (single-label vs multi-label) — the producer hard-fails a registered set with no rule. A run-scoped zero-shot candidate set is minted per run and carries NO reviewed decision rule (it is legitimately rule-less), so the requirement is a producer-enforced invariant on registered sets, not a universal cardinality that would wrongly flag the minted candidate set."@x-gmeow-english ;
     skos:example "gmeow-labelset:GoEmotions a gmeow:AffectLabelSet ; rdfs:label \"GoEmotions\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating a label set as a canonical emotion taxonomy (it is evidence provenance, not ontology) and avoid emitting a label with no registered set (unregistered labels fail projection)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -463,11 +485,11 @@ gmeow:affectiveConstituent
 
 gmeow:derivedByFunction
     a owl:ObjectProperty ;
-    rdfs:domain gmeow:DerivedAffectIntensityObservation ;
+    rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "derived by function"@x-gmeow-english ;
     rdfs:range gmeow:AffectFunction ;
-    skos:definition "The named gmeow:AffectFunction (e.g. gmeow:fnAffectiveIntensity) that produced a derived-affect observation — the CLI-exposed handle for the computation, carried out outside the logic (Principle 12)."@x-gmeow-english ;
+    skos:definition "The named gmeow:AffectFunction that produced a derived-affect observation — the CLI-exposed handle for the computation, carried out outside the logic (Principle 12). Applies to any derived gmeow:Observation: gmeow:fnAffectiveIntensity on a gmeow:DerivedAffectIntensityObservation, gmeow:fnArgmax on a gmeow:AffectDecision."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:intensityBasis
@@ -498,6 +520,55 @@ gmeow:normFunction
     rdfs:label "norm function"@x-gmeow-english ;
     rdfs:range math:Norm ;
     skos:definition "The declared math:Norm under which a derived intensity is computed — the machine-readable, grounded norm object (never a free-text string), a math:Norm math:inducedByForm a positive-definite math:SymmetricBilinearForm, so ‖x‖ = √(xᵀGx) is exact and never a bare L² over the non-orthogonal basis. The canonical affect norm is gmeow:affectMetricTensorNorm. Mandatory (SHACL); the metric is explicit and computing it is solver work (Principle 12). Functional: one intensity, one norm."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:labelSetDecision
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AffectLabelSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "label set decision"@x-gmeow-english ;
+    rdfs:range gmeow:LabelSetDecisionRule ;
+    skos:definition "The gmeow:LabelSetDecisionRule a gmeow:AffectLabelSet carries — gmeow:decisionArgmax (single-label / mutually-exclusive) or gmeow:decisionIndependentThreshold (multi-label). Mandatory on a REGISTERED (static) set: the producer hard-fails a registered set with no declared rule, because its exclusivity is then unknown and it cannot judge whether more than one crossing is a violation. A run-scoped zero-shot candidate set is rule-less by design. Functional: one set, one rule."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:impliesLabelSetDecision
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ScoreSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "implies label set decision"@x-gmeow-english ;
+    rdfs:range gmeow:LabelSetDecisionRule ;
+    skos:definition "The gmeow:LabelSetDecisionRule entailed by a normalized gmeow:ScoreSemantics — the machine coupling edge that makes exclusivity a checkable consequence of the scoring function. gmeow:scoreSoftmax implies gmeow:decisionArgmax (a simplex point → an argmax decision over a partition); gmeow:scoreSigmoid implies gmeow:decisionIndependentThreshold (a hypercube point → per-label thresholds). A run whose gmeow:scoreSemantics implies a rule other than its label set's gmeow:labelSetDecision is an inconsistency (a hard fail). Only normalized-distribution semantics carry an implication — gmeow:scoreLogit, gmeow:scoreMargin, and gmeow:scoreEntailment (per-hypothesis, not normalized across candidates) carry none."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:decidedLabel
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AffectDecision ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "decided label"@x-gmeow-english ;
+    rdfs:range gmeow:AffectClassifierLabel ;
+    skos:definition "The single gmeow:AffectClassifierLabel a gmeow:AffectDecision decides — the argmax (categorical mode) over a gmeow:decisionArgmax label set. Functional: a decision has exactly one decided label — the categorical winner-take-all exclusivity bound. Its single-valued and mandatory cardinality is a closed-world constraint enforced per observation-kind in SHACL (gmeow:AffectDecisionShape: sh:minCount 1 / sh:maxCount 1), a hard fail at validation: a decision with no decided label is meaningless, and two labels is not a single-label decision."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:decisionCrossedThreshold
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AffectDecision ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "decision crossed threshold"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "Whether the decided label's score crossed its claim threshold (true) or the model decided but no claim was routed (false). Makes 'decided-but-below-threshold' a queryable fact distinct from a routed gmeow:AffectiveClaim — the argmax is recorded either way, only the claim is gated. Functional; mandatory."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:decisionMargin
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AffectDecision ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "decision margin"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "The top1−top2 score gap of a gmeow:AffectDecision — the derived confidence of the argmax call ('joy at 0.45 in a 7-way set' is a low-margin decision the boolean gmeow:decisionCrossedThreshold alone would discard). A derived view (Principle 12), recomputable from the scores, computed by gmeow:fnArgmax. OPTIONAL (functional, NO minCardinality): a run emitting a single top-1 score has no runner-up, so a legitimate single-score argmax decision carries no margin and is never a hard fail."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:vectorComponent
@@ -855,6 +926,13 @@ gmeow:fnAffectiveIntensity
     rdfs:seeAlso gmeow:affectMetricTensorNorm ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:fnArgmax
+    a gmeow:AffectFunction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "argmax (categorical mode)"@x-gmeow-english ;
+    skos:definition "The categorical MAP / mode function the gmeow CLI applies over a single-label classifier's score vector to record its decision — argmax over the labels of a gmeow:decisionArgmax set, dual to gmeow:fnAffectiveIntensity (the intensity norm). A named handle for a computation carried out outside the logic (Principle 12): it names the derivation that produced a gmeow:AffectDecision's gmeow:decidedLabel (and its gmeow:decisionMargin, the top1−top2 gap), it does not compute in triples."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 # --- The canonical core-affect intensity metric (resolves the norm open question). --- #
 # G is a positive-definite symmetric 4×4 Gram matrix over the core-affect basis
 # {valence 0, arousal 1, dominance 2, unpredictability 3}: diagonal all 1, the
@@ -1021,14 +1099,16 @@ gmeow:scoreSigmoid
     a gmeow:ScoreSemantics ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "sigmoid score"@x-gmeow-english ;
-    skos:definition "A per-label sigmoid score (multi-label, e.g. GoEmotions) — evidence strength, NOT a calibrated probability."@x-gmeow-english ;
+    skos:definition "A per-label sigmoid score (multi-label, e.g. GoEmotions) — evidence strength, NOT a calibrated probability. A point on the [0,1] hypercube (independent Bernoullis), so it implies the multi-label decision rule."@x-gmeow-english ;
+    gmeow:impliesLabelSetDecision gmeow:decisionIndependentThreshold ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:scoreSoftmax
     a gmeow:ScoreSemantics ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "softmax probability"@x-gmeow-english ;
-    skos:definition "A softmax probability over a mutually-exclusive label set — a raw model probability, not calibrated unless a gmeow:scoreCalibration says so."@x-gmeow-english ;
+    skos:definition "A softmax probability over a mutually-exclusive label set — a raw model probability, not calibrated unless a gmeow:scoreCalibration says so. A point on the probability simplex (a categorical distribution over a partition), so it implies the single-label / argmax decision rule."@x-gmeow-english ;
+    gmeow:impliesLabelSetDecision gmeow:decisionArgmax ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:scoreEntailment
@@ -1036,6 +1116,20 @@ gmeow:scoreEntailment
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "entailment probability"@x-gmeow-english ;
     skos:definition "A natural-language-inference entailment probability from a zero-shot classifier (a hypothesis built from a run-scoped candidate label and template, scored entailment-vs-contradiction) — evidence strength, NOT a calibrated probability. The candidate label set is part of the run identity, carried by gmeow:hypothesisTemplate + gmeow:labelSetRevision, so a zero-shot 'joy' is not GoEmotions joy."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:decisionArgmax
+    a gmeow:LabelSetDecisionRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "argmax (single-label)"@x-gmeow-english ;
+    skos:definition "The single-label / winner-take-all decision rule: the label set's members form a partition (mutually exclusive and exhaustive), the score vector is a point on the probability simplex, and the decision is its argmax (the categorical mode) — exactly one decided label. SST-2, CardiffNLP TweetEval, and Ekman-7 carry it. Under it, more than one label crossing its claim threshold in one observation is a hard fail (mutually-exclusive claims), and the model's argmax is recorded as a gmeow:AffectDecision even when it falls below the claim threshold."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:decisionIndependentThreshold
+    a gmeow:LabelSetDecisionRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    rdfs:label "independent threshold (multi-label)"@x-gmeow-english ;
+    skos:definition "The multi-label decision rule: each label is an independent Bernoulli thresholded on its own (the score vector is a point on the [0,1] hypercube, a product space), so zero, one, or many labels may be decided at once. GoEmotions carries it. Multiple crossings are legitimate and no gmeow:AffectDecision is minted — a multi-label set has no single categorical winner."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:polarityBipolar
@@ -1194,6 +1288,7 @@ gmeow-labelset:CardiffTweetEval
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "CardiffNLP TweetEval sentiment"@x-gmeow-english ;
     skos:definition "The CardiffNLP Twitter-RoBERTa ternary sentiment label set (Negative/Neutral/Positive)."@x-gmeow-english ;
+    gmeow:labelSetDecision gmeow:decisionArgmax ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow-labelset:Ekman7
@@ -1201,6 +1296,7 @@ gmeow-labelset:Ekman7
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Ekman-7"@x-gmeow-english ;
     skos:definition "The Ekman-7 emotion label set used by j-hartmann/emotion-english-distilroberta-base (anger, disgust, fear, joy, neutral, sadness, surprise)."@x-gmeow-english ;
+    gmeow:labelSetDecision gmeow:decisionArgmax ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow-labelset:GoEmotions
@@ -1208,6 +1304,7 @@ gmeow-labelset:GoEmotions
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "GoEmotions"@x-gmeow-english ;
     skos:definition "The GoEmotions label set (27 emotion categories + neutral, multi-label) — the reference classifier adapter, as used by SamLowe/roberta-base-go_emotions."@x-gmeow-english ;
+    gmeow:labelSetDecision gmeow:decisionIndependentThreshold ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow-labelset:SST2
@@ -1215,6 +1312,7 @@ gmeow-labelset:SST2
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "SST-2 binary sentiment"@x-gmeow-english ;
     skos:definition "The SST-2 binary sentiment label set (POSITIVE/NEGATIVE) — the default text-classification sentiment pipeline."@x-gmeow-english ;
+    gmeow:labelSetDecision gmeow:decisionArgmax ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 # ── Canonical schadenfreude worked instance (shipped A-Box) ───────────────────
