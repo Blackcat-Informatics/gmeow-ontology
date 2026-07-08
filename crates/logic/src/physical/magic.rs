@@ -45,8 +45,7 @@
 //! spurious), and the goal projection re-imposes the goal's own bound positions. Widening a
 //! magic guard to a more-general table therefore only derives a superset of a demand slice of
 //! the SAME least model; the goal answer set is byte-identical to the per-adornment (variant)
-//! keying, while fewer magic predicates and derivations are minted (the structural win, an
-//! inspectable [`DemandProfile`]). The `#[cfg(test)] magic_transform_variant` is the retained
+//! keying, while fewer magic predicates and derivations are minted (the structural win). The `#[cfg(test)] magic_transform_variant` is the retained
 //! byte-identity A/B oracle.
 //!
 //! # The transformation (standard magic-sets, left-to-right SIPS)
@@ -389,29 +388,6 @@ struct MagicProgram {
     seed: Option<EvalAtom>,
 }
 
-/// A small, inspectable record of the structural demand-collapse the SUBSUMPTIVE transform
-/// achieves — the reusable perf win as a value, not a wall-clock claim.
-///
-/// `magic_predicates_minted` is the number of magic predicates the subsumptive transform
-/// actually mints (one per ⊑-minimal / most-general demanded adornment per predicate, `ff`
-/// excluded — an all-free demand mints no predicate). `demanded_patterns` is the number the
-/// VARIANT (per-exact-adornment) transform would mint (one per distinct demanded non-`ff`
-/// adornment). `collapse_ratio = minted / demanded` ∈ (0, 1]: strictly below 1 exactly when
-/// some predicate is demanded at two comparable adornments and the more-specific one is
-/// served from the more-general kept magic predicate (Tekle & Liu, SIGMOD 2011 — subsumptive
-/// tabling keeps only the most-general table and serves specific calls from it).
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub(crate) struct DemandProfile {
-    /// The magic predicates the subsumptive transform mints (kept, non-`ff` adornments).
-    pub(crate) magic_predicates_minted: usize,
-    /// The magic predicates a per-exact-adornment (variant) transform would mint (all
-    /// demanded non-`ff` adornments) — the collapse denominator.
-    pub(crate) demanded_patterns: usize,
-    /// `magic_predicates_minted / demanded_patterns` (1.0 when nothing collapses / nothing
-    /// is demanded); strictly `< 1.0` iff the collapse fired.
-    pub(crate) collapse_ratio: f64,
-}
-
 /// The full demanded adornment set of a magic-sets demand fixpoint: for each IDB predicate,
 /// the set of adornment codes (`BindingPattern::code`) it is demanded at, discovered by the
 /// standard left-to-right-SIPS demand fixpoint rooted at the goal.
@@ -482,7 +458,7 @@ fn demand_fixpoint(
 /// kept general `A` serves every more-specific `B` it subsumes: `A`'s answers ⊇ `B`'s, so the
 /// specific call reads `A`'s table filtered by the residual on `bound(B) ∖ bound(A)` — which
 /// on this binary path is discharged for free by the modified rule's ORIGINAL body atoms plus
-/// the goal projection (see `magic_transform_subsumptive`). This is the subsumptive-tabling
+/// the goal projection (see `magic_transform`). This is the subsumptive-tabling
 /// collapse: keep only the most-general table per predicate.
 fn minimal_antichain(codes: &BTreeSet<String>) -> Vec<BindingPattern> {
     let pats: Vec<BindingPattern> = codes.iter().map(|c| BindingPattern::from_code(c)).collect();
@@ -525,12 +501,12 @@ fn serve(kept: &[BindingPattern], pat: BindingPattern) -> BindingPattern {
 /// same least model, never a wrong answer — the goal answer set is byte-identical to the
 /// variant transform ([`magic_transform_variant`], the `#[cfg(test)]` byte-identity oracle).
 ///
-/// Returns the transformed program + seed, and the [`DemandProfile`] recording the collapse.
-fn magic_transform_subsumptive(
+/// Returns the transformed program + seed.
+fn magic_transform(
     rules: &[EvalRule],
     goal: &EvalAtom,
     goal_adorn: BindingPattern,
-) -> (MagicProgram, DemandProfile) {
+) -> MagicProgram {
     let idb: BTreeSet<String> = rules
         .iter()
         .map(|r| r.head.predicate.as_str().to_owned())
@@ -654,45 +630,11 @@ fn magic_transform_subsumptive(
         }
     }
 
-    // (5) Profile: the variant transform would mint one magic predicate per demanded non-ff
-    //     adornment; the subsumptive transform mints one per kept non-ff adornment.
-    let has_bound = |c: &String| c.contains('b');
-    let demanded_patterns = demanded.values().flatten().filter(|c| has_bound(c)).count();
-    let magic_predicates_minted = kept.values().flatten().filter(|p| !p.is_all_free()).count();
-    let collapse_ratio = if demanded_patterns == 0 {
-        1.0
-    } else {
-        magic_predicates_minted as f64 / demanded_patterns as f64
-    };
-
-    (
-        MagicProgram { rules: out, seed },
-        DemandProfile {
-            magic_predicates_minted,
-            demanded_patterns,
-            collapse_ratio,
-        },
-    )
-}
-
-/// Magic-transform `rules` w.r.t. the goal atom `goal` and its `goal_adorn` — the PRODUCTION
-/// (subsumptive) demand rewrite.
-///
-/// Returns the transformed binary program (modified rules + magic rules) plus the ground
-/// seed fact.  The IDB predicate set is the set of original rule-head predicates; only IDB
-/// body atoms are adorned/guarded (an EDB body atom propagates SIPS bindings but carries no
-/// magic). Thin wrapper over [`magic_transform_subsumptive`] dropping the [`DemandProfile`]
-/// (the runtime path needs only the program; tests read the profile directly).
-fn magic_transform(
-    rules: &[EvalRule],
-    goal: &EvalAtom,
-    goal_adorn: BindingPattern,
-) -> MagicProgram {
-    magic_transform_subsumptive(rules, goal, goal_adorn).0
+    MagicProgram { rules: out, seed }
 }
 
 /// The VARIANT (per-exact-adornment) magic-sets transformation — the `#[cfg(test)]`
-/// byte-identity reference the production [`magic_transform_subsumptive`] is checked against.
+/// byte-identity reference the production [`magic_transform`] is checked against.
 ///
 /// Mints a SEPARATE magic predicate per distinct demanded adornment (no subsumptive collapse):
 /// this is the pre-upgrade demand keying, kept only as the A/B oracle proving the subsumptive
@@ -2657,12 +2599,7 @@ mod tests {
     /// variant transform for `prog`.
     fn assert_ab_identical(foreign: &dyn ScryerForeign, world: &str, prog: &QProgram, label: &str) {
         let variant = answers_via(magic_transform_variant, foreign, world, prog);
-        let subsumptive = answers_via(
-            |r, g, a| magic_transform_subsumptive(r, g, a).0,
-            foreign,
-            world,
-            prog,
-        );
+        let subsumptive = answers_via(magic_transform, foreign, world, prog);
         assert_eq!(
             variant, subsumptive,
             "A/B byte-identity failed on {label}: variant {variant:?} vs subsumptive {subsumptive:?}"
@@ -2802,12 +2739,7 @@ mod tests {
 
         // (a) Byte-identical goal answers: q(a, W) = {b, c, d}. The leak-trap `z` is absent.
         let variant = answers_via(magic_transform_variant, &foreign, &world_nn, &prog);
-        let subsumptive = answers_via(
-            |r, g, a| magic_transform_subsumptive(r, g, a).0,
-            &foreign,
-            &world_nn,
-            &prog,
-        );
+        let subsumptive = answers_via(magic_transform, &foreign, &world_nn, &prog);
         assert_eq!(
             variant, subsumptive,
             "collapse must preserve the answer set"
@@ -2832,7 +2764,7 @@ mod tests {
         let goal_atom = atom_of(&prog.goal.atoms[0]).unwrap();
         let adorn = goal_adornment(&prog.goal.atoms[0]);
         let variant_mp = magic_transform_variant(&rules, &goal_atom, adorn);
-        let (subsumptive_mp, profile) = magic_transform_subsumptive(&rules, &goal_atom, adorn);
+        let subsumptive_mp = magic_transform(&rules, &goal_atom, adorn);
 
         let variant_preds = minted_magic_preds(&variant_mp);
         let subsumptive_preds = minted_magic_preds(&subsumptive_mp);
@@ -2854,25 +2786,6 @@ mod tests {
             subsumptive_preds.iter().any(|p| p.ends_with("p_bf")),
             "subsumptive keeps the most-general p_bf table: {subsumptive_preds:?}"
         );
-
-        // (c) DemandProfile agrees with the emitted program and shows collapse_ratio < 1.
-        assert_eq!(
-            profile.magic_predicates_minted,
-            subsumptive_preds.len(),
-            "profile mint count must match the emitted magic predicates"
-        );
-        assert_eq!(
-            profile.demanded_patterns,
-            variant_preds.len(),
-            "profile demanded count must match the variant mint count"
-        );
-        assert!(
-            profile.collapse_ratio < 1.0,
-            "the collapse fired ⇒ ratio < 1: {profile:?}"
-        );
-        // Concretely: demanded {q_bf, p_bf, p_bb} = 3, minted {q_bf, p_bf} = 2.
-        assert_eq!(profile.demanded_patterns, 3, "q_bf + p_bf + p_bb");
-        assert_eq!(profile.magic_predicates_minted, 2, "q_bf + p_bf");
     }
 
     // ── Test 3: residual no-leak — the general demand over-derives, the answer stays exact ─
@@ -2887,7 +2800,7 @@ mod tests {
         let adorn = goal_adornment(&prog.goal.atoms[0]);
 
         // Evaluate the SUBSUMPTIVE transformed program and inspect the derived `p` facts.
-        let (mp, _profile) = magic_transform_subsumptive(&rules, &goal_atom, adorn);
+        let mp = magic_transform(&rules, &goal_atom, adorn);
         let mut edb = extract_edb(&foreign, &world_nn);
         if let Some(seed) = &mp.seed {
             let f = seed_to_fact(seed).unwrap();
@@ -2921,12 +2834,7 @@ mod tests {
         // atom in q's second rule carries the constant `c`, so the over-derived `p(a, b)` is
         // filtered out of the join — it can NEVER reach `p(c, Y)` and drag in the `e(b, z)`
         // trap edge. The residual is discharged by the ORIGINAL body atom's own constant.
-        let answers = answers_via(
-            |r, g, a| magic_transform_subsumptive(r, g, a).0,
-            &foreign,
-            &world_nn,
-            &prog,
-        );
+        let answers = answers_via(magic_transform, &foreign, &world_nn, &prog);
         let ws: BTreeSet<&str> = answers.iter().map(|b| b["W"].as_str()).collect();
         assert!(
             !ws.contains(format!("<{BASE}z>").as_str()),
