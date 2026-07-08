@@ -334,10 +334,14 @@ fn twin_affect_decision_single_decided_label_conforms() {
 
 #[test]
 fn twin_affect_decision_two_vantages_conforms() {
-    // The projected vantage bound is sh:qualifiedMinCount 1 (from owl:minQualifiedCardinality
-    // 1) — a LOWER bound, NOT capped at max-1. A well-formed decision with TWO distinct
-    // vantage runs (each a gmeow:Entity, so each satisfies the qualifiedValueShape) must
-    // still conform against the live production shape union — vantage count is uncapped.
+    // The projected vantage bound is a plain sh:minCount 1 (from owl:minQualifiedCardinality 1
+    // + owl:onClass owl:Thing, which the compiler degrades to an UNTYPED minCount — the value
+    // TYPE stays owned by gmeow:vantage rdfs:range gmeow:Entity, not this per-class bound). A
+    // LOWER bound, NOT capped at max-1: a decision with TWO distinct vantage runs must still
+    // conform against the live production shape union — vantage count is uncapped. (The runs
+    // are typed gmeow:Entity here because this ontology-merged harness also enforces the
+    // vantage range shape; the plain-minCount, no-over-flag behaviour on the user-data-only
+    // `gmeow validate` surface is exercised by the CLI enforcement demonstration.)
     let graph = format!(
         "{TWIN_PREFIXES}\
          ex:d a gmeow:AffectDecision ; gmeow:vantage ex:runA , ex:runB ; \
