@@ -11,6 +11,8 @@
 //! - Rules: `head :- body1, body2, ... .` and facts `head.`
 //! - Goal: exactly one `?- goalatom1, goalatom2, ... .`
 //! - Atoms are binary predicates over RDF: `pred(Subject, Object)`.
+//! - Negation-as-failure: a body literal `\+ pred(S, O)` or `not pred(S, O)` is parsed
+//!   as a [`QBodyLit::Neg`] (stratified NAF, evaluated by the native binary core).
 //! - Cut: the body literal `!` is parsed as a [`QBodyLit::Cut`] marker.
 //!
 //! # Canonicalization
@@ -62,6 +64,16 @@ pub struct QAtom {
 pub enum QBodyLit {
     /// A normal predicate atom.
     Atom(QAtom),
+    /// A negated body atom (negation-as-failure), written `\+ pred(a, b)` or
+    /// `not pred(a, b)` on the query surface (the Prolog-ish backward mirror of the
+    /// forward rule-text `~pred` negation).
+    ///
+    /// Stratified NAF: the negated atom blocks the rule iff some grounding of it is
+    /// PRESENT in the accumulated least model of a strictly-lower stratum. It binds no
+    /// new variables (NAF is a test, not a generator), and every variable it carries
+    /// must be range-restricted by a positive body atom — an unbound variable under
+    /// negation flounders (an unsound NAF goal) and is a declared native gap.
+    Neg(QAtom),
     /// The Prolog cut `!`. Procedural — not supported by the declarative oracle.
     Cut,
     /// An arithmetic (`X is Y op Z`) or comparison (`L cmp R`) builtin.
@@ -954,6 +966,11 @@ fn parse_body_lit_list(
             let tok = tok.trim();
             if tok == "!" {
                 Ok(QBodyLit::Cut)
+            } else if let Some(inner) = strip_negation(tok) {
+                // A negated body literal `\+ pred(..)` / `not pred(..)`: the inner form
+                // is always an ordinary predicate atom (NAF over a builtin/cut is not a
+                // meaningful goal), so parse it as an atom and wrap it as `Neg`.
+                parse_atom(inner.trim(), prefixes).map(QBodyLit::Neg)
             } else if let Some(builtin) = try_parse_builtin(tok, prefixes)? {
                 Ok(QBodyLit::Builtin(builtin))
             } else {
@@ -961,6 +978,25 @@ fn parse_body_lit_list(
             }
         })
         .collect()
+}
+
+/// Strip a leading negation-as-failure operator (`\+` or the `not` keyword) from a body
+/// literal token, returning the inner (still-unparsed) atom text.
+///
+/// Recognizes the two Prolog-ish query-surface forms: `\+ pred(..)` (with or without a
+/// space after `\+`) and `not pred(..)` (the keyword form, requiring a following space so
+/// a predicate whose local name merely starts with `not`, e.g. `notation(..)`, is NOT
+/// mistaken for a negation). Returns `None` when `tok` carries no negation operator.
+fn strip_negation(tok: &str) -> Option<&str> {
+    if let Some(rest) = tok.strip_prefix("\\+") {
+        return Some(rest);
+    }
+    if let Some(rest) = tok.strip_prefix("not")
+        && rest.starts_with(char::is_whitespace)
+    {
+        return Some(rest);
+    }
+    None
 }
 
 /// Attempt to parse `tok` as an arithmetic or comparison builtin.
@@ -1274,7 +1310,7 @@ impl QBodyLit {
     pub fn into_atom(self) -> Option<QAtom> {
         match self {
             QBodyLit::Atom(a) => Some(a),
-            QBodyLit::Cut | QBodyLit::Builtin(_) => None,
+            QBodyLit::Neg(_) | QBodyLit::Cut | QBodyLit::Builtin(_) => None,
         }
     }
 }
@@ -1414,6 +1450,45 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
             rule.body[2],
             QBodyLit::Atom(rule.body[2].clone().into_atom().unwrap())
         );
+    }
+
+    // ── Negation-as-failure in body ───────────────────────────────────────────
+
+    #[test]
+    fn parse_backslash_plus_and_not_negation() {
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ex:p(X, Y) :- ex:q(X, Y), \\+ ex:r(X, Y), not ex:s(X, Y).\n\
+             ?- ex:p(X, Y).\n",
+        )
+        .unwrap();
+        let body = &prog.rules[0].body;
+        assert_eq!(body.len(), 3, "one positive + two negated literals");
+        assert!(matches!(body[0], QBodyLit::Atom(_)), "q is positive");
+        match &body[1] {
+            QBodyLit::Neg(a) => assert_eq!(a.pred, "https://example.org/r"),
+            other => panic!("expected Neg(r), got {other:?}"),
+        }
+        match &body[2] {
+            QBodyLit::Neg(a) => assert_eq!(a.pred, "https://example.org/s"),
+            other => panic!("expected Neg(s), got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parse_not_prefixed_predicate_is_not_mistaken_for_negation() {
+        // A predicate whose local name merely starts with `not` (here `notation`) must NOT
+        // be parsed as a negation operator — the `not` keyword requires a following space.
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ex:p(X, Y) :- ex:notation(X, Y).\n\
+             ?- ex:p(X, Y).\n",
+        )
+        .unwrap();
+        match &prog.rules[0].body[0] {
+            QBodyLit::Atom(a) => assert_eq!(a.pred, "https://example.org/notation"),
+            other => panic!("expected a positive notation atom, got {other:?}"),
+        }
     }
 
     // ── Reject: no goal ───────────────────────────────────────────────────────

@@ -685,6 +685,7 @@ fn hash_rules(program: &QProgram) -> [u8; 32] {
                 .iter()
                 .map(|lit| match lit {
                     crate::query_ir::QBodyLit::Atom(a) => atom_str(a),
+                    crate::query_ir::QBodyLit::Neg(a) => format!("\\+ {}", atom_str(a)),
                     crate::query_ir::QBodyLit::Cut => "!".to_owned(),
                     crate::query_ir::QBodyLit::Builtin(b) => builtin_str(b),
                 })
