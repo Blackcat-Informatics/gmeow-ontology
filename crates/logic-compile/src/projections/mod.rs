@@ -61,6 +61,10 @@ pub mod shapes;
 // The shape-component subsumption engine: enforcement-key equivalence (`≡`) and a sound
 // under-approximation of the enforcement pre-order (`⊑`) over closed-world validation shapes.
 pub mod subsumption;
+// The lift (Galois adjoint of `derive_validation_shapes`): a validation shape → the OWL/RDFS
+// + `logic:ClosureEntry` axiom-text PROPOSAL that re-derives it, with a machine-checkable
+// equivalence-before-deletion certificate over the real forward derive.
+pub mod lift;
 // The SPARQL-CONSTRUCT correspondence lowering (get leg → executable CONSTRUCT).
 pub mod sparql;
 // The inverse-ingest ("put") SPARQL-CONSTRUCT lowering: the role-swap of `sparql` (external
