@@ -22,6 +22,7 @@ use gmeow_logic::verify::{verify as verify_reasoned, verify_with_reasoning_resul
 use crate::dev_common::{
     elapsed_ms, emit_report, fail, note, project_root, snapshot_bytes, write_timings_json,
 };
+use crate::error;
 
 /// Import the committed snapshot into a reasoning dataset.
 fn snapshot_dataset(root: &Path) -> Result<std::sync::Arc<purrdf::RdfDataset>, i32> {
@@ -36,14 +37,13 @@ fn snapshot_dataset(root: &Path) -> Result<std::sync::Arc<purrdf::RdfDataset>, i
 /// and refuse a verdict minted under a different reasoning contract than this
 /// binary's engine: a stale bundle must be regenerated (or re-reasoned with
 /// `--fresh`), never re-reported as current.
-fn shipped_reasoning_result(dataset: &purrdf::RdfDataset) -> Result<ReasoningResult, String> {
+fn shipped_reasoning_result(dataset: &purrdf::RdfDataset) -> gmeow_errors::Result<ReasoningResult> {
     let graph = dataset.project_named_graph(gmeow_logic::result_rdf::GRAPH_REASONING);
     if graph.quad_count() == 0 {
-        return Err(
+        return Err(error::reasoning(
             "the snapshot carries no graph/reasoning verdict; run `make regenerate` \
-             (or re-reason with --fresh)"
-                .to_string(),
-        );
+             (or re-reason with --fresh)",
+        ));
     }
     // The projected sub-dataset is default-graph only, so its canonical N-Quads
     // lines are `s p o .` — exactly the N-Triples shape the reverse parser reads.
@@ -52,17 +52,18 @@ fn shipped_reasoning_result(dataset: &purrdf::RdfDataset) -> Result<ReasoningRes
         "application/n-quads",
         purrdf::SerializeGraph::Dataset,
     )
-    .map_err(|e| format!("serialize graph/reasoning: {e}"))?;
-    let nt = String::from_utf8(nt).map_err(|e| format!("graph/reasoning is not UTF-8: {e}"))?;
-    let result = gmeow_logic::result_rdf::parse_reasoning_graph(&nt)?;
+    .map_err(|e| error::rdf(format!("serialize graph/reasoning: {e}")))?;
+    let nt = String::from_utf8(nt)
+        .map_err(|e| error::encoding(format!("graph/reasoning is not UTF-8: {e}")))?;
+    let result = gmeow_logic::result_rdf::parse_reasoning_graph(&nt).map_err(error::reasoning)?;
     let current = native_contract_hash();
     if result.provenance.contract_hash != current {
-        return Err(format!(
+        return Err(error::reasoning(format!(
             "the shipped graph/reasoning verdict was minted under reasoning contract \
              {shipped} but this binary implements {current}; run `make regenerate` to \
              re-mint the bundle (or re-reason with --fresh)",
             shipped = result.provenance.contract_hash,
-        ));
+        )));
     }
     Ok(result)
 }

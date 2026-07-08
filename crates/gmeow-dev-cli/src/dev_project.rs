@@ -8,6 +8,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use crate::dev_common::{emit_error, fail, fail_code, note, project_root, snapshot_bytes};
+use crate::error;
 
 /// `gmeow-dev describe TERM [--gts --lang]` — render one term card.
 pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
@@ -475,7 +476,7 @@ pub fn refresh_target_axioms(target: &str) -> i32 {
 }
 
 /// Fetch, structurally filter, and write one target's axiom snapshot.
-fn refresh_one(source: &TargetSource, out_dir: &Path) -> Result<std::path::PathBuf, String> {
+fn refresh_one(source: &TargetSource, out_dir: &Path) -> gmeow_errors::Result<std::path::PathBuf> {
     // A network vendor step must fail fast rather than hang: cap the whole
     // request/response with a global timeout so an unreachable or stalled remote
     // surfaces as an error instead of blocking the CLI indefinitely.
@@ -484,17 +485,17 @@ fn refresh_one(source: &TargetSource, out_dir: &Path) -> Result<std::path::PathB
         .timeout_global(Some(std::time::Duration::from_secs(30)))
         .build()
         .call()
-        .map_err(|e| format!("HTTP {e}"))?
+        .map_err(|e| error::refresh(format!("HTTP {e}")))?
         .into_body()
         .read_to_string()
-        .map_err(|e| format!("read body: {e}"))?;
+        .map_err(|e| error::refresh(format!("read body: {e}")))?;
     let media = if source.media_type.contains("rdf+xml") {
         "application/rdf+xml"
     } else {
         "text/turtle"
     };
-    let dataset =
-        purrdf::parse_dataset(body.as_bytes(), media, None).map_err(|e| format!("parse: {e}"))?;
+    let dataset = purrdf::parse_dataset(body.as_bytes(), media, None)
+        .map_err(|e| error::refresh(format!("parse: {e}")))?;
 
     // Keep only the structural-axiom quads (domain / range / subPropertyOf /
     // inverseOf, plus property-type declarations) — a minimal, deterministic
@@ -514,11 +515,12 @@ fn refresh_one(source: &TargetSource, out_dir: &Path) -> Result<std::path::PathB
         }
     }
     let filtered = purrdf::flat_dataset_from_quads(&filtered_quads)
-        .map_err(|e| format!("flatten filtered: {e}"))?;
+        .map_err(|e| error::refresh(format!("flatten filtered: {e}")))?;
     let prefixes = vec![(source.prefix.to_owned(), namespace_for(source.prefix))];
     let ttl = purrdf::turtle_normalize::render(&filtered, &prefixes);
     let path = out_dir.join(format!("{}.ttl", source.prefix));
-    std::fs::write(&path, ttl).map_err(|e| format!("write {}: {e}", path.display()))?;
+    std::fs::write(&path, ttl)
+        .map_err(|e| error::refresh(format!("write {}: {e}", path.display())))?;
     Ok(path)
 }
 

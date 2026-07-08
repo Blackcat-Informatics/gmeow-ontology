@@ -29,6 +29,8 @@ use std::process::ExitCode;
 use gmeow_cli_core::{ConsoleMode, Reporter, report_diag};
 use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint};
 
+mod error;
+
 /// The always-on per-test budget, in seconds.
 const DEFAULT_BUDGET_SECS: f64 = 25.0;
 
@@ -74,29 +76,35 @@ fn emit_error(reporter: &dyn Reporter, code: &str, message: impl Into<String>) {
 /// - `Ok(s)` where `s` is unparsable, <= 0, or non-finite → hard error.
 ///
 /// Returns `Ok(budget)` on success, `Err(message)` on hard failure.
-fn resolve_budget(var: Result<String, VarError>) -> Result<f64, String> {
+fn resolve_budget(var: Result<String, VarError>) -> gmeow_errors::Result<f64> {
     match var {
         Err(VarError::NotPresent) => Ok(DEFAULT_BUDGET_SECS),
-        Err(VarError::NotUnicode(raw)) => Err(format!(
-            "GMEOW_TEST_BUDGET_SECS is set but contains non-UTF-8 bytes: {raw:?}"
-        )),
+        Err(VarError::NotUnicode(raw)) => Err(Diag::of_kind(error::InvalidBudgetVar {
+            reason: format!("GMEOW_TEST_BUDGET_SECS is set but contains non-UTF-8 bytes: {raw:?}"),
+        })),
         Ok(s) => {
             let v: f64 = s.parse().map_err(|_| {
-                format!(
-                    "GMEOW_TEST_BUDGET_SECS={s:?} is not a valid number — \
-                     expected a positive finite f64 (e.g. \"30.0\")"
-                )
+                Diag::of_kind(error::InvalidBudgetVar {
+                    reason: format!(
+                        "GMEOW_TEST_BUDGET_SECS={s:?} is not a valid number — \
+                         expected a positive finite f64 (e.g. \"30.0\")"
+                    ),
+                })
             })?;
             if !v.is_finite() {
-                return Err(format!(
-                    "GMEOW_TEST_BUDGET_SECS={s:?} is non-finite (NaN or infinity) — \
-                     expected a positive finite f64"
-                ));
+                return Err(Diag::of_kind(error::InvalidBudgetVar {
+                    reason: format!(
+                        "GMEOW_TEST_BUDGET_SECS={s:?} is non-finite (NaN or infinity) — \
+                         expected a positive finite f64"
+                    ),
+                }));
             }
             if v <= 0.0 {
-                return Err(format!(
-                    "GMEOW_TEST_BUDGET_SECS={s:?} is <= 0 — budget must be a positive number"
-                ));
+                return Err(Diag::of_kind(error::InvalidBudgetVar {
+                    reason: format!(
+                        "GMEOW_TEST_BUDGET_SECS={s:?} is <= 0 — budget must be a positive number"
+                    ),
+                }));
             }
             Ok(v)
         }
@@ -104,14 +112,16 @@ fn resolve_budget(var: Result<String, VarError>) -> Result<f64, String> {
 }
 
 fn main() -> ExitCode {
+    // Seed the diagnostic-code registry before any intern (idempotent).
+    error::register_all();
     let reporter = reporter();
     let mut args = std::env::args().skip(1);
     let junit_path = args.next().unwrap_or_else(|| DEFAULT_JUNIT.to_owned());
 
     let budget = match resolve_budget(std::env::var("GMEOW_TEST_BUDGET_SECS")) {
         Ok(b) => b,
-        Err(msg) => {
-            emit_error(reporter.as_ref(), "gmeow-test-budget.env", msg);
+        Err(diag) => {
+            reporter.report(&report_diag(diag, TOOL));
             return ExitCode::FAILURE;
         }
     };
@@ -134,8 +144,8 @@ fn main() -> ExitCode {
 
     let cases = match parse_testcases(&xml) {
         Ok(c) => c,
-        Err(msg) => {
-            emit_error(reporter.as_ref(), "gmeow-test-budget.parse", msg);
+        Err(diag) => {
+            reporter.report(&report_diag(diag, TOOL));
             return ExitCode::FAILURE;
         }
     };
@@ -197,7 +207,7 @@ struct TestCase {
 ///
 /// Returns `Err(message)` if any testcase element is missing a parseable `time`
 /// attribute (hard-fail: a silent drop would weaken the gate).
-fn parse_testcases(xml: &str) -> Result<Vec<TestCase>, String> {
+fn parse_testcases(xml: &str) -> gmeow_errors::Result<Vec<TestCase>> {
     let mut out = Vec::new();
     let mut rest = xml;
     while let Some(start) = rest.find("<testcase") {
@@ -226,10 +236,7 @@ fn parse_testcases(xml: &str) -> Result<Vec<TestCase>, String> {
                     });
                 }
                 None => {
-                    return Err(format!(
-                        "testcase {classname}::{name} has no parseable `time` attribute — \
-                         JUnit report is malformed or a new testcase shape is missing timing data"
-                    ));
+                    return Err(Diag::of_kind(error::MalformedTestcase { classname, name }));
                 }
             }
         }
@@ -335,10 +342,11 @@ mod tests {
 </testsuites>"#;
         let result = parse_testcases(xml);
         assert!(result.is_err(), "expected Err for missing time, got Ok");
-        let msg = result.unwrap_err();
+        let diag = result.unwrap_err();
         assert!(
-            msg.contains("no_time_test"),
-            "error message should name the offending testcase, got: {msg}"
+            diag.message().contains("no_time_test"),
+            "error message should name the offending testcase, got: {}",
+            diag.message()
         );
     }
 

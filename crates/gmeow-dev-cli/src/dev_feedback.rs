@@ -19,6 +19,7 @@ use gmeow_cli_core::{ConsoleMode, DiagnosticsConfig};
 use gmeow_errors::{Finding, Report, Severity, render};
 
 use crate::dev_common::{NAMESPACE, ONTOLOGY_IRI, fail, project_root, reporter_for};
+use crate::error;
 
 /// Logs at or under this many characters ride verbatim in a finding's detail;
 /// larger logs are digested (head + tail + a SHA-256 of the full bytes).
@@ -288,7 +289,7 @@ fn write_feedback_bundle(report: &Report, config: &DiagnosticsConfig) -> Result<
 
 /// The `(label, thunk)` table of offline dev-gate surfaces folded into feedback.
 /// Each thunk re-runs one native gate surface and returns its `Report`.
-type SurfaceThunk = fn(&Path) -> Result<Report, String>;
+type SurfaceThunk = fn(&Path) -> gmeow_errors::Result<Report>;
 
 fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
     vec![
@@ -297,7 +298,7 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
                 gmeow_pipeline::stages::correspondence_soundness::lint_correspondence_soundness(
                     root, false,
                 )
-                .map_err(|e| e.to_string())?;
+                .map_err(error::feedback)?;
             let mut r = Report::new("alignment");
             for d in findings {
                 let sev = Severity::parse(&d.severity.to_lowercase()).unwrap_or(Severity::Info);
@@ -314,18 +315,20 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
                 &root.join("tests/fixtures/coverage"),
                 &root.join("generated/mappings"),
                 NAMESPACE,
-            )?;
+            )
+            .map_err(error::feedback)?;
             Ok(gmeow_validate::coverage::coverage_to_diagnostics(&rep))
         }),
         ("acceptance", |root| {
             let results = gmeow_pipeline::scoreboards::run_acceptance_corpus(root, None)
-                .map_err(|e| e.to_string())?;
+                .map_err(error::feedback)?;
             Ok(gmeow_pipeline::scoreboards::acceptance_diagnostics(
                 &results,
             ))
         }),
         ("wikidata", |root| {
             gmeow_validate::mapping_eval::wikidata_diagnostics(&root.join("generated/mappings"))
+                .map_err(error::feedback)
         }),
         ("constitution", |root| {
             let findings = gmeow_validate::constitution::constitution_full_report(
@@ -349,8 +352,8 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
         }),
         ("box-roles", |root| {
             let paths = crate::dev_gates::default_audit_paths(root);
-            let audit =
-                gmeow_validate::box_roles::audit_box_roles(&paths, ONTOLOGY_IRI, NAMESPACE)?;
+            let audit = gmeow_validate::box_roles::audit_box_roles(&paths, ONTOLOGY_IRI, NAMESPACE)
+                .map_err(error::feedback)?;
             Ok(gmeow_validate::box_roles::to_diagnostics_report(
                 &audit,
                 ONTOLOGY_IRI,
@@ -363,7 +366,7 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
             // retired Python `_audit` folded.
             let corpus = root.join("tests/fixtures/coverage/hallucination-kg.ttl");
             let report = gmeow_pipeline::scoreboards::claim_audit(root, &[corpus])
-                .map_err(|e| e.to_string())?;
+                .map_err(error::feedback)?;
             Ok(gmeow_pipeline::scoreboards::claim_audit_diagnostics(
                 &report,
             ))
@@ -377,7 +380,7 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
                 .unwrap_or(1);
             let run =
                 gmeow_pipeline::run::run_full(root, jobs, gmeow_pipeline::run::RunMode::Check)
-                    .map_err(|e| e.to_string())?;
+                    .map_err(error::feedback)?;
             let mut r = Report::new("generated");
             let mut drifted = run.drifted.clone();
             drifted.sort();
@@ -403,8 +406,12 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
             // into the canonical report; a hard parse/compile failure is surfaced as
             // one `logic-compile.failed` error rather than aborting the whole fold.
             let source = root.join("slices/grounding/logic/module.ttl");
-            let source_ttl = std::fs::read_to_string(&source)
-                .map_err(|e| format!("logic: source not found: {} ({e})", source.display()))?;
+            let source_ttl = std::fs::read_to_string(&source).map_err(|e| {
+                error::source(format!(
+                    "logic: source not found: {} ({e})",
+                    source.display()
+                ))
+            })?;
             match compile_logic_report(&source_ttl) {
                 Ok(r) => Ok(r),
                 Err(msg) => {
@@ -440,10 +447,10 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
                 &slices,
                 purrdf::SliceVocab::for_namespace(NAMESPACE),
             )
-            .map_err(|e| e.to_string())?;
+            .map_err(error::feedback)?;
             let analysis = purrdf::slice::OwnershipAnalyzer::new(&catalog)
                 .analyze()
-                .map_err(|e| e.to_string())?;
+                .map_err(error::feedback)?;
             let mut r = Report::new("slice-ownership");
             for finding in gmeow_validate::slice_ownership::ownership_findings(&analysis) {
                 r.add_finding(finding);
@@ -457,15 +464,17 @@ fn surfaces() -> Vec<(&'static str, SurfaceThunk)> {
 /// canonical report — the native twin of `compile_logic`'s `diagnostics_report`.
 /// A parse or compile hard error is returned as `Err` for the caller to surface
 /// as a single `logic-compile.failed` finding.
-fn compile_logic_report(source_ttl: &str) -> Result<Report, String> {
-    let (program, diagnostics) =
-        gmeow_logic_compile::frontend::parse_logic_str(source_ttl, None).map_err(|e| e.0)?;
+fn compile_logic_report(source_ttl: &str) -> gmeow_errors::Result<Report> {
+    let (program, diagnostics) = gmeow_logic_compile::frontend::parse_logic_str(source_ttl, None)
+        .map_err(|e| error::feedback(e.0))?;
     // Discharge every authored correspondence's lens law by EXECUTION so the five
     // correspondence gates inside `compile_program` read a real per-correspondence verdict
     // instead of hitting their missing-verdict hard-fail on a correspondence-bearing source.
     // A correspondence-free source yields an empty map (the gates never run).
-    let verdicts = gmeow_logic::correspondence_exec::logic_program_verdicts(&program)?;
-    gmeow_logic_compile::projections::compile_program(&program, &verdicts)?;
+    let verdicts = gmeow_logic::correspondence_exec::logic_program_verdicts(&program)
+        .map_err(error::feedback)?;
+    gmeow_logic_compile::projections::compile_program(&program, &verdicts)
+        .map_err(error::feedback)?;
     Ok(gmeow_logic::logic_diagnostics::diagnostics_report(
         &diagnostics,
     ))
@@ -476,19 +485,20 @@ fn compile_logic_report(source_ttl: &str) -> Result<Report, String> {
 /// statement-compile invariant twin unions with the emitted OWL. Each file is
 /// parsed standalone and unioned (blank scopes standardized apart) exactly as the
 /// pipeline's ontology loader does.
-fn merged_ontology_nt(root: &Path) -> Result<String, String> {
+fn merged_ontology_nt(root: &Path) -> gmeow_errors::Result<String> {
     use gmeow_pipeline::stages::source_load;
     let mut files = vec![root.join("ontology").join("gmeow.ttl")];
-    files.extend(source_load::module_files(root).map_err(|e| e.to_string())?);
+    files.extend(source_load::module_files(root).map_err(error::feedback)?);
     let mut datasets = Vec::new();
     for file in &files {
         if !file.exists() {
             continue;
         }
-        let bytes = std::fs::read(file).map_err(|e| format!("read {}: {e}", file.display()))?;
+        let bytes = std::fs::read(file)
+            .map_err(|e| error::source(format!("read {}: {e}", file.display())))?;
         datasets.push(
             source_load::turtle_bytes_to_dataset(&bytes, &file.display().to_string())
-                .map_err(|e| e.to_string())?,
+                .map_err(error::feedback)?,
         );
     }
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
@@ -498,8 +508,8 @@ fn merged_ontology_nt(root: &Path) -> Result<String, String> {
         "application/n-quads",
         purrdf::SerializeGraph::DefaultGraph,
     )
-    .map_err(|e| format!("serialize ontology: {e}"))?;
-    String::from_utf8(bytes).map_err(|e| format!("serialize ontology (utf8): {e}"))
+    .map_err(|e| error::rdf(format!("serialize ontology: {e}")))?;
+    String::from_utf8(bytes).map_err(|e| error::encoding(format!("serialize ontology (utf8): {e}")))
 }
 
 // ── slice-fix-deps ─────────────────────────────────────────────────────────────

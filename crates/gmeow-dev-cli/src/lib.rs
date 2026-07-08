@@ -24,6 +24,7 @@ mod dev_reason;
 mod dev_targets;
 mod dev_transpile;
 mod dev_validate;
+mod error;
 pub mod feedback_bundle;
 
 use std::path::PathBuf;

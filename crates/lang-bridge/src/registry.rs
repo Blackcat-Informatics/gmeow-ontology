@@ -174,15 +174,16 @@ pub const EMISSION_WORTHY_CLASSES: &[(&str, &[&str])] = &[
 /// for the class must be registered (functor totality). Requiring all, not merely one, means
 /// dropping a projection target (e.g. `abnf` for `Grammar`, `tei` for `ComposedForm`) is a hard
 /// fail, not a silent loss of that surface. `Err` names the missing target(s).
-pub fn assert_registry_covers(lang_class: &str) -> Result<(), String> {
+pub fn assert_registry_covers(lang_class: &str) -> gmeow_errors::Result<()> {
     let registered: Vec<&str> = registry().iter().map(|t| t.name()).collect();
     let Some((_, targets)) = EMISSION_WORTHY_CLASSES
         .iter()
         .find(|(c, _)| *c == lang_class)
     else {
-        return Err(format!(
-            "lang:{lang_class} is not listed in EMISSION_WORTHY_CLASSES; add it with the \
-             target(s) that project it"
+        return Err(gmeow_errors::Diag::of_kind(
+            crate::error::ClassNotEmissionWorthy {
+                lang_class: lang_class.to_owned(),
+            },
         ));
     };
     let missing: Vec<&str> = targets
@@ -193,9 +194,11 @@ pub fn assert_registry_covers(lang_class: &str) -> Result<(), String> {
     if missing.is_empty() {
         Ok(())
     } else {
-        Err(format!(
-            "emission-worthy class lang:{lang_class} declares projection target(s) {missing:?} \
-             that are not registered (functor totality: every declared target must be registered)"
+        Err(gmeow_errors::Diag::of_kind(
+            crate::error::MissingProjectionTargets {
+                lang_class: lang_class.to_owned(),
+                missing: format!("{missing:?}"),
+            },
         ))
     }
 }
