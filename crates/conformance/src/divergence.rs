@@ -32,13 +32,17 @@ use gmeow_logic::reason::{
 /// coverage-gate signal) from validation/lint findings.
 pub const CONFORMANCE_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/conformance";
 
-/// The `logic:` namespace IRI prefix — home of the `logic:ConformanceComparison` /
-/// `logic:CorpusAgreementTally` classes, the `logic:Conf*` verdict individuals, and the
-/// `logic:Verdict*` lattice-relation individuals the reified comparisons point at.
+/// The `logic:` namespace IRI prefix — home of the `logic:Conf*` verdict individuals and
+/// the `logic:rawStatusToken` provenance property the reified comparisons point at.
 const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
-/// The content-addressed instance-IRI base for a reified `logic:ConformanceComparison`.
+/// The `gmeow:` namespace IRI prefix — home of the `gmeow:ConformanceComparison` /
+/// `gmeow:CorpusAgreementTally` classes, the `gmeow:comparison*` / `gmeow:tally*`
+/// properties, and the `gmeow:Verdict*` lattice-relation individuals the reified
+/// comparisons carry (defined by the diagnostics slice).
+const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+/// The content-addressed instance-IRI base for a reified `gmeow:ConformanceComparison`.
 const COMPARISON_BASE: &str = "https://blackcatinformatics.ca/gmeow/conformance-comparison/";
-/// The content-addressed instance-IRI base for a reified `logic:CorpusAgreementTally`.
+/// The content-addressed instance-IRI base for a reified `gmeow:CorpusAgreementTally`.
 const TALLY_BASE: &str = "https://blackcatinformatics.ca/gmeow/corpus-agreement-tally/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
@@ -77,7 +81,7 @@ fn verdict_iri_local(token: &str) -> Option<&'static str> {
     }
 }
 
-/// The `logic:Verdict*` lattice-relation local name DERIVED from a comparison's native
+/// The `gmeow:Verdict*` lattice-relation local name DERIVED from a comparison's native
 /// and published tokens — the reified image of its [`gmeow_logic::reason::DivergenceKind`]:
 /// native `incomplete` → `VerdictWeaker` (DlGap), coincident → `VerdictEquivalent` (Agree),
 /// otherwise → `VerdictIncomparable` (CorpusOnly). The `incomplete` check comes FIRST so
@@ -104,7 +108,7 @@ fn comparison_iri(corpus: &str, case: &str, world: &str, native: &str, published
     format!("{COMPARISON_BASE}{hash}")
 }
 
-/// Emit one reified `logic:ConformanceComparison` individual as N-Quads in
+/// Emit one reified `gmeow:ConformanceComparison` individual as N-Quads in
 /// [`CONFORMANCE_GRAPH`] — the coordinates, both graded verdicts (when the tokens name
 /// declared `logic:ConformanceVerdict` individuals), the verbatim published token, and
 /// the derived lattice relation. Properties are emitted in a fixed order; the caller
@@ -119,29 +123,29 @@ fn comparison_block(corpus: &str, c: &ExternalComparison) -> (String, String) {
     let mut triple = |p: String, o: String| lines.push(format!("{subject} {p} {o} {graph} ."));
     triple(
         format!("<{RDF_TYPE}>"),
-        format!("<{LOGIC}ConformanceComparison>"),
+        format!("<{GMEOW}ConformanceComparison>"),
     );
     triple(
-        format!("<{LOGIC}comparisonCorpus>"),
+        format!("<{GMEOW}comparisonCorpus>"),
         format!("\"{}\"", nq_escape(corpus)),
     );
     triple(
-        format!("<{LOGIC}comparisonCase>"),
+        format!("<{GMEOW}comparisonCase>"),
         format!("\"{}\"", nq_escape(&c.case)),
     );
     triple(
-        format!("<{LOGIC}comparisonWorld>"),
+        format!("<{GMEOW}comparisonWorld>"),
         format!("\"{}\"", nq_escape(&c.world)),
     );
     if let Some(local) = verdict_iri_local(native) {
         triple(
-            format!("<{LOGIC}comparisonNativeVerdict>"),
+            format!("<{GMEOW}comparisonNativeVerdict>"),
             format!("<{LOGIC}{local}>"),
         );
     }
     if let Some(local) = verdict_iri_local(published) {
         triple(
-            format!("<{LOGIC}comparisonPublishedVerdict>"),
+            format!("<{GMEOW}comparisonPublishedVerdict>"),
             format!("<{LOGIC}{local}>"),
         );
     }
@@ -150,15 +154,15 @@ fn comparison_block(corpus: &str, c: &ExternalComparison) -> (String, String) {
         format!("\"{}\"", nq_escape(published)),
     );
     triple(
-        format!("<{LOGIC}comparisonLatticeRelation>"),
-        format!("<{LOGIC}{}>", lattice_relation_local(native, published)),
+        format!("<{GMEOW}comparisonLatticeRelation>"),
+        format!("<{GMEOW}{}>", lattice_relation_local(native, published)),
     );
     (iri, format!("{}\n", lines.join("\n")))
 }
 
 /// Grade native verdicts against an external corpus's published expected verdicts and
 /// emit both the divergence `gmeow:Finding` graph AND one reified
-/// `logic:ConformanceComparison` individual per comparison, all in [`CONFORMANCE_GRAPH`].
+/// `gmeow:ConformanceComparison` individual per comparison, all in [`CONFORMANCE_GRAPH`].
 ///
 /// EVERY comparison folds: an agreement now becomes a NON-blocking
 /// `logic:FindingCorroboration` finding (positive corroborating evidence) alongside its
@@ -190,7 +194,7 @@ pub fn emit_divergence_nq(corpus: &str, comparisons: &[ExternalComparison]) -> S
     out
 }
 
-/// Emit one reified `logic:CorpusAgreementTally` individual as N-Quads in
+/// Emit one reified `gmeow:CorpusAgreementTally` individual as N-Quads in
 /// [`CONFORMANCE_GRAPH`] — the aggregate native↔published tally for one corpus, keyed by
 /// a content-addressed (blake3-of-corpus) IRI, carrying the five tally properties. This
 /// preserves the per-corpus pass rate as first-class ontological data in the reasoned
@@ -205,16 +209,16 @@ pub fn emit_agreement_tally_nq(tally: &AgreementTally) -> String {
     let int = |v: usize| format!("\"{v}\"^^<{XSD_INTEGER}>");
     triple(
         format!("<{RDF_TYPE}>"),
-        format!("<{LOGIC}CorpusAgreementTally>"),
+        format!("<{GMEOW}CorpusAgreementTally>"),
     );
     triple(
-        format!("<{LOGIC}tallyCorpus>"),
+        format!("<{GMEOW}tallyCorpus>"),
         format!("\"{}\"", nq_escape(&tally.corpus)),
     );
-    triple(format!("<{LOGIC}tallyCases>"), int(tally.cases));
-    triple(format!("<{LOGIC}tallyAgree>"), int(tally.agree));
-    triple(format!("<{LOGIC}tallyCorpusOnly>"), int(tally.corpus_only));
-    triple(format!("<{LOGIC}tallyDlGap>"), int(tally.dl_gap));
+    triple(format!("<{GMEOW}tallyCases>"), int(tally.cases));
+    triple(format!("<{GMEOW}tallyAgree>"), int(tally.agree));
+    triple(format!("<{GMEOW}tallyCorpusOnly>"), int(tally.corpus_only));
+    triple(format!("<{GMEOW}tallyDlGap>"), int(tally.dl_gap));
     format!("{}\n", lines.join("\n"))
 }
 
@@ -314,17 +318,17 @@ mod tests {
             "the corroboration finding carries the logic:FindingCorroboration category: {nq}"
         );
         // …and the comparison is reified with its equivalent lattice relation.
-        assert!(nq.contains(&format!("<{LOGIC}ConformanceComparison>")));
+        assert!(nq.contains(&format!("<{GMEOW}ConformanceComparison>")));
         assert!(
-            nq.contains(&format!("<{LOGIC}VerdictEquivalent>")),
+            nq.contains(&format!("<{GMEOW}VerdictEquivalent>")),
             "an agreement's lattice relation is VerdictEquivalent: {nq}"
         );
 
         // The aggregate tally rides the same graph.
         let tally_nq = emit_agreement_tally_nq(&agreement_tally("w3c-owl2-el", &comparisons));
         all_lines_in_conformance_graph(&tally_nq);
-        assert!(tally_nq.contains(&format!("<{LOGIC}CorpusAgreementTally>")));
-        assert!(tally_nq.contains(&format!("<{LOGIC}tallyAgree> \"1\"")));
+        assert!(tally_nq.contains(&format!("<{GMEOW}CorpusAgreementTally>")));
+        assert!(tally_nq.contains(&format!("<{GMEOW}tallyAgree> \"1\"")));
 
         // Deterministic.
         assert_eq!(nq, emit_divergence_nq("w3c-owl2-el", &comparisons));
@@ -360,12 +364,12 @@ mod tests {
 
         // The reified individual carries the derived relation matching the emitted finding.
         let agree = emit_divergence_nq("c", &[cmp("k", "w", "consistent", "consistent")]);
-        assert!(agree.contains(&format!("<{LOGIC}VerdictEquivalent>")));
+        assert!(agree.contains(&format!("<{GMEOW}VerdictEquivalent>")));
         let gap = emit_divergence_nq("c", &[cmp("k", "w", "incomplete", "consistent")]);
-        assert!(gap.contains(&format!("<{LOGIC}VerdictWeaker>")));
+        assert!(gap.contains(&format!("<{GMEOW}VerdictWeaker>")));
         assert!(gap.contains("reason.divergence.dl-gap"));
         let disagree = emit_divergence_nq("c", &[cmp("k", "w", "consistent", "inconsistent")]);
-        assert!(disagree.contains(&format!("<{LOGIC}VerdictIncomparable>")));
+        assert!(disagree.contains(&format!("<{GMEOW}VerdictIncomparable>")));
         assert!(disagree.contains("reason.divergence.corpus-only"));
     }
 
@@ -430,7 +434,7 @@ mod tests {
         // One reified comparison individual PER comparison (three), all in-graph.
         let comparison_types = lines
             .iter()
-            .filter(|l| l.contains(&format!("<{LOGIC}ConformanceComparison>")))
+            .filter(|l| l.contains(&format!("<{GMEOW}ConformanceComparison>")))
             .count();
         assert_eq!(
             comparison_types, 3,

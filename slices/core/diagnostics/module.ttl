@@ -835,6 +835,143 @@ gmeow:RootFinding
     gmeow:howToUse "Read it off the reasoned graph to list the root causes directly; the meta-rule derives it from the object position of gmeow:findingRootCause."@x-gmeow-english ;
     gmeow:useWhen "Use as the derived one-place marker of a witnessed root antecedent, the queryable head of the root-cause grouping."@x-gmeow-english .
 
+# ════════════════════════════════════════════════════════════════════════════
+# Reified conformance comparisons and per-corpus agreement tallies — the
+# benchmark/finding-adjacent surface of the external-corpus grading fold. Each
+# gmeow:ConformanceComparison reifies one native↔published verdict comparison
+# and each gmeow:CorpusAgreementTally its per-corpus aggregate, riding in the
+# graph/conformance named graph beside the divergence gmeow:Finding graph. The
+# verdict values (logic:ConfConsistent/logic:ConfInconsistent/logic:ConfIncomplete)
+# and the raw token stay in the logic: reasoning vocabulary; a gmeow:→logic:
+# cross-slice reference is fine.
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:VerdictLatticeRelation
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Verdict Lattice Relation"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The closed value class of how a native conformance verdict stands to a published one within the logic:ConformanceVerdict lattice — the reified qualitative outcome of one native↔published comparison. Its three named individuals are gmeow:VerdictEquivalent (the two verdicts coincide — an agreement), gmeow:VerdictWeaker (the native verdict is strictly less informative — the native-incomplete case, where logic:ConfIncomplete is the ⊤ join above the decided published verdict), and gmeow:VerdictIncomparable (two DISTINCT decided verdicts that share only the ⊤ join — a genuine disagreement). It is the RDF image of the DivergenceKind a conformance comparison receives: gmeow:VerdictEquivalent ↔ Agree, gmeow:VerdictWeaker ↔ DlGap (native `incomplete`), gmeow:VerdictIncomparable ↔ CorpusOnly. The set is closed, so a misspelt relation names no declared value and is rejected."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:VerdictEquivalent
+    a owl:NamedIndividual ,
+        gmeow:VerdictLatticeRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Verdict Equivalent"@x-gmeow-english ;
+    skos:definition "The gmeow:VerdictLatticeRelation for a native verdict that coincides with the published one: native ≡ published in the logic:ConformanceVerdict lattice. The reified image of the Agree DivergenceKind — the qualitative outcome a corroborating conformance comparison carries, folded as a non-blocking logic:FindingCorroboration rather than dropped."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:VerdictWeaker
+    a owl:NamedIndividual ,
+        gmeow:VerdictLatticeRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Verdict Weaker"@x-gmeow-english ;
+    skos:definition "The gmeow:VerdictLatticeRelation for a native verdict that is strictly LESS informative than the published one: the native path returned logic:ConfIncomplete — the least-informative join (⊤) — where the community source decided a verdict. The reified image of the DlGap DivergenceKind (native `incomplete`): an honest native coverage gap, kept strictly distinct from a disagreement between two decided verdicts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:VerdictIncomparable
+    a owl:NamedIndividual ,
+        gmeow:VerdictLatticeRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Verdict Incomparable"@x-gmeow-english ;
+    skos:definition "The gmeow:VerdictLatticeRelation for two DISTINCT decided verdicts that share only the least-informative join: the native path decided one informative meet-element (logic:ConfConsistent or logic:ConfInconsistent) and the community source decided the other. The reified image of the CorpusOnly DivergenceKind — a genuine native↔published disagreement, folded as a BLOCKING logic:FindingContradictionWitness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:ConformanceComparison
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Conformance Comparison"@x-gmeow-english ;
+    skos:definition "A reified native↔published verdict comparison for a single external-corpus case in a single world — the folded, content-addressed individual that records one row of the conformance grading in the reasoned bundle, so EVERY comparison (agreement, coverage gap, or disagreement) is retained as first-class ontological data rather than only the divergent rows surviving as findings. It carries the case coordinates (gmeow:comparisonCorpus, gmeow:comparisonCase, gmeow:comparisonWorld), the two graded verdicts (gmeow:comparisonNativeVerdict and gmeow:comparisonPublishedVerdict, each a logic:ConformanceVerdict), the verbatim published token (logic:rawStatusToken) as provenance, and the derived gmeow:comparisonLatticeRelation classifying how the native verdict stands to the published one. Rides in the graph/conformance named graph beside the divergence gmeow:Finding graph it is the aggregate-preserving twin of."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:CorpusAgreementTally
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Corpus Agreement Tally"@x-gmeow-english ;
+    skos:definition "One external corpus's aggregate native↔published tally — the folded, content-addressed individual that records a corpus's partition of graded comparisons into agree / corpus-only / dl-gap counts, so the reasoned bundle carries the per-corpus pass rate as first-class ontological data rather than only in the projected markdown dashboard. It carries gmeow:tallyCorpus (the corpus name), gmeow:tallyCases (the total graded), and the three partition counts gmeow:tallyAgree, gmeow:tallyCorpusOnly and gmeow:tallyDlGap, whose sum equals gmeow:tallyCases by construction. The aggregate twin of the per-case gmeow:ConformanceComparison individuals, riding in the same graph/conformance named graph."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:comparisonCorpus
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "comparison corpus"@x-gmeow-english ;
+    skos:definition "The external-corpus name a gmeow:ConformanceComparison belongs to — the cases/external/<corpus>/ directory whose native↔published grading this comparison reifies. Domain gmeow:ConformanceComparison, range xsd:string (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:comparisonCase
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "comparison case"@x-gmeow-english ;
+    skos:definition "The case id a gmeow:ConformanceComparison grades — the <case> subdirectory within its corpus, unique per corpus. Domain gmeow:ConformanceComparison, range xsd:string (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:comparisonWorld
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "comparison world"@x-gmeow-english ;
+    skos:definition "The scoped world IRI a gmeow:ConformanceComparison's verdicts were decided in — the single world a committed external case scopes its premises to. Domain gmeow:ConformanceComparison, range xsd:string (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:comparisonNativeVerdict
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "comparison native verdict"@x-gmeow-english ;
+    skos:definition "The logic:ConformanceVerdict the native reasoner decided for a gmeow:ConformanceComparison's case/world. Domain gmeow:ConformanceComparison, range logic:ConformanceVerdict (stated in prose) — the RDF image of the native runner's verdict-status token."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:comparisonPublishedVerdict
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "comparison published verdict"@x-gmeow-english ;
+    skos:definition "The logic:ConformanceVerdict the community source published as the ground truth for a gmeow:ConformanceComparison's case/world. Domain gmeow:ConformanceComparison, range logic:ConformanceVerdict (stated in prose) — the coarse projection of the verbatim published token preserved alongside on logic:rawStatusToken."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:comparisonLatticeRelation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "comparison lattice relation"@x-gmeow-english ;
+    skos:definition "The gmeow:VerdictLatticeRelation classifying how a gmeow:ConformanceComparison's native verdict stands to its published one, DERIVED from the two verdicts: coincident → gmeow:VerdictEquivalent, native logic:ConfIncomplete → gmeow:VerdictWeaker, two distinct decided verdicts → gmeow:VerdictIncomparable. Domain gmeow:ConformanceComparison, range gmeow:VerdictLatticeRelation (stated in prose) — the reified image of the comparison's DivergenceKind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:tallyCorpus
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "tally corpus"@x-gmeow-english ;
+    skos:definition "The external-corpus name a gmeow:CorpusAgreementTally aggregates — the cases/external/<corpus>/ directory whose graded comparisons it partitions. Domain gmeow:CorpusAgreementTally, range xsd:string (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:tallyCases
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "tally cases"@x-gmeow-english ;
+    skos:definition "The total graded native↔published comparisons in a gmeow:CorpusAgreementTally's corpus — the count gmeow:tallyAgree, gmeow:tallyCorpusOnly and gmeow:tallyDlGap partition. Domain gmeow:CorpusAgreementTally, range xsd:integer (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:tallyAgree
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "tally agree"@x-gmeow-english ;
+    skos:definition "The number of comparisons in a gmeow:CorpusAgreementTally's corpus where the native verdict matched the published expected — the agreeing (gmeow:VerdictEquivalent) partition, folded as non-blocking corroboration. Domain gmeow:CorpusAgreementTally, range xsd:integer (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:tallyCorpusOnly
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "tally corpus-only"@x-gmeow-english ;
+    skos:definition "The number of comparisons in a gmeow:CorpusAgreementTally's corpus the native path DECIDED but disagreed with the published expected — the disagreeing (gmeow:VerdictIncomparable) partition. Domain gmeow:CorpusAgreementTally, range xsd:integer (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:tallyDlGap
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "tally dl-gap"@x-gmeow-english ;
+    skos:definition "The number of comparisons in a gmeow:CorpusAgreementTally's corpus the native path could not decide (native logic:ConfIncomplete) — the coverage-gap (gmeow:VerdictWeaker) partition, an honest native capability gap. Domain gmeow:CorpusAgreementTally, range xsd:integer (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 <https://blackcatinformatics.ca/gmeow/slices/diagnostics>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;

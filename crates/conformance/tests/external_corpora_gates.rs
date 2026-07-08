@@ -16,7 +16,7 @@
 //!    `graph/conformance` named graph (never the default/authored graph).
 //! 3. **NON-EMPTY** (per corpus) — every graded corpus under
 //!    `conformance/logic/cases/external/<corpus>/` contributes ≥1 reified
-//!    `logic:ConformanceComparison` and ≥1 `logic:CorpusAgreementTally` in the
+//!    `gmeow:ConformanceComparison` and ≥1 `gmeow:CorpusAgreementTally` in the
 //!    shipped conformance graph.
 //! 4. **CORROBORATION** — an all-agree ledger folds ONLY non-blocking
 //!    `FindingCategory::Corroboration` findings (never `IncompleteCheck`), and that
@@ -61,14 +61,14 @@ const RAW_STATUS_TOKEN: &str = "https://blackcatinformatics.ca/logic/rawStatusTo
 /// The `logic:projectsToVerdict` predicate — carried ONLY by the 9 `logic:SzsStatus`
 /// individuals, so `(rawStatusToken, projectsToVerdict)` uniquely selects the table.
 const PROJECTS_TO_VERDICT: &str = "https://blackcatinformatics.ca/logic/projectsToVerdict";
-const COMPARISON_CORPUS: &str = "https://blackcatinformatics.ca/logic/comparisonCorpus";
+const COMPARISON_CORPUS: &str = "https://blackcatinformatics.ca/gmeow/comparisonCorpus";
 const COMPARISON_NATIVE_VERDICT: &str =
-    "https://blackcatinformatics.ca/logic/comparisonNativeVerdict";
+    "https://blackcatinformatics.ca/gmeow/comparisonNativeVerdict";
 const COMPARISON_LATTICE_RELATION: &str =
-    "https://blackcatinformatics.ca/logic/comparisonLatticeRelation";
-const TALLY_CORPUS: &str = "https://blackcatinformatics.ca/logic/tallyCorpus";
-const CONFORMANCE_COMPARISON: &str = "https://blackcatinformatics.ca/logic/ConformanceComparison";
-const CORPUS_AGREEMENT_TALLY: &str = "https://blackcatinformatics.ca/logic/CorpusAgreementTally";
+    "https://blackcatinformatics.ca/gmeow/comparisonLatticeRelation";
+const TALLY_CORPUS: &str = "https://blackcatinformatics.ca/gmeow/tallyCorpus";
+const CONFORMANCE_COMPARISON: &str = "https://blackcatinformatics.ca/gmeow/ConformanceComparison";
+const CORPUS_AGREEMENT_TALLY: &str = "https://blackcatinformatics.ca/gmeow/CorpusAgreementTally";
 
 /// The complete domain of `status.rs::outcome_for_szs` — the nine SZS tokens the
 /// shipped `logic:SzsStatus` table MUST cover, no more and no fewer.
@@ -434,7 +434,7 @@ fn graph_isolation_conformance_never_imported_and_lives_in_its_own_graph() {
 /// `stage-conformance` dispatch minimally, to decide EXPECTED non-emptiness).
 enum Gradeability {
     /// Verdict-token corpus (W3C manifest / TPTP SZS): its comparisons carry a
-    /// `logic:comparisonNativeVerdict` in the `logic:Conf*` lattice.
+    /// `gmeow:comparisonNativeVerdict` in the `logic:Conf*` lattice.
     Verdict,
     /// OntoUML foundation-discipline corpus: comparisons carry a discipline-label
     /// `rawStatusToken`, NOT a `logic:Conf*` native verdict.

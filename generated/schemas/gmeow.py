@@ -3269,6 +3269,12 @@ class TuningSystemKindEnum(str, Enum):
     tuningSystemKindWellTemperament = "tuningSystemKindWellTemperament"
 
 
+class VerdictLatticeRelationEnum(str, Enum):
+    VerdictEquivalent = "VerdictEquivalent"
+    VerdictIncomparable = "VerdictIncomparable"
+    VerdictWeaker = "VerdictWeaker"
+
+
 class VerificationStatusEnum(str, Enum):
     verificationStatusExpired = "verificationStatusExpired"
     verificationStatusFailed = "verificationStatusFailed"
@@ -4642,6 +4648,11 @@ class ConflictStrategy(ConfiguredBaseModel):
     pass
 
 
+class ConformanceComparison(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ConformanceComparison"
+    pass
+
+
 class Connection(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Connection"
     connectionSource: str | None = Field(default=None)
@@ -4832,6 +4843,11 @@ class Corpus(InformationObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Corpus"
     is_a: ClassVar[str] = "InformationObject"
     corpusMember: list[InformationObject] | None = Field(default=None)
+
+
+class CorpusAgreementTally(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/CorpusAgreementTally"
+    pass
 
 
 class Correspondence(ConfiguredBaseModel):
@@ -8565,6 +8581,11 @@ class VectorIndex(InformationObject):
     indexAlgorithm: IndexAlgorithm | None = Field(default=None)
     indexParameters: list[str] | None = Field(default=None)
     indexesCorpus: list[Corpus] | None = Field(default=None)
+
+
+class VerdictLatticeRelation(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/VerdictLatticeRelation"
+    pass
 
 
 class VerificationActivity(Activity):
