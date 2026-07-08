@@ -370,6 +370,19 @@ gmeow:ProfileBindingShape
         sh:severity sh:Violation ;
         sh:message "ProfileBinding may have at most one gmeow:sssomFile (string)"
     ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "ProfileBinding with gmeow:emitSssom true must have gmeow:sssomPredicate and gmeow:sssomFile" ;
+        sh:select """
+            SELECT $this WHERE {
+                $this gmeow:emitSssom true .
+                FILTER(
+                    !EXISTS { $this gmeow:sssomPredicate ?predicate } ||
+                    !EXISTS { $this gmeow:sssomFile ?file }
+                )
+            }
+        """
+    ] ;
     sh:property [
         sh:path gmeow:edoalTarget ;
         sh:maxCount 1 ;

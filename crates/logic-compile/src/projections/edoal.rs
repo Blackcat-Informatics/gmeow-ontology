@@ -706,6 +706,9 @@ mod tests {
                 ingest_claim: None,
                 ingest_residue: Vec::new(),
                 mnemomorphic: false,
+                emit_sssom: false,
+                sssom_predicate: None,
+                sssom_file: None,
             }],
         };
         let tag_map = BTreeMap::new();
