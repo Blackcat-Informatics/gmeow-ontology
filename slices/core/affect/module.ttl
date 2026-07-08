@@ -575,7 +575,7 @@ gmeow:decisionCrossedThreshold
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decision crossed threshold"@x-gmeow-english ;
     rdfs:range xsd:boolean ;
-    skos:definition "Whether the decided label's score crossed its claim threshold (true) or the model decided but no claim was routed (false). Makes 'decided-but-below-threshold' a queryable fact distinct from a routed gmeow:AffectiveClaim — the argmax is recorded either way, only the claim is gated. Functional; mandatory."@x-gmeow-english ;
+    skos:definition "Whether the decided label's score crossed its claim threshold (true) or the model decided but no claim was routed (false). Makes 'decided-but-below-threshold' a queryable fact distinct from a routed gmeow:AffectiveClaim — the argmax is recorded either way, only the claim is gated. Mandatory and single-valued: authored in the reasoning layer as gmeow:AffectDecision owl:cardinality 1 on this property (with owl:FunctionalProperty) and projected to SHACL sh:minCount 1 / sh:maxCount 1 (Principle 17). Exact owl:cardinality 1 is the in-fragment form the native reasoner DECIDES even for a datatype property — unlike owl:minCardinality / owl:maxCardinality or a count above one on a datatype property, which are withheld — so this single-valued datatype bound is a reasoning-layer fact, not a hand-authored SHACL constraint: a decision must record exactly one crossed-threshold verdict, its presence is never optional and two verdicts are incoherent."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:decisionMargin
