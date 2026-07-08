@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the diagnostic root-cause meta-fold: two INDEPENDENT findings
+# with no gmeow:findingAntecedent chain between them. The meta-rules must derive NO
+# gmeow:findingTraces, NO gmeow:findingRootCause, and NO gmeow:findingCluster — a
+# finding with no antecedent chain to another finding is never assigned a root
+# cause (the root-cause rule requires a traced childless antecedent). Consumed ONLY
+# by crates/conformance/tests/diagnostics_meta_findings.rs. Lives under tests/ so
+# the global make validate gate never loads it as data.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/diagnostics/tests/> .
+
+ex:rcIndep1 a gmeow:Finding .
+ex:rcIndep2 a gmeow:Finding .

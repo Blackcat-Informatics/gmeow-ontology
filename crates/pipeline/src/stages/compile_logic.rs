@@ -33,7 +33,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use gmeow_errors::{Finding, Location, Severity};
+use gmeow_errors::Location;
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::ir::{LogicProgram, PreservationKind};
 use gmeow_logic_compile::openehr_opt::read_all_opt_constraints;
@@ -499,38 +499,18 @@ impl Stage for CompileLogicStage {
         );
 
         // The compile diagnostics: the front-end parse findings (already coded
-        // `logic-compile.<code>` by the shared bridge) plus one note finding per
-        // structural lossy drop, so the loss ledger reaches the SARIF surface.
+        // `logic-compile.<code>` by the shared bridge) UNIONED with the loss ledger's
+        // OWN witness projection. Rather than hand-build identity-less notes, project the
+        // single runtime loss store (`arts.loss`) through `to_finding`: each structural
+        // and actual lossy-drop witness surfaces as a finding carrying its stable
+        // `finding_iri` / `anchor_iri` and — for an actual drop — the wired antecedent DAG
+        // edge (its causing structural-limitation witness) as a structured antecedent +
+        // related location. That closing DAG is exactly what the diagnostic meta-fold below
+        // joins on to derive `gmeow:findingRootCause` on the SHIPPED bundle (the hand-built
+        // notes carried no such identity, so the meta chase derived nothing).
         let mut report = gmeow_logic::logic_diagnostics::diagnostics_report(&diagnostics);
-        let lossy_drop_code = format!("{TOOL}.lossy-drop");
-        for entry in &arts.preservation_ledger {
-            // The antecedent DAG (U2): each per-run `actual: <note>` drop is caused by the
-            // target's structural limitation. Read the wired antecedent edge off the single
-            // loss store so the drop finding carries its cause as a related location.
-            let causes: std::collections::BTreeMap<String, String> = arts
-                .loss
-                .actual_drop_causes(&entry.target)
-                .into_iter()
-                .collect();
-            for drop in &entry.lossy_drops {
-                let mut finding = Finding::new(
-                    Severity::Note,
-                    lossy_drop_code.clone(),
-                    format!("projection {} drops: {drop}", entry.target),
-                )
-                .with_tool(TOOL);
-                if let Some(note) = drop.strip_prefix("actual: ")
-                    && let Some(cause_iri) = causes.get(note)
-                {
-                    finding.related_locations.push(Location::new(
-                        None,
-                        None,
-                        None,
-                        Some(cause_iri.clone()),
-                    ));
-                }
-                report.add_finding(finding);
-            }
+        for finding in arts.loss.project_report(TOOL).findings {
+            report.add_finding(finding);
         }
         // Anchor every compiler finding to the real repo-relative source file so
         // SARIF physical locations point to `slices/grounding/logic/module.ttl` rather
@@ -549,6 +529,14 @@ impl Stage for CompileLogicStage {
         }
         // Normalize for a deterministic committed artifact (mirrors the PyO3 surface).
         let report = report.normalized();
+        // The diagnostic meta-fold: the authored `gmeow:DiagnosticMetaRule` rules (from
+        // slices/grounding/logic/module.ttl) + the `gmeow:categoryPolarity` wiring (from
+        // slices/core/diagnostics/module.ttl) discovered BY TYPE off the merged authored
+        // dataset (`ontology` carries both slices via `load_authored_dataset`). The loss
+        // findings above now carry closing antecedent DAGs, so this fold derives the
+        // root-cause / cluster / cross-node-glut meta-findings on the SHIPPED bundle.
+        let meta = crate::stages::meta_findings::MetaProgram::from_source_dataset(&ontology)
+            .map_err(|e| stage_err(format!("diagnostic meta-fold: {e}")))?;
         artifacts.extend(render_diagnostics_artifacts(
             self.id(),
             &report,
@@ -561,6 +549,7 @@ impl Stage for CompileLogicStage {
             // The logic compiler's findings are Severity::Note lossy-drops (projection
             // loss), never on the gate-fatal up-set, so no gate verdict is derivable.
             None,
+            meta.as_ref(),
         )?);
 
         // The REAL typed Logic handle (C6): carry the compiled program itself
@@ -804,7 +793,9 @@ mod tests {
             !arts.contains_key(PROJECTION_REPORT_PATH),
             "compile-logic must no longer emit the committed projection report"
         );
-        // The loss ledger reaches SARIF as note-level lossy-drop findings.
+        // The loss ledger reaches SARIF as note-level preservation-rung findings —
+        // projected from the loss ledger's OWN witnesses (so they carry finding_iri +
+        // antecedent DAG), not identity-less hand-built notes.
         let sarif: serde_json::Value =
             serde_json::from_slice(&arts[DIAG_SARIF_PATH]).expect("SARIF is JSON");
         let results = sarif["runs"][0]["results"]
@@ -813,8 +804,9 @@ mod tests {
         assert!(
             results
                 .iter()
-                .any(|r| r["ruleId"] == "logic-compile.lossy-drop"),
-            "expected at least one logic-compile.lossy-drop finding in SARIF"
+                .any(|r| r["ruleId"] == "preservation.rung.structural"
+                    || r["ruleId"] == "preservation.rung.actual"),
+            "expected at least one preservation.rung.* loss finding in SARIF"
         );
         // The logic-projections channel carries the rows + header counts the mappings
         // stage unions with the correspondence ledger to build the committed report.
@@ -827,6 +819,69 @@ mod tests {
         assert!(
             channel.header.axiom_count > 0,
             "report header axiom count must be populated"
+        );
+    }
+
+    /// Acceptance C2: the loss ledger's OWN witness projection, folded through the
+    /// REAL authored `gmeow:DiagnosticMetaRule` rules, derives a `gmeow:findingRootCause`.
+    /// This is the shipped-bundle path in miniature — the loss ledger records projection
+    /// drops (a childless STRUCTURAL limitation causing a per-run ACTUAL drop), projects
+    /// them with the closing antecedent DAG, and the authored meta rules (discovered BY
+    /// TYPE off the real merged slices) reason a root cause. No hand-built IR, no refusal.
+    #[test]
+    fn loss_witness_projection_derives_a_root_cause_through_authored_meta_rules() {
+        use gmeow_errors::render::to_gmeow_rdf;
+        use gmeow_logic_compile::loss_ledger::LossLedger;
+
+        // Two targets, each with a childless STRUCTURAL limitation that CAUSES its per-run
+        // ACTUAL drop — the non-trivial provenance DAG the projection surfaces as
+        // `gmeow:findingAntecedent` edges (actual → structural).
+        let mut loss = LossLedger::new();
+        loss.record_projection_drops(
+            "owl-dl",
+            PreservationKind::SoundUnder,
+            &["OWL-DL cannot carry full first-order formulas".to_owned()],
+            &["logic:Formula #3 dropped as unsupported residue".to_owned()],
+        );
+        loss.record_projection_drops(
+            "datalog",
+            PreservationKind::SoundUnder,
+            &["Datalog cannot carry existential heads".to_owned()],
+            &["logic:Formula #7 dropped as unsupported residue".to_owned()],
+        );
+
+        // The REAL projection: witnesses → findings carrying finding_iri + antecedent DAG.
+        let report = loss.project_report(TOOL);
+        assert!(
+            report.findings.iter().any(|f| f.finding_iri.is_some()),
+            "projected loss findings must carry a stable finding_iri"
+        );
+        assert!(
+            report
+                .findings
+                .iter()
+                .any(|f| !f.antecedents.is_empty() || !f.related_locations.is_empty()),
+            "an actual-drop finding must carry its structural cause as an antecedent edge"
+        );
+
+        // The REAL authored rules: discovered BY TYPE off the merged authored dataset the
+        // production compile loads (logic + diagnostics slices carry the rules + polarity).
+        let root = repo_root();
+        let ontology = crate::stages::source_load::load_authored_dataset(&root)
+            .expect("load the authored ontology dataset");
+        let meta = crate::stages::meta_findings::MetaProgram::from_source_dataset(&ontology)
+            .expect("the diagnostic meta-fold parses")
+            .expect("the authored slices carry gmeow:DiagnosticMetaRule rules");
+
+        // The REAL chase over the REAL projected finding graph.
+        let derivation = meta
+            .derive(&to_gmeow_rdf(&report))
+            .expect("the meta chase runs over the projected loss findings");
+        assert!(
+            !derivation.root_cause.is_empty(),
+            "the loss witnesses' antecedent DAG must derive a gmeow:findingRootCause \
+             through the authored meta rules; got {:?}",
+            derivation.root_cause
         );
     }
 

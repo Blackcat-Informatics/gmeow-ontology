@@ -61,6 +61,15 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const SKOS_CLOSE_MATCH: &str = "http://www.w3.org/2004/02/skos/core#closeMatch";
 const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
+const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
+/// Tolerance on the simplex (partition-of-unity) constraint for a softmax
+/// distribution over an exclusive label set: `|Σ scores − 1| ≤ SIMPLEX_EPS`. Loose
+/// enough to admit a probability distribution rounded to a few decimals (the
+/// small, ≤~10-label exclusive sets), tight enough that a genuine off-simplex
+/// vector — a sigmoid/multi-label distribution mislabeled softmax, or a truncated
+/// set — deviates by whole tenths and is caught. NOT a magic constant: it is the
+/// declared rounding budget of a captured categorical distribution.
+const SIMPLEX_EPS: f64 = 1e-3;
 /// The `@x-gmeow-english` tag every localizable GMEOW literal carries (lang-tag
 /// discipline) — matches the tag on the canonical emotion terms' own labels.
 const GMEOW_ENGLISH: &str = "x-gmeow-english";
@@ -286,6 +295,37 @@ pub enum IngestError {
     MalformedGraph {
         detail: String,
     },
+    /// A statically-registered `gmeow:AffectLabelSet` declares no
+    /// `gmeow:labelSetDecision` — its exclusivity is unknown, so the producer
+    /// cannot judge whether more than one crossing is a violation (a hard fail).
+    MissingLabelSetDecision {
+        label_set: String,
+    },
+    /// More than one label crossed its claim threshold over a single-label
+    /// (`gmeow:decisionArgmax`) set — an exclusive set admits at most one claim.
+    ExclusivityViolation {
+        target: String,
+        labels: Vec<String>,
+    },
+    /// An exact top-score tie over an exclusive set — `gmeow:fnArgmax` has no
+    /// faithful single winner (a near-tie is recorded via `gmeow:decisionMargin`).
+    AmbiguousArgmax {
+        target: String,
+        labels: Vec<String>,
+    },
+    /// A softmax distribution over an exclusive set whose scores do not sum to 1
+    /// (within `SIMPLEX_EPS`) — not a valid categorical distribution on the simplex.
+    NonNormalizedExclusiveScores {
+        target: String,
+        sum: f64,
+    },
+    /// The run's `gmeow:scoreSemantics` implies a decision rule (softmax → argmax,
+    /// sigmoid → independent-threshold) inconsistent with the set's declared
+    /// `gmeow:labelSetDecision`.
+    ScoreSemanticsDecisionMismatch {
+        implied: String,
+        declared: String,
+    },
 }
 
 impl fmt::Display for IngestError {
@@ -355,6 +395,26 @@ impl fmt::Display for IngestError {
             IngestError::MalformedGraph { detail } => {
                 write!(f, "cannot recover capture from graph: {detail}")
             }
+            IngestError::MissingLabelSetDecision { label_set } => write!(
+                f,
+                "label set {label_set:?} declares no gmeow:labelSetDecision (single-label vs multi-label) — its exclusivity is unknown"
+            ),
+            IngestError::ExclusivityViolation { target, labels } => write!(
+                f,
+                "more than one label crossed threshold over an exclusive (single-label) set on target {target:?}: {labels:?}"
+            ),
+            IngestError::AmbiguousArgmax { target, labels } => write!(
+                f,
+                "exact top-score tie over an exclusive set on target {target:?} — no faithful argmax winner: {labels:?}"
+            ),
+            IngestError::NonNormalizedExclusiveScores { target, sum } => write!(
+                f,
+                "softmax scores over an exclusive set on target {target:?} sum to {sum} (not 1 within the simplex tolerance)"
+            ),
+            IngestError::ScoreSemanticsDecisionMismatch { implied, declared } => write!(
+                f,
+                "score semantics implies a {implied} label set but the set declares {declared} (a softmax over a multi-label set, or a sigmoid over an exclusive set)"
+            ),
         }
     }
 }
@@ -362,6 +422,44 @@ impl fmt::Display for IngestError {
 impl std::error::Error for IngestError {}
 
 // ───────────────────────────── config ──────────────────────────────────────
+
+/// The decision structure a `gmeow:AffectLabelSet` carries — the categorical
+/// (partition/simplex) vs Bernoulli-product (hypercube) duality, read from the
+/// set's `gmeow:labelSetDecision`. `Unknown` is the run-scoped/zero-shot stance
+/// only: a static set with no declared rule is a hard fail, never `Unknown`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum LabelSetDecision {
+    /// `gmeow:decisionArgmax` — single-label / mutually-exclusive / winner-take-all.
+    Argmax,
+    /// `gmeow:decisionIndependentThreshold` — multi-label / independent Bernoullis.
+    IndependentThreshold,
+    /// Run-scoped (zero-shot) candidate set: no reviewed decision rule.
+    Unknown,
+}
+
+impl LabelSetDecision {
+    /// A human name for the rule, for the mismatch error message.
+    fn label(self) -> String {
+        match self {
+            LabelSetDecision::Argmax => "single-label (argmax)".to_owned(),
+            LabelSetDecision::IndependentThreshold => {
+                "multi-label (independent-threshold)".to_owned()
+            }
+            LabelSetDecision::Unknown => "unknown".to_owned(),
+        }
+    }
+}
+
+/// The decision rule a normalized score semantics ENTAILS (the ontology's
+/// `gmeow:impliesLabelSetDecision`): softmax → argmax, sigmoid → independent
+/// threshold. The unbounded / per-hypothesis semantics carry no implication.
+fn implied_decision(sem: ScoreSemantics) -> Option<LabelSetDecision> {
+    match sem {
+        ScoreSemantics::Softmax => Some(LabelSetDecision::Argmax),
+        ScoreSemantics::Sigmoid => Some(LabelSetDecision::IndependentThreshold),
+        _ => None,
+    }
+}
 
 /// A canonical `gmeow:EmotionType` an external label reviews onto by an authored
 /// `skos:closeMatch` — the routing target for a supported affective claim.
@@ -395,6 +493,10 @@ pub struct IngestConfig {
     /// the labels that review onto an emotion type; social/cognitive/`neutral`
     /// labels and non-`closeMatch` rungs are deliberately absent).
     emotion_close_match: BTreeMap<String, EmotionMatch>,
+    /// The label set's decision rule (read from `gmeow:labelSetDecision`). Drives
+    /// the exclusivity guards and `gmeow:AffectDecision` emission for a single-label
+    /// set; `Unknown` for a run-scoped candidate set (no reviewed rule).
+    decision_rule: LabelSetDecision,
 }
 
 impl IngestConfig {
@@ -473,6 +575,10 @@ impl IngestConfig {
             mint_base,
             registered,
             emotion_close_match: BTreeMap::new(),
+            // A run-scoped candidate set has no reviewed decision rule: its NLI
+            // entailment scores are per-hypothesis, not normalized across candidates,
+            // so it is neither a clean simplex nor a clean product space.
+            decision_rule: LabelSetDecision::Unknown,
         })
     }
 
@@ -557,6 +663,25 @@ impl IngestConfig {
         let registry_prefix = derive_registry_prefix(&registered, label_set_id)?;
         let mint_base = format!("{GMEOW}ingest/{}/", label_set_id.to_lowercase());
 
+        // The decision rule is a MANDATORY property of a static label set: without it
+        // exclusivity is unknown and the producer cannot judge a multi-crossing.
+        let decision_rule = match first_iri(index, label_set_iri, &g("labelSetDecision")) {
+            Some(iri) if iri == g("decisionArgmax") => LabelSetDecision::Argmax,
+            Some(iri) if iri == g("decisionIndependentThreshold") => {
+                LabelSetDecision::IndependentThreshold
+            }
+            Some(other) => {
+                return Err(malformed(format!(
+                    "label set {label_set_id:?} has an unknown gmeow:labelSetDecision {other:?}"
+                )));
+            }
+            None => {
+                return Err(IngestError::MissingLabelSetDecision {
+                    label_set: label_set_id.to_owned(),
+                });
+            }
+        };
+
         let term_equivalence = g("TermEquivalence");
         let align_subject = g("alignSubject");
         let align_predicate = g("alignPredicate");
@@ -607,6 +732,7 @@ impl IngestConfig {
             mint_base,
             registered,
             emotion_close_match,
+            decision_rule,
         })
     }
 
@@ -804,8 +930,45 @@ pub fn produce(
             }
         }
 
-        // "Concluded and flat" is not "never checked": record the positive fact.
-        if !any_crossed {
+        if config.decision_rule == LabelSetDecision::Argmax {
+            // A single-label classifier ALWAYS decides (argmax) — record that
+            // categorical decision as evidence, faithfully, even when it falls below
+            // the claim threshold. This supersedes AffectEvaluationConcluded for
+            // exclusive sets: a decided winner is the positive "checked" fact.
+            // Derived-from-scores, so recover() ignores it and the round-trip holds.
+            let winner = target
+                .scores
+                .iter()
+                .max_by(|a, b| a.score.partial_cmp(&b.score).expect("finite scores"))
+                .expect("a validated target carries ≥1 score");
+            let winner_threshold = capture
+                .threshold_policy
+                .threshold_for(&winner.label)
+                .expect("threshold present (validated)");
+            let decision_iri = mint_decision_iri(&run_iri, &target.target_iri);
+            sink.iri(&decision_iri, RDF_TYPE, &g("AffectDecision"));
+            sink.iri(&decision_iri, &g("vantage"), &run_iri);
+            sink.iri(&decision_iri, &g("observedFeature"), &target.target_iri);
+            sink.iri(
+                &decision_iri,
+                &g("decidedLabel"),
+                &config.label_iri(&winner.label),
+            );
+            sink.iri(&decision_iri, &g("derivedByFunction"), &g("fnArgmax"));
+            sink.boolean(
+                &decision_iri,
+                &g("decisionCrossedThreshold"),
+                winner.score >= winner_threshold,
+            );
+            // The margin (top1 − top2) is the argmax confidence — recorded only when a
+            // runner-up exists (a single top-1-score capture has none).
+            if target.scores.len() >= 2 {
+                let mut desc: Vec<f64> = target.scores.iter().map(|c| c.score).collect();
+                desc.sort_by(|a, b| b.partial_cmp(a).expect("finite scores"));
+                sink.decimal(&decision_iri, &g("decisionMargin"), desc[0] - desc[1]);
+            }
+        } else if !any_crossed {
+            // Multi-label / run-scoped: "concluded and flat" is not "never checked".
             let concluded_iri = mint_concluded_iri(&run_iri, &target.target_iri);
             sink.iri(&concluded_iri, RDF_TYPE, &g("AffectEvaluationConcluded"));
             sink.iri(&concluded_iri, &g("vantage"), &run_iri);
@@ -830,6 +993,19 @@ fn validate(capture: &ClassifierRunCapture, config: &IngestConfig) -> Result<(),
         return Err(IngestError::LabelSetMismatch {
             expected: config.label_set_id.clone(),
             found: capture.label_set_id.clone(),
+        });
+    }
+    // The scoring function and the set's declared decision rule must agree: a
+    // softmax over a multi-label set (or a sigmoid over an exclusive set) is a
+    // contradiction (gmeow:impliesLabelSetDecision). Skipped for a run-scoped set,
+    // whose rule is Unknown.
+    if config.decision_rule != LabelSetDecision::Unknown
+        && let Some(implied) = implied_decision(capture.score_semantics)
+        && implied != config.decision_rule
+    {
+        return Err(IngestError::ScoreSemanticsDecisionMismatch {
+            implied: implied.label(),
+            declared: config.decision_rule.label(),
         });
     }
     if capture.score_semantics == ScoreSemantics::CalibratedProbability
@@ -940,6 +1116,63 @@ fn validate(capture: &ClassifierRunCapture, config: &IngestConfig) -> Result<(),
                 }
             }
         }
+
+        // Exclusivity guards, single-label sets only. A multi-label
+        // (IndependentThreshold) or run-scoped (Unknown) set legitimately admits
+        // many crossings and has no single argmax winner, so it is exempt.
+        if config.decision_rule == LabelSetDecision::Argmax {
+            // The defining property of an exclusive set: a softmax score vector is a
+            // point on the probability simplex (Σ = 1). Checkable only with the full
+            // distribution present.
+            if capture.score_semantics == ScoreSemantics::Softmax && capture.return_all_scores {
+                let sum: f64 = target.scores.iter().map(|c| c.score).sum();
+                if (sum - 1.0).abs() > SIMPLEX_EPS {
+                    return Err(IngestError::NonNormalizedExclusiveScores {
+                        target: target.target_iri.clone(),
+                        sum,
+                    });
+                }
+            }
+            // At most one label may cross its claim threshold (mutually-exclusive
+            // claims). thresholds are proven present by the loop above.
+            let crossed: Vec<String> = target
+                .scores
+                .iter()
+                .filter(|c| {
+                    c.score
+                        >= capture
+                            .threshold_policy
+                            .threshold_for(&c.label)
+                            .expect("threshold present (validated above)")
+                })
+                .map(|c| c.label.clone())
+                .collect();
+            if crossed.len() > 1 {
+                return Err(IngestError::ExclusivityViolation {
+                    target: target.target_iri.clone(),
+                    labels: crossed,
+                });
+            }
+            // The argmax must be unambiguous — an EXACT top-score tie has no faithful
+            // single winner (a near-tie is recorded honestly as gmeow:decisionMargin).
+            let max = target
+                .scores
+                .iter()
+                .map(|c| c.score)
+                .fold(f64::NEG_INFINITY, f64::max);
+            let top: Vec<String> = target
+                .scores
+                .iter()
+                .filter(|c| c.score == max)
+                .map(|c| c.label.clone())
+                .collect();
+            if top.len() > 1 {
+                return Err(IngestError::AmbiguousArgmax {
+                    target: target.target_iri.clone(),
+                    labels: top,
+                });
+            }
+        }
     }
     Ok(())
 }
@@ -974,6 +1207,10 @@ fn mint_output_iri(run_iri: &str, target_iri: &str, label: &str) -> String {
 
 fn mint_concluded_iri(run_iri: &str, target_iri: &str) -> String {
     format!("{run_iri}/concluded-{}", fnv1a_hex(target_iri))
+}
+
+fn mint_decision_iri(run_iri: &str, target_iri: &str) -> String {
+    format!("{run_iri}/decision-{}", fnv1a_hex(target_iri))
 }
 
 /// FNV-1a 64-bit, hex. A stable, portable, deterministic content hash (no crate,
@@ -1107,6 +1344,17 @@ impl Sink {
             s,
             p,
             RdfLiteral::typed(format_decimal(value), XSD_DECIMAL.to_owned()),
+        );
+    }
+
+    fn boolean(&mut self, s: &str, p: &str, value: bool) {
+        self.lit(
+            s,
+            p,
+            RdfLiteral::typed(
+                if value { "true" } else { "false" }.to_owned(),
+                XSD_BOOLEAN.to_owned(),
+            ),
         );
     }
 
@@ -1408,6 +1656,7 @@ mod tests {
         "@prefix gmeow-labelset: <https://blackcatinformatics.ca/gmeow-registry/labelset/> .\n",
         "@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n",
         "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n",
+        "gmeow-labelset:GoEmotions gmeow:labelSetDecision gmeow:decisionIndependentThreshold .\n",
         "gmeow-goemotions:joy a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions .\n",
         "gmeow-goemotions:neutral a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions .\n",
         "gmeow:emotionJoy a gmeow:EmotionType ; rdfs:label \"joy\"@x-gmeow-english .\n",
@@ -1474,6 +1723,7 @@ mod tests {
         "@prefix gmeow-goemotions: <https://blackcatinformatics.ca/gmeow-registry/goemotions/> .\n",
         "@prefix gmeow-labelset: <https://blackcatinformatics.ca/gmeow-registry/labelset/> .\n",
         "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n",
+        "gmeow-labelset:GoEmotions gmeow:labelSetDecision gmeow:decisionIndependentThreshold .\n",
         "gmeow-goemotions:joy a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions .\n",
         "gmeow-goemotions:grief a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions .\n",
         "gmeow-goemotions:desire a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:GoEmotions .\n",
@@ -1808,5 +2058,250 @@ mod tests {
             );
             assert_eq!(renormalize_decimal(v), s.parse::<f64>().unwrap());
         }
+    }
+
+    // ── label-set exclusivity ──────────────────────────────────────────────
+
+    /// A single-label (argmax) set: a 3-label Ekman-style softmax set with one
+    /// reviewed closeMatch (joy → emotionJoy), declared gmeow:decisionArgmax.
+    const ARGMAX_ONTO: &str = concat!(
+        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
+        "@prefix gmeow-hf: <https://blackcatinformatics.ca/gmeow-registry/hf/> .\n",
+        "@prefix gmeow-labelset: <https://blackcatinformatics.ca/gmeow-registry/labelset/> .\n",
+        "@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n",
+        "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n",
+        "gmeow-labelset:Ekman7 gmeow:labelSetDecision gmeow:decisionArgmax .\n",
+        "gmeow-hf:joy a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:Ekman7 .\n",
+        "gmeow-hf:anger a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:Ekman7 .\n",
+        "gmeow-hf:neutral a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:Ekman7 .\n",
+        "gmeow:emotionJoy a gmeow:EmotionType ; rdfs:label \"joy\"@x-gmeow-english .\n",
+        "gmeow:eqJoy a gmeow:TermEquivalence ; gmeow:alignSubject gmeow-hf:joy ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject gmeow:emotionJoy .\n",
+    );
+
+    fn argmax_config() -> IngestConfig {
+        let index = index_turtle(ARGMAX_ONTO.as_bytes()).expect("index argmax onto");
+        IngestConfig::config_for_label_set(&index, "Ekman7").expect("ekman7 config")
+    }
+
+    /// A softmax capture whose argmax (neutral, 0.45) falls BELOW the 0.5 threshold.
+    fn argmax_capture() -> ClassifierRunCapture {
+        ClassifierRunCapture {
+            model_identifier: "j-hartmann/emotion-english-distilroberta-base".to_owned(),
+            model_revision: "rev-ek".to_owned(),
+            model_framework: "transformers".to_owned(),
+            model_task: "text-classification".to_owned(),
+            function_to_apply: "softmax".to_owned(),
+            return_all_scores: true,
+            label_set_id: "Ekman7".to_owned(),
+            score_semantics: ScoreSemantics::Softmax,
+            threshold_policy: ThresholdPolicy::Global { value: 0.5 },
+            targets: vec![TargetInput {
+                target_iri: "https://example.org/affect/chunk-e".to_owned(),
+                scores: vec![
+                    LabelScore {
+                        label: "joy".to_owned(),
+                        score: 0.20,
+                    },
+                    LabelScore {
+                        label: "anger".to_owned(),
+                        score: 0.35,
+                    },
+                    LabelScore {
+                        label: "neutral".to_owned(),
+                        score: 0.45,
+                    },
+                ],
+            }],
+            score_calibration: None,
+            tokenizer_revision: None,
+            label_set_revision: None,
+            hypothesis_template: None,
+            candidate_labels: None,
+        }
+    }
+
+    fn sole_decision(ttl: &str) -> (String, TripleIndex) {
+        let idx = index_turtle(ttl.as_bytes()).expect("index evidence");
+        let decision = subjects(&idx)
+            .find(|s| has_type(&idx, s, &g("AffectDecision")))
+            .expect("an AffectDecision node")
+            .clone();
+        (decision, idx)
+    }
+
+    #[test]
+    fn argmax_decision_recorded_faithfully_below_threshold() {
+        let ttl = produce(&argmax_capture(), &argmax_config()).unwrap();
+        let (decision, idx) = sole_decision(&ttl);
+        // the argmax winner (neutral) is recorded even though nothing crossed.
+        assert_eq!(
+            first_iri(&idx, &decision, &g("decidedLabel")).as_deref(),
+            Some("https://blackcatinformatics.ca/gmeow-registry/hf/neutral")
+        );
+        assert_eq!(
+            first_literal(&idx, &decision, &g("decisionCrossedThreshold")).as_deref(),
+            Some("false")
+        );
+        // margin = 0.45 − 0.35 = 0.10, recorded as the argmax confidence.
+        let margin: f64 = first_literal(&idx, &decision, &g("decisionMargin"))
+            .expect("a margin (≥2 scores)")
+            .parse()
+            .expect("decimal margin");
+        assert!((margin - 0.10).abs() < 1e-9, "margin {margin}");
+        assert_eq!(
+            first_iri(&idx, &decision, &g("derivedByFunction")).as_deref(),
+            Some(g("fnArgmax").as_str())
+        );
+        // faithful evidence, NOT a forced claim; and NOT the multi-label concluded node.
+        assert!(!ttl.contains("AffectiveClaim"));
+        assert!(!ttl.contains("AffectEvaluationConcluded"));
+    }
+
+    #[test]
+    fn single_score_argmax_decision_has_no_margin() {
+        let mut cap = argmax_capture();
+        cap.return_all_scores = false;
+        cap.targets[0].scores = vec![LabelScore {
+            label: "joy".to_owned(),
+            score: 0.90,
+        }];
+        let ttl = produce(&cap, &argmax_config()).unwrap();
+        let (decision, idx) = sole_decision(&ttl);
+        // decision minted from a single top-1 score, with no runner-up → no margin,
+        // and NEVER a hard fail on a lossless partial capture (Finding-1 path).
+        assert!(first_iri(&idx, &decision, &g("decidedLabel")).is_some());
+        assert_eq!(
+            first_literal(&idx, &decision, &g("decisionCrossedThreshold")).as_deref(),
+            Some("true")
+        );
+        assert!(first_literal(&idx, &decision, &g("decisionMargin")).is_none());
+    }
+
+    #[test]
+    fn exclusivity_violation_on_two_crossings() {
+        let mut cap = argmax_capture();
+        // low per-label thresholds so both anger (0.35) and neutral (0.45) cross.
+        cap.threshold_policy = ThresholdPolicy::PerLabel {
+            thresholds: BTreeMap::from([
+                ("joy".to_owned(), 0.5),
+                ("anger".to_owned(), 0.3),
+                ("neutral".to_owned(), 0.3),
+            ]),
+        };
+        assert!(matches!(
+            produce(&cap, &argmax_config()),
+            Err(IngestError::ExclusivityViolation { .. })
+        ));
+    }
+
+    #[test]
+    fn ambiguous_argmax_on_exact_tie() {
+        let mut cap = argmax_capture();
+        cap.targets[0].scores = vec![
+            LabelScore {
+                label: "joy".to_owned(),
+                score: 0.40,
+            },
+            LabelScore {
+                label: "anger".to_owned(),
+                score: 0.40,
+            },
+            LabelScore {
+                label: "neutral".to_owned(),
+                score: 0.20,
+            },
+        ];
+        assert!(matches!(
+            produce(&cap, &argmax_config()),
+            Err(IngestError::AmbiguousArgmax { .. })
+        ));
+    }
+
+    #[test]
+    fn non_normalized_softmax_over_exclusive_set_hard_fails() {
+        let mut cap = argmax_capture();
+        // sums to 0.6 — off the probability simplex.
+        cap.targets[0].scores = vec![
+            LabelScore {
+                label: "joy".to_owned(),
+                score: 0.20,
+            },
+            LabelScore {
+                label: "anger".to_owned(),
+                score: 0.20,
+            },
+            LabelScore {
+                label: "neutral".to_owned(),
+                score: 0.20,
+            },
+        ];
+        assert!(matches!(
+            produce(&cap, &argmax_config()),
+            Err(IngestError::NonNormalizedExclusiveScores { .. })
+        ));
+    }
+
+    #[test]
+    fn score_semantics_decision_rule_mismatch_hard_fails() {
+        let mut cap = argmax_capture();
+        // a sigmoid (multi-label) semantics over an exclusive (argmax) set.
+        cap.score_semantics = ScoreSemantics::Sigmoid;
+        cap.function_to_apply = "sigmoid".to_owned();
+        assert!(matches!(
+            produce(&cap, &argmax_config()),
+            Err(IngestError::ScoreSemanticsDecisionMismatch { .. })
+        ));
+    }
+
+    #[test]
+    fn multilabel_two_crossings_no_guard_no_decision() {
+        let mut cap = capture(); // GoEmotions, sigmoid, multi-label
+        cap.targets[0].scores = vec![
+            LabelScore {
+                label: "joy".to_owned(),
+                score: 0.84,
+            },
+            LabelScore {
+                label: "neutral".to_owned(),
+                score: 0.72,
+            },
+        ];
+        // two crossings are legitimate for a multi-label set — no hard fail.
+        let ttl = produce(&cap, &config()).unwrap();
+        assert!(!ttl.contains("AffectDecision"));
+        assert!(ttl.contains("AffectiveClaim")); // joy still routes its claim
+    }
+
+    #[test]
+    fn missing_label_set_decision_hard_fails() {
+        const NO_RULE: &str = concat!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
+            "@prefix gmeow-hf: <https://blackcatinformatics.ca/gmeow-registry/hf/> .\n",
+            "@prefix gmeow-labelset: <https://blackcatinformatics.ca/gmeow-registry/labelset/> .\n",
+            "gmeow-hf:pos a gmeow:AffectClassifierLabel ; gmeow:memberOfLabelSet gmeow-labelset:SST2 .\n",
+        );
+        let index = index_turtle(NO_RULE.as_bytes()).expect("index");
+        assert!(matches!(
+            IngestConfig::config_for_label_set(&index, "SST2"),
+            Err(IngestError::MissingLabelSetDecision { .. })
+        ));
+    }
+
+    #[test]
+    fn argmax_round_trip_with_decision_is_identity() {
+        let (cap, cfg) = (argmax_capture(), argmax_config());
+        let ttl = produce(&cap, &cfg).unwrap();
+        // the decision node is present in the graph…
+        assert!(ttl.contains("AffectDecision"));
+        // …but recover ignores it (derived interpretation), so losslessness holds.
+        assert_eq!(recover(&ttl, &cfg).unwrap(), canonicalize(&cap, &cfg));
+    }
+
+    #[test]
+    fn run_scoped_mints_no_decision() {
+        let cap = zeroshot_capture();
+        let cfg = IngestConfig::run_scoped_from_capture(&cap).unwrap();
+        let ttl = produce(&cap, &cfg).unwrap();
+        assert!(!ttl.contains("AffectDecision"));
     }
 }

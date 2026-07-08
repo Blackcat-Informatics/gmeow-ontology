@@ -38,7 +38,7 @@ pub(crate) fn gmeow_profile() -> OntologyProfile {
 }
 
 /// The slice-emitter vocabulary (prefix `gmeow`) purrdf's emitters key on.
-pub(crate) fn gmeow_slice_vocab() -> SliceVocab {
+pub fn gmeow_slice_vocab() -> SliceVocab {
     gmeow_profile().slice_vocab()
 }
 
