@@ -27,8 +27,8 @@ use lsp_types::notification::{
     DidChangeTextDocument, DidCloseTextDocument, DidOpenTextDocument, PublishDiagnostics,
 };
 use lsp_types::{
-    Diagnostic, InitializeResult, PublishDiagnosticsParams, ServerCapabilities,
-    TextDocumentSyncCapability, TextDocumentSyncKind, Uri,
+    InitializeResult, PublishDiagnosticsParams, ServerCapabilities, TextDocumentSyncCapability,
+    TextDocumentSyncKind, Uri,
 };
 
 use gmeow_errors::render;
@@ -283,27 +283,50 @@ fn handle_notification(
     Ok(())
 }
 
+/// Build the `PublishDiagnosticsParams` for `uri`/`text` — the exact value the
+/// server serializes into the `textDocument/publishDiagnostics` notification.
+///
+/// Factored out of [`publish_diagnostics`] so the analysis → `report_to_diagnostics`
+/// → params pipeline is a pure, testable function; the server loop only adds the
+/// notification send around it. `uri` is threaded into `report_to_diagnostics` so
+/// secondary labels anchor their `DiagnosticRelatedInformation` to the document.
+fn build_publish_params(uri: &Uri, text: &str) -> PublishDiagnosticsParams {
+    let virtual_path = uri_to_virtual_path(uri.as_str());
+
+    match classify(&virtual_path) {
+        Some(lang) => {
+            let report = analyze(lang, text, &virtual_path);
+            params_from_report(uri, &report)
+        }
+        None => PublishDiagnosticsParams {
+            uri: uri.clone(),
+            diagnostics: Vec::new(),
+            version: None,
+        },
+    }
+}
+
+/// Project an analyzed [`Report`](gmeow_errors::model::Report) into the
+/// `PublishDiagnosticsParams` the server sends for `uri`.
+///
+/// This is the innermost production seam: `report_to_diagnostics` (which projects
+/// each finding's secondary labels into `DiagnosticRelatedInformation`) followed by
+/// the param wrapper. Split out so a test can drive it with any `Report` — including
+/// one carrying `related_labels` — without a live editor session.
+fn params_from_report(uri: &Uri, report: &gmeow_errors::model::Report) -> PublishDiagnosticsParams {
+    PublishDiagnosticsParams {
+        uri: uri.clone(),
+        diagnostics: report_to_diagnostics(report, uri),
+        version: None,
+    }
+}
+
 fn publish_diagnostics(
     connection: &Connection,
     uri: &Uri,
     text: &str,
 ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    let uri_str = uri.as_str();
-    let virtual_path = uri_to_virtual_path(uri_str);
-
-    let diagnostics: Vec<Diagnostic> = match classify(&virtual_path) {
-        Some(lang) => {
-            let report = analyze(lang, text, &virtual_path);
-            report_to_diagnostics(&report)
-        }
-        None => Vec::new(),
-    };
-
-    let params = PublishDiagnosticsParams {
-        uri: uri.clone(),
-        diagnostics,
-        version: None,
-    };
+    let params = build_publish_params(uri, text);
     let notif = Notification::new(
         <PublishDiagnostics as lsp_types::notification::Notification>::METHOD.to_owned(),
         serde_json::to_value(params)?,
@@ -351,7 +374,65 @@ fn uri_to_virtual_path(uri_str: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::uri_to_virtual_path;
+    use super::{params_from_report, uri_to_virtual_path};
+    use gmeow_errors::model::{Finding, Location, RelatedLabel, Report, Severity};
+    use lsp_types::Uri;
+
+    /// Drive the SERVER publish path — the same `params_from_report` seam
+    /// `publish_diagnostics` sends over the connection after `didOpen` — with a
+    /// report carrying a text-bearing secondary label, and assert the emitted
+    /// `PublishDiagnosticsParams` carries the label MESSAGE as
+    /// `DiagnosticRelatedInformation`.
+    ///
+    /// The real `analyze()` path does not yet mint multi-label findings, so the
+    /// report is built via the public `gmeow_errors` API; the production surface
+    /// under test is the params/diagnostics-building code the server sends verbatim.
+    #[test]
+    fn publish_params_carry_related_information_message() {
+        let doc_uri: Uri = "file:///home/user/rules.ttl".parse().expect("valid uri");
+
+        let mut report = Report::new("gmeow-lsp");
+        let mut finding = Finding::new(Severity::Error, "logic.conflict", "unsatisfiable class");
+        finding.add_location(Location::new(
+            Some("/home/user/rules.ttl".to_owned()),
+            Some(7),
+            Some(3),
+            None,
+        ));
+        finding.add_related_label(RelatedLabel {
+            location: Location::new(
+                Some("/home/user/companion.ttl".to_owned()),
+                Some(2),
+                Some(1),
+                None,
+            ),
+            message: "conflicting axiom defined here".to_owned(),
+        });
+        report.add_finding(finding);
+
+        let params = params_from_report(&doc_uri, &report);
+
+        assert_eq!(params.uri.as_str(), doc_uri.as_str());
+        assert_eq!(params.diagnostics.len(), 1);
+        let infos = params.diagnostics[0]
+            .related_information
+            .as_ref()
+            .expect("related_information should be published");
+        assert!(
+            infos
+                .iter()
+                .any(|i| i.message == "conflicting axiom defined here"),
+            "expected the secondary-label message in published related_information: {infos:?}"
+        );
+        let info = &infos[0];
+        assert_eq!(
+            info.location.uri.as_str(),
+            "file:///home/user/companion.ttl"
+        );
+        // 1-based (2,1) → 0-based (1,0).
+        assert_eq!(info.location.range.start.line, 1);
+        assert_eq!(info.location.range.start.character, 0);
+    }
 
     #[test]
     fn file_uri_simple() {
