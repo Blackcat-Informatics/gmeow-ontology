@@ -341,8 +341,19 @@ ex:componentSelfAttack a gmeow:Attack ;
 /// Validate `slice module + instance` against the *slice* `shapes.ttl` — the twin
 /// of `run_shacl(_data(instance), shapes_path=_SHAPES)`.
 fn validate_against_slice_shapes(instance_ttl: &str) -> ValidationReport {
-    let shapes_ttl =
+    // The real post-migration enforcement surface: the residual hand-authored slice `shapes.ttl`
+    // PLUS the projected FOL constraint shapes. The premise≠conclusion cross-node check migrated
+    // out of the hand-authored slice shape into a `logic:` RelatumDistinctness axiom projected to
+    // `generated/shapes/constraint-shapes.ttl` (design/LOGIC-VALIDATION.md), so the slice-local
+    // check must fold that projection in to still exercise it. Turtle concatenation is well-formed
+    // (duplicate `@prefix` lines are legal); the FOL constraints fire only on malformed data.
+    let mut shapes_ttl =
         fs::read_to_string(repo_root().join(INFERENCE_SHAPES)).expect("inference shapes");
+    shapes_ttl.push('\n');
+    shapes_ttl.push_str(
+        &fs::read_to_string(repo_root().join("generated/shapes/constraint-shapes.ttl"))
+            .expect("projected constraint shapes"),
+    );
     let shapes = parse_shapes(&shapes_ttl).expect("inference shapes parse");
     let module_nt = ttl_file_to_nt(&repo_root().join(INFERENCE_MODULE));
     let instance_nt = ttl_str_to_nt(&format!("{PRELUDE}{instance_ttl}"));
@@ -368,7 +379,9 @@ fn malformed_commitment_is_flagged() {
     assert!(!ok(&report), "malformed commitment should be flagged");
     let blob = violations(&report).join(" ");
     for needle in [
-        "assume what it proves",
+        // The premise≠conclusion check now projects from the logic: RelatumDistinctness constraint
+        // ("conclusion and gmeow:premise must be distinct"), replacing the legacy sh:sparql prose.
+        "must be distinct",
         "irreflexive",
         "attack itself",
         "own component",
