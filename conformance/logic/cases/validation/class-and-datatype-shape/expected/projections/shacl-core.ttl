@@ -1,0 +1,7 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/bibliography/Article-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/bibliography/Article> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/bibliography/cites> ; sh:class <https://blackcatinformatics.ca/gmeow/bibliography/Document> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/bibliography/wordCount> ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ] .
