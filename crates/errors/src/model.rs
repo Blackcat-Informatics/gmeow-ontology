@@ -401,6 +401,22 @@ pub struct DiagnosticAttribution {
     pub evidence: Option<String>,
 }
 
+/// A secondary, TEXT-bearing labelled span projected from a witness node's
+/// [`Label`](crate::diag::Label) — the human MESSAGE plus the [`Location`] it
+/// anchors to (Rust-compiler-style "defined here" / SHACL result-path / offending
+/// value).
+///
+/// Distinct from [`related_locations`](Finding::related_locations): that field
+/// carries the *bare* antecedent-IRI provenance edges (a location with no message);
+/// a related label additionally carries the label prose the LSP renders as a
+/// `DiagnosticRelatedInformation` entry. The two are kept separate so a labelled
+/// secondary span never loses its message when it rides through the flat model.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RelatedLabel {
+    pub location: Location,
+    pub message: String,
+}
+
 /// One normalized diagnostic emitted by any GMEOW tool.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Finding {
@@ -413,6 +429,15 @@ pub struct Finding {
     pub locations: Vec<Location>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub related_locations: Vec<Location>,
+    /// Secondary TEXT-bearing labelled spans — the faithful projection of the
+    /// witness node's [`Label`](crate::diag::Label)s that keeps each secondary
+    /// span's MESSAGE beside its location (the flat
+    /// [`related_locations`](Finding::related_locations) twin carries the bare
+    /// span with no message). Empty for findings that carry no labelled spans;
+    /// `skip_serializing_if` keeps them out of the wire form so existing
+    /// JSON/SARIF/RDF goldens are byte-unchanged when absent.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub related_labels: Vec<RelatedLabel>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub suggestions: Vec<String>,
     /// Structured, standpoint-bearing advice — the faithful projection of the
@@ -501,6 +526,7 @@ impl Finding {
             tool: None,
             locations: Vec::new(),
             related_locations: Vec::new(),
+            related_labels: Vec::new(),
             suggestions: Vec::new(),
             advice: Vec::new(),
             remediation: Vec::new(),
@@ -543,6 +569,15 @@ impl Finding {
         }
     }
 
+    /// Attach a secondary TEXT-bearing labelled span. A label with neither a
+    /// message nor a locating span carries nothing, so it is dropped (mirrors the
+    /// empty-guard on [`add_location`](Finding::add_location)).
+    pub fn add_related_label(&mut self, label: RelatedLabel) {
+        if !label.message.is_empty() || !label.location.is_empty() {
+            self.related_labels.push(label);
+        }
+    }
+
     pub fn primary_location(&self) -> Option<&Location> {
         self.locations.first()
     }
@@ -565,6 +600,12 @@ impl Finding {
         self.suggestions.dedup();
         self.locations.sort_by_key(Location::display);
         self.related_locations.sort_by_key(Location::display);
+        // Deterministic order for the text-bearing secondary spans, keyed on the
+        // rendered location then the message so a multi-label finding projects the
+        // same byte sequence regardless of attach order.
+        self.related_labels.sort_by(|a, b| {
+            (a.location.display(), &a.message).cmp(&(b.location.display(), &b.message))
+        });
         // The provenance-DAG edges and cross-node glut edges are content-addressed
         // IRIs; sort+dedup them so the projected graph is deterministic regardless
         // of the ledger's antecedent-union order.

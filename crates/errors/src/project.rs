@@ -10,7 +10,7 @@
 //! other way round).
 
 use crate::ledger::{DiagFingerprint, DiagLedger, DiagNode, anchor_iri, fingerprint_iri};
-use crate::model::{Finding, Location, Report};
+use crate::model::{Finding, Location, RelatedLabel, Report};
 
 impl DiagNode {
     /// Project this witness node to a wire [`Finding`]. The first observation is
@@ -57,6 +57,17 @@ impl DiagNode {
         for label in &self.labels {
             if !label.location.is_empty() {
                 finding.related_locations.push(label.location.clone());
+            }
+            // AND the faithful text-bearing twin: keep the label MESSAGE beside its
+            // location so a downstream consumer (the LSP's
+            // `DiagnosticRelatedInformation`) has the prose, not just the anchor the
+            // bare `related_locations` entry above carries. Guarded on a non-empty
+            // message so a location-only label rides only as a related location.
+            if !label.text.is_empty() {
+                finding.related_labels.push(RelatedLabel {
+                    location: label.location.clone(),
+                    message: label.text.clone(),
+                });
             }
         }
         // Project the content-addressed antecedent DAG edges as related locations
@@ -189,6 +200,15 @@ mod tests {
                 .any(|l| l.logical.as_deref() == Some("path https://ex/p")),
             "a Label span must project to a related location"
         );
+        // The label TEXT survives losslessly in related_labels, beside its location —
+        // the message the LSP renders as DiagnosticRelatedInformation (the bare
+        // related_locations twin above carries no message).
+        let related_label = finding
+            .related_labels
+            .iter()
+            .find(|l| l.location.logical.as_deref() == Some("path https://ex/p"))
+            .expect("a text-bearing Label must project to a related label");
+        assert_eq!(related_label.message, "path");
     }
 
     #[test]
