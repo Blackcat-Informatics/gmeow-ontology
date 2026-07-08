@@ -36,6 +36,18 @@ gmeow:ConceptCategorization
             a owl:Restriction ;
             owl:onProperty gmeow:observationResult ;
             owl:someValuesFrom gmeow:Concept ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:typicality ;
+            owl:allValuesFrom [
+                a rdfs:Datatype ;
+                owl:onDatatype xsd:decimal ;
+                owl:withRestrictions (
+                    [ xsd:minInclusive "0"^^xsd:decimal ]
+                    [ xsd:maxInclusive "1"^^xsd:decimal ]
+                ) ;
+            ] ;
         ] ;
     skos:definition "A standpoint-indexed claim that an entity is categorized under a concept — the reified form of gmeow:instanceOfConcept. The vantage is the agent or standpoint making the categorization; the observedFeature is the categorized entity; the observationResult is the gmeow:Concept. Typicality, confidence, and accordingTo are reused from the standpoint and provenance layers."@x-gmeow-english ;
     skos:example "ex:whaleCategorization a gmeow:ConceptCategorization ; gmeow:vantage ex:marineBiologist ; gmeow:observedFeature ex:whale ; gmeow:observationResult ex:mammal ; gmeow:typicality \"0.95\"^^xsd:decimal ."@x-gmeow-english ;
