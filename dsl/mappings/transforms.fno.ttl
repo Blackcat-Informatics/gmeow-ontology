@@ -550,7 +550,7 @@ gmeow:fnOutputEvaluatedPitchValue a owl:AnnotationProperty ;
 # --- External correctness-corpus verdict projection ------------------------- #
 # The declarative twin of the native external-result → runner-verdict table
 # (crates/conformance/src/external/status.rs::outcome_for_szs for SZS tokens and
-# crates/conformance/src/external/manifest.rs::ManifestKind::outcome() for the W3C
+# crates/conformance/src/external/manifest.rs::ManifestTestKind::outcome() for the W3C
 # manifest kinds). These are FnO SPECS; the executable table lives in Rust and is
 # bound to this spec by the on-gate no-drift check (a green build is impossible if
 # the shipped projection disagrees with the Rust table). The collapse itself is a
@@ -569,7 +569,7 @@ gmeow:fnSzsToVerdict
 gmeow:fnManifestKindToVerdict
     a fno:Function ;
     rdfs:label "W3C manifest kind → conformance verdict"@x-gmeow-english ;
-    dcterms:description "Projects a W3C test-manifest / OWL-test entailment kind onto the logic:ConformanceVerdict lattice: mf:PositiveEntailment and otest:InconsistencyTest → ConfInconsistent, mf:NegativeEntailment and otest:ConsistencyTest → ConfConsistent. The declarative twin of crates/conformance/src/external/manifest.rs::ManifestKind::outcome(); the per-kind target is authored as the gmeow:eqConfCorpus SSSOM cells (skos:closeMatch to the logic:ConformanceVerdict individuals)."@x-gmeow-english ;
+    dcterms:description "Projects a W3C test-manifest / OWL-test entailment kind onto the logic:ConformanceVerdict lattice: mf:PositiveEntailment and otest:InconsistencyTest → ConfInconsistent, mf:NegativeEntailment and otest:ConsistencyTest → ConfConsistent. The declarative twin of crates/conformance/src/external/manifest.rs::ManifestTestKind::outcome(); the per-kind target is authored as the gmeow:eqConfCorpus SSSOM cells (skos:closeMatch to the logic:ConformanceVerdict individuals)."@x-gmeow-english ;
     skos:definition "Projects a W3C test-manifest / OWL-test entailment kind onto the logic:ConformanceVerdict lattice; the callable signature over the gmeow:eqConfCorpus SSSOM alignment cells."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
     fno:expects ( gmeow:pManifestKind ) ;
