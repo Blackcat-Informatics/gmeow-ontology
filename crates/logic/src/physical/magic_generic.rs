@@ -50,7 +50,8 @@ use crate::physical::binding_pattern::BindingPattern;
 use crate::physical::seminaive::{NativeOutcome, UnsupportedKind};
 use crate::provenance::term_display;
 use crate::query_ir::{
-    AnswerSet, Binding, Budget, CompletionFrontier, QAtom, QBodyLit, QProgram, QTerm,
+    AnswerSet, Binding, Budget, CompletionFrontier, GENERIC_TRIPLE_RELATION, QAtom, QBodyLit,
+    QProgram, QTerm,
 };
 use crate::rule_ir::EvalTerm;
 use crate::seam::{BudgetStatus, ScryerForeign};
@@ -268,9 +269,53 @@ fn build_generic_edb(foreign: &dyn ScryerForeign, world: &str) -> TypedFactSet {
         let p = facts.intern(&TermValue::iri(dq.predicate.as_str()));
         let o = facts.intern(&dq.object);
         let w = facts.intern(&TermValue::iri(world));
-        facts.push_fact("triple", vec![s, p, o, w]);
+        facts.push_fact(GENERIC_TRIPLE_RELATION, vec![s, p, o, w]);
     }
     facts
+}
+
+// ── Servability gate (close the silent-empty for un-loadable EDB relations) ──────
+
+/// Decide whether the generic evaluator can SOUNDLY serve every EDB relation the
+/// program references.
+///
+/// The generic-triple EDB ([`build_generic_edb`]) loads world facts under EXACTLY ONE
+/// relation — the arity-4 reserved [`GENERIC_TRIPLE_RELATION`].  A relation that is not
+/// a rule head (not IDB) is therefore satisfiable ONLY if it is that reserved arity-4
+/// relation; any OTHER non-IDB relation (e.g. a binary EDB predicate named `edge`) has
+/// NO facts in the generic EDB, so a demand-restricted fixpoint over it derives nothing.
+/// Returning that empty set as a decided answer would be a SILENT WRONG ANSWER — the
+/// worst outcome.  Such a program is an honest gap: it is reported as
+/// [`UnsupportedKind::NonBinaryAtom`] so dispatch routes it to the oracle, never a
+/// silent-empty `Ok`.
+///
+/// A reserved-`triple` atom of the wrong arity is likewise un-servable (the EDB rows are
+/// arity 4), so it is a gap too — never silently no-matched.
+fn generic_program_servable(rules: &[GenericRule], goal: &GenericAtom) -> bool {
+    let idb: BTreeSet<&str> = rules.iter().map(|r| r.head.relation.as_str()).collect();
+
+    // A non-IDB relation is servable iff it is the reserved arity-4 generic-triple
+    // relation; a reserved-`triple` atom (IDB or not) must be arity 4.
+    let atom_ok = |atom: &GenericAtom| -> bool {
+        if atom.relation == GENERIC_TRIPLE_RELATION {
+            return atom.args.len() == 4;
+        }
+        idb.contains(atom.relation.as_str())
+    };
+
+    if !atom_ok(goal) {
+        return false;
+    }
+    for r in rules {
+        // Heads are IDB by construction, but a reserved-`triple` head still owes arity 4.
+        if !atom_ok(&r.head) {
+            return false;
+        }
+        if !r.body.iter().all(atom_ok) {
+            return false;
+        }
+    }
+    true
 }
 
 // ── Projection ───────────────────────────────────────────────────────────────────
@@ -399,6 +444,18 @@ pub(super) fn resolve_native_generic(
         Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
     };
     let pattern = goal_pattern(goal);
+
+    // (2a) Servability gate: the generic-triple EDB loads facts under EXACTLY the
+    //      reserved arity-4 `triple` relation, so a program that references any OTHER
+    //      non-IDB relation (a binary EDB predicate like `edge`, or a mis-arity
+    //      `triple`) cannot be soundly evaluated here — its demand-restricted fixpoint
+    //      would derive nothing.  Emitting that empty set as `Decided` is a SILENT
+    //      WRONG ANSWER; instead declare an honest gap so dispatch routes it to the
+    //      oracle.  (The reserved `triple/4` shape passes this gate and decides below.)
+    if !generic_program_servable(&rules, &goal_atom) {
+        return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
+    }
+
     let transformed = magic_transform_generic(&rules, &goal_atom, pattern)?;
 
     // (3) Build the generic-triple EDB, insert the seed demand fact, and run the
