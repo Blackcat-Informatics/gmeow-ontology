@@ -2652,7 +2652,9 @@ pub fn dl_consistency(edb: &RdfDataset) -> Result<DlVerdict, String> {
     // the one pipeline guarantees the verdict here is bit-for-bit the verdict the
     // typed `reason_all` result is folded from (the sort is closure-ordering only
     // and does not change which clash facts are derived).
-    Ok(crate::reason::reason_closure(edb)?.1)
+    Ok(crate::reason::reason_closure(edb)
+        .map_err(|e| e.message().to_owned())?
+        .1)
 }
 
 /// Read off the [`DlVerdict`] from an already-computed native closure.

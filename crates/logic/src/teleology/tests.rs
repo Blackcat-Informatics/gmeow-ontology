@@ -811,7 +811,7 @@ fn unknown_goal_kind_is_hard_error() {
     let f = facts_of(&nq);
     let err = evaluate_goal_over_path(&f, &format!("{W}#bad"), &[]).unwrap_err();
     assert!(
-        err.contains("Unknown logic:GoalExpressionKind"),
+        err.message().contains("Unknown logic:GoalExpressionKind"),
         "got: {err}"
     );
 }
@@ -1474,7 +1474,9 @@ fn nonlinear_path_is_hard_error() {
     let f = facts_of(&nq);
     let err = ordered_states(&f).unwrap_err();
     assert!(
-        err.contains("not linear") || err.contains("predecessors") || err.contains("start"),
+        err.message().contains("not linear")
+            || err.message().contains("predecessors")
+            || err.message().contains("start"),
         "got: {err}"
     );
 }
@@ -2019,7 +2021,7 @@ fn parse_xsd_duration_seconds_rejects_nominal_and_malformed() {
     // path, so the guard is actually exercised.
     let neg = parse_xsd_duration_seconds("-P3D").unwrap_err();
     assert!(
-        neg.contains("is negative"),
+        neg.message().contains("is negative"),
         "unexpected error message: {neg}"
     );
     // Structurally malformed.
@@ -2036,18 +2038,18 @@ fn parse_xsd_duration_seconds_reports_designator_with_no_number() {
     // one (num.parse() on an empty string would otherwise fire first).
     let err = parse_xsd_duration_seconds("PD").unwrap_err();
     assert!(
-        err.contains("designator with no number"),
+        err.message().contains("designator with no number"),
         "unexpected error message: {err}"
     );
     let err = parse_xsd_duration_seconds("PTS").unwrap_err();
     assert!(
-        err.contains("designator with no number"),
+        err.message().contains("designator with no number"),
         "unexpected error message: {err}"
     );
     // A genuinely malformed number must still report the malformed-number error.
     let err = parse_xsd_duration_seconds("P1.2.3D").unwrap_err();
     assert!(
-        err.contains("malformed number"),
+        err.message().contains("malformed number"),
         "unexpected error message: {err}"
     );
 }
@@ -2384,7 +2386,7 @@ fn gate_probe_malformed_guard_surfaces_hard_error_even_when_gate_denies() {
     ));
     let err = materialize_teleology(&store_from(&nq)).unwrap_err();
     assert!(
-        err.contains("datumRecordedAt"),
+        err.message().contains("datumRecordedAt"),
         "a malformed guard on a denied gate must surface a hard datumRecordedAt error: {err}"
     );
 }
