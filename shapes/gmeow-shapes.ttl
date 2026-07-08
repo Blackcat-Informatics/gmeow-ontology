@@ -4306,55 +4306,21 @@ gmeow:AffectClassifierOutputShape
 # Label-set exclusivity twins — RELATIONAL invariants no OWL restriction can hold, so
 # hand-authored sh:sparql here.
 #
-# gmeow:AffectDecision is a gmeow:Observation kind, and the observation layer enforces
-# closed-world "must carry" constraints per kind in SHACL, never as OWL cardinality
-# restrictions (owl:minCardinality is outside the sound native DL fragment the reasoner
-# decides, and gmeow:ObservationShape targets only bare Observations, so a subclass carries
-# its own shape). So the mandatory + single-valued structure of a decision lives here as a
-# genuine on-gate hard fail (LOW/NO-OPTIONALITY): the argmax winner (gmeow:decidedLabel), the
-# threshold verdict, the deriving function, the vantage (the run), and the observed target.
-# The functional properties (gmeow:decidedLabel, gmeow:decisionCrossedThreshold) also carry
-# sh:maxCount 1 — the categorical winner-take-all bound. The OWL-restriction projection into
-# generated/shapes/validation-shapes.ttl is EXCLUDED from the enforced corpus
-# (purrdf::shapes::shape_union::EXCLUDED), so it would leave these unenforced on the gate.
+# gmeow:AffectDecision's cardinality/functional bounds are authored in the REASONING LAYER
+# (slices/core/affect/module.ttl: gmeow:decidedLabel / gmeow:decisionCrossedThreshold /
+# gmeow:observedFeature owl:cardinality 1; gmeow:vantage / gmeow:derivedByFunction
+# owl:minQualifiedCardinality 1) and PROJECTED to generated/shapes/validation-shapes.ttl
+# (Principle 17) as sh:minCount/maxCount 1 and sh:qualifiedMinCount 1. Those projected shapes
+# ARE enforced via the live production shape union (purrdf::shapes::shape_union::load_shapes,
+# what `gmeow validate` / `stage-validate` run), so the mandatory + single-valued structure of
+# a decision is a genuine on-gate hard fail there — it is NOT re-stated by hand here. Only the
+# relational argmax-set invariant that no OWL restriction can express — a decision may only be
+# recorded over a single-label (gmeow:decisionArgmax) set — is hand-authored below.
 
 gmeow:AffectDecisionShape
     a sh:NodeShape ;
     rdfs:label "Affect Decision Shape"@x-gmeow-english ;
     sh:targetClass gmeow:AffectDecision ;
-    sh:property [
-        sh:path gmeow:decidedLabel ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A gmeow:AffectDecision decides EXACTLY ONE gmeow:decidedLabel — the categorical argmax winner-take-all bound (a hard fail): a decision with no decided label is meaningless, and two labels is not a single-label decision." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:decisionCrossedThreshold ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A gmeow:AffectDecision records EXACTLY ONE gmeow:decisionCrossedThreshold — whether the argmax winner crossed the claim threshold (a hard fail)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:derivedByFunction ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A gmeow:AffectDecision must name the gmeow:derivedByFunction it was computed by (gmeow:fnArgmax) — an un-named derivation is unmoored (a hard fail)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:vantage ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A gmeow:AffectDecision must record at least one gmeow:vantage — the classifier run that decided it (a hard fail)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:observedFeature ;
-        sh:minCount 1 ;
-        sh:maxCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "A gmeow:AffectDecision must record EXACTLY ONE gmeow:observedFeature — the target it was decided over (a hard fail)." ;
-    ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;
         sh:message "A gmeow:AffectDecision may only be recorded over a single-label (gmeow:decisionArgmax) label set — a categorical argmax decision over a multi-label set has no single winner (a hard fail)." ;
