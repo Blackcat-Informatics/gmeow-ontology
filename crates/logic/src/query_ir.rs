@@ -25,6 +25,18 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::seam::BudgetStatus;
 
+/// The reserved relation name of the arity-4 predicate-as-data encoding
+/// `triple(subject, predicate, object, world)` — the REAL n-ary shape the binary
+/// [`crate::store::RelationStore`] cannot represent (the property rides in a DATA
+/// position).  A goal or rule that names this bare, unqualified relation is routed to
+/// the arity-generic n-ary evaluator, whose generic-triple EDB
+/// ([`crate::physical::magic_generic`]) loads every world fact under this exact
+/// relation name.  It is DELIBERATELY the bare symbol `triple`, distinct from any
+/// prefixed predicate `ex:triple` (which resolves to a full IRI): only the
+/// unqualified name reaches the generic evaluator, so the parser must accept it
+/// verbatim (a bare word is otherwise unresolvable — no prefix, no angle brackets).
+pub(crate) const GENERIC_TRIPLE_RELATION: &str = "triple";
+
 // ── IR types ──────────────────────────────────────────────────────────────────
 
 /// A term in a query atom: either a canonical constant string or a variable name.
@@ -1195,10 +1207,19 @@ fn parse_atom(s: &str, prefixes: &BTreeMap<String, String>) -> Result<QAtom, Str
     let pred_str = s[..open].trim();
     let args_str = s[open + 1..s.len() - 1].trim();
 
-    let pred = resolve_iri(pred_str, prefixes)
-        .ok_or_else(|| format!("cannot resolve predicate IRI {pred_str:?}"))?;
-    // Predicate: bare IRI string (strip angle brackets if present).
-    let pred = strip_angle_brackets(&pred);
+    // Reserved generic relation: the bare, unqualified `triple` symbol names the
+    // arity-4 predicate-as-data encoding `triple(s, p, o, w)` and is carried VERBATIM
+    // (no IRI resolution — it is a program-local relation symbol, not an IRI), so the
+    // parsed predicate agrees exactly with the generic-triple EDB's
+    // `push_fact(GENERIC_TRIPLE_RELATION, …)`.  Everything else resolves as an IRI.
+    let pred = if pred_str == GENERIC_TRIPLE_RELATION {
+        GENERIC_TRIPLE_RELATION.to_owned()
+    } else {
+        let pred = resolve_iri(pred_str, prefixes)
+            .ok_or_else(|| format!("cannot resolve predicate IRI {pred_str:?}"))?;
+        // Predicate: bare IRI string (strip angle brackets if present).
+        strip_angle_brackets(&pred)
+    };
 
     let arg_tokens = split_comma_top(args_str);
     if arg_tokens.is_empty() {
