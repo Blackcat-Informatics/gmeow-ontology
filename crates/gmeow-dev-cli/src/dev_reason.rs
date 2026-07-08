@@ -19,7 +19,9 @@ use gmeow_logic::reason::{native_contract_hash, reason_all};
 use gmeow_logic::result::ReasoningResult;
 use gmeow_logic::verify::{verify as verify_reasoned, verify_with_reasoning_result};
 
-use crate::dev_common::{elapsed_ms, fail, project_root, snapshot_bytes, write_timings_json};
+use crate::dev_common::{
+    elapsed_ms, emit_report, fail, note, project_root, snapshot_bytes, write_timings_json,
+};
 
 /// Import the committed snapshot into a reasoning dataset.
 fn snapshot_dataset(root: &Path) -> Result<std::sync::Arc<purrdf::RdfDataset>, i32> {
@@ -218,10 +220,7 @@ pub fn verify(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
         }
     };
     let elapsed = elapsed_ms(started);
-    let text = gmeow_errors::render::to_text(&report.normalized());
-    if !text.trim().is_empty() {
-        eprintln!("{text}");
-    }
+    emit_report(&report);
     if let Some(path) = timings_json {
         let payload = serde_json::json!({
             "command": "verify",
@@ -377,7 +376,10 @@ pub fn reason_crosscheck() -> i32 {
             DivergenceKind::CorpusOnly => "corpus-only",
             DivergenceKind::Agree | DivergenceKind::NativeOnly => continue,
         };
-        eprintln!("  [{tag}] ({}) {}", row.category, row.detail);
+        note(
+            "gmeow-dev.reason-crosscheck.divergence",
+            format!("  [{tag}] ({}) {}", row.category, row.detail),
+        );
     }
 
     if outcome.verdict.passed {
@@ -389,7 +391,10 @@ pub fn reason_crosscheck() -> i32 {
         0
     } else {
         for reason in &outcome.verdict.reasons {
-            eprintln!("reason-crosscheck: {reason}");
+            note(
+                "gmeow-dev.reason-crosscheck.reason",
+                format!("reason-crosscheck: {reason}"),
+            );
         }
         fail("reason-crosscheck: native↔oracle divergence")
     }
@@ -461,14 +466,20 @@ pub fn reason_nemo_crosscheck() -> i32 {
     // emitters, not a parallel vocabulary.
     print!("{}", build_dl_el_ledger_ttl(&native_result));
     for finding in divergence_findings(&ledger) {
-        eprintln!("  [{}] {}", finding.code, finding.message);
+        note(
+            "gmeow-dev.reason-nemo-crosscheck.finding",
+            format!("  [{}] {}", finding.code, finding.message),
+        );
     }
 
     // Hard-fail unless the strict superset verdict passes AND the run was non-vacuous
     // (both engines actually agreed on ≥1 subsumption — never an empty green).
     if !verdict.passed {
         for reason in &verdict.reasons {
-            eprintln!("reason-nemo-crosscheck: {reason}");
+            note(
+                "gmeow-dev.reason-nemo-crosscheck.reason",
+                format!("reason-nemo-crosscheck: {reason}"),
+            );
         }
         return fail("reason-nemo-crosscheck: native↔Nemo subsumption divergence");
     }
@@ -505,12 +516,15 @@ pub fn explain() -> i32 {
     // The native explanation: enumerate the contradiction witnesses the reasoner
     // recorded for the glut. The native verdict stands here.
     let witnesses = &result.provenance.contradiction_witnesses;
-    eprintln!(
-        "ontology is inconsistent: {} contradiction witness(es)",
-        witnesses.len()
+    note(
+        "gmeow-dev.explain.inconsistent",
+        format!(
+            "ontology is inconsistent: {} contradiction witness(es)",
+            witnesses.len()
+        ),
     );
     for w in witnesses {
-        eprintln!("  {w:?}");
+        note("gmeow-dev.explain.witness", format!("  {w:?}"));
     }
     fail("inconsistent ontology")
 }
@@ -597,14 +611,13 @@ pub fn certify(input_path: &Path, profile: Option<&str>) -> i32 {
         println!("certify: {name} is certified for {profile_str}");
         0
     } else {
-        eprintln!(
+        for v in &verdict.violations {
+            note("gmeow-dev.certify.violation", format!("  {v}"));
+        }
+        fail(format!(
             "certify: {} violation(s) for {profile_str}",
             verdict.violations.len()
-        );
-        for v in &verdict.violations {
-            eprintln!("  {v}");
-        }
-        1
+        ))
     }
 }
 

@@ -139,7 +139,8 @@ pub fn external_tool(
         .metadata
         .insert("category".into(), serde_json::json!(config.category));
 
-    reporter_for(config.console).report(&report.normalized());
+    let reporter = reporter_for(config.console);
+    reporter.report(&report.normalized());
     if let Err(code) = write_artifacts(&report, &config) {
         return code;
     }
@@ -148,7 +149,12 @@ pub fn external_tool(
         println!("{name} passed");
         0
     } else {
-        eprintln!("{name} failed ({} error(s))", report.error_count());
+        gmeow_cli_core::note(
+            reporter.as_ref(),
+            "gmeow-dev",
+            "gmeow-dev.external-tool.failed",
+            format!("{name} failed ({} error(s))", report.error_count()),
+        );
         // Mirror the wrapped tool's exact code; a report with findings but a 0 exit
         // still fails (use 1).
         if code != 0 { code } else { 1 }

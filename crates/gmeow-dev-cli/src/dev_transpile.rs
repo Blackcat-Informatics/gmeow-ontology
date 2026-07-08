@@ -15,7 +15,7 @@ use gmeow_pipeline::projections::{
     self, GTS_VIEW_ALL, GTS_VIEW_GMEOW, MaximalInputs, TagMap, UpProjectionInputs,
 };
 
-use crate::dev_common::{fail, project_root, snapshot_bytes};
+use crate::dev_common::{fail, note, project_root, snapshot_bytes};
 
 /// The internal→BCP-47 retag map (used-tags only) built from a snapshot.
 fn tag_map(bytes: &[u8]) -> TagMap {
@@ -400,9 +400,12 @@ pub fn transform(
             Ok(r) => r,
             Err(e) => return fail(e.to_string()),
         };
-    eprintln!(
-        "lifted {} facts · claimed {} inferred · gap {}",
-        report_native.lifted, report_native.claimed, report_native.gap_terms
+    note(
+        "gmeow-dev.transform.summary",
+        format!(
+            "lifted {} facts · claimed {} inferred · gap {}",
+            report_native.lifted, report_native.claimed, report_native.gap_terms
+        ),
     );
 
     let out_dir = out
@@ -502,18 +505,24 @@ pub fn up_project(source: &Path, out: Option<&Path>) -> i32 {
             if let Err(e) = std::fs::write(path, &ttl) {
                 return fail(format!("cannot write {}: {e}", path.display()));
             }
-            eprintln!("wrote {}", path.display());
+            note(
+                "gmeow-dev.up-project.wrote",
+                format!("wrote {}", path.display()),
+            );
         }
         None => {
             use std::io::Write;
             let _ = std::io::stdout().write_all(&ttl);
         }
     }
-    eprintln!(
-        "lifted {} facts · claimed {} inferred · gap {} terms",
-        result.lifted,
-        result.claimed,
-        result.gap_terms.len()
+    note(
+        "gmeow-dev.up-project.summary",
+        format!(
+            "lifted {} facts · claimed {} inferred · gap {} terms",
+            result.lifted,
+            result.claimed,
+            result.gap_terms.len()
+        ),
     );
     0
 }
