@@ -501,6 +501,31 @@ impl GraphStore {
         }
     }
 
+    /// Return a new store containing the merged ontology plus each Turtle file in
+    /// `paths` (parsed in the given order), flattened to the default graph. The
+    /// explicit-path twin of [`Self::ontology_plus_ttl_dir`], mirroring the Python
+    /// originals that closed the merged graph with two successive `graph.parse(f)`
+    /// calls over a fixed pair of fixtures (e.g. the suppression canary + coarsen
+    /// corpora).
+    pub fn ontology_plus_ttl_files(paths: &[PathBuf]) -> Self {
+        let mut quads: Vec<purrdf::RdfQuad> = flat_rdf_quads_from_dataset(base_ontology_dataset());
+        for path in paths {
+            let ttl = std::fs::read_to_string(path)
+                .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
+            let fixture = parse_dataset(ttl.as_bytes(), "text/turtle", None)
+                .unwrap_or_else(|e| panic!("fixture parse failed: {e}\n{ttl}"));
+            for mut quad in flat_rdf_quads_from_dataset(&fixture) {
+                quad.graph_name = None;
+                quads.push(quad);
+            }
+        }
+        let merged = flat_dataset_from_quads(&quads).expect("merged dataset must freeze");
+        Self {
+            ds: merged,
+            slice_ds: Arc::new(OnceLock::new()),
+        }
+    }
+
     /// Return a new store containing the merged ontology plus every `*.ttl` file in
     /// `dir` (sorted by path), flattened to the default graph. The multi-file twin of
     /// [`Self::ontology_plus_ttl_file`], mirroring the Python originals that closed the
@@ -603,6 +628,29 @@ impl GraphStore {
         }
     }
 
+    /// Return every object of `<s> <p> ?o` rendered as its string form — an IRI's
+    /// full string OR a literal's lexical form — sorted + deduped. The native twin of
+    /// Python's `{str(o) for o in graph.objects(s, p)}`, where `str(URIRef)` is the IRI
+    /// and `str(Literal)` is its lexical value. Unlike [`Self::objects`] (IRI-only),
+    /// this surfaces literal-valued objects so a projection's flattened string values
+    /// (`spdx:licenseId`, `cc:attributionName`, `dcterms:rights`, …) can be asserted.
+    pub fn objects_lex(&self, s: &str, p: &str) -> BTreeSet<String> {
+        let s_id = self.iri_id(s);
+        let p_id = self.iri_id(p);
+        match (s_id, p_id) {
+            (Some(s), Some(p)) => self
+                .ds
+                .quads_for_pattern(Some(s), Some(p), None, GraphMatch::Default)
+                .filter_map(|q| match self.ds.resolve(q.o) {
+                    purrdf::TermRef::Iri(iri) => Some(iri.to_owned()),
+                    purrdf::TermRef::Literal { lexical, .. } => Some(lexical.to_owned()),
+                    _ => None,
+                })
+                .collect(),
+            _ => BTreeSet::new(),
+        }
+    }
+
     /// Return every IRI subject of `?s <p> <o>` in the default graph, sorted + deduped.
     pub fn subjects(&self, p: &str, o: &str) -> BTreeSet<String> {
         let p_id = self.iri_id(p);
@@ -620,6 +668,51 @@ impl GraphStore {
     /// Return the set of `rdf:type` subjects for a given class IRI.
     pub fn subjects_of_type(&self, type_iri: &str) -> BTreeSet<String> {
         self.subjects(RDF_TYPE, type_iri)
+    }
+
+    /// The reflexive-transitive closure over `rdfs:subClassOf` edges from `start`
+    /// (`start` plus all its ancestor classes). One shared walk so the domain
+    /// conformance twins assert over the same closure instead of hand-rolled copies.
+    pub fn subclass_closure(&self, start: &str) -> BTreeSet<String> {
+        let mut seen: BTreeSet<String> = BTreeSet::new();
+        let mut stack: Vec<String> = vec![start.to_owned()];
+        while let Some(node) = stack.pop() {
+            if !seen.insert(node.clone()) {
+                continue;
+            }
+            for parent in self.objects(&node, RDFS_SUBCLASS_OF) {
+                if !seen.contains(&parent) {
+                    stack.push(parent);
+                }
+            }
+        }
+        seen
+    }
+
+    /// Every `gmeow:`-namespaced subject IRI whose local name starts with `primary`
+    /// or `preferred` (case-insensitive) — the Principle-9 selector-term offenders.
+    /// One shared whole-graph sweep so each domain twin asserts over the SAME dynamic
+    /// scan instead of a hand-rolled copy that could silently narrow it.
+    pub fn primary_or_preferred_terms(&self) -> Vec<String> {
+        let (_vars, rows) = self.select(&[], "SELECT DISTINCT ?s WHERE { ?s ?p ?o }");
+        let mut offenders: Vec<String> = Vec::new();
+        for row in &rows {
+            let Some(Some(term)) = row.first() else {
+                continue;
+            };
+            let Some(iri) = term.as_iri() else {
+                continue;
+            };
+            if let Some(local) = iri.strip_prefix(GMEOW_NS) {
+                let lower = local.to_lowercase();
+                if !local.contains('/')
+                    && (lower.starts_with("primary") || lower.starts_with("preferred"))
+                {
+                    offenders.push(iri.to_owned());
+                }
+            }
+        }
+        offenders
     }
 
     // ── SPARQL entry-points (single bindings path) ────────────────────────────
@@ -709,6 +802,14 @@ impl GraphStore {
     /// `len(graph)`. Used by [`QueryCase::construct_len`].
     pub fn triple_count(&self) -> usize {
         self.ds.quad_count()
+    }
+
+    /// Serialize the (default-graph-only) store to N-Triples text — the native twin
+    /// of rdflib `Graph.serialize(format=...)`. Used by the projection leak sweeps to
+    /// assert a canary substring never (or always) surfaces in a projection's output,
+    /// exactly as the Python originals scanned the serialized projection string.
+    pub fn to_nt(&self) -> String {
+        dataset_default_graph_to_nt(&self.ds)
     }
 
     /// True iff the exact triple `s p o` (each a [`TermValue`]) is present in the
@@ -875,6 +976,11 @@ impl GraphStore {
 }
 
 pub const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// `rdfs:subClassOf` — the closure edge for [`GraphStore::subclass_closure`].
+pub const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+/// The `gmeow:` namespace base — for local-name sweeps like
+/// [`GraphStore::primary_or_preferred_terms`].
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
 /// `owl:onProperty` — the property a restriction constrains.
 pub const OWL_ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
@@ -1821,6 +1927,14 @@ fn multiset_eq(a: &[Vec<Option<TermValue>>], b: &[Vec<Option<TermValue>>]) -> bo
 // count gate reads `MANIFEST`); its own `#[test]`s run in every test binary.
 
 pub mod migration_manifest;
+
+// ── graph-API traversal migration: fn -> twin reconciliation manifest ─────────
+//
+// Sibling of `migration_manifest` for the rdflib `load_merged_graph` traversal
+// cluster. Its `#[test]`s run in every test binary; `migration_is_reconciled_and_complete`
+// is RED (Pending rows) until every fn is twinned.
+
+pub mod graph_migration_manifest;
 
 // ── Unit tests for the blank-node-aware `GraphStore` helpers ──────────────────
 //
