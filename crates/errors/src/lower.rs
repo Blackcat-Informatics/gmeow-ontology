@@ -74,6 +74,7 @@ pub(crate) fn lower(
         source_ctx: inner.source_ctx.clone(),
         attributions: inner.attributions.clone(),
         advice: inner.advice.clone(),
+        remediation: inner.remediation.clone(),
         labels: inner.labels.clone(),
         tags: inner.tags.clone(),
         knowledge: inner.grade.category.polarity(),

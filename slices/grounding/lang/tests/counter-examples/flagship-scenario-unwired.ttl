@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for lang:FlagshipScenarioShape: a lang:FlagshipScenario that declares
+# its worked example, its competency question, and its counter-example but OMITS
+# lang:enforcesFailureClass (sh:minCount 1), so validation MUST emit
+# shacl.MinCountConstraintComponent (and no other finding). The other three links are
+# present so ONLY the missing-enforcing-failure-class violation fires, isolating it — an
+# acceptance scenario whose gate raises no named failure is unwired
+# (lang:UnwiredFlagshipScenario).
+# Bound by tests/example-conformance.ttl (ex:ecFlagshipUnwired).
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:unwiredScenario a lang:FlagshipScenario ;
+    lang:demonstratedByExample "tests/conformance-fixtures/meaning-cats-chase-mice.ttl" ;
+    lang:demonstratedByCompetency <https://blackcatinformatics.ca/gmeow/examples/lang/tests/cqDenotationsToFormula> ;
+    lang:guardedByCounterExample "tests/counter-examples/meaning-underspecified-denotation.ttl" .

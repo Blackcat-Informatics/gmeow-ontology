@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Firing fixture for the diagnostic root-cause / cluster meta-fold. A witness DAG
+# where two findings (F2, F3) derive directly from a shared childless root (F1),
+# and a third (F4) derives from F1 transitively through F2:
+#
+#     F4 --antecedent--> F2 --antecedent--> F1   (F1 is childless: the root)
+#                        F3 --antecedent--> F1
+#
+# The meta-rules (loaded from slices/grounding/logic/module.ttl) must derive, over
+# this world-scoped EDB: gmeow:findingTraces closing the DAG, gmeow:findingRootCause
+# on F2/F3/F4 all pointing at F1, the gmeow:findingCluster grouping keyed by F1,
+# gmeow:clusterRoot F1 on the cluster node, and (extensibility rule) F1 typed
+# gmeow:RootFinding. Consumed ONLY by the native meta-findings conformance lane
+# (crates/conformance/tests/diagnostics_meta_findings.rs), which re-worlds every
+# triple into a named-graph WORLD the chase reads. Lives under tests/ so the global
+# make validate gate never loads it as data.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/diagnostics/tests/> .
+
+ex:rcF1 a gmeow:Finding .
+ex:rcF2 a gmeow:Finding ; gmeow:findingAntecedent ex:rcF1 .
+ex:rcF3 a gmeow:Finding ; gmeow:findingAntecedent ex:rcF1 .
+ex:rcF4 a gmeow:Finding ; gmeow:findingAntecedent ex:rcF2 .
