@@ -2016,6 +2016,7 @@ dependencies = [
  "gmeow-errors",
  "gmeow-logic",
  "gmeow-logic-compile",
+ "gmeow-validate",
  "insta",
  "lsp-server",
  "lsp-types 0.97.0",

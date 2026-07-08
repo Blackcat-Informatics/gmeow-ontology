@@ -19,6 +19,17 @@ use lsp_types::{
 use purrdf::RdfDiagnostic;
 use purrdf::{NativeRdfFormat, parse_dataset};
 
+/// The embedded canonical GMEOW snapshot — the whole ontology + its transforms,
+/// folded into one GTS bundle, baked into the analyzer so the `.ttl` linter needs no
+/// repository, no generator inputs, and no network (the same `include_bytes!` the
+/// consumer CLI uses). The `.ttl` analysis path reads the bundle's `shapes-archive`
+/// through this constant to run the substrate SHACL validation — a HARD dependency:
+/// the build fails if `generated/dist/gmeow.gts` is absent, never a degraded fallback.
+pub const BUNDLE_GTS: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../generated/dist/gmeow.gts"
+));
+
 // ─── Language discriminant ───────────────────────────────────────────────────
 
 /// The language a source file is written in.
@@ -60,21 +71,65 @@ pub fn analyze(lang: Lang, text: &str, virtual_path: &str) -> Report {
 // ─── Turtle analysis ─────────────────────────────────────────────────────────
 
 fn analyze_ttl(text: &str, virtual_path: &str) -> Report {
-    let mut report = Report::new("gmeow-lsp");
     let bytes = text.as_bytes();
 
     // Parse through the native (oxigraph-free) codec. The native parser is
     // fail-fast (one diagnostic per parse) rather than lenient-multi-error; that is
-    // acceptable for an editor linter, which re-lints on every edit.
+    // acceptable for an editor linter, which re-lints on every edit. A parse error
+    // fast-fails with a single structured `turtle.syntax` finding (carrying the
+    // 1-based line/column), exactly as before — the substrate pass runs only once the
+    // document parses, so there is nothing to validate against the shapes otherwise.
     if let Err(diagnostic) = parse_dataset(bytes, NativeRdfFormat::Turtle.media_type(), None) {
+        let mut report = Report::new("gmeow-lsp");
         let (line, col, msg) = extract_rdf_error(&diagnostic);
         let mut finding = Finding::new(Severity::Error, "turtle.syntax", msg);
         let loc = Location::new(Some(virtual_path.to_string()), Some(line), Some(col), None);
         finding.add_location(loc);
         report.add_finding(finding);
+        report.normalize();
+        return report;
     }
+
+    // The document parses: READ THE SUBSTRATE. Route the parsed data graph through the
+    // repo-free Tier-1 consumer SHACL validator against the bundle's data-graph shape
+    // union, projecting each result THROUGH a `DiagLedger`, so a shape violation
+    // surfaces with the SHACL result-path / offending-value secondary labels the LSP
+    // renders as `DiagnosticRelatedInformation`. The embedded [`BUNDLE_GTS`] is the
+    // shapes source — a hard dependency, never a degraded parse-only fallback.
+    let mut report = analyze_ttl_substrate(bytes, virtual_path);
     report.normalize();
     report
+}
+
+/// Run the substrate SHACL validation of an already-parsed Turtle document `bytes`
+/// against the bundled data-graph shapes, projected through the ledger so the returned
+/// [`Report`]'s findings carry the SHACL secondary labels (`related_labels`).
+///
+/// A substrate failure is a HARD FAIL surfaced as a visible `lsp.substrate` error
+/// finding (never a silent swallow): the shapes are embedded and always parse, and the
+/// document has already parsed cleanly here, so this path is reached only on a genuine
+/// internal fault — which must be reported, not hidden.
+fn analyze_ttl_substrate(bytes: &[u8], virtual_path: &str) -> Report {
+    match gmeow_validate::data_validate::shacl_report_via_ledger(
+        bytes,
+        NativeRdfFormat::Turtle.media_type(),
+        BUNDLE_GTS,
+        "gmeow-lsp",
+    ) {
+        Ok(report) => report,
+        Err(message) => {
+            let mut report = Report::new("gmeow-lsp");
+            let mut finding = Finding::new(Severity::Error, "lsp.substrate", message);
+            finding.add_location(Location::new(
+                Some(virtual_path.to_string()),
+                None,
+                None,
+                None,
+            ));
+            report.add_finding(finding);
+            report
+        }
+    }
 }
 
 /// Extract a (1-based line, 1-based column, message) triple from a native
