@@ -390,9 +390,12 @@ fn project_generic(rows: &[(TypedRow, TypedProvenance)], goal: &QAtom) -> Vec<Bi
 ///
 /// # Budget
 ///
-/// The generic core is unbudgeted; a `max_answers` cap applies as a sound post-fixpoint
-/// truncation ([`BudgetStatus::Partial`]). `max_steps` composition is a later concern —
-/// this path evaluates to the full demand-restricted fixpoint.
+/// `max_steps` is threaded into the demand-restricted fixpoint through the single step
+/// governor ([`materialize_generic_budgeted`]): `max_steps = Some(n)` cuts at `n`
+/// committed derivations with a sound prefix ([`BudgetStatus::Exhausted`]), matching the
+/// binary leg's deterministic-cut contract. A `max_answers` cap then applies as a sound
+/// post-fixpoint truncation ([`BudgetStatus::Partial`]); a reached answer cap stamps
+/// `Partial` even if the step budget also fired.
 ///
 /// # Errors
 ///
