@@ -124,13 +124,15 @@ pub fn evaluate_path_lowered(
     }
     let foreign = WorldStoreForeign::from_world(&store, LOWER_WORLD, LOWER_PROFILE)?;
 
-    let ans = backward_oracle().solve(
-        &foreign,
-        LOWER_WORLD,
-        &program,
-        &low.table_preds,
-        &Budget::default(),
-    )?;
+    let ans = backward_oracle()
+        .solve(
+            &foreign,
+            LOWER_WORLD,
+            &program,
+            &low.table_preds,
+            &Budget::default(),
+        )
+        .map_err(|e| e.message().to_owned())?;
     if ans.status != BudgetStatus::Ok {
         return Err(format!(
             "lowered path resolution did not complete (status = {:?}); a partial answer set \

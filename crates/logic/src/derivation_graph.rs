@@ -440,7 +440,7 @@ pub fn from_foundation_quads(
 
     let mut graph = DerivationGraph::new();
     for q in quads {
-        let fact = FactKey(crate::foundation::quad_reifier(q)?);
+        let fact = FactKey(crate::foundation::quad_reifier(q).map_err(|e| e.message().to_owned())?);
         if q.rule_iri == ASSERT_RULE_IRI {
             // Asserted: the world IRI is the assertion unit in the v1 oracle.
             graph.add_assertion(fact, UnitKey(q.graph.clone()));

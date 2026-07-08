@@ -299,7 +299,7 @@ fn parse_rule_views(rules: &str) -> Result<Vec<RuleView>, String> {
     // Parse WITHOUT Nemo's semantic validation: the validator rejects the very
     // rule shapes the certifier must flag (unsafe head vars, negation-only
     // bodies). Syntax errors still fail loudly. See `parse_unvalidated`.
-    let parsed = NemoParsedRules::parse_unvalidated(rules)?;
+    let parsed = NemoParsedRules::parse_unvalidated(rules).map_err(|e| e.message().to_owned())?;
     let program = parsed.into_program();
 
     let mut views: Vec<RuleView> = Vec::new();

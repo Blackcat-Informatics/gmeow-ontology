@@ -553,7 +553,9 @@ pub fn rl_closure(edb: &RdfDataset) -> Result<RlClosure, String> {
     if edb_facts.is_empty() {
         return Ok(RlClosure { triples: vec![] });
     }
-    let chase = forward_oracle().materialize(&edb_facts, RL_RULES, &ForwardBudget::UNBOUNDED)?;
+    let chase = forward_oracle()
+        .materialize(&edb_facts, RL_RULES, &ForwardBudget::UNBOUNDED)
+        .map_err(|e| e.message().to_owned())?;
 
     let mut triples: Vec<RlTriple> = Vec::new();
     for (row, prov) in &chase.rows {

@@ -158,9 +158,12 @@ pub(in crate::nemo_engine) fn encode_quad_to_nemo_fact(
 
 // ── Decode: Nemo ChaseRow → oxigraph quad ────────────────────────────────────
 
-/// Decode an error-prefixed description for decode failures.
-fn decode_err(context: &str, got: &str) -> String {
-    format!("decode error [{context}]: {got:?}")
+/// Decode an error-prefixed description for decode failures as a typed
+/// diagnostic on the shared substrate, preserving the authored text verbatim.
+fn decode_err(context: &str, got: &str) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Engine {
+        detail: format!("decode error [{context}]: {got:?}"),
+    })
 }
 
 /// Reverse the `quote_string` escape sequences that Nemo emits in its display form.
@@ -215,7 +218,7 @@ fn unescape_nemo_string(s: &str) -> String {
 /// The language tag is preserved verbatim (case-sensitive) — the prior oxigraph
 /// path stored the tag as decoded; the rdflib-lowercasing happens only at N3
 /// serialization time ([`crate::provenance::term_n3`]), not here.
-pub(crate) fn decode_nemo_term(s: &str) -> Result<TermValue, String> {
+pub(crate) fn decode_nemo_term(s: &str) -> gmeow_errors::Result<TermValue> {
     const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
     const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
 
@@ -280,7 +283,7 @@ pub(crate) fn decode_nemo_term(s: &str) -> Result<TermValue, String> {
 ///
 /// `value_part` is the raw escaped content between the opening and closing `"`.
 /// `suffix` is everything after the closing `"` (e.g. `^^<dt>`, `@lang`, or `""`).
-fn split_nemo_literal_content(s: &str) -> Result<(&str, &str), String> {
+fn split_nemo_literal_content(s: &str) -> gmeow_errors::Result<(&str, &str)> {
     let bytes = s.as_bytes();
     let mut i = 0;
     while i < bytes.len() {
