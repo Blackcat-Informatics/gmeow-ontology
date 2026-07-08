@@ -94,4 +94,4 @@ ex:saLanguageNotSubclassSymbolicSystem a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:Language rdfs:subClassOf gmeow:SymbolicSystem . }""" ;
-    gmeow:saRationale "gmeow:Language MUST NOT be rdfs:subClassOf gmeow:SymbolicSystem -- languages are InformationObjects, not symbolic/notation systems. Mirrors test_language_is_sibling_not_subclass_of_symbolic (mustNot part)." .
+    gmeow:saRationale "gmeow:Language MUST NOT be rdfs:subClassOf gmeow:SymbolicSystem -- languages are InformationObjects, not symbolic/notation systems." .
