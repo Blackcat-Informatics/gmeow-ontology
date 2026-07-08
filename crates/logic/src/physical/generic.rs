@@ -48,6 +48,7 @@ use purrdf::TermValue;
 
 use crate::facts::TypedFactSet;
 use crate::oracle::{TypedChaseResult, TypedProvenance, TypedRow};
+use crate::physical::binding_pattern::BindingPattern;
 use crate::provenance::{LOGIC_NAMESPACE, term_display};
 use crate::rule_ir::{EvalTerm, lower_nemo_term};
 
@@ -301,6 +302,20 @@ enum PosMatch {
     Fresh(String),
 }
 
+impl BindingPattern {
+    /// The query-plan adornment of a precomputed [`build_match_plan`] result: a match
+    /// plan and a [`BindingPattern`] are the SAME datum — `PosMatch::Expect` (a
+    /// constant or already-bound variable) is a BOUND position, `PosMatch::Fresh` (a
+    /// still-free variable) is a FREE position. Index selection ranges over this
+    /// pattern's bound positions to pick the tightest value bucket, exactly as the
+    /// backward magic-sets keying ranges over its demand adornment. Sharing the one
+    /// lattice type keeps forward-plan and backward-demand adornments isomorphic by
+    /// construction.
+    fn from_match_plan(plan: &[PosMatch]) -> Self {
+        BindingPattern::from_bools(plan.iter().map(|pm| matches!(pm, PosMatch::Expect(_))))
+    }
+}
+
 /// Precompute the per-position match plan of `atom` under `base`: constants and
 /// already-bound variables collapse to their fixed surface; still-free variables
 /// stay `Fresh`. This mirrors [`match_generic_atom`]'s per-term dispatch but hoists
@@ -386,27 +401,31 @@ fn extend(
     let mut next: Vec<GenSolution> = Vec::new();
     for sol in solutions {
         let plan = build_match_plan(atom, &sol.binding);
+        // The plan's per-position bound/free profile IS a query-plan adornment (the
+        // same lattice type the backward magic-sets keying uses): `Expect` ⇒ bound,
+        // `Fresh` ⇒ free.
+        let pattern = BindingPattern::from_match_plan(&plan);
 
-        // Index-selection: over the atom's BOUND positions (constants + already-bound
-        // vars) pick the smallest value bucket — that is the tightest candidate set,
-        // and iterating it in its ascending order visits exactly the rows a full scan
-        // would have matched, in the same order. A bound position with an EMPTY bucket
-        // means no row can match, so this solution contributes nothing.
+        // Index-selection: over the adornment's BOUND positions (constants + already-
+        // bound vars) pick the smallest value bucket — that is the tightest candidate
+        // set, and iterating it in its ascending order visits exactly the rows a full
+        // scan would have matched, in the same order. A bound position with an EMPTY
+        // bucket means no row can match, so this solution contributes nothing.
+        let any_bound = !pattern.is_all_free();
         let mut selected: Option<&[usize]> = None;
-        let mut any_bound = false;
         let mut empty = false;
-        for (pos, pm) in plan.iter().enumerate() {
-            if let PosMatch::Expect(surface) = pm {
-                any_bound = true;
-                match rel_index.and_then(|m| m.get(&pos).and_then(|m2| m2.get(surface))) {
-                    None => {
-                        empty = true;
-                        break;
-                    }
-                    Some(bucket) => {
-                        if selected.is_none_or(|cur| bucket.len() < cur.len()) {
-                            selected = Some(bucket.as_slice());
-                        }
+        for pos in pattern.bound_positions() {
+            let PosMatch::Expect(surface) = &plan[pos] else {
+                unreachable!("a bound position of the plan adornment is a PosMatch::Expect");
+            };
+            match rel_index.and_then(|m| m.get(&pos).and_then(|m2| m2.get(surface))) {
+                None => {
+                    empty = true;
+                    break;
+                }
+                Some(bucket) => {
+                    if selected.is_none_or(|cur| bucket.len() < cur.len()) {
+                        selected = Some(bucket.as_slice());
                     }
                 }
             }
