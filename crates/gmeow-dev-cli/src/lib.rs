@@ -424,6 +424,13 @@ pub enum Commands {
         /// Output rendering: text (default), json, sarif, or rdf.
         #[arg(long = "format")]
         format: Option<String>,
+        /// Gate this run at an explicit tier: exit non-zero if the measured
+        /// roll-up is below TIER (a tier local name or label, e.g. Grounded,
+        /// Linked, Exemplified, Maximal, Registered). Unset = advisory (always
+        /// exit 0). With --all, fails if ANY swept slice is below TIER, naming
+        /// each. Render/emit still happen first; the gate only sets the exit code.
+        #[arg(long = "min-tier")]
+        min_tier: Option<String>,
         /// Diagnostics console surface (flag > env > auto).
         #[arg(long = "diagnostics-console")]
         diagnostics_console: Option<String>,
@@ -825,6 +832,7 @@ pub fn run() -> i32 {
             path,
             all,
             format,
+            min_tier,
             diagnostics_console,
             diagnostics_artifacts,
             diagnostics_dir,
@@ -834,6 +842,7 @@ pub fn run() -> i32 {
             path.as_deref(),
             all,
             format.as_deref(),
+            min_tier.as_deref(),
             diagnostics_console.and_then(parse_console),
             diagnostics_artifacts.as_deref(),
             diagnostics_dir.as_deref(),
