@@ -46,7 +46,7 @@ ASK {
     gmeow:ObservableProperty  a owl:Class .
     gmeow:SensoryQuantity     a owl:Class .
 }""" ;
-    gmeow:saRationale "gmeow:Sensor, SensorPlatform, ObservableProperty, and SensoryQuantity MUST all be declared owl:Class in the sensory module. SensoryObservation is declared in the observations module and is covered there. Mirrors test_sensory_classes_exist (the four sensory-module-owned classes)." .
+    gmeow:saRationale "gmeow:Sensor, SensorPlatform, ObservableProperty, and SensoryQuantity MUST all be declared owl:Class in the sensory module. SensoryObservation is declared in the observations module and is covered there." .
 
 # --- 2. Core sensory object properties exist (MUST) --------------------------
 ex:saSensoryPropertiesExist a gmeow:StructuralAssertion ;
@@ -62,7 +62,7 @@ ASK {
     gmeow:platformLocation       a owl:ObjectProperty .
     gmeow:hasSensoryQuantity     a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "All six sensory object properties MUST be declared owl:ObjectProperty in the sensory module. Mirrors test_sensory_properties_exist." .
+    gmeow:saRationale "All six sensory object properties MUST be declared owl:ObjectProperty in the sensory module." .
 
 # --- 3. ObservableProperty seed individuals exist (MUST) ---------------------
 ex:saObservablePropertySeedsExist a gmeow:StructuralAssertion ;
@@ -82,7 +82,7 @@ ASK {
     gmeow:observablePropertyRoughness          a gmeow:ObservableProperty .
     gmeow:observablePropertyTimingDeviation    a gmeow:ObservableProperty .
 }""" ;
-    gmeow:saRationale "All eleven ObservableProperty seed individuals MUST be present as gmeow:ObservableProperty instances. Mirrors test_observable_property_seeds_exist." .
+    gmeow:saRationale "All eleven ObservableProperty seed individuals MUST be present as gmeow:ObservableProperty instances." .
 
 # --- 4. SensoryQuantity is equivalent to ScalarQuantity (MUST) ---------------
 ex:saSensoryQuantityEquivalentScalarQuantity a gmeow:StructuralAssertion ;
@@ -93,7 +93,7 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     gmeow:SensoryQuantity owl:equivalentClass gmeow:ScalarQuantity .
 }""" ;
-    gmeow:saRationale "gmeow:SensoryQuantity MUST be owl:equivalentClass gmeow:ScalarQuantity -- the domain-specific alias for the scalar quantity stack. Mirrors test_sensory_quantity_equivalent_to_scalar_quantity." .
+    gmeow:saRationale "gmeow:SensoryQuantity MUST be owl:equivalentClass gmeow:ScalarQuantity -- the domain-specific alias for the scalar quantity stack." .
 
 # --- 5. sensoryResult is a subproperty of observationResult (MUST) -----------
 ex:saSensoryResultSubPropertyOfObservationResult a gmeow:StructuralAssertion ;
@@ -104,7 +104,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:sensoryResult rdfs:subPropertyOf gmeow:observationResult .
 }""" ;
-    gmeow:saRationale "gmeow:sensoryResult MUST be rdfs:subPropertyOf gmeow:observationResult so generic consumers can query all observation results without knowing the domain. Mirrors test_sensory_result_subproperty_of_observation_result." .
+    gmeow:saRationale "gmeow:sensoryResult MUST be rdfs:subPropertyOf gmeow:observationResult so generic consumers can query all observation results without knowing the domain." .
 
 # --- 6. sensoryObservationOf is a subproperty of observedFeature (MUST) ------
 ex:saSensoryObservationOfSubPropertyOfObservedFeature a gmeow:StructuralAssertion ;
@@ -115,7 +115,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:sensoryObservationOf rdfs:subPropertyOf gmeow:observedFeature .
 }""" ;
-    gmeow:saRationale "gmeow:sensoryObservationOf MUST be rdfs:subPropertyOf gmeow:observedFeature so generic observation-about-X queries reach sensory observations. Mirrors test_sensory_observation_of_subproperty_of_observed_feature." .
+    gmeow:saRationale "gmeow:sensoryObservationOf MUST be rdfs:subPropertyOf gmeow:observedFeature so generic observation-about-X queries reach sensory observations." .
 
 # --- 7. hasSensoryObservation is inverse of sensoryObservationOf (MUST) ------
 ex:saHasSensoryObservationIsInverse a gmeow:StructuralAssertion ;
@@ -126,4 +126,4 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
     gmeow:hasSensoryObservation owl:inverseOf gmeow:sensoryObservationOf .
 }""" ;
-    gmeow:saRationale "gmeow:hasSensoryObservation MUST be owl:inverseOf gmeow:sensoryObservationOf -- the bidirectional navigation pair for sensory observations. Mirrors test_has_sensory_observation_is_inverse." .
+    gmeow:saRationale "gmeow:hasSensoryObservation MUST be owl:inverseOf gmeow:sensoryObservationOf -- the bidirectional navigation pair for sensory observations." .

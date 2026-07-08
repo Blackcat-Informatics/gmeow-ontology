@@ -1,0 +1,17 @@
+# Refutation witness required: a logic:Conjecture in the refuted-in-standpoint
+# epistemic state (logic:ConjectureRefutedInStandpoint) MUST name at least one
+# concrete logic:ContradictionWitness (logic:conjectureRefutationWitness) — the
+# individual forced to owl:Nothing, the world, and the premises. A refutation with
+# no replayable witness is an unfalsifiable claim, not a refutation. This selects
+# refuted conjectures that carry NO witness. Any returned row is a violation
+# (LOGIC-FOUNDATION.md, the conjecture-and-refutation section).
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?conj WHERE {
+    ?conj a logic:Conjecture ;
+          logic:conjectureLifecycleState logic:ConjectureRefutedInStandpoint .
+    FILTER NOT EXISTS {
+        ?conj logic:conjectureRefutationWitness ?witness .
+    }
+}
+ORDER BY ?conj

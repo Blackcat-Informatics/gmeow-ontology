@@ -14,6 +14,7 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/tests/> .
 @prefix exf:   <http://example.org/math/> .
+@prefix exs:   <http://example.org/math/statement/> .
 # The authored algebra-law witness elements (examples/*.ttl): the native reasoningLogic
 # lane queries the consequents the four laws DERIVE over these witnesses.
 @prefix exa:   <https://blackcatinformatics.ca/gmeow/examples/math/algebra/> .
@@ -863,3 +864,29 @@ ex:rowBridgeRoundtrip a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri exf:rRun ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rung" ; gmeow:cellValueIri logic:LossyLens ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mnemomorphic" ; gmeow:cellValueLiteral "true" ] .
+
+# === Statement-layer Q5 — theorem, theory, axioms, engine, and result ======= #
+ex:cqStatementProofTheoryEngine a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/theorem-proof-theory-engine.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statement-layer.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Theorem-hood is a role under a theory, not a truth bit: a math:MathematicalStatement carrying math:statementRole math:roleTheorem is proved by a math:Proof (math:provesStatement), scoped to a theory (math:roleInTheory) over axioms (math:dependsOnAxiom); a math:ProofCheckActivity checked the proof and its verdict is a math:FormalVerificationResult held by a gmeow:Observation with the engine as gmeow:vantage. Over the fixture the answer is exactly {pythStatement, pythProof, euclideanGeometryV2, euclidPostulate5, coqEngineV8, verificationPassed}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatementProofTheoryEngineShape ;
+    gmeow:cqExpectRow ex:rowStatementProofTheoryEngine .
+ex:cqStatementProofTheoryEngineShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "statement" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "proof" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "theory" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "axiom" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "engine" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "outcome" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+ex:rowStatementProofTheoryEngine a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "statement" ; gmeow:cellValueIri exs:pythStatement ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "proof" ; gmeow:cellValueIri exs:pythProof ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "theory" ; gmeow:cellValueIri exs:euclideanGeometryV2 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axiom" ; gmeow:cellValueIri exs:euclidPostulate5 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "engine" ; gmeow:cellValueIri exs:coqEngineV8 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "outcome" ; gmeow:cellValueIri math:verificationPassed ] .

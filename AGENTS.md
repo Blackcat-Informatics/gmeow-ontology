@@ -357,6 +357,20 @@ over its mappings/cells archives, irreducibly O(bundle size), the same
 whole-committed-bundle class as the CLI trio above; the up-projection surface
 keeps its fixture-scale on-gate tests in the same module, and both bundle-scale
 tests stay on-gate on `maint-heavy`).
+The `lang:` total-prose-lift + GMN-graft surface plus the conjecture-library
+`logic:`/`math:` term growth grew the bundle again and nudged three more
+whole-bundle CLI tests past budget —
+`gmeow-cli::cli::project_unknown_view_fails`,
+`gmeow-cli::cli::describe_env_language_rejected_if_unknown`, and
+`gmeow-dev-cli::cli_parity::project_view_over_the_snapshot` (3–5 s standalone but
+27.5–32.2 s under full-parallelism CI contention; each drives the CLI to load /
+describe / project-a-view over the WHOLE committed bundle before its fast
+reject/parity assertion, irreducibly O(bundle size), the identical
+whole-committed-bundle class as the `build_writes_serializations` / export /
+`project_schema_org_view` siblings above; the CLI project/describe surface keeps
+its fixture-scale reject/parity coverage on-gate in the same binaries, the
+serializations stay drift-gated via `make check-generated`, and all three stay
+on-gate on `maint-heavy`).
 Former off-gate groups such as
 ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
 correspondence parity, mapping parity, carrier/docs archive tests, scoreboards

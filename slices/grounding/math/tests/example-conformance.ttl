@@ -625,6 +625,25 @@ ex:ecVerificationResultUngrounded a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is a math:FormalVerificationResult with no grounding observation, so it fails the sh:sparql grounding constraint on math:FormalVerificationResultShape. Validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:UngroundedVerificationResult)." .
 
+# === Statement layer: a theorem claim is not a truth bit ==================== #
+
+ex:ecTheoremGrounded a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/theorem-grounded.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Theorem carrying a theory context (math:roleInTheory) and warranted by an in-graph math:Proof that math:provesStatement it satisfies math:TheoremGroundingShape and validates with no findings." .
+
+ex:ecTheoremMissingTheory a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/theorem-missing-theory.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:Theorem with a declared math:externalWarrant but no math:roleInTheory (sh:minCount 1 on math:TheoremGroundingShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UngroundedTheoremClaim)." .
+
+ex:ecTheoremUnwarranted a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/theorem-unwarranted.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:Theorem with a theory context but neither a math:Proof (nothing math:provesStatement it) nor a declared math:externalWarrant, so it fails the sh:sparql proof-or-warrant constraint on math:TheoremGroundingShape. Validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:UngroundedTheoremClaim)." .
+
 # === Flagship acceptance manifest: every scenario is fully wired ============= #
 
 ex:ecFlagshipCanonical a gmeow:ExampleConformance ;
