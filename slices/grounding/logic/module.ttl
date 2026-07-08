@@ -6959,6 +6959,33 @@ logic:hasFormula
     skos:definition "Relates a program or container to a top-level logic:Formula it asserts. Top-level formulae are reached by this property; sub-formulae are reached by the connective and quantifier properties, so a formula referenced as another's component is not also a top-level assertion."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:integrity
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Constraint ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "integrity"@x-gmeow-english ;
+    skos:definition "Relates a logic:Constraint to its closed-world integrity condition: the reified logic:Formula whose violation is a finding, not a derivation. Reuses the realized full-FOL formula core verbatim — the condition is an outer range-restricted universal (logic:forall over a bound focus) whose logic:antecedent guard names the class or predicate the focus ranges over and whose logic:consequent is the per-focus condition — so a constraint needs no bespoke shape DSL. The focus target (a class, or the subjects/objects of a predicate) is derived from that guard, never authored twice."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:severity
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:Constraint ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "severity"@x-gmeow-english ;
+    skos:definition "The severity a logic:Constraint violation reports at, as one of the SHACL local names 'Violation', 'Warning', or 'Info'. Absent means the SHACL default 'Violation'. Carried on the canonical constraint so the projected sh:SPARQLConstraint reproduces the authored sh:severity rather than re-deriving one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:message
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:Constraint ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "message"@x-gmeow-english ;
+    skos:definition "The advisory human-readable message a logic:Constraint violation attaches (projected to sh:message). Presentation-only and load-bearing-false: it carries no identity, so two constraints differing only in their message are the same constraint. Absent means no message."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:forall
     a owl:ObjectProperty ;
     rdfs:domain logic:Formula ;

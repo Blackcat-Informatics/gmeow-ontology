@@ -43,10 +43,11 @@ use super::graphutil::{
     term_as_subject, term_is_literal, term_str, value,
 };
 use super::ir::{
-    AggregateSpec, ComplexityClass, ConstraintComponent, ConstraintProvenance, ContextualScope,
-    Correspondence, Formula, LOGIC_NAMESPACE, LogicAxiom, LogicModality, LogicProgram, LogicRule,
-    PathBase, PathShapeIr, PropertyConstraintIr, ReasoningContract, SemanticProfileId,
-    ShaclNodeKind, ShapeTarget, ShapeValue, Term, ValidationShapeIr,
+    AggregateSpec, ComplexityClass, ConstraintComponent, ConstraintIr, ConstraintProvenance,
+    ContextualScope, Correspondence, Formula, LOGIC_NAMESPACE, LogicAxiom, LogicModality,
+    LogicProgram, LogicRule, PathBase, PathShapeIr, PropertyConstraintIr, ReasoningContract,
+    SemanticProfileId, ShaclNodeKind, ShaclSeverity, ShapeTarget, ShapeValue, Term,
+    ValidationShapeIr,
 };
 use super::restriction;
 
@@ -2018,6 +2019,17 @@ fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Ve
             }
         }
     }
+    // A formula reached as a `logic:Constraint`'s `logic:integrity` is that constraint's
+    // integrity condition, NOT a free-standing top-level assertion: it is owned by
+    // `LogicProgram::constraints`, so it must not ALSO enter `LogicProgram::formulas` (that
+    // would give one authored formula two content-addressed homes). Exclude every integrity
+    // root here.
+    let integrity_pred = nn(&logic_iri("integrity"));
+    for constraint in subjects_with(store, &nn(RDF_TYPE), &Node::iri(logic_iri("Constraint"))) {
+        for obj in objects(store, &constraint, &integrity_pred) {
+            referenced.insert(term_str(&obj));
+        }
+    }
 
     let mut formulas: Vec<Formula> = Vec::new();
     for subj in &subjects {
@@ -2185,6 +2197,67 @@ fn extract_correspondences(
     correspondences
 }
 
+/// Read every authored `logic:Constraint` individual into a [`ConstraintIr`] — the typed
+/// home for a closed-world procedural integrity condition (whose violation is a finding).
+/// Fail-soft like the other extractors: a malformed constraint emits a
+/// `MALFORMED_CONSTRAINT` warning and is skipped, never silently dropped.
+///
+/// A constraint node carries its integrity condition via `logic:integrity` (a top-level
+/// [`Formula`] tree, reconstructed by the shared [`parse_formula`] reader — no duplicated
+/// formula parsing), its `sh:severity` via a `logic:severity "Violation"|"Warning"|"Info"`
+/// literal (absent ⇒ the SHACL default `Violation`), an optional advisory `logic:message`
+/// literal, and an optional `logic:formalizes` gmeow-domain back-reference. The focus
+/// [`ShapeTarget`] is DERIVED from the integrity's `∀` guard by [`ConstraintIr::new`], which
+/// hard-fails (⇒ a `MALFORMED_CONSTRAINT` warning) on a non-range-restricted formula.
+///
+/// A constraint-free source yields an empty vector, and `with_constraints(vec![])` is a no-op
+/// in [`LogicProgram::canonical_key`] (the segment is append-only) — so adding this stage to
+/// every parse leaves every existing artifact byte-identical.
+fn extract_constraints(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<ConstraintIr> {
+    let constraint_ty = Node::iri(logic_iri("Constraint"));
+    let mut constraints: Vec<ConstraintIr> = Vec::new();
+    for subj in subjects_with(store, &nn(RDF_TYPE), &constraint_ty) {
+        match read_constraint(store, &subj) {
+            Ok(c) => constraints.push(c),
+            Err(message) => diagnostics.push(Diagnostic::warning(
+                "MALFORMED_CONSTRAINT",
+                message,
+                Some(subject_str(&subj)),
+            )),
+        }
+    }
+    constraints
+}
+
+/// Reconstruct one [`ConstraintIr`] rooted at a `logic:Constraint` node, or return a
+/// human-readable reason the constraint is malformed (surfaced as one `MALFORMED_CONSTRAINT`
+/// warning by [`extract_constraints`]).
+fn read_constraint(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+    let iri = subject_str(node);
+    let integrity_node = child_subject(store, node, "integrity").ok_or_else(|| {
+        "logic:Constraint has no logic:integrity formula (or it is not a resource)".to_owned()
+    })?;
+    let integrity = parse_formula(store, &integrity_node).ok_or_else(|| {
+        "logic:Constraint integrity formula could not be reconstructed".to_owned()
+    })?;
+    // Absent severity ⇒ the SHACL default `Violation`; an unrecognized token is a hard error.
+    let severity = match value(store, node, &nn(&logic_iri("severity"))) {
+        Some(t) => {
+            let token = term_str(&t);
+            ShaclSeverity::from_local(&token).ok_or_else(|| {
+                format!("logic:severity '{token}' is not one of Violation/Warning/Info")
+            })?
+        }
+        None => ShaclSeverity::Violation,
+    };
+    let message = value(store, node, &nn(&logic_iri("message"))).map(|t| term_str(&t));
+    let mut constraint = ConstraintIr::new(iri, integrity, severity, message)?;
+    if let Some(formalizes) = value(store, node, &nn(&logic_iri("formalizes"))) {
+        constraint = constraint.with_formalizes(term_str(&formalizes))?;
+    }
+    Ok(constraint)
+}
+
 /// Parse a `logic:` RDF source already loaded into a wasm-clean [`RdfDataset`]
 /// (default graph) into a [`LogicProgram`] + diagnostics.
 pub fn parse_logic_dataset(
@@ -2263,11 +2336,14 @@ pub fn parse_logic_dataset(
     let transaction_programs =
         crate::projections::correspondence::extract_leg_programs(store, &correspondences);
 
+    let constraints = extract_constraints(store, &mut diagnostics);
+
     let program = LogicProgram::new(all_axioms, rules, contracts, source_iri)
         .with_path_shapes(path_shapes)
         .with_correspondences(correspondences)
         .with_transaction_programs(transaction_programs)
-        .with_formulas(formulas);
+        .with_formulas(formulas)
+        .with_constraints(constraints);
     Ok((program, diagnostics))
 }
 

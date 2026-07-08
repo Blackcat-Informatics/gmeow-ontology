@@ -59,7 +59,9 @@ pub enum ShapeTarget {
 
 impl ShapeTarget {
     /// A deterministic content-key fragment (variant-tagged so the variants never collide).
-    fn content_key(&self) -> String {
+    /// `pub(crate)` so the sibling [`super::ConstraintIr`] can fold a target into its own
+    /// content key the same way [`ValidationShapeIr`] does.
+    pub(crate) fn content_key(&self) -> String {
         match self {
             ShapeTarget::Class(c) => format!("class={}", key_field(c)),
             ShapeTarget::SubjectsOf(p) => format!("subjectsof={}", key_field(p)),
@@ -121,6 +123,18 @@ impl ShaclSeverity {
             ShaclSeverity::Violation => "Violation",
             ShaclSeverity::Warning => "Warning",
             ShaclSeverity::Info => "Info",
+        }
+    }
+
+    /// Parse a severity from its SHACL local name (the inverse of [`Self::as_str`]); `None`
+    /// for an unrecognized token. The frontend uses this to read an authored
+    /// `logic:severity "Violation"|"Warning"|"Info"` literal on a `logic:Constraint`.
+    pub fn from_local(s: &str) -> Option<Self> {
+        match s {
+            "Violation" => Some(ShaclSeverity::Violation),
+            "Warning" => Some(ShaclSeverity::Warning),
+            "Info" => Some(ShaclSeverity::Info),
+            _ => None,
         }
     }
 }
