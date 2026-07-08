@@ -23,6 +23,8 @@ pub enum Format {
     Json,
     /// The diagnostics `Report` as SARIF.
     Sarif,
+    /// The assessment graph as `gmeow:QualityAssessment` N-Quads.
+    Rdf,
 }
 
 impl Format {
@@ -31,7 +33,10 @@ impl Format {
             None | Some("text") => Ok(Self::Text),
             Some("json") => Ok(Self::Json),
             Some("sarif") => Ok(Self::Sarif),
-            Some(other) => Err(format!("unknown --format {other} (want text|json|sarif)")),
+            Some("rdf") => Ok(Self::Rdf),
+            Some(other) => Err(format!(
+                "unknown --format {other} (want text|json|sarif|rdf)"
+            )),
         }
     }
 }
@@ -45,6 +50,7 @@ fn render(report: &SliceReport, format: Format) -> Result<String, String> {
         Format::Sarif => {
             gmeow_errors::render::to_sarif(&report.to_report()).map_err(|e| e.to_string())
         }
+        Format::Rdf => Ok(report.to_gmeow_rdf()),
     }
 }
 
@@ -99,7 +105,7 @@ fn sweep(root: &Path, format: Format) -> i32 {
                             report.advisories.len()
                         );
                     }
-                    Format::Json | Format::Sarif => match render(&report, format) {
+                    Format::Json | Format::Sarif | Format::Rdf => match render(&report, format) {
                         Ok(t) => println!("{t}"),
                         Err(e) => return fail(e),
                     },

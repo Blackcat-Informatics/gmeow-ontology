@@ -226,3 +226,305 @@ impl SliceReport {
 
 /// Re-export the rubric loader path used by the sweep.
 pub use rubric::load_rubric;
+
+// -----------------------------------------------------------------------------
+// RDF projection of a slice assessment.
+// -----------------------------------------------------------------------------
+
+/// The named graph the slice-quality assessment projection lives in.
+const SLICE_QUALITY_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/slice-quality";
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
+const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
+const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
+/// The computational-model observation method every advisor-produced grade carries
+/// (the scorer is a deterministic Rust primitive, not expert judgement).
+const METHOD_COMPUTATIONAL_MODEL: &str =
+    "https://blackcatinformatics.ca/gmeow/methodComputationalModel";
+/// A normalized quality score is a dimensionless ratio in `[0,1]`; the honest QUDT
+/// unit is UNITLESS (never PERCENT — a 0.97 ratio is not 0.97 %).
+const QUDT_UNITLESS: &str = "http://qudt.org/vocab/unit/UNITLESS";
+
+impl SliceReport {
+    /// Project this slice assessment into the `gmeow:` RDF vocabulary as
+    /// deterministic N-Quads, all in the `gmeow:graph/slice-quality` named graph.
+    ///
+    /// The assessment IS a bundle of quality observations (per the worked example
+    /// `slices/core/slice-quality-rubric/examples/rubric-assessment.ttl`): each
+    /// per-axis grade becomes a `gmeow:QualityAssessment` (a `gmeow:Observation`
+    /// subclass) whose `gmeow:assessedEntity` is the slice IRI, whose
+    /// `gmeow:qualityDimension` is the axis's emitted dimension, whose
+    /// `gmeow:observationMethod` is `gmeow:methodComputationalModel`, and whose two
+    /// coexisting `gmeow:observationResult`s are (a) a `gmeow:ScalarQuantity` wrapping
+    /// the normalized score (`gmeow:quantityValue` + UNITLESS `gmeow:unit`) and (b)
+    /// the categorical `gmeow:QualityTier` the score earned. The roll-up tier is one
+    /// more top-level `gmeow:QualityAssessment` whose sole result is the meet tier —
+    /// dimension-spanning, so it carries no `gmeow:qualityDimension`.
+    ///
+    /// This mirrors the discipline of `gmeow-docs`/`gmeow-errors` `to_gmeow_rdf`:
+    /// N-Quads (no TriG/prefix handling), `nq_escape`d literals, IRIs (never blank
+    /// nodes) minted deterministically from the slice + axis local names (never a
+    /// counter), sorted iteration, every generated A-Box subject stamped with
+    /// `rdfs:label` / `skos:definition` / `rdfs:isDefinedBy` / `gmeow:graphBoxRole
+    /// gmeow:boxABox`, and a trailing newline.
+    #[must_use]
+    pub fn to_gmeow_rdf(&self) -> String {
+        let graph = format!("<{SLICE_QUALITY_GRAPH}>");
+        let mut lines: Vec<String> = Vec::new();
+
+        let triple = |s: &str, p: &str, o: &str, lines: &mut Vec<String>| {
+            lines.push(format!("{s} <{p}> {o} {graph} ."));
+        };
+        let literal = |value: &str| format!("\"{}\"", nq_escape(value));
+
+        // Every projected subject is generated A-Box instance data: stamp it with a
+        // human label, a definition-equivalent, its named-graph provenance anchor, and
+        // the assertional `gmeow:boxABox` role so the folded bundle satisfies the
+        // assertional-tier validation contract (mirrors docs/errors emitters).
+        let role_object = format!("<{}boxABox>", crate::model::GMEOW);
+        let isdefinedby_object = format!("<{SLICE_QUALITY_GRAPH}>");
+        let annotate = |subject: &str, label: &str, definition: &str, lines: &mut Vec<String>| {
+            triple(subject, RDFS_LABEL, &literal(label), lines);
+            triple(subject, SKOS_DEFINITION, &literal(definition), lines);
+            triple(subject, RDFS_IS_DEFINED_BY, &isdefinedby_object, lines);
+            triple(
+                subject,
+                &format!("{}graphBoxRole", crate::model::GMEOW),
+                &role_object,
+                lines,
+            );
+        };
+
+        let slice_iri = &self.assessment.slice;
+        let slice_slug = local_slug(slice_iri);
+        let assessed_object = format!("<{}>", nq_iri(slice_iri));
+
+        // Map each axis IRI to its emitted quality dimension (the grade vector carries
+        // only the axis; the dimension binding lives on the rubric axis).
+        let dim_of: std::collections::HashMap<&str, &str> = self
+            .rubric
+            .axes
+            .iter()
+            .map(|a| (a.iri.as_str(), a.dimension_iri.as_str()))
+            .collect();
+
+        // Per-axis grades, emitted in a deterministic axis-IRI order.
+        let mut grades: Vec<&AxisGrade> = self.assessment.grades.iter().collect();
+        grades.sort_by(|a, b| a.axis_iri.cmp(&b.axis_iri));
+        for grade in grades {
+            let axis_local = local_slug(&grade.axis_iri);
+            let assessment_iri = format!(
+                "{}slice-quality/assessment/{slice_slug}/{axis_local}",
+                crate::model::GMEOW
+            );
+            let score_iri = format!(
+                "{}slice-quality/score/{slice_slug}/{axis_local}",
+                crate::model::GMEOW
+            );
+            let assessment_subject = format!("<{}>", nq_iri(&assessment_iri));
+            let score_subject = format!("<{}>", nq_iri(&score_iri));
+
+            triple(
+                &assessment_subject,
+                RDF_TYPE,
+                &format!("<{}QualityAssessment>", crate::model::GMEOW),
+                &mut lines,
+            );
+            triple(
+                &assessment_subject,
+                &format!("{}assessedEntity", crate::model::GMEOW),
+                &assessed_object,
+                &mut lines,
+            );
+            // The dimension the grade is emitted under — a hard requirement: an axis
+            // with no bound dimension is a rubric authoring error, never silently
+            // dropped (the projection then carries a visibly under-specified grade).
+            let dimension = dim_of.get(grade.axis_iri.as_str()).copied().unwrap_or("");
+            if !dimension.is_empty() {
+                triple(
+                    &assessment_subject,
+                    &format!("{}qualityDimension", crate::model::GMEOW),
+                    &format!("<{}>", nq_iri(dimension)),
+                    &mut lines,
+                );
+            }
+            triple(
+                &assessment_subject,
+                &format!("{}observationMethod", crate::model::GMEOW),
+                &format!("<{METHOD_COMPUTATIONAL_MODEL}>"),
+                &mut lines,
+            );
+            // Result 1: the normalized score, wrapped in a ScalarQuantity (the range of
+            // observationResult is gmeow:Entity — a bare literal is forbidden here).
+            triple(
+                &assessment_subject,
+                &format!("{}observationResult", crate::model::GMEOW),
+                &score_subject,
+                &mut lines,
+            );
+            // Result 2: the categorical tier the score earned (observationResult is
+            // non-functional; a scalar reading and a categorical verdict coexist).
+            triple(
+                &assessment_subject,
+                &format!("{}observationResult", crate::model::GMEOW),
+                &format!("<{}>", nq_iri(&grade.tier.iri)),
+                &mut lines,
+            );
+            annotate(
+                &assessment_subject,
+                &format!("Quality grade: {axis_local} on {slice_iri}"),
+                &format!(
+                    "Slice-quality assessment of {slice_iri} on axis {} — measured {} (score {}).",
+                    grade.axis_iri,
+                    grade.tier.label,
+                    fmt_score(grade.score)
+                ),
+                &mut lines,
+            );
+
+            // The score ScalarQuantity: value + dimensionless unit.
+            triple(
+                &score_subject,
+                RDF_TYPE,
+                &format!("<{}ScalarQuantity>", crate::model::GMEOW),
+                &mut lines,
+            );
+            triple(
+                &score_subject,
+                &format!("{}quantityValue", crate::model::GMEOW),
+                &format!("\"{}\"^^<{XSD_DECIMAL}>", fmt_score(grade.score)),
+                &mut lines,
+            );
+            triple(
+                &score_subject,
+                &format!("{}unit", crate::model::GMEOW),
+                &format!("<{QUDT_UNITLESS}>"),
+                &mut lines,
+            );
+            annotate(
+                &score_subject,
+                &format!("Quality score: {axis_local} on {slice_iri}"),
+                &format!(
+                    "Normalized slice-quality score {} for axis {} of {slice_iri}.",
+                    fmt_score(grade.score),
+                    grade.axis_iri
+                ),
+                &mut lines,
+            );
+        }
+
+        // The roll-up: one top-level QualityAssessment whose sole result is the meet
+        // tier. It spans every dimension (the unweighted lattice meet of the axis
+        // grades), so it carries NO gmeow:qualityDimension — it is not a value along
+        // one axis but the combined verdict.
+        let rollup_iri = format!(
+            "{}slice-quality/assessment/{slice_slug}/rollup",
+            crate::model::GMEOW
+        );
+        let rollup_subject = format!("<{}>", nq_iri(&rollup_iri));
+        triple(
+            &rollup_subject,
+            RDF_TYPE,
+            &format!("<{}QualityAssessment>", crate::model::GMEOW),
+            &mut lines,
+        );
+        triple(
+            &rollup_subject,
+            &format!("{}assessedEntity", crate::model::GMEOW),
+            &assessed_object,
+            &mut lines,
+        );
+        triple(
+            &rollup_subject,
+            &format!("{}observationMethod", crate::model::GMEOW),
+            &format!("<{METHOD_COMPUTATIONAL_MODEL}>"),
+            &mut lines,
+        );
+        triple(
+            &rollup_subject,
+            &format!("{}observationResult", crate::model::GMEOW),
+            &format!("<{}>", nq_iri(&self.assessment.rollup.iri)),
+            &mut lines,
+        );
+        annotate(
+            &rollup_subject,
+            &format!("Roll-up quality tier on {slice_iri}"),
+            &format!(
+                "Roll-up slice-quality tier {} for {slice_iri} — the unweighted lattice meet of every per-axis grade.",
+                self.assessment.rollup.label
+            ),
+            &mut lines,
+        );
+
+        let mut out = lines.join("\n");
+        if !out.is_empty() {
+            out.push('\n');
+        }
+        out
+    }
+}
+
+/// Format a normalized `[0,1]` score as a deterministic plain-decimal lexical form
+/// (fixed precision — never scientific notation, so it is a legal `xsd:decimal`).
+fn fmt_score(score: f64) -> String {
+    format!("{score:.6}")
+}
+
+/// The local name of an IRI (the tail after the last `/` or `#`), slugified to
+/// `[a-z0-9-]` for use inside a minted subject IRI. Deterministic and stable.
+fn local_slug(iri: &str) -> String {
+    let cut = iri.rfind(['/', '#']).map(|i| i + 1).unwrap_or(0);
+    let name = &iri[cut..];
+    let mut out = String::with_capacity(name.len());
+    let mut prev_dash = false;
+    for ch in name.chars() {
+        let lc = ch.to_ascii_lowercase();
+        if lc.is_ascii_alphanumeric() {
+            out.push(lc);
+            prev_dash = false;
+        } else if !prev_dash {
+            out.push('-');
+            prev_dash = true;
+        }
+    }
+    let trimmed = out.trim_matches('-');
+    if trimmed.is_empty() {
+        "unnamed".to_string()
+    } else {
+        trimmed.to_string()
+    }
+}
+
+/// Escape an IRI for an N-Quads IRIREF (the characters the grammar forbids raw:
+/// controls, spaces, and the delimiter set `<>"{}|^`` ` and backslash).
+fn nq_iri(iri: &str) -> String {
+    let mut out = String::with_capacity(iri.len());
+    for ch in iri.chars() {
+        match ch {
+            '<' | '>' | '"' | '{' | '}' | '|' | '^' | '`' | '\\' => {
+                out.push_str(&format!("\\u{:04X}", ch as u32));
+            }
+            c if (c as u32) <= 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
+            c => out.push(c),
+        }
+    }
+    out
+}
+
+/// Escape a string literal for N-Triples/N-Quads (mirrors `gmeow_docs::rdf::nq_escape`).
+fn nq_escape(value: &str) -> String {
+    let mut out = String::with_capacity(value.len() + 2);
+    for ch in value.chars() {
+        match ch {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
+            c => out.push(c),
+        }
+    }
+    out
+}
