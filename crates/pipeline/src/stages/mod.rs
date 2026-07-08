@@ -50,6 +50,7 @@ pub mod lang_translation;
 pub mod lpg;
 pub mod mappings;
 pub mod matrix;
+pub mod meta_findings;
 pub mod metadata;
 pub mod native_query;
 pub mod okf;

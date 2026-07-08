@@ -1,6 +1,6 @@
 ---
 source: crates/errors/src/render.rs
-assertion_line: 1158
+assertion_line: 1792
 expression: value
 ---
 {
@@ -28,7 +28,7 @@ expression: value
             "text": "consider a more specific sortal"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "1bad5a88c33c332d"
+            "gmeowFindingHash/v2": "5e060aab50fba194"
           },
           "properties": {
             "gmeow.suggestions": [

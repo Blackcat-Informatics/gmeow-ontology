@@ -142,61 +142,54 @@ fn sarif_artifacts(report: &Report) -> Vec<Value> {
         .collect()
 }
 
-/// A stable, dependency-free 64-bit FNV-1a hash, hex-encoded. Used for SARIF
-/// `partialFingerprints` so GitHub code-scanning can dedupe a finding across
-/// runs even as line numbers shift. Deterministic across platforms (unlike
-/// `std::hash::DefaultHasher`).
+/// A stable, dependency-free `blake3` fingerprint (first 8 bytes, hex-encoded).
+/// Used for SARIF `partialFingerprints` so GitHub code-scanning can dedupe a
+/// finding across runs even as line numbers shift, and as the fallback subject IRI
+/// for a NON-ledger finding that carries no `finding_iri`. Deterministic across
+/// platforms; the SINGLE hash the diagnostics surface uses now that the FNV-1a
+/// scheme is retired — ledger witnesses and this fallback both hash with `blake3`.
 ///
-/// **v2**: now incorporates canonical attribution roles + slice IRIs so that two
+/// **v2**: incorporates canonical attribution roles + slice IRIs so that two
 /// otherwise-identical findings (same severity/code/location/message) produce
 /// different fingerprints when their structured attribution differs. Attributions
-/// are sorted by `(role, slice_iri)` for order-independence.
+/// are sorted by `(role, slice_iri)` for order-independence. Separator bytes keep
+/// `"ab|c"` distinct from `"a|bc"`.
 fn stable_fingerprint(finding: &Finding) -> String {
-    const FNV_OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
-    const FNV_PRIME: u64 = 0x0000_0100_0000_01b3;
     let (severity, code, location, message) = finding.sort_key();
-    let mut hash = FNV_OFFSET;
+    let mut hasher = blake3::Hasher::new();
 
-    // Hash the primary finding fields (same as v1).
+    // The primary finding fields, each followed by a field separator.
     for part in [severity.as_str(), code, location.as_str(), message] {
-        for byte in part.as_bytes() {
-            hash ^= u64::from(*byte);
-            hash = hash.wrapping_mul(FNV_PRIME);
-        }
-        // Field separator keeps "ab|c" distinct from "a|bc".
-        hash ^= 0x1f;
-        hash = hash.wrapping_mul(FNV_PRIME);
+        hasher.update(part.as_bytes());
+        hasher.update(&[0x1f]);
     }
 
-    // Hash sorted attributions (role, slice_iri) so that different attribution
-    // roles on an otherwise-identical finding produce a different fingerprint.
-    // Sorted for order-independence.
+    // The sorted attributions (role, slice_iri) so that different attribution
+    // roles on an otherwise-identical finding produce a different fingerprint;
+    // sorted for order-independence, behind a primary/attribution separator.
     let mut sorted_attrs: Vec<(&str, &str)> = finding
         .attributions
         .iter()
         .map(|a| (a.role.as_str(), a.slice_iri.as_str()))
         .collect();
     sorted_attrs.sort_unstable();
-
-    // Separator between primary fields and attribution section.
-    hash ^= 0x1e;
-    hash = hash.wrapping_mul(FNV_PRIME);
-
+    hasher.update(&[0x1e]);
     for (role, iri) in &sorted_attrs {
         for part in [*role, *iri] {
-            for byte in part.as_bytes() {
-                hash ^= u64::from(*byte);
-                hash = hash.wrapping_mul(FNV_PRIME);
-            }
-            hash ^= 0x1f;
-            hash = hash.wrapping_mul(FNV_PRIME);
+            hasher.update(part.as_bytes());
+            hasher.update(&[0x1f]);
         }
         // Attribution entry separator.
-        hash ^= 0x1d;
-        hash = hash.wrapping_mul(FNV_PRIME);
+        hasher.update(&[0x1d]);
     }
 
-    format!("{hash:016x}")
+    let digest = hasher.finalize();
+    let mut out = String::with_capacity(16);
+    use std::fmt::Write;
+    for byte in &digest.as_bytes()[..8] {
+        let _ = write!(out, "{byte:02x}");
+    }
+    out
 }
 
 /// The GMEOW namespace IRI prefix.
@@ -312,8 +305,22 @@ pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
     };
 
     for (index, finding) in normalized.findings.iter().enumerate() {
-        let fingerprint = stable_fingerprint(finding);
-        let subject = format!("<{GMEOW}diagnostics/finding/{fingerprint}-{index}>");
+        // The subject IRI is the ledger's canonical blake3 fingerprint IRI when the
+        // finding is a ledger witness — the SAME IRI downstream findings' antecedent
+        // edges point at (via `finding.antecedents`), so subject and
+        // antecedent-object IRIs CLOSE and the meta-rules can join on them. Every
+        // production finding is now a ledger witness (SHACL + compile-logic both
+        // route through the DiagLedger). A NON-ledger finding (an ad-hoc report built
+        // off the pipeline path) carries no fingerprint IRI and falls back to the
+        // same blake3 `stable_fingerprint` content hash, disambiguated by index.
+        let subject_iri = match &finding.finding_iri {
+            Some(iri) => iri.clone(),
+            None => format!(
+                "{GMEOW}diagnostics/finding/{}-{index}",
+                stable_fingerprint(finding)
+            ),
+        };
+        let subject = format!("<{subject_iri}>");
         triple(&subject, RDF_TYPE, &format!("<{GMEOW}Finding>"), &mut lines);
         // Assertional-tier annotation: a human label, a named-graph provenance
         // anchor, and the assertional box role, so the folded bundle's generated
@@ -389,6 +396,49 @@ pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
                 &mut lines,
             );
         }
+        // The provenance-DAG antecedent edges (gmeow:findingAntecedent): this
+        // finding derives FROM each object, keyed on the antecedent's canonical
+        // fingerprint IRI — the SAME IRI that antecedent's own subject carries, so
+        // the graph closes and the root-cause / cluster meta-rules can walk it.
+        for antecedent in &finding.antecedents {
+            triple(
+                &subject,
+                &format!("{GMEOW}findingAntecedent"),
+                &format!("<{antecedent}>"),
+                &mut lines,
+            );
+        }
+        // The code-blind source anchor (gmeow:findingAnchor) — the cross-node join
+        // key two different-code findings at one source position share. Only a
+        // NON-TRIVIAL anchor (a real path/focus) is typed gmeow:NonTrivialAnchor,
+        // the guard that keeps the cross-node-glut join off the shared empty anchor
+        // of locationless findings.
+        if let Some(anchor) = &finding.anchor_iri {
+            triple(
+                &subject,
+                &format!("{GMEOW}findingAnchor"),
+                &format!("<{anchor}>"),
+                &mut lines,
+            );
+            if finding.anchor_non_trivial {
+                triple(
+                    &format!("<{anchor}>"),
+                    RDF_TYPE,
+                    &format!("<{GMEOW}NonTrivialAnchor>"),
+                    &mut lines,
+                );
+            }
+        }
+        // The DSL-authored remediation payload (gmeow:findingRemediation) — the
+        // "how to fix" prose, projected verbatim, never fabricated.
+        for remediation in &finding.remediation {
+            triple(
+                &subject,
+                &format!("{GMEOW}findingRemediation"),
+                &format!("\"{}\"", nq_escape(&remediation.text)),
+                &mut lines,
+            );
+        }
         // The gate verdict is NOT asserted here. It is a DERIVED predicate: the native
         // reasoner runs logic:ruleGateFatalVerdict (the authored up-set derivation
         // ↑(severityError, blockingBlocking, standpointBinding), reading the three
@@ -422,8 +472,7 @@ pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
             // An IRI (not a blank node) so the findings graph round-trips
             // through GTS fold without bnode relabeling — required for the
             // feedback bundle's snapshot content id to stay stable.
-            let loc_node =
-                format!("<{GMEOW}diagnostics/finding/{fingerprint}-{index}/location/{loc_index}>");
+            let loc_node = format!("<{subject_iri}/location/{loc_index}>");
             triple(
                 &subject,
                 &format!("{GMEOW}findingLocation"),
@@ -505,12 +554,112 @@ fn finding_text_lines(finding: &Finding, rules: &BTreeMap<&str, &Rule>, out: &mu
     for suggestion in &finding.suggestions {
         out.push(format!("  ↳ suggestion: {suggestion}"));
     }
-    // Help URI from the rule, if present.
-    if let Some(rule) = rules.get(finding.code.as_str())
-        && let Some(uri) = &rule.help_uri
-    {
-        out.push(format!("  ↳ help: {uri}"));
+    // DSL-authored remediations — the "how to fix" payload (never fabricated).
+    for remediation in &finding.remediation {
+        out.push(format!("  ↳ how to fix: {}", remediation.text));
+        if let Some(uri) = &remediation.help_uri {
+            out.push(format!("    ↳ see: {uri}"));
+        }
     }
+    // The single code→governing-term join, built once as `rules`: read the help
+    // URI (outward catalog link), the rule-level remediation (gmeow:ruleRemediation),
+    // and the governing term's usage guidance (gmeow:howToUse) for the deep surface.
+    if let Some(rule) = rules.get(finding.code.as_str()) {
+        if let Some(uri) = &rule.help_uri {
+            out.push(format!("  ↳ help: {uri}"));
+        }
+        if let Some(remediation) = &rule.remediation {
+            out.push(format!("  ↳ rule remediation: {remediation}"));
+        }
+        if let Some(how_to_use) = &rule.how_to_use {
+            out.push(format!("  ↳ how to use: {how_to_use}"));
+        }
+    }
+    // Reasoner-derived meta-findings carried on the finding (present only after the
+    // meta-reasoning fold has run and been read back): the shared root cause and
+    // any cross-node glut edge. The 'N findings share root R' cluster grouping is a
+    // report-level surface rendered once by the caller.
+    if let Some(root) = &finding.root_cause {
+        out.push(format!("  ↳ root cause: {root}"));
+    }
+    for peer in &finding.cross_node_glut_with {
+        out.push(format!("  ↳ cross-node glut with: {peer}"));
+    }
+}
+
+/// The report-level 'N findings share root R' cluster grouping — one line per
+/// distinct reasoner-derived `gmeow:findingRootCause`, in deterministic root-IRI
+/// order. Empty when the meta-reasoning fold has derived no root cause.
+fn cluster_summary_lines(report: &Report) -> Vec<String> {
+    let mut counts: BTreeMap<&str, usize> = BTreeMap::new();
+    for finding in &report.findings {
+        if let Some(root) = &finding.root_cause {
+            *counts.entry(root.as_str()).or_default() += 1;
+        }
+    }
+    counts
+        .into_iter()
+        .map(|(root, n)| format!("{n} finding(s) share root {root}"))
+        .collect()
+}
+
+/// The `finding_iri → &Finding` index the witness-DAG walk resolves antecedents
+/// against. Built ONCE per report by a renderer and shared across every finding's
+/// [`derivation_lines`] call — rebuilding it per finding made `to_text`/`to_html`
+/// quadratic over the report.
+fn finding_index(report: &Report) -> BTreeMap<&str, &Finding> {
+    report
+        .findings
+        .iter()
+        .filter_map(|f| f.finding_iri.as_deref().map(|iri| (iri, f)))
+        .collect()
+}
+
+/// The witness-DAG derivation section for a finding, reconstructed via the ONE
+/// shared DAG walk engine ([`crate::dag::walk`]) over the report's finding graph
+/// (keyed on `finding_iri`, edges are `antecedents`), resolving antecedents through
+/// the caller-built [`finding_index`]. Returns one indented line per antecedent in
+/// pre-order (DFS), naming each cited antecedent IRI and its message. Empty when
+/// the finding has no antecedents or is not a ledger witness.
+fn derivation_lines(by_iri: &BTreeMap<&str, &Finding>, finding: &Finding) -> Vec<String> {
+    use crate::dag::walk;
+    let Some(root_iri) = finding.finding_iri.as_deref() else {
+        return Vec::new();
+    };
+    if finding.antecedents.is_empty() {
+        return Vec::new();
+    }
+    // resolve never yields None (an antecedent absent from the report resolves to a
+    // placeholder message), so the walk never hard-fails on an unresolved node; a
+    // structural cycle (which the acyclic ledger never produces) degrades to no
+    // section rather than a render panic.
+    let tree = walk(
+        root_iri.to_owned(),
+        |k: &String| {
+            Some(
+                by_iri
+                    .get(k.as_str())
+                    .map(|f| f.message.clone())
+                    .unwrap_or_else(|| "(antecedent not in report)".to_owned()),
+            )
+        },
+        |k: &String, _msg: &String| {
+            by_iri
+                .get(k.as_str())
+                .map(|f| f.antecedents.clone())
+                .unwrap_or_default()
+        },
+    );
+    let Ok(tree) = tree else {
+        return Vec::new();
+    };
+    let mut lines = vec!["  ↳ derivation:".to_owned()];
+    // Skip the root itself (depth 0); every deeper node is a cited antecedent.
+    for node in tree.preorder().into_iter().filter(|n| n.depth > 0) {
+        let indent = "  ".repeat(node.depth as usize + 1);
+        lines.push(format!("{indent}← {} ({})", node.key, node.payload));
+    }
+    lines
 }
 
 /// Render a compact terminal-safe plain-text report — the FULL per-finding form
@@ -523,10 +672,17 @@ fn finding_text_lines(finding: &Finding, rules: &BTreeMap<&str, &Rule>, out: &mu
 pub fn to_text(report: &Report) -> String {
     let normalized = report.normalized();
     let rules = rule_map(&normalized);
+    let by_iri = finding_index(&normalized);
     let mut lines = Vec::new();
     for finding in &normalized.findings {
         finding_text_lines(finding, &rules, &mut lines);
+        // The witness-DAG derivation/explain section, walked via the one shared
+        // DAG engine over the report's finding graph (index built once above).
+        lines.extend(derivation_lines(&by_iri, finding));
     }
+    // The report-level 'N findings share root R' cluster grouping (empty unless the
+    // meta-reasoning fold has run and been read back onto the findings).
+    lines.extend(cluster_summary_lines(&normalized));
     lines.join("\n")
 }
 
@@ -623,6 +779,7 @@ pub fn to_html(report: &Report) -> String {
     } else {
         ""
     };
+    let by_iri = finding_index(&normalized);
     let mut rows = String::new();
     for finding in &normalized.findings {
         let location = finding
@@ -646,13 +803,58 @@ pub fn to_html(report: &Report) -> String {
             }
             msg_cell.push_str("</ul>");
         }
-        if let Some(rule) = rules.get(finding.code.as_str())
-            && let Some(uri) = &rule.help_uri
-        {
+        // DSL-authored remediations (the "how to fix" payload, never fabricated).
+        for remediation in &finding.remediation {
             msg_cell.push_str(&format!(
-                "<a class=\"help\" href=\"{}\">\u{2139} help</a>",
-                escape_html(uri)
+                "<p class=\"remediation\">how to fix: {}</p>",
+                escape_html(&remediation.text)
             ));
+        }
+        if let Some(rule) = rules.get(finding.code.as_str()) {
+            if let Some(uri) = &rule.help_uri {
+                msg_cell.push_str(&format!(
+                    "<a class=\"help\" href=\"{}\">\u{2139} help</a>",
+                    escape_html(uri)
+                ));
+            }
+            // Per-term guidance joined once via the code→rule registry.
+            if let Some(remediation) = &rule.remediation {
+                msg_cell.push_str(&format!(
+                    "<p class=\"remediation\">rule remediation: {}</p>",
+                    escape_html(remediation)
+                ));
+            }
+            if let Some(how_to_use) = &rule.how_to_use {
+                msg_cell.push_str(&format!(
+                    "<p class=\"remediation\">how to use: {}</p>",
+                    escape_html(how_to_use)
+                ));
+            }
+        }
+        // Reasoner-derived meta-findings carried on the finding.
+        if let Some(root) = &finding.root_cause {
+            msg_cell.push_str(&format!(
+                "<p class=\"meta\">root cause: {}</p>",
+                escape_html(root)
+            ));
+        }
+        for peer in &finding.cross_node_glut_with {
+            msg_cell.push_str(&format!(
+                "<p class=\"meta\">cross-node glut with: {}</p>",
+                escape_html(peer)
+            ));
+        }
+        // The witness-DAG derivation section (walked via the one shared engine,
+        // resolving against the index built once above).
+        let derivation = derivation_lines(&by_iri, finding);
+        if !derivation.is_empty() {
+            msg_cell.push_str("<ul class=\"derivation\">");
+            // Skip the leading "derivation:" label line; each remaining line is a
+            // cited antecedent.
+            for line in derivation.iter().skip(1) {
+                msg_cell.push_str(&format!("<li>{}</li>", escape_html(line.trim())));
+            }
+            msg_cell.push_str("</ul>");
         }
         rows.push_str(&format!("<td>{msg_cell}</td>"));
 
@@ -662,6 +864,22 @@ pub fn to_html(report: &Report) -> String {
     if rows.is_empty() {
         rows.push_str("<tr><td colspan=\"4\">No diagnostics.</td></tr>\n");
     }
+
+    // The report-level 'N findings share root R' cluster grouping — rendered as a
+    // list above the table only when the meta-reasoning fold has derived roots.
+    let cluster_block = {
+        let summary = cluster_summary_lines(&normalized);
+        if summary.is_empty() {
+            String::new()
+        } else {
+            let mut block = String::from("  <ul class=\"clusters\">\n");
+            for line in &summary {
+                block.push_str(&format!("    <li>{}</li>\n", escape_html(line)));
+            }
+            block.push_str("  </ul>\n");
+            block
+        }
+    };
 
     format!(
         r#"<!doctype html>
@@ -685,7 +903,7 @@ pub fn to_html(report: &Report) -> String {
 <body>
   <h1>{tool} diagnostics</h1>
   <p class="summary">{errors} error(s), {warnings} warning(s), {total} total finding(s)</p>
-  <table>
+{cluster_block}  <table>
     <thead><tr><th>Severity</th><th>Code</th><th>Message</th><th>Location</th></tr></thead>
     <tbody>
 {rows}    </tbody>
@@ -699,6 +917,7 @@ pub fn to_html(report: &Report) -> String {
         total = normalized.findings.len(),
         rows = rows,
         advisory_css = advisory_css,
+        cluster_block = cluster_block,
     )
 }
 
@@ -848,16 +1067,80 @@ fn sarif_result(finding: &Finding) -> Value {
         });
         props.insert("gmeow.attributions".to_owned(), json!(sorted));
     }
-    // Advisory suggestions land in properties as a plain string array.
-    // SARIF `fixes` (with artifactChanges) is deliberately left to D5
-    // where suggestions become concrete edits with file mutations.
+    // Advisory suggestions land in properties as a plain string array — the
+    // per-occurrence advice that carries no mechanical edit.
     if !finding.suggestions.is_empty() {
         props.insert("gmeow.suggestions".to_owned(), json!(finding.suggestions));
     }
     if !props.is_empty() {
         result["properties"] = serde_json::Value::Object(props);
     }
+
+    // DSL-authored remediations become SARIF `fixes`: one fix per remediation,
+    // its `description.text` the remediation prose, with `artifactChanges` present
+    // ONLY when the remediation carries a concrete mechanical edit (an honest
+    // absence otherwise — most rules are prose-only). Any artifact URI is routed
+    // through the same repo-relative hygiene as every result location.
+    let fixes: Vec<Value> = finding.remediation.iter().map(sarif_fix).collect();
+    if !fixes.is_empty() {
+        result["fixes"] = json!(fixes);
+    }
     result
+}
+
+/// Render one DSL-authored [`Remediation`](crate::diag::Remediation) as a SARIF
+/// `fix`. The `description.text` is the remediation prose; `artifactChanges` is
+/// emitted ONLY when the remediation carries a mechanical
+/// [`ArtifactChange`](crate::diag::ArtifactChange) whose artifact URI passes the
+/// repo-relative hygiene GitHub code-scanning requires — an honest absence
+/// otherwise.
+fn sarif_fix(remediation: &crate::diag::Remediation) -> Value {
+    // The remediation's STANDPOINT rides as a fix-level property so the gating
+    // strength of the "how to fix" guidance (advisory ⊑ perspectival ⊑ binding — the
+    // leg the gate morphism reads) survives into the SARIF byte artifact, not just
+    // the RDF/CLI surfaces. This is the property the annotate-by-fingerprint pass's
+    // output is greppable on in the regenerated `shacl.sarif`.
+    let mut fix = json!({
+        "description": { "text": remediation.text },
+        "properties": { "gmeow.standpoint": remediation.standpoint.as_str() },
+    });
+    if let Some(uri) = &remediation.help_uri {
+        fix["properties"]["gmeow.helpUri"] = json!(uri);
+    }
+    if let Some(change) = &remediation.artifact_change {
+        // Route the artifact URI through the same repo-relative validation as a
+        // result location: only a bare, scheme-less, repo-relative reference is a
+        // valid SARIF artifactLocation.uri.
+        let loc = Location::new(Some(change.artifact_uri.clone()), None, None, None);
+        if let Some(uri) = artifact_uri(&loc) {
+            let mut replacement = json!({ "deletedRegion": sarif_region(&change.region) });
+            replacement["insertedContent"] = json!({ "text": change.replacement });
+            fix["artifactChanges"] = json!([{
+                "artifactLocation": { "uri": uri },
+                "replacements": [replacement],
+            }]);
+        }
+    }
+    fix
+}
+
+/// The SARIF `region` object for a mechanical edit — only the coordinates present
+/// are emitted (a whole-line replacement carries no column, etc.).
+fn sarif_region(region: &crate::diag::Region) -> Value {
+    let mut out = serde_json::Map::new();
+    if let Some(v) = region.start_line {
+        out.insert("startLine".to_owned(), json!(v));
+    }
+    if let Some(v) = region.start_column {
+        out.insert("startColumn".to_owned(), json!(v));
+    }
+    if let Some(v) = region.end_line {
+        out.insert("endLine".to_owned(), json!(v));
+    }
+    if let Some(v) = region.end_column {
+        out.insert("endColumn".to_owned(), json!(v));
+    }
+    Value::Object(out)
 }
 
 /// SARIF logical locations for whichever GTS wire coordinates are present, so a
@@ -979,6 +1262,7 @@ fn escape_attr(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::grade::Standpoint;
     use crate::model::{DiagnosticAttribution, Finding, Location, Report, Rule, Severity};
 
     // ── Fixtures ─────────────────────────────────────────────────────────────
@@ -1676,6 +1960,285 @@ mod tests {
         assert!(!sarif.contains("gmeow.category"));
         let nquads = to_gmeow_rdf(&report);
         assert!(!nquads.contains("findingCategory"));
+    }
+
+    /// A parent finding and its downstream witness, both carrying the canonical
+    /// fingerprint IRIs a ledger projection mints, so the RDF subject/antecedent
+    /// join is exercised. The child's `antecedents` names the parent's own
+    /// `finding_iri` — the equality the Task-2 meta-rules match on.
+    const PARENT_IRI: &str = "https://blackcatinformatics.ca/gmeow/diagnostics/finding/aaaa1111";
+    const CHILD_IRI: &str = "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bbbb2222";
+    const ANCHOR_IRI: &str = "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/cccc3333";
+
+    fn linked_report() -> Report {
+        use crate::model::FindingCategory;
+        let mut parent = Finding::new(Severity::Note, "diag.cause", "the root data-shape breach")
+            .with_tool("validate")
+            .with_category(FindingCategory::DataShapeViolation);
+        parent.finding_iri = Some(PARENT_IRI.to_owned());
+        parent.anchor_iri = Some(ANCHOR_IRI.to_owned());
+        parent.anchor_non_trivial = true;
+
+        let mut child = Finding::new(Severity::Error, "diag.effect", "the downstream witness")
+            .with_tool("validate")
+            .with_category(FindingCategory::ContradictionWitness);
+        child.finding_iri = Some(CHILD_IRI.to_owned());
+        child.antecedents = vec![PARENT_IRI.to_owned()];
+
+        let mut report = Report::new("validate");
+        report.add_finding(parent);
+        report.add_finding(child);
+        report
+    }
+
+    #[test]
+    fn rdf_subject_and_antecedent_object_close() {
+        // D3: the projected diagnostic graph's subject IRI is the ledger fingerprint
+        // IRI, and the child's gmeow:findingAntecedent object is textually the SAME
+        // IRI the parent's subject carries — so the graph closes and the meta-rules
+        // can join. The non-trivial anchor is typed gmeow:NonTrivialAnchor.
+        let nquads = to_gmeow_rdf(&linked_report());
+        assert!(
+            nquads.contains(&format!(
+                "<{PARENT_IRI}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+                 <https://blackcatinformatics.ca/gmeow/Finding>"
+            )),
+            "parent subject IRI must be the fingerprint IRI: {nquads}"
+        );
+        assert!(
+            nquads.contains(&format!(
+                "<{CHILD_IRI}> <https://blackcatinformatics.ca/gmeow/findingAntecedent> <{PARENT_IRI}>"
+            )),
+            "child antecedent edge object must equal the parent subject IRI: {nquads}"
+        );
+        assert!(
+            nquads.contains(&format!(
+                "<{PARENT_IRI}> <https://blackcatinformatics.ca/gmeow/findingAnchor> <{ANCHOR_IRI}>"
+            )),
+            "the anchor edge must be projected: {nquads}"
+        );
+        assert!(
+            nquads.contains(&format!(
+                "<{ANCHOR_IRI}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+                 <https://blackcatinformatics.ca/gmeow/NonTrivialAnchor>"
+            )),
+            "a non-trivial anchor must be typed gmeow:NonTrivialAnchor: {nquads}"
+        );
+    }
+
+    #[test]
+    fn rdf_projects_finding_remediation() {
+        use crate::diag::Remediation;
+        let mut finding = Finding::new(Severity::Error, "diag.rem", "boom").with_tool("validate");
+        finding.finding_iri = Some(CHILD_IRI.to_owned());
+        finding
+            .remediation
+            .push(Remediation::new("attach the relator", Standpoint::Binding));
+        let mut report = Report::new("validate");
+        report.add_finding(finding);
+        let nquads = to_gmeow_rdf(&report);
+        assert!(
+            nquads.contains(
+                "<https://blackcatinformatics.ca/gmeow/findingRemediation> \"attach the relator\""
+            ),
+            "findingRemediation must be projected verbatim: {nquads}"
+        );
+    }
+
+    #[test]
+    fn sarif_emits_fixes_from_remediation_and_omits_them_otherwise() {
+        // D2a: a finding carrying an authored remediation renders a `fixes` array
+        // whose description.text equals it (with artifactChanges from the edit); a
+        // finding with no remediation renders no `fixes` key (honest absence).
+        use crate::diag::{ArtifactChange, Region, Remediation};
+        let mut with_fix =
+            Finding::new(Severity::Error, "diag.fix", "missing mediator").with_tool("validate");
+        with_fix.remediation.push(
+            Remediation::new("introduce the mediating relator", Standpoint::Binding)
+                .with_artifact_change(ArtifactChange {
+                    artifact_uri: "core/x.ttl".to_owned(),
+                    region: Region {
+                        start_line: Some(12),
+                        start_column: Some(3),
+                        ..Region::default()
+                    },
+                    replacement: "gmeow:mediates ex:r .".to_owned(),
+                }),
+        );
+        let mut report = Report::new("validate");
+        report.add_finding(with_fix);
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+        let fixes = value["runs"][0]["results"][0]["fixes"]
+            .as_array()
+            .expect("fixes array for a finding carrying a remediation");
+        assert_eq!(fixes.len(), 1);
+        assert_eq!(
+            fixes[0]["description"]["text"],
+            "introduce the mediating relator"
+        );
+        let change = &fixes[0]["artifactChanges"][0];
+        assert_eq!(change["artifactLocation"]["uri"], "core/x.ttl");
+        assert_eq!(
+            change["replacements"][0]["insertedContent"]["text"],
+            "gmeow:mediates ex:r ."
+        );
+        assert_eq!(change["replacements"][0]["deletedRegion"]["startLine"], 12);
+
+        // A finding with no remediation renders no `fixes` key.
+        let mut bare = Report::new("validate");
+        bare.add_finding(Finding::new(Severity::Error, "diag.bare", "boom"));
+        let value: Value = serde_json::from_str(&to_sarif(&bare).unwrap()).unwrap();
+        assert!(
+            value["runs"][0]["results"][0].get("fixes").is_none(),
+            "no remediation must render no fixes key"
+        );
+    }
+
+    #[test]
+    fn sarif_prose_only_remediation_omits_artifact_changes() {
+        // A prose-only remediation (no mechanical edit) renders a fix with a
+        // description but no artifactChanges — honest absence, not an empty edit.
+        use crate::diag::Remediation;
+        let mut finding = Finding::new(Severity::Error, "diag.prose", "boom").with_tool("validate");
+        finding.remediation.push(Remediation::new(
+            "re-run the reasoner",
+            Standpoint::Advisory,
+        ));
+        let mut report = Report::new("validate");
+        report.add_finding(finding);
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+        let fix = &value["runs"][0]["results"][0]["fixes"][0];
+        assert_eq!(fix["description"]["text"], "re-run the reasoner");
+        assert!(
+            fix.get("artifactChanges").is_none(),
+            "a prose-only remediation must omit artifactChanges"
+        );
+    }
+
+    #[test]
+    fn text_renders_the_witness_dag_derivation_section() {
+        // D2b: a finding with a 2-level antecedent chain renders a derivation
+        // section naming the antecedents, walked via the ONE shared dag::walk.
+        use crate::model::FindingCategory;
+        let mut root = Finding::new(Severity::Note, "diag.root", "the root cause")
+            .with_tool("validate")
+            .with_category(FindingCategory::DataShapeViolation);
+        root.finding_iri = Some(PARENT_IRI.to_owned());
+
+        let mid_iri = "https://blackcatinformatics.ca/gmeow/diagnostics/finding/dddd4444";
+        let mut mid = Finding::new(Severity::Warning, "diag.mid", "an intermediate witness")
+            .with_tool("validate");
+        mid.finding_iri = Some(mid_iri.to_owned());
+        mid.antecedents = vec![PARENT_IRI.to_owned()];
+
+        let mut leaf =
+            Finding::new(Severity::Error, "diag.leaf", "the surface finding").with_tool("validate");
+        leaf.finding_iri = Some(CHILD_IRI.to_owned());
+        leaf.antecedents = vec![mid_iri.to_owned()];
+
+        let mut report = Report::new("validate");
+        report.add_finding(root);
+        report.add_finding(mid);
+        report.add_finding(leaf);
+
+        let text = to_text(&report);
+        assert!(
+            text.contains("derivation:"),
+            "expected a derivation section: {text}"
+        );
+        // The 2-level chain names BOTH the immediate and the transitive antecedent.
+        assert!(
+            text.contains(mid_iri),
+            "derivation must cite the mid antecedent: {text}"
+        );
+        assert!(
+            text.contains(PARENT_IRI),
+            "derivation must cite the transitive root antecedent: {text}"
+        );
+        assert!(
+            text.contains("an intermediate witness") && text.contains("the root cause"),
+            "derivation must name the antecedents' messages: {text}"
+        );
+    }
+
+    #[test]
+    fn json_carries_the_antecedent_derivation_iris() {
+        // D2b: the flat JSON explain surface carries each finding's cited antecedent
+        // IRIs (the derivation is reconstructable from the antecedents fields).
+        let json = to_json(&linked_report()).unwrap();
+        let value: Value = serde_json::from_str(&json).unwrap();
+        let child = value["findings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|f| f["code"] == "diag.effect")
+            .expect("child finding");
+        assert_eq!(child["antecedents"][0], PARENT_IRI);
+    }
+
+    #[test]
+    fn text_joins_per_term_rule_guidance_once() {
+        // D2c: the renderer joins the code→governing-term rule registry ONCE and
+        // reads BOTH gmeow:ruleRemediation and gmeow:howToUse for the deep surface,
+        // never fabricating them when absent.
+        let mut finding =
+            Finding::new(Severity::Error, "diag.guided", "boom").with_tool("validate");
+        finding.finding_iri = Some(CHILD_IRI.to_owned());
+        let rule = Rule::new("diag.guided", Severity::Error)
+            .with_remediation("introduce the mediating relator")
+            .with_how_to_use("reference the relator via gmeow:mediates");
+        let mut report = Report::new("validate");
+        report.add_rule(rule);
+        report.add_finding(finding);
+        let text = to_text(&report);
+        assert!(
+            text.contains("rule remediation: introduce the mediating relator"),
+            "expected ruleRemediation prose: {text}"
+        );
+        assert!(
+            text.contains("how to use: reference the relator via gmeow:mediates"),
+            "expected howToUse prose: {text}"
+        );
+        // A finding whose rule authors no guidance carries none (no fabrication).
+        let mut bare = Finding::new(Severity::Error, "diag.unguided", "boom").with_tool("validate");
+        bare.finding_iri = Some(PARENT_IRI.to_owned());
+        let mut bare_report = Report::new("validate");
+        bare_report.add_finding(bare);
+        let bare_text = to_text(&bare_report);
+        assert!(!bare_text.contains("rule remediation:"));
+        assert!(!bare_text.contains("how to use:"));
+    }
+
+    #[test]
+    fn text_renders_reasoner_meta_findings() {
+        // D3 consumer: root cause, the 'N findings share root R' cluster grouping,
+        // and the cross-node glut are surfaced when present on the projected finding.
+        let mut a = Finding::new(Severity::Error, "diag.a", "first").with_tool("validate");
+        a.finding_iri = Some(CHILD_IRI.to_owned());
+        a.root_cause = Some(PARENT_IRI.to_owned());
+        a.cross_node_glut_with =
+            vec!["https://blackcatinformatics.ca/gmeow/diagnostics/finding/eeee5555".to_owned()];
+        let mut b = Finding::new(Severity::Error, "diag.b", "second").with_tool("validate");
+        b.finding_iri =
+            Some("https://blackcatinformatics.ca/gmeow/diagnostics/finding/ffff6666".to_owned());
+        b.root_cause = Some(PARENT_IRI.to_owned());
+
+        let mut report = Report::new("validate");
+        report.add_finding(a);
+        report.add_finding(b);
+        let text = to_text(&report);
+        assert!(
+            text.contains(&format!("root cause: {PARENT_IRI}")),
+            "expected a root-cause line: {text}"
+        );
+        assert!(
+            text.contains(&format!("2 finding(s) share root {PARENT_IRI}")),
+            "expected the 'N findings share root R' cluster grouping: {text}"
+        );
+        assert!(
+            text.contains("cross-node glut with:"),
+            "expected the cross-node glut line: {text}"
+        );
     }
 
     /// Recursively collect every `"uri"` string value under a JSON node.
