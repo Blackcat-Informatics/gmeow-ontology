@@ -367,7 +367,7 @@ gmeow:qualityDimensionInferentialDensity
     a gmeow:QualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "inferential density"@x-gmeow-english ;
-    skos:definition "The data-quality dimension for reasoner-derived inference — how much non-trivial entailment a slice's axioms contribute to the closure, measured by the native reasoner rather than by text heuristics."@x-gmeow-english ;
+    skos:definition "The data-quality dimension for reasoner-derived inference — whether a slice's authored axioms are load-bearing under the reasoner (not re-derivable once left out) and its declared class-disjointness counter-examples actually clash, measured by the native reasoner rather than by text heuristics."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionLinkage
@@ -381,28 +381,28 @@ gmeow:qualityDimensionProjection
     a gmeow:QualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "projection"@x-gmeow-english ;
-    skos:definition "The data-quality dimension for maximal projection — whether a slice's content survives into every projection surface in its best configuration, with loss-ledger entries wherever a projection is lossy (Principles 4/7/17)."@x-gmeow-english ;
+    skos:definition "The data-quality dimension for maximal projection — whether a slice ships the projection-source surfaces its content requires (SHACL shapes for its structural constraints, a mappings file for its external links), the sources from which lossy projections and their loss-ledger entries derive (Principles 4/7/17)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionTesting
     a gmeow:QualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "testing"@x-gmeow-english ;
-    skos:definition "The data-quality dimension for optimal testing — per-term test reach, correct competency-cell modes, pinned counter-examples, and QA bits placed in their cheapest owning layer (SLICE_GUIDE §9; SLICE_QA)."@x-gmeow-english ;
+    skos:definition "The data-quality dimension for optimal testing — per-term test reach: whether each of a slice's terms is exercised by at least one test cell or competency query (SLICE_GUIDE §9; SLICE_QA)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionDocumentation
     a gmeow:QualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "documentation"@x-gmeow-english ;
-    skos:definition "The data-quality dimension for documentation completeness — a narrative docs thesis plus the docs-pipeline coverage dimensions, consuming the per-slice documentation-maturity standard as-is rather than redefining it."@x-gmeow-english ;
+    skos:definition "The data-quality dimension for documentation completeness — whether a slice carries a narrative docs.md thesis; the docs-pipeline coverage dimensions and the per-slice documentation-maturity standard remain exempt until their producers land."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionProseQuality
     a gmeow:QualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "prose quality"@x-gmeow-english ;
-    skos:definition "The data-quality dimension for the quality of human-facing prose — boundary-stating definitions, worked examples, substantive non-template usage advice, and rationales that state the reason (SLICE_GUIDE §6.2/§6.6/§6.7)."@x-gmeow-english ;
+    skos:definition "The data-quality dimension for the quality of human-facing prose — boundary-stating definitions and worked-triple examples on a slice's TBox terms (SLICE_GUIDE §6.2/§6.6)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionProvenanceHonesty
@@ -416,7 +416,7 @@ gmeow:qualityDimensionTranslationCoverage
     a gmeow:QualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "translation coverage"@x-gmeow-english ;
-    skos:definition "The data-quality dimension for translation coverage — the fraction of a slice's localizable literals carrying audited translations, measured per-language by per-literal-class, with full coverage requiring English, French, and Mandarin."@x-gmeow-english ;
+    skos:definition "The data-quality dimension for translation coverage — the fraction of a slice's label and definition literals carrying audited translations, measured per language, with full coverage requiring English, French, and Mandarin."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 #################################################################
@@ -427,13 +427,13 @@ gmeow:axisMaximalGrounding
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Maximal Grounding"@x-gmeow-english ;
-    skos:definition "The headline axis: per-layer, per-concept grounding on the triad — foundation stereotypes, mediates relations, OWL characteristics as logic axioms, framed quantities on math, reified denotation and lang forms on lang, and detection of domain twins of triad terms. It is NOT mere annotation presence (that is the information axis) — it measures whether concepts are thin domain layers over thick grounding references (Principle 19; SLICE_GUIDE §4)."@x-gmeow-english ;
+    skos:definition "The headline axis: the fraction of a slice's owl:Class terms carrying a logic: foundation stereotype rather than standing as a bare domain term. It is NOT mere annotation presence (that is the information axis), and it does NOT yet score mediates relations, framed math quantities, lang forms, or domain-twin detection — it measures foundation-stereotype grounding of classes (Principle 19; SLICE_GUIDE §4)."@x-gmeow-english ;
     skos:example "gmeow:axisMaximalGrounding gmeow:axisProducer \"grounding_axis\" ; gmeow:axisContextScope gmeow:scopeMergedClosure ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid conflating it with the annotation-coat information axis or the reasoner-derived axis — this axis measures grounding structure, not entailment output or prose completeness."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with the annotation-coat information axis or the reasoner-derived axis — this axis measures foundation-stereotype grounding of classes, not annotation presence, entailment output, or prose completeness."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor scores each concept's grounding against the triad and ranks missing stereotypes, mediates relations, and framed quantities as uplift advice."@x-gmeow-english ;
-    gmeow:useWhen "Use to measure how thoroughly a slice grounds its concepts on logic, math, and lang."@x-gmeow-english ;
+    gmeow:howToUse "The advisor scores each owl:Class for a logic: foundation stereotype and ranks each bare class missing one as uplift advice."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure what fraction of a slice's classes carry a logic: foundation stereotype rather than standing as bare domain terms."@x-gmeow-english ;
     gmeow:axisProducer "grounding_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionGrounding ;
     gmeow:axisContextScope gmeow:scopeMergedClosure ;
@@ -442,19 +442,19 @@ gmeow:axisMaximalGrounding
         gmeow:thrGroundingLinked ,
         gmeow:thrGroundingExemplified ,
         gmeow:thrGroundingMaximal ;
-    gmeow:axisAdviceTemplate "Ground each bare class on the triad: assign a foundation stereotype (logic:Kind/Role/Relator/…), declare mediates on relators, restate OWL characteristics as logic axioms, and frame every quantity with value+unit+frame+determinacy (SLICE_GUIDE §4; Principle 19)."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Assign a logic: foundation stereotype (logic:Kind/Role/Relator/…) to each bare class so it grounds on the triad rather than standing as a bare domain term (SLICE_GUIDE §4; Principle 19)."@x-gmeow-english .
 
 gmeow:axisReasonerDerived
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Reasoner-Derived"@x-gmeow-english ;
-    skos:definition "The axis that dogfoods the native reasoner as the instrument: inferential density, closure-redundancy and asserted-derived-fact detection by proof, inferential centrality, competency-lane analysis, negative-space verification, and conjecture-backed advice. It is NOT a text heuristic — every metric reads the materialized closure and derivation graph (Principles 8/17/18)."@x-gmeow-english ;
+    skos:definition "The axis that dogfoods the native reasoner as the instrument: the fraction of met reasoner obligations over two directions — positive-space leave-one-out closure-redundancy (an authored TBox axiom the reasoner re-derives once it is left out is dead weight or an asserted derived fact) and negative-space counter-example clash verification (a fixture co-typing a SHACL-declared-disjoint class pair must force a DL clash). It is NOT a text heuristic, and it does NOT compute inferential centrality, competency-lane analysis, or conjecture-backed advice — every metric reads the reasoned closure (Principles 8/17/18)."@x-gmeow-english ;
     skos:example "gmeow:axisReasonerDerived gmeow:axisProducer \"reasoner_axis\" ; gmeow:axisContextScope gmeow:scopeMergedClosure ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid approximating any of its metrics with string matching — the axis is defined by what the reasoner proves, and a text proxy would silently diverge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor runs the native chase over the slice's module and dependency closure and reports inferential density, closure-redundant authored triples, and untested sibling disjointness as advice."@x-gmeow-english ;
-    gmeow:useWhen "Use to measure whether a slice's axioms do real inferential work, proven by the reasoner rather than asserted."@x-gmeow-english ;
+    gmeow:howToUse "The advisor runs the native chase over the slice's module, reports each closure-redundant authored triple found by leave-one-out proof, and reports each SHACL-declared-disjoint counter-example the reasoner fails to clash on as advice."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure whether a slice's authored axioms are load-bearing under the reasoner and its declared class-disjointness counter-examples actually clash, proven by the reasoner rather than asserted."@x-gmeow-english ;
     gmeow:axisProducer "reasoner_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionInferentialDensity ;
     gmeow:axisContextScope gmeow:scopeMergedClosure ;
@@ -463,18 +463,18 @@ gmeow:axisReasonerDerived
         gmeow:thrReasonerLinked ,
         gmeow:thrReasonerExemplified ,
         gmeow:thrReasonerMaximal ;
-    gmeow:axisAdviceTemplate "Strengthen the axiom set until it entails something: add characteristics, disjointness, and mediates so the closure grows; remove closure-redundant authored triples and any asserted derived fact (Principle 12; Principles 8/18)."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Remove each closure-redundant authored triple (dead weight or an asserted derived fact), and back every SHACL-declared class-disjointness with the canonical owl:disjointWith so its counter-examples clash under the reasoner (Principle 12; Principles 8/17/18)."@x-gmeow-english .
 
 gmeow:axisMaximalInformation
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Maximal Information"@x-gmeow-english ;
-    skos:definition "The axis for information moved into the ontology: annotation-coat completeness on every term including A-Box individuals, epistemic-shape coverage (contested/suppressed/ambiguous/time-scoped cases), and prose-to-axiom harvest coverage. It is NOT prose quality (that judges how well the strings read) — this axis measures whether the required information is present at all (SLICE_GUIDE §6)."@x-gmeow-english ;
+    skos:definition "The axis for information moved into the ontology: annotation-coat completeness on every term including A-Box individuals — the average fraction of each term's required coat predicates (label, definition, isDefinedBy, example, and on a TBox term the useWhen/avoidWhen/howToUse/graphBoxRole usage coat) that are present. It is NOT prose quality (that judges how well the strings read) — this axis measures whether the required annotation is present at all (SLICE_GUIDE §6)."@x-gmeow-english ;
     skos:example "gmeow:axisMaximalInformation gmeow:axisProducer \"information_axis\" ; gmeow:axisContextScope gmeow:scopeSliceLocal ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating presence with quality — a term can carry a definition (counted here) that restates its label (penalized by the prose axis)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor checks each term for its full annotation coat and names the missing predicates and the missing epistemic-shape cases as advice."@x-gmeow-english ;
+    gmeow:howToUse "The advisor checks each term for its full annotation coat and names the missing coat predicates as advice."@x-gmeow-english ;
     gmeow:useWhen "Use to measure how much of the required per-term information a slice actually carries."@x-gmeow-english ;
     gmeow:axisProducer "information_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionCompleteness ;
@@ -484,19 +484,19 @@ gmeow:axisMaximalInformation
         gmeow:thrInformationLinked ,
         gmeow:thrInformationExemplified ,
         gmeow:thrInformationMaximal ;
-    gmeow:axisAdviceTemplate "Complete the annotation coat on every term (label, boundary-stating definition, isDefinedBy, example, useWhen/avoidWhen/howToUse, graphBoxRole) including A-Box individuals, and add the missing epistemic-shape cases to examples/ (SLICE_GUIDE §6)."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Complete the annotation coat on every term (label, definition, isDefinedBy, example, and useWhen/avoidWhen/howToUse/graphBoxRole on TBox terms) including A-Box individuals (SLICE_GUIDE §6)."@x-gmeow-english .
 
 gmeow:axisMaximalLinkage
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Maximal Linkage"@x-gmeow-english ;
-    skos:definition "The axis for maximal linkage with explicit correspondence-calculus adoption: mapping presence and rung honesty (exactMatch vs closeMatch, the five axes kept apart), live authority links, SKOS lift, and the fraction of the alignment surface routed through the correspondence calculus with an executed law discharge and a loss-ledger judgment. It is NOT projection (that measures output surfaces) — this measures the honesty and calculus-adoption of the links themselves (Principle 17)."@x-gmeow-english ;
+    skos:definition "The axis for correspondence-calculus adoption: of the identity-strength correspondences a slice authors (the only alignments a lens can carry lawfully — exactMatch / equivalentClass / equivalentProperty), the fraction routed through the correspondence calculus (logic:Correspondence lenses and mnemomorphic gmeow:ProjectionMapping cells) rather than hand-authored (identity-strength gmeow:TermEquivalence rows and dc: alignments the dcterms:→dc: dumb-down should derive). It is NOT projection (that measures output surfaces), and it does NOT check live authority links, SKOS lift, or an executed law discharge — it measures calculus adoption over the identity-strength alignment surface (Principle 17)."@x-gmeow-english ;
     skos:example "gmeow:axisMaximalLinkage gmeow:axisProducer \"linkage_axis\" ; gmeow:axisContextScope gmeow:scopeMergedClosure ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid rewarding a closeMatch dressed as exactMatch — rung honesty is the point — and avoid conflating a mapping's existence with its calculus adoption."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating a mapping's mere existence with its calculus adoption, and avoid counting a lossy closeMatch-class alignment in the population — only identity-strength correspondences the lens can carry are in scope."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor evaluates each mapping's rung, checks QIDs live, and ranks rung-upgrades and rung-downgrades plus each legacy hand-authored record as a named migration."@x-gmeow-english ;
-    gmeow:useWhen "Use to measure how richly and honestly a slice links out, and how far its alignment surface has adopted the correspondence calculus."@x-gmeow-english ;
+    gmeow:howToUse "The advisor names each hand-authored identity-strength alignment record (a gmeow:TermEquivalence row or a hand-authored dc: alignment) as a migration target — lift it to a mnemomorphic gmeow:ProjectionMapping cell so the section-law discharge proves the rename lawful."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure how far a slice's identity-strength alignment surface has adopted the correspondence calculus."@x-gmeow-english ;
     gmeow:axisProducer "linkage_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionLinkage ;
     gmeow:axisContextScope gmeow:scopeMergedClosure ;
@@ -505,19 +505,19 @@ gmeow:axisMaximalLinkage
         gmeow:thrLinkageLinked ,
         gmeow:thrLinkageExemplified ,
         gmeow:thrLinkageMaximal ;
-    gmeow:axisAdviceTemplate "Add honest mappings (exactMatch only when identity holds), verify QIDs live, and route each hand-authored alignment record through the correspondence calculus with an executed law discharge and a loss-ledger judgment (Principle 17)."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a gmeow:TermEquivalence to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17)."@x-gmeow-english .
 
 gmeow:axisMaximalProjection
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Maximal Projection"@x-gmeow-english ;
-    skos:definition "The axis for whether a slice's content survives into every projection surface in its best configuration — SHACL/ShEx from logic sources, SSSOM/EDOAL/FnO, docs pages — with a loss-ledger entry wherever the projection is lossy. It is NOT linkage (the source alignments) — this measures the derived output surfaces (Principles 4/7/17)."@x-gmeow-english ;
+    skos:definition "The axis for whether a slice ships the projection SOURCE surfaces its content requires: a shapes.ttl when it declares structural constraints (owl:Restriction / owl:disjointWith), and a mappings/equivalences.ttl when its own terms link to external vocabularies. It is NOT linkage (the source alignments), and it does NOT yet verify content survival across SSSOM/EDOAL/FnO or loss-ledger entries — it checks the presence of the required projection-source files (Principles 4/7/17)."@x-gmeow-english ;
     skos:example "gmeow:axisMaximalProjection gmeow:axisProducer \"projection_axis\" ; gmeow:axisContextScope gmeow:scopeDepsClosure ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid rewarding a projection that drops content without a loss-ledger row (silent loss is the failure the axis catches) and avoid conflating a projected surface with its source mappings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as content-survival verification (it checks source-file presence, not that every triple survives a projection) and avoid conflating a projection source with its source mappings."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor checks each projection target for coverage of the slice's content and a loss-ledger entry where lossy, naming uncovered surfaces as advice."@x-gmeow-english ;
-    gmeow:useWhen "Use to measure how completely a slice's content reaches every projection surface, honestly ledgered."@x-gmeow-english ;
+    gmeow:howToUse "The advisor checks that a slice declaring structural constraints ships shapes.ttl and a slice linking out ships mappings/equivalences.ttl, naming each missing projection-source file as advice."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure whether a slice ships the SHACL-shape and mapping projection sources its content requires."@x-gmeow-english ;
     gmeow:axisProducer "projection_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionProjection ;
     gmeow:axisContextScope gmeow:scopeDepsClosure ;
@@ -526,19 +526,19 @@ gmeow:axisMaximalProjection
         gmeow:thrProjectionLinked ,
         gmeow:thrProjectionExemplified ,
         gmeow:thrProjectionMaximal ;
-    gmeow:axisAdviceTemplate "Ensure the slice's content survives every projection surface in its best configuration and add a loss-ledger entry wherever a projection is lossy (Principles 4/7/17)."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Ship a shapes.ttl when the slice declares structural constraints (owl:Restriction / owl:disjointWith) and a mappings/equivalences.ttl when its terms link to external vocabularies, so its content has a projection source (Principles 4/7/17)."@x-gmeow-english .
 
 gmeow:axisOptimalTesting
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Optimal Testing"@x-gmeow-english ;
-    skos:definition "The axis for QA depth, placement, and manifest honesty: per-term test reach, correct competency-cell cardinality modes, counter-examples pinning their (fixture, code), each hard rule mapped to exactly one cheapest owning gate, and sliceDependsOn equal to the computed ownership set. It is NOT the reasoner axis (which runs the cells) — this measures whether the cells exist and sit in the right layer (SLICE_GUIDE §9; SLICE_QA)."@x-gmeow-english ;
+    skos:definition "The axis for test reach: the fraction of a slice's terms named (at a word boundary) by at least one test cell or competency query under tests/ or queries/. It is NOT the reasoner axis (which runs the cells), and it does NOT yet check competency-cell cardinality modes, counter-example pins, gate ownership, or sliceDependsOn — it measures whether each term is exercised by some cell (SLICE_GUIDE §9; SLICE_QA)."@x-gmeow-english ;
     skos:example "gmeow:axisOptimalTesting gmeow:axisProducer \"testing_axis\" ; gmeow:axisContextScope gmeow:scopeDepsClosure ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid rewarding a cell placed in a whole-ontology conformance test when a slice-resident cell would own it, and avoid counting an unpinned competency query as tested."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as QA-mode or placement checking (it measures per-term reach only) and avoid crediting an incidental substring hit as reach — the match is word-boundary anchored."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor computes per-term reach and checks cell modes, pins, and placement, offering 'move it here, in this form' advice against the SLICE_QA recipe."@x-gmeow-english ;
-    gmeow:useWhen "Use to measure whether a slice's tests are deep enough, correctly moded, and placed in their cheapest owning layer."@x-gmeow-english ;
+    gmeow:howToUse "The advisor computes per-term reach over the tests/ and queries/ corpus and names each term exercised by no test cell or competency query as advice (SLICE_QA)."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure whether every term in a slice is reached by at least one test cell or competency query."@x-gmeow-english ;
     gmeow:axisProducer "testing_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionTesting ;
     gmeow:axisContextScope gmeow:scopeDepsClosure ;
@@ -547,19 +547,19 @@ gmeow:axisOptimalTesting
         gmeow:thrTestingLinked ,
         gmeow:thrTestingExemplified ,
         gmeow:thrTestingMaximal ;
-    gmeow:axisAdviceTemplate "Reach every term with at least one cell, use the correct competency cardinality mode, pin each counter-example's (fixture, code), and move slice-expressible assertions out of whole-ontology goldens into slice-resident cells (SLICE_GUIDE §9; SLICE_QA)."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Add at least one test cell or competency query naming each currently-unreached term so every term in the slice is exercised (SLICE_GUIDE §9; SLICE_QA)."@x-gmeow-english .
 
 gmeow:axisDocumentation
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Documentation"@x-gmeow-english ;
-    skos:definition "The axis for documentation completeness: a narrative docs thesis and the docs-pipeline coverage dimensions, consuming the per-slice documentation-maturity standard as-is. It is NOT prose quality (how well strings read) — this measures whether the documentation surfaces exist. The documentation-maturity tier and multi-format panels remain exempt until their producers land."@x-gmeow-english ;
+    skos:definition "The axis for documentation completeness: whether the slice ships a docs.md carrying a narrative thesis — substantive prose beyond its headings, not just a term listing. It is NOT prose quality (how well strings read) — this measures whether the documentation thesis exists. The docs-pipeline coverage dimensions, the documentation-maturity tier, and multi-format panels remain exempt until their producers land."@x-gmeow-english ;
     skos:example "gmeow:axisDocumentation gmeow:axisProducer \"documentation_axis\" ; gmeow:axisContextScope gmeow:scopeSliceLocal ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid redefining the documentation-maturity standard here (it is consumed as-is) and avoid conflating a present docs thesis with a well-written one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor checks for a docs thesis and the landed coverage dimensions and names missing documentation surfaces as advice."@x-gmeow-english ;
-    gmeow:useWhen "Use to measure whether a slice carries its documentation thesis and coverage dimensions."@x-gmeow-english ;
+    gmeow:howToUse "The advisor checks for a docs.md narrative thesis and names a missing or thin docs.md as advice."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure whether a slice carries a narrative documentation thesis in docs.md."@x-gmeow-english ;
     gmeow:axisProducer "documentation_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionDocumentation ;
     gmeow:axisContextScope gmeow:scopeSliceLocal ;
@@ -568,19 +568,19 @@ gmeow:axisDocumentation
         gmeow:thrDocumentationLinked ,
         gmeow:thrDocumentationExemplified ,
         gmeow:thrDocumentationMaximal ;
-    gmeow:axisAdviceTemplate "Write a narrative docs thesis (not a term listing) and complete the docs-pipeline coverage dimensions for the slice (SLICE_GUIDE documentation doctrine)."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Write a narrative docs.md thesis — substantive prose beyond the headings, not a term listing — for the slice (SLICE_GUIDE documentation doctrine)."@x-gmeow-english .
 
 gmeow:axisProseQuality
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Prose Quality"@x-gmeow-english ;
-    skos:definition "The axis for the quality of human-facing prose: definitions that state boundaries (the three-NOTs bar), examples that are worked triples, substantive non-template usage advice, and rationales that explain why. It carries the provenance-honesty sub-dimension. It is NOT information presence (the information axis) — this judges how well the present strings read (SLICE_GUIDE §6.2/§6.6/§6.7)."@x-gmeow-english ;
+    skos:definition "The axis for the quality of human-facing prose on a slice's TBox terms: the fraction of definitions that state a boundary (what the term is NOT) and skos:example literals that are worked triples (a CURIE plus turtle statement structure). It does NOT score usage-coat substance or rationale honesty (that is the separate provenance-honesty axis). It is NOT information presence (the information axis) — this judges how well the present strings read (SLICE_GUIDE §6.2/§6.6)."@x-gmeow-english ;
     skos:example "gmeow:axisProseQuality gmeow:axisProducer \"prose_axis\" ; gmeow:axisContextScope gmeow:scopeSliceLocal ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid rewarding a definition that restates the label or a boilerplate usage coat duplicated across terms — presence is the information axis; this axis judges substance."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor lints each human-facing string for boundaries, worked examples, and non-template substance, and runs the provenance-honesty sub-check for test-naming rationales."@x-gmeow-english ;
-    gmeow:useWhen "Use to measure how well a slice's prose reads — boundaries, worked examples, substantive advice, and honest rationales."@x-gmeow-english ;
+    gmeow:howToUse "The advisor lints each TBox term's definition for a boundary statement and each skos:example for a worked triple, naming those that fall short as advice."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure how well a slice's TBox definitions and examples read — boundary-stating definitions and worked-triple examples."@x-gmeow-english ;
     gmeow:axisProducer "prose_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionProseQuality ;
     gmeow:axisContextScope gmeow:scopeSliceLocal ;
@@ -589,13 +589,13 @@ gmeow:axisProseQuality
         gmeow:thrProseLinked ,
         gmeow:thrProseExemplified ,
         gmeow:thrProseMaximal ;
-    gmeow:axisAdviceTemplate "Make each definition state what the term is NOT, each example a worked triple, each usage coat substantive and non-boilerplate, and each rationale explain why the axiom holds (SLICE_GUIDE §6.2/§6.6/§6.7)."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Make each TBox definition state what the term is NOT and each skos:example a worked triple — a CURIE with turtle statement structure (SLICE_GUIDE §6.2/§6.6)."@x-gmeow-english .
 
 gmeow:axisProvenanceHonesty
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Provenance Honesty"@x-gmeow-english ;
-    skos:definition "The prose-quality sub-axis that flags any saRationale or comment-class rationale literal naming a test artifact (a test function, a .rs or .py path, or a 'Mirrors …' framing) as a category error — a test is evidence that an axiom holds, never the reason why. Advisory only. It is NOT a hard gate and NOT the general prose axis: it targets exactly the test-is-not-a-rationale anti-pattern and offers a strip-clause uplift (SLICE_GUIDE §6.6)."@x-gmeow-english ;
+    skos:definition "The prose-quality sub-axis scoring the fraction of a slice's rationale literals (gmeow:saRationale, gmeow:cqRationale, and rdfs:comment) that name no test artifact; it flags any that names one (a test function, a .rs or .py path, or a 'Mirrors …' framing) as a category error — a test is evidence that an axiom holds, never the reason why. Advisory only. It is NOT a hard gate and NOT the general prose axis: it targets exactly the test-is-not-a-rationale anti-pattern and offers a strip-clause uplift (SLICE_GUIDE §6.6)."@x-gmeow-english ;
     skos:example "gmeow:axisProvenanceHonesty gmeow:axisProducer \"provenance_honesty\" ; gmeow:axisDimension gmeow:qualityDimensionProvenanceHonesty ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid promoting it to a hard gate (it is opinionated advice) and avoid flagging a rationale that merely mentions testing in prose without naming a concrete test artifact."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
@@ -616,13 +616,13 @@ gmeow:axisTranslationCoverage
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Translation Coverage"@x-gmeow-english ;
-    skos:definition "The axis for translation coverage measured per-language by per-literal-class over every localizable literal — labels, definitions, examples, usage coats, rationales, and docs prose — with full coverage requiring English, French, and Mandarin routed through the audited-translation machinery. It is NOT a single ratio: a bare parallel literal with no translation record grades below an audited one."@x-gmeow-english ;
+    skos:definition "The axis for translation coverage: per-language coverage of the slice's rdfs:label and skos:definition literals, audited via the i18n/<lang>.po catalogs, averaged across English (authored, always full), French, and Mandarin. It does NOT yet cover examples, usage coats, rationales, or docs prose — only labels and definitions. It is NOT a single ratio: coverage is computed per language and then averaged."@x-gmeow-english ;
     skos:example "gmeow:axisTranslationCoverage gmeow:axisProducer \"translation_axis\" ; gmeow:axisContextScope gmeow:scopeSliceLocal ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid grading a bare parallel literal as fully covered (audited translations grade higher) and avoid collapsing the per-language-by-per-literal-class breakdown into one number."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading the averaged score as any single language's coverage (it averages English, French, and Mandarin) and avoid treating a label or definition with no .po catalog entry as covered."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor reports coverage keyed by (language, literal class) and names the missing translations; the top tier requires 100% English, French, and Mandarin."@x-gmeow-english ;
-    gmeow:useWhen "Use to measure how completely a slice's localizable literals are translated into the three project languages, audited."@x-gmeow-english ;
+    gmeow:howToUse "The advisor reports per-language coverage of the slice's label and definition literals against the i18n/fr.po and i18n/zh.po catalogs and names each language short of full coverage; the top tier requires 100% English, French, and Mandarin."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure how completely a slice's label and definition literals are translated into French and Mandarin, audited via .po catalogs."@x-gmeow-english ;
     gmeow:axisProducer "translation_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionTranslationCoverage ;
     gmeow:axisContextScope gmeow:scopeSliceLocal ;
@@ -631,7 +631,7 @@ gmeow:axisTranslationCoverage
         gmeow:thrTranslationLinked ,
         gmeow:thrTranslationExemplified ,
         gmeow:thrTranslationMaximal ;
-    gmeow:axisAdviceTemplate "Add audited French and Mandarin translations for every localizable literal — labels, definitions, examples, usage coats, rationales, and docs prose — routed through the lang: translation machinery."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Add audited French and Mandarin translations for every label and definition literal, recorded in the slice's i18n/fr.po and i18n/zh.po catalogs."@x-gmeow-english .
 
 #################################################################
 # The rubric Profile — one closed descriptor schema over Slice
