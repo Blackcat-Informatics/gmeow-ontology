@@ -58,6 +58,9 @@ pub mod report;
 // emitted, never bolted onto SHACL (Principle 17).
 pub mod shacl_af;
 pub mod shapes;
+// The shape-component subsumption engine: enforcement-key equivalence (`≡`) and a sound
+// under-approximation of the enforcement pre-order (`⊑`) over closed-world validation shapes.
+pub mod subsumption;
 // The SPARQL-CONSTRUCT correspondence lowering (get leg → executable CONSTRUCT).
 pub mod sparql;
 // The inverse-ingest ("put") SPARQL-CONSTRUCT lowering: the role-swap of `sparql` (external

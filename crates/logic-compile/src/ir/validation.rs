@@ -69,6 +69,14 @@ impl ShapeTarget {
             }
         }
     }
+
+    /// The enforcement-key fragment for a target — identical to [`Self::content_key`] (a
+    /// target's identity IS its enforcement content: it fully determines the focus-node
+    /// selection). Exposed to the crate so the shape-subsumption projection can fold the
+    /// target into its enforcement key without re-deriving the tagging.
+    pub(crate) fn enforcement_key(&self) -> String {
+        self.content_key()
+    }
 }
 
 /// The `sh:nodeKind` vocabulary (verbatim SHACL local names).
@@ -451,6 +459,14 @@ impl ConstraintComponent {
             }
         }
     }
+
+    /// The enforcement-key fragment for a component — identical to [`Self::content_key`]: a
+    /// value-level component carries no presentation/provenance tail, so its identity IS its
+    /// enforcement content (it fully determines which values a validator flags). Exposed to
+    /// the crate so the shape-subsumption projection folds it without re-deriving the tagging.
+    pub(crate) fn enforcement_key(&self) -> String {
+        self.content_key()
+    }
 }
 
 /// A property shape: the closed-world constraints on the values reachable via one
@@ -635,6 +651,33 @@ impl PropertyConstraintIr {
         }
         if let Some(msg) = &self.message {
             key.push_str(&format!("{SEP}msg={}", key_field(msg)));
+        }
+        key
+    }
+
+    /// The enforcement key for a property shape — the subset of [`Self::content_key`] that
+    /// determines which focus nodes a validator flags. It carries `path`, `min_count`,
+    /// `max_count`, the value-level `components`, and the `inverse` / `reifier_shape` /
+    /// `reification_required` enforcement flags, and it OMITS the presentation/provenance tail
+    /// (`cardinality_provenance`, `severity`, `message`) — those change the ledger polarity and
+    /// the rendered surface, never the findings. Two property shapes with equal enforcement keys
+    /// flag exactly the same values on the same path over every graph.
+    pub(crate) fn enforcement_key(&self) -> String {
+        let comps = key_list(self.components.iter().map(ConstraintComponent::content_key));
+        let mut key = format!(
+            "path={}{SEP}min={}{SEP}max={}{SEP}comps={comps}",
+            key_field(&self.path),
+            self.min_count.map(|n| n.to_string()).unwrap_or_default(),
+            self.max_count.map(|n| n.to_string()).unwrap_or_default(),
+        );
+        if self.inverse {
+            key.push_str(&format!("{SEP}inverse=true"));
+        }
+        if let Some(rs) = &self.reifier_shape {
+            key.push_str(&format!("{SEP}reifier={}", key_field(rs)));
+        }
+        if self.reification_required {
+            key.push_str(&format!("{SEP}reifreq=true"));
         }
         key
     }
