@@ -29,7 +29,7 @@ const DEFAULT_DETAIL_LIMIT: usize = 4096;
 /// Read the `GMEOW_DIAGNOSTICS_*` environment variables into a map for
 /// [`DiagnosticsConfig::resolve`]. Only variables the config cares about are
 /// captured; everything else is ignored.
-fn diagnostics_env() -> HashMap<String, String> {
+pub(crate) fn diagnostics_env() -> HashMap<String, String> {
     let mut env = HashMap::new();
     for key in [
         "GMEOW_DIAGNOSTICS_CONSOLE",
@@ -157,7 +157,7 @@ pub fn external_tool(
 
 /// Write the selected `{json,sarif,html}` artifacts for a report under the
 /// resolved directory. Product artifacts → filesystem; the "wrote" lines → stdout.
-fn write_artifacts(report: &Report, config: &DiagnosticsConfig) -> Result<(), i32> {
+pub(crate) fn write_artifacts(report: &Report, config: &DiagnosticsConfig) -> Result<(), i32> {
     if config.artifacts.is_empty() {
         return Ok(());
     }

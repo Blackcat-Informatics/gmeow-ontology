@@ -423,6 +423,21 @@ pub enum Commands {
         /// Output rendering: text (default), json, sarif, or rdf.
         #[arg(long = "format")]
         format: Option<String>,
+        /// Diagnostics console surface (flag > env > auto).
+        #[arg(long = "diagnostics-console")]
+        diagnostics_console: Option<String>,
+        /// Comma-separated diagnostics artifacts to write: json,sarif,html.
+        #[arg(long = "diagnostics-artifacts")]
+        diagnostics_artifacts: Option<String>,
+        /// Directory the diagnostics artifacts are written under.
+        #[arg(long = "diagnostics-dir")]
+        diagnostics_dir: Option<PathBuf>,
+        /// Filename stem for the written diagnostics artifacts.
+        #[arg(long = "diagnostics-stem")]
+        diagnostics_stem: Option<String>,
+        /// Diagnostics category stamped into the report metadata.
+        #[arg(long = "diagnostics-category")]
+        diagnostics_category: Option<String>,
     },
     /// Enforce the opt-in slice-quality tier ratchet (a `make check` gate).
     #[command(name = "slice-quality-gate")]
@@ -805,9 +820,25 @@ pub fn run() -> i32 {
             input_path,
             profile,
         } => dev_reason::certify(&input_path, profile.as_deref()),
-        Commands::SliceQuality { path, all, format } => {
-            dev_slice_quality::slice_quality(path.as_deref(), all, format.as_deref())
-        }
+        Commands::SliceQuality {
+            path,
+            all,
+            format,
+            diagnostics_console,
+            diagnostics_artifacts,
+            diagnostics_dir,
+            diagnostics_stem,
+            diagnostics_category,
+        } => dev_slice_quality::slice_quality(
+            path.as_deref(),
+            all,
+            format.as_deref(),
+            diagnostics_console.and_then(parse_console),
+            diagnostics_artifacts.as_deref(),
+            diagnostics_dir.as_deref(),
+            diagnostics_stem.as_deref(),
+            diagnostics_category.as_deref(),
+        ),
         Commands::SliceQualityGate => dev_slice_quality::slice_quality_gate(),
         Commands::SliceFixDeps { apply, slices_dir } => {
             dev_feedback::slice_fix_deps(apply, slices_dir.as_deref())

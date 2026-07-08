@@ -6,12 +6,55 @@
 
 use std::path::{Path, PathBuf};
 
-use gmeow_errors::{Finding, Report, Severity, Standpoint};
+use gmeow_errors::{Finding, Report, Rule, Severity, Standpoint, seed_codes};
+use gmeow_validate::rule_catalog::help_uri_for;
 
 use crate::graph::{self, instances_of};
 use crate::model::{Axis, AxisGrade, Rubric, SliceAssessment};
 use crate::score::ScoreContext;
 use crate::{axes, lattice, rubric};
+
+/// Every diagnostic code a slice-quality report can emit — the two structural
+/// codes minted by [`SliceReport::to_report`] (`grade`/`rollup`) plus every axis
+/// and reasoner advisory code the primitives surface. This is the enumeration
+/// authority the command seeds into the process-wide code registry so that every
+/// emitted finding carries a *registered* code (never a bare, unregistered
+/// string), and the set a help URI is attached to. Kept in one place so a new
+/// advisory code is registered the moment it is listed here (a drift test in this
+/// module pins the axes/reasoner emitters to this list).
+pub const FINDING_CODES: &[&str] = &[
+    // Structural report codes (report.rs).
+    "slice-quality.grade",
+    "slice-quality.rollup",
+    // Reasoner-derived axis codes (reasoner.rs).
+    "slice-quality.reasoner.no-closure",
+    "slice-quality.reasoner.closure-redundant",
+    "slice-quality.reasoner.no-obligations",
+    "slice-quality.reasoner.counterexample-no-clash",
+    // Per-axis advisory codes (axes.rs).
+    "slice-quality.grounding.no-stereotype",
+    "slice-quality.information.incomplete-coat",
+    "slice-quality.prose.definition-no-boundary",
+    "slice-quality.prose.example-not-triple",
+    "slice-quality.prose.test-rationale",
+    "slice-quality.linkage.no-correspondence-surface",
+    "slice-quality.linkage.no-calculus-eligible-correspondence",
+    "slice-quality.linkage.uncalculated-correspondence",
+    "slice-quality.projection.no-shapes",
+    "slice-quality.projection.no-mappings",
+    "slice-quality.testing.no-cells",
+    "slice-quality.testing.untested-term",
+    "slice-quality.documentation.thin-thesis",
+    "slice-quality.documentation.no-docs",
+    "slice-quality.translation.incomplete",
+];
+
+/// Seed every slice-quality finding code into the process-wide code registry
+/// (idempotent). Called at the start of report construction so the codes are
+/// registered before any finding is interned or rendered.
+pub fn seed_finding_codes() {
+    seed_codes(FINDING_CODES);
+}
 
 /// The full result of scoring one slice.
 pub struct SliceReport {
@@ -151,6 +194,9 @@ impl SliceReport {
     /// as an informational note, every uplift item as an `Advisory` warning.
     #[must_use]
     pub fn to_report(&self) -> Report {
+        // Register every slice-quality code before any finding is built, so the
+        // emitted report carries registered (never bare) diagnostic codes.
+        seed_finding_codes();
         let mut report = Report::new("slice-quality");
         // Per-axis grade notes (never gating).
         for grade in self.grades_weakest_first() {
@@ -185,6 +231,25 @@ impl SliceReport {
         // Ranked uplift advisories.
         for f in &self.advisories {
             report.add_finding(f.clone());
+        }
+
+        // Attach a rule descriptor for every distinct emitted code, each carrying a
+        // help URI into the generated constraint catalog (`help_uri_for` — the SAME
+        // anchor transform the pipeline's constraint-catalog stage and `gmeow
+        // validate` stamp onto rule help URIs, never a hand-rolled base). The
+        // renderers join a finding to its rule by code, so every finding surfaces a
+        // registered code + help URI in the json/sarif/html projections.
+        let mut severities: std::collections::BTreeMap<String, Severity> =
+            std::collections::BTreeMap::new();
+        for finding in &report.findings {
+            severities
+                .entry(finding.code.clone())
+                .or_insert(finding.severity);
+        }
+        for (code, severity) in severities {
+            let mut rule = Rule::new(code.clone(), severity);
+            rule.help_uri = Some(help_uri_for(&code));
+            report.add_rule(rule);
         }
         report
     }
