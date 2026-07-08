@@ -9,10 +9,10 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/AffectDecision> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/AffectDecision-shape> {
-  <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
+  <https://blackcatinformatics.ca/gmeow/vantage> . + ;
   <https://blackcatinformatics.ca/gmeow/decidedLabel> . ;
   <https://blackcatinformatics.ca/gmeow/observedFeature> . ;
-  <https://blackcatinformatics.ca/gmeow/derivedByFunction> IRI ;
+  <https://blackcatinformatics.ca/gmeow/derivedByFunction> . + ;
   <https://blackcatinformatics.ca/gmeow/decisionCrossedThreshold> . ;
 }
 

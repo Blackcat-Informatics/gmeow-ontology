@@ -485,6 +485,7 @@
               {},
               {
                 "items": {},
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -495,6 +496,7 @@
               {},
               {
                 "items": {},
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -503,7 +505,9 @@
         "required": [
           "gmeow:decidedLabel",
           "gmeow:decisionCrossedThreshold",
-          "gmeow:observedFeature"
+          "gmeow:derivedByFunction",
+          "gmeow:observedFeature",
+          "gmeow:vantage"
         ],
         "type": "object"
       },
