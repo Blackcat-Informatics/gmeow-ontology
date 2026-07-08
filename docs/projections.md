@@ -7,22 +7,24 @@ GMEOW's definitions are richer than the vocabularies people consume. **SSSOM**
 gives 1:1 term equivalence; projecting *down* to a target needs **structural
 transformations** SSSOM can't express. GMEOW's alignment stack has four standard
 artifacts — but they are **no longer hand-authored four ways**. A single
-GMEOW-grounded DSL in `mapping-dsl/` is the authoring source, and
-`gmeow-dev regenerate mappings` renders all four (see [Single-source compilation](#single-source-compilation)):
+GMEOW-grounded mapping frontend is the authoring source: slice-owned linkage and
+projection cells live beside the slice, while shared projection enrichment and
+transform declarations live under `dsl/mappings/`. The registered mappings
+generator renders all four (see [Single-source compilation](#single-source-compilation)):
 
 | Layer | Expresses | Generated artifact |
 |---|---|---|
-| SSSOM | 1:1 term equivalence | `mappings/*.sssom.tsv` |
-| **EDOAL** | complex alignments (value→class, compositions, conditions) + `edoal:measure` | `projections/*.edoal.ttl` |
-| **FnO** | the transformation *functions* EDOAL invokes (+ the language conversion catalog) | `projections/functions.fno.ttl`, `projections/transforms.fno.ttl`† |
-| **SPARQL CONSTRUCT** | the executor → a pure-profile graph | `queries/projections/*.rq` |
+| SSSOM | 1:1 term equivalence | `generated/mappings/*.sssom.tsv` |
+| **EDOAL** | complex alignments (value→class, compositions, conditions) + `edoal:measure` | `generated/projections/*.edoal.ttl` |
+| **FnO** | the transformation *functions* EDOAL invokes (+ the language conversion catalog) | `generated/projections/functions.fno.ttl`, `dsl/mappings/transforms.fno.ttl`† |
+| **SPARQL CONSTRUCT** | the executor → a pure-profile graph | `generated/queries/*.rq` |
 
-†`transforms.fno.ttl` (the language-conversion catalog) is the one hand-authored
+†`dsl/mappings/transforms.fno.ttl` (the language-conversion catalog) is the one hand-authored
 FnO file — it is a different concern (script→script / language→language domain
 functions), not a GMEOW→external projection, so it stays outside the compiler.
 
 FnO + EDOAL are the declarative, standards-consumable **spec**; the CONSTRUCT is
-the **executor** (pure-Python rdflib). **None of this is imported into the reasoned
+the native Rust-rendered executable view. **None of this is imported into the reasoned
 core** — it is a consumable *view* layer. That separation is the whole point:
 SSSOM equivalence is a logical claim the reasoner enforces, so it must be honest;
 a **projection is deliberately lossy and directional** — it downgrades GMEOW into
@@ -48,7 +50,7 @@ distributions + checksums, the DCAT catalog leg; see
 [research-objects.md](./research-objects.md)), and the five standpoint
 projections (CRMinf,
 Web Annotation, PROV-O, schema:Claim, Standpoint-OWL 2) — is generated as
-`queries/projections/*.rq` by `gmeow-dev regenerate mappings`. Also runs in `gmeow-dev build`. A
+`generated/queries/*.rq` by `make regenerate`. A
 target-by-target summary with spec links is in the
 [README projection-targets table](../README.md#projection-targets).
 
@@ -115,23 +117,28 @@ own doctrine — *one canonical source, everything else a generated lossy projec
 ([Principle 4](../CONSTITUTION.md)) — now applies to the mapping layer itself:
 **author each mapping once, generate the four.**
 
-The authoring source is a GMEOW-grounded Turtle DSL under `mapping-dsl/`
-(vocabulary in `mapping-dsl/vocabulary.ttl`, all in the `gmeow:` namespace, a spec
-layer never reasoned over):
+The authoring source is a GMEOW-grounded Turtle frontend (vocabulary in
+`dsl/mappings/vocabulary.ttl`, all in the `gmeow:` namespace, a spec layer never
+reasoned over):
 
-- `mapping-dsl/equivalences/*.ttl` — `gmeow:TermEquivalence` cells (one per SSSOM
-  row);
-- `mapping-dsl/projections/*.ttl` — `gmeow:ProjectionMapping` cells, one per
-  CONSTRUCT branch, each with an **anchor** (the node the output hangs on), a
-  GMEOW-side graph pattern, and per-profile **bindings** (target term, EDOAL
-  relation, transform, confidence). The irregular transforms (BCP-47 compose,
-  WKT POINT, the `vcard:Name` mint) are expressed in a small **closed algebra**
-  (`CONCAT`/`COALESCE`/`IF`/`STR`/`IRI`/`STRDT`/`regex` + alt/seq/zero-or-more
-  property paths) — **no raw SPARQL** appears in the source.
+- `slices/<group>/<name>/mappings/equivalences.ttl` — slice-owned
+  `gmeow:TermEquivalence` cells, one per SSSOM row.
+- `slices/<group>/<name>/mappings/projections-<profile>.ttl` — slice-owned
+  `gmeow:ProjectionMapping` cells.
+- `dsl/mappings/projections/*.ttl` — shared or cross-slice projection enrichment.
+- `dsl/mappings/transforms.fno.ttl` — shared FnO function declarations.
+
+Each projection cell produces one CONSTRUCT branch and names an **anchor** (the
+node the output hangs on), a GMEOW-side graph pattern, and per-profile
+**bindings** (target term, EDOAL relation, target kind, transform, confidence,
+SSSOM emission metadata, and loss notes). The irregular transforms (BCP-47
+compose, WKT POINT, the `vcard:Name` mint) are expressed in a small **closed
+algebra** (`CONCAT`/`COALESCE`/`IF`/`STR`/`IRI`/`STRDT`/`regex` +
+alt/seq/zero-or-more property paths) — **no raw SPARQL** appears in the source.
 
 ```sh
-gmeow-dev regenerate mappings          # render all four artifacts in-place
-gmeow-dev check-generated mappings     # CI gate: fail if a committed artifact is stale
+make regenerate        # render registered generated artifacts from canonical sources
+make check-generated   # CI gate: fail if a committed artifact is stale
 ```
 
 Two properties hold **by construction**, eliminating the bug classes review used
@@ -177,11 +184,11 @@ DSL is ready for a much richer future ontology, not just today's):
 ### Authoring a mapping
 
 Every DSL term carries an `rdfs:label` + `skos:definition` in
-`mapping-dsl/vocabulary.ttl` — that file is the authoritative field/operator
+`dsl/mappings/vocabulary.ttl` — that file is the authoritative field/operator
 reference. There are two cell types.
 
 **A cross-ontology term link** → one SSSOM row. Add it to the matching
-`mapping-dsl/equivalences/<domain>.ttl`:
+slice-local `mappings/equivalences.ttl`:
 
 ```turtle
 ex:eqPersonFoaf a gmeow:TermEquivalence ;
@@ -194,9 +201,11 @@ ex:eqPersonFoaf a gmeow:TermEquivalence ;
 ```
 
 **A projection (a lossy downcast)** → an EDOAL cell + FnO function + a SPARQL
-branch. Add it to `mapping-dsl/projections/<profile>.ttl`. A cell names an
-**anchor** (the node the output hangs on) and a **value**, a GMEOW-side graph
-pattern of `gmeow:atom`s, and one `gmeow:hasBinding` per target profile:
+branch. Add it to the owning slice's `mappings/projections-<profile>.ttl` when
+the mapping belongs to a slice, or to `dsl/mappings/projections/<profile>.ttl`
+when it is shared projection enrichment. A cell names an **anchor** (the node the
+output hangs on) and a **value**, a GMEOW-side graph pattern of `gmeow:atom`s,
+and one `gmeow:hasBinding` per target profile:
 
 ```turtle
 gmeow:mapSchemaBirthDate a gmeow:ProjectionMapping ;
@@ -240,7 +249,7 @@ Key authoring choices, each a single field on the pattern or binding:
   traversal; otherwise `gmeow:edoalSource` names the salient term; otherwise the
   projection is structural / SSSOM-backed (no EDOAL cell).
 
-After any change, run `gmeow-dev regenerate mappings` (then `make mappings`); the
+After any change, run `make regenerate` or the registered generator in check mode; the
 compiler runs the cross-layer invariants on its own output and refuses to emit on
-violation. Never hand-edit the generated `mappings/`, `projections/`,
-`queries/projections/` files — `gmeow-dev check-generated mappings` (in CI) fails on drift.
+violation. Never hand-edit generated mapping artifacts under `generated/mappings/`,
+`generated/projections/`, or `generated/queries/` — `make check-generated` fails on drift.

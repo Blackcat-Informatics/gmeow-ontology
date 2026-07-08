@@ -7,7 +7,7 @@
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
 # =============================================================================
-# SHACL shapes for the GMEOW mapping DSL (mapping-dsl/**/*.ttl).
+# SHACL shapes for the GMEOW mapping DSL (`dsl/mappings/**/*.ttl` and slice-local mappings).
 #
 # These shapes validate the canonical authoring source before the native
 # mapping pipeline runs. Violations surface as structured per-node diagnostics
@@ -655,8 +655,8 @@ gmeow:ValueClassMapEntryShape
     ] .
 
 # --------------------------------------------------------------------------- #
-# Vocabulary annotation completeness (issue #221).
-# Every term declared in mapping-dsl/vocabulary.ttl must carry label,
+# Vocabulary annotation completeness.
+# Every term declared in dsl/mappings/vocabulary.ttl must carry label,
 # definition, and rdfs:isDefinedBy pointing at the mapping DSL vocabulary.
 # --------------------------------------------------------------------------- #
 
@@ -684,18 +684,18 @@ gmeow:MappingDslVocabularyTermShape
         sh:path rdfs:label ;
         sh:minCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "Every mapping DSL vocabulary term must carry at least one rdfs:label (issue #221)." ;
+        sh:message "Every mapping DSL vocabulary term must carry at least one rdfs:label." ;
     ] ;
     sh:property [
         sh:path skos:definition ;
         sh:minCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "Every mapping DSL vocabulary term must carry a skos:definition (issue #221)." ;
+        sh:message "Every mapping DSL vocabulary term must carry a skos:definition." ;
     ] ;
     sh:property [
         sh:path rdfs:isDefinedBy ;
         sh:minCount 1 ;
         sh:hasValue <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
         sh:severity sh:Violation ;
-        sh:message "Every mapping DSL vocabulary term must declare rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> (issue #221)." ;
+        sh:message "Every mapping DSL vocabulary term must declare rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl>." ;
     ] .

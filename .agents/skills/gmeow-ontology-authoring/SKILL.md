@@ -20,9 +20,11 @@ resources in the current slices-first, Rust-native repository.
      Slice metadata lives in `manifest.ttl`; slice-local docs, tests, examples,
      mappings, and translations live beside the module.
    - **Mappings and correspondences**: Author pure term linkage in the owning
-     slice's `mappings/equivalences.ttl`. Author irreducible projection
-     enrichment in `dsl/mappings/projections/*.ttl` and shared transform
-     function declarations in `dsl/mappings/transforms.fno.ttl`.
+     slice's `mappings/equivalences.ttl`. Author slice-owned projection cells
+     beside that slice, normally as `mappings/projections-<profile>.ttl`.
+     Shared or cross-slice projection enrichment may live in
+     `dsl/mappings/projections/*.ttl`; shared transform function declarations
+     live in `dsl/mappings/transforms.fno.ttl`.
    - **Statements**: Author statement-level metadata in `dsl/statements/`.
    - **References**: Author citations in `metadata/references.ttl`.
    - **Generated artifacts**: NEVER hand-edit `generated/`, root
@@ -67,7 +69,8 @@ resources in the current slices-first, Rust-native repository.
   1. Put pure identity or match linkage in the slice that owns the
      `gmeow:alignSubject`, usually `slices/<group>/<name>/mappings/equivalences.ttl`.
   2. Put lossy projection legs, profile bindings, guards, transforms, and loss
-     notes in `dsl/mappings/projections/*.ttl`.
+     notes in the owning slice's `mappings/projections-<profile>.ttl`; use
+     `dsl/mappings/projections/*.ttl` only for shared cross-slice enrichment.
   3. Choose the honest relation. Do not force equivalence where the mapping is
      an overlap, bridge view, lossy lens, or affine correspondence.
   4. Regenerate and check generated mapping/projection artifacts:
