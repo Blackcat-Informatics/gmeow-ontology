@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for lang:FlagshipScenarioShape: a lang:FlagshipScenario that binds ALL
+# links — lang:demonstratedByExample, lang:demonstratedByCompetency,
+# lang:guardedByCounterExample, AND lang:enforcesFailureClass — so every sh:minCount
+# branch is satisfied, but lang:enforcesFailureClass names lang:Grammar, a real class that
+# is NOT a lang:LangConformanceFailure subclass. Only the sh:sparql subclass check fires,
+# so validation MUST emit shacl.SPARQLConstraintComponent (and no other finding,
+# lang:UnwiredFlagshipScenario): an acceptance scenario whose enforcing failure class is
+# not a typed conformance failure is unwired by value, not by cardinality.
+# Bound by tests/example-conformance.ttl (ex:ecFlagshipNonFailureClass).
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix ex:   <http://example.org/lang/> .
+
+ex:nonFailureClassScenario a lang:FlagshipScenario ;
+    lang:demonstratedByExample "tests/conformance-fixtures/meaning-cats-chase-mice.ttl" ;
+    lang:demonstratedByCompetency <https://blackcatinformatics.ca/gmeow/examples/lang/tests/cqDenotationsToFormula> ;
+    lang:guardedByCounterExample "tests/counter-examples/meaning-underspecified-denotation.ttl" ;
+    lang:enforcesFailureClass lang:Grammar .

@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Flagship 2 (dogfooding) shape-pin: a lifted @x-gmeow-english prose literal is a
+# content-addressed lang:SurfaceForm carrying its prose-hash (logic:candidateSourceHash)
+# and exactly one surface round-trip logic:Correspondence at logic:ExactPreservation —
+# the shape the lang_form prose-lift stage mints for EVERY such literal. The competency
+# pins the JOIN literal -> prose-hash -> exact surface round-trip, not merely that a
+# literal exists; the totality ("every literal is lifted") is discharged separately by
+# executing lang_form::build_corpus over the real slice catalog.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:english a lang:SignSystem .
+ex:latin a lang:Script .
+
+ex:proseSurface a lang:SurfaceForm , lang:UnanalyzedProse ;
+    lang:inSignSystem ex:english ;
+    lang:inScript ex:latin ;
+    lang:surfaceText "A language is an individual, never a tag." ;
+    lang:encoding "UTF-8" ;
+    lang:unicodeNormalization "NFC" ;
+    lang:collationLocale "en" ;
+    lang:analysisLevel lang:rawLevel ;
+    logic:candidateSourceHash "sha256:cdbe30c133c611078b4667cb4a53b53fc3b111d15d2e5845b6c7a9564cfc2078" ;
+    lang:surfaceCorrespondence ex:proseCorr .
+
+# The surface round-trip re-emits the bytes verbatim: an exact isomorphism carried WITH
+# its mnemomorphic witness, never Exact-with-no-witness.
+ex:proseCorr a logic:Correspondence ;
+    logic:preservationKind logic:ExactPreservation ;
+    logic:correspondenceRelation logic:Equiv ;
+    logic:morphismClass logic:Isomorphism ;
+    logic:mnemomorphic true .

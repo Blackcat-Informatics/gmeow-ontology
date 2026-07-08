@@ -111,6 +111,12 @@
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ExactPreservation .
 
+<https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentSawHerDuck>
+    a logic:ProjectionTarget ;
+    rdfs:label "conllu:forms-and-sign-systems#sentSawHerDuck" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
 <https://blackcatinformatics.ca/logic/target/datalog>
     a logic:ProjectionTarget ;
     rdfs:label "datalog" ;
@@ -7820,6 +7826,12 @@
 <https://blackcatinformatics.ca/logic/target/lang-form>
     a logic:ProjectionTarget ;
     rdfs:label "lang-form" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
+<https://blackcatinformatics.ca/logic/target/lang-lowering:sentence-to-formula>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-lowering:sentence-to-formula" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ExactPreservation .
 
@@ -38127,6 +38139,18 @@
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/tei:forms-and-sign-systems#sentSawHerDuck>
+    a logic:ProjectionTarget ;
+    rdfs:label "tei:forms-and-sign-systems#sentSawHerDuck" ;
+    gmeow:lossyDrop "actual: co-resident lang:Reading alternatives of an ambiguous form collapse to a single TEI constituent structure" ,
+        "actual: dependency relations among the constituents of composed form <https://blackcatinformatics.ca/gmeow/examples/lang/sentSawHerDuck> are not carried into the flat TEI <s> token run (only the analyzed head is hinted)" ,
+        "actual: lang:Denotation meaning records (form→referent assignments) have no TEI element" ,
+        "actual: lang:Sense inventory (the middle Frege corner) has no TEI element" ,
+        "actual: lang:vantage / perspectival standpoint support is not carried into TEI" ,
+        "actual: logic:preservationKind / preservation judgments have no TEI target" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/xcl>
     a logic:ProjectionTarget ;
     rdfs:label "xcl" ;
@@ -38147,6 +38171,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/cgif> ,
         <https://blackcatinformatics.ca/logic/target/clif> ,
         <https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentCatsChaseMice> ,
+        <https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentSawHerDuck> ,
         <https://blackcatinformatics.ca/logic/target/datalog> ,
         <https://blackcatinformatics.ca/logic/target/ebnf:gmn> ,
         <https://blackcatinformatics.ca/logic/target/ebnf:gts> ,
@@ -38782,6 +38807,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:ea729607c361a9b4> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:fb299538cc07f71b> ,
         <https://blackcatinformatics.ca/logic/target/lang-form> ,
+        <https://blackcatinformatics.ca/logic/target/lang-lowering:sentence-to-formula> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation-doc:fr> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation-doc:zh> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:0180e5cc4b5b2fde> ,
@@ -41336,6 +41362,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:ff8e660cb599cd82> ,
         <https://blackcatinformatics.ca/logic/target/sssom:fffc3b18a883cc6c> ,
         <https://blackcatinformatics.ca/logic/target/tei:forms-and-sign-systems#sentCatsChaseMice> ,
+        <https://blackcatinformatics.ca/logic/target/tei:forms-and-sign-systems#sentSawHerDuck> ,
         <https://blackcatinformatics.ca/logic/target/xcl> ;
     logic:lawfulUpliftCount 0 ;
     logic:profileCount 7 ;

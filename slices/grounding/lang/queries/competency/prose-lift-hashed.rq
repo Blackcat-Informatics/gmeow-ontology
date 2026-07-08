@@ -1,0 +1,23 @@
+# Competency question: "Which lifted prose surfaces carry a prose-hash AND an exact
+# surface round-trip?"  This exercises Flagship 2 (GMEOW reading its own prose): the
+# lang_form prose-lift stage types every distinct @x-gmeow-english literal as a
+# content-addressed lang:SurfaceForm carrying its logic:candidateSourceHash (the
+# prose-hash as a lang: fact) and exactly one lang:surfaceCorrespondence whose carried
+# logic:Correspondence holds logic:ExactPreservation (the verbatim byte round-trip). The
+# query pins the JOIN surface -> prose-hash -> exact round-trip, so a surface that carries
+# the literal but neither hash nor round-trip does NOT answer it. Over the shape-pin
+# fixture the answer is exactly the one lifted surface.
+PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT DISTINCT ?surface ?preservation WHERE {
+    ?surface a lang:SurfaceForm ;
+             lang:surfaceText ?text ;
+             logic:candidateSourceHash ?hash ;
+             lang:surfaceCorrespondence ?corr .
+    ?corr a logic:Correspondence ;
+          logic:preservationKind ?preservation .
+    FILTER(?preservation = logic:ExactPreservation)
+    FILTER(STRSTARTS(STR(?surface), "http://example.org/lang/"))
+}
+ORDER BY ?surface
