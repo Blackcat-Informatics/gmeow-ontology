@@ -99,6 +99,16 @@ pub(crate) enum UnsupportedKind {
     /// refuses it to the oracle, or runs it budgeted-partial — never a wrong or
     /// non-terminating native result.
     NonTerminatingExistential,
+    /// A backward program whose only path to divergence is arithmetic self-drive: an
+    /// IDB predicate in a dependency cycle carries a value-generating `is` builtin whose
+    /// result feeds the cyclic head, and the recursive rule has NO finite (EDB or
+    /// strictly-lower-stratum) driver bounding the recursion.  Over the finite triple
+    /// EDB every other backward Datalog program terminates; only such a value-generator
+    /// can invent an unbounded stream of fresh Herbrand terms.  With no `max_steps`
+    /// budget that is an unbounded hang, so the native core refuses it to the oracle
+    /// (incomplete-never-wrong); with a step budget the [`StepGovernor`] cuts it, so it
+    /// is evaluated normally.
+    NonTerminatingArithmetic,
 }
 
 /// The result of a native-execution attempt: a decided value or a declared gap.

@@ -537,6 +537,151 @@ fn seed_to_fact(seed: &EvalAtom) -> Result<crate::rule_ir::Fact, String> {
     })
 }
 
+// ── Value-generating-recursion termination guard ──────────────────────────────────
+
+/// The transitive (≥1-step) reachability closure of the IDB predicate-dependency graph.
+///
+/// A node is `head_pred`; an edge `p → q` exists iff some rule with head `p` carries a
+/// POSITIVE body atom over the IDB predicate `q`.  The returned map sends each IDB
+/// predicate to the set of IDB predicates reachable from it in one or more edges — so
+/// `reach[p]` contains `p` exactly when `p` lies on a directed cycle (a self-loop or a
+/// larger SCC), and `q ∈ reach[p] ∧ p ∈ reach[q]` iff `p` and `q` are mutually recursive
+/// (share an SCC).  Only positive edges count: a negated body atom binds nothing and
+/// drives no derivation, so it cannot carry the recursion.
+fn idb_reachability<'a>(
+    rules: &'a [EvalRule],
+    idb: &BTreeSet<&'a str>,
+) -> BTreeMap<&'a str, BTreeSet<&'a str>> {
+    let mut adj: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
+    for r in rules {
+        let h = r.head.predicate.as_str();
+        for a in r.body.iter().filter(|a| !a.negated) {
+            let p = a.predicate.as_str();
+            if idb.contains(p) {
+                adj.entry(h).or_default().insert(p);
+            }
+        }
+    }
+    let mut reach: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
+    for &n in idb {
+        let mut seen: BTreeSet<&str> = BTreeSet::new();
+        let mut stack: Vec<&str> = adj.get(n).into_iter().flatten().copied().collect();
+        while let Some(x) = stack.pop() {
+            if seen.insert(x)
+                && let Some(succ) = adj.get(x)
+            {
+                for &y in succ {
+                    if !seen.contains(y) {
+                        stack.push(y);
+                    }
+                }
+            }
+        }
+        reach.insert(n, seen);
+    }
+    reach
+}
+
+/// Whether `rule` carries an arithmetic value-generating `is` builtin whose target
+/// variable reaches (contributes a value to) the rule head.
+///
+/// The set of variables that reach the head is seeded with the head's own variables and
+/// closed BACKWARD over the `is` builtins: if a builtin's target reaches the head, its
+/// operands reach the head too (they are consumed to compute a head-reaching value).  A
+/// value-generating `is` whose target lands in that set drives a fresh term into the head
+/// — the only way a binary backward rule can invent an unbounded Herbrand value.  A
+/// `Compare` builtin has no target and generates nothing, so it never qualifies.
+fn is_generator_reaches_head(rule: &EvalRule) -> bool {
+    let mut reach: BTreeSet<String> = BTreeSet::new();
+    for t in [&rule.head.subject, &rule.head.object] {
+        if let EvalTerm::Var(v) = t {
+            reach.insert(v.clone());
+        }
+    }
+    loop {
+        let mut changed = false;
+        for b in &rule.builtins {
+            if let QBuiltin::Is {
+                target: QTerm::Var(t),
+                lhs,
+                rhs,
+                ..
+            } = b
+                && reach.contains(t)
+            {
+                for op in [lhs, rhs] {
+                    if let QTerm::Var(v) = op
+                        && reach.insert(v.clone())
+                    {
+                        changed = true;
+                    }
+                }
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
+    rule.builtins.iter().any(|b| {
+        matches!(
+            b,
+            QBuiltin::Is {
+                target: QTerm::Var(t),
+                ..
+            } if reach.contains(t)
+        )
+    })
+}
+
+/// Whether any rule in `rules` is potentially non-terminating via arithmetic self-drive.
+///
+/// A rule is flagged iff ALL of:
+///
+/// 1. **Its head predicate lies on a dependency cycle** (`reach[head]` contains `head`) —
+///    the recursion that a value-generator could feed forever.
+/// 2. **It carries a value-generating `is` builtin whose target reaches the head**
+///    ([`is_generator_reaches_head`]) — the source of fresh Herbrand terms.
+/// 3. **It has NO finite driver**: every POSITIVE body atom is over a relation in the
+///    head's own cycle (an IDB predicate mutually recursive with the head).  A body atom
+///    over an EDB relation, or over a strictly-lower-stratum IDB predicate (one that
+///    cannot reach the head back), is a FINITE driver — it ranges over an already-settled
+///    finite set, so the recursion is bounded and terminates.
+///
+/// This is precise and SOUND: it never flags the terminating list-length shape
+/// `len(L,N) :- rest(L,R), len(R,M), N is M+1`, because its `rest(L,R)` body atom is an
+/// EDB (non-cyclic) finite driver — condition 3 is false.  It DOES flag a pure self-drive
+/// `count(X,S) :- count(X,Y), S is Y+1` whose only body atom is the cyclic head predicate.
+/// Over-flagging a comparison-bounded terminating program is acceptable (it routes to the
+/// oracle — incomplete, never wrong); under-flagging a genuine hang is not, and the
+/// finite-driver test rules out exactly the terminating cases.
+fn potentially_nonterminating_arithmetic(rules: &[EvalRule]) -> bool {
+    let idb: BTreeSet<&str> = rules.iter().map(|r| r.head.predicate.as_str()).collect();
+    let reach = idb_reachability(rules, &idb);
+    let in_cycle = |p: &str| reach.get(p).is_some_and(|s| s.contains(p));
+    for r in rules {
+        let h = r.head.predicate.as_str();
+        // (1) head on a cycle.
+        if !in_cycle(h) {
+            continue;
+        }
+        // (2) a value-generating `is` reaching the head.
+        if !is_generator_reaches_head(r) {
+            continue;
+        }
+        // (3) no finite driver: every positive body atom is cyclic with the head.
+        let has_finite_driver = r.body.iter().filter(|a| !a.negated).any(|a| {
+            let p = a.predicate.as_str();
+            // A finite driver is an EDB relation (not IDB) or a strictly-lower IDB
+            // predicate that cannot reach the head back (not mutually recursive).
+            !idb.contains(p) || !reach.get(p).is_some_and(|s| s.contains(h))
+        });
+        if !has_finite_driver {
+            return true;
+        }
+    }
+    false
+}
+
 // ── Backward entry: resolve_native ────────────────────────────────────────────────
 
 /// Compute the goal atom's adornment from its `(subject, object)` terms.
@@ -849,6 +994,19 @@ pub(crate) fn resolve_native(
             distinct_pairs: vec![],
             builtins,
         });
+    }
+
+    // (1b) Value-generating-recursion termination guard.  Over the finite triple EDB a
+    // pure-Datalog backward program always terminates; the ONE divergence source is an
+    // arithmetic `is` value-generator inside an IDB dependency cycle with no finite
+    // driver.  With no `max_steps` budget that is an unbounded hang, so — detected
+    // STATICALLY here, before any evaluation — the request is refused to the oracle
+    // (incomplete-never-wrong, never a hang).  WITH a `max_steps` budget the
+    // `StepGovernor` cuts the recursion deterministically, so it is evaluated normally.
+    if budget.max_steps.is_none() && potentially_nonterminating_arithmetic(&rules) {
+        return Ok(NativeOutcome::Unsupported(
+            UnsupportedKind::NonTerminatingArithmetic,
+        ));
     }
 
     // (2) Compute the goal adornment and magic-transform.
@@ -1411,6 +1569,117 @@ mod tests {
     // predicate-as-data resolution and its demand-provenance coverage live). Only a
     // multi-atom conjunctive goal remains a declared gap on the binary leg.
 
+    // ── Value-generating-recursion termination guard ─────────────────────────────
+    //
+    // Over the finite triple EDB a pure-Datalog backward program always terminates; the
+    // ONLY divergence source is an arithmetic `is` value-generator inside an IDB cycle
+    // with no finite driver.  `potentially_nonterminating_arithmetic` flags EXACTLY that
+    // shape, and `resolve_native` routes it to the oracle when `max_steps` is None (no
+    // hang possible), evaluating normally when a step budget can cut the recursion.
+
+    /// A binary self-drive `count(X,S) :- count(X,Y), S is Y+1` (seeded from an EDB
+    /// `seed(a,a)` via a base rule) has NO finite driver in its recursive rule — its only
+    /// positive body atom is the cyclic head predicate `count`, and the `is` generates a
+    /// fresh successor forever.  With no step budget that is an unbounded hang, so the
+    /// native core refuses it to the oracle as `NonTerminatingArithmetic`.
+    fn self_drive_program() -> String {
+        format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:count(X, 0) :- ex:seed(X, X).\n\
+             ex:count(X, S) :- ex:count(X, Y), S is Y + 1.\n\
+             ?- ex:count(ex:a, N).\n"
+        )
+    }
+
+    #[test]
+    fn magic_value_generating_self_drive_is_unsupported_without_budget() {
+        let (store, world_nn) = make_world(&[(
+            &format!("{BASE}a"),
+            &format!("{BASE}seed"),
+            &format!("{BASE}a"),
+        )]);
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = parse_query_program(&self_drive_program()).unwrap();
+        // No max_steps ⇒ the guard fires (an unbounded hang would otherwise occur).
+        let outcome = resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
+        assert!(
+            matches!(
+                outcome,
+                NativeOutcome::Unsupported(UnsupportedKind::NonTerminatingArithmetic)
+            ),
+            "a value-generating self-drive with no finite driver and no budget must be \
+             Unsupported(NonTerminatingArithmetic): {outcome:?}"
+        );
+    }
+
+    #[test]
+    fn magic_value_generating_self_drive_is_budgeted_partial_prefix() {
+        let (store, world_nn) = make_world(&[(
+            &format!("{BASE}a"),
+            &format!("{BASE}seed"),
+            &format!("{BASE}a"),
+        )]);
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = parse_query_program(&self_drive_program()).unwrap();
+        // WITH a step budget the guard is bypassed: the StepGovernor cuts the otherwise-
+        // infinite recursion deterministically, yielding a SOUND partial prefix.
+        let budget = Budget {
+            max_steps: Some(3),
+            ..Default::default()
+        };
+        let cut = decided(resolve_native(&foreign, &world_nn, &prog, &budget).unwrap());
+        assert_eq!(
+            cut.status,
+            BudgetStatus::Exhausted,
+            "a budgeted value-generator is cut mid-recursion ⇒ Exhausted: {cut:?}"
+        );
+        // Every answer is a genuine `count(a, k)` for a distinct integer k — sound
+        // (present in the infinite least model), and the governor cut it to a finite set.
+        let mut seen: BTreeSet<String> = BTreeSet::new();
+        for b in &cut.bindings {
+            let n = &b["N"];
+            assert!(
+                n.contains("XMLSchema#integer"),
+                "each answer binds N to an integer successor: {n}"
+            );
+            assert!(seen.insert(n.clone()), "successors are distinct: {n}");
+        }
+        assert!(
+            !cut.bindings.is_empty() && cut.bindings.len() <= 4,
+            "a 3-step budget admits a small finite prefix, not the infinite model: {cut:?}"
+        );
+    }
+
+    #[test]
+    fn magic_finite_driver_arithmetic_is_not_flagged() {
+        // The list-length program is in an IDB cycle (len→len) WITH arithmetic, but its
+        // recursive rule carries the non-cyclic EDB body atom `rdf:rest(L,R)` — a finite
+        // driver.  The guard must NOT flag it (condition 3 is false), so it is decided
+        // natively even with no step budget.  This is the direct guard-precision check
+        // complementing `magic_binary_arithmetic_is_decided_natively`.
+        let (store, world_nn) = make_world(&[(
+            &format!("{BASE}l0"),
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+        )]);
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             :- prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').\n\
+             ex:len(rdf:nil, 0).\n\
+             ex:len(L, N) :- rdf:rest(L, R), ex:len(R, M), N is M + 1.\n\
+             ?- ex:len(ex:l0, N).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        // Budget::default() ⇒ max_steps None ⇒ the guard is ACTIVE. A finite-driver
+        // program must survive it and decide.
+        let outcome = resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
+        assert!(
+            matches!(outcome, NativeOutcome::Decided(_)),
+            "the finite-driver len program must NOT be flagged non-terminating: {outcome:?}"
+        );
+    }
+
     // ── Budget: max_answers truncation parity ────────────────────────────────────
 
     #[test]
@@ -1469,6 +1738,120 @@ mod tests {
             cut.bindings.len() < full.len(),
             "the cut answer set is a strict subset of the full model"
         );
+    }
+
+    /// The step budget is charged at the SINGLE committed-derivation counting point
+    /// (`StepGovernor::charge` in `eval_stratum_fixpoint`): `max_steps = n` charges EXACTLY
+    /// `n` committed derivations before stamping `Exhausted`, and the returned bindings are
+    /// a SOUND prefix — a strict subset of the unbudgeted answer set, every member of which
+    /// is genuinely in the least model.  Asserted across several `n`.
+    #[test]
+    fn magic_budget_single_counting_point_exact_charge_and_sound_prefix() {
+        let (store, world_nn) = tc_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = tc_program();
+
+        let full: BTreeSet<String> =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap())
+                .bindings
+                .iter()
+                .map(|b| b["Y"].clone())
+                .collect();
+        assert_eq!(full.len(), 3);
+
+        for n in 1..=3u64 {
+            let budget = Budget {
+                max_steps: Some(n),
+                ..Default::default()
+            };
+            let cut = decided(resolve_native(&foreign, &world_nn, &prog, &budget).unwrap());
+            // Every cut answer is sound (present in the full least model).
+            let got: BTreeSet<String> = cut.bindings.iter().map(|b| b["Y"].clone()).collect();
+            assert!(
+                got.is_subset(&full),
+                "n={n}: cut answers must be a sound subset of the full model: {got:?} ⊄ {full:?}"
+            );
+            // The tc closure needs more than 3 committed derivations (magic seeds +
+            // ancestor facts), so every n in 1..=3 cuts mid-fixpoint.
+            assert_eq!(
+                cut.status,
+                BudgetStatus::Exhausted,
+                "n={n}: below the completion cost ⇒ Exhausted"
+            );
+            // The single counting point charged EXACTLY n derivations: on `Exhausted` the
+            // governor stopped the instant `consumed == n` (spent-before-commit).
+            assert_eq!(
+                cut.frontier.consumed_steps, n,
+                "n={n}: exactly n committed derivations charged at the single counting point"
+            );
+        }
+    }
+
+    /// Budget composition is a stable status matrix at the `resolve_native` surface,
+    /// unchanged by the arity-generic dispatch rewrites: a generous budget completes
+    /// (`Ok`), a tight `max_steps` cuts (`Exhausted`), and a reached `max_answers` cap is
+    /// `Partial` (taking precedence over any concurrent step cut).  This locks the budget
+    /// transfer through the profile-gated backward leg.
+    #[test]
+    fn magic_budget_composition_status_matrix() {
+        let (store, world_nn) = tc_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = tc_program();
+
+        // Ok: a generous step budget, no answer cap ⇒ the fixpoint completes.
+        let ok = decided(
+            resolve_native(
+                &foreign,
+                &world_nn,
+                &prog,
+                &Budget {
+                    max_steps: Some(1_000_000),
+                    max_answers: None,
+                },
+            )
+            .unwrap(),
+        );
+        assert_eq!(ok.status, BudgetStatus::Ok, "generous budget ⇒ Ok");
+        assert_eq!(ok.bindings.len(), 3);
+
+        // Exhausted: a tight step budget cuts before the fixpoint settles.
+        let exhausted = decided(
+            resolve_native(
+                &foreign,
+                &world_nn,
+                &prog,
+                &Budget {
+                    max_steps: Some(1),
+                    max_answers: None,
+                },
+            )
+            .unwrap(),
+        );
+        assert_eq!(
+            exhausted.status,
+            BudgetStatus::Exhausted,
+            "tight max_steps ⇒ Exhausted"
+        );
+
+        // Partial: a reached answer cap overrides even a concurrent step cut.
+        let partial = decided(
+            resolve_native(
+                &foreign,
+                &world_nn,
+                &prog,
+                &Budget {
+                    max_steps: Some(1),
+                    max_answers: Some(1),
+                },
+            )
+            .unwrap(),
+        );
+        assert_eq!(
+            partial.status,
+            BudgetStatus::Partial,
+            "a reached max_answers cap ⇒ Partial (precedence over the step cut)"
+        );
+        assert_eq!(partial.bindings.len(), 1);
     }
 
     /// A step cut is DETERMINISTIC on the backward leg: the same intermediate budget

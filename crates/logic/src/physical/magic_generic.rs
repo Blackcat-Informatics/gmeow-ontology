@@ -42,7 +42,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::TermValue;
 
-use super::generic::{GenericAtom, GenericRule, materialize_generic};
+use super::generic::{GenericAtom, GenericRule, materialize_generic_budgeted};
 use super::magic::{magic_pred_iri, term_of};
 use crate::facts::TypedFactSet;
 use crate::oracle::{TypedProvenance, TypedRow};
@@ -408,13 +408,20 @@ pub(super) fn resolve_native_generic(
         let ids: Vec<_> = args.iter().map(|a| facts.intern(a)).collect();
         facts.push_fact(relation, ids);
     }
-    let result = materialize_generic(&facts, &transformed.rules)?;
+    // The generic core over the finite triple EDB (positive Datalog, no arithmetic) always
+    // terminates, so no hang guard is needed; the step budget is threaded ONLY to honor the
+    // deterministic-cut contract — `max_steps = Some(n)` cuts at `n` committed derivations
+    // with a sound prefix (`Exhausted`), matching the binary leg.
+    let (result, fixpoint_status) =
+        materialize_generic_budgeted(&facts, &transformed.rules, budget.max_steps)?;
 
     // (4) Project the goal relation's tuples into bindings.
     let mut bindings = project_generic(&result.rows, goal);
 
-    // (5) Budget: `max_answers` as a sound post-fixpoint truncation (Partial).
-    let mut status = BudgetStatus::Ok;
+    // (5) Budget: compose the step governor (fixpoint `Exhausted`) with a `max_answers`
+    //     post-fixpoint truncation (`Partial`).  Precedence mirrors the binary leg: a
+    //     reached answer cap stamps `Partial` even if the step budget also fired.
+    let mut status = fixpoint_status;
     if let Some(max_a) = budget.max_answers {
         let mut tmp = AnswerSet {
             bindings: bindings.clone(),
@@ -544,6 +551,90 @@ mod tests {
         assert!(answer.bindings.is_empty(), "no <p1> edge ⇒ no answers");
     }
 
+    // ── N-ary backward budget: the step governor threads the single counting point ─
+
+    /// A transitive `<trans>` relation in the `triple(?s,?p,?o,?w)` encoding: the recursive
+    /// rule `triple(?s,<trans>,?o,?w) :- triple(?s,<trans>,?m,?w), triple(?m,<trans>,?o,?w)`
+    /// with the arity-4 backward goal `triple(?s,<trans>,?o,?w)` — n-ary (routes here).
+    fn transitive_program() -> QProgram {
+        let trans = "http://ex/trans";
+        let edge = |s: &str, o: &str, w: &str| QAtom {
+            pred: "triple".to_owned(),
+            args: vec![
+                QTerm::Var(s.to_owned()),
+                QTerm::Const(format!("<{trans}>")),
+                QTerm::Var(o.to_owned()),
+                QTerm::Var(w.to_owned()),
+            ],
+        };
+        QProgram {
+            rules: vec![crate::query_ir::QRule {
+                head: edge("s", "o", "w"),
+                body: vec![
+                    QBodyLit::Atom(edge("s", "m", "w")),
+                    QBodyLit::Atom(edge("m", "o", "w")),
+                ],
+            }],
+            goal: QGoal {
+                atoms: vec![edge("s", "o", "w")],
+            },
+            counterfactual: None,
+            prob_facts: vec![],
+            prob_model: None,
+            confidences: vec![],
+        }
+    }
+
+    #[test]
+    fn generic_backward_max_steps_exhausts_with_sound_prefix() {
+        // A 4-node <trans> chain a→b→c→d; the transitive closure adds a→c, b→d, a→d.
+        let trans = "http://ex/trans";
+        let (store, world) = make_world(&[
+            ("http://ex/a", trans, "http://ex/b"),
+            ("http://ex/b", trans, "http://ex/c"),
+            ("http://ex/c", trans, "http://ex/d"),
+        ]);
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = transitive_program();
+
+        // Unbudgeted: the full demand-restricted closure, complete (`Ok`).
+        let full = decided(
+            super::super::magic::resolve_native(&foreign, &world, &prog, &Budget::default())
+                .unwrap(),
+        );
+        assert_eq!(full.status, BudgetStatus::Ok, "unbudgeted ⇒ Ok complete");
+        // 3 EDB edges echoed + 3 derived transitive edges = 6 goal answers.
+        assert_eq!(full.bindings.len(), 6, "full closure: {full:?}");
+        let full_set: BTreeSet<(String, String)> = full
+            .bindings
+            .iter()
+            .map(|b| (b["s"].clone(), b["o"].clone()))
+            .collect();
+
+        // Budgeted: a 1-step cut stamps `Exhausted` with a sound prefix (a strict subset).
+        let budget = Budget {
+            max_steps: Some(1),
+            ..Default::default()
+        };
+        let cut =
+            decided(super::super::magic::resolve_native(&foreign, &world, &prog, &budget).unwrap());
+        assert_eq!(
+            cut.status,
+            BudgetStatus::Exhausted,
+            "a 1-step budget cannot reach the closure ⇒ Exhausted: {cut:?}"
+        );
+        assert!(
+            cut.bindings.len() < full.bindings.len(),
+            "the cut answer set is a strict subset of the full closure: {cut:?}"
+        );
+        for b in &cut.bindings {
+            assert!(
+                full_set.contains(&(b["s"].clone(), b["o"].clone())),
+                "every budget-cut answer is sound (present in the full closure): {b:?}"
+            );
+        }
+    }
+
     // ── (c) Provenance: the derived answer carries its demand antecedent ─────────
 
     #[test]
@@ -588,7 +679,8 @@ mod tests {
         let mut facts = build_generic_edb(&foreign, &world);
         let ids: Vec<_> = seed_args.iter().map(|a| facts.intern(a)).collect();
         facts.push_fact(&seed_rel, ids);
-        let result = materialize_generic(&facts, &transformed.rules).unwrap();
+        let (result, _status) =
+            materialize_generic_budgeted(&facts, &transformed.rules, None).unwrap();
 
         // The derived triple(x, p2, y, w) row carries a firing rule name and its demand
         // antecedent (the magic guard) plus the antecedent <p1> edge.

@@ -49,8 +49,10 @@ use purrdf::TermValue;
 use crate::facts::TypedFactSet;
 use crate::oracle::{TypedChaseResult, TypedProvenance, TypedRow};
 use crate::physical::binding_pattern::BindingPattern;
+use crate::physical::seminaive::StepGovernor;
 use crate::provenance::{LOGIC_NAMESPACE, term_display};
 use crate::rule_ir::{EvalTerm, lower_nemo_term};
+use crate::seam::BudgetStatus;
 
 // ── Generic atom / rule IR ─────────────────────────────────────────────────────
 
@@ -544,8 +546,41 @@ pub(crate) fn materialize_generic(
     facts: &TypedFactSet,
     rules: &[GenericRule],
 ) -> Result<TypedChaseResult, String> {
+    // The forward (`NativeForwardOracle`) caller is UNBUDGETED: `None` step budget ⇒ the
+    // governor never trips ⇒ the returned status is always `Ok` and the fact set is
+    // byte-identical to the pre-budget engine.  This is the thin wrapper; the backward
+    // n-ary leg calls [`materialize_generic_budgeted`] directly to honor a `max_steps`.
+    let (result, _status) = materialize_generic_budgeted(facts, rules, None)?;
+    Ok(result)
+}
+
+/// Materialize the least model of `rules` over `facts` under an optional step budget,
+/// returning the [`TypedChaseResult`] plus the [`BudgetStatus`] at the point evaluation
+/// stopped.
+///
+/// The step/derivation budget is honored at the SINGLE deterministic counting point — one
+/// committed winner per charge, in the round's sorted `(relation, row-surface)` commit
+/// order — exactly mirroring the binary [`crate::physical::seminaive::eval_stratum_fixpoint`]:
+/// [`StepGovernor::spent`] is checked BEFORE committing each winner (so `max_steps = n`
+/// admits exactly `n` derivations, `max_steps = 0` admits none), and the returned status is
+/// [`BudgetStatus::Exhausted`] on a mid-fixpoint cut, [`BudgetStatus::Ok`] on a natural
+/// fixpoint.  An `Exhausted` cut leaves a SOUND (sorted-key-ordered) partial prefix: every
+/// emitted derived row is genuinely in the least model, the budget only bounds how many
+/// were produced.  `max_steps == None` is unbounded (the [`materialize_generic`] wrapper).
+///
+/// # Errors
+///
+/// Propagates a [`ground_head`] failure (an unbound head variable — a malformed rule the
+/// positive-Datalog core cannot ground).
+pub(crate) fn materialize_generic_budgeted(
+    facts: &TypedFactSet,
+    rules: &[GenericRule],
+    max_steps: Option<u64>,
+) -> Result<(TypedChaseResult, BudgetStatus), String> {
     let interner = facts.interner();
     let mut store = GenericStore::default();
+    let mut governor = StepGovernor::new(max_steps);
+    let mut status = BudgetStatus::Ok;
 
     // Seed the EDB: every typed fact becomes a stored row `relation(args…)` with the
     // native term values resolved from the set's interner.
@@ -563,7 +598,7 @@ pub(crate) fn materialize_generic(
 
     // Semi-naive least-fixpoint: each round derives new heads by joining only against
     // the previous round's delta, committing per-round winners in sorted-key order.
-    loop {
+    'fixpoint: loop {
         let mut round: BTreeMap<(String, RowSurface), RoundWinner> = BTreeMap::new();
         for rule in rules {
             for sol in join_body(rule, &store, &delta) {
@@ -584,10 +619,19 @@ pub(crate) fn materialize_generic(
             break; // fixpoint
         }
         let mut new_delta: HashSet<usize> = HashSet::with_capacity(round.len());
+        // Commit winners in the BTreeMap's sorted `(relation, row-surface)` order — the
+        // deterministic counting point.  The step budget is charged once per committed
+        // winner; when it is spent we stop BEFORE committing the next winner, leaving a
+        // sound sorted-key-ordered partial prefix (`Exhausted`).
         for ((relation, _surface), (row, rule_iri, antecedents)) in round {
+            if governor.spent() {
+                status = BudgetStatus::Exhausted;
+                break 'fixpoint;
+            }
             if let Some(idx) = store.insert(relation, row, Some(rule_iri), antecedents) {
                 new_delta.insert(idx);
             }
+            governor.charge();
         }
         delta = new_delta;
     }
@@ -632,7 +676,7 @@ pub(crate) fn materialize_generic(
         })
         .collect();
 
-    Ok(TypedChaseResult { rows })
+    Ok((TypedChaseResult { rows }, status))
 }
 
 #[cfg(test)]
