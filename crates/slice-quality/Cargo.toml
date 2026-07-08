@@ -27,6 +27,12 @@ gmeow-validate = { path = "../validate" }
 # The typed documentation model + coverage/i18n dimensions the documentation and
 # translation axes bind to.
 gmeow-docs = { path = "../docs" }
+# The correspondence-calculus machinery the linkage axis binds: `extract_correspondences`
+# (the `logic:Correspondence` lens individuals — the calculus-routed set) and
+# `lint_dc_refinement` (names hand-authored `dc:` alignments the calculus should derive).
+# Already in the transitive tree (gmeow-docs / gmeow-logic depend on it); a leaf crate
+# with no reasoning-runtime or pipeline deps, so no dependency cycle.
+gmeow-logic-compile = { path = "../logic-compile" }
 # The native reasoner — the instrument the reasoner-derived axis dogfoods: the DL
 # closure gives inferential density, and leave-one-out over the closure proves
 # closure-redundant authored triples (Principles 8/12/18).
