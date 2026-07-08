@@ -6503,3 +6503,198 @@ GTS music-package bundles, not the reasoned core (Principles 8, 12)."""@x-gmeow-
     skos:definition "The GMEOW Music Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Declarative constraint axioms (extension slices) — the closed-
+# world cardinality / datatype / fixed-value / class obligations the hand-
+# authored shapes.ttl NodeShapes state, authored here once as OWL restriction
+# axioms and PROJECTED to generated/shapes/validation-shapes.ttl by
+# derive_validation_shapes (Principle 17). exact-one -> owl:cardinality 1
+# (sh:minCount 1 + sh:maxCount 1); at-most-one -> owl:maxCardinality 1; at-least
+# N -> owl:minCardinality N; sh:datatype D -> owl:allValuesFrom D; sh:hasValue V
+# -> owl:hasValue V; sh:class C -> owl:allValuesFrom C.
+#
+# Carried in the procedural constraint fragment (no ordinary-OWL antecedent):
+#   * `sh:nodeKind sh:IRI` value-node-kind facets (owl:Thing lowers to
+#     sh:BlankNodeOrIRI, not sh:IRI);
+#   * numeric-range facets (sh:minExclusive / sh:minInclusive / sh:maxInclusive)
+#     on the rational-encoding integers/decimals;
+#   * the rational-string `sh:pattern` facets (pivotSourceValue / pivotTargetValue);
+#   * `sh:uniqueLang` + rdf:langString multilingual-text facets;
+#   * the `sh:xone` exactly-one-encoding disjunctions and every `sh:sparql`
+#     cross-node / no-subclass constraint;
+#   * gmeow:participationInstrument (authored at sh:Warning severity — a derived
+#     shape emits sh:Violation, so migrating it would change the finding severity).
+# =========================================================================== #
+
+gmeow:TuningSystem rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:tuningKind ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:frameRealm ; owl:cardinality 1 ; owl:hasValue gmeow:frameRealmMusicalPitch ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:frameKind ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:requiresHost ; owl:cardinality 1 ; owl:allValuesFrom xsd:boolean ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:dividedIntervalDenominator ; owl:maxCardinality 1 ; owl:allValuesFrom xsd:integer ] .
+
+gmeow:PitchValue rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:hasTuningFrame ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:ratioDenominator ; owl:allValuesFrom xsd:integer ] .
+
+gmeow:PitchInterval rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:hasTuningFrame ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:ratioDenominator ; owl:allValuesFrom xsd:integer ] .
+
+gmeow:PitchAnchor rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:pitchAnchorOf ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:anchorDegree ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:anchorFrequency ; owl:cardinality 1 ; owl:allValuesFrom xsd:decimal ] .
+
+gmeow:PitchCollection rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:collectionKind ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:derivedFromSpectrum ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:collectionPartOrder ; owl:maxCardinality 1 ; owl:allValuesFrom xsd:nonNegativeInteger ] .
+
+gmeow:PitchCollectionMembership rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:membershipCollection ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:membershipPitch ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:membershipRole ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:membershipDegreeIndex ; owl:maxCardinality 1 ; owl:allValuesFrom xsd:integer ] .
+
+gmeow:PitchSpelling rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:spellingPitch ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:spellingSystem ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:spelledName ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] .
+
+gmeow:MusicalTimeFrame rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:frameRealm ; owl:cardinality 1 ; owl:hasValue gmeow:frameRealmMusicalTime ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:frameKind ; owl:cardinality 1 ; owl:hasValue gmeow:frameKindScalar ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:dimensionCount ; owl:cardinality 1 ; owl:allValuesFrom xsd:nonNegativeInteger ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:hasAxis ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:requiresHost ; owl:cardinality 1 ; owl:allValuesFrom xsd:boolean ] .
+
+gmeow:MusicalTimeSpan rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:hasMusicalTimeFrame ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:timeStartNumerator ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:timeStartDenominator ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:timeDurationNumerator ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:timeDurationDenominator ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] .
+
+gmeow:TimeMapping rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:timeMappingKind ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:mapsFrame ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:mapsToFrame ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:mapRatioDenominator ; owl:allValuesFrom xsd:integer ] .
+
+gmeow:TempoMapSegment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:tempoMapSegmentOf ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:segmentSpan ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:segmentTempoMapKind ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:segmentMapRatioNumerator ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:segmentMapRatioDenominator ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] .
+
+gmeow:MetricStructure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:hasMetricGroup ; owl:minCardinality 1 ] .
+
+gmeow:MetricGroup rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:metricGroupOrder ; owl:cardinality 1 ; owl:allValuesFrom xsd:nonNegativeInteger ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:groupLengthNumerator ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:groupLengthDenominator ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:groupAccentWeight ; owl:maxCardinality 1 ; owl:allValuesFrom xsd:decimal ] .
+
+gmeow:MeterAssignment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:meterCarrier ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assignedMeter ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assignmentSpan ; owl:cardinality 1 ] .
+
+gmeow:MetricModulation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:modulationFromFrame ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:modulationToFrame ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:pivotSourceValue ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:pivotTargetValue ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] .
+
+gmeow:GrooveProfile rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:grooveKind ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:grooveGridUnit ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:appliesToTimeFrame ; owl:cardinality 1 ] .
+
+gmeow:MusicalSegment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:segmentKind ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:segmentSpan ; owl:maxCardinality 1 ] .
+
+gmeow:ToneEvent rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:toneEventPitchValue ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:toneEventPitchTrajectory ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:toneEventIsUnpitched ; owl:maxCardinality 1 ; owl:allValuesFrom xsd:boolean ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:toneEventDynamics ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:toneEventArticulation ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:toneEventTimbre ; owl:maxCardinality 1 ] .
+
+gmeow:PitchTrajectory rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:interpolationKind ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:trajectoryControlPoint ; owl:minCardinality 2 ] .
+
+gmeow:PitchTrajectoryControlPoint rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:controlPointOfTrajectory ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:controlPointOrder ; owl:cardinality 1 ; owl:allValuesFrom xsd:nonNegativeInteger ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:controlPointPitch ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:controlPointTimeFrame ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:controlPointTimePositionNumerator ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:controlPointTimePositionDenominator ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] .
+
+gmeow:Voice rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:voiceTimeFrame ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:voiceTuningFrame ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:voiceMetricStructure ; owl:maxCardinality 1 ] .
+
+gmeow:SegmentTransformation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:transformationSource ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:transformationTarget ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:transformationType ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:transformationParameter ; owl:maxCardinality 1 ] .
+
+gmeow:DegreeOfFreedom rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:dofParameter ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:dofStatus ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:dofWork ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:dofExpression ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:dofConstraintFunction ; owl:maxCardinality 1 ] .
+
+gmeow:TraversalConstraint rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:constraintAppliesTo ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:constraintText ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:constraintFunction ; owl:maxCardinality 1 ] .
+
+gmeow:PerformanceDecision rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:decisionPerformance ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:decisionConstraint ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:decisionSequence ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] .
+
+gmeow:GenerativeProcess rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:processKind ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:processRuleText ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:processFunction ; owl:maxCardinality 1 ] .
+
+gmeow:OrnamentProfile rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:ornamentProfileKind ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:ornamentReferenceFrame ; owl:maxCardinality 1 ] .
+
+gmeow:PerformanceParticipation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:participationEvent ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:participationParticipant ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:participationRole ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:participationInstrumentItem ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:participationConfiguration ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:participationPart ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:participationTechnique ; owl:maxCardinality 1 ] .
+
+gmeow:InstrumentConfiguration rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:configurationModification ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:configurationOf ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:configurationInstrumentType ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:configurationTuningFrame ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:configurationInterval ; owl:maxCardinality 1 ] .
+
+gmeow:MusicAnalysisClaim rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:analysisTarget ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:analysisProperty ; owl:cardinality 1 ; owl:allValuesFrom gmeow:AnalysisProperty ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:analysisResult ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:analysisFrame ; owl:cardinality 1 ; owl:allValuesFrom gmeow:ReferenceFrame ] .

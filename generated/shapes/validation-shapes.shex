@@ -33,6 +33,12 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/Agent-shape> {
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/AgentSession> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/AgentSession-shape> {
+  <https://blackcatinformatics.ca/gmeow/sessionSubjectStage> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/sessionConfiguration> . {0,1} ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/Analogy> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Analogy-shape> {
   <https://blackcatinformatics.ca/gmeow/analogicalSource> . + ;
@@ -283,8 +289,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/DegreeOfFreedom> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/DegreeOfFreedom-shape> {
+  <https://blackcatinformatics.ca/gmeow/dofWork> . {0,1} ;
   <https://blackcatinformatics.ca/gmeow/dofStatus> IRI ;
+  <https://blackcatinformatics.ca/gmeow/dofStatus> . ;
   <https://blackcatinformatics.ca/gmeow/dofParameter> IRI ;
+  <https://blackcatinformatics.ca/gmeow/dofParameter> . ;
+  <https://blackcatinformatics.ca/gmeow/dofExpression> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/dofConstraintFunction> . {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/DepictionUsage> (associate via ShapeMap)
@@ -362,8 +373,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/gmeow/Embedding> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Embedding-shape> {
   <https://blackcatinformatics.ca/gmeow/embeddingOf> IRI ;
+  <https://blackcatinformatics.ca/gmeow/embeddingOf> . ;
   <https://blackcatinformatics.ca/gmeow/distanceMetric> IRI ;
+  <https://blackcatinformatics.ca/gmeow/distanceMetric> . ;
   <https://blackcatinformatics.ca/gmeow/embeddingModel> IRI ;
+  <https://blackcatinformatics.ca/gmeow/embeddingModel> . ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/EmbodimentAssignment> (associate via ShapeMap)
@@ -413,7 +427,9 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/gmeow/ExtractedRelationship> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/ExtractedRelationship-shape> {
   <https://blackcatinformatics.ca/gmeow/relationshipSource> IRI ;
+  <https://blackcatinformatics.ca/gmeow/relationshipSource> . ;
   <https://blackcatinformatics.ca/gmeow/relationshipTarget> IRI ;
+  <https://blackcatinformatics.ca/gmeow/relationshipTarget> . ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/FinancialAccount> (associate via ShapeMap)
@@ -468,6 +484,9 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/gmeow/GenerativeProcess> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/GenerativeProcess-shape> {
   <https://blackcatinformatics.ca/gmeow/processKind> IRI ;
+  <https://blackcatinformatics.ca/gmeow/processKind> . ;
+  <https://blackcatinformatics.ca/gmeow/processFunction> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/processRuleText> . + ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/GmnCompaction> (associate via ShapeMap)
@@ -489,6 +508,14 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/gmnGlyphTableVersion> . + ;
   <https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondence> IRI ;
   <https://blackcatinformatics.ca/gmeow/gmnEnvelopeCorrespondence> . + ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/GrooveProfile> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/GrooveProfile-shape> {
+  <https://blackcatinformatics.ca/gmeow/grooveKind> . ;
+  <https://blackcatinformatics.ca/gmeow/grooveGridUnit> <http://www.w3.org/2001/XMLSchema#string> ;
+  <https://blackcatinformatics.ca/gmeow/grooveGridUnit> . ;
+  <https://blackcatinformatics.ca/gmeow/appliesToTimeFrame> . ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Highlight> (associate via ShapeMap)
@@ -586,8 +613,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/InstrumentConfiguration> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/InstrumentConfiguration-shape> {
+  <https://blackcatinformatics.ca/gmeow/configurationOf> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/configurationInterval> . {0,1} ;
   <https://blackcatinformatics.ca/gmeow/configurationTuningFrame> IRI ;
+  <https://blackcatinformatics.ca/gmeow/configurationTuningFrame> . {0,1} ;
   <https://blackcatinformatics.ca/gmeow/configurationModification> IRI ;
+  <https://blackcatinformatics.ca/gmeow/configurationModification> . + ;
+  <https://blackcatinformatics.ca/gmeow/configurationInstrumentType> . {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Intention> (associate via ShapeMap)
@@ -716,14 +748,40 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/gmeow/MeterAssignment> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/MeterAssignment-shape> {
   <https://blackcatinformatics.ca/gmeow/meterCarrier> IRI ;
+  <https://blackcatinformatics.ca/gmeow/meterCarrier> . ;
   <https://blackcatinformatics.ca/gmeow/assignedMeter> IRI ;
+  <https://blackcatinformatics.ca/gmeow/assignedMeter> . ;
   <https://blackcatinformatics.ca/gmeow/assignmentSpan> IRI ;
+  <https://blackcatinformatics.ca/gmeow/assignmentSpan> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/MetricGroup> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/MetricGroup-shape> {
+  <https://blackcatinformatics.ca/gmeow/metricGroupOrder> <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ;
+  <https://blackcatinformatics.ca/gmeow/metricGroupOrder> . ;
+  <https://blackcatinformatics.ca/gmeow/groupAccentWeight> <http://www.w3.org/2001/XMLSchema#decimal> ;
+  <https://blackcatinformatics.ca/gmeow/groupAccentWeight> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/groupLengthNumerator> <http://www.w3.org/2001/XMLSchema#integer> ;
+  <https://blackcatinformatics.ca/gmeow/groupLengthNumerator> . ;
+  <https://blackcatinformatics.ca/gmeow/groupLengthDenominator> <http://www.w3.org/2001/XMLSchema#integer> ;
+  <https://blackcatinformatics.ca/gmeow/groupLengthDenominator> . ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/MetricModulation> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/MetricModulation-shape> {
+  <https://blackcatinformatics.ca/gmeow/pivotSourceValue> <http://www.w3.org/2001/XMLSchema#string> ;
+  <https://blackcatinformatics.ca/gmeow/pivotSourceValue> . ;
+  <https://blackcatinformatics.ca/gmeow/pivotTargetValue> <http://www.w3.org/2001/XMLSchema#string> ;
+  <https://blackcatinformatics.ca/gmeow/pivotTargetValue> . ;
   <https://blackcatinformatics.ca/gmeow/modulationToFrame> IRI ;
+  <https://blackcatinformatics.ca/gmeow/modulationToFrame> . ;
   <https://blackcatinformatics.ca/gmeow/modulationFromFrame> IRI ;
+  <https://blackcatinformatics.ca/gmeow/modulationFromFrame> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/MetricStructure> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/MetricStructure-shape> {
+  <https://blackcatinformatics.ca/gmeow/hasMetricGroup> . + ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Mitigation> (associate via ShapeMap)
@@ -732,8 +790,20 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/mitigationCounters> NONLITERAL ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/ModelCard> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ModelCard-shape> {
+  <https://blackcatinformatics.ca/gmeow/describesModelService> IRI ;
+  <https://blackcatinformatics.ca/gmeow/describesModelArtifact> IRI ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/ModelDeployment> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/ModelDeployment-shape> {
+  <https://blackcatinformatics.ca/gmeow/deploymentHost> IRI ;
+  <https://blackcatinformatics.ca/gmeow/deploymentHost> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/deploymentService> IRI ;
+  <https://blackcatinformatics.ca/gmeow/deploymentService> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/deploymentArtifact> IRI ;
+  <https://blackcatinformatics.ca/gmeow/deploymentArtifact> . {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/MonetaryAmount> (associate via ShapeMap)
@@ -744,20 +814,48 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/MusicAnalysisClaim-shape> {
   <https://blackcatinformatics.ca/gmeow/vantage> IRI ;
+  <https://blackcatinformatics.ca/gmeow/vantage> . ;
   <https://blackcatinformatics.ca/gmeow/analysisFrame> IRI ;
+  <https://blackcatinformatics.ca/gmeow/analysisFrame> . ;
   <https://blackcatinformatics.ca/gmeow/analysisResult> NONLITERAL ;
+  <https://blackcatinformatics.ca/gmeow/analysisResult> . ;
   <https://blackcatinformatics.ca/gmeow/analysisTarget> NONLITERAL ;
+  <https://blackcatinformatics.ca/gmeow/analysisTarget> . ;
   <https://blackcatinformatics.ca/gmeow/analysisProperty> IRI ;
+  <https://blackcatinformatics.ca/gmeow/analysisProperty> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/MusicalSegment> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/MusicalSegment-shape> {
+  <https://blackcatinformatics.ca/gmeow/segmentKind> . ;
+  <https://blackcatinformatics.ca/gmeow/segmentSpan> . {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/MusicalTimeFrame> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/MusicalTimeFrame-shape> {
+  <https://blackcatinformatics.ca/gmeow/hasAxis> . ;
+  <https://blackcatinformatics.ca/gmeow/frameKind> [<https://blackcatinformatics.ca/gmeow/frameKindScalar>] ;
+  <https://blackcatinformatics.ca/gmeow/frameKind> . ;
   <https://blackcatinformatics.ca/gmeow/frameRealm> [<https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime>] ;
+  <https://blackcatinformatics.ca/gmeow/frameRealm> . ;
+  <https://blackcatinformatics.ca/gmeow/requiresHost> <http://www.w3.org/2001/XMLSchema#boolean> ;
+  <https://blackcatinformatics.ca/gmeow/requiresHost> . ;
+  <https://blackcatinformatics.ca/gmeow/dimensionCount> <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ;
+  <https://blackcatinformatics.ca/gmeow/dimensionCount> . ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/MusicalTimeSpan> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/MusicalTimeSpan-shape> {
+  <https://blackcatinformatics.ca/gmeow/timeStartNumerator> <http://www.w3.org/2001/XMLSchema#integer> ;
+  <https://blackcatinformatics.ca/gmeow/timeStartNumerator> . ;
   <https://blackcatinformatics.ca/gmeow/hasMusicalTimeFrame> IRI ;
+  <https://blackcatinformatics.ca/gmeow/hasMusicalTimeFrame> . ;
+  <https://blackcatinformatics.ca/gmeow/timeStartDenominator> <http://www.w3.org/2001/XMLSchema#integer> ;
+  <https://blackcatinformatics.ca/gmeow/timeStartDenominator> . ;
+  <https://blackcatinformatics.ca/gmeow/timeDurationNumerator> <http://www.w3.org/2001/XMLSchema#integer> ;
+  <https://blackcatinformatics.ca/gmeow/timeDurationNumerator> . ;
+  <https://blackcatinformatics.ca/gmeow/timeDurationDenominator> <http://www.w3.org/2001/XMLSchema#integer> ;
+  <https://blackcatinformatics.ca/gmeow/timeDurationDenominator> . ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Myth> (associate via ShapeMap)
@@ -819,6 +917,8 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/gmeow/OrnamentProfile> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/OrnamentProfile-shape> {
   <https://blackcatinformatics.ca/gmeow/ornamentProfileKind> IRI ;
+  <https://blackcatinformatics.ca/gmeow/ornamentProfileKind> . ;
+  <https://blackcatinformatics.ca/gmeow/ornamentReferenceFrame> . {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/ParentChildRelationship> (associate via ShapeMap)
@@ -835,15 +935,26 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/PerformanceDecision> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/PerformanceDecision-shape> {
+  <https://blackcatinformatics.ca/gmeow/decisionSequence> <http://www.w3.org/2001/XMLSchema#string> ;
+  <https://blackcatinformatics.ca/gmeow/decisionSequence> . ;
   <https://blackcatinformatics.ca/gmeow/decisionConstraint> IRI ;
+  <https://blackcatinformatics.ca/gmeow/decisionConstraint> . ;
   <https://blackcatinformatics.ca/gmeow/decisionPerformance> IRI ;
+  <https://blackcatinformatics.ca/gmeow/decisionPerformance> . ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/PerformanceParticipation> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/PerformanceParticipation-shape> {
+  <https://blackcatinformatics.ca/gmeow/participationPart> . {0,1} ;
   <https://blackcatinformatics.ca/gmeow/participationRole> IRI ;
+  <https://blackcatinformatics.ca/gmeow/participationRole> . ;
   <https://blackcatinformatics.ca/gmeow/participationEvent> IRI ;
+  <https://blackcatinformatics.ca/gmeow/participationEvent> . ;
+  <https://blackcatinformatics.ca/gmeow/participationTechnique> . {0,1} ;
   <https://blackcatinformatics.ca/gmeow/participationParticipant> IRI ;
+  <https://blackcatinformatics.ca/gmeow/participationParticipant> . ;
+  <https://blackcatinformatics.ca/gmeow/participationConfiguration> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/participationInstrumentItem> . {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Permission> (associate via ShapeMap)
@@ -875,27 +986,75 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/PitchAnchor> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/PitchAnchor-shape> {
+  <https://blackcatinformatics.ca/gmeow/anchorDegree> <http://www.w3.org/2001/XMLSchema#integer> ;
+  <https://blackcatinformatics.ca/gmeow/anchorDegree> . ;
   <https://blackcatinformatics.ca/gmeow/pitchAnchorOf> IRI ;
+  <https://blackcatinformatics.ca/gmeow/pitchAnchorOf> . ;
+  <https://blackcatinformatics.ca/gmeow/anchorFrequency> <http://www.w3.org/2001/XMLSchema#decimal> ;
+  <https://blackcatinformatics.ca/gmeow/anchorFrequency> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/PitchCollection> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/PitchCollection-shape> {
+  <https://blackcatinformatics.ca/gmeow/collectionKind> . ;
+  <https://blackcatinformatics.ca/gmeow/collectionPartOrder> <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ;
+  <https://blackcatinformatics.ca/gmeow/collectionPartOrder> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/derivedFromSpectrum> . {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/PitchCollectionMembership> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/PitchCollectionMembership-shape> {
   <https://blackcatinformatics.ca/gmeow/membershipRole> IRI ;
+  <https://blackcatinformatics.ca/gmeow/membershipRole> . ;
   <https://blackcatinformatics.ca/gmeow/membershipPitch> IRI ;
+  <https://blackcatinformatics.ca/gmeow/membershipPitch> . ;
   <https://blackcatinformatics.ca/gmeow/membershipCollection> IRI ;
+  <https://blackcatinformatics.ca/gmeow/membershipCollection> . ;
+  <https://blackcatinformatics.ca/gmeow/membershipDegreeIndex> <http://www.w3.org/2001/XMLSchema#integer> ;
+  <https://blackcatinformatics.ca/gmeow/membershipDegreeIndex> . {0,1} ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/PitchInterval> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/PitchInterval-shape> {
+  <https://blackcatinformatics.ca/gmeow/hasTuningFrame> . ;
+  <https://blackcatinformatics.ca/gmeow/ratioDenominator> <http://www.w3.org/2001/XMLSchema#integer> ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/PitchSpelling> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/PitchSpelling-shape> {
   <https://blackcatinformatics.ca/gmeow/spelledName> <http://www.w3.org/2001/XMLSchema#string> ;
+  <https://blackcatinformatics.ca/gmeow/spelledName> . ;
   <https://blackcatinformatics.ca/gmeow/spellingPitch> IRI ;
+  <https://blackcatinformatics.ca/gmeow/spellingPitch> . ;
   <https://blackcatinformatics.ca/gmeow/spellingSystem> IRI ;
+  <https://blackcatinformatics.ca/gmeow/spellingSystem> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/PitchTrajectory> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/PitchTrajectory-shape> {
+  <https://blackcatinformatics.ca/gmeow/interpolationKind> . ;
+  <https://blackcatinformatics.ca/gmeow/trajectoryControlPoint> . {2,} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPoint> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/PitchTrajectoryControlPoint-shape> {
+  <https://blackcatinformatics.ca/gmeow/controlPointOrder> <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ;
+  <https://blackcatinformatics.ca/gmeow/controlPointOrder> . ;
   <https://blackcatinformatics.ca/gmeow/controlPointPitch> IRI ;
+  <https://blackcatinformatics.ca/gmeow/controlPointPitch> . ;
+  <https://blackcatinformatics.ca/gmeow/controlPointTimeFrame> . ;
   <https://blackcatinformatics.ca/gmeow/controlPointOfTrajectory> IRI ;
+  <https://blackcatinformatics.ca/gmeow/controlPointOfTrajectory> . ;
+  <https://blackcatinformatics.ca/gmeow/controlPointTimePositionNumerator> <http://www.w3.org/2001/XMLSchema#integer> ;
+  <https://blackcatinformatics.ca/gmeow/controlPointTimePositionNumerator> . ;
+  <https://blackcatinformatics.ca/gmeow/controlPointTimePositionDenominator> <http://www.w3.org/2001/XMLSchema#integer> ;
+  <https://blackcatinformatics.ca/gmeow/controlPointTimePositionDenominator> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/PitchValue> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/PitchValue-shape> {
+  <https://blackcatinformatics.ca/gmeow/hasTuningFrame> . ;
+  <https://blackcatinformatics.ca/gmeow/ratioDenominator> <http://www.w3.org/2001/XMLSchema#integer> ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Post> (associate via ShapeMap)
@@ -961,6 +1120,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/gmeow/RetrievalEvent> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/RetrievalEvent-shape> {
   <https://blackcatinformatics.ca/gmeow/againstIndex> IRI ;
+  <https://blackcatinformatics.ca/gmeow/againstIndex> . ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/RightsStatement> (associate via ShapeMap)
@@ -1003,8 +1163,12 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/gmeow/SegmentTransformation> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/SegmentTransformation-shape> {
   <https://blackcatinformatics.ca/gmeow/transformationType> IRI ;
+  <https://blackcatinformatics.ca/gmeow/transformationType> . ;
   <https://blackcatinformatics.ca/gmeow/transformationSource> IRI ;
+  <https://blackcatinformatics.ca/gmeow/transformationSource> . ;
   <https://blackcatinformatics.ca/gmeow/transformationTarget> IRI ;
+  <https://blackcatinformatics.ca/gmeow/transformationTarget> . ;
+  <https://blackcatinformatics.ca/gmeow/transformationParameter> . {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/SensoryEnvironment> (associate via ShapeMap)
@@ -1113,6 +1277,17 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/subjectTaught> . + ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/TempoMapSegment> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/TempoMapSegment-shape> {
+  <https://blackcatinformatics.ca/gmeow/segmentSpan> . ;
+  <https://blackcatinformatics.ca/gmeow/tempoMapSegmentOf> . ;
+  <https://blackcatinformatics.ca/gmeow/segmentTempoMapKind> . ;
+  <https://blackcatinformatics.ca/gmeow/segmentMapRatioNumerator> <http://www.w3.org/2001/XMLSchema#integer> ;
+  <https://blackcatinformatics.ca/gmeow/segmentMapRatioNumerator> . ;
+  <https://blackcatinformatics.ca/gmeow/segmentMapRatioDenominator> <http://www.w3.org/2001/XMLSchema#integer> ;
+  <https://blackcatinformatics.ca/gmeow/segmentMapRatioDenominator> . ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/TemporalFrame> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/TemporalFrame-shape> {
   <https://blackcatinformatics.ca/gmeow/frameKind> IRI ;
@@ -1129,6 +1304,37 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/observedFeature> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/TimeMapping> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/TimeMapping-shape> {
+  <https://blackcatinformatics.ca/gmeow/mapsFrame> . ;
+  <https://blackcatinformatics.ca/gmeow/mapsToFrame> . ;
+  <https://blackcatinformatics.ca/gmeow/timeMappingKind> . ;
+  <https://blackcatinformatics.ca/gmeow/mapRatioDenominator> <http://www.w3.org/2001/XMLSchema#integer> ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/ToneEvent> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ToneEvent-shape> {
+  <https://blackcatinformatics.ca/gmeow/toneEventTimbre> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/toneEventDynamics> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/toneEventPitchValue> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/toneEventIsUnpitched> <http://www.w3.org/2001/XMLSchema#boolean> ;
+  <https://blackcatinformatics.ca/gmeow/toneEventIsUnpitched> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/toneEventArticulation> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/toneEventPitchTrajectory> . {0,1} ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/ToolCall> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ToolCall-shape> {
+  <https://blackcatinformatics.ca/gmeow/usedTool> IRI ;
+  <https://blackcatinformatics.ca/gmeow/usedTool> . ;
+  <https://blackcatinformatics.ca/gmeow/toolResult> LITERAL ;
+  <https://blackcatinformatics.ca/gmeow/toolResult> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/toolArguments> LITERAL ;
+  <https://blackcatinformatics.ca/gmeow/toolArguments> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/calledByInvocation> IRI ;
+  <https://blackcatinformatics.ca/gmeow/calledByInvocation> . {0,1} ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/Trademark> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Trademark-shape> {
   <https://blackcatinformatics.ca/gmeow/trademarkMark> IRI ;
@@ -1139,6 +1345,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/TransparencyLogEntry-shape> {
   <https://blackcatinformatics.ca/gmeow/logEntryUrl> LITERAL ;
   <https://blackcatinformatics.ca/gmeow/logEntryIndex> <http://www.w3.org/2001/XMLSchema#integer> ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/TraversalConstraint> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/TraversalConstraint-shape> {
+  <https://blackcatinformatics.ca/gmeow/constraintText> . + ;
+  <https://blackcatinformatics.ca/gmeow/constraintFunction> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/constraintAppliesTo> . ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/TreeEntry> (associate via ShapeMap)
@@ -1156,7 +1369,14 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/TuningSystem> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/TuningSystem-shape> {
+  <https://blackcatinformatics.ca/gmeow/frameKind> . ;
   <https://blackcatinformatics.ca/gmeow/frameRealm> [<https://blackcatinformatics.ca/gmeow/frameRealmMusicalPitch>] ;
+  <https://blackcatinformatics.ca/gmeow/frameRealm> . ;
+  <https://blackcatinformatics.ca/gmeow/tuningKind> . ;
+  <https://blackcatinformatics.ca/gmeow/requiresHost> <http://www.w3.org/2001/XMLSchema#boolean> ;
+  <https://blackcatinformatics.ca/gmeow/requiresHost> . ;
+  <https://blackcatinformatics.ca/gmeow/dividedIntervalDenominator> <http://www.w3.org/2001/XMLSchema#integer> ;
+  <https://blackcatinformatics.ca/gmeow/dividedIntervalDenominator> . {0,1} ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/UsageAttestation> (associate via ShapeMap)
@@ -1175,6 +1395,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/versionSet> IRI ;
   <https://blackcatinformatics.ca/gmeow/versionMember> IRI ;
   <https://blackcatinformatics.ca/gmeow/membershipAuthority> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/Voice> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Voice-shape> {
+  <https://blackcatinformatics.ca/gmeow/voiceTimeFrame> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/voiceTuningFrame> . {0,1} ;
+  <https://blackcatinformatics.ca/gmeow/voiceMetricStructure> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/acceptanceStatus> (associate via ShapeMap)
