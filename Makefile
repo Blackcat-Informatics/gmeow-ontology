@@ -39,11 +39,9 @@ CROSSREF_DEPOSIT_URL ?= https://doi.crossref.org/servlet/deposit
 # Optional cargo-nextest partition for sharded CI runs (e.g., count:1/2)
 NEXTEST_PARTITION ?=
 NEXTEST_PARTITION_ARG := $(if $(NEXTEST_PARTITION),--partition $(NEXTEST_PARTITION) --no-tests pass,)
-# `gmeow-native` is the single CPython extension cdylib and is covered by
-# native-py/native-py-wheel. Selecting it in `cargo test` enables
-# pyo3/extension-module for the shared pyo3 dependency, which is correct for a
-# wheel but wrong for normal Rust test binaries.
-RUST_TEST_WORKSPACE_ARGS := --workspace --exclude gmeow-native
+# The Rust workspace is tested in full; every crate is a normal Rust test binary
+# (no CPython extension cdylib remains).
+RUST_TEST_WORKSPACE_ARGS := --workspace
 
 # The wasm32 cross-build must be hermetic w.r.t. an ambient host RUSTFLAGS. Cargo gives
 # the RUSTFLAGS env var precedence over `[target.wasm32-unknown-unknown].rustflags`, so a
@@ -68,28 +66,26 @@ MUTANTS_ARGS ?=
 
 # Real Make artifacts for expensive native build preparation. These replace
 # environment sentinels: source timestamps decide when rebuilds are needed.
-NATIVE_PY_STAMP := .venv/.gmeow-native.stamp
 RUST_READY_STAMP := $(CARGO_TARGET_DIR)/.gmeow-rust-ready.stamp
 RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -type f \( -name Cargo.toml -o -name '*.rs' -o -name build.rs \) 2>/dev/null)
-NATIVE_PY_INPUTS := pyproject.toml $(RUST_INPUTS)
 
 CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	crate-check audit wikidata coverage acceptance reason-verify reason-crosscheck \
-	mappings lint-alignment doc-lint coherence-gate-teeth
+	mappings lint-alignment doc-lint coherence-gate-teeth slice-quality-gate
 
 .PHONY: help \
 	install fmt lint lint-issue-refs \
-	native-py native-py-wheel native-py-install validate validate-gts reason verify reason-verify reason-crosscheck test test-fast rust-build rust-test rust-docs check \
+	validate validate-gts reason verify reason-verify reason-crosscheck rust-build rust-test rust-docs check \
 	regenerate fanout check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
-	slicetest conformance conformance-report insta-review \
+	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report perf-gate \
 	maint-crosscheck maint-nemo-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
-	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
-	maint-test-network maint-quality maint-evals-score \
+	maint-wikidata-coverage maint-wikidata-audit \
+	maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-rust-heavy \
 	maint-external-corpora maint-tptp-corpus maint-lang-selfhost
 
@@ -101,46 +97,36 @@ help: ## Show the task plan.
 		/^[A-Za-z0-9_.-]+:.*## / {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}' \
 		$(MAKEFILE_LIST)
 
-install: ## Sync the uv environment, build the Rust CLIs, and configure repo-local Git merge drivers.
-	uv sync --all-packages
+install: ## Build the Rust CLIs and configure repo-local Git merge drivers.
 	$(MAKE) cli-build
 	bash scripts/bootstrap-git-merge-drivers.sh
 
-fmt: ## Rewrite Python formatting with ruff.
-	uv run ruff format .
+fmt: ## Rewrite Rust formatting with cargo fmt.
+	cargo fmt
 
 lint-issue-refs: ## Reject issue/PR number references in Rust comments and Markdown docs.
 	./scripts/lint-issue-refs.sh
 
-lint: lint-issue-refs ## Run ruff, mypy, issue-ref lint, and the full pre-commit hygiene suite.
-	uv run ruff check .
-	uv run ruff format --check .
-	uv run mypy
-	uv run pre-commit run --all-files --show-diff-on-failure
+lint: lint-issue-refs ## Run issue-ref lint and the full pre-commit hygiene suite (Rust fmt/clippy, spelling, YAML, actions, secrets).
+	pre-commit run --all-files --show-diff-on-failure
 
-validate: native-py ## Validate syntax, term annotations, SHACL, and DSL SHACL.
+validate: ## Validate syntax, term annotations, SHACL, and DSL SHACL.
 	$(GMEOW_DEV) validate
 
-validate-gts: native-py ## Validate the committed generated/dist/gmeow.gts bundle.
+validate-gts: ## Validate the committed generated/dist/gmeow.gts bundle.
 	$(GMEOW_DEV) validate --gts generated/dist/gmeow.gts
 
-reason: native-py ## Run the native Docker-free EL/DL reasoning authority.
+reason: ## Run the native Docker-free EL/DL reasoning authority.
 	$(GMEOW_DEV) reason --mode native
 
-verify: native-py ## Run native reasoned-graph negative tests.
+verify: ## Run native reasoned-graph negative tests.
 	$(GMEOW_DEV) verify --mode native
 
-reason-verify: native-py ## Run native reasoning + reasoned-graph verify with one closure.
+reason-verify: ## Run native reasoning + reasoned-graph verify with one closure.
 	$(GMEOW_DEV) reason-verify
 
-reason-crosscheck: native-py ## Cross-check native subsumptions against the purrdf-entail OWL-RL oracle (native ⊇ oracle).
+reason-crosscheck: ## Cross-check native subsumptions against the purrdf-entail OWL-RL oracle (native ⊇ oracle).
 	$(GMEOW_DEV) reason-crosscheck
-
-test: native-py ## Run the full pytest suite (excl. maintainer lanes) with slowest-25 profiling.
-	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer"
-
-test-fast: native-py ## Fast gate lane: same suite, fail-fast (-x), no profiling — the lane `make check` runs.
-	uv run pytest -n auto --dist loadscope -x -m "not maintainer"
 
 rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without running them.
 
@@ -176,26 +162,25 @@ diagnostics-rust-sarif: ## Emit the user-facing rust diagnostics SARIF via gmeow
 	$(MAKE) lsp-release
 	$(CARGO_TARGET_DIR)/release/gmeow-lsp sarif --out dist/diagnostics/rust --category rust ontology/gmeow.ttl $(shell find conformance -name '*.logic')
 
-check: native-py ## Run the full Docker-free local quality gate.
+check: ## Run the full Docker-free local quality gate.
 	# check-generated is one of CHECK_TARGETS, so it already runs as one of the
 	# -j$(NPROC) outer jobs here; cap its inner pipeline pool to the outer count
 	# (a command-line assignment overrides the CHECK_GENERATED_JOBS ?= NPROC*2
 	# default) so the nested pools don't oversubscribe a small box. The standalone
 	# `make check-generated` CI lane keeps the wider NPROC*2 IO-overlap pool.
 	$(MAKE) -j$(NPROC) CHECK_GENERATED_JOBS=$(NPROC) $(CHECK_TARGETS)
-	$(MAKE) test-fast
 	$(MAKE) compliance-report
 	@echo "all checks passed (Docker-free, Java-free)"
 
 ##@ Generated Artifacts And Outputs
 
-regenerate: native-py ## Rebuild all checked-in generated artifacts from canonical sources.
+regenerate: ## Rebuild all checked-in generated artifacts from canonical sources.
 	$(GMEOW_DEV) regenerate -j $(NPROC)
 
-fanout: native-py ## Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).
+fanout: ## Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).
 	$(GMEOW_DEV) fanout -j $(NPROC)
 
-check-generated: native-py ## Drift + orphan check for all registered generators.
+check-generated: ## Drift + orphan check for all registered generators.
 	$(GMEOW_DEV) check-generated -j $(CHECK_GENERATED_JOBS)
 
 commit: regenerate ## Regenerate artifacts, stage generator-owned outputs, and commit.
@@ -229,13 +214,13 @@ release: docs ## Regenerate, native-reason, build, report, docs, and emit CrossR
 	$(MAKE) maint-compliance-report-full
 	$(MAKE) crossref
 
-release-sign-gts: native-py ## Sign the regenerated GTS bundle for release packaging.
+release-sign-gts: ## Sign the regenerated GTS bundle for release packaging.
 	@if [ -z "$(SIGN_KEY)" ]; then \
 		echo "SIGN_KEY=/path/to/secret.asc is required"; exit 1; \
 	fi
 	$(GMEOW_DEV) compile-gts --sign-key "$(SIGN_KEY)" --public-key "$(PUBLIC_KEY)" --out "$(GTS_OUT)"
 
-full-release: native-py ## Signed release-as-evidence: gate + oracle lane + conformance + perf, folded + signed + DOI (§18).
+full-release: ## Signed release-as-evidence: gate + oracle lane + conformance + perf, folded + signed + DOI (§18).
 	@if [ -z "$(SIGN_KEY)" ]; then \
 		echo "SIGN_KEY=/path/to/secret.asc is required"; exit 1; \
 	fi
@@ -257,7 +242,7 @@ full-release: native-py ## Signed release-as-evidence: gate + oracle lane + conf
 	$(MAKE) crossref
 	@echo "full-release: signed evidence bundle written to $(GTS_OUT)"
 
-verify-release: native-py ## Consumer verification of a signed release bundle: signature + trust policy + attestation frames (§18).
+verify-release: ## Consumer verification of a signed release bundle: signature + trust policy + attestation frames (§18).
 	@if [ ! -f "$(GTS_OUT)" ]; then \
 		echo "no signed release bundle at $(GTS_OUT); run 'make full-release SIGN_KEY=...' first"; exit 1; \
 	fi
@@ -275,7 +260,7 @@ release-publish: ## USER-driven publish of a verified signed bundle: content-add
 	$(MAKE) crossref
 	sha256sum "$(GTS_OUT)" > "$(GTS_OUT).sha256"
 	@echo "release bundle native content heads (BLAKE3):"
-	uv run gts heads "$(GTS_OUT)"
+	gts heads "$(GTS_OUT)"
 	gh release create "$(RELEASE_TAG)" \
 		"$(GTS_OUT)" "$(GTS_OUT).sha256" dist/crossref-deposit.xml \
 		--title "GMEOW $(RELEASE_TAG) — signed release-as-evidence bundle" \
@@ -293,7 +278,7 @@ release-publish: ## USER-driven publish of a verified signed bundle: content-add
 	@echo "release-publish: published $(RELEASE_TAG) ($(GTS_OUT) + .sha256 + crossref deposit)."
 
 clean: ## Remove ephemeral build artifacts.
-	rm -rf dist docs/_generated .stamps $(NATIVE_PY_STAMP) $(RUST_READY_STAMP)
+	rm -rf dist docs/_generated .stamps $(RUST_READY_STAMP)
 	@echo "cleaned ephemeral artifacts"
 
 ##@ Project Gates
@@ -306,6 +291,12 @@ wikidata: ## Validate Wikidata QID/PID syntax in mappings, offline.
 
 coverage: ## Gate vendored entity-slice class and predicate coverage.
 	$(GMEOW_DEV) coverage --gaps --min-class 0.92 --min-predicate 0.85
+
+slice-quality: ## Score one slice against the slice-quality rubric (advisory). Usage: make slice-quality SLICE=slices/core/tags
+	$(GMEOW_DEV) slice-quality $(if $(strip $(SLICE)),$(SLICE),--all)
+
+slice-quality-gate: ## Enforce the opt-in slice-quality tier ratchet.
+	$(GMEOW_DEV) slice-quality-gate
 
 acceptance: ## Gate full transpile recall against external RDF snapshots.
 	$(GMEOW_DEV) acceptance $(if $(strip $(ACCEPTANCE_MIN_RECALL)),--min-recall $(ACCEPTANCE_MIN_RECALL),)
@@ -455,7 +446,7 @@ bench: ## Run criterion benchmarks with host-tuned codegen.
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare
 
-perf-gate: native-py ## Report-only timings for validate, generated drift, reason, and verify.
+perf-gate: ## Report-only timings for validate, generated drift, reason, and verify.
 	mkdir -p $(PERF_DIR)
 	$(GMEOW_DEV) validate --timings --timings-json $(PERF_DIR)/validate.json
 	$(GMEOW_DEV) check-generated -j $(CHECK_GENERATED_JOBS) --timings-json $(PERF_DIR)/check-generated.json
@@ -475,13 +466,13 @@ compliance-report: ## Emit dist/compliance-report.ttl from already-passing gates
 
 ##@ Maintainer Tasks
 
-maint-crosscheck: native-py ## Prove every committed query answers on the native purrdf engine.
+maint-crosscheck: ## Prove every committed query answers on the native purrdf engine.
 	$(GMEOW_DEV) crosscheck-queries
 
-maint-nemo-crosscheck: native-py ## Scheduled native↔Nemo differential: dual-run both oracles over the committed corpus; hard-fail on any subsumption divergence.
+maint-nemo-crosscheck: ## Scheduled native↔Nemo differential: dual-run both oracles over the committed corpus; hard-fail on any subsumption divergence.
 	$(GMEOW_DEV) reason-nemo-crosscheck
 
-maint-extract: native-py ## Run import/extract policy for TARGET.
+maint-extract: ## Run import/extract policy for TARGET.
 	$(GMEOW_DEV) extract --target $(TARGET)
 
 maint-refresh-target-axioms: ## Re-vendor minimal target-axiom snapshots.
@@ -495,12 +486,6 @@ maint-wikidata-coverage: ## Report Wikidata mapping coverage by domain.
 
 maint-wikidata-audit: ## Audit fixtures and modules for Wikidata misuse.
 	$(GMEOW_DEV) wikidata --fixtures
-
-maint-test-heavy: native-py ## Run kept-Python-module maintainer tests.
-	uv run pytest -n auto --dist loadscope -m "maintainer"
-
-maint-test-network: ## Run live network tests.
-	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
 maint-quality: ## Run OOPS! network pitfall scan.
 	$(GMEOW_DEV) quality
@@ -632,56 +617,6 @@ maint-ontouml-corpus: ## Grade the native foundation disciplines against a live/
 	  cargo run -p gmeow-conformance --bin ingest-external -- --grade-ontouml "$$dir" ontouml-live generated/conformance/divergence-ontouml.nq; \
 	'
 	@echo "OntoUML Lane-B grading complete; divergences in generated/conformance/divergence-ontouml.nq"
-
-native-py: $(NATIVE_PY_STAMP)
-
-$(NATIVE_PY_STAMP): $(NATIVE_PY_INPUTS)
-	# Build --release: the native reasoner (Nemo chase + RDFC-1.0 canonicalization +
-	# Turtle serialization) is pure CPU and dominates every gate that runs the
-	# pipeline. MEASURED 2026-06-28: a release ext cuts `make regenerate` 353s → 81s
-	# (4.4x) with byte-identical output. The `[profile.release]` overrides in
-	# Cargo.toml already cap Nemo's build RAM (opt-2/256-units, measured 7.37 GB —
-	# within the 16 GB wheel-runner budget), so the cutover is safe.
-	VIRTUAL_ENV="$(CURDIR)/.venv" uvx maturin develop --release --manifest-path crates/native/Cargo.toml
-	@touch $@
-
-native-py-wheel: ## Build the unified gmeow_native wheel into dist/wheels (CI prebuild-once).
-	rm -rf dist/wheels
-	# Build from crates/native/ so maturin resolves `python-source = "python"`
-	# (the legacy gmeow_* import shims) relative to that pyproject, not the repo root.
-	# `--compatibility linux` skips auditwheel repair (no system-lib bundling): the
-	# prebuild job and every consumer run on the same ubuntu-latest image, so a plain
-	# linux wheel is correct and avoids the repair step. --release matches the
-	# `maturin develop --release` in `native-py`: the optimized reasoner cuts every
-	# pipeline gate (regenerate/check-generated/validate) ~4.4x; Nemo's release build
-	# RAM is capped to 7.37 GB by the `[profile.release]` overrides in Cargo.toml.
-	cd crates/native && VIRTUAL_ENV="$(CURDIR)/.venv" uvx maturin build --release --compatibility linux -o "$(CURDIR)/dist/wheels"
-
-native-py-install: ## Install the prebuilt unified wheel from dist/wheels (CI consumers); hard-fail if absent/ambiguous.
-	set -eu; \
-	shopt -s nullglob; \
-	wheels=(dist/wheels/*.whl); \
-	if [ $${#wheels[@]} -ne 1 ]; then \
-		echo "native-py-install: expected exactly one wheel in dist/wheels, found $${#wheels[@]} — no fallback to maturin develop" >&2; \
-		exit 1; \
-	fi; \
-	VIRTUAL_ENV="$(CURDIR)/.venv" uv pip install --no-deps --force-reinstall "$${wheels[0]}"; \
-	site="$$(VIRTUAL_ENV="$(CURDIR)/.venv" uv run python -c 'import sysconfig; print(sysconfig.get_path("purelib"))')"; \
-	if [ -z "$$site" ]; then echo "native-py-install: could not resolve site-packages" >&2; exit 1; fi; \
-	for pkg in gmeow_diagnostics gmeow_docs gmeow_logic gmeow_validate; do \
-		rm -rf "$$site/$$pkg"; \
-		cp -r "crates/native/python/$$pkg" "$$site/$$pkg"; \
-	done
-	# The wheel ships only the `gmeow_native` cdylib; the tiny pure-Python legacy
-	# import shims (gmeow_logic → gmeow_native.logic, etc.) live in
-	# crates/native/python/ and `maturin develop` exposes them editable. Here the repo
-	# is checked out, so copy the sibling shim packages into site-packages alongside
-	# the installed cdylib so `import gmeow_logic` (and friends) resolves.
-	@mkdir -p $(dir $(NATIVE_PY_STAMP))
-	@touch $(NATIVE_PY_STAMP)
-	# Mark the native-ext stamp satisfied so downstream gates (`validate`,
-	# `check-generated`, ...) that depend on `native-py` do NOT re-run `maturin
-	# develop` — the unified extension is already installed from the prebuilt wheel.
 
 $(RUST_READY_STAMP): $(RUST_INPUTS)
 	@mkdir -p $(dir $@)

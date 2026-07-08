@@ -1,0 +1,2 @@
+<http://www.w3.org/2001/XMLSchema#decimal> <http://www.w3.org/2002/07/owl#sameAs> <http://www.w3.org/2002/03owlt/I5.8/premises017#bar> <https://gmeow.example/w3c-owl2-full/webont-i5-8-017/w> .
+<http://www.w3.org/2002/03owlt/I5.8/premises017#xx> <http://www.w3.org/2002/03owlt/I5.8/premises017#yy> "01"^^<http://www.w3.org/2002/03owlt/I5.8/premises017#bar> <https://gmeow.example/w3c-owl2-full/webont-i5-8-017/w> .

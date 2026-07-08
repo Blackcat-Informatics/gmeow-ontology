@@ -13,7 +13,6 @@
 # the entire merged graph's subject set, so a quality-module-scoped cell would
 # silently narrow it — it is retained as a dynamic-set sweep in pytest.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/quality/tests/> .

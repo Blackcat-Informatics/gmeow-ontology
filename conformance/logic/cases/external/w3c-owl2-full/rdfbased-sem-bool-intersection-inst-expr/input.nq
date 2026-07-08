@@ -1,0 +1,6 @@
+<http://www.example.org#c> <http://www.w3.org/2002/07/owl#intersectionOf> _:A0 <https://gmeow.example/w3c-owl2-full/rdfbased-sem-bool-intersection-inst-expr/w> .
+<http://www.example.org#z> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.example.org#c> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-bool-intersection-inst-expr/w> .
+_:A0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.example.org#x> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-bool-intersection-inst-expr/w> .
+_:A0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_list_00000000000000000000000000 <https://gmeow.example/w3c-owl2-full/rdfbased-sem-bool-intersection-inst-expr/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.example.org#y> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-bool-intersection-inst-expr/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-bool-intersection-inst-expr/w> .

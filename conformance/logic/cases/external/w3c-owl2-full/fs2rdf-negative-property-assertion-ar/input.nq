@@ -1,0 +1,70 @@
+<http://example.org/p1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+<http://example.org/p2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+<http://example.org/p3> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+<http://example.org/p4> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+<http://example.org/p5> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+<http://example.org/p6> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+<http://example.org/p7> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+<http://example.org/p8> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+<http://example.org/p9> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NegativePropertyAssertion> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2000/01/rdf-schema#comment> "I hereby annotate this also" <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#assertionProperty> _:rdfxml_00000000000000000000000002 <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#sourceIndividual> <http://example.org/s6> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#targetIndividual> <http://example.org/o6> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000002 <http://www.w3.org/2002/07/owl#inverseOf> <http://example.org/p6> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000003 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NegativePropertyAssertion> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000003 <http://www.w3.org/2002/07/owl#assertionProperty> <http://example.org/p1> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000003 <http://www.w3.org/2002/07/owl#sourceIndividual> <http://example.org/s1> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000003 <http://www.w3.org/2002/07/owl#targetIndividual> <http://example.org/o1> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000004 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NegativePropertyAssertion> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000004 <http://www.w3.org/2002/07/owl#assertionProperty> <http://example.org/p2> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000004 <http://www.w3.org/2002/07/owl#sourceIndividual> <http://example.org/s2> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000004 <http://www.w3.org/2002/07/owl#targetValue> "2"^^<http://www.w3.org/2001/XMLSchema#integer> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000005 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NegativePropertyAssertion> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000005 <http://www.w3.org/2002/07/owl#assertionProperty> _:rdfxml_00000000000000000000000006 <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000005 <http://www.w3.org/2002/07/owl#sourceIndividual> <http://example.org/s3> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000005 <http://www.w3.org/2002/07/owl#targetIndividual> <http://example.org/o3> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000006 <http://www.w3.org/2002/07/owl#inverseOf> <http://example.org/p3> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000007 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Annotation> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000007 <http://www.w3.org/2000/01/rdf-schema#label> "on seven" <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000007 <http://www.w3.org/2002/07/owl#annotatedProperty> <http://www.w3.org/2000/01/rdf-schema#comment> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000007 <http://www.w3.org/2002/07/owl#annotatedSource> _:rdfxml_00000000000000000000000008 <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000007 <http://www.w3.org/2002/07/owl#annotatedTarget> "I hereby annotate this" <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000008 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NegativePropertyAssertion> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000008 <http://www.w3.org/2000/01/rdf-schema#comment> "I hereby annotate this" <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000008 <http://www.w3.org/2002/07/owl#assertionProperty> <http://example.org/p7> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000008 <http://www.w3.org/2002/07/owl#sourceIndividual> <http://example.org/s7> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000008 <http://www.w3.org/2002/07/owl#targetIndividual> <http://example.org/o7> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000009 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Annotation> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000009 <http://www.w3.org/2000/01/rdf-schema#label> "on nine" <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000009 <http://www.w3.org/2002/07/owl#annotatedProperty> <http://www.w3.org/2000/01/rdf-schema#comment> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000009 <http://www.w3.org/2002/07/owl#annotatedSource> _:rdfxml_0000000000000000000000000A <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_00000000000000000000000009 <http://www.w3.org/2002/07/owl#annotatedTarget> "I hereby annotate this also" <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000A <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NegativePropertyAssertion> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000A <http://www.w3.org/2000/01/rdf-schema#comment> "I hereby annotate this also" <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000A <http://www.w3.org/2002/07/owl#assertionProperty> _:rdfxml_0000000000000000000000000B <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000A <http://www.w3.org/2002/07/owl#sourceIndividual> <http://example.org/s9> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000A <http://www.w3.org/2002/07/owl#targetIndividual> <http://example.org/o9> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000B <http://www.w3.org/2002/07/owl#inverseOf> <http://example.org/p9> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000C <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NegativePropertyAssertion> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000C <http://www.w3.org/2000/01/rdf-schema#comment> "I hereby annotate this" <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000C <http://www.w3.org/2002/07/owl#assertionProperty> <http://example.org/p4> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000C <http://www.w3.org/2002/07/owl#sourceIndividual> <http://example.org/s4> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000C <http://www.w3.org/2002/07/owl#targetIndividual> <http://example.org/o4> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000D <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NegativePropertyAssertion> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000D <http://www.w3.org/2000/01/rdf-schema#comment> "I hereby annotate this too" <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000D <http://www.w3.org/2002/07/owl#assertionProperty> <http://example.org/p5> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000D <http://www.w3.org/2002/07/owl#sourceIndividual> <http://example.org/s5> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000D <http://www.w3.org/2002/07/owl#targetValue> "5"^^<http://www.w3.org/2001/XMLSchema#integer> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000E <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Annotation> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000E <http://www.w3.org/2000/01/rdf-schema#label> "on eight" <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000E <http://www.w3.org/2002/07/owl#annotatedProperty> <http://www.w3.org/2000/01/rdf-schema#comment> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000E <http://www.w3.org/2002/07/owl#annotatedSource> _:rdfxml_0000000000000000000000000F <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000E <http://www.w3.org/2002/07/owl#annotatedTarget> "I hereby annotate this too" <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000F <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NegativePropertyAssertion> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000F <http://www.w3.org/2000/01/rdf-schema#comment> "I hereby annotate this too" <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000F <http://www.w3.org/2002/07/owl#assertionProperty> <http://example.org/p8> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000F <http://www.w3.org/2002/07/owl#sourceIndividual> <http://example.org/s8> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .
+_:rdfxml_0000000000000000000000000F <http://www.w3.org/2002/07/owl#targetValue> "8"^^<http://www.w3.org/2001/XMLSchema#integer> <https://gmeow.example/w3c-owl2-full/fs2rdf-negative-property-assertion-ar/w> .

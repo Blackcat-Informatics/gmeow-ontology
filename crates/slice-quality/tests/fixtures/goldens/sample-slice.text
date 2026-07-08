@@ -1,0 +1,19 @@
+slice-quality: https://blackcatinformatics.ca/gmeow/slices/sample-slice
+  roll-up tier: Registered
+  per-axis grades (weakest first):
+    axisOptimalTesting: Registered (0.00)
+    axisTranslationCoverage: Registered (0.33)
+    axisDocumentation: Registered (0.00)
+    axisMaximalGrounding: Maximal (1.00)
+    axisReasonerDerived: Maximal (1.00)
+    axisMaximalInformation: Maximal (1.00)
+    axisMaximalLinkage: Maximal (1.00)
+    axisMaximalProjection: Maximal (1.00)
+    axisProseQuality: Maximal (1.00)
+    axisProvenanceHonesty: Maximal (1.00)
+  ranked uplift advice (5):
+    1. [slice-quality.linkage.no-calculus-eligible-correspondence] the slice authors no identity-strength correspondence (none, or only lossy closeMatch-class alignments the lens calculus cannot carry) — the correspondence-calculus adoption axis is not applicable (vacuous 1.0), not a full-adoption pass.
+    2. [slice-quality.testing.no-cells] the slice ships no test cells or competency queries (SLICE_QA).
+    3. [slice-quality.translation.incomplete] fr covers 0/4 label+definition literals; the top tier requires 100% en+fr+cmn.
+    4. [slice-quality.translation.incomplete] zh covers 0/4 label+definition literals; the top tier requires 100% en+fr+cmn.
+    5. [slice-quality.documentation.no-docs] the slice ships no docs.md.

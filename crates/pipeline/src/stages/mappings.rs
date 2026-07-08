@@ -436,6 +436,8 @@ fn discharge_correspondence_laws(
             corr.weight,
             corr.probability,
             corr.according_to.clone(),
+            // Rebuild: carry the authored per-correspondence preservation judgment forward.
+            corr.preservation,
         )
         .map_err(|e| stage_err(format!("law-bearing correspondence <{}>: {e}", corr.iri)))?;
         rebuilt.push(law_bearing);

@@ -1,0 +1,1008 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! The closed set of measurement primitives, keyed by `gmeow:axisProducer`.
+//!
+//! The rubric names a producer per axis; [`resolve`] maps that name onto a Rust
+//! primitive. An unknown producer is a hard fail — never a silent skip — because a
+//! rubric that names a primitive the kernel does not implement is a real drift the
+//! axis-to-producer binding gate must catch, not paper over.
+//!
+//! Each primitive reads only what its axis's `ContextScope` licenses and advises
+//! solely about the target slice.
+
+use std::collections::{BTreeMap, BTreeSet};
+use std::path::Path;
+use std::sync::LazyLock;
+
+use gmeow_logic_compile::projections::correspondence::extract_correspondences;
+use gmeow_logic_compile::projections::correspondence_soundness::{Mapping, lint_dc_refinement};
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
+use regex::Regex;
+
+use crate::graph::{self, g, id, instances_of, one_iri, one_lit};
+use crate::score::{AxisScore, ScoreContext, advisory};
+
+/// A measurement primitive: score the slice and surface advisories.
+pub type Primitive = fn(&ScoreContext) -> AxisScore;
+
+/// Resolve a `gmeow:axisProducer` key to its primitive, or `None` if the kernel
+/// implements no such primitive (a hard-fail condition for the caller).
+#[must_use]
+pub fn resolve(producer: &str) -> Option<Primitive> {
+    match producer {
+        "grounding_axis" => Some(grounding_axis),
+        "information_axis" => Some(information_axis),
+        "prose_axis" => Some(prose_axis),
+        "provenance_honesty" => Some(provenance_honesty),
+        "linkage_axis" => Some(linkage_axis),
+        "projection_axis" => Some(projection_axis),
+        "testing_axis" => Some(testing_axis),
+        "documentation_axis" => Some(documentation_axis),
+        "translation_axis" => Some(translation_axis),
+        "reasoner_axis" => Some(crate::reasoner::reasoner_axis),
+        _ => None,
+    }
+}
+
+/// Every producer key the kernel implements — the closed set the completeness and
+/// binding gates enumerate.
+pub const IMPLEMENTED: &[&str] = &[
+    "grounding_axis",
+    "information_axis",
+    "prose_axis",
+    "provenance_honesty",
+    "linkage_axis",
+    "projection_axis",
+    "testing_axis",
+    "documentation_axis",
+    "translation_axis",
+    "reasoner_axis",
+];
+
+// ── Axis 1: Maximal grounding ─────────────────────────────────────────────
+
+/// The `logic:` foundation-stereotype types a grounded class may carry.
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+
+/// Fraction of class terms carrying a `logic:` foundation stereotype. A class with
+/// no stereotype is a bare domain term — the anti-pattern grounding measures.
+fn grounding_axis(ctx: &ScoreContext) -> AxisScore {
+    let ds = ctx.graph;
+    let Some(type_p) = id(ds, graph::RDF_TYPE) else {
+        return AxisScore::clean(0.0);
+    };
+    let owl_class = id(ds, "http://www.w3.org/2002/07/owl#Class");
+
+    let classes: Vec<&String> = ctx
+        .terms
+        .iter()
+        .filter(|iri| {
+            id(ds, iri).is_some_and(|s| owl_class.is_some_and(|c| graph::has(ds, s, type_p, c)))
+        })
+        .collect();
+    if classes.is_empty() {
+        return AxisScore::clean(1.0); // no classes to ground → vacuously grounded
+    }
+
+    let mut grounded = 0usize;
+    let mut findings = Vec::new();
+    for class in &classes {
+        let sid = id(ds, class).unwrap();
+        let has_stereotype = ds
+            .quads_for_pattern(Some(sid), Some(type_p), None, GraphMatch::Any)
+            .any(|q| matches!(ds.resolve(q.o), TermRef::Iri(t) if t.starts_with(LOGIC_NS)));
+        if has_stereotype {
+            grounded += 1;
+        } else {
+            findings.push(advisory(
+                "slice-quality.grounding.no-stereotype",
+                format!(
+                    "{class} is a bare class with no logic: foundation stereotype — assign one (SLICE_GUIDE §4; Principle 19)."
+                ),
+            ));
+        }
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = grounded as f64 / classes.len() as f64;
+    AxisScore { score, findings }
+}
+
+// ── Axis 3: Maximal information (annotation coat) ──────────────────────────
+
+/// The annotation-coat predicates every TBox term must carry.
+const COAT_TBOX: &[(&str, &str)] = &[
+    ("rdfs:label", "http://www.w3.org/2000/01/rdf-schema#label"),
+    (
+        "skos:definition",
+        "http://www.w3.org/2004/02/skos/core#definition",
+    ),
+    (
+        "rdfs:isDefinedBy",
+        "http://www.w3.org/2000/01/rdf-schema#isDefinedBy",
+    ),
+    (
+        "skos:example",
+        "http://www.w3.org/2004/02/skos/core#example",
+    ),
+];
+
+/// The three-part usage coat + box role, required on TBox terms only.
+const COAT_USAGE: &[&str] = &["useWhen", "avoidWhen", "howToUse", "graphBoxRole"];
+
+/// The lighter coat expected of an A-Box value-vocabulary individual.
+const COAT_INDIVIDUAL: &[(&str, &str)] = &[
+    ("rdfs:label", "http://www.w3.org/2000/01/rdf-schema#label"),
+    (
+        "skos:definition",
+        "http://www.w3.org/2004/02/skos/core#definition",
+    ),
+    (
+        "rdfs:isDefinedBy",
+        "http://www.w3.org/2000/01/rdf-schema#isDefinedBy",
+    ),
+];
+
+fn is_tbox_term(ctx: &ScoreContext, iri: &str) -> bool {
+    let ds = ctx.graph;
+    let Some(type_p) = id(ds, graph::RDF_TYPE) else {
+        return false;
+    };
+    let Some(sid) = id(ds, iri) else { return false };
+    ds.quads_for_pattern(Some(sid), Some(type_p), None, GraphMatch::Any)
+        .any(|q| match ds.resolve(q.o) {
+            TermRef::Iri(t) => {
+                t == "http://www.w3.org/2002/07/owl#Class"
+                    || t.starts_with("http://www.w3.org/2002/07/owl#") && t.ends_with("Property")
+            }
+            _ => false,
+        })
+}
+
+/// Average annotation-coat completeness across the slice's terms.
+fn information_axis(ctx: &ScoreContext) -> AxisScore {
+    let ds = ctx.graph;
+    if ctx.terms.is_empty() {
+        return AxisScore::clean(0.0);
+    }
+    let mut total_present = 0usize;
+    let mut total_expected = 0usize;
+    let mut findings = Vec::new();
+
+    for iri in &ctx.terms {
+        let Some(sid) = id(ds, iri) else { continue };
+        let tbox = is_tbox_term(ctx, iri);
+        let mut required: Vec<(&str, String)> = if tbox {
+            let mut v: Vec<(&str, String)> = COAT_TBOX
+                .iter()
+                .map(|(label, p)| (*label, (*p).to_owned()))
+                .collect();
+            for local in COAT_USAGE {
+                v.push((*local, g(local)));
+            }
+            v
+        } else {
+            COAT_INDIVIDUAL
+                .iter()
+                .map(|(label, p)| (*label, (*p).to_owned()))
+                .collect()
+        };
+        // graphBoxRole is namespaced gmeow: — the g() form above already handles
+        // it for TBox; individuals also want a box role.
+        if !tbox {
+            required.push(("graphBoxRole", g("graphBoxRole")));
+        }
+
+        let mut missing = Vec::new();
+        for (label, pred_iri) in &required {
+            total_expected += 1;
+            let present = id(ds, pred_iri).is_some_and(|p| graph::has_any(ds, sid, p));
+            if present {
+                total_present += 1;
+            } else {
+                missing.push(*label);
+            }
+        }
+        if !missing.is_empty() {
+            findings.push(advisory(
+                "slice-quality.information.incomplete-coat",
+                format!(
+                    "{iri} is missing annotation coat: {} (SLICE_GUIDE §6).",
+                    missing.join(", ")
+                ),
+            ));
+        }
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = if total_expected == 0 {
+        0.0
+    } else {
+        total_present as f64 / total_expected as f64
+    };
+    AxisScore { score, findings }
+}
+
+// ── Word-boundary matching (shared by the ratchet-gated heuristics) ─────────
+
+/// True if `word` occurs in `corpus` at identifier/word boundaries — the char on
+/// each side of the match is neither an ASCII alphanumeric nor `_`/`-`. This is the
+/// discriminator that keeps an INCIDENTAL substring (`"whenever"` containing
+/// `"never"`, `"NOTE"` containing `"not"`, `FooBar` containing `Foo`) from counting
+/// as a real occurrence — critical because every caller feeds a ratchet-gated score,
+/// where a false positive silently inflates the tier. Phrase words (e.g.
+/// `"rather than"`) match as a contiguous span, their outer ends boundary-checked.
+fn word_at_boundary(corpus: &str, word: &str) -> bool {
+    if word.is_empty() {
+        return false;
+    }
+    let is_ident = |c: char| c.is_ascii_alphanumeric() || c == '_' || c == '-';
+    corpus.match_indices(word).any(|(idx, _)| {
+        let before = corpus[..idx].chars().next_back();
+        let after = corpus[idx + word.len()..].chars().next();
+        before.is_none_or(|c| !is_ident(c)) && after.is_none_or(|c| !is_ident(c))
+    })
+}
+
+/// True if `s` carries a turtle CURIE token (`prefix:local`): a `:` with a name
+/// char before it and an alphanumeric/`_` after. Deliberately conservative — it
+/// rejects a bare prose colon (`"section 3: ..."`) and a full-IRI scheme
+/// (`<http://…>`, whose `:` is followed by `/`), so a definition without a real
+/// term reference is not mistaken for a worked triple.
+fn has_curie(s: &str) -> bool {
+    let bytes = s.as_bytes();
+    let is_name = |c: u8| c.is_ascii_alphanumeric() || c == b'_' || c == b'-';
+    for (i, &c) in bytes.iter().enumerate() {
+        if c != b':' {
+            continue;
+        }
+        let before = i.checked_sub(1).map(|j| bytes[j]);
+        let after = bytes.get(i + 1).copied();
+        if before.is_some_and(is_name)
+            && after.is_some_and(|a| a.is_ascii_alphanumeric() || a == b'_')
+        {
+            return true;
+        }
+    }
+    false
+}
+
+// ── Axis 8: Prose quality ──────────────────────────────────────────────────
+
+/// Negation cues that signal a boundary-stating ("what it is NOT") definition.
+///
+/// Cues are matched at word boundaries on the lowercased text ([`word_at_boundary`]),
+/// so `"whenever"` no longer counts as `"never"` and `"NOTE"` no longer counts as
+/// `"not"`. The heuristic is deliberately CONSERVATIVE (it prefers a false negative
+/// to a false positive): the score it feeds is ratchet-gated, so wrongly passing a
+/// non-boundary definition would silently inflate the tier, whereas missing a
+/// boundary phrased with an unlisted cue only under-credits and stays advisory.
+fn states_boundary(def: &str) -> bool {
+    const CUES: &[&str] = &[
+        "not",
+        "never",
+        "nor",
+        "cannot",
+        "rather than",
+        "as opposed to",
+        "instead of",
+        "unlike",
+        "distinct from",
+    ];
+    let d = def.to_lowercase();
+    CUES.iter().any(|cue| word_at_boundary(&d, cue))
+}
+
+/// A worked triple names a term via a CURIE (`prefix:local`) and carries turtle
+/// statement structure (the `a` type keyword or a `; , .` terminator).
+///
+/// Conservative on both axes: a bare prose colon is not a CURIE ([`has_curie`]), and
+/// prose punctuation alone does not pass without a CURIE present — so an ordinary
+/// sentence (`"See section 3: important."`) is NOT scored as a worked triple. As with
+/// [`states_boundary`], a false negative (under-crediting an oddly-formatted example)
+/// is preferred to a false positive that would inflate this ratchet-gated score.
+fn is_worked_triple(example: &str) -> bool {
+    has_curie(example)
+        && (word_at_boundary(example, "a")
+            || example.contains(" ;")
+            || example.contains(" .")
+            || example.contains(" ,")
+            || example.ends_with('.')
+            || example.ends_with(';'))
+}
+
+/// Average prose-quality across the slice's terms with a definition.
+fn prose_axis(ctx: &ScoreContext) -> AxisScore {
+    let ds = ctx.graph;
+    let def_p = id(ds, "http://www.w3.org/2004/02/skos/core#definition");
+    let ex_p = id(ds, "http://www.w3.org/2004/02/skos/core#example");
+
+    let mut checks = 0usize;
+    let mut passed = 0usize;
+    let mut findings = Vec::new();
+
+    for iri in &ctx.terms {
+        let Some(sid) = id(ds, iri) else { continue };
+        // Boundary-stating definitions and worked examples are a TBox-term bar
+        // (SLICE_GUIDE §6.2/§6.6); A-Box value-vocabulary individuals (tiers,
+        // dimensions, thresholds) carry their lighter coat, not the boundary rule.
+        if !is_tbox_term(ctx, iri) {
+            continue;
+        }
+        if let Some(def) = def_p.and_then(|p| one_lit(ds, sid, p)) {
+            checks += 1;
+            if states_boundary(&def) {
+                passed += 1;
+            } else {
+                findings.push(advisory(
+                    "slice-quality.prose.definition-no-boundary",
+                    format!("{iri} definition does not state a boundary (what it is NOT) (SLICE_GUIDE §6.2)."),
+                ));
+            }
+        }
+        if let Some(ex) = ex_p.and_then(|p| one_lit(ds, sid, p)) {
+            checks += 1;
+            if is_worked_triple(&ex) {
+                passed += 1;
+            } else {
+                findings.push(advisory(
+                    "slice-quality.prose.example-not-triple",
+                    format!("{iri} skos:example is not a worked triple (SLICE_GUIDE §6.6)."),
+                ));
+            }
+        }
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = if checks == 0 {
+        0.0
+    } else {
+        passed as f64 / checks as f64
+    };
+    AxisScore { score, findings }
+}
+
+// ── Axis 8 sub-metric: Provenance honesty ("a test is not a rationale") ────
+
+/// The test-artifact patterns a rationale must not name.
+///
+/// The pattern is a compile-time-constant literal; the `.expect` fires only if this
+/// exact literal is malformed, which is a programming error caught in CI by
+/// [`tests::test_artifact_regex_is_valid`] (which forces the `LazyLock` to compile),
+/// never a data-dependent runtime panic on the library path.
+static TEST_ARTIFACT: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(\btest_[A-Za-z0-9_]+)|(\.rs::)|(\.py\b)|(Mirrors\s)").expect("valid regex")
+});
+
+/// Rationale-class predicates whose literals must state the reason, not the test.
+fn rationale_predicates(ctx: &ScoreContext) -> Vec<purrdf::TermId> {
+    ["saRationale", "cqRationale"]
+        .iter()
+        .filter_map(|local| id(ctx.graph, &g(local)))
+        .chain(id(
+            ctx.graph,
+            "http://www.w3.org/2000/01/rdf-schema#comment",
+        ))
+        .collect()
+}
+
+/// Fraction of rationale literals that name no test artifact; flags each that does.
+fn provenance_honesty(ctx: &ScoreContext) -> AxisScore {
+    let ds = ctx.graph;
+    let preds = rationale_predicates(ctx);
+    let mut total = 0usize;
+    let mut clean = 0usize;
+    let mut findings = Vec::new();
+
+    for p in preds {
+        for q in ds.quads_for_pattern(None, Some(p), None, GraphMatch::Any) {
+            if let TermRef::Literal { lexical, .. } = ds.resolve(q.o) {
+                total += 1;
+                if TEST_ARTIFACT.is_match(lexical) {
+                    let subj = match ds.resolve(q.s) {
+                        TermRef::Iri(s) => s.to_owned(),
+                        _ => "<anonymous>".to_owned(),
+                    };
+                    findings.push(advisory(
+                        "slice-quality.prose.test-rationale",
+                        format!(
+                            "{subj} rationale names a test artifact — a test is evidence, not a reason. Strip the test-naming clause and state the ontological reason (SLICE_GUIDE §6.6)."
+                        ),
+                    ));
+                } else {
+                    clean += 1;
+                }
+            }
+        }
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = if total == 0 {
+        1.0
+    } else {
+        clean as f64 / total as f64
+    };
+    AxisScore { score, findings }
+}
+
+// ── Axis 4: Maximal linkage ────────────────────────────────────────────────
+
+/// Namespaces that never require an external alignment (GMEOW-native + standard
+/// value vocabularies): a term here is covered by authorship, not by a mapping.
+const NATIVE_NS: &[&str] = &[
+    // Every blackcatinformatics.ca IRI is GMEOW-native — the gmeow: super-vocabulary,
+    // the logic:/lang:/math: grounding layers, and the ontology/slice root IRIs
+    // (some of which have no trailing slash, e.g. the …/gmeow ontology root).
+    "https://blackcatinformatics.ca/",
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "http://www.w3.org/2000/01/rdf-schema#",
+    "http://www.w3.org/2002/07/owl#",
+    "http://www.w3.org/2001/XMLSchema#",
+    "http://www.w3.org/2004/02/skos/core#",
+    "http://purl.org/dc/terms/",
+];
+
+fn is_native(iri: &str) -> bool {
+    NATIVE_NS.iter().any(|ns| iri.starts_with(ns))
+}
+
+/// The external (non-native) IRIs the slice's OWN terms reference — the slice's
+/// alignment surface. Example-fixture data (subjects that are not slice terms) is
+/// illustrative, not an alignment obligation, so it is excluded.
+fn external_alignment_surface(ctx: &ScoreContext) -> std::collections::BTreeSet<String> {
+    let ds = ctx.graph;
+    let terms: std::collections::BTreeSet<&str> = ctx.terms.iter().map(String::as_str).collect();
+    let mut external = std::collections::BTreeSet::new();
+    for iri in &ctx.terms {
+        let Some(sid) = id(ds, iri) else { continue };
+        for q in ds.quads_for_pattern(Some(sid), None, None, GraphMatch::Any) {
+            for t in [ds.resolve(q.p), ds.resolve(q.o)] {
+                if let TermRef::Iri(t_iri) = t
+                    && !is_native(t_iri)
+                    && !terms.contains(t_iri)
+                {
+                    external.insert(t_iri.to_owned());
+                }
+            }
+        }
+    }
+    external
+}
+
+/// The `gmeow:` super-vocabulary namespace (correspondence-cell vocabulary lives here).
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+/// The `dc:` DCMI-elements-1.1 namespace whose alignments the dumb-down calculus derives.
+const DC_ELEMENTS_NS: &str = "http://purl.org/dc/elements/1.1/";
+/// The `dcterms:` namespace (the refinement source the elements alignments dumb down from).
+const DCTERMS_NS: &str = "http://purl.org/dc/terms/";
+
+/// The identity-strength `gmeow:alignPredicate` values — the *only* alignment strengths a
+/// correspondence lens can carry lawfully (an invertible `put ∘ get = id_S` rename). A
+/// lossy `skos:closeMatch`/`relatedMatch`/`broadMatch`/`narrowMatch` is by construction
+/// outside the calculus's remit, so it is never a migration target and never enters the
+/// adoption population.
+const IDENTITY_ALIGN_PREDICATES: &[&str] = &[
+    "http://www.w3.org/2004/02/skos/core#exactMatch",
+    "http://www.w3.org/2002/07/owl#equivalentClass",
+    "http://www.w3.org/2002/07/owl#equivalentProperty",
+];
+
+/// Parse the slice's OWN authored correspondence surface — every `.ttl` under `mappings/`
+/// plus `module.ttl` — into one dataset. This is where a slice authors its alignments:
+/// `gmeow:ProjectionMapping` cells (the EDOAL/pattern form the correspondence-lowering
+/// calculus consumes), `gmeow:TermEquivalence` rows (hand-authored SSSOM curation), and any
+/// `logic:Correspondence` lens. Only THIS slice's directory is read, so every record found
+/// is slice-owned (single-slice scope — the metric never advises on another slice's surface).
+fn correspondence_surface(ctx: &ScoreContext) -> Option<std::sync::Arc<RdfDataset>> {
+    let mut paths = Vec::new();
+    let module = ctx.slice_dir.join("module.ttl");
+    if module.is_file() {
+        paths.push(module);
+    }
+    collect_mapping_ttl(&ctx.slice_dir.join("mappings"), &mut paths);
+    if paths.is_empty() {
+        return None;
+    }
+    paths.sort();
+    let refs: Vec<&Path> = paths.iter().map(std::path::PathBuf::as_path).collect();
+    crate::dataset_from_paths(&refs).ok()
+}
+
+/// Collect every `.ttl` under a mappings directory, recursively.
+fn collect_mapping_ttl(dir: &Path, out: &mut Vec<std::path::PathBuf>) {
+    let Ok(rd) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for e in rd.flatten() {
+        let p = e.path();
+        if p.is_dir() {
+            collect_mapping_ttl(&p, out);
+        } else if p.extension().is_some_and(|x| x == "ttl") {
+            out.push(p);
+        }
+    }
+}
+
+/// True if the `gmeow:hasBinding` object `binding` is a lawful FACT-rename binding — its
+/// `gmeow:relation` is `"="` or it is flagged `gmeow:mnemomorphic true`. Exactly the
+/// bindings the mappings stage promotes to a discharged `logic:SectionLaw` (the numerator
+/// condition `discharged_section_cells_from_triples` credits, read at the authoring surface).
+fn binding_is_mnemomorphic(ds: &RdfDataset, binding: purrdf::TermId) -> bool {
+    let relation_eq = id(ds, &g("relation"))
+        .into_iter()
+        .flat_map(|p| graph::all_lits(ds, binding, p))
+        .any(|l| l == "=");
+    let mnemomorphic = id(ds, &g("mnemomorphic"))
+        .into_iter()
+        .flat_map(|p| graph::all_lits(ds, binding, p))
+        .any(|l| l == "true");
+    relation_eq || mnemomorphic
+}
+
+/// The `gmeow:ProjectionMapping` cells whose binding is a lawful FACT rename (mnemomorphic
+/// `=`) — the structured EDOAL cells the correspondence-lowering calculus lifts to a
+/// discharged `logic:SectionLaw`. Lossy `<=` projection cells are NOT identity-strength and
+/// never enter the population. Sorted (cell IRI order).
+fn mnemomorphic_projection_cells(ds: &RdfDataset) -> BTreeSet<String> {
+    let has_binding = id(ds, &g("hasBinding"));
+    let mut out = BTreeSet::new();
+    for cell in instances_of(ds, &g("ProjectionMapping")) {
+        let Some(sid) = id(ds, &cell) else { continue };
+        let routed = has_binding.is_some_and(|hb| {
+            ds.quads_for_pattern(Some(sid), Some(hb), None, GraphMatch::Any)
+                .any(|q| binding_is_mnemomorphic(ds, q.o))
+        });
+        if routed {
+            out.insert(cell);
+        }
+    }
+    out
+}
+
+/// One legacy (hand-authored, identity-strength) alignment record the slice owns: the
+/// `gmeow:TermEquivalence` / mapping IRI plus the human detail naming its migration target.
+struct LegacyRecord {
+    record_iri: String,
+    detail: String,
+}
+
+/// The slice's hand-authored `gmeow:TermEquivalence` rows at identity strength — the
+/// records that assert a lawful rename (`skos:exactMatch` / `owl:equivalentClass` /
+/// `owl:equivalentProperty`) but were curated by hand rather than routed through the
+/// correspondence calculus. Each is a real migration target: lift it to a
+/// `gmeow:ProjectionMapping` mnemomorphic `=` cell so the section-law discharge proves the
+/// rename lawful. Sorted by record IRI.
+fn identity_hand_authored(ds: &RdfDataset) -> Vec<LegacyRecord> {
+    let identity: BTreeSet<&str> = IDENTITY_ALIGN_PREDICATES.iter().copied().collect();
+    let mut out = Vec::new();
+    for record in instances_of(ds, &g("TermEquivalence")) {
+        let Some(sid) = id(ds, &record) else { continue };
+        let Some(pred) = id(ds, &g("alignPredicate")).and_then(|p| one_iri(ds, sid, p)) else {
+            continue;
+        };
+        if !identity.contains(pred.as_str()) {
+            continue;
+        }
+        let subj = id(ds, &g("alignSubject"))
+            .and_then(|p| one_iri(ds, sid, p))
+            .unwrap_or_default();
+        let obj = id(ds, &g("alignObject"))
+            .and_then(|p| one_iri(ds, sid, p))
+            .unwrap_or_default();
+        out.push(LegacyRecord {
+            record_iri: record.clone(),
+            detail: format!(
+                "{record} is a hand-authored identity-strength alignment ({subj} → {obj} via {pred}) not routed through the correspondence calculus — lift it to a gmeow:ProjectionMapping mnemomorphic \"=\" cell so the section-law discharge proves the rename lawful (Principle 17)."
+            ),
+        });
+    }
+    out.sort_by(|a, b| a.record_iri.cmp(&b.record_iri));
+    out
+}
+
+/// Compress a `dc:`/`dcterms:` IRI to the CURIE form `lint_dc_refinement` matches on; any
+/// other IRI is returned unchanged (only the `dc:` object drives the hand-authored check).
+fn dc_curie(iri: &str) -> String {
+    if let Some(local) = iri.strip_prefix(DC_ELEMENTS_NS) {
+        format!("dc:{local}")
+    } else if let Some(local) = iri.strip_prefix(DCTERMS_NS) {
+        format!("dcterms:{local}")
+    } else {
+        iri.to_owned()
+    }
+}
+
+/// The slice's `dc:` (DCMI-elements-1.1) hand-authored alignments, named via the real
+/// `lint_dc_refinement` dumb-down lint (code `dc-hand-authored`): a `dc:` element alignment
+/// the `dcterms:`→`dc:` sub-property derivation should have produced, authored by hand
+/// instead. Builds `Mapping` rows from the slice's `gmeow:TermEquivalence` records, runs the
+/// lint, and maps each flagged row back to its record IRI. Sorted by record IRI.
+fn dc_hand_authored(ds: &RdfDataset) -> Vec<LegacyRecord> {
+    // Build one Mapping row per TermEquivalence, keyed back to its record IRI.
+    let mut rows: Vec<(Mapping, String)> = Vec::new();
+    for record in instances_of(ds, &g("TermEquivalence")) {
+        let Some(sid) = id(ds, &record) else { continue };
+        let field = |local: &str| {
+            id(ds, &g(local))
+                .and_then(|p| one_iri(ds, sid, p))
+                .map(|iri| dc_curie(&iri))
+                .unwrap_or_default()
+        };
+        rows.push((
+            Mapping {
+                subject_id: field("alignSubject"),
+                predicate_id: field("alignPredicate"),
+                object_id: field("alignObject"),
+                confidence: String::new(),
+                mapping_justification: String::new(),
+            },
+            record,
+        ));
+    }
+    let mappings: Vec<Mapping> = rows.iter().map(|(m, _)| m.clone()).collect();
+    let mut out = Vec::new();
+    for diag in lint_dc_refinement(&mappings) {
+        if diag.code != "dc-hand-authored" {
+            continue;
+        }
+        // Match the flagged row back to its TermEquivalence record by subject+object CURIE.
+        let record_iri = rows
+            .iter()
+            .find(|(m, _)| {
+                Some(&m.object_id) == diag.object_id.as_ref()
+                    && diag.subject_id.as_ref().is_none_or(|s| s == &m.subject_id)
+            })
+            .map(|(_, iri)| iri.clone())
+            .unwrap_or_default();
+        out.push(LegacyRecord {
+            record_iri: record_iri.clone(),
+            detail: format!("{record_iri} is a hand-authored dc: alignment not routed through the correspondence calculus: {} Route it through the dcterms:→dc: dumb-down derivation rather than authoring the dc: alignment by hand (Principle 17).", diag.message),
+        });
+    }
+    out.sort_by(|a, b| a.record_iri.cmp(&b.record_iri));
+    out
+}
+
+/// Linkage — correspondence-calculus adoption. Of the identity-strength correspondences the
+/// slice authors (the only alignments a lens can carry lawfully), the fraction routed through
+/// the correspondence CALCULUS rather than hand-authored:
+///
+///   adoption = |calculus-routed| / |calculus-routed ∪ hand-authored identity records|
+///
+/// * **Calculus-routed** (numerator): the `logic:Correspondence` lens individuals
+///   ([`extract_correspondences`]) plus the `gmeow:ProjectionMapping` cells whose binding is a
+///   lawful FACT rename (mnemomorphic `=` — the cells the mappings stage lifts to a discharged
+///   `logic:SectionLaw`).
+/// * **Hand-authored** (the migration targets): identity-strength `gmeow:TermEquivalence` rows
+///   and `dc:` alignments the dumb-down calculus should derive ([`lint_dc_refinement`]).
+///
+/// Only this slice's `mappings/` + `module.ttl` are read, so every record is slice-owned.
+/// A slice with no identity-strength correspondence surface (none, or only lossy
+/// `closeMatch`-class alignments the calculus cannot carry) has an empty population: the axis
+/// is not applicable, so it takes the crate's neutral-for-the-meet vacuity score (1.0) but —
+/// unlike a real full-adoption pass — carries an explicit advisory that the axis is vacuous,
+/// so the 1.0 is never silently read as "fully linked".
+fn linkage_axis(ctx: &ScoreContext) -> AxisScore {
+    let Some(ds) = correspondence_surface(ctx) else {
+        return AxisScore {
+            score: 1.0,
+            findings: vec![advisory(
+                "slice-quality.linkage.no-correspondence-surface",
+                "the slice authors no mapping/correspondence surface (no mappings/ or module.ttl) — the correspondence-calculus adoption axis is not applicable (vacuous 1.0).".to_owned(),
+            )],
+        };
+    };
+    let ds: &RdfDataset = &ds;
+
+    // Numerator: the calculus-routed correspondences the slice owns.
+    let (correspondences, _malformed) = extract_correspondences(ds);
+    let mut calculus: BTreeSet<String> = correspondences
+        .into_iter()
+        .filter(|c| c.iri.starts_with(GMEOW_NS))
+        .map(|c| c.iri)
+        .collect();
+    calculus.extend(mnemomorphic_projection_cells(ds));
+
+    // Legacy: the hand-authored identity-strength records — the migration targets.
+    let mut legacy: BTreeMap<String, String> = BTreeMap::new();
+    for rec in identity_hand_authored(ds) {
+        legacy.entry(rec.record_iri).or_insert(rec.detail);
+    }
+    for rec in dc_hand_authored(ds) {
+        legacy.entry(rec.record_iri).or_insert(rec.detail);
+    }
+    // A record cannot be both calculus-routed and legacy (disjoint types), but guard anyway.
+    for iri in &calculus {
+        legacy.remove(iri);
+    }
+
+    let denom = calculus.len() + legacy.len();
+    if denom == 0 {
+        return AxisScore {
+            score: 1.0,
+            findings: vec![advisory(
+                "slice-quality.linkage.no-calculus-eligible-correspondence",
+                "the slice authors no identity-strength correspondence (none, or only lossy closeMatch-class alignments the lens calculus cannot carry) — the correspondence-calculus adoption axis is not applicable (vacuous 1.0), not a full-adoption pass.".to_owned(),
+            )],
+        };
+    }
+
+    let findings: Vec<_> = legacy
+        .into_values()
+        .map(|detail| advisory("slice-quality.linkage.uncalculated-correspondence", detail))
+        .collect();
+    #[allow(clippy::cast_precision_loss)]
+    let score = calculus.len() as f64 / denom as f64;
+    AxisScore { score, findings }
+}
+
+// ── Axis 5: Maximal projection ─────────────────────────────────────────────
+
+/// Projection: does the slice provide its projectable source surfaces? SHACL
+/// shapes when it has structural constraints, mappings when it links out.
+fn projection_axis(ctx: &ScoreContext) -> AxisScore {
+    let ds = ctx.graph;
+    let mut expected = 0usize;
+    let mut present = 0usize;
+    let mut findings = Vec::new();
+
+    // A slice with owl:Restriction / disjointness should source SHACL from logic:.
+    let has_constraints = id(ds, "http://www.w3.org/2002/07/owl#Restriction")
+        .is_some_and(|c| id(ds, graph::RDF_TYPE).is_some_and(|t| graph::has_any_object(ds, t, c)))
+        || id(ds, "http://www.w3.org/2002/07/owl#disjointWith")
+            .is_some_and(|p| graph::predicate_used(ds, p));
+    if has_constraints {
+        expected += 1;
+        if ctx.slice_dir.join("shapes.ttl").is_file() {
+            present += 1;
+        } else {
+            findings.push(advisory(
+                "slice-quality.projection.no-shapes",
+                "the slice declares structural constraints but ships no shapes.ttl projection source (projection purity).".to_owned(),
+            ));
+        }
+    }
+    // A slice whose own vocabulary links out should carry a mapping file.
+    let links_out = !external_alignment_surface(ctx).is_empty();
+    if links_out {
+        expected += 1;
+        if ctx.slice_dir.join("mappings/equivalences.ttl").is_file() {
+            present += 1;
+        } else {
+            findings.push(advisory(
+                "slice-quality.projection.no-mappings",
+                "the slice links to external terms but ships no mappings/equivalences.ttl projection source (Principles 4/7/17).".to_owned(),
+            ));
+        }
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = if expected == 0 {
+        1.0
+    } else {
+        present as f64 / expected as f64
+    };
+    AxisScore { score, findings }
+}
+
+// ── Axis 6: Optimal testing ────────────────────────────────────────────────
+
+/// Concatenated text of every `.ttl`/`.rq` under `tests/` and `queries/`.
+fn test_corpus(ctx: &ScoreContext) -> String {
+    let mut buf = String::new();
+    for sub in ["tests", "queries"] {
+        collect_text(&ctx.slice_dir.join(sub), &mut buf);
+    }
+    buf
+}
+
+fn collect_text(dir: &std::path::Path, buf: &mut String) {
+    let Ok(rd) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for e in rd.flatten() {
+        let p = e.path();
+        if p.is_dir() {
+            collect_text(&p, buf);
+        } else if p.extension().is_some_and(|x| x == "ttl" || x == "rq")
+            && let Ok(t) = std::fs::read_to_string(&p)
+        {
+            buf.push_str(&t);
+            buf.push('\n');
+        }
+    }
+}
+
+/// Testing: fraction of the slice's terms named by at least one test cell / query.
+fn testing_axis(ctx: &ScoreContext) -> AxisScore {
+    if ctx.terms.is_empty() {
+        return AxisScore::clean(0.0);
+    }
+    let corpus = test_corpus(ctx);
+    if corpus.is_empty() {
+        return AxisScore {
+            score: 0.0,
+            findings: vec![advisory(
+                "slice-quality.testing.no-cells",
+                "the slice ships no test cells or competency queries (SLICE_QA).".to_owned(),
+            )],
+        };
+    }
+    let mut reached = 0usize;
+    let mut findings = Vec::new();
+    for iri in &ctx.terms {
+        let local = iri.rsplit(['/', '#']).next().unwrap_or(iri);
+        // Word-boundary match, not a raw substring: an incidental hit (a term whose
+        // local name is a prefix of another, e.g. `Foo` inside `FooBar`) must not
+        // count as "reached" — that inflates this ratchet-gated testing score.
+        if word_at_boundary(&corpus, local) {
+            reached += 1;
+        } else {
+            findings.push(advisory(
+                "slice-quality.testing.untested-term",
+                format!(
+                    "{iri} is exercised by no competency/structural/example cell (SLICE_GUIDE §9)."
+                ),
+            ));
+        }
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = reached as f64 / ctx.terms.len() as f64;
+    AxisScore { score, findings }
+}
+
+// ── Axis 7: Documentation ──────────────────────────────────────────────────
+
+/// A narrative thesis is a docs.md with substantive prose beyond its headings.
+fn documentation_axis(ctx: &ScoreContext) -> AxisScore {
+    let mut checks = 0usize;
+    let mut passed = 0usize;
+    let mut findings = Vec::new();
+
+    checks += 1;
+    match std::fs::read_to_string(ctx.slice_dir.join("docs.md")) {
+        Ok(md) => {
+            let prose: usize = md
+                .lines()
+                .filter(|l| !l.trim_start().starts_with('#') && !l.trim_start().starts_with("<!--"))
+                .map(str::len)
+                .sum();
+            if prose > 200 {
+                passed += 1;
+            } else {
+                findings.push(advisory(
+                    "slice-quality.documentation.thin-thesis",
+                    "docs.md carries no narrative thesis (SLICE_GUIDE documentation doctrine)."
+                        .to_owned(),
+                ));
+            }
+        }
+        Err(_) => findings.push(advisory(
+            "slice-quality.documentation.no-docs",
+            "the slice ships no docs.md.".to_owned(),
+        )),
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = if checks == 0 {
+        0.0
+    } else {
+        passed as f64 / checks as f64
+    };
+    AxisScore { score, findings }
+}
+
+// ── Axis 9: Translation coverage ───────────────────────────────────────────
+
+/// The project languages beyond the authored English.
+const TRANSLATION_LANGS: &[&str] = &["fr", "zh"];
+
+/// Translation: per-language coverage of the slice's label+definition literals,
+/// audited via `.po` catalogs. Full coverage requires English (authored) plus
+/// French and Mandarin.
+fn translation_axis(ctx: &ScoreContext) -> AxisScore {
+    let ds = ctx.graph;
+    let label_p = id(ds, "http://www.w3.org/2000/01/rdf-schema#label");
+    let def_p = id(ds, "http://www.w3.org/2004/02/skos/core#definition");
+    let mut expected = 0usize;
+    for iri in &ctx.terms {
+        let Some(sid) = id(ds, iri) else { continue };
+        if label_p.is_some_and(|p| graph::has_any(ds, sid, p)) {
+            expected += 1;
+        }
+        if def_p.is_some_and(|p| graph::has_any(ds, sid, p)) {
+            expected += 1;
+        }
+    }
+    if expected == 0 {
+        return AxisScore::clean(1.0);
+    }
+
+    // English is authored, so it is always fully covered.
+    let mut lang_cov = vec![1.0_f64];
+    let mut findings = Vec::new();
+    for lang in TRANSLATION_LANGS {
+        let po = ctx.slice_dir.join(format!("i18n/{lang}.po"));
+        let entries = std::fs::read_to_string(&po)
+            .map(|t| {
+                t.lines()
+                    .filter(|l| {
+                        l.starts_with("msgctxt")
+                            && (l.contains("|rdfs:label") || l.contains("|skos:definition"))
+                    })
+                    .count()
+            })
+            .unwrap_or(0);
+        #[allow(clippy::cast_precision_loss)]
+        let cov = (entries as f64 / expected as f64).min(1.0);
+        if cov < 1.0 {
+            findings.push(advisory(
+                "slice-quality.translation.incomplete",
+                format!("{lang} covers {entries}/{expected} label+definition literals; the top tier requires 100% en+fr+cmn."),
+            ));
+        }
+        lang_cov.push(cov);
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = lang_cov.iter().sum::<f64>() / lang_cov.len() as f64;
+    AxisScore { score, findings }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn resolve_maps_group_a_producers() {
+        for key in IMPLEMENTED {
+            assert!(resolve(key).is_some(), "{key} resolves to a primitive");
+        }
+        assert!(
+            resolve("no_such_producer").is_none(),
+            "unknown producer → None (hard fail upstream)"
+        );
+    }
+
+    #[test]
+    fn boundary_detection() {
+        assert!(states_boundary("A widget. It is NOT a gadget."));
+        assert!(states_boundary("A relator, never a mere pair."));
+        assert!(states_boundary("A process, as opposed to an endurant."));
+        assert!(states_boundary("A quality, distinct from its bearer."));
+        assert!(!states_boundary("A widget of the system."));
+        // Incidental substrings must NOT pass through the ratchet: "whenever" is not
+        // "never", "denote"/"NOTE" are not "not", "cannon" is not "cannot".
+        assert!(!states_boundary(
+            "Applies whenever a bearer exists; denote it clearly."
+        ));
+        assert!(!states_boundary(
+            "A note about the cannon on the annotation."
+        ));
+    }
+
+    #[test]
+    fn worked_triple_detection() {
+        assert!(is_worked_triple("ex:x a gmeow:Foo ."));
+        assert!(is_worked_triple("ex:s ex:p ex:o ;"));
+        assert!(!is_worked_triple("a plain sentence with no triple"));
+        // A bare prose colon and a period is NOT a worked triple (old false positive).
+        assert!(!is_worked_triple("See section 3: this is important."));
+        // A full-IRI scheme colon is not a CURIE either.
+        assert!(!is_worked_triple("visit http://example.org/ for details."));
+    }
+
+    #[test]
+    fn test_artifact_regex_is_valid() {
+        // Forces the LazyLock initializer to run: proves the regex literal compiles
+        // (so the `.expect` can never fire at runtime) and pins its intended matches.
+        assert!(TEST_ARTIFACT.is_match("see test_foo_bar for evidence"));
+        assert!(TEST_ARTIFACT.is_match("crates/foo.rs::bar"));
+        assert!(TEST_ARTIFACT.is_match("tests/thing.py behaviour"));
+        assert!(TEST_ARTIFACT.is_match("Mirrors the fixture"));
+        assert!(!TEST_ARTIFACT.is_match("a genuine ontological rationale"));
+    }
+
+    #[test]
+    fn word_boundary_rejects_incidental_substrings() {
+        assert!(word_at_boundary("ex:Foo a owl:Class .", "Foo"));
+        assert!(!word_at_boundary("ex:FooBar a owl:Class .", "Foo"));
+        assert!(!word_at_boundary("prefixFoo", "Foo"));
+        // Phrase cue spans a word gap but is boundary-checked at its ends.
+        assert!(word_at_boundary("a, rather than b", "rather than"));
+    }
+}

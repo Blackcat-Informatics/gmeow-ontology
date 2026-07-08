@@ -1,0 +1,6 @@
+<http://www.w3.org/2002/03owlt/unionOf/premises001#A> <http://www.w3.org/2002/07/owl#unionOf> _:rdfxml_list_00000000000000000000000000 <https://gmeow.example/w3c-owl2-full/webont-unionof-001/w> .
+<http://www.w3.org/2002/03owlt/unionOf/premises001#John> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/03owlt/unionOf/premises001#Human> <https://gmeow.example/w3c-owl2-full/webont-unionof-001/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.w3.org/2002/03owlt/unionOf/premises001#Human> <https://gmeow.example/w3c-owl2-full/webont-unionof-001/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_list_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/webont-unionof-001/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.w3.org/2002/03owlt/unionOf/premises001#Animal> <https://gmeow.example/w3c-owl2-full/webont-unionof-001/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/webont-unionof-001/w> .

@@ -1,0 +1,12 @@
+<http://example.org/Meg> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Woman> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-002/w> .
+<http://example.org/Peter> <http://example.org/fatherOf> <http://example.org/Meg> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-002/w> .
+<http://example.org/Peter> <http://example.org/fatherOf> <http://example.org/Stewie> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-002/w> .
+<http://example.org/Peter> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> _:rdfxml_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-002/w> .
+<http://example.org/Stewie> <http://www.w3.org/2002/07/owl#differentFrom> <http://example.org/Meg> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-002/w> .
+<http://example.org/Woman> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-002/w> .
+<http://example.org/fatherOf> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-002/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-002/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-002/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#maxQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-002/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#onClass> <http://example.org/Woman> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-002/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#onProperty> <http://example.org/fatherOf> <https://gmeow.example/w3c-owl2-full/new-feature-objectqcr-002/w> .

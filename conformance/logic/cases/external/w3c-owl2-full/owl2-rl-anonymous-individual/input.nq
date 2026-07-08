@@ -1,0 +1,5 @@
+<http://owl2.test/rules#I> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NamedIndividual> <https://gmeow.example/w3c-owl2-full/owl2-rl-anonymous-individual/w> .
+<http://owl2.test/rules#op> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/owl2-rl-anonymous-individual/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/owl2-rl-anonymous-individual/w> .
+_:rdfxml_00000000000000000000000001 <http://owl2.test/rules#op> <http://owl2.test/rules#I> <https://gmeow.example/w3c-owl2-full/owl2-rl-anonymous-individual/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#NamedIndividual> <https://gmeow.example/w3c-owl2-full/owl2-rl-anonymous-individual/w> .

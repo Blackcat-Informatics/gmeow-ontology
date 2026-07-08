@@ -1148,6 +1148,7 @@ fn corr(iri: &str, law_claims: Vec<LawClaimIr>) -> Correspondence {
         None,
         None,
         None,
+        None,
     )
     .unwrap()
 }
@@ -1358,6 +1359,7 @@ fn correspondence_axes_signed_zero_normalized() {
             None,
             None,
             None,
+            None,
         )
         .unwrap()
     };
@@ -1396,6 +1398,7 @@ fn correspondence_new_rejects_out_of_range_confidence() {
         None,
         None,
         None,
+        None,
     )
     .unwrap_err();
     assert!(err.contains("[0, 1]"), "got: {err}");
@@ -1413,6 +1416,7 @@ fn corr_err(iri: &str, get_leg: Option<String>) -> String {
         get_leg,
         None,
         vec![],
+        None,
         None,
         None,
         None,

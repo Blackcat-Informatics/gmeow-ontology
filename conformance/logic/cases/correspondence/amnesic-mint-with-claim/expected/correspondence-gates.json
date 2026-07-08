@@ -13,6 +13,9 @@
       "overclaim": {
         "status": "pass"
       },
+      "preservation": {
+        "status": "pass"
+      },
       "round_trip": {
         "reason": "logic:LossyLens makes no full round-trip claim",
         "status": "not_applicable"

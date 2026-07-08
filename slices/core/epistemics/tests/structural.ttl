@@ -10,7 +10,6 @@
 # a single MUST with a conjunctive pattern (every conjunct must match); a
 # negative universal ("no spine property has X") is a MUST-NOT over a VALUES set.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/epistemics/tests/> .
