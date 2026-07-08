@@ -2,38 +2,41 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Lower a SPARQL property path to a `.logic` Datalog program and resolve it with
-//! the embedded Scryer tabling engine (S8 — the native-only lowered twin).
+//! the native magic-sets engine (`crate::physical::resolve_native`).
 //!
 //! This is the **lowered** twin of the in-engine evaluator in
 //! `gmeow-sparql-eval::path`. The acceptance criterion for is *parity*: the
 //! two implementations must agree on every property-path query in the corpus
 //! (validated by `crates/logic/tests/sparql_path_parity.rs`).
 //!
-//! # Wiring status (read before treating this as production API)
+//! # Engine
 //!
-//! Today this lowering is consumed **solely as the parity oracle** that validates
-//! the in-engine evaluator — its only caller is `sparql_path_parity.rs`. It is *not*
-//! yet on any production query path: the wasm-safe in-engine evaluator
-//! (`gmeow-sparql-eval::path`) is the engine that actually answers a
-//! `GraphPattern::Path` for the SPARQL stack. Wiring this lowering in as a *native
-//! accelerator* — routing recursive/closure shapes (`+`/`*`/`{n,}`) through Scryer
-//! behind the native SPARQL engine while the in-engine evaluator stays the
-//! wasm/default — is deferred to the native query stack. When that
-//! dispatcher lands it **must** route every non-lowerable shape (the
-//! `NegatedPropertySet`/`Wildcard` and `{0,0}` cases that hard-fail below, plus any
-//! budget-incomplete result) back to the in-engine evaluator: the complete engine
-//! handling its full surface with the lowering as an optional accelerator for the
-//! recursive subset — *not* a degraded fallback.
+//! The lowered programs are binary positive-Horn transitive closure — exactly the
+//! fragment the native magic-sets evaluator decides completely (it tables inherently
+//! and saturates the finite Herbrand base of a ground edge set, so a cyclic graph
+//! terminates without any explicit tabling hint). Resolution therefore runs through
+//! [`crate::physical::resolve_native`], which is **authoritative** for this fragment:
+//! a lowered program that came back `Unsupported` would be a contract violation, so
+//! that case is an honest hard error here — there is no silent fall-back to another
+//! engine. The embedded Scryer tabling engine is retained purely as the *per-consumer
+//! parity comparand* (see the `#[cfg(test)]` parity ledger below): native ≡ Scryer,
+//! gap-zero, over the property-path operator corpus.
 //!
-//! # Why Datalog/Scryer
+//! # Coverage boundary (unchanged)
+//!
+//! `NegatedPropertySet` and `Wildcard` use a *variable predicate position* that the
+//! fixed-predicate `.logic` grammar cannot express, and `{0,0}` has no positive
+//! relation to query; those hard-fail below and must be answered by the in-engine
+//! evaluator. This is an honest capability boundary, not a degraded fallback.
+//!
+//! # Why Datalog
 //!
 //! Per `slices/grounding/logic/design/LOGIC-PATHS.md`, the canonical runtime for path
-//! recursion is the native least-model fixpoint / SLG-tabling engine: transitive
-//! closure (`p+`/`p*`) and the stratified unroll of bounded `{n,m}` are ordinary
-//! Datalog. We reuse the `ScryerForeign` seam exactly — the path's edges are loaded
-//! into a world (a native named graph) and snapshotted as ground facts by
-//! the backward oracle (`crate::oracle::BackwardOracle`); the lowered
-//! [`QProgram`] carries only the IDB rules + goal.
+//! recursion is the native least-model fixpoint engine: transitive closure
+//! (`p+`/`p*`) and the stratified unroll of bounded `{n,m}` are ordinary Datalog. We
+//! reuse the `ScryerForeign` seam exactly — the path's edges are loaded into a world
+//! (a native named graph) and snapshotted as ground facts by the native resolver; the
+//! lowered [`QProgram`] carries only the IDB rules + goal.
 //!
 //! # Positive relation + reflexivity
 //!
@@ -58,7 +61,7 @@ use std::collections::BTreeSet;
 
 use purrdf::sparql::PropertyPathExpression;
 
-use crate::oracle::{BackwardOracle, backward_oracle};
+use crate::physical::{NativeOutcome, resolve_native};
 use crate::query_ir::{AnswerSet, Budget, QAtom, QBodyLit, QGoal, QProgram, QRule, QTerm};
 use crate::seam::{BudgetStatus, WorldStoreForeign};
 use crate::store::WorldStore;
@@ -81,16 +84,19 @@ pub enum PathEnd {
 }
 
 /// Evaluate `path` between `subject` and `object` over the ground `edges`
-/// (`(subject_iri, predicate_iri, object_iri)` triples) using the Scryer tabling
+/// (`(subject_iri, predicate_iri, object_iri)` triples) using the native magic-sets
 /// engine, returning the set of `(subject, object)` pairs in canonical
 /// `term_n3` form (`<iri>`).
 ///
 /// # Errors
 ///
 /// - The path contains a `NegatedPropertySet`/`Wildcard` (not lowerable).
-/// - The Scryer resolution errors, or does not complete within budget
-///   (`BudgetStatus` other than `Ok` — a sound-but-incomplete answer set would make
-///   a parity claim against the complete in-engine evaluator unsound).
+/// - The native resolver declares the lowered program `Unsupported` — a contract
+///   violation for the positive-Horn transitive-closure fragment, treated as a hard
+///   error rather than a silent fall-back to another engine.
+/// - The native resolution does not complete within budget (`BudgetStatus` other than
+///   `Ok` — a sound-but-incomplete answer set would make a parity claim against the
+///   complete in-engine evaluator unsound).
 pub fn evaluate_path_lowered(
     edges: &[(String, String, String)],
     path: &PropertyPathExpression,
@@ -116,21 +122,26 @@ pub fn evaluate_path_lowered(
     };
 
     // Load the edges into a world and wrap it with the ScryerForeign seam — the EDB
-    // is a world snapshot (run_scryer pulls facts from `foreign.in_world`), NOT the
-    // program (which carries only the IDB rules + goal).
+    // is a world snapshot (the native resolver pulls facts from `foreign.in_world`),
+    // NOT the program (which carries only the IDB rules + goal).
     let store = WorldStore::new();
     for (s, p, o) in edges {
         store.insert_quad(LOWER_WORLD, s, p, o);
     }
     let foreign = WorldStoreForeign::from_world(&store, LOWER_WORLD, LOWER_PROFILE)?;
 
-    let ans = backward_oracle().solve(
-        &foreign,
-        LOWER_WORLD,
-        &program,
-        &low.table_preds,
-        &Budget::default(),
-    )?;
+    // Resolve on the native magic-sets engine. Native tables inherently, so the lowered
+    // transitive-closure fragment needs no tabling hint. The engine is authoritative for
+    // this positive-Horn fragment: an `Unsupported` outcome is a contract violation, not
+    // a cue to fall back to another engine.
+    let ans = match resolve_native(&foreign, LOWER_WORLD, &program, &Budget::default())? {
+        NativeOutcome::Decided(ans) => ans,
+        NativeOutcome::Unsupported(kind) => {
+            return Err(format!(
+                "lowered path resolution is not natively decided: Unsupported({kind:?})"
+            ));
+        }
+    };
     if ans.status != BudgetStatus::Ok {
         return Err(format!(
             "lowered path resolution did not complete (status = {:?}); a partial answer set \
@@ -246,10 +257,9 @@ fn end_term(end: &PathEnd, var: &str) -> QTerm {
     }
 }
 
-/// Accumulates the IDB rules + tabled predicates while lowering a path expression.
+/// Accumulates the IDB rules while lowering a path expression.
 struct Lowering {
     rules: Vec<QRule>,
-    table_preds: Vec<String>,
     counter: usize,
 }
 
@@ -257,7 +267,6 @@ impl Lowering {
     fn new() -> Self {
         Self {
             rules: Vec::new(),
-            table_preds: Vec::new(),
             counter: 0,
         }
     }
@@ -352,8 +361,10 @@ impl Lowering {
         }
     }
 
-    /// Build the transitive closure `tc/2` of `pp/2` (tabled for cycle-safe SLG
-    /// resolution): `tc(X,Y):-pp(X,Y).  tc(X,Z):-pp(X,Y),tc(Y,Z).`
+    /// Build the transitive closure `tc/2` of `pp/2`:
+    /// `tc(X,Y):-pp(X,Y).  tc(X,Z):-pp(X,Y),tc(Y,Z).` The native magic-sets engine
+    /// tables recursive predicates inherently and saturates the finite Herbrand base,
+    /// so this recursion is cycle-safe without any explicit tabling directive.
     fn transitive_closure(&mut self, pp: &str) -> String {
         let tc = self.fresh();
         self.push_rule(Self::atom(&tc, "X", "Y"), vec![Self::atom(pp, "X", "Y")]);
@@ -361,7 +372,6 @@ impl Lowering {
             Self::atom(&tc, "X", "Z"),
             vec![Self::atom(pp, "X", "Y"), Self::atom(&tc, "Y", "Z")],
         );
-        self.table_preds.push(tc.clone());
         tc
     }
 
@@ -512,6 +522,10 @@ mod tests {
     use purrdf::sparql::NamedNode as AlgNamedNode;
 
     const EX: &str = "https://example.org/";
+
+    /// A set of `(subject, object)` `term_n3` pairs — one engine's answer to a lowered
+    /// path query.
+    type PairSet = BTreeSet<(String, String)>;
 
     fn iri(local: &str) -> String {
         format!("{EX}{local}")
@@ -677,5 +691,203 @@ mod tests {
             evaluate_path_lowered(&edges, &wild, &PathEnd::Iri(iri("a")), &PathEnd::Variable)
                 .is_err()
         );
+    }
+
+    // ── Per-consumer parity ledger ───────────────────────────────────────────────
+    //
+    // The production `evaluate_path_lowered` now resolves the lowered transitive-closure
+    // program on the NATIVE magic-sets engine (`resolve_native`). This ledger proves the
+    // promotion is gap-zero: for every lowerable operator, the answer set the native
+    // engine returns over the SAME lowered `QProgram` equals the answer set the retained
+    // Scryer tabling engine returns. Scryer is the comparand only — it is no longer on
+    // the production path. A cyclic edge graph is included so the recursive fragment is
+    // exercised; the Scryer comparand is fed the program's cyclic IDB predicates as
+    // `:- table` directives (via `dispatch::cyclic_predicates`) so it terminates, exactly
+    // as the production dispatch fallback would have.
+
+    /// Lower `path` between `subject`/`object` to its `QProgram`, returning the program
+    /// and its reflexive flag — the raw material both engines resolve identically.
+    fn lower_to_program(
+        path: &PropertyPathExpression,
+        subject: &PathEnd,
+        object: &PathEnd,
+    ) -> (QProgram, bool) {
+        let mut low = Lowering::new();
+        let (result_pred, reflexive) = low.lower(path).expect("path is lowerable");
+        let goal = QGoal {
+            atoms: vec![QAtom {
+                pred: result_pred,
+                args: vec![end_term(subject, "S"), end_term(object, "O")],
+            }],
+        };
+        let program = QProgram {
+            rules: low.rules,
+            goal,
+            counterfactual: None,
+            prob_facts: Vec::new(),
+            prob_model: None,
+            confidences: Vec::new(),
+        };
+        (program, reflexive)
+    }
+
+    /// Resolve the SAME lowered program on both the native engine and Scryer over the
+    /// given edge graph, returning `(native_pairs, scryer_pairs)` after applying the
+    /// identical Rust-side reflexive-identity augmentation to each. Equality of the two
+    /// `BTreeSet`s is the gap-zero parity claim.
+    fn native_and_scryer_pairs(
+        edges: &[(String, String, String)],
+        path: &PropertyPathExpression,
+        subject: &PathEnd,
+        object: &PathEnd,
+    ) -> (PairSet, PairSet) {
+        let (program, reflexive) = lower_to_program(path, subject, object);
+
+        let store = WorldStore::new();
+        for (s, p, o) in edges {
+            store.insert_quad(LOWER_WORLD, s, p, o);
+        }
+        let foreign =
+            WorldStoreForeign::from_world(&store, LOWER_WORLD, LOWER_PROFILE).expect("from_world");
+
+        // Native magic-sets — authoritative for the positive-Horn fragment.
+        let native_ans = match resolve_native(&foreign, LOWER_WORLD, &program, &Budget::default())
+            .expect("native resolve")
+        {
+            NativeOutcome::Decided(a) => a,
+            NativeOutcome::Unsupported(k) => {
+                panic!(
+                    "native must decide the lowered positive-Horn program, got Unsupported({k:?})"
+                )
+            }
+        };
+        assert_eq!(
+            native_ans.status,
+            BudgetStatus::Ok,
+            "native run must be complete"
+        );
+        let mut native_pairs = answer_to_pairs(&native_ans, subject, object);
+        add_reflexive(&mut native_pairs, reflexive, subject, object, edges);
+
+        // Scryer comparand — self-tabled over the program's cyclic IDB predicates so the
+        // recursive fragment terminates, mirroring the production dispatch fallback.
+        let table_preds = crate::dispatch::cyclic_predicates(&program);
+        let scryer_ans = crate::scryer_engine::run_scryer(
+            &foreign,
+            LOWER_WORLD,
+            &program,
+            &table_preds,
+            &Budget::default(),
+        )
+        .expect("scryer resolve");
+        assert_eq!(
+            scryer_ans.status,
+            BudgetStatus::Ok,
+            "scryer run must be complete"
+        );
+        let mut scryer_pairs = answer_to_pairs(&scryer_ans, subject, object);
+        add_reflexive(&mut scryer_pairs, reflexive, subject, object, edges);
+
+        (native_pairs, scryer_pairs)
+    }
+
+    #[test]
+    fn scryer_parity_native_lowered_matches_scryer_over_operator_corpus() {
+        // Acyclic chain a -> b -> c -> d and a cyclic graph a -> b -> c -> a. Every
+        // lowerable operator is resolved on BOTH graphs (the cyclic one exercises the
+        // recursive `+`/`*`/`{n,}` fixpoint under tabling).
+        let acyclic = [
+            edge("a", "p", "b"),
+            edge("b", "p", "c"),
+            edge("c", "p", "d"),
+            edge("a", "q", "m"),
+            edge("m", "r", "z"),
+        ];
+        // The cyclic graph carries the p-cycle plus q/r edges so every predicate the
+        // corpus references exists in the snapshot: the native engine treats an absent
+        // EDB predicate as the empty relation, but Scryer raises an existence error on a
+        // rule body atom whose procedure has zero facts, so a well-defined comparison
+        // requires each referenced predicate to be present in both graphs.
+        let cyclic = [
+            edge("a", "p", "b"),
+            edge("b", "p", "c"),
+            edge("c", "p", "a"),
+            edge("a", "q", "c"),
+            edge("c", "r", "b"),
+        ];
+
+        // The full lowerable-operator corpus, each labelled for a precise failure message.
+        let corpus: Vec<(&str, PropertyPathExpression)> = vec![
+            ("NamedNode", named("p")),
+            (
+                "Reverse",
+                PropertyPathExpression::Reverse(Box::new(named("p"))),
+            ),
+            (
+                "Sequence",
+                PropertyPathExpression::Sequence(Box::new(named("q")), Box::new(named("r"))),
+            ),
+            (
+                "Alternative",
+                PropertyPathExpression::Alternative(Box::new(named("p")), Box::new(named("q"))),
+            ),
+            (
+                "ZeroOrOne",
+                PropertyPathExpression::ZeroOrOne(Box::new(named("p"))),
+            ),
+            (
+                "ZeroOrMore",
+                PropertyPathExpression::ZeroOrMore(Box::new(named("p"))),
+            ),
+            (
+                "OneOrMore",
+                PropertyPathExpression::OneOrMore(Box::new(named("p"))),
+            ),
+            (
+                "Range{2,2}",
+                PropertyPathExpression::Range {
+                    inner: Box::new(named("p")),
+                    min: 2,
+                    max: Some(2),
+                },
+            ),
+            (
+                "Range{0,2}",
+                PropertyPathExpression::Range {
+                    inner: Box::new(named("p")),
+                    min: 0,
+                    max: Some(2),
+                },
+            ),
+            (
+                "Range{2,None}",
+                PropertyPathExpression::Range {
+                    inner: Box::new(named("p")),
+                    min: 2,
+                    max: None,
+                },
+            ),
+        ];
+
+        // For each operator, over each graph, in each of three endpoint modes
+        // (subject-bound, object-bound-reverse, both-variable) the native answer set
+        // must equal Scryer's.
+        for (label, path) in &corpus {
+            for (graph_name, edges) in [("acyclic", &acyclic[..]), ("cyclic", &cyclic[..])] {
+                let modes: [(&str, PathEnd, PathEnd); 3] = [
+                    ("subj-bound", PathEnd::Iri(iri("a")), PathEnd::Variable),
+                    ("obj-bound", PathEnd::Variable, PathEnd::Iri(iri("a"))),
+                    ("both-var", PathEnd::Variable, PathEnd::Variable),
+                ];
+                for (mode, subject, object) in &modes {
+                    let (native, scryer) = native_and_scryer_pairs(edges, path, subject, object);
+                    assert_eq!(
+                        native, scryer,
+                        "native-lowered ≢ Scryer for operator {label} on {graph_name} graph \
+                         ({mode}): native={native:?} scryer={scryer:?}"
+                    );
+                }
+            }
+        }
     }
 }
