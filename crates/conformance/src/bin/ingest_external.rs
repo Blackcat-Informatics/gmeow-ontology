@@ -2568,11 +2568,16 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             nq.contains("reason.divergence.dl-gap"),
             "format-gap ontology must surface as a dl-gap Finding: {nq:?}"
         );
-        // Exactly one Finding (the DlGap); the consistent ontology agrees → no row.
+        // Two Findings: the DlGap plus the consistent ontology's agreement, which now
+        // folds as a NON-blocking corroboration finding rather than being dropped.
         let finding_count = nq.lines().filter(|l| l.contains("/Finding>")).count();
         assert_eq!(
-            finding_count, 1,
-            "exactly one dl-gap Finding expected (consistent ontology emits none): {nq:?}"
+            finding_count, 2,
+            "expected a dl-gap Finding + the consistent ontology's corroboration Finding: {nq:?}"
+        );
+        assert!(
+            nq.contains("reason.divergence.agreement"),
+            "the consistent ontology folds as a corroboration Finding: {nq:?}"
         );
         assert!(
             !nq.contains("reason.divergence.corpus-only"),
@@ -2762,9 +2767,9 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     }
 
     /// `grade_ontouml_corpus` over a synthetic catalog: one clean model (fires
-    /// nothing → `clean` → Agree, no Finding) and one FreeRole anti-pattern model
-    /// (fires `FreeRole` → native != published `"clean"` → CorpusOnly Finding). The
-    /// FreeRole divergence must surface as a `corpus-only` Finding.
+    /// nothing → `clean` → Agree → non-blocking corroboration Finding) and one FreeRole
+    /// anti-pattern model (fires `FreeRole` → native != published `"clean"` → CorpusOnly
+    /// Finding). The FreeRole divergence must surface as a `corpus-only` Finding.
     #[test]
     fn grade_ontouml_surfaces_fired_discipline_as_corpus_only() {
         let base = std::env::temp_dir().join(format!("gmeow-ontouml-grade-{}", std::process::id()));
@@ -2799,11 +2804,16 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             nq.contains("reason.divergence.corpus-only"),
             "fired FreeRole must surface as a corpus-only Finding: {nq}"
         );
-        // Exactly one Finding (the clean model agrees → no row).
+        // Two Findings: the corpus-only FreeRole divergence plus the clean model's
+        // agreement, which now folds as a NON-blocking corroboration Finding.
         let finding_count = nq.lines().filter(|l| l.contains("/Finding>")).count();
         assert_eq!(
-            finding_count, 1,
-            "exactly one corpus-only Finding expected: {nq}"
+            finding_count, 2,
+            "expected a corpus-only Finding + the clean model's corroboration Finding: {nq}"
+        );
+        assert!(
+            nq.contains("reason.divergence.agreement"),
+            "the clean model folds as a corroboration Finding: {nq}"
         );
 
         let _ = std::fs::remove_dir_all(&base);
