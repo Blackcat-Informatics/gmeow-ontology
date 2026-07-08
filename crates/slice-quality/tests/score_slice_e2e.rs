@@ -41,6 +41,26 @@ fn scores_the_rubric_slice_across_all_ten_axes() {
 }
 
 #[test]
+fn scoring_is_deterministic() {
+    // Same slice + same rubric → byte-identical report. Determinism is a hard
+    // requirement: the tool is a gate input and a golden source.
+    let root = repo_root();
+    let dir = root.join("slices/core/slice-quality-rubric");
+    let a = score_slice(&root, &dir).unwrap();
+    let b = score_slice(&root, &dir).unwrap();
+    assert_eq!(
+        a.render_text(),
+        b.render_text(),
+        "text render is deterministic"
+    );
+    assert_eq!(
+        gmeow_errors::render::to_json(&a.to_report()).unwrap(),
+        gmeow_errors::render::to_json(&b.to_report()).unwrap(),
+        "JSON render is deterministic"
+    );
+}
+
+#[test]
 fn scores_the_logic_slice_green_vs_advisory() {
     // The SLICE_QA baseline: the logic slice scores without error and produces a
     // per-axis grade vector; findings are advisory (the report never gates).
