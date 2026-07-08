@@ -497,6 +497,7 @@
 &lt;https://blackcatinformatics.ca/logic/corrSzsToVerdict&gt; &lt;https://blackcatinformatics.ca/logic/hasDeterminacy&gt; &lt;https://blackcatinformatics.ca/logic/Crisp&gt; .
 &lt;https://blackcatinformatics.ca/logic/corrSzsToVerdict&gt; &lt;https://blackcatinformatics.ca/logic/morphismClass&gt; &lt;https://blackcatinformatics.ca/logic/LossyLens&gt; .
 &lt;https://blackcatinformatics.ca/logic/corrSzsToVerdict&gt; &lt;https://blackcatinformatics.ca/logic/morphismKind&gt; &lt;https://blackcatinformatics.ca/logic/InstitutionMorphism&gt; .
+&lt;https://blackcatinformatics.ca/logic/corrSzsToVerdict&gt; &lt;https://blackcatinformatics.ca/logic/preservationKind&gt; &lt;https://blackcatinformatics.ca/logic/SoundUnderApproximation&gt; .
 &lt;https://blackcatinformatics.ca/logic/correspondence-program&gt; &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt; &lt;https://blackcatinformatics.ca/logic/CorrespondenceProgram&gt; .
 &lt;https://blackcatinformatics.ca/logic/correspondence-program&gt; &lt;https://blackcatinformatics.ca/logic/hasCorrespondence&gt; &lt;https://blackcatinformatics.ca/logic/corrSzsToVerdict&gt; .
 &lt;https://blackcatinformatics.ca/logic/correspondence-program&gt; &lt;https://blackcatinformatics.ca/logic/hasPreservation&gt; &lt;https://blackcatinformatics.ca/logic/ExactPreservation&gt; .

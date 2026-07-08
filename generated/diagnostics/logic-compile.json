@@ -4,6 +4,36 @@
     {
       "severity": "note",
       "code": "preservation.rung.actual",
+      "message": "correspondence: https://blackcatinformatics.ca/logic/corrSzsToVerdict",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/4720e69ae66fffcd65f5a26e18fe0ae9"
+        }
+      ],
+      "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/98a15f15fb5f4074bcc4d7be77b56857",
+      "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/713f9eb522d0a84941a560ccfc9ce338",
+      "anchor_non_trivial": true,
+      "antecedents": [
+        "https://blackcatinformatics.ca/gmeow/diagnostics/finding/4720e69ae66fffcd65f5a26e18fe0ae9"
+      ],
+      "root_cause": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/4720e69ae66fffcd65f5a26e18fe0ae9",
+      "cluster": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/4720e69ae66fffcd65f5a26e18fe0ae9",
+      "tags": [
+        "preservation:SoundUnderApproximation"
+      ],
+      "detail": "logic:SzsContradictoryAxioms and logic:SzsUnsatisfiable collapse to logic:ConfInconsistent; the CAX≠UNS distinction survives only via logic:rawStatusToken\nlogic:SzsCounterSatisfiable and logic:SzsSatisfiable collapse to logic:ConfConsistent; the CSA≠SAT distinction survives only via logic:rawStatusToken",
+      "category": "projection-loss",
+      "standpoint": "perspectival"
+    },
+    {
+      "severity": "note",
+      "code": "preservation.rung.actual",
       "message": "ground axiom <https://blackcatinformatics.ca/logic/ActionSchema> <https://blackcatinformatics.ca/logic/instantiatesFramework> <https://blackcatinformatics.ca/logic/TeleologicalFramework> is an asserted fact (not a class/property subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried in the canonical RDF-1.2 layer",
       "tool": "logic-compile",
       "locations": [
@@ -258,6 +288,25 @@
         "preservation:ValidationOnly"
       ],
       "detail": "terminology binding on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/termBinding to SNOMED-CT (4 code(s)) has no faithful SHACL Core form; carried in the canonical logic: layer\nsh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): .*\nsh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.device(-[a-zA-Z0-9_]+)*\\.v1\nsh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.level_of_exertion(-[a-zA-Z0-9_]+)*\\.v1\nsh:pattern on https://blackcatinformatics.ca/gmeow/openehr/bloodpressure/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): openEHR-EHR-CLUSTER\\.anatomical_location(-[a-zA-Z0-9_]+)*\\.v1\ndatetime validity pattern (yyyy-mm-ddTHH:MM:SS) on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value is a format template, not an XPath regex; it has no faithful SHACL/ShEx form (emitting it as sh:pattern would reject every valid datetime), so its meaning is carried in the canonical logic: layer\nordinal set on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/value projects only its coded symbols (sh:in); the ordinal integer values (1, 2, 3) and their ordering have no SHACL/ShEx form and are carried in the canonical logic: layer\nsh:pattern on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): issuerA\nsh:pattern on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): typeB\nsh:pattern on https://blackcatinformatics.ca/gmeow/openehr/testdatatypes/text carries regex-dialect residue (SHACL uses the XPath regular-expression flavour; the source dialect may differ): assignerC",
+      "category": "projection-loss",
+      "standpoint": "perspectival"
+    },
+    {
+      "severity": "note",
+      "code": "preservation.rung.structural",
+      "message": "a lossy correspondence's get leg is many-to-one (non-injective): the coarse view cannot recover the source distinctions its finer domain drew, so the lowering is a sound under-approximation, never exact — the dropped source distinctions survive only in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/4720e69ae66fffcd65f5a26e18fe0ae9",
+      "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/713f9eb522d0a84941a560ccfc9ce338",
+      "anchor_non_trivial": true,
+      "tags": [
+        "preservation:SoundUnderApproximation"
+      ],
       "category": "projection-loss",
       "standpoint": "perspectival"
     },

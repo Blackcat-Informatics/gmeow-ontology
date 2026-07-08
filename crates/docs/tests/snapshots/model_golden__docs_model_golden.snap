@@ -1,18 +1,19 @@
 ---
 source: crates/docs/tests/model_golden.rs
+assertion_line: 187
 expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
   "version": "7",
   "slice_count": 80,
-  "term_count": 2481,
+  "term_count": 2498,
   "dependency_edge_count": 994,
   "term_count_by_category": {
-    "Class": 739,
+    "Class": 742,
     "Datatype": 1,
-    "Individual": 29,
-    "Property": 1712
+    "Individual": 32,
+    "Property": 1723
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -260,12 +261,12 @@ expression: summary
       ]
     },
     {
-      "iri": "https://blackcatinformatics.ca/gmeow/gmnCodebookCurrent",
-      "curie": "gmeow:gmnCodebookCurrent",
-      "label": "GMN codebook (current)",
-      "definition": "The current GMN codebook: the coding-theoretic frame of the dialect, linking the GMN script and the ten record-initial sigil roles (through gmeow:references), pinning the alias-table and glyph-table versions, and declaring the expected rate of the code through gmeow:gmnDeclaredRate. A reader that holds this codebook holds everything needed to decode a conforming GMN document.",
+      "iri": "https://blackcatinformatics.ca/gmeow/VerdictEquivalent",
+      "curie": "gmeow:VerdictEquivalent",
+      "label": "Verdict Equivalent",
+      "definition": "The gmeow:VerdictLatticeRelation for a native verdict that coincides with the published one: native ≡ published in the logic:ConformanceVerdict lattice. The reified image of the Agree DivergenceKind — the qualitative outcome a corroborating conformance comparison carries, folded as a non-blocking logic:FindingCorroboration rather than dropped.",
       "category": "Individual",
-      "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/lang",
+      "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/diagnostics",
       "parents": [],
       "domain": [],
       "range": [],
@@ -286,28 +287,19 @@ expression: summary
       "formalized_by": [],
       "stability": "stable",
       "added_in_version": "0.1.0",
-      "changelog": [
-        {
-          "version": "0.1.0",
-          "note": "Definition changed"
-        }
-      ],
-      "content_digest": "blake3:70335bec6880e31a144890512286f31c17f082c55554c4a0423eef0f089a6d4e",
+      "changelog": [],
+      "content_digest": "blake3:d555d0a0896396726c7c86786c0a2fdac89909a2f8f2111ff2a8ec67ca44a8b7",
       "profiles": [
         "claims",
-        "dreaming",
-        "full",
-        "memory",
-        "music",
-        "narrative"
+        "full"
       ]
     }
   ],
-  "mapping_set_count": 80,
-  "linkage_count": 1986,
+  "mapping_set_count": 81,
+  "linkage_count": 1990,
   "example_count": 142,
   "concern_count": 7,
-  "external_term_count": 1726,
+  "external_term_count": 1730,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",

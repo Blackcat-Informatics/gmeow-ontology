@@ -16,6 +16,34 @@
             {
               "logicalLocations": [
                 {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/4720e69ae66fffcd65f5a26e18fe0ae9"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "correspondence: https://blackcatinformatics.ca/logic/corrSzsToVerdict"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "dfc3cbd04be711ca"
+          },
+          "properties": {
+            "detail": "logic:SzsContradictoryAxioms and logic:SzsUnsatisfiable collapse to logic:ConfInconsistent; the CAX≠UNS distinction survives only via logic:rawStatusToken\nlogic:SzsCounterSatisfiable and logic:SzsSatisfiable collapse to logic:ConfConsistent; the CSA≠SAT distinction survives only via logic:rawStatusToken",
+            "gmeow.category": "projection-loss"
+          },
+          "ruleId": "preservation.rung.actual"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
                   "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/1cbb9de1c410230d68b8f6c8a0491181"
                 }
               ],
@@ -256,6 +284,28 @@
             "gmeow.category": "projection-loss"
           },
           "ruleId": "preservation.rung.actual"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "a lossy correspondence's get leg is many-to-one (non-injective): the coarse view cannot recover the source distinctions its finer domain drew, so the lowering is a sound under-approximation, never exact — the dropped source distinctions survive only in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "f99deef57cce979a"
+          },
+          "properties": {
+            "gmeow.category": "projection-loss"
+          },
+          "ruleId": "preservation.rung.structural"
         },
         {
           "level": "note",

@@ -117,6 +117,16 @@
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ExactPreservation .
 
+<https://blackcatinformatics.ca/logic/target/correspondence:693dca551ec34fc1>
+    a logic:ProjectionTarget ;
+    rdfs:label "correspondence:693dca551ec34fc1" ;
+    gmeow:lossyDrop "a lossy correspondence's get leg is many-to-one (non-injective): the coarse view cannot recover the source distinctions its finer domain drew, so the lowering is a sound under-approximation, never exact — the dropped source distinctions survive only in the canonical logic: layer" ,
+        "actual: correspondence: https://blackcatinformatics.ca/logic/corrSzsToVerdict" ,
+        "actual: logic:SzsContradictoryAxioms and logic:SzsUnsatisfiable collapse to logic:ConfInconsistent; the CAX≠UNS distinction survives only via logic:rawStatusToken" ,
+        "actual: logic:SzsCounterSatisfiable and logic:SzsSatisfiable collapse to logic:ConfConsistent; the CSA≠SAT distinction survives only via logic:rawStatusToken" ;
+    logic:complexityClass "decidable/graph-iso lens-law check" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/datalog>
     a logic:ProjectionTarget ;
     rdfs:label "datalog" ;
@@ -38316,6 +38326,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/clif> ,
         <https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentCatsChaseMice> ,
         <https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentSawHerDuck> ,
+        <https://blackcatinformatics.ca/logic/target/correspondence:693dca551ec34fc1> ,
         <https://blackcatinformatics.ca/logic/target/datalog> ,
         <https://blackcatinformatics.ca/logic/target/ebnf:gmn> ,
         <https://blackcatinformatics.ca/logic/target/ebnf:gts> ,

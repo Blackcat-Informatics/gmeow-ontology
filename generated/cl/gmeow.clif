@@ -1172,6 +1172,7 @@
 ('https://blackcatinformatics.ca/logic/precondition' 'https://blackcatinformatics.ca/logic/wfConstructModel' 'https://blackcatinformatics.ca/logic/wfWorldSeeded')
 ('https://blackcatinformatics.ca/logic/precondition' 'https://blackcatinformatics.ca/logic/wfMaterializeEdb' 'https://blackcatinformatics.ca/logic/wfWorldSeeded')
 ('https://blackcatinformatics.ca/logic/precondition' 'https://blackcatinformatics.ca/logic/wfResolveFixpoint' 'https://blackcatinformatics.ca/logic/wfWorldSeeded')
+('https://blackcatinformatics.ca/logic/preservationKind' 'https://blackcatinformatics.ca/logic/corrSzsToVerdict' 'https://blackcatinformatics.ca/logic/SoundUnderApproximation')
 ('https://blackcatinformatics.ca/logic/projectsLadderEdge' 'https://blackcatinformatics.ca/logic/ladderRowAwareness' 'https://blackcatinformatics.ca/gmeow/isAwareOf')
 ('https://blackcatinformatics.ca/logic/projectsLadderEdge' 'https://blackcatinformatics.ca/logic/ladderRowConceptual' 'https://blackcatinformatics.ca/gmeow/understands')
 ('https://blackcatinformatics.ca/logic/projectsLadderEdge' 'https://blackcatinformatics.ca/logic/ladderRowDeclarative' 'https://blackcatinformatics.ca/gmeow/knowsAbout')
