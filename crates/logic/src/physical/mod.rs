@@ -16,6 +16,7 @@
 //! that would be unwound the next rung.
 #![allow(dead_code)]
 
+mod binding_pattern;
 mod builtin_eval;
 mod chase;
 mod generic;
@@ -23,6 +24,12 @@ mod magic;
 mod parity;
 mod seminaive;
 mod store;
+
+// The arity-generic binding-pattern adornment lattice: the shared demand/query-plan
+// adornment consumed by both the backward magic-sets keying (`magic`) and the forward
+// generic evaluator's index selection (`generic`).
+#[allow(unused_imports)]
+pub(crate) use binding_pattern::BindingPattern;
 
 // The arity-generic positive-Datalog forward evaluator: the predicate-as-data n-ary
 // core the OWL 2 RL/RDF meta-rules need (variable property position). Consumed by

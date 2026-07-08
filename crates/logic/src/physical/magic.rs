@@ -58,6 +58,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::TermValue;
 
+use crate::physical::binding_pattern::BindingPattern;
 use crate::physical::seminaive::{NativeOutcome, UnsupportedKind, evaluate};
 use crate::physical::store::{RelationStore, extract_edb};
 use crate::profile_gate;
@@ -69,32 +70,12 @@ use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact};
 use crate::seam::{BudgetStatus, ScryerForeign};
 
 // ── Adornment ────────────────────────────────────────────────────────────────────
-
-/// A two-position adornment over `{b, f}` for a binary atom: `b` = bound, `f` = free.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct Adorn {
-    /// Subject position bound?
-    subj_bound: bool,
-    /// Object position bound?
-    obj_bound: bool,
-}
-
-impl Adorn {
-    /// The two-char adornment string (`"bb"`, `"bf"`, `"fb"`, `"ff"`).
-    fn code(self) -> &'static str {
-        match (self.subj_bound, self.obj_bound) {
-            (true, true) => "bb",
-            (true, false) => "bf",
-            (false, true) => "fb",
-            (false, false) => "ff",
-        }
-    }
-
-    /// `true` if neither position is bound (no demand restriction — `ff`).
-    fn is_free(self) -> bool {
-        !self.subj_bound && !self.obj_bound
-    }
-}
+//
+// The adornment lattice is the arity-generic [`BindingPattern`] (a bitset over
+// argument positions), shared with the forward generic evaluator. Its `code()` is the
+// per-position `{b, f}` string; at arity 2 it is exactly the legacy `"bb"`/`"bf"`/
+// `"fb"`/`"ff"` an `Adorn{subj_bound, obj_bound}` produced, so the minted magic
+// predicate IRIs are byte-identical (the binary parity gate).
 
 // ── IR conversion (QProgram → EvalRule, binary fragment) ──────────────────────────
 
@@ -197,19 +178,39 @@ fn magic_pred_iri(pred: &str, adorn: &str) -> String {
 
 /// Build a magic *guard* atom (a body literal) for an adorned IDB atom.
 ///
-/// `bb` carries `(subject, object)`; `bf`/`fb` carry the single bound term as a self-loop
-/// `magic(v, v)`.  `ff` has no guard (returns `None`).
-fn magic_guard_atom(atom: &EvalAtom, adorn: Adorn) -> Option<EvalAtom> {
-    if adorn.is_free() {
+/// The general model of a magic guard is *the bound sub-tuple*: the guard atom carries
+/// exactly the values at `atom`'s bound positions, keyed on the pattern's `code()`.
+/// The engine's [`RelationStore`] is binary, so that bound sub-tuple is packed into the
+/// binary `magic(subject, object)` carrier:
+///
+/// - all-free (`ff`) → NO guard (`None`): the predicate is demanded unrestricted.
+/// - both bound (`bb`) → `magic(subject, object)` — the two-value bound sub-tuple.
+/// - exactly one bound (`bf`/`fb`) → a self-loop `magic(v, v)` carrying the single
+///   bound value `v` in both slots.
+///
+/// This is the arity-2 specialization of the bound-sub-tuple encoding. `atom` is an
+/// [`EvalAtom`], which is structurally binary (subject/predicate/object), so `pattern`
+/// is always arity-2 here — `resolve_native` rejects any non-binary atom before the
+/// transform runs, and no arity != 2 pattern can reach this path. The assertion pins
+/// that invariant; the arity>2 bound-sub-tuple carrier is unreachable until the generic
+/// n-ary evaluator supplies a non-binary store (a later rung), so it is not emitted.
+fn magic_guard_atom(atom: &EvalAtom, pattern: BindingPattern) -> Option<EvalAtom> {
+    assert_eq!(
+        pattern.arity(),
+        2,
+        "magic_guard_atom encodes over the binary RelationStore; EvalAtom is binary so \
+         its adornment is arity-2 (non-binary atoms are rejected before the transform)"
+    );
+    if pattern.is_all_free() {
         return None;
     }
-    let pred = magic_pred_iri(atom.predicate.as_str(), adorn.code());
-    let (subject, object) = match (adorn.subj_bound, adorn.obj_bound) {
+    let pred = magic_pred_iri(atom.predicate.as_str(), &pattern.code());
+    let (subject, object) = match (pattern.is_bound(0), pattern.is_bound(1)) {
         (true, true) => (atom.subject.clone(), atom.object.clone()),
         // self-loop: carry the single bound term in both slots.
         (true, false) => (atom.subject.clone(), atom.subject.clone()),
         (false, true) => (atom.object.clone(), atom.object.clone()),
-        (false, false) => unreachable!("ff handled above"),
+        (false, false) => unreachable!("all-free handled above"),
     };
     Some(EvalAtom {
         subject,
@@ -221,10 +222,10 @@ fn magic_guard_atom(atom: &EvalAtom, adorn: Adorn) -> Option<EvalAtom> {
 
 /// Build a magic *seed* fact atom carrying the goal's bound constants for `goal_atom`.
 ///
-/// Same binary encoding as [`magic_guard_atom`]; returns `None` for an `ff` goal (no seed
-/// — the predicate is demanded unrestricted).
-fn magic_seed_atom(goal_atom: &EvalAtom, adorn: Adorn) -> Option<EvalAtom> {
-    magic_guard_atom(goal_atom, adorn)
+/// Same binary encoding as [`magic_guard_atom`]; returns `None` for an all-free (`ff`)
+/// goal (no seed — the predicate is demanded unrestricted).
+fn magic_seed_atom(goal_atom: &EvalAtom, pattern: BindingPattern) -> Option<EvalAtom> {
+    magic_guard_atom(goal_atom, pattern)
 }
 
 // ── SIPS adornment of an IDB body atom ────────────────────────────────────────────
@@ -239,15 +240,12 @@ fn var_name(t: &EvalTerm) -> Option<&str> {
 
 /// Adorn a body atom under a left-to-right SIPS, given the set of currently-bound
 /// variable names: a position is bound iff it is a constant or a bound variable.
-fn adorn_atom(atom: &EvalAtom, bound: &BTreeSet<String>) -> Adorn {
+fn adorn_atom(atom: &EvalAtom, bound: &BTreeSet<String>) -> BindingPattern {
     let pos_bound = |t: &EvalTerm| match var_name(t) {
         Some(v) => bound.contains(v),
         None => true, // a constant is always bound
     };
-    Adorn {
-        subj_bound: pos_bound(&atom.subject),
-        obj_bound: pos_bound(&atom.object),
-    }
+    BindingPattern::from_bools([pos_bound(&atom.subject), pos_bound(&atom.object)])
 }
 
 /// Add an atom's variable names to the bound set (used to thread SIPS bindings).
@@ -261,14 +259,14 @@ fn bind_atom_vars(atom: &EvalAtom, bound: &mut BTreeSet<String>) {
 }
 
 /// The bound-variable set induced by the head's adornment (the head-bound arguments).
-fn head_bound_vars(head: &EvalAtom, adorn: Adorn) -> BTreeSet<String> {
+fn head_bound_vars(head: &EvalAtom, pattern: BindingPattern) -> BTreeSet<String> {
     let mut bound = BTreeSet::new();
-    if adorn.subj_bound
+    if pattern.is_bound(0)
         && let Some(v) = var_name(&head.subject)
     {
         bound.insert(v.to_owned());
     }
-    if adorn.obj_bound
+    if pattern.is_bound(1)
         && let Some(v) = var_name(&head.object)
     {
         bound.insert(v.to_owned());
@@ -311,7 +309,11 @@ struct MagicProgram {
 /// seed fact.  The IDB predicate set is the set of original rule-head predicates; only IDB
 /// body atoms are adorned/guarded (an EDB body atom propagates SIPS bindings but carries
 /// no magic).
-fn magic_transform(rules: &[EvalRule], goal: &EvalAtom, goal_adorn: Adorn) -> MagicProgram {
+fn magic_transform(
+    rules: &[EvalRule],
+    goal: &EvalAtom,
+    goal_adorn: BindingPattern,
+) -> MagicProgram {
     let idb: BTreeSet<String> = rules
         .iter()
         .map(|r| r.head.predicate.as_str().to_owned())
@@ -330,12 +332,13 @@ fn magic_transform(rules: &[EvalRule], goal: &EvalAtom, goal_adorn: Adorn) -> Ma
     // atom, its adornment is computed by the SIPS at that occurrence.  We compute the set
     // of (head_pred, adornment) demands by a fixpoint over the magic rules so every
     // reachable adorned IDB predicate gets its modified + magic rules.
-    let mut demands: BTreeSet<(String, &'static str)> = BTreeSet::new();
+    let mut demands: BTreeSet<(String, String)> = BTreeSet::new();
     demands.insert((goal.predicate.as_str().to_owned(), goal_adorn.code()));
 
     // Fixpoint: expanding a demand (pred, adorn) over every rule whose head is `pred`
     // discovers the adorned IDB body atoms it demands.
-    let mut frontier: Vec<(String, Adorn)> = vec![(goal.predicate.as_str().to_owned(), goal_adorn)];
+    let mut frontier: Vec<(String, BindingPattern)> =
+        vec![(goal.predicate.as_str().to_owned(), goal_adorn)];
 
     while let Some((head_pred, head_adorn)) = frontier.pop() {
         for r in rules
@@ -362,7 +365,7 @@ fn magic_transform(rules: &[EvalRule], goal: &EvalAtom, goal_adorn: Adorn) -> Ma
 
     // (2) Modified rules + (3) magic rules, for every demanded (head_pred, adorn).
     for (head_pred, adorn_code) in &demands {
-        let head_adorn = adorn_from_code(adorn_code);
+        let head_adorn = BindingPattern::from_code(adorn_code);
         for (ri, r) in rules
             .iter()
             .enumerate()
@@ -440,24 +443,12 @@ fn seed_to_fact(seed: &EvalAtom) -> Result<crate::rule_ir::Fact, String> {
     })
 }
 
-/// Reconstruct an [`Adorn`] from its two-char code (`"bb"`, `"bf"`, `"fb"`, `"ff"`).
-fn adorn_from_code(code: &str) -> Adorn {
-    let bytes = code.as_bytes();
-    Adorn {
-        subj_bound: bytes[0] == b'b',
-        obj_bound: bytes[1] == b'b',
-    }
-}
-
 // ── Backward entry: resolve_native ────────────────────────────────────────────────
 
 /// Compute the goal atom's adornment from its `(subject, object)` terms.
-fn goal_adornment(goal: &QAtom) -> Adorn {
+fn goal_adornment(goal: &QAtom) -> BindingPattern {
     let bound = |t: &QTerm| matches!(t, QTerm::Const(_) | QTerm::Num(_));
-    Adorn {
-        subj_bound: bound(&goal.args[0]),
-        obj_bound: bound(&goal.args[1]),
-    }
+    BindingPattern::from_bools([bound(&goal.args[0]), bound(&goal.args[1])])
 }
 
 /// Project the goal predicate's derived tuples into [`AnswerSet`] bindings, exactly as
