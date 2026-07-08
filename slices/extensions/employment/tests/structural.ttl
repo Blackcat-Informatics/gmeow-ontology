@@ -31,7 +31,7 @@ ASK {
     gmeow:Employment a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:Membership .
 }""" ;
-    gmeow:saRationale "gmeow:Employment MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:Membership. Replaces the local half of the former whole-graph employment grounding pytest check." .
+    gmeow:saRationale "gmeow:Employment MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:Membership. Replaces the local half of the former whole-graph employment grounding check." .
 
 # --- 1. EmploymentType is an AbstractIndividualType value vocabulary (MUST) ---
 ex:saEmploymentTypeIsValueVocab a gmeow:StructuralAssertion ;
@@ -45,7 +45,7 @@ ASK {
     gmeow:EmploymentType a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:EmploymentType MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — employment kind is a value vocabulary of individuals, never a subclass taxonomy (Principle 9). Mirrors test_employment_type_is_value_not_subclass (positive class half)." .
+    gmeow:saRationale "gmeow:EmploymentType MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — employment kind is a value vocabulary of individuals, never a subclass taxonomy (Principle 9)." .
 
 # --- 2. Core EmploymentType seed individuals exist (MUST) ---------------------
 ex:saEmploymentTypeSeedsExist a gmeow:StructuralAssertion ;
@@ -58,7 +58,7 @@ ASK {
     gmeow:employmentTypeContract a gmeow:EmploymentType .
     gmeow:employmentTypeIntern   a gmeow:EmploymentType .
 }""" ;
-    gmeow:saRationale "The four core EmploymentType seed individuals (fullTime, partTime, contract, intern) MUST exist as gmeow:EmploymentType individuals — they are the minimum closed seed set (Principle 9). Mirrors test_employment_type_is_value_not_subclass (individual-existence half)." .
+    gmeow:saRationale "The four core EmploymentType seed individuals (fullTime, partTime, contract, intern) MUST exist as gmeow:EmploymentType individuals — they are the minimum closed seed set (Principle 9)." .
 
 # --- 3. No per-type Employment subclasses exist (MUST-NOT) -------------------
 ex:saNoPerTypeEmploymentSubclasses a gmeow:StructuralAssertion ;
@@ -70,7 +70,7 @@ ASK {
     VALUES ?rejected { gmeow:FullTimeEmployment gmeow:PartTimeEmployment gmeow:ContractEmployment }
     ?rejected a owl:Class .
 }""" ;
-    gmeow:saRationale "gmeow:FullTimeEmployment, gmeow:PartTimeEmployment, and gmeow:ContractEmployment MUST NOT be declared as owl:Class — per-type subclasses are banned; all employment kinds are open individuals of EmploymentType (Principle 9). Mirrors test_employment_type_is_value_not_subclass (rejected-subclass half)." .
+    gmeow:saRationale "gmeow:FullTimeEmployment, gmeow:PartTimeEmployment, and gmeow:ContractEmployment MUST NOT be declared as owl:Class — per-type subclasses are banned; all employment kinds are open individuals of EmploymentType (Principle 9)." .
 
 # --- 4. SeniorityLevel is an AbstractIndividualType value vocabulary (MUST) --
 ex:saSeniorityLevelIsValueVocab a gmeow:StructuralAssertion ;
@@ -84,7 +84,7 @@ ASK {
     gmeow:SeniorityLevel a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:SeniorityLevel MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — seniority rank is a value vocabulary of individuals, never an Employment subclass (Principle 9). Mirrors test_seniority_is_value_not_subclass (positive class half)." .
+    gmeow:saRationale "gmeow:SeniorityLevel MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — seniority rank is a value vocabulary of individuals, never an Employment subclass (Principle 9)." .
 
 # --- 5. SeniorityLevel seed individuals exist (MUST) -------------------------
 ex:saSeniorityLevelSeedsExist a gmeow:StructuralAssertion ;
@@ -98,4 +98,4 @@ ASK {
     gmeow:seniorityLead      a gmeow:SeniorityLevel .
     gmeow:seniorityExecutive a gmeow:SeniorityLevel .
 }""" ;
-    gmeow:saRationale "All five SeniorityLevel seed individuals (entry, mid, senior, lead, executive) MUST exist as gmeow:SeniorityLevel individuals. Mirrors test_seniority_is_value_not_subclass (individual-existence half)." .
+    gmeow:saRationale "All five SeniorityLevel seed individuals (entry, mid, senior, lead, executive) MUST exist as gmeow:SeniorityLevel individuals." .

@@ -20,7 +20,7 @@
 #    codec or term added without the required typing trips them.
 #  * saOpacityReasonExactClosedSet re-expresses the pytest's `== {3 reasons}`
 #    closed equality as a MUST-NOT `FILTER ?r NOT IN (the 3)`; faithful because
-#    the pytest itself fixed the set to exactly those three (NOT a dynamic
+#    the set was fixed upstream to exactly those three (NOT a dynamic
 #    universal weakened to a blacklist).
 #
 # TWO fns are native twins in crates/validate/tests/conformance_gts_slice.rs
@@ -51,7 +51,7 @@ ASK {
     gmeow:GTSCompaction rdfs:subClassOf gmeow:Activity .
     gmeow:OpaqueFrame   rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "GTS artifact classes MUST ground in the existing spine: gmeow:GTSDocument / gmeow:GTSSegment ⊑ gmeow:Manifestation, gmeow:GTSCompaction ⊑ gmeow:Activity, gmeow:OpaqueFrame ⊑ gmeow:InformationObject (the subClassOf triples are home-asserted in gts/module.ttl even though the parents live in other slices). Mirrors test_artifact_classes_ground_in_existing_spine." .
+    gmeow:saRationale "GTS artifact classes MUST ground in the existing spine: gmeow:GTSDocument / gmeow:GTSSegment ⊑ gmeow:Manifestation, gmeow:GTSCompaction ⊑ gmeow:Activity, gmeow:OpaqueFrame ⊑ gmeow:InformationObject (the subClassOf triples are home-asserted in gts/module.ttl even though the parents live in other slices)." .
 
 # --- 2. gtsHeadId is a version fingerprint (MUST) ----------------------------
 ex:saHeadIdIsVersionFingerprint a gmeow:StructuralAssertion ;
@@ -60,7 +60,7 @@ ex:saHeadIdIsVersionFingerprint a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:gtsHeadId rdfs:subPropertyOf gmeow:versionFingerprint . }""" ;
-    gmeow:saRationale "The chain head transitively commits to history — a fingerprint, not a byte digest: gmeow:gtsHeadId MUST be a subPropertyOf gmeow:versionFingerprint (the no-parallel-mechanisms seam). Mirrors test_head_id_is_a_version_fingerprint." .
+    gmeow:saRationale "The chain head transitively commits to history — a fingerprint, not a byte digest: gmeow:gtsHeadId MUST be a subPropertyOf gmeow:versionFingerprint (the no-parallel-mechanisms seam)." .
 
 # --- 3. Structure properties are part-of the spine (MUST) --------------------
 ex:saStructurePropertiesArePartOfSpine a gmeow:StructuralAssertion ;
@@ -72,7 +72,7 @@ ASK {
     gmeow:gtsSegmentOf rdfs:subPropertyOf gmeow:partOf .
     gmeow:opaqueFrameIn rdfs:subPropertyOf gmeow:partOf .
 }""" ;
-    gmeow:saRationale "Segment-of and frame-in walk as partOf so disclosure coarsening (P10 generalizesVia default) traverses transport containment: gmeow:gtsSegmentOf / gmeow:opaqueFrameIn MUST each be a subPropertyOf gmeow:partOf. Mirrors test_structure_properties_are_part_of_spine." .
+    gmeow:saRationale "Segment-of and frame-in walk as partOf so disclosure coarsening (P10 generalizesVia default) traverses transport containment: gmeow:gtsSegmentOf / gmeow:opaqueFrameIn MUST each be a subPropertyOf gmeow:partOf." .
 
 # --- 4. No parallel signature or digest mechanism (MUST-NOT) -----------------
 ex:saNoParallelSignatureOrDigest a gmeow:StructuralAssertion ;
@@ -83,7 +83,7 @@ ASK {
     VALUES ?t { gmeow:gtsSignature gmeow:gtsDigest gmeow:gtsContentDigest }
     { ?t ?p ?o . } UNION { ?s ?t ?o . } UNION { ?s ?p ?t . }
 }""" ;
-    gmeow:saRationale "The slice MUST reuse attestation/sources, never mint its own signature or byte-digest terms: none of gmeow:gtsSignature / gmeow:gtsDigest / gmeow:gtsContentDigest MUST appear in ANY triple position (a FIXED forbidden set, exactly as the pytest hardcodes). Mirrors test_no_parallel_signature_or_digest_mechanism." .
+    gmeow:saRationale "The slice MUST reuse attestation/sources, never mint its own signature or byte-digest terms: none of gmeow:gtsSignature / gmeow:gtsDigest / gmeow:gtsContentDigest MUST appear in ANY triple position (a FIXED forbidden set)." .
 
 # --- 5. Every codec carries a codecClass (MUST-NOT, DYNAMIC) -----------------
 ex:saEveryCodecCarriesACodecClass a gmeow:StructuralAssertion ;
@@ -94,7 +94,7 @@ ASK {
     ?c a gmeow:TransformCodec .
     FILTER NOT EXISTS { ?c gmeow:codecClass ?cc }
 }""" ;
-    gmeow:saRationale "Every gmeow:TransformCodec MUST carry a gmeow:codecClass — a DYNAMIC universal (FILTER NOT EXISTS over the type pattern, NOT a hand-listed codec set), so a future codec added without a class trips it. NOTE: scopeModule-narrowed vs the pytest's merged-graph scan — faithful for slice-owned codecs; other slices' codecs are out of the harness's reach BY CONSTRUCTION (the same accepted narrowing as the artifact-spine cell), not a scope bug. Mirrors test_every_codec_carries_a_codec_class." .
+    gmeow:saRationale "Every gmeow:TransformCodec MUST carry a gmeow:codecClass — a DYNAMIC universal (FILTER NOT EXISTS over the type pattern, NOT a hand-listed codec set), so a future codec added without a class trips it. NOTE: scopeModule-narrowed vs the merged-graph scan — faithful for slice-owned codecs; other slices' codecs are out of this module-scoped cell's reach BY CONSTRUCTION (the same accepted narrowing as the artifact-spine cell), not a scope bug." .
 
 # --- 6. Every slice term is class- or property-typed (MUST-NOT, DYNAMIC) ------
 ex:saSliceTermsAreClassOrPropertyTyped a gmeow:StructuralAssertion ;
@@ -115,7 +115,7 @@ ASK {
         FILTER( isIRI(?gtype) && STRSTARTS(STR(?gtype), "https://blackcatinformatics.ca/gmeow/") )
     }
 }""" ;
-    gmeow:saRationale "Every gmeow-namespaced subject in the module (except the slice ontology IRI) MUST be properly typed — either OWL-declared (owl:Class/ObjectProperty/DatatypeProperty/FunctionalProperty/Ontology) or a gmeow:-typed individual. A DYNAMIC sweep (FILTER NOT EXISTS over both typing patterns, mirroring the pytest's `allowed` set + individual escape), NOT a hand-listed term blacklist. Mirrors test_slice_terms_are_class_or_property_typed." .
+    gmeow:saRationale "Every gmeow-namespaced subject in the module (except the slice ontology IRI) MUST be properly typed — either OWL-declared (owl:Class/ObjectProperty/DatatypeProperty/FunctionalProperty/Ontology) or a gmeow:-typed individual. A DYNAMIC sweep (FILTER NOT EXISTS over both typing patterns, mirroring the `allowed` set + individual escape), NOT a hand-listed term blacklist." .
 
 # --- 7. Named value-vocabulary individuals are seeded (MUST) ------------------
 ex:saValueVocabNamedIndividualsSeeded a gmeow:StructuralAssertion ;
@@ -128,7 +128,7 @@ ASK {
     gmeow:gtsProfileAiPackage a gmeow:GTSProfile .
     gmeow:codecZstd           a gmeow:TransformCodec .
 }""" ;
-    gmeow:saRationale "Open value vocabularies (P9): the named individuals gmeow:gtsProfileDist / gmeow:gtsProfileEvidence / gmeow:gtsProfileAiPackage MUST be typed gmeow:GTSProfile and gmeow:codecZstd MUST be typed gmeow:TransformCodec. Mirrors the named-individual clauses of test_value_vocabularies_are_seeded (the >=7 / ==3 cardinality floors stay in pytest)." .
+    gmeow:saRationale "Open value vocabularies (P9): the named individuals gmeow:gtsProfileDist / gmeow:gtsProfileEvidence / gmeow:gtsProfileAiPackage MUST be typed gmeow:GTSProfile and gmeow:codecZstd MUST be typed gmeow:TransformCodec." .
 
 # --- 8. The three OpacityReason individuals are seeded (MUST) -----------------
 ex:saOpacityReasonIndividualsSeeded a gmeow:StructuralAssertion ;
@@ -140,7 +140,7 @@ ASK {
     gmeow:opacityMissingKey   a gmeow:OpacityReason .
     gmeow:opacityDamaged      a gmeow:OpacityReason .
 }""" ;
-    gmeow:saRationale "The three reality-monitoring opacity reasons MUST be individuals of gmeow:OpacityReason. Mirrors the OpacityReason existence clause of test_value_vocabularies_are_seeded." .
+    gmeow:saRationale "The three reality-monitoring opacity reasons MUST be individuals of gmeow:OpacityReason." .
 
 # --- 9. OpacityReason is an EXACT closed set of three (MUST-NOT) --------------
 ex:saOpacityReasonExactClosedSet a gmeow:StructuralAssertion ;
@@ -151,4 +151,4 @@ ASK {
     ?r a gmeow:OpacityReason .
     FILTER( ?r NOT IN ( gmeow:opacityUnknownCodec, gmeow:opacityMissingKey, gmeow:opacityDamaged ) )
 }""" ;
-    gmeow:saRationale "gmeow:OpacityReason is a CLOSED set of exactly three: NO gmeow:OpacityReason individual MUST exist outside {opacityUnknownCodec, opacityMissingKey, opacityDamaged}. This re-expresses the pytest's `== {3}` closed equality (NOT a Gap-1 weakening — the pytest itself fixed the set). Mirrors the OpacityReason exact-set clause of test_value_vocabularies_are_seeded." .
+    gmeow:saRationale "gmeow:OpacityReason is a CLOSED set of exactly three: NO gmeow:OpacityReason individual MUST exist outside {opacityUnknownCodec, opacityMissingKey, opacityDamaged}. This re-expresses the `== {3}` closed equality (NOT a Gap-1 weakening — the set was fixed upstream)." .
