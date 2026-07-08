@@ -14,6 +14,7 @@
 //! ([`lattice`]). This crate is bound by both the dev CLI and the pipeline MCP.
 
 pub mod axes;
+pub mod gate;
 pub mod graph;
 pub mod lattice;
 pub mod model;

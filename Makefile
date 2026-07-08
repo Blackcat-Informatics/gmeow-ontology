@@ -75,7 +75,7 @@ NATIVE_PY_INPUTS := pyproject.toml $(RUST_INPUTS)
 
 CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	crate-check audit wikidata coverage acceptance reason-verify reason-crosscheck \
-	mappings lint-alignment doc-lint coherence-gate-teeth
+	mappings lint-alignment doc-lint coherence-gate-teeth slice-quality-gate
 
 .PHONY: help \
 	install fmt lint lint-issue-refs \
@@ -84,7 +84,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
-	slicetest conformance conformance-report insta-review \
+	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
 	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report perf-gate \
 	maint-crosscheck maint-nemo-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
@@ -306,6 +306,12 @@ wikidata: ## Validate Wikidata QID/PID syntax in mappings, offline.
 
 coverage: ## Gate vendored entity-slice class and predicate coverage.
 	$(GMEOW_DEV) coverage --gaps --min-class 0.92 --min-predicate 0.85
+
+slice-quality: ## Score one slice against the slice-quality rubric (advisory). Usage: make slice-quality SLICE=slices/core/tags
+	$(GMEOW_DEV) slice-quality $(if $(strip $(SLICE)),$(SLICE),--all)
+
+slice-quality-gate: ## Enforce the opt-in slice-quality tier ratchet.
+	$(GMEOW_DEV) slice-quality-gate
 
 acceptance: ## Gate full transpile recall against external RDF snapshots.
 	$(GMEOW_DEV) acceptance $(if $(strip $(ACCEPTANCE_MIN_RECALL)),--min-recall $(ACCEPTANCE_MIN_RECALL),)

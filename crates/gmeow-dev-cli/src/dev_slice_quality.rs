@@ -116,6 +116,103 @@ fn sweep(root: &Path, format: Format) -> i32 {
     0
 }
 
+/// The committed ratchet-floor artifact: `<slice-iri>\t<tier-local>` per line.
+/// Absent slices have no floor (their first declaration sets it in review).
+const FLOOR_FILE: &str = "governance/slice-quality-floors.tsv";
+
+/// The `make check` opt-in tier ratchet gate.
+///
+/// For every slice that declares `gmeow:sliceQualityTier`: the measured roll-up
+/// must be ≥ the declared tier, and the declared tier must be ≥ the committed
+/// floor. Undeclared slices are advisory and never fail. Exit 1 on any failure.
+pub fn slice_quality_gate() -> i32 {
+    let root = project_root();
+    let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
+        Ok(r) => r,
+        Err(e) => return fail(format!("slice-quality-gate: {e}")),
+    };
+    // Floor ranks by slice IRI, resolved against the ladder.
+    let floors = load_floors(&root, &rubric);
+
+    let mut dirs = discover_slice_dirs(&root.join("slices"));
+    dirs.sort();
+    let mut failures = 0usize;
+    let mut checked = 0usize;
+    for dir in &dirs {
+        let declared = match gmeow_slice_quality::gate::declared_tier(dir, &rubric) {
+            Ok(d) => d,
+            Err(e) => return fail(format!("slice-quality-gate: {e}")),
+        };
+        let Some(declared) = declared else { continue }; // undeclared → advisory
+        checked += 1;
+        let report = match score_slice_with_rubric(dir, rubric.clone()) {
+            Ok(r) => r,
+            Err(e) => return fail(format!("slice-quality-gate: {}: {e}", dir.display())),
+        };
+        let measured_rank = report.assessment.rollup.rank;
+        let floor_rank = floors.get(&report.assessment.slice).copied();
+        let verdict = gmeow_slice_quality::gate::evaluate_ratchet(
+            Some(declared.rank),
+            measured_rank,
+            floor_rank,
+        );
+        use gmeow_slice_quality::gate::RatchetVerdict;
+        match verdict {
+            RatchetVerdict::Pass => {
+                println!(
+                    "ok   {} declared {} measured {}",
+                    report.assessment.slice, declared.label, report.assessment.rollup.label
+                );
+            }
+            RatchetVerdict::MeasuredBelowDeclared => {
+                eprintln!(
+                    "FAIL {} declared {} but measures {} — uplift the slice or lower is forbidden",
+                    report.assessment.slice, declared.label, report.assessment.rollup.label
+                );
+                failures += 1;
+            }
+            RatchetVerdict::DeclaredBelowFloor => {
+                eprintln!(
+                    "FAIL {} declares {} below its committed ratchet floor — the tier may only be raised",
+                    report.assessment.slice, declared.label
+                );
+                failures += 1;
+            }
+        }
+    }
+    if failures > 0 {
+        return fail(format!(
+            "slice-quality-gate: {failures} of {checked} opted-in slice(s) below their declared tier"
+        ));
+    }
+    println!("slice-quality-gate: {checked} opted-in slice(s) hold their declared tier");
+    0
+}
+
+/// Load the committed floor ranks keyed by slice IRI.
+fn load_floors(
+    root: &Path,
+    rubric: &gmeow_slice_quality::Rubric,
+) -> std::collections::HashMap<String, i64> {
+    let mut out = std::collections::HashMap::new();
+    let Ok(text) = std::fs::read_to_string(root.join(FLOOR_FILE)) else {
+        return out;
+    };
+    for line in text.lines() {
+        let line = line.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        if let Some((iri, tier_local)) = line.split_once('\t') {
+            let tier_iri = format!("{}{}", gmeow_slice_quality::model::GMEOW, tier_local.trim());
+            if let Some(tier) = rubric.tier(&tier_iri) {
+                out.insert(iri.trim().to_owned(), tier.rank);
+            }
+        }
+    }
+    out
+}
+
 /// Every directory under `slices/` that holds a `manifest.ttl`.
 fn discover_slice_dirs(slices: &Path) -> Vec<PathBuf> {
     let mut out = Vec::new();

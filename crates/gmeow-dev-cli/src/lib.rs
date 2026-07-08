@@ -424,6 +424,9 @@ pub enum Commands {
         #[arg(long = "format")]
         format: Option<String>,
     },
+    /// Enforce the opt-in slice-quality tier ratchet (a `make check` gate).
+    #[command(name = "slice-quality-gate")]
+    SliceQualityGate,
     /// Propose manifest dependency edits as a reviewable unified diff.
     #[command(name = "slice-fix-deps")]
     SliceFixDeps {
@@ -805,6 +808,7 @@ pub fn run() -> i32 {
         Commands::SliceQuality { path, all, format } => {
             dev_slice_quality::slice_quality(path.as_deref(), all, format.as_deref())
         }
+        Commands::SliceQualityGate => dev_slice_quality::slice_quality_gate(),
         Commands::SliceFixDeps { apply, slices_dir } => {
             dev_feedback::slice_fix_deps(apply, slices_dir.as_deref())
         }
