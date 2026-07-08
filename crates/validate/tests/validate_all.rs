@@ -297,7 +297,7 @@ fn syntax_error_is_caught_before_structural_phases() {
     std::fs::remove_file(&bad_path).ok();
 
     let msg = match result {
-        Err(e) => e,
+        Err(e) => e.message().to_string(),
         Ok(_) => panic!("orchestration must fail on syntax error"),
     };
     assert!(
@@ -421,7 +421,7 @@ fn empty_source_paths_rejected() {
     );
     assert!(result.is_err(), "empty source paths must fail fast");
     let msg = match result {
-        Err(e) => e,
+        Err(e) => e.message().to_string(),
         Ok(_) => panic!("expected an error"),
     };
     assert!(

@@ -117,9 +117,9 @@ fn analyze_ttl_substrate(bytes: &[u8], virtual_path: &str) -> Report {
         "gmeow-lsp",
     ) {
         Ok(report) => report,
-        Err(message) => {
+        Err(diag) => {
             let mut report = Report::new("gmeow-lsp");
-            let mut finding = Finding::new(Severity::Error, "lsp.substrate", message);
+            let mut finding = Finding::new(Severity::Error, "lsp.substrate", diag.message());
             finding.add_location(Location::new(
                 Some(virtual_path.to_string()),
                 None,

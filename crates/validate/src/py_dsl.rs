@@ -54,9 +54,14 @@ fn format_dsl_finding(finding: &Finding) -> String {
     }
 }
 
-fn validate_dsl_shacl_inner(dsl_paths: &[String], shapes_ttl: &str) -> Result<Vec<String>, String> {
+fn validate_dsl_shacl_inner(
+    dsl_paths: &[String],
+    shapes_ttl: &str,
+) -> gmeow_errors::Result<Vec<String>> {
     if dsl_paths.is_empty() {
-        return Err("validate_dsl_shacl: paths to validate must not be empty".to_owned());
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Argument {
+            detail: "validate_dsl_shacl: paths to validate must not be empty".to_string(),
+        }));
     }
 
     let paths: Vec<PathBuf> = dsl_paths.iter().map(PathBuf::from).collect();
@@ -72,7 +77,7 @@ fn validate_dsl_shacl_inner(dsl_paths: &[String], shapes_ttl: &str) -> Result<Ve
 #[pyfunction]
 pub fn validate_dsl_shacl(dsl_paths: Vec<String>, shapes_ttl: String) -> PyResult<Vec<String>> {
     validate_dsl_shacl_inner(&dsl_paths, &shapes_ttl)
-        .map_err(pyo3::exceptions::PyValueError::new_err)
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))
 }
 
 #[cfg(test)]
@@ -140,7 +145,11 @@ ex:NodeShape a sh:NodeShape ;
         let err =
             validate_dsl_shacl_inner(&[path_arg(&bad)], &simple_shapes()).expect_err("must fail");
         std::fs::remove_file(&bad).ok();
-        assert!(err.contains(&bad.display().to_string()), "{err}");
+        assert!(
+            err.message().contains(&bad.display().to_string()),
+            "{}",
+            err.message()
+        );
     }
 
     #[test]
