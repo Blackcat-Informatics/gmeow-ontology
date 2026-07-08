@@ -1714,6 +1714,208 @@ mod tests {
         assert!(n_none.bindings.is_empty(), "2 =:= 3 prunes the only answer");
     }
 
+    // ── Termination parity: native ≡ Scryer's tabling contract on CYCLIC IDB ──────────
+    //
+    // The reference SLD oracle is a path-memo resolver: complete + terminating for
+    // RIGHT-recursive (EDB-first) programs, but it UNDER-PRODUCES on LEFT-recursion — an
+    // on-stack re-entry of the recursive goal returns no fresh binding. Native magic-sets
+    // saturates the finite Herbrand base and is complete for BOTH recursion shapes; Scryer
+    // with `:- table P/2` (SLG resolution) is likewise complete and terminating. The two
+    // tests below drive a GENUINELY CYCLIC edge graph (a→b→c→a) so any SLD resolver MUST
+    // detect re-entry to terminate, and pin:
+    //   * right-recursive: native ≡ reference-SLD ≡ Scryer, all gap-zero (three-way);
+    //   * left-recursive:  native ≡ Scryer gap-zero, plus the reference oracle's
+    //     empirically-observed behaviour (it under-produces — native subsumes it).
+    // Both native and Scryer TERMINATE: the test completing IS the termination proof
+    // (magic-sets saturates; Scryer's tabling closes the cycle).
+
+    /// The three cyclic edge triples shared by both termination-parity tests: a→b, b→c,
+    /// c→a — a genuine 3-cycle, so a path-memo MUST cut a back-edge to terminate and an
+    /// un-tabled SLD engine would loop forever.
+    fn cyclic_edge_triples() -> Vec<(String, String, String)> {
+        vec![
+            (p("a"), p("edge"), p("b")),
+            (p("b"), p("edge"), p("c")),
+            (p("c"), p("edge"), p("a")),
+        ]
+    }
+
+    /// A Scryer backward oracle that supplies `:- table P/2` directives for the program's
+    /// cyclic IDB predicates (via [`crate::dispatch::cyclic_predicates`]), mirroring the
+    /// production dispatch path. `compare_answers` passes an empty `tabling` slice (the
+    /// acyclic parity corpus needs none); a CYCLIC program requires tabling for Scryer to
+    /// terminate, so this oracle self-derives it. Semantically it IS the
+    /// [`crate::oracle::ScryerBackwardOracle`] (name "scryer", delegating to `run_scryer`)
+    /// carrying the tabling contract the cyclic fragment demands.
+    struct TablingScryerOracle;
+
+    impl BackwardOracle for TablingScryerOracle {
+        fn name(&self) -> &'static str {
+            "scryer"
+        }
+
+        fn solve(
+            &self,
+            foreign: &dyn ScryerForeign,
+            world: &str,
+            program: &QProgram,
+            _tabling: &[String],
+            budget: &Budget,
+        ) -> Result<AnswerSet, String> {
+            let table_preds = crate::dispatch::cyclic_predicates(program);
+            crate::scryer_engine::run_scryer(foreign, world, program, &table_preds, budget)
+        }
+    }
+
+    /// Seed the cyclic edge world, parse `src`, and resolve it natively (asserting a
+    /// `Decided` outcome — the coverage floor). Returns the native answer set with the
+    /// backing store, world IRI, and parsed program so each oracle can be replayed over the
+    /// SAME inputs. The call RETURNING is the native-termination proof.
+    fn native_over_cyclic(src: &str) -> (AnswerSet, WorldStore, String, QProgram) {
+        const W: &str = "http://logic.test/world/termination-parity";
+        let store = WorldStore::new();
+        for (s, pr, o) in cyclic_edge_triples() {
+            store.insert_quad(W, &s, &pr, &o);
+        }
+        let program = parse_query_program(src).expect("parse cyclic program");
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).expect("from_world");
+        let native = match resolve_native(&foreign, W, &program, &Budget::default())
+            .expect("resolve_native must not error on the cyclic termination corpus")
+        {
+            NativeOutcome::Decided(a) => a,
+            NativeOutcome::Unsupported(k) => panic!(
+                "native must DECIDE the cyclic termination program (magic-sets saturates the \
+                 finite Herbrand base), got Unsupported({k:?})"
+            ),
+        };
+        (native, store, W.to_owned(), program)
+    }
+
+    #[test]
+    fn dispatch_termination_parity_right_recursive_three_way() {
+        // Right-recursive transitive closure over the cyclic edge graph. The body is
+        // EDB-first, so the path-memo reference resolver is complete + terminating here:
+        // three-way gap-zero agreement (native ≡ reference-SLD ≡ Scryer) is the assertion.
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:path(X, Y) :- ex:edge(X, Y).\n\
+             ex:path(X, Y) :- ex:edge(X, Z), ex:path(Z, Y).\n\
+             ?- ex:path(X, Y).\n"
+        );
+        let (native, store, world, program) = native_over_cyclic(&src);
+        assert!(
+            !native.bindings.is_empty(),
+            "native produced ZERO answers on the cyclic right-recursive closure — a cyclic \
+             transitive closure must decide a non-empty answer set"
+        );
+        let foreign = WorldStoreForeign::from_world(&store, &world, PROFILE).expect("from_world");
+
+        // Native ≡ reference-SLD, gap-zero (the path-memo is complete for right recursion).
+        let ref_ledger = compare_answers(
+            &native,
+            &ReferenceBackwardOracle,
+            &foreign,
+            &world,
+            &program,
+            &Budget::default(),
+        )
+        .expect("reference-SLD oracle solve");
+        let ref_verdict = ref_ledger.enforce();
+        assert!(
+            ref_verdict.passed,
+            "native↔reference-SLD DIVERGED on cyclic right recursion ({} native-only, {} \
+             oracle-only): {:?}",
+            ref_ledger.native_only, ref_ledger.oracle_only, ref_verdict.reasons
+        );
+
+        // Native ≡ Scryer (with `:- table`), gap-zero — the tabling termination contract.
+        let scryer_ledger = compare_answers(
+            &native,
+            &TablingScryerOracle,
+            &foreign,
+            &world,
+            &program,
+            &Budget::default(),
+        )
+        .expect("Scryer oracle solve");
+        let scryer_verdict = scryer_ledger.enforce();
+        assert!(
+            scryer_verdict.passed,
+            "native↔Scryer DIVERGED on cyclic right recursion ({} native-only, {} oracle-only): \
+             {:?}",
+            scryer_ledger.native_only, scryer_ledger.oracle_only, scryer_verdict.reasons
+        );
+    }
+
+    #[test]
+    fn dispatch_termination_parity_left_recursive_native_matches_scryer() {
+        // Left-recursive transitive closure over the SAME cyclic edge graph. The recursive
+        // goal is leftmost, so an un-tabled SLD engine loops immediately; the path-memo
+        // reference resolver terminates but UNDER-PRODUCES. Native magic-sets and tabled
+        // Scryer are both complete + terminating: native ≡ Scryer gap-zero is the anchor.
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:path(X, Y) :- ex:edge(X, Y).\n\
+             ex:path(X, Y) :- ex:path(X, Z), ex:edge(Z, Y).\n\
+             ?- ex:path(X, Y).\n"
+        );
+        let (native, store, world, program) = native_over_cyclic(&src);
+        assert!(
+            !native.bindings.is_empty(),
+            "native produced ZERO answers on the cyclic left-recursive closure"
+        );
+        let foreign = WorldStoreForeign::from_world(&store, &world, PROFILE).expect("from_world");
+
+        // Native ≡ Scryer (with `:- table`), gap-zero — both complete + terminating on left
+        // recursion (the load-bearing invariant for this task).
+        let scryer_ledger = compare_answers(
+            &native,
+            &TablingScryerOracle,
+            &foreign,
+            &world,
+            &program,
+            &Budget::default(),
+        )
+        .expect("Scryer oracle solve");
+        let scryer_verdict = scryer_ledger.enforce();
+        assert!(
+            scryer_verdict.passed,
+            "native↔Scryer DIVERGED on cyclic LEFT recursion ({} native-only, {} oracle-only): \
+             {:?}",
+            scryer_ledger.native_only, scryer_ledger.oracle_only, scryer_verdict.reasons
+        );
+
+        // Now EMPIRICALLY observe the path-memo reference oracle on LEFT recursion. Native is
+        // complete, so it can never lack an answer the incomplete path-memo produced: the
+        // reference answer set is a SUBSET of native's — `oracle_only` must be zero.
+        let ref_ledger = compare_answers(
+            &native,
+            &ReferenceBackwardOracle,
+            &foreign,
+            &world,
+            &program,
+            &Budget::default(),
+        )
+        .expect("reference-SLD oracle solve");
+        assert_eq!(
+            ref_ledger.oracle_only, 0,
+            "the path-memo reference resolver produced {} answer(s) native did not — native is \
+             complete for the fragment, so this must never happen",
+            ref_ledger.oracle_only
+        );
+        // The demonstrated completeness win: the path-memo under-produces on left recursion,
+        // so native answers strictly more (native_only > 0). Assert the empirically-true
+        // relation observed on this cyclic graph.
+        assert!(
+            ref_ledger.native_only > 0,
+            "expected the path-memo reference resolver to UNDER-PRODUCE on cyclic left recursion \
+             (native completes where the on-stack re-entry returns no binding), but it agreed \
+             exactly ({} native-only) — native still subsumes it, but the completeness gap this \
+             test documents did not materialise; re-verify the reference-resolver contract",
+            ref_ledger.native_only
+        );
+    }
+
     #[test]
     fn arithmetic_division_by_zero_is_declared_gap() {
         // A ÷0 in a supported binary program is a declared native gap
