@@ -1,0 +1,17 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: da586bf604664ec92d949c592daeed6fcf63fea3
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1454
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1454
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: d0ec99bb1f02b2f37e81d018e610c644216f748e
+GhpRsq-Head-Ref: paudley/752-external-corpora-dogfooding
+GhpRsq-Head-OID: da586bf604664ec92d949c592daeed6fcf63fea3
+GhpRsq-Result-Tree: 7b6ec3f0122ab2c8573ee994007573ec7b287258
+GhpRsq-Result-Commit: 7db94339b7890d5deaa598c21fd1c0027ba18bc0
+GhpRsq-Parent-Hashes: da586bf604664ec92d949c592daeed6fcf63fea3
+GhpRsq-Squash-Notes-SHA256: e5a7d69fb9a0ac36a7d1c139483cacd1b2eba9214722a8696a6069cd5eb39ed2
