@@ -1,0 +1,2 @@
+<http://www.w3.org/2002/03owlt/equivalentProperty/premises006#X> <http://www.w3.org/2002/03owlt/equivalentProperty/premises006#hasLeader> <http://www.w3.org/2002/03owlt/equivalentProperty/premises006#Y> <https://gmeow.example/w3c-owl2-full/webont-equivalentproperty-006/w> .
+<http://www.w3.org/2002/03owlt/equivalentProperty/premises006#hasHead> <http://www.w3.org/2002/07/owl#equivalentProperty> <http://www.w3.org/2002/03owlt/equivalentProperty/premises006#hasLeader> <https://gmeow.example/w3c-owl2-full/webont-equivalentproperty-006/w> .

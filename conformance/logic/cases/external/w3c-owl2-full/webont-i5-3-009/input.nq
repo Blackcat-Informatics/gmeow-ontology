@@ -1,0 +1,5 @@
+<http://www.w3.org/2002/03owlt/I5.3/consistent009#p> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/webont-i5-3-009/w> .
+<http://www.w3.org/2002/03owlt/I5.3/consistent009#q> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/webont-i5-3-009/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/webont-i5-3-009/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/2002/03owlt/I5.3/consistent009#p> _:shared <https://gmeow.example/w3c-owl2-full/webont-i5-3-009/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/2002/03owlt/I5.3/consistent009#q> _:shared <https://gmeow.example/w3c-owl2-full/webont-i5-3-009/w> .

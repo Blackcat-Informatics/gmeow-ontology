@@ -1,0 +1,4 @@
+<http://www.w3.org/2002/03owlt/equivalentProperty/premises002#hasHead> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/webont-equivalentproperty-002/w> .
+<http://www.w3.org/2002/03owlt/equivalentProperty/premises002#hasHead> <http://www.w3.org/2002/07/owl#equivalentProperty> <http://www.w3.org/2002/03owlt/equivalentProperty/premises002#hasLeader> <https://gmeow.example/w3c-owl2-full/webont-equivalentproperty-002/w> .
+<http://www.w3.org/2002/03owlt/equivalentProperty/premises002#hasLeader> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/webont-equivalentproperty-002/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-equivalentproperty-002/w> .

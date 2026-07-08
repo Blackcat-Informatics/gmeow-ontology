@@ -1,0 +1,6 @@
+<http://example.org/Peter> <http://example.org/hasAddress> "Peter Griffin" <https://gmeow.example/w3c-owl2-full/new-feature-disjointdataproperties-001/w> .
+<http://example.org/Peter> <http://example.org/hasName> "Peter Griffin" <https://gmeow.example/w3c-owl2-full/new-feature-disjointdataproperties-001/w> .
+<http://example.org/hasAddress> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> <https://gmeow.example/w3c-owl2-full/new-feature-disjointdataproperties-001/w> .
+<http://example.org/hasName> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> <https://gmeow.example/w3c-owl2-full/new-feature-disjointdataproperties-001/w> .
+<http://example.org/hasName> <http://www.w3.org/2002/07/owl#propertyDisjointWith> <http://example.org/hasAddress> <https://gmeow.example/w3c-owl2-full/new-feature-disjointdataproperties-001/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/new-feature-disjointdataproperties-001/w> .

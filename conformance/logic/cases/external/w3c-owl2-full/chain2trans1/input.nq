@@ -1,0 +1,7 @@
+<http://example.org/ontology#p> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/chain2trans1/w> .
+<http://example.org/ontology#p> <http://www.w3.org/2002/07/owl#propertyChainAxiom> _:rdfxml_list_00000000000000000000000000 <https://gmeow.example/w3c-owl2-full/chain2trans1/w> .
+<http://example.org/ontology> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/chain2trans1/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://example.org/ontology#p> <https://gmeow.example/w3c-owl2-full/chain2trans1/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_list_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/chain2trans1/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://example.org/ontology#p> <https://gmeow.example/w3c-owl2-full/chain2trans1/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/chain2trans1/w> .

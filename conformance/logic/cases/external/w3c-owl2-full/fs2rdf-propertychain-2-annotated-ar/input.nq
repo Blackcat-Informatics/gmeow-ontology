@@ -1,0 +1,14 @@
+<http://example.org/p> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-propertychain-2-annotated-ar/w> .
+<http://example.org/p> <http://www.w3.org/2002/07/owl#propertyChainAxiom> _:A0 <https://gmeow.example/w3c-owl2-full/fs2rdf-propertychain-2-annotated-ar/w> .
+<http://example.org/q> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-propertychain-2-annotated-ar/w> .
+<http://example.org/r> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/fs2rdf-propertychain-2-annotated-ar/w> .
+_:A0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://example.org/q> <https://gmeow.example/w3c-owl2-full/fs2rdf-propertychain-2-annotated-ar/w> .
+_:A0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_list_00000000000000000000000000 <https://gmeow.example/w3c-owl2-full/fs2rdf-propertychain-2-annotated-ar/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/fs2rdf-propertychain-2-annotated-ar/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Axiom> <https://gmeow.example/w3c-owl2-full/fs2rdf-propertychain-2-annotated-ar/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2000/01/rdf-schema#comment> "I hereby annotate this" <https://gmeow.example/w3c-owl2-full/fs2rdf-propertychain-2-annotated-ar/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#annotatedProperty> <http://www.w3.org/2002/07/owl#propertyChainAxiom> <https://gmeow.example/w3c-owl2-full/fs2rdf-propertychain-2-annotated-ar/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#annotatedSource> <http://example.org/p> <https://gmeow.example/w3c-owl2-full/fs2rdf-propertychain-2-annotated-ar/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#annotatedTarget> _:A0 <https://gmeow.example/w3c-owl2-full/fs2rdf-propertychain-2-annotated-ar/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://example.org/r> <https://gmeow.example/w3c-owl2-full/fs2rdf-propertychain-2-annotated-ar/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/fs2rdf-propertychain-2-annotated-ar/w> .
