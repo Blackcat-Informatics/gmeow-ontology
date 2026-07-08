@@ -294,7 +294,11 @@ pub enum MusicCommands {
 pub(crate) fn resolve_console(flag: Option<ConsoleMode>) -> ConsoleMode {
     use std::io::IsTerminal;
     let env_val = std::env::var("GMEOW_CONSOLE").ok();
-    ConsoleMode::resolve(flag, env_val.as_deref(), std::io::stderr().is_terminal())
+    // The consumer razor: stdout is the product stream, so `auto` resolves to a
+    // human stderr surface (Pretty on a TTY, Text off it) and diagnostics never
+    // interleave NDJSON into piped output. `--console jsonl` opts into the agent
+    // surface deliberately.
+    ConsoleMode::resolve_stderr_default(flag, env_val.as_deref(), std::io::stderr().is_terminal())
 }
 
 /// Parse the arguments, dispatch to the wired backend, and return the process
@@ -302,40 +306,65 @@ pub(crate) fn resolve_console(flag: Option<ConsoleMode>) -> ConsoleMode {
 pub fn run() -> i32 {
     let cli = Cli::parse();
     let console = resolve_console(cli.console);
+    // One boxed reporter for the whole run, chosen from the resolved console mode:
+    // human stderr text, NDJSON for agents, or a silent sink. Every command emits
+    // its diagnostics through this shared reporter channel, never a bare stderr line.
+    let reporter = gmeow_cli_core::reporter_for(console);
+    let reporter = reporter.as_ref();
     let lang = cli.lang;
     match cli.command {
         Commands::Version => commands::version(),
-        Commands::Info { file } => commands::info(file.as_deref()),
+        Commands::Info { file } => commands::info(reporter, file.as_deref()),
         Commands::Verify {
             file,
             trusted_key,
             allow_unsigned,
-        } => commands::verify(file.as_deref(), trusted_key.as_deref(), allow_unsigned),
+        } => commands::verify(
+            reporter,
+            file.as_deref(),
+            trusted_key.as_deref(),
+            allow_unsigned,
+        ),
         Commands::VerifyReleaseBundle { bundle, public_key } => {
-            commands::verify_release_bundle(&bundle, public_key.as_deref())
+            commands::verify_release_bundle(reporter, &bundle, public_key.as_deref())
         }
         Commands::Describe { term, gts } => {
-            commands::describe(&term, gts.as_deref(), lang.as_deref())
+            commands::describe(reporter, &term, gts.as_deref(), lang.as_deref())
         }
         Commands::Validate {
             instance,
             schema,
             format,
             deep,
-        } => commands::validate(&instance, schema.as_deref(), &format, deep, console),
-        Commands::Build { out, gts } => commands::build(&out, gts.as_deref()),
+        } => commands::validate(reporter, &instance, schema.as_deref(), &format, deep),
+        Commands::Build { out, gts } => commands::build(reporter, &out, gts.as_deref()),
         Commands::Project {
             source,
             profile,
             out,
             format,
-        } => commands::project(source.as_deref(), &profile, &out, &format, lang.as_deref()),
+        } => commands::project(
+            reporter,
+            source.as_deref(),
+            &profile,
+            &out,
+            &format,
+            lang.as_deref(),
+        ),
         Commands::Transpile {
             source,
             out,
             profiles,
-        } => commands::transpile(&source, out.as_deref(), &profiles, lang.as_deref()),
-        Commands::Export { out, gts } => commands::export(&out, gts.as_deref(), lang.as_deref()),
+        } => commands::transpile(
+            reporter,
+            &source,
+            out.as_deref(),
+            &profiles,
+            lang.as_deref(),
+        ),
+        Commands::Export { out, gts } => {
+            commands::export(reporter, &out, gts.as_deref(), lang.as_deref())
+        }
         Commands::Convert {
             source,
             from,
@@ -344,6 +373,7 @@ pub fn run() -> i32 {
             loss_report,
             base,
         } => commands::convert(
+            reporter,
             &source,
             &from,
             &to,
@@ -355,12 +385,18 @@ pub fn run() -> i32 {
             directory,
             file,
             force,
-        } => commands::extract_docs(&directory, file.as_deref(), force, lang.as_deref()),
-        Commands::Crossref { out, gts } => commands::crossref(&out, gts.as_deref()),
-        Commands::Explain { target_iri, file } => commands::explain(target_iri, file, console),
-        Commands::Mcp => commands::mcp(),
-        Commands::Gts { args } => passthrough::gts(&args),
-        Commands::Music { command } => passthrough::music(&command),
-        Commands::Affect { command } => passthrough::affect(&command),
+        } => commands::extract_docs(
+            reporter,
+            &directory,
+            file.as_deref(),
+            force,
+            lang.as_deref(),
+        ),
+        Commands::Crossref { out, gts } => commands::crossref(reporter, &out, gts.as_deref()),
+        Commands::Explain { target_iri, file } => commands::explain(reporter, target_iri, file),
+        Commands::Mcp => commands::mcp(reporter),
+        Commands::Gts { args } => passthrough::gts(reporter, &args),
+        Commands::Music { command } => passthrough::music(reporter, &command),
+        Commands::Affect { command } => passthrough::affect(reporter, &command),
     }
 }

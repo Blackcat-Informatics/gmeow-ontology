@@ -84,6 +84,32 @@ impl ConsoleMode {
         }
     }
 
+    /// Like [`ConsoleMode::resolve`], but [`ConsoleMode::Auto`] collapses to a
+    /// HUMAN stderr surface off a TTY ([`ConsoleMode::Text`]) instead of
+    /// [`ConsoleMode::Jsonl`].
+    ///
+    /// This is the resolution a CONSUMER CLI (`gmeow`) wants: stdout is the
+    /// product stream (a converted document, a projected graph, the MCP
+    /// JSON-RPC transport), so diagnostics must stay on stderr by default and
+    /// never interleave NDJSON into piped product output. An agent still opts
+    /// into the machine surface explicitly with `--console jsonl` (or
+    /// `GMEOW_CONSOLE=jsonl`); the flag > env > default precedence is identical
+    /// to [`ConsoleMode::resolve`].
+    pub fn resolve_stderr_default(
+        flag: Option<ConsoleMode>,
+        env_val: Option<&str>,
+        is_tty: bool,
+    ) -> ConsoleMode {
+        let chosen = flag
+            .or_else(|| env_val.and_then(Self::parse_env))
+            .unwrap_or(ConsoleMode::Auto);
+        match chosen {
+            ConsoleMode::Auto if is_tty => ConsoleMode::Pretty,
+            ConsoleMode::Auto => ConsoleMode::Text,
+            other => other,
+        }
+    }
+
     /// Parse an environment/config spelling into a mode, case-insensitively.
     /// Returns `None` for an unknown value so the caller can fall through to the
     /// next precedence tier.
@@ -419,6 +445,32 @@ impl Reporter for NdjsonReporter {
     }
 }
 
+/// A reporter that suppresses all diagnostic chrome (the `silent` surface):
+/// every event is dropped so only product results (written by the command
+/// itself) reach stdout.
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SilentReporter;
+
+impl Reporter for SilentReporter {
+    fn report(&self, _report: &Report) {}
+    fn stage_start(&self, _stage: &str) {}
+    fn stage_end(&self, _stage: &str, _elapsed: Duration) {}
+    fn summary(&self, _report: &Report) {}
+}
+
+/// A boxed [`Reporter`] for a resolved [`ConsoleMode`]: line-framed NDJSON for
+/// `jsonl` (agents/pipelines), a silent sink for `silent`, and human-facing
+/// stderr text for every interactive/`pretty`/`text` surface. This is the single
+/// reporter factory both the consumer `gmeow` binary and the repo-maintenance
+/// `gmeow-dev` binary construct their startup reporter from.
+pub fn reporter_for(mode: ConsoleMode) -> Box<dyn Reporter> {
+    match mode {
+        ConsoleMode::Jsonl => Box::new(NdjsonReporter::new()),
+        ConsoleMode::Silent => Box::new(SilentReporter),
+        _ => Box::new(HumanReporter::new()),
+    }
+}
+
 /// Lower a single [`Diag`] to a one-finding [`Report`] WITHOUT a pipeline carrier.
 ///
 /// A CLI or config error can arise *before* any pipeline carrier (and its
@@ -443,6 +495,33 @@ pub fn emit_and_exit(reporter: &dyn Reporter, diag: Diag, tool: &str) -> i32 {
     let report = report_diag(diag, tool);
     reporter.report(&report);
     exit_code(&report)
+}
+
+/// Route a NON-GATING **note** — a progress/status/chatter line — through
+/// `reporter` as a [`FindingCategory::Transient`](gmeow_errors::FindingCategory)
+/// logging witness. This is the substrate replacement idiom for a bare
+/// stderr chatter line: the message becomes a graded (Note-severity,
+/// Advisory, Transient) [`Diag::note`], is lowered to a one-finding [`Report`]
+/// (via [`report_diag`], stamped with `tool` as its stage), and is surfaced on
+/// the reporter's channel — human text on stderr, an NDJSON `finding` line on
+/// stdout, or dropped by a silent sink. It NEVER gates ([`Report::ok`] stays
+/// true), so it is safe for pure narration.
+///
+/// `code` is the stable finding-code string the witness carries (interned once,
+/// idempotently); reuse a per-area `<crate>.<area>.note` code for a family of
+/// related chatter and let the message carry the specifics.
+pub fn note(reporter: &dyn Reporter, tool: &str, code: &str, message: impl Into<String>) {
+    let diag = Diag::note(gmeow_errors::code::register_code(code), message);
+    reporter.report(&report_diag(diag, tool));
+}
+
+/// Route a NON-GATING **info** witness — the lowest-severity chatter — through
+/// `reporter`. The [`info`] twin of [`note`]: identical routing, an
+/// [`Severity::Info`](gmeow_errors::Severity) [`Diag::info`] grade instead of
+/// Note. Never gates.
+pub fn info(reporter: &dyn Reporter, tool: &str, code: &str, message: impl Into<String>) {
+    let diag = Diag::info(gmeow_errors::code::register_code(code), message);
+    reporter.report(&report_diag(diag, tool));
 }
 
 /// The process exit code a report maps to: `0` when the report is clean

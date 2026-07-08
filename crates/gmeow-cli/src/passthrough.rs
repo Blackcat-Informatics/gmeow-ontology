@@ -7,6 +7,9 @@
 
 use std::path::{Path, PathBuf};
 
+use gmeow_cli_core::Reporter;
+
+use crate::commands::{fail, fail_code};
 use crate::{AffectCommands, BUNDLE_GTS, MusicCommands};
 
 /// The install hint printed when the external `gts` binary cannot be found.
@@ -47,10 +50,9 @@ fn which(name: &str) -> Option<PathBuf> {
 /// `gmeow gts …` — forward arguments verbatim to the external `gts` binary,
 /// injecting the bundled snapshot path for file-expecting subcommands. Propagates
 /// the child's exit code; HARD-FAILS when the binary is absent.
-pub(crate) fn gts(args: &[String]) -> i32 {
+pub(crate) fn gts(reporter: &dyn Reporter, args: &[String]) -> i32 {
     let Some(exe) = resolve_gts_binary() else {
-        eprintln!("{GTS_INSTALL_HINT}");
-        return 1;
+        return fail(reporter, "gmeow-cli.gts.missing", GTS_INSTALL_HINT);
     };
 
     let mut forwarded: Vec<String> = args.to_vec();
@@ -74,8 +76,11 @@ pub(crate) fn gts(args: &[String]) -> i32 {
                     forwarded.insert(1, path);
                 }
                 Err(e) => {
-                    eprintln!("cannot stage bundled snapshot: {e}");
-                    return 1;
+                    return fail(
+                        reporter,
+                        "gmeow-cli.gts.stage-bundle",
+                        format!("cannot stage bundled snapshot: {e}"),
+                    );
                 }
             }
         }
@@ -85,15 +90,16 @@ pub(crate) fn gts(args: &[String]) -> i32 {
     drop(staged);
     match status {
         Ok(s) => s.code().unwrap_or(1),
-        Err(e) => {
-            eprintln!("failed to run gts: {e}");
-            1
-        }
+        Err(e) => fail(
+            reporter,
+            "gmeow-cli.gts.spawn",
+            format!("failed to run gts: {e}"),
+        ),
     }
 }
 
 /// `gmeow music …` — the native music-package projection engine.
-pub(crate) fn music(command: &MusicCommands) -> i32 {
+pub(crate) fn music(reporter: &dyn Reporter, command: &MusicCommands) -> i32 {
     let result = match command {
         MusicCommands::Render { source, to, out } => {
             gmeow_music::render_file(source, &to.to_lowercase(), out)
@@ -117,8 +123,12 @@ pub(crate) fn music(command: &MusicCommands) -> i32 {
             } else {
                 1
             };
-            eprintln!("Error: {message}");
-            code
+            fail_code(
+                reporter,
+                "gmeow-cli.music.failed",
+                format!("Error: {message}"),
+                code,
+            )
         }
     }
 }
@@ -154,7 +164,7 @@ fn bundled_sssom_texts() -> Result<Vec<String>, String> {
 /// `Error: <message>` on stderr with exit `1`. The geometry is COMPUTED from the
 /// snapshot's Gram matrix and appraisal vectors (the metric-tensor norm), never
 /// read from a stored magnitude.
-pub(crate) fn affect(command: &AffectCommands) -> i32 {
+pub(crate) fn affect(reporter: &dyn Reporter, command: &AffectCommands) -> i32 {
     match command {
         AffectCommands::Intensity {
             source,
@@ -164,8 +174,11 @@ pub(crate) fn affect(command: &AffectCommands) -> i32 {
             let bytes = match std::fs::read(source) {
                 Ok(bytes) => bytes,
                 Err(e) => {
-                    eprintln!("Error: cannot read {}: {e}", source.display());
-                    return 1;
+                    return fail(
+                        reporter,
+                        "gmeow-cli.io.read",
+                        format!("Error: cannot read {}: {e}", source.display()),
+                    );
                 }
             };
             if let Some(to) = to {
@@ -181,10 +194,11 @@ pub(crate) fn affect(command: &AffectCommands) -> i32 {
                         println!("cosine {cosine}");
                         0
                     }
-                    Err(message) => {
-                        eprintln!("Error: {message}");
-                        1
-                    }
+                    Err(message) => fail(
+                        reporter,
+                        "gmeow-cli.affect.distance",
+                        format!("Error: {message}"),
+                    ),
                 }
             } else {
                 match gmeow_affect::geometry_from_gts_bytes(&bytes, observation.as_deref()) {
@@ -201,10 +215,11 @@ pub(crate) fn affect(command: &AffectCommands) -> i32 {
                         }
                         0
                     }
-                    Err(message) => {
-                        eprintln!("Error: {message}");
-                        1
-                    }
+                    Err(message) => fail(
+                        reporter,
+                        "gmeow-cli.affect.geometry",
+                        format!("Error: {message}"),
+                    ),
                 }
             }
         }
@@ -212,74 +227,73 @@ pub(crate) fn affect(command: &AffectCommands) -> i32 {
             let json = match read_source(source) {
                 Ok(json) => json,
                 Err(e) => {
-                    eprintln!("Error: cannot read {}: {e}", source.display());
-                    return 1;
+                    return fail(
+                        reporter,
+                        "gmeow-cli.io.read",
+                        format!("Error: cannot read {}: {e}", source.display()),
+                    );
                 }
             };
             let capture =
                 match serde_json::from_str::<gmeow_affect_ingest::ClassifierRunCapture>(&json) {
                     Ok(capture) => capture,
                     Err(e) => {
-                        eprintln!("Error: invalid classifier capture JSON: {e}");
-                        return 1;
+                        return fail(
+                            reporter,
+                            "gmeow-cli.affect.capture-json",
+                            format!("Error: invalid classifier capture JSON: {e}"),
+                        );
                     }
                 };
             let sssom_texts = match bundled_sssom_texts() {
                 Ok(texts) => texts,
-                Err(e) => {
-                    eprintln!("Error: {e}");
-                    return 1;
-                }
+                Err(e) => return fail(reporter, "gmeow-cli.affect.sssom", format!("Error: {e}")),
             };
             let config =
                 match gmeow_affect_ingest::config_for_capture(BUNDLE_GTS, &sssom_texts, &capture) {
                     Ok(config) => config,
                     Err(e) => {
-                        eprintln!("Error: {e}");
-                        return 1;
+                        return fail(reporter, "gmeow-cli.affect.config", format!("Error: {e}"));
                     }
                 };
             match gmeow_affect_ingest::produce(&capture, &config) {
                 Ok(ttl) => match out {
                     Some(out) => match std::fs::write(out, &ttl) {
                         Ok(()) => 0,
-                        Err(e) => {
-                            eprintln!("Error: cannot write {}: {e}", out.display());
-                            1
-                        }
+                        Err(e) => fail(
+                            reporter,
+                            "gmeow-cli.io.write",
+                            format!("Error: cannot write {}: {e}", out.display()),
+                        ),
                     },
                     None => {
                         print!("{ttl}");
                         0
                     }
                 },
-                Err(e) => {
-                    eprintln!("Error: {e}");
-                    1
-                }
+                Err(e) => fail(reporter, "gmeow-cli.affect.produce", format!("Error: {e}")),
             }
         }
         AffectCommands::Recover { source } => {
             let ttl = match read_source(source) {
                 Ok(ttl) => ttl,
                 Err(e) => {
-                    eprintln!("Error: cannot read {}: {e}", source.display());
-                    return 1;
+                    return fail(
+                        reporter,
+                        "gmeow-cli.io.read",
+                        format!("Error: cannot read {}: {e}", source.display()),
+                    );
                 }
             };
             let sssom_texts = match bundled_sssom_texts() {
                 Ok(texts) => texts,
-                Err(e) => {
-                    eprintln!("Error: {e}");
-                    return 1;
-                }
+                Err(e) => return fail(reporter, "gmeow-cli.affect.sssom", format!("Error: {e}")),
             };
             let config =
                 match gmeow_affect_ingest::config_for_evidence(BUNDLE_GTS, &sssom_texts, &ttl) {
                     Ok(config) => config,
                     Err(e) => {
-                        eprintln!("Error: {e}");
-                        return 1;
+                        return fail(reporter, "gmeow-cli.affect.config", format!("Error: {e}"));
                     }
                 };
             match gmeow_affect_ingest::recover(&ttl, &config) {
@@ -288,15 +302,13 @@ pub(crate) fn affect(command: &AffectCommands) -> i32 {
                         println!("{json}");
                         0
                     }
-                    Err(e) => {
-                        eprintln!("Error: {e}");
-                        1
-                    }
+                    Err(e) => fail(
+                        reporter,
+                        "gmeow-cli.affect.recover-json",
+                        format!("Error: {e}"),
+                    ),
                 },
-                Err(e) => {
-                    eprintln!("Error: {e}");
-                    1
-                }
+                Err(e) => fail(reporter, "gmeow-cli.affect.recover", format!("Error: {e}")),
             }
         }
     }
