@@ -388,9 +388,11 @@ pub(crate) fn ledger_from_audit(
         .with_leg_programs(legs);
     // No-op for supplied-put (proved-candidate) cells; the claimed/asserted cells carry no get
     // leg, so nothing is fabricated. `evaluate_gates` (NOT `assert_gates`) records REDs.
-    let (gated, _outcomes) = program
-        .with_derived_puts()
-        .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::UpProjection { message }))?;
+    let (gated, _outcomes) = program.with_derived_puts().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::UpProjection {
+            message: e.to_string(),
+        })
+    })?;
     let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
     let report = evaluate_gates(&gated, &[], &verdicts);
 
@@ -935,9 +937,11 @@ fn gate_tier_for(term: &str, shape: &TermShape) -> gmeow_errors::Result<Tier> {
         PreservationKind::SoundUnder,
     )
     .with_leg_programs(legs);
-    let (gated, _outcomes) = program
-        .with_derived_puts()
-        .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::UpProjection { message }))?;
+    let (gated, _outcomes) = program.with_derived_puts().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::UpProjection {
+            message: e.to_string(),
+        })
+    })?;
     let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
     let report = evaluate_gates(&gated, &[], &verdicts);
     let r = report.per_correspondence.first().ok_or_else(|| {

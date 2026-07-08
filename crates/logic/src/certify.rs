@@ -998,9 +998,11 @@ pub fn certify_program(
     let nemo = gmeow_logic_compile::projections::text::project_nemo(
         program,
         &mut gmeow_logic_compile::loss_ledger::LossLedger::new(),
-    )?;
+    )
+    .map_err(|e| e.to_string())?;
     let rules_section =
-        gmeow_logic_compile::projections::text::extract_nemo_rules_section(&nemo.content)?;
+        gmeow_logic_compile::projections::text::extract_nemo_rules_section(&nemo.content)
+            .map_err(|e| e.to_string())?;
     let evolution = program_evolution(program)?;
     certify(&rules_section, profile, evolution.as_deref())
 }

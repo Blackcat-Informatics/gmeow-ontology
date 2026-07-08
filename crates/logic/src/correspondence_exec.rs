@@ -217,7 +217,7 @@ pub fn logic_program_verdicts(program: &LogicProgram) -> Result<CorrespondenceVe
         PreservationKind::SoundUnder,
     )
     .with_leg_programs(program.transaction_programs.clone());
-    let (derived, _outcomes) = assembled.with_derived_puts()?;
+    let (derived, _outcomes) = assembled.with_derived_puts().map_err(|e| e.to_string())?;
     Ok(program_verdicts(&derived))
 }
 

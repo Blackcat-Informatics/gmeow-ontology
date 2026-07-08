@@ -26,6 +26,8 @@
 //! The s-expression lexer / printer are private helpers kept inside this module (no
 //! separate `sexpr.rs`); [`writer`] and [`reader`] are the public dialect surface.
 
+use gmeow_errors::Diag;
+
 pub mod reader;
 pub mod writer;
 
@@ -119,7 +121,7 @@ enum Token {
 }
 
 /// Tokenize CLIF source, stripping `;`-to-EOL comments. Returns the token stream.
-fn lex(src: &str) -> Result<Vec<Token>, String> {
+fn lex(src: &str) -> gmeow_errors::Result<Vec<Token>> {
     let mut tokens = Vec::new();
     let chars: Vec<char> = src.chars().collect();
     let mut i = 0;
@@ -159,7 +161,9 @@ fn lex(src: &str) -> Result<Vec<Token>, String> {
             '?' => {
                 let (val, next) = lex_bare(&chars, i + 1);
                 if val.is_empty() {
-                    return Err("empty variable name after '?'".to_owned());
+                    return Err(Diag::of_kind(crate::error::Clif {
+                        detail: "empty variable name after '?'".to_owned(),
+                    }));
                 }
                 tokens.push(Token::Atom(Atom::Var(val)));
                 i = next;
@@ -168,7 +172,9 @@ fn lex(src: &str) -> Result<Vec<Token>, String> {
             '@' => {
                 let (val, next) = lex_bare(&chars, i + 1);
                 if val.is_empty() {
-                    return Err("empty language tag after '@'".to_owned());
+                    return Err(Diag::of_kind(crate::error::Clif {
+                        detail: "empty language tag after '@'".to_owned(),
+                    }));
                 }
                 tokens.push(Token::Atom(Atom::Lang(val)));
                 i = next;
@@ -187,7 +193,7 @@ fn lex(src: &str) -> Result<Vec<Token>, String> {
 /// Read a `'…'` / `"…"`-quoted token body (starting AFTER the opening quote), honoring
 /// `\\` and `\<quote>` escapes. Returns the unescaped value and the index past the
 /// closing quote.
-fn lex_quoted(chars: &[char], start: usize, quote: char) -> Result<(String, usize), String> {
+fn lex_quoted(chars: &[char], start: usize, quote: char) -> gmeow_errors::Result<(String, usize)> {
     let mut out = String::new();
     let mut i = start;
     let n = chars.len();
@@ -195,7 +201,9 @@ fn lex_quoted(chars: &[char], start: usize, quote: char) -> Result<(String, usiz
         let c = chars[i];
         if c == '\\' {
             if i + 1 >= n {
-                return Err("trailing backslash in quoted token".to_owned());
+                return Err(Diag::of_kind(crate::error::Clif {
+                    detail: "trailing backslash in quoted token".to_owned(),
+                }));
             }
             let next = chars[i + 1];
             // Only `\\` and `\<quote>` are recognized escapes (matching the writer).
@@ -209,9 +217,9 @@ fn lex_quoted(chars: &[char], start: usize, quote: char) -> Result<(String, usiz
         out.push(c);
         i += 1;
     }
-    Err(format!(
-        "unterminated quoted token (expected closing {quote})"
-    ))
+    Err(Diag::of_kind(crate::error::Clif {
+        detail: format!("unterminated quoted token (expected closing {quote})"),
+    }))
 }
 
 /// Read a bare token (symbol / variable name / language tag) starting at `start`, stopping
@@ -233,7 +241,7 @@ fn lex_bare(chars: &[char], start: usize) -> (String, usize) {
 }
 
 /// Parse CLIF source into a flat list of top-level [`SExpr`] forms.
-fn parse_sexprs(src: &str) -> Result<Vec<SExpr>, String> {
+fn parse_sexprs(src: &str) -> gmeow_errors::Result<Vec<SExpr>> {
     let tokens = lex(src)?;
     let mut pos = 0;
     let mut forms = Vec::new();
@@ -247,17 +255,25 @@ fn parse_sexprs(src: &str) -> Result<Vec<SExpr>, String> {
 
 /// Parse one s-expression starting at token index `pos`. Returns the expression and the
 /// next token index.
-fn parse_one(tokens: &[Token], pos: usize) -> Result<(SExpr, usize), String> {
+fn parse_one(tokens: &[Token], pos: usize) -> gmeow_errors::Result<(SExpr, usize)> {
     match tokens.get(pos) {
-        None => Err("unexpected end of input while parsing s-expression".to_owned()),
-        Some(Token::Close) => Err("unbalanced ')' — unexpected close paren".to_owned()),
+        None => Err(Diag::of_kind(crate::error::Clif {
+            detail: "unexpected end of input while parsing s-expression".to_owned(),
+        })),
+        Some(Token::Close) => Err(Diag::of_kind(crate::error::Clif {
+            detail: "unbalanced ')' — unexpected close paren".to_owned(),
+        })),
         Some(Token::Atom(a)) => Ok((SExpr::Atom(a.clone()), pos + 1)),
         Some(Token::Open) => {
             let mut items = Vec::new();
             let mut i = pos + 1;
             loop {
                 match tokens.get(i) {
-                    None => return Err("unbalanced '(' — missing ')' at end of input".to_owned()),
+                    None => {
+                        return Err(Diag::of_kind(crate::error::Clif {
+                            detail: "unbalanced '(' — missing ')' at end of input".to_owned(),
+                        }));
+                    }
                     Some(Token::Close) => return Ok((SExpr::List(items), i + 1)),
                     Some(_) => {
                         let (item, next) = parse_one(tokens, i)?;

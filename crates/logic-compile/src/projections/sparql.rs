@@ -14,6 +14,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use gmeow_errors::Diag;
+
 use crate::ingest::prefixes::PREFIX_REGISTRY;
 use crate::ingest::{DslTerm, DslView};
 use crate::loss_ledger::LossLedger;
@@ -87,7 +89,7 @@ pub fn lower_sparql(
     dsl: &DslView,
     onto: &DslView,
     lookup: &CorrespondenceLookup,
-) -> Result<SparqlLowering, String> {
+) -> gmeow_errors::Result<SparqlLowering> {
     let cells = projections(dsl)?;
     let vocab = suppression_vocab(onto);
     let mut queries = BTreeMap::new();
@@ -250,7 +252,7 @@ fn emit_sparql(
     vocab: &SuppressionVocab,
     lookup: &CorrespondenceLookup,
     loss: &mut LossLedger,
-) -> Result<EmittedQuery, String> {
+) -> gmeow_errors::Result<EmittedQuery> {
     let mut templates: Vec<String> = Vec::new();
     let mut branches: Vec<String> = Vec::new();
     let mut drops: Vec<String> = Vec::new();
@@ -277,7 +279,7 @@ fn emit_sparql(
                 typed.morphism_kind,
                 &b.relation,
             )
-            .map_err(|e| e.0)?;
+            .map_err(|e| Diag::of_kind(crate::error::Sparql { detail: e.0 }))?;
 
             // Build the value-var retag map ONCE per cell here and pass it to
             // `templates_of`: the CONSTRUCT head rewrites the value var to the retagged
@@ -329,7 +331,9 @@ fn emit_sparql(
         }
     }
     if branches.is_empty() {
-        return Err(format!("no bindings for profile {profile:?}"));
+        return Err(Diag::of_kind(crate::error::Sparql {
+            detail: format!("no bindings for profile {profile:?}"),
+        }));
     }
     let construct = templates
         .iter()
@@ -374,7 +378,10 @@ pub(crate) fn class_var(p: &MappingPattern) -> String {
     format!("{}Class", p.value.clone().unwrap_or_default())
 }
 
-pub(crate) fn term_of(atom: &Atom, var_map: &BTreeMap<String, String>) -> Result<String, String> {
+pub(crate) fn term_of(
+    atom: &Atom,
+    var_map: &BTreeMap<String, String>,
+) -> gmeow_errors::Result<String> {
     if let Some(obj_var) = &atom.object_var {
         let v = var_map
             .get(obj_var)
@@ -396,13 +403,15 @@ pub(crate) fn term_of(atom: &Atom, var_map: &BTreeMap<String, String>) -> Result
         }
         return Ok(sparql_string(lex));
     }
-    Err("atom has no object".to_owned())
+    Err(Diag::of_kind(crate::error::Sparql {
+        detail: "atom has no object".to_owned(),
+    }))
 }
 
 pub(crate) fn atom_triple(
     atom: &Atom,
     var_map: &BTreeMap<String, String>,
-) -> Result<String, String> {
+) -> gmeow_errors::Result<String> {
     let subj_var = var_map
         .get(&atom.subject_var)
         .cloned()
@@ -417,15 +426,14 @@ pub(crate) fn atom_triple(
     } else if let Some(p) = &atom.predicate {
         curie(p)
     } else {
-        return Err(format!(
-            "atom on ?{} has no predicate/path",
-            atom.subject_var
-        ));
+        return Err(Diag::of_kind(crate::error::Sparql {
+            detail: format!("atom on ?{} has no predicate/path", atom.subject_var),
+        }));
     };
     Ok(format!("{subj} {pred} {} .", term_of(atom, var_map)?))
 }
 
-pub(crate) fn where_items(items: &[Item], indent: &str) -> Result<Vec<String>, String> {
+pub(crate) fn where_items(items: &[Item], indent: &str) -> gmeow_errors::Result<Vec<String>> {
     let empty: BTreeMap<String, String> = BTreeMap::new();
     let mut out = Vec::new();
     for item in items {
@@ -585,7 +593,7 @@ fn branch_of(
     cell: &ProjectionCell,
     b: &ProfileBinding,
     vocab: &SuppressionVocab,
-) -> Result<Branch, String> {
+) -> gmeow_errors::Result<Branch> {
     let p = &cell.pattern;
     let empty: BTreeMap<String, String> = BTreeMap::new();
     let mut lines = where_items(&p.atoms, "")?;
@@ -805,7 +813,7 @@ pub(crate) fn templates_of(
     cell: &ProjectionCell,
     b: &ProfileBinding,
     var_map: &BTreeMap<String, String>,
-) -> Result<Vec<String>, String> {
+) -> gmeow_errors::Result<Vec<String>> {
     let p = &cell.pattern;
 
     if !b.template_atoms.is_empty() {
@@ -830,10 +838,9 @@ pub(crate) fn templates_of(
             curie(to_predicate)
         )]);
     }
-    Err(format!(
-        "{}: binding for {} has no output",
-        cell.iri, b.profile
-    ))
+    Err(Diag::of_kind(crate::error::Sparql {
+        detail: format!("{}: binding for {} has no output", cell.iri, b.profile),
+    }))
 }
 
 pub(crate) fn prefix_block(text: &str) -> String {

@@ -18,6 +18,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use gmeow_errors::Diag;
+
 use crate::ingest::DslView;
 use crate::ingest::prefixes::{ns_to_prefix, registry_iri, sssom_id};
 use crate::ir::{CorrespondenceRelation, MorphismClass};
@@ -138,7 +140,7 @@ pub fn lower_sssom(
     version: &str,
     release_date: &str,
     lookup: &CorrespondenceLookup,
-) -> Result<SssomLowering, String> {
+) -> gmeow_errors::Result<SssomLowering> {
     let sources = collect_sources(view);
     let mut loss = crate::loss_ledger::LossLedger::new();
     let ledger = build_ledger(&sources, lookup, &mut loss)?;
@@ -198,7 +200,7 @@ fn build_ledger(
     sources: &SssomSources,
     lookup: &CorrespondenceLookup,
     loss: &mut crate::loss_ledger::LossLedger,
-) -> Result<Vec<ProjectionResult>, String> {
+) -> gmeow_errors::Result<Vec<ProjectionResult>> {
     let mut ledger: Vec<ProjectionResult> = Vec::new();
     for cell in &sources.equivalences {
         // Consume the typed relation/class/kind from the materialized correspondence keyed
@@ -212,7 +214,7 @@ fn build_ledger(
             typed.morphism_kind,
             &cell.predicate,
         )
-        .map_err(|e| e.0)?;
+        .map_err(|e| Diag::of_kind(crate::error::Sssom { detail: e.0 }))?;
 
         // SSSOM carries only subject/predicate/object + confidence + justification; the
         // correspondence's caveat/law/leg structure and world/standpoint scope are
@@ -368,7 +370,7 @@ fn render_sets(
     sources: &SssomSources,
     version: &str,
     release_date: &str,
-) -> Result<BTreeMap<String, String>, String> {
+) -> gmeow_errors::Result<BTreeMap<String, String>> {
     let table = ns_to_prefix();
 
     let mut by_file: BTreeMap<String, Vec<Row>> = BTreeMap::new();
@@ -401,11 +403,13 @@ fn render_sets(
 /// Reject a TSV cell whose value carries a raw tab/CR/LF. SSSOM is tab-separated,
 /// newline-delimited, so such a character would silently split a value across
 /// columns or rows — corrupting the table. Hard-fail rather than mangle the data.
-fn check_tsv_cell(column: &str, value: &str) -> Result<(), String> {
+fn check_tsv_cell(column: &str, value: &str) -> gmeow_errors::Result<()> {
     if value.contains(['\t', '\r', '\n']) {
-        return Err(format!(
-            "SSSOM cell `{column}` contains a tab/CR/LF that would corrupt the TSV: {value:?}"
-        ));
+        return Err(Diag::of_kind(crate::error::Sssom {
+            detail: format!(
+                "SSSOM cell `{column}` contains a tab/CR/LF that would corrupt the TSV: {value:?}"
+            ),
+        }));
     }
     Ok(())
 }
@@ -415,7 +419,7 @@ fn render_one(
     meta: Option<&MappingSet>,
     version: &str,
     release_date: &str,
-) -> Result<String, String> {
+) -> gmeow_errors::Result<String> {
     let columns: Vec<&str> = SSSOM_ORDER
         .iter()
         .copied()
@@ -695,7 +699,7 @@ gmeow:Zeta\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.8\t
         };
         let err = render_one(&[row], None, "0.1.0", "2026-06-03")
             .expect_err("a cell with a tab must be rejected");
-        assert!(err.contains("subject_label"), "{err}");
+        assert!(err.message().contains("subject_label"), "{err}");
     }
 
     #[test]
