@@ -38,7 +38,7 @@ ASK {
         rdfs:domain gmeow:EmailAddress ;
         rdfs:range rdfs:Literal .
 }""" ;
-    gmeow:saRationale """gmeow:addressValue, localPart, and domainPart MUST be functional DatatypeProperties on EmailAddress ranging over Literal. The EmailAddress stable properties are owned by the contacts slice (cross-slice ownership). Mirrors test_stable_address_properties_on_email_address.""" .
+    gmeow:saRationale """gmeow:addressValue, localPart, and domainPart MUST be functional DatatypeProperties on EmailAddress ranging over Literal. The EmailAddress stable properties are owned by the contacts slice (cross-slice ownership).""" .
 
 # --- 3. PostalAddress subclasses ContactPoint (MUST) -------------------------
 ex:saPostalAddressSubclassesContactPoint a gmeow:StructuralAssertion ;
