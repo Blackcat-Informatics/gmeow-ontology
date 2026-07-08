@@ -9,71 +9,10 @@
 //! axis is a slice edit, never a code change. A malformed rubric (an axis with no
 //! producer, a threshold with no tier) is a hard error, never a silent skip.
 
-use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue};
+use purrdf::RdfDataset;
 
-use crate::model::{Axis, ContextScope, Exemption, GMEOW, Rubric, Threshold, Tier};
-
-/// Fully-qualify a `gmeow:` local name.
-fn g(local: &str) -> String {
-    format!("{GMEOW}{local}")
-}
-
-/// Resolve an IRI to a term id, if present in the dataset.
-fn id(ds: &RdfDataset, iri: &str) -> Option<purrdf::TermId> {
-    ds.term_id_by_value(&TermValue::iri(iri))
-}
-
-/// The single object IRI for `(subject, predicate)`, if exactly one IRI object.
-fn one_iri(ds: &RdfDataset, subject: purrdf::TermId, pred: purrdf::TermId) -> Option<String> {
-    ds.quads_for_pattern(Some(subject), Some(pred), None, GraphMatch::Any)
-        .find_map(|q| match ds.resolve(q.o) {
-            TermRef::Iri(iri) => Some(iri.to_owned()),
-            _ => None,
-        })
-}
-
-/// The single literal lexical for `(subject, predicate)`, if any literal object.
-fn one_lit(ds: &RdfDataset, subject: purrdf::TermId, pred: purrdf::TermId) -> Option<String> {
-    ds.quads_for_pattern(Some(subject), Some(pred), None, GraphMatch::Any)
-        .find_map(|q| match ds.resolve(q.o) {
-            TermRef::Literal { lexical, .. } => Some(lexical.to_owned()),
-            _ => None,
-        })
-}
-
-/// All object IRIs for `(subject, predicate)`.
-fn all_iris(ds: &RdfDataset, subject: purrdf::TermId, pred: purrdf::TermId) -> Vec<String> {
-    ds.quads_for_pattern(Some(subject), Some(pred), None, GraphMatch::Any)
-        .filter_map(|q| match ds.resolve(q.o) {
-            TermRef::Iri(iri) => Some(iri.to_owned()),
-            _ => None,
-        })
-        .collect()
-}
-
-const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-
-fn read_instances(ds: &RdfDataset, class_iri: &str) -> Vec<String> {
-    let (Some(type_id), Some(class_id)) = (id(ds, RDF_TYPE), id(ds, class_iri)) else {
-        return Vec::new();
-    };
-    let mut out: Vec<String> = ds
-        .quads_for_pattern(None, Some(type_id), Some(class_id), GraphMatch::Any)
-        .filter_map(|q| match ds.resolve(q.s) {
-            TermRef::Iri(iri) => Some(iri.to_owned()),
-            _ => None,
-        })
-        .collect();
-    out.sort_unstable();
-    out.dedup();
-    out
-}
-
-fn label_of(ds: &RdfDataset, subject: purrdf::TermId) -> String {
-    id(ds, "http://www.w3.org/2000/01/rdf-schema#label")
-        .and_then(|p| one_lit(ds, subject, p))
-        .unwrap_or_default()
-}
+use crate::graph::{all_iris, g, id, instances_of, label_of, one_iri, one_lit};
+use crate::model::{Axis, ContextScope, Exemption, Rubric, Threshold, Tier};
 
 /// Load the whole rubric from a dataset that contains the rubric module graph.
 ///
@@ -85,7 +24,7 @@ pub fn load_rubric(ds: &RdfDataset) -> Result<Rubric, String> {
     // --- Tiers -------------------------------------------------------------
     let rank_p = id(ds, &g("tierRank"));
     let mut tiers: Vec<Tier> = Vec::new();
-    for iri in read_instances(ds, &g("QualityTier")) {
+    for iri in instances_of(ds, &g("QualityTier")) {
         let sid = id(ds, &iri).ok_or_else(|| format!("tier {iri} not resolvable"))?;
         let rank = rank_p
             .and_then(|p| one_lit(ds, sid, p))
@@ -126,7 +65,7 @@ pub fn load_rubric(ds: &RdfDataset) -> Result<Rubric, String> {
     let advice_p = id(ds, &g("axisAdviceTemplate"));
 
     let mut axes: Vec<Axis> = Vec::new();
-    for iri in read_instances(ds, &g("QualityAxis")) {
+    for iri in instances_of(ds, &g("QualityAxis")) {
         let sid = id(ds, &iri).ok_or_else(|| format!("axis {iri} not resolvable"))?;
         let producer = producer_p
             .and_then(|p| one_lit(ds, sid, p))
@@ -193,7 +132,7 @@ pub fn load_rubric(ds: &RdfDataset) -> Result<Rubric, String> {
     let date_p = id(ds, &g("exemptionDate"));
     let exproducer_p = id(ds, &g("exemptionProducer"));
     let mut exemptions: Vec<Exemption> = Vec::new();
-    for iri in read_instances(ds, &g("AxisExemption")) {
+    for iri in instances_of(ds, &g("AxisExemption")) {
         let sid = id(ds, &iri).ok_or_else(|| format!("exemption {iri} not resolvable"))?;
         let axis_iri = exempts_p
             .and_then(|p| one_iri(ds, sid, p))
