@@ -193,3 +193,36 @@ ASK {
     lang:GmnNonDecodableGrammar        rdfs:subClassOf lang:LangConformanceFailure .
 }""" ;
     gmeow:saRationale "Each of the twelve GMN dialect failures MUST be a subclass of lang:LangConformanceFailure — the seven SHACL-gated rules (codepoints, confusables, collisions, the envelope contract, version overclaims, compaction provenance, compaction overclaims) and the five GMN parser/writer-tier rules (uncovered terms, canonical order, malformed numbers, undeclared dialect versions, grammar decodability) — so a GMN violation is a typed, queryable object like every other lang: failure." .
+
+# --- 12. The unwired-flagship failure subclasses lang:LangConformanceFailure (MUST) - #
+ex:saFlagshipFailureTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    lang:UnwiredFlagshipScenario rdfs:subClassOf lang:LangConformanceFailure .
+}""" ;
+    gmeow:saRationale "The unwired-flagship failure MUST be a subclass of lang:LangConformanceFailure, so an unwired acceptance scenario is a typed, queryable violation like every other lang: hard-rule failure." .
+
+# --- 13. The five flagship scenarios are present and fully wired (MUST) ------- #
+ex:saFlagshipCoverage a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX lang: <https://blackcatinformatics.ca/lang/>
+PREFIX exa: <https://blackcatinformatics.ca/gmeow/examples/lang/acceptance/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?scenario {
+        exa:sentenceToFormula exa:proseSelfReading exa:docsAsTranslation
+        exa:serializationsAsGrammars exa:ambiguityHeldHonestly
+    }
+    ?scenario a lang:FlagshipScenario ;
+        lang:demonstratedByExample ?ex ;
+        lang:demonstratedByCompetency ?cq ;
+        lang:guardedByCounterExample ?ce ;
+        lang:enforcesFailureClass ?fc .
+    ?fc rdfs:subClassOf+ lang:LangConformanceFailure .
+    FILTER(isLiteral(?ex) && isIRI(?cq) && isLiteral(?ce) && isIRI(?fc))
+}""" ;
+    gmeow:saRationale "The epic's five flagship acceptance scenarios MUST each be present as a lang:FlagshipScenario binding its worked example, competency question, counter-example, and a real lang:LangConformanceFailure subclass. If any of the five is absent or missing a link, the acceptance bar is not met and this assertion fails — the depth bar is a contract, not prose." .

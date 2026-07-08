@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Conformance twins migrated from tests/test_ai_claims.py
+//! Whole-ontology SHACL conformance twin migrated from tests/test_ai_claims.py.
 //!
 //! Migrated test:
 //!   - `test_normative_fixture_validates_against_the_full_graph` — MERGED mode:
@@ -9,14 +9,12 @@
 //!     `validate_with_ontology` which combines `base_ontology_nt()` with the
 //!     fixture triples, identical semantics.
 //!
-//! Retained in Python (not migrated):
-//!   - All tombstone absence tests (`test_no_parallel_claim_construct_exists`,
-//!     etc.) — these iterate `load_merged_graph` checking `(s, None, None) not in g`
-//!     patterns; no `run_shacl` call.
-//!   - Seam membership tests (`test_memory_is_a_role_on_the_universal_claim_construct`,
-//!     etc.) — vocabulary structural checks, no `run_shacl` call.
-//!   - `test_assessment_seam_is_the_norms_extensions` — parses the fixture and
-//!     checks specific triples; no `run_shacl` call.
+//! This case unions the fixture with the WHOLE merged ontology and validates the
+//! entire graph against the whole shape corpus, so it rides the H8 budget cliff
+//! and is carved out of the per-commit profile in `.config/nextest.toml` (it runs
+//! on `maint-rust-heavy`). The cheap tombstone / seam TBox guards that were also
+//! migrated from tests/test_ai_claims.py live in the sibling
+//! `conformance_ai_claims_tbox` binary so they stay on the per-commit gate.
 
 mod conformance_support;
 use conformance_support::*;

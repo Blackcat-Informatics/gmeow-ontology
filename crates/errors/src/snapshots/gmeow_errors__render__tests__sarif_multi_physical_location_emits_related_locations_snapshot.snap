@@ -1,5 +1,6 @@
 ---
 source: crates/errors/src/render.rs
+assertion_line: 1435
 expression: value
 ---
 {
@@ -38,7 +39,7 @@ expression: value
             "text": "missing property"
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "d81c36effbb01770"
+            "gmeowFindingHash/v2": "af00eb15ae8cf76e"
           },
           "relatedLocations": [
             {

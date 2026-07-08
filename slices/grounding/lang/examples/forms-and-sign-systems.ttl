@@ -276,3 +276,158 @@ ex:denCatsChaseMice
     lang:denotationContext ex:ctxPlainAssertion ;
     lang:isIndexical false ;
     logic:preservationKind logic:ExactPreservation .
+
+# --- Ambiguity held honestly: "I saw her duck" (two co-resident parses) ------ #
+# The syntactically ambiguous form "I saw her duck" carries TWO co-resident
+# lang:Analysis readings over ONE surface, neither collapsed into a silent
+# winner. The two readings assign genuinely distinct dependency trees:
+#   duck-as-bird:   "I saw [her duck]" — "duck" is the NOUN (the bird), the
+#                    object of "saw"; "her" is a possessive modifier of "duck".
+#   duck-as-crouch: "I saw her [duck]" — "duck" is the VERB (to crouch), a
+#                    modifier event under "saw"; "her" is the object of "duck".
+# The eight slots carry unique zero-based contiguous indexes (0..7) so the whole
+# composed form satisfies slot-uniqueness and contiguity, while each reading is
+# recovered by its own lang:inAnalysis scope. The CoNLL-U projection lowers this
+# form to TWO co-resident reading artifacts (lang:emittedReadingCount = 2), never
+# a single silently-chosen tree — the FS5 "ambiguity held honestly" surface.
+
+ex:lexSee
+    a lang:Lexeme ;
+    rdfs:label "see"@x-gmeow-english ;
+    lang:inSignSystem ex:english ;
+    lang:partOfSpeech lang:verb .
+
+ex:lexDuckBird
+    a lang:Lexeme ;
+    rdfs:label "duck"@x-gmeow-english ;
+    lang:inSignSystem ex:english ;
+    lang:partOfSpeech lang:noun .
+
+ex:lexDuckCrouch
+    a lang:Lexeme ;
+    rdfs:label "duck"@x-gmeow-english ;
+    lang:inSignSystem ex:english ;
+    lang:partOfSpeech lang:verb .
+
+ex:featPast
+    a lang:MorphFeature ;
+    lang:featureKey lang:featTense ;
+    lang:featureValue lang:valPast .
+
+# Word forms shared across both readings ("I", "saw", "her") plus the two
+# category-distinct forms of "duck". "I" and "her" have no lang:partOfSpeech
+# individual in the framework's part-of-speech inventory (which carries only
+# noun and verb), so their CoNLL-U UPOS is the Universal Dependencies "other"
+# tag X — a faithful encoding, never a fabricated category.
+
+ex:wfI
+    a lang:WordForm ;
+    rdfs:label "I"@x-gmeow-english ;
+    lang:inSignSystem ex:english .
+
+ex:wfSaw
+    a lang:WordForm ;
+    rdfs:label "saw"@x-gmeow-english ;
+    lang:inSignSystem ex:english ;
+    lang:inflectionOf ex:lexSee ;
+    lang:morphFeature ex:featPast .
+
+ex:wfHer
+    a lang:WordForm ;
+    rdfs:label "her"@x-gmeow-english ;
+    lang:inSignSystem ex:english .
+
+ex:wfDuckNoun
+    a lang:WordForm ;
+    rdfs:label "duck"@x-gmeow-english ;
+    lang:inSignSystem ex:english ;
+    lang:inflectionOf ex:lexDuckBird .
+
+ex:wfDuckVerb
+    a lang:WordForm ;
+    rdfs:label "duck"@x-gmeow-english ;
+    lang:inSignSystem ex:english ;
+    lang:inflectionOf ex:lexDuckCrouch .
+
+ex:analysisDuckBird
+    a lang:Analysis ;
+    rdfs:label "parse of 'I saw her duck' (duck as the bird)"@x-gmeow-english .
+
+ex:analysisDuckCrouch
+    a lang:Analysis ;
+    rdfs:label "parse of 'I saw her duck' (duck as the crouch)"@x-gmeow-english .
+
+ex:sentSawHerDuck
+    a lang:ComposedForm ;
+    rdfs:label "I saw her duck"@x-gmeow-english ;
+    lang:inSignSystem ex:english ;
+    lang:compositionLevel lang:sentenceLevel ;
+    lang:inAnalysis ex:analysisDuckBird , ex:analysisDuckCrouch ;
+    lang:formHead ex:wfSaw ;
+    lang:formSlot
+        ex:slotBI , ex:slotBSaw , ex:slotBHer , ex:slotBDuck ,
+        ex:slotCI , ex:slotCSaw , ex:slotCHer , ex:slotCDuck .
+
+# Reading duck-as-bird (slot indexes 0..3): I saw [her duck]
+ex:slotBI
+    a lang:FormSlot ;
+    lang:inAnalysis ex:analysisDuckBird ;
+    lang:slotIndex 0 ;
+    lang:slotForm ex:wfI ;
+    lang:slotRole lang:subjectRole ;
+    lang:dependsOn ex:slotBSaw .
+
+ex:slotBSaw
+    a lang:FormSlot ;
+    lang:inAnalysis ex:analysisDuckBird ;
+    lang:slotIndex 1 ;
+    lang:slotForm ex:wfSaw ;
+    lang:slotRole lang:predicateRole .
+
+ex:slotBHer
+    a lang:FormSlot ;
+    lang:inAnalysis ex:analysisDuckBird ;
+    lang:slotIndex 2 ;
+    lang:slotForm ex:wfHer ;
+    lang:slotRole lang:modifierRole ;
+    lang:dependsOn ex:slotBDuck .
+
+ex:slotBDuck
+    a lang:FormSlot ;
+    lang:inAnalysis ex:analysisDuckBird ;
+    lang:slotIndex 3 ;
+    lang:slotForm ex:wfDuckNoun ;
+    lang:slotRole lang:objectRole ;
+    lang:dependsOn ex:slotBSaw .
+
+# Reading duck-as-crouch (slot indexes 4..7): I saw her [duck]
+ex:slotCI
+    a lang:FormSlot ;
+    lang:inAnalysis ex:analysisDuckCrouch ;
+    lang:slotIndex 4 ;
+    lang:slotForm ex:wfI ;
+    lang:slotRole lang:subjectRole ;
+    lang:dependsOn ex:slotCSaw .
+
+ex:slotCSaw
+    a lang:FormSlot ;
+    lang:inAnalysis ex:analysisDuckCrouch ;
+    lang:slotIndex 5 ;
+    lang:slotForm ex:wfSaw ;
+    lang:slotRole lang:predicateRole .
+
+ex:slotCHer
+    a lang:FormSlot ;
+    lang:inAnalysis ex:analysisDuckCrouch ;
+    lang:slotIndex 6 ;
+    lang:slotForm ex:wfHer ;
+    lang:slotRole lang:objectRole ;
+    lang:dependsOn ex:slotCDuck .
+
+ex:slotCDuck
+    a lang:FormSlot ;
+    lang:inAnalysis ex:analysisDuckCrouch ;
+    lang:slotIndex 7 ;
+    lang:slotForm ex:wfDuckVerb ;
+    lang:slotRole lang:modifierRole ;
+    lang:dependsOn ex:slotCSaw .

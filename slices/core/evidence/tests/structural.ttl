@@ -31,7 +31,7 @@ ASK {
     gmeow:EvidenceClass a logic:AbstractIndividualType , owl:Class ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:EvidenceClass MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- the class is a value vocabulary (individuals, never subclasses; Principle 9). Mirrors test_evidence_class_is_value_vocabulary (superclass part)." .
+    gmeow:saRationale "gmeow:EvidenceClass MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- the class is a value vocabulary (individuals, never subclasses; Principle 9)." .
 
 # --- 2. All 17 EvidenceClass seed individuals exist (MUST) --------------------
 ex:saEvidenceClassSeeds a gmeow:StructuralAssertion ;
@@ -57,7 +57,7 @@ ASK {
     gmeow:evidenceSourceCodeArchive     a gmeow:EvidenceClass .
     gmeow:evidenceNewspaperLead         a gmeow:EvidenceClass .
 }""" ;
-    gmeow:saRationale "All 17 EvidenceClass seed individuals MUST be present as gmeow:EvidenceClass instances -- they are the open value vocabulary for evidential warrant (Axis A). Mirrors test_evidence_class_is_value_vocabulary (seeds positive part)." .
+    gmeow:saRationale "All 17 EvidenceClass seed individuals MUST be present as gmeow:EvidenceClass instances -- they are the open value vocabulary for evidential warrant (Axis A)." .
 
 # --- 3. EvidenceClass seeds are NOT typed owl:Class (MUST-NOT) ----------------
 ex:saEvidenceClassSeedsNotOwlClass a gmeow:StructuralAssertion ;
@@ -87,7 +87,7 @@ ASK {
     }
     ?seed a owl:Class .
 }""" ;
-    gmeow:saRationale "No EvidenceClass seed individual MUST be typed owl:Class -- evidence classes are individuals (value vocabulary), never subclasses; minting a seed as owl:Class would violate Principle 9. Mirrors test_evidence_class_is_value_vocabulary (seeds mustNot-owl:Class part)." .
+    gmeow:saRationale "No EvidenceClass seed individual MUST be typed owl:Class -- evidence classes are individuals (value vocabulary), never subclasses; minting a seed as owl:Class would violate Principle 9." .
 
 # --- 4. SourceIndependence is a logic:AbstractIndividualType value vocab (MUST) -
 ex:saSourceIndependenceIsValueVocab a gmeow:StructuralAssertion ;
@@ -101,7 +101,7 @@ ASK {
     gmeow:SourceIndependence a logic:AbstractIndividualType , owl:Class ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:SourceIndependence MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- it is the Axis B independence value vocabulary (individuals, never subclasses; Principle 9). Mirrors test_source_independence_is_value_vocabulary (superclass part)." .
+    gmeow:saRationale "gmeow:SourceIndependence MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- it is the Axis B independence value vocabulary (individuals, never subclasses; Principle 9)." .
 
 # --- 5. SourceIndependence seed individuals exist (MUST) ----------------------
 ex:saSourceIndependenceSeeds a gmeow:StructuralAssertion ;
@@ -112,7 +112,7 @@ ASK {
     gmeow:sourceIndependenceIndependent          a gmeow:SourceIndependence .
     gmeow:sourceIndependenceSelfOrIssuerOriginated a gmeow:SourceIndependence .
 }""" ;
-    gmeow:saRationale "Both SourceIndependence seed individuals (independent, self-or-issuer-originated) MUST exist. Mirrors test_source_independence_is_value_vocabulary (seeds positive part)." .
+    gmeow:saRationale "Both SourceIndependence seed individuals (independent, self-or-issuer-originated) MUST exist." .
 
 # --- 6. SourceIndependence seeds are NOT typed owl:Class (MUST-NOT) -----------
 ex:saSourceIndependenceSeedsNotOwlClass a gmeow:StructuralAssertion ;
@@ -127,7 +127,7 @@ ASK {
     }
     ?seed a owl:Class .
 }""" ;
-    gmeow:saRationale "No SourceIndependence seed individual MUST be typed owl:Class -- the values are individuals, never subclasses (Principle 9). Mirrors test_source_independence_is_value_vocabulary (seeds mustNot-owl:Class part)." .
+    gmeow:saRationale "No SourceIndependence seed individual MUST be typed owl:Class -- the values are individuals, never subclasses (Principle 9)." .
 
 # --- 7. SourceTier is a logic:AbstractIndividualType value vocabulary (MUST) ---
 ex:saSourceTierIsValueVocab a gmeow:StructuralAssertion ;
@@ -141,7 +141,7 @@ ASK {
     gmeow:SourceTier a logic:AbstractIndividualType , owl:Class ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:SourceTier MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- the bibliographic tier value vocabulary (individuals; Principle 9). Mirrors test_source_tier_is_value_vocabulary (superclass part)." .
+    gmeow:saRationale "gmeow:SourceTier MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- the bibliographic tier value vocabulary (individuals; Principle 9)." .
 
 # --- 8. SourceTier seed individuals exist (MUST) ------------------------------
 ex:saSourceTierSeeds a gmeow:StructuralAssertion ;
@@ -153,7 +153,7 @@ ASK {
     gmeow:sourceTierSecondary a gmeow:SourceTier .
     gmeow:sourceTierTertiary  a gmeow:SourceTier .
 }""" ;
-    gmeow:saRationale "The three SourceTier seed individuals (primary, secondary, tertiary) MUST exist as the standard bibliographic tier axis for notability assessment. Mirrors test_source_tier_is_value_vocabulary (seeds positive part)." .
+    gmeow:saRationale "The three SourceTier seed individuals (primary, secondary, tertiary) MUST exist as the standard bibliographic tier axis for notability assessment." .
 
 # --- 9. SourceTier seeds are NOT typed owl:Class (MUST-NOT) ------------------
 ex:saSourceTierSeedsNotOwlClass a gmeow:StructuralAssertion ;
@@ -169,7 +169,7 @@ ASK {
     }
     ?seed a owl:Class .
 }""" ;
-    gmeow:saRationale "No SourceTier seed individual MUST be typed owl:Class -- the tiers are individuals, never subclasses (Principle 9). Mirrors test_source_tier_is_value_vocabulary (seeds mustNot-owl:Class part)." .
+    gmeow:saRationale "No SourceTier seed individual MUST be typed owl:Class -- the tiers are individuals, never subclasses (Principle 9)." .
 
 # --- 10. CoverageDepth is a logic:AbstractIndividualType value vocab (MUST) ----
 ex:saCoverageDepthIsValueVocab a gmeow:StructuralAssertion ;
@@ -183,7 +183,7 @@ ASK {
     gmeow:CoverageDepth a logic:AbstractIndividualType , owl:Class ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:CoverageDepth MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- the coverage depth value vocabulary (individuals; Principle 9). Mirrors test_coverage_depth_is_value_vocabulary (superclass part)." .
+    gmeow:saRationale "gmeow:CoverageDepth MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- the coverage depth value vocabulary (individuals; Principle 9)." .
 
 # --- 11. CoverageDepth seed individuals exist (MUST) --------------------------
 ex:saCoverageDepthSeeds a gmeow:StructuralAssertion ;
@@ -195,7 +195,7 @@ ASK {
     gmeow:coverageDepthPassingMention      a gmeow:CoverageDepth .
     gmeow:coverageDepthRoutineFiling       a gmeow:CoverageDepth .
 }""" ;
-    gmeow:saRationale "The three CoverageDepth seed individuals (significant coverage, passing mention, routine filing) MUST exist. Mirrors test_coverage_depth_is_value_vocabulary (seeds positive part)." .
+    gmeow:saRationale "The three CoverageDepth seed individuals (significant coverage, passing mention, routine filing) MUST exist." .
 
 # --- 12. CoverageDepth seeds are NOT typed owl:Class (MUST-NOT) ---------------
 ex:saCoverageDepthSeedsNotOwlClass a gmeow:StructuralAssertion ;
@@ -211,7 +211,7 @@ ASK {
     }
     ?seed a owl:Class .
 }""" ;
-    gmeow:saRationale "No CoverageDepth seed individual MUST be typed owl:Class -- the depths are individuals, never subclasses (Principle 9). Mirrors test_coverage_depth_is_value_vocabulary (seeds mustNot-owl:Class part)." .
+    gmeow:saRationale "No CoverageDepth seed individual MUST be typed owl:Class -- the depths are individuals, never subclasses (Principle 9)." .
 
 # --- 13. hasEvidenceClass: ObjectProperty, correct domain/range (MUST) -------
 ex:saHasEvidenceClassProperty a gmeow:StructuralAssertion ;
@@ -225,7 +225,7 @@ ASK {
         rdfs:domain gmeow:CitationAct ;
         rdfs:range gmeow:EvidenceClass .
 }""" ;
-    gmeow:saRationale "gmeow:hasEvidenceClass MUST be an owl:ObjectProperty with domain gmeow:CitationAct and range gmeow:EvidenceClass. Mirrors test_has_evidence_class_is_non_functional (positive part)." .
+    gmeow:saRationale "gmeow:hasEvidenceClass MUST be an owl:ObjectProperty with domain gmeow:CitationAct and range gmeow:EvidenceClass." .
 
 # --- 14. hasEvidenceClass is NOT functional (MUST-NOT) ------------------------
 ex:saHasEvidenceClassNotFunctional a gmeow:StructuralAssertion ;
@@ -234,7 +234,7 @@ ex:saHasEvidenceClassNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:hasEvidenceClass a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:hasEvidenceClass MUST NOT be owl:FunctionalProperty -- competing evidence classifications coexist (Principle 9). Mirrors test_has_evidence_class_is_non_functional (mustNot-functional part)." .
+    gmeow:saRationale "gmeow:hasEvidenceClass MUST NOT be owl:FunctionalProperty -- competing evidence classifications coexist (Principle 9)." .
 
 # --- 15. sourceIndependence is an ObjectProperty with correct domain/range (MUST) ---
 ex:saSourceIndependenceProperty a gmeow:StructuralAssertion ;
@@ -248,7 +248,7 @@ ASK {
         rdfs:domain gmeow:CitationAct ;
         rdfs:range gmeow:SourceIndependence .
 }""" ;
-    gmeow:saRationale "gmeow:sourceIndependence MUST be an owl:ObjectProperty with domain gmeow:CitationAct and range gmeow:SourceIndependence. Mirrors test_source_typing_properties_exist (sourceIndependence positive part)." .
+    gmeow:saRationale "gmeow:sourceIndependence MUST be an owl:ObjectProperty with domain gmeow:CitationAct and range gmeow:SourceIndependence." .
 
 # --- 16. sourceIndependence is NOT functional (MUST-NOT) ----------------------
 ex:saSourceIndependenceNotFunctional a gmeow:StructuralAssertion ;
@@ -257,7 +257,7 @@ ex:saSourceIndependenceNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:sourceIndependence a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:sourceIndependence MUST NOT be owl:FunctionalProperty -- competing assessments coexist (Principle 9). Mirrors test_source_typing_properties_exist (sourceIndependence mustNot-functional part)." .
+    gmeow:saRationale "gmeow:sourceIndependence MUST NOT be owl:FunctionalProperty -- competing assessments coexist (Principle 9)." .
 
 # --- 17. sourceTier is an ObjectProperty with correct domain/range (MUST) -----
 ex:saSourceTierProperty a gmeow:StructuralAssertion ;
@@ -271,7 +271,7 @@ ASK {
         rdfs:domain gmeow:CitationAct ;
         rdfs:range gmeow:SourceTier .
 }""" ;
-    gmeow:saRationale "gmeow:sourceTier MUST be an owl:ObjectProperty with domain gmeow:CitationAct and range gmeow:SourceTier. Mirrors test_source_typing_properties_exist (sourceTier positive part)." .
+    gmeow:saRationale "gmeow:sourceTier MUST be an owl:ObjectProperty with domain gmeow:CitationAct and range gmeow:SourceTier." .
 
 # --- 18. sourceTier is NOT functional (MUST-NOT) ------------------------------
 ex:saSourceTierNotFunctional a gmeow:StructuralAssertion ;
@@ -280,7 +280,7 @@ ex:saSourceTierNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:sourceTier a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:sourceTier MUST NOT be owl:FunctionalProperty -- competing tier assessments coexist (Principle 9). Mirrors test_source_typing_properties_exist (sourceTier mustNot-functional part)." .
+    gmeow:saRationale "gmeow:sourceTier MUST NOT be owl:FunctionalProperty -- competing tier assessments coexist (Principle 9)." .
 
 # --- 19. coverageDepth is an ObjectProperty with correct domain/range (MUST) --
 ex:saCoverageDepthProperty a gmeow:StructuralAssertion ;
@@ -294,7 +294,7 @@ ASK {
         rdfs:domain gmeow:CitationAct ;
         rdfs:range gmeow:CoverageDepth .
 }""" ;
-    gmeow:saRationale "gmeow:coverageDepth MUST be an owl:ObjectProperty with domain gmeow:CitationAct and range gmeow:CoverageDepth. Mirrors test_source_typing_properties_exist (coverageDepth positive part)." .
+    gmeow:saRationale "gmeow:coverageDepth MUST be an owl:ObjectProperty with domain gmeow:CitationAct and range gmeow:CoverageDepth." .
 
 # --- 20. coverageDepth is NOT functional (MUST-NOT) ---------------------------
 ex:saCoverageDepthNotFunctional a gmeow:StructuralAssertion ;
@@ -303,7 +303,7 @@ ex:saCoverageDepthNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:coverageDepth a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:coverageDepth MUST NOT be owl:FunctionalProperty -- competing depth assessments coexist (Principle 9). Mirrors test_source_typing_properties_exist (coverageDepth mustNot-functional part)." .
+    gmeow:saRationale "gmeow:coverageDepth MUST NOT be owl:FunctionalProperty -- competing depth assessments coexist (Principle 9)." .
 
 # --- 21. supportsNotability is a DatatypeProperty with xsd:boolean range (MUST) ---
 ex:saSupportsNotabilityProperty a gmeow:StructuralAssertion ;
@@ -318,7 +318,7 @@ ASK {
         rdfs:domain gmeow:CitationAct ;
         rdfs:range xsd:boolean .
 }""" ;
-    gmeow:saRationale "gmeow:supportsNotability MUST be an owl:DatatypeProperty with domain gmeow:CitationAct and range xsd:boolean -- the notability summary flag for the Axis B assessment. Mirrors test_supports_notability_is_boolean_datatype_property." .
+    gmeow:saRationale "gmeow:supportsNotability MUST be an owl:DatatypeProperty with domain gmeow:CitationAct and range xsd:boolean -- the notability summary flag for the Axis B assessment." .
 
 # --- 22. Evidence properties have no inferential bridge to truth props (MUST-NOT) ---
 ex:saEvidencePropsNoTruthBridge a gmeow:StructuralAssertion ;
@@ -350,4 +350,4 @@ ASK {
         ?truthProp owl:equivalentProperty ?evProp .
     }
 }""" ;
-    gmeow:saRationale "No evidence property (hasEvidenceClass, sourceIndependence, sourceTier, coverageDepth) MUST carry any rdfs:subPropertyOf or owl:equivalentProperty bridge to truth/trust properties (observationResult, trustor, trustee, endorses) -- evidence is a warrant annotation, never an inferential truth bridge. Mirrors test_evidence_properties_do_not_imply_truth." .
+    gmeow:saRationale "No evidence property (hasEvidenceClass, sourceIndependence, sourceTier, coverageDepth) MUST carry any rdfs:subPropertyOf or owl:equivalentProperty bridge to truth/trust properties (observationResult, trustor, trustee, endorses) -- evidence is a warrant annotation, never an inferential truth bridge." .

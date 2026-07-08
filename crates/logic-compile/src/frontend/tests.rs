@@ -55,6 +55,34 @@ fn parse_invalid_turtle_raises() {
     assert!(err.0.contains("Failed to parse"));
 }
 
+// ── Trivially-Horn top-level formula routing (F2) ─────────────────────────────
+
+#[test]
+fn reified_trivially_horn_formula_routes_to_axioms_not_panics() {
+    // A reified GROUND binary atom is a top-level `logic:Formula` whose reconstruction is a
+    // trivially-Horn `Formula::Atom`. `LogicProgram::with_formulas` hard-asserts against such a
+    // leaf, so the front-end MUST route it to `LogicProgram.axioms` (its Horn home) rather than
+    // panic. This is the parse-layer root cause of the F2 conjecture-CLI panic.
+    let (prog, _diags) = parse(
+        "ex:phi a logic:Formula ;\n\
+             logic:relation rdf:type ;\n\
+             logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ] ;\n\
+             logic:argument [ logic:termIndex 1 ; logic:termIri ex:B ] .\n",
+    );
+    // Routed to the fact home, NEVER kept as a formula (which would trip the assertion).
+    assert!(
+        prog.formulas.is_empty(),
+        "a trivially-Horn leaf must not enter LogicProgram.formulas"
+    );
+    assert!(
+        prog.axioms.iter().any(|a| {
+            a.subject.ends_with("/a") && a.predicate.ends_with("#type") && a.obj.ends_with("/B")
+        }),
+        "the reified ground atom must be routed to LogicProgram.axioms, got {:?}",
+        prog.axioms
+    );
+}
+
 // ── Minimal graph + reasoning contracts ───────────────────────────────
 
 #[test]

@@ -27,6 +27,12 @@ mod conformance_support;
 use conformance_support::*;
 use rstest::rstest;
 
+const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+
+fn gm(local: &str) -> String {
+    format!("{GMEOW}{local}")
+}
+
 // ── Shared prefix block ───────────────────────────────────────────────────────
 
 const PREFIXES: &str = "\
@@ -155,4 +161,19 @@ ex:chapter1 rdfs:label \"Orphan Chapter\" .
 )]
 fn creative_works(#[case] case: Case) {
     case.run();
+}
+
+/// Each WEMI tier class (Work, Expression, Manifestation, Item) has
+/// gmeow:InformationObject in its transitive rdfs:subClassOf closure — a live
+/// graph traversal over the merged ontology, not a single-module ASK.
+#[test]
+fn wemi_tiers_subclass_information_object() {
+    let g = GraphStore::ontology();
+    for cls in ["Work", "Expression", "Manifestation", "Item"] {
+        let closure = g.subclass_closure(&gm(cls));
+        assert!(
+            closure.contains(&gm("InformationObject")),
+            "gmeow:{cls} must be a (transitive) subclass of gmeow:InformationObject; closure: {closure:?}"
+        );
+    }
 }

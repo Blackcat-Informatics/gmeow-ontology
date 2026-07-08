@@ -76,6 +76,20 @@
 <https://blackcatinformatics.ca/logic/candidateSourceField>(<https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive>, <https://blackcatinformatics.ca/logic/ProseFieldDefinition>, "default").
 <https://blackcatinformatics.ca/logic/candidateSourceHash>(<https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive>, "sha256:b2318705c42e37e940f1c2809e1c6a081517082ce26a6e15bbcca4e2f49deff5", "default").
 <https://blackcatinformatics.ca/logic/reviewedBy>(<https://blackcatinformatics.ca/logic/candidateCounterpartNonTransitive>, <https://blackcatinformatics.ca/logic/reviewerLogicFoundation>, "default").
+<https://blackcatinformatics.ca/logic/candidateCategory>(<https://blackcatinformatics.ca/logic/candidateCrossNodeGlut>, <https://blackcatinformatics.ca/logic/CategoryDerivationRule>, "default").
+<https://blackcatinformatics.ca/logic/candidateContract>(<https://blackcatinformatics.ca/logic/candidateCrossNodeGlut>, <https://blackcatinformatics.ca/logic/PositiveHornProfile>, "default").
+<https://blackcatinformatics.ca/logic/candidateExtractionProvenance>(<https://blackcatinformatics.ca/logic/candidateCrossNodeGlut>, "hand-harvested from gmeow:findingAnchor's skos:definition, which states the anchor is the join key for cross-node glut detection: a reasoner joins two different-code findings at one place and detects an opposing-polarity conflict the same-fingerprint merge misses (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
+<https://blackcatinformatics.ca/logic/candidateFormalizes>(<https://blackcatinformatics.ca/logic/candidateCrossNodeGlut>, <https://blackcatinformatics.ca/gmeow/findingAnchor>, "default").
+<https://blackcatinformatics.ca/logic/candidateLifecycle>(<https://blackcatinformatics.ca/logic/candidateCrossNodeGlut>, <https://blackcatinformatics.ca/logic/CandidateAccepted>, "default").
+<https://blackcatinformatics.ca/logic/candidateNegativeCase>(<https://blackcatinformatics.ca/logic/candidateCrossNodeGlut>, <https://blackcatinformatics.ca/logic/cqCrossNodeGlutSamePolarityRejected>, "default").
+<https://blackcatinformatics.ca/logic/candidateNegativeCase>(<https://blackcatinformatics.ca/logic/candidateCrossNodeGlut>, <https://blackcatinformatics.ca/logic/cqCrossNodeGlutTrivialAnchorRejected>, "default").
+<https://blackcatinformatics.ca/logic/candidatePositiveCase>(<https://blackcatinformatics.ca/logic/candidateCrossNodeGlut>, <https://blackcatinformatics.ca/logic/cqCrossNodeGlutHolds>, "default").
+<https://blackcatinformatics.ca/logic/candidateProjectionBehavior>(<https://blackcatinformatics.ca/logic/candidateCrossNodeGlut>, <https://blackcatinformatics.ca/logic/ExactPreservation>, "default").
+<https://blackcatinformatics.ca/logic/candidateScope>(<https://blackcatinformatics.ca/logic/candidateCrossNodeGlut>, "derivation: shared gmeow:findingAnchor typed gmeow:NonTrivialAnchor, distinct findings, gmeow:categoryPolarity logic:InfoSupported ∧ logic:InfoOpposed ⇒ gmeow:crossNodeGlutWith", "default").
+<https://blackcatinformatics.ca/logic/candidateSemanticRisk>(<https://blackcatinformatics.ca/logic/candidateCrossNodeGlut>, <https://blackcatinformatics.ca/logic/RiskCoreContaminating>, "default").
+<https://blackcatinformatics.ca/logic/candidateSourceField>(<https://blackcatinformatics.ca/logic/candidateCrossNodeGlut>, <https://blackcatinformatics.ca/logic/ProseFieldDefinition>, "default").
+<https://blackcatinformatics.ca/logic/candidateSourceHash>(<https://blackcatinformatics.ca/logic/candidateCrossNodeGlut>, "sha256:8b2aa3227645ac27452770bbb7393bef455a9049875ded598a4ca9545d39903f", "default").
+<https://blackcatinformatics.ca/logic/reviewedBy>(<https://blackcatinformatics.ca/logic/candidateCrossNodeGlut>, <https://blackcatinformatics.ca/logic/reviewerLogicFoundation>, "default").
 <https://blackcatinformatics.ca/logic/candidateCategory>(<https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence>, <https://blackcatinformatics.ca/logic/CategoryNecessaryCondition>, "default").
 <https://blackcatinformatics.ca/logic/candidateContract>(<https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence>, <https://blackcatinformatics.ca/logic/StratifiedNAFProfile>, "default").
 <https://blackcatinformatics.ca/logic/candidateExtractionProvenance>(<https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence>, "hand-harvested from gmeow:eventTypeDeception's skos:definition, which states that a deception projects a standpoint diverging from the one actually held (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
@@ -89,6 +103,19 @@
 <https://blackcatinformatics.ca/logic/candidateSourceField>(<https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence>, <https://blackcatinformatics.ca/logic/ProseFieldDefinition>, "default").
 <https://blackcatinformatics.ca/logic/candidateSourceHash>(<https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence>, "sha256:b8643c1fb0583812f11a418b01244c78af2e5f97edc306479a6ae717dfcec391", "default").
 <https://blackcatinformatics.ca/logic/reviewedBy>(<https://blackcatinformatics.ca/logic/candidateDeceptionHeldProjectedDivergence>, <https://blackcatinformatics.ca/logic/reviewerLogicFoundation>, "default").
+<https://blackcatinformatics.ca/logic/candidateCategory>(<https://blackcatinformatics.ca/logic/candidateDiagnosticMetaExtensibility>, <https://blackcatinformatics.ca/logic/CategoryDerivationRule>, "default").
+<https://blackcatinformatics.ca/logic/candidateContract>(<https://blackcatinformatics.ca/logic/candidateDiagnosticMetaExtensibility>, <https://blackcatinformatics.ca/logic/PositiveHornProfile>, "default").
+<https://blackcatinformatics.ca/logic/candidateExtractionProvenance>(<https://blackcatinformatics.ca/logic/candidateDiagnosticMetaExtensibility>, "hand-harvested from gmeow:DiagnosticMetaRule's skos:definition, which states the reasoner enumerates every gmeow:DiagnosticMetaRule and applies it, so a new meta-finding is added by authoring a new tagged rule with zero engine change (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
+<https://blackcatinformatics.ca/logic/candidateFormalizes>(<https://blackcatinformatics.ca/logic/candidateDiagnosticMetaExtensibility>, <https://blackcatinformatics.ca/gmeow/DiagnosticMetaRule>, "default").
+<https://blackcatinformatics.ca/logic/candidateLifecycle>(<https://blackcatinformatics.ca/logic/candidateDiagnosticMetaExtensibility>, <https://blackcatinformatics.ca/logic/CandidateAccepted>, "default").
+<https://blackcatinformatics.ca/logic/candidateNegativeCase>(<https://blackcatinformatics.ca/logic/candidateDiagnosticMetaExtensibility>, <https://blackcatinformatics.ca/logic/cqRootFindingNonRootRejected>, "default").
+<https://blackcatinformatics.ca/logic/candidatePositiveCase>(<https://blackcatinformatics.ca/logic/candidateDiagnosticMetaExtensibility>, <https://blackcatinformatics.ca/logic/cqRootFindingHolds>, "default").
+<https://blackcatinformatics.ca/logic/candidateProjectionBehavior>(<https://blackcatinformatics.ca/logic/candidateDiagnosticMetaExtensibility>, <https://blackcatinformatics.ca/logic/ExactPreservation>, "default").
+<https://blackcatinformatics.ca/logic/candidateScope>(<https://blackcatinformatics.ca/logic/candidateDiagnosticMetaExtensibility>, "derivation: gmeow:findingRootCause ⇒ rdf:type gmeow:RootFinding, discovered and run by the gmeow:DiagnosticMetaRule class selection with no engine change", "default").
+<https://blackcatinformatics.ca/logic/candidateSemanticRisk>(<https://blackcatinformatics.ca/logic/candidateDiagnosticMetaExtensibility>, <https://blackcatinformatics.ca/logic/RiskCoreContaminating>, "default").
+<https://blackcatinformatics.ca/logic/candidateSourceField>(<https://blackcatinformatics.ca/logic/candidateDiagnosticMetaExtensibility>, <https://blackcatinformatics.ca/logic/ProseFieldDefinition>, "default").
+<https://blackcatinformatics.ca/logic/candidateSourceHash>(<https://blackcatinformatics.ca/logic/candidateDiagnosticMetaExtensibility>, "sha256:6c55898bf91f86ff60aed9ed10787e4e1f6823d7f4eb148072946975d509eabc", "default").
+<https://blackcatinformatics.ca/logic/reviewedBy>(<https://blackcatinformatics.ca/logic/candidateDiagnosticMetaExtensibility>, <https://blackcatinformatics.ca/logic/reviewerLogicFoundation>, "default").
 <https://blackcatinformatics.ca/logic/candidateCategory>(<https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint>, <https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint>, "default").
 <https://blackcatinformatics.ca/logic/candidateContract>(<https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint>, <https://blackcatinformatics.ca/logic/StratifiedNAFProfile>, "default").
 <https://blackcatinformatics.ca/logic/candidateExtractionProvenance>(<https://blackcatinformatics.ca/logic/candidateEndurantPerdurantDisjoint>, "hand-harvested from the logic:Endurant skos:definition, which contrasts logic:Perdurant, which has temporal parts (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
@@ -137,6 +164,45 @@
 <https://blackcatinformatics.ca/logic/candidateSourceField>(<https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim>, <https://blackcatinformatics.ca/logic/ProseFieldDefinition>, "default").
 <https://blackcatinformatics.ca/logic/candidateSourceHash>(<https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim>, "sha256:5a0209094cea0065b721afa45f2bda0dacaf1b8c659bf77f5c52c7632f6b0b0e", "default").
 <https://blackcatinformatics.ca/logic/reviewedBy>(<https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim>, <https://blackcatinformatics.ca/logic/reviewerLogicFoundation>, "default").
+<https://blackcatinformatics.ca/logic/candidateCategory>(<https://blackcatinformatics.ca/logic/candidateFindingCluster>, <https://blackcatinformatics.ca/logic/CategoryDerivationRule>, "default").
+<https://blackcatinformatics.ca/logic/candidateContract>(<https://blackcatinformatics.ca/logic/candidateFindingCluster>, <https://blackcatinformatics.ca/logic/PositiveHornProfile>, "default").
+<https://blackcatinformatics.ca/logic/candidateExtractionProvenance>(<https://blackcatinformatics.ca/logic/candidateFindingCluster>, "hand-harvested from gmeow:FindingCluster's skos:definition, which states it is a grouping of findings that share one gmeow:findingRootCause, its members linked by gmeow:findingCluster and its shared root carried by gmeow:clusterRoot (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
+<https://blackcatinformatics.ca/logic/candidateFormalizes>(<https://blackcatinformatics.ca/logic/candidateFindingCluster>, <https://blackcatinformatics.ca/gmeow/FindingCluster>, "default").
+<https://blackcatinformatics.ca/logic/candidateLifecycle>(<https://blackcatinformatics.ca/logic/candidateFindingCluster>, <https://blackcatinformatics.ca/logic/CandidateAccepted>, "default").
+<https://blackcatinformatics.ca/logic/candidateNegativeCase>(<https://blackcatinformatics.ca/logic/candidateFindingCluster>, <https://blackcatinformatics.ca/logic/cqFindingClusterDistinctRootsRejected>, "default").
+<https://blackcatinformatics.ca/logic/candidatePositiveCase>(<https://blackcatinformatics.ca/logic/candidateFindingCluster>, <https://blackcatinformatics.ca/logic/cqFindingClusterHolds>, "default").
+<https://blackcatinformatics.ca/logic/candidateProjectionBehavior>(<https://blackcatinformatics.ca/logic/candidateFindingCluster>, <https://blackcatinformatics.ca/logic/ExactPreservation>, "default").
+<https://blackcatinformatics.ca/logic/candidateScope>(<https://blackcatinformatics.ca/logic/candidateFindingCluster>, "derivation: gmeow:findingRootCause ⇒ gmeow:findingCluster (member), gmeow:clusterRoot (root-keyed self-edge), and rdf:type gmeow:FindingCluster (grouping node), the cluster identified by its shared root finding", "default").
+<https://blackcatinformatics.ca/logic/candidateSemanticRisk>(<https://blackcatinformatics.ca/logic/candidateFindingCluster>, <https://blackcatinformatics.ca/logic/RiskCoreContaminating>, "default").
+<https://blackcatinformatics.ca/logic/candidateSourceField>(<https://blackcatinformatics.ca/logic/candidateFindingCluster>, <https://blackcatinformatics.ca/logic/ProseFieldDefinition>, "default").
+<https://blackcatinformatics.ca/logic/candidateSourceHash>(<https://blackcatinformatics.ca/logic/candidateFindingCluster>, "sha256:c95215b1f377631247322939147176f00d05a7b6736cce41562c74f0ee064f44", "default").
+<https://blackcatinformatics.ca/logic/reviewedBy>(<https://blackcatinformatics.ca/logic/candidateFindingCluster>, <https://blackcatinformatics.ca/logic/reviewerLogicFoundation>, "default").
+<https://blackcatinformatics.ca/logic/candidateCategory>(<https://blackcatinformatics.ca/logic/candidateFindingRootCause>, <https://blackcatinformatics.ca/logic/CategoryDerivationRule>, "default").
+<https://blackcatinformatics.ca/logic/candidateContract>(<https://blackcatinformatics.ca/logic/candidateFindingRootCause>, <https://blackcatinformatics.ca/logic/StratifiedNAFProfile>, "default").
+<https://blackcatinformatics.ca/logic/candidateExtractionProvenance>(<https://blackcatinformatics.ca/logic/candidateFindingRootCause>, "hand-harvested from gmeow:findingRootCause's skos:definition, which states the root is a childless witness reached by following gmeow:findingAntecedent transitively up the witness DAG, honestly the shared root antecedent and not a lowest-common-dominator (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
+<https://blackcatinformatics.ca/logic/candidateFormalizes>(<https://blackcatinformatics.ca/logic/candidateFindingRootCause>, <https://blackcatinformatics.ca/gmeow/findingRootCause>, "default").
+<https://blackcatinformatics.ca/logic/candidateLifecycle>(<https://blackcatinformatics.ca/logic/candidateFindingRootCause>, <https://blackcatinformatics.ca/logic/CandidateAccepted>, "default").
+<https://blackcatinformatics.ca/logic/candidateNegativeCase>(<https://blackcatinformatics.ca/logic/candidateFindingRootCause>, <https://blackcatinformatics.ca/logic/cqFindingRootCauseNonRootRejected>, "default").
+<https://blackcatinformatics.ca/logic/candidatePositiveCase>(<https://blackcatinformatics.ca/logic/candidateFindingRootCause>, <https://blackcatinformatics.ca/logic/cqFindingRootCauseHolds>, "default").
+<https://blackcatinformatics.ca/logic/candidateProjectionBehavior>(<https://blackcatinformatics.ca/logic/candidateFindingRootCause>, <https://blackcatinformatics.ca/logic/ExactPreservation>, "default").
+<https://blackcatinformatics.ca/logic/candidateScope>(<https://blackcatinformatics.ca/logic/candidateFindingRootCause>, "derivation: gmeow:findingAntecedent ⇒ gmeow:findingHasAntecedent (self-edge), and gmeow:findingTraces to a root NOT gmeow:findingHasAntecedent of itself ⇒ gmeow:findingRootCause (stratified negation as failure)", "default").
+<https://blackcatinformatics.ca/logic/candidateSemanticRisk>(<https://blackcatinformatics.ca/logic/candidateFindingRootCause>, <https://blackcatinformatics.ca/logic/RiskCoreContaminating>, "default").
+<https://blackcatinformatics.ca/logic/candidateSourceField>(<https://blackcatinformatics.ca/logic/candidateFindingRootCause>, <https://blackcatinformatics.ca/logic/ProseFieldDefinition>, "default").
+<https://blackcatinformatics.ca/logic/candidateSourceHash>(<https://blackcatinformatics.ca/logic/candidateFindingRootCause>, "sha256:0148fb862caa467b2cfbcea7d4fdd89b1841272bcf87ec188ee85b8654036b6f", "default").
+<https://blackcatinformatics.ca/logic/reviewedBy>(<https://blackcatinformatics.ca/logic/candidateFindingRootCause>, <https://blackcatinformatics.ca/logic/reviewerLogicFoundation>, "default").
+<https://blackcatinformatics.ca/logic/candidateCategory>(<https://blackcatinformatics.ca/logic/candidateFindingTraces>, <https://blackcatinformatics.ca/logic/CategoryDerivationRule>, "default").
+<https://blackcatinformatics.ca/logic/candidateContract>(<https://blackcatinformatics.ca/logic/candidateFindingTraces>, <https://blackcatinformatics.ca/logic/PositiveHornProfile>, "default").
+<https://blackcatinformatics.ca/logic/candidateExtractionProvenance>(<https://blackcatinformatics.ca/logic/candidateFindingTraces>, "hand-harvested from gmeow:findingAntecedent's skos:definition, which states the reasoner can join up the witness DAG for root-cause analysis and a childless finding up the chain is a root antecedent (design/LOGIC-FOUNDATION.md, §Typed formalization governance)", "default").
+<https://blackcatinformatics.ca/logic/candidateFormalizes>(<https://blackcatinformatics.ca/logic/candidateFindingTraces>, <https://blackcatinformatics.ca/gmeow/findingAntecedent>, "default").
+<https://blackcatinformatics.ca/logic/candidateLifecycle>(<https://blackcatinformatics.ca/logic/candidateFindingTraces>, <https://blackcatinformatics.ca/logic/CandidateAccepted>, "default").
+<https://blackcatinformatics.ca/logic/candidateNegativeCase>(<https://blackcatinformatics.ca/logic/candidateFindingTraces>, <https://blackcatinformatics.ca/logic/cqFindingTracesNonReachRejected>, "default").
+<https://blackcatinformatics.ca/logic/candidatePositiveCase>(<https://blackcatinformatics.ca/logic/candidateFindingTraces>, <https://blackcatinformatics.ca/logic/cqFindingTracesHolds>, "default").
+<https://blackcatinformatics.ca/logic/candidateProjectionBehavior>(<https://blackcatinformatics.ca/logic/candidateFindingTraces>, <https://blackcatinformatics.ca/logic/ExactPreservation>, "default").
+<https://blackcatinformatics.ca/logic/candidateScope>(<https://blackcatinformatics.ca/logic/candidateFindingTraces>, "derivation: gmeow:findingAntecedent ⇒ gmeow:findingTraces (base), and gmeow:findingAntecedent ∘ gmeow:findingTraces ⇒ gmeow:findingTraces (recursive step), the transitive closure up the witness DAG", "default").
+<https://blackcatinformatics.ca/logic/candidateSemanticRisk>(<https://blackcatinformatics.ca/logic/candidateFindingTraces>, <https://blackcatinformatics.ca/logic/RiskCoreContaminating>, "default").
+<https://blackcatinformatics.ca/logic/candidateSourceField>(<https://blackcatinformatics.ca/logic/candidateFindingTraces>, <https://blackcatinformatics.ca/logic/ProseFieldDefinition>, "default").
+<https://blackcatinformatics.ca/logic/candidateSourceHash>(<https://blackcatinformatics.ca/logic/candidateFindingTraces>, "sha256:1c235478a61c8445e999099c51c2bbe90abc6d16b003a1c4defda617077e531f", "default").
+<https://blackcatinformatics.ca/logic/reviewedBy>(<https://blackcatinformatics.ca/logic/candidateFindingTraces>, <https://blackcatinformatics.ca/logic/reviewerLogicFoundation>, "default").
 <https://blackcatinformatics.ca/logic/candidateCategory>(<https://blackcatinformatics.ca/logic/candidateFrameRelativity>, <https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint>, "default").
 <https://blackcatinformatics.ca/logic/candidateContract>(<https://blackcatinformatics.ca/logic/candidateFrameRelativity>, <https://blackcatinformatics.ca/logic/StratifiedNAFProfile>, "default").
 <https://blackcatinformatics.ca/logic/candidateDeliberateNonAssertion>(<https://blackcatinformatics.ca/logic/candidateFrameRelativity>, "true", "default").
@@ -421,91 +487,136 @@
 <https://blackcatinformatics.ca/logic/instantiatesFramework>(<https://blackcatinformatics.ca/logic/probability>, <https://blackcatinformatics.ca/logic/ProbabilisticFramework>, "default").
 <https://blackcatinformatics.ca/logic/instantiatesFramework>(<https://blackcatinformatics.ca/logic/properPartOf>, <https://blackcatinformatics.ca/logic/MereologicalFramework>, "default").
 <https://blackcatinformatics.ca/logic/instantiatesFramework>(<https://blackcatinformatics.ca/logic/rigidlyAppliesTo>, <https://blackcatinformatics.ca/logic/ModalFramework>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict>, <c14n19>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict>, <c14n28>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict>, <c14n62>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict>, <c14n9>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleClusterRoot>, <c14n51>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ruleClusterRoot>, <https://blackcatinformatics.ca/gmeow/clusterRoot>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleClusterRoot>, <c14n19>, "default").
+<https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleClusterRoot>, <https://blackcatinformatics.ca/logic/ruleClusterRoot>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleCrossNodeGlut>, <c14n11>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleCrossNodeGlut>, <c14n32>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleCrossNodeGlut>, <c14n53>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleCrossNodeGlut>, <c14n6>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleCrossNodeGlut>, <c14n65>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleCrossNodeGlut>, <c14n74>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleCrossNodeGlut>, <c14n87>, "default").
+<https://blackcatinformatics.ca/logic/distinctBody>(<https://blackcatinformatics.ca/logic/ruleCrossNodeGlut>, <c14n23>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ruleCrossNodeGlut>, <https://blackcatinformatics.ca/gmeow/crossNodeGlutWith>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleCrossNodeGlut>, <c14n39>, "default").
+<https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleCrossNodeGlut>, <https://blackcatinformatics.ca/logic/ruleCrossNodeGlut>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleFindingCluster>, <c14n13>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ruleFindingCluster>, <https://blackcatinformatics.ca/gmeow/findingCluster>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleFindingCluster>, <c14n86>, "default").
+<https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleFindingCluster>, <https://blackcatinformatics.ca/logic/ruleFindingCluster>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleFindingClusterType>, <c14n61>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ruleFindingClusterType>, <https://blackcatinformatics.ca/gmeow/FindingCluster>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleFindingClusterType>, <c14n16>, "default").
+<https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleFindingClusterType>, <https://blackcatinformatics.ca/logic/ruleFindingClusterType>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleFindingHasAntecedent>, <c14n20>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ruleFindingHasAntecedent>, <https://blackcatinformatics.ca/gmeow/findingHasAntecedent>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleFindingHasAntecedent>, <c14n17>, "default").
+<https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleFindingHasAntecedent>, <https://blackcatinformatics.ca/logic/ruleFindingHasAntecedent>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleFindingRootCause>, <c14n50>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ruleFindingRootCause>, <https://blackcatinformatics.ca/gmeow/findingRootCause>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleFindingRootCause>, <c14n52>, "default").
+<https://blackcatinformatics.ca/logic/negatedBody>(<https://blackcatinformatics.ca/logic/ruleFindingRootCause>, <c14n88>, "default").
+<https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleFindingRootCause>, <https://blackcatinformatics.ca/logic/ruleFindingRootCause>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleFindingTracesBase>, <c14n34>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ruleFindingTracesBase>, <https://blackcatinformatics.ca/gmeow/findingTraces>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleFindingTracesBase>, <c14n45>, "default").
+<https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleFindingTracesBase>, <https://blackcatinformatics.ca/logic/ruleFindingTracesBase>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleFindingTracesStep>, <c14n69>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleFindingTracesStep>, <c14n93>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ruleFindingTracesStep>, <https://blackcatinformatics.ca/gmeow/findingTraces>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleFindingTracesStep>, <c14n8>, "default").
+<https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleFindingTracesStep>, <https://blackcatinformatics.ca/logic/ruleFindingTracesStep>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict>, <c14n12>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict>, <c14n29>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict>, <c14n42>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict>, <c14n85>, "default").
 <https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict>, <https://blackcatinformatics.ca/gmeow/findingGateVerdict>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict>, <c14n18>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict>, <c14n28>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleGateFatalVerdict>, <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleIndirectContributor>, <c14n31>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleIndirectContributor>, <c14n48>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleIndirectContributor>, <c14n46>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleIndirectContributor>, <c14n70>, "default").
 <https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ruleIndirectContributor>, <https://blackcatinformatics.ca/gmeow/indirectContributor>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleIndirectContributor>, <c14n27>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleIndirectContributor>, <c14n41>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleIndirectContributor>, <https://blackcatinformatics.ca/logic/ruleIndirectContributor>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleInstantiatesWork>, <c14n21>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleInstantiatesWork>, <c14n34>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleInstantiatesWork>, <c14n41>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleInstantiatesWork>, <c14n31>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleInstantiatesWork>, <c14n49>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleInstantiatesWork>, <c14n60>, "default").
 <https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ruleInstantiatesWork>, <https://blackcatinformatics.ca/gmeow/instantiatesWork>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleInstantiatesWork>, <c14n11>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleInstantiatesWork>, <c14n15>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleInstantiatesWork>, <https://blackcatinformatics.ca/logic/ruleInstantiatesWork>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation>, <c14n39>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation>, <c14n59>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation>, <c14n58>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation>, <c14n82>, "default").
 <https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation>, <https://blackcatinformatics.ca/gmeow/memberOf>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation>, <c14n25>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation>, <c14n38>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation>, <https://blackcatinformatics.ca/logic/ruleOrgMembershipPropagation>, "default").
 <https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n1>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n13>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n15>, "default").
 <https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n2>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n20>, "default").
 <https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n22>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n25>, "default").
 <https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n30>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n32>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n36>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n37>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n38>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n46>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n52>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n53>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n33>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n44>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n47>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n55>, "default").
 <https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n56>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n63>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n57>, "default").
 <https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n67>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n7>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n64>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n75>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n76>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n79>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n89>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n9>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n94>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <c14n90>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, <https://blackcatinformatics.ca/logic/ruleProjectHasMastered>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n23>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n26>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n29>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n36>, "default").
 <https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n40>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n42>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n47>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n43>, "default").
 <https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n5>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n51>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n6>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n8>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n59>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n62>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n68>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n7>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n73>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <c14n10>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, <https://blackcatinformatics.ca/logic/ruleProjectIsAwareOf>, "default").
 <https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n0>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n12>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n16>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n17>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n24>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n18>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n26>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n27>, "default").
 <https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n3>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n35>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n37>, "default").
 <https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n54>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n66>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n60>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n77>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n92>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <c14n83>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, <https://blackcatinformatics.ca/logic/ruleProjectKnowsAbout>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n10>, "default").
 <https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n14>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n24>, "default").
 <https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n4>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n44>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n50>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n61>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n65>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n68>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n69>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n55>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n64>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n72>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n84>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n91>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n95>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n96>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <c14n78>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, <https://blackcatinformatics.ca/logic/ruleProjectUnderstands>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature>, <c14n45>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature>, <c14n57>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleRootFinding>, <c14n35>, "default").
+<https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ruleRootFinding>, <https://blackcatinformatics.ca/gmeow/RootFinding>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleRootFinding>, <c14n21>, "default").
+<https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleRootFinding>, <https://blackcatinformatics.ca/logic/ruleRootFinding>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature>, <c14n66>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature>, <c14n80>, "default").
 <https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature>, <https://blackcatinformatics.ca/gmeow/StandpointTenure>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature>, <c14n43>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature>, <c14n63>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature>, <https://blackcatinformatics.ca/logic/ruleTenureClaimObservedFeature>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleTenureClaimVantage>, <c14n49>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleTenureClaimVantage>, <c14n58>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleTenureClaimVantage>, <c14n71>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://blackcatinformatics.ca/logic/ruleTenureClaimVantage>, <c14n81>, "default").
 <https://blackcatinformatics.ca/logic/formalizes>(<https://blackcatinformatics.ca/logic/ruleTenureClaimVantage>, <https://blackcatinformatics.ca/gmeow/StandpointTenure>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleTenureClaimVantage>, <c14n33>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://blackcatinformatics.ca/logic/ruleTenureClaimVantage>, <c14n48>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://blackcatinformatics.ca/logic/ruleTenureClaimVantage>, <https://blackcatinformatics.ca/logic/ruleTenureClaimVantage>, "default").
 <https://blackcatinformatics.ca/logic/characteristicSort>(<https://blackcatinformatics.ca/logic/sharpensTransitivity>, <https://blackcatinformatics.ca/logic/transitiveProperty>, "default").
 <https://blackcatinformatics.ca/logic/characterizes>(<https://blackcatinformatics.ca/logic/sharpensTransitivity>, <https://blackcatinformatics.ca/gmeow/sharpens>, "default").
@@ -605,14 +716,50 @@
 <https://blackcatinformatics.ca/gmeow/indirectContributor>(?entity, ?agent, ?W) :-
     <https://blackcatinformatics.ca/gmeow/wasAssociatedWith>(?activity, ?agent, ?W),
     <https://blackcatinformatics.ca/gmeow/wasGeneratedBy>(?entity, ?activity, ?W) .
+#[name("https://blackcatinformatics.ca/logic/ruleCrossNodeGlut")]
+<https://blackcatinformatics.ca/gmeow/crossNodeGlutWith>(?f1, ?f2, ?W) :-
+    <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?anchor, <https://blackcatinformatics.ca/gmeow/NonTrivialAnchor>, ?W),
+    <https://blackcatinformatics.ca/gmeow/categoryPolarity>(?category1, <https://blackcatinformatics.ca/logic/InfoSupported>, ?W),
+    <https://blackcatinformatics.ca/gmeow/categoryPolarity>(?category2, <https://blackcatinformatics.ca/logic/InfoOpposed>, ?W),
+    <https://blackcatinformatics.ca/gmeow/findingAnchor>(?f1, ?anchor, ?W),
+    <https://blackcatinformatics.ca/gmeow/findingCategory>(?f1, ?category1, ?W),
+    <https://blackcatinformatics.ca/gmeow/findingAnchor>(?f2, ?anchor, ?W),
+    <https://blackcatinformatics.ca/gmeow/findingCategory>(?f2, ?category2, ?W),
+    ?f1 != ?f2 .
+#[name("https://blackcatinformatics.ca/logic/ruleFindingCluster")]
+<https://blackcatinformatics.ca/gmeow/findingCluster>(?finding, ?root, ?W) :-
+    <https://blackcatinformatics.ca/gmeow/findingRootCause>(?finding, ?root, ?W) .
 #[name("https://blackcatinformatics.ca/logic/ruleGateFatalVerdict")]
 <https://blackcatinformatics.ca/gmeow/findingGateVerdict>(?finding, <https://blackcatinformatics.ca/gmeow/gateFatal>, ?W) :-
     <https://blackcatinformatics.ca/gmeow/categoryBlocking>(?category, <https://blackcatinformatics.ca/gmeow/blockingBlocking>, ?W),
     <https://blackcatinformatics.ca/gmeow/findingCategory>(?finding, ?category, ?W),
     <https://blackcatinformatics.ca/gmeow/findingSeverity>(?finding, <https://blackcatinformatics.ca/gmeow/severityError>, ?W),
     <https://blackcatinformatics.ca/gmeow/findingStandpoint>(?finding, <https://blackcatinformatics.ca/gmeow/standpointBinding>, ?W) .
+#[name("https://blackcatinformatics.ca/logic/ruleFindingHasAntecedent")]
+<https://blackcatinformatics.ca/gmeow/findingHasAntecedent>(?finding, ?finding, ?W) :-
+    <https://blackcatinformatics.ca/gmeow/findingAntecedent>(?finding, ?antecedent, ?W) .
+#[name("https://blackcatinformatics.ca/logic/ruleFindingRootCause")]
+<https://blackcatinformatics.ca/gmeow/findingRootCause>(?finding, ?root, ?W) :-
+    <https://blackcatinformatics.ca/gmeow/findingTraces>(?finding, ?root, ?W),
+    ~<https://blackcatinformatics.ca/gmeow/findingHasAntecedent>(?root, ?root, ?W) .
+#[name("https://blackcatinformatics.ca/logic/ruleFindingTracesBase")]
+<https://blackcatinformatics.ca/gmeow/findingTraces>(?finding, ?antecedent, ?W) :-
+    <https://blackcatinformatics.ca/gmeow/findingAntecedent>(?finding, ?antecedent, ?W) .
+#[name("https://blackcatinformatics.ca/logic/ruleFindingTracesStep")]
+<https://blackcatinformatics.ca/gmeow/findingTraces>(?finding, ?root, ?W) :-
+    <https://blackcatinformatics.ca/gmeow/findingAntecedent>(?finding, ?intermediate, ?W),
+    <https://blackcatinformatics.ca/gmeow/findingTraces>(?intermediate, ?root, ?W) .
 #[name("https://blackcatinformatics.ca/logic/ruleInstantiatesWork")]
 <https://blackcatinformatics.ca/gmeow/instantiatesWork>(?item, ?work, ?W) :-
     <https://blackcatinformatics.ca/gmeow/realizes>(?expression, ?work, ?W),
     <https://blackcatinformatics.ca/gmeow/exemplifies>(?item, ?manifestation, ?W),
     <https://blackcatinformatics.ca/gmeow/embodies>(?manifestation, ?expression, ?W) .
+#[name("https://blackcatinformatics.ca/logic/ruleFindingClusterType")]
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?root, <https://blackcatinformatics.ca/gmeow/FindingCluster>, ?W) :-
+    <https://blackcatinformatics.ca/gmeow/findingRootCause>(?finding, ?root, ?W) .
+#[name("https://blackcatinformatics.ca/logic/ruleRootFinding")]
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?root, <https://blackcatinformatics.ca/gmeow/RootFinding>, ?W) :-
+    <https://blackcatinformatics.ca/gmeow/findingRootCause>(?finding, ?root, ?W) .
+#[name("https://blackcatinformatics.ca/logic/ruleClusterRoot")]
+<https://blackcatinformatics.ca/gmeow/clusterRoot>(?root, ?root, ?W) :-
+    <https://blackcatinformatics.ca/gmeow/findingRootCause>(?finding, ?root, ?W) .

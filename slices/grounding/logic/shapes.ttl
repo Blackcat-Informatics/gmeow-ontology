@@ -434,3 +434,101 @@ logic:NonEntailmentObligationShape
 # instance. Flow-edge well-formedness is enforced where the leg properties are
 # concrete: each subclass declares owl:Restriction someValuesFrom on its own legs,
 # and the structural assertions pin the canonical leg properties' existence.
+
+# =========================================================================== #
+# Conjecture / anti-conjecture library — well-formedness enforcement
+# =========================================================================== #
+# logic:Conjecture is a subclass of logic:FormalizationCandidate, so a conjecture
+# instance is ALSO validated by logic:FormalizationCandidateShape (the eight
+# universal candidate carriers). These shapes add the conjecture-specific carriers
+# on top: the required formula identity, the required reified standpoint (Principle
+# 9 — never a global-false verdict), the required epistemic lifecycle state, the
+# required verdict provenance, and the conditional witness obligation (a refuted
+# conjecture MUST name a concrete logic:ContradictionWitness).
+
+logic:ConjectureShape
+    a sh:NodeShape ;
+    rdfs:label "Conjecture well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for logic:Conjecture, layered on top of logic:FormalizationCandidateShape (which already enforces the eight universal candidate carriers, since a conjecture subclasses the candidate). It requires exactly one logic:conjectureFormula (the alpha-normalized formula identity), exactly one logic:conjectureStandpoint (an IRI — the reified standpoint the verdict is scoped to; Principle 9 refuses a global-false verdict), exactly one logic:conjectureLifecycleState from the closed logic:ConjectureLifecycleState set (the EPISTEMIC state, orthogonal to the inherited GOVERNANCE lifecycle), and exactly one logic:verdictProvenance from the closed logic:VerdictProvenanceKind set (engine-produced vs reviewer-asserted). Finally an sh:sparql conditional requires that a conjecture in logic:ConjectureRefutedInStandpoint names at least one logic:conjectureRefutationWitness — a refutation with no concrete witness is a hard error."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    sh:targetClass logic:Conjecture ;
+    sh:property [
+        sh:path logic:conjectureFormula ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A Conjecture must have exactly one logic:conjectureFormula (the alpha-normalized xsd:string content_key identity of the conjectured formula)." ;
+    ] ;
+    sh:property [
+        sh:path logic:conjectureStandpoint ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A Conjecture must have exactly one logic:conjectureStandpoint IRI (the reified standpoint the verdict is scoped to; Principle 9 refuses a global-false verdict)." ;
+    ] ;
+    sh:property [
+        sh:path logic:conjectureLifecycleState ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:ConjectureLifecycleState ;
+        sh:severity sh:Violation ;
+        sh:message "A Conjecture must have exactly one logic:conjectureLifecycleState from the closed logic:ConjectureLifecycleState value set (open / corroborated / refuted-in-standpoint / withdrawn)." ;
+    ] ;
+    sh:property [
+        sh:path logic:verdictProvenance ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class logic:VerdictProvenanceKind ;
+        sh:severity sh:Violation ;
+        sh:message "A Conjecture must have exactly one logic:verdictProvenance from the closed logic:VerdictProvenanceKind value set (engine-produced vs reviewer-asserted)." ;
+    ] ;
+    # Conditional witness obligation: a conjecture that is refuted-in-standpoint MUST
+    # name at least one concrete logic:ContradictionWitness. Modelled as sh:sparql
+    # because a plain property shape cannot express the antecedent (lifecycle =
+    # refuted). Mirrors the logic:FreshnessGuardShape paired-window sh:sparql idiom.
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A Conjecture in logic:ConjectureRefutedInStandpoint must name at least one logic:conjectureRefutationWitness (the concrete logic:ContradictionWitness); a refutation with no witness is a hard error." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/logic/conjectureLifecycleState> <https://blackcatinformatics.ca/logic/ConjectureRefutedInStandpoint> .
+                FILTER NOT EXISTS {
+                    $this <https://blackcatinformatics.ca/logic/conjectureRefutationWitness> ?w .
+                }
+            }
+        """ ;
+    ] .
+
+logic:ContradictionWitnessShape
+    a sh:NodeShape ;
+    rdfs:label "ContradictionWitness well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for logic:ContradictionWitness, the runtime refutation witness: exactly one logic:witnessIndividual (the individual forced to owl:Nothing) and exactly one logic:witnessWorld (the world IRI the contradiction was found in), and at least one logic:witnessPremise (a serialized triple; a refutation typically rests on several jointly-inconsistent premises). A witness missing its individual, world, or any premise records an unreplayable refutation and is a governance error."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    sh:targetClass logic:ContradictionWitness ;
+    sh:property [
+        sh:path logic:witnessIndividual ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A ContradictionWitness must have exactly one logic:witnessIndividual (the xsd:string IRI of the individual forced to owl:Nothing)." ;
+    ] ;
+    sh:property [
+        sh:path logic:witnessWorld ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A ContradictionWitness must have exactly one logic:witnessWorld (the xsd:string IRI of the world the contradiction was found in)." ;
+    ] ;
+    sh:property [
+        sh:path logic:witnessPremise ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A ContradictionWitness must have at least one logic:witnessPremise (a serialized triple; the jointly-inconsistent premises that entailed the contradiction)." ;
+    ] .
