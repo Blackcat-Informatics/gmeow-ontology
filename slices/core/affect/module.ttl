@@ -143,7 +143,24 @@ gmeow:AffectDecision
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "Affect Decision"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Observation ;
+    rdfs:subClassOf gmeow:Observation ,
+        [ a owl:Restriction ;
+            owl:onProperty gmeow:decidedLabel ;
+            owl:cardinality "1"^^xsd:nonNegativeInteger ] ,
+        [ a owl:Restriction ;
+            owl:onProperty gmeow:decisionCrossedThreshold ;
+            owl:cardinality "1"^^xsd:nonNegativeInteger ] ,
+        [ a owl:Restriction ;
+            owl:onProperty gmeow:observedFeature ;
+            owl:cardinality "1"^^xsd:nonNegativeInteger ] ,
+        [ a owl:Restriction ;
+            owl:onProperty gmeow:vantage ;
+            owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+            owl:onClass owl:Thing ] ,
+        [ a owl:Restriction ;
+            owl:onProperty gmeow:derivedByFunction ;
+            owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+            owl:onClass owl:Thing ] ;
     skos:definition "A single-label classifier's categorical decision over one target — the argmax (gmeow:decidedLabel) recorded as model-vantage EVIDENCE (gmeow:vantage = the run, gmeow:observedFeature = the target), derived by gmeow:fnArgmax over a gmeow:decisionArgmax label set. A fact about the CLASSIFIER'S OUTPUT over external gmeow:AffectClassifierLabel identities, NEVER a gmeow:AffectiveClaim about inner affect and never a gmeow:EmotionType — so it needs no reviewed closeMatch and is recorded even when the argmax falls BELOW the claim threshold (gmeow:decisionCrossedThreshold false). This preserves the model's decision faithfully (maximal information flow) without forcing a claim (the evidence/claim boundary, Principle 9). Only a gmeow:decisionArgmax set carries one: a multi-label set has no single categorical winner. Supersedes gmeow:AffectEvaluationConcluded for single-label sets — a decided winner, even a low-margin one, is the positive 'checked' fact, never silence."@x-gmeow-english ;
     skos:example "ex:decision a gmeow:AffectDecision ; gmeow:vantage ex:run ; gmeow:observedFeature ex:chunk ; gmeow:decidedLabel gmeow-hf:ekmanJoy ; gmeow:decisionCrossedThreshold false ; gmeow:decisionMargin 0.07 ; gmeow:derivedByFunction gmeow:fnArgmax ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting it for a multi-label (gmeow:decisionIndependentThreshold) set (there is no single argmax winner), avoid treating it as a gmeow:AffectiveClaim about inner affect (it is classifier-output evidence over an external label), and avoid asserting a gmeow:decisionMargin when the run emitted a single top-1 score (no runner-up exists)."@x-gmeow-english ;
@@ -548,7 +565,7 @@ gmeow:decidedLabel
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decided label"@x-gmeow-english ;
     rdfs:range gmeow:AffectClassifierLabel ;
-    skos:definition "The single gmeow:AffectClassifierLabel a gmeow:AffectDecision decides — the argmax (categorical mode) over a gmeow:decisionArgmax label set. Functional: a decision has exactly one decided label — the categorical winner-take-all exclusivity bound. Its single-valued and mandatory cardinality is a closed-world constraint enforced per observation-kind in SHACL (gmeow:AffectDecisionShape: sh:minCount 1 / sh:maxCount 1), a hard fail at validation: a decision with no decided label is meaningless, and two labels is not a single-label decision."@x-gmeow-english ;
+    skos:definition "The single gmeow:AffectClassifierLabel a gmeow:AffectDecision decides — the argmax (categorical mode) over a gmeow:decisionArgmax label set. Functional: a decision has exactly one decided label — the categorical winner-take-all exclusivity bound, authored in the reasoning layer as gmeow:AffectDecision owl:cardinality 1 on this property (with owl:FunctionalProperty) and projected to SHACL sh:minCount 1 / sh:maxCount 1 (Principle 17): a decision with no decided label is meaningless, and two labels is not a single-label decision."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:decisionCrossedThreshold
@@ -558,7 +575,7 @@ gmeow:decisionCrossedThreshold
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decision crossed threshold"@x-gmeow-english ;
     rdfs:range xsd:boolean ;
-    skos:definition "Whether the decided label's score crossed its claim threshold (true) or the model decided but no claim was routed (false). Makes 'decided-but-below-threshold' a queryable fact distinct from a routed gmeow:AffectiveClaim — the argmax is recorded either way, only the claim is gated. Functional; mandatory."@x-gmeow-english ;
+    skos:definition "Whether the decided label's score crossed its claim threshold (true) or the model decided but no claim was routed (false). Makes 'decided-but-below-threshold' a queryable fact distinct from a routed gmeow:AffectiveClaim — the argmax is recorded either way, only the claim is gated. Mandatory and single-valued: authored in the reasoning layer as gmeow:AffectDecision owl:cardinality 1 on this property (with owl:FunctionalProperty) and projected to SHACL sh:minCount 1 / sh:maxCount 1 (Principle 17). Exact owl:cardinality 1 is the in-fragment form the native reasoner DECIDES even for a datatype property — unlike owl:minCardinality / owl:maxCardinality or a count above one on a datatype property, which are withheld — so this single-valued datatype bound is a reasoning-layer fact, not a hand-authored SHACL constraint: a decision must record exactly one crossed-threshold verdict, its presence is never optional and two verdicts are incoherent."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:decisionMargin
