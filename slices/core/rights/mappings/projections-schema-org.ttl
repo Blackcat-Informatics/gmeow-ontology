@@ -19,6 +19,7 @@ gmeow:mapSchemaLicense a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:hasLicense ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:license ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:edoalTargetKind "relation" ;
         gmeow:emitSssom true ; gmeow:sssomPredicate skos:closeMatch ;
         gmeow:sssomFile "gmeow-rights.sssom.tsv" ] .
 
@@ -32,6 +33,7 @@ gmeow:mapSchemaCopyrightHolder a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:copyrightHolder ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:copyrightHolder ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:edoalTargetKind "relation" ;
         gmeow:emitSssom true ; gmeow:sssomPredicate skos:closeMatch ;
         gmeow:sssomFile "gmeow-rights.sssom.tsv" ;
         gmeow:lossyDrop "the Copyright relator (year, notice, status) collapses to a flat schema:copyrightHolder edge" ] .
