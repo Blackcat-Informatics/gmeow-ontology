@@ -139,6 +139,20 @@ impl Standpoint {
         }
     }
 
+    /// The inverse of [`iri_local`](Standpoint::iri_local) — read the
+    /// `gmeow:standpoint*` individual's local name (`gmeow:findingStandpoint`
+    /// object) back into the standpoint. The section of the RDF projection's
+    /// standpoint leg. `None` for an unknown local name (hard fail, never a silent
+    /// default).
+    pub fn from_iri_local(local: &str) -> Option<Self> {
+        match local {
+            "standpointAdvisory" => Some(Self::Advisory),
+            "standpointPerspectival" => Some(Self::Perspectival),
+            "standpointBinding" => Some(Self::Binding),
+            _ => None,
+        }
+    }
+
     /// The local name of the matching `gmeow:standpoint*` ontology individual, so
     /// the RDF projection emits the same IRI the diagnostics vocabulary mints.
     pub fn iri_local(self) -> &'static str {
