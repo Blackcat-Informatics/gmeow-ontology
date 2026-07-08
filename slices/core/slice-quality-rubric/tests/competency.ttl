@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency question for the slice-quality-rubric slice
+# (crates/slicetest). The QC query (queries/qc/axes-without-producer.rq) finds
+# any gmeow:QualityAxis lacking a gmeow:axisProducer binding; a non-empty result
+# is a failure, so the cell pins the empty set. It runs in the default asserted
+# lane on purpose: reasoning must not be able to invent a producer binding, so
+# the completeness guard is meaningful only over what is actually authored. Each
+# rationale states the ontological reason and names no test artifact.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/slice-quality-rubric/tests/> .
+
+ex:cqAxesBindProducers a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/qc/axes-without-producer.rq" ;
+    gmeow:cqRationale "Every quality axis must bind a measurement primitive with gmeow:axisProducer, because an axis the kernel cannot resolve to a primitive is unscorable; the query that finds producerless axes must return the empty set." ;
+    gmeow:cqResultShape ex:cqAxesBindProducersShape ;
+    gmeow:cqExpectRowCount 0 .
+
+ex:cqAxesBindProducersShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "axis" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 .

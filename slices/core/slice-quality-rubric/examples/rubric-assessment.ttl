@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a slice-quality report IS a bundle of quality observations.
+# Each per-axis grade is a gmeow:QualityAssessment (an Observation subclass) whose
+# assessedEntity is the target slice, whose qualityDimension is the axis's emitted
+# dimension, and whose observationResult is a gmeow:ScalarQuantity grade — the same
+# measurement bundle as any other GMEOW observation, never a bare number. The
+# roll-up tier is the lattice meet of the per-axis grades. This scene includes the
+# epistemically hard case: an axis whose grade is CONTESTED, carried honestly as a
+# low-confidence assessment rather than collapsed to a single verdict.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/slice-quality-rubric/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The target under assessment: an example slice being scored. ---------------
+ex:targetSlice a gmeow:Slice ;
+    gmeow:title "Example domain slice under a slice-quality pass"@x-gmeow-english .
+
+# --- A per-axis grade: grounding measured Maximal, unit-bundled. ----------------
+ex:groundingGrade a gmeow:QualityAssessment ;
+    gmeow:assessedEntity    ex:targetSlice ;
+    gmeow:qualityDimension  gmeow:qualityDimensionGrounding ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:observationResult ex:groundingScore .
+
+ex:groundingScore a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "0.97"^^xsd:decimal ;
+    gmeow:unit <http://qudt.org/vocab/unit/UNITLESS> .
+
+# --- The epistemically hard case: translation coverage is CONTESTED. -----------
+# A bare parallel French literal exists but carries no audited translation
+# record, so whether the slice "has" French coverage is genuinely contested. The
+# assessment records the low grade AND its low confidence rather than pretending
+# certainty — the report must carry the hard case, not smooth it over.
+ex:translationGrade a gmeow:QualityAssessment ;
+    gmeow:assessedEntity    ex:targetSlice ;
+    gmeow:qualityDimension  gmeow:qualityDimensionTranslationCoverage ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:observationResult ex:translationScore ;
+    gmeow:confidence        ex:contestedConfidence .
+
+ex:translationScore a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "0.42"^^xsd:decimal ;
+    gmeow:unit <http://qudt.org/vocab/unit/UNITLESS> .
+
+ex:contestedConfidence a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "0.35"^^xsd:decimal ;
+    gmeow:unit <http://qudt.org/vocab/unit/UNITLESS> .
+
+# --- The roll-up: the meet of the axis grades caps the slice at its weakest. ----
+# Grounding earns Maximal but translation coverage only reaches Registered, so the
+# unweighted lattice meet — the weakest axis — caps the slice's roll-up tier at
+# Registered. The advice list ranks the translation-coverage uplift first.
+ex:rollupGrade a gmeow:QualityAssessment ;
+    gmeow:assessedEntity    ex:targetSlice ;
+    gmeow:qualityDimension  gmeow:qualityDimensionGrounding , gmeow:qualityDimensionTranslationCoverage ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:observationResult ex:rollupTier .
+
+ex:rollupTier a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "0"^^xsd:integer ;
+    gmeow:unit <http://qudt.org/vocab/unit/UNITLESS> .
