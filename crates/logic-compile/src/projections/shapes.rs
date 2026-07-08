@@ -232,6 +232,25 @@ fn component_lines(c: &ConstraintComponent) -> Vec<String> {
         ConstraintComponent::Not(inner) => {
             vec![format!("sh:not [ {} ]", component_lines(inner).join(" ; "))]
         }
+        // A disjunction (`owl:unionOf` → `sh:or ( [ … ] [ … ] )`): each branch is its own
+        // `[ … ]` shape block, in the branches' canonical (content-key sorted) order.
+        ConstraintComponent::Or(branches) => {
+            let items = branches
+                .iter()
+                .map(|b| format!("[ {} ]", component_lines(b).join(" ; ")))
+                .collect::<Vec<_>>()
+                .join(" ");
+            vec![format!("sh:or ( {items} )")]
+        }
+        // An exclusive disjunction (`owl:disjointUnionOf` → `sh:xone ( [ … ] [ … ] )`).
+        ConstraintComponent::Xone(branches) => {
+            let items = branches
+                .iter()
+                .map(|b| format!("[ {} ]", component_lines(b).join(" ; ")))
+                .collect::<Vec<_>>()
+                .join(" ");
+            vec![format!("sh:xone ( {items} )")]
+        }
     }
 }
 
@@ -370,6 +389,13 @@ fn shacl_component_residue(path: &str, c: &ConstraintComponent, out: &mut Vec<St
         ConstraintComponent::Not(inner) => shacl_component_residue(path, inner, out),
         ConstraintComponent::QualifiedValueShape { shape, .. } => {
             for inner in shape {
+                shacl_component_residue(path, inner, out);
+            }
+        }
+        // `sh:or` / `sh:xone` are faithful SHACL Core constructs; a lossy component nested in a
+        // branch is flagged at branch depth (like the other wrappers, never silently dropped).
+        ConstraintComponent::Or(branches) | ConstraintComponent::Xone(branches) => {
+            for inner in branches {
                 shacl_component_residue(path, inner, out);
             }
         }
@@ -568,7 +594,11 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
             | ConstraintComponent::In(_)
             | ConstraintComponent::OrdinalSet { .. }
             | ConstraintComponent::HasValue(_)
-            | ConstraintComponent::Not(_) => {}
+            | ConstraintComponent::Not(_)
+            // ShEx Core has alternation (`|`) but not exclusive-or; both are carried in the
+            // canonical logic: layer rather than partially projected. Declared in shex_residue.
+            | ConstraintComponent::Or(_)
+            | ConstraintComponent::Xone(_) => {}
         }
     }
     let base = if !datatype.is_empty() {
@@ -705,6 +735,19 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
                 ConstraintComponent::Not(_) => residue.push(format!(
                     "negated constraint (sh:not) on {} has no ShEx Core form (ShEx Core has no \
                      negation); carried in the canonical logic: layer",
+                    p.path
+                )),
+                // ShEx Core has alternation but not exclusive-or; the disjunction (whether `sh:or`
+                // or `sh:xone`) is carried whole in the canonical logic: layer, never partially
+                // projected. Flagged at the wrapper level (like `Not`/`QualifiedValueShape`).
+                ConstraintComponent::Or(_) => residue.push(format!(
+                    "disjunction (sh:or) on {} is carried whole in the canonical logic: layer \
+                     (no partial ShEx alternation is emitted)",
+                    p.path
+                )),
+                ConstraintComponent::Xone(_) => residue.push(format!(
+                    "exclusive disjunction (sh:xone) on {} has no ShEx Core form; carried in the \
+                     canonical logic: layer",
                     p.path
                 )),
                 // ShEx-faithful, or already carried by the shacl_residue base — no *additional*
@@ -1109,6 +1152,75 @@ mod tests {
         assert!(
             ttl.contains("rdf-schema#label> \"inverse-functional shape\""),
             "{ttl}"
+        );
+    }
+
+    #[test]
+    fn or_and_xone_emit_sh_or_and_sh_xone_branch_lists() {
+        // `owl:unionOf` → `sh:or ( [ … ] [ … ] )`; `owl:disjointUnionOf` → `sh:xone ( … )`.
+        // Branches serialize in canonical (content-key sorted) order, deterministically.
+        let s = shape(
+            "https://ex/S",
+            "https://ex/C",
+            vec![
+                prop(
+                    "https://ex/target",
+                    vec![ConstraintComponent::Or(vec![
+                        ConstraintComponent::Class("https://ex/B".into()),
+                        ConstraintComponent::Class("https://ex/A".into()),
+                    ])],
+                ),
+                prop(
+                    "https://ex/kind",
+                    vec![ConstraintComponent::Xone(vec![
+                        ConstraintComponent::Class("https://ex/X".into()),
+                        ConstraintComponent::Class("https://ex/Y".into()),
+                    ])],
+                ),
+            ],
+        );
+        let ttl = project_validation_shape_shacl(&s);
+        assert!(
+            ttl.contains("sh:or ( [ sh:class <https://ex/A> ] [ sh:class <https://ex/B> ] )"),
+            "{ttl}"
+        );
+        assert!(
+            ttl.contains("sh:xone ( [ sh:class <https://ex/X> ] [ sh:class <https://ex/Y> ] )"),
+            "{ttl}"
+        );
+        // A clean (non-lossy) disjunction carries no SHACL residue but IS a ShEx-only drop.
+        assert!(shacl_residue(&s).is_empty(), "{:?}", shacl_residue(&s));
+        assert!(
+            shex_residue(&s).iter().any(|r| r.contains("sh:or"))
+                && shex_residue(&s).iter().any(|r| r.contains("sh:xone")),
+            "{:?}",
+            shex_residue(&s)
+        );
+    }
+
+    #[test]
+    fn nested_lossy_branch_is_flagged_in_disjunction_residue() {
+        // A Pattern nested inside a branch of sh:or must be flagged (never silently dropped).
+        let s = shape(
+            "https://ex/S",
+            "https://ex/C",
+            vec![prop(
+                "https://ex/p",
+                vec![ConstraintComponent::Or(vec![
+                    ConstraintComponent::Class("https://ex/A".into()),
+                    ConstraintComponent::Pattern {
+                        regex: "^x".into(),
+                        flags: None,
+                    },
+                ])],
+            )],
+        );
+        assert!(
+            shacl_residue(&s)
+                .iter()
+                .any(|r| r.contains("regex-dialect residue")),
+            "a Pattern in an sh:or branch must be flagged: {:?}",
+            shacl_residue(&s)
         );
     }
 

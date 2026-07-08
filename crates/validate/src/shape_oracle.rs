@@ -56,6 +56,8 @@ use purrdf::{
 const SH: &str = "http://www.w3.org/ns/shacl#";
 /// `sh:NodeShape` — the class every readable shape must be typed to.
 const SH_NODESHAPE: &str = "http://www.w3.org/ns/shacl#NodeShape";
+/// `sh:SPARQLTarget` — the class a value-keyed `sh:target` blank node is typed to.
+const SH_SPARQLTARGET: &str = "http://www.w3.org/ns/shacl#SPARQLTarget";
 /// `rdf:type`.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// `rdf:first` / `rdf:rest` / `rdf:nil` — the RDF-list spine of `sh:in` / `sh:languageIn`.
@@ -612,6 +614,269 @@ fn parse_property_shape(
     Ok(Some(prop))
 }
 
+/// Tokenize a SPARQL `sh:select` string into Turtle/SPARQL terms: `<iri>` and `"…"` /
+/// `"""…"""` are single tokens; `;` `.` `,` `(` `)` `{` `}` are punctuation tokens; the rest
+/// are whitespace-separated words (variables, keywords, CURIEs, the `a` shorthand). Only the
+/// small closed grammar the projector emits (and the value-keyed selects the corpus hand-authors)
+/// needs to be recognized, so this is intentionally minimal, not a full SPARQL lexer.
+fn tokenize_select(s: &str) -> Vec<String> {
+    let mut toks = Vec::new();
+    let mut chars = s.chars().peekable();
+    while let Some(&c) = chars.peek() {
+        if c.is_whitespace() {
+            chars.next();
+        } else if c == '<' {
+            let mut t = String::new();
+            for ch in chars.by_ref() {
+                t.push(ch);
+                if ch == '>' {
+                    break;
+                }
+            }
+            toks.push(t);
+        } else if c == '"' {
+            // A `"""…"""` or `"…"` literal — consume through the matching closing quote run.
+            let mut t = String::new();
+            t.push(chars.next().expect("peeked quote"));
+            let triple = chars.peek() == Some(&'"');
+            if triple {
+                t.push(chars.next().expect("second quote"));
+                if chars.peek() == Some(&'"') {
+                    t.push(chars.next().expect("third quote"));
+                }
+            }
+            let mut run = 0usize;
+            for ch in chars.by_ref() {
+                t.push(ch);
+                run = if ch == '"' { run + 1 } else { 0 };
+                if (triple && run == 3) || (!triple && run == 1) {
+                    break;
+                }
+            }
+            toks.push(t);
+        } else if matches!(c, ';' | '.' | ',' | '(' | ')' | '{' | '}') {
+            toks.push(c.to_string());
+            chars.next();
+        } else {
+            let mut t = String::new();
+            while let Some(&ch) = chars.peek() {
+                if ch.is_whitespace() || matches!(ch, ';' | '.' | ',' | '(' | ')' | '{' | '}' | '<')
+                {
+                    break;
+                }
+                t.push(ch);
+                chars.next();
+            }
+            toks.push(t);
+        }
+    }
+    toks
+}
+
+/// The value-keyed target inverted from a `sh:select` string: the single `?this <pred> <value>`
+/// basic pattern (the exact form [`gmeow_logic_compile::projections::shapes`] emits), returned as
+/// `(predicate, value, extra_type_classes)`. `extra_type_classes` are any additional
+/// `?this a <Class>` type patterns the hand-authored select also carried (e.g. the mode-scoped
+/// commitment's `?this a gmeow:InferenceCommitment`) — the IR value-keyed target cannot hold a
+/// class, so they are surfaced to the caller as residue. `None` when the select is not the
+/// value-keyed shape at all (no single non-type `?this` pattern, or a non-IRI object).
+fn parse_value_key_select(select: &str) -> Option<(String, String, Vec<String>)> {
+    let toks = tokenize_select(select);
+    // Prefix map: `PREFIX name: <iri>` (SPARQL) — collected across the whole select.
+    let mut prefixes: std::collections::BTreeMap<String, String> =
+        std::collections::BTreeMap::new();
+    let mut i = 0;
+    while i + 2 < toks.len() {
+        if toks[i].eq_ignore_ascii_case("prefix") {
+            let label = toks[i + 1].trim_end_matches(':').to_owned();
+            if let Some(iri) = toks[i + 2]
+                .strip_prefix('<')
+                .and_then(|t| t.strip_suffix('>'))
+            {
+                prefixes.insert(label, iri.to_owned());
+            }
+            i += 3;
+        } else {
+            i += 1;
+        }
+    }
+    let resolve = |t: &str| -> Option<String> {
+        if t == "a" {
+            return Some(RDF_TYPE.to_owned());
+        }
+        if let Some(inner) = t.strip_prefix('<').and_then(|x| x.strip_suffix('>')) {
+            return Some(inner.to_owned());
+        }
+        let (label, local) = t.split_once(':')?;
+        prefixes.get(label).map(|ns| format!("{ns}{local}"))
+    };
+    // The WHERE body between the first `{` and the last `}`.
+    let open = toks.iter().position(|t| t == "{")?;
+    let close = toks.iter().rposition(|t| t == "}")?;
+    if close <= open {
+        return None;
+    }
+    let body = &toks[open + 1..close];
+    // Walk `subj (pred obj)(; pred obj)* .` patterns; collect only those on `?this`.
+    let mut value_keys: Vec<(String, String)> = Vec::new();
+    let mut type_classes: Vec<String> = Vec::new();
+    let mut j = 0;
+    let mut subject: Option<String> = None;
+    while j < body.len() {
+        let t = &body[j];
+        if t == "." {
+            subject = None;
+            j += 1;
+            continue;
+        }
+        if t == ";" {
+            // Reuse the current subject for the next predicate-object pair.
+            if subject.is_none() || j + 2 >= body.len() {
+                return None;
+            }
+            j += 1;
+        } else {
+            subject = Some(t.clone());
+            j += 1;
+        }
+        if j + 1 >= body.len() {
+            return None;
+        }
+        let pred = &body[j];
+        let obj = &body[j + 1];
+        j += 2;
+        // Only `?this`-subject patterns key a value target; any other subject is out of grammar.
+        if subject.as_deref() != Some("?this") {
+            return None;
+        }
+        let pred_iri = resolve(pred)?;
+        if pred_iri == RDF_TYPE {
+            type_classes.push(resolve(obj)?);
+        } else {
+            // The value object must be an IRI (an `sh:SPARQLTarget` binds an IRI focus node).
+            let val = resolve(obj)?;
+            if obj.starts_with('"') {
+                return None;
+            }
+            value_keys.push((pred_iri, val));
+        }
+    }
+    // Exactly one non-type value pattern is the value-keyed shape; anything else is out of grammar.
+    if value_keys.len() != 1 {
+        return None;
+    }
+    let (predicate, value) = value_keys.into_iter().next().expect("length checked");
+    type_classes.sort();
+    type_classes.dedup();
+    Some((predicate, value, type_classes))
+}
+
+/// Invert an `sh:target [ a sh:SPARQLTarget ; sh:select "…" ]` blank node into a
+/// [`ShapeTarget::ValueKeyed`]. A non-`sh:SPARQLTarget` target, a target with no `sh:select`, or a
+/// `sh:select` that is not the value-keyed single-triple form is routed to `unsupported` (never a
+/// hard error), returning `None`. When the select carries extra `?this a <Class>` type patterns
+/// (which the IR value-keyed target cannot hold), those are surfaced to `unsupported` too.
+fn parse_sparql_target(
+    ds: &RdfDataset,
+    obj: TermId,
+    ctx: &str,
+    unsupported: &mut Vec<String>,
+) -> Result<Option<ShapeTarget>, String> {
+    let inner = quads_of(ds, obj);
+    let is_sparql_target = inner.iter().any(|(p, o)| {
+        p == RDF_TYPE && matches!(ds.resolve(*o), TermRef::Iri(s) if s == SH_SPARQLTARGET)
+    });
+    if !is_sparql_target {
+        unsupported.push(format!("{SH}target (non-SPARQLTarget target)"));
+        return Ok(None);
+    }
+    let Some((_, sel)) = inner.iter().find(|(p, _)| shacl_local(p) == Some("select")) else {
+        unsupported.push(format!("{SH}target (sh:SPARQLTarget without sh:select)"));
+        return Ok(None);
+    };
+    let select = obj_lexical(ds, *sel, ctx)?;
+    match parse_value_key_select(&select) {
+        Some((predicate, value, type_classes)) => {
+            for c in type_classes {
+                unsupported.push(format!(
+                    "sh:SPARQLTarget additional type constraint ?this a <{c}>"
+                ));
+            }
+            Ok(Some(ShapeTarget::ValueKeyed { predicate, value }))
+        }
+        None => {
+            unsupported.push(format!(
+                "{SH}target sh:select (not the value-keyed single-triple form)"
+            ));
+            Ok(None)
+        }
+    }
+}
+
+/// The direct focus-node target authored on `node` (`sh:targetClass` / `sh:targetSubjectsOf` /
+/// `sh:targetObjectsOf`, or a value-keyed `sh:target`), or `None` when it carries none. Used by
+/// the owner-walk to adopt an owning node shape's target for an inline/`sh:node` helper shape.
+fn direct_target_of(ds: &RdfDataset, node: TermId) -> Option<ShapeTarget> {
+    for (pred, o) in quads_of(ds, node) {
+        match shacl_local(&pred) {
+            Some("targetClass") => {
+                if let TermRef::Iri(s) = ds.resolve(o) {
+                    return Some(ShapeTarget::Class(s.to_owned()));
+                }
+            }
+            Some("targetSubjectsOf") => {
+                if let TermRef::Iri(s) = ds.resolve(o) {
+                    return Some(ShapeTarget::SubjectsOf(s.to_owned()));
+                }
+            }
+            Some("targetObjectsOf") => {
+                if let TermRef::Iri(s) = ds.resolve(o) {
+                    return Some(ShapeTarget::ObjectsOf(s.to_owned()));
+                }
+            }
+            Some("target") => {
+                let mut sink = Vec::new();
+                if let Ok(Some(t)) = parse_sparql_target(ds, o, "owner-walk", &mut sink) {
+                    return Some(t);
+                }
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+/// The subjects that reference `object` via `sh:node` or `sh:property`, sorted deterministically
+/// by their resolved term form (a blank id or IRI) so the owner-walk is order-independent.
+fn shape_referrers(ds: &RdfDataset, object: TermId) -> Vec<TermId> {
+    let mut refs: Vec<TermId> = ds
+        .quads_for_pattern(None, None, Some(object), GraphMatch::Any)
+        .filter(|q| matches!(ds.resolve(q.p), TermRef::Iri(p) if matches!(shacl_local(p), Some("node") | Some("property"))))
+        .map(|q| q.s)
+        .collect();
+    refs.sort_by_key(|&id| format!("{:?}", ds.resolve(id)));
+    refs.dedup();
+    refs
+}
+
+/// Resolve a target for a targetless inline / `sh:node` / property-only helper shape by walking
+/// the inverse `sh:node` / `sh:property` edge to the owning node shape and adopting ITS target.
+/// Walks at most two edges (property-blank → owning node shape). `None` for a genuinely orphan
+/// top-level targetless shape (no incoming `sh:node`/`sh:property` reaches a targeted owner).
+fn target_via_owner(ds: &RdfDataset, subject: TermId) -> Option<ShapeTarget> {
+    for r in shape_referrers(ds, subject) {
+        if let Some(t) = direct_target_of(ds, r) {
+            return Some(t);
+        }
+        for r2 in shape_referrers(ds, r) {
+            if let Some(t) = direct_target_of(ds, r2) {
+                return Some(t);
+            }
+        }
+    }
+    None
+}
+
 /// Parse ONE `sh:NodeShape` subject out of an already-parsed RDF dataset into a
 /// [`ShapeRead`] — the covered fragment plus its residue list.
 ///
@@ -687,6 +952,15 @@ pub fn read_shacl_shape(graph: &RdfDataset, node_shape_iri: &str) -> Result<Shap
                 ShapeTarget::ObjectsOf(obj_iri(graph, obj, node_shape_iri)?),
                 &mut target,
             )?,
+            // A value-keyed `sh:target [ a sh:SPARQLTarget ; sh:select "…" ]`. A recognizable
+            // value-keyed select becomes a `ValueKeyed` target; anything else is routed to the
+            // residue list (never a hard error) by `parse_sparql_target`.
+            Some("target") => {
+                if let Some(t) = parse_sparql_target(graph, obj, node_shape_iri, &mut unsupported)?
+                {
+                    set_target(t, &mut target)?;
+                }
+            }
             Some("property") => {
                 if let Some(p) = parse_property_shape(graph, obj, node_shape_iri, &mut unsupported)?
                 {
@@ -706,12 +980,19 @@ pub fn read_shacl_shape(graph: &RdfDataset, node_shape_iri: &str) -> Result<Shap
             "read_shacl_shape: <{node_shape_iri}> is not typed sh:NodeShape"
         ));
     }
-    let target = target.ok_or_else(|| {
-        format!(
-            "read_shacl_shape: <{node_shape_iri}> has no sh:targetClass / sh:targetSubjectsOf / \
-             sh:targetObjectsOf"
-        )
-    })?;
+    // A targetless inline / `sh:node` / property-only helper shape (e.g. one referenced by an
+    // owning node shape's `sh:node`) adopts the owning node shape's target by walking the inverse
+    // `sh:node` / `sh:property` edge. Only a genuinely orphan top-level targetless node shape (no
+    // targeted owner reachable) remains an `Err`.
+    let target = match target {
+        Some(t) => t,
+        None => target_via_owner(graph, subject).ok_or_else(|| {
+            format!(
+                "read_shacl_shape: <{node_shape_iri}> has no sh:targetClass / sh:targetSubjectsOf \
+                 / sh:targetObjectsOf and no owning sh:node/sh:property shape to adopt a target from"
+            )
+        })?,
+    };
     let node_components = node_acc.finish(node_shape_iri)?;
     let ir = ValidationShapeIr::new(node_shape_iri, target, properties, None)?
         .with_node_components(node_components)?;
@@ -931,7 +1212,9 @@ fn property_component_witness(
             | ConstraintComponent::DateTimePattern(_)
             | ConstraintComponent::HasValue(_)
             | ConstraintComponent::QualifiedValueShape { .. }
-            | ConstraintComponent::Not(_) => return None,
+            | ConstraintComponent::Not(_)
+            | ConstraintComponent::Or(_)
+            | ConstraintComponent::Xone(_) => return None,
         }
     };
     let focus = mint(idx);
@@ -970,7 +1253,9 @@ fn node_component_witness(
         | ConstraintComponent::DateTimePattern(_)
         | ConstraintComponent::HasValue(_)
         | ConstraintComponent::QualifiedValueShape { .. }
-        | ConstraintComponent::Not(_) => return None,
+        | ConstraintComponent::Not(_)
+        | ConstraintComponent::Or(_)
+        | ConstraintComponent::Xone(_) => return None,
     };
     let focus = mint(idx);
     let triples = target_triples(target, &focus);
@@ -1508,22 +1793,21 @@ mod tests {
     }
 
     #[test]
-    fn value_keyed_sparql_target_is_residue_not_err() {
-        // An sh:SPARQLTarget (the ValueKeyed projection) is uncovered → residue, not Err.
-        // A shape with no covered target has no focus selector, so this specific shape
-        // (target only via sh:target) surfaces the target predicate as residue AND has no
-        // covered target — which is the genuine "no target" malformation for the covered
-        // fragment. We assert the residue path by ALSO giving it a covered targetClass.
+    fn unparseable_sparql_target_is_residue_not_err() {
+        // An sh:SPARQLTarget whose select is NOT the value-keyed single-triple form (here two
+        // distinct non-type patterns) cannot be inverted → routed to residue, never a hard error.
+        // A covered sh:targetClass supplies the focus selector, so the read still succeeds.
         let ttl = format!(
             "{HEADER}<https://ex/S> a sh:NodeShape ;\n    \
              sh:targetClass <https://ex/C> ;\n    \
-             sh:target [ a sh:SPARQLTarget ; sh:select \"SELECT ?this WHERE {{ ?this <https://ex/k> <https://ex/v> }}\" ] .\n"
+             sh:target [ a sh:SPARQLTarget ; sh:select \"SELECT ?this WHERE {{ ?this <https://ex/k> <https://ex/v> ; <https://ex/k2> <https://ex/v2> }}\" ] .\n"
         );
         let read = read_shacl_shape(&parse_ttl(&ttl), "https://ex/S")
-            .expect("an sh:SPARQLTarget alongside a covered target is residue, not Err");
+            .expect("an unparsable sh:SPARQLTarget alongside a covered target is residue, not Err");
+        assert_eq!(read.ir.target, ShapeTarget::Class("https://ex/C".into()));
         assert!(
             read.unsupported.iter().any(|u| u.contains("shacl#target")),
-            "sh:target must be residue: {:?}",
+            "the unparsable sh:target must be residue: {:?}",
             read.unsupported
         );
     }
@@ -1698,5 +1982,106 @@ mod tests {
         .unwrap();
         let parsed = read_back(&shape);
         assert!(subsumption::equivalent(&shape, &parsed));
+    }
+
+    #[test]
+    fn value_keyed_sparql_target_round_trips() {
+        // The projector's `sh:target [ a sh:SPARQLTarget ; sh:select "…" ]` inverts back to the
+        // same ValueKeyed target, with NO residue (the exact single-triple form).
+        let shape = ValidationShapeIr::new(
+            "https://ex/S",
+            ShapeTarget::ValueKeyed {
+                predicate: "https://ex/kind".into(),
+                value: "https://ex/Bp".into(),
+            },
+            vec![
+                PropertyConstraintIr::new(
+                    "https://ex/p",
+                    Some(1),
+                    None,
+                    Some(ConstraintProvenance::OwlRestriction),
+                    vec![],
+                )
+                .unwrap(),
+            ],
+            None,
+        )
+        .unwrap();
+        let read = read_back(&shape);
+        assert_eq!(
+            read.target,
+            ShapeTarget::ValueKeyed {
+                predicate: "https://ex/kind".into(),
+                value: "https://ex/Bp".into()
+            }
+        );
+        assert!(subsumption::equivalent(&shape, &read));
+    }
+
+    #[test]
+    fn sparql_target_with_type_pattern_parses_value_key_and_flags_type() {
+        // A hand-authored mode-scoped select (`?this a Commitment ; mode abd`) clears the read
+        // error: the value-key becomes the target, and the extra `a` type pattern is flagged as
+        // residue (the IR value-keyed target cannot hold a class).
+        let ttl = format!(
+            "{HEADER}\
+             <https://ex/AbShape> a sh:NodeShape ;\n\
+             \x20\x20sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"\n\
+             PREFIX g: <https://ex/>\n\
+             SELECT ?this WHERE {{ ?this a g:Commitment ; g:mode g:abd . }}\n\
+             \"\"\" ] ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/explanandum> ; sh:minCount 1 ] .\n"
+        );
+        let ds = parse_ttl(&ttl);
+        let read = read_shacl_shape(&ds, "https://ex/AbShape")
+            .unwrap_or_else(|e| panic!("read must not error: {e}\n{ttl}"));
+        assert_eq!(
+            read.ir.target,
+            ShapeTarget::ValueKeyed {
+                predicate: "https://ex/mode".into(),
+                value: "https://ex/abd".into()
+            },
+            "value-key extracted from the select"
+        );
+        assert!(
+            read.unsupported
+                .iter()
+                .any(|u| u.contains("g:Commitment") || u.contains("Commitment")),
+            "the extra `a Commitment` type pattern must be flagged: {:?}",
+            read.unsupported
+        );
+    }
+
+    #[test]
+    fn inline_sh_node_helper_adopts_owner_target() {
+        // A targetless helper shape referenced via a property's `sh:node` adopts the owning node
+        // shape's `sh:targetClass` (the FramedIntervalShape fix): no read error, real target.
+        let ttl = format!(
+            "{HEADER}\
+             <https://ex/OwnerShape> a sh:NodeShape ;\n\
+             \x20\x20sh:targetClass <https://ex/Owner> ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/interval> ; sh:node <https://ex/HelperShape> ] .\n\
+             <https://ex/HelperShape> a sh:NodeShape ;\n\
+             \x20\x20sh:property [ sh:path <https://ex/frame> ; sh:minCount 1 ] .\n"
+        );
+        let ds = parse_ttl(&ttl);
+        let read = read_shacl_shape(&ds, "https://ex/HelperShape").unwrap_or_else(|e| {
+            panic!("targetless helper must adopt owner target, got: {e}\n{ttl}")
+        });
+        assert_eq!(
+            read.ir.target,
+            ShapeTarget::Class("https://ex/Owner".into())
+        );
+    }
+
+    #[test]
+    fn tokenize_select_keeps_iris_and_string_literals_whole() {
+        let toks =
+            tokenize_select("SELECT ?this WHERE { ?this <https://ex/a.b/c> <https://ex/v> }");
+        assert!(toks.contains(&"<https://ex/a.b/c>".to_owned()), "{toks:?}");
+        assert!(
+            !toks.contains(&".".to_owned()),
+            "no bare dot inside the IRI: {toks:?}"
+        );
     }
 }

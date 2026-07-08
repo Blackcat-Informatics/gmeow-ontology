@@ -266,6 +266,8 @@ fn component_label(c: &ConstraintComponent) -> &'static str {
         ConstraintComponent::HasValue(_) => "sh:hasValue",
         ConstraintComponent::QualifiedValueShape { .. } => "sh:qualifiedValueShape",
         ConstraintComponent::Not(_) => "sh:not",
+        ConstraintComponent::Or(_) => "sh:or",
+        ConstraintComponent::Xone(_) => "sh:xone",
     }
 }
 
