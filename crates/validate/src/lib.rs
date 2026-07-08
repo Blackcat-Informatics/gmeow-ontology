@@ -77,6 +77,8 @@ pub mod rule_catalog;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod self_desc;
 #[cfg(not(target_arch = "wasm32"))]
+pub mod shape_oracle;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod signature;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod slice_ownership;
