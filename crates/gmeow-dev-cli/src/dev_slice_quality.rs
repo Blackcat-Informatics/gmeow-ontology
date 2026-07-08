@@ -203,13 +203,21 @@ pub fn slice_quality_gate() -> i32 {
     };
 
     // Axis→producer binding gate, projection completeness gate, and exemption
-    // staleness gate — all reported together before the per-slice ratchet.
+    // staleness gate — all reported together before the per-slice ratchet. The
+    // full set of Rust item definitions under `crates/` is resolved by ONE walk
+    // (`resolvable_symbols`) and reused as the resolver for both the binding gate
+    // (each axis producer must be a real primitive item) and the staleness gate
+    // (an exemption whose producer has landed is stale) — never re-scanned per
+    // symbol.
+    let symbols = resolvable_symbols(&root);
     let mut structural: Vec<String> = Vec::new();
-    structural.extend(gmeow_slice_quality::gate::binding_gate(&rubric));
+    structural.extend(gmeow_slice_quality::gate::binding_gate(&rubric, |symbol| {
+        symbols.contains(symbol)
+    }));
     structural.extend(gmeow_slice_quality::gate::completeness_gate(&rubric));
     structural.extend(gmeow_slice_quality::gate::stale_exemptions(
         &rubric,
-        |symbol| symbol_resolves_in_repo(&root, symbol),
+        |symbol| symbols.contains(symbol),
     ));
     if !structural.is_empty() {
         for e in &structural {
@@ -329,22 +337,24 @@ fn load_floors(
     Ok(out)
 }
 
-/// Whether `symbol` is defined as a Rust item anywhere under `crates/` — the
-/// staleness-gate resolver. A definition keyword immediately followed by the
-/// symbol name counts (the constitution-gate integrity style), so a mere mention
-/// in a comment or string does not falsely retire an exemption.
-fn symbol_resolves_in_repo(root: &Path, symbol: &str) -> bool {
-    let keywords = [
-        "struct", "enum", "fn", "trait", "type", "const", "static", "union",
-    ];
-    let needles: Vec<String> = keywords.iter().map(|k| format!("{k} {symbol}")).collect();
-    let mut found = false;
+/// The set of every Rust *item* name defined anywhere under `crates/` — built by a
+/// SINGLE walk that feeds each `.rs` file through the constitution-gate AST resolver
+/// [`gmeow_validate::constitution::rust_item_names`] and unions the results. That
+/// resolver comment/string-strips the source and collects only the identifier
+/// immediately following an item-introducer keyword (`fn`/`struct`/`enum`/…), so the
+/// set is identifier-boundary-correct: a symbol that is a strict *prefix* of a real
+/// item (`grounding_ax` vs `grounding_axis`), or that appears only in a comment or
+/// string, is NOT present.
+///
+/// The same set is reused across every axis producer (binding gate) and every
+/// exemption producer (staleness gate), so `crates/` is walked exactly once rather
+/// than once per symbol.
+fn resolvable_symbols(root: &Path) -> std::collections::HashSet<String> {
+    let mut names = std::collections::HashSet::new();
     scan_rs(&root.join("crates"), &mut |text| {
-        if needles.iter().any(|n| text.contains(n.as_str())) {
-            found = true;
-        }
+        names.extend(gmeow_validate::constitution::rust_item_names(text));
     });
-    found
+    names
 }
 
 /// Walk `.rs` files under `dir`, calling `f` with each file's text.
