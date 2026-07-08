@@ -8,7 +8,7 @@
 //! The command itself never gates (it is advisory); the `make check` tier ratchet
 //! is a separate gate. `--all` sweeps every slice.
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use gmeow_slice_quality::report::{SliceReport, score_slice, score_slice_with_rubric};
 
@@ -82,12 +82,18 @@ pub fn slice_quality(path: Option<&Path>, all: bool, format: Option<&str>) -> i3
 }
 
 /// Score every discovered slice against one loaded rubric and print a roll-up
-/// summary. (Attaching the assessment graph to the carrier for `gmeow.gts` is the
-/// pipeline sweep; this CLI surface prints the per-slice roll-up.)
+/// summary.
+///
+/// This CLI surface is the human-facing roll-up printer; it does NOT fold anything into
+/// `gmeow.gts`. The carrier attach of the `gmeow:QualityAssessment` graph is done by the
+/// regeneration pipeline (`stage-source-load` scores every slice via
+/// [`gmeow_slice_quality::assessment_nquads`] and attaches the result under the
+/// `graph/quality-assessment` named graph, projected on-disk to
+/// `generated/quality/gmeow.quality-assessment.nt`). Both surfaces score the SAME slice
+/// set through [`gmeow_slice_quality::discover_slice_dirs`], so the printed roll-up and
+/// the shipped graph never diverge.
 fn sweep(root: &Path, format: Format) -> i32 {
-    let slices = root.join("slices");
-    let mut dirs = discover_slice_dirs(&slices);
-    dirs.sort();
+    let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
     let rubric = match gmeow_slice_quality::load_repo_rubric(root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality: {e}")),
@@ -160,8 +166,7 @@ pub fn slice_quality_gate() -> i32 {
     // Floor ranks by slice IRI, resolved against the ladder.
     let floors = load_floors(&root, &rubric);
 
-    let mut dirs = discover_slice_dirs(&root.join("slices"));
-    dirs.sort();
+    let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
     let mut failures = 0usize;
     let mut checked = 0usize;
     for dir in &dirs {
@@ -273,28 +278,6 @@ fn scan_rs(dir: &Path, f: &mut impl FnMut(&str)) {
             && let Ok(text) = std::fs::read_to_string(&p)
         {
             f(&text);
-        }
-    }
-}
-
-/// Every directory under `slices/` that holds a `manifest.ttl`.
-fn discover_slice_dirs(slices: &Path) -> Vec<PathBuf> {
-    let mut out = Vec::new();
-    walk(slices, &mut out);
-    out
-}
-
-fn walk(dir: &Path, out: &mut Vec<PathBuf>) {
-    let Ok(rd) = std::fs::read_dir(dir) else {
-        return;
-    };
-    for e in rd.flatten() {
-        let p = e.path();
-        if p.is_dir() {
-            if p.join("manifest.ttl").is_file() {
-                out.push(p.clone());
-            }
-            walk(&p, out);
         }
     }
 }
