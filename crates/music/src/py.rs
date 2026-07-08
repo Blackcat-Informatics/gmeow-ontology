@@ -10,14 +10,29 @@ use pyo3::types::PyModule;
 use pyo3::wrap_pyfunction;
 
 fn music_error(err: String) -> PyErr {
-    if err.starts_with("failed to read ")
+    use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint};
+    // Funnel through the ONE `Diag` → `PyErr` bridge, preserving the exception
+    // CLASS each case has always surfaced. A filesystem failure is carried as a
+    // live `std::io::Error` so the bridge keeps the `OSError` class every I/O
+    // failure has surfaced; every other failure is a value/data problem
+    // (`DataShapeViolation` → `ValueError`).
+    let diag = if err.starts_with("failed to read ")
         || err.starts_with("failed to write ")
         || err.starts_with("failed to create ")
     {
-        pyo3::exceptions::PyOSError::new_err(err)
+        Diag::from(std::io::Error::other(err))
     } else {
-        pyo3::exceptions::PyValueError::new_err(err)
-    }
+        Diag::new(
+            gmeow_errors::code::foreign_code(),
+            Grade::new(
+                Severity::Error,
+                FindingCategory::DataShapeViolation,
+                Standpoint::Binding,
+            ),
+            err,
+        )
+    };
+    gmeow_errors::py::diag_to_pyerr(&diag)
 }
 
 #[pyfunction]
