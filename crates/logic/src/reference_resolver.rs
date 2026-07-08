@@ -423,7 +423,7 @@ impl<'a> ResolveState<'a> {
 /// Apply a substitution to an atom, returning a new atom with bound variables replaced.
 ///
 /// Chases `__ALIAS__` sentinels so that aliased variables are fully resolved.
-fn apply_subst(atom: &QAtom, subst: &Binding) -> QAtom {
+pub(crate) fn apply_subst(atom: &QAtom, subst: &Binding) -> QAtom {
     QAtom {
         pred: atom.pred.clone(),
         args: atom.args.iter().map(|t| resolve_term(t, subst)).collect(),
@@ -433,7 +433,7 @@ fn apply_subst(atom: &QAtom, subst: &Binding) -> QAtom {
 /// Unify a rule head atom with a goal atom under the current substitution.
 ///
 /// Returns a new (extended) substitution on success, `None` on failure.
-fn unify_atoms(head: &QAtom, goal: &QAtom, subst: &Binding) -> Option<Binding> {
+pub(crate) fn unify_atoms(head: &QAtom, goal: &QAtom, subst: &Binding) -> Option<Binding> {
     if head.pred != goal.pred {
         return None;
     }
@@ -489,7 +489,7 @@ fn unify_atoms(head: &QAtom, goal: &QAtom, subst: &Binding) -> Option<Binding> {
 /// Aliases are stored as `__ALIAS__<var_name>` sentinels in `Binding`; this
 /// function follows the alias chain until it reaches a concrete constant or an
 /// unbound variable.
-fn resolve_term(t: &QTerm, subst: &Binding) -> QTerm {
+pub(crate) fn resolve_term(t: &QTerm, subst: &Binding) -> QTerm {
     match t {
         QTerm::Const(_) | QTerm::Num(_) => t.clone(),
         QTerm::Var(v) => chase_var(v, subst, 0),
@@ -499,7 +499,7 @@ fn resolve_term(t: &QTerm, subst: &Binding) -> QTerm {
 /// Chase a variable name through the substitution, following `__ALIAS__` sentinels.
 ///
 /// `depth` guards against pathological alias cycles (max 128 hops).
-fn chase_var(v: &str, subst: &Binding, depth: u32) -> QTerm {
+pub(crate) fn chase_var(v: &str, subst: &Binding, depth: u32) -> QTerm {
     if depth > 128 {
         // Cycle guard: return as unbound.
         return QTerm::Var(v.to_owned());
@@ -524,7 +524,7 @@ fn chase_var(v: &str, subst: &Binding, depth: u32) -> QTerm {
 ///
 /// Uses a global counter per call (via a local counter passed by the caller).
 /// In this implementation we use a thread-local counter.
-fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
+pub(crate) fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
     use std::sync::atomic::{AtomicU64, Ordering};
     static COUNTER: AtomicU64 = AtomicU64::new(0);
     let id = COUNTER.fetch_add(1, Ordering::Relaxed);
@@ -585,7 +585,7 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
 // ── Term conversion helpers ───────────────────────────────────────────────────
 
 /// Return the canonical string for a `QTerm::Const`, or `""` for a `Var` (wildcard).
-fn term_canonical_or_wildcard(t: &QTerm) -> String {
+pub(crate) fn term_canonical_or_wildcard(t: &QTerm) -> String {
     match t {
         QTerm::Const(c) => c.clone(),
         QTerm::Var(_) => String::new(),
@@ -595,7 +595,7 @@ fn term_canonical_or_wildcard(t: &QTerm) -> String {
 }
 
 /// Convert a canonical constant string (`<iri>` or `"lit"...`) to a native `TermValue`.
-fn canonical_to_term(canonical: &str) -> Result<TermValue, String> {
+pub(crate) fn canonical_to_term(canonical: &str) -> Result<TermValue, String> {
     if canonical.starts_with('<') && canonical.ends_with('>') {
         let iri = &canonical[1..canonical.len() - 1];
         Ok(TermValue::iri(iri))
@@ -608,7 +608,7 @@ fn canonical_to_term(canonical: &str) -> Result<TermValue, String> {
 }
 
 /// Collect all variable names that appear in the goal atoms.
-fn goal_vars(goal: &QGoal) -> Vec<String> {
+pub(crate) fn goal_vars(goal: &QGoal) -> Vec<String> {
     let mut vars: Vec<String> = Vec::new();
     for atom in &goal.atoms {
         for t in &atom.args {

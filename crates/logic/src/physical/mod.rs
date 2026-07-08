@@ -22,6 +22,7 @@ mod generic;
 mod magic;
 mod parity;
 mod seminaive;
+mod slg;
 mod store;
 
 // The arity-generic positive-Datalog forward evaluator: the predicate-as-data n-ary
@@ -61,6 +62,12 @@ pub(crate) use chase::{
 // `resolve_native`, the oracle-parity sibling of `reference_resolver::resolve`. The primary
 // backward path consumed by `dispatch::dispatch_query`.
 pub(crate) use magic::resolve_native;
+
+// The native top-down tabled SLG backward resolver: the completeness-preserving
+// decider for the multi-atom / n-ary conjunctive-goal fragment the bottom-up magic
+// core leaves unsupported. Wired into the backward dispatch on a later rung.
+#[allow(unused_imports)]
+pub(crate) use slg::resolve_slg;
 
 // The shared moded builtin evaluator: one arithmetic/comparison semantics called
 // by every native engine. `emit_integer_surface` is the single canonical

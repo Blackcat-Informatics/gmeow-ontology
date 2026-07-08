@@ -67,7 +67,7 @@ use crate::seam::{BudgetStatus, ScryerForeign};
 ///
 /// Generous enough that conformance-scale worlds always complete, low enough that a
 /// runaway non-tabled recursion is caught rather than hanging the process.
-const DEFAULT_INFERENCE_LIMIT: u64 = 5_000_000;
+pub(crate) const DEFAULT_INFERENCE_LIMIT: u64 = 5_000_000;
 
 /// Prolog variable used to capture the `call_with_inference_limit/3` result.
 ///
