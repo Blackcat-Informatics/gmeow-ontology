@@ -21,6 +21,7 @@ mod dev_i18n;
 mod dev_logic;
 mod dev_project;
 mod dev_reason;
+mod dev_slice_quality;
 mod dev_targets;
 mod dev_transpile;
 mod dev_validate;
@@ -411,6 +412,18 @@ pub enum Commands {
         #[arg(long = "profile")]
         profile: Option<String>,
     },
+    /// Score a slice against the slice-quality rubric and emit ranked uplift advice.
+    #[command(name = "slice-quality")]
+    SliceQuality {
+        /// The slice directory to score (omit with --all).
+        path: Option<PathBuf>,
+        /// Sweep every slice under slices/ instead of one path.
+        #[arg(long = "all")]
+        all: bool,
+        /// Output rendering: text (default), json, or sarif.
+        #[arg(long = "format")]
+        format: Option<String>,
+    },
     /// Propose manifest dependency edits as a reviewable unified diff.
     #[command(name = "slice-fix-deps")]
     SliceFixDeps {
@@ -789,6 +802,9 @@ pub fn run() -> i32 {
             input_path,
             profile,
         } => dev_reason::certify(&input_path, profile.as_deref()),
+        Commands::SliceQuality { path, all, format } => {
+            dev_slice_quality::slice_quality(path.as_deref(), all, format.as_deref())
+        }
         Commands::SliceFixDeps { apply, slices_dir } => {
             dev_feedback::slice_fix_deps(apply, slices_dir.as_deref())
         }

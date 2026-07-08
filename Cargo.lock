@@ -1893,6 +1893,7 @@ dependencies = [
  "gmeow-logic-compile",
  "gmeow-music",
  "gmeow-pipeline",
+ "gmeow-slice-quality",
  "gmeow-validate",
  "predicates",
  "purrdf",
