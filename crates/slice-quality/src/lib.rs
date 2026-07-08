@@ -13,9 +13,12 @@
 //! lattice: the roll-up tier is the unweighted meet of the per-axis grades
 //! ([`lattice`]). This crate is bound by both the dev CLI and the pipeline MCP.
 
+pub mod axes;
+pub mod graph;
 pub mod lattice;
 pub mod model;
 pub mod rubric;
+pub mod score;
 
 use std::path::Path;
 use std::sync::Arc;

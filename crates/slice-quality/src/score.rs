@@ -1,0 +1,92 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! The scoring context handed to each axis primitive, and the raw axis result.
+//!
+//! A primitive reads `ctx.graph` (at the breadth its `ContextScope` licenses) over
+//! `ctx.terms` (the slice's own authored terms) and returns an [`AxisScore`]: a
+//! normalized 0.0–1.0 score plus the advisory findings it wants surfaced. Advice
+//! output is always about the one target slice, whatever the read scope.
+
+use std::path::PathBuf;
+
+use gmeow_errors::{Finding, Severity, Standpoint};
+use purrdf::RdfDataset;
+
+use crate::graph;
+
+/// Everything an axis primitive may read about the slice under assessment.
+pub struct ScoreContext<'a> {
+    /// The slice ontology IRI (`…/slices/<name>`).
+    pub slice_iri: String,
+    /// The slice directory on disk (for file-shaped checks — test cells, i18n).
+    pub slice_dir: PathBuf,
+    /// The dataset to read, already assembled at the axis's licensed scope.
+    pub graph: &'a RdfDataset,
+    /// The slice's own authored `gmeow:` term IRIs (subjects `rdfs:isDefinedBy`
+    /// the slice), sorted — the population most per-term axes score over.
+    pub terms: Vec<String>,
+}
+
+impl<'a> ScoreContext<'a> {
+    /// Build a context for `slice_iri`, computing the slice's own term set from
+    /// the graph (subjects whose `rdfs:isDefinedBy` is the slice IRI).
+    #[must_use]
+    pub fn new(slice_iri: String, slice_dir: PathBuf, graph: &'a RdfDataset) -> Self {
+        let terms = slice_terms(graph, &slice_iri);
+        Self {
+            slice_iri,
+            slice_dir,
+            graph,
+            terms,
+        }
+    }
+}
+
+/// The slice's own authored terms: `gmeow:`-namespaced subjects that declare
+/// `rdfs:isDefinedBy <slice_iri>`. Falls back to every typed `gmeow:` subject
+/// when no term declares `isDefinedBy` (e.g. a graph assembled without it).
+#[must_use]
+pub fn slice_terms(ds: &RdfDataset, slice_iri: &str) -> Vec<String> {
+    let isdefinedby = graph::id(ds, "http://www.w3.org/2000/01/rdf-schema#isDefinedBy");
+    let slice_id = graph::id(ds, slice_iri);
+    if let (Some(p), Some(o)) = (isdefinedby, slice_id) {
+        let mut out: Vec<String> = graph::gmeow_terms(ds)
+            .into_iter()
+            .filter(|iri| graph::id(ds, iri).is_some_and(|s| graph::has(ds, s, p, o)))
+            .collect();
+        out.sort_unstable();
+        out.dedup();
+        if !out.is_empty() {
+            return out;
+        }
+    }
+    graph::gmeow_terms(ds)
+}
+
+/// The raw result of one axis primitive: a normalized score and its advisories.
+pub struct AxisScore {
+    /// The normalized score in 0.0–1.0 (clamped by the caller).
+    pub score: f64,
+    /// The advisory findings the primitive wants surfaced (never gating).
+    pub findings: Vec<Finding>,
+}
+
+impl AxisScore {
+    /// A clean pass with no advice.
+    #[must_use]
+    pub fn clean(score: f64) -> Self {
+        Self {
+            score,
+            findings: Vec::new(),
+        }
+    }
+}
+
+/// Build one advisory finding on the slice-quality tool at the given code+message.
+#[must_use]
+pub fn advisory(code: &str, message: impl Into<String>) -> Finding {
+    Finding::new(Severity::Warning, code, message)
+        .with_tool("slice-quality")
+        .with_standpoint(Standpoint::Advisory)
+}
