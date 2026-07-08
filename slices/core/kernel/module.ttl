@@ -861,3 +861,25 @@ vann:preferredNamespacePrefix
 
 vann:preferredNamespaceUri
     a owl:AnnotationProperty .
+
+# =========================================================================== #
+# Declarative constraint axioms (#1194 WAVE 2 — core slice) — the consumer-
+# advisory RANGE shapes (gmeow:useForConsumer / gmeow:avoidForConsumer must
+# point at a declared gmeow:ProjectionContext individual). rdfs:range is an
+# OPEN-WORLD inference axiom, so its closed-world validation reading is derived
+# ONLY when the property is explicitly opted IN with a logic:ClosedWorldClosure
+# closure entry (LOGIC-VALIDATION.md "The domain/range exception"). These two
+# properties ARE genuine closed-world obligations (a value that is not a
+# declared ProjectionContext is malformed, not an un-asserted entailment), so
+# they are opted in here; derive_validation_shapes then projects the
+# sh:targetObjectsOf + sh:class ProjectionContext twin of the authored range
+# shapes to generated/shapes/validation-shapes.ttl (Principle 17).
+# =========================================================================== #
+
+[ a logic:ClosureEntry ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/useForConsumer" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/avoidForConsumer" ;
+  logic:closureValue logic:ClosedWorldClosure ] .

@@ -467,3 +467,24 @@ REUSE (no parallel mechanisms — GTS transport design).
     skos:definition "The GMEOW GTS Transport Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Declarative constraint axioms (#1194 WAVE 2 — core slices) — the closed-world
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). A restriction carrying both owl:*Cardinality and
+# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# sh:datatype property shape. The cross-node / value-range / disjunctive
+# (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL
+# antecedent and remain the procedural fragment (Task 6).
+# =========================================================================== #
+
+gmeow:OpaqueFrame rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:opacityReason ; owl:cardinality 1 ; owl:allValuesFrom gmeow:OpacityReason ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:opaqueFrameIn ; owl:cardinality 1 ; owl:allValuesFrom gmeow:GTSSegment ] .
+
+gmeow:GTSSegment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:gtsHeadId ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:gtsSegmentIndex ; owl:cardinality 1 ; owl:allValuesFrom xsd:nonNegativeInteger ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:gtsProfile ; owl:cardinality 1 ; owl:allValuesFrom gmeow:GTSProfile ] .

@@ -228,3 +228,20 @@ DOCTRINE.
     skos:definition "The GMEOW Learning Module — learning as PROCESS: gmeow:LearningEvent, the occurrent that transitions an agent along the cognition knowledge spectrum or the expertise proficiency scale, together with the gmeow:LearningEventType value vocabulary for its varieties, the gmeow:Teaching relator, and the provenance / trajectory / product relations that tie an event to what it was learned from and the state it raised."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Declarative constraint axioms (#1194 WAVE 2 — core slices) — the closed-world
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). A restriction carrying both owl:*Cardinality and
+# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# sh:datatype property shape. The cross-node / value-range / disjunctive
+# (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL
+# antecedent and remain the procedural fragment (Task 6).
+# =========================================================================== #
+
+gmeow:Teaching rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:teacher ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:learner ; owl:minCardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:subjectTaught ; owl:minCardinality 1 ] .

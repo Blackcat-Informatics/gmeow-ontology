@@ -848,3 +848,60 @@ DOCTRINE.
     skos:definition "The GMEOW Epistemics Module — propositional epistemic relations: an agent's attitudes toward propositions/claims (belief, doubt, suspension, pragmatic acceptance, non-factive knowledge-that, and locally-factive knowledge-in-a-world), with factored justification and non-factive knowledge-attribution."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Declarative constraint axioms (#1194 WAVE 2 — core slices) — the closed-world
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). Cross-node / value-keyed (sh:sparql, SPARQLTarget) conditions
+# have no OWL antecedent and remain the procedural fragment (Task 6).
+# =========================================================================== #
+
+gmeow:DoxasticStandpointClaim rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:claimOfBelief ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:DoxasticState ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:hasAvailableEvidence ; owl:allValuesFrom gmeow:JustificationGround ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:basesBeliefOn ; owl:allValuesFrom gmeow:JustificationGround ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:hasDefeatStatus ; owl:allValuesFrom gmeow:JustificationStatus ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:defeatedBy ; owl:allValuesFrom gmeow:Defeater ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:supportsUnder ; owl:allValuesFrom gmeow:SupportAssessment ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:adequateUnder ; owl:allValuesFrom gmeow:AdequacyAssessment ] .
+
+gmeow:DoxasticState rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:epistemicAgent ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:doxasticContent ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Proposition ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:doxasticClaim ; owl:cardinality 1 ; owl:allValuesFrom gmeow:StandpointClaim ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:credence ; owl:allValuesFrom xsd:decimal ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:hasAvailableEvidence ; owl:allValuesFrom gmeow:JustificationGround ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:basesBeliefOn ; owl:allValuesFrom gmeow:JustificationGround ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:hasDefeatStatus ; owl:allValuesFrom gmeow:JustificationStatus ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:defeatedBy ; owl:allValuesFrom gmeow:Defeater ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:supportsUnder ; owl:allValuesFrom gmeow:SupportAssessment ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:adequateUnder ; owl:allValuesFrom gmeow:AdequacyAssessment ] .
+
+gmeow:ClaimEvaluation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:evaluates ; owl:cardinality 1 ; owl:allValuesFrom gmeow:ClaimToken ] .
+
+gmeow:DoxasticTenure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureOfDoxasticState ; owl:cardinality 1 ; owl:allValuesFrom gmeow:DoxasticState ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:cardinality 1 ; owl:allValuesFrom gmeow:TimeInterval ] .
+
+gmeow:SupportAssessment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:supportGround ; owl:cardinality 1 ; owl:allValuesFrom gmeow:JustificationGround ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:supportUnderStandard ; owl:cardinality 1 ; owl:allValuesFrom gmeow:EpistemicStandard ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:supportStrength ; owl:allValuesFrom xsd:decimal ] .
+
+gmeow:AdequacyAssessment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:adequacyUnderStandard ; owl:cardinality 1 ; owl:allValuesFrom gmeow:EpistemicStandard ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:meetsThreshold ; owl:cardinality 1 ; owl:allValuesFrom gmeow:AdequacyVerdict ] .
+
+gmeow:KnowledgeClaim rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:knowerAgent ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:knownProposition ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Proposition ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:knownInWorld ; owl:cardinality 1 ; owl:allValuesFrom gmeow:EpistemicContext ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:underStandard ; owl:cardinality 1 ; owl:allValuesFrom gmeow:EpistemicStandard ] .
+
+gmeow:KnowledgeAttribution rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:attributingAgent ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:attributedKnower ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:attributedProposition ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Proposition ] .

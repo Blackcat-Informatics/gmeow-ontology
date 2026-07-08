@@ -617,3 +617,23 @@ gmeow:usedModel
     skos:definition "The AI claim layer (GraphRAG provenance design), built the constitutional way: GMEOW already IS a claim model. The unified observation stance (CONSTITUTION P9) makes gmeow:Observation the universal claim construct — an LLM output is a StandpointClaim whose vantage is the model agent, its epistemics (confidence, accordingTo, the clocks) ride RDF 1.2 statement annotations, its verdicts ride the standpoint modalities (including gmeow:bullshit) and the deception slice's veridicality, and its evaluation is the norms extension's judge-as-vantage Assessment. This module therefore mints ONLY what is genuinely absent: the retrieval segment (Chunk) and its evidence seam, the prompt artifact, the model-invocation activity, the model card, the surfaced Contradiction, and the memory role. Everything else is doctrine over existing terms — see docs.md, the slice's real deliverable."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Declarative constraint axioms (#1194 WAVE 2 — core slices) — the closed-world
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). Cross-node / value-keyed (sh:sparql, SPARQLTarget) conditions
+# have no OWL antecedent and remain the procedural fragment (Task 6).
+# =========================================================================== #
+
+gmeow:Contradiction rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:contradictsClaim ; owl:minCardinality 2 ] .
+
+gmeow:Chunk rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:chunkOf ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:spanStart ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:spanEnd ; owl:cardinality 1 ] .
+
+gmeow:MemoryItem rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:memoryOf ; owl:minCardinality 1 ] .

@@ -1772,7 +1772,6 @@
       "type": "object"
     },
     "Attack": {
-      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
         "@annotation": {
           "$ref": "#/$defs/Annotation"
@@ -4163,37 +4162,25 @@
           ]
         },
         "gmeow:chunkOf": {
-          "anyOf": [
-            {
-              "$comment": "gmeow:InformationObject has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
-            },
-            {
-              "items": {
-                "$comment": "gmeow:InformationObject has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              "type": "array"
+          "$comment": "gmeow:InformationObject has no NodeShape; node reference only",
+          "properties": {
+            "@id": {
+              "type": "string"
             }
-          ]
-        }
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
+        },
+        "gmeow:spanEnd": {},
+        "gmeow:spanStart": {}
       },
+      "required": [
+        "gmeow:chunkOf",
+        "gmeow:spanEnd",
+        "gmeow:spanStart"
+      ],
       "type": "object"
     },
     "CitationAct": {
@@ -4838,9 +4825,23 @@
           ]
         },
         "gmeow:observationResult": {
+          "$comment": "gmeow:Concept has no NodeShape; node reference only",
+          "properties": {
+            "@id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
+        },
+        "gmeow:observedFeature": {
           "anyOf": [
             {
-              "$comment": "gmeow:Concept has no NodeShape; node reference only",
+              "$ref": "#/$defs/Entity"
+            },
+            {
               "properties": {
                 "@id": {
                   "type": "string"
@@ -4850,39 +4851,25 @@
                 "@id"
               ],
               "type": "object"
-            },
-            {
-              "items": {
-                "$comment": "gmeow:Concept has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              "type": "array"
             }
           ]
         },
-        "gmeow:observedFeature": {
+        "gmeow:typicality": {
           "anyOf": [
             {
               "anyOf": [
                 {
-                  "$ref": "#/$defs/Entity"
+                  "type": "number"
                 },
                 {
                   "properties": {
-                    "@id": {
+                    "@type": {
                       "type": "string"
-                    }
+                    },
+                    "@value": {}
                   },
                   "required": [
-                    "@id"
+                    "@value"
                   ],
                   "type": "object"
                 }
@@ -4892,16 +4879,17 @@
               "items": {
                 "anyOf": [
                   {
-                    "$ref": "#/$defs/Entity"
+                    "type": "number"
                   },
                   {
                     "properties": {
-                      "@id": {
+                      "@type": {
                         "type": "string"
-                      }
+                      },
+                      "@value": {}
                     },
                     "required": [
-                      "@id"
+                      "@value"
                     ],
                     "type": "object"
                   }
@@ -4912,6 +4900,10 @@
           ]
         }
       },
+      "required": [
+        "gmeow:observationResult",
+        "gmeow:observedFeature"
+      ],
       "type": "object"
     },
     "ConceptTenure": {
@@ -4936,9 +4928,23 @@
           ]
         },
         "gmeow:conceptHoldsFor": {
+          "$comment": "gmeow:Concept has no NodeShape; node reference only",
+          "properties": {
+            "@id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
+        },
+        "gmeow:duringInterval": {
           "anyOf": [
             {
-              "$comment": "gmeow:Concept has no NodeShape; node reference only",
+              "$ref": "#/$defs/TimeInterval"
+            },
+            {
               "properties": {
                 "@id": {
                   "type": "string"
@@ -4948,68 +4954,14 @@
                 "@id"
               ],
               "type": "object"
-            },
-            {
-              "items": {
-                "$comment": "gmeow:Concept has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              "type": "array"
-            }
-          ]
-        },
-        "gmeow:duringInterval": {
-          "anyOf": [
-            {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/TimeInterval"
-                },
-                {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                }
-              ]
-            },
-            {
-              "items": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/TimeInterval"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
-              },
-              "type": "array"
             }
           ]
         }
       },
+      "required": [
+        "gmeow:conceptHoldsFor",
+        "gmeow:duringInterval"
+      ],
       "type": "object"
     },
     "Condition": {
@@ -5765,35 +5717,24 @@
           ]
         },
         "gmeow:contradictsClaim": {
-          "anyOf": [
-            {
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+          "items": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
             },
-            {
-              "items": {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              "type": "array"
-            }
-          ]
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "minItems": 2,
+          "type": "array"
         }
       },
+      "required": [
+        "gmeow:contradictsClaim"
+      ],
       "type": "object"
     },
     "Contribution": {
@@ -7712,59 +7653,29 @@
         "gmeow:hasDefeatStatus": {
           "anyOf": [
             {
-              "anyOf": [
-                {
-                  "$comment": "gmeow:JustificationStatus has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+              "$comment": "gmeow:JustificationStatus has no NodeShape; node reference only",
+              "properties": {
+                "@id": {
+                  "type": "string"
                 }
-              ]
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
             },
             {
               "items": {
-                "anyOf": [
-                  {
-                    "$comment": "gmeow:JustificationStatus has no NodeShape; node reference only",
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
+                "$comment": "gmeow:JustificationStatus has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
                   }
-                ]
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               "type": "array"
             }
@@ -7837,12 +7748,12 @@
             }
           ]
         },
-        "gmeow:doxasticClaim": {
+        "gmeow:adequateUnder": {
           "anyOf": [
             {
               "anyOf": [
                 {
-                  "$ref": "#/$defs/StandpointClaim"
+                  "$ref": "#/$defs/AdequacyAssessment"
                 },
                 {
                   "properties": {
@@ -7861,7 +7772,7 @@
               "items": {
                 "anyOf": [
                   {
-                    "$ref": "#/$defs/StandpointClaim"
+                    "$ref": "#/$defs/AdequacyAssessment"
                   },
                   {
                     "properties": {
@@ -7880,10 +7791,10 @@
             }
           ]
         },
-        "gmeow:doxasticContent": {
+        "gmeow:basesBeliefOn": {
           "anyOf": [
             {
-              "$comment": "gmeow:Proposition has no NodeShape; node reference only",
+              "$comment": "gmeow:JustificationGround has no NodeShape; node reference only",
               "properties": {
                 "@id": {
                   "type": "string"
@@ -7896,7 +7807,7 @@
             },
             {
               "items": {
-                "$comment": "gmeow:Proposition has no NodeShape; node reference only",
+                "$comment": "gmeow:JustificationGround has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -7911,12 +7822,198 @@
             }
           ]
         },
-        "gmeow:epistemicAgent": {
+        "gmeow:credence": {
           "anyOf": [
             {
               "anyOf": [
                 {
-                  "$ref": "#/$defs/Agent"
+                  "type": "number"
+                },
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:defeatedBy": {
+          "anyOf": [
+            {
+              "$comment": "gmeow:Defeater has no NodeShape; node reference only",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "gmeow:Defeater has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:doxasticClaim": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/StandpointClaim"
+            },
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "gmeow:doxasticContent": {
+          "$comment": "gmeow:Proposition has no NodeShape; node reference only",
+          "properties": {
+            "@id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
+        },
+        "gmeow:epistemicAgent": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Agent"
+            },
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "gmeow:hasAvailableEvidence": {
+          "anyOf": [
+            {
+              "$comment": "gmeow:JustificationGround has no NodeShape; node reference only",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "gmeow:JustificationGround has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:hasDefeatStatus": {
+          "anyOf": [
+            {
+              "$comment": "gmeow:JustificationStatus has no NodeShape; node reference only",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "gmeow:JustificationStatus has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:supportsUnder": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SupportAssessment"
                 },
                 {
                   "properties": {
@@ -7935,7 +8032,7 @@
               "items": {
                 "anyOf": [
                   {
-                    "$ref": "#/$defs/Agent"
+                    "$ref": "#/$defs/SupportAssessment"
                   },
                   {
                     "properties": {
@@ -7955,6 +8052,11 @@
           ]
         }
       },
+      "required": [
+        "gmeow:doxasticClaim",
+        "gmeow:doxasticContent",
+        "gmeow:epistemicAgent"
+      ],
       "type": "object"
     },
     "DoxasticTenure": {
@@ -7981,90 +8083,44 @@
         "gmeow:duringInterval": {
           "anyOf": [
             {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/TimeInterval"
-                },
-                {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                }
-              ]
+              "$ref": "#/$defs/TimeInterval"
             },
             {
-              "items": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/TimeInterval"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
               },
-              "type": "array"
+              "required": [
+                "@id"
+              ],
+              "type": "object"
             }
           ]
         },
         "gmeow:tenureOfDoxasticState": {
           "anyOf": [
             {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/DoxasticState"
-                },
-                {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                }
-              ]
+              "$ref": "#/$defs/DoxasticState"
             },
             {
-              "items": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/DoxasticState"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
               },
-              "type": "array"
+              "required": [
+                "@id"
+              ],
+              "type": "object"
             }
           ]
         }
       },
+      "required": [
+        "gmeow:duringInterval",
+        "gmeow:tenureOfDoxasticState"
+      ],
       "type": "object"
     },
     "DreamReport": {
@@ -9594,38 +9650,62 @@
             }
           ]
         },
-        "gmeow:findingSeverity": {
+        "gmeow:findingCode": {
           "anyOf": [
             {
-              "$comment": "gmeow:DiagnosticSeverity has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "type": "string"
             },
             {
-              "items": {
-                "$comment": "gmeow:DiagnosticSeverity has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+              "properties": {
+                "@type": {
+                  "type": "string"
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "@value": {}
               },
-              "type": "array"
+              "required": [
+                "@value"
+              ],
+              "type": "object"
             }
           ]
+        },
+        "gmeow:findingMessage": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "gmeow:findingSeverity": {
+          "$comment": "gmeow:DiagnosticSeverity has no NodeShape; node reference only",
+          "properties": {
+            "@id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
         }
       },
+      "required": [
+        "gmeow:findingCode",
+        "gmeow:findingMessage",
+        "gmeow:findingSeverity"
+      ],
       "type": "object"
     },
     "GTSDocument": {
@@ -9691,8 +9771,7 @@
               ],
               "type": "object"
             }
-          ],
-          "pattern": "^blake3:[0-9a-f]{64}$"
+          ]
         },
         "gmeow:gtsProfile": {
           "$comment": "gmeow:GTSProfile has no NodeShape; node reference only",
@@ -11503,7 +11582,6 @@
       "type": "object"
     },
     "InferenceCommitment": {
-      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
         "@annotation": {
           "$ref": "#/$defs/Annotation"
@@ -11658,15 +11736,6 @@
               "items": {
                 "type": "string"
               },
-              "type": "array"
-            }
-          ]
-        },
-        "gmeow:duringInterval": {
-          "anyOf": [
-            {},
-            {
-              "items": {},
               "type": "array"
             }
           ]
@@ -14339,11 +14408,15 @@
                   }
                 ]
               },
+              "minItems": 1,
               "type": "array"
             }
           ]
         }
       },
+      "required": [
+        "gmeow:memoryOf"
+      ],
       "type": "object"
     },
     "MentalReferenceFrame": {
@@ -29941,154 +30014,6 @@
       "type": "object"
     },
     "NotationProjectionProfile": {
-      "anyOf": [
-        {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
-                }
-              ]
-            },
-            "gmeow:representableParameter": {
-              "anyOf": [
-                {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                {
-                  "items": {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  },
-                  "minItems": 1,
-                  "type": "array"
-                }
-              ]
-            }
-          },
-          "required": [
-            "gmeow:representableParameter"
-          ],
-          "type": "object"
-        },
-        {
-          "properties": {
-            "@annotation": {
-              "$ref": "#/$defs/Annotation"
-            },
-            "@id": {
-              "type": "string"
-            },
-            "@type": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "items": {
-                    "type": "string"
-                  },
-                  "type": "array"
-                }
-              ]
-            },
-            "gmeow:declaredLoss": {
-              "anyOf": [
-                {
-                  "anyOf": [
-                    {
-                      "$comment": "gmeow:ProjectionLoss has no NodeShape; node reference only",
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
-                },
-                {
-                  "items": {
-                    "anyOf": [
-                      {
-                        "$comment": "gmeow:ProjectionLoss has no NodeShape; node reference only",
-                        "properties": {
-                          "@id": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "@id"
-                        ],
-                        "type": "object"
-                      },
-                      {
-                        "properties": {
-                          "@id": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "@id"
-                        ],
-                        "type": "object"
-                      }
-                    ]
-                  },
-                  "minItems": 1,
-                  "type": "array"
-                }
-              ]
-            }
-          },
-          "required": [
-            "gmeow:declaredLoss"
-          ],
-          "type": "object"
-        }
-      ],
       "properties": {
         "@annotation": {
           "$ref": "#/$defs/Annotation"
@@ -30129,29 +30054,9 @@
         },
         "gmeow:projectionFunction": {
           "anyOf": [
+            {},
             {
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
-            },
-            {
-              "items": {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
+              "items": {},
               "minItems": 1,
               "type": "array"
             }
@@ -30204,8 +30109,7 @@
                   ],
                   "type": "object"
                 }
-              ],
-              "pattern": "^U\\+[0-9A-F]{4,6}$"
+              ]
             },
             {
               "items": {
@@ -30225,8 +30129,7 @@
                     ],
                     "type": "object"
                   }
-                ],
-                "pattern": "^U\\+[0-9A-F]{4,6}$"
+                ]
               },
               "type": "array"
             }
@@ -37979,7 +37882,6 @@
       "type": "object"
     },
     "Support": {
-      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
         "@annotation": {
           "$ref": "#/$defs/Annotation"
@@ -38343,6 +38245,17 @@
                   }
                 ]
               },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:subjectTaught": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
               "type": "array"
             }
           ]
@@ -38350,47 +38263,27 @@
         "gmeow:teacher": {
           "anyOf": [
             {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/Agent"
-                },
-                {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                }
-              ]
+              "$ref": "#/$defs/Agent"
             },
             {
-              "items": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/Agent"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
               },
-              "type": "array"
+              "required": [
+                "@id"
+              ],
+              "type": "object"
             }
           ]
         }
       },
+      "required": [
+        "gmeow:learner",
+        "gmeow:subjectTaught",
+        "gmeow:teacher"
+      ],
       "type": "object"
     },
     "TempoMap": {
