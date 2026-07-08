@@ -74,3 +74,22 @@ DOCTRINE.
     skos:definition "The GMEOW Agentic Module — tool-call provenance: an agent's ACTIONS join the same provenance graph as its claims. DELIBERATELY THIN."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Declarative constraint axioms (extension slices) — the closed-
+# world cardinality / class / literal obligations the hand-authored
+# gmeow:ToolCallShape states, authored here once as OWL restriction axioms and
+# PROJECTED to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). owl:maxCardinality -> sh:maxCount; owl:cardinality 1 ->
+# sh:minCount 1 + sh:maxCount 1; owl:allValuesFrom C -> sh:class C;
+# owl:allValuesFrom rdfs:Literal -> sh:nodeKind sh:Literal (the verbatim payload
+# facet). The `sh:nodeKind sh:IRI` facet on the object-valued paths has no
+# ordinary-OWL antecedent (owl:Thing lowers to sh:BlankNodeOrIRI, not sh:IRI) and
+# stays on the procedural constraint fragment.
+# =========================================================================== #
+
+gmeow:ToolCall rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:calledByInvocation ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:ModelInvocation ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:usedTool ; owl:cardinality 1 ; owl:allValuesFrom gmeow:SoftwareAgent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:toolArguments ; owl:maxCardinality 1 ; owl:allValuesFrom rdfs:Literal ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:toolResult ; owl:maxCardinality 1 ; owl:allValuesFrom rdfs:Literal ] .
