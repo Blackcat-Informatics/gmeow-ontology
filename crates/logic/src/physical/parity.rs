@@ -2056,6 +2056,125 @@ mod tests {
         );
     }
 
+    // ── Per-consumer cut-confinement parity: native DECLINES, Scryer DECIDES ──────────
+    //
+    // The profile_gate is a pre-engine gate, not a resolver: cut-confinement is decided
+    // BEFORE any engine runs. This test pins the per-consumer confinement contract as the
+    // dispatch consumers flip to the native core:
+    //   * native honestly DECLINES a cut program (`Unsupported(Cut)`), recording the
+    //     demotion reason — it NEVER simulates cut or returns a soft-cut answer;
+    //   * the Scryer oracle (procedural profile) DECIDES the cut fragment, returning the
+    //     correct cut-pruned answer (cut is oracle-only);
+    //   * the engine-agnostic `check_cut_profile` gate transfers UNCHANGED — it hard-fails
+    //     a cut program under a non-procedural profile and passes under the procedural one,
+    //     unaffected by which engine the consumer routes to;
+    //   * only cut demotes: a non-cut program over the SAME world resolves natively.
+    // The `scryer` token keeps this in the `engine` nextest group (it drives a Scryer
+    // subprocess).
+    #[test]
+    fn dispatch_cut_confinement_parity_native_declines_scryer_decides() {
+        use crate::profile_gate::{PROCEDURAL_PROLOG_PROFILE, check_cut_profile};
+
+        const W: &str = "http://logic.test/world/cut-confinement";
+        let store = WorldStore::new();
+        store.insert_quad(W, &p("a"), &p("edge"), &p("b"));
+        store.insert_quad(W, &p("a"), &p("edge"), &p("c"));
+
+        // Head-level cut program: commit to the first edge.
+        let cut_src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:first(X, Y) :- ex:edge(X, Y), !.\n\
+             ?- ex:first(ex:a, Y).\n"
+        );
+        let cut_prog = parse_query_program(&cut_src).expect("parse cut program");
+
+        // (1) NATIVE DECLINES — `Unsupported(Cut)`, the recorded demotion reason. The native
+        // core never simulates cut; it honestly declines so the fragment routes to the oracle.
+        let native_foreign = WorldStoreForeign::from_world(&store, W, PROFILE).expect("from_world");
+        let cut_outcome = resolve_native(&native_foreign, W, &cut_prog, &Budget::default())
+            .expect("resolve_native must not error on a cut program");
+        assert!(
+            matches!(
+                cut_outcome,
+                NativeOutcome::Unsupported(crate::physical::seminaive::UnsupportedKind::Cut)
+            ),
+            "native must DECLINE cut with Unsupported(Cut) (the demotion reason), never a \
+             native cut simulation: {cut_outcome:?}"
+        );
+
+        // (2) NO-SOFT-CUT — the outcome is Unsupported, NOT a partial/pruned Decided. Native
+        // therefore never returns a cut-influenced answer. The STORE-side firewall is proven in
+        // `profile_gate::no_write_firewall_cut_program_leaves_store_unchanged`; this is the
+        // complementary ANSWER-side invariant.
+        assert!(
+            !matches!(cut_outcome, NativeOutcome::Decided(_)),
+            "native must never Decide a cut program (no soft-cut / pruned-answer leak): \
+             {cut_outcome:?}"
+        );
+
+        // (3) SCRYER DECIDES — the procedural oracle serves the cut fragment. The graph is
+        // acyclic, so `cyclic_predicates` is empty and no `:- table` is emitted; the oracle
+        // returns the correct cut-pruned answer (cut commits to exactly one edge).
+        let proc_foreign = WorldStoreForeign::from_world(&store, W, PROCEDURAL_PROLOG_PROFILE)
+            .expect("from_world");
+        let scryer = crate::scryer_engine::run_scryer(
+            &proc_foreign,
+            W,
+            &cut_prog,
+            &crate::dispatch::cyclic_predicates(&cut_prog),
+            &Budget::default(),
+        )
+        .expect("Scryer must DECIDE the cut program under the procedural profile");
+        assert_eq!(
+            scryer.bindings.len(),
+            1,
+            "cut commits to the first answer: Scryer must return exactly one binding: {scryer:?}"
+        );
+        let y = scryer.bindings[0]["Y"].as_str();
+        assert!(
+            y == format!("<{}>", p("b")) || y == format!("<{}>", p("c")),
+            "the cut-pruned answer must be a real edge target (b or c), got {y:?}"
+        );
+
+        // (4) GATE TRANSFERS UNCHANGED — engine-agnostic confinement. `check_cut_profile`
+        // hard-fails cut under a non-procedural profile and passes under the procedural one,
+        // regardless of which engine a consumer routes to.
+        assert!(
+            check_cut_profile(&cut_prog, PROFILE).is_err(),
+            "the cut-confinement gate must hard-fail cut under the (non-procedural) PositiveHorn \
+             profile"
+        );
+        assert!(
+            check_cut_profile(&cut_prog, PROCEDURAL_PROLOG_PROFILE).is_ok(),
+            "the cut-confinement gate must pass cut under the procedural profile"
+        );
+
+        // (5) ONLY CUT DEMOTES — a non-cut program over the SAME world resolves natively, so it
+        // is cut (not the whole profile) that demotes.
+        let no_cut_src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:reach(X, Y) :- ex:edge(X, Y).\n\
+             ?- ex:reach(ex:a, Y).\n"
+        );
+        let no_cut_prog = parse_query_program(&no_cut_src).expect("parse non-cut program");
+        assert!(
+            check_cut_profile(&no_cut_prog, PROFILE).is_ok(),
+            "a non-cut program passes the gate under any profile"
+        );
+        let no_cut_outcome = resolve_native(&native_foreign, W, &no_cut_prog, &Budget::default())
+            .expect("resolve_native must not error on the non-cut program");
+        let NativeOutcome::Decided(answer) = no_cut_outcome else {
+            panic!(
+                "a non-cut program must resolve natively to Decided, not demote: {no_cut_outcome:?}"
+            );
+        };
+        assert_eq!(
+            answer.bindings.len(),
+            2,
+            "the non-cut program must derive both edge targets (b and c): {answer:?}"
+        );
+    }
+
     #[test]
     fn arithmetic_division_by_zero_is_declared_gap() {
         // A ÷0 in a supported binary program is a declared native gap
