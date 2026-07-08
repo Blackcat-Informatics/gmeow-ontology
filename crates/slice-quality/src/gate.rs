@@ -13,10 +13,133 @@
 //!
 //! An undeclared slice is purely advisory — it never fails the gate.
 
+use std::collections::BTreeSet;
 use std::path::Path;
 
+use crate::axes;
 use crate::graph::{self, id, instances_of, one_iri};
 use crate::model::{Rubric, Tier};
+
+/// The pipeline projection surfaces the rubric must account for — each must be
+/// covered by a landed quality axis OR by a dated `gmeow:AxisExemption`. Adding a
+/// new pipeline projection target means adding it here (this is one of the
+/// enumerated projection-target-add sites) with either an axis that measures it or
+/// a dated exemption, so the quality rubric can never silently fall behind the
+/// pipeline it measures. `covered_by_axis == true` means a landed axis measures the
+/// surface; `false` means it must carry an exemption keyed by the producer symbol.
+pub const PROJECTION_SURFACES: &[(&str, bool)] = &[
+    ("shacl", true),
+    ("shex", true),
+    ("sssom", true),
+    ("edoal", true),
+    ("fno", true),
+    ("docs-pages", true),
+    ("loss-ledger", true),
+    ("gmn", false),
+    ("doc-maturity", false),
+    ("docs-panels", false),
+];
+
+/// The producer symbol each not-yet-landed projection surface's exemption must name.
+fn exemption_producer_for(surface: &str) -> Option<&'static str> {
+    match surface {
+        "gmn" => Some("GmnProjectionTarget"),
+        "doc-maturity" => Some("DocMaturity"),
+        "docs-panels" => Some("DocMaturityPanels"),
+        _ => None,
+    }
+}
+
+/// Axis→producer AST-binding gate: the rubric's axes and the kernel's implemented
+/// primitives must be in bijection. A renamed/removed rubric producer becomes an
+/// unbound axis; a renamed/removed Rust primitive becomes an orphan. Either reds.
+#[must_use]
+pub fn binding_gate(rubric: &Rubric) -> Vec<String> {
+    let implemented: BTreeSet<&str> = axes::IMPLEMENTED.iter().copied().collect();
+    let bound: BTreeSet<&str> = rubric.axes.iter().map(|a| a.producer.as_str()).collect();
+    let mut errs = Vec::new();
+    for axis in &rubric.axes {
+        if !implemented.contains(axis.producer.as_str()) {
+            errs.push(format!(
+                "axis {} names producer '{}' with no implemented primitive (stale binding)",
+                axis.iri, axis.producer
+            ));
+        }
+    }
+    for imp in &implemented {
+        if !bound.contains(imp) {
+            errs.push(format!(
+                "implemented primitive '{imp}' is bound by no rubric axis (orphan)"
+            ));
+        }
+    }
+    errs
+}
+
+/// Projection-target completeness gate: every enumerated projection surface maps to
+/// a landed axis or a dated exemption, and every exemption is well-formed (names a
+/// real axis, a reason, a date, and a producer). Reds on a surface with no covering
+/// axis and no exemption, or a malformed exemption.
+#[must_use]
+pub fn completeness_gate(rubric: &Rubric) -> Vec<String> {
+    let mut errs = Vec::new();
+    let exemption_producers: BTreeSet<&str> = rubric
+        .exemptions
+        .iter()
+        .map(|e| e.producer.as_str())
+        .collect();
+
+    for (surface, covered_by_axis) in PROJECTION_SURFACES {
+        if *covered_by_axis {
+            continue; // a landed axis measures this surface
+        }
+        let Some(producer) = exemption_producer_for(surface) else {
+            errs.push(format!("projection surface '{surface}' has no covering axis and no known exemption producer"));
+            continue;
+        };
+        if !exemption_producers.contains(producer) {
+            errs.push(format!(
+                "projection surface '{surface}' is unlanded but carries no dated exemption (producer '{producer}')"
+            ));
+        }
+    }
+    for ex in &rubric.exemptions {
+        if ex.axis_iri.is_empty() {
+            errs.push(format!("exemption {} names no axis", ex.iri));
+        }
+        if ex.date.is_empty() {
+            errs.push(format!("exemption {} is undated", ex.iri));
+        }
+        if ex.producer.is_empty() {
+            errs.push(format!("exemption {} names no producer symbol", ex.iri));
+        }
+        if !rubric.axes.iter().any(|a| a.iri == ex.axis_iri) {
+            errs.push(format!(
+                "exemption {} exempts unknown axis {}",
+                ex.iri, ex.axis_iri
+            ));
+        }
+    }
+    errs
+}
+
+/// Exemption-staleness gate: an exemption whose producer symbol now RESOLVES in the
+/// repo is stale — the producer has landed, so the exemption must be retired and the
+/// axis built. `resolves` reports whether a symbol is defined in-repo.
+#[must_use]
+pub fn stale_exemptions(rubric: &Rubric, resolves: impl Fn(&str) -> bool) -> Vec<String> {
+    rubric
+        .exemptions
+        .iter()
+        .filter(|e| resolves(&e.producer))
+        .map(|e| {
+            format!(
+                "exemption {} is STALE: its producer '{}' now resolves in-repo — remove the exemption and build the axis",
+                e.iri, e.producer
+            )
+        })
+        .collect()
+}
 
 /// The verdict for one slice's ratchet check.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -109,6 +232,31 @@ mod tests {
         assert_eq!(evaluate_ratchet(Some(2), 2, None), RatchetVerdict::Pass);
         // Exceeding the declared tier passes.
         assert_eq!(evaluate_ratchet(Some(1), 3, None), RatchetVerdict::Pass);
+    }
+
+    #[test]
+    fn staleness_reds_when_producer_resolves() {
+        use crate::model::Exemption;
+        let rubric = Rubric {
+            tiers: vec![],
+            axes: vec![],
+            exemptions: vec![Exemption {
+                iri: "ex:e".to_owned(),
+                axis_iri: "ex:a".to_owned(),
+                reason: "unlanded".to_owned(),
+                date: "2026-07-07".to_owned(),
+                producer: "DocMaturity".to_owned(),
+            }],
+        };
+        // Producer not in-repo → not stale.
+        assert!(stale_exemptions(&rubric, |_| false).is_empty());
+        // Producer resolves in-repo → stale (the exemption must be retired).
+        let stale = stale_exemptions(&rubric, |s| s == "DocMaturity");
+        assert_eq!(
+            stale.len(),
+            1,
+            "a resolved producer makes its exemption stale"
+        );
     }
 
     #[test]

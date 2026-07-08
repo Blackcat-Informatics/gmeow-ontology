@@ -131,6 +131,26 @@ pub fn slice_quality_gate() -> i32 {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-gate: {e}")),
     };
+
+    // Axis→producer binding gate, projection completeness gate, and exemption
+    // staleness gate — all reported together before the per-slice ratchet.
+    let mut structural: Vec<String> = Vec::new();
+    structural.extend(gmeow_slice_quality::gate::binding_gate(&rubric));
+    structural.extend(gmeow_slice_quality::gate::completeness_gate(&rubric));
+    structural.extend(gmeow_slice_quality::gate::stale_exemptions(
+        &rubric,
+        |symbol| symbol_resolves_in_repo(&root, symbol),
+    ));
+    if !structural.is_empty() {
+        for e in &structural {
+            eprintln!("FAIL {e}");
+        }
+        return fail(format!(
+            "slice-quality-gate: {} rubric structural failure(s)",
+            structural.len()
+        ));
+    }
+
     // Floor ranks by slice IRI, resolved against the ladder.
     let floors = load_floors(&root, &rubric);
 
@@ -211,6 +231,44 @@ fn load_floors(
         }
     }
     out
+}
+
+/// Whether `symbol` is defined as a Rust item anywhere under `crates/` — the
+/// staleness-gate resolver. A definition keyword immediately followed by the
+/// symbol name counts (the constitution-gate integrity style), so a mere mention
+/// in a comment or string does not falsely retire an exemption.
+fn symbol_resolves_in_repo(root: &Path, symbol: &str) -> bool {
+    let keywords = [
+        "struct", "enum", "fn", "trait", "type", "const", "static", "union",
+    ];
+    let needles: Vec<String> = keywords.iter().map(|k| format!("{k} {symbol}")).collect();
+    let mut found = false;
+    scan_rs(&root.join("crates"), &mut |text| {
+        if needles.iter().any(|n| text.contains(n.as_str())) {
+            found = true;
+        }
+    });
+    found
+}
+
+/// Walk `.rs` files under `dir`, calling `f` with each file's text.
+fn scan_rs(dir: &Path, f: &mut impl FnMut(&str)) {
+    let Ok(rd) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for e in rd.flatten() {
+        let p = e.path();
+        if p.is_dir() {
+            if p.file_name().is_some_and(|n| n == "target") {
+                continue;
+            }
+            scan_rs(&p, f);
+        } else if p.extension().is_some_and(|x| x == "rs")
+            && let Ok(text) = std::fs::read_to_string(&p)
+        {
+            f(&text);
+        }
+    }
 }
 
 /// Every directory under `slices/` that holds a `manifest.ttl`.
