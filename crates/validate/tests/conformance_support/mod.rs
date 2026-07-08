@@ -296,6 +296,34 @@ pub fn validate_with_ontology(fixture_nt: &str) -> ValidationReport {
     validate_dataset(&dataset, whole_shapes()).expect("native SHACL validation must succeed")
 }
 
+/// Parsed SHACL shape model for the LIVE production shape union.
+///
+/// `purrdf::shapes::shape_union::load_shapes` assembles exactly the corpus the
+/// live validator (`gmeow validate` / `stage-validate`) runs — including
+/// `generated/shapes/validation-shapes.ttl`, the OWL-restriction cardinality
+/// projection that [`whole_shapes`] deliberately EXCLUDES. Cached in a
+/// [`OnceLock`] so the disk I/O + parse happens at most once per test process.
+pub fn production_shapes() -> &'static Shapes {
+    static CACHE: OnceLock<Shapes> = OnceLock::new();
+    CACHE.get_or_init(|| {
+        let (_store, shapes) = purrdf::shapes::shape_union::load_shapes(&repo_root())
+            .expect("load production SHACL shape union");
+        shapes
+    })
+}
+
+/// Validate `base_ontology + fixture` against the LIVE production shape union
+/// (`purrdf::shapes::shape_union::load_shapes`, what `gmeow validate` /
+/// `stage-validate` run) — this INCLUDES generated/shapes/validation-shapes.ttl (the
+/// OWL-derived cardinality projection), unlike `whole_shapes()`.
+pub fn validate_with_ontology_shape_union(fixture_nt: &str) -> ValidationReport {
+    let mut merged: Vec<purrdf::RdfQuad> = flat_rdf_quads_from_dataset(base_ontology_dataset());
+    let fixture = nt_to_dataset(fixture_nt);
+    merged.extend(flat_rdf_quads_from_dataset(&fixture));
+    let dataset = flat_dataset_from_quads(&merged).expect("merged dataset must freeze");
+    validate_dataset(&dataset, production_shapes()).expect("native SHACL validation must succeed")
+}
+
 // ── Fixture helpers ───────────────────────────────────────────────────────────
 
 /// Parse a fixture `.ttl` file into an in-memory oxigraph store and emit as
@@ -907,6 +935,7 @@ pub enum Source {
 pub struct Case {
     source: Source,
     with_ontology: bool,
+    shape_union: bool,
     expect_conforms: bool,
     expected_violations: Vec<&'static str>,
     expected_warnings: Vec<&'static str>,
@@ -916,6 +945,11 @@ pub struct Case {
     any_violations: Vec<Vec<&'static str>>,
     any_violations_ci: Vec<Vec<&'static str>>,
     forbidden_warnings: Vec<&'static str>,
+    /// `(result-path IRI, constraint-component substring)` pairs each requiring at
+    /// least one `Violation` result whose `sh:resultPath` is that IRI AND whose
+    /// `sh:sourceConstraintComponent` contains that substring. Used to assert on the
+    /// PROJECTED (message-less) cardinality shapes by component + path.
+    expected_path_components: Vec<(&'static str, &'static str)>,
 }
 
 impl Case {
@@ -923,6 +957,7 @@ impl Case {
         Self {
             source,
             with_ontology: false,
+            shape_union: false,
             expect_conforms: true,
             expected_violations: Vec::new(),
             expected_warnings: Vec::new(),
@@ -932,6 +967,7 @@ impl Case {
             any_violations: Vec::new(),
             any_violations_ci: Vec::new(),
             forbidden_warnings: Vec::new(),
+            expected_path_components: Vec::new(),
         }
     }
 
@@ -960,6 +996,27 @@ impl Case {
     /// Validate against the merged ontology + fixture (`validate_with_ontology`).
     pub fn with_ontology(mut self) -> Self {
         self.with_ontology = true;
+        self
+    }
+
+    /// Validate against the LIVE production shape union
+    /// ([`validate_with_ontology_shape_union`]) — the corpus `gmeow validate` runs,
+    /// which INCLUDES `generated/shapes/validation-shapes.ttl`. Implies the ontology
+    /// merge (the projected cardinality shapes' class constraints need the merged
+    /// class/subclass declarations), so it need not be combined with
+    /// [`Case::with_ontology`].
+    pub fn shape_union(mut self) -> Self {
+        self.shape_union = true;
+        self
+    }
+
+    /// Require at least one `Violation` result whose `sh:resultPath` is `path` (a
+    /// property IRI) AND whose `sh:sourceConstraintComponent` contains `component`
+    /// (e.g. `"MaxCountConstraintComponent"`). Asserts directly on the report's
+    /// structured results, so it matches the PROJECTED cardinality shapes that carry
+    /// no `sh:message`.
+    pub fn fails_on_path(mut self, path: &'static str, component: &'static str) -> Self {
+        self.expected_path_components.push((path, component));
         self
     }
 
@@ -1029,7 +1086,9 @@ impl Case {
             Source::File { subdir, name } => fixture_as_nt(subdir, name),
             Source::RepoPath(rel) => ttl_file_to_nt(&repo_root().join(rel)),
         };
-        let report = if self.with_ontology {
+        let report = if self.shape_union {
+            validate_with_ontology_shape_union(&nt)
+        } else if self.with_ontology {
             validate_with_ontology(&nt)
         } else {
             validate(&nt)
@@ -1112,6 +1171,38 @@ impl Case {
             assert!(
                 !got_warnings.iter().any(|w| w.contains(sub)),
                 "expected NO warning containing {sub:?}; got: {got_warnings:?}"
+            );
+        }
+        for (path, component) in &self.expected_path_components {
+            let hit = report
+                .results
+                .iter()
+                .filter(|r| r.severity == Severity::Violation)
+                .any(|r| {
+                    let path_ok = r
+                        .result_path
+                        .as_ref()
+                        .map(ToString::to_string)
+                        .is_some_and(|p| p.contains(path));
+                    let component_ok = r
+                        .source_constraint_component
+                        .to_string()
+                        .contains(component);
+                    path_ok && component_ok
+                });
+            assert!(
+                hit,
+                "expected a Violation on path {path:?} with constraint component \
+                 containing {component:?}; results: {:?}",
+                report
+                    .results
+                    .iter()
+                    .map(|r| (
+                        r.result_path.as_ref().map(ToString::to_string),
+                        r.source_constraint_component.to_string(),
+                        r.severity.clone(),
+                    ))
+                    .collect::<Vec<_>>()
             );
         }
     }
