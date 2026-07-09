@@ -27,7 +27,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::exec::ExecutableDocsData;
-use crate::model::{DocTermCategory, DocsModel};
+use crate::model::{DocTerm, DocTermCategory, DocsModel};
 use crate::render::{Page, Site, book_pages, term_slug, to_markdown_exec};
 
 /// The absolute base URL of the published documentation site. The model carries
@@ -199,6 +199,16 @@ fn summary_md(model: &DocsModel, pages: &[Page], winners: &BTreeMap<String, usiz
     // Terms bucketed by category (the category-index ordering is fixed below).
     let mut terms_by_category: BTreeMap<DocTermCategory, Vec<&Page>> = BTreeMap::new();
 
+    // Term slug → term lookup, built ONCE up front so the page loop below is
+    // O(1) per `Page::Term` rather than re-slugging every term (O(N×M)) for
+    // each page. `or_insert` keeps the FIRST term in `model.terms` order for a
+    // given slug — the same collision winner `.find()` would have returned —
+    // so a colliding slug's category resolution is unchanged.
+    let mut term_by_slug: BTreeMap<String, &DocTerm> = BTreeMap::new();
+    for term in &model.terms {
+        term_by_slug.entry(term_slug(term)).or_insert(term);
+    }
+
     // Distinct term IRIs can slugify to the same chapter path. mdbook rejects a
     // SUMMARY.md that lists the same chapter file twice, so the table of contents
     // must list each chapter path exactly once — and it must name the SAME winner
@@ -218,7 +228,7 @@ fn summary_md(model: &DocsModel, pages: &[Page], winners: &BTreeMap<String, usiz
             | Page::LogicDerivationGraph
             | Page::LogicDiagnostics => logic_children.push(page),
             Page::Term(slug) => {
-                if let Some(term) = model.terms.iter().find(|t| term_slug(t) == *slug) {
+                if let Some(term) = term_by_slug.get(slug) {
                     terms_by_category
                         .entry(term.category)
                         .or_default()
