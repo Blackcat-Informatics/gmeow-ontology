@@ -340,14 +340,14 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
     // producer, and the blobs vec ordering below is fixed).
     let (docs_site_blob, docs_book_and_print) = rayon::join(
         || build_docs_archive(root, docs_model, &docs_exec, slice_quality_html),
-        || -> Result<(BlobRow, BlobRow), gmeow_errors::Diag> {
+        || -> Result<(BlobRow, (BlobRow, String)), gmeow_errors::Diag> {
             let book = build_docs_book_archive(root, docs_model, &docs_exec)?;
             let print = build_docs_print_blob(docs_model, upstream)?;
             Ok((book, print))
         },
     );
     blobs.push(docs_site_blob?);
-    let (docs_book_blob, docs_print_blob) = docs_book_and_print?;
+    let (docs_book_blob, (docs_print_blob, print_pdf_digest)) = docs_book_and_print?;
     // Ground the four documentation output formats as lossy projections of one shared
     // documentation body-set, content-addressing the packed docs-book / docs-print blobs
     // by their blake3 digest (F4). This is the ONLY point the packed blobs' byte digests
@@ -360,6 +360,7 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
         let corpus = crate::stages::docs_format_rendering::build_docs_format_corpus(
             &book_digest,
             &print_digest,
+            &print_pdf_digest,
         );
         parse_into_graph(
             &corpus.ntriples,
@@ -1901,7 +1902,7 @@ fn build_docs_book_archive(
 fn build_docs_print_blob(
     model: &gmeow_docs::model::DocsModel,
     upstream: &BTreeMap<String, StageProduct>,
-) -> Result<BlobRow, gmeow_errors::Diag> {
+) -> Result<(BlobRow, String), gmeow_errors::Diag> {
     let bib = producer_artifact(
         "stage-export-references",
         crate::stages::references::BIB_PATH,
@@ -1933,13 +1934,17 @@ fn build_docs_print_blob(
 
     let typ = docs_print::render_typ(model, &axioms, &bib, &losses);
     let pdf = docs_print::compile_pdf(&typ, &bib)?;
+    // The raw `gmeow.pdf` byte digest — BEFORE it is packed into the docs-print tar —
+    // so the docs-format grounding graph (F4) can attest the PDF itself, not just the
+    // archive that carries it. Computed here, the ONLY point the un-tarred bytes exist.
+    let pdf_digest = purrdf::gts::writer::digest_string(&pdf);
 
     let prefix = model.translations.internal_tag(gmeow_docs::i18n::ENGLISH);
     let members = vec![
         (format!("{prefix}/gmeow.pdf"), pdf),
         (format!("{prefix}/gmeow.typ"), typ.into_bytes()),
     ];
-    archive_blob(REP_DOCS_PRINT, &members)
+    Ok((archive_blob(REP_DOCS_PRINT, &members)?, pdf_digest))
 }
 
 /// Compute the build-time [`gmeow_docs::ExecutableDocsData`] the "live" docs surfaces
@@ -4624,7 +4629,7 @@ mod ustar_tests {
         let model = small_docs_model();
         let upstream = print_upstream();
 
-        let blob = build_docs_print_blob(&model, &upstream).expect("docs-print blob");
+        let (blob, pdf_digest) = build_docs_print_blob(&model, &upstream).expect("docs-print blob");
         assert_eq!(blob.rep, REP_DOCS_PRINT);
         assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
 
@@ -4636,6 +4641,11 @@ mod ustar_tests {
             pdf.starts_with(b"%PDF"),
             "the print member must be a real PDF (starts with %PDF)"
         );
+        assert_eq!(
+            pdf_digest,
+            purrdf::gts::writer::digest_string(pdf),
+            "the returned pdf digest must be the raw PDF's blake3, not the archive's"
+        );
         let typ = members
             .get("x-gmeow-english/gmeow.typ")
             .expect("the Typst source member must be present");
@@ -4646,10 +4656,66 @@ mod ustar_tests {
 
         // Byte-stability: a second build folds byte-identical archive bytes (the Typst
         // source is pure and the PDF compile is byte-reproducible).
-        let again = build_docs_print_blob(&model, &upstream).expect("docs-print blob again");
+        let (again, again_digest) =
+            build_docs_print_blob(&model, &upstream).expect("docs-print blob again");
         assert_eq!(
             blob.data, again.data,
             "the docs-print archive must be byte-deterministic"
+        );
+        assert_eq!(
+            pdf_digest, again_digest,
+            "the raw pdf digest must be byte-deterministic too"
+        );
+    }
+
+    /// The `application/pdf` attestation the SHIPPED bundle carries (F4) must bind the
+    /// RAW `gmeow.pdf` bytes, not the tar that packs them. Recompute the raw PDF blake3
+    /// straight from the docs-print blob (untar, find the `gmeow.pdf` member, digest it)
+    /// and assert it EQUALS the `gmeow:contentDigest` the docs-format corpus emits on the
+    /// `application/pdf` attestation artifact — proving the binding is real and non-DARK
+    /// on the committed-bundle production path (the exact path `make regenerate` runs).
+    #[test]
+    fn shipped_pdf_attestation_binds_the_raw_pdf_bytes() {
+        let model = small_docs_model();
+        let upstream = print_upstream();
+
+        // The producer path: the same blob + raw-PDF digest the carrier threads.
+        let (print_blob, print_pdf_digest) =
+            build_docs_print_blob(&model, &upstream).expect("docs-print blob");
+
+        // The consumer path: untar the shipped blob, find gmeow.pdf, digest the RAW bytes.
+        let members: BTreeMap<String, Vec<u8>> = parse(&print_blob.data).into_iter().collect();
+        let pdf = members
+            .get("x-gmeow-english/gmeow.pdf")
+            .expect("the docs-print blob must carry gmeow.pdf");
+        let recomputed = purrdf::gts::writer::digest_string(pdf);
+        assert_eq!(
+            recomputed, print_pdf_digest,
+            "the threaded raw-PDF digest must equal the blake3 of the shipped gmeow.pdf"
+        );
+
+        // The corpus emits that digest on an application/pdf AttestationArtifact — the
+        // literal that lands in the committed bundle. HARD-FAIL if the binding drifts.
+        let corpus = crate::stages::docs_format_rendering::build_docs_format_corpus(
+            "blake3:0000000000000000000000000000000000000000000000000000000000000000",
+            "blake3:1111111111111111111111111111111111111111111111111111111111111111",
+            &print_pdf_digest,
+        );
+        let nt = String::from_utf8(corpus.ntriples).expect("utf8 n-triples");
+        let pdf_blob = "http://example.org/docs-format/blob/docs-print-pdf";
+        let media = format!(
+            "<{pdf_blob}> <https://blackcatinformatics.ca/gmeow/artifactMediaType> \"application/pdf\" ."
+        );
+        let digest = format!(
+            "<{pdf_blob}> <https://blackcatinformatics.ca/gmeow/contentDigest> \"{recomputed}\" ."
+        );
+        assert!(
+            nt.contains(&media),
+            "the corpus must mint an application/pdf attestation artifact"
+        );
+        assert!(
+            nt.contains(&digest),
+            "the application/pdf attestation must carry the RAW gmeow.pdf blake3, got:\n{nt}"
         );
     }
 
@@ -4661,7 +4727,8 @@ mod ustar_tests {
         let upstream = print_upstream();
 
         let book_blob = build_docs_book_archive(&root, &model, &exec).expect("docs-book archive");
-        let print_blob = build_docs_print_blob(&model, &upstream).expect("docs-print blob");
+        let (print_blob, _print_pdf_digest) =
+            build_docs_print_blob(&model, &upstream).expect("docs-print blob");
 
         // Fold a minimal snapshot carrying exactly the two new blobs (plus a well-formed
         // base graph) through the SAME emit path the carrier uses, then read them back

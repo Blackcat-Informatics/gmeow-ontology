@@ -198,8 +198,16 @@ fn rendering_kind(fmt: DocFormat) -> &'static str {
 /// Build the full docs-format grounding corpus. `book_digest` / `print_digest` are the
 /// `blake3:<hex>` content digests of the packed `docs-book` / `docs-print` blobs,
 /// content-addressed into the graph (F4) so it self-describes the docs it grounds.
-pub fn build_docs_format_corpus(book_digest: &str, print_digest: &str) -> DocsFormatCorpus {
-    let ntriples = emit_ntriples(book_digest, print_digest);
+/// `print_pdf_digest` is the `blake3:<hex>` digest of the RAW `gmeow.pdf` bytes (before
+/// they are packed into the `docs-print` tar) — it grounds the shipped bundle's
+/// `application/pdf` attestation so a consumer can verify the PDF's byte identity
+/// straight from the committed `gmeow.gts`, not only from the GPG-gated release fold.
+pub fn build_docs_format_corpus(
+    book_digest: &str,
+    print_digest: &str,
+    print_pdf_digest: &str,
+) -> DocsFormatCorpus {
+    let ntriples = emit_ntriples(book_digest, print_digest, print_pdf_digest);
     let mut loss = LossLedger::new();
     let mut ledger: Vec<ProjectionResult> = Vec::new();
     fold_docs_format_loss(&mut ledger, &mut loss);
@@ -252,7 +260,7 @@ pub fn fold_docs_format_loss(ledger: &mut Vec<ProjectionResult>, loss: &mut Loss
 }
 
 /// Emit the sorted, deduped, byte-stable N-Triples for the whole grounding graph.
-fn emit_ntriples(book_digest: &str, print_digest: &str) -> Vec<u8> {
+fn emit_ntriples(book_digest: &str, print_digest: &str, print_pdf_digest: &str) -> Vec<u8> {
     let mut lines: Vec<String> = Vec::new();
 
     // ── the composition-DAG nodes ──
@@ -417,7 +425,32 @@ fn emit_ntriples(book_digest: &str, print_digest: &str) -> Vec<u8> {
             &iri(GMEOW_NS, "AttestationArtifact"),
         ));
         lines.push(triple_lit(&blob, &iri(GMEOW_NS, "contentDigest"), digest));
+        lines.push(triple_lit(
+            &blob,
+            &iri(GMEOW_NS, "artifactMediaType"),
+            "application/x-tar",
+        ));
     }
+    // The raw `gmeow.pdf` bytes get their OWN attestation, distinct from the docs-print
+    // archive that carries them — this is what lets a consumer verify the PDF's byte
+    // identity directly off the committed bundle (the shippable deliverable), mirroring
+    // the release fold's `application/pdf` attestation over the same PDF bytes.
+    let pdf_blob = blob_descriptor("docs-print-pdf");
+    lines.push(triple(
+        &pdf_blob,
+        RDF_TYPE,
+        &iri(GMEOW_NS, "AttestationArtifact"),
+    ));
+    lines.push(triple_lit(
+        &pdf_blob,
+        &iri(GMEOW_NS, "contentDigest"),
+        print_pdf_digest,
+    ));
+    lines.push(triple_lit(
+        &pdf_blob,
+        &iri(GMEOW_NS, "artifactMediaType"),
+        "application/pdf",
+    ));
 
     lines.sort();
     lines.dedup();
@@ -520,11 +553,13 @@ mod tests {
         "blake3:1111111111111111111111111111111111111111111111111111111111111111";
     const PRINT_DIGEST: &str =
         "blake3:2222222222222222222222222222222222222222222222222222222222222222";
+    const PRINT_PDF_DIGEST: &str =
+        "blake3:3333333333333333333333333333333333333333333333333333333333333333";
 
     #[test]
     fn corpus_is_byte_reproducible() {
-        let a = build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST).ntriples;
-        let b = build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST).ntriples;
+        let a = build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST, PRINT_PDF_DIGEST).ntriples;
+        let b = build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST, PRINT_PDF_DIGEST).ntriples;
         assert_eq!(a, b, "docs-format corpus N-Triples must be deterministic");
     }
 
@@ -556,8 +591,10 @@ mod tests {
 
     #[test]
     fn every_format_has_a_rendering_profile_and_derived_preservation() {
-        let nt = String::from_utf8(build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST).ntriples)
-            .unwrap();
+        let nt = String::from_utf8(
+            build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST, PRINT_PDF_DIGEST).ntriples,
+        )
+        .unwrap();
         for fmt in DocFormat::ALL {
             let rendering = rendering_iri(fmt);
             assert!(
@@ -589,8 +626,10 @@ mod tests {
 
     #[test]
     fn dropped_capabilities_are_enumerated_as_queryable_data() {
-        let nt = String::from_utf8(build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST).ntriples)
-            .unwrap();
+        let nt = String::from_utf8(
+            build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST, PRINT_PDF_DIGEST).ntriples,
+        )
+        .unwrap();
         // Every dropped capability appears as a gmeow:ProjectionLoss accountsForParameter
         // the matching capability parameter — the residue enumerated as data.
         for fmt in DocFormat::ALL {
@@ -648,8 +687,10 @@ mod tests {
 
     #[test]
     fn each_leg_carries_the_full_correspondence_law_spine() {
-        let nt = String::from_utf8(build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST).ntriples)
-            .unwrap();
+        let nt = String::from_utf8(
+            build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST, PRINT_PDF_DIGEST).ntriples,
+        )
+        .unwrap();
         let mut leg_count = 0usize;
         for leg in legs() {
             let corr = correspondence(leg.key);
@@ -673,8 +714,10 @@ mod tests {
 
     #[test]
     fn packed_blobs_are_self_described_by_content_digest() {
-        let nt = String::from_utf8(build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST).ntriples)
-            .unwrap();
+        let nt = String::from_utf8(
+            build_docs_format_corpus(BOOK_DIGEST, PRINT_DIGEST, PRINT_PDF_DIGEST).ntriples,
+        )
+        .unwrap();
         assert!(nt.contains(&triple_lit(
             &blob_descriptor("docs-book"),
             &iri(GMEOW_NS, "contentDigest"),
@@ -684,6 +727,31 @@ mod tests {
             &blob_descriptor("docs-print"),
             &iri(GMEOW_NS, "contentDigest"),
             PRINT_DIGEST
+        )));
+        // The two packed archives carry the tar media type.
+        for segment in ["docs-book", "docs-print"] {
+            assert!(nt.contains(&triple_lit(
+                &blob_descriptor(segment),
+                &iri(GMEOW_NS, "artifactMediaType"),
+                "application/x-tar"
+            )));
+        }
+        // The raw PDF has its OWN application/pdf attestation carrying the raw-PDF blake3.
+        let pdf_blob = blob_descriptor("docs-print-pdf");
+        assert!(nt.contains(&triple(
+            &pdf_blob,
+            RDF_TYPE,
+            &iri(GMEOW_NS, "AttestationArtifact")
+        )));
+        assert!(nt.contains(&triple_lit(
+            &pdf_blob,
+            &iri(GMEOW_NS, "contentDigest"),
+            PRINT_PDF_DIGEST
+        )));
+        assert!(nt.contains(&triple_lit(
+            &pdf_blob,
+            &iri(GMEOW_NS, "artifactMediaType"),
+            "application/pdf"
         )));
     }
 
