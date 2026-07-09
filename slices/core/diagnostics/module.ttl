@@ -1017,3 +1017,39 @@ gmeow:CrossNodeGlutWitness rdfs:subClassOf
 <https://blackcatinformatics.ca/gmeow/Finding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/findingCode> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/gmeow/Finding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/findingMessage> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/glutWitnessOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "2"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Finding> ] .
+
+# =========================================================================== #
+# Gate-fatal up-set constraint (#1194): the procedural gmeow:GateFatalUpsetShape #
+# migrated to a raw logic:Formula integrity tree projected to a                 #
+# sh:SPARQLConstraint carrying a sh:SPARQLTarget. It formalizes                 #
+# logic:ruleGateFatalVerdict (no targetClass), so its projected twin keys onto   #
+# the same source-term the hand-authored shape did. A gmeow:Finding on the       #
+# principal up-set ↑(severityError, blockingBlocking, standpointBinding) must     #
+# carry the derived verdict gmeow:findingGateVerdict gmeow:gateFatal.            #
+# =========================================================================== #
+
+gmeow:GateFatalUpsetConstraint
+    a logic:Constraint ;
+    rdfs:label "Gate-fatal up-set constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint (Principle 17): a gmeow:Finding on the principal gate-fatal up-set — severity gmeow:severityError, category projecting through gmeow:categoryBlocking to gmeow:blockingBlocking, and standpoint gmeow:standpointBinding — must carry the derived verdict gmeow:findingGateVerdict gmeow:gateFatal. A finding meeting the up-set antecedent but lacking the fatal verdict violates the SHACL image of logic:ruleGateFatalVerdict."@x-gmeow-english ;
+    logic:formalizes logic:ruleGateFatalVerdict ;
+    logic:severity "Violation" ;
+    logic:message "A finding on the gate-fatal up-set (severity error, category projecting to blocking, standpoint binding) must carry gmeow:findingGateVerdict gmeow:gateFatal — the derived verdict of logic:ruleGateFatalVerdict is missing." ;
+    logic:integrity logic:gateFatalForall .
+logic:gateFatalForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:gateFatalImpl .
+logic:gateFatalImpl a logic:Formula ; logic:antecedent logic:gateFatalTarget ; logic:consequent logic:gateFatalVerdict .
+logic:gateFatalTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT ?this WHERE {
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Finding> .
+    ?this <https://blackcatinformatics.ca/gmeow/findingSeverity> <https://blackcatinformatics.ca/gmeow/severityError> .
+    ?this <https://blackcatinformatics.ca/gmeow/findingStandpoint> <https://blackcatinformatics.ca/gmeow/standpointBinding> .
+    ?this <https://blackcatinformatics.ca/gmeow/findingCategory> ?cat .
+    ?cat <https://blackcatinformatics.ca/gmeow/categoryBlocking> <https://blackcatinformatics.ca/gmeow/blockingBlocking> .
+}""" ] .
+logic:gateFatalVerdict a logic:Formula ; logic:relation gmeow:findingGateVerdict ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:gateFatal ] .

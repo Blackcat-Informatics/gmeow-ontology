@@ -4009,6 +4009,20 @@ lang:FormSlotAcyclicDependencyConstraint
     logic:formalizes lang:FormSlot ;
     logic:message "A lang:FormSlot may not depend on itself transitively along lang:dependsOn; a dependency cycle is ill-formed." .
 
+# Every lang:Grapheme in the GMN script (lang:inScript gmeow:gmnScript) carries a
+# measured token cost through gmeow:gmnGlyphTokenCost — the per-glyph feed the
+# glyph-versus-named-key disposition reads off. A GMN-script glyph with no cost is
+# lang:GmnUncostedScriptGlyph (a guarded implication: the inScript=gmnScript trigger
+# is the guard, gmeow:gmnGlyphTokenCost the required field).
+lang:GmnScriptGlyphCoverageConstraint
+    a logic:GuardedImplicationConstraint ;
+    logic:onClass lang:Grapheme ;
+    logic:trigger lang:inScript ;
+    logic:triggerValue gmeow:gmnScript ;
+    logic:requires gmeow:gmnGlyphTokenCost ;
+    logic:formalizes lang:Grapheme ;
+    logic:message "A lang:Grapheme in the GMN script carries no gmeow:gmnGlyphTokenCost; the GMN glyph inventory is cost-covered by rule, so every admitted glyph carries its measured token-cost feed." .
+
 # =========================================================================== #
 # Procedural constraints authored as raw logic:Formula integrity trees. Each   #
 # carries logic:formalizes so its projected sh:SPARQLConstraint twin keys onto  #
@@ -4214,3 +4228,171 @@ lang:gmnVoNotMinor a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sc" ] , [ logic:termIndex 1 ; logic:termIri gmeow:scaleMinor ] .
 lang:gmnVoNotTrivial a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sc" ] , [ logic:termIndex 1 ; logic:termIri gmeow:scaleTrivial ] .
+
+# =========================================================================== #
+# Unmarked-surface translation (#1194): a lang:TranslationUnit whose source or   #
+# target is a lang:SurfaceForm realizing no analyzed form is honest only if that #
+# surface is typed lang:UnanalyzedProse AND its carried logic:Correspondence     #
+# carries the weakest preservation (logic:Unsupported / logic:ValidationOnly).   #
+# The 4-way UNION of lang:UnmarkedSurfaceTranslationShape is authored here as     #
+# four peer integrity constraints (source/target × prose-unmarked/overclaim),    #
+# each formalizing the same shape term so its projected twin keys on             #
+# lang:TranslationUnit. A strong crossing over an unmarked or unanalyzed surface  #
+# is the fabrication risk each flags.                                            #
+# =========================================================================== #
+
+# Peer 1 — source surface realizes nothing yet is not typed lang:UnanalyzedProse.
+lang:UnmarkedSourceProseConstraint
+    a logic:Constraint ;
+    rdfs:label "Unmarked source-surface prose constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a lang:TranslationUnit whose lang:translationSource is a lang:SurfaceForm realizing no analyzed form must have that surface typed lang:UnanalyzedProse."@x-gmeow-english ;
+    logic:formalizes lang:UnmarkedSurfaceTranslationShape ;
+    logic:severity "Violation" ;
+    logic:message "A surface-only translation source realizes no analyzed form yet is not typed lang:UnanalyzedProse." ;
+    logic:integrity lang:ustSpForall .
+lang:ustSpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:ustSpImpl .
+lang:ustSpImpl a logic:Formula ; logic:antecedent lang:ustSpGuard ; logic:consequent lang:ustSpPhi .
+lang:ustSpGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:TranslationUnit ] .
+lang:ustSpPhi a logic:Formula ; logic:not lang:ustSpEx .
+lang:ustSpEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] ;
+    logic:exists lang:ustSpBody .
+lang:ustSpBody a logic:Formula ; logic:and lang:ustSpSrc , lang:ustSpSurf , lang:ustSpNoReal , lang:ustSpNoProse .
+lang:ustSpSrc a logic:Formula ; logic:relation lang:translationSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+lang:ustSpSurf a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termIri lang:SurfaceForm ] .
+lang:ustSpNoReal a logic:Formula ; logic:not lang:ustSpRealEx .
+lang:ustSpRealEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "rf" ] ;
+    logic:exists lang:ustSpReal .
+lang:ustSpReal a logic:Formula ; logic:relation lang:realizes ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "rf" ] .
+lang:ustSpNoProse a logic:Formula ; logic:not lang:ustSpProse .
+lang:ustSpProse a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termIri lang:UnanalyzedProse ] .
+
+# Peer 2 — source surface realizes nothing yet its correspondence claims a
+# stronger-than-weakest preservation judgment.
+lang:UnmarkedSourceOverclaimConstraint
+    a logic:Constraint ;
+    rdfs:label "Unmarked source-surface overclaim constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a lang:TranslationUnit whose lang:translationSource is a lang:SurfaceForm realizing no analyzed form must carry a logic:Correspondence whose logic:preservationKind is the weakest judgment (logic:Unsupported or logic:ValidationOnly)."@x-gmeow-english ;
+    logic:formalizes lang:UnmarkedSurfaceTranslationShape ;
+    logic:severity "Violation" ;
+    logic:message "A surface-only translation source realizes no analyzed form yet carries a stronger-than-weakest preservation judgment on its logic:Correspondence." ;
+    logic:integrity lang:ustSoForall .
+lang:ustSoForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:ustSoImpl .
+lang:ustSoImpl a logic:Formula ; logic:antecedent lang:ustSoGuard ; logic:consequent lang:ustSoPhi .
+lang:ustSoGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:TranslationUnit ] .
+lang:ustSoPhi a logic:Formula ; logic:not lang:ustSoEx .
+lang:ustSoEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] ;
+    logic:exists lang:ustSoBody .
+lang:ustSoBody a logic:Formula ; logic:and lang:ustSoSrc , lang:ustSoSurf , lang:ustSoCorr , lang:ustSoNoReal , lang:ustSoNotUns , lang:ustSoNotVal .
+lang:ustSoSrc a logic:Formula ; logic:relation lang:translationSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+lang:ustSoSurf a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termIri lang:SurfaceForm ] .
+lang:ustSoCorr a logic:Formula ; logic:relation lang:translationCorrespondence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
+lang:ustSoNoReal a logic:Formula ; logic:not lang:ustSoRealEx .
+lang:ustSoRealEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "rf" ] ;
+    logic:exists lang:ustSoReal .
+lang:ustSoReal a logic:Formula ; logic:relation lang:realizes ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "rf" ] .
+lang:ustSoNotUns a logic:Formula ; logic:not lang:ustSoUns .
+lang:ustSoUns a logic:Formula ; logic:relation logic:preservationKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termIri logic:Unsupported ] .
+lang:ustSoNotVal a logic:Formula ; logic:not lang:ustSoVal .
+lang:ustSoVal a logic:Formula ; logic:relation logic:preservationKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termIri logic:ValidationOnly ] .
+
+# Peer 3 — target surface realizes nothing yet is not typed lang:UnanalyzedProse.
+lang:UnmarkedTargetProseConstraint
+    a logic:Constraint ;
+    rdfs:label "Unmarked target-surface prose constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a lang:TranslationUnit whose lang:translationTarget is a lang:SurfaceForm realizing no analyzed form must have that surface typed lang:UnanalyzedProse."@x-gmeow-english ;
+    logic:formalizes lang:UnmarkedSurfaceTranslationShape ;
+    logic:severity "Violation" ;
+    logic:message "A surface-only translation target realizes no analyzed form yet is not typed lang:UnanalyzedProse." ;
+    logic:integrity lang:ustTpForall .
+lang:ustTpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:ustTpImpl .
+lang:ustTpImpl a logic:Formula ; logic:antecedent lang:ustTpGuard ; logic:consequent lang:ustTpPhi .
+lang:ustTpGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:TranslationUnit ] .
+lang:ustTpPhi a logic:Formula ; logic:not lang:ustTpEx .
+lang:ustTpEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "t" ] ;
+    logic:exists lang:ustTpBody .
+lang:ustTpBody a logic:Formula ; logic:and lang:ustTpTgt , lang:ustTpSurf , lang:ustTpNoReal , lang:ustTpNoProse .
+lang:ustTpTgt a logic:Formula ; logic:relation lang:translationTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "t" ] .
+lang:ustTpSurf a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "t" ] , [ logic:termIndex 1 ; logic:termIri lang:SurfaceForm ] .
+lang:ustTpNoReal a logic:Formula ; logic:not lang:ustTpRealEx .
+lang:ustTpRealEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "rf" ] ;
+    logic:exists lang:ustTpReal .
+lang:ustTpReal a logic:Formula ; logic:relation lang:realizes ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "t" ] , [ logic:termIndex 1 ; logic:termVariable "rf" ] .
+lang:ustTpNoProse a logic:Formula ; logic:not lang:ustTpProse .
+lang:ustTpProse a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "t" ] , [ logic:termIndex 1 ; logic:termIri lang:UnanalyzedProse ] .
+
+# Peer 4 — target surface realizes nothing yet its correspondence claims a
+# stronger-than-weakest preservation judgment.
+lang:UnmarkedTargetOverclaimConstraint
+    a logic:Constraint ;
+    rdfs:label "Unmarked target-surface overclaim constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a lang:TranslationUnit whose lang:translationTarget is a lang:SurfaceForm realizing no analyzed form must carry a logic:Correspondence whose logic:preservationKind is the weakest judgment (logic:Unsupported or logic:ValidationOnly)."@x-gmeow-english ;
+    logic:formalizes lang:UnmarkedSurfaceTranslationShape ;
+    logic:severity "Violation" ;
+    logic:message "A surface-only translation target realizes no analyzed form yet carries a stronger-than-weakest preservation judgment on its logic:Correspondence." ;
+    logic:integrity lang:ustToForall .
+lang:ustToForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:ustToImpl .
+lang:ustToImpl a logic:Formula ; logic:antecedent lang:ustToGuard ; logic:consequent lang:ustToPhi .
+lang:ustToGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:TranslationUnit ] .
+lang:ustToPhi a logic:Formula ; logic:not lang:ustToEx .
+lang:ustToEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "t" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] ;
+    logic:exists lang:ustToBody .
+lang:ustToBody a logic:Formula ; logic:and lang:ustToTgt , lang:ustToSurf , lang:ustToCorr , lang:ustToNoReal , lang:ustToNotUns , lang:ustToNotVal .
+lang:ustToTgt a logic:Formula ; logic:relation lang:translationTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "t" ] .
+lang:ustToSurf a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "t" ] , [ logic:termIndex 1 ; logic:termIri lang:SurfaceForm ] .
+lang:ustToCorr a logic:Formula ; logic:relation lang:translationCorrespondence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
+lang:ustToNoReal a logic:Formula ; logic:not lang:ustToRealEx .
+lang:ustToRealEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "rf" ] ;
+    logic:exists lang:ustToReal .
+lang:ustToReal a logic:Formula ; logic:relation lang:realizes ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "t" ] , [ logic:termIndex 1 ; logic:termVariable "rf" ] .
+lang:ustToNotUns a logic:Formula ; logic:not lang:ustToUns .
+lang:ustToUns a logic:Formula ; logic:relation logic:preservationKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termIri logic:Unsupported ] .
+lang:ustToNotVal a logic:Formula ; logic:not lang:ustToVal .
+lang:ustToVal a logic:Formula ; logic:relation logic:preservationKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termIri logic:ValidationOnly ] .
