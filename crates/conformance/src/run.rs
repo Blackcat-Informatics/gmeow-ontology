@@ -397,8 +397,8 @@ fn attach_validation_shapes(
     case_id: &str,
     case_dir: &Path,
     program: gmeow_logic_compile::ir::LogicProgram,
-) -> Result<gmeow_logic_compile::ir::LogicProgram, String> {
-    let prefix = |msg: String| format!("case {case_id}: {msg}");
+) -> gmeow_errors::Result<gmeow_logic_compile::ir::LogicProgram> {
+    let prefix = |msg: String| run_fail(format!("case {case_id}: {msg}"));
     let source = std::fs::read_to_string(case_dir.join("input.logic.ttl"))
         .map_err(|e| prefix(format!("cannot read input.logic.ttl: {e}")))?;
     let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None)

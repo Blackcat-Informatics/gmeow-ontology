@@ -29,6 +29,7 @@
 //! enforcement) and (b) is enforcement-EQUIVALENT to that core (`≡`). That makes
 //! "equivalence-before-deletion" a machine-checkable idempotence certificate.
 
+use gmeow_errors::Diag;
 use std::collections::BTreeSet;
 
 use crate::frontend::derive_validation_shapes;
@@ -661,12 +662,17 @@ pub fn lift(shape: &ValidationShapeIr) -> LiftProposal {
 /// idempotence certificate that deleting the shape and re-deriving it from the proposal loses no
 /// enforcement over the shape-expressible fragment. Residue-only components are excluded from the
 /// core (they have no axiom antecedent and are carried in the canonical logic: layer).
-pub fn certify(shape: &ValidationShapeIr) -> Result<(), String> {
+pub fn certify(shape: &ValidationShapeIr) -> gmeow_errors::Result<()> {
     let a = analyze(shape);
-    let ds = purrdf::parse_dataset(a.axioms_ttl.as_bytes(), "text/turtle", None)
-        .map_err(|e| format!("lift certify: re-parsing the lifted proposal failed: {e}"))?;
+    let ds = purrdf::parse_dataset(a.axioms_ttl.as_bytes(), "text/turtle", None).map_err(|e| {
+        Diag::of_kind(crate::error::Frontend {
+            detail: format!("lift certify: re-parsing the lifted proposal failed: {e}"),
+        })
+    })?;
     let derived_all = derive_validation_shapes(ds.as_ref()).map_err(|e| {
-        format!("lift certify: derive_validation_shapes over the proposal failed: {e}")
+        Diag::of_kind(crate::error::Frontend {
+            detail: format!("lift certify: derive_validation_shapes over the proposal failed: {e}"),
+        })
     })?;
     let derived = derived_all.iter().find(|d| d.target == a.core.target);
 
@@ -679,32 +685,38 @@ pub fn certify(shape: &ValidationShapeIr) -> Result<(), String> {
                 // re-derive, so the (vacuous) round-trip holds.
                 Ok(())
             } else {
-                Err(format!(
-                    "lift certify: no derived shape for target {:?}; the proposal did not re-derive \
-                     the shape-expressible core",
-                    a.core.target
-                ))
+                Err(Diag::of_kind(crate::error::Frontend {
+                    detail: format!(
+                        "lift certify: no derived shape for target {:?}; the proposal did not \
+                         re-derive the shape-expressible core",
+                        a.core.target
+                    ),
+                }))
             }
         }
         Some(derived) => {
             // SOUNDNESS (`⊑`): the derived shape enforces at least the shape-expressible core —
             // deletion-then-rederivation never loses enforcement over the core fragment.
             if !subsumes(derived, &a.core) {
-                return Err(format!(
-                    "lift certify: soundness failed — the derived shape does not enforce the core \
-                     (derived enforcement={}, core enforcement={})",
-                    super::subsumption::enforcement_key(derived),
-                    super::subsumption::enforcement_key(&a.core),
-                ));
+                return Err(Diag::of_kind(crate::error::Frontend {
+                    detail: format!(
+                        "lift certify: soundness failed — the derived shape does not enforce the \
+                         core (derived enforcement={}, core enforcement={})",
+                        super::subsumption::enforcement_key(derived),
+                        super::subsumption::enforcement_key(&a.core),
+                    ),
+                }));
             }
             // ROUND-TRIP (`≡`): the derived shape is enforcement-equivalent to the core.
             if !equivalent(derived, &a.core) {
-                return Err(format!(
-                    "lift certify: round-trip failed — derived shape is not equivalent to the core \
-                     (derived enforcement={}, core enforcement={})",
-                    super::subsumption::enforcement_key(derived),
-                    super::subsumption::enforcement_key(&a.core),
-                ));
+                return Err(Diag::of_kind(crate::error::Frontend {
+                    detail: format!(
+                        "lift certify: round-trip failed — derived shape is not equivalent to the \
+                         core (derived enforcement={}, core enforcement={})",
+                        super::subsumption::enforcement_key(derived),
+                        super::subsumption::enforcement_key(&a.core),
+                    ),
+                }));
             }
             Ok(())
         }
