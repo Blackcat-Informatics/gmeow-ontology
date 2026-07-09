@@ -407,10 +407,10 @@ ex:ecProjectionMissingPreservationKind a gmeow:ExampleConformance ;
 # =========================================================================== #
 
 # =========================================================================== #
-# GMN dialect fixtures — the gmeow:gmn* graft's seven SHACL gates: canonical
+# GMN dialect fixtures — the gmeow:gmn* graft's eight SHACL gates: canonical
 # codepoints, the confusables blocklist, sigil-scoped glyph collisions, the
-# eight-field envelope contract, version overclaims, compaction provenance, and
-# compaction overclaims. The five parser-tier failure classes
+# eight-field envelope contract, the ring lattice, version overclaims,
+# compaction provenance, and compaction overclaims. The five parser-tier failure classes
 # (lang:GmnUncoveredTerm, lang:GmnNonCanonicalOrder, lang:GmnMalformedNumber,
 # lang:GmnUndeclaredDialectVersion, lang:GmnNonDecodableGrammar) are the GMN
 # parser/writer's own validator, not SHACL, so they have no cell here. The
@@ -464,6 +464,12 @@ ex:ecGmnEnvelopeMissingField a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The gmeow:GmnEnvelope omits exactly one of its eight contract fields — the gmeow:gmnSecurityRing boundary ring (sh:minCount 1 on lang:GmnEnvelopeContractShape) — so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:GmnMissingEnvelopeField); the other seven fields are present." .
+
+ex:ecGmnRingLatticeMalformed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/gmn-ring-lattice-malformed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The gmeow:GmnSecurityRing carries no gmeow:gmnRingLevel at all (sh:minCount 1 on lang:GmnRingLatticeWellFormedShape), so it cannot be placed in the Denning product-order lattice — validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:GmnRingLatticeMalformed). This gate bites the AUTHORED coordinate, proving it is not vacuous." .
 
 # === Rule (Item 4 of #1475): a gmeow:processExport crossing binds to its ring === #
 

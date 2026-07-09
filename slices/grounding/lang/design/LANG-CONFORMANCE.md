@@ -108,6 +108,7 @@ machine fixtures are seeded from.
 | No co-resident confusable pair in the glyph inventory (UTS #39 skeleton rule) | SHACL-SPARQL (`tests/counter-examples/gmn-confusable-glyph.ttl`) | `lang:GmnConfusableGlyph` |
 | One codepoint sequence, one glyph identity per script, unless both readings are sigil-scoped | SHACL-SPARQL (`tests/counter-examples/gmn-glyph-collision.ttl`) | `lang:GmnGlyphCollision` |
 | Every envelope carries its full eight-field contract | SHACL Core (`tests/counter-examples/gmn-envelope-missing-field.ttl`) | `lang:GmnMissingEnvelopeField` |
+| Every `gmeow:GmnSecurityRing` carries exactly one `gmeow:gmnRingLevel` and only declared `gmeow:GmnCompartment` values (the authored coordinates the derived `gmeow:gmnRingWithin` lattice reads from) | SHACL Core (`tests/counter-examples/gmn-ring-lattice-malformed.ttl`) | `lang:GmnRingLatticeMalformed` |
 | No mnemomorphic migration over a stronger-than-additive bump; no accept window beyond 1 | SHACL-SPARQL (`tests/counter-examples/gmn-version-overclaim.ttl`) | `lang:GmnVersionOverclaim` |
 | Every compaction names its sources and its holding vantage | SHACL Core (`tests/counter-examples/gmn-compaction-without-provenance.ttl`) | `lang:GmnCompactionWithoutProvenance` |
 | No compaction correspondence stronger than `ValidationOnly` | SHACL-SPARQL (`tests/counter-examples/gmn-compaction-overclaim.ttl`) | `lang:GmnCompactionOverclaim` |

@@ -315,7 +315,7 @@ and its eight-field contract is total — a missing field is `lang:GmnMissingEnv
 | schema version | `gmeow:gmnSchemaVersion` | the grammar/record-shape major |
 | dictionary version | `gmeow:gmnDictionaryVersion` | the alias table the names resolve through |
 | glyph-table version | `gmeow:gmnGlyphTableVersion` | the projected glyph/codepoint table |
-| security ring | `gmeow:gmnSecurityRing` | the deontic serialization boundary — a lattice-ordered admission class, ordered by the transitive `gmeow:gmnRingWithin` (core within trusted within restricted; content permitted in a ring flows wherever that ring is within). Minted fresh after checking the rights and agreements vocabulary: `gmeow:RightsStatement` deontics regulate content licensing, not serialization boundaries |
+| security ring | `gmeow:gmnSecurityRing` | the deontic serialization boundary — a point in a factored `(level, compartment)` information-flow lattice; the transitive `gmeow:gmnRingWithin` order between rings is DERIVED from those coordinates, never hand-chained (see [Ring-lattice model](#the-ring-lattice-model) below). Minted fresh after checking the rights and agreements vocabulary: `gmeow:RightsStatement` deontics regulate content licensing, not serialization boundaries |
 | standpoint | `gmeow:accordingTo` | the asserting standpoint |
 | generating activity | `gmeow:wasGeneratedBy` | the emission run's provenance |
 | content digest | `gmeow:contentDigest` | byte-exact identity, blake3 |
@@ -324,6 +324,69 @@ and its eight-field contract is total — a missing field is `lang:GmnMissingEnv
 **The digest domain is pinned.** `gmeow:contentDigest` is a blake3 digest computed over the
 canonical GMN-0 normal-form bytes — pre-envelope, post-NFC — so equal models share a digest across
 surface variants: two envelopes carrying different encodings of one model carry one digest.
+
+## The ring-lattice model
+
+`gmeow:GmnSecurityRing` is the full Denning information-flow lattice, factored into two orthogonal
+coordinates rather than the fixed three-ring chain the dialect shipped with originally:
+
+- **Classification level** — `gmeow:gmnRingLevel` (functional), an ordered `gmeow:GmnRingLevel`
+  value. The three shipped levels form a linear ladder, `gmeow:gmnLevelCore` ≻
+  `gmeow:gmnLevelTrusted` ≻ `gmeow:gmnLevelRestricted`, ordered by `gmeow:gmnRingLevelDominates`
+  (reflexive-and-transitive, its full closure hand-asserted per level — the same idiom as
+  `logic:levelAtOrAbove` in the `logic:` design set). The level axis is **lang-local**, not the
+  kernel `gmeow:SensitivityLevel`: the kernel's only ordering property, `gmeow:coarserThan`, is
+  `rdfs:domain`/`rdfs:range`-scoped to `gmeow:GranularityLevel`, so reusing it here would wrongly
+  entail every ring level is also a granularity level — a genuine mismatch, not a style choice.
+- **Compartment / caveat set** — `gmeow:gmnRingCompartment` (non-functional, zero or more), an
+  open, unordered `gmeow:GmnCompartment` value vocabulary (a NATO-eyes-only scope, a named-partner
+  scope, …). An empty set is well-formed: the three shipped default rings carry none.
+
+**The order is derived, never authored.** `gmeow:gmnRingWithin(X, Y)` — X within Y — holds iff X's
+level dominates Y's (`gmeow:gmnRingLevelDominates`) **and** X's compartment set contains Y's (⊇) —
+the Denning product-order dominance test. This is computed by a `logic:Rule` pair
+(`gmeow:ruleGmnRingWithinDerive` plus its `gmeow:ruleGmnRingCompartmentGap` negation guard for the
+⊇ test), materialized by the native `logic:` reasoner over the authored coordinates — the same
+mechanism `logic:ruleProjectIsAwareOf` uses to project the coarse knowledge ladder. The property
+stays `owl:TransitiveProperty` (EL-clean transitivity alone is fine), but **acyclicity and the ⊇
+containment test are never OWL characteristics** — no `owl:irreflexive` / `owl:AsymmetricProperty`
+on the derived order, which would push the profile out of the EL fragment and hard-fail
+`make reason-verify`. The relation is REFLEXIVE (a ring is trivially within itself, the standard
+Denning ⊑ reading — the flow-check idiom already asks "ring equals the destination, OR is
+`gmeow:gmnRingWithin` it", so equality is handled once); the migration-equivalence witness below
+applies its own `FILTER(?x != ?y)` at the SPARQL layer where irreflexivity is actually load-bearing
+(`logic:distinctBody` is parsed and correctly projected into Nemo rule text, but is not enforced by
+the native chase's execution — a discovered reasoner gap, worked around rather than relied on here).
+A structural gate (`tests/structural.ttl`) additionally asserts that ZERO
+`gmeow:gmnRingWithin` triples are ever authored in the carrier — the predicate is populated only at
+reason time, and a hand-authored edge (including a reintroduction of the retired chain) fails the
+build even if the edge happens to match the computed order.
+
+**The well-formedness gate bites the authored coordinates, not the derived relation** — gating the
+derived `gmeow:gmnRingWithin` for partial-order-ness would be a tautology (a derivation from a
+partial order is trivially one). `lang:GmnRingLatticeMalformed` (SHACL) instead requires every ring
+to carry exactly one `gmeow:gmnRingLevel` and only declared `gmeow:GmnCompartment` values.
+
+**Open set, shipped preset.** Rings are first-class individuals in an OPEN set — no `owl:oneOf`
+closure. The three original rings are re-expressed with explicit coordinates as members of
+`gmeow:gmnRingPresetDefault` (a `gmeow:GmnRingPreset`, the `gmeow:VersionSet` bundling idiom without
+its full relator reification, since preset membership carries no competing-authority or interval
+semantics). A **migration-equivalence witness** (a `gmeow:reasoningLogic` competency question)
+computes the derived order over the three default-preset rings' coordinates and asserts it equals
+the retired core-within-trusted-within-restricted chain exactly — proving the refactor is
+behaviour-preserving rather than a mere renaming of the same asserted facts.
+
+**The NATO case.** `gmeow:gmnRingNato` is a fourth ring at the SAME level as
+`gmeow:gmnRingTrusted` but carrying a non-empty, distinct compartment set
+(`gmeow:gmnCompartmentNato`, `gmeow:gmnCompartmentPartner`) — demonstrating that scope is a genuine
+second axis: same level, different compartment, different (and asymmetrically related) ring. It is
+deliberately not a member of the default preset.
+
+**Typed admission/exclusion criteria.** `gmeow:gmnRingAdmits` / `gmeow:gmnRingExcludes` relate a
+ring to a typed `gmeow:GmnRingCriterion` value it requires or forbids of admitted content —
+mirroring the rights slice's `gmeow:RightsAction` discipline (`gmeow:Permission` /
+`gmeow:Prohibition` point at a typed action, never a free-text reason) rather than inventing a bare
+literal reason field.
 
 ## GMN-2 doctrine
 
@@ -358,7 +421,8 @@ sibling's. This charter is the contract they all implement against.
 ## Conformance
 
 Every hard rule above is a row of the [`LANG-CONFORMANCE.md`](LANG-CONFORMANCE.md) gate matrix
-("GMN dialect rules") with a named `lang:Gmn*` failure class — seven enforced by the SHACL gates
-in `shapes.ttl` (each naming its class through `gmeow:enforcesFailureClass`), five by the GMN
-parser/writer's validator tier against the normative example blocks of this charter. A violation
+("GMN dialect rules") with a named `lang:Gmn*` failure class — thirteen rules total, eight
+enforced by the SHACL gates in `shapes.ttl` (each naming its class through
+`gmeow:enforcesFailureClass`), five by the GMN parser/writer's validator tier against the
+normative example blocks of this charter. A violation
 is a typed, queryable object, not a log line.

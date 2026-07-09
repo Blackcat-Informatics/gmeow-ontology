@@ -64,36 +64,40 @@ pub fn rdfs_closed_store() -> Result<Arc<RdfDataset>> {
 
 /// Build the native `logic:`-reasoned closure the `gmeow:reasoningLogic` lane queries.
 ///
-/// The source graph is the authored algebra-law example files ([`algebra_law_files`]) —
-/// each carries one of the four `math:` laws (associativity, the determinant homomorphism,
-/// the E8 group action, and the homomorphic-encryption law) as a real first-order
-/// `logic:Formula` AST plus the minimal pre-reified operation-table witness EDB it fires
-/// over. That graph is compiled to a canonical [`LogicProgram`]
+/// The source graph is [`native_reasoning_source_files`]: the authored algebra-law example
+/// files — each carries one of the four `math:` laws (associativity, the determinant
+/// homomorphism, the E8 group action, and the homomorphic-encryption law) as a real
+/// first-order `logic:Formula` AST plus the minimal pre-reified operation-table witness EDB
+/// it fires over — plus the lang slice's `module.ttl`, which carries the GMN security-ring
+/// lattice's `gmeow:ruleGmnRingWithinDerive` / `gmeow:ruleGmnRingCompartmentGap` (Horn
+/// `logic:Rule`s, the `logic:ruleProjectIsAwareOf` idiom) and their EDB witness (the ring
+/// individuals' authored `gmeow:gmnRingLevel` / `gmeow:gmnRingCompartment` coordinates).
+/// That graph is compiled to a canonical [`LogicProgram`]
 /// ([`parse_logic_dataset`](gmeow_logic_compile::frontend::parse_logic_dataset)) and
 /// evaluated over the same graph as its EDB through
 /// [`reason_program_closure_dataset`](gmeow_logic::reason::reason_program_closure_dataset);
 /// the returned dataset is the full entailment closure (asserted + derived), so a competency
-/// question sees the consequents the laws DERIVE — the reified n-ary tuples included — not
-/// just the asserted data.
+/// question sees the consequents the laws and rules DERIVE — the reified n-ary tuples and the
+/// computed `gmeow:gmnRingWithin` edges included — not just the asserted data.
 ///
-/// The lane is deliberately scoped to the law-carrying example sources rather than the whole
-/// merged ontology: the four laws are the only `logic:Formula`s with authored witness EDB, so
-/// nothing else fires, and reasoning the entire ontology would balloon the closure (a ~37k-quad
-/// DL closure of unrelated vocabulary) past the per-test time budget for no added entailment.
-/// A future `reasoningLogic` question extends the source set here, exactly as a new module
-/// extends [`merged_store`]. This is the ONE lane that pays the native chase (and pulls Nemo
-/// into the build graph); the default (`reasoningNone`) and `reasoningRdfs` lanes stay Nemo-free.
+/// The lane is deliberately scoped to these law/rule-carrying sources rather than the whole
+/// merged ontology: nothing else fires, and reasoning the entire ontology would balloon the
+/// closure (a ~37k-quad DL closure of unrelated vocabulary) past the per-test time budget for
+/// no added entailment. A future `reasoningLogic` question extends the source set in
+/// [`native_reasoning_source_files`], exactly as a new module extends [`merged_store`]. This is
+/// the ONE lane that pays the native chase (and pulls Nemo into the build graph); the default
+/// (`reasoningNone`) and `reasoningRdfs` lanes stay Nemo-free.
 ///
 /// # Errors
 ///
-/// Hard-fails if the law sources cannot be built, if the program cannot be compiled
+/// Hard-fails if the source files cannot be built, if the program cannot be compiled
 /// (a parse error, or any `Severity::Error` diagnostic — never papered over), or if
 /// the native reasoner fails.
 pub fn native_closed_store() -> Result<Arc<RdfDataset>> {
-    let files = algebra_law_files();
+    let files = native_reasoning_source_files();
     let store = native_query::dataset_from_files(&files).map_err(|e| {
         Diag::of_kind(LogicReasoning {
-            detail: format!("loading the algebra-law example sources: {e}"),
+            detail: format!("loading the native-reasoning source files: {e}"),
         })
     })?;
     // The program is extracted from the DEFAULT-graph source (parse_logic_dataset reads the
@@ -104,7 +108,9 @@ pub fn native_closed_store() -> Result<Arc<RdfDataset>> {
     let (program, diagnostics) =
         gmeow_logic_compile::frontend::parse_logic_dataset(store.as_ref(), None).map_err(|e| {
             Diag::of_kind(LogicReasoning {
-                detail: format!("compiling the logic program from the algebra-law sources: {e}"),
+                detail: format!(
+                    "compiling the logic program from the native-reasoning sources: {e}"
+                ),
             })
         })?;
     // The front-end is fail-soft (a malformed cell becomes a WARNING and is skipped), but a
@@ -118,7 +124,7 @@ pub fn native_closed_store() -> Result<Arc<RdfDataset>> {
     if !errors.is_empty() {
         return Err(Diag::of_kind(LogicReasoning {
             detail: format!(
-                "the algebra-law sources did not compile to a clean logic program ({} error diagnostic(s)): {}",
+                "the native-reasoning sources did not compile to a clean logic program ({} error diagnostic(s)): {}",
                 errors.len(),
                 errors.join("; ")
             ),
@@ -127,7 +133,7 @@ pub fn native_closed_store() -> Result<Arc<RdfDataset>> {
     let edb = world_scoped(&store)?;
     gmeow_logic::reason::reason_program_closure_dataset(&program, edb.as_ref()).map_err(|e| {
         Diag::of_kind(LogicReasoning {
-            detail: format!("native logic reasoning over the algebra-law sources: {e}"),
+            detail: format!("native logic reasoning over the native-reasoning sources: {e}"),
         })
     })
 }
@@ -154,8 +160,8 @@ fn world_scoped(dataset: &Arc<RdfDataset>) -> Result<Arc<RdfDataset>> {
     })
 }
 
-/// The four authored algebra-law example files the native lane reasons over, in addition
-/// to the merged module graph. Each carries one of the four `math:` laws as a real
+/// The four authored algebra-law example files — the `math:` component of
+/// [`native_reasoning_source_files`]. Each carries one of the four `math:` laws as a real
 /// logic:Formula AST plus its pre-reified operation-table witness EDB.
 ///
 /// `algebra-axioms.ttl` (associativity), `algebra-homomorphisms.ttl` (the determinant
@@ -175,6 +181,26 @@ fn algebra_law_files() -> Vec<PathBuf> {
     .iter()
     .map(|f| examples.join(f))
     .collect()
+}
+
+/// The `gmeow:reasoningLogic` source-set, extended (per the module-doc "a future
+/// question extends the source set here" note) with the GMN security-ring lattice's
+/// `logic:Rule` derivation: `gmeow:ruleGmnRingWithinDerive` /
+/// `gmeow:ruleGmnRingCompartmentGap`, authored directly in the lang slice's module —
+/// the same canonical-TBox location `logic:ruleProjectIsAwareOf` uses (logic/module.ttl)
+/// — plus their EDB witness, the default-preset and NATO ring individuals' authored
+/// `gmeow:gmnRingLevel` / `gmeow:gmnRingCompartment` coordinates. The whole lang module
+/// is ~3k triples (small relative to the ~37k-quad full-ontology closure this lane
+/// avoids), so it stays within the per-test time budget.
+fn native_reasoning_source_files() -> Vec<PathBuf> {
+    let mut files = algebra_law_files();
+    files.push(
+        paths::slices_root()
+            .join("grounding")
+            .join("lang")
+            .join("module.ttl"),
+    );
+    files
 }
 
 /// The reasoned source-set: `ontology/gmeow.ttl` followed by every slice module,

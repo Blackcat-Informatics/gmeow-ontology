@@ -754,7 +754,7 @@ lang:ProjectionEmissionDeclaredShape
     ] .
 
 # =========================================================================== #
-# GMN dialect gates. Seven hard rules of the gmeow:gmn* graft, each naming its
+# GMN dialect gates. Eight hard rules of the gmeow:gmn* graft, each naming its
 # typed lang:Gmn* failure class. The five parser-tier rules (uncovered terms,
 # canonical order, malformed numbers, undeclared dialect versions, grammar
 # decodability) are the GMN parser/writer's, not SHACL's, so they have no
@@ -871,10 +871,11 @@ lang:GmnEnvelopeContractShape
     sh:property [
         sh:path gmeow:gmnSecurityRing ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
         sh:class gmeow:GmnSecurityRing ;
         sh:severity sh:Violation ;
-        sh:message "A gmeow:GmnEnvelope must declare its gmeow:gmnSecurityRing." ;
+        sh:message "A gmeow:GmnEnvelope must declare exactly one gmeow:gmnSecurityRing." ;
     ] ;
     sh:property [
         sh:path gmeow:accordingTo ;
@@ -901,6 +902,42 @@ lang:GmnEnvelopeContractShape
         sh:class logic:Correspondence ;
         sh:severity sh:Violation ;
         sh:message "A gmeow:GmnEnvelope must point gmeow:gmnEnvelopeCorrespondence at the logic:Correspondence judging its crossing." ;
+    ] .
+
+# =========================================================================== #
+# GMN security-ring lattice gates (Item 3 of #1475). gmeow:gmnRingWithin is
+# DERIVED (module.ttl, gmeow:ruleGmnRingWithinDerive) from a ring's AUTHORED
+# (gmeow:gmnRingLevel, gmeow:gmnRingCompartment) coordinates. Gating the
+# DERIVED relation for partial-order-ness would be a tautology (a derivation
+# from a partial order is trivially one) — this shape gates the AUTHORED
+# coordinates instead. The separate zero-authored-gmnRingWithin-triples gate
+# lives in tests/structural.ttl (a StructuralAssertion, not SHACL), since it
+# must inspect the ASSERTED graph specifically, before any reasoning
+# materializes the derived edges.
+# =========================================================================== #
+
+lang:GmnRingLatticeWellFormedShape
+    a sh:NodeShape ;
+    rdfs:label "GMN ring lattice well-formedness shape"@x-gmeow-english ;
+    skos:definition "Every gmeow:GmnSecurityRing carries exactly one gmeow:gmnRingLevel drawn from gmeow:GmnRingLevel, and every gmeow:gmnRingCompartment value it carries (zero or more; an empty set is well-formed) is a declared gmeow:GmnCompartment individual. This gates the AUTHORED lattice coordinates the gmeow:gmnRingWithin derivation reads from, never the derived relation itself."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:enforcesFailureClass lang:GmnRingLatticeMalformed ;
+    sh:targetClass gmeow:GmnSecurityRing ;
+    sh:property [
+        sh:path gmeow:gmnRingLevel ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class gmeow:GmnRingLevel ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:GmnSecurityRing must carry exactly one gmeow:gmnRingLevel drawn from gmeow:GmnRingLevel." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:gmnRingCompartment ;
+        sh:nodeKind sh:IRI ;
+        sh:class gmeow:GmnCompartment ;
+        sh:severity sh:Violation ;
+        sh:message "Every gmeow:gmnRingCompartment value of a gmeow:GmnSecurityRing must be a declared gmeow:GmnCompartment individual." ;
     ] .
 
 lang:GmnVersionOverclaimShape
@@ -1049,7 +1086,7 @@ lang:GmnScriptGlyphCoverageShape
 # =========================================================================== #
 # Mentation <-> lang binding gate (Item 4 of #1475): gmeow:processExport      #
 # (mentation, core tier) crossings bind to the ring model. NOT one of the     #
-# seven SHACL hard rules of the "GMN dialect gates" banner above --           #
+# eight SHACL hard rules of the "GMN dialect gates" banner above --           #
 # LANG-CONFORMANCE.md's rule count is unchanged; this is a separate           #
 # cross-slice competency check, exercised over the live fixture pair in       #
 # tests/conformance-fixtures/gmn-export-ring-bound.ttl (passes) and           #
