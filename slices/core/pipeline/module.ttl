@@ -315,6 +315,7 @@ gmeow:pipeline-build
         gmeow:stage-statements ,
         gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
+        gmeow:stage-math-producers ,
         gmeow:stage-reason ,
         gmeow:stage-gts-compose ,
         gmeow:stage-validate ,
@@ -389,6 +390,16 @@ gmeow:stage-mappings
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "mappings" ;
     gmeow:dataflowConsumes gmeow:stage-compile-logic .
+
+gmeow:stage-math-producers
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "math-producers"@x-gmeow-english ;
+    skos:definition "Run the five math: flagship producers (gmeow_math::producers) and fold each producer's deterministic RDF graph into the carrier as its own bundle-internal named graph, so the native producer output ships in gmeow.gts (the shippable deliverable) rather than living only behind a test-side equality gate. A leaf compute stage: it consumes no upstream product — the producers compute from pinned in-code exact-arithmetic constants."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "math_producers" .
 
 gmeow:stage-reason
     a gmeow:PipelineStage ;
@@ -499,6 +510,7 @@ gmeow:stage-snapshot
         gmeow:stage-export-research-objects ,
         gmeow:stage-gts-compose ,
         gmeow:stage-mappings ,
+        gmeow:stage-math-producers ,
         gmeow:stage-reason ,
         gmeow:stage-source-load ,
         gmeow:stage-statements ,

@@ -20422,6 +20422,9 @@ enums:
       stage-mappings:
         meaning: https://blackcatinformatics.ca/gmeow/stage-mappings
         title: mappings
+      stage-math-producers:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-math-producers
+        title: math-producers
       stage-reason:
         meaning: https://blackcatinformatics.ca/gmeow/stage-reason
         title: reason

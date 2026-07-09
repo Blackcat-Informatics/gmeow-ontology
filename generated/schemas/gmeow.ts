@@ -2263,6 +2263,7 @@ export enum PipelineStageEnum {
     stage_gts_compose = "stage-gts-compose",
     stage_gts_sink = "stage-gts-sink",
     stage_mappings = "stage-mappings",
+    stage_math_producers = "stage-math-producers",
     stage_reason = "stage-reason",
     stage_snapshot = "stage-snapshot",
     stage_source_load = "stage-source-load",

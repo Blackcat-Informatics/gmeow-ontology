@@ -171,6 +171,11 @@ ex:ecE8WeylCanonical a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A math:RootSystem with the E8 fingerprint (240 roots, rank 8) whose math:weylGroup declares math:groupOrder 696729600 — the true order of W(E8) — satisfies math:E8WeylOrderShape (and math:RootSystemShape, math:AutomorphismGroupShape, math:AlgebraicStructureShape) and validates with no findings." .
 
+ex:ecE8WeylProduced a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/e8-weyl-produced.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The e8Symmetry flagship's worked example — the exact output of math::producers::e8_weyl_order — a math:RootSystem with the E8 fingerprint (240 roots, rank 8) whose math:weylGroup declares math:groupOrder 696729600. It satisfies math:E8WeylOrderShape, math:RootSystemShape, math:AutomorphismGroupShape, and math:AlgebraicStructureShape and validates with no findings." .
+
 ex:ecE8WrongWeylOrder a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/e8-wrong-weyl-order.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
@@ -183,6 +188,11 @@ ex:ecHeSchemeComplete a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/he-scheme-complete.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A math:HomomorphicEncryptionScheme declaring math:homomorphicOver, math:securityAssumption, math:noiseModel, and — as a math:RingHomomorphism — math:preservedOperation and a resource-valued math:preservationLaw satisfies math:HomomorphicEncryptionSchemeShape, math:HomomorphismShape, and math:PreservationLawShape and validates with no findings." .
+
+ex:ecHeSchemeProduced a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/he-scheme-produced.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The homomorphicEncryption flagship's worked example — the exact output of math::producers::additive_he_demo — a math:HomomorphicEncryptionScheme declaring math:homomorphicOver, math:securityAssumption (math:learningWithErrors), math:noiseModel, and — as a math:RingHomomorphism — math:preservedOperation and a resource-valued math:preservationLaw. It satisfies math:HomomorphicEncryptionSchemeShape, math:HomomorphismShape, and math:PreservationLawShape and validates with no findings." .
 
 ex:ecHeMissingNoiseModel a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/he-scheme-missing-noise-model.ttl" ;
@@ -475,6 +485,11 @@ ex:ecPCAAnalysisComplete a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A math:PCAAnalysis declaring its math:analysisInput, math:centeringPolicy, math:scalingPolicy, math:covarianceOperator, math:eigensolver, and its math:principalComponent / math:loadingVector / math:scoreVector / math:explainedVarianceRatio / math:residualSubspace outputs satisfies math:PCAAnalysisShape and validates with no findings." .
 
+ex:ecPCAResidualLifted a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/pca-residual-lifted.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The aiSelfStructure flagship's worked example — the exact output of math::producers::exact_pca_residual — a math:PCAAnalysis over the exact-rational math:GramMatrix it decomposes. It declares every required PCA role (input, centering/scaling policy, covariance operator, eigensolver, and the component/loading/score/variance/residual outputs) and a symmetric positive-definite math:GramMatrix with well-formed math:RationalValue entries, so it satisfies math:PCAAnalysisShape and math:GramMatrixShape and validates with no findings." .
+
 ex:ecPCAAnalysisMissingCovariance a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/pca-analysis-missing-covariance.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
@@ -623,6 +638,11 @@ ex:ecVerificationResultGrounded a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/verification-result-grounded.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A math:FormalVerificationResult grounded BY a gmeow:Observation that names it through gmeow:observationResult and carries a gmeow:vantage satisfies math:FormalVerificationResultShape and validates with no findings." .
+
+ex:ecVerificationResultProduced a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/verification-result-produced.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The proofAsProcess flagship's worked example — the exact output of math::producers::proof_ingest — a proof trace whose QED math:FormalVerificationResult is grounded BY a separate gmeow:Observation that names it through gmeow:observationResult and carries a gmeow:vantage. It satisfies math:FormalVerificationResultShape and validates with no findings." .
 
 ex:ecVerificationResultUngrounded a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/verification-result-ungrounded.ttl" ;
