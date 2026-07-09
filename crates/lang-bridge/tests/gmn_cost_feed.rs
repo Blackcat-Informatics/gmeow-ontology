@@ -13,6 +13,15 @@
 //! the gate. It also pins the ⟦·⟧ ruling: the denotation brackets, measured to fragment,
 //! are dispositioned to the `den` named key and MUST NOT appear as graphemes of the GMN
 //! script — the ruling's outcome, observable in the bundle.
+//!
+//! The same generic cross-check also covers the Task-5 factored qualifier-slot
+//! aliases (`m`/`ek`/`bd` — modality, evidentiality-kind, and `@p`-record boundary), since
+//! they carry `gmeow:gmnGlyphTokenCost` + `gmeow:gmnCodepoints` on their
+//! `gmeow:GmnDictionaryEntry` individuals exactly like a script glyph does. What the generic
+//! cross-check does NOT prove is the razor's half-(a) discharge — that each alias is
+//! genuinely CHEAPER than the full canonical IRI it dealiases, the reason the dictionary
+//! bijection exists at all — so [`qualifier_marker_aliases_cost_less_than_full_iri`] measures
+//! that inequality explicitly, per marker.
 
 use gmeow_lang_bridge::gmn_glyph_token_cost;
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue, parse_dataset};
@@ -24,6 +33,60 @@ const GMN_FORM_DENOTATION: &str = "https://blackcatinformatics.ca/gmeow/gmnFormD
 
 const LEFT_WHITE_BRACKET: &str = "U+27E6";
 const RIGHT_WHITE_BRACKET: &str = "U+27E7";
+
+/// The Task-5 factored qualifier-slot aliases: `(alias, full canonical IRI)` pairs
+/// for every marker admitted under razor half (a) — measured cost reduction
+/// (`design/LANG-GMN.md`, "The measured token-cost razor"). None is admitted under half (b)
+/// at this stage, since the GMN-1 codec/validator gate half (b) requires does not exist yet
+/// (Task 6).
+const QUALIFIER_MARKER_ALIASES: &[(&str, &str)] = &[
+    // `m` (modality) — standpoint slice's gmeow:ModalForce.
+    (
+        "nec",
+        "https://blackcatinformatics.ca/gmeow/modalForceNecessary",
+    ),
+    (
+        "act",
+        "https://blackcatinformatics.ca/gmeow/modalForceActual",
+    ),
+    (
+        "poss",
+        "https://blackcatinformatics.ca/gmeow/modalForcePossible",
+    ),
+    (
+        "cf",
+        "https://blackcatinformatics.ca/gmeow/modalForceCounterfactual",
+    ),
+    // `ek` (evidentiality-kind) — observations slice's gmeow:ObservationMethod.
+    (
+        "dir",
+        "https://blackcatinformatics.ca/gmeow/methodDirectObservation",
+    ),
+    (
+        "inst",
+        "https://blackcatinformatics.ca/gmeow/methodInstrumentalReading",
+    ),
+    (
+        "rmt",
+        "https://blackcatinformatics.ca/gmeow/methodRemoteSensing",
+    ),
+    (
+        "cmp",
+        "https://blackcatinformatics.ca/gmeow/methodComputationalModel",
+    ),
+    (
+        "exj",
+        "https://blackcatinformatics.ca/gmeow/methodExpertJudgement",
+    ),
+    ("srv", "https://blackcatinformatics.ca/gmeow/methodSurvey"),
+    (
+        "strm",
+        "https://blackcatinformatics.ca/gmeow/methodStreaming",
+    ),
+    // `bd` (boundary, `@p` records only) — logic slice's logic:OccurrentBoundary.
+    ("open", "https://blackcatinformatics.ca/logic/Open"),
+    ("closed", "https://blackcatinformatics.ca/logic/Closed"),
+];
 
 /// Load the authored lang-slice `module.ttl` as an RDF dataset.
 fn load_lang_module() -> std::sync::Arc<RdfDataset> {
@@ -114,9 +177,68 @@ fn authored_glyph_cost_matches_measurement() {
         checked += 1;
     }
     assert!(
-        checked >= 4,
-        "the token-cost feed cross-checked {checked} glyphs; the worked plane authors at least four"
+        checked >= 18,
+        "the token-cost feed cross-checked {checked} glyphs; the worked plane plus the Task-5 \
+         qualifier-slot aliases author at least eighteen (5 script glyphs + 13 \
+         qualifier-slot dictionary entries)"
     );
+}
+
+/// The razor's half-(a) discharge (`design/LANG-GMN.md`, "The measured token-cost razor"):
+/// every Task-5 qualifier-slot alias must cost strictly fewer `cl100k_base` tokens
+/// than the full canonical IRI it dealiases — the cost the alternative of inlining or
+/// separately asserting the full term would pay, and the reason the dictionary bijection
+/// exists at all. A marker that failed this inequality would not be paying its way and would
+/// have to be justified under half (b) instead (not possible yet — Task 6's codec/validator
+/// gate does not exist in this tree) or dropped.
+#[test]
+fn qualifier_marker_aliases_cost_less_than_full_iri() {
+    for (alias, full_iri) in QUALIFIER_MARKER_ALIASES {
+        let alias_cost = gmn_glyph_token_cost(alias);
+        let iri_cost = gmn_glyph_token_cost(full_iri);
+        assert!(
+            alias_cost < iri_cost,
+            "qualifier-slot alias {alias:?} measures {alias_cost} tokens, which must be \
+             strictly cheaper than its full canonical IRI {full_iri:?} ({iri_cost} tokens) — \
+             the razor's half-(a) measured-cost-reduction discharge"
+        );
+    }
+}
+
+/// Every Task-5 qualifier-slot alias is actually present in the authored bundle as a
+/// `gmeow:GmnDictionaryEntry` binding the expected term to the expected alias string — the
+/// razor discharge above is meaningless unless the marker it measures is the one the carrier
+/// ships.
+#[test]
+fn qualifier_marker_aliases_are_authored_dictionary_entries() {
+    const DICTIONARY_ENTRY_TERM: &str =
+        "https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryTerm";
+    const DICTIONARY_ENTRY_ALIAS: &str =
+        "https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias";
+
+    let ds = load_lang_module();
+    let term_pred = ds
+        .term_id_by_value(&TermValue::iri(DICTIONARY_ENTRY_TERM))
+        .expect("gmeow:gmnDictionaryEntryTerm is used in the bundle");
+    let alias_pred = ds
+        .term_id_by_value(&TermValue::iri(DICTIONARY_ENTRY_ALIAS))
+        .expect("gmeow:gmnDictionaryEntryAlias is used in the bundle");
+
+    for (alias, full_iri) in QUALIFIER_MARKER_ALIASES {
+        let term_id = ds
+            .term_id_by_value(&TermValue::iri(*full_iri))
+            .unwrap_or_else(|| panic!("{full_iri} is used in the bundle"));
+        let found = ds
+            .quads_for_pattern(None, Some(term_pred), Some(term_id), GraphMatch::Any)
+            .any(|q| {
+                ds.quads_for_pattern(Some(q.s), Some(alias_pred), None, GraphMatch::Any)
+                    .any(|a| literal_lexical(&ds, a.o).as_deref() == Some(*alias))
+            });
+        assert!(
+            found,
+            "no gmeow:GmnDictionaryEntry binds {full_iri} to the alias {alias:?}"
+        );
+    }
 }
 
 #[test]

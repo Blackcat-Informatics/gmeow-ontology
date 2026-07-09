@@ -3308,7 +3308,20 @@ gmeow:gmnDictV1
     skos:definition "Dictionary version 1 of the GMN alias table (the \"dict-v1\" referenced by the codebook and by every worked example of LANG-GMN.md's @gmn header): the current codebook's alias table, referenced by gmeow:gmnCodebookCurrent through gmeow:references and pinned by gmeow:gmnDictionaryVersion \"1\"."@x-gmeow-english ;
     gmeow:gmnDictionaryVersion "1" ;
     gmeow:gmnDictionaryEntry gmeow:gmnDictV1EntryEnvelope ,
-        gmeow:gmnDictV1EntryCodebook .
+        gmeow:gmnDictV1EntryCodebook ,
+        gmeow:gmnDictV1EntryModalNecessary ,
+        gmeow:gmnDictV1EntryModalActual ,
+        gmeow:gmnDictV1EntryModalPossible ,
+        gmeow:gmnDictV1EntryModalCounterfactual ,
+        gmeow:gmnDictV1EntryEvKindDirect ,
+        gmeow:gmnDictV1EntryEvKindInstrumental ,
+        gmeow:gmnDictV1EntryEvKindRemote ,
+        gmeow:gmnDictV1EntryEvKindComputational ,
+        gmeow:gmnDictV1EntryEvKindExpert ,
+        gmeow:gmnDictV1EntryEvKindSurvey ,
+        gmeow:gmnDictV1EntryEvKindStreaming ,
+        gmeow:gmnDictV1EntryBoundaryOpen ,
+        gmeow:gmnDictV1EntryBoundaryClosed .
 
 gmeow:gmnDictV1EntryEnvelope
     a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
@@ -3327,6 +3340,163 @@ gmeow:gmnDictV1EntryCodebook
     skos:definition "The dict-v1 alias binding for gmeow:GmnCodebook: the compact token gcb."@x-gmeow-english ;
     gmeow:gmnDictionaryEntryTerm gmeow:GmnCodebook ;
     gmeow:gmnDictionaryEntryAlias "gcb" .
+
+# --- GMN-1 factored qualifier-slot aliases (Item 1 addendum / #1475 Task 5) --- #
+# The `m` (modality) and `ek` (evidentiality-kind) claim-record slots, and the
+# `@p`-only `bd` (boundary) slot, are COMPACT ALIASES over vocabulary the
+# standpoint, observations, and logic slices already formalize (LANG-GMN.md,
+# "The factored qualifier slots") — never a GMN-local shadow axis (Principle
+# 4/U2). Each alias carries its measured gmeow:gmnGlyphTokenCost, cross-checked
+# by crates/lang-bridge/tests/gmn_cost_feed.rs against the crate-side
+# cl100k_base primitive so an authored value can never drift, and its measured
+# cost is strictly lower than the full canonical IRI it dealiases — the
+# razor's half (a) discharge (LANG-GMN.md, "The measured token-cost razor").
+# The `it` (iteration) slot has no enumerable value set (it names a
+# gmeow:EventSeries by reference, exactly like `st`/`ev`) and so mints no
+# dictionary entries here.
+
+gmeow:gmnDictV1EntryModalNecessary
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:modalForceNecessary → nec"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the standpoint slice's gmeow:modalForceNecessary (the □ alethic register a gmeow:claimModalForce may carry): the compact token nec, the GMN-1 `m` slot value for a claim settled in every admitted precisification."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:modalForceNecessary ;
+    gmeow:gmnDictionaryEntryAlias "nec" ;
+    gmeow:gmnCodepoints "U+006E U+0065 U+0063" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo .
+
+gmeow:gmnDictV1EntryModalActual
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:modalForceActual → act"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the standpoint slice's gmeow:modalForceActual: the compact token act, the GMN-1 `m` slot value for a claim holding in the actual case."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:modalForceActual ;
+    gmeow:gmnDictionaryEntryAlias "act" ;
+    gmeow:gmnCodepoints "U+0061 U+0063 U+0074" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV1EntryModalPossible
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:modalForcePossible → poss"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the standpoint slice's gmeow:modalForcePossible (the ◊ alethic register): the compact token poss, the GMN-1 `m` slot value for a claim holding in some admitted precisification."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:modalForcePossible ;
+    gmeow:gmnDictionaryEntryAlias "poss" ;
+    gmeow:gmnCodepoints "U+0070 U+006F U+0073 U+0073" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV1EntryModalCounterfactual
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:modalForceCounterfactual → cf"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the standpoint slice's gmeow:modalForceCounterfactual: the compact token cf, the GMN-1 `m` slot value for a claim holding in a non-actual world."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:modalForceCounterfactual ;
+    gmeow:gmnDictionaryEntryAlias "cf" ;
+    gmeow:gmnCodepoints "U+0063 U+0066" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV1EntryEvKindDirect
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:methodDirectObservation → dir"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the observations slice's gmeow:methodDirectObservation: the compact token dir, the GMN-1 `ek` slot value for evidence produced by direct, unmediated observation."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodDirectObservation ;
+    gmeow:gmnDictionaryEntryAlias "dir" ;
+    gmeow:gmnCodepoints "U+0064 U+0069 U+0072" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV1EntryEvKindInstrumental
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:methodInstrumentalReading → inst"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the observations slice's gmeow:methodInstrumentalReading: the compact token inst, the GMN-1 `ek` slot value for evidence produced by an instrument reading."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodInstrumentalReading ;
+    gmeow:gmnDictionaryEntryAlias "inst" ;
+    gmeow:gmnCodepoints "U+0069 U+006E U+0073 U+0074" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV1EntryEvKindRemote
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:methodRemoteSensing → rmt"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the observations slice's gmeow:methodRemoteSensing: the compact token rmt, the GMN-1 `ek` slot value for evidence produced by remote sensing."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodRemoteSensing ;
+    gmeow:gmnDictionaryEntryAlias "rmt" ;
+    gmeow:gmnCodepoints "U+0072 U+006D U+0074" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo .
+
+gmeow:gmnDictV1EntryEvKindComputational
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:methodComputationalModel → cmp"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the observations slice's gmeow:methodComputationalModel: the compact token cmp, the GMN-1 `ek` slot value for evidence produced (inferred) by a computational model."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodComputationalModel ;
+    gmeow:gmnDictionaryEntryAlias "cmp" ;
+    gmeow:gmnCodepoints "U+0063 U+006D U+0070" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV1EntryEvKindExpert
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:methodExpertJudgement → exj"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the observations slice's gmeow:methodExpertJudgement: the compact token exj, the GMN-1 `ek` slot value for evidence produced by an expert's inferred judgement."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodExpertJudgement ;
+    gmeow:gmnDictionaryEntryAlias "exj" ;
+    gmeow:gmnCodepoints "U+0065 U+0078 U+006A" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo .
+
+gmeow:gmnDictV1EntryEvKindSurvey
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:methodSurvey → srv"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the observations slice's gmeow:methodSurvey: the compact token srv, the GMN-1 `ek` slot value for evidence produced by asking others — the closest of the seven methods to linguistic evidentiality's 'reported' source."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodSurvey ;
+    gmeow:gmnDictionaryEntryAlias "srv" ;
+    gmeow:gmnCodepoints "U+0073 U+0072 U+0076" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV1EntryEvKindStreaming
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:methodStreaming → strm"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the observations slice's gmeow:methodStreaming: the compact token strm, the GMN-1 `ek` slot value for evidence produced by a continuous observation stream."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodStreaming ;
+    gmeow:gmnDictionaryEntryAlias "strm" ;
+    gmeow:gmnCodepoints "U+0073 U+0074 U+0072 U+006D" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo .
+
+gmeow:gmnDictV1EntryBoundaryOpen
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: logic:Open → open"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the logic slice's logic:Open (the on-going, unfinished-action occurrent boundary): the compact token open, the GMN-1 `bd` slot value for a `@p` process record whose occurrent is still unfolding."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm logic:Open ;
+    gmeow:gmnDictionaryEntryAlias "open" ;
+    gmeow:gmnCodepoints "U+006F U+0070 U+0065 U+006E" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV1EntryBoundaryClosed
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: logic:Closed → closed"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the logic slice's logic:Closed (the completed, closed-interval occurrent boundary): the compact token closed, the GMN-1 `bd` slot value for a `@p` process record whose occurrent has finished."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm logic:Closed ;
+    gmeow:gmnDictionaryEntryAlias "closed" ;
+    gmeow:gmnCodepoints "U+0063 U+006C U+006F U+0073 U+0065 U+0064" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
 
 # --- GMN dialect crossings (four judged translation units) -------------------- #
 # Each crossing between dialect levels is a lang:TranslationUnit carrying its

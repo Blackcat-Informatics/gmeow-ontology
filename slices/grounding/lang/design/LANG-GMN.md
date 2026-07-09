@@ -132,15 +132,113 @@ individual of the dialect lineage):
 ```
 
 A **record** is a sigil followed by a braced key–value list. **Key order is generation order**,
-and the canonical key order is exactly `s p o v q st ev` (subject, predicate, object, literal
-value, confidence, standpoint, evidence) — decide-first fields first: the model commits to the
-subject before the confidence. Keys that are absent are simply omitted; keys that are present
-appear in exactly this order. A valid record:
+and the canonical key order is exactly `s p o v q st ev m ek` (subject, predicate, object,
+literal value, confidence, standpoint, evidence, modality, evidentiality-kind) — decide-first
+fields first: the model commits to the subject before the confidence, and the epistemic
+qualifiers (modality, evidentiality-kind) come last because they refine a claim already fully
+identified by everything before them. Keys that are absent are simply omitted; keys that are
+present appear in exactly this order. A valid record:
 
 ```text
 @gmn{v: 1, aliases: dict-v1}
 @c{s: gate1, p: hasState, o: doorGate1, v: open, q: 0.95, st: sensorCrew, ev: e12}
 ```
+
+### The factored qualifier slots (`m`, `ek`, and the `@p`-only `bd` / `it`)
+
+Ithkuil's orthogonal-factorization lesson (`LOGIC.md`, "Design influences beyond formal
+logics — Ithkuil") is applied here directly, with its "unusable symbolic orthography" failure
+mode engineered out by construction: every factored slot below is a **named key**, never a
+private glyph, and it dealiases to a term that already exists in the canonical vocabulary —
+no GMN-local shadow axis is minted (Principle 4). The slots are a **closed factored set** in
+**fixed positions**: they extend the canonical key order, they are single-token markers, and a
+record that omits one simply carries no assertion on that axis (the same discipline as `st` and
+`ev`).
+
+- **`m` (modality)** — a single-slot marker for a claim's alethic **modal force**, dealiasing to
+  one individual of `gmeow:ModalForce` via the standpoint slice's `gmeow:claimModalForce`
+  (`gmeow:modalForceNecessary`, `gmeow:modalForceActual`, `gmeow:modalForcePossible`,
+  `gmeow:modalForceCounterfactual` — the □/◊ register a `gmeow:StandpointClaim` already carries).
+  `m` is a compact, functional shorthand for the common single-force case inline on any
+  claim-bearing record; it is distinct from the `@m` sigil (`gmeow:gmnSigilModal`), which opens a
+  full record for a modal formula too structured for one key (a sigil is record-initial only, so
+  the two never collide positionally — the same discipline the μ-collision ruling already
+  establishes). Deontic force (obligation/permission/prohibition) is deliberately **not** covered
+  by `m`: its only closed vocabulary lives in the `norms` extension slice, which a grounding
+  slice must not depend on (Principle 4/16 — extensions depend on core, never the reverse), so
+  `m` honestly covers the alethic register logic: already formalizes and leaves deontic content to
+  a full `@ℒ` record until a reachable canonical deontic vocabulary exists.
+- **`ek` (evidentiality-kind)** — a single-slot marker for **how** a claim's evidence was
+  produced, dealiasing to one individual of `gmeow:ObservationMethod` via the observations
+  slice's `gmeow:observationMethod` (`gmeow:methodDirectObservation`,
+  `gmeow:methodInstrumentalReading`, `gmeow:methodRemoteSensing`,
+  `gmeow:methodComputationalModel`, `gmeow:methodExpertJudgement`, `gmeow:methodSurvey`,
+  `gmeow:methodStreaming`). This is Ithkuil's *Validation* category (observed / instrumented /
+  inferred / reported / …) realized obligatory-but-compact: `st` already names WHO holds a claim
+  and `ev` already names WHICH evidence backs it (a record identifier, by reference); `ek` adds
+  the missing third leg, HOW the evidence was obtained, without inlining prose. `gmeow:Observation`
+  is the domain of `gmeow:observationMethod`, and `gmeow:StandpointClaim` is itself a
+  `gmeow:Observation` subclass, so `ek` is domain-consistent on exactly the records `st`/`ev`
+  already annotate.
+- **`bd` (boundary, `@p` records only)** — a single-slot marker for a process record's
+  **action/event boundary**, dealiasing to one individual of `logic:OccurrentBoundary` via
+  `logic:occurrentBoundary` (`logic:Open` — an on-going, unfinished action; `logic:Closed` — a
+  completed, closed-interval event). This is the "openEHR-style action open/closed" YAMATO/Galton
+  distinction `logic:` already formalizes (`design/LOGIC.md`'s occurrent-boundary machinery); `bd`
+  is its compact GMN-1 rendering, never a re-minted local boundary vocabulary.
+- **`it` (iteration, `@p` records only)** — a single-slot marker naming the `gmeow:EventSeries`
+  a process occurrence belongs to, dealiasing to `gmeow:occurrenceOfSeries` (events slice, an
+  existing lang dependency). Absent means a one-off occurrence (the default, matching every other
+  optional-key omission rule); present carries a record identifier for the series — by reference,
+  exactly like `st` and `ev`, never an inlined recurrence rule.
+
+**Investigated and declined: a separate `phase` marker.** The Ithkuil-inspired factored-aspect
+brief for `@p` records named three candidate factors — phase, boundary, iteration. Genuine
+investigation of `logic:` (the occurrent/process home) turned up no canonical, closed vocabulary
+for a process-internal phase (inceptive / progressive / completive) distinct from the
+action/event boundary above: `logic:Phase` already names something else entirely (the UFO
+anti-rigid-sortal meta-type, e.g. "child"/"adult" — a false friend), and no other reachable term
+carries a phase-of-occurrent axis. Rather than mint a new foundational `logic:` axis as a
+byproduct of a GMN compaction slot — a new occurrent-semantics distinction deserves its own
+design-reviewed treatment, not a silent side effect here — the `@p` factored-aspect set stays at
+two genuinely-grounded factors, `bd` and `it`; "phase" is subsumed by `bd`'s two-valued boundary
+for now.
+
+A record exercising the new slots, alongside a `@p` process record exercising the `@p`-only pair:
+
+```text
+@gmn{v: 1, aliases: dict-v1}
+@c{s: gate1, p: hasState, o: doorGate1, v: open, q: 0.95, st: sensorCrew, ev: e12, m: poss, ek: inst}
+@p{s: gate1, p: cycling, o: doorGate1, st: sensorCrew, bd: open, it: cycleSeries1}
+```
+
+### The measured token-cost razor
+
+A borrowing — any of the factored qualifier slots above, or a future one proposed the same way —
+is admitted **only** if it clears at least one of two razor halves, and both halves are
+**executable**, never a free-text design assertion (R8/F5):
+
+- **(a) Measured cost reduction.** The compact marker's alias string, run through the pinned
+  `cl100k_base` primitive (`crates/lang-bridge/src/gmn_symbology.rs`,
+  `gmn_glyph_token_cost`), costs strictly fewer tokens than the full canonical IRI it dealiases —
+  the cost the alternative of inlining or separately asserting the full term would pay. This is
+  the same primitive and the same measured-not-declared discipline the `*` operator glyph and the
+  `⟦·⟧`/`den` ruling already use; `crates/lang-bridge/tests/gmn_cost_feed.rs` asserts the
+  inequality for every marker admitted under this half.
+- **(b) Ambiguity-class elimination.** The marker retires a *named* `lang:Gmn*` failure class —
+  discharged by an executable fixture pair (the class fires on the un-marked form, is absent on
+  the marked form), run through the codec/validator gate. Because the GMN-1 codec and validator
+  are Task 6's build, not yet in this tree, no marker in this charter is admitted under half (b)
+  at this stage — a graph-level SHACL check cannot see a *compaction*-only ambiguity, since the
+  underlying RDF graph is already fully disambiguated regardless of the compact surface's key
+  set. Every marker above is therefore admitted under half (a) alone, honestly, rather than
+  claiming an unfalsifiable ambiguity-class win now. A future marker proposed once the codec
+  exists may qualify under (b) instead, with its fixture pair authored at that time.
+- **No symbolic orthography, ever.** Every slot above is a named ASCII key and every value is a
+  named ASCII alias — no private glyph is minted for any of them, and none enters the shared GMN
+  script (`gmeow:gmnScript`) repertoire, which stays reserved for the codepoint-explicit,
+  confusable-checked glyph plane. This is the Ithkuil failure mode — total precision with no
+  usable, typeable surface — engineered out by construction, not by convention.
 
 A **schema-once tabular batch** declares its columns once in an `@claims[...]` header and then
 streams bare rows — the token-economy form for homogeneous runs. A valid batch:
