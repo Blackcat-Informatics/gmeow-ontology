@@ -32502,15 +32502,11 @@
                   }
                 ]
               },
-              "minItems": 1,
               "type": "array"
             }
           ]
         }
       },
-      "required": [
-        "gmeow:hasStage"
-      ],
       "type": "object"
     },
     "PipelineStage": {
@@ -32642,26 +32638,49 @@
         "gmeow:stageImpl": {
           "anyOf": [
             {
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
+              "anyOf": [
+                {
                   "type": "string"
                 },
-                "@value": {}
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
+              "type": "array"
             }
           ]
         }
       },
-      "required": [
-        "gmeow:stageImpl"
-      ],
       "type": "object"
     },
     "PitchAnchor": {

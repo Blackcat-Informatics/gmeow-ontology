@@ -13340,7 +13340,7 @@ slots:
     title: stage impl
     range: string
     domain: PipelineStage
-    multivalued: true
+    multivalued: false
   stageOfLineage:
     slot_uri: https://blackcatinformatics.ca/gmeow/stageOfLineage
     title: stage of lineage

@@ -653,6 +653,17 @@
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/SocialObject> ] ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/InformationObject> ] .
 
+<https://blackcatinformatics.ca/gmeow/Pipeline-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Pipeline> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/hasStage> ; sh:class <https://blackcatinformatics.ca/gmeow/PipelineStage> ] .
+
+<https://blackcatinformatics.ca/gmeow/PipelineStage-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/PipelineStage> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/stageImpl> ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/hasCapability> ; sh:class <https://blackcatinformatics.ca/gmeow/StageCapability> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/dataflowConsumes> ; sh:class <https://blackcatinformatics.ca/gmeow/PipelineStage> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/requiresResource> ; sh:class <https://blackcatinformatics.ca/gmeow/Resource> ] .
+
 <https://blackcatinformatics.ca/gmeow/PitchAnchor-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/PitchAnchor> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/pitchAnchorOf> ; sh:class <https://blackcatinformatics.ca/gmeow/TuningSystem> ] .
@@ -3538,6 +3549,10 @@
 <https://blackcatinformatics.ca/gmeow/spellingSystem-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/spellingSystem> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/spellingSystem> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/stageImpl-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/stageImpl> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/stageImpl> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/gmeow/standpointClaim-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/standpointClaim> ;

@@ -5997,7 +5997,7 @@ export interface PipelineStage extends SocialObject {
     hasCapability?: StageCapability[],
     producesFormat?: string[],
     requiresResource?: Resource[],
-    stageImpl?: string[],
+    stageImpl?: string,
 }
 
 export interface PitchAnchor extends Entity {

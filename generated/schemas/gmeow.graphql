@@ -7003,7 +7003,7 @@ type PipelineStage {
   hasCapability: [StageCapability!]
   producesFormat: [String!]
   requiresResource: [Resource!]
-  stageImpl: [String!]
+  stageImpl: String
 }
 
 type PitchAnchor {

@@ -7174,7 +7174,7 @@ class PipelineStage(SocialObject):
     hasCapability: list[StageCapability] | None = Field(default=None)
     producesFormat: list[str] | None = Field(default=None)
     requiresResource: list[Resource] | None = Field(default=None)
-    stageImpl: list[str] | None = Field(default=None)
+    stageImpl: str | None = Field(default=None)
 
 
 class PitchAnchor(Entity):

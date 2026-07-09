@@ -675,6 +675,19 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/gmeow/PhysicalObject-shape> {
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/Pipeline> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Pipeline-shape> {
+  <https://blackcatinformatics.ca/gmeow/hasStage> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/PipelineStage> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/PipelineStage-shape> {
+  <https://blackcatinformatics.ca/gmeow/stageImpl> <http://www.w3.org/2001/XMLSchema#string> ;
+  <https://blackcatinformatics.ca/gmeow/hasCapability> IRI ;
+  <https://blackcatinformatics.ca/gmeow/dataflowConsumes> IRI ;
+  <https://blackcatinformatics.ca/gmeow/requiresResource> IRI ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/PitchAnchor> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/PitchAnchor-shape> {
   <https://blackcatinformatics.ca/gmeow/pitchAnchorOf> IRI ;
@@ -4183,6 +4196,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/spellingSystem> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/spellingSystem-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/spellingSystem> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/stageImpl> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/stageImpl-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/stageImpl> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/standpointClaim> (associate via ShapeMap)
