@@ -883,3 +883,16 @@ vann:preferredNamespaceUri
 [ a logic:ClosureEntry ;
   logic:closureKey "https://blackcatinformatics.ca/gmeow/avoidForConsumer" ;
   logic:closureValue logic:ClosedWorldClosure ] .
+
+# A gmeow:hasAboutness value must be an AboutnessMode individual (an IRI), not a free
+# literal (a path node-kind constraint targeting subjects of gmeow:hasAboutness).
+gmeow:AboutnessTargetNodeKindConstraint
+    a logic:PathNodeKindConstraint ;
+    rdfs:label "Aboutness target node-kind constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A procedural integrity constraint: a gmeow:hasAboutness value must target an AboutnessMode individual (an IRI), not a free literal."@x-gmeow-english ;
+    logic:valuePath gmeow:hasAboutness ;
+    logic:nodeKind "IRI" ;
+    logic:formalizes gmeow:AboutnessTargetShape ;
+    logic:message "A gmeow:hasAboutness value must target an AboutnessMode individual (an IRI), not a free literal." .

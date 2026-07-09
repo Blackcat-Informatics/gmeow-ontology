@@ -3931,3 +3931,52 @@ lang:ReadingClaimVantageConstraint
 <https://blackcatinformatics.ca/lang/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/lang/guardedByCounterExample> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/lang/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/lang/enforcesFailureClass> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/lang/SurfaceForm> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/lang/analysisLevel> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/lang/AnalysisLevel> ] .
+
+# A lang:slotForm value must be a resource (a blank node or IRI), never a literal
+# (a path node-kind constraint targeting subjects of lang:slotForm).
+lang:SlotFormNodeKindConstraint
+    a logic:PathNodeKindConstraint ;
+    logic:valuePath lang:slotForm ;
+    logic:nodeKind "BlankNodeOrIRI" ;
+    logic:formalizes lang:SlotFormStructuralShape ;
+    logic:message "A lang:slotForm value must be a resource (a blank node or IRI), never a literal." .
+
+# No two distinct lang:formSlot cells of one composed form may share the same
+# lang:slotIndex (a self-join uniqueness constraint).
+lang:FormSlotIndexUniquenessConstraint
+    a logic:SelfJoinUniquenessConstraint ;
+    logic:onClass lang:ComposedForm ;
+    logic:siblingPredicate lang:formSlot ;
+    logic:sharedPredicate lang:slotIndex ;
+    logic:formalizes lang:ComposedForm ;
+    logic:message "No two distinct lang:formSlot cells of one lang:ComposedForm may share the same lang:slotIndex." .
+
+# A lang:FeatureValue must be dispositioned in the symbology plane: it must be the
+# lang:denotationTarget of some lang:Denotation (an inverse-existence constraint).
+lang:FeatureValueDispositionConstraint
+    a logic:InverseExistenceConstraint ;
+    logic:onClass lang:FeatureValue ;
+    logic:inversePredicate lang:denotationTarget ;
+    logic:subjectClass lang:Denotation ;
+    logic:formalizes lang:FeatureValue ;
+    logic:message "A lang:FeatureValue must be the lang:denotationTarget of some lang:Denotation; an undispositioned feature value is ill-formed." .
+
+# A lang:FlagshipScenario's lang:enforcesFailureClass must transitively rdfs:subClassOf the
+# conformance-failure root (a transitive reachability constraint).
+lang:FlagshipScenarioFailureClassConstraint
+    a logic:TransitiveReachabilityConstraint ;
+    logic:onClass lang:FlagshipScenario ;
+    logic:viaPredicate lang:enforcesFailureClass ;
+    logic:pathPredicate rdfs:subClassOf ;
+    logic:reachTarget lang:LangConformanceFailure ;
+    logic:formalizes lang:FlagshipScenario ;
+    logic:message "A lang:FlagshipScenario's lang:enforcesFailureClass must transitively rdfs:subClassOf lang:LangConformanceFailure; a scenario that enforces a non-failure class is ill-formed." .
+
+# A lang:FormSlot may not depend (transitively) on itself along lang:dependsOn — a
+# dependency cycle is ill-formed (an acyclicity constraint).
+lang:FormSlotAcyclicDependencyConstraint
+    a logic:AcyclicConstraint ;
+    logic:onClass lang:FormSlot ;
+    logic:pathPredicate lang:dependsOn ;
+    logic:formalizes lang:FormSlot ;
+    logic:message "A lang:FormSlot may not depend on itself transitively along lang:dependsOn; a dependency cycle is ill-formed." .

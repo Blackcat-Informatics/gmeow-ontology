@@ -249,3 +249,18 @@ gmeow:Teaching rdfs:subClassOf
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/Teaching> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/teacher> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+# A gmeow:Teaching relation's gmeow:teacher and gmeow:learner must differ — a
+# self-teaching relation is ill-formed (a cross-node inequality constraint).
+gmeow:TeachingSelfTeachConstraint
+    a logic:CrossNodeConstraint ;
+    rdfs:label "Teaching non-self-teach constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A procedural integrity constraint: a gmeow:Teaching relation's gmeow:teacher and gmeow:learner must differ; a self-teaching relation is ill-formed."@x-gmeow-english ;
+    logic:onClass gmeow:Teaching ;
+    logic:roleA gmeow:teacher ;
+    logic:roleB gmeow:learner ;
+    logic:crossMode "differ" ;
+    logic:formalizes gmeow:Teaching ;
+    logic:message "A gmeow:Teaching relation's gmeow:teacher and gmeow:learner must differ; a self-teaching relation is ill-formed." .
