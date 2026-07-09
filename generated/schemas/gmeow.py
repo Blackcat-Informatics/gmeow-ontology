@@ -1294,6 +1294,15 @@ class GmnCompartmentEnum(str, Enum):
     gmnCompartmentPartner = "gmnCompartmentPartner"
 
 
+class GmnDictionaryEntryEnum(str, Enum):
+    gmnDictV1EntryCodebook = "gmnDictV1EntryCodebook"
+    gmnDictV1EntryEnvelope = "gmnDictV1EntryEnvelope"
+
+
+class GmnDictionaryEnum(str, Enum):
+    gmnDictV1 = "gmnDictV1"
+
+
 class GmnFixityEnum(str, Enum):
     gmnFixityBracketing = "gmnFixityBracketing"
     gmnFixityInfix = "gmnFixityInfix"
@@ -5873,6 +5882,19 @@ class GmnCompaction(StandpointClaim):
 class GmnCompartment(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnCompartment"
     pass
+
+
+class GmnDictionary(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnDictionary"
+    is_a: ClassVar[str] = "InformationObject"
+    gmnDictionaryEntry: list[GmnDictionaryEntry] | None = Field(default=None)
+
+
+class GmnDictionaryEntry(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnDictionaryEntry"
+    is_a: ClassVar[str] = "InformationObject"
+    gmnDictionaryEntryAlias: str | None = Field(default=None)
+    gmnDictionaryEntryTerm: str | None = Field(default=None)
 
 
 class GmnEnvelope(AttestationArtifact):

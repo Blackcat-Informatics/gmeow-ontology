@@ -11420,6 +11420,31 @@
       },
       "type": "object"
     },
+    "GmnDictionary": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
     "GmnEnvelope": {
       "properties": {
         "@annotation": {
@@ -22630,6 +22655,31 @@
           },
           "then": {
             "$ref": "#/$defs/GmnCompaction"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:GmnDictionary"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:GmnDictionary"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/GmnDictionary"
           }
         },
         {

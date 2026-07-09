@@ -1270,6 +1270,15 @@ export enum GmnCompartmentEnum {
     gmnCompartmentPartner = "gmnCompartmentPartner",
 }
 
+export enum GmnDictionaryEntryEnum {
+    gmnDictV1EntryCodebook = "gmnDictV1EntryCodebook",
+    gmnDictV1EntryEnvelope = "gmnDictV1EntryEnvelope",
+}
+
+export enum GmnDictionaryEnum {
+    gmnDictV1 = "gmnDictV1",
+}
+
 export enum GmnFixityEnum {
     gmnFixityBracketing = "gmnFixityBracketing",
     gmnFixityInfix = "gmnFixityInfix",
@@ -4977,6 +4986,15 @@ export interface GmnCompaction extends StandpointClaim {
 }
 
 export interface GmnCompartment {
+}
+
+export interface GmnDictionary extends InformationObject {
+    gmnDictionaryEntry?: GmnDictionaryEntry[],
+}
+
+export interface GmnDictionaryEntry extends InformationObject {
+    gmnDictionaryEntryAlias?: string,
+    gmnDictionaryEntryTerm?: string,
 }
 
 export interface GmnEnvelope extends AttestationArtifact {

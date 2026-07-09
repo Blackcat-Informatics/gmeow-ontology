@@ -1270,6 +1270,15 @@ enum GmnCompartmentEnum {
   gmnCompartmentPartner
 }
 
+enum GmnDictionaryEntryEnum {
+  gmnDictV1EntryCodebook
+  gmnDictV1EntryEnvelope
+}
+
+enum GmnDictionaryEnum {
+  gmnDictV1
+}
+
 enum GmnFixityEnum {
   gmnFixityBracketing
   gmnFixityInfix
@@ -5543,6 +5552,19 @@ type GmnCompaction {
 type GmnCompartment {
   id: String
   iri: String
+}
+
+type GmnDictionary {
+  id: String
+  iri: String
+  gmnDictionaryEntry: [GmnDictionaryEntry!]
+}
+
+type GmnDictionaryEntry {
+  id: String
+  iri: String
+  gmnDictionaryEntryAlias: String
+  gmnDictionaryEntryTerm: String
 }
 
 type GmnEnvelope {

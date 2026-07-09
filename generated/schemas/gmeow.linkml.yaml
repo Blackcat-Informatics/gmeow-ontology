@@ -1849,6 +1849,19 @@ classes:
   GmnCompartment:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnCompartment
     title: GMN Compartment
+  GmnDictionary:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnDictionary
+    title: GMN Dictionary
+    is_a: InformationObject
+    slots:
+    - gmnDictionaryEntry
+  GmnDictionaryEntry:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnDictionaryEntry
+    title: GMN Dictionary Entry
+    is_a: InformationObject
+    slots:
+    - gmnDictionaryEntryAlias
+    - gmnDictionaryEntryTerm
   GmnEnvelope:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnEnvelope
     title: GMN Envelope
@@ -8304,6 +8317,24 @@ slots:
     title: gmn determinism class
     range: string
     multivalued: true
+  gmnDictionaryEntry:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnDictionaryEntry
+    title: gmn dictionary entry
+    range: GmnDictionaryEntry
+    domain: GmnDictionary
+    multivalued: true
+  gmnDictionaryEntryAlias:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias
+    title: gmn dictionary entry alias
+    range: string
+    domain: GmnDictionaryEntry
+    multivalued: false
+  gmnDictionaryEntryTerm:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryTerm
+    title: gmn dictionary entry term
+    range: uriorcurie
+    domain: GmnDictionaryEntry
+    multivalued: false
   gmnDictionaryVersion:
     slot_uri: https://blackcatinformatics.ca/gmeow/gmnDictionaryVersion
     title: gmn dictionary version
@@ -18096,6 +18127,21 @@ enums:
       gmnCompartmentPartner:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCompartmentPartner
         title: 'compartment: partner'
+  GmnDictionaryEntryEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnDictionaryEntry
+    permissible_values:
+      gmnDictV1EntryCodebook:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryCodebook
+        title: 'dict-v1 entry: gmeow:GmnCodebook → gcb'
+      gmnDictV1EntryEnvelope:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEnvelope
+        title: 'dict-v1 entry: gmeow:GmnEnvelope → genv'
+  GmnDictionaryEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnDictionary
+    permissible_values:
+      gmnDictV1:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1
+        title: GMN dictionary (version 1)
   GmnFixityEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GmnFixity
     permissible_values:
