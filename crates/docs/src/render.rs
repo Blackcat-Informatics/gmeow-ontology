@@ -3350,6 +3350,13 @@ pub fn term_slug(term: &DocTerm) -> String {
     slugify(local_name(&term.iri))
 }
 
+/// A filesystem-safe slug from a term IRI's local name — the standalone twin of
+/// [`term_slug`] for callers holding an IRI (not a [`DocTerm`]), e.g. `docs-on`
+/// resolving a query to its `terms/<slug>/` page under the ontology-docs blob.
+pub fn slug_for_iri(iri: &str) -> String {
+    slugify(local_name(iri))
+}
+
 /// A filesystem-safe slug from a slice IRI's last path segment.
 pub fn slice_slug(slice: &DocSlice) -> String {
     slugify(local_name(&slice.iri))

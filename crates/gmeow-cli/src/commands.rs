@@ -11,7 +11,7 @@ use std::path::Path;
 
 use gmeow_cli_core::ConsoleMode;
 
-use crate::{BUNDLE_GTS, NAMESPACE};
+use crate::{BUNDLE_GTS, ExportFormat, NAMESPACE};
 
 /// Print an error message to stderr and yield the failure exit code `1`.
 fn fail(message: impl AsRef<str>) -> i32 {
@@ -1025,16 +1025,27 @@ pub fn convert(
     0
 }
 
-// ── extract-docs ─────────────────────────────────────────────────────────────
+// ── export-docs ──────────────────────────────────────────────────────────────
 
-/// `gmeow extract-docs` — unpack one language subtree of the bundled docs site.
-pub fn extract_docs(directory: &Path, file: Option<&Path>, force: bool, lang: Option<&str>) -> i32 {
+/// `gmeow export-docs` — write one or every documentation projection (site, mdbook,
+/// PDF, snippets) of the bundled docs from a GTS snapshot.
+///
+/// A single format writes its tree directly into `directory`; `all` writes each
+/// projection into its own subdirectory (`site/`, `mdbook/`, `pdf/`, `snippets/`).
+/// The mdbook and PDF projections are English-only (they ignore `--lang`).
+pub fn export_docs(
+    format: &ExportFormat,
+    directory: &Path,
+    file: Option<&Path>,
+    force: bool,
+    lang: Option<&str>,
+) -> i32 {
     let bytes = match gts_bytes(file) {
         Ok(b) => b,
         Err(code) => return code,
     };
     // Resolve `--lang` to a public BCP-47 tag, then map back to the internal
-    // `x-gmeow-*` doc-tree language the site blob is keyed by.
+    // `x-gmeow-*` doc-tree language the site/snippet blobs are keyed by.
     let selector = match resolve_selector(lang, &bytes) {
         Ok(s) => s,
         Err(code) => return code,
@@ -1055,12 +1066,47 @@ pub fn extract_docs(directory: &Path, file: Option<&Path>, force: bool, lang: Op
             directory.display()
         ));
     }
-    let tree = match gmeow_pipeline::cli_ops::confirmations::extract_docs_site(&bytes, &internal) {
+
+    use gmeow_pipeline::cli_ops::confirmations as conf;
+    match format {
+        ExportFormat::Site => {
+            write_docs_projection(directory, conf::export_docs_site(&bytes, &internal))
+        }
+        ExportFormat::Mdbook => write_docs_projection(directory, conf::export_docs_book(&bytes)),
+        ExportFormat::Pdf => write_docs_projection(directory, conf::export_docs_print(&bytes)),
+        ExportFormat::Snippets => {
+            write_docs_projection(directory, conf::export_docs_snippets(&bytes, &internal))
+        }
+        ExportFormat::All => {
+            let plan = [
+                ("site", conf::export_docs_site(&bytes, &internal)),
+                ("mdbook", conf::export_docs_book(&bytes)),
+                ("pdf", conf::export_docs_print(&bytes)),
+                ("snippets", conf::export_docs_snippets(&bytes, &internal)),
+            ];
+            for (sub, tree) in plan {
+                let code = write_docs_projection(&directory.join(sub), tree);
+                if code != 0 {
+                    return code;
+                }
+            }
+            0
+        }
+    }
+}
+
+/// Write one docs projection tree into `dir`, reporting the confirmations error on a
+/// fold/selection failure and any I/O error on write. Returns the process exit code.
+fn write_docs_projection(
+    dir: &Path,
+    tree: Result<std::collections::BTreeMap<String, Vec<u8>>, gmeow_errors::Diag>,
+) -> i32 {
+    let tree = match tree {
         Ok(t) => t,
         Err(e) => return fail(e.to_string()),
     };
     for (rel, data) in &tree {
-        let target = directory.join(rel);
+        let target = dir.join(rel);
         if let Some(parent) = target.parent()
             && let Err(e) = std::fs::create_dir_all(parent)
         {
@@ -1070,8 +1116,70 @@ pub fn extract_docs(directory: &Path, file: Option<&Path>, force: bool, lang: Op
             return fail(format!("cannot write {}: {e}", target.display()));
         }
     }
-    println!("wrote docs tree -> {}", directory.display());
+    println!("wrote docs -> {}", dir.display());
     0
+}
+
+// ── docs-on ──────────────────────────────────────────────────────────────────
+
+/// `gmeow docs-on` — print the documentation page (or `--card`) for one GMEOW term
+/// from a GTS snapshot's ontology-docs blob.
+pub fn docs_on(term: &str, card: bool, gts: Option<&Path>, lang: Option<&str>) -> i32 {
+    use gmeow_docs::describe::{DescribeGraph, resolve_term};
+
+    let bytes = match gts_bytes(gts) {
+        Ok(b) => b,
+        Err(code) => return code,
+    };
+    let graph = match DescribeGraph::from_gts_bytes(&bytes) {
+        Ok(g) => g,
+        Err(e) => return fail(e),
+    };
+    let (resolved, candidates) = resolve_term(&graph, term);
+    let Some(iri) = resolved else {
+        // Mirror `describe`'s ambiguity/no-match handling: list candidates (if any)
+        // to stderr and exit non-zero.
+        if candidates.is_empty() {
+            return fail(format!("no GMEOW term matches '{term}'"));
+        }
+        let options = candidates
+            .iter()
+            .map(|c| format!("  gmeow:{c}"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        return fail(format!(
+            "ambiguous or unknown term '{term}' — candidates:\n{options}"
+        ));
+    };
+
+    // Map `--lang` to the internal `x-gmeow-*` doc-tree language the page is keyed by.
+    let selector = match resolve_selector(lang, &bytes) {
+        Ok(s) => s,
+        Err(code) => return code,
+    };
+    let available = match gmeow_pipeline::cli_ops::confirmations::available_doc_languages(&bytes) {
+        Ok(langs) => langs,
+        Err(e) => return fail(format!("cannot read docs languages: {e}")),
+    };
+    let internal = pick_internal_lang(&selector, &available);
+
+    let docs = match gmeow_pipeline::bundle_blobs::bundled_ontology_docs(&bytes) {
+        Ok(d) => d,
+        Err(e) => return fail(format!("snapshot carries no ontology-docs pages: {e}")),
+    };
+    let slug = gmeow_docs::render::slug_for_iri(&iri);
+    let leaf = if card { "card.md" } else { "index.md" };
+    let key = format!("{internal}/terms/{slug}/{leaf}");
+    match docs.get(&key) {
+        Some(data) => {
+            print!("{}", String::from_utf8_lossy(data));
+            0
+        }
+        None => fail(format!(
+            "no documentation page for {} (expected {key} in the ontology-docs blob)",
+            iri
+        )),
+    }
 }
 
 /// Choose the internal `x-gmeow-*` doc language for the requested selector: the

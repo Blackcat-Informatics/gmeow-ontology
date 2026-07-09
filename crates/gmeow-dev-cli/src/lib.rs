@@ -395,14 +395,28 @@ pub enum Commands {
         #[arg(long = "lang", short = 'l')]
         lang: Option<String>,
     },
-    /// Extract the browsable docs tree from a GTS snapshot.
-    #[command(name = "extract-docs")]
-    ExtractDocs {
+    /// Export documentation projections (site, mdbook, PDF, snippets) from a GTS
+    /// snapshot.
+    #[command(name = "export-docs")]
+    ExportDocs {
         gts_file: Option<PathBuf>,
+        #[arg(long, default_value = "all")]
+        format: ExportFormat,
         #[arg(long = "directory", short = 'd')]
         directory: PathBuf,
         #[arg(long = "force")]
         force: bool,
+        #[arg(long = "lang", short = 'l')]
+        lang: Option<String>,
+    },
+    /// Print the documentation page for one GMEOW term from a GTS snapshot.
+    #[command(name = "docs-on")]
+    DocsOn {
+        term: String,
+        #[arg(long)]
+        card: bool,
+        #[arg(long = "gts")]
+        gts: Option<PathBuf>,
         #[arg(long = "lang", short = 'l')]
         lang: Option<String>,
     },
@@ -474,6 +488,21 @@ pub enum Commands {
         #[command(subcommand)]
         command: I18nCommands,
     },
+}
+
+/// The documentation projection `gmeow-dev export-docs` writes.
+#[derive(Debug, Clone, clap::ValueEnum)]
+pub enum ExportFormat {
+    /// The browsable HTML ontology-docs site (one language subtree).
+    Site,
+    /// The mdbook source tree (`book.toml`, `SUMMARY.md`, `src/…`; English-only).
+    Mdbook,
+    /// The Typst print projection (`gmeow.pdf`, `gmeow.typ`; English-only).
+    Pdf,
+    /// The flattened prompt-ready per-term card snippets (`terms/<slug>.md`).
+    Snippets,
+    /// Every projection, each under its own subdirectory of the output directory.
+    All,
 }
 
 /// `gmeow-dev box-roles` subcommands.
@@ -818,12 +847,25 @@ pub fn run() -> i32 {
         Commands::Describe { term, gts, lang } => {
             dev_project::describe(&term, gts.as_deref(), lang.as_deref())
         }
-        Commands::ExtractDocs {
+        Commands::ExportDocs {
             gts_file,
+            format,
             directory,
             force,
             lang,
-        } => dev_project::extract_docs(gts_file.as_deref(), &directory, force, lang.as_deref()),
+        } => dev_project::export_docs(
+            gts_file.as_deref(),
+            &format,
+            &directory,
+            force,
+            lang.as_deref(),
+        ),
+        Commands::DocsOn {
+            term,
+            card,
+            gts,
+            lang,
+        } => dev_project::docs_on(&term, card, gts.as_deref(), lang.as_deref()),
         Commands::Certify {
             input_path,
             profile,

@@ -252,7 +252,7 @@ impl Bundle {
 
     /// The full ontology-docs site as `{member-path: bytes}` ([`REP_ONTOLOGY_DOCS`]).
     /// Member paths are prefixed with the internal language tag
-    /// (`x-gmeow-english/index.html`, …); `gmeow extract-docs` selects one language.
+    /// (`x-gmeow-english/index.html`, …); `gmeow export-docs --format site` selects one language.
     pub fn ontology_docs(&self) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
         self.archive(REP_ONTOLOGY_DOCS)
     }
