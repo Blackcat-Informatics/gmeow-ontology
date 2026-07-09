@@ -142,7 +142,7 @@ impl CoherenceOutcome {
         contradiction_policy: ContradictionPolicy,
         issued_at: impl Into<String>,
         projection_loss_codes: BTreeSet<String>,
-    ) -> Result<Self, String> {
+    ) -> gmeow_errors::Result<Self> {
         // Partition the witnesses purely on the policy: a glut is permitted iff the
         // valuation admits a glut, otherwise it is a forbidden violation.
         let glut_permitted = contradiction_policy.glut_permitted();

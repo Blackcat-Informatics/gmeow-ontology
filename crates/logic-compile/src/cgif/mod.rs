@@ -39,6 +39,8 @@
 //! lexical are both double-quoted, but the grammatical position (a direct arc vs. inside a
 //! `(lit …)` form) disambiguates them — exactly as CLIF disambiguates `'iri'` from `(lit "x")`.
 
+use gmeow_errors::Diag;
+
 pub mod reader;
 pub mod writer;
 
@@ -129,7 +131,7 @@ enum Token {
 }
 
 /// Tokenize CGIF source, stripping `/* … */` block comments. Returns the token stream.
-fn lex(src: &str) -> Result<Vec<Token>, String> {
+fn lex(src: &str) -> gmeow_errors::Result<Vec<Token>> {
     let mut tokens = Vec::new();
     let chars: Vec<char> = src.chars().collect();
     let mut i = 0;
@@ -146,7 +148,9 @@ fn lex(src: &str) -> Result<Vec<Token>, String> {
                     i += 1;
                 }
                 if i + 1 >= n {
-                    return Err("unterminated /* … */ comment".to_owned());
+                    return Err(Diag::of_kind(crate::error::Cgif {
+                        detail: "unterminated /* … */ comment".to_owned(),
+                    }));
                 }
                 i += 2; // consume the closing `*/`
             }
@@ -154,7 +158,11 @@ fn lex(src: &str) -> Result<Vec<Token>, String> {
             // ever emits `/` as a comment delimiter. Hard-fail rather than fall through to the
             // bare-symbol arm, where `lex_bare` would break immediately on `/` (its own break
             // char) without advancing `i` and spin forever.
-            '/' => return Err("unexpected '/' outside a /* … */ comment".to_owned()),
+            '/' => {
+                return Err(Diag::of_kind(crate::error::Cgif {
+                    detail: "unexpected '/' outside a /* … */ comment".to_owned(),
+                }));
+            }
             '(' => {
                 tokens.push(Token::Open);
                 i += 1;
@@ -189,7 +197,9 @@ fn lex(src: &str) -> Result<Vec<Token>, String> {
             '?' => {
                 let (val, next) = lex_bare(&chars, i + 1);
                 if val.is_empty() {
-                    return Err("empty coreference label after '?'".to_owned());
+                    return Err(Diag::of_kind(crate::error::Cgif {
+                        detail: "empty coreference label after '?'".to_owned(),
+                    }));
                 }
                 tokens.push(Token::Bound(val));
                 i = next;
@@ -198,7 +208,9 @@ fn lex(src: &str) -> Result<Vec<Token>, String> {
             '*' => {
                 let (val, next) = lex_bare(&chars, i + 1);
                 if val.is_empty() {
-                    return Err("empty coreference label after '*'".to_owned());
+                    return Err(Diag::of_kind(crate::error::Cgif {
+                        detail: "empty coreference label after '*'".to_owned(),
+                    }));
                 }
                 tokens.push(Token::Def(val));
                 i = next;
@@ -207,7 +219,9 @@ fn lex(src: &str) -> Result<Vec<Token>, String> {
             '@' => {
                 let (val, next) = lex_bare(&chars, i + 1);
                 if val.is_empty() {
-                    return Err("empty token after '@'".to_owned());
+                    return Err(Diag::of_kind(crate::error::Cgif {
+                        detail: "empty token after '@'".to_owned(),
+                    }));
                 }
                 tokens.push(Token::At(val));
                 i = next;
@@ -225,7 +239,7 @@ fn lex(src: &str) -> Result<Vec<Token>, String> {
 
 /// Read a `"…"`-quoted token body (starting AFTER the opening quote), honoring `\\` and `\"`
 /// escapes. Returns the unescaped value and the index past the closing quote.
-fn lex_quoted(chars: &[char], start: usize) -> Result<(String, usize), String> {
+fn lex_quoted(chars: &[char], start: usize) -> gmeow_errors::Result<(String, usize)> {
     let mut out = String::new();
     let mut i = start;
     let n = chars.len();
@@ -233,7 +247,9 @@ fn lex_quoted(chars: &[char], start: usize) -> Result<(String, usize), String> {
         let c = chars[i];
         if c == '\\' {
             if i + 1 >= n {
-                return Err("trailing backslash in quoted token".to_owned());
+                return Err(Diag::of_kind(crate::error::Cgif {
+                    detail: "trailing backslash in quoted token".to_owned(),
+                }));
             }
             // Only `\\` and `\"` are recognized escapes (matching the writer).
             out.push(chars[i + 1]);
@@ -246,7 +262,9 @@ fn lex_quoted(chars: &[char], start: usize) -> Result<(String, usize), String> {
         out.push(c);
         i += 1;
     }
-    Err("unterminated quoted token (expected closing \")".to_owned())
+    Err(Diag::of_kind(crate::error::Cgif {
+        detail: "unterminated quoted token (expected closing \")".to_owned(),
+    }))
 }
 
 /// Read a bare token (symbol / coreference label / quantifier tag) starting at `start`,
@@ -273,7 +291,7 @@ fn lex_bare(chars: &[char], start: usize) -> (String, usize) {
 }
 
 /// Parse CGIF source into a flat list of top-level [`CExpr`] forms.
-fn parse_forms(src: &str) -> Result<Vec<CExpr>, String> {
+fn parse_forms(src: &str) -> gmeow_errors::Result<Vec<CExpr>> {
     let tokens = lex(src)?;
     let mut pos = 0;
     let mut forms = Vec::new();
@@ -287,11 +305,17 @@ fn parse_forms(src: &str) -> Result<Vec<CExpr>, String> {
 
 /// Parse one CGIF expression starting at token index `pos`. Returns the expression and the
 /// next token index.
-fn parse_one(tokens: &[Token], pos: usize) -> Result<(CExpr, usize), String> {
+fn parse_one(tokens: &[Token], pos: usize) -> gmeow_errors::Result<(CExpr, usize)> {
     match tokens.get(pos) {
-        None => Err("unexpected end of input while parsing CGIF".to_owned()),
-        Some(Token::Close) => Err("unbalanced ')' — unexpected close paren".to_owned()),
-        Some(Token::CloseBrack) => Err("unbalanced ']' — unexpected close bracket".to_owned()),
+        None => Err(Diag::of_kind(crate::error::Cgif {
+            detail: "unexpected end of input while parsing CGIF".to_owned(),
+        })),
+        Some(Token::Close) => Err(Diag::of_kind(crate::error::Cgif {
+            detail: "unbalanced ')' — unexpected close paren".to_owned(),
+        })),
+        Some(Token::CloseBrack) => Err(Diag::of_kind(crate::error::Cgif {
+            detail: "unbalanced ']' — unexpected close bracket".to_owned(),
+        })),
         Some(Token::Colon) => Ok((CExpr::Colon, pos + 1)),
         Some(Token::Str(s)) => Ok((CExpr::Str(s.clone()), pos + 1)),
         Some(Token::Bound(s)) => Ok((CExpr::Bound(s.clone()), pos + 1)),
@@ -320,15 +344,15 @@ fn parse_seq(
     start: usize,
     closer: &Token,
     opener: &str,
-) -> Result<(Vec<CExpr>, usize), String> {
+) -> gmeow_errors::Result<(Vec<CExpr>, usize)> {
     let mut items = Vec::new();
     let mut i = start;
     loop {
         match tokens.get(i) {
             None => {
-                return Err(format!(
-                    "unbalanced {opener} — missing close at end of input"
-                ));
+                return Err(Diag::of_kind(crate::error::Cgif {
+                    detail: format!("unbalanced {opener} — missing close at end of input"),
+                }));
             }
             Some(t) if t == closer => return Ok((items, i + 1)),
             Some(_) => {

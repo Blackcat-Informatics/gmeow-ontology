@@ -34,6 +34,12 @@ use crate::facts::sha1_hex;
 use crate::result::PreservationClaim;
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
 
+/// Wrap a relational-core lowering condition message as a typed diagnostic on the
+/// shared substrate, preserving the authored text verbatim.
+fn rc_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::RelationalCore { detail })
+}
+
 /// The outcome of lowering a program's full-FOL formulas to the evaluable engine IR.
 #[derive(Debug, Clone)]
 pub(crate) struct RelationalCoreLowering {
@@ -75,7 +81,7 @@ pub(crate) fn lower_formulas(program: &LogicProgram) -> RelationalCoreLowering {
         match rc_rule_to_eval(rc) {
             Ok(rule) => rules.push(rule),
             Err(reason) => {
-                residue.insert(reason);
+                residue.insert(reason.message().to_owned());
             }
         }
     }
@@ -84,7 +90,7 @@ pub(crate) fn lower_formulas(program: &LogicProgram) -> RelationalCoreLowering {
         Err(reason) => {
             // A render failure (e.g. an unexpected blank node) is carried as flagged residue,
             // never a silently-dropped derivation.
-            residue.insert(reason);
+            residue.insert(reason.message().to_owned());
             String::new()
         }
     };
@@ -138,14 +144,14 @@ pub fn formula_nary_head_rls(program: &LogicProgram) -> String {
 /// Returns `Err` if a rule's reifier subject is not a variable or an atom carries a blank
 /// node (the clausifier mints constants, never blanks) — carried as flagged residue rather
 /// than emitted as unsound `.rls`.
-fn render_nary_head_rules(rules: &[&RcRule]) -> Result<String, String> {
+fn render_nary_head_rules(rules: &[&RcRule]) -> gmeow_errors::Result<String> {
     let mut out = String::new();
     for rc in rules {
         let RcTerm::Var(reifier) = &rc.head.subject else {
-            return Err(format!(
+            return Err(rc_err(format!(
                 "n-ary head rule reifier subject is not a variable: {:?}",
                 rc.head.subject
-            ));
+            )));
         };
         let name = format!("{LOGIC_NAMESPACE}formula-nary-head/{}", sha1_hex(&rc.key()));
         let name_esc = name.replace('\\', "\\\\").replace('"', "\\\"");
@@ -176,7 +182,7 @@ fn render_nary_head_rules(rules: &[&RcRule]) -> Result<String, String> {
 
 /// Render one [`RcAtom`] as `[~]<pred>(subject, object, world)`, emitting the shared reifier
 /// variable `existential` with Nemo existential syntax (`!name`).
-fn render_rc_atom(atom: &RcAtom, world: &str, existential: &str) -> Result<String, String> {
+fn render_rc_atom(atom: &RcAtom, world: &str, existential: &str) -> gmeow_errors::Result<String> {
     let subject = render_rc_term(&atom.subject, existential)?;
     let object = render_rc_term(&atom.object, existential)?;
     let prefix = if atom.negated { "~" } else { "" };
@@ -190,7 +196,7 @@ fn render_rc_atom(atom: &RcAtom, world: &str, existential: &str) -> Result<Strin
 /// `!name` (invention); every other variable stays `?name`; an IRI is `<iri>`; a literal is
 /// `"lex"`. A blank node has no Nemo surface form and is a hard error (the clausifier mints
 /// Skolem constants, never blanks).
-fn render_rc_term(term: &RcTerm, existential: &str) -> Result<String, String> {
+fn render_rc_term(term: &RcTerm, existential: &str) -> gmeow_errors::Result<String> {
     match term {
         RcTerm::Var(name) if name == existential => {
             Ok(format!("!{}", name.trim_start_matches('?')))
@@ -201,10 +207,10 @@ fn render_rc_term(term: &RcTerm, existential: &str) -> Result<String, String> {
             let escaped = lex.replace('\\', "\\\\").replace('"', "\\\"");
             Ok(format!("\"{escaped}\""))
         }
-        RcTerm::Blank(label) => Err(format!(
+        RcTerm::Blank(label) => Err(rc_err(format!(
             "n-ary head rule carries a blank node {label:?} — the clausifier mints Skolem \
              constants, never blanks (no-optionality)"
-        )),
+        ))),
     }
 }
 
@@ -247,9 +253,9 @@ fn fresh_world_var(rc: &RcRule) -> String {
 /// lowered through the lane and the equivalent authored Horn rule produce identical
 /// head/body atoms. The `rule_iri` is a deterministic content hash of the rule (a
 /// provenance/naming artifact; the chase derivations are unaffected by its exact value).
-fn rc_rule_to_eval(rc: &RcRule) -> Result<EvalRule, String> {
+fn rc_rule_to_eval(rc: &RcRule) -> gmeow_errors::Result<EvalRule> {
     let head = rc_atom_to_eval(&rc.head)?;
-    let body: Result<Vec<EvalAtom>, String> = rc.body.iter().map(rc_atom_to_eval).collect();
+    let body: gmeow_errors::Result<Vec<EvalAtom>> = rc.body.iter().map(rc_atom_to_eval).collect();
     let rule_iri = format!("{LOGIC_NAMESPACE}formula-rule/{}", sha1_hex(&rc.key()));
     Ok(EvalRule {
         head,
@@ -262,7 +268,7 @@ fn rc_rule_to_eval(rc: &RcRule) -> Result<EvalRule, String> {
 }
 
 /// Map a lane [`RcAtom`] to an [`EvalAtom`] (native predicate IRI string + [`EvalTerm`]s).
-fn rc_atom_to_eval(atom: &RcAtom) -> Result<EvalAtom, String> {
+fn rc_atom_to_eval(atom: &RcAtom) -> gmeow_errors::Result<EvalAtom> {
     let subject = rc_term_to_eval(&atom.subject, false)?;
     let object = rc_term_to_eval(&atom.object, true)?;
     Ok(EvalAtom {
@@ -276,24 +282,24 @@ fn rc_atom_to_eval(atom: &RcAtom) -> Result<EvalAtom, String> {
 /// Map a lane [`RcTerm`] to an [`EvalTerm`]. `is_object` gates a literal to the object slot.
 /// A blank node has no engine-term form and never arises from formula clausification (the
 /// lane mints Skolem **constants**, not blanks); it is a hard error (no-optionality).
-fn rc_term_to_eval(term: &RcTerm, is_object: bool) -> Result<EvalTerm, String> {
+fn rc_term_to_eval(term: &RcTerm, is_object: bool) -> gmeow_errors::Result<EvalTerm> {
     match term {
         // RcTerm::Var already carries the `?` sigil (matching lower::lower_term).
         RcTerm::Var(name) => Ok(EvalTerm::Var(name.clone())),
         RcTerm::Iri(iri) => Ok(EvalTerm::ConstNamed(iri.clone())),
         RcTerm::Literal(lex) => {
             if !is_object {
-                return Err(format!(
+                return Err(rc_err(format!(
                     "relational-core literal {lex:?} in subject position (only an object may be a \
                      literal)"
-                ));
+                )));
             }
             Ok(EvalTerm::ConstLit(TermValue::simple_literal(lex)))
         }
-        RcTerm::Blank(label) => Err(format!(
+        RcTerm::Blank(label) => Err(rc_err(format!(
             "relational-core blank node {label:?} in a formula-derived rule — the clausifier \
              mints Skolem constants, never blanks (no-optionality)"
-        )),
+        ))),
     }
 }
 

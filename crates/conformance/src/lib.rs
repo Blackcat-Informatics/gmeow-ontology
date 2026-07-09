@@ -37,6 +37,7 @@ pub mod bless;
 pub mod compare;
 pub mod discover;
 pub mod divergence;
+pub mod error;
 pub mod external;
 pub mod paths;
 pub mod profile;

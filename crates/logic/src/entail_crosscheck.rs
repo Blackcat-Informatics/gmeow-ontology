@@ -193,13 +193,13 @@ fn oracle_subsumptions(bundle: &RdfDataset, worlds: &[String]) -> Vec<(String, S
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the world enumeration cannot be built. An oracle
+/// Returns `Err` if the world enumeration cannot be built. An oracle
 /// materialization error is a HARD FAIL inside [`entail_oracle`] (it panics) — the
 /// cross-check never silently downgrades an unclosable graph.
 pub fn run_entail_crosscheck(
     native: &crate::result::ReasoningResult,
     bundle: &RdfDataset,
-) -> Result<CrosscheckOutcome, String> {
+) -> gmeow_errors::Result<CrosscheckOutcome> {
     // The native subsumptions are read from the caller's already-computed reasoning
     // closure — the SAME `reason-verify` shipped/fresh [`crate::result::ReasoningResult`]
     // — so the cross-check adds only the independent oracle sweep and never a second

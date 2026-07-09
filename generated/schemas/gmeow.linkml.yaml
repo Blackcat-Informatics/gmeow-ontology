@@ -15307,6 +15307,9 @@ enums:
       attestationTypeDSSE:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeDSSE
         title: DSSE envelope
+      attestationTypeDocumentationArtifact:
+        meaning: https://blackcatinformatics.ca/gmeow/attestationTypeDocumentationArtifact
+        title: documentation artifact
       attestationTypeEAT:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeEAT
         title: EAT token

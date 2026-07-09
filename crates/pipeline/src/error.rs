@@ -222,6 +222,29 @@ define_diag_kind! {
     message = "source-span table read after drop-after-last-consumer: {}", detail;
 }
 
+define_diag_kind! {
+    /// A hard defect raised by the diagnostic meta-fold — the reasoner meta pass that
+    /// derives root-cause / cluster / cross-node-glut findings over the projected finding
+    /// graph. Fires on a malformed source or finding graph, an authored meta-rule that fails
+    /// to parse, or a chase failure (e.g. an unstratifiable program). A real defect in a
+    /// REQUIRED input stops the fold — never a silent collapse to a byte-unchanged projection.
+    pub struct MetaFold { message: String }
+    code = "pipeline.meta-fold";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "diagnostic meta-fold error: {}", message;
+}
+
+define_diag_kind! {
+    /// A hard defect raised by the native ⊒ oracle subsumption-correspondence drift gate: a
+    /// dropped fragment, a weakened or absent discharge claim, a stale native contract hash, or
+    /// a vacuous / drifted measured-agreement count. CI refuses to ship a subsumption claim that
+    /// is no longer current, complete, and discharged.
+    pub struct SubsumptionDrift { message: String }
+    code = "pipeline.reason.subsumption-drift";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "subsumption-correspondence drift: {}", message;
+}
+
 /// The complete pipeline diagnostic-code catalog, in registration order. Every
 /// [`DiagKind`](gmeow_errors::DiagKind) minted anywhere in the crate appears here
 /// exactly once — [`register_all`] seeds them and the collision test proves the
@@ -248,6 +271,8 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     Generator::CODE,
     Release::CODE,
     EvalSchema::CODE,
+    MetaFold::CODE,
+    SubsumptionDrift::CODE,
     SpanTableConsumedAfterDrop::CODE,
     crate::transcode::UnknownCodec::CODE,
     crate::transcode::NonInvertibleSource::CODE,
@@ -288,6 +313,8 @@ pub fn register_all() -> Vec<Code> {
         Generator::register(),
         Release::register(),
         EvalSchema::register(),
+        MetaFold::register(),
+        SubsumptionDrift::register(),
         SpanTableConsumedAfterDrop::register(),
         crate::transcode::UnknownCodec::register(),
         crate::transcode::NonInvertibleSource::register(),

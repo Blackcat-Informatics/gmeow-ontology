@@ -17,6 +17,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
+use gmeow_errors::Diag;
 use gmeow_logic::explain::{Row, explain_all};
 use gmeow_logic::foundation::{AntiRigidityPolicy, evaluate as foundation_evaluate};
 use gmeow_logic::materialize::materialize_routed;
@@ -28,6 +29,7 @@ use gmeow_logic::teleology::materialize_teleology as teleology_evaluate;
 use gmeow_logic_compile::frontend::{Diagnostic, Severity, parse_logic_str};
 use gmeow_logic_compile::projections::compile_program;
 
+use crate::error::RunFailed;
 use crate::profile::{BudgetParams, Profile, VerdictMode};
 use crate::serialize::VerdictStatus;
 use crate::{profile, serialize};
@@ -158,9 +160,14 @@ const POSITIVE_HORN_PROFILE: &str = "https://blackcatinformatics.ca/logic/Positi
 /// # Errors
 /// Returns a human-readable error string (prefixed with the case id) on any
 /// malformed input, profile, or engine failure — hard-fail, no silent skip.
-pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
+/// Build a run-failure diagnostic from a preserved message.
+fn run_fail(detail: String) -> Diag {
+    Diag::of_kind(RunFailed { detail })
+}
+
+pub fn run_case(case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
     let case_id = crate::paths::case_id(case_dir);
-    let prefix = |msg: String| format!("case {case_id}: {msg}");
+    let prefix = |msg: String| run_fail(format!("case {case_id}: {msg}"));
 
     // ── Profile ──────────────────────────────────────────────────────────────
     let profile_text = std::fs::read_to_string(case_dir.join("profile.json"))
@@ -201,7 +208,8 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
     // authored ontology. A case authoring no GMEOW-namespace OWL restriction derives no shape, so
     // the historical corpus stays byte-identical; the `validation/` category authors restrictions
     // that project to shacl-core / shex documents + a preservation-ledger residue.
-    let program = attach_validation_shapes(&case_id, case_dir, program)?;
+    let program = attach_validation_shapes(&case_id, case_dir, program)
+        .map_err(|e| prefix(format!("attach validation shapes: {e}")))?;
 
     // ── Universal CL round-trip invariant ─────────────────────────────────────
     // Every materialized case's IR must round-trip through all three ISO 24707 dialects
@@ -491,8 +499,8 @@ fn compile_case_program(
     case_id: &str,
     case_dir: &Path,
     expect_unsupported: bool,
-) -> Result<CompileOutcome, String> {
-    let prefix = |msg: String| format!("case {case_id}: {msg}");
+) -> gmeow_errors::Result<CompileOutcome> {
+    let prefix = |msg: String| run_fail(format!("case {case_id}: {msg}"));
     let source = std::fs::read_to_string(case_dir.join("input.logic.ttl"))
         .map_err(|e| prefix(format!("cannot read input.logic.ttl: {e}")))?;
     let (program, diagnostics) = parse_logic_str(&source, None)
@@ -531,8 +539,8 @@ fn compile_case_program(
 /// (`expected/projections/gmeow.{clif,cgif,xcl}`) and emits the `cl-dialects.json`
 /// verdict. A CL round-trip case does NOT materialize (like consistency mode); it carries
 /// only its dialect-text goldens + the verdict.
-fn run_cl_roundtrip_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, String> {
-    let prefix = |msg: String| format!("case {case_id}: {msg}");
+fn run_cl_roundtrip_case(case_id: &str, case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
+    let prefix = |msg: String| run_fail(format!("case {case_id}: {msg}"));
 
     // A cl-roundtrip case never declares `expect_unsupported` (an unsound program cannot
     // round-trip); `compile_case_program(.., false)` therefore never yields `Unsupported`.
@@ -659,8 +667,8 @@ fn empty_outputs(case_id: String) -> CaseOutputs {
 /// populated `owl:Nothing` clash (an [`InconsistencyWitness`]), else `consistent`.
 /// No compile / certify / materialize / projection / answer artifacts are produced
 /// (a consistency case carries only its `expected/verdicts.json` golden).
-fn run_consistency_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, String> {
-    let prefix = |msg: String| format!("case {case_id}: {msg}");
+fn run_consistency_case(case_id: &str, case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
+    let prefix = |msg: String| run_fail(format!("case {case_id}: {msg}"));
 
     // The EDB is the world-scoped N-Quads `input.nq` (hard-fail if absent — a
     // consistency case has no other input the DL path can read).
@@ -740,10 +748,10 @@ fn run_consistency_case(case_id: &str, case_dir: &Path) -> Result<CaseOutputs, S
 }
 
 /// Read an optional sibling file, returning the empty string when absent.
-fn read_optional(case_dir: &Path, name: &str) -> Result<String, String> {
+fn read_optional(case_dir: &Path, name: &str) -> gmeow_errors::Result<String> {
     let path = case_dir.join(name);
     if path.exists() {
-        std::fs::read_to_string(&path).map_err(|e| format!("cannot read {name}: {e}"))
+        std::fs::read_to_string(&path).map_err(|e| run_fail(format!("cannot read {name}: {e}")))
     } else {
         Ok(String::new())
     }
@@ -767,16 +775,13 @@ fn materialize_default(
     nemo_rules: &str,
     input_nq: &str,
     profile: &Profile,
-) -> Result<
-    (
-        Vec<RunnerQuad>,
-        String,
-        bool,
-        PreservationClaim,
-        gmeow_logic::query_ir::CompletionFrontier,
-    ),
+) -> gmeow_errors::Result<(
+    Vec<RunnerQuad>,
     String,
-> {
+    bool,
+    PreservationClaim,
+    gmeow_logic::query_ir::CompletionFrontier,
+)> {
     let budget = profile.budget_params.clone().unwrap_or_default();
     let derived = materialize_routed(
         nemo_rules,
@@ -786,7 +791,7 @@ fn materialize_default(
         budget.time_ms,
         Some(&profile.semantic_profile),
     )
-    .map_err(|e| format!("case {case_id}: materialize failed: {e}"))?;
+    .map_err(|e| run_fail(format!("case {case_id}: materialize failed: {e}")))?;
 
     let preservation = derived.preservation;
     let frontier = derived.frontier;
@@ -822,21 +827,18 @@ fn materialize_foundation(
     case_id: &str,
     input_nq: &str,
     profile: &Profile,
-) -> Result<
-    (
-        Vec<RunnerQuad>,
-        String,
-        bool,
-        PreservationClaim,
-        gmeow_logic::query_ir::CompletionFrontier,
-    ),
+) -> gmeow_errors::Result<(
+    Vec<RunnerQuad>,
     String,
-> {
+    bool,
+    PreservationClaim,
+    gmeow_logic::query_ir::CompletionFrontier,
+)> {
     if profile.budget_params.is_some() {
-        return Err(format!(
+        return Err(run_fail(format!(
             "case {case_id}: foundation_lowering cases cannot declare budget_params — \
              the native foundation evaluator has no budget governor"
-        ));
+        )));
     }
     // Foundation worlds are flat named graphs; the profile is stamped PositiveHorn
     // to match the committed goldens. (POSITIVE_HORN_PROFILE documents that intent;
@@ -844,17 +846,19 @@ fn materialize_foundation(
     let _ = POSITIVE_HORN_PROFILE;
 
     let policy = AntiRigidityPolicy::from_str(&profile.anti_rigidity_policy)
-        .map_err(|e| format!("case {case_id}: invalid anti_rigidity_policy: {e}"))?;
+        .map_err(|e| run_fail(format!("case {case_id}: invalid anti_rigidity_policy: {e}")))?;
 
     let quads = if input_nq.trim().is_empty() {
         Vec::new()
     } else {
         let store = WorldStore::new();
-        store
-            .load_nquads(input_nq)
-            .map_err(|e| format!("case {case_id}: foundation N-Quads parse failed: {e}"))?;
+        store.load_nquads(input_nq).map_err(|e| {
+            run_fail(format!(
+                "case {case_id}: foundation N-Quads parse failed: {e}"
+            ))
+        })?;
         let fq = foundation_evaluate(&store, policy)
-            .map_err(|e| format!("case {case_id}: foundation evaluation failed: {e}"))?;
+            .map_err(|e| run_fail(format!("case {case_id}: foundation evaluation failed: {e}")))?;
         fq.into_iter()
             .map(|q| RunnerQuad {
                 graph: q.graph,
@@ -897,31 +901,30 @@ fn materialize_teleology(
     case_id: &str,
     input_nq: &str,
     profile: &Profile,
-) -> Result<
-    (
-        Vec<RunnerQuad>,
-        String,
-        bool,
-        PreservationClaim,
-        gmeow_logic::query_ir::CompletionFrontier,
-    ),
+) -> gmeow_errors::Result<(
+    Vec<RunnerQuad>,
     String,
-> {
+    bool,
+    PreservationClaim,
+    gmeow_logic::query_ir::CompletionFrontier,
+)> {
     if profile.budget_params.is_some() {
-        return Err(format!(
+        return Err(run_fail(format!(
             "case {case_id}: teleology_lowering cases cannot declare budget_params — \
              the native teleology evaluator has no budget governor"
-        ));
+        )));
     }
     let (quads, claim) = if input_nq.trim().is_empty() {
         (Vec::new(), PreservationClaim::exact())
     } else {
         let store = WorldStore::new();
-        store
-            .load_nquads(input_nq)
-            .map_err(|e| format!("case {case_id}: teleology N-Quads parse failed: {e}"))?;
+        store.load_nquads(input_nq).map_err(|e| {
+            run_fail(format!(
+                "case {case_id}: teleology N-Quads parse failed: {e}"
+            ))
+        })?;
         let (tq, claim) = teleology_evaluate(&store)
-            .map_err(|e| format!("case {case_id}: teleology evaluation failed: {e}"))?;
+            .map_err(|e| run_fail(format!("case {case_id}: teleology evaluation failed: {e}")))?;
         let quads: Vec<RunnerQuad> = tq
             .into_iter()
             .map(|q| RunnerQuad {
@@ -955,7 +958,10 @@ fn materialize_teleology(
 
 /// Produce one explanation skeleton per quad. Asserted quads get a trivial
 /// depth-0 explanation.
-fn run_explanations(case_id: &str, quads: &[RunnerQuad]) -> Result<Vec<ExplanationOut>, String> {
+fn run_explanations(
+    case_id: &str,
+    quads: &[RunnerQuad],
+) -> gmeow_errors::Result<Vec<ExplanationOut>> {
     if quads.is_empty() {
         return Ok(Vec::new());
     }
@@ -972,7 +978,7 @@ fn run_explanations(case_id: &str, quads: &[RunnerQuad]) -> Result<Vec<Explanati
         })
         .collect();
     let explanations =
-        explain_all(&rows).map_err(|e| format!("case {case_id}: explain failed: {e}"))?;
+        explain_all(&rows).map_err(|e| run_fail(format!("case {case_id}: explain failed: {e}")))?;
     Ok(explanations
         .into_iter()
         .map(|e| {
@@ -994,13 +1000,13 @@ fn resolve_answers(
     world_nquads: &str,
     profile_str: &str,
     budget: &Option<BudgetParams>,
-) -> Result<BTreeMap<String, serde_json::Value>, String> {
+) -> gmeow_errors::Result<BTreeMap<String, serde_json::Value>> {
     let queries_dir = case_dir.join("queries");
     if !queries_dir.is_dir() {
         return Ok(BTreeMap::new());
     }
     let mut query_files: Vec<std::path::PathBuf> = std::fs::read_dir(&queries_dir)
-        .map_err(|e| format!("case {case_id}: cannot read queries/: {e}"))?
+        .map_err(|e| run_fail(format!("case {case_id}: cannot read queries/: {e}")))?
         .filter_map(Result::ok)
         .map(|e| e.path())
         .filter(|p| p.extension().is_some_and(|x| x == "logic"))
@@ -1017,10 +1023,15 @@ fn resolve_answers(
         let stem = qfile
             .file_stem()
             .and_then(|s| s.to_str())
-            .ok_or_else(|| format!("case {case_id}: bad query filename {}", qfile.display()))?
+            .ok_or_else(|| {
+                run_fail(format!(
+                    "case {case_id}: bad query filename {}",
+                    qfile.display()
+                ))
+            })?
             .to_string();
         let qtext = std::fs::read_to_string(&qfile)
-            .map_err(|e| format!("case {case_id}: cannot read query {stem}: {e}"))?;
+            .map_err(|e| run_fail(format!("case {case_id}: cannot read query {stem}: {e}")))?;
         let answer = resolve_query(
             case_id,
             world_nquads,
@@ -1044,11 +1055,13 @@ fn resolve_query(
     profile_str: &str,
     max_answers: Option<u64>,
     max_steps: Option<u64>,
-) -> Result<serde_json::Value, String> {
-    let err = |msg: String| format!("case {case_id}: query failed: {msg}");
+) -> gmeow_errors::Result<serde_json::Value> {
+    let err = |msg: String| run_fail(format!("case {case_id}: query failed: {msg}"));
 
     let store = WorldStore::new();
-    store.load_nquads(world_nquads).map_err(err)?;
+    store
+        .load_nquads(world_nquads)
+        .map_err(|e| err(e.message().to_owned()))?;
 
     // Auto-detect the single world (the conformance queries target one world).
     let worlds = store.worlds();
@@ -1060,7 +1073,7 @@ fn resolve_query(
     }
     let world = worlds.into_iter().next().expect("len == 1");
 
-    let program = parse_query_program(query_text).map_err(err)?;
+    let program = parse_query_program(query_text).map_err(|e| err(e.message().to_owned()))?;
     let max_answers_usize = max_answers.map(|n| n as usize);
 
     // Probabilistic profile: weighted model counting; each binding carries a
@@ -1068,7 +1081,7 @@ fn resolve_query(
     if gmeow_logic::profile_gate::is_probabilistic_profile(profile_str) {
         let answer =
             gmeow_logic::probabilistic::evaluate(&store, &world, &program, profile_str, None)
-                .map_err(err)?;
+                .map_err(|e| err(e.message().to_owned()))?;
         let bindings: Vec<serde_json::Value> = answer
             .bindings
             .iter()
@@ -1115,7 +1128,7 @@ fn resolve_query(
             depth,
             None,
         )
-        .map_err(err)?;
+        .map_err(|e| err(e.message().to_owned()))?;
         let status = cf.status_str().to_string();
         let preservation = cf.result.preservation.clone();
         // The counterfactual constructor runs its own bounded search, not the native
@@ -1127,7 +1140,8 @@ fn resolve_query(
             gmeow_logic::query_ir::CompletionFrontier::empty(),
         )
     } else {
-        let foreign = WorldStoreForeign::from_world(&store, &world, profile_str).map_err(err)?;
+        let foreign = WorldStoreForeign::from_world(&store, &world, profile_str)
+            .map_err(|e| err(e.message().to_owned()))?;
         let answer = gmeow_logic::dispatch::dispatch_query(
             &foreign,
             &store,
@@ -1136,7 +1150,7 @@ fn resolve_query(
             profile_str,
             &budget,
         )
-        .map_err(err)?;
+        .map_err(|e| err(e.message().to_owned()))?;
         let preservation = answer.preservation.clone();
         (
             answer.bindings,
@@ -1276,8 +1290,8 @@ mod gating_tests {
             r#"{"expect_unsupported":true,"mode":"native"}"#,
         );
         let err = run_case(&case.0).unwrap_err();
-        assert!(err.contains("expect_unsupported"), "{err}");
-        assert!(err.contains("no UNSUPPORTED_CONTRACT"), "{err}");
+        assert!(err.message().contains("expect_unsupported"), "{err}");
+        assert!(err.message().contains("no UNSUPPORTED_CONTRACT"), "{err}");
     }
 
     #[test]
@@ -1291,8 +1305,8 @@ mod gating_tests {
             r#"{"reasoning_contract":{"preset":"StableModelProfile"},"mode":"native"}"#,
         );
         let err = run_case(&case.0).unwrap_err();
-        assert!(err.contains("Severity::Error"), "{err}");
-        assert!(err.contains("UNSUPPORTED_CONTRACT"), "{err}");
+        assert!(err.message().contains("Severity::Error"), "{err}");
+        assert!(err.message().contains("UNSUPPORTED_CONTRACT"), "{err}");
     }
 
     // ── verdict_mode = consistency ────────────────────────────────────────────
@@ -1360,6 +1374,6 @@ mod gating_tests {
         let case = TmpCase::new("noedb");
         case.write("profile.json", CONSISTENCY_PROFILE);
         let err = run_case(&case.0).unwrap_err();
-        assert!(err.contains("requires input.nq"), "{err}");
+        assert!(err.message().contains("requires input.nq"), "{err}");
     }
 }

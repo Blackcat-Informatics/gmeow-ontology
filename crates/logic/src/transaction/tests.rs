@@ -66,7 +66,7 @@ fn primitive(node: &str, preconds: &[&str], ins: &[&str], del: &[&str]) -> Strin
 }
 
 /// Parse and execute the program rooted at `root_local` from its declared start state.
-fn run(nq: &str, root_local: &str) -> Result<ExecOutcome, String> {
+fn run(nq: &str, root_local: &str) -> gmeow_errors::Result<ExecOutcome> {
     let facts = facts_of(nq);
     let root = format!("{W}#{root_local}");
     let (start, sits) = root_start(&facts, &root)?;
@@ -84,7 +84,8 @@ fn parse_rejects_unknown_node() {
     let facts = facts_of(&nq);
     let err = parse_program(&facts, &format!("{W}#bare"), 0).unwrap_err();
     assert!(
-        err.contains("neither a recognized combinator nor a primitive"),
+        err.message()
+            .contains("neither a recognized combinator nor a primitive"),
         "{err}"
     );
 }
@@ -126,7 +127,7 @@ fn parse_concurrent_rejects_missing_right_operand() {
     );
     let facts = facts_of(&nq);
     let err = parse_program(&facts, &format!("{W}#cc"), 0).unwrap_err();
-    assert!(err.contains("rightOperand"), "{err}");
+    assert!(err.message().contains("rightOperand"), "{err}");
 }
 
 #[test]
@@ -141,8 +142,8 @@ fn parse_concurrent_rejects_doubled_left_operand() {
     );
     let facts = facts_of(&nq);
     let err = parse_program(&facts, &format!("{W}#cc"), 0).unwrap_err();
-    assert!(err.contains("leftOperand"), "{err}");
-    assert!(err.contains("exactly one required"), "{err}");
+    assert!(err.message().contains("leftOperand"), "{err}");
+    assert!(err.message().contains("exactly one required"), "{err}");
 }
 
 #[test]
@@ -157,8 +158,8 @@ fn parse_rejects_doubled_left_operand() {
     );
     let facts = facts_of(&nq);
     let err = parse_program(&facts, &format!("{W}#ser"), 0).unwrap_err();
-    assert!(err.contains("leftOperand"), "{err}");
-    assert!(err.contains("exactly one required"), "{err}");
+    assert!(err.message().contains("leftOperand"), "{err}");
+    assert!(err.message().contains("exactly one required"), "{err}");
 }
 
 #[test]
@@ -171,7 +172,7 @@ fn parse_rejects_missing_right_operand() {
     );
     let facts = facts_of(&nq);
     let err = parse_program(&facts, &format!("{W}#ser"), 0).unwrap_err();
-    assert!(err.contains("rightOperand"), "{err}");
+    assert!(err.message().contains("rightOperand"), "{err}");
 }
 
 #[test]
@@ -184,7 +185,10 @@ fn parse_rejects_multiple_combinator_types() {
     );
     let facts = facts_of(&nq);
     let err = parse_program(&facts, &format!("{W}#x"), 0).unwrap_err();
-    assert!(err.contains("more than one combinator type"), "{err}");
+    assert!(
+        err.message().contains("more than one combinator type"),
+        "{err}"
+    );
 }
 
 #[test]
@@ -200,7 +204,7 @@ fn parse_bounds_operand_cycle_depth() {
     );
     let facts = facts_of(&nq);
     let err = parse_program(&facts, &format!("{W}#ser"), 0).unwrap_err();
-    assert!(err.contains("exceeds depth"), "{err}");
+    assert!(err.message().contains("exceeds depth"), "{err}");
 }
 
 // ── Serial conjunction: path-splitting ──────────────────────────────────────────
@@ -447,8 +451,8 @@ fn iteration_step_bound_hard_fails_on_no_progress() {
         primitive("primBody", &[], &["sitLoop"], &[]), // re-asserts the loop condition
     );
     let err = run(&nq, "it").unwrap_err();
-    assert!(err.contains("step bound"), "{err}");
-    assert!(err.contains("non-terminating"), "{err}");
+    assert!(err.message().contains("step bound"), "{err}");
+    assert!(err.message().contains("non-terminating"), "{err}");
 }
 
 // ── Notification-wait: PENDING is a first-class tri-state, distinct from failure ──
@@ -975,7 +979,7 @@ fn root_execution_mode_hard_fails_on_two_contracts() {
         q(&e("ch"), &l("executedUnderContract"), &e("k2")),
     );
     let err = root_execution_mode(&facts_of(&nq), &format!("{W}#ch")).unwrap_err();
-    assert!(err.contains("executedUnderContract"), "{err}");
+    assert!(err.message().contains("executedUnderContract"), "{err}");
 }
 
 #[test]
@@ -988,7 +992,7 @@ fn root_execution_mode_hard_fails_on_two_execution_modes() {
         q(&e("k"), &l("executionMode"), &l("HypotheticalExecution")),
     );
     let err = root_execution_mode(&facts_of(&nq), &format!("{W}#ch")).unwrap_err();
-    assert!(err.contains("executionMode"), "{err}");
+    assert!(err.message().contains("executionMode"), "{err}");
 }
 
 #[test]
@@ -1000,7 +1004,10 @@ fn root_execution_mode_hard_fails_on_unknown_value() {
         q(&e("k"), &l("executionMode"), &e("BogusMode")),
     );
     let err = root_execution_mode(&facts_of(&nq), &format!("{W}#ch")).unwrap_err();
-    assert!(err.contains("unknown logic:executionMode"), "{err}");
+    assert!(
+        err.message().contains("unknown logic:executionMode"),
+        "{err}"
+    );
 }
 
 #[test]
@@ -1029,7 +1036,11 @@ fn root_execution_mode_hard_fails_on_non_iri_contract() {
         q(&e("ch"), &l("executedUnderContract"), "\"hypoContract\""),
     );
     let err = root_execution_mode(&facts_of(&nq), &format!("{W}#ch")).unwrap_err();
-    assert!(err.contains("non-IRI logic:executedUnderContract"), "{err}");
+    assert!(
+        err.message()
+            .contains("non-IRI logic:executedUnderContract"),
+        "{err}"
+    );
 }
 
 #[test]
@@ -1043,7 +1054,10 @@ fn root_execution_mode_hard_fails_on_non_iri_execution_mode() {
         q(&e("k"), &l("executionMode"), "\"HypotheticalExecution\""),
     );
     let err = root_execution_mode(&facts_of(&nq), &format!("{W}#ch")).unwrap_err();
-    assert!(err.contains("non-IRI logic:executionMode"), "{err}");
+    assert!(
+        err.message().contains("non-IRI logic:executionMode"),
+        "{err}"
+    );
 }
 
 #[test]
@@ -1473,7 +1487,10 @@ fn concurrent_self_composition_is_hard_error() {
     );
     let facts = facts_of(&nq);
     let err = emit_transaction_outcome(&facts, W, &format!("{W}#cc")).unwrap_err();
-    assert!(err.contains("composes a program with itself"), "{err}");
+    assert!(
+        err.message().contains("composes a program with itself"),
+        "{err}"
+    );
 }
 
 // ── Protocol soundness: the declared control mechanism verified over recorded events ──
@@ -1605,7 +1622,10 @@ fn timestamp_ordering_missing_timestamp_is_hard_error() {
     let nq = protocol_world(&declares_protocol("TimestampOrdering"));
     let facts = facts_of(&nq);
     let err = emit_transaction_outcome(&facts, W, &format!("{W}#cc")).unwrap_err();
-    assert!(err.contains("logic:transactionTimestamp"), "{err}");
+    assert!(
+        err.message().contains("logic:transactionTimestamp"),
+        "{err}"
+    );
 }
 
 #[test]
@@ -1623,7 +1643,7 @@ fn strict_two_phase_locking_enforced_and_no_lock_events_is_hard_error() {
     let bare = protocol_world(&declares_protocol("StrictTwoPhaseLocking"));
     let facts = facts_of(&bare);
     let err = emit_transaction_outcome(&facts, W, &format!("{W}#cc")).unwrap_err();
-    assert!(err.contains("no logic:lockAcquired"), "{err}");
+    assert!(err.message().contains("no logic:lockAcquired"), "{err}");
 }
 
 #[test]

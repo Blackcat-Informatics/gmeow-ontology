@@ -17,6 +17,12 @@ use purrdf::{
     DatasetMut, GraphMatchValue, MutableDataset, QuadValues, RdfDataset, TermValue, parse_dataset,
 };
 
+/// Wrap a world-store condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn store_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Store { detail })
+}
+
 /// A world-indexed RDF store.
 ///
 /// Each world is a named graph identified by an IRI string. Only world-indexed
@@ -53,9 +59,9 @@ impl WorldStore {
     /// # Errors
     ///
     /// Returns `Err(String)` if the N-Quads text is malformed.
-    pub fn load_nquads(&self, nquads: &str) -> Result<(), String> {
+    pub fn load_nquads(&self, nquads: &str) -> gmeow_errors::Result<()> {
         let dataset = parse_dataset(nquads.as_bytes(), "application/n-quads", None)
-            .map_err(|e| format!("N-Quads parse error: {e}"))?;
+            .map_err(|e| store_err(format!("N-Quads parse error: {e}")))?;
         self.load_dataset(dataset.as_ref())
     }
 
@@ -70,7 +76,7 @@ impl WorldStore {
     ///
     /// Infallible in practice (the in-memory delta insert cannot fail); the
     /// `Result` is kept for API stability with the callers.
-    pub fn load_dataset(&self, source: &RdfDataset) -> Result<(), String> {
+    pub fn load_dataset(&self, source: &RdfDataset) -> gmeow_errors::Result<()> {
         let mut inner = self.inner.borrow_mut();
         for quad in source.quads() {
             inner.insert(QuadValues {
@@ -109,7 +115,7 @@ impl WorldStore {
         subject: TermValue,
         predicate: TermValue,
         object: TermValue,
-    ) -> Result<(), String> {
+    ) -> gmeow_errors::Result<()> {
         self.inner.borrow_mut().insert(QuadValues {
             s: subject,
             p: predicate,
@@ -202,7 +208,7 @@ impl WorldStore {
     pub fn select(
         &self,
         sparql: &str,
-    ) -> Result<Vec<std::collections::BTreeMap<String, String>>, String> {
+    ) -> gmeow_errors::Result<Vec<std::collections::BTreeMap<String, String>>> {
         use purrdf::sparql::NativeSparqlEngine;
         use purrdf::{SparqlEngine, SparqlRequest, SparqlResult};
 
@@ -210,7 +216,7 @@ impl WorldStore {
             .inner
             .borrow()
             .freeze()
-            .map_err(|e| format!("freeze failed in select: {e}"))?;
+            .map_err(|e| store_err(format!("freeze failed in select: {e}")))?;
 
         let engine = NativeSparqlEngine::new();
         let result = engine
@@ -222,7 +228,7 @@ impl WorldStore {
                     substitutions: &[],
                 },
             )
-            .map_err(|e| format!("SPARQL evaluation error: {e}"))?;
+            .map_err(|e| store_err(format!("SPARQL evaluation error: {e}")))?;
 
         match result {
             SparqlResult::Solutions {
@@ -234,7 +240,7 @@ impl WorldStore {
                     for (var, cell) in variables.iter().zip(row.iter()) {
                         if let Some(term) = cell {
                             let canonical = crate::provenance::term_n3(term)
-                                .map_err(|e| format!("term_n3 failed in select: {e}"))?;
+                                .map_err(|e| store_err(format!("term_n3 failed in select: {e}")))?;
                             bindings.insert(var.clone(), canonical);
                         }
                     }
@@ -242,9 +248,9 @@ impl WorldStore {
                 }
                 Ok(out)
             }
-            SparqlResult::Boolean(_) | SparqlResult::Graph(_) => Err(
+            SparqlResult::Boolean(_) | SparqlResult::Graph(_) => Err(store_err(
                 "select() requires a SPARQL SELECT query; got ASK or CONSTRUCT/DESCRIBE".to_owned(),
-            ),
+            )),
         }
     }
 

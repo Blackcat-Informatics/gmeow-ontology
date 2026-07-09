@@ -19,5 +19,6 @@ path = "src/lib.rs"
 default = []
 
 [dependencies]
+gmeow-errors = { path = "../errors" }
 purrdf = "0.4"
 roxmltree = "0.20"

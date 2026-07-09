@@ -33,7 +33,7 @@ const BLESS_ENV: &str = "GMEOW_CONFORMANCE_BLESS";
 /// goldens instead of asserting.
 fn run_case_file(profile_json: &Utf8Path) -> datatest_stable::Result<()> {
     let case_dir = gmeow_conformance::paths::case_dir(profile_json.as_std_path());
-    discover::validate_case(&case_dir)?;
+    discover::validate_case(&case_dir).map_err(|d| d.to_string())?;
 
     // Lane routing: a Lane-B external corpus is heavy / oracle-backed and runs
     // ONLY in the non-required `make -C validations/classic-cross-check validate` lane. A
@@ -43,17 +43,17 @@ fn run_case_file(profile_json: &Utf8Path) -> datatest_stable::Result<()> {
     // divergence gate (`el_divergence_gate`) instead of this generic harness.
     // Skip both here; Lane-A and endogenous cases always run.
     if matches!(
-        gmeow_conformance::external::lane_for_case(&case_dir)?,
+        gmeow_conformance::external::lane_for_case(&case_dir).map_err(|d| d.to_string())?,
         Some(gmeow_conformance::external::Lane::B)
             | Some(gmeow_conformance::external::Lane::Divergence)
     ) {
         return Ok(());
     }
 
-    let outputs = run::run_case(&case_dir)?;
+    let outputs = run::run_case(&case_dir).map_err(|d| d.to_string())?;
 
     if bless_enabled() {
-        bless::write_expected(&case_dir, &outputs)?;
+        bless::write_expected(&case_dir, &outputs).map_err(|d| d.to_string())?;
         return Ok(());
     }
 

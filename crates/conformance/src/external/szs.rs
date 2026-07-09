@@ -10,6 +10,9 @@
 //! tooling emits the latter). Hard-fail (no-optionality): a source with no
 //! `SZS status` line, or with an unrecognised status token, is an error.
 
+use gmeow_errors::Diag;
+
+use crate::error::SzsStatus;
 use crate::external::status::{ExternalOutcome, outcome_for_szs};
 
 /// Extract the raw SZS status token from a TPTP result document.
@@ -20,7 +23,7 @@ use crate::external::status::{ExternalOutcome, outcome_for_szs};
 ///
 /// # Errors
 /// Returns `Err` when no `% SZS status` line is present or the line carries no token.
-pub fn parse_szs_status(source: &str) -> Result<String, String> {
+pub fn parse_szs_status(source: &str) -> gmeow_errors::Result<String> {
     for line in source.lines() {
         // The SZS result line is a TPTP comment: `% SZS status <Token> [for <name>]`.
         // Strip the leading `%` comment marker, then token-split the remainder so BOTH
@@ -35,15 +38,19 @@ pub fn parse_szs_status(source: &str) -> Result<String, String> {
         if it.next() == Some("SZS") && it.next() == Some("status") {
             return match it.next() {
                 Some(token) => Ok(token.to_string()),
-                None => Err("malformed `% SZS status` line: no status token".to_string()),
+                None => Err(Diag::of_kind(SzsStatus {
+                    detail: "malformed `% SZS status` line: no status token".to_string(),
+                })),
             };
         }
     }
-    Err("no `% SZS status` line found in the TPTP source".to_string())
+    Err(Diag::of_kind(SzsStatus {
+        detail: "no `% SZS status` line found in the TPTP source".to_string(),
+    }))
 }
 
 /// Parse a TPTP SZS source and map it onto a normalized [`ExternalOutcome`].
-pub fn outcome_from_szs(source: &str) -> Result<ExternalOutcome, String> {
+pub fn outcome_from_szs(source: &str) -> gmeow_errors::Result<ExternalOutcome> {
     outcome_for_szs(&parse_szs_status(source)?)
 }
 
@@ -96,19 +103,19 @@ mod tests {
         // `% SZS statusX` is not a status line (second token is `statusX`, not
         // `status`) — it must still hard-fail rather than parse `X` / `for` as a token.
         let err = parse_szs_status("% SZS statusX Theorem\n").unwrap_err();
-        assert!(err.contains("no `% SZS status` line"), "{err}");
+        assert!(err.message().contains("no `% SZS status` line"), "{err}");
     }
 
     #[test]
     fn missing_status_line_hard_fails() {
         let err = parse_szs_status("fof(a, axiom, p).\n").unwrap_err();
-        assert!(err.contains("no `% SZS status` line"), "{err}");
+        assert!(err.message().contains("no `% SZS status` line"), "{err}");
     }
 
     #[test]
     fn empty_token_hard_fails() {
         let err = parse_szs_status("% SZS status \n").unwrap_err();
-        assert!(err.contains("no status token"), "{err}");
+        assert!(err.message().contains("no status token"), "{err}");
     }
 
     #[test]

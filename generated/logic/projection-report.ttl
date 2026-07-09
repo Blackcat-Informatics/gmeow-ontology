@@ -149,6 +149,44 @@
     logic:complexityClass "terminating/PTIME-data" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/docs-format:mdbook>
+    a logic:ProjectionTarget ;
+    rdfs:label "docs-format:mdbook" ;
+    gmeow:lossyDrop "actual: docs format 'mdbook' drops capability 'interactivity' (derived preservation = logic:ValidationOnly)" ,
+        "actual: docs format 'mdbook' drops capability 'live-sparql' (derived preservation = logic:ValidationOnly)" ,
+        "actual: docs format 'mdbook' drops capability 'search-index' (derived preservation = logic:ValidationOnly)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/docs-format:pdf>
+    a logic:ProjectionTarget ;
+    rdfs:label "docs-format:pdf" ;
+    gmeow:lossyDrop "actual: docs format 'pdf' drops capability 'cross-link-fidelity' (derived preservation = logic:ValidationOnly)" ,
+        "actual: docs format 'pdf' drops capability 'diagrams' (derived preservation = logic:ValidationOnly)" ,
+        "actual: docs format 'pdf' drops capability 'interactivity' (derived preservation = logic:ValidationOnly)" ,
+        "actual: docs format 'pdf' drops capability 'live-sparql' (derived preservation = logic:ValidationOnly)" ,
+        "actual: docs format 'pdf' drops capability 'search-index' (derived preservation = logic:ValidationOnly)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/docs-format:site>
+    a logic:ProjectionTarget ;
+    rdfs:label "docs-format:site" ;
+    gmeow:lossyDrop "actual: docs format 'site' drops no capability; derived preservation = logic:SoundUnderApproximation" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/docs-format:snippets>
+    a logic:ProjectionTarget ;
+    rdfs:label "docs-format:snippets" ;
+    gmeow:lossyDrop "actual: docs format 'snippets' drops capability 'cross-link-fidelity' (derived preservation = logic:ValidationOnly)" ,
+        "actual: docs format 'snippets' drops capability 'diagrams' (derived preservation = logic:ValidationOnly)" ,
+        "actual: docs format 'snippets' drops capability 'interactivity' (derived preservation = logic:ValidationOnly)" ,
+        "actual: docs format 'snippets' drops capability 'live-sparql' (derived preservation = logic:ValidationOnly)" ,
+        "actual: docs format 'snippets' drops capability 'search-index' (derived preservation = logic:ValidationOnly)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/ebnf:gmn>
     a logic:ProjectionTarget ;
     rdfs:label "ebnf:gmn" ;
@@ -51847,6 +51885,10 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentSawHerDuck> ,
         <https://blackcatinformatics.ca/logic/target/correspondence:693dca551ec34fc1> ,
         <https://blackcatinformatics.ca/logic/target/datalog> ,
+        <https://blackcatinformatics.ca/logic/target/docs-format:mdbook> ,
+        <https://blackcatinformatics.ca/logic/target/docs-format:pdf> ,
+        <https://blackcatinformatics.ca/logic/target/docs-format:site> ,
+        <https://blackcatinformatics.ca/logic/target/docs-format:snippets> ,
         <https://blackcatinformatics.ca/logic/target/ebnf:gmn> ,
         <https://blackcatinformatics.ca/logic/target/ebnf:gts> ,
         <https://blackcatinformatics.ca/logic/target/ebnf:turtle> ,

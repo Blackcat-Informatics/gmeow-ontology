@@ -14,6 +14,8 @@
 //! VALIDATES them (a malformed FOL sentence raises a `CLIF_MALFORMED_SENTENCE` diagnostic),
 //! but the IR is never reconstructed from them.
 
+use gmeow_errors::Diag;
+
 use crate::frontend::{Diagnostic, LogicParseError, Severity, parse_logic_dataset};
 use crate::ir::{ContextualScope, Formula, LogicAxiom, LogicProgram, Term};
 use crate::nt::{nt_escape_iri, nt_escape_literal};
@@ -55,7 +57,7 @@ pub fn parse_clif_str(
     // ── FOL channel (human-readable view) — VALIDATE ONLY ───────────────────────
     // The idiomatic sentences are cross-checked for well-formedness (so corruption surfaces
     // as a diagnostic), but the IR above is the authority — the FOL parse never feeds it.
-    let forms = parse_sexprs(&fol_src).map_err(LogicParseError)?;
+    let forms = parse_sexprs(&fol_src).map_err(|e| LogicParseError(e.message().to_owned()))?;
     // The RDF/predication channel is the reconstruction authority; the FOL channel is a
     // validated-only view. A document carrying FOL sentences but NO meta carrier block cannot
     // be reconstructed (idiomatic CL alone is lossy for the byte-exact IR), so fail CLOSED
@@ -72,7 +74,7 @@ pub fn parse_clif_str(
             diagnostics.push(Diagnostic {
                 severity: Severity::Warning,
                 code: "CLIF_MALFORMED_SENTENCE".to_owned(),
-                message: msg,
+                message: msg.message().to_owned(),
                 subject: None,
             });
         }
@@ -101,7 +103,7 @@ fn parse_meta_block(
         ));
     }
 
-    let forms = parse_sexprs(meta_src).map_err(LogicParseError)?;
+    let forms = parse_sexprs(meta_src).map_err(|e| LogicParseError(e.message().to_owned()))?;
     let mut nt_lines: Vec<String> = Vec::new();
     for form in &forms {
         let SExpr::List(items) = form else {
@@ -228,9 +230,11 @@ fn parse_lit_form(items: &[SExpr]) -> Result<LitTerm, LogicParseError> {
 /// `CLIF_MALFORMED_SENTENCE` diagnostic. The bespoke rule / formula recursive-descent below
 /// still runs (and so is exercised), but the reconstructed IR is discarded — the RDF channel
 /// is the round-trip authority (see [`parse_clif_str`]).
-fn validate_fol_form(form: &SExpr) -> Result<(), String> {
+fn validate_fol_form(form: &SExpr) -> gmeow_errors::Result<()> {
     let SExpr::List(items) = form else {
-        return Err(format!("top-level FOL form must be a list, found {form:?}"));
+        return Err(Diag::of_kind(crate::error::Clif {
+            detail: format!("top-level FOL form must be a list, found {form:?}"),
+        }));
     };
     // A recognizable, well-formed rule shape is fine.
     if validate_rule(items)? {
@@ -250,7 +254,7 @@ fn validate_fol_form(form: &SExpr) -> Result<(), String> {
 /// `Err` there if it is neither a Horn rule nor a well-formed FOL sentence). This never
 /// returns `Err`: a `(forall …)` whose Horn parse fails is a legitimate full-FOL formula,
 /// not a malformed Horn rule, so it must not be rejected as one.
-fn validate_rule(items: &[SExpr]) -> Result<bool, String> {
+fn validate_rule(items: &[SExpr]) -> gmeow_errors::Result<bool> {
     let Some(head_sym) = items.first().and_then(symbol_of) else {
         return Ok(false);
     };
@@ -281,7 +285,7 @@ fn validate_rule(items: &[SExpr]) -> Result<bool, String> {
 
 /// Parse a rule body expression into (positive/negated atoms, distinct pairs). The body is
 /// either a single atom / `(not atom)` / `(/= ?a ?b)`, or `(and …)` of those.
-fn parse_rule_body(expr: &SExpr) -> Result<RuleBody, String> {
+fn parse_rule_body(expr: &SExpr) -> gmeow_errors::Result<RuleBody> {
     let mut body: Vec<LogicAxiom> = Vec::new();
     let mut distinct: Vec<(String, String)> = Vec::new();
 
@@ -294,12 +298,20 @@ fn parse_rule_body(expr: &SExpr) -> Result<RuleBody, String> {
 
     for c in conjuncts {
         let SExpr::List(items) = c else {
-            return Err(format!("rule body conjunct must be a list, found {c:?}"));
+            return Err(Diag::of_kind(crate::error::Clif {
+                detail: format!("rule body conjunct must be a list, found {c:?}"),
+            }));
         };
-        match symbol_of(items.first().ok_or("empty conjunct")?) {
+        match symbol_of(items.first().ok_or_else(|| {
+            Diag::of_kind(crate::error::Clif {
+                detail: "empty conjunct".to_owned(),
+            })
+        })?) {
             Some("not") => {
                 if items.len() != 2 {
-                    return Err("(not …) must have exactly one argument".to_owned());
+                    return Err(Diag::of_kind(crate::error::Clif {
+                        detail: "(not …) must have exactly one argument".to_owned(),
+                    }));
                 }
                 let mut atom = parse_horn_atom(&items[1])?;
                 atom.negated = true;
@@ -307,7 +319,9 @@ fn parse_rule_body(expr: &SExpr) -> Result<RuleBody, String> {
             }
             Some("/=") => {
                 if items.len() != 3 {
-                    return Err("(/= …) must have exactly two arguments".to_owned());
+                    return Err(Diag::of_kind(crate::error::Clif {
+                        detail: "(/= …) must have exactly two arguments".to_owned(),
+                    }));
                 }
                 let a = var_string(&items[1])?;
                 let b = var_string(&items[2])?;
@@ -320,15 +334,19 @@ fn parse_rule_body(expr: &SExpr) -> Result<RuleBody, String> {
 }
 
 /// Parse a Horn atom `(<pred> <subj> <obj>)` into a [`LogicAxiom`].
-fn parse_horn_atom(expr: &SExpr) -> Result<LogicAxiom, String> {
+fn parse_horn_atom(expr: &SExpr) -> gmeow_errors::Result<LogicAxiom> {
     let SExpr::List(items) = expr else {
-        return Err(format!("Horn atom must be a list, found {expr:?}"));
+        return Err(Diag::of_kind(crate::error::Clif {
+            detail: format!("Horn atom must be a list, found {expr:?}"),
+        }));
     };
     if items.len() != 3 {
-        return Err(format!(
-            "Horn atom must have exactly 3 terms (pred subj obj), found {}",
-            items.len()
-        ));
+        return Err(Diag::of_kind(crate::error::Clif {
+            detail: format!(
+                "Horn atom must have exactly 3 terms (pred subj obj), found {}",
+                items.len()
+            ),
+        }));
     }
     let predicate = name_string(&items[0])?;
     let (subject, _) = horn_operand(&items[1])?;
@@ -346,7 +364,7 @@ fn parse_horn_atom(expr: &SExpr) -> Result<LogicAxiom, String> {
 /// Decode a Horn subject/object operand: a `?var` → `?name` string (non-literal); a
 /// `(lit "x")` → plain literal string (literal); a `'iri'` → IRI string (non-literal).
 /// Returns `(value, is_literal)`.
-fn horn_operand(expr: &SExpr) -> Result<(String, bool), String> {
+fn horn_operand(expr: &SExpr) -> gmeow_errors::Result<(String, bool)> {
     match expr {
         SExpr::Atom(Atom::Var(n)) => Ok((format!("?{n}"), false)),
         SExpr::Atom(Atom::Name(iri)) => Ok((iri.clone(), false)),
@@ -354,31 +372,40 @@ fn horn_operand(expr: &SExpr) -> Result<(String, bool), String> {
             let lit = parse_lit_simple(items)?;
             Ok((lit, true))
         }
-        other => Err(format!(
-            "Horn operand must be ?var, 'iri', or (lit …), found {other:?}"
-        )),
+        other => Err(Diag::of_kind(crate::error::Clif {
+            detail: format!("Horn operand must be ?var, 'iri', or (lit …), found {other:?}"),
+        })),
     }
 }
 
 /// Parse a `(lit "x")` form's lexical value (the Horn fragment carries no datatype on the
 /// object; the RDF channel carries that detail). Rejects a typed/lang `(lit …)`.
-fn parse_lit_simple(items: &[SExpr]) -> Result<String, String> {
-    if symbol_of(items.first().ok_or("empty list")?) != Some("lit") {
-        return Err("expected a (lit …) form".to_owned());
+fn parse_lit_simple(items: &[SExpr]) -> gmeow_errors::Result<String> {
+    if symbol_of(items.first().ok_or_else(|| {
+        Diag::of_kind(crate::error::Clif {
+            detail: "empty list".to_owned(),
+        })
+    })?) != Some("lit")
+    {
+        return Err(Diag::of_kind(crate::error::Clif {
+            detail: "expected a (lit …) form".to_owned(),
+        }));
     }
     // The Horn fragment's plain literal is exactly `(lit "x")`; a datatype/lang operand here
     // is meaningless (the RDF channel carries that detail), so reject it rather than ignore it.
     if items.len() != 2 {
-        return Err(format!(
-            "Horn (lit …) operand must be exactly `(lit \"x\")`; found {} operands",
-            items.len()
-        ));
+        return Err(Diag::of_kind(crate::error::Clif {
+            detail: format!(
+                "Horn (lit …) operand must be exactly `(lit \"x\")`; found {} operands",
+                items.len()
+            ),
+        }));
     }
     match items.get(1) {
         Some(SExpr::Atom(Atom::Str(s))) => Ok(s.clone()),
-        other => Err(format!(
-            "(lit …) argument must be a \"string\", found {other:?}"
-        )),
+        other => Err(Diag::of_kind(crate::error::Clif {
+            detail: format!("(lit …) argument must be a \"string\", found {other:?}"),
+        })),
     }
 }
 
@@ -387,15 +414,23 @@ fn parse_lit_simple(items: &[SExpr]) -> Result<String, String> {
 // --------------------------------------------------------------------------- //
 
 /// Parse a full-FOL [`Formula`] from a CL sentence.
-fn parse_formula(expr: &SExpr) -> Result<Formula, String> {
+fn parse_formula(expr: &SExpr) -> gmeow_errors::Result<Formula> {
     let SExpr::List(items) = expr else {
-        return Err(format!("formula must be a list, found {expr:?}"));
+        return Err(Diag::of_kind(crate::error::Clif {
+            detail: format!("formula must be a list, found {expr:?}"),
+        }));
     };
-    let head = symbol_of(items.first().ok_or("empty formula list")?);
+    let head = symbol_of(items.first().ok_or_else(|| {
+        Diag::of_kind(crate::error::Clif {
+            detail: "empty formula list".to_owned(),
+        })
+    })?);
     match head {
         Some("not") => {
             if items.len() != 2 {
-                return Err("(not …) takes one argument".to_owned());
+                return Err(Diag::of_kind(crate::error::Clif {
+                    detail: "(not …) takes one argument".to_owned(),
+                }));
             }
             Ok(Formula::Not(Box::new(parse_formula(&items[1])?)))
         }
@@ -409,7 +444,9 @@ fn parse_formula(expr: &SExpr) -> Result<Formula, String> {
         }
         Some("if") => {
             if items.len() != 3 {
-                return Err("(if …) takes two arguments".to_owned());
+                return Err(Diag::of_kind(crate::error::Clif {
+                    detail: "(if …) takes two arguments".to_owned(),
+                }));
             }
             Ok(Formula::Implies(
                 Box::new(parse_formula(&items[1])?),
@@ -418,7 +455,9 @@ fn parse_formula(expr: &SExpr) -> Result<Formula, String> {
         }
         Some("iff") => {
             if items.len() != 3 {
-                return Err("(iff …) takes two arguments".to_owned());
+                return Err(Diag::of_kind(crate::error::Clif {
+                    detail: "(iff …) takes two arguments".to_owned(),
+                }));
             }
             Ok(Formula::Iff(
                 Box::new(parse_formula(&items[1])?),
@@ -427,7 +466,9 @@ fn parse_formula(expr: &SExpr) -> Result<Formula, String> {
         }
         Some("forall") | Some("exists") => {
             if items.len() != 3 {
-                return Err("(forall/exists …) takes a variable block and a body".to_owned());
+                return Err(Diag::of_kind(crate::error::Clif {
+                    detail: "(forall/exists …) takes a variable block and a body".to_owned(),
+                }));
             }
             let vars = parse_var_block(&items[1])?;
             let body = Box::new(parse_formula(&items[2])?);
@@ -443,16 +484,20 @@ fn parse_formula(expr: &SExpr) -> Result<Formula, String> {
 }
 
 /// Parse a list of sub-formulas (for `(and …)` / `(or …)`).
-fn parse_formula_list(items: &[SExpr]) -> Result<Vec<Formula>, String> {
+fn parse_formula_list(items: &[SExpr]) -> gmeow_errors::Result<Vec<Formula>> {
     items.iter().map(parse_formula).collect()
 }
 
 /// Parse an atomic predication `(<relation> <arg>…)` into a [`Formula::Atom`].
-fn parse_atom_formula(items: &[SExpr]) -> Result<Formula, String> {
+fn parse_atom_formula(items: &[SExpr]) -> gmeow_errors::Result<Formula> {
     // Guard the empty predication `()` (a diagnostic, never a panic). The relation is a reified
     // `logic:Type` IRI (the HiLog reflection keeps the object level first-order — no
     // predicate-variable term; see design/LOGIC-IR.md), so it must be a quoted CL name.
-    let head = items.first().ok_or("atomic predication cannot be empty")?;
+    let head = items.first().ok_or_else(|| {
+        Diag::of_kind(crate::error::Clif {
+            detail: "atomic predication cannot be empty".to_owned(),
+        })
+    })?;
     let relation = Term::iri(name_string(head)?)?;
     let mut args = Vec::new();
     for a in &items[1..] {
@@ -462,12 +507,16 @@ fn parse_atom_formula(items: &[SExpr]) -> Result<Formula, String> {
 }
 
 /// Parse a [`Term`] argument of an atomic formula.
-fn parse_formula_term(expr: &SExpr) -> Result<Term, String> {
+fn parse_formula_term(expr: &SExpr) -> gmeow_errors::Result<Term> {
     match expr {
         SExpr::Atom(Atom::Var(n)) => Term::var(n.clone()),
         SExpr::Atom(Atom::Name(iri)) => Term::iri(iri.clone()),
         SExpr::List(items) => {
-            let head = symbol_of(items.first().ok_or("empty term list")?);
+            let head = symbol_of(items.first().ok_or_else(|| {
+                Diag::of_kind(crate::error::Clif {
+                    detail: "empty term list".to_owned(),
+                })
+            })?);
             match head {
                 Some("lit") => {
                     let lit = parse_lit_form_term(items)?;
@@ -478,47 +527,59 @@ fn parse_formula_term(expr: &SExpr) -> Result<Term, String> {
                     let name = match items.get(1) {
                         Some(SExpr::Atom(Atom::Str(s))) => s.clone(),
                         other => {
-                            return Err(format!(
-                                "(seq …) argument must be a \"string\", found {other:?}"
-                            ));
+                            return Err(Diag::of_kind(crate::error::Clif {
+                                detail: format!(
+                                    "(seq …) argument must be a \"string\", found {other:?}"
+                                ),
+                            }));
                         }
                     };
                     Term::sequence_marker(name)
                 }
-                other => Err(format!("unrecognized term form head {other:?}")),
+                other => Err(Diag::of_kind(crate::error::Clif {
+                    detail: format!("unrecognized term form head {other:?}"),
+                })),
             }
         }
-        other => Err(format!(
-            "formula term must be ?var, 'iri', (lit …), or (seq …), found {other:?}"
-        )),
+        other => Err(Diag::of_kind(crate::error::Clif {
+            detail: format!(
+                "formula term must be ?var, 'iri', (lit …), or (seq …), found {other:?}"
+            ),
+        })),
     }
 }
 
 /// Parse a `(lit "x")` / `(lit "x" 'dt')` form into a [`Term::Literal`] (the formula channel
 /// carries the datatype; a `@lang` is not used in the formula term position).
-fn parse_lit_form_term(items: &[SExpr]) -> Result<Term, String> {
-    let lit = parse_lit_form(items).map_err(|e| e.0)?;
+fn parse_lit_form_term(items: &[SExpr]) -> gmeow_errors::Result<Term> {
+    let lit =
+        parse_lit_form(items).map_err(|e| Diag::of_kind(crate::error::Clif { detail: e.0 }))?;
     if lit.language.is_some() {
-        return Err(
-            "a (lit … @lang) language-tagged literal is not a valid formula term".to_owned(),
-        );
+        return Err(Diag::of_kind(crate::error::Clif {
+            detail: "a (lit … @lang) language-tagged literal is not a valid formula term"
+                .to_owned(),
+        }));
     }
     Term::literal(lit.lexical, lit.datatype)
 }
 
 /// Parse a `(?v1 ?v2 …)` variable block into authored (sigil-free) names.
-fn parse_var_block(expr: &SExpr) -> Result<Vec<String>, String> {
+fn parse_var_block(expr: &SExpr) -> gmeow_errors::Result<Vec<String>> {
     let SExpr::List(items) = expr else {
-        return Err(format!("variable block must be a list, found {expr:?}"));
+        return Err(Diag::of_kind(crate::error::Clif {
+            detail: format!("variable block must be a list, found {expr:?}"),
+        }));
     };
     items.iter().map(var_name).collect()
 }
 
 /// Extract the authored (sigil-free) name from a `?var` atom.
-fn var_name(expr: &SExpr) -> Result<String, String> {
+fn var_name(expr: &SExpr) -> gmeow_errors::Result<String> {
     match expr {
         SExpr::Atom(Atom::Var(n)) => Ok(n.clone()),
-        other => Err(format!("expected a ?variable, found {other:?}")),
+        other => Err(Diag::of_kind(crate::error::Clif {
+            detail: format!("expected a ?variable, found {other:?}"),
+        })),
     }
 }
 
@@ -536,17 +597,21 @@ fn symbol_of(expr: &SExpr) -> Option<&str> {
 }
 
 /// The IRI string of a `'name'` atom.
-fn name_string(expr: &SExpr) -> Result<String, String> {
+fn name_string(expr: &SExpr) -> gmeow_errors::Result<String> {
     match expr {
         SExpr::Atom(Atom::Name(s)) => Ok(s.clone()),
-        other => Err(format!("expected a 'quoted name', found {other:?}")),
+        other => Err(Diag::of_kind(crate::error::Clif {
+            detail: format!("expected a 'quoted name', found {other:?}"),
+        })),
     }
 }
 
 /// The `?name`-shaped variable string of a `?var` atom (for a `/=` operand).
-fn var_string(expr: &SExpr) -> Result<String, String> {
+fn var_string(expr: &SExpr) -> gmeow_errors::Result<String> {
     match expr {
         SExpr::Atom(Atom::Var(n)) => Ok(format!("?{n}")),
-        other => Err(format!("expected a ?variable, found {other:?}")),
+        other => Err(Diag::of_kind(crate::error::Clif {
+            detail: format!("expected a ?variable, found {other:?}"),
+        })),
     }
 }

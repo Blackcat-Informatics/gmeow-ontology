@@ -8,6 +8,8 @@
 //! channel (everything else) as canonical N-Triples inside the single
 //! [`RDF_META_ELEMENT`](super::RDF_META_ELEMENT) element.
 
+use gmeow_errors::Diag;
+
 use crate::ir::{Formula, LogicAxiom, LogicProgram, Term};
 use crate::nt::nt_escape_literal;
 use crate::projections::{ProjectionResult, rdf, target_meta};
@@ -25,7 +27,7 @@ const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 /// canonical-RDF-1.2 projection or its re-serialization failing is an invariant break, not a
 /// recoverable condition) — surfacing a structured error to `compile_program` exactly like the
 /// sibling projectors, rather than panicking.
-pub fn project_xcl(program: &LogicProgram) -> Result<ProjectionResult, String> {
+pub fn project_xcl(program: &LogicProgram) -> gmeow_errors::Result<ProjectionResult> {
     // Registry is the single source of truth for (preservation, complexity, drops).
     let (kind, cx, _) = target_meta("xcl");
 
@@ -246,7 +248,7 @@ fn term_to_xml(term: &Term) -> String {
 /// serializer's internal ordering. Returns `Err` if the canonical-RDF-1.2 leg (or its
 /// re-serialization) fails — the lossless carrier cannot be assembled, an invariant break
 /// surfaced to the caller, not a panic.
-fn meta_ntriples(program: &LogicProgram) -> Result<Vec<String>, String> {
+fn meta_ntriples(program: &LogicProgram) -> gmeow_errors::Result<Vec<String>> {
     let mut lines: Vec<String> = Vec::new();
 
     // (0) Path shapes — emitted as the logic:PathShape triples `extract_path_shapes` reads.
@@ -288,7 +290,11 @@ fn meta_ntriples(program: &LogicProgram) -> Result<Vec<String>, String> {
     )
     .with_formulas(program.formulas.clone());
     let ttl = rdf::project_canonical_rdf12(&canon_meta)
-        .map_err(|e| format!("XCL meta channel: canonical-rdf12 projection failed: {e}"))?
+        .map_err(|e| {
+            Diag::of_kind(crate::error::Xcl {
+                detail: format!("XCL meta channel: canonical-rdf12 projection failed: {e}"),
+            })
+        })?
         .content;
     lines.extend(rdf_text_to_ntriples(ttl.as_bytes(), "text/turtle")?);
 
@@ -476,13 +482,23 @@ fn is_correspondence_owned(subject: &str, corr_subjects: &[String]) -> bool {
 /// Parse RDF `bytes` of `media_type` and re-serialize to canonical N-Triples lines. Returns
 /// `Err` if the projection's own serialized output cannot be re-parsed or re-serialized (an
 /// invariant break in the canonical leg, surfaced to the caller rather than panicking).
-fn rdf_text_to_ntriples(bytes: &[u8], media_type: &str) -> Result<Vec<String>, String> {
-    let ds = parse_dataset(bytes, media_type, None)
-        .map_err(|e| format!("XCL meta channel: re-parse of {media_type} failed: {e}"))?;
+fn rdf_text_to_ntriples(bytes: &[u8], media_type: &str) -> gmeow_errors::Result<Vec<String>> {
+    let ds = parse_dataset(bytes, media_type, None).map_err(|e| {
+        Diag::of_kind(crate::error::Xcl {
+            detail: format!("XCL meta channel: re-parse of {media_type} failed: {e}"),
+        })
+    })?;
     let nt = serialize_dataset(&ds, "application/n-triples", SerializeGraph::DefaultGraph)
-        .map_err(|e| format!("XCL meta channel: N-Triples serialization failed: {e}"))?;
-    let text =
-        String::from_utf8(nt).map_err(|e| format!("XCL meta channel: N-Triples not UTF-8: {e}"))?;
+        .map_err(|e| {
+            Diag::of_kind(crate::error::Xcl {
+                detail: format!("XCL meta channel: N-Triples serialization failed: {e}"),
+            })
+        })?;
+    let text = String::from_utf8(nt).map_err(|e| {
+        Diag::of_kind(crate::error::Xcl {
+            detail: format!("XCL meta channel: N-Triples not UTF-8: {e}"),
+        })
+    })?;
     Ok(text
         .lines()
         .map(str::trim)

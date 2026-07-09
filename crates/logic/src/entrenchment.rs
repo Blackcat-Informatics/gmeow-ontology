@@ -33,6 +33,12 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::store::WorldStore;
 
+/// Wrap an entrenchment-ordering condition message as a typed diagnostic on the
+/// shared substrate, preserving the authored text verbatim.
+fn entrenchment_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Obligation { detail })
+}
+
 // ── Reused vocabulary IRIs (no new ontology terms) ───────────────────────────
 
 /// `gmeow:overrides` — pairwise norm precedence (subject prevails over object).
@@ -92,7 +98,7 @@ impl Entrenchment {
     ///
     /// Returns `Err(String)` if the source edges contain a cycle (an entrenchment
     /// ordering must be a strict partial order; `x ≻ … ≻ x` is contradictory).
-    pub fn read_from_world(store: &WorldStore, base_world: &str) -> Result<Self, String> {
+    pub fn read_from_world(store: &WorldStore, base_world: &str) -> gmeow_errors::Result<Self> {
         // (1) Collect direct edges (subject ≻ object), deterministically.
         let mut edges: BTreeSet<(String, String)> = BTreeSet::new();
         for pred in DIRECT_EDGE_PREDICATES {
@@ -116,10 +122,10 @@ impl Entrenchment {
             if let (Some(s), Some(o)) = (named_iri(&q.s), term_iri(&q.o)) {
                 if let Some(prev) = norm_level.get(&s) {
                     if prev != &o {
-                        return Err(format!(
+                        return Err(entrenchment_err(format!(
                             "conflicting hasAuthorityLevel values for norm {s:?}: \
                              {prev:?} vs {o:?}"
-                        ));
+                        )));
                     }
                 } else {
                     norm_level.insert(s, o);
@@ -153,10 +159,10 @@ impl Entrenchment {
         let greater = closure(&edges);
         for (x, ys) in &greater {
             if ys.contains(x) {
-                return Err(format!(
+                return Err(entrenchment_err(format!(
                     "entrenchment ordering has a cycle through {x:?}; \
                      a strict partial order cannot contain x ≻ … ≻ x"
-                ));
+                )));
             }
         }
 
@@ -526,7 +532,10 @@ mod tests {
         );
         store.insert_quad(W, &ex("treaty"), HAS_AUTHORITY_LEVEL, &gm("authorityHigh"));
         let err = Entrenchment::read_from_world(&store, W).unwrap_err();
-        assert!(err.contains("conflicting hasAuthorityLevel"), "got: {err}");
+        assert!(
+            err.message().contains("conflicting hasAuthorityLevel"),
+            "got: {err}"
+        );
     }
 
     // ── moreSevereThan axis ────────────────────────────────────────────────────
@@ -638,7 +647,7 @@ mod tests {
         store.insert_quad(W, &ex("a"), OVERRIDES, &ex("b"));
         store.insert_quad(W, &ex("b"), OVERRIDES, &ex("a"));
         let err = Entrenchment::read_from_world(&store, W).unwrap_err();
-        assert!(err.contains("cycle"), "got: {err}");
+        assert!(err.message().contains("cycle"), "got: {err}");
     }
 
     // ── hash determinism ───────────────────────────────────────────────────────

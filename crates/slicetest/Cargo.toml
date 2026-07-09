@@ -14,6 +14,10 @@ readme = "README.md"
 path = "src/lib.rs"
 
 [dependencies]
+# The shared diagnostic substrate: every genuine error surface in this harness is a
+# typed `gmeow_errors::Diag` (the `DiagKind` catalog in `src/error.rs`), never a bare
+# string. Non-optional — a hard dependency of the harness's error contract.
+gmeow-errors = { path = "../errors" }
 # OXIGRAPH-FREE native SPARQL substrate (EPIC #906): parse slice Turtle through the
 # canonical native codec (`gmeow_rdf::parse_dataset`) into a frozen `RdfDataset`
 # (`gmeow-rdf-core`), then run the competency/structural/RDFS-closure SPARQL through

@@ -39,6 +39,12 @@ use crate::rule_ir::{
     DerivedRow, EvalRule, FactStore, echo_asserted, least_model_of_reduct, world_edb_facts,
 };
 
+/// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn reason_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Reason { detail })
+}
+
 /// The ordered intra-engine phases [`materialize`] runs per world — the runtime
 /// twin of the authored `logic:wellFoundedMaterializerPlan`
 /// (`slices/grounding/logic/module.ttl`).
@@ -73,7 +79,7 @@ pub const WELL_FOUNDED_ITERATED_PHASE: &str = "wfResolveFixpoint";
 pub(crate) fn materialize(
     store: &crate::store::WorldStore,
     rules: &[EvalRule],
-) -> Result<Vec<DerivedRow>, String> {
+) -> gmeow_errors::Result<Vec<DerivedRow>> {
     let mut worlds = store.worlds();
     worlds.sort();
 
@@ -108,11 +114,11 @@ pub(crate) fn materialize(
         // atom (hard error in v1).
         let final_res = least_model_of_reduct(&edb, rules, &well_founded)?;
         if final_res.store.key_set() != well_founded.key_set() {
-            return Err(
+            return Err(reason_err(
                 "well-founded model is partial (undefined atoms) — not supported in \
                  gmeow-logic v1 (no Phase-A corpus case is non-total)"
                     .to_owned(),
-            );
+            ));
         }
 
         // Emit derived rows (already excludes EDB), stamping the world graph.
@@ -141,7 +147,7 @@ pub(crate) fn materialize(
 pub fn bench_wf_materialize(
     store: &crate::store::WorldStore,
     rules_text: &str,
-) -> Result<usize, String> {
+) -> gmeow_errors::Result<usize> {
     use crate::rule_ir::parse_eval_rules;
     let rules = parse_eval_rules(rules_text)?;
     let rows = materialize(store, &rules)?;

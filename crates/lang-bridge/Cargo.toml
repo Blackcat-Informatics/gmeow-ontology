@@ -13,6 +13,7 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
+gmeow-errors = { path = "../errors" }
 gmeow-lang-form = { path = "../lang-form" }
 gmeow-logic-compile = { path = "../logic-compile" }
 # The OntoLex-Lemon lexicon lift parses RDF Turtle with the ONE canonical parser

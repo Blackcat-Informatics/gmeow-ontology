@@ -1740,8 +1740,12 @@ pub fn check_supersession(md_text: &str, principles: &[Principle]) -> Vec<Findin
     findings
 }
 
-fn load_dataset_from_ttl(ttl: &str) -> Result<std::sync::Arc<RdfDataset>, String> {
-    purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).map_err(|e| e.to_string())
+fn load_dataset_from_ttl(ttl: &str) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
+    purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: e.to_string(),
+        })
+    })
 }
 
 /// Run every constitution-as-code check into one granular finding list.

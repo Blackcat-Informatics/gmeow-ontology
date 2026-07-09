@@ -97,20 +97,24 @@ fn first_party_deps(manifest: &Value) -> BTreeSet<String> {
     deps
 }
 
-fn manifest_paths(crates_dir: &Path) -> Result<Vec<PathBuf>, String> {
+fn manifest_paths(crates_dir: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let entries = fs::read_dir(crates_dir).map_err(|err| {
-        format!(
-            "cannot read crates directory {}: {err}",
-            crates_dir.display()
-        )
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!(
+                "cannot read crates directory {}: {err}",
+                crates_dir.display()
+            ),
+        })
     })?;
     let mut manifests = Vec::new();
     for entry in entries {
         let entry = entry.map_err(|err| {
-            format!(
-                "cannot read crates directory {}: {err}",
-                crates_dir.display()
-            )
+            gmeow_errors::Diag::of_kind(crate::error::Io {
+                detail: format!(
+                    "cannot read crates directory {}: {err}",
+                    crates_dir.display()
+                ),
+            })
         })?;
         let path = entry.path().join("Cargo.toml");
         if path.is_file() {
@@ -192,8 +196,8 @@ pub fn check_crate_layering(crates_dir: &Path) -> CrateLayeringReport {
 
     let manifests = match manifest_paths(crates_dir) {
         Ok(paths) => paths,
-        Err(message) => {
-            report.errors.push(message);
+        Err(diag) => {
+            report.errors.push(diag.message().to_owned());
             return report;
         }
     };

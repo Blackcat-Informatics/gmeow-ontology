@@ -112,12 +112,12 @@ fn source_str(path: &Path) -> String {
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if any source fails to read or parse.
+/// Fails if any source fails to read or parse.
 pub fn audit_box_roles(
     paths: &[PathBuf],
     ontology_iri: &str,
     namespace: &str,
-) -> Result<BoxRoleAudit, String> {
+) -> gmeow_errors::Result<BoxRoleAudit> {
     let graph_box_role = format!("{namespace}graphBoxRole");
     let graph_box_role_class = format!("{namespace}GraphBoxRole");
 
@@ -158,9 +158,11 @@ pub fn audit_box_roles(
 
     // The merged dataset (blank-scoped per file, deduped at freeze) backs the role
     // lookups and the role-typing check.
-    let merged = builder
-        .freeze()
-        .map_err(|e| format!("dataset freeze failed: {e}"))?;
+    let merged = builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Serialize {
+            detail: format!("dataset freeze failed: {e}"),
+        })
+    })?;
     let role_pred_id = merged.term_id_by_value(&TermValue::iri(&graph_box_role));
     let role_class_id = merged.term_id_by_value(&TermValue::iri(&graph_box_role_class));
     let type_id = merged.term_id_by_value(&TermValue::iri(rdf::TYPE));

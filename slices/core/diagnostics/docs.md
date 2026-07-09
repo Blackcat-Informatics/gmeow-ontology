@@ -62,6 +62,17 @@ via `gmeow:findingSeverity`; the SARIF-level and CLI-colour mappings live in the
 not in an axiom. The vocabulary is open by convention: a deployment may add a grade as a new
 individual without a schema change.
 
+## Category is an orthogonal axis
+
+Severity answers "how loud?"; the `logic:FindingCategory` axis (owned by the logic grounding slice)
+answers "what kind?" — because not all findings are failures. This slice wires each category's two
+projections: `gmeow:categoryBlocking` (its gating contribution — `gmeow:blockingBlocking` for the
+three failure kinds, `gmeow:blockingCoherent` for the rest) and `gmeow:categoryPolarity` (its Belnap
+coherence stance, a `logic:InformationState` value). The closed **chatter** category
+`logic:FindingTransientChatter` is the home for general-purpose logging — the ordinary note/info
+stream a run emits to narrate its own progress. It projects to `gmeow:blockingCoherent` and
+`logic:InfoNeither`: transient bookkeeping that never gates and takes no coherence stance.
+
 ## Finding properties
 
 ### gmeow:findingSeverity · gmeow:findingLocation

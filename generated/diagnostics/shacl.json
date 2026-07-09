@@ -19,6 +19,14 @@
           "logical": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
         }
       ],
+      "related_labels": [
+        {
+          "location": {
+            "logical": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+          },
+          "message": "path"
+        }
+      ],
       "remediation": [
         {
           "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value.",
@@ -49,6 +57,14 @@
       "related_locations": [
         {
           "logical": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+        }
+      ],
+      "related_labels": [
+        {
+          "location": {
+            "logical": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+          },
+          "message": "path"
         }
       ],
       "remediation": [
@@ -83,6 +99,14 @@
           "logical": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
         }
       ],
+      "related_labels": [
+        {
+          "location": {
+            "logical": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+          },
+          "message": "path"
+        }
+      ],
       "remediation": [
         {
           "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value.",
@@ -113,6 +137,14 @@
       "related_locations": [
         {
           "logical": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+        }
+      ],
+      "related_labels": [
+        {
+          "location": {
+            "logical": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+          },
+          "message": "path"
         }
       ],
       "remediation": [
@@ -147,6 +179,14 @@
           "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionThematicAccuracy"
         }
       ],
+      "related_labels": [
+        {
+          "location": {
+            "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionThematicAccuracy"
+          },
+          "message": "value"
+        }
+      ],
       "remediation": [
         {
           "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value.",
@@ -177,6 +217,14 @@
       "related_locations": [
         {
           "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionTopologicalConsistency"
+        }
+      ],
+      "related_labels": [
+        {
+          "location": {
+            "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionTopologicalConsistency"
+          },
+          "message": "value"
         }
       ],
       "remediation": [
@@ -211,6 +259,14 @@
           "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionLineage"
         }
       ],
+      "related_labels": [
+        {
+          "location": {
+            "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionLineage"
+          },
+          "message": "value"
+        }
+      ],
       "remediation": [
         {
           "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value.",
@@ -241,6 +297,14 @@
       "related_locations": [
         {
           "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionLogicalConsistency"
+        }
+      ],
+      "related_labels": [
+        {
+          "location": {
+            "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionLogicalConsistency"
+          },
+          "message": "value"
         }
       ],
       "remediation": [
@@ -275,6 +339,14 @@
           "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionPositionalAccuracy"
         }
       ],
+      "related_labels": [
+        {
+          "location": {
+            "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionPositionalAccuracy"
+          },
+          "message": "value"
+        }
+      ],
       "remediation": [
         {
           "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value.",
@@ -305,6 +377,14 @@
       "related_locations": [
         {
           "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionTemporalAccuracy"
+        }
+      ],
+      "related_labels": [
+        {
+          "location": {
+            "logical": "value https://blackcatinformatics.ca/gmeow/qualityDimensionTemporalAccuracy"
+          },
+          "message": "value"
         }
       ],
       "remediation": [

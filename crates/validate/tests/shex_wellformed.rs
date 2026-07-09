@@ -49,8 +49,9 @@ fn dist_gmeow_shex_is_well_formed() {
     // build output is still a hard failure. Absence is a build-ordering condition,
     // not a projection defect, so it is skipped (never silently degraded content).
     let rel = "dist/gmeow.shex";
-    match std::fs::read_to_string(repo_root().join(rel)) {
-        Ok(src) => assert_shex_well_formed(&src, rel),
-        Err(_) => eprintln!("skipping {rel}: build output not present (run `make build`)"),
+    // Absent in a source-only checkout (`make build` not run): a build-ordering
+    // condition, not a projection defect, so skipped silently.
+    if let Ok(src) = std::fs::read_to_string(repo_root().join(rel)) {
+        assert_shex_well_formed(&src, rel);
     }
 }

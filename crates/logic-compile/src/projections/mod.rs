@@ -75,6 +75,8 @@ pub mod sparql_put;
 pub mod sssom;
 pub mod text;
 
+use gmeow_errors::Diag;
+
 use super::ir::{LogicAxiom, LogicModality, LogicProgram, PreservationKind};
 use correspondence::CorrespondenceProgram;
 use correspondence_gates::CorrespondenceGateReport;
@@ -179,7 +181,7 @@ pub struct LedgerEntry {
 pub fn compile_program(
     program: &LogicProgram,
     verdicts: &correspondence_gates::CorrespondenceVerdicts,
-) -> Result<CompiledArtifacts, String> {
+) -> gmeow_errors::Result<CompiledArtifacts> {
     // The ONE runtime loss store for this compile. Every lossy producer interns its
     // structural + per-run drops here (keyed by target focus); the report and the
     // preservation ledger below both READ this same instance, so the two loss surfaces
@@ -187,12 +189,28 @@ pub fn compile_program(
     // so they never touch the store and keep their pure signatures.
     let mut loss = crate::loss_ledger::LossLedger::new();
 
-    let owl_dl = rdf::project_owl_dl(program, &mut loss).map_err(|e| e.to_string())?;
-    let owl_el = rdf::project_owl_el(program, &mut loss).map_err(|e| e.to_string())?;
+    let owl_dl = rdf::project_owl_dl(program, &mut loss).map_err(|e| {
+        Diag::of_kind(crate::error::Projection {
+            detail: e.to_string(),
+        })
+    })?;
+    let owl_el = rdf::project_owl_el(program, &mut loss).map_err(|e| {
+        Diag::of_kind(crate::error::Projection {
+            detail: e.to_string(),
+        })
+    })?;
     let datalog = text::project_datalog(program, &mut loss);
     let n3 = text::project_n3(program, &mut loss);
-    let gufo = rdf::project_gufo(program, &mut loss).map_err(|e| e.to_string())?;
-    let canonical_rdf12 = rdf::project_canonical_rdf12(program).map_err(|e| e.to_string())?;
+    let gufo = rdf::project_gufo(program, &mut loss).map_err(|e| {
+        Diag::of_kind(crate::error::Projection {
+            detail: e.to_string(),
+        })
+    })?;
+    let canonical_rdf12 = rdf::project_canonical_rdf12(program).map_err(|e| {
+        Diag::of_kind(crate::error::Projection {
+            detail: e.to_string(),
+        })
+    })?;
     let nemo = text::project_nemo(program, &mut loss)?;
     let clif = crate::clif::project_clif(program)?;
     let cgif = crate::cgif::project_cgif(program)?;
@@ -386,8 +404,12 @@ pub fn compile_program(
             None => base,
         }
     };
-    let report = report::build_projection_report_from(report_header, &owned, &loss)
-        .map_err(|e| e.to_string())?;
+    let report =
+        report::build_projection_report_from(report_header, &owned, &loss).map_err(|e| {
+            Diag::of_kind(crate::error::Projection {
+                detail: e.to_string(),
+            })
+        })?;
 
     // Preservation ledger: per-target (kind, complexity, combined lossy drops), each row's
     // `lossy_drops` READ BACK from the ONE loss store `loss` — the same instance the Turtle

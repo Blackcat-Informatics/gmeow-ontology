@@ -33,6 +33,7 @@ use std::fmt;
 #[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
 
+use gmeow_errors::Diag;
 use purrdf::{RdfDataset, parse_dataset};
 
 use super::compat;
@@ -403,7 +404,7 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
             Ok(ax) => axioms.push(ax),
             Err(exc) => diagnostics.push(Diagnostic::warning(
                 "MALFORMED_AXIOM",
-                exc,
+                exc.message().to_owned(),
                 Some(subject_str(&quad.subject)),
             )),
         }
@@ -450,7 +451,7 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
             Ok(ax) => axioms.push(ax),
             Err(exc) => diagnostics.push(Diagnostic::warning(
                 "MALFORMED_AXIOM",
-                exc,
+                exc.message().to_owned(),
                 Some(subject_str(&quad.subject)),
             )),
         }
@@ -484,7 +485,7 @@ fn extract_scoped_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) 
                 Ok(ax) => axioms.push(ax),
                 Err(exc) => diagnostics.push(Diagnostic::warning(
                     "MALFORMED_SCOPED_AXIOM",
-                    exc,
+                    exc.message().to_owned(),
                     Some(subject_str(&reifier)),
                 )),
             }
@@ -520,7 +521,7 @@ fn extract_scoped_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) 
             Ok(ax) => axioms.push(ax),
             Err(exc) => diagnostics.push(Diagnostic::warning(
                 "MALFORMED_SCOPED_AXIOM",
-                exc,
+                exc.message().to_owned(),
                 Some(subject_str(&stmt)),
             )),
         }
@@ -877,10 +878,12 @@ fn read_reified_axiom(
     store: &RdfDataset,
     node: &Subject,
     negated: bool,
-) -> Result<LogicAxiom, String> {
+) -> gmeow_errors::Result<LogicAxiom> {
     let p = value(store, node, &nn(RDF_PREDICATE));
     let Some(p) = p else {
-        return Err("__missing_predicate__".to_owned());
+        return Err(Diag::of_kind(crate::error::Frontend {
+            detail: "__missing_predicate__".to_owned(),
+        }));
     };
     let s = value(store, node, &nn(RDF_SUBJECT));
     let o = value(store, node, &nn(RDF_OBJECT));
@@ -929,10 +932,10 @@ fn extract_rules(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<L
         let head_axiom = match read_reified_axiom(store, &head_node, false) {
             Ok(ax) => ax,
             Err(msg) => {
-                let message = if msg == "__missing_predicate__" {
+                let message = if msg.message() == "__missing_predicate__" {
                     "logic:head node has no rdf:predicate; skipped".to_owned()
                 } else {
-                    msg
+                    msg.message().to_owned()
                 };
                 diagnostics.push(Diagnostic::warning(
                     "MALFORMED_RULE_HEAD",
@@ -958,10 +961,10 @@ fn extract_rules(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<L
                 match read_reified_axiom(store, &body_node, negated) {
                     Ok(ax) => body_axioms.push(ax),
                     Err(msg) => {
-                        let message = if msg == "__missing_predicate__" {
+                        let message = if msg.message() == "__missing_predicate__" {
                             "logic:body node has no rdf:predicate; body atom skipped".to_owned()
                         } else {
-                            msg
+                            msg.message().to_owned()
                         };
                         diagnostics.push(Diagnostic::warning(
                             "MALFORMED_RULE_BODY",
@@ -1202,7 +1205,7 @@ fn read_list_member_subjects(store: &RdfDataset, head: &Node) -> Vec<Subject> {
 /// contradiction and hard-fails through the constructor, never a silent drop.
 fn merge_same_path_properties(
     props: Vec<PropertyConstraintIr>,
-) -> Result<Vec<PropertyConstraintIr>, String> {
+) -> gmeow_errors::Result<Vec<PropertyConstraintIr>> {
     let mut order: Vec<(String, bool)> = Vec::new();
     let mut groups: BTreeMap<(String, bool), Vec<PropertyConstraintIr>> = BTreeMap::new();
     for p in props {
@@ -1258,7 +1261,9 @@ fn merge_same_path_properties(
     Ok(out)
 }
 
-pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShapeIr>, String> {
+pub fn derive_validation_shapes(
+    store: &RdfDataset,
+) -> gmeow_errors::Result<Vec<ValidationShapeIr>> {
     // The per-property/per-class closed-world-reading opt-out (R3). Default is derive-all; a
     // property/class named by an `OpenWorldClosure` closure entry is suppressed below.
     let optouts = closure_validation_optouts(store);
@@ -1639,10 +1644,12 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
                         .push(pc);
                 }
                 Some(Node::Blank { .. }) | Some(Node::Triple(_)) => {
-                    return Err(format!(
-                        "owl:hasValue on {on} is an anonymous node; a fixed required value \
+                    return Err(Diag::of_kind(crate::error::Frontend {
+                        detail: format!(
+                            "owl:hasValue on {on} is an anonymous node; a fixed required value \
                          cannot be a blank node or quoted triple"
-                    ));
+                        ),
+                    }));
                 }
             }
 
@@ -1664,9 +1671,9 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
                 match value(store, &restr_subj, &p_onclass) {
                     // A qualified cardinality REQUIRES its qualifying class — absent → hard-fail.
                     None => {
-                        return Err(format!(
-                            "qualified cardinality on {on} requires owl:onClass"
-                        ));
+                        return Err(Diag::of_kind(crate::error::Frontend {
+                            detail: format!("qualified cardinality on {on} requires owl:onClass"),
+                        }));
                     }
                     // An anonymous qualifying class expression is carried in the canon, never a
                     // bare blank shape — skip (do not emit).
@@ -2215,9 +2222,11 @@ fn extract_path_shapes(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) ->
             depth_param,
         ) {
             Ok(shape) => shapes.push(shape),
-            Err(msg) => {
-                diagnostics.push(Diagnostic::warning("MALFORMED_PATH_SHAPE", msg, Some(subj)))
-            }
+            Err(msg) => diagnostics.push(Diagnostic::warning(
+                "MALFORMED_PATH_SHAPE",
+                msg.message().to_owned(),
+                Some(subj),
+            )),
         }
     }
 
@@ -2448,7 +2457,8 @@ pub fn parse_logic_dataset(
     // Re-label blank nodes to their RDFC-1.0 canonical ids BEFORE extraction, so
     // every projection (text back-ends included) is a deterministic function of the
     // source graph rather than the parser's random per-parse blank-node labels.
-    let canon = canonicalize_blank_nodes(dataset).map_err(LogicParseError)?;
+    let canon =
+        canonicalize_blank_nodes(dataset).map_err(|e| LogicParseError(e.message().to_owned()))?;
     let store = canon.as_ref();
 
     let mut diagnostics: Vec<Diagnostic> = Vec::new();
