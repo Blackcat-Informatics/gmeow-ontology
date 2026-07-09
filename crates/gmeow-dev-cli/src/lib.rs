@@ -31,6 +31,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 use gmeow_cli_core::ConsoleMode;
+pub use gmeow_cli_core::ExportFormat;
 
 use dev_common::{project_root, snapshot_bytes};
 
@@ -488,21 +489,6 @@ pub enum Commands {
         #[command(subcommand)]
         command: I18nCommands,
     },
-}
-
-/// The documentation projection `gmeow-dev export-docs` writes.
-#[derive(Debug, Clone, clap::ValueEnum)]
-pub enum ExportFormat {
-    /// The browsable HTML ontology-docs site (one language subtree).
-    Site,
-    /// The mdbook source tree (`book.toml`, `SUMMARY.md`, `src/…`; English-only).
-    Mdbook,
-    /// The Typst print projection (`gmeow.pdf`, `gmeow.typ`; English-only).
-    Pdf,
-    /// The flattened prompt-ready per-term card snippets (`terms/<slug>.md`).
-    Snippets,
-    /// Every projection, each under its own subdirectory of the output directory.
-    All,
 }
 
 /// `gmeow-dev box-roles` subcommands.

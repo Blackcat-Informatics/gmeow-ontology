@@ -9,7 +9,7 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use std::path::Path;
 
-use gmeow_cli_core::ConsoleMode;
+use gmeow_cli_core::{ConsoleMode, write_docs_projection};
 
 use crate::{BUNDLE_GTS, ExportFormat, NAMESPACE};
 
@@ -1093,31 +1093,6 @@ pub fn export_docs(
             0
         }
     }
-}
-
-/// Write one docs projection tree into `dir`, reporting the confirmations error on a
-/// fold/selection failure and any I/O error on write. Returns the process exit code.
-fn write_docs_projection(
-    dir: &Path,
-    tree: Result<std::collections::BTreeMap<String, Vec<u8>>, gmeow_errors::Diag>,
-) -> i32 {
-    let tree = match tree {
-        Ok(t) => t,
-        Err(e) => return fail(e.to_string()),
-    };
-    for (rel, data) in &tree {
-        let target = dir.join(rel);
-        if let Some(parent) = target.parent()
-            && let Err(e) = std::fs::create_dir_all(parent)
-        {
-            return fail(format!("cannot create {}: {e}", parent.display()));
-        }
-        if let Err(e) = std::fs::write(&target, data) {
-            return fail(format!("cannot write {}: {e}", target.display()));
-        }
-    }
-    println!("wrote docs -> {}", dir.display());
-    0
 }
 
 // ── docs-on ──────────────────────────────────────────────────────────────────
