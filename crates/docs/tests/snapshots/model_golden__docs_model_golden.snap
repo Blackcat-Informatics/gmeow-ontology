@@ -6,13 +6,13 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "7",
   "slice_count": 81,
-  "term_count": 2517,
-  "dependency_edge_count": 1006,
+  "term_count": 2537,
+  "dependency_edge_count": 1008,
   "term_count_by_category": {
-    "Class": 747,
+    "Class": 751,
     "Datatype": 1,
-    "Individual": 32,
-    "Property": 1737
+    "Individual": 41,
+    "Property": 1744
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -417,8 +417,8 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 321,
-  "competency_count": 138,
+  "shape_count": 323,
+  "competency_count": 139,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",

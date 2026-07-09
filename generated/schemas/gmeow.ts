@@ -1265,6 +1265,11 @@ export enum GmnCodebookEnum {
     gmnCodebookCurrent = "gmnCodebookCurrent",
 }
 
+export enum GmnCompartmentEnum {
+    gmnCompartmentNato = "gmnCompartmentNato",
+    gmnCompartmentPartner = "gmnCompartmentPartner",
+}
+
 export enum GmnFixityEnum {
     gmnFixityBracketing = "gmnFixityBracketing",
     gmnFixityInfix = "gmnFixityInfix",
@@ -1272,8 +1277,24 @@ export enum GmnFixityEnum {
     gmnFixityPrefix = "gmnFixityPrefix",
 }
 
+export enum GmnRingCriterionEnum {
+    gmnCriterionAutomatedUnreviewed = "gmnCriterionAutomatedUnreviewed",
+    gmnCriterionHumanReviewed = "gmnCriterionHumanReviewed",
+}
+
+export enum GmnRingLevelEnum {
+    gmnLevelCore = "gmnLevelCore",
+    gmnLevelRestricted = "gmnLevelRestricted",
+    gmnLevelTrusted = "gmnLevelTrusted",
+}
+
+export enum GmnRingPresetEnum {
+    gmnRingPresetDefault = "gmnRingPresetDefault",
+}
+
 export enum GmnSecurityRingEnum {
     gmnRingCore = "gmnRingCore",
+    gmnRingNato = "gmnRingNato",
     gmnRingRestricted = "gmnRingRestricted",
     gmnRingTrusted = "gmnRingTrusted",
 }
@@ -1713,14 +1734,17 @@ export enum MemoryKindEnum {
 export enum MentalProcessTypeEnum {
     processAffectiveExperience = "processAffectiveExperience",
     processAttention = "processAttention",
+    processAudit = "processAudit",
     processDeliberation = "processDeliberation",
     processDreaming = "processDreaming",
+    processExport = "processExport",
     processImagining = "processImagining",
     processLearning = "processLearning",
     processMindWandering = "processMindWandering",
     processPerception = "processPerception",
     processReasoning = "processReasoning",
     processRecollection = "processRecollection",
+    processTraining = "processTraining",
 }
 
 export enum MentalReferenceFrameEnum {
@@ -4952,13 +4976,32 @@ export interface GmnCodebook extends InformationObject {
 export interface GmnCompaction extends StandpointClaim {
 }
 
+export interface GmnCompartment {
+}
+
 export interface GmnEnvelope extends AttestationArtifact {
 }
 
 export interface GmnFixity {
 }
 
+export interface GmnRingCriterion {
+}
+
+export interface GmnRingLevel {
+    gmnRingLevelDominates?: GmnRingLevel[],
+}
+
+export interface GmnRingPreset extends InformationObject {
+    gmnRingPresetMember?: GmnSecurityRing[],
+}
+
 export interface GmnSecurityRing {
+    gmnRingAdmits?: GmnRingCriterion[],
+    gmnRingCompartment?: GmnCompartment[],
+    gmnRingCompartmentGap?: GmnSecurityRing[],
+    gmnRingExcludes?: GmnRingCriterion[],
+    gmnRingLevel?: GmnRingLevel,
 }
 
 export interface GmnSigilRole {

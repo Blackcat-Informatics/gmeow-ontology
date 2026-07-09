@@ -1265,6 +1265,11 @@ enum GmnCodebookEnum {
   gmnCodebookCurrent
 }
 
+enum GmnCompartmentEnum {
+  gmnCompartmentNato
+  gmnCompartmentPartner
+}
+
 enum GmnFixityEnum {
   gmnFixityBracketing
   gmnFixityInfix
@@ -1272,8 +1277,24 @@ enum GmnFixityEnum {
   gmnFixityPrefix
 }
 
+enum GmnRingCriterionEnum {
+  gmnCriterionAutomatedUnreviewed
+  gmnCriterionHumanReviewed
+}
+
+enum GmnRingLevelEnum {
+  gmnLevelCore
+  gmnLevelRestricted
+  gmnLevelTrusted
+}
+
+enum GmnRingPresetEnum {
+  gmnRingPresetDefault
+}
+
 enum GmnSecurityRingEnum {
   gmnRingCore
+  gmnRingNato
   gmnRingRestricted
   gmnRingTrusted
 }
@@ -1713,14 +1734,17 @@ enum MemoryKindEnum {
 enum MentalProcessTypeEnum {
   processAffectiveExperience
   processAttention
+  processAudit
   processDeliberation
   processDreaming
+  processExport
   processImagining
   processLearning
   processMindWandering
   processPerception
   processReasoning
   processRecollection
+  processTraining
 }
 
 enum MentalReferenceFrameEnum {
@@ -5516,6 +5540,11 @@ type GmnCompaction {
   iri: String
 }
 
+type GmnCompartment {
+  id: String
+  iri: String
+}
+
 type GmnEnvelope {
   id: String
   iri: String
@@ -5526,9 +5555,31 @@ type GmnFixity {
   iri: String
 }
 
+type GmnRingCriterion {
+  id: String
+  iri: String
+}
+
+type GmnRingLevel {
+  id: String
+  iri: String
+  gmnRingLevelDominates: [GmnRingLevel!]
+}
+
+type GmnRingPreset {
+  id: String
+  iri: String
+  gmnRingPresetMember: [GmnSecurityRing!]
+}
+
 type GmnSecurityRing {
   id: String
   iri: String
+  gmnRingAdmits: [GmnRingCriterion!]
+  gmnRingCompartment: [GmnCompartment!]
+  gmnRingCompartmentGap: [GmnSecurityRing!]
+  gmnRingExcludes: [GmnRingCriterion!]
+  gmnRingLevel: GmnRingLevel
 }
 
 type GmnSigilRole {

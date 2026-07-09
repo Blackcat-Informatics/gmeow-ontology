@@ -11604,29 +11604,41 @@
         "gmeow:gmnSecurityRing": {
           "anyOf": [
             {
-              "$comment": "gmeow:GmnSecurityRing has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/GmnSecurityRing"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              ]
             },
             {
               "items": {
-                "$comment": "gmeow:GmnSecurityRing has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/GmnSecurityRing"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               "type": "array"
             }
@@ -11662,6 +11674,121 @@
           ]
         }
       },
+      "type": "object"
+    },
+    "GmnSecurityRing": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:gmnRingCompartment": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "$comment": "gmeow:GmnCompartment has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "$comment": "gmeow:GmnCompartment has no NodeShape; node reference only",
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:gmnRingLevel": {
+          "anyOf": [
+            {
+              "$comment": "gmeow:GmnRingLevel has no NodeShape; node reference only",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "required": [
+        "gmeow:gmnRingLevel"
+      ],
       "type": "object"
     },
     "Goal": {
@@ -22528,6 +22655,31 @@
           },
           "then": {
             "$ref": "#/$defs/GmnEnvelope"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:GmnSecurityRing"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:GmnSecurityRing"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/GmnSecurityRing"
           }
         },
         {

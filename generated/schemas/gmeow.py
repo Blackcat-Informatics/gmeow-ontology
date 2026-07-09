@@ -1289,6 +1289,11 @@ class GmnCodebookEnum(str, Enum):
     gmnCodebookCurrent = "gmnCodebookCurrent"
 
 
+class GmnCompartmentEnum(str, Enum):
+    gmnCompartmentNato = "gmnCompartmentNato"
+    gmnCompartmentPartner = "gmnCompartmentPartner"
+
+
 class GmnFixityEnum(str, Enum):
     gmnFixityBracketing = "gmnFixityBracketing"
     gmnFixityInfix = "gmnFixityInfix"
@@ -1296,8 +1301,24 @@ class GmnFixityEnum(str, Enum):
     gmnFixityPrefix = "gmnFixityPrefix"
 
 
+class GmnRingCriterionEnum(str, Enum):
+    gmnCriterionAutomatedUnreviewed = "gmnCriterionAutomatedUnreviewed"
+    gmnCriterionHumanReviewed = "gmnCriterionHumanReviewed"
+
+
+class GmnRingLevelEnum(str, Enum):
+    gmnLevelCore = "gmnLevelCore"
+    gmnLevelRestricted = "gmnLevelRestricted"
+    gmnLevelTrusted = "gmnLevelTrusted"
+
+
+class GmnRingPresetEnum(str, Enum):
+    gmnRingPresetDefault = "gmnRingPresetDefault"
+
+
 class GmnSecurityRingEnum(str, Enum):
     gmnRingCore = "gmnRingCore"
+    gmnRingNato = "gmnRingNato"
     gmnRingRestricted = "gmnRingRestricted"
     gmnRingTrusted = "gmnRingTrusted"
 
@@ -1737,14 +1758,17 @@ class MemoryKindEnum(str, Enum):
 class MentalProcessTypeEnum(str, Enum):
     processAffectiveExperience = "processAffectiveExperience"
     processAttention = "processAttention"
+    processAudit = "processAudit"
     processDeliberation = "processDeliberation"
     processDreaming = "processDreaming"
+    processExport = "processExport"
     processImagining = "processImagining"
     processLearning = "processLearning"
     processMindWandering = "processMindWandering"
     processPerception = "processPerception"
     processReasoning = "processReasoning"
     processRecollection = "processRecollection"
+    processTraining = "processTraining"
 
 
 class MentalReferenceFrameEnum(str, Enum):
@@ -5846,6 +5870,11 @@ class GmnCompaction(StandpointClaim):
     pass
 
 
+class GmnCompartment(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnCompartment"
+    pass
+
+
 class GmnEnvelope(AttestationArtifact):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnEnvelope"
     is_a: ClassVar[str] = "AttestationArtifact"
@@ -5857,9 +5886,29 @@ class GmnFixity(ConfiguredBaseModel):
     pass
 
 
+class GmnRingCriterion(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnRingCriterion"
+    pass
+
+
+class GmnRingLevel(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnRingLevel"
+    gmnRingLevelDominates: list[GmnRingLevel] | None = Field(default=None)
+
+
+class GmnRingPreset(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnRingPreset"
+    is_a: ClassVar[str] = "InformationObject"
+    gmnRingPresetMember: list[GmnSecurityRing] | None = Field(default=None)
+
+
 class GmnSecurityRing(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/GmnSecurityRing"
-    pass
+    gmnRingAdmits: list[GmnRingCriterion] | None = Field(default=None)
+    gmnRingCompartment: list[GmnCompartment] | None = Field(default=None)
+    gmnRingCompartmentGap: list[GmnSecurityRing] | None = Field(default=None)
+    gmnRingExcludes: list[GmnRingCriterion] | None = Field(default=None)
+    gmnRingLevel: GmnRingLevel | None = Field(default=None)
 
 
 class GmnSigilRole(ConfiguredBaseModel):

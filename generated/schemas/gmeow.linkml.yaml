@@ -1846,6 +1846,9 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnCompaction
     title: GMN Compaction
     is_a: StandpointClaim
+  GmnCompartment:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnCompartment
+    title: GMN Compartment
   GmnEnvelope:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnEnvelope
     title: GMN Envelope
@@ -1853,9 +1856,29 @@ classes:
   GmnFixity:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnFixity
     title: GMN Fixity
+  GmnRingCriterion:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnRingCriterion
+    title: GMN Ring Criterion
+  GmnRingLevel:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnRingLevel
+    title: GMN Ring Level
+    slots:
+    - gmnRingLevelDominates
+  GmnRingPreset:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnRingPreset
+    title: GMN Ring Preset
+    is_a: InformationObject
+    slots:
+    - gmnRingPresetMember
   GmnSecurityRing:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnSecurityRing
     title: GMN Security Ring
+    slots:
+    - gmnRingAdmits
+    - gmnRingCompartment
+    - gmnRingCompartmentGap
+    - gmnRingExcludes
+    - gmnRingLevel
   GmnSigilRole:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnSigilRole
     title: GMN Sigil Role
@@ -8325,6 +8348,48 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/gmnPrecedence
     title: gmn precedence
     range: string
+    multivalued: true
+  gmnRingAdmits:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingAdmits
+    title: gmn ring admits
+    range: GmnRingCriterion
+    domain: GmnSecurityRing
+    multivalued: true
+  gmnRingCompartment:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingCompartment
+    title: gmn ring compartment
+    range: GmnCompartment
+    domain: GmnSecurityRing
+    multivalued: true
+  gmnRingCompartmentGap:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingCompartmentGap
+    title: gmn ring compartment gap
+    range: GmnSecurityRing
+    domain: GmnSecurityRing
+    multivalued: true
+  gmnRingExcludes:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingExcludes
+    title: gmn ring excludes
+    range: GmnRingCriterion
+    domain: GmnSecurityRing
+    multivalued: true
+  gmnRingLevel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingLevel
+    title: gmn ring level
+    range: GmnRingLevel
+    domain: GmnSecurityRing
+    multivalued: false
+  gmnRingLevelDominates:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingLevelDominates
+    title: gmn ring level dominates
+    range: GmnRingLevel
+    domain: GmnRingLevel
+    multivalued: true
+  gmnRingPresetMember:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingPresetMember
+    title: gmn ring preset member
+    range: GmnSecurityRing
+    domain: GmnRingPreset
     multivalued: true
   gmnRingWithin:
     slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingWithin
@@ -18022,6 +18087,15 @@ enums:
       gmnCodebookCurrent:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCodebookCurrent
         title: GMN codebook (current)
+  GmnCompartmentEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnCompartment
+    permissible_values:
+      gmnCompartmentNato:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCompartmentNato
+        title: 'compartment: NATO'
+      gmnCompartmentPartner:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCompartmentPartner
+        title: 'compartment: partner'
   GmnFixityEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GmnFixity
     permissible_values:
@@ -18037,12 +18111,42 @@ enums:
       gmnFixityPrefix:
         meaning: https://blackcatinformatics.ca/gmeow/gmnFixityPrefix
         title: prefix
+  GmnRingCriterionEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnRingCriterion
+    permissible_values:
+      gmnCriterionAutomatedUnreviewed:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCriterionAutomatedUnreviewed
+        title: 'criterion: automated, unreviewed'
+      gmnCriterionHumanReviewed:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCriterionHumanReviewed
+        title: 'criterion: human-reviewed'
+  GmnRingLevelEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnRingLevel
+    permissible_values:
+      gmnLevelCore:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnLevelCore
+        title: 'level: core'
+      gmnLevelRestricted:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnLevelRestricted
+        title: 'level: restricted'
+      gmnLevelTrusted:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnLevelTrusted
+        title: 'level: trusted'
+  GmnRingPresetEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnRingPreset
+    permissible_values:
+      gmnRingPresetDefault:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnRingPresetDefault
+        title: default ring preset
   GmnSecurityRingEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GmnSecurityRing
     permissible_values:
       gmnRingCore:
         meaning: https://blackcatinformatics.ca/gmeow/gmnRingCore
         title: core ring
+      gmnRingNato:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnRingNato
+        title: NATO-eyes-only ring
       gmnRingRestricted:
         meaning: https://blackcatinformatics.ca/gmeow/gmnRingRestricted
         title: restricted ring
@@ -19090,12 +19194,18 @@ enums:
       processAttention:
         meaning: https://blackcatinformatics.ca/gmeow/processAttention
         title: attention
+      processAudit:
+        meaning: https://blackcatinformatics.ca/gmeow/processAudit
+        title: audit
       processDeliberation:
         meaning: https://blackcatinformatics.ca/gmeow/processDeliberation
         title: deliberation
       processDreaming:
         meaning: https://blackcatinformatics.ca/gmeow/processDreaming
         title: dreaming
+      processExport:
+        meaning: https://blackcatinformatics.ca/gmeow/processExport
+        title: export
       processImagining:
         meaning: https://blackcatinformatics.ca/gmeow/processImagining
         title: imagining
@@ -19114,6 +19224,9 @@ enums:
       processRecollection:
         meaning: https://blackcatinformatics.ca/gmeow/processRecollection
         title: recollection
+      processTraining:
+        meaning: https://blackcatinformatics.ca/gmeow/processTraining
+        title: training
   MentalReferenceFrameEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/MentalReferenceFrame
     permissible_values:
