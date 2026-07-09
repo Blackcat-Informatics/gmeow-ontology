@@ -450,6 +450,7 @@ mod tests {
 
             ui_catalog: crate::i18n::UiCatalog::default(),
             reasoning: None,
+            diagnostics: None,
             lang: String::new(),
         }
     }
@@ -507,6 +508,7 @@ mod tests {
 
             ui_catalog: crate::i18n::UiCatalog::default(),
             reasoning: None,
+            diagnostics: None,
             lang: String::new(),
         };
         assert_eq!(to_gmeow_rdf(&model), "");

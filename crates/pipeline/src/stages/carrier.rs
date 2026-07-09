@@ -257,6 +257,14 @@ pub(crate) fn serialize_carrier_snapshot(
     let mut docs_model = gmeow_docs::model::DocsModel::discover(root)
         .map_err(|e| stage_err(&format!("docs model discovery: {e}")))?;
     docs_model.attach_reasoning(reasoning_verdict);
+    let known_term_iris: std::collections::BTreeSet<String> =
+        docs_model.terms.iter().map(|t| t.iri.clone()).collect();
+    let diagnostics_digest = crate::stages::docs_render::diagnostics_digest_from_upstream(
+        upstream,
+        &known_term_iris,
+        &docs_model.constraint_rules,
+    )?;
+    docs_model.attach_diagnostics(diagnostics_digest);
     serialize_carrier_snapshot_with_docs_model(root, upstream, carrier, &docs_model)
 }
 

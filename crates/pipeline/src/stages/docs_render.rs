@@ -12,7 +12,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use gmeow_docs::model::{DocsModel, ReasoningVerdict};
+use gmeow_docs::model::{
+    ConstraintRule, DiagnosticsDigest, DocDiagFinding, DocsModel, ReasoningVerdict,
+};
 use gmeow_docs::rdf::to_gmeow_rdf;
 use purrdf::RdfTerm;
 
@@ -84,15 +86,172 @@ pub(crate) fn reasoning_verdict_from_reason(
     })
 }
 
-/// Discover the docs model under `root`, attach the native-reasoner `verdict`, and
-/// project it to the documentation named graph (N-Quads). The verdict is required
-/// so the SPARQL surface always carries the per-term reasoning status (never a
-/// fabricated default). The per-term content-address provenance is read from the
-/// committed manifest (self-healing on a term-adding build; see
-/// `gmeow_docs::model::DocsModel::discover`).
+/// Project one full-fidelity `gmeow_errors::Finding` into a [`DocDiagFinding`],
+/// resolving `help_uri` ONLY when `finding.code` exactly matches a
+/// `ConstraintRule::code` in `by_code` (never a fabricated deep link — mirrors
+/// `apply_fixture_catalog_slugs`'s honest-absence contract).
+///
+/// `category` defaults to `PolicyWarning`'s display spelling when the finding
+/// carries no category (mirrors `diagnostics_reader::finding_gate`'s existing
+/// non-blocking default) — an honest "uncategorized" rendering, never a hard
+/// fail over a field genuinely absent on some findings.
+fn doc_diag_finding(
+    finding: &gmeow_errors::Finding,
+    by_code: &BTreeMap<&str, &str>,
+) -> DocDiagFinding {
+    DocDiagFinding {
+        code: finding.code.clone(),
+        severity: finding.severity.as_str().to_string(),
+        category: finding
+            .category
+            .unwrap_or(gmeow_errors::FindingCategory::PolicyWarning)
+            .as_str()
+            .to_string(),
+        message: finding.message.clone(),
+        slice_iri: finding.attributions.first().map(|a| a.slice_iri.clone()),
+        help_uri: by_code
+            .get(finding.code.as_str())
+            .map(|uri| (*uri).to_string()),
+    }
+}
+
+/// Fold the diagnostics→term join [`DiagnosticsDigest`] from the `stage-validate` +
+/// `stage-compile-logic` products' committed **JSON** diagnostics artifacts
+/// ([`crate::stages::validate::SHACL_JSON_PATH`] /
+/// [`crate::stages::compile_logic::DIAG_JSON_PATH`]) — never a re-run of SHACL or
+/// the logic compiler (reason/validate-once). This reads the full-fidelity
+/// `gmeow_errors::Report` (`gmeow_errors::render::to_json`'s exact wire form), NOT
+/// the lossy `diagnostics:nodes` blob: the forward `Finding → DiagNode` fold
+/// (`diag_render::finding_nodes`, `rdf_location_lossy`) deliberately drops
+/// `location.logical` (and the intermediate `purrdf::RdfDiagnostic` carries no
+/// attributions at all) so the diagnostics RDF projection and the run-ledger stay
+/// byte-identical — that lane can NEVER carry a term/slice join, no matter how
+/// many diagnostics exist. The JSON artifact is a plain `serde` serialization of
+/// the `Report`/`Finding` model itself, so `Location.logical` and
+/// `Finding.attributions` survive intact. Hard-fails when either declared upstream
+/// product/artifact is absent, or when the artifact bytes fail to parse as a
+/// `Report` (never a silently empty digest).
+///
+/// The per-term join key is each finding's FIRST `Location` whose `logical` is
+/// `Some` — matched by EXACT string equality against `known_term_iris`, never a
+/// heuristic/fuzzy match. A finding whose first logical location names no known
+/// term (or that carries no logical location at all) simply has no `by_term`
+/// entry (an honest absence, not a bug).
+///
+/// `by_slice` is keyed on EVERY recorded [`gmeow_errors::DiagnosticAttribution`]
+/// (a coarser join, available whenever the finding carries an attribution);
+/// `help_uri` resolves through `constraint_rules` by exact `code` match.
+pub(crate) fn diagnostics_digest_from_upstream(
+    upstream: &BTreeMap<String, StageProduct>,
+    known_term_iris: &BTreeSet<String>,
+    constraint_rules: &[ConstraintRule],
+) -> Result<DiagnosticsDigest, gmeow_errors::Diag> {
+    let validate = upstream.get("stage-validate").ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-docs-render".to_string(),
+            message: "missing stage-validate product for the diagnostics digest".to_string(),
+        })
+    })?;
+    let compile_logic = upstream.get("stage-compile-logic").ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-docs-render".to_string(),
+            message: "missing stage-compile-logic product for the diagnostics digest".to_string(),
+        })
+    })?;
+    let shacl_json = validate
+        .artifact(crate::stages::validate::SHACL_JSON_PATH)
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-docs-render".to_string(),
+                message: format!(
+                    "missing stage-validate artifact {} for the diagnostics digest",
+                    crate::stages::validate::SHACL_JSON_PATH
+                ),
+            })
+        })?;
+    let compile_json = compile_logic
+        .artifact(crate::stages::compile_logic::DIAG_JSON_PATH)
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-docs-render".to_string(),
+                message: format!(
+                    "missing stage-compile-logic artifact {} for the diagnostics digest",
+                    crate::stages::compile_logic::DIAG_JSON_PATH
+                ),
+            })
+        })?;
+    let parse_report = |bytes: &[u8],
+                        source: &str|
+     -> Result<gmeow_errors::Report, gmeow_errors::Diag> {
+        serde_json::from_slice(bytes).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-docs-render".to_string(),
+                message: format!("parse {source} diagnostics JSON for the diagnostics digest: {e}"),
+            })
+        })
+    };
+    let shacl_report = parse_report(shacl_json, crate::stages::validate::SHACL_JSON_PATH)?;
+    let compile_report = parse_report(compile_json, crate::stages::compile_logic::DIAG_JSON_PATH)?;
+
+    let findings: Vec<&gmeow_errors::Finding> = shacl_report
+        .findings
+        .iter()
+        .chain(compile_report.findings.iter())
+        .collect();
+    let total = findings.len();
+
+    let by_code: BTreeMap<&str, &str> = constraint_rules
+        .iter()
+        .map(|r| (r.code.as_str(), r.help_uri.as_str()))
+        .collect();
+
+    let mut by_term: BTreeMap<String, Vec<DocDiagFinding>> = BTreeMap::new();
+    let mut by_slice: BTreeMap<String, Vec<DocDiagFinding>> = BTreeMap::new();
+    for finding in &findings {
+        let doc_finding = doc_diag_finding(finding, &by_code);
+
+        let term_candidate = finding
+            .locations
+            .iter()
+            .find_map(|loc| loc.logical.as_deref());
+        if let Some(term_iri) = term_candidate
+            && known_term_iris.contains(term_iri)
+        {
+            by_term
+                .entry(term_iri.to_string())
+                .or_default()
+                .push(doc_finding.clone());
+        }
+
+        for attribution in &finding.attributions {
+            by_slice
+                .entry(attribution.slice_iri.clone())
+                .or_default()
+                .push(doc_finding.clone());
+        }
+    }
+
+    Ok(DiagnosticsDigest {
+        by_term,
+        by_slice,
+        total,
+    })
+}
+
+/// Discover the docs model under `root`, attach the native-reasoner `verdict` and
+/// the diagnostics→term join digest (from `upstream`), and project it to the
+/// documentation named graph (N-Quads). The verdict is required so the SPARQL
+/// surface always carries the per-term reasoning status (never a fabricated
+/// default); the diagnostics digest is required (hard-fails on a missing
+/// `stage-validate`/`stage-compile-logic` upstream product) so the per-term
+/// "Diagnostics you might hit" surface and any `gmeow:doc*` diagnostics
+/// projection never fabricate a "no diagnostics" claim. The per-term
+/// content-address provenance is read from the committed manifest (self-healing
+/// on a term-adding build; see `gmeow_docs::model::DocsModel::discover`).
 pub fn render_docs_graph(
     root: &Path,
     verdict: ReasoningVerdict,
+    upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<String, gmeow_errors::Diag> {
     let mut model = DocsModel::discover(root).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -101,6 +260,10 @@ pub fn render_docs_graph(
         })
     })?;
     model.attach_reasoning(verdict);
+    let known_term_iris: BTreeSet<String> = model.terms.iter().map(|t| t.iri.clone()).collect();
+    let diagnostics =
+        diagnostics_digest_from_upstream(upstream, &known_term_iris, &model.constraint_rules)?;
+    model.attach_diagnostics(diagnostics);
     Ok(to_gmeow_rdf(&model))
 }
 
@@ -239,10 +402,17 @@ pub struct DocsRenderStage {
 impl DocsRenderStage {
     /// Construct the stage. It discovers the docs model from the slice catalog at
     /// the root and consumes `stage-reason` so the projected documentation graph
-    /// carries the per-term native-reasoner status (`gmeow:docReasoningStatus`).
+    /// carries the per-term native-reasoner status (`gmeow:docReasoningStatus`), and
+    /// `stage-validate` + `stage-compile-logic` so it carries the diagnostics→term
+    /// join digest (the term page's "Diagnostics you might hit" surface).
     pub fn new() -> Self {
         Self {
-            consumes: vec!["stage-gts-compose".to_string(), "stage-reason".to_string()],
+            consumes: vec![
+                "stage-compile-logic".to_string(),
+                "stage-gts-compose".to_string(),
+                "stage-reason".to_string(),
+                "stage-validate".to_string(),
+            ],
         }
     }
 }
@@ -261,10 +431,13 @@ impl Stage for DocsRenderStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v3: the documentation graph now carries the per-term content-address
-        // provenance (definitionDigest / addedInVersion / changelog) read from the
-        // committed manifest. Bumped so the cache re-derives it.
-        "docs_render.v3"
+        // v5: `diagnostics_digest_from_upstream` now folds from the `stage-validate`
+        // + `stage-compile-logic` products' full-fidelity JSON diagnostics artifacts
+        // (`SHACL_JSON_PATH` / `DIAG_JSON_PATH`) rather than the lossy
+        // `diagnostics:nodes` blob, so `by_term`/`by_slice` join against genuine
+        // `Location.logical`/`Finding.attributions` data. Bumped so the cache
+        // re-derives the digest after the data-source change.
+        "docs_render.v5"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The raw-source half of this DocsRender leaf — declared so a guide /
@@ -275,7 +448,7 @@ impl Stage for DocsRenderStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let verdict = reasoning_verdict_from_reason(input.upstream)?;
-        let graph = render_docs_graph(input.root, verdict)?;
+        let graph = render_docs_graph(input.root, verdict, input.upstream)?;
         let graph_bytes = graph.into_bytes();
         // Attach the documentation projection as the carrier's `graph/documentation`
         // named graph so the presenter reads it as a pure keyed fold (PIPELINE_SPINE §4),
@@ -368,10 +541,223 @@ mod tests {
         );
     }
 
+    /// A `stage-validate` + `stage-compile-logic` upstream pair whose JSON
+    /// diagnostics artifacts carry an EMPTY [`gmeow_errors::Report`] (zero
+    /// findings, never an absent artifact — a missing artifact must hard-fail,
+    /// see [`diagnostics_digest_from_upstream`]) — the minimal upstream
+    /// `render_docs_graph` needs so a source-lane test can render the whole-repo
+    /// docs graph without a real pipeline run.
+    fn empty_diagnostics_upstream() -> BTreeMap<String, StageProduct> {
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert(
+            "stage-validate".to_string(),
+            report_json_product(
+                "stage-validate",
+                crate::stages::validate::SHACL_JSON_PATH,
+                &gmeow_errors::Report::new("shacl"),
+            ),
+        );
+        upstream.insert(
+            "stage-compile-logic".to_string(),
+            report_json_product(
+                "stage-compile-logic",
+                crate::stages::compile_logic::DIAG_JSON_PATH,
+                &gmeow_errors::Report::new("logic-compile"),
+            ),
+        );
+        upstream
+    }
+
+    /// Build a synthetic `stage_id` product carrying `report`'s JSON
+    /// serialization ([`gmeow_errors::render::to_json`]) at `json_path` — the
+    /// EXACT artifact lane `diagnostics_digest_from_upstream` reads, mirroring
+    /// the real `stage-validate`/`stage-compile-logic` producers
+    /// (`diag_render::render_diagnostics_artifacts`), so this test exercises the
+    /// real production code path rather than the lossy `diagnostics:nodes` blob.
+    fn report_json_product(
+        stage_id: &str,
+        json_path: &str,
+        report: &gmeow_errors::Report,
+    ) -> StageProduct {
+        let json = gmeow_errors::render::to_json(report).expect("encode report json");
+        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        artifacts.insert(json_path.to_string(), json.into_bytes());
+        StageProduct::from_artifacts(stage_id, artifacts)
+    }
+
+    /// A minimal synthetic [`gmeow_errors::Finding`] with the given code/
+    /// category/term-location/slice-attribution — a plain builder, since (unlike
+    /// the retired `DiagNode` lane) the JSON-artifact join needs no ledger
+    /// fingerprint.
+    fn synthetic_finding(
+        code: &str,
+        category: gmeow_errors::FindingCategory,
+        term_iri: Option<&str>,
+        slice_iri: Option<&str>,
+    ) -> gmeow_errors::Finding {
+        let mut finding = gmeow_errors::Finding::new(
+            gmeow_errors::Severity::Warning,
+            code,
+            format!("synthetic finding for {code}"),
+        )
+        .with_category(category);
+        if let Some(term_iri) = term_iri {
+            finding.add_location(gmeow_errors::Location::new(
+                None,
+                None,
+                None,
+                Some(term_iri.to_string()),
+            ));
+        }
+        if let Some(slice_iri) = slice_iri {
+            finding
+                .attributions
+                .push(gmeow_errors::DiagnosticAttribution {
+                    slice_iri: slice_iri.to_string(),
+                    role: "focus-origin".to_string(),
+                    evidence: None,
+                });
+        }
+        finding
+    }
+
+    #[test]
+    fn diagnostics_digest_joins_term_and_slice_and_hard_fails_on_missing_upstream() {
+        let term_iri = "https://blackcatinformatics.ca/gmeow/Cat";
+        let mut known_terms: BTreeSet<String> = BTreeSet::new();
+        known_terms.insert(term_iri.to_string());
+
+        let mut shacl_report = gmeow_errors::Report::new("shacl");
+        shacl_report.findings.push(synthetic_finding(
+            "shacl.MinCountConstraintComponent",
+            gmeow_errors::FindingCategory::DataShapeViolation,
+            Some(term_iri),
+            Some("https://blackcatinformatics.ca/gmeow/slices/core"),
+        ));
+        // A finding whose location names no KNOWN term: honestly absent from
+        // `by_term`, never a fuzzy/heuristic join.
+        shacl_report.findings.push(synthetic_finding(
+            "shacl.NodeKindConstraintComponent",
+            gmeow_errors::FindingCategory::DataShapeViolation,
+            Some("https://example.test/not-a-known-term"),
+            None,
+        ));
+
+        let mut compile_report = gmeow_errors::Report::new("logic-compile");
+        compile_report.findings.push(synthetic_finding(
+            "logic-compile.UNKNOWN_PROFILE",
+            gmeow_errors::FindingCategory::ModelingDisciplineViolation,
+            None,
+            None,
+        ));
+
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert(
+            "stage-validate".to_string(),
+            report_json_product(
+                "stage-validate",
+                crate::stages::validate::SHACL_JSON_PATH,
+                &shacl_report,
+            ),
+        );
+        upstream.insert(
+            "stage-compile-logic".to_string(),
+            report_json_product(
+                "stage-compile-logic",
+                crate::stages::compile_logic::DIAG_JSON_PATH,
+                &compile_report,
+            ),
+        );
+
+        let rule = gmeow_docs::model::ConstraintRule {
+            code: "shacl.MinCountConstraintComponent".to_string(),
+            slug: "shacl-min-count-constraint-component".to_string(),
+            category: "https://blackcatinformatics.ca/gmeow/FindingDataShapeViolation".to_string(),
+            severity: "binding".to_string(),
+            help_uri:
+                "https://blackcatinformatics.ca/gmeow/rules#shacl-min-count-constraint-component"
+                    .to_string(),
+            label: None,
+            definition: None,
+            applies_to_terms: Vec::new(),
+            formalizes: None,
+        };
+
+        let digest =
+            diagnostics_digest_from_upstream(&upstream, &known_terms, std::slice::from_ref(&rule))
+                .expect("digest folds from synthetic upstream");
+        assert_eq!(digest.total, 3, "3 findings folded across both producers");
+        assert_eq!(
+            digest.by_term.get(term_iri).map(Vec::len),
+            Some(1),
+            "only the finding whose location names a KNOWN term joins by_term"
+        );
+        let joined = &digest.by_term[term_iri][0];
+        assert_eq!(joined.code, "shacl.MinCountConstraintComponent");
+        assert_eq!(joined.help_uri.as_deref(), Some(rule.help_uri.as_str()));
+        assert_eq!(
+            digest
+                .by_slice
+                .get("https://blackcatinformatics.ca/gmeow/slices/core")
+                .map(Vec::len),
+            Some(1)
+        );
+        // The unattributed / unresolved-code findings never fabricate a slice or help_uri.
+        assert!(
+            !digest
+                .by_slice
+                .values()
+                .flatten()
+                .any(|f| f.code == "logic-compile.UNKNOWN_PROFILE" && f.help_uri.is_some()),
+            "an unresolved code must never carry a fabricated help_uri"
+        );
+
+        // Missing EITHER declared upstream product hard-fails (never a silent empty digest).
+        let mut only_validate: BTreeMap<String, StageProduct> = BTreeMap::new();
+        only_validate.insert(
+            "stage-validate".to_string(),
+            report_json_product(
+                "stage-validate",
+                crate::stages::validate::SHACL_JSON_PATH,
+                &gmeow_errors::Report::new("shacl"),
+            ),
+        );
+        assert!(
+            diagnostics_digest_from_upstream(&only_validate, &known_terms, &[]).is_err(),
+            "missing stage-compile-logic must hard-fail"
+        );
+        assert!(
+            diagnostics_digest_from_upstream(&BTreeMap::new(), &known_terms, &[]).is_err(),
+            "missing both upstream products must hard-fail"
+        );
+
+        // A declared upstream product present but MISSING the JSON artifact (e.g. a
+        // stale/partial product) hard-fails too — never silently treated as empty.
+        let mut missing_artifact: BTreeMap<String, StageProduct> = BTreeMap::new();
+        missing_artifact.insert(
+            "stage-validate".to_string(),
+            StageProduct::from_artifacts("stage-validate", BTreeMap::new()),
+        );
+        missing_artifact.insert(
+            "stage-compile-logic".to_string(),
+            report_json_product(
+                "stage-compile-logic",
+                crate::stages::compile_logic::DIAG_JSON_PATH,
+                &gmeow_errors::Report::new("logic-compile"),
+            ),
+        );
+        assert!(
+            diagnostics_digest_from_upstream(&missing_artifact, &known_terms, &[]).is_err(),
+            "a stage-validate product missing the SHACL JSON artifact must hard-fail"
+        );
+    }
+
     #[test]
     fn docs_graph_is_nonempty_and_parses() {
         let root = repo_root();
-        let nq = render_docs_graph(&root, ReasoningVerdict::default()).expect("render docs graph");
+        let upstream = empty_diagnostics_upstream();
+        let nq = render_docs_graph(&root, ReasoningVerdict::default(), &upstream)
+            .expect("render docs graph");
         let dataset =
             rdf_bytes_to_dataset(nq.as_bytes(), "application/n-quads", "docs-graph").unwrap();
         let count = dataset.quad_count();
