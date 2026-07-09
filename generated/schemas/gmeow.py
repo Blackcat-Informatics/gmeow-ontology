@@ -3775,8 +3775,8 @@ class Agent(Entity):
 class AgentSession(Activity):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AgentSession"
     is_a: ClassVar[str] = "Activity"
-    sessionConfiguration: list[str] | None = Field(default=None)
-    sessionSubjectStage: list[str] | None = Field(default=None)
+    sessionConfiguration: str | None = Field(default=None)
+    sessionSubjectStage: str | None = Field(default=None)
 
 
 class AggregationFunction(ConfiguredBaseModel):
@@ -6584,10 +6584,10 @@ class ModelCard(InformationObject):
 
 class ModelDeployment(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ModelDeployment"
-    deploymentArtifact: list[ModelArtifact] | None = Field(default=None)
+    deploymentArtifact: ModelArtifact | None = Field(default=None)
     deploymentEndpoint: list[str] | None = Field(default=None)
-    deploymentHost: list[Entity] | None = Field(default=None)
-    deploymentService: list[SoftwareAgent] | None = Field(default=None)
+    deploymentHost: Entity | None = Field(default=None)
+    deploymentService: SoftwareAgent | None = Field(default=None)
 
 
 class ModelInferenceRun(Entity):

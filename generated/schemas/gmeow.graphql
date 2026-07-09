@@ -3543,8 +3543,8 @@ type Agent {
 type AgentSession {
   id: String
   iri: String
-  sessionConfiguration: [String!]
-  sessionSubjectStage: [String!]
+  sessionConfiguration: String
+  sessionSubjectStage: String
 }
 
 type AggregationFunction {
@@ -6382,10 +6382,10 @@ type ModelCard {
 type ModelDeployment {
   id: String
   iri: String
-  deploymentArtifact: [ModelArtifact!]
+  deploymentArtifact: ModelArtifact
   deploymentEndpoint: [String!]
-  deploymentHost: [Entity!]
-  deploymentService: [SoftwareAgent!]
+  deploymentHost: Entity
+  deploymentService: SoftwareAgent
 }
 
 type ModelInferenceRun {

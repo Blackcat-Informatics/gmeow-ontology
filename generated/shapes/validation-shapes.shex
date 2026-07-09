@@ -569,8 +569,17 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/mitigationCounters> NONLITERAL ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/ModelCard> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ModelCard-shape> {
+  <https://blackcatinformatics.ca/gmeow/describesModelService> IRI ;
+  <https://blackcatinformatics.ca/gmeow/describesModelArtifact> IRI ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/ModelDeployment> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/ModelDeployment-shape> {
+  <https://blackcatinformatics.ca/gmeow/deploymentHost> IRI ;
+  <https://blackcatinformatics.ca/gmeow/deploymentService> IRI ;
+  <https://blackcatinformatics.ca/gmeow/deploymentArtifact> IRI ;
 }
 
 # targetClass <https://blackcatinformatics.ca/gmeow/MonetaryAmount> (associate via ShapeMap)
@@ -1697,6 +1706,21 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/depictionSubject> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/depictionSubject-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/depictionSubject> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/deploymentArtifact> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/deploymentArtifact-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/deploymentArtifact> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/deploymentHost> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/deploymentHost-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/deploymentHost> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/deploymentService> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/deploymentService-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/deploymentService> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/derivationProduct> (associate via ShapeMap)
@@ -4126,6 +4150,16 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/serviceShutdownDate> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/serviceShutdownDate-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/serviceShutdownDate> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/sessionConfiguration> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/sessionConfiguration-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/sessionConfiguration> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/sessionSubjectStage> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/sessionSubjectStage-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/sessionSubjectStage> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/sexualOrientationValue> (associate via ShapeMap)

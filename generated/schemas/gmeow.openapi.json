@@ -15547,6 +15547,123 @@
                 "type": "array"
               }
             ]
+          },
+          "gmeow:deploymentArtifact": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:ModelArtifact has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:ModelArtifact has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:deploymentHost": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Entity"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Entity"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:deploymentService": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/SoftwareAgent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SoftwareAgent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
           }
         },
         "type": "object"

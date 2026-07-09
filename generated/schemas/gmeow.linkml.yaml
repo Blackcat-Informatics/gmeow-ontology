@@ -6856,7 +6856,7 @@ slots:
     title: deployment artifact
     range: ModelArtifact
     domain: ModelDeployment
-    multivalued: true
+    multivalued: false
   deploymentEndpoint:
     slot_uri: https://blackcatinformatics.ca/gmeow/deploymentEndpoint
     title: deployment endpoint
@@ -6868,13 +6868,13 @@ slots:
     title: deployment host
     range: Entity
     domain: ModelDeployment
-    multivalued: true
+    multivalued: false
   deploymentService:
     slot_uri: https://blackcatinformatics.ca/gmeow/deploymentService
     title: deployment service
     range: SoftwareAgent
     domain: ModelDeployment
-    multivalued: true
+    multivalued: false
   derivationEvidence:
     slot_uri: https://blackcatinformatics.ca/gmeow/derivationEvidence
     title: derivation evidence
@@ -13107,13 +13107,13 @@ slots:
     title: session configuration
     range: uriorcurie
     domain: AgentSession
-    multivalued: true
+    multivalued: false
   sessionSubjectStage:
     slot_uri: https://blackcatinformatics.ca/gmeow/sessionSubjectStage
     title: session subject stage
     range: uriorcurie
     domain: AgentSession
-    multivalued: true
+    multivalued: false
   sexAssignedAtBirth:
     slot_uri: https://blackcatinformatics.ca/gmeow/sexAssignedAtBirth
     title: sex assigned at birth

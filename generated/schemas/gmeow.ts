@@ -3485,8 +3485,8 @@ export interface Agent extends Entity {
 }
 
 export interface AgentSession extends Activity {
-    sessionConfiguration?: string[],
-    sessionSubjectStage?: string[],
+    sessionConfiguration?: string,
+    sessionSubjectStage?: string,
 }
 
 export interface AggregationFunction {
@@ -5538,10 +5538,10 @@ export interface ModelCard extends InformationObject {
 }
 
 export interface ModelDeployment {
-    deploymentArtifact?: ModelArtifact[],
+    deploymentArtifact?: ModelArtifact,
     deploymentEndpoint?: string[],
-    deploymentHost?: Entity[],
-    deploymentService?: SoftwareAgent[],
+    deploymentHost?: Entity,
+    deploymentService?: SoftwareAgent,
 }
 
 export interface ModelInferenceRun extends Entity {
