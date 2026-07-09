@@ -545,6 +545,8 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ),
     ("body_concern_not_found", "Concern not found."),
     ("body_concerns", "Concerns"),
+    ("body_conformance_examples", "Conformance examples"),
+    ("body_conformance_fixtures", "Conformance fixtures"),
     ("body_constraints", "Constraints"),
     ("body_coverage_by_dimension", "Coverage by dimension"),
     ("body_coverage_by_slice", "Coverage by slice"),
@@ -575,12 +577,15 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_label_cite_ontology", "Cite the ontology"),
     ("body_label_cite_slice", "Cite the slice"),
     ("body_label_content_address", "Content address"),
+    ("body_label_do", "Do"),
+    ("body_label_dont", "Don't"),
     ("body_label_help_link", "Help link"),
     ("body_label_orphan_terms", "Orphan terms"),
     ("body_label_permalink", "Permalink"),
     ("body_label_rule_code", "Rule code"),
     ("body_label_severity", "Severity"),
     ("body_label_status", "Status"),
+    ("body_label_violation_code", "Violation code"),
     ("body_learning_path_not_found", "Learning path not found."),
     ("body_learning_paths", "Learning paths"),
     ("body_linkage", "Linkage"),
@@ -588,6 +593,10 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_logic_and_reasoning", "Logic & Reasoning"),
     ("body_logic_stereotypes", "Logic stereotypes"),
     ("body_neighborhood", "Neighborhood"),
+    (
+        "body_no_conformance_fixtures",
+        "No conformance fixtures are declared in any slice.",
+    ),
     (
         "body_no_enforced_constraints",
         "No validation rules are declared in the constraint catalog.",
@@ -941,9 +950,9 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 107 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 113 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 167);
+        assert_eq!(UI_TEMPLATES.len(), 173);
     }
 
     #[test]
