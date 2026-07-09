@@ -24,6 +24,8 @@ use std::collections::HashMap;
 
 use purrdf::gts::model::{Graph, Term, TermKind};
 
+pub mod producers;
+
 const MATH: &str = "https://blackcatinformatics.ca/math/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
