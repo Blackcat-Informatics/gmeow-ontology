@@ -1,0 +1,72 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The rBridge flagship's worked example: the exact output of the native producer
+# math::producers::r_bridge_lift (dogfooded — the worked example IS what the producer
+# emits). A bridge run that retains its source witness (math:parseSource), carries the
+# process-layer in-band witnesses (logic:instantiatesSchema / logic:instantiatesPlan) and
+# its lift's law-spine (math:ingestCorrespondence → a logic:Correspondence), AND produces a
+# structured math: codomain (a math:FittedModel over a math:ModelFormula and one
+# math:Residual per lifted observation, each gmeow:wasGeneratedBy the run). Conforms to
+# math:IngestRunShape and is clean under the native math:UnliftableIngest lint — the lift is
+# non-empty and nothing is dropped silently. Bound by ex:ecIngestRunLifted.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix p:     <https://blackcatinformatics.ca/gmeow/examples/math/producers/> .
+
+# Flagship 4 — lifting an R lm(mpg ~ wt + hp) fit into the math: codomain.
+p:rRun a math:RIngestRun ;
+    math:parseSource p:rSrcWitness ;
+    logic:instantiatesSchema p:rBridgeSchema ;
+    logic:instantiatesPlan p:rBridgePlan ;
+    math:ingestCorrespondence p:rCorr .
+
+# The retained, load-bearing source witness (the R call, by reference).
+p:rSrcWitness a math:MathematicalObject ;
+    logic:loadBearing true .
+p:rBridgeSchema a math:MathematicalObject .
+p:rBridgePlan a math:MathematicalObject .
+
+# The lift's law-spine: a lossy lens with a retained (mnemomorphic) witness.
+p:rCorr a logic:Correspondence ;
+    logic:preservationKind logic:ValidationOnly ;
+    logic:correspondenceRelation logic:RelatedMatch ;
+    logic:morphismClass logic:LossyLens ;
+    logic:hasDeterminacy logic:Vague ;
+    logic:mnemomorphic true .
+
+# The model formula: the ~ is a binder over indexed argument slots.
+p:mpgFormula a math:ModelFormula ;
+    math:argumentSlot p:respSlot , p:wtSlot , p:hpSlot .
+p:respSlot a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression p:mpgVar .
+p:wtSlot   a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression p:wtVar .
+p:hpSlot   a math:ArgumentSlot ; math:slotIndex 2 ; math:slotExpression p:hpVar .
+p:mpgVar a math:VariableExpression .
+p:wtVar  a math:VariableExpression .
+p:hpVar  a math:VariableExpression .
+
+# The lifted codomain: the data (by reference) and the fitted model.
+p:mtcarsMatrix a math:DatasetMatrix ;
+    gmeow:wasGeneratedBy p:rRun .
+p:mtcarsFit a math:FittedModel ;
+    math:modelFormula p:mpgFormula ;
+    math:fittedToData p:mtcarsMatrix ;
+    gmeow:wasGeneratedBy p:rRun .
+
+# One math:Residual per lifted observation (N = 5).
+p:obs0Residual a math:Residual ;
+    math:residualOf p:mtcarsFit ;
+    gmeow:wasGeneratedBy p:rRun .
+p:obs1Residual a math:Residual ;
+    math:residualOf p:mtcarsFit ;
+    gmeow:wasGeneratedBy p:rRun .
+p:obs2Residual a math:Residual ;
+    math:residualOf p:mtcarsFit ;
+    gmeow:wasGeneratedBy p:rRun .
+p:obs3Residual a math:Residual ;
+    math:residualOf p:mtcarsFit ;
+    gmeow:wasGeneratedBy p:rRun .
+p:obs4Residual a math:Residual ;
+    math:residualOf p:mtcarsFit ;
+    gmeow:wasGeneratedBy p:rRun .
