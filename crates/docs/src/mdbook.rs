@@ -59,6 +59,11 @@ pub struct LinkRewrite {
 pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
     let pages = book_pages(model);
     let chapters: BTreeSet<String> = pages.iter().map(Page::dir).collect();
+    // The SINGLE collision-resolution authority (see [`dir_winners`]): both the
+    // chapter body writer below and `summary_md`'s table of contents consult
+    // this SAME map, so a colliding chapter path is only ever body-written and
+    // ToC-listed for its one winning page.
+    let winners = dir_winners(&pages);
 
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     files.insert("book.toml".to_string(), book_toml(model).into_bytes());
@@ -66,10 +71,16 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
     // `src`), so the summary rides inside the source tree, not at the book root.
     files.insert(
         "src/SUMMARY.md".to_string(),
-        summary_md(model, &pages).into_bytes(),
+        summary_md(model, &pages, &winners).into_bytes(),
     );
 
-    for page in &pages {
+    for (i, page) in pages.iter().enumerate() {
+        if winners.get(&page.dir()) != Some(&i) {
+            // A losing duplicate of a colliding chapter path — the winner (same
+            // dir, chosen by `dir_winners`) already wrote (or will write) this
+            // chapter's body, and `summary_md` only ever links the winner.
+            continue;
+        }
         let body = to_markdown_exec(model, page, exec);
         let rewritten = rewrite_book_links(&body, &page.dir(), &chapters);
         let path = chapter_src_path(&page.dir());
@@ -77,6 +88,24 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
     }
 
     Site { files }
+}
+
+/// Compute the SINGLE deterministic winner for each colliding chapter
+/// directory — the FIRST page in `pages` order for a given [`Page::dir`].
+///
+/// Distinct term IRIs can slugify to the same chapter path (see the
+/// module-level note on [`summary_md`]); mdbook rejects a `SUMMARY.md` that
+/// lists the same chapter file twice, and a chapter path can only carry ONE
+/// body. Both the body writer in [`render_book`] and the table of contents in
+/// [`summary_md`] resolve a collision by consulting THIS map, so the ToC link
+/// label always names the exact page whose body is shipped at that path —
+/// there is no second, independently-dedup'd notion of "the winner".
+fn dir_winners(pages: &[Page]) -> BTreeMap<String, usize> {
+    let mut winners: BTreeMap<String, usize> = BTreeMap::new();
+    for (i, page) in pages.iter().enumerate() {
+        winners.entry(page.dir()).or_insert(i);
+    }
+    winners
 }
 
 /// The set of dropped-surface targets the book externalizes, across every
@@ -160,7 +189,7 @@ fn toml_escape(s: &str) -> String {
 /// category index, slices under the slice index, concerns under the concern
 /// index, recipes / learning-paths under their indexes, and the logic
 /// compiler-product pages under the logic index.
-fn summary_md(model: &DocsModel, pages: &[Page]) -> String {
+fn summary_md(model: &DocsModel, pages: &[Page], winners: &BTreeMap<String, usize>) -> String {
     // Bucket the child pages, preserving the book_pages order within each bucket.
     let mut slices: Vec<&Page> = Vec::new();
     let mut concerns: Vec<&Page> = Vec::new();
@@ -170,13 +199,13 @@ fn summary_md(model: &DocsModel, pages: &[Page]) -> String {
     // Terms bucketed by category (the category-index ordering is fixed below).
     let mut terms_by_category: BTreeMap<DocTermCategory, Vec<&Page>> = BTreeMap::new();
 
-    // Distinct term IRIs can slugify to the same chapter path (the site archive
-    // collapses them to one page via its BTreeMap; the last writer wins). mdbook
-    // rejects a SUMMARY.md that lists the same chapter file twice, so the table of
-    // contents must list each chapter path exactly once — dedup on the chapter dir.
-    let mut seen: BTreeSet<String> = BTreeSet::new();
-    for page in pages {
-        if !seen.insert(page.dir()) {
+    // Distinct term IRIs can slugify to the same chapter path. mdbook rejects a
+    // SUMMARY.md that lists the same chapter file twice, so the table of contents
+    // must list each chapter path exactly once — and it must name the SAME winner
+    // [`render_book`]'s body writer chose, via the shared [`dir_winners`] map,
+    // never an independently-dedup'd first/last pick of its own.
+    for (i, page) in pages.iter().enumerate() {
+        if winners.get(&page.dir()) != Some(&i) {
             continue;
         }
         match page {

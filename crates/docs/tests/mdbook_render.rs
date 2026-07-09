@@ -11,7 +11,7 @@
 //! transformed by the link-rewrite helper, and A11 asserts a zero-term slice
 //! still renders a valid chapter.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_docs::mdbook::{render_book, rewrite_book_links};
 use gmeow_docs::render::{Page, book_pages, slice_slug, term_slug, to_markdown_exec};
@@ -81,6 +81,29 @@ fn book_summary_lists_each_chapter_at_most_once() {
     // committed book without needing the mdbook binary in the gate.
     let model = common::cached_model();
     let site = render_book(&model, &ExecutableDocsData::default());
+
+    // The set of chapter dirs with more than one page in the underlying page set —
+    // i.e. the real slug collisions. Only these need the stronger label == shipped
+    // -body-title check below (a legitimately unique page's body may open with
+    // curated prose rather than a bare `# ` heading, e.g. `four-boxes`, so that
+    // check would be a false positive if applied site-wide).
+    let pages = book_pages(&model);
+    let mut dir_counts: BTreeMap<String, usize> = BTreeMap::new();
+    for page in &pages {
+        *dir_counts.entry(page.dir()).or_default() += 1;
+    }
+    let colliding_dirs: BTreeSet<String> = dir_counts
+        .into_iter()
+        .filter(|(_, count)| *count > 1)
+        .map(|(dir, _)| dir)
+        .collect();
+    assert!(
+        !colliding_dirs.is_empty(),
+        "the real model must carry at least one slug collision for this test to exercise the \
+         collision-consistency invariant — if this fires, the fixture no longer collides and the \
+         test below is vacuous"
+    );
+
     let summary = String::from_utf8(
         site.files
             .get("src/SUMMARY.md")
@@ -88,31 +111,90 @@ fn book_summary_lists_each_chapter_at_most_once() {
             .clone(),
     )
     .expect("src/SUMMARY.md is UTF-8");
-    // Every list entry is `[text](target)`; collect the link targets and assert
-    // each appears at most once.
-    let mut seen: BTreeSet<String> = BTreeSet::new();
+    // Every list entry is `[text](target)`; collect the link targets (+ labels) and
+    // assert each target appears at most once.
+    let mut seen: BTreeMap<String, String> = BTreeMap::new();
     for line in summary.lines() {
-        let Some(open) = line.find("](") else {
+        let Some(open) = line.find('[') else {
             continue;
         };
-        let rest = &line[open + 2..];
+        let Some(label_close) = line[open..].find(']') else {
+            continue;
+        };
+        let label = &line[open + 1..open + label_close];
+        let rest = &line[open + label_close..];
+        let Some(target_open) = rest.find('(') else {
+            continue;
+        };
+        let rest = &rest[target_open + 1..];
         let Some(close) = rest.find(')') else {
             continue;
         };
         let target = &rest[..close];
         assert!(
-            seen.insert(target.to_string()),
+            seen.insert(target.to_string(), label.to_string()).is_none(),
             "SUMMARY.md lists the chapter target {target:?} more than once — mdbook build would fail"
         );
     }
     // Every chapter target the summary names must exist as an emitted src/ file.
-    for target in &seen {
+    for target in seen.keys() {
         let key = format!("src/{target}");
         assert!(
             site.files.contains_key(&key),
             "SUMMARY.md names {target:?} but no {key} chapter was emitted"
         );
     }
+
+    // The collision-consistency invariant this test guards: for every ACTUAL slug
+    // collision, the ToC link LABEL must name the exact same term whose body is
+    // shipped at that path. `render_book` and `summary_md` resolve a collision
+    // through the SAME shared authority (`dir_winners` in `mdbook.rs`); if either
+    // producer ever reverted to an independently-dedup'd pick of its own, a
+    // collision could make the ToC label and the shipped chapter body disagree —
+    // this loop catches that against the real model's ~160 live collisions.
+    let mut checked_collisions = 0usize;
+    for (target, label) in &seen {
+        let dir = target.trim_end_matches("/index.md");
+        if !colliding_dirs.contains(dir) {
+            continue;
+        }
+        checked_collisions += 1;
+        let key = format!("src/{target}");
+        let body = site.files.get(&key).expect("checked to exist above");
+        let body = std::str::from_utf8(body).expect("chapter is UTF-8");
+        let title = body
+            .lines()
+            .next()
+            .and_then(|h1| h1.strip_prefix("# "))
+            .unwrap_or_else(|| panic!("colliding chapter {key} does not open with an H1"));
+        // The label is the page's `title()` (a CURIE for terms, e.g. `gmeow:Foo`);
+        // the body's H1 is the term's label (falling back to its CURIE). Compare
+        // case/space-insensitively on the local-name so a term CURIE label
+        // (`gmeow:AcceptanceStatus`) is recognized as naming the same term as its
+        // rendered title ("Acceptance Status").
+        let normalize = |s: &str| {
+            s.rsplit(':')
+                .next()
+                .unwrap_or(s)
+                .chars()
+                .filter(|c| c.is_alphanumeric())
+                .collect::<String>()
+                .to_lowercase()
+        };
+        let (norm_label, norm_title) = (normalize(label), normalize(title));
+        assert!(
+            norm_label == norm_title
+                || norm_label.contains(&norm_title)
+                || norm_title.contains(&norm_label),
+            "SUMMARY.md labels colliding chapter {target:?} as {label:?} but the shipped chapter \
+             body's title is {title:?} — the ToC and the shipped page name different terms"
+        );
+    }
+    assert_eq!(
+        checked_collisions,
+        colliding_dirs.len(),
+        "every colliding dir must be named exactly once in SUMMARY.md"
+    );
 }
 
 #[test]
