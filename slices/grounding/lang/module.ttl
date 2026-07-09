@@ -820,7 +820,7 @@ lang:LangConformanceFailure
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Lang Conformance Failure"@x-gmeow-english ;
-    skos:definition "The parent of the lang: well-formedness failure vocabulary: a violation is itself a typed, queryable object rather than a log line. Each subclass names one hard rule of the form AST, and the SHACL shape enforcing that rule points at its failure class through lang:enforcesFailureClass. Conformance enforces well-formedness, never linguistic truth."@x-gmeow-english ;
+    skos:definition "The parent of the lang: well-formedness failure vocabulary: a violation is itself a typed, queryable object rather than a log line. Each subclass names one hard rule of the form AST, and the SHACL shape enforcing that rule points at its failure class through gmeow:enforcesFailureClass. Conformance enforces well-formedness, never linguistic truth."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 lang:UnsituatedForm

@@ -445,7 +445,7 @@ math:MathConformanceFailure
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Math Conformance Failure"@x-gmeow-english ;
-    skos:definition "The parent of the math: well-formedness failure vocabulary: a violation is itself a typed, queryable object rather than a log line. Each subclass names one bedrock hard rule, and the SHACL shape enforcing that rule points at its failure class through math:enforcesFailureClass. Conformance enforces well-formedness and preservation, never mathematical or empirical truth."@x-gmeow-english ;
+    skos:definition "The parent of the math: well-formedness failure vocabulary: a violation is itself a typed, queryable object rather than a log line. Each subclass names one bedrock hard rule, and the SHACL shape enforcing that rule points at its failure class through gmeow:enforcesFailureClass. Conformance enforces well-formedness and preservation, never mathematical or empirical truth."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:UnsituatedNumber

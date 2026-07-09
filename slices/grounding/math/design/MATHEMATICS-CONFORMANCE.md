@@ -288,24 +288,25 @@ aspiration.
 ### Flagship acceptance-manifest rules
 
 The layer's five flagship acceptance scenarios (the depth bar of [`MATHEMATICS.md`](MATHEMATICS.md))
-are themselves a typed, gated object, not prose. Each is reified as a `math:FlagshipScenario`
-(authored in `examples/flagship-acceptance.ttl`) binding the scenario to the four artifacts that
-realize and enforce it: its worked example (`math:demonstratedByExample`), its competency question
-(`math:demonstratedByCompetency`), its guarding counter-example (`math:guardedByCounterExample`),
-and the named failure class its gate raises (the reused `math:enforcesFailureClass`). The acceptance
-bar is thereby a contract — a scenario that does not wire all four to a real conformance failure is
-`math:UnwiredFlagshipScenario`.
+are themselves a typed, gated object, not prose. Each is reified as a `gmeow:FlagshipScenario`
+(authored in `examples/flagship-acceptance.ttl`) binding the scenario to the five artifacts that
+realize and enforce it: its worked example (`gmeow:demonstratedByExample`), its competency question
+(`gmeow:demonstratedByCompetency`), the native producer that emits it (`gmeow:demonstratedByProducer`),
+its guarding counter-example (`gmeow:guardedByCounterExample`), and the named failure class its gate
+raises (the shared `gmeow:enforcesFailureClass`). The acceptance bar is thereby a contract — a scenario
+that does not wire all five to a real conformance failure is `math:UnwiredFlagshipScenario`.
 
 | Rule | Primary gate | Failure class |
 |---|---|---|
-| A `math:FlagshipScenario` binds its example, competency, counter-example, and a failure class that IS a `math:MathConformanceFailure` subclass | SHACL Core + SHACL-SPARQL | `math:UnwiredFlagshipScenario` |
+| A `gmeow:FlagshipScenario` binds its example, competency, producer, counter-example, and a failure class that IS a `math:MathConformanceFailure` subclass | shared `gmeow:FlagshipScenarioShape` (SHACL Core) + thin `math:FlagshipScenarioShape` (SHACL-SPARQL) | `math:UnwiredFlagshipScenario` |
 | The five canonical flagship scenarios are all present and fully wired | structural (`ex:saFlagshipCoverage`) | (structural assertion) |
 | Each flagship's competency reference resolves to a registered green (`cqExpectRow`) competency question with an existing query file, and its example/counter-example files exist | Rust cross-check (`crates/slicetest` `flagship_manifest`) | (native test) |
+| Each counter-example raises exactly its failure class, each worked example is clean, and each named producer runs to its pinned output | execution-discharge harness (`crates/pipeline/tests/math_flagship_discharge.rs`) | (native test) |
 
 The competency cross-check is a **native** gate for the same dataset-split reason the unliftable-ingest
 rule is: the `gmeow:CompetencyQuestion` individuals live in `tests/competency.ttl`, which the
 module/examples-scoped SHACL and structural validators never load, so the reference from a
-`math:FlagshipScenario` into that dataset can only be resolved — and its `cqExpectRow` greenness
+`gmeow:FlagshipScenario` into that dataset can only be resolved — and its `cqExpectRow` greenness
 confirmed — by a validator that unions the two. The three surfaces together make the epic's depth bar
 regression-proof: drop a scenario, unwire a link, or point at an unregistered competency question, and
 one of the three gates fails.
