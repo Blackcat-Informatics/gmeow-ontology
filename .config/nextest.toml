@@ -59,6 +59,16 @@
 #     fixture-only conformance_* domain tests stay on-gate against the same full
 #     shape corpus, and the whole-ontology-union path stays covered on maint-heavy
 #     alongside imported_graph_conforms_to_shapes.
+#   - gmeow-validate conformance_math_producers: ~20 s per test in CI. Each of the
+#     five tests validates a native math-flagship producer's emitted graph, merged
+#     with the WHOLE base ontology, against the ENTIRE shape corpus via
+#     validate_with_ontology() — the identical whole-ontology-union cost as the four
+#     domain conformance binaries above, so it joins the same off-gate group. No
+#     coverage leaves the per-commit gate: the five producers' pinned falsifiable
+#     values are still RUN and asserted on-gate by
+#     crates/pipeline/tests/math_flagship_discharge.rs (which executes each producer),
+#     and this binary is the extra cross-crate proof that the producer output also
+#     validates SHACL-clean — reevaluated on maint-heavy.
 #   - gmeow-logic whole_bundle_coherence_gate_catches_injected_clash:
 #     ~570 s locally; it imports the WHOLE committed `gmeow.gts` bundle and drives
 #     the native Nemo chase over it twice (once benign, once with an injected
@@ -153,7 +163,7 @@ default-filter = '''
     | (package(gmeow-pipeline) & binary(fanout_parity))
     | (package(gmeow-pipeline) & test(/stages::superset::tests::project_bundle_reconstructs_the_committed_tree_and_gate_is_clean/))
     | (package(gmeow-foundation-corpus) & test(/imported_graph_conforms_to_shapes/))
-    | (package(gmeow-validate) & (binary(conformance_finance) | binary(conformance_agentic) | binary(conformance_ai_claims) | binary(conformance_music_analysis)))
+    | (package(gmeow-validate) & (binary(conformance_finance) | binary(conformance_agentic) | binary(conformance_ai_claims) | binary(conformance_music_analysis) | binary(conformance_math_producers)))
     | (package(gmeow-dev-cli) & binary(cli_parity) & (test(build_writes_serializations) | test(project_view_over_the_snapshot)))
     | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter) | test(project_unknown_view_fails) | test(describe_env_language_rejected_if_unknown)))
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(rendered_tree_is_disk_faithful))

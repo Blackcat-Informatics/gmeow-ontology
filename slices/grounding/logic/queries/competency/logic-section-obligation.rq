@@ -1,0 +1,11 @@
+# Competency question (correspondenceSection flagship): "Which section obligation
+# does the accepted correspondence round-trip discharge?"  Over the worked witness
+# the answer is exactly the obligation the executed put ∘ get = identity round-trip
+# discharges; dropping logic:dischargesSectionObligation empties the result.
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?obligation WHERE {
+    ?w a logic:SectionAcceptanceWitness ;
+       logic:dischargesSectionObligation ?obligation .
+}
+ORDER BY ?obligation

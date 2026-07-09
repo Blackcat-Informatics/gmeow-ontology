@@ -15,7 +15,7 @@ fn repo_root() -> PathBuf {
 }
 
 #[test]
-fn scores_the_rubric_slice_across_all_ten_axes() {
+fn scores_the_rubric_slice_across_all_eleven_axes() {
     let root = repo_root();
     let dir = root.join("slices/core/slice-quality-rubric");
     let report = score_slice(&root, &dir).expect("the rubric slice scores");

@@ -1,0 +1,11 @@
+# Competency question (chaseTerminationCertificate flagship): "What termination
+# certificate does the accepted chase carry?"  Over the worked witness the answer is
+# exactly the weak-acyclicity certificate evidence the native materialize_routed
+# surfaces; dropping logic:carriesTerminationCertificate empties the result.
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?certificate WHERE {
+    ?w a logic:ChaseAcceptanceWitness ;
+       logic:carriesTerminationCertificate ?certificate .
+}
+ORDER BY ?certificate

@@ -355,6 +355,11 @@ enum AxisThresholdEnum {
   thrDocumentationGrounded
   thrDocumentationLinked
   thrDocumentationMaximal
+  thrFlagshipDepthExemplified
+  thrFlagshipDepthGrounded
+  thrFlagshipDepthLinked
+  thrFlagshipDepthMaximal
+  thrFlagshipDepthRegistered
   thrGroundingExemplified
   thrGroundingGrounded
   thrGroundingLinked
@@ -2268,6 +2273,7 @@ enum PipelineStageEnum {
   stage_gts_compose
   stage_gts_sink
   stage_mappings
+  stage_math_producers
   stage_reason
   stage_snapshot
   stage_source_load
@@ -2592,6 +2598,7 @@ enum PronounSetEnum {
 
 enum QualityAxisEnum {
   axisDocumentation
+  axisFlagshipCounterExampleDepth
   axisMaximalGrounding
   axisMaximalInformation
   axisMaximalLinkage
@@ -2606,6 +2613,7 @@ enum QualityAxisEnum {
 
 enum QualityDimensionEnum {
   qualityDimensionCompleteness
+  qualityDimensionCounterExampleDepth
   qualityDimensionDocumentation
   qualityDimensionGrounding
   qualityDimensionInferentialDensity

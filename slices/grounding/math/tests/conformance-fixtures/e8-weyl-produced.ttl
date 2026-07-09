@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The e8Symmetry flagship's worked example: the exact output of the native producer
+# math::producers::e8_weyl_order (dogfooded — the worked example IS what the producer emits;
+# the math flagship discharge harness asserts this fixture is graph-isomorphic to the
+# producer's Turtle, so neither can silently drift). A math:RootSystem carrying the E8
+# fingerprint (240 roots in rank 8) whose math:weylGroup, modelled as the automorphism group
+# preserving the root system, declares the true order of W(E8) = 696,729,600. Conforms to
+# math:E8WeylOrderShape (the value gate), math:RootSystemShape, math:AutomorphismGroupShape,
+# and math:AlgebraicStructureShape. Bound by ex:ecE8WeylProduced.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix mprod:     <https://blackcatinformatics.ca/gmeow/examples/math/producers/> .
+
+# Flagship 1 — the E8 root system and its Weyl (automorphism) group.
+mprod:e8Roots a math:RootSystem ;
+    math:rootSystemRank 8 ;
+    math:rootCount 240 ;
+    math:cartanMatrix mprod:e8Cartan ;
+    math:weylGroup mprod:e8Weyl .
+
+mprod:e8Cartan a math:CartanMatrix .
+
+mprod:e8Weyl a math:WeylGroup ;
+    math:automorphismGroupOf mprod:e8Roots ;
+    math:underlyingSet mprod:e8Reflections ;
+    math:structureOperation mprod:reflectionComposition ;
+    math:satisfiesAxiom mprod:e8Associativity ;
+    math:groupOrder 696729600 .
+
+mprod:e8Reflections a math:Set .
+mprod:reflectionComposition a math:Operation .
+mprod:e8Associativity a math:Axiom .

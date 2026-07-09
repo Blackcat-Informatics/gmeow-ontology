@@ -1,17 +1,20 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Well-formed: a math:FlagshipScenario binding all four realizing/enforcing artifacts —
-# a worked example, a competency question, a counter-example, and an enforcing failure
-# class that IS a math:MathConformanceFailure subclass (math:WrongE8WeylOrder, resolved
-# against module.ttl). Conforms to math:FlagshipScenarioShape (all four cardinalities
-# and the sh:sparql subclass check) and validates with no findings.
+# Well-formed: a gmeow:FlagshipScenario binding all realizing/enforcing artifacts —
+# a worked example, a competency question, a producer, a counter-example, and an enforcing
+# failure class that IS a math:MathConformanceFailure subclass (math:WrongE8WeylOrder,
+# resolved against module.ttl). Passes the math: slice's thin math:FlagshipScenarioShape
+# (its failure-range sh:sparql) and the shared gmeow:FlagshipScenarioShape's cardinalities,
+# so it validates with no findings.
 # Bound by ex:ecFlagshipCanonical.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .
 
-ex:wiredScenario a math:FlagshipScenario ;
-    math:demonstratedByExample "examples/e8-symmetry.ttl" ;
-    math:demonstratedByCompetency <https://blackcatinformatics.ca/gmeow/examples/math/tests/cqE8RootSystem> ;
-    math:guardedByCounterExample "tests/counter-examples/e8-wrong-weyl-order.ttl" ;
-    math:enforcesFailureClass math:WrongE8WeylOrder .
+ex:wiredScenario a gmeow:FlagshipScenario ;
+    gmeow:demonstratedByExample "examples/e8-symmetry.ttl" ;
+    gmeow:demonstratedByCompetency <https://blackcatinformatics.ca/gmeow/examples/math/tests/cqE8RootSystem> ;
+    gmeow:demonstratedByProducer "math::producers::e8_weyl_order" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/e8-wrong-weyl-order.ttl" ;
+    gmeow:enforcesFailureClass math:WrongE8WeylOrder .

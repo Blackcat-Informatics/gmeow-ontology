@@ -1,0 +1,68 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The aiSelfStructure flagship's worked example: the exact output of the native producer
+# math::producers::exact_pca_residual (dogfooded — the worked example IS what the producer
+# emits; the math flagship discharge harness asserts this fixture is graph-isomorphic to the
+# producer's Turtle, so neither can silently drift). An AI's residual PCA: a math:PCAAnalysis
+# declaring its input, centering/scaling policy, the math:CovarianceOperator it decomposes
+# (framed with domain/codomain as a math:Set), its exact-LDLᵀ eigensolver, and its full
+# outputs — components, loadings, scores, explained variance, and residual — together with the
+# exact-rational math:GramMatrix G = [[4,1,0],[1,3,1],[0,1,2]] it decomposes (symmetric,
+# positive-definite). Conforms to math:PCAAnalysisShape and math:GramMatrixShape and is clean
+# under the native math: lints. Bound by ex:ecPCAResidualLifted.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix mprod:     <https://blackcatinformatics.ca/gmeow/examples/math/producers/> .
+
+# Flagship 5 — an AI's residual PCA, its dominant axis and LDLᵀ pivots exact.
+mprod:residualPCA a math:PCAAnalysis ;
+    math:analysisInput mprod:residualSubspace ;
+    math:centeringPolicy math:meanCentered ;
+    math:scalingPolicy math:unitVariance ;
+    math:covarianceOperator mprod:residualCovariance ;
+    math:eigensolver mprod:exactLDLT ;
+    math:principalComponent mprod:pc1 ;
+    math:loadingVector mprod:pc1Loadings ;
+    math:scoreVector mprod:sampleScores ;
+    math:explainedVarianceRatio mprod:pc1Variance ;
+    math:residualSubspace mprod:pcaResidual .
+
+mprod:residualSubspace a math:MathematicalObject .
+mprod:residualCovariance a math:CovarianceOperator ;
+    math:domain mprod:covSpace ;
+    math:codomain mprod:covSpace .
+mprod:covSpace a math:Set .
+mprod:exactLDLT a math:MathematicalObject .
+mprod:pc1 a math:PrincipalComponent .
+mprod:pc1Loadings a math:LoadingVector .
+mprod:sampleScores a math:ScoreVector .
+mprod:pc1Variance a math:ExplainedVariance .
+mprod:pcaResidual a math:ProjectionResidual .
+
+# The exact-rational Gram (covariance) matrix the PCA decomposes.
+mprod:covForm a math:SymmetricBilinearForm ;
+    math:definiteness math:positiveDefinite .
+mprod:covBasis a math:Basis .
+mprod:pcaGram a math:GramMatrix ;
+    math:representsForm mprod:covForm ;
+    math:inBasis mprod:covBasis ;
+    math:definiteness math:positiveDefinite ;
+    math:hasEntry mprod:g00 , mprod:g01 , mprod:g02 , mprod:g10 , mprod:g11 , mprod:g12 , mprod:g20 , mprod:g21 , mprod:g22 .
+
+mprod:g00 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 0 ; math:entryValue mprod:rat4 .
+mprod:g01 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 1 ; math:entryValue mprod:rat1 .
+mprod:g02 a math:MatrixEntry ; math:atRow 0 ; math:atColumn 2 ; math:entryValue mprod:rat0 .
+mprod:g10 a math:MatrixEntry ; math:atRow 1 ; math:atColumn 0 ; math:entryValue mprod:rat1 .
+mprod:g11 a math:MatrixEntry ; math:atRow 1 ; math:atColumn 1 ; math:entryValue mprod:rat3 .
+mprod:g12 a math:MatrixEntry ; math:atRow 1 ; math:atColumn 2 ; math:entryValue mprod:rat1 .
+mprod:g20 a math:MatrixEntry ; math:atRow 2 ; math:atColumn 0 ; math:entryValue mprod:rat0 .
+mprod:g21 a math:MatrixEntry ; math:atRow 2 ; math:atColumn 1 ; math:entryValue mprod:rat1 .
+mprod:g22 a math:MatrixEntry ; math:atRow 2 ; math:atColumn 2 ; math:entryValue mprod:rat2 .
+
+mprod:rat0 a math:RationalValue ; math:numerator 0 ; math:denominator 1 .
+mprod:rat1 a math:RationalValue ; math:numerator 1 ; math:denominator 1 .
+mprod:rat2 a math:RationalValue ; math:numerator 2 ; math:denominator 1 .
+mprod:rat3 a math:RationalValue ; math:numerator 3 ; math:denominator 1 .
+mprod:rat4 a math:RationalValue ; math:numerator 4 ; math:denominator 1 .

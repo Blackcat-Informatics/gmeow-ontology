@@ -24,6 +24,8 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix fx:    <http://example.org/logic/> .
 
 ex:cqNamedParametricPaths a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/logic/queries/competency/named-parametric-paths.rq" ;
@@ -623,3 +625,104 @@ ex:rowConjectureRefinementSurvivesWitness a gmeow:ExpectedRow ;
         [ a gmeow:ExpectedCell ; gmeow:cellVar "successor" ; gmeow:cellValueIri ex:cxRefinePartialParthood ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "predecessor" ; gmeow:cellValueIri ex:cxRefineTotalParthood ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "witness" ; gmeow:cellValueIri ex:cxRefineWitnessIncomparablePair ] .
+
+# =========================================================================== #
+# Flagship acceptance — the five scenario-pinning competency questions.
+#
+# Each of the five flagship acceptance scenarios is pinned by a competency question
+# that queries its worked acceptance-witness fixture (gmeow:cqDataFile) and pins the
+# single carrier value the native producer's structure certifies. These are the
+# green competency gates the flagship manifest's gmeow:demonstratedByCompetency
+# resolves to; the execution-discharge harness runs each producer and pins the same
+# datum from the native side.
+# =========================================================================== #
+
+# --- CQ 1 — the closure entails an atom beyond its EDB --------------------- #
+ex:cqLogicClosure a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/logic-closure-entails-atom.rq" ;
+    gmeow:cqDataFile  "tests/conformance-fixtures/closure-witness-complete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The elRlDlClosure flagship pinned: over the worked witness the closure names exactly the entailed atom `A subClassOf C` — the transitive subClassOf the native reason_all closure derives beyond the asserted EDB. Dropping logic:closureEntailedAtom empties the result." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqLogicClosureShape ;
+    gmeow:cqExpectRow ex:rowLogicClosure .
+
+ex:cqLogicClosureShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "atom" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowLogicClosure a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "atom" ; gmeow:cellValueLiteral "A subClassOf C" ] .
+
+# --- CQ 2 — the correspondence discharges its section obligation ----------- #
+ex:cqLogicSection a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/logic-section-obligation.rq" ;
+    gmeow:cqDataFile  "tests/conformance-fixtures/section-witness-complete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The correspondenceSection flagship pinned: over the worked witness the accepted round-trip discharges exactly the obligation fx:sectionObligationRoundTrip — the section law leg_pair_verdict certifies as ObligationDischarged. Dropping logic:dischargesSectionObligation empties the result." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqLogicSectionShape ;
+    gmeow:cqExpectRow ex:rowLogicSection .
+
+ex:cqLogicSectionShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "obligation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowLogicSection a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "obligation" ; gmeow:cellValueIri fx:sectionObligationRoundTrip ] .
+
+# --- CQ 3 — the counterfactual selects its entrenchment-ranked outcome ----- #
+ex:cqLogicCounterfactual a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/logic-counterfactual-selection.rq" ;
+    gmeow:cqDataFile  "tests/conformance-fixtures/counterfactual-witness-complete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The counterfactualStratumC flagship pinned: over the worked witness the resolved counterfactual selects exactly fx:outcomeAlertFired — the deterministic entrenchment-ranked outcome construct_and_resolve yields. Dropping logic:selectedByEntrenchment empties the result." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqLogicCounterfactualShape ;
+    gmeow:cqExpectRow ex:rowLogicCounterfactual .
+
+ex:cqLogicCounterfactualShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "outcome" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowLogicCounterfactual a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "outcome" ; gmeow:cellValueIri fx:outcomeAlertFired ] .
+
+# --- CQ 4 — the refutation names its contradiction witness ----------------- #
+ex:cqLogicConjecture a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/logic-refutation-witness.rq" ;
+    gmeow:cqDataFile  "tests/conformance-fixtures/refutation-witness-complete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The symmetricConjecture flagship pinned: over the worked witness the accepted refutation names exactly the contradiction witness fx:contradictionWitnessAB — the concrete witness conjecture_test returns as Some(_) on a refutation. Dropping logic:namesContradictionWitness empties the result." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqLogicConjectureShape ;
+    gmeow:cqExpectRow ex:rowLogicConjecture .
+
+ex:cqLogicConjectureShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "witness" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowLogicConjecture a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "witness" ; gmeow:cellValueIri fx:contradictionWitnessAB ] .
+
+# --- CQ 5 — the chase carries its termination certificate ------------------ #
+ex:cqLogicChase a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/logic/queries/competency/logic-chase-certificate.rq" ;
+    gmeow:cqDataFile  "tests/conformance-fixtures/chase-witness-complete.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The chaseTerminationCertificate flagship pinned: over the worked witness the accepted chase carries exactly the weak-acyclicity certificate evidence `weakly acyclic: none in a cycle` — the ChaseAdmission::WeaklyAcyclic evidence materialize_routed surfaces as a gmeow:Finding. Dropping logic:carriesTerminationCertificate empties the result." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqLogicChaseShape ;
+    gmeow:cqExpectRow ex:rowLogicChase .
+
+ex:cqLogicChaseShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "certificate" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowLogicChase a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "certificate" ; gmeow:cellValueLiteral "weakly acyclic: none in a cycle" ] .

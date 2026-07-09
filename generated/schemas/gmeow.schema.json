@@ -10362,6 +10362,116 @@
       },
       "type": "object"
     },
+    "FlagshipScenario": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:demonstratedByCompetency": {
+          "properties": {
+            "@id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
+        },
+        "gmeow:demonstratedByExample": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "gmeow:demonstratedByProducer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "gmeow:enforcesFailureClass": {
+          "properties": {
+            "@id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
+        },
+        "gmeow:guardedByCounterExample": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "required": [
+        "gmeow:demonstratedByCompetency",
+        "gmeow:demonstratedByExample",
+        "gmeow:demonstratedByProducer",
+        "gmeow:enforcesFailureClass",
+        "gmeow:guardedByCounterExample"
+      ],
+      "type": "object"
+    },
     "GTSDocument": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
@@ -22151,6 +22261,31 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "gmeow:FlagshipScenario"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:FlagshipScenario"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/FlagshipScenario"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "gmeow:GTSDocument"
                   },
                   {
@@ -27226,31 +27361,6 @@
               "@type": {
                 "anyOf": [
                   {
-                    "const": "lang:FlagshipScenario"
-                  },
-                  {
-                    "contains": {
-                      "const": "lang:FlagshipScenario"
-                    },
-                    "type": "array"
-                  }
-                ]
-              }
-            },
-            "required": [
-              "@type"
-            ]
-          },
-          "then": {
-            "$ref": "#/$defs/lang:FlagshipScenario"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "@type": {
-                "anyOf": [
-                  {
                     "const": "lang:Form"
                   },
                   {
@@ -27626,6 +27736,56 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "logic:ChaseAcceptanceWitness"
+                  },
+                  {
+                    "contains": {
+                      "const": "logic:ChaseAcceptanceWitness"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/logic:ChaseAcceptanceWitness"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "logic:ClosureAcceptanceWitness"
+                  },
+                  {
+                    "contains": {
+                      "const": "logic:ClosureAcceptanceWitness"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/logic:ClosureAcceptanceWitness"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "logic:Conjecture"
                   },
                   {
@@ -27668,6 +27828,31 @@
           },
           "then": {
             "$ref": "#/$defs/logic:ContradictionWitness"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "logic:CounterfactualAcceptanceWitness"
+                  },
+                  {
+                    "contains": {
+                      "const": "logic:CounterfactualAcceptanceWitness"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/logic:CounterfactualAcceptanceWitness"
           }
         },
         {
@@ -27843,6 +28028,56 @@
           },
           "then": {
             "$ref": "#/$defs/logic:Plan"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "logic:RefutationAcceptanceWitness"
+                  },
+                  {
+                    "contains": {
+                      "const": "logic:RefutationAcceptanceWitness"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/logic:RefutationAcceptanceWitness"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "logic:SectionAcceptanceWitness"
+                  },
+                  {
+                    "contains": {
+                      "const": "logic:SectionAcceptanceWitness"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/logic:SectionAcceptanceWitness"
           }
         },
         {
@@ -28293,31 +28528,6 @@
           },
           "then": {
             "$ref": "#/$defs/math:FittedModel"
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "@type": {
-                "anyOf": [
-                  {
-                    "const": "math:FlagshipScenario"
-                  },
-                  {
-                    "contains": {
-                      "const": "math:FlagshipScenario"
-                    },
-                    "type": "array"
-                  }
-                ]
-              }
-            },
-            "required": [
-              "@type"
-            ]
-          },
-          "then": {
-            "$ref": "#/$defs/math:FlagshipScenario"
           }
         },
         {
@@ -42922,116 +43132,6 @@
       },
       "type": "object"
     },
-    "lang:FlagshipScenario": {
-      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
-      "properties": {
-        "@annotation": {
-          "$ref": "#/$defs/Annotation"
-        },
-        "@id": {
-          "type": "string"
-        },
-        "@type": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          ]
-        },
-        "lang:demonstratedByCompetency": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
-        },
-        "lang:demonstratedByExample": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
-                  "type": "string"
-                },
-                "@value": {}
-              },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
-            }
-          ]
-        },
-        "lang:demonstratedByProducer": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
-                  "type": "string"
-                },
-                "@value": {}
-              },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
-            }
-          ]
-        },
-        "lang:enforcesFailureClass": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
-        },
-        "lang:guardedByCounterExample": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
-                  "type": "string"
-                },
-                "@value": {}
-              },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
-            }
-          ]
-        }
-      },
-      "required": [
-        "lang:demonstratedByCompetency",
-        "lang:demonstratedByExample",
-        "lang:enforcesFailureClass",
-        "lang:guardedByCounterExample"
-      ],
-      "type": "object"
-    },
     "lang:Form": {
       "properties": {
         "@annotation": {
@@ -43871,6 +43971,152 @@
       ],
       "type": "object"
     },
+    "logic:ChaseAcceptanceWitness": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "logic:carriesTerminationCertificate": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "logic:carriesTerminationCertificate"
+      ],
+      "type": "object"
+    },
+    "logic:ClosureAcceptanceWitness": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "logic:closureEntailedAtom": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "logic:closureEntailedAtom"
+      ],
+      "type": "object"
+    },
     "logic:Conjecture": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
@@ -44080,6 +44326,63 @@
         "logic:witnessIndividual",
         "logic:witnessPremise",
         "logic:witnessWorld"
+      ],
+      "type": "object"
+    },
+    "logic:CounterfactualAcceptanceWitness": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "logic:selectedByEntrenchment": {
+          "anyOf": [
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "logic:selectedByEntrenchment"
       ],
       "type": "object"
     },
@@ -44793,6 +45096,120 @@
       "required": [
         "logic:planGoal",
         "logic:planSuccessMode"
+      ],
+      "type": "object"
+    },
+    "logic:RefutationAcceptanceWitness": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "logic:namesContradictionWitness": {
+          "anyOf": [
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "logic:namesContradictionWitness"
+      ],
+      "type": "object"
+    },
+    "logic:SectionAcceptanceWitness": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "logic:dischargesSectionObligation": {
+          "anyOf": [
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "logic:dischargesSectionObligation"
       ],
       "type": "object"
     },
@@ -45813,97 +46230,6 @@
       "required": [
         "math:fittedToData",
         "math:modelFormula"
-      ],
-      "type": "object"
-    },
-    "math:FlagshipScenario": {
-      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
-      "properties": {
-        "@annotation": {
-          "$ref": "#/$defs/Annotation"
-        },
-        "@id": {
-          "type": "string"
-        },
-        "@type": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "items": {
-                "type": "string"
-              },
-              "type": "array"
-            }
-          ]
-        },
-        "math:demonstratedByCompetency": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
-        },
-        "math:demonstratedByExample": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
-                  "type": "string"
-                },
-                "@value": {}
-              },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
-            }
-          ]
-        },
-        "math:enforcesFailureClass": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
-        },
-        "math:guardedByCounterExample": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
-                  "type": "string"
-                },
-                "@value": {}
-              },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
-            }
-          ]
-        }
-      },
-      "required": [
-        "math:demonstratedByCompetency",
-        "math:demonstratedByExample",
-        "math:enforcesFailureClass",
-        "math:guardedByCounterExample"
       ],
       "type": "object"
     },

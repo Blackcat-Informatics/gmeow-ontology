@@ -391,6 +391,25 @@ where the competency question tests open-world entailment, the validation case t
 constraint detection. A slice that ships a shape without both witnesses is incomplete; the
 conformance runner reports the gap.
 
+**Counter-example depth — the reasoner-driven target.** A flagship acceptance scenario pairs its
+worked example with a *guarding counter-example*: the minimal malformed input that must raise the
+scenario's named conformance-failure class. Today that guard-bites leg is discharged by a
+**structural / SHACL well-formedness proxy** — the counter-example trips a shape (a `sh:minCount`, a
+`sh:sparql`) that stands in for the failure, so a closure-acceptance witness naming zero entailed
+atoms fails a `minCount` shape and is read as `logic:IncompleteClosure`, without the reasoner ever
+being run over the malformed ontology to observe the missing entailment. The structural proxy is the
+floor, not the ceiling. The **depth target** is a *reasoner-driven* counter-example: the native
+solver (Principle 18) is run over the malformed input and the failure is observed as a *missing or
+failed entailment at reasoning-runtime* — the closure genuinely fails to derive the atom the scenario
+demands — rather than a shape standing in for that absence. Because the canonical judgment lives in
+`logic:` and the SHACL negative space is only its lossy projection (Principle 17), a counter-example
+that bites only at the projection surface leaves the negative space unproven in the core. Raising each
+flagship counter-example from a structural proxy to a reasoner-driven one is the standing improvement
+expectation for slice-quality work on this and every grounding slice — a depth bar to climb, not a
+defect log; the slice-quality rubric carries an advisory axis measuring the fraction already
+reasoner-driven, and each flagship scenario records its counter-example's discharge honestly, so the
+remaining gap is surfaced rather than hidden.
+
 Together these three kinds of slice-resident data mean that a slice is **self-contained with respect
 to its own correctness claims**. Importing a slice and passing its structural assertions, competency
 questions, and validation cases is the definition of "this slice works in your implementation."
