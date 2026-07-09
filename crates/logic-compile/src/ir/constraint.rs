@@ -21,8 +21,18 @@
 //! `logic:formalizes` *annotation* property (which carries "no DL or EL profile weight"), so
 //! it is likewise annotation-level and excluded from the content key.
 
+use gmeow_errors::Diag;
+
 use super::validation::{ShaclSeverity, ShapeTarget};
 use super::{Formula, SEP, Term};
+
+/// Build an IR-grade [`Diag`] (the sole first-party error type — the Phase-6 Diag substrate)
+/// for a malformed procedural constraint.
+fn ir_err(detail: impl Into<String>) -> Diag {
+    Diag::of_kind(crate::error::Ir {
+        detail: detail.into(),
+    })
+}
 
 /// The `rdf:type` IRI — the relation of a class-membership guard atom `rdf:type(this, C)`.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -160,23 +170,25 @@ impl AggregateComparison {
         path: impl Into<String>,
         comparator: AggregateComparator,
         compare_to: AggregateRhs,
-    ) -> Result<Self, String> {
+    ) -> gmeow_errors::Result<Self> {
         let function = function.into().to_ascii_uppercase();
         if !matches!(function.as_str(), "COUNT" | "SUM" | "MIN" | "MAX") {
-            return Err(format!(
+            return Err(ir_err(format!(
                 "AggregateComparison.function '{function}' must be one of COUNT/SUM/MIN/MAX"
-            ));
+            )));
         }
         let path = path.into();
         if path.trim().is_empty() {
-            return Err("AggregateComparison.path must be a non-empty predicate IRI".to_owned());
+            return Err(ir_err(
+                "AggregateComparison.path must be a non-empty predicate IRI",
+            ));
         }
         if let AggregateRhs::Property(p) = &compare_to
             && p.trim().is_empty()
         {
-            return Err(
-                "AggregateComparison.compare_to property must be a non-empty IRI".to_owned(),
-            );
+            return Err(ir_err(
+                "AggregateComparison.compare_to property must be a non-empty IRI",
+            ));
         }
         Ok(Self {
             function,
@@ -255,19 +267,18 @@ impl ConstraintIr {
         integrity: Formula,
         severity: ShaclSeverity,
         message: Option<String>,
-    ) -> Result<Self, String> {
+    ) -> gmeow_errors::Result<Self> {
         let iri = iri.into();
         if iri.trim().is_empty() {
-            return Err("ConstraintIr.iri must be a non-empty IRI string".to_owned());
+            return Err(ir_err("ConstraintIr.iri must be a non-empty IRI string"));
         }
         if let Some(msg) = &message
             && msg.trim().is_empty()
         {
-            return Err(
+            return Err(ir_err(
                 "ConstraintIr.message must be a non-empty string when present; pass None to \
-                 leave it unset"
-                    .to_owned(),
-            );
+                 leave it unset",
+            ));
         }
         let target = target_from_integrity(&integrity)?;
         Ok(Self {
@@ -294,13 +305,12 @@ impl ConstraintIr {
     /// formalizes). Chainable; annotation-level, so it never perturbs the content key. A
     /// blank term is rejected (a required back-reference that says nothing is a determinism
     /// hazard, not a silent no-op).
-    pub fn with_formalizes(mut self, formalizes: impl Into<String>) -> Result<Self, String> {
+    pub fn with_formalizes(mut self, formalizes: impl Into<String>) -> gmeow_errors::Result<Self> {
         let formalizes = formalizes.into();
         if formalizes.trim().is_empty() {
-            return Err(
-                "ConstraintIr.with_formalizes: the formalized term must be a non-empty IRI"
-                    .to_owned(),
-            );
+            return Err(ir_err(
+                "ConstraintIr.with_formalizes: the formalized term must be a non-empty IRI",
+            ));
         }
         self.formalizes = Some(formalizes);
         Ok(self)
@@ -341,34 +351,34 @@ impl ConstraintIr {
 /// * `rdf:type(this, C)` ⇒ [`ShapeTarget::Class`] `C` (preferred when present),
 /// * `P(this, _)` ⇒ [`ShapeTarget::SubjectsOf`] `P`,
 /// * `P(_, this)` ⇒ [`ShapeTarget::ObjectsOf`] `P`.
-fn target_from_integrity(integrity: &Formula) -> Result<ShapeTarget, String> {
+fn target_from_integrity(integrity: &Formula) -> gmeow_errors::Result<ShapeTarget> {
     let Formula::Forall { vars, body } = integrity else {
-        return Err(
+        return Err(ir_err(
             "ConstraintIr integrity must be a range-restricted universal \
-             (∀ this. guard(this) → condition); the top node is not a ∀"
-                .to_owned(),
-        );
+             (∀ this. guard(this) → condition); the top node is not a ∀",
+        ));
     };
     let focus = vars.first().ok_or_else(|| {
-        "ConstraintIr integrity ∀ binds no focus variable; a range-restricted constraint needs \
-         a bound $this-analogue"
-            .to_owned()
+        ir_err(
+            "ConstraintIr integrity ∀ binds no focus variable; a range-restricted constraint needs \
+             a bound $this-analogue",
+        )
     })?;
     let Formula::Implies(antecedent, _consequent) = body.as_ref() else {
-        return Err("ConstraintIr integrity must be a guarded implication \
-             (∀ this. guard(this) → condition); the ∀ body is not a material implication"
-            .to_owned());
+        return Err(ir_err(
+            "ConstraintIr integrity must be a guarded implication \
+             (∀ this. guard(this) → condition); the ∀ body is not a material implication",
+        ));
     };
     // The guard is either a single atom or a conjunction of atoms; gather the atoms.
     let guard_atoms: Vec<&Formula> = match antecedent.as_ref() {
         atom @ Formula::Atom { .. } => vec![atom],
         Formula::And(fs) => fs.iter().collect(),
         _ => {
-            return Err(
+            return Err(ir_err(
                 "ConstraintIr integrity guard must be an atom or a conjunction of atoms that \
-                 range-restricts the focus variable"
-                    .to_owned(),
-            );
+                 range-restricts the focus variable",
+            ));
         }
     };
 
@@ -428,10 +438,10 @@ fn target_from_integrity(integrity: &Formula) -> Result<ShapeTarget, String> {
             return Ok(ShapeTarget::ObjectsOf(pred.clone()));
         }
     }
-    Err(format!(
+    Err(ir_err(format!(
         "ConstraintIr integrity guard does not range-restrict the focus variable '{focus}': no \
          guard atom is rdf:type(this, C) or a binary predicate over this"
-    ))
+    )))
 }
 
 #[cfg(test)]
@@ -758,7 +768,10 @@ ex:c7_atom a logic:Formula ;
         .unwrap();
         let err =
             ConstraintIr::new("https://ex/c", bare, ShaclSeverity::Violation, None).unwrap_err();
-        assert!(err.contains("range-restricted universal"), "got: {err}");
+        assert!(
+            err.message().contains("range-restricted universal"),
+            "got: {err}"
+        );
 
         // A ∀ whose body is not an implication (no guard) also fails.
         let unguarded = Formula::Forall {
@@ -773,7 +786,7 @@ ex:c7_atom a logic:Formula ;
         };
         let err = ConstraintIr::new("https://ex/c", unguarded, ShaclSeverity::Violation, None)
             .unwrap_err();
-        assert!(err.contains("guarded implication"), "got: {err}");
+        assert!(err.message().contains("guarded implication"), "got: {err}");
     }
 
     #[test]

@@ -78,11 +78,13 @@ const REP_CEILINGS: &[RepCeiling] = &[
         rep: REP_DOCS_PRINT,
         ceiling: 9_500_000,
     },
-    // measured 7_158_386 → ×1.15 ≈ 8_232_144 → pinned 8_500_000
+    // measured 10_698_488 → ×1.15 ≈ 12_303_261 → pinned 12_500_000
+    // (the procedural logic:Constraint records and their reasoning projections grow the
+    // canonical logic: layer)
     RepCeiling {
         name: "REP_REASONING",
         rep: REP_REASONING,
-        ceiling: 8_500_000,
+        ceiling: 12_500_000,
     },
     // measured 2_381_714 → ×1.15 ≈ 2_739_471 → pinned 2_800_000
     RepCeiling {

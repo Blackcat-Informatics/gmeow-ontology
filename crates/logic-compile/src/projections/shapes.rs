@@ -18,12 +18,23 @@
 //! closed shape form). [`shacl_residue`] enumerates those drops so the loss ledger records
 //! them; they are never dropped in silence.
 
+use gmeow_errors::Diag;
+
 use crate::ir::{
     AggregateComparison, AggregateRhs, ConstraintComponent, ConstraintIr, Formula, LogicProgram,
     PropertyConstraintIr, ShaclNodeKind, ShapeTarget, ShapeValue, Term, ValidationShapeIr,
 };
 
 use super::sparql_lower::{sparql_literal, sparql_predicate};
+
+/// Build a projection-grade [`Diag`] (the sole first-party error type — the Phase-6 Diag
+/// substrate) recording why a constraint's integrity exceeds the projectable SPARQL fragment.
+/// The message is surfaced in the loss-ledger residue, never dropped in silence.
+fn proj_err(detail: impl Into<String>) -> Diag {
+    Diag::of_kind(crate::error::Projection {
+        detail: detail.into(),
+    })
+}
 
 /// The `logic:` comparison / node-kind relations the procedural-constraint fragment lowers to a
 /// SPARQL `FILTER` rather than a triple pattern. A binary comparison filters two already-bound
@@ -855,7 +866,7 @@ fn procedural_shape_iri(c: &ConstraintIr) -> String {
 /// the SHACL pre-bound `$this`, any other variable keeps its `?name` form, an IRI is
 /// angle-bracketed, and a data literal is single-quoted (with an optional `^^<datatype>`).
 /// A sequence marker has no single-term SPARQL form and is refused (carried as residue).
-fn constraint_term(t: &Term, focus: &str) -> Result<String, String> {
+fn constraint_term(t: &Term, focus: &str) -> gmeow_errors::Result<String> {
     match t {
         Term::Var(n) if n == focus => Ok("$this".to_owned()),
         Term::Var(n) => Ok(format!("?{n}")),
@@ -867,9 +878,9 @@ fn constraint_term(t: &Term, focus: &str) -> Result<String, String> {
                 None => Ok(lit),
             }
         }
-        Term::SequenceMarker(n) => Err(format!(
+        Term::SequenceMarker(n) => Err(proj_err(format!(
             "sequence marker ...{n} has no single-term SPARQL triple form"
-        )),
+        ))),
     }
 }
 
@@ -918,7 +929,11 @@ fn unary_nodekind_exprs(pred: &str, x: &str) -> Option<(String, String)> {
 /// Returns `None` when the atom's relation is not a recognized filter relation (so the caller falls
 /// back to the triple-pattern lowering). This is the join-able unit the compound [`filter_expr`]
 /// combiner glues with `&&` / `||`, and the wrapped [`try_filter_atom`] presents as one `FILTER`.
-fn filter_atom_expr(f: &Formula, focus: &str, negate: bool) -> Option<Result<String, String>> {
+fn filter_atom_expr(
+    f: &Formula,
+    focus: &str,
+    negate: bool,
+) -> Option<gmeow_errors::Result<String>> {
     let Formula::Atom { relation, args } = f else {
         return None;
     };
@@ -927,10 +942,10 @@ fn filter_atom_expr(f: &Formula, focus: &str, negate: bool) -> Option<Result<Str
     };
     if let Some((pos, neg)) = binary_comparison_ops(pred) {
         if args.len() != 2 {
-            return Some(Err(format!(
+            return Some(Err(proj_err(format!(
                 "comparison relation <{pred}> has arity {}, a binary comparison needs two operands",
                 args.len()
-            )));
+            ))));
         }
         let op = if negate { neg } else { pos };
         let s = match constraint_term(&args[0], focus) {
@@ -946,10 +961,10 @@ fn filter_atom_expr(f: &Formula, focus: &str, negate: bool) -> Option<Result<Str
     // Value-set membership `termIn(x, m1, m2, …)` → `x IN (m1, …)` (negated: `NOT IN`).
     if pred == LOGIC_TERM_IN {
         if args.len() < 2 {
-            return Some(Err(format!(
+            return Some(Err(proj_err(format!(
                 "termIn has arity {}, it needs a tested term and at least one set member",
                 args.len()
-            )));
+            ))));
         }
         let x = match constraint_term(&args[0], focus) {
             Ok(x) => x,
@@ -968,19 +983,19 @@ fn filter_atom_expr(f: &Formula, focus: &str, negate: bool) -> Option<Result<Str
     // String tests `termStrStarts(x, "p")` / `termRegex(x, "p")` → `[!]STRSTARTS|REGEX(STR(x), 'p')`.
     if let Some(func) = string_test_func(pred) {
         if args.len() != 2 {
-            return Some(Err(format!(
+            return Some(Err(proj_err(format!(
                 "string relation <{pred}> has arity {}, it needs a tested term and a literal pattern",
                 args.len()
-            )));
+            ))));
         }
         let x = match constraint_term(&args[0], focus) {
             Ok(x) => x,
             Err(e) => return Some(Err(e)),
         };
         let Term::Literal { lexical, .. } = &args[1] else {
-            return Some(Err(format!(
+            return Some(Err(proj_err(format!(
                 "string relation <{pred}> argument 1 must be a literal pattern"
-            )));
+            ))));
         };
         let pat = sparql_literal(lexical);
         let expr = format!("{func}(STR({x}), {pat})");
@@ -1003,7 +1018,7 @@ fn filter_atom_expr(f: &Formula, focus: &str, negate: bool) -> Option<Result<Str
 /// Render a comparison / node-kind atom as a SPARQL `FILTER`, in POSITIVE (`negate = false`) or
 /// NEGATED (`negate = true`) form. Returns `None` when the atom's relation is not a recognized
 /// filter relation (so the caller falls back to the triple-pattern lowering).
-fn try_filter_atom(f: &Formula, focus: &str, negate: bool) -> Option<Result<String, String>> {
+fn try_filter_atom(f: &Formula, focus: &str, negate: bool) -> Option<gmeow_errors::Result<String>> {
     match filter_atom_expr(f, focus, negate)? {
         Ok(expr) => Some(Ok(format!("FILTER ( {expr} )"))),
         Err(e) => Some(Err(e)),
@@ -1019,14 +1034,14 @@ fn try_filter_atom(f: &Formula, focus: &str, negate: bool) -> Option<Result<Stri
 /// This is what lets a raw disjunction of bare filters (`?a < ?b ∨ ?c > ?d`) lower to one
 /// `FILTER ( ?a < ?b || ?c > ?d )` instead of `{ FILTER(?a<?b) } UNION { FILTER(?c>?d) }` — UNION
 /// arms that bind no focus and select nothing.
-fn filter_expr(f: &Formula, focus: &str, negate: bool) -> Option<Result<String, String>> {
+fn filter_expr(f: &Formula, focus: &str, negate: bool) -> Option<gmeow_errors::Result<String>> {
     // De Morgan: ∧ under ¬ becomes ∨ (and vice versa); the per-child negate flag flips.
     fn combine(
         parts: &[Formula],
         focus: &str,
         child_negate: bool,
         joiner: &str,
-    ) -> Option<Result<String, String>> {
+    ) -> Option<gmeow_errors::Result<String>> {
         let mut exprs = Vec::with_capacity(parts.len());
         for p in parts {
             match filter_expr(p, focus, child_negate)? {
@@ -1061,27 +1076,27 @@ fn filter_expr(f: &Formula, focus: &str, negate: bool) -> Option<Result<String, 
 /// comparison / node-kind atom as a `FILTER`. A non-binary, non-filter atom (unary or n ≥ 3) or a
 /// sequence-marker argument has no direct SPARQL triple form and is refused so the constraint is
 /// carried-and-flagged rather than emitted as a broken query.
-fn constraint_atom(f: &Formula, focus: &str) -> Result<String, String> {
+fn constraint_atom(f: &Formula, focus: &str) -> gmeow_errors::Result<String> {
     if let Some(filter) = try_filter_atom(f, focus, false) {
         return filter;
     }
     let Formula::Atom { relation, args } = f else {
-        return Err("expected an atomic predication".to_owned());
+        return Err(proj_err("expected an atomic predication"));
     };
     let Term::Iri(pred) = relation else {
-        return Err("atom relation must be an IRI".to_owned());
+        return Err(proj_err("atom relation must be an IRI"));
     };
     // An arithmetic-sum atom lowers to a SPARQL `BIND ( ( a + b ) AS result )`; the first argument
     // is the result variable the sum binds, the other two are the summed terms.
     if pred == LOGIC_TERM_SUM {
         if args.len() != 3 {
-            return Err(format!(
+            return Err(proj_err(format!(
                 "termSum has arity {}, it needs (result, a, b)",
                 args.len()
-            ));
+            )));
         }
         let Term::Var(_) = &args[0] else {
-            return Err("termSum result (argument 0) must be a variable".to_owned());
+            return Err(proj_err("termSum result (argument 0) must be a variable"));
         };
         let result = constraint_term(&args[0], focus)?;
         let a = constraint_term(&args[1], focus)?;
@@ -1092,14 +1107,16 @@ fn constraint_atom(f: &Formula, focus: &str) -> Result<String, String> {
     // `subj ?predVar obj .`. The middle argument must be a variable (the predicate slot).
     if pred == LOGIC_LINK_VIA {
         if args.len() != 3 {
-            return Err(format!(
+            return Err(proj_err(format!(
                 "linkVia has arity {}, it needs (subject, predicateVar, object)",
                 args.len()
-            ));
+            )));
         }
         let s = constraint_term(&args[0], focus)?;
         let Term::Var(pv) = &args[1] else {
-            return Err("linkVia predicate (argument 1) must be a variable".to_owned());
+            return Err(proj_err(
+                "linkVia predicate (argument 1) must be a variable",
+            ));
         };
         let o = constraint_term(&args[2], focus)?;
         return Ok(format!("{s} ?{pv} {o} ."));
@@ -1108,23 +1125,25 @@ fn constraint_atom(f: &Formula, focus: &str) -> Result<String, String> {
     // middle argument names the path predicate IRI (not a bound term).
     if pred == LOGIC_TRANSITIVE_REACH {
         if args.len() != 3 {
-            return Err(format!(
+            return Err(proj_err(format!(
                 "transitiveReach has arity {}, it needs (subject, pathPredicate, target)",
                 args.len()
-            ));
+            )));
         }
         let s = constraint_term(&args[0], focus)?;
         let Term::Iri(path) = &args[1] else {
-            return Err("transitiveReach path predicate (argument 1) must be an IRI".to_owned());
+            return Err(proj_err(
+                "transitiveReach path predicate (argument 1) must be an IRI",
+            ));
         };
         let o = constraint_term(&args[2], focus)?;
         return Ok(format!("{s} <{path}>+ {o} ."));
     }
     if args.len() != 2 {
-        return Err(format!(
+        return Err(proj_err(format!(
             "atom <{pred}> has arity {}, only a binary atom lowers to a SPARQL triple pattern",
             args.len()
-        ));
+        )));
     }
     let s = constraint_term(&args[0], focus)?;
     let o = constraint_term(&args[1], focus)?;
@@ -1138,7 +1157,7 @@ fn constraint_atom(f: &Formula, focus: &str) -> Result<String, String> {
 /// body, a disjunction is a `UNION`, a negation flips to [`lower_negative`]. A universal in
 /// positive position has no bounded SPARQL BGP form (it would need a double negation over an
 /// open domain) and is refused so the constraint is carried-and-flagged.
-fn lower_positive(f: &Formula, focus: &str) -> Result<Vec<String>, String> {
+fn lower_positive(f: &Formula, focus: &str) -> gmeow_errors::Result<Vec<String>> {
     match f {
         Formula::Atom { .. } => Ok(vec![constraint_atom(f, focus)?]),
         Formula::And(fs) => {
@@ -1189,12 +1208,13 @@ fn lower_positive(f: &Formula, focus: &str) -> Result<Vec<String>, String> {
             lower_negative(a, focus)?.join(" "),
             lower_positive(b, focus)?.join(" ")
         )]),
-        Formula::Forall { .. } => Err(
+        Formula::Forall { .. } => Err(proj_err(
             "a universal in positive position has no bounded SPARQL BGP form (it would require a \
-             double negation over an open domain)"
-                .to_owned(),
-        ),
-        Formula::Iff(..) => Err("a biconditional has no SPARQL constraint-body form".to_owned()),
+             double negation over an open domain)",
+        )),
+        Formula::Iff(..) => Err(proj_err(
+            "a biconditional has no SPARQL constraint-body form",
+        )),
     }
 }
 
@@ -1202,7 +1222,7 @@ fn lower_positive(f: &Formula, focus: &str) -> Result<Vec<String>, String> {
 /// the NNF of the negation: `¬Atom`/`¬∃` → `FILTER NOT EXISTS`, `¬¬` → positive, `¬∀` → the
 /// existential witness of the negated body, `¬(a→b)` → `a ∧ ¬b`, `¬(a∨b)` →
 /// `FILTER NOT EXISTS { {a} UNION {b} }`, `¬(a∧b)` → `{¬a} UNION {¬b}`.
-fn lower_negative(f: &Formula, focus: &str) -> Result<Vec<String>, String> {
+fn lower_negative(f: &Formula, focus: &str) -> gmeow_errors::Result<Vec<String>> {
     match f {
         // A comparison / node-kind atom negates to its negated `FILTER` (`?a >= ?b` ↦ `?a < ?b`,
         // `isIRI(?v)` ↦ `!isIRI(?v)`), NOT a `FILTER NOT EXISTS` over a triple that binds nothing.
@@ -1252,7 +1272,9 @@ fn lower_negative(f: &Formula, focus: &str) -> Result<Vec<String>, String> {
             }
             Ok(vec![branches.join(" UNION ")])
         }
-        Formula::Iff(..) => Err("a biconditional has no SPARQL constraint-body form".to_owned()),
+        Formula::Iff(..) => Err(proj_err(
+            "a biconditional has no SPARQL constraint-body form",
+        )),
     }
 }
 
@@ -1285,20 +1307,19 @@ fn strip_direct_type_guard(guard: &Formula) -> Option<Option<Formula>> {
 /// The SPARQL WHERE group-graph-pattern selecting the focus nodes that VIOLATE `constraint`:
 /// `guard(this) ∧ ¬φ(this)`, i.e. the guard lowered positively (binding `$this` and any
 /// guard-scoped variable) followed by the NNF negation of the per-focus condition `φ`.
-fn violation_where(constraint: &ConstraintIr) -> Result<String, String> {
+fn violation_where(constraint: &ConstraintIr) -> gmeow_errors::Result<String> {
     let Formula::Forall { vars, body } = &constraint.integrity else {
-        return Err(
-            "integrity must be a range-restricted ∀-guarded condition (the top node is not a ∀)"
-                .to_owned(),
-        );
+        return Err(proj_err(
+            "integrity must be a range-restricted ∀-guarded condition (the top node is not a ∀)",
+        ));
     };
     let focus = vars
         .first()
-        .ok_or_else(|| "integrity ∀ binds no focus variable".to_owned())?;
+        .ok_or_else(|| proj_err("integrity ∀ binds no focus variable"))?;
     let Formula::Implies(guard, phi) = body.as_ref() else {
-        return Err(
-            "integrity ∀ body must be a guarded implication (guard → condition)".to_owned(),
-        );
+        return Err(proj_err(
+            "integrity ∀ body must be a guarded implication (guard → condition)",
+        ));
     };
     // A `directType(this, C)` guard is a selection marker realized by the `sh:SPARQLTarget`
     // (subclass-excluding), not a data triple — strip it so it never lowers to a triple that
@@ -1355,7 +1376,7 @@ fn aggregate_select(agg: &AggregateComparison) -> String {
 /// The whole `sh:select` query body of a constraint: the aggregate `GROUP BY`/`HAVING` form when
 /// the constraint carries an [`AggregateComparison`] satellite, else the range-restricted
 /// `guard ∧ ¬φ` violation query lowered from the integrity formula.
-fn constraint_select(c: &ConstraintIr) -> Result<String, String> {
+fn constraint_select(c: &ConstraintIr) -> gmeow_errors::Result<String> {
     match &c.aggregate {
         Some(agg) => Ok(aggregate_select(agg)),
         None => Ok(format!("SELECT $this WHERE {{ {} }}", violation_where(c)?)),
@@ -1414,7 +1435,7 @@ fn procedural_formalizes_term(c: &ConstraintIr) -> String {
 /// Try to render one `logic:Constraint` block, or return the reason its integrity exceeds the
 /// range-restricted guarded SPARQL-constraint fragment (so the caller carries it as flagged
 /// residue rather than emitting a broken query).
-fn try_project_block(c: &ConstraintIr) -> Result<String, String> {
+fn try_project_block(c: &ConstraintIr) -> gmeow_errors::Result<String> {
     let select = constraint_select(c)?;
     let shape = procedural_shape_iri(c);
     let formalizes = procedural_formalizes_term(c);
@@ -1477,6 +1498,7 @@ pub fn procedural_constraint_residue(program: &LogicProgram) -> Vec<String> {
         .filter_map(|c| match try_project_block(c) {
             Ok(_) => None,
             Err(reason) => {
+                let reason = reason.message();
                 let tags = c
                     .integrity
                     .shape_tags()
