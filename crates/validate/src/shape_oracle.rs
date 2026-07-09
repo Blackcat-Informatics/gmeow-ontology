@@ -40,6 +40,7 @@
 
 use std::collections::BTreeSet;
 
+use gmeow_errors::Diag;
 use gmeow_logic_compile::ir::{
     ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShaclNodeKind, ShaclSeverity,
     ShapeTarget, ShapeValue, ValidationShapeIr,
@@ -82,6 +83,13 @@ const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
 /// `None` for any IRI outside the SHACL namespace.
 fn shacl_local(iri: &str) -> Option<&str> {
     iri.strip_prefix(SH)
+}
+
+/// Build a `validate.parse` diagnostic from a preserved condition message. Every hard
+/// malformation the reader surfaces routes through this so the oracle reports on the shared
+/// diagnostic substrate rather than a bare string.
+fn parse_err(detail: String) -> Diag {
+    Diag::of_kind(crate::error::Parse { detail })
 }
 
 /// A presentation / annotation predicate the reader ABSORBS or SKIPS — never routes to the
@@ -140,27 +148,31 @@ fn quads_of(ds: &RdfDataset, subject: TermId) -> Vec<(String, TermId)> {
 }
 
 /// Resolve `id` to an IRI string, hard-failing (`Err`) on any non-IRI term.
-fn obj_iri(ds: &RdfDataset, id: TermId, ctx: &str) -> Result<String, String> {
+fn obj_iri(ds: &RdfDataset, id: TermId, ctx: &str) -> gmeow_errors::Result<String> {
     match ds.resolve(id) {
         TermRef::Iri(s) => Ok(s.to_owned()),
-        other => Err(format!("{ctx}: expected an IRI object, found {other:?}")),
+        other => Err(parse_err(format!(
+            "{ctx}: expected an IRI object, found {other:?}"
+        ))),
     }
 }
 
 /// Resolve `id` to a `u32` from an integer literal, hard-failing on a non-integer term.
-fn obj_u32(ds: &RdfDataset, id: TermId, ctx: &str) -> Result<u32, String> {
+fn obj_u32(ds: &RdfDataset, id: TermId, ctx: &str) -> gmeow_errors::Result<u32> {
     match ds.resolve(id) {
-        TermRef::Literal { lexical, .. } => lexical
-            .parse::<u32>()
-            .map_err(|e| format!("{ctx}: expected a non-negative integer, found '{lexical}': {e}")),
-        other => Err(format!(
+        TermRef::Literal { lexical, .. } => lexical.parse::<u32>().map_err(|e| {
+            parse_err(format!(
+                "{ctx}: expected a non-negative integer, found '{lexical}': {e}"
+            ))
+        }),
+        other => Err(parse_err(format!(
             "{ctx}: expected an integer literal, found {other:?}"
-        )),
+        ))),
     }
 }
 
 /// Resolve `id` to a boolean from an `xsd:boolean` literal (`true`/`false`).
-fn obj_bool(ds: &RdfDataset, id: TermId, ctx: &str) -> Result<bool, String> {
+fn obj_bool(ds: &RdfDataset, id: TermId, ctx: &str) -> gmeow_errors::Result<bool> {
     match ds.resolve(id) {
         TermRef::Literal {
             lexical: "true", ..
@@ -168,17 +180,19 @@ fn obj_bool(ds: &RdfDataset, id: TermId, ctx: &str) -> Result<bool, String> {
         TermRef::Literal {
             lexical: "false", ..
         } => Ok(false),
-        other => Err(format!(
+        other => Err(parse_err(format!(
             "{ctx}: expected a boolean literal, found {other:?}"
-        )),
+        ))),
     }
 }
 
 /// The literal lexical form at `id`, hard-failing on a non-literal term.
-fn obj_lexical(ds: &RdfDataset, id: TermId, ctx: &str) -> Result<String, String> {
+fn obj_lexical(ds: &RdfDataset, id: TermId, ctx: &str) -> gmeow_errors::Result<String> {
     match ds.resolve(id) {
         TermRef::Literal { lexical, .. } => Ok(lexical.to_owned()),
-        other => Err(format!("{ctx}: expected a string literal, found {other:?}")),
+        other => Err(parse_err(format!(
+            "{ctx}: expected a string literal, found {other:?}"
+        ))),
     }
 }
 
@@ -192,7 +206,7 @@ enum Facet {
 }
 
 /// Classify a numeric/datetime range-facet object.
-fn parse_facet(ds: &RdfDataset, id: TermId, ctx: &str) -> Result<Facet, String> {
+fn parse_facet(ds: &RdfDataset, id: TermId, ctx: &str) -> gmeow_errors::Result<Facet> {
     match ds.resolve(id) {
         TermRef::Literal {
             lexical, datatype, ..
@@ -202,20 +216,20 @@ fn parse_facet(ds: &RdfDataset, id: TermId, ctx: &str) -> Result<Facet, String> 
                 return Ok(Facet::DateTime(lexical.to_owned()));
             }
             lexical.parse::<f64>().map(Facet::Numeric).map_err(|e| {
-                format!(
+                parse_err(format!(
                     "{ctx}: range facet has a non-numeric, non-dateTime literal '{lexical}': {e}"
-                )
+                ))
             })
         }
-        other => Err(format!(
+        other => Err(parse_err(format!(
             "{ctx}: a range facet must be a literal, found {other:?}"
-        )),
+        ))),
     }
 }
 
 /// Walk an RDF list from `head`, returning its member term ids in order. An empty
 /// (`rdf:nil`) list yields the empty vector; a malformed node hard-fails.
-fn parse_rdf_list(ds: &RdfDataset, head: TermId, ctx: &str) -> Result<Vec<TermId>, String> {
+fn parse_rdf_list(ds: &RdfDataset, head: TermId, ctx: &str) -> gmeow_errors::Result<Vec<TermId>> {
     let mut out = Vec::new();
     let mut cur = head;
     // Cyclic / adversarial lists are bounded — a real `sh:in` is tiny.
@@ -229,23 +243,31 @@ fn parse_rdf_list(ds: &RdfDataset, head: TermId, ctx: &str) -> Result<Vec<TermId
         let first = node
             .iter()
             .find(|(p, _)| p == RDF_FIRST)
-            .ok_or_else(|| format!("{ctx}: malformed RDF list (a node has no rdf:first)"))?
+            .ok_or_else(|| {
+                parse_err(format!(
+                    "{ctx}: malformed RDF list (a node has no rdf:first)"
+                ))
+            })?
             .1;
         let rest = node
             .iter()
             .find(|(p, _)| p == RDF_REST)
-            .ok_or_else(|| format!("{ctx}: malformed RDF list (a node has no rdf:rest)"))?
+            .ok_or_else(|| {
+                parse_err(format!(
+                    "{ctx}: malformed RDF list (a node has no rdf:rest)"
+                ))
+            })?
             .1;
         out.push(first);
         cur = rest;
     }
-    Err(format!("{ctx}: RDF list is too long or cyclic"))
+    Err(parse_err(format!("{ctx}: RDF list is too long or cyclic")))
 }
 
 /// A single value term (`sh:in` member or `sh:hasValue`) as a [`ShapeValue`]. A plain
 /// `xsd:string` literal and a language-tagged literal both fold to `datatype: None` so the
 /// read-back mirrors the emitter's [`ShapeValue`] construction.
-fn shape_value(ds: &RdfDataset, id: TermId, ctx: &str) -> Result<ShapeValue, String> {
+fn shape_value(ds: &RdfDataset, id: TermId, ctx: &str) -> gmeow_errors::Result<ShapeValue> {
     match ds.resolve(id) {
         TermRef::Iri(s) => Ok(ShapeValue::Iri(s.to_owned())),
         TermRef::Literal {
@@ -276,14 +298,14 @@ fn shape_value(ds: &RdfDataset, id: TermId, ctx: &str) -> Result<ShapeValue, Str
                 })
             }
         }
-        other => Err(format!(
+        other => Err(parse_err(format!(
             "{ctx}: a value term must be an IRI or a literal, found {other:?}"
-        )),
+        ))),
     }
 }
 
 /// Map a `sh:nodeKind` object IRI (`sh:IRI`, `sh:BlankNodeOrIRI`, …) to a [`ShaclNodeKind`].
-fn parse_node_kind(iri: &str, ctx: &str) -> Result<ShaclNodeKind, String> {
+fn parse_node_kind(iri: &str, ctx: &str) -> gmeow_errors::Result<ShaclNodeKind> {
     match shacl_local(iri) {
         Some("IRI") => Ok(ShaclNodeKind::Iri),
         Some("Literal") => Ok(ShaclNodeKind::Literal),
@@ -291,7 +313,9 @@ fn parse_node_kind(iri: &str, ctx: &str) -> Result<ShaclNodeKind, String> {
         Some("IRIOrLiteral") => Ok(ShaclNodeKind::IriOrLiteral),
         Some("BlankNodeOrIRI") => Ok(ShaclNodeKind::BlankNodeOrIri),
         Some("BlankNodeOrLiteral") => Ok(ShaclNodeKind::BlankNodeOrLiteral),
-        _ => Err(format!("{ctx}: unsupported sh:nodeKind object <{iri}>")),
+        _ => Err(parse_err(format!(
+            "{ctx}: unsupported sh:nodeKind object <{iri}>"
+        ))),
     }
 }
 
@@ -383,7 +407,7 @@ impl CompAcc {
         obj: TermId,
         shape: &str,
         unsupported: &mut Vec<String>,
-    ) -> Result<bool, String> {
+    ) -> gmeow_errors::Result<bool> {
         let ctx = format!("read_shacl_shape: <{shape}>");
         let Some(local) = shacl_local(pred) else {
             return Ok(false);
@@ -433,10 +457,10 @@ impl CompAcc {
             "not" => {
                 let mut inner = collect_components(ds, obj, shape, unsupported)?;
                 if inner.len() != 1 {
-                    return Err(format!(
+                    return Err(parse_err(format!(
                         "{ctx}: sh:not must wrap exactly one component, found {}",
                         inner.len()
-                    ));
+                    )));
                 }
                 self.comps
                     .push(ConstraintComponent::Not(Box::new(inner.remove(0))));
@@ -454,15 +478,15 @@ impl CompAcc {
     }
 
     /// Assemble the cross-predicate components and return the full component list.
-    fn finish(mut self, shape: &str) -> Result<Vec<ConstraintComponent>, String> {
+    fn finish(mut self, shape: &str) -> gmeow_errors::Result<Vec<ConstraintComponent>> {
         match (self.pattern_regex.take(), self.pattern_flags.take()) {
             (Some(regex), flags) => self
                 .comps
                 .push(ConstraintComponent::Pattern { regex, flags }),
             (None, Some(_)) => {
-                return Err(format!(
+                return Err(parse_err(format!(
                     "read_shacl_shape: <{shape}> carries sh:flags with no sh:pattern"
-                ));
+                )));
             }
             (None, None) => {}
         }
@@ -489,10 +513,10 @@ impl CompAcc {
                 max: self.qvs_max,
             });
         } else if self.qvs_min.is_some() || self.qvs_max.is_some() {
-            return Err(format!(
+            return Err(parse_err(format!(
                 "read_shacl_shape: <{shape}> carries sh:qualifiedMinCount/MaxCount with no \
                  sh:qualifiedValueShape"
-            ));
+            )));
         }
         Ok(self.comps)
     }
@@ -507,7 +531,7 @@ fn collect_components(
     subject: TermId,
     shape: &str,
     unsupported: &mut Vec<String>,
-) -> Result<Vec<ConstraintComponent>, String> {
+) -> gmeow_errors::Result<Vec<ConstraintComponent>> {
     let mut acc = CompAcc::new();
     for (pred, obj) in quads_of(ds, subject) {
         if !acc.feed(ds, &pred, obj, shape, unsupported)? {
@@ -525,7 +549,7 @@ fn parse_property_shape(
     subject: TermId,
     shape: &str,
     unsupported: &mut Vec<String>,
-) -> Result<Option<PropertyConstraintIr>, String> {
+) -> gmeow_errors::Result<Option<PropertyConstraintIr>> {
     let ctx = format!("read_shacl_shape: <{shape}> property shape");
     let mut path: Option<(String, bool)> = None;
     let mut complex_path = false;
@@ -560,9 +584,9 @@ fn parse_property_shape(
                     }
                 }
                 other => {
-                    return Err(format!(
+                    return Err(parse_err(format!(
                         "{ctx}: sh:path must be an IRI or an inverse-path blank, found {other:?}"
-                    ));
+                    )));
                 }
             },
             Some("minCount") => min_count = Some(obj_u32(ds, obj, &ctx)?),
@@ -586,7 +610,7 @@ fn parse_property_shape(
         if complex_path {
             return Ok(None);
         }
-        return Err(format!("{ctx}: a property shape has no sh:path"));
+        return Err(parse_err(format!("{ctx}: a property shape has no sh:path")));
     };
     // Provenance is emit-dropped (SHACL has no ledger polarity). The constructor requires
     // it Some iff a cardinality is present; the placeholder never changes the enforcement
@@ -594,15 +618,14 @@ fn parse_property_shape(
     let provenance =
         (min_count.is_some() || max_count.is_some()).then_some(ConstraintProvenance::OptNative);
     let mut prop =
-        PropertyConstraintIr::new(path_iri, min_count, max_count, provenance, components)
-            .map_err(|e| e.to_string())?;
+        PropertyConstraintIr::new(path_iri, min_count, max_count, provenance, components)?;
     if let Some(sev) = severity {
         prop = prop.with_severity(sev);
     }
     if let Some(msg) = message
         && !msg.trim().is_empty()
     {
-        prop = prop.with_message(msg).map_err(|e| e.to_string())?;
+        prop = prop.with_message(msg)?;
     }
     if inverse {
         prop = prop.inverted();
@@ -610,9 +633,7 @@ fn parse_property_shape(
     if reifier_shape.is_some() || reification_required {
         // `with_reifier` hard-fails on an inverse path — the exact HARD FAIL the emitter's
         // suppression means should never round-trip; propagate it rather than paper over it.
-        prop = prop
-            .with_reifier(reifier_shape, reification_required)
-            .map_err(|e| e.to_string())?;
+        prop = prop.with_reifier(reifier_shape, reification_required)?;
     }
     Ok(Some(prop))
 }
@@ -784,7 +805,7 @@ fn parse_sparql_target(
     obj: TermId,
     ctx: &str,
     unsupported: &mut Vec<String>,
-) -> Result<Option<ShapeTarget>, String> {
+) -> gmeow_errors::Result<Option<ShapeTarget>> {
     let inner = quads_of(ds, obj);
     let is_sparql_target = inner.iter().any(|(p, o)| {
         p == RDF_TYPE && matches!(ds.resolve(*o), TermRef::Iri(s) if s == SH_SPARQLTARGET)
@@ -907,11 +928,16 @@ fn target_via_owner(ds: &RdfDataset, subject: TermId) -> Option<ShapeTarget> {
 /// datatype and a language). Every uncovered construct (`sh:or`, `sh:xone`, `sh:and`,
 /// `sh:node`, the `sh:sparql` fragment, `sh:uniqueLang`, `sh:targetNode`, an
 /// `sh:SPARQLTarget`, …) is recorded in [`ShapeRead::unsupported`], not surfaced as `Err`.
-pub fn read_shacl_shape(graph: &RdfDataset, node_shape_iri: &str) -> Result<ShapeRead, String> {
+pub fn read_shacl_shape(
+    graph: &RdfDataset,
+    node_shape_iri: &str,
+) -> gmeow_errors::Result<ShapeRead> {
     let subject = graph
         .term_id_by_value(&TermValue::iri(node_shape_iri))
         .ok_or_else(|| {
-            format!("read_shacl_shape: shape IRI <{node_shape_iri}> is not present in the graph")
+            parse_err(format!(
+                "read_shacl_shape: shape IRI <{node_shape_iri}> is not present in the graph"
+            ))
         })?;
 
     let mut is_node_shape = false;
@@ -920,12 +946,12 @@ pub fn read_shacl_shape(graph: &RdfDataset, node_shape_iri: &str) -> Result<Shap
     let mut node_acc = CompAcc::new();
     let mut unsupported: Vec<String> = Vec::new();
 
-    let set_target = |t: ShapeTarget, cur: &mut Option<ShapeTarget>| -> Result<(), String> {
+    let set_target = |t: ShapeTarget, cur: &mut Option<ShapeTarget>| -> gmeow_errors::Result<()> {
         if cur.is_some() {
-            return Err(format!(
+            return Err(parse_err(format!(
                 "read_shacl_shape: <{node_shape_iri}> carries more than one target — a shape must \
                  have exactly one focus-node selector"
-            ));
+            )));
         }
         *cur = Some(t);
         Ok(())
@@ -979,9 +1005,9 @@ pub fn read_shacl_shape(graph: &RdfDataset, node_shape_iri: &str) -> Result<Shap
     }
 
     if !is_node_shape {
-        return Err(format!(
+        return Err(parse_err(format!(
             "read_shacl_shape: <{node_shape_iri}> is not typed sh:NodeShape"
-        ));
+        )));
     }
     // A targetless inline / `sh:node` / property-only helper shape (e.g. one referenced by an
     // owning node shape's `sh:node`) adopts the owning node shape's target by walking the inverse
@@ -990,17 +1016,15 @@ pub fn read_shacl_shape(graph: &RdfDataset, node_shape_iri: &str) -> Result<Shap
     let target = match target {
         Some(t) => t,
         None => target_via_owner(graph, subject).ok_or_else(|| {
-            format!(
+            parse_err(format!(
                 "read_shacl_shape: <{node_shape_iri}> has no sh:targetClass / sh:targetSubjectsOf \
                  / sh:targetObjectsOf and no owning sh:node/sh:property shape to adopt a target from"
-            )
+            ))
         })?,
     };
     let node_components = node_acc.finish(node_shape_iri)?;
-    let ir = ValidationShapeIr::new(node_shape_iri, target, properties, None)
-        .map_err(|e| e.to_string())?
-        .with_node_components(node_components)
-        .map_err(|e| e.to_string())?;
+    let ir = ValidationShapeIr::new(node_shape_iri, target, properties, None)?
+        .with_node_components(node_components)?;
 
     unsupported.sort();
     unsupported.dedup();
@@ -1372,11 +1396,14 @@ pub fn cross_check(
     legacy_shacl_ttl: &str,
     data_graph: &RdfDataset,
     witnesses: &[Witness],
-) -> Result<(), String> {
-    let projected = purrdf::shapes::engine::parse_shapes(projected_shacl_ttl)
-        .map_err(|e| format!("cross_check: projected shapes failed to parse: {e}"))?;
+) -> gmeow_errors::Result<()> {
+    let projected = purrdf::shapes::engine::parse_shapes(projected_shacl_ttl).map_err(|e| {
+        parse_err(format!(
+            "cross_check: projected shapes failed to parse: {e}"
+        ))
+    })?;
     let legacy = purrdf::shapes::engine::parse_shapes(legacy_shacl_ttl)
-        .map_err(|e| format!("cross_check: legacy shapes failed to parse: {e}"))?;
+        .map_err(|e| parse_err(format!("cross_check: legacy shapes failed to parse: {e}")))?;
 
     let mut focus_nodes: BTreeSet<String> = BTreeSet::new();
 
@@ -1384,7 +1411,11 @@ pub fn cross_check(
     let base_p = finding_keys(data_graph, &projected);
     let base_l = finding_keys(data_graph, &legacy);
     if base_p != base_l {
-        return Err(divergence_message("the base data graph", &base_p, &base_l));
+        return Err(parse_err(divergence_message(
+            "the base data graph",
+            &base_p,
+            &base_l,
+        )));
     }
     for (focus, _, _) in &base_p {
         focus_nodes.insert(focus.clone());
@@ -1392,29 +1423,29 @@ pub fn cross_check(
 
     for w in witnesses {
         let witness_ds = parse_dataset(w.triples.as_bytes(), "text/turtle", None).map_err(|e| {
-            format!(
+            parse_err(format!(
                 "cross_check: witness '{}' failed to parse: {e}",
                 w.component
-            )
+            ))
         })?;
         let mut builder = RdfDatasetBuilder::new();
         builder.push_dataset(data_graph);
         builder.push_dataset(&witness_ds);
         let dataset = builder.freeze().map_err(|e| {
-            format!(
+            parse_err(format!(
                 "cross_check: witness '{}' dataset freeze failed: {e}",
                 w.component
-            )
+            ))
         })?;
 
         let p = finding_keys(&dataset, &projected);
         let l = finding_keys(&dataset, &legacy);
         if p != l {
-            return Err(divergence_message(
+            return Err(parse_err(divergence_message(
                 &format!("witness '{}'", w.component),
                 &p,
                 &l,
-            ));
+            )));
         }
         for (focus, _, _) in &p {
             focus_nodes.insert(focus.clone());
@@ -1423,20 +1454,20 @@ pub fn cross_check(
         // sufficient) — otherwise the witness is non-discriminating and the pass is vacuous.
         let expected_focus = format!("<{}>", w.focus);
         if !p.iter().any(|(focus, _, _)| *focus == expected_focus) {
-            return Err(format!(
+            return Err(parse_err(format!(
                 "cross_check: vacuous — witness '{}' for focus {} produced no discriminating \
                  finding (the near-miss did not violate its component)",
                 w.component, w.focus
-            ));
+            )));
         }
     }
 
     if focus_nodes.is_empty() {
-        return Err(
+        return Err(parse_err(
             "cross_check: vacuous — the run exercised 0 focus nodes (no shape targeted any node \
              in the data graph or witnesses)"
                 .to_owned(),
-        );
+        ));
     }
     Ok(())
 }
@@ -1824,7 +1855,10 @@ mod tests {
         ));
         let err = read_shacl_shape(&ds, "https://ex/DoesNotExist")
             .expect_err("a non-existent shape IRI is genuine malformation");
-        assert!(err.contains("not present in the graph"), "{err}");
+        assert!(
+            err.to_string().contains("not present in the graph"),
+            "{err}"
+        );
     }
 
     #[test]
@@ -1965,6 +1999,7 @@ mod tests {
         let data = parse_ttl("<https://ex/x> <https://ex/q> <https://ex/y> .\n");
         let err = cross_check(&ttl, &ttl, &data, &[])
             .expect_err("a run that exercises no focus node must HARD-FAIL as vacuous");
+        let err = err.to_string();
         assert!(
             err.contains("vacuous") && err.contains("0 focus nodes"),
             "{err}"
