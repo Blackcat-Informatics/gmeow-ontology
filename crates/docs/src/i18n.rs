@@ -646,6 +646,7 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_projection_surface", "Projection surface"),
     ("body_projects_toward", "Projects toward"),
     ("body_query", "Query"),
+    ("body_quickstart", "Quickstart"),
     ("body_range", "Range"),
     ("body_read_next", "Read next"),
     ("body_reasoning", "Reasoning"),
@@ -978,9 +979,9 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 126 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 127 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 186);
+        assert_eq!(UI_TEMPLATES.len(), 187);
     }
 
     #[test]

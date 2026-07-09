@@ -643,6 +643,38 @@ fn first_learning_path_markdown_golden() {
 }
 
 #[test]
+fn recipe_and_learning_path_term_curies_resolve_to_documented_terms() {
+    // Every `gmeow:usesTerm` CURIE a recipe/learning path carries is expected to
+    // already be validated upstream (it names a term the guide genuinely
+    // exercises), so the composed quickstart section should never emit its
+    // defensive `# UNRESOLVED` comment against the live repo — an unresolved
+    // CURIE here is a real authoring bug (a typo or a term that moved/was
+    // renamed) worth failing loudly on, not silently swallowing.
+    let model = common::cached_model();
+    let known: BTreeSet<&str> = model.terms.iter().map(|t| t.curie.as_str()).collect();
+
+    let mut unresolved: Vec<String> = Vec::new();
+    for recipe in &model.recipes {
+        for curie in &recipe.term_curies {
+            if !known.contains(curie.as_str()) {
+                unresolved.push(format!("recipe `{}` -> `{curie}`", recipe.slug));
+            }
+        }
+    }
+    for path in &model.learning_paths {
+        for curie in &path.term_curies {
+            if !known.contains(curie.as_str()) {
+                unresolved.push(format!("learning path `{}` -> `{curie}`", path.slug));
+            }
+        }
+    }
+    assert!(
+        unresolved.is_empty(),
+        "recipe/learning-path term_curies with no matching documented term: {unresolved:?}"
+    );
+}
+
+#[test]
 fn no_dangling_internal_html_links() {
     // Every internal href in every emitted `.html` file must resolve to a key in
     // the site tree. Internal links are the relative `href="..."` attributes that

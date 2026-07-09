@@ -20,6 +20,16 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 
 An agent's intrinsic believing mode toward a proposition — the reified, first\-class mental moment that grounds the flat doxastic spine \(gmeow:believes, gmeow:knowsThat\)\. A sibling of cognition:CognitiveState \(knowing\) and teleology:IntentionalMode \(desiring/intending\) under kernel:MentalMoment, so an agent's whole endurant mental life is queryable as one family \(Principle 15\)\. Inheres in exactly one agent via epistemicAgent and is directed at exactly one Proposition via doxasticContent; its qualitative belief value is carried by a linked StandpointClaim \(doxasticClaim → claimModality\), and its graded strength by credence \[0,1\]\. Never instantiated directly when the flat spine suffices \(Principle 4\)\.
 
+## Quickstart
+
+```turtle
+<subject> a gmeow:DoxasticState ;
+    gmeow:credence "..." ;  # xsd:decimal
+    gmeow:doxasticClaim <...> ;  # gmeow:StandpointClaim
+    gmeow:doxasticContent <...> ;  # gmeow:Proposition
+    gmeow:epistemicAgent <...> .  # gmeow:Agent
+```
+
 ## Neighborhood
 
 ![Term neighborhood](../../diagrams/terms/doxasticstate.svg)

@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 141
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # Adequacy Assessment
@@ -18,6 +19,14 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 ## Definition
 
 A reified, solver\-set judgement that a justification's support MEETS \(or fails\) the threshold of a named epistemic standard — carrying the standard \(gmeow:adequacyUnderStandard \-\> gmeow:EpistemicStandard\) and the verdict \(gmeow:meetsThreshold \-\> gmeow:AdequacyVerdict\)\. Adequacy is the fourth of the five factored justification components \(available\-evidence, basing, support\-under\-a\-standard, adequacy, defeat\): whether the support meets the standard's bar\. COMPUTED, never asserted \(Principle 12\); the same basis may be adequate under one standard and inadequate under a stricter one, so several assessments coexist \(Principle 9\)\.
+
+## Quickstart
+
+```turtle
+<subject> a gmeow:AdequacyAssessment ;
+    gmeow:adequacyUnderStandard <...> ;  # gmeow:EpistemicStandard
+    gmeow:meetsThreshold <...> .  # gmeow:AdequacyVerdict
+```
 
 ## Neighborhood
 

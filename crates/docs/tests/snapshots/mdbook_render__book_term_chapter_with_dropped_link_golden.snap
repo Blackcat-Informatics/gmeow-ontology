@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/mdbook_render.rs
+assertion_line: 244
 expression: head
 ---
 # Acquaintance Relationship
@@ -19,6 +20,6 @@ expression: head
 
 An interpersonal relationship of social acquaintance — agents who have met and know one another \(the reified form of hasMet\)\.
 
-## Neighborhood
+## Quickstart
 
-![Term neighborhood](https://blackcatinformatics.ca/gmeow/docs/diagrams/terms/acquaintancerelationship.svg)
+```turtle

@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 642
 expression: "to_markdown(&model, &Page::LearningPath(slug))"
 ---
 # Audit AI and Graph\-RAG Pipelines
@@ -13,6 +14,31 @@ expression: "to_markdown(&model, &Page::LearningPath(slug))"
 ## Goal
 
 Connect generated claims to source chunks, evidence spans, tools, model context, and provenance before consumers see them\.
+
+## Quickstart
+
+```turtle
+# gmeow:Chunk
+<subject> a gmeow:Chunk ;
+    gmeow:chunkOf <...> .  # gmeow:InformationObject
+
+# gmeow:Dataset
+<subject> a gmeow:Dataset ;
+    gmeow:citeAs "..." ;  # rdfs:Literal
+    gmeow:version "..." .  # xsd:string
+
+# gmeow:EvidenceSpan
+<subject> a gmeow:EvidenceSpan ;
+    gmeow:spanOfChunk <...> ;  # gmeow:Chunk
+    gmeow:supportPolarity <...> .  # gmeow:SupportPolarity
+
+# gmeow:ExtractedEntity
+<subject> a gmeow:ExtractedEntity .
+
+# gmeow:usedModel
+<subject> a gmeow:ModelInvocation ;
+    gmeow:usedModel <...> .  # gmeow:SoftwareAgent
+```
 
 ## Recipes
 

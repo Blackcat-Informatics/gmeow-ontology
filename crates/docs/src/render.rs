@@ -590,7 +590,7 @@ pub fn to_markdown(model: &DocsModel, page: &Page) -> String {
 pub fn to_markdown_exec(model: &DocsModel, page: &Page, exec: &ExecutableDocsData) -> String {
     match page {
         Page::Term(slug) => {
-            let mut md = md_term(model, slug);
+            let mut md = md_term(model, slug, exec);
             append_term_export_section(&mut md, model, slug, exec);
             md
         }
@@ -612,7 +612,7 @@ fn to_markdown_base(model: &DocsModel, page: &Page) -> String {
         Page::Health => md_health(model),
         Page::Changelog => md_changelog(model),
         Page::Category(category) => md_category(model, *category),
-        Page::Term(slug) => md_term(model, slug),
+        Page::Term(slug) => md_term(model, slug, &ExecutableDocsData::default()),
         Page::SliceIndex => md_slice_index(model),
         Page::Slice(slug) => md_slice(model, slug),
         Page::LinkageIndex => md_linkage_index(model),
@@ -1337,7 +1337,199 @@ fn md_category(model: &DocsModel, category: DocTermCategory) -> String {
     out
 }
 
-fn md_term(model: &DocsModel, slug: &str) -> String {
+// ── Synthesized quickstart (a pure function of domain/range — no new model
+// state) ─────────────────────────────────────────────────────────────────────
+
+/// The maximum number of properties rendered as explicit predicate lines in a
+/// synthesized class skeleton before the remainder is summarized as a single
+/// `+N more` comment line — keeps a richly-propertied class's skeleton
+/// readable instead of dumping its entire reverse-domain set.
+const QUICKSTART_PROPERTY_CAP: usize = 8;
+
+/// Well-known external namespace prefixes recognized ONLY for the compact,
+/// human-readable comment annotations in a synthesized quickstart skeleton —
+/// never used to resolve a link (`term_link`/`to_curie` own that).
+const QUICKSTART_WELL_KNOWN_NS: &[(&str, &str)] = &[
+    ("http://www.w3.org/2001/XMLSchema#", "xsd"),
+    ("http://www.w3.org/2000/01/rdf-schema#", "rdfs"),
+    ("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "rdf"),
+    ("http://www.w3.org/2002/07/owl#", "owl"),
+    ("http://www.w3.org/2004/02/skos/core#", "skos"),
+];
+
+/// A short, honest label for a domain/range IRI inside a synthesized
+/// quickstart's placeholder comment: the resolved term's own CURIE when it
+/// names a documented term, else the CURIE form for the two GMEOW/`logic:`
+/// namespaces, else a well-known external prefix (`xsd:`/`rdfs:`/…), else the
+/// bare local name after the final `#`/`/` — never the full IRI (keeps the
+/// comment compact) and never a fabricated claim about what the IRI names.
+fn quickstart_label(model: &DocsModel, iri: &str) -> String {
+    if let Some(term) = model.terms.iter().find(|t| t.iri == iri) {
+        return term.curie.clone();
+    }
+    let curie = to_curie(iri);
+    if curie != iri {
+        return curie;
+    }
+    for (ns, prefix) in QUICKSTART_WELL_KNOWN_NS {
+        if let Some(local) = iri.strip_prefix(ns)
+            && !local.is_empty()
+        {
+            return format!("{prefix}:{local}");
+        }
+    }
+    iri.rsplit(['#', '/'])
+        .find(|s| !s.is_empty())
+        .unwrap_or(iri)
+        .to_string()
+}
+
+/// A placeholder object for one property's example triple, plus the trailing
+/// `#`-comment naming what the placeholder stands in for. Never fabricates an
+/// instance: an empty `range` renders a bare placeholder literal (nothing is
+/// known about the expected type). A non-empty `range` renders an honest
+/// `<...>` IRI placeholder annotated with the range's label WHEN the first
+/// range entry resolves to a documented non-`Datatype` term (an object-valued
+/// property) — but a placeholder LITERAL, still annotated, when it resolves to
+/// a `Datatype` term or does not resolve at all (almost always an external
+/// literal type such as `xsd:string`/`rdfs:Literal`, never a modeled class),
+/// so the skeleton never shows an IRI placeholder next to a datatype comment.
+fn quickstart_placeholder(model: &DocsModel, range: &[String]) -> (&'static str, String) {
+    let Some(first) = range.first() else {
+        return ("\"...\"", String::new());
+    };
+    let comment = format!("  # {}", quickstart_label(model, first));
+    let is_object_valued = model
+        .terms
+        .iter()
+        .find(|t| &t.iri == first)
+        .is_some_and(|t| t.category != DocTermCategory::Datatype);
+    if is_object_valued {
+        ("<...>", comment)
+    } else {
+        ("\"...\"", comment)
+    }
+}
+
+/// The synthesized, copy-paste Turtle skeleton for a CLASS term: `<subject> a
+/// <this class>`, followed by one predicate line per property term whose
+/// `domain` names this class (a direct reverse-domain lookup over
+/// `model.terms` — no subclass-inheritance walk, so the skeleton only shows
+/// what THIS class itself asserts). A class with no such properties still
+/// renders the honest one-triple skeleton (never an empty block).
+fn synthesize_class_quickstart(model: &DocsModel, term: &DocTerm) -> String {
+    let mut props: Vec<&DocTerm> = model
+        .terms
+        .iter()
+        .filter(|p| {
+            p.category == DocTermCategory::Property && p.domain.iter().any(|d| d == &term.iri)
+        })
+        .collect();
+    props.sort_by(|a, b| a.curie.cmp(&b.curie));
+
+    if props.is_empty() {
+        return format!("<subject> a {} .\n", term.curie);
+    }
+
+    let cap = props.len().min(QUICKSTART_PROPERTY_CAP);
+    let mut out = format!("<subject> a {} ;\n", term.curie);
+    for (i, prop) in props.iter().take(cap).enumerate() {
+        let terminator = if i + 1 == cap { '.' } else { ';' };
+        let (object, comment) = quickstart_placeholder(model, &prop.range);
+        out.push_str(&format!(
+            "    {} {object} {terminator}{comment}\n",
+            prop.curie
+        ));
+    }
+    if props.len() > QUICKSTART_PROPERTY_CAP {
+        let remaining = props.len() - QUICKSTART_PROPERTY_CAP;
+        let noun = if remaining == 1 {
+            "property"
+        } else {
+            "properties"
+        };
+        out.push_str(&format!(
+            "# … +{remaining} more {noun} carried by this class (see the class page for the full list)\n"
+        ));
+    }
+    out
+}
+
+/// The synthesized, copy-paste Turtle skeleton for a PROPERTY term:
+/// `<subject> a <first domain class, or owl:Thing when the property declares
+/// none>`, then one triple applying the property itself, with an honest
+/// placeholder object (an IRI placeholder annotated with the first `range`
+/// term when one is declared, else a placeholder literal).
+fn synthesize_property_quickstart(model: &DocsModel, term: &DocTerm) -> String {
+    let subject_type = match term.domain.first() {
+        Some(d) => quickstart_label(model, d),
+        None => "owl:Thing".to_string(),
+    };
+    let (object, comment) = quickstart_placeholder(model, &term.range);
+    format!(
+        "<subject> a {subject_type} ;\n    {} {object} .{comment}\n",
+        term.curie
+    )
+}
+
+/// The synthesized quickstart Turtle skeleton for one term — a PURE function
+/// of the already-discovered `domain`/`range` shape (no new model state, no
+/// SHACL-constraint fabrication): a class gets an example instantiation of
+/// every property it is the domain of; a property gets a one-triple example
+/// application; any other category (individual, datatype, or the catch-all
+/// `Other`) carries no domain/range shape to synthesize from, so it gets an
+/// honest one-line comment rather than a fabricated triple.
+fn synthesize_quickstart(model: &DocsModel, term: &DocTerm) -> String {
+    match term.category {
+        DocTermCategory::Class => synthesize_class_quickstart(model, term),
+        DocTermCategory::Property => synthesize_property_quickstart(model, term),
+        DocTermCategory::Individual | DocTermCategory::Datatype | DocTermCategory::Other => {
+            format!(
+                "# No example skeleton could be synthesized for `{}` — {} terms carry no \
+                 domain/range shape to derive a triple pattern from.\n",
+                term.curie,
+                category_singular(term.category)
+            )
+        }
+    }
+}
+
+/// Resolve a term by its CURIE (`gmeow:Foo` / `logic:Bar`) — the same lookup
+/// [`curie_link`] performs when it renders a cross-reference. `None` for a
+/// CURIE that does not name any documented term.
+fn find_term_by_curie<'a>(model: &'a DocsModel, curie: &str) -> Option<&'a DocTerm> {
+    model.terms.iter().find(|t| t.curie == curie)
+}
+
+/// The composed, copy-paste-runnable quickstart Turtle block for a term SET
+/// (a recipe's or learning path's `term_curies`) — the concatenation of each
+/// resolved member term's own [`synthesize_quickstart`] skeleton, in the
+/// set's own (already sorted/deduped, per `DocRecipe`/`DocLearningPath`)
+/// CURIE order, so promoted recipes are copy-paste-runnable as a whole. A
+/// `term_curie` that fails to resolve to a documented term is surfaced as a
+/// visible `# UNRESOLVED` comment rather than silently dropped or a panic —
+/// `term_curies` is expected to already be validated upstream, so a genuine
+/// miss here is a modeling bug worth surfacing on the page, not hiding.
+fn synthesize_composed_quickstart(model: &DocsModel, term_curies: &[String]) -> String {
+    let mut out = String::new();
+    for curie in term_curies {
+        match find_term_by_curie(model, curie) {
+            Some(term) => {
+                out.push_str(&format!("# {}\n", term.curie));
+                out.push_str(&synthesize_quickstart(model, term));
+                out.push('\n');
+            }
+            None => {
+                out.push_str(&format!(
+                    "# UNRESOLVED term_curie `{curie}` — no documented term matches this CURIE.\n\n"
+                ));
+            }
+        }
+    }
+    out
+}
+
+fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
     let Some(term) = model.terms.iter().find(|t| term_slug(t) == slug) else {
         let mut out = String::new();
         heading(&mut out, 1, slug);
@@ -1408,6 +1600,33 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
     if let Some(def) = &term.definition {
         heading(&mut out, 2, model.ui("body_definition"));
         line(&mut out, &md_escape(def));
+    }
+
+    // ── Quickstart (synthesized Turtle skeleton + playground link) ─────────────
+    // A pure render of the term's OWN domain/range shape — always present (every
+    // term renders some skeleton, or an honest "no skeleton" comment), so a
+    // reader gets a copy-paste starting point before reading anything else.
+    {
+        heading(&mut out, 2, model.ui("body_quickstart"));
+        let skeleton = synthesize_quickstart(model, term);
+        fenced(&mut out, "turtle", skeleton.trim_end());
+        // The `Page::SparqlPlayground` page is emitted only when the pipeline
+        // attaches a playground asset (`exec.has_playground()`) — a model-only
+        // render never emits `sparql/index.md`, so the link is gated exactly like
+        // the sibling "Export" affordance (`append_term_export_section`) to keep
+        // the no-dangling-internal-link invariant (`lint::clean_site_has_zero_errors`).
+        if exec.has_playground() {
+            let playground_href = rel(&from, &Page::SparqlPlayground.dir());
+            push_line(
+                &mut out,
+                &format!(
+                    "[Try it in the SPARQL playground]({playground_href}index.md) with \
+                     `DESCRIBE <{}>`.",
+                    code_escape(&term.iri)
+                ),
+            );
+        }
+        blank(&mut out);
     }
 
     // ── Neighbourhood diagram (the term and its 1-hop relations) ────────────────
@@ -3478,6 +3697,15 @@ fn md_recipe(model: &DocsModel, slug: &str) -> String {
     heading(&mut out, 2, model.ui("body_goal"));
     line(&mut out, &md_escape(&recipe.goal));
 
+    // ── Quickstart (composed over every member term, so a promoted recipe is
+    // copy-paste-runnable as a whole, not just per-term) ────────────────────────
+    if !recipe.term_curies.is_empty() {
+        heading(&mut out, 2, model.ui("body_quickstart"));
+        let skeleton = synthesize_composed_quickstart(model, &recipe.term_curies);
+        fenced(&mut out, "turtle", skeleton.trim_end());
+        blank(&mut out);
+    }
+
     if !recipe.term_curies.is_empty() {
         heading(&mut out, 2, model.ui("body_terms_used"));
         for curie in &recipe.term_curies {
@@ -3585,6 +3813,15 @@ fn md_learning_path(model: &DocsModel, slug: &str) -> String {
 
     heading(&mut out, 2, model.ui("body_goal"));
     line(&mut out, &md_escape(&path.goal));
+
+    // ── Quickstart (composed over every member term, so a promoted learning
+    // path is copy-paste-runnable as a whole, not just per-term) ───────────────
+    if !path.term_curies.is_empty() {
+        heading(&mut out, 2, model.ui("body_quickstart"));
+        let skeleton = synthesize_composed_quickstart(model, &path.term_curies);
+        fenced(&mut out, "turtle", skeleton.trim_end());
+        blank(&mut out);
+    }
 
     if !path.recipe_slugs.is_empty() {
         heading(&mut out, 2, model.ui("body_recipes"));
