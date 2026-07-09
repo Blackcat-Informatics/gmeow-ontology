@@ -99,7 +99,22 @@ gmeow:TemporalFrame
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Temporal Frame"@x-gmeow-english ;
     rdfs:subClassOf logic:Object ,
-        gmeow:ReferenceFrame ;
+        gmeow:ReferenceFrame ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:frameTimeScale ;
+            owl:someValuesFrom gmeow:TimeScale ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:frameRealm ;
+            owl:someValuesFrom gmeow:FrameRealm ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:frameKind ;
+            owl:someValuesFrom gmeow:FrameKind ;
+        ] ;
     skos:definition "A reference system for expressing time — the temporal counterpart of gmeow:ReferenceFrame. Decomposed into a TimeScale, an optional CalendarSystem, and an optional ReferencePosition. Every crisp instant or interval is asserted relative to a TemporalFrame (Principle 11)."@x-gmeow-english ;
     skos:example "ex:myFrame a gmeow:TemporalFrame ; gmeow:frameTimeScale gmeow:timeScaleUTC ; gmeow:frameCalendarSystem gmeow:calendarGregorian ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a bespoke frame when a seeded one (gmeow:temporalFrameUTCGregorian, gmeow:temporalFrameTAI, the per-calendar civil frames) already fits, and avoid using it as the timestamp value itself — the frame interprets the value, it is not the value."@x-gmeow-english ;
