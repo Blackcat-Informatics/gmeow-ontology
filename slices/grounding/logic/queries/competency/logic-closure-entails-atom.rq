@@ -1,0 +1,11 @@
+# Competency question (elRlDlClosure flagship): "What atom does the accepted
+# EL→RL→DL closure entail beyond its EDB?"  Over the worked witness the answer is
+# exactly the transitive subClassOf atom the native reason_all closure derives;
+# dropping the logic:closureEntailedAtom empties the result.
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?atom WHERE {
+    ?w a logic:ClosureAcceptanceWitness ;
+       logic:closureEntailedAtom ?atom .
+}
+ORDER BY ?atom

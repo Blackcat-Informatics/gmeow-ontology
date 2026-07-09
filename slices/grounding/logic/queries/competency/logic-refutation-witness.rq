@@ -1,0 +1,11 @@
+# Competency question (symmetricConjecture flagship): "Which contradiction witness
+# does the accepted refutation name?"  Over the worked witness the answer is exactly
+# the concrete logic:ContradictionWitness the refutation rests on; dropping
+# logic:namesContradictionWitness empties the result.
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?witness WHERE {
+    ?w a logic:RefutationAcceptanceWitness ;
+       logic:namesContradictionWitness ?witness .
+}
+ORDER BY ?witness

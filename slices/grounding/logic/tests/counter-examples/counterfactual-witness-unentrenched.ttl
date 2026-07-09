@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the counterfactualStratumC flagship: a
+# logic:CounterfactualAcceptanceWitness naming NO logic:selectedByEntrenchment
+# outcome — an outcome chosen without a recorded ordering is an arbitrary guess.
+# Trips logic:CounterfactualAcceptanceWitnessShape (sh:minCount 1) →
+# shacl.MinCountConstraintComponent (logic:UnentrenchedCounterfactual), and no
+# other finding. Bound by ex:ecCounterfactualUnentrenched.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/logic/> .
+
+ex:counterfactualWitness a logic:CounterfactualAcceptanceWitness .

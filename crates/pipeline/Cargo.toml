@@ -174,3 +174,9 @@ purrdf = "0.4"
 #   * gmeow-math — the five native math producers (gmeow_math::producers) the math
 #     execution-discharge harness (tests/math_flagship_discharge.rs) RUNS and pins.
 gmeow-math = { path = "../math" }
+#   * gmeow-logic — the five native logic producers the logic execution-discharge harness
+#     (tests/logic_flagship_discharge.rs) RUNS and pins: reason::reason_all,
+#     correspondence_exec::leg_pair_verdict, counterfactual::construct_and_resolve,
+#     conjecture::conjecture_test, and materialize::materialize_routed (with its surfaced
+#     ChaseAdmission termination certificate + explain::assert_faithful trace).
+gmeow-logic = { path = "../logic" }
