@@ -12,9 +12,8 @@
 //! and the documentation projection each riding their own named graph, plus the
 //! RDF 1.2 reifier/annotation tables and the content-addressed blob channel.
 //!
-//! It assembles a [`purrdf::gts_compose::SnapshotBuilder`] directly — the same
-//! pyo3-free core the `purrdf` Python producer now delegates to — routing each
-//! source into the named graph `gts_gen.py` assigns it.
+//! It assembles a [`purrdf::gts_compose::SnapshotBuilder`] directly, routing each
+//! source into its named graph.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -43,6 +42,35 @@ pub(crate) const GRAPH_ALIGNMENTS: &str = "https://blackcatinformatics.ca/gmeow/
 pub(crate) const GRAPH_STATEMENTS: &str = "https://blackcatinformatics.ca/gmeow/graph/statements";
 const GRAPH_VERIFY: &str = "https://blackcatinformatics.ca/gmeow/graph/verify";
 const GRAPH_SLICE_ANALYSIS: &str = "https://blackcatinformatics.ca/gmeow/graph/slice-analysis";
+/// The per-slice quality-assessment corpus: every slice scored against the
+/// ontology-resident rubric, projected as `gmeow:QualityAssessment` observations (each
+/// per-axis grade a scalar reading + a categorical tier, plus a roll-up meet tier) by
+/// [`gmeow_slice_quality::assessment_nquads`]. Attached at the parallel DAG root
+/// (`build_self_description_dataset`, a per-slice sweep over the authored slices — the
+/// natural sibling of `graph/slice-analysis`) and read back by the presenter via
+/// `source_load_graph`. Folded as its own queryable named graph so a repo-free consumer
+/// reads every slice's quality grades straight out of `gmeow.gts` (the issue's headline
+/// dogfooding deliverable). Excluded from the reasoned object-level EDB exactly like
+/// `graph/slice-analysis` (it asserts a self-description corpus, not object-level axioms —
+/// the reasoned EDB reads named graphs by IRI, so this one never pollutes it).
+pub(crate) const GRAPH_QUALITY_ASSESSMENT: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/quality-assessment";
+/// The committed on-disk projection of the quality-assessment corpus (PIPELINE_SPINE §5:
+/// RDF travels as RDF, so the `gmeow:QualityAssessment` triples are reconstructible from
+/// `gmeow.gts` as a flat `generated/` file, not only as a bundle-internal named graph).
+/// Its `graph/fanout/<path>` reconstruction graph carries the SAME triples as
+/// [`GRAPH_QUALITY_ASSESSMENT`]; the base graph serves the queryable bundle graph, the
+/// fanout copy serves the superset gate / fanout writer (the correspondence-laws corpus
+/// follows the same twin-graph pattern).
+pub(crate) const QUALITY_ASSESSMENT_PATH: &str = "generated/quality/gmeow.quality-assessment.nt";
+/// Internal byte-artifact lane member emitted by `stage-source-load`: the repo-wide
+/// slice-quality diagnostics report rendered as self-contained HTML from the SAME scoring
+/// pass that emits [`QUALITY_ASSESSMENT_PATH`]'s graph. It uses the `pipeline/` prefix so
+/// regenerate/check never treat it as a committed flat artifact; it exists only to let the
+/// terminal snapshot embed the report in the ontology-docs archive.
+pub(crate) const SLICE_QUALITY_REPORT_HTML_ARTIFACT: &str = "pipeline/slice-quality-report.html";
+/// Bundle-relative docs path exported by `gmeow export-docs`.
+const SLICE_QUALITY_DOC_PATH: &str = "slice-quality/index.html";
 pub(crate) const GRAPH_DOCUMENTATION: &str =
     "https://blackcatinformatics.ca/gmeow/graph/documentation";
 pub(crate) const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
@@ -55,6 +83,16 @@ pub(crate) const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow
 /// [`crate::bundle_blobs`] so the producer and reader share ONE constant — the label
 /// cannot drift (a drifted label would silently read back an empty node set).
 pub(crate) use crate::bundle_blobs::REP_DIAG_NODES;
+/// The archive `representation` under which the mdbook `src/` source tree rides as a bundle
+/// blob (the `docs-book` archive). Re-exported from the reader-side definition in
+/// [`crate::bundle_blobs`] so the producer and reader share ONE constant — the label cannot
+/// drift (a drifted label would silently read back an empty archive).
+pub(crate) use crate::bundle_blobs::REP_DOCS_BOOK;
+/// The archive `representation` under which the print documentation projection (the
+/// byte-reproducible `gmeow.pdf` + its deterministic `gmeow.typ` source) rides as a bundle
+/// blob (the `docs-print` archive). Re-exported from the reader-side definition in
+/// [`crate::bundle_blobs`] so the producer and reader share ONE constant.
+pub(crate) use crate::bundle_blobs::REP_DOCS_PRINT;
 /// The by-reference blob `representation` under which `stage-source-load` carries its
 /// authored subject→source-position [`SpanIndex`](crate::ingest::SpanIndex) (raw JSON)
 /// on its product bundle — the SINGLE source of the source spans the diagnostics
@@ -124,6 +162,18 @@ pub(crate) const GRAPH_LANG_LOWERING_CORPUS: &str =
 /// axioms).
 pub(crate) const GRAPH_LANG_DOCS_RENDERING_CORPUS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/lang-docs-rendering-corpus";
+/// The docs-format grounding corpus: the four documentation output formats (site, mdbook,
+/// print PDF, term snippets) typed as lossy projections of one shared documentation body-set.
+/// Carries a `logic:Correspondence` per composition-DAG leg (with the derived
+/// weakest-dominates preservation join per format), a `gmeow:NotationProjectionProfile` per
+/// format enumerating the capabilities it represents / declares lost, and a
+/// `gmeow:contentDigest` self-description of the packed `docs-book` / `docs-print` blobs.
+/// Assembled at carrier time — the only point the packed blobs' byte digests exist. Folded
+/// as its own queryable named graph, excluded from the reasoned object-level EDB exactly like
+/// `graph/lang-docs-rendering-corpus` (it asserts a self-description corpus, not object-level
+/// axioms).
+pub(crate) const GRAPH_DOCS_FORMAT_RENDERING: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/docs-format-rendering";
 /// The correspondence-laws corpus: every authored `logic:Correspondence` re-projected with
 /// the EXECUTED lens-law discharge verdicts attached — one `logic:LawClaim`
 /// (`logic:lawClaimed` / `logic:lawDischargeVerdict` / `logic:lawDischargeCondition`) per law
@@ -281,7 +331,45 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
     // archive and never fold into `graph/reasoning` or any graph `verify`/`reason` consume.
     assert_okf_docs_cover_documented_terms(carrier, docs_model)?;
     let docs_exec = build_executable_docs_data(upstream, carrier, docs_model)?;
-    blobs.push(build_docs_archive(root, docs_model, &docs_exec)?);
+    let slice_quality_html = slice_quality_report_html(upstream)?;
+    // The three docs blobs are independent pure functions of the shared read-only model +
+    // executable data + products, so build them concurrently: the print-PDF compile (the new
+    // heavy cost) overlaps the per-language ontology-docs site renders rather than serializing
+    // after them on the DAG's critical path. `rayon::join` runs the two closures in parallel and
+    // returns both results; determinism is unaffected (each closure is a pure, order-independent
+    // producer, and the blobs vec ordering below is fixed).
+    let (docs_site_blob, docs_book_and_print) = rayon::join(
+        || build_docs_archive(root, docs_model, &docs_exec, slice_quality_html),
+        || -> Result<(BlobRow, (BlobRow, String)), gmeow_errors::Diag> {
+            let book = build_docs_book_archive(root, docs_model, &docs_exec)?;
+            let print = build_docs_print_blob(docs_model, upstream)?;
+            Ok((book, print))
+        },
+    );
+    blobs.push(docs_site_blob?);
+    let (docs_book_blob, (docs_print_blob, print_pdf_digest)) = docs_book_and_print?;
+    // Ground the four documentation output formats as lossy projections of one shared
+    // documentation body-set, content-addressing the packed docs-book / docs-print blobs
+    // by their blake3 digest (F4). This is the ONLY point the packed blobs' byte digests
+    // exist, so the docs-format grounding graph is assembled here; the blob-free capability
+    // loss ledger folds upstream in the mappings stage (where the single report loss store
+    // lives), exactly like the sibling lang: corpora.
+    let docs_format_graph = {
+        let book_digest = purrdf::gts::writer::digest_string(&docs_book_blob.data);
+        let print_digest = purrdf::gts::writer::digest_string(&docs_print_blob.data);
+        let corpus = crate::stages::docs_format_rendering::build_docs_format_corpus(
+            &book_digest,
+            &print_digest,
+            &print_pdf_digest,
+        );
+        parse_into_graph(
+            &corpus.ntriples,
+            "application/n-triples",
+            GRAPH_DOCS_FORMAT_RENDERING,
+        )?
+    };
+    blobs.push(docs_book_blob);
+    blobs.push(docs_print_blob);
     blobs.push(build_reasoning_blob(upstream)?);
     // The opaque-fanout archive: every non-RDF generated/ fanout output, recomputed
     // from THIS run's carrier (superset law — RDF rides as named graphs, not here).
@@ -309,7 +397,7 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
             rep: REP_SHACL_FINDINGS.to_string(),
         },
     ];
-    serialize_snapshot(carrier, blobs, report_blobs)
+    serialize_snapshot(carrier, &[docs_format_graph], blobs, report_blobs)
 }
 
 /// Hard-fail if any documented class/property/individual term would link to an OKF
@@ -407,6 +495,12 @@ pub(crate) fn self_description_source_files(
     // `generated/` from disk to cache-key a stage is the stale-disk-fold class this change
     // retires — freshness rides the consumes chain, not a disk enumeration here.
     files.extend(slice_named_files(root, "shapes.ttl")?);
+    // The quality-assessment graph is built here by scoring every slice, so the cache must
+    // bust when ANY scored input changes (rubric module, each slice's manifest / module /
+    // examples / tests). `gmeow_slice_quality::scored_source_files` is the single authority
+    // for what the scorer reads — sharing it keeps the cache key and the score set from
+    // drifting (a stale scored input would ship a stale assessment in gmeow.gts).
+    files.extend(gmeow_slice_quality::scored_source_files(root));
     files.sort();
     files.dedup();
     Ok(files)
@@ -432,8 +526,21 @@ pub(crate) fn self_description_source_files(
 /// product (via [`alignment_nquads_from_artifacts`]) and the presenter + reasoning EDB read
 /// it back through `producer_graph`. Building it here would re-read the stale committed
 /// `generated/mappings/*.sssom.tsv` off disk (the stale-disk-fold class).
+#[cfg(test)]
 pub(crate) fn build_self_description_dataset(
     root: &Path,
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+    let quality = gmeow_slice_quality::assessment_artifacts(root)
+        .map_err(|e| stage_err(&format!("quality-assessment sweep: {e}")))?;
+    build_self_description_dataset_with_quality(root, &quality.nquads)
+}
+
+/// Build the self-description named graphs with a caller-supplied slice-quality graph.
+/// `stage-source-load` uses this after scoring once so the same pass can also publish the
+/// diagnostics HTML; tests keep a wrapper that scores and calls this helper directly.
+pub(crate) fn build_self_description_dataset_with_quality(
+    root: &Path,
+    quality_assessment: &str,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let authored = load_authored_default(root)?;
     let authored_canon = canonicalize_nq(&authored, "base")?;
@@ -453,12 +560,22 @@ pub(crate) fn build_self_description_dataset(
         run_verify_attestation(root, &edb)?
     };
     let provenance_nt = build_provenance_projection(root)?;
-
+    // graph/quality-assessment — every slice scored against the ontology-resident rubric,
+    // projected as `gmeow:QualityAssessment` observations. A per-slice sweep over the
+    // authored slices (the natural sibling of the slice-analysis graph), built ONCE here
+    // and read back by the presenter via `source_load_graph`. The producer re-emits the
+    // per-slice `graph/slice-quality` N-Quads; `parse_into_graph` re-roots them into the
+    // carrier's `graph/quality-assessment` label.
     let datasets: Vec<std::sync::Arc<purrdf::RdfDataset>> = vec![
         rooted_in_graph(&base, GRAPH_AUTHORED_DEFAULT)?,
         parse_into_graph(&imports, "application/n-quads", GRAPH_IMPORTS)?,
         parse_into_graph(&metadata, "application/n-quads", GRAPH_METADATA)?,
         parse_into_graph(&slice_analysis, "application/n-quads", GRAPH_SLICE_ANALYSIS)?,
+        parse_into_graph(
+            quality_assessment.as_bytes(),
+            "application/n-quads",
+            GRAPH_QUALITY_ASSESSMENT,
+        )?,
         parse_into_graph(&verify_attestation, "application/n-quads", GRAPH_VERIFY)?,
         parse_into_graph(
             provenance_nt.as_bytes(),
@@ -468,6 +585,25 @@ pub(crate) fn build_self_description_dataset(
     ];
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
     Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&refs)))
+}
+
+fn slice_quality_report_html(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<&[u8], gmeow_errors::Diag> {
+    let bytes = upstream
+        .get("stage-source-load")
+        .and_then(|p| p.artifact(SLICE_QUALITY_REPORT_HTML_ARTIFACT))
+        .ok_or_else(|| {
+            stage_err(&format!(
+                "missing stage-source-load {SLICE_QUALITY_REPORT_HTML_ARTIFACT} artifact"
+            ))
+        })?;
+    if bytes.is_empty() {
+        return Err(stage_err(&format!(
+            "stage-source-load {SLICE_QUALITY_REPORT_HTML_ARTIFACT} artifact is empty"
+        )));
+    }
+    Ok(bytes)
 }
 
 /// The `stage-source-load` product's carrier dataset (the authored base default graph
@@ -580,6 +716,19 @@ fn assemble_carrier(
             .ok_or_else(|| stage_err("correspondence-laws fanout path is not an RDF path"))?;
         rooted_in_graph(correspondence_laws.as_ref(), &iri)?
     };
+    // graph/quality-assessment — the per-slice `gmeow:QualityAssessment` corpus, read off
+    // the stage-source-load product's attached graph (a pure keyed fold, PIPELINE_SPINE §4;
+    // it was scored + attached ONCE at the DAG root). The base graph ships as a queryable
+    // bundle graph; its fanout twin re-roots the SAME triples into their
+    // `graph/fanout/<path>` reconstruction graph so the superset gate folds them to
+    // `generated/quality/gmeow.quality-assessment.nt` (RDF travels as RDF — the assessment
+    // lands in `generated/` too, not only as a bundle-internal named graph).
+    let quality_assessment = source_load_graph(upstream, GRAPH_QUALITY_ASSESSMENT)?;
+    let quality_assessment_fanout = {
+        let iri = crate::stages::superset::rdf_fanout_graph_iri(QUALITY_ASSESSMENT_PATH)
+            .ok_or_else(|| stage_err("quality-assessment fanout path is not an RDF path"))?;
+        rooted_in_graph(quality_assessment.as_ref(), &iri)?
+    };
 
     // ── the carried graphs ride in from the producers' carriers ────────────────
     let reason = upstream
@@ -610,6 +759,8 @@ fn assemble_carrier(
         lang_docs_rendering_corpus,
         correspondence_laws,
         correspondence_laws_fanout,
+        quality_assessment,
+        quality_assessment_fanout,
     ];
     datasets.extend(compile_logic_object_graphs(upstream)?);
     datasets.push(rooted_in_graph(
@@ -836,6 +987,7 @@ fn compile_logic_object_graphs(
 /// OKF / caller blobs, and emit. The SOLE serialization of the snapshot.
 fn serialize_snapshot(
     carrier: &purrdf::RdfDataset,
+    extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
     blobs: Vec<BlobRow>,
     report_blobs: Vec<BlobRow>,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
@@ -843,6 +995,13 @@ fn serialize_snapshot(
     builder
         .add_dataset(carrier)
         .map_err(|e| stage_err(&format!("fold carrier into snapshot: {e}")))?;
+    // Carrier-time named graphs (e.g. the docs-format grounding, which content-addresses
+    // the packed docs blobs built in this stage) fold in alongside the assembled carrier.
+    for graph in extra_graphs {
+        builder
+            .add_dataset(graph)
+            .map_err(|e| stage_err(&format!("fold carrier-time named graph into snapshot: {e}")))?;
+    }
     // The JSON-LD-star + OKF archive blobs serialize the SAME native carrier dataset
     // (the value just folded into the builder) — no gts round-trip.
     let yaml_ld_blob = build_yaml_ld_blob_from_dataset(carrier)?;
@@ -942,7 +1101,7 @@ const REP_YAMLLD: &str = "yaml-ld-archive";
 const REP_OKF: &str = "okf-export";
 /// The full rendered ontology-docs static site. The rep MUST equal the
 /// string the runtime consumer (`create_docs._unpack_doc_archive`) looks up —
-/// `"ontology-docs"`, NOT an `-archive` variant — so `gmeow extract-docs` finds it.
+/// `"ontology-docs"`, NOT an `-archive` variant — so `gmeow export-docs` finds it.
 const REP_ONTOLOGY_DOCS: &str = "ontology-docs";
 /// tar of the FULL SHACL shape surface, member = repo-relative path:
 /// every `shapes/*.ttl` (incl. the 4 DSL/manifest lints the consumer's DSL phases
@@ -1658,7 +1817,7 @@ fn build_okf_blob_from_dataset(
 
 /// Render the full ontology-docs static site and pack it into the single
 /// `ontology-docs` archive blob — the producer half of repo-free
-/// `gmeow extract-docs`.
+/// `gmeow export-docs`.
 ///
 /// The rust doc generator (`gmeow_docs::render_site_lang`) emits a complete site
 /// (`index.md`/`index.html` per page, `assets/gmeow.css`, SVG diagrams,
@@ -1676,6 +1835,7 @@ fn build_docs_archive(
     root: &Path,
     model: &gmeow_docs::model::DocsModel,
     exec: &gmeow_docs::ExecutableDocsData,
+    slice_quality_html: &[u8],
 ) -> Result<BlobRow, gmeow_errors::Diag> {
     let catalog = purrdf::slice::SliceCatalog::discover(
         &root.join("slices"),
@@ -1700,8 +1860,107 @@ fn build_docs_archive(
                 .map(move |(path, bytes)| (format!("{prefix}/{path}"), bytes))
         })
         .collect();
+    for lang in &langs {
+        let prefix = translations.internal_tag(lang);
+        let member = format!("{prefix}/{SLICE_QUALITY_DOC_PATH}");
+        if members.iter().any(|(path, _)| path == &member) {
+            return Err(stage_err(&format!(
+                "ontology-docs renderer already emitted reserved slice-quality report path {member}"
+            )));
+        }
+        members.push((member, slice_quality_html.to_vec()));
+    }
     members.sort_by(|a, b| a.0.cmp(&b.0));
     archive_blob(REP_ONTOLOGY_DOCS, &members)
+}
+
+/// Render the mdbook `src/` source tree and pack it into the single `docs-book` archive blob
+/// — the producer half of the mdbook documentation projection.
+///
+/// [`gmeow_docs::mdbook::render_book`] emits a flat, un-prefixed [`gmeow_docs::render::Site`]
+/// (`book.toml`, `SUMMARY.md`, `src/<page>/index.md`). We render ONLY the English carrier and
+/// prefix every member with English's INTERNAL tag (`x-gmeow-english/…`), taken from
+/// `Translations::internal_tag` exactly as [`build_docs_archive`] does, so the archive member
+/// scheme matches the ontology-docs archive and a docs consumer selects the same way.
+fn build_docs_book_archive(
+    root: &Path,
+    model: &gmeow_docs::model::DocsModel,
+    exec: &gmeow_docs::ExecutableDocsData,
+) -> Result<BlobRow, gmeow_errors::Diag> {
+    let catalog = purrdf::slice::SliceCatalog::discover(
+        &root.join("slices"),
+        crate::gmeow_ns::gmeow_slice_vocab(),
+    )
+    .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
+    let translations = gmeow_docs::Translations::from_catalog(&catalog);
+    let prefix = translations.internal_tag(gmeow_docs::i18n::ENGLISH);
+
+    let site = gmeow_docs::mdbook::render_book(model, exec);
+    let mut members: Vec<(String, Vec<u8>)> = site
+        .files
+        .into_iter()
+        .map(|(path, bytes)| (format!("{prefix}/{path}"), bytes))
+        .collect();
+    members.sort_by(|a, b| a.0.cmp(&b.0));
+    archive_blob(REP_DOCS_BOOK, &members)
+}
+
+/// Render the deterministic Typst source, compile the byte-reproducible print PDF, and pack
+/// both into the single `docs-print` archive blob — the producer half of the print
+/// documentation projection.
+///
+/// The renderer reads THIS run's compiled logic/DL axiom surface ([`AXIOM_FILES`], sourced
+/// from the `stage-compile-logic` product exactly as [`build_archive_blobs`]'s REP_AXIOMS
+/// fold does — never a stale disk read) as its axiom-listing input, and the bibliography
+/// database from the `stage-export-references` product. The loss appendix reads the shared
+/// per-format capability table. Both `gmeow.pdf` and `gmeow.typ` ride under English's internal
+/// tag (`x-gmeow-english/…`) so the member scheme matches the sibling docs archives.
+fn build_docs_print_blob(
+    model: &gmeow_docs::model::DocsModel,
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<(BlobRow, String), gmeow_errors::Diag> {
+    let bib = producer_artifact(
+        "stage-export-references",
+        crate::stages::references::BIB_PATH,
+        upstream,
+    )?;
+    // The axiom-listing input: THIS run's compiled logic/DL projections, keyed by their
+    // repo-relative path, pulled from the stage-compile-logic product (fail-closed on absence,
+    // mirroring `build_archive_blobs`' REP_AXIOMS guard — a partial listing would silently ship
+    // an incomplete PDF).
+    let axiom_artifacts = producer_artifacts("stage-compile-logic", upstream)?;
+    let mut axioms: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    for rel in AXIOM_FILES {
+        let bytes = axiom_artifacts.get(rel).ok_or_else(|| {
+            stage_err(&format!(
+                "missing axiom artifact {rel} in the stage-compile-logic product for the print PDF (fail-closed)"
+            ))
+        })?;
+        axioms.insert(rel.to_string(), bytes.clone());
+    }
+    let losses: Vec<gmeow_docs::formats::FormatCapabilities> = [
+        gmeow_docs::formats::DocFormat::Site,
+        gmeow_docs::formats::DocFormat::Mdbook,
+        gmeow_docs::formats::DocFormat::Pdf,
+        gmeow_docs::formats::DocFormat::Snippets,
+    ]
+    .into_iter()
+    .map(gmeow_docs::formats::format_capabilities)
+    .collect();
+
+    let typ = docs_print::render_typ(model, &axioms, &bib, &losses);
+    let pdf = docs_print::compile_pdf(&typ, &bib)?;
+    // The raw `gmeow.pdf` byte digest — BEFORE it is packed into the docs-print tar —
+    // so the docs-format grounding graph (F4) can attest the PDF itself, not just the
+    // archive that carries it. Computed here, the ONLY point the un-tarred bytes exist.
+    let pdf_digest = purrdf::gts::writer::digest_string(&pdf);
+
+    let prefix = model.translations.internal_tag(gmeow_docs::i18n::ENGLISH);
+    let members = vec![
+        (format!("{prefix}/gmeow.pdf"), pdf),
+        (format!("{prefix}/gmeow.typ"), typ.into_bytes()),
+    ];
+    Ok((archive_blob(REP_DOCS_PRINT, &members)?, pdf_digest))
 }
 
 /// Compute the build-time [`gmeow_docs::ExecutableDocsData`] the "live" docs surfaces
@@ -2243,6 +2502,11 @@ impl SnapshotStage {
                 // object graphs. `rdf_fanout_members` reads them off these products.
                 "stage-export-evals".to_string(),
                 "stage-export-profiles".to_string(),
+                // The references export leaf: its in-memory product carries THIS run's
+                // generated `references.bib`, which `build_docs_print_blob` folds into the
+                // print PDF's bibliography (and its own Typst source). Consumed here so the
+                // print blob reads the fresh bibliography off the product, never a stale disk.
+                "stage-export-references".to_string(),
                 "stage-export-research-objects".to_string(),
                 // The mappings product carries the FINAL projection-report loss ledger
                 // (logic rows ∪ correspondence rows), folded into graph/projection-ledger.
@@ -2330,7 +2594,15 @@ impl Stage for SnapshotStage {
         // stale disk read, matching the validation-shapes.ttl freshness rule — a
         // new competency ResultShape now reaches the bundle (and the fanout) in one
         // regenerate.
-        "snapshot.v19-fresh-generated-shape-surfaces"
+        // v20 embeds the repo-wide slice-quality HTML report, produced by stage-source-load
+        // from the same sweep as graph/quality-assessment, into the ontology-docs archive.
+        // v21 folds two NEW documentation-projection blobs: the mdbook `src/` source tree
+        // (REP_DOCS_BOOK, English-tagged) and the print documentation projection
+        // (REP_DOCS_PRINT — the byte-reproducible gmeow.pdf + its deterministic gmeow.typ),
+        // built concurrently with the ontology-docs site render so the PDF compile overlaps
+        // the per-language renders; the print blob additionally consumes stage-export-references
+        // for the bibliography.
+        "snapshot.v21-docs-book-and-print-blobs"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -3581,8 +3853,14 @@ mod ustar_tests {
         // covered by the regenerate gate, not this structural packing test.
         let root = repo_root();
         let model = gmeow_docs::model::DocsModel::discover(&root).expect("docs model");
-        let blob = build_docs_archive(&root, &model, &gmeow_docs::ExecutableDocsData::default())
-            .expect("docs archive");
+        let slice_quality_html = b"<!doctype html><title>slice-quality</title>\n";
+        let blob = build_docs_archive(
+            &root,
+            &model,
+            &gmeow_docs::ExecutableDocsData::default(),
+            slice_quality_html,
+        )
+        .expect("docs archive");
         assert_eq!(blob.rep, REP_ONTOLOGY_DOCS);
         assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
 
@@ -3602,6 +3880,15 @@ mod ustar_tests {
                 .iter()
                 .any(|(n, _)| n == "x-gmeow-english/index.html"),
             "the English landing page must be present"
+        );
+        let report = members
+            .iter()
+            .find(|(n, _)| n == "x-gmeow-english/slice-quality/index.html")
+            .expect("slice-quality HTML report must be embedded in English docs");
+        assert_eq!(
+            report.1.as_slice(),
+            slice_quality_html,
+            "slice-quality report bytes must ride unchanged in the docs archive"
         );
         // The site carries its structural assets (deterministic, language-keyed).
         for asset in [
@@ -3628,11 +3915,12 @@ mod ustar_tests {
         // Member names CAN exceed the 100-byte USTAR field (LongLink-covered).
         // Today's longest stays under it, so LongLink is a defensive net rather
         // than currently-triggered — `long_member_name_round_trips_via_longlink`
-        // is the dedicated proof. Logged so a future overflow is visible.
+        // is the dedicated proof. The longest member name must stay a valid tar
+        // member (non-empty archive), asserted rather than merely logged.
         let max_len = members.iter().map(|(n, _)| n.len()).max().unwrap_or(0);
-        eprintln!(
-            "ontology-docs: {} members, longest name {max_len}B",
-            members.len()
+        assert!(
+            max_len > 0,
+            "the docs archive must carry at least one named member"
         );
     }
 
@@ -4209,6 +4497,322 @@ mod ustar_tests {
         }
         let computed: usize = probe.iter().map(|&b| b as usize).sum();
         assert_eq!(stored, computed);
+    }
+
+    // ── docs-book / docs-print blob wiring (fresh-build, no committed-bundle dep) ──
+
+    /// A small, deterministic docs model (one slice, three terms, one competency, one
+    /// linkage) — the SAME shape the `docs-print` integration suite uses, kept small so
+    /// the book render and the PDF compile stay well under the per-test budget (the
+    /// full-catalog render/compile belongs to the regenerate gate, not a unit test).
+    fn small_docs_model() -> gmeow_docs::model::DocsModel {
+        use gmeow_docs::model::{
+            DocCompetency, DocLinkage, DocSlice, DocTerm, DocTermCategory, DocsModel,
+            ReasoningVerdict,
+        };
+        let slice_iri = "https://blackcatinformatics.ca/gmeow/slice/demo".to_string();
+        let mk = |iri: &str, curie: &str, label: &str, def: &str, cat: DocTermCategory| DocTerm {
+            iri: iri.to_string(),
+            curie: curie.to_string(),
+            label: Some(label.to_string()),
+            definition: Some(def.to_string()),
+            category: cat,
+            owner_slice: slice_iri.clone(),
+            ..Default::default()
+        };
+        let demo_slice = DocSlice {
+            iri: slice_iri.clone(),
+            label: Some("Demo".to_string()),
+            title: Some("Demo slice".to_string()),
+            tier: None,
+            identifier: None,
+            creators: Vec::new(),
+            consumers: Vec::new(),
+            profiles: Vec::new(),
+            depends_on: Vec::new(),
+            artifacts: Vec::new(),
+        };
+        let competency = DocCompetency {
+            iri: "https://blackcatinformatics.ca/gmeow/cq/demo".to_string(),
+            rationale: Some("Can a demo Foo be found?".to_string()),
+            query_file: Some("demo.rq".to_string()),
+            exercises: vec!["https://blackcatinformatics.ca/gmeow/Foo".to_string()],
+            owner_slice: slice_iri.clone(),
+        };
+        let linkage = DocLinkage {
+            mapping_set: None,
+            subject: "https://blackcatinformatics.ca/gmeow/Foo".to_string(),
+            subject_curie: "gmeow:Foo".to_string(),
+            predicate: "http://www.w3.org/2004/02/skos/core#closeMatch".to_string(),
+            object: "http://purl.org/nemo/gufo#Object".to_string(),
+            justification: None,
+            confidence: Some(0.9),
+            owner_slice: slice_iri.clone(),
+        };
+        DocsModel {
+            title: "GMEOW Demo Documentation".to_string(),
+            version: "test-1".to_string(),
+            slices: vec![demo_slice],
+            terms: vec![
+                mk(
+                    "https://blackcatinformatics.ca/gmeow/Foo",
+                    "gmeow:Foo",
+                    "Foo",
+                    "A foundational demonstration class.",
+                    DocTermCategory::Class,
+                ),
+                mk(
+                    "https://blackcatinformatics.ca/gmeow/hasValue",
+                    "gmeow:hasValue",
+                    "hasValue",
+                    "Relates a Foo to a value.",
+                    DocTermCategory::Property,
+                ),
+                mk(
+                    "https://blackcatinformatics.ca/gmeow/Baz",
+                    "gmeow:Baz",
+                    "Baz",
+                    "An individual of the demo.",
+                    DocTermCategory::Individual,
+                ),
+            ],
+            competencies: vec![competency],
+            linkages: vec![linkage],
+            reasoning: Some(ReasoningVerdict {
+                is_consistent: true,
+                unsatisfiable: Default::default(),
+            }),
+            ..Default::default()
+        }
+    }
+
+    /// A minimal valid BibTeX database, the stand-in for the `stage-export-references`
+    /// product's `references.bib` in the print-blob tests.
+    fn fixture_bib() -> Vec<u8> {
+        b"@article{gmeow2026,\n  title = {The GMEOW Ontology},\n  author = {Audley, Patrick},\n  year = {2026},\n  journal = {Journal of Ontology},\n}\n".to_vec()
+    }
+
+    /// A synthetic upstream product map carrying the two products `build_docs_print_blob`
+    /// reads: `stage-export-references` (the bibliography) and `stage-compile-logic` (the
+    /// axiom listings). Each axiom file carries small synthetic bytes — the PDF lists them
+    /// verbatim, so their content need not be the real projection for a wiring test.
+    fn print_upstream() -> BTreeMap<String, StageProduct> {
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        let mut refs: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        refs.insert(
+            crate::stages::references::BIB_PATH.to_string(),
+            fixture_bib(),
+        );
+        upstream.insert(
+            "stage-export-references".to_string(),
+            StageProduct::from_artifacts("stage-export-references", refs),
+        );
+        let mut logic: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        for rel in AXIOM_FILES {
+            logic.insert(
+                rel.to_string(),
+                format!("% axiom listing for {rel}\n").into_bytes(),
+            );
+        }
+        upstream.insert(
+            "stage-compile-logic".to_string(),
+            StageProduct::from_artifacts("stage-compile-logic", logic),
+        );
+        upstream
+    }
+
+    #[test]
+    fn build_docs_book_archive_packs_the_mdbook_tree() {
+        let root = repo_root();
+        let model = small_docs_model();
+        let exec = gmeow_docs::ExecutableDocsData::default();
+
+        let blob = build_docs_book_archive(&root, &model, &exec).expect("docs-book archive");
+        assert_eq!(blob.rep, REP_DOCS_BOOK);
+        assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
+
+        let members = parse(&blob.data);
+        // Every member rides under the English internal tag, and the two mdbook anchor
+        // files are present.
+        assert!(
+            members
+                .iter()
+                .all(|(n, _)| n.starts_with("x-gmeow-english/")),
+            "every book member must carry the English internal-tag prefix, got e.g. {:?}",
+            members.iter().map(|(n, _)| n).take(3).collect::<Vec<_>>()
+        );
+        assert!(
+            members
+                .iter()
+                .any(|(n, _)| n == "x-gmeow-english/book.toml"),
+            "the mdbook book.toml must be present"
+        );
+        assert!(
+            members
+                .iter()
+                .any(|(n, _)| n == "x-gmeow-english/src/SUMMARY.md"),
+            "the mdbook SUMMARY.md must be present"
+        );
+
+        // Byte-stability: a second build folds byte-identical archive bytes.
+        let again = build_docs_book_archive(&root, &model, &exec).expect("docs-book archive again");
+        assert_eq!(
+            blob.data, again.data,
+            "the docs-book archive must be byte-deterministic"
+        );
+    }
+
+    #[test]
+    fn build_docs_print_blob_packs_pdf_and_typ() {
+        let model = small_docs_model();
+        let upstream = print_upstream();
+
+        let (blob, pdf_digest) = build_docs_print_blob(&model, &upstream).expect("docs-print blob");
+        assert_eq!(blob.rep, REP_DOCS_PRINT);
+        assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
+
+        let members: BTreeMap<String, Vec<u8>> = parse(&blob.data).into_iter().collect();
+        let pdf = members
+            .get("x-gmeow-english/gmeow.pdf")
+            .expect("the print PDF member must be present");
+        assert!(
+            pdf.starts_with(b"%PDF"),
+            "the print member must be a real PDF (starts with %PDF)"
+        );
+        assert_eq!(
+            pdf_digest,
+            purrdf::gts::writer::digest_string(pdf),
+            "the returned pdf digest must be the raw PDF's blake3, not the archive's"
+        );
+        let typ = members
+            .get("x-gmeow-english/gmeow.typ")
+            .expect("the Typst source member must be present");
+        assert!(
+            !typ.is_empty(),
+            "the Typst source member must carry the rendered source"
+        );
+
+        // Byte-stability: a second build folds byte-identical archive bytes (the Typst
+        // source is pure and the PDF compile is byte-reproducible).
+        let (again, again_digest) =
+            build_docs_print_blob(&model, &upstream).expect("docs-print blob again");
+        assert_eq!(
+            blob.data, again.data,
+            "the docs-print archive must be byte-deterministic"
+        );
+        assert_eq!(
+            pdf_digest, again_digest,
+            "the raw pdf digest must be byte-deterministic too"
+        );
+    }
+
+    /// The `application/pdf` attestation the SHIPPED bundle carries (F4) must bind the
+    /// RAW `gmeow.pdf` bytes, not the tar that packs them. Recompute the raw PDF blake3
+    /// straight from the docs-print blob (untar, find the `gmeow.pdf` member, digest it)
+    /// and assert it EQUALS the `gmeow:contentDigest` the docs-format corpus emits on the
+    /// `application/pdf` attestation artifact — proving the binding is real and non-DARK
+    /// on the committed-bundle production path (the exact path `make regenerate` runs).
+    #[test]
+    fn shipped_pdf_attestation_binds_the_raw_pdf_bytes() {
+        let model = small_docs_model();
+        let upstream = print_upstream();
+
+        // The producer path: the same blob + raw-PDF digest the carrier threads.
+        let (print_blob, print_pdf_digest) =
+            build_docs_print_blob(&model, &upstream).expect("docs-print blob");
+
+        // The consumer path: untar the shipped blob, find gmeow.pdf, digest the RAW bytes.
+        let members: BTreeMap<String, Vec<u8>> = parse(&print_blob.data).into_iter().collect();
+        let pdf = members
+            .get("x-gmeow-english/gmeow.pdf")
+            .expect("the docs-print blob must carry gmeow.pdf");
+        let recomputed = purrdf::gts::writer::digest_string(pdf);
+        assert_eq!(
+            recomputed, print_pdf_digest,
+            "the threaded raw-PDF digest must equal the blake3 of the shipped gmeow.pdf"
+        );
+
+        // The corpus emits that digest on an application/pdf AttestationArtifact — the
+        // literal that lands in the committed bundle. HARD-FAIL if the binding drifts.
+        let corpus = crate::stages::docs_format_rendering::build_docs_format_corpus(
+            "blake3:0000000000000000000000000000000000000000000000000000000000000000",
+            "blake3:1111111111111111111111111111111111111111111111111111111111111111",
+            &print_pdf_digest,
+        );
+        let nt = String::from_utf8(corpus.ntriples).expect("utf8 n-triples");
+        let pdf_blob = "http://example.org/docs-format/blob/docs-print-pdf";
+        let media = format!(
+            "<{pdf_blob}> <https://blackcatinformatics.ca/gmeow/artifactMediaType> \"application/pdf\" ."
+        );
+        let digest = format!(
+            "<{pdf_blob}> <https://blackcatinformatics.ca/gmeow/contentDigest> \"{recomputed}\" ."
+        );
+        assert!(
+            nt.contains(&media),
+            "the corpus must mint an application/pdf attestation artifact"
+        );
+        assert!(
+            nt.contains(&digest),
+            "the application/pdf attestation must carry the RAW gmeow.pdf blake3, got:\n{nt}"
+        );
+    }
+
+    #[test]
+    fn docs_book_and_print_resolve_via_bundle_round_trip() {
+        let root = repo_root();
+        let model = small_docs_model();
+        let exec = gmeow_docs::ExecutableDocsData::default();
+        let upstream = print_upstream();
+
+        let book_blob = build_docs_book_archive(&root, &model, &exec).expect("docs-book archive");
+        let (print_blob, _print_pdf_digest) =
+            build_docs_print_blob(&model, &upstream).expect("docs-print blob");
+
+        // Fold a minimal snapshot carrying exactly the two new blobs (plus a well-formed
+        // base graph) through the SAME emit path the carrier uses, then read them back
+        // through the repo-free `Bundle` reader — the producer↔reader wiring end-to-end.
+        let mut builder = SnapshotBuilder::new();
+        add_base_nq(
+            &mut builder,
+            b"<https://blackcatinformatics.ca/gmeow/> \
+              <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+              <http://www.w3.org/2002/07/owl#Ontology> .\n",
+            "base",
+        )
+        .expect("fold base graph");
+        let gts = emit_gts(
+            &builder,
+            "dist",
+            Some(vec!["zstd-rsyncable".to_string()]),
+            vec![book_blob, print_blob],
+            Vec::new(),
+            None,
+            None,
+            None,
+            purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit snapshot");
+
+        let bundle =
+            crate::bundle_blobs::Bundle::from_snapshot(&gts).expect("fold the minimal snapshot");
+        let book = bundle.docs_book().expect("docs_book resolves");
+        assert!(
+            book.contains_key("x-gmeow-english/book.toml")
+                && book.contains_key("x-gmeow-english/src/SUMMARY.md"),
+            "docs_book() must resolve the mdbook anchor members; got {:?}",
+            book.keys().take(4).collect::<Vec<_>>()
+        );
+        let print = bundle.docs_print().expect("docs_print resolves");
+        assert!(
+            print
+                .get("x-gmeow-english/gmeow.pdf")
+                .is_some_and(|b| b.starts_with(b"%PDF")),
+            "docs_print() must resolve the PDF member as a real PDF"
+        );
+        assert!(
+            print.contains_key("x-gmeow-english/gmeow.typ"),
+            "docs_print() must resolve the Typst source member"
+        );
     }
 }
 
@@ -5490,6 +6094,90 @@ ex:rex a ex:Dog .
                 .chain(full.cross_example.iter())
                 .all(|l| !l.contains("ImportedExtra")),
             "import-world axiom leaked into cross_example"
+        );
+    }
+}
+
+#[cfg(test)]
+mod quality_assessment_tests {
+    use super::*;
+
+    fn repo_root() -> std::path::PathBuf {
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .unwrap()
+    }
+
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const QUALITY_ASSESSMENT_CLASS: &str = "https://blackcatinformatics.ca/gmeow/QualityAssessment";
+
+    /// Count `?s a gmeow:QualityAssessment` in a projected graph.
+    fn count_quality_assessments(ds: &purrdf::RdfDataset) -> usize {
+        ds.owned_quads()
+            .filter(|q| {
+                q.predicate.as_str() == RDF_TYPE
+                    && matches!(&q.object, RdfTerm::Iri(o) if o == QUALITY_ASSESSMENT_CLASS)
+            })
+            .count()
+    }
+
+    #[test]
+    fn quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate() {
+        // G2 dogfooding: scoring every slice attaches the `graph/quality-assessment`
+        // named graph to the source-load self-description carrier, so it folds into
+        // gmeow.gts (the presenter reads it back and also emits the fanout twin).
+        //
+        // Off-gate (`_heavy_offgate`): builds the full self-description carrier, which
+        // scores all ~81 slices (~86 s) — irreducibly O(slice count), the same
+        // whole-repo class as `end_to_end`/`fold_parity`. The attach↔fanout bijection
+        // and N-Triples fold form stay on-gate via the fast sibling tests
+        // `quality_assessment_fanout_path_is_registered_and_folds_as_ntriples` and
+        // `superset::tests::quality_assessment_nt_folds_as_ntriples_via_its_own_fanout_graph`,
+        // and any real drift is caught on every `make check` by `make check-generated`.
+        let root = repo_root();
+        let ds = build_self_description_dataset(&root).expect("self-description dataset");
+
+        let base = ds.project_named_graph(GRAPH_QUALITY_ASSESSMENT);
+        assert!(
+            base.quad_count() > 0,
+            "graph/quality-assessment must carry the scored slice corpus"
+        );
+        let n = count_quality_assessments(&base);
+        assert!(
+            n >= 1,
+            "graph/quality-assessment must carry real gmeow:QualityAssessment triples, got {n}"
+        );
+
+        // The fanout twin (the superset gate's on-disk fold) carries the SAME triples
+        // re-rooted into the `graph/fanout/<path>` reconstruction container.
+        let fanout_iri = crate::stages::superset::rdf_fanout_graph_iri(QUALITY_ASSESSMENT_PATH)
+            .expect("quality-assessment path is an RDF path");
+        let fanout = rooted_in_graph(&base, &fanout_iri).expect("re-root into fanout container");
+        assert_eq!(
+            count_quality_assessments(&fanout.project_named_graph(&fanout_iri)),
+            n,
+            "the fanout twin must carry the same QualityAssessment triples as the base graph"
+        );
+    }
+
+    #[test]
+    fn quality_assessment_fanout_path_is_registered_and_folds_as_ntriples() {
+        // The attach ↔ committed-path bijection the superset gate enforces: the carrier
+        // attaches `graph/fanout/quality/gmeow.quality-assessment.nt` and the gate claims
+        // the same committed path as an N-Triples fanout fold. A committed path with no
+        // attaching stage (or vice-versa) is a wiring contradiction — this pins both legs.
+        assert!(
+            crate::stages::superset::is_rdf_fanout_class(QUALITY_ASSESSMENT_PATH),
+            "the quality-assessment committed path must be a registered RDF-fanout class"
+        );
+        let iri = crate::stages::superset::rdf_fanout_graph_iri(QUALITY_ASSESSMENT_PATH)
+            .expect("committed path yields a fanout graph IRI");
+        assert_eq!(
+            crate::stages::superset::rdf_fanout_path_for_graph_iri(&iri).as_deref(),
+            Some(QUALITY_ASSESSMENT_PATH),
+            "the fanout IRI must invert back to the committed path (bijection)"
         );
     }
 }

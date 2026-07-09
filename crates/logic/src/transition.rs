@@ -17,6 +17,12 @@ use crate::entrenchment::{Entrenchment, LeastEntrenched};
 use crate::provenance::{mint_reifier, term_n3};
 use crate::store::WorldStore;
 
+/// Wrap a transition-derivation condition message as a typed diagnostic on the
+/// shared substrate, preserving the authored text verbatim.
+fn transition_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Transition { detail })
+}
+
 /// `logic:activeInState` — support was active in the named state.
 pub const ACTIVE_IN_STATE: &str = "https://blackcatinformatics.ca/logic/activeInState";
 /// `logic:validUntilState` — support stops holding at the successor state.
@@ -41,7 +47,7 @@ impl TransitionFact {
     /// This convenience constructor covers the common conformance fixtures. Use
     /// [`Self::from_quad`] when preserving literal or blank-node terms from a
     /// loaded store.
-    pub fn iri(subject: &str, predicate: &str, object: &str) -> Result<Self, String> {
+    pub fn iri(subject: &str, predicate: &str, object: &str) -> gmeow_errors::Result<Self> {
         Ok(Self {
             subject: TermValue::iri(subject),
             predicate: predicate.to_owned(),
@@ -66,7 +72,7 @@ impl TransitionFact {
     }
 
     /// Deterministic content key for equality, grouping, and sorting.
-    pub fn key(&self) -> Result<TransitionFactKey, String> {
+    pub fn key(&self) -> gmeow_errors::Result<TransitionFactKey> {
         Ok(TransitionFactKey {
             subject_n3: subject_n3(&self.subject),
             predicate_iri: self.predicate.clone(),
@@ -75,7 +81,7 @@ impl TransitionFact {
     }
 
     /// Content-addressed support/reifier IRI for this fact.
-    pub fn reifier(&self) -> Result<String, String> {
+    pub fn reifier(&self) -> gmeow_errors::Result<String> {
         mint_reifier(&self.subject, &self.predicate, &self.object)
     }
 }
@@ -135,7 +141,7 @@ impl ElementaryUpdate {
         }
     }
 
-    fn sort_key(&self) -> Result<(TransitionFactKey, String, u8), String> {
+    fn sort_key(&self) -> gmeow_errors::Result<(TransitionFactKey, String, u8)> {
         let kind = match self.kind {
             ElementaryUpdateKind::Insert => 0,
             ElementaryUpdateKind::Delete => 1,
@@ -166,9 +172,11 @@ pub fn apply_elementary_transition(
     successor_state: &str,
     updates: &[ElementaryUpdate],
     entrenchment_state: &str,
-) -> Result<TransitionReport, String> {
+) -> gmeow_errors::Result<TransitionReport> {
     if base_state == successor_state {
-        return Err("elementary transition requires distinct base and successor states".to_owned());
+        return Err(transition_err(
+            "elementary transition requires distinct base and successor states".to_owned(),
+        ));
     }
     let predicates = MetadataPredicates::new();
 
@@ -176,10 +184,10 @@ pub fn apply_elementary_transition(
         .quads_for_pattern_in_world(successor_state, None, None, None)
         .is_empty()
     {
-        return Err(format!(
+        return Err(transition_err(format!(
             "successor state {successor_state:?} already contains quads; \
              elementary transitions materialize into a fresh state"
-        ));
+        )));
     }
 
     let entrenchment = Entrenchment::read_from_world(store, entrenchment_state)?;
@@ -195,14 +203,14 @@ pub fn apply_elementary_transition(
         .iter()
         .filter(|u| u.kind == ElementaryUpdateKind::Delete)
         .map(|u| Ok((u.fact.key()?, u.clone())))
-        .collect::<Result<_, String>>()?;
+        .collect::<gmeow_errors::Result<_>>()?;
 
     for key in retired_by_key.keys() {
         if !base_keys.contains(key) {
-            return Err(format!(
+            return Err(transition_err(format!(
                 "illegal del: support {:?} does not hold in base state {base_state:?}",
                 key
-            ));
+            )));
         }
     }
 
@@ -296,7 +304,7 @@ pub fn apply_elementary_transition(
 fn resolve_updates(
     updates: &[ElementaryUpdate],
     entrenchment: &Entrenchment,
-) -> Result<Vec<ElementaryUpdate>, String> {
+) -> gmeow_errors::Result<Vec<ElementaryUpdate>> {
     let mut by_fact: BTreeMap<TransitionFactKey, Vec<&ElementaryUpdate>> = BTreeMap::new();
     for update in updates {
         by_fact.entry(update.fact.key()?).or_default().push(update);
@@ -317,22 +325,24 @@ fn resolve_updates(
                             .iter()
                             .find(|u| u.update_iri == winner)
                             .ok_or_else(|| {
-                                format!("entrenchment selected missing update {winner:?}")
+                                transition_err(format!(
+                                    "entrenchment selected missing update {winner:?}"
+                                ))
                             })?;
                     out.push((*chosen).clone());
                 }
                 LeastEntrenched::Tie(tie) => {
-                    return Err(format!(
+                    return Err(transition_err(format!(
                         "ambiguous elementary updates for {:?}: incomparable most-entrenched \
                          candidates {:?}",
                         fact, tie
-                    ));
+                    )));
                 }
                 LeastEntrenched::Empty => {
-                    return Err(format!(
+                    return Err(transition_err(format!(
                         "ambiguous elementary updates for {:?}: no candidates",
                         fact
-                    ));
+                    )));
                 }
             }
         } else {
@@ -345,7 +355,7 @@ fn resolve_updates(
     Ok(out)
 }
 
-fn sorted_world_quads(store: &WorldStore, world: &str) -> Result<Vec<QuadValues>, String> {
+fn sorted_world_quads(store: &WorldStore, world: &str) -> gmeow_errors::Result<Vec<QuadValues>> {
     let mut quads = store.quads_for_pattern_in_world(world, None, None, None);
     let mut keyed = Vec::with_capacity(quads.len());
     for quad in quads.drain(..) {
@@ -541,7 +551,10 @@ mod tests {
 
         let err = apply_elementary_transition(&store, BASE, NEXT, &[delete, insert], BASE)
             .expect_err("incomparable updates must fail");
-        assert!(err.contains("ambiguous elementary updates"), "got: {err}");
+        assert!(
+            err.message().contains("ambiguous elementary updates"),
+            "got: {err}"
+        );
         assert!(
             store
                 .quads_for_pattern_in_world(NEXT, None, None, None)
@@ -573,7 +586,7 @@ mod tests {
         let update = ElementaryUpdate::delete(UPDATE_DELETE, TX, fact());
         let err = apply_elementary_transition(&store, BASE, NEXT, &[update], BASE)
             .expect_err("absent support cannot be retired");
-        assert!(err.contains("illegal del"), "got: {err}");
+        assert!(err.message().contains("illegal del"), "got: {err}");
         assert!(
             store
                 .quads_for_pattern_in_world(NEXT, None, None, None)
@@ -588,7 +601,10 @@ mod tests {
         let update = ElementaryUpdate::insert(UPDATE_INSERT, TX, fact());
         let err = apply_elementary_transition(&store, BASE, NEXT, &[update], BASE)
             .expect_err("successor is not fresh");
-        assert!(err.contains("already contains quads"), "got: {err}");
+        assert!(
+            err.message().contains("already contains quads"),
+            "got: {err}"
+        );
     }
 
     #[test]

@@ -116,12 +116,6 @@ fn full_run_reproduces_every_committed_artifact() {
             unexpected.push(path.clone());
         }
     }
-    eprintln!(
-        "non-schemas committed-leaf drifts: {} unexpected, {} known-skew ({classified_skew:?})",
-        unexpected.len(),
-        classified_skew.len(),
-    );
-
     // ── 3. `dist/**` determinism. ──
     let dist_nondeterministic = dist_determinism_mismatches(&root);
 
@@ -147,6 +141,7 @@ fn full_run_reproduces_every_committed_artifact() {
             && schema_drifts.is_empty(),
         "full-build parity FAILED:\n  \
          unexpected committed-leaf drifts: {unexpected:?}\n  \
+         known-skew (classified, non-failing): {classified_skew:?}\n  \
          schema drifts: {schema_drifts:?}\n  \
          fold drifts:\n  {}\n  \
          dist non-determinism:\n  {}",

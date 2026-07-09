@@ -413,9 +413,11 @@ pub fn claim_audit(root: &Path, files: &[PathBuf]) -> gmeow_errors::Result<Claim
 
 fn trace_claim_audit_phase(enabled: bool, label: &str, started: Instant) {
     if enabled {
-        eprintln!(
-            "claim-audit timing {label}: {:.3}s",
-            started.elapsed().as_secs_f64()
+        tracing::info!(
+            target: "claim_audit_timing",
+            phase = label,
+            secs = started.elapsed().as_secs_f64(),
+            "claim-audit timing",
         );
     }
 }
@@ -617,7 +619,11 @@ impl AcceptanceContext {
     fn load(root: &Path) -> gmeow_errors::Result<Self> {
         let ontology_nt = ontology_nt(root)?;
         let tag_map = gmeow_validate::language_tags::load_tag_map(ontology_nt.as_bytes(), "nt")
-            .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message: e }))?;
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+                    message: e.message().to_string(),
+                })
+            })?;
         let inverse_tag_map = invert_tag_map(&tag_map);
         let sssom_texts = sssom_texts(root)?;
         let projection_ttls = projection_ttls(root)?;

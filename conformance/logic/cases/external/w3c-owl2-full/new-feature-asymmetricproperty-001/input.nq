@@ -1,0 +1,5 @@
+<http://example.org/Peter> <http://example.org/parentOf> <http://example.org/Stewie> <https://gmeow.example/w3c-owl2-full/new-feature-asymmetricproperty-001/w> .
+<http://example.org/Stewie> <http://example.org/parentOf> <http://example.org/Peter> <https://gmeow.example/w3c-owl2-full/new-feature-asymmetricproperty-001/w> .
+<http://example.org/parentOf> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#AsymmetricProperty> <https://gmeow.example/w3c-owl2-full/new-feature-asymmetricproperty-001/w> .
+<http://example.org/parentOf> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/new-feature-asymmetricproperty-001/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/new-feature-asymmetricproperty-001/w> .

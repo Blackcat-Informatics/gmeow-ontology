@@ -15,3 +15,8 @@ name = "gmeow-test-budget"
 path = "src/main.rs"
 
 [dependencies]
+# Handled failures surface through the shared console Reporter as Error-grade
+# diagnostics (never a bare stderr write); the OK product line stays on stdout.
+# Acyclic: cli-core depends only on gmeow-errors.
+gmeow-cli-core = { path = "../cli-core" }
+gmeow-errors = { path = "../errors" }

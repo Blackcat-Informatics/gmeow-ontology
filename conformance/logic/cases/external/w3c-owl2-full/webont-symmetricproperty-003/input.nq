@@ -1,0 +1,5 @@
+<http://www.w3.org/2002/03owlt/SymmetricProperty/premises003#Antwerp> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/webont-symmetricproperty-003/w> .
+<http://www.w3.org/2002/03owlt/SymmetricProperty/premises003#Ghent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/webont-symmetricproperty-003/w> .
+<http://www.w3.org/2002/03owlt/SymmetricProperty/premises003#Ghent> <http://www.w3.org/2002/03owlt/SymmetricProperty/premises003#path> <http://www.w3.org/2002/03owlt/SymmetricProperty/premises003#Antwerp> <https://gmeow.example/w3c-owl2-full/webont-symmetricproperty-003/w> .
+<http://www.w3.org/2002/03owlt/SymmetricProperty/premises003#path> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#SymmetricProperty> <https://gmeow.example/w3c-owl2-full/webont-symmetricproperty-003/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-symmetricproperty-003/w> .

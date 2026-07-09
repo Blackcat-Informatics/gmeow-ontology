@@ -1,0 +1,8 @@
+<http://www.w3.org/2002/03owlt/equivalentProperty/premises005#p> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> <https://gmeow.example/w3c-owl2-full/webont-equivalentproperty-005/w> .
+<http://www.w3.org/2002/03owlt/equivalentProperty/premises005#p> <http://www.w3.org/2000/01/rdf-schema#domain> _:d <https://gmeow.example/w3c-owl2-full/webont-equivalentproperty-005/w> .
+<http://www.w3.org/2002/03owlt/equivalentProperty/premises005#q> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> <https://gmeow.example/w3c-owl2-full/webont-equivalentproperty-005/w> .
+<http://www.w3.org/2002/03owlt/equivalentProperty/premises005#q> <http://www.w3.org/2000/01/rdf-schema#domain> _:d <https://gmeow.example/w3c-owl2-full/webont-equivalentproperty-005/w> .
+_:d <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> <https://gmeow.example/w3c-owl2-full/webont-equivalentproperty-005/w> .
+_:d <http://www.w3.org/2002/07/owl#hasValue> <http://www.w3.org/2002/03owlt/equivalentProperty/premises005#v> <https://gmeow.example/w3c-owl2-full/webont-equivalentproperty-005/w> .
+_:d <http://www.w3.org/2002/07/owl#onProperty> <http://www.w3.org/2002/03owlt/equivalentProperty/premises005#p> <https://gmeow.example/w3c-owl2-full/webont-equivalentproperty-005/w> .
+_:d <http://www.w3.org/2002/07/owl#onProperty> <http://www.w3.org/2002/03owlt/equivalentProperty/premises005#q> <https://gmeow.example/w3c-owl2-full/webont-equivalentproperty-005/w> .

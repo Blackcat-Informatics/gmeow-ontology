@@ -15,7 +15,6 @@
 #   gmeow:containedInPlace are defined in slices/core/places/module.ttl, not
 #   here; a scopeModule cell would silently miss them.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/aggregation/tests/> .

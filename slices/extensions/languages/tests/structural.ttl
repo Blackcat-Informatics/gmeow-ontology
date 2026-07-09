@@ -35,7 +35,6 @@
 # lang:signSystemKind (lang:formalLanguageKind / lang:programmingLanguageKind).
 # The pytest twins that asserted the retired spine are migrated with the graft.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/languages/tests/> .

@@ -44,6 +44,10 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # emitter reuses this model and `render::to_gmeow_rdf_in_graph` rather than minting
 # a parallel vocabulary. `gmeow-logic` already depends on it — no new layering edge.
 gmeow-errors = { path = "../errors" }
+# The ingestion/report bins surface progress and handled failures through the
+# shared console Reporter (Transient note witnesses / Error-grade diagnostics),
+# never a bare stderr write. Acyclic: cli-core depends only on gmeow-errors.
+gmeow-cli-core = { path = "../cli-core" }
 # Native RDF text codecs + native flat RDFC-1.0: the comparator parses
 # serialized RDF via `gmeow_rdf::parse_dataset` (oxigraph-free text ingress through the
 # gmeow-gts codecs), canonicalizes via `gmeow_rdf::canonical_flat_nquads`, and buckets
@@ -56,6 +60,11 @@ purrdf = "0.4"
 # the default BTreeMap-backed `Value` serializes keys in sorted order, which IS
 # the canonical form the Python runner produced via `json.dumps(sort_keys=True)`.
 serde_json = "1"
+# Content-addressed, blake3-keyed instance IRIs for the reified conformance
+# comparison + agreement-tally individuals (the SAME hash the diagnostics finding
+# IRIs are minted with in gmeow-errors), so the folded graph/conformance individuals
+# are deterministic and blank-node-free.
+blake3 = "1"
 
 [dev-dependencies]
 # File-driven test harness: one nextest case per discovered profile.json (i.e. per

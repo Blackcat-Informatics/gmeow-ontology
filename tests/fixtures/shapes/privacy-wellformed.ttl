@@ -9,9 +9,13 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
-ex:alice  a gmeow:Person ; rdfs:label "Alice"@en .
-ex:acme   a gmeow:Organization ; rdfs:label "Acme"@en .
-ex:co     a gmeow:Organization ; rdfs:label "Co"@en .
+gmeow:actionProcessPersonalData a gmeow:RightsAction .
+gmeow:leftOpPurpose a gmeow:LeftOperand .
+gmeow:operatorEq a gmeow:ConstraintOperator .
+
+ex:alice  a gmeow:Person , gmeow:Agent ; rdfs:label "Alice"@en .
+ex:acme   a gmeow:Organization , gmeow:Agent ; rdfs:label "Acme"@en .
+ex:co     a gmeow:Organization , gmeow:Agent ; rdfs:label "Co"@en .
 
 gmeow:leftOpPurpose a gmeow:LeftOperand .
 gmeow:operatorEq a gmeow:ConstraintOperator .
@@ -37,7 +41,7 @@ ex:perm a gmeow:Permission ;
     gmeow:ruleAssignee ex:co ;
     gmeow:ruleConstraint ex:c1 .
 
-ex:c1 a gmeow:AtomicConstraint ;
+ex:c1 a gmeow:AtomicConstraint , gmeow:Constraint ;
     gmeow:leftOperand gmeow:leftOpPurpose ;
     gmeow:constraintOperator gmeow:operatorEq ;
     gmeow:rightOperand "Delivery" .

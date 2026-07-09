@@ -18,6 +18,9 @@
 
 use std::collections::BTreeMap;
 
+use gmeow_errors::Diag;
+
+use crate::error::NquadsLowering;
 use crate::external::status::ExternalOutcome;
 
 /// Convert a parsed premise dataset (default graph only) into sorted, deduped
@@ -32,15 +35,22 @@ use crate::external::status::ExternalOutcome;
 pub fn premise_ds_to_world_nquads(
     ds: &purrdf::RdfDataset,
     world_iri: &str,
-) -> Result<(String, usize), String> {
+) -> gmeow_errors::Result<(String, usize)> {
     let nt_bytes = purrdf::serialize_dataset(
         ds,
         "application/n-triples",
         purrdf::SerializeGraph::DefaultGraph,
     )
-    .map_err(|e| format!("N-Triples serialize failed: {e}"))?;
-    let nt_text = String::from_utf8(nt_bytes)
-        .map_err(|_| "N-Triples output was not valid UTF-8".to_string())?;
+    .map_err(|e| {
+        Diag::of_kind(NquadsLowering {
+            detail: format!("N-Triples serialize failed: {e}"),
+        })
+    })?;
+    let nt_text = String::from_utf8(nt_bytes).map_err(|_| {
+        Diag::of_kind(NquadsLowering {
+            detail: "N-Triples output was not valid UTF-8".to_string(),
+        })
+    })?;
 
     // Convert each N-Triple line (`S P O .`) to N-Quads (`S P O <graph> .`).
     // Trim trailing whitespace FIRST so the mandatory '.' is last, then strip it,
@@ -51,13 +61,15 @@ pub fn premise_ds_to_world_nquads(
         .filter(|line| !line.trim().is_empty() && !line.trim_start().starts_with('#'))
         .map(|line| {
             let trimmed = line.trim_end();
-            let without_dot = trimmed
-                .strip_suffix('.')
-                .ok_or_else(|| format!("malformed N-Triples line (no trailing '.'): {line}"))?;
+            let without_dot = trimmed.strip_suffix('.').ok_or_else(|| {
+                Diag::of_kind(NquadsLowering {
+                    detail: format!("malformed N-Triples line (no trailing '.'): {line}"),
+                })
+            })?;
             let body = without_dot.trim_end();
             Ok(format!("{body} <{world_iri}> ."))
         })
-        .collect::<Result<Vec<String>, String>>()?;
+        .collect::<gmeow_errors::Result<Vec<String>>>()?;
     nq_lines.sort();
     nq_lines.dedup();
 

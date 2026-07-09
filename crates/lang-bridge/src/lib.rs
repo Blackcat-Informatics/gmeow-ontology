@@ -28,6 +28,7 @@ pub mod bridge;
 pub mod conllu;
 pub mod emit;
 pub mod engine;
+pub mod error;
 pub mod gmn_symbology;
 pub mod grammar;
 pub mod lower;

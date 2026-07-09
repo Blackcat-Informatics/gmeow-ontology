@@ -23,6 +23,7 @@ use crate::ingest::prefixes::{ns_to_prefix, registry_iri, sssom_id};
 use crate::ir::{CorrespondenceRelation, MorphismClass};
 use crate::projections::correspondence_frontend::CorrespondenceLookup;
 use crate::projections::correspondence_gate::assert_relation_no_overclaim;
+use crate::projections::get_leg::{MappingPattern, ProfileBinding, ProjectionCell, projections};
 use crate::projections::{ProjectionResult, correspondence_result};
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -102,10 +103,14 @@ struct MappingSet {
     trailer: String,
 }
 
+type RowsByFile = BTreeMap<String, Vec<Row>>;
+type PreservationLedger = Vec<ProjectionResult>;
+
 /// The discovered SSSOM source model: every equivalence cell and the per-file
 /// mapping-set metadata.
 struct SssomSources {
     equivalences: Vec<EquivalenceCell>,
+    projections: Vec<ProjectionCell>,
     mapping_sets: BTreeMap<String, MappingSet>,
 }
 
@@ -138,11 +143,11 @@ pub fn lower_sssom(
     version: &str,
     release_date: &str,
     lookup: &CorrespondenceLookup,
-) -> Result<SssomLowering, String> {
-    let sources = collect_sources(view);
+) -> gmeow_errors::Result<SssomLowering> {
     let mut loss = crate::loss_ledger::LossLedger::new();
-    let ledger = build_ledger(&sources, lookup, &mut loss)?;
-    let sets = render_sets(&sources, version, release_date)?;
+    let sources = collect_sources(view)?;
+    let (rows_by_file, ledger) = build_rows_and_ledger(&sources, lookup, &mut loss)?;
+    let sets = render_sets(&sources.mapping_sets, &rows_by_file, version, release_date)?;
     Ok(SssomLowering { sets, ledger, loss })
 }
 
@@ -194,12 +199,14 @@ pub(crate) fn sssom_band(predicate: &str) -> (CorrespondenceRelation, MorphismCl
 /// overclaim gate over each emitted predicate. The typed `(relation, morphism class,
 /// morphism kind)` is CONSUMED from the materialized correspondence set (`lookup`) — the
 /// single source of truth — not re-derived inline here (F5 Task 2).
-fn build_ledger(
+fn build_rows_and_ledger(
     sources: &SssomSources,
     lookup: &CorrespondenceLookup,
     loss: &mut crate::loss_ledger::LossLedger,
-) -> Result<Vec<ProjectionResult>, String> {
-    let mut ledger: Vec<ProjectionResult> = Vec::new();
+) -> gmeow_errors::Result<(RowsByFile, PreservationLedger)> {
+    let table = ns_to_prefix();
+    let mut by_file: RowsByFile = BTreeMap::new();
+    let mut ledger: PreservationLedger = Vec::new();
     for cell in &sources.equivalences {
         // Consume the typed relation/class/kind from the materialized correspondence keyed
         // by this cell's natural identity (subject, predicate, object). A miss is a HARD
@@ -212,7 +219,7 @@ fn build_ledger(
             typed.morphism_kind,
             &cell.predicate,
         )
-        .map_err(|e| e.0)?;
+        .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Sssom { detail: e.0 }))?;
 
         // SSSOM carries only subject/predicate/object + confidence + justification; the
         // correspondence's caveat/law/leg structure and world/standpoint scope are
@@ -234,18 +241,116 @@ fn build_ledger(
         // key folds all three for a stable, collision-free target name.
         let key = format!("{}|{}|{}", cell.subject, cell.predicate, cell.obj);
         ledger.push(correspondence_result(loss, "sssom", &key, residue));
+
+        let justification = cell
+            .justification
+            .clone()
+            .unwrap_or_else(|| DEFAULT_JUSTIFICATION.to_owned());
+        by_file
+            .entry(cell.sssom_file.clone())
+            .or_default()
+            .push(Row {
+                subject_id: sssom_id(&cell.subject, table),
+                subject_label: cell.subject_label.clone(),
+                predicate_id: sssom_id(&cell.predicate, table),
+                object_id: sssom_id(&cell.obj, table),
+                object_label: cell.object_label.clone(),
+                mapping_justification: sssom_id(&justification, table),
+                confidence: conf(cell.confidence),
+                comment: cell.comment.clone(),
+            });
     }
-    Ok(ledger)
+
+    for cell in &sources.projections {
+        for binding in &cell.bindings {
+            if !binding.emit_sssom {
+                continue;
+            }
+            let predicate = binding.sssom_predicate.as_deref().ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::Sssom {
+                    detail: format!(
+                        "projection binding {}::{} has gmeow:emitSssom true but no gmeow:sssomPredicate",
+                        cell.iri, binding.profile
+                    ),
+                })
+            })?;
+            let file = binding.sssom_file.as_deref().ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::Sssom {
+                    detail: format!(
+                        "projection binding {}::{} has gmeow:emitSssom true but no gmeow:sssomFile",
+                        cell.iri, binding.profile
+                    ),
+                })
+            })?;
+
+            let typed = lookup.binding(&cell.iri, &binding.profile)?;
+            assert_relation_no_overclaim(
+                "sssom",
+                typed.relation,
+                typed.morphism_class,
+                typed.morphism_kind,
+                predicate,
+            )
+            .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Sssom { detail: e.0 }))?;
+
+            let pairs = projection_sssom_pairs(cell, binding)?;
+            for (subject, obj) in pairs {
+                by_file.entry(file.to_owned()).or_default().push(Row {
+                    subject_id: sssom_id(&subject, table),
+                    subject_label: String::new(),
+                    predicate_id: sssom_id(predicate, table),
+                    object_id: sssom_id(&obj, table),
+                    object_label: String::new(),
+                    mapping_justification: sssom_id(DEFAULT_JUSTIFICATION, table),
+                    confidence: conf(binding.confidence),
+                    comment: String::new(),
+                });
+            }
+
+            let mut residue = vec![
+                "get-leg: the projection pattern, guards, transforms, executable branch, and \
+                 EDOAL path structure are dropped (only subject/predicate/object, confidence, \
+                 and justification survive)"
+                    .to_owned(),
+                "get-leg: world/standpoint scope and the put leg are not carried by SSSOM"
+                    .to_owned(),
+            ];
+            residue.extend(
+                binding
+                    .lossy_drops
+                    .iter()
+                    .map(|d| format!("get-leg profile loss: {d}")),
+            );
+            let key = format!("{}::{}", local_name(&cell.iri), binding.profile);
+            ledger.push(correspondence_result(loss, "sssom", &key, residue));
+        }
+    }
+    Ok((by_file, ledger))
 }
 
 /// Every IRI participating in an SSSOM equivalence (both subject and object position)
 /// — the alignment-terms set the projection lints consume.
 pub fn alignment_terms(view: &DslView) -> BTreeSet<String> {
-    let sources = collect_sources(view);
+    let Ok(sources) = collect_sources(view) else {
+        return BTreeSet::new();
+    };
     let mut terms = BTreeSet::new();
     for cell in &sources.equivalences {
         terms.insert(cell.subject.clone());
         terms.insert(cell.obj.clone());
+    }
+    for cell in &sources.projections {
+        for binding in &cell.bindings {
+            if !binding.emit_sssom {
+                continue;
+            }
+            if let Ok(pairs) = projection_sssom_pairs(cell, binding) {
+                for (subject, obj) in pairs {
+                    terms.insert(subject);
+                    terms.insert(obj);
+                }
+            }
+        }
     }
     terms
 }
@@ -261,15 +366,107 @@ pub(crate) fn equivalence_cells(view: &DslView) -> Vec<EquivalenceCell> {
     out
 }
 
-fn collect_sources(view: &DslView) -> SssomSources {
+fn collect_sources(view: &DslView) -> gmeow_errors::Result<SssomSources> {
     let mut equivalences = Vec::new();
     let mut mapping_sets = BTreeMap::new();
     extract_equivalences(view, &mut equivalences);
     extract_mapping_sets(view, &mut mapping_sets);
-    SssomSources {
+    Ok(SssomSources {
         equivalences,
+        projections: projections(view)?,
         mapping_sets,
+    })
+}
+
+fn local_name(iri: &str) -> &str {
+    iri.rsplit(['#', '/']).next().unwrap_or(iri)
+}
+
+fn projection_sssom_pairs(
+    cell: &ProjectionCell,
+    binding: &ProfileBinding,
+) -> gmeow_errors::Result<Vec<(String, String)>> {
+    if !binding.value_class_map.is_empty() {
+        return Ok(binding
+            .value_class_map
+            .iter()
+            .map(|entry| (entry.when_value.clone(), entry.to_class.clone()))
+            .collect());
     }
+
+    let source = projection_sssom_subject(cell, binding)?;
+    let target = projection_sssom_object(cell, binding)?;
+    Ok(vec![(source, target)])
+}
+
+fn projection_sssom_subject(
+    cell: &ProjectionCell,
+    binding: &ProfileBinding,
+) -> gmeow_errors::Result<String> {
+    if let Some(source) = &cell.pattern.edoal_source {
+        return Ok(source.clone());
+    }
+
+    let source_values = fixed_pattern_values(&cell.pattern);
+    let target_values = fixed_template_values(binding);
+    if source_values.len() == 1 && target_values.len() == 1 {
+        return Ok(source_values[0].clone());
+    }
+    Err(gmeow_errors::Diag::of_kind(crate::error::Sssom {
+        detail: format!(
+            "cannot derive SSSOM subject for projection binding {}::{}; author gmeow:edoalSource \
+             or use an unambiguous fixed value rewrite",
+            cell.iri, binding.profile
+        ),
+    }))
+}
+
+fn projection_sssom_object(
+    cell: &ProjectionCell,
+    binding: &ProfileBinding,
+) -> gmeow_errors::Result<String> {
+    if let Some(target) = binding
+        .to_predicate
+        .as_ref()
+        .or(binding.to_class.as_ref())
+        .or(binding.edoal_target.as_ref())
+    {
+        return Ok(target.clone());
+    }
+
+    let source_values = fixed_pattern_values(&cell.pattern);
+    let target_values = fixed_template_values(binding);
+    if source_values.len() == 1 && target_values.len() == 1 {
+        return Ok(target_values[0].clone());
+    }
+    Err(gmeow_errors::Diag::of_kind(crate::error::Sssom {
+        detail: format!(
+            "cannot derive SSSOM object for projection binding {}::{}; author gmeow:toPredicate, \
+             gmeow:toClass, gmeow:edoalTarget, gmeow:valueClassMap, or use an unambiguous fixed \
+             value rewrite",
+            cell.iri, binding.profile
+        ),
+    }))
+}
+
+fn fixed_pattern_values(pattern: &MappingPattern) -> Vec<String> {
+    pattern
+        .flat_atoms()
+        .into_iter()
+        .filter_map(|atom| atom.object_value)
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect()
+}
+
+fn fixed_template_values(binding: &ProfileBinding) -> Vec<String> {
+    binding
+        .template_atoms
+        .iter()
+        .filter_map(|atom| atom.object_value.clone())
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect()
 }
 
 fn extract_equivalences(view: &DslView, out: &mut Vec<EquivalenceCell>) {
@@ -365,34 +562,14 @@ impl Row {
 }
 
 fn render_sets(
-    sources: &SssomSources,
+    mapping_sets: &BTreeMap<String, MappingSet>,
+    by_file: &BTreeMap<String, Vec<Row>>,
     version: &str,
     release_date: &str,
-) -> Result<BTreeMap<String, String>, String> {
-    let table = ns_to_prefix();
-
-    let mut by_file: BTreeMap<String, Vec<Row>> = BTreeMap::new();
-    for eq in &sources.equivalences {
-        let justification = eq
-            .justification
-            .clone()
-            .unwrap_or_else(|| DEFAULT_JUSTIFICATION.to_owned());
-        let row = Row {
-            subject_id: sssom_id(&eq.subject, table),
-            subject_label: eq.subject_label.clone(),
-            predicate_id: sssom_id(&eq.predicate, table),
-            object_id: sssom_id(&eq.obj, table),
-            object_label: eq.object_label.clone(),
-            mapping_justification: sssom_id(&justification, table),
-            confidence: conf(eq.confidence),
-            comment: eq.comment.clone(),
-        };
-        by_file.entry(eq.sssom_file.clone()).or_default().push(row);
-    }
-
+) -> gmeow_errors::Result<BTreeMap<String, String>> {
     let mut out: BTreeMap<String, String> = BTreeMap::new();
-    for (file, rows) in &by_file {
-        let meta = sources.mapping_sets.get(file);
+    for (file, rows) in by_file {
+        let meta = mapping_sets.get(file);
         out.insert(file.clone(), render_one(rows, meta, version, release_date)?);
     }
     Ok(out)
@@ -401,11 +578,13 @@ fn render_sets(
 /// Reject a TSV cell whose value carries a raw tab/CR/LF. SSSOM is tab-separated,
 /// newline-delimited, so such a character would silently split a value across
 /// columns or rows — corrupting the table. Hard-fail rather than mangle the data.
-fn check_tsv_cell(column: &str, value: &str) -> Result<(), String> {
+fn check_tsv_cell(column: &str, value: &str) -> gmeow_errors::Result<()> {
     if value.contains(['\t', '\r', '\n']) {
-        return Err(format!(
-            "SSSOM cell `{column}` contains a tab/CR/LF that would corrupt the TSV: {value:?}"
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Sssom {
+            detail: format!(
+                "SSSOM cell `{column}` contains a tab/CR/LF that would corrupt the TSV: {value:?}"
+            ),
+        }));
     }
     Ok(())
 }
@@ -415,7 +594,7 @@ fn render_one(
     meta: Option<&MappingSet>,
     version: &str,
     release_date: &str,
-) -> Result<String, String> {
+) -> gmeow_errors::Result<String> {
     let columns: Vec<&str> = SSSOM_ORDER
         .iter()
         .copied()
@@ -695,7 +874,7 @@ gmeow:Zeta\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.8\t
         };
         let err = render_one(&[row], None, "0.1.0", "2026-06-03")
             .expect_err("a cell with a tab must be rejected");
-        assert!(err.contains("subject_label"), "{err}");
+        assert!(err.message().contains("subject_label"), "{err}");
     }
 
     #[test]
@@ -781,5 +960,111 @@ gmeow:Zeta\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.8\t
             alignment_terms(&view),
             BTreeSet::from([format!("{GMEOW}Foo"), format!("{GMEOW}Bar")])
         );
+    }
+
+    #[test]
+    fn lower_sssom_emits_projection_binding_rows() {
+        let ttl = br#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix schema: <https://schema.org/> .
+@prefix odrl:  <http://www.w3.org/ns/odrl/2/> .
+
+gmeow:set1 a gmeow:MappingSet ;
+    gmeow:sssomFile "demo.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/demo" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" .
+
+gmeow:mapName a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "s" ; gmeow:value "name" ;
+        gmeow:atom ( [ gmeow:subjectVar "s" ; gmeow:predicate gmeow:name ; gmeow:objectVar "name" ] ) ;
+        gmeow:edoalSource gmeow:name
+    ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:name ;
+        gmeow:relation "=" ; gmeow:confidence 0.9 ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "demo.sssom.tsv"
+    ] .
+
+gmeow:mapActionReproduce a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "rule" ;
+        gmeow:atom ( [ gmeow:subjectVar "rule" ; gmeow:predicate gmeow:ruleAction ; gmeow:objectValue gmeow:actionReproduce ] )
+    ] ;
+    gmeow:hasBinding [
+        gmeow:profile "odrl" ; gmeow:relation "=" ; gmeow:confidence 0.85 ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "demo.sssom.tsv" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "rule" ; gmeow:tPred odrl:action ; gmeow:tObjValue odrl:reproduce ] )
+    ] .
+"#;
+        let ds = purrdf::parse_dataset(ttl, "text/turtle", None).expect("parse projection ttl");
+        let view = DslView::new(&ds);
+        let empty = purrdf::parse_dataset(b"", "application/n-triples", None).expect("empty");
+        let (_program, lookup) =
+            crate::projections::correspondence_frontend::transpile_correspondences_indexed(
+                &view,
+                &DslView::new(&empty),
+            )
+            .expect("transpile lookup");
+
+        let out = lower_sssom(&view, "0.1.0", "2026-06-03", &lookup).expect("lower sssom");
+        let tsv = out.sets.get("demo.sssom.tsv").expect("one set emitted");
+        assert!(tsv.contains(
+            "gmeow:actionReproduce\tskos:exactMatch\todrl:reproduce\tsemapv:ManualMappingCuration\t0.85\t"
+        ));
+        assert!(tsv.contains(
+            "gmeow:name\tskos:exactMatch\tschema:name\tsemapv:ManualMappingCuration\t0.9\t"
+        ));
+        assert_eq!(out.ledger.len(), 2);
+        assert_eq!(
+            alignment_terms(&view),
+            BTreeSet::from([
+                format!("{GMEOW}actionReproduce"),
+                format!("{GMEOW}name"),
+                "http://www.w3.org/ns/odrl/2/reproduce".to_owned(),
+                "https://schema.org/name".to_owned(),
+            ])
+        );
+    }
+
+    #[test]
+    fn projection_binding_exactmatch_overclaim_is_rejected() {
+        let ttl = br#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix schema: <https://schema.org/> .
+
+gmeow:mapLossyName a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "s" ; gmeow:value "name" ;
+        gmeow:atom ( [ gmeow:subjectVar "s" ; gmeow:predicate gmeow:name ; gmeow:objectVar "name" ] ) ;
+        gmeow:edoalSource gmeow:name
+    ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:name ;
+        gmeow:relation "<=" ; gmeow:confidence 0.9 ;
+        gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ;
+        gmeow:sssomFile "demo.sssom.tsv"
+    ] .
+"#;
+        let ds = purrdf::parse_dataset(ttl, "text/turtle", None).expect("parse projection ttl");
+        let view = DslView::new(&ds);
+        let empty = purrdf::parse_dataset(b"", "application/n-triples", None).expect("empty");
+        let (_program, lookup) =
+            crate::projections::correspondence_frontend::transpile_correspondences_indexed(
+                &view,
+                &DslView::new(&empty),
+            )
+            .expect("transpile lookup");
+        let err = match lower_sssom(&view, "0.1.0", "2026-06-03", &lookup) {
+            Ok(_) => panic!("overclaim should be rejected"),
+            Err(err) => err,
+        };
+        assert!(err.message().contains("Overclaim"), "{err}");
+        assert!(err.message().contains("exactMatch"), "{err}");
     }
 }

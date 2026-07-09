@@ -13,6 +13,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use gmeow_errors::Diag;
+
 use crate::ingest::prefixes::ns_to_prefix;
 use crate::ingest::{DslTerm, DslView};
 use crate::ir::{
@@ -136,6 +138,9 @@ const GM_EDOAL_TARGET: &str = "https://blackcatinformatics.ca/gmeow/edoalTarget"
 const GM_EDOAL_TARGET_KIND: &str = "https://blackcatinformatics.ca/gmeow/edoalTargetKind";
 const GM_MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/gmeow/morphismClass";
 const GM_MNEMOMORPHIC: &str = "https://blackcatinformatics.ca/gmeow/mnemomorphic";
+const GM_EMIT_SSSOM: &str = "https://blackcatinformatics.ca/gmeow/emitSssom";
+const GM_SSSOM_PREDICATE: &str = "https://blackcatinformatics.ca/gmeow/sssomPredicate";
+const GM_SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
 const GM_INGEST_CLAIM: &str = "https://blackcatinformatics.ca/gmeow/ingestClaim";
 const GM_INGEST_LAW: &str = "https://blackcatinformatics.ca/gmeow/ingestLaw";
 const GM_INGEST_VERDICT: &str = "https://blackcatinformatics.ca/gmeow/ingestVerdict";
@@ -266,6 +271,16 @@ pub struct ProfileBinding {
     /// Whether the lens is authored memory-preserving (`gmeow:mnemomorphic`); default
     /// `false`. Read directly by the `put` emitter to decide the up-lift polarity.
     pub mnemomorphic: bool,
+    /// Whether this one-to-one binding also emits an SSSOM row. The SSSOM lowerer consumes
+    /// the parsed binding model so SSSOM is a derived correspondence dialect, not a second
+    /// hand-authored ledger.
+    pub emit_sssom: bool,
+    /// The mapping predicate to use for the derived SSSOM row when [`emit_sssom`](Self::emit_sssom)
+    /// is true.
+    pub sssom_predicate: Option<String>,
+    /// The generated `generated/mappings/*.sssom.tsv` basename this binding's derived row
+    /// is routed to when [`emit_sssom`](Self::emit_sssom) is true.
+    pub sssom_file: Option<String>,
 }
 
 impl ProfileBinding {
@@ -333,13 +348,13 @@ pub struct ProjectionCell {
 // ── Extraction (over the oxigraph-free DslView) ──────────────────────────────────
 
 /// Parse every `gmeow:ProjectionMapping` into the shared get-leg model.
-pub fn projections(view: &DslView) -> Result<Vec<ProjectionCell>, String> {
+pub fn projections(view: &DslView) -> gmeow_errors::Result<Vec<ProjectionCell>> {
     let mut cells = Vec::new();
     for cell_iri in view.subjects_of_type(GM_PROJECTION_MAPPING) {
         let Some(pattern_node) = view.first_object(&cell_iri, GM_HAS_MAPPING_PATTERN) else {
-            return Err(format!(
-                "projection mapping {cell_iri} missing hasMappingPattern"
-            ));
+            return Err(Diag::of_kind(crate::error::GetLeg {
+                detail: format!("projection mapping {cell_iri} missing hasMappingPattern"),
+            }));
         };
         let pattern = parse_pattern(view, &pattern_node)?;
         let mut bindings = Vec::new();
@@ -347,7 +362,9 @@ pub fn projections(view: &DslView) -> Result<Vec<ProjectionCell>, String> {
             bindings.push(parse_binding(view, &binding_node)?);
         }
         if bindings.is_empty() {
-            return Err(format!("projection mapping {cell_iri} has no bindings"));
+            return Err(Diag::of_kind(crate::error::GetLeg {
+                detail: format!("projection mapping {cell_iri} has no bindings"),
+            }));
         }
         let label = view
             .object_literal(&cell_iri, RDFS_LABEL)
@@ -362,9 +379,11 @@ pub fn projections(view: &DslView) -> Result<Vec<ProjectionCell>, String> {
     Ok(cells)
 }
 
-fn parse_pattern(view: &DslView, node: &DslTerm) -> Result<MappingPattern, String> {
+fn parse_pattern(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<MappingPattern> {
     let Some(anchor) = view.object_literal_of_term(node, GM_ANCHOR) else {
-        return Err("mapping pattern missing anchor".to_owned());
+        return Err(Diag::of_kind(crate::error::GetLeg {
+            detail: "mapping pattern missing anchor".to_owned(),
+        }));
     };
     let value = view.object_literal_of_term(node, GM_VALUE);
 
@@ -431,7 +450,7 @@ fn parse_pattern(view: &DslView, node: &DslTerm) -> Result<MappingPattern, Strin
     })
 }
 
-fn parse_item(view: &DslView, node: &DslTerm) -> Result<Item, String> {
+fn parse_item(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Item> {
     if let Some(group_head) = view.first_object_of(node, GM_OPTIONAL_GROUP) {
         let mut inner = Vec::new();
         for item in view.rdf_list(Some(&group_head)) {
@@ -442,12 +461,14 @@ fn parse_item(view: &DslView, node: &DslTerm) -> Result<Item, String> {
     Ok(Item::Atom(parse_atom(view, node)?))
 }
 
-fn parse_atom(view: &DslView, node: &DslTerm) -> Result<Atom, String> {
+fn parse_atom(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Atom> {
     let subj = view
         .object_literal_of_term(node, GM_SUBJECT_VAR)
         .or_else(|| view.object_literal_of_term(node, GM_T_SUBJ));
     let Some(subject_var) = subj else {
-        return Err("atom missing subjectVar/tSubj".to_owned());
+        return Err(Diag::of_kind(crate::error::GetLeg {
+            detail: "atom missing subjectVar/tSubj".to_owned(),
+        }));
     };
     let predicate = view
         .object_iri_of_term(node, GM_PREDICATE)
@@ -483,12 +504,16 @@ fn parse_atom(view: &DslView, node: &DslTerm) -> Result<Atom, String> {
     })
 }
 
-fn parse_bind(view: &DslView, node: &DslTerm) -> Result<Bind, String> {
+fn parse_bind(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Bind> {
     let Some(var) = view.object_literal_of_term(node, GM_BIND_VAR) else {
-        return Err("bind/mint missing bindVar".to_owned());
+        return Err(Diag::of_kind(crate::error::GetLeg {
+            detail: "bind/mint missing bindVar".to_owned(),
+        }));
     };
     let Some(expr_node) = view.first_object_of(node, GM_BIND_EXPR) else {
-        return Err("bind/mint missing bindExpr".to_owned());
+        return Err(Diag::of_kind(crate::error::GetLeg {
+            detail: "bind/mint missing bindExpr".to_owned(),
+        }));
     };
     Ok(Bind {
         var,
@@ -496,7 +521,7 @@ fn parse_bind(view: &DslView, node: &DslTerm) -> Result<Bind, String> {
     })
 }
 
-fn parse_expr(view: &DslView, node: &DslTerm) -> Result<Expr, String> {
+fn parse_expr(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Expr> {
     match node {
         DslTerm::Iri(iri) => return Ok(Expr::ConstIri(iri.clone())),
         DslTerm::Literal {
@@ -516,7 +541,9 @@ fn parse_expr(view: &DslView, node: &DslTerm) -> Result<Expr, String> {
         return Ok(Expr::Var(var));
     }
     let Some(op) = view.object_iri_of_term(node, GM_EXPR_OP) else {
-        return Err("expression node has neither exprVar nor exprOp".to_owned());
+        return Err(Diag::of_kind(crate::error::GetLeg {
+            detail: "expression node has neither exprVar nor exprOp".to_owned(),
+        }));
     };
     let args_head = view.first_object_of(node, GM_EXPR_ARGS);
     let mut args = Vec::new();
@@ -526,9 +553,11 @@ fn parse_expr(view: &DslView, node: &DslTerm) -> Result<Expr, String> {
     Ok(Expr::Op { op, args })
 }
 
-fn parse_binding(view: &DslView, node: &DslTerm) -> Result<ProfileBinding, String> {
+fn parse_binding(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<ProfileBinding> {
     let Some(profile) = view.object_literal_of_term(node, GM_PROFILE) else {
-        return Err("profile binding missing profile".to_owned());
+        return Err(Diag::of_kind(crate::error::GetLeg {
+            detail: "profile binding missing profile".to_owned(),
+        }));
     };
     let mut template_atoms = Vec::new();
     let ta_head = view.first_object_of(node, GM_TEMPLATE_ATOMS);
@@ -542,7 +571,9 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> Result<ProfileBinding, Strin
             view.object_iri_of_term(&entry, GM_WHEN_VALUE),
             view.object_iri_of_term(&entry, GM_TO_CLASS),
         ) else {
-            return Err("value-class entry malformed".to_owned());
+            return Err(Diag::of_kind(crate::error::GetLeg {
+                detail: "value-class entry malformed".to_owned(),
+            }));
         };
         value_class_map.push(ValueClass {
             when_value: when,
@@ -553,10 +584,11 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> Result<ProfileBinding, Strin
         .object_literal_of_term(node, GM_RELATION)
         .unwrap_or_else(|| "=".to_owned());
     let confidence = match view.object_literal_of_term(node, GM_CONFIDENCE) {
-        Some(text) => Some(
-            text.parse::<f64>()
-                .map_err(|_| "profile binding has non-numeric confidence".to_owned())?,
-        ),
+        Some(text) => Some(text.parse::<f64>().map_err(|_| {
+            Diag::of_kind(crate::error::GetLeg {
+                detail: "profile binding has non-numeric confidence".to_owned(),
+            })
+        })?),
         None => None,
     };
     let mut lossy_drops = Vec::new();
@@ -577,7 +609,9 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> Result<ProfileBinding, Strin
         Some(value) => {
             let local = value.rsplit(['#', '/', ':']).next().unwrap_or(&value);
             Some(MorphismClass::from_local(local).ok_or_else(|| {
-                format!("profile binding has unknown gmeow:morphismClass {value}")
+                Diag::of_kind(crate::error::GetLeg {
+                    detail: format!("profile binding has unknown gmeow:morphismClass {value}"),
+                })
             })?)
         }
         None => None,
@@ -592,6 +626,29 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> Result<ProfileBinding, Strin
             t == "true" || t == "1"
         })
         .unwrap_or(false);
+    let emit_sssom = view
+        .object_literal_of_term(node, GM_EMIT_SSSOM)
+        .map(|text| {
+            let t = text.trim().to_ascii_lowercase();
+            t == "true" || t == "1"
+        })
+        .unwrap_or(false);
+    let sssom_predicate = view.object_iri_of_term(node, GM_SSSOM_PREDICATE);
+    let sssom_file = view.object_literal_of_term(node, GM_SSSOM_FILE);
+    if emit_sssom {
+        if sssom_predicate.is_none() {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::GetLeg {
+                detail: "profile binding with gmeow:emitSssom true missing gmeow:sssomPredicate"
+                    .to_owned(),
+            }));
+        }
+        if sssom_file.is_none() {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::GetLeg {
+                detail: "profile binding with gmeow:emitSssom true missing gmeow:sssomFile"
+                    .to_owned(),
+            }));
+        }
+    }
     // An optional co-authored put-with-claim (`gmeow:ingestClaim`) on a nested node bearing
     // the ingest law + verdict (IRIs whose local names feed the value enums) and any residue
     // string literals. Absent in the committed corpus; when present an unknown law/verdict is
@@ -599,21 +656,31 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> Result<ProfileBinding, Strin
     let (ingest_claim, ingest_residue) = match view.first_object_of(node, GM_INGEST_CLAIM) {
         Some(claim_node) => {
             let Some(law_iri) = view.object_iri_of_term(&claim_node, GM_INGEST_LAW) else {
-                return Err("gmeow:ingestClaim missing gmeow:ingestLaw".to_owned());
+                return Err(Diag::of_kind(crate::error::GetLeg {
+                    detail: "gmeow:ingestClaim missing gmeow:ingestLaw".to_owned(),
+                }));
             };
             let law_local = law_iri.rsplit(['#', '/', ':']).next().unwrap_or(&law_iri);
             let law = CorrespondenceLaw::from_local(law_local).ok_or_else(|| {
-                format!("gmeow:ingestClaim has unknown gmeow:ingestLaw {law_iri}")
+                Diag::of_kind(crate::error::GetLeg {
+                    detail: format!("gmeow:ingestClaim has unknown gmeow:ingestLaw {law_iri}"),
+                })
             })?;
             let Some(verdict_iri) = view.object_iri_of_term(&claim_node, GM_INGEST_VERDICT) else {
-                return Err("gmeow:ingestClaim missing gmeow:ingestVerdict".to_owned());
+                return Err(Diag::of_kind(crate::error::GetLeg {
+                    detail: "gmeow:ingestClaim missing gmeow:ingestVerdict".to_owned(),
+                }));
             };
             let verdict_local = verdict_iri
                 .rsplit(['#', '/', ':'])
                 .next()
                 .unwrap_or(&verdict_iri);
             let verdict = DischargeVerdict::from_local(verdict_local).ok_or_else(|| {
-                format!("gmeow:ingestClaim has unknown gmeow:ingestVerdict {verdict_iri}")
+                Diag::of_kind(crate::error::GetLeg {
+                    detail: format!(
+                        "gmeow:ingestClaim has unknown gmeow:ingestVerdict {verdict_iri}"
+                    ),
+                })
             })?;
             let residue = view
                 .objects_of_term(&claim_node, GM_INGEST_RESIDUE)
@@ -647,12 +714,15 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> Result<ProfileBinding, Strin
         ingest_claim,
         ingest_residue,
         mnemomorphic,
+        emit_sssom,
+        sssom_predicate,
+        sssom_file,
     })
 }
 
 // ── Property-path rendering ────────────────────────────────────────────────────
 
-fn render_path(view: &DslView, node: &DslTerm) -> Result<String, String> {
+fn render_path(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<String> {
     if let DslTerm::Iri(iri) = node {
         if iri == RDF_TYPE {
             return Ok("rdf:type".to_owned());
@@ -706,12 +776,16 @@ fn render_path(view: &DslView, node: &DslTerm) -> Result<String, String> {
             format!("!{inner}")
         });
     }
-    Err("unknown property-path node".to_owned())
+    Err(Diag::of_kind(crate::error::GetLeg {
+        detail: "unknown property-path node".to_owned(),
+    }))
 }
 
-fn path_primary(view: &DslView, node: Option<&DslTerm>) -> Result<String, String> {
+fn path_primary(view: &DslView, node: Option<&DslTerm>) -> gmeow_errors::Result<String> {
     let Some(node) = node else {
-        return Err("property path missing a step".to_owned());
+        return Err(Diag::of_kind(crate::error::GetLeg {
+            detail: "property path missing a step".to_owned(),
+        }));
     };
     let rendered = render_path(view, node)?;
     if rendered.contains('/') || rendered.contains('|') {
@@ -799,7 +873,7 @@ fn infix_op(name: &str) -> Option<&'static str> {
 /// SPARQL). The lowering caller treats that `Err` as **residue**: it records the dropped
 /// construct in the correspondence's loss-ledger residue set and omits it from the legal
 /// output — never a malformed placeholder.
-pub fn render_expr(expr: &Expr) -> Result<String, String> {
+pub fn render_expr(expr: &Expr) -> gmeow_errors::Result<String> {
     match expr {
         Expr::Var(v) => Ok(format!("?{v}")),
         Expr::ConstIri(iri) => Ok(curie(iri)),
@@ -819,20 +893,23 @@ pub fn render_expr(expr: &Expr) -> Result<String, String> {
             }
             if name == "opNot" {
                 if rendered.len() != 1 {
-                    return Err(format!(
-                        "unsupported expression operator: opNot expects exactly 1 argument, \
-                         got {}",
-                        rendered.len()
-                    ));
+                    return Err(Diag::of_kind(crate::error::GetLeg {
+                        detail: format!(
+                            "unsupported expression operator: opNot expects exactly 1 argument, \
+                             got {}",
+                            rendered.len()
+                        ),
+                    }));
                 }
                 return Ok(format!("(!{})", rendered[0]));
             }
             if name == "opIn" {
                 if rendered.is_empty() {
-                    return Err(
-                        "unsupported expression operator: opIn requires at least 1 argument"
-                            .to_owned(),
-                    );
+                    return Err(Diag::of_kind(crate::error::GetLeg {
+                        detail:
+                            "unsupported expression operator: opIn requires at least 1 argument"
+                                .to_owned(),
+                    }));
                 }
                 return Ok(format!(
                     "({} IN ({}))",
@@ -846,7 +923,9 @@ pub fn render_expr(expr: &Expr) -> Result<String, String> {
             if let Some(fn_name) = func_op(&name) {
                 return Ok(format!("{fn_name}({})", rendered.join(", ")));
             }
-            Err(format!("unsupported expression operator: {name}"))
+            Err(Diag::of_kind(crate::error::GetLeg {
+                detail: format!("unsupported expression operator: {name}"),
+            }))
         }
     }
 }
@@ -922,11 +1001,13 @@ pub fn bool_str(b: bool) -> String {
     if b { "True" } else { "False" }.to_owned()
 }
 
-fn order_binds(binds: Vec<Bind>) -> Result<Vec<Bind>, String> {
+fn order_binds(binds: Vec<Bind>) -> gmeow_errors::Result<Vec<Bind>> {
     let mut by_var: BTreeMap<String, Bind> = BTreeMap::new();
     for b in binds {
         if by_var.contains_key(&b.var) {
-            return Err(format!("duplicate BIND/mint variable ?{}", b.var));
+            return Err(Diag::of_kind(crate::error::GetLeg {
+                detail: format!("duplicate BIND/mint variable ?{}", b.var),
+            }));
         }
         by_var.insert(b.var.clone(), b);
     }
@@ -952,10 +1033,9 @@ fn order_binds(binds: Vec<Bind>) -> Result<Vec<Bind>, String> {
             .collect();
         if ready.is_empty() {
             let cycle: Vec<String> = remaining.iter().map(|v| format!("?{v}")).collect();
-            return Err(format!(
-                "cyclic BIND/mint dependency among {}",
-                cycle.join(", ")
-            ));
+            return Err(Diag::of_kind(crate::error::GetLeg {
+                detail: format!("cyclic BIND/mint dependency among {}", cycle.join(", ")),
+            }));
         }
         for var in &ready {
             ordered.push(by_var[var].clone());

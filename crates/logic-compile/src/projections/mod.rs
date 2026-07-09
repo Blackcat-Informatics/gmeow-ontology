@@ -72,6 +72,8 @@ pub mod sparql_put;
 pub mod sssom;
 pub mod text;
 
+use gmeow_errors::Diag;
+
 use super::ir::{LogicAxiom, LogicModality, LogicProgram, PreservationKind};
 use correspondence::CorrespondenceProgram;
 use correspondence_gates::CorrespondenceGateReport;
@@ -176,7 +178,7 @@ pub struct LedgerEntry {
 pub fn compile_program(
     program: &LogicProgram,
     verdicts: &correspondence_gates::CorrespondenceVerdicts,
-) -> Result<CompiledArtifacts, String> {
+) -> gmeow_errors::Result<CompiledArtifacts> {
     // The ONE runtime loss store for this compile. Every lossy producer interns its
     // structural + per-run drops here (keyed by target focus); the report and the
     // preservation ledger below both READ this same instance, so the two loss surfaces
@@ -184,12 +186,28 @@ pub fn compile_program(
     // so they never touch the store and keep their pure signatures.
     let mut loss = crate::loss_ledger::LossLedger::new();
 
-    let owl_dl = rdf::project_owl_dl(program, &mut loss).map_err(|e| e.to_string())?;
-    let owl_el = rdf::project_owl_el(program, &mut loss).map_err(|e| e.to_string())?;
+    let owl_dl = rdf::project_owl_dl(program, &mut loss).map_err(|e| {
+        Diag::of_kind(crate::error::Projection {
+            detail: e.to_string(),
+        })
+    })?;
+    let owl_el = rdf::project_owl_el(program, &mut loss).map_err(|e| {
+        Diag::of_kind(crate::error::Projection {
+            detail: e.to_string(),
+        })
+    })?;
     let datalog = text::project_datalog(program, &mut loss);
     let n3 = text::project_n3(program, &mut loss);
-    let gufo = rdf::project_gufo(program, &mut loss).map_err(|e| e.to_string())?;
-    let canonical_rdf12 = rdf::project_canonical_rdf12(program).map_err(|e| e.to_string())?;
+    let gufo = rdf::project_gufo(program, &mut loss).map_err(|e| {
+        Diag::of_kind(crate::error::Projection {
+            detail: e.to_string(),
+        })
+    })?;
+    let canonical_rdf12 = rdf::project_canonical_rdf12(program).map_err(|e| {
+        Diag::of_kind(crate::error::Projection {
+            detail: e.to_string(),
+        })
+    })?;
     let nemo = text::project_nemo(program, &mut loss)?;
     let clif = crate::clif::project_clif(program)?;
     let cgif = crate::cgif::project_cgif(program)?;
@@ -350,6 +368,54 @@ pub fn compile_program(
             (Some(report), outcomes, Some(derived))
         };
 
+    // Per-correspondence preservation residue (Principle-17 loss row): every
+    // carrier-extracted `program.correspondences` member that authors a lossy
+    // `logic:preservationKind` (Some, non-`Exact`) drops a real distinction its coarse view
+    // cannot carry. Fold ONE loss-ledger row per such correspondence HERE — the canonical
+    // doc's "one preservation row per correspondence" (LOGIC-CORRESPONDENCE.md ~:78) — so the
+    // dropped construct is a structured ledger row, never DARK. Mirrors the per-shape
+    // `property-path:<iri>` rows above (append to `owned`/`loss`; NOT part of the fixed
+    // LEDGER_TARGETS surface, which is program-independent).
+    {
+        use sha2::{Digest, Sha256};
+        let (_c_kind, c_compl, c_struct) = target_meta("correspondence");
+        let c_struct: Vec<String> = c_struct.into_iter().map(str::to_owned).collect();
+        for c in &program.correspondences {
+            let Some(pres) = c.preservation else { continue };
+            if pres == PreservationKind::Exact {
+                continue;
+            }
+            let digest = Sha256::digest(c.iri.as_bytes());
+            let short: String = digest.iter().take(8).map(|b| format!("{b:02x}")).collect();
+            let target = format!("correspondence:{short}");
+            // The concrete dropped constructs (`actual` notes), attributed to this cell. The
+            // SZS-status → verdict collapse's residue is the CAX≠UNS / CSA≠SAT distinctions:
+            // the finer contradictory-vs-unsatisfiable and countersatisfiable-vs-satisfiable
+            // tokens collapse into the coarse verdict and survive only via logic:rawStatusToken.
+            let actual = vec![
+                format!("correspondence: {}", c.iri),
+                "logic:SzsContradictoryAxioms and logic:SzsUnsatisfiable collapse to \
+                 logic:ConfInconsistent; the CAX≠UNS distinction survives only via \
+                 logic:rawStatusToken"
+                    .to_owned(),
+                "logic:SzsCounterSatisfiable and logic:SzsSatisfiable collapse to \
+                 logic:ConfConsistent; the CSA≠SAT distinction survives only via \
+                 logic:rawStatusToken"
+                    .to_owned(),
+            ];
+            loss.record_projection_drops(&target, pres, &c_struct, &actual);
+            owned.push(ProjectionResult {
+                target,
+                // The legal output is the correspondence's dialect artifacts (written
+                // elsewhere); the row is a preservation/residue record, not a serialization.
+                content: String::new(),
+                is_rdf: false,
+                preservation: pres,
+                complexity: c_compl.to_owned(),
+            });
+        }
+    }
+
     let report_header = {
         let base = report::ReportHeader::of_program(program);
         match &correspondence_gates {
@@ -357,8 +423,12 @@ pub fn compile_program(
             None => base,
         }
     };
-    let report = report::build_projection_report_from(report_header, &owned, &loss)
-        .map_err(|e| e.to_string())?;
+    let report =
+        report::build_projection_report_from(report_header, &owned, &loss).map_err(|e| {
+            Diag::of_kind(crate::error::Projection {
+                detail: e.to_string(),
+            })
+        })?;
 
     // Preservation ledger: per-target (kind, complexity, combined lossy drops), each row's
     // `lossy_drops` READ BACK from the ONE loss store `loss` — the same instance the Turtle
@@ -810,6 +880,22 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                  dropped",
                 "category and dimension names are emitted as a closed EmotionML vocabulary set; the \
                  open, contested axis basis (Principle 9) is flattened to a fixed enumeration",
+            ],
+        ),
+        // The per-correspondence preservation residue (Principle-17 loss row): a
+        // `logic:Correspondence` on a lossy rung authoring a non-`Exact`
+        // `logic:preservationKind` drops a real distinction its coarse view cannot carry.
+        // The concrete dropped constructs are the per-correspondence `actual` notes (e.g. the
+        // SZS-status collapse's CAX≠UNS / CSA≠SAT distinctions); this is the shared structural
+        // limitation every such row inherits.
+        "correspondence" => (
+            PreservationKind::SoundUnder,
+            "decidable/graph-iso lens-law check",
+            vec![
+                "a lossy correspondence's get leg is many-to-one (non-injective): the coarse \
+                 view cannot recover the source distinctions its finer domain drew, so the \
+                 lowering is a sound under-approximation, never exact — the dropped source \
+                 distinctions survive only in the canonical logic: layer",
             ],
         ),
         other => panic!("unknown projection target: {other}"),

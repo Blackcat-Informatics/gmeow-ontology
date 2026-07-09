@@ -592,7 +592,12 @@ fn complexity_class_round_trips() {
 fn complexity_class_rejects_empty_and_whitespace() {
     assert!(ComplexityClass::new("").is_err());
     assert!(ComplexityClass::new("   ").is_err());
-    assert!(ComplexityClass::new("").unwrap_err().contains("non-empty"));
+    assert!(
+        ComplexityClass::new("")
+            .unwrap_err()
+            .message()
+            .contains("non-empty")
+    );
 }
 
 // ── ContextualScope validation ───────────────────────────────────────────────
@@ -621,7 +626,7 @@ fn contextual_scope_confidence_out_of_range() {
     for bad in [-0.1, 1.01, 2.0, -1.0] {
         let r = ContextualScope::new(None, None, Some(bad), LogicModality::None, None, None);
         assert!(r.is_err());
-        assert!(r.unwrap_err().contains("confidence"));
+        assert!(r.unwrap_err().message().contains("confidence"));
     }
 }
 
@@ -637,9 +642,9 @@ fn logic_axiom_equality() {
 #[test]
 fn logic_axiom_rejects_empty_subject_and_predicate() {
     let r = LogicAxiom::ground("", kind_pred(), "ex:o", false);
-    assert!(r.unwrap_err().contains("subject"));
+    assert!(r.unwrap_err().message().contains("subject"));
     let r = LogicAxiom::ground("ex:s", "", "ex:o", false);
-    assert!(r.unwrap_err().contains("predicate"));
+    assert!(r.unwrap_err().message().contains("predicate"));
 }
 
 #[test]
@@ -861,7 +866,7 @@ fn path_shape_rejects_inverted_range() {
         None,
     )
     .unwrap_err();
-    assert!(err.contains("must not exceed"), "got: {err}");
+    assert!(err.message().contains("must not exceed"), "got: {err}");
 }
 
 #[test]
@@ -875,7 +880,7 @@ fn path_shape_rejects_zero_min() {
         None,
     )
     .unwrap_err();
-    assert!(err.contains(">= 1"), "got: {err}");
+    assert!(err.message().contains(">= 1"), "got: {err}");
 }
 
 #[test]
@@ -889,7 +894,7 @@ fn path_shape_rejects_empty_named_predicate() {
         None,
     )
     .unwrap_err();
-    assert!(err.contains("non-empty IRI"), "got: {err}");
+    assert!(err.message().contains("non-empty IRI"), "got: {err}");
 }
 
 #[test]
@@ -938,15 +943,15 @@ fn path_shape_rejects_max_depth_above_cap() {
     )
     .unwrap_err();
     assert!(
-        err.contains("exceeds the hard cap"),
+        err.message().contains("exceeds the hard cap"),
         "error must mention the cap: {err}"
     );
     assert!(
-        err.contains(&MAX_PATH_DEPTH.to_string()),
+        err.message().contains(&MAX_PATH_DEPTH.to_string()),
         "error must include the cap value: {err}"
     );
     assert!(
-        err.contains(&(MAX_PATH_DEPTH + 1).to_string()),
+        err.message().contains(&(MAX_PATH_DEPTH + 1).to_string()),
         "error must include the offending value: {err}"
     );
 }
@@ -980,11 +985,11 @@ fn path_shape_rejects_empty_namespace_scope() {
     )
     .unwrap_err();
     assert!(
-        err.contains("namespace_scope"),
+        err.message().contains("namespace_scope"),
         "error must mention namespace_scope: {err}"
     );
     assert!(
-        err.contains("non-empty"),
+        err.message().contains("non-empty"),
         "error must describe the constraint: {err}"
     );
 }
@@ -1001,7 +1006,7 @@ fn path_shape_rejects_whitespace_only_namespace_scope() {
         None,
     )
     .unwrap_err();
-    assert!(err.contains("namespace_scope"), "got: {err}");
+    assert!(err.message().contains("namespace_scope"), "got: {err}");
 }
 
 #[test]
@@ -1035,11 +1040,11 @@ fn path_shape_rejects_min_depth_above_cap() {
     )
     .unwrap_err();
     assert!(
-        err.contains("min_depth") && err.contains("hard cap"),
+        err.message().contains("min_depth") && err.message().contains("hard cap"),
         "min_depth over the cap must be rejected with a hard-cap message: {err}"
     );
     assert!(
-        err.contains(&(MAX_PATH_DEPTH + 1).to_string()),
+        err.message().contains(&(MAX_PATH_DEPTH + 1).to_string()),
         "error must include the offending value: {err}"
     );
 }
@@ -1075,7 +1080,7 @@ fn path_shape_rejects_empty_depth_param() {
     )
     .unwrap_err();
     assert!(
-        err.contains("depth_param") && err.contains("non-empty"),
+        err.message().contains("depth_param") && err.message().contains("non-empty"),
         "an empty depth_param must be rejected: {err}"
     );
 }
@@ -1091,7 +1096,7 @@ fn path_shape_rejects_whitespace_depth_param() {
         Some("   ".to_owned()),
     )
     .unwrap_err();
-    assert!(err.contains("depth_param"), "got: {err}");
+    assert!(err.message().contains("depth_param"), "got: {err}");
 }
 
 // ── CR4b: namespace_scope on a named-predicate path is rejected ──────────────
@@ -1110,7 +1115,7 @@ fn path_shape_rejects_namespace_scope_on_named_predicate() {
     )
     .unwrap_err();
     assert!(
-        err.contains("namespace_scope") && err.contains("wildcard"),
+        err.message().contains("namespace_scope") && err.message().contains("wildcard"),
         "namespace_scope on a named-predicate step must be rejected: {err}"
     );
 }
@@ -1143,6 +1148,7 @@ fn corr(iri: &str, law_claims: Vec<LawClaimIr>) -> Correspondence {
         None,
         None,
         law_claims,
+        None,
         None,
         None,
         None,
@@ -1358,6 +1364,7 @@ fn correspondence_axes_signed_zero_normalized() {
             None,
             None,
             None,
+            None,
         )
         .unwrap()
     };
@@ -1396,9 +1403,10 @@ fn correspondence_new_rejects_out_of_range_confidence() {
         None,
         None,
         None,
+        None,
     )
     .unwrap_err();
-    assert!(err.contains("[0, 1]"), "got: {err}");
+    assert!(err.message().contains("[0, 1]"), "got: {err}");
 }
 
 /// Build a correspondence with an optional `get_leg`, returning the construction error.
@@ -1418,8 +1426,11 @@ fn corr_err(iri: &str, get_leg: Option<String>) -> String {
         None,
         None,
         None,
+        None,
     )
     .unwrap_err()
+    .message()
+    .to_owned()
 }
 
 // ── Full first-order Formula AST ──────────────────────────────────────
@@ -1735,7 +1746,7 @@ fn validation_shape_constructor_hard_pins_node_kind() {
 fn validation_shape_rejects_empty_iri_and_target() {
     let e1 =
         ValidationShapeIr::new("", ShapeTarget::Class("ex:C".into()), vec![], None).unwrap_err();
-    assert!(e1.contains("non-empty IRI"), "got: {e1}");
+    assert!(e1.message().contains("non-empty IRI"), "got: {e1}");
     let e2 = ValidationShapeIr::new(
         format!("{LOGIC}s"),
         ShapeTarget::Class("  ".into()),
@@ -1743,7 +1754,7 @@ fn validation_shape_rejects_empty_iri_and_target() {
         None,
     )
     .unwrap_err();
-    assert!(e2.contains("non-empty IRI"), "got: {e2}");
+    assert!(e2.message().contains("non-empty IRI"), "got: {e2}");
 }
 
 #[test]
@@ -1752,7 +1763,7 @@ fn property_constraint_binds_cardinality_to_provenance() {
     // what decides the loss-ledger polarity (OWL open-world vs OPT closed-world).
     let missing_prov = PropertyConstraintIr::new("ex:p", Some(1), None, None, vec![]).unwrap_err();
     assert!(
-        missing_prov.contains("cardinality_provenance"),
+        missing_prov.message().contains("cardinality_provenance"),
         "got: {missing_prov}"
     );
     let dangling_prov = PropertyConstraintIr::new(
@@ -1764,7 +1775,7 @@ fn property_constraint_binds_cardinality_to_provenance() {
     )
     .unwrap_err();
     assert!(
-        dangling_prov.contains("cardinality_provenance"),
+        dangling_prov.message().contains("cardinality_provenance"),
         "got: {dangling_prov}"
     );
     // With both present it constructs.
@@ -1790,7 +1801,7 @@ fn property_constraint_rejects_inverted_cardinality() {
         vec![],
     )
     .unwrap_err();
-    assert!(err.contains("must not exceed"), "got: {err}");
+    assert!(err.message().contains("must not exceed"), "got: {err}");
 }
 
 #[test]

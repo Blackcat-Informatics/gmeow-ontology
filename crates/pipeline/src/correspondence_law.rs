@@ -46,6 +46,9 @@ use gmeow_logic_compile::ir::{
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{RdfQuad, RdfTerm, parse_dataset};
 
+use gmeow_errors::Diag;
+
+use crate::error::Transform;
 use crate::put_executor::run_construct;
 use crate::up_projection_corpus::dump_nt;
 
@@ -144,13 +147,17 @@ fn run_leg(
     engine: &NativeSparqlEngine,
     source_nt: &str,
     query: &str,
-) -> Result<Vec<RdfQuad>, String> {
-    let dataset = parse_dataset(source_nt.as_bytes(), "application/n-triples", None)
-        .map_err(|e| format!("failed to parse round-trip source graph: {e}"))?;
+) -> gmeow_errors::Result<Vec<RdfQuad>> {
+    let dataset =
+        parse_dataset(source_nt.as_bytes(), "application/n-triples", None).map_err(|e| {
+            Diag::of_kind(Transform {
+                message: format!("failed to parse round-trip source graph: {e}"),
+            })
+        })?;
     // `run_construct`/`dump_nt` are on the Diag substrate; this self-contained round-trip module
-    // keeps its internal Results String-typed (they are swallowed into `violated(..)` verdict
-    // messages via Display, never surfaced as a pipeline error), so flatten the Diag at the edge.
-    run_construct(engine, &dataset, query).map_err(|e| e.to_string())
+    // carries a `Transform` diagnostic on failure — swallowed into the `violated(..)` verdict
+    // message via Display, never surfaced as a raised pipeline error.
+    run_construct(engine, &dataset, query)
 }
 
 /// Serialise the typed constructed quads back to an N-Triples graph for the next leg, via the
@@ -158,8 +165,8 @@ fn run_leg(
 /// blank node, and RDF-star quoted triple — is emitted in correct N-Triples syntax, so the next
 /// leg's parser accepts the carrier instead of choking on a hand-built `<literal>`. A
 /// serialization failure is surfaced as `Err` (hard-fail) — never a silent drop.
-fn quads_to_ntriples(quads: &[RdfQuad]) -> Result<String, String> {
-    dump_nt(quads).map_err(|e| e.to_string())
+fn quads_to_ntriples(quads: &[RdfQuad]) -> gmeow_errors::Result<String> {
+    dump_nt(quads)
 }
 
 /// Discharge [`CorrespondenceLaw::SectionLaw`] (`put ∘ get = id_S`) by EXECUTION over `seeds`.

@@ -17,6 +17,9 @@
 //! | `Satisfiable` / `CounterSatisfiable` (a model exists)     | `consistent`   |
 //! | `Unknown` / budget-tripped (undecided)                    | `incomplete`   |
 
+use gmeow_errors::Diag;
+
+use crate::error::SzsUnknownStatus;
 use crate::serialize::VerdictStatus;
 
 /// A normalized external problem outcome, abstracting over the concrete SZS token
@@ -53,7 +56,7 @@ impl ExternalOutcome {
 /// Only the well-defined SZS values whose model-theoretic meaning maps cleanly are
 /// recognized; an unrecognized token is a HARD error (no silent default — the case
 /// author must extend this table deliberately).
-pub fn outcome_for_szs(token: &str) -> Result<ExternalOutcome, String> {
+pub fn outcome_for_szs(token: &str) -> gmeow_errors::Result<ExternalOutcome> {
     match token {
         // Entailment holds / inconsistent axiom set.
         "Theorem" | "Unsatisfiable" | "ContradictoryAxioms" => Ok(ExternalOutcome::Inconsistent),
@@ -61,12 +64,14 @@ pub fn outcome_for_szs(token: &str) -> Result<ExternalOutcome, String> {
         "Satisfiable" | "CounterSatisfiable" => Ok(ExternalOutcome::Consistent),
         // Undecided / resource-bounded.
         "Unknown" | "GaveUp" | "Timeout" | "ResourceOut" => Ok(ExternalOutcome::Incomplete),
-        other => Err(format!(
-            "unknown TPTP SZS status token {other:?}; the mapping table recognises \
-             Theorem|Unsatisfiable|ContradictoryAxioms (inconsistent), \
-             Satisfiable|CounterSatisfiable (consistent), \
-             Unknown|GaveUp|Timeout|ResourceOut (incomplete)"
-        )),
+        other => Err(Diag::of_kind(SzsUnknownStatus {
+            detail: format!(
+                "unknown TPTP SZS status token {other:?}; the mapping table recognises \
+                 Theorem|Unsatisfiable|ContradictoryAxioms (inconsistent), \
+                 Satisfiable|CounterSatisfiable (consistent), \
+                 Unknown|GaveUp|Timeout|ResourceOut (incomplete)"
+            ),
+        })),
     }
 }
 
@@ -114,7 +119,10 @@ mod tests {
     #[test]
     fn unknown_szs_token_hard_fails() {
         let err = outcome_for_szs("Banana").unwrap_err();
-        assert!(err.contains("unknown TPTP SZS status token"), "{err}");
+        assert!(
+            err.message().contains("unknown TPTP SZS status token"),
+            "{err}"
+        );
         // No casing leniency — SZS tokens are case-sensitive.
         assert!(outcome_for_szs("theorem").is_err());
     }

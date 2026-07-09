@@ -186,7 +186,7 @@ fn nemo_rule_safety_violation_errors() {
             logic:body [ rdf:subject \"?x\" ; rdf:predicate logic:q ; rdf:object \"?y\" ] .",
     );
     let err = text::project_nemo(&prog, &mut LossLedger::new()).unwrap_err();
-    assert!(err.contains("safety violation"), "got: {err}");
+    assert!(err.message().contains("safety violation"), "got: {err}");
 }
 
 #[test]

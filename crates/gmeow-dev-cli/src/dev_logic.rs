@@ -21,7 +21,8 @@ use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::projections::compile_program;
 use gmeow_pipeline::run::{RunMode, run_full};
 
-use crate::dev_common::{LOGIC_DRIFT_PREFIXES, fail, project_root};
+use crate::dev_common::{LOGIC_DRIFT_PREFIXES, fail, note, project_root};
+use crate::error;
 
 /// One resolved answer binding, `var → canonical-value`, plus an optional weight.
 struct Answer {
@@ -78,29 +79,30 @@ fn resolve_query(
     world_iri: Option<&str>,
     max_answers: Option<usize>,
     max_steps: Option<u64>,
-) -> Result<(Vec<Answer>, String), String> {
+) -> gmeow_errors::Result<(Vec<Answer>, String)> {
     let store = WorldStore::new();
-    store.load_nquads(nquads)?;
+    store.load_nquads(nquads).map_err(error::logic)?;
 
     let world = match world_iri {
         Some(w) => w.to_owned(),
         None => {
             let worlds = store.worlds();
             if worlds.len() != 1 {
-                return Err(format!(
+                return Err(error::logic(format!(
                     "world_iri not given and the store has {} named graphs (need exactly 1): {worlds:?}",
                     worlds.len()
-                ));
+                )));
             }
             worlds.into_iter().next().expect("len == 1")
         }
     };
 
-    let program = parse_query_program(program_src)?;
+    let program = parse_query_program(program_src).map_err(error::logic)?;
 
     // Probabilistic marginal inference (the only path that emits a per-binding weight).
     if profile_gate::is_probabilistic_profile(profile) {
-        let answer = probabilistic::evaluate(&store, &world, &program, profile, None)?;
+        let answer = probabilistic::evaluate(&store, &world, &program, profile, None)
+            .map_err(error::logic)?;
         let answers = answer
             .bindings
             .iter()
@@ -112,7 +114,7 @@ fn resolve_query(
         return Ok((answers, answer.status_str().to_owned()));
     }
 
-    let foreign = WorldStoreForeign::from_world(&store, &world, profile)?;
+    let foreign = WorldStoreForeign::from_world(&store, &world, profile).map_err(error::logic)?;
     let budget = Budget {
         max_answers,
         max_steps,
@@ -127,11 +129,13 @@ fn resolve_query(
                 .unwrap_or(counterfactual::DEFAULT_DEPTH_BUDGET);
             let cf = counterfactual::construct_and_resolve(
                 &store, &program, profile, &budget, depth, None,
-            )?;
+            )
+            .map_err(error::logic)?;
             let status = cf.status_str().to_owned();
             (cf.bindings, status)
         } else {
-            let answer = dispatch_query(&foreign, &store, &world, &program, profile, &budget)?;
+            let answer = dispatch_query(&foreign, &store, &world, &program, profile, &budget)
+                .map_err(error::logic)?;
             (answer.bindings, answer.status.as_str().to_owned())
         };
 
@@ -185,7 +189,10 @@ fn render_query(answers: &[Answer], status: &str, as_json: bool) -> i32 {
             }
         }
     }
-    eprintln!("{} answer(s); status={status}", answers.len());
+    note(
+        "gmeow-dev.logic-query.status",
+        format!("{} answer(s); status={status}", answers.len()),
+    );
     0
 }
 
@@ -234,7 +241,7 @@ pub fn compile(check: bool, mode: Option<&str>) -> i32 {
             let mut sorted = drift.clone();
             sorted.sort();
             for rel in sorted {
-                eprintln!("drift {rel}");
+                note("gmeow-dev.logic-compile.drift", format!("drift {rel}"));
             }
             return fail(format!(
                 "{} logic artifact(s) out of date — run `gmeow-dev logic compile`",
@@ -303,7 +310,10 @@ fn compile_one_mode(root: &Path, mode: &str, check: bool) -> i32 {
         Err(e) => return fail(format!("logic: parse failed: {}", e.0)),
     };
     for d in &diagnostics {
-        eprintln!("{} [{}] {}", d.severity.as_str(), d.code, d.message);
+        note(
+            "gmeow-dev.logic-compile.diagnostic",
+            format!("{} [{}] {}", d.severity.as_str(), d.code, d.message),
+        );
     }
     // Discharge every authored correspondence's lens law by EXECUTION so the five
     // correspondence gates inside `compile_program` read a real per-correspondence verdict.
@@ -330,7 +340,7 @@ fn compile_one_mode(root: &Path, mode: &str, check: bool) -> i32 {
     if check {
         let committed = std::fs::read_to_string(&target).unwrap_or_default();
         if &committed != content {
-            eprintln!("drift {rel}");
+            note("gmeow-dev.logic-compile.drift", format!("drift {rel}"));
             return fail(format!("--mode {mode}: committed artifact drifted"));
         }
         println!("--mode {mode}: no drift");

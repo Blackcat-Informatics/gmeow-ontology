@@ -140,7 +140,7 @@ pub fn render_diagnostics_artifacts(
     let derivation = match meta {
         Some(meta) => meta
             .derive(&projected_nq)
-            .map_err(|e| stage_err("meta", e))?,
+            .map_err(|e| stage_err("meta", e.to_string()))?,
         None => crate::stages::meta_findings::MetaDerivation::default(),
     };
     // Only clone + enrich when the meta chase actually derived findings; on the

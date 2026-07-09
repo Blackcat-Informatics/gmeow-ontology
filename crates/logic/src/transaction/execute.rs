@@ -91,7 +91,7 @@ pub fn execute_transaction(
     world: &str,
     root: &str,
     mode: CommitMode,
-) -> Result<TxReceipt, String> {
+) -> gmeow_errors::Result<TxReceipt> {
     let store = WorldStore::new();
     store.load_nquads(nquads)?;
     let facts = WorldFacts::read(&store, world);
@@ -127,7 +127,11 @@ pub fn execute_transaction(
         },
         (CommitMode::Hypothetical, true) => TxReceipt::HypotheticalSuccess {
             witness: witness(&quads).ok_or_else(|| {
-                "hypothetical success emitted no logic:executedHypotheticallyAs witness".to_owned()
+                gmeow_errors::Diag::of_kind(crate::error::Transaction {
+                    detail: "hypothetical success emitted no logic:executedHypotheticallyAs \
+                             witness"
+                        .to_owned(),
+                })
             })?,
         },
         (CommitMode::Hypothetical, false) => TxReceipt::HypotheticalFailure {

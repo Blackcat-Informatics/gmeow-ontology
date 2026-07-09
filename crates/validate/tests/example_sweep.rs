@@ -108,6 +108,7 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/places/examples/located-place.ttl", // gmeow:vantage → Agent not typed standalone (the survey team is gmeow:Organization)
     "slices/core/profiles/examples/named-profile-membership.ttl", // gmeow:profileAppliesTo → owl:Class target not typed standalone
     "slices/core/quality/examples/dataset-completeness.ttl", // gmeow:assessedEntity → Entity not typed standalone (the dataset is gmeow:Dataset)
+    "slices/core/slice-quality-rubric/examples/rubric-assessment.ttl", // reuses the quality Observation stack exactly like dataset-completeness.ttl: gmeow:assessedEntity → Dataset not typed standalone, gmeow:observationMethod / gmeow:qualityDimension → shared value individuals defined in module.ttl, untyped standalone
     "slices/core/rights/examples/licensed-dataset.ttl", // gmeow:licensedWork/copyrightWork/statementAbout → InformationObject/Entity not typed standalone; gmeow:licensor/copyrightHolder → Agent not typed standalone
     "slices/core/sexuality/examples/split-attraction.ttl", // gmeow:romanticOrientationValue/sexualOrientationValue → shared RomanticOrientationValue/SexualOrientationValue individuals untyped standalone
     "slices/core/standpoint/examples/contested-authorship.ttl", // gmeow:observationMethod → shared method individual untyped standalone
@@ -303,20 +304,15 @@ fn example_corpus_validates_against_closed_world_schema() {
         }
     }
 
-    // Log a sweep summary (visible with --nocapture).
-    eprintln!(
-        "example sweep: {} total, {} passed, {} excluded (non-conformant), {} schema failures",
+    // Every swept example is EXACTLY one of passed / excluded / schema-failure —
+    // a partition invariant (replaces a bare sweep-summary log line).
+    assert_eq!(
+        passed_count + excluded_count + schema_failures.len(),
         examples.len(),
-        passed_count,
-        excluded_count,
-        schema_failures.len()
+        "sweep partition: {passed_count} passed + {excluded_count} excluded + {} schema-failures must total {} examples",
+        schema_failures.len(),
+        examples.len(),
     );
-    if !non_conformant.is_empty() {
-        eprintln!("excluded (SHACL-non-conformant, out of scope):");
-        for ex in NON_CONFORMANT {
-            eprintln!("  - {ex}");
-        }
-    }
 
     // Invariant 1: the allowlist must be EXACTLY the SHACL-failing set, so an
     // exclusion can never silently mask a JSON-schema soundness bug.

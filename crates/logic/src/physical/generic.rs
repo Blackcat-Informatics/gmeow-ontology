@@ -48,8 +48,17 @@ use purrdf::TermValue;
 
 use crate::facts::TypedFactSet;
 use crate::oracle::{TypedChaseResult, TypedProvenance, TypedRow};
+use crate::physical::binding_pattern::BindingPattern;
+use crate::physical::seminaive::StepGovernor;
 use crate::provenance::{LOGIC_NAMESPACE, term_display};
 use crate::rule_ir::{EvalTerm, lower_nemo_term};
+use crate::seam::BudgetStatus;
+
+/// Wrap a physical-chase condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn physical_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Physical { detail })
+}
 
 // ── Generic atom / rule IR ─────────────────────────────────────────────────────
 
@@ -88,7 +97,7 @@ pub(crate) struct GenericRule {
 /// "object"`, permissive — a generic relation may carry a literal in any position).
 fn lower_generic_atom(
     atom: &nemo::rule_model::components::atom::Atom,
-) -> Result<GenericAtom, String> {
+) -> gmeow_errors::Result<GenericAtom> {
     let relation = atom.predicate().to_string();
     let mut args: Vec<EvalTerm> = Vec::new();
     for term in atom.terms() {
@@ -108,7 +117,7 @@ fn lower_generic_atom(
 /// Returns the Nemo parse-error string, a lowering error, or — because this fragment
 /// is pure positive Datalog — a HARD ERROR if any rule carries a negated body atom
 /// (RL/RDF has none; a negated atom would be a rule-text bug, never approximated).
-pub(crate) fn parse_generic_rules(rules: &str) -> Result<Vec<GenericRule>, String> {
+pub(crate) fn parse_generic_rules(rules: &str) -> gmeow_errors::Result<Vec<GenericRule>> {
     use crate::nemo_engine::NemoParsedRules;
 
     let program = NemoParsedRules::parse_unvalidated(rules)?.into_program();
@@ -126,7 +135,7 @@ pub(crate) fn parse_generic_rules(rules: &str) -> Result<Vec<GenericRule>, Strin
 /// [`Program`]: nemo::rule_model::programs::program::Program
 pub(crate) fn lower_program_generic_rules(
     program: &nemo::rule_model::programs::program::Program,
-) -> Result<Vec<GenericRule>, String> {
+) -> gmeow_errors::Result<Vec<GenericRule>> {
     use nemo::rule_model::programs::ProgramRead;
 
     let mut out: Vec<GenericRule> = Vec::new();
@@ -134,18 +143,18 @@ pub(crate) fn lower_program_generic_rules(
         let head_atom = rule
             .head()
             .first()
-            .ok_or("generic: rule has no head atom")?;
+            .ok_or_else(|| physical_err("generic: rule has no head atom".to_owned()))?;
         let head = lower_generic_atom(head_atom)?;
 
         // Positive Datalog only: a negated body literal is a hard error (RL/RDF is
         // negation-free; this evaluator must never see one, and must never silently
         // treat it as positive).
         if rule.body_negative().count() != 0 {
-            return Err(format!(
+            return Err(physical_err(format!(
                 "generic: rule {:?} carries a negated body atom, but the generic n-ary \
                  evaluator is pure positive Datalog (OWL 2 RL/RDF has no negation)",
                 rule.name().unwrap_or_else(|| "<anonymous>".to_owned())
-            ));
+            )));
         }
 
         let mut body: Vec<GenericAtom> = Vec::new();
@@ -301,6 +310,20 @@ enum PosMatch {
     Fresh(String),
 }
 
+impl BindingPattern {
+    /// The query-plan adornment of a precomputed [`build_match_plan`] result: a match
+    /// plan and a [`BindingPattern`] are the SAME datum — `PosMatch::Expect` (a
+    /// constant or already-bound variable) is a BOUND position, `PosMatch::Fresh` (a
+    /// still-free variable) is a FREE position. Index selection ranges over this
+    /// pattern's bound positions to pick the tightest value bucket, exactly as the
+    /// backward magic-sets keying ranges over its demand adornment. Sharing the one
+    /// lattice type keeps forward-plan and backward-demand adornments isomorphic by
+    /// construction.
+    fn from_match_plan(plan: &[PosMatch]) -> Self {
+        BindingPattern::from_bools(plan.iter().map(|pm| matches!(pm, PosMatch::Expect(_))))
+    }
+}
+
 /// Precompute the per-position match plan of `atom` under `base`: constants and
 /// already-bound variables collapse to their fixed surface; still-free variables
 /// stay `Fresh`. This mirrors [`match_generic_atom`]'s per-term dispatch but hoists
@@ -386,27 +409,31 @@ fn extend(
     let mut next: Vec<GenSolution> = Vec::new();
     for sol in solutions {
         let plan = build_match_plan(atom, &sol.binding);
+        // The plan's per-position bound/free profile IS a query-plan adornment (the
+        // same lattice type the backward magic-sets keying uses): `Expect` ⇒ bound,
+        // `Fresh` ⇒ free.
+        let pattern = BindingPattern::from_match_plan(&plan);
 
-        // Index-selection: over the atom's BOUND positions (constants + already-bound
-        // vars) pick the smallest value bucket — that is the tightest candidate set,
-        // and iterating it in its ascending order visits exactly the rows a full scan
-        // would have matched, in the same order. A bound position with an EMPTY bucket
-        // means no row can match, so this solution contributes nothing.
+        // Index-selection: over the adornment's BOUND positions (constants + already-
+        // bound vars) pick the smallest value bucket — that is the tightest candidate
+        // set, and iterating it in its ascending order visits exactly the rows a full
+        // scan would have matched, in the same order. A bound position with an EMPTY
+        // bucket means no row can match, so this solution contributes nothing.
+        let any_bound = !pattern.is_all_free();
         let mut selected: Option<&[usize]> = None;
-        let mut any_bound = false;
         let mut empty = false;
-        for (pos, pm) in plan.iter().enumerate() {
-            if let PosMatch::Expect(surface) = pm {
-                any_bound = true;
-                match rel_index.and_then(|m| m.get(&pos).and_then(|m2| m2.get(surface))) {
-                    None => {
-                        empty = true;
-                        break;
-                    }
-                    Some(bucket) => {
-                        if selected.is_none_or(|cur| bucket.len() < cur.len()) {
-                            selected = Some(bucket.as_slice());
-                        }
+        for pos in pattern.bound_positions() {
+            let PosMatch::Expect(surface) = &plan[pos] else {
+                unreachable!("a bound position of the plan adornment is a PosMatch::Expect");
+            };
+            match rel_index.and_then(|m| m.get(&pos).and_then(|m2| m2.get(surface))) {
+                None => {
+                    empty = true;
+                    break;
+                }
+                Some(bucket) => {
+                    if selected.is_none_or(|cur| bucket.len() < cur.len()) {
+                        selected = Some(bucket.as_slice());
                     }
                 }
             }
@@ -484,7 +511,7 @@ fn join_body(rule: &GenericRule, store: &GenericStore, delta: &HashSet<usize>) -
 
 /// Ground a head atom into a concrete row under `sol`, failing hard on an unbound
 /// head variable.
-fn ground_head(head: &GenericAtom, sol: &Binding) -> Result<Vec<TermValue>, String> {
+fn ground_head(head: &GenericAtom, sol: &Binding) -> gmeow_errors::Result<Vec<TermValue>> {
     let mut row: Vec<TermValue> = Vec::with_capacity(head.args.len());
     for arg in &head.args {
         match arg {
@@ -496,7 +523,9 @@ fn ground_head(head: &GenericAtom, sol: &Binding) -> Result<Vec<TermValue>, Stri
                     .find(|(k, _, _)| k == name)
                     .map(|(_, v, _)| v.clone())
                     .ok_or_else(|| {
-                        format!("generic: head variable {name:?} unbound after body matching")
+                        physical_err(format!(
+                            "generic: head variable {name:?} unbound after body matching"
+                        ))
                     })?;
                 row.push(value);
             }
@@ -524,9 +553,42 @@ fn ground_head(head: &GenericAtom, sol: &Binding) -> Result<Vec<TermValue>, Stri
 pub(crate) fn materialize_generic(
     facts: &TypedFactSet,
     rules: &[GenericRule],
-) -> Result<TypedChaseResult, String> {
+) -> gmeow_errors::Result<TypedChaseResult> {
+    // The forward (`NativeForwardOracle`) caller is UNBUDGETED: `None` step budget ⇒ the
+    // governor never trips ⇒ the returned status is always `Ok` and the fact set is
+    // byte-identical to the pre-budget engine.  This is the thin wrapper; the backward
+    // n-ary leg calls [`materialize_generic_budgeted`] directly to honor a `max_steps`.
+    let (result, _status) = materialize_generic_budgeted(facts, rules, None)?;
+    Ok(result)
+}
+
+/// Materialize the least model of `rules` over `facts` under an optional step budget,
+/// returning the [`TypedChaseResult`] plus the [`BudgetStatus`] at the point evaluation
+/// stopped.
+///
+/// The step/derivation budget is honored at the SINGLE deterministic counting point — one
+/// committed winner per charge, in the round's sorted `(relation, row-surface)` commit
+/// order — exactly mirroring the binary [`crate::physical::seminaive::eval_stratum_fixpoint`]:
+/// [`StepGovernor::spent`] is checked BEFORE committing each winner (so `max_steps = n`
+/// admits exactly `n` derivations, `max_steps = 0` admits none), and the returned status is
+/// [`BudgetStatus::Exhausted`] on a mid-fixpoint cut, [`BudgetStatus::Ok`] on a natural
+/// fixpoint.  An `Exhausted` cut leaves a SOUND (sorted-key-ordered) partial prefix: every
+/// emitted derived row is genuinely in the least model, the budget only bounds how many
+/// were produced.  `max_steps == None` is unbounded (the [`materialize_generic`] wrapper).
+///
+/// # Errors
+///
+/// Propagates a [`ground_head`] failure (an unbound head variable — a malformed rule the
+/// positive-Datalog core cannot ground).
+pub(crate) fn materialize_generic_budgeted(
+    facts: &TypedFactSet,
+    rules: &[GenericRule],
+    max_steps: Option<u64>,
+) -> gmeow_errors::Result<(TypedChaseResult, BudgetStatus)> {
     let interner = facts.interner();
     let mut store = GenericStore::default();
+    let mut governor = StepGovernor::new(max_steps);
+    let mut status = BudgetStatus::Ok;
 
     // Seed the EDB: every typed fact becomes a stored row `relation(args…)` with the
     // native term values resolved from the set's interner.
@@ -544,7 +606,7 @@ pub(crate) fn materialize_generic(
 
     // Semi-naive least-fixpoint: each round derives new heads by joining only against
     // the previous round's delta, committing per-round winners in sorted-key order.
-    loop {
+    'fixpoint: loop {
         let mut round: BTreeMap<(String, RowSurface), RoundWinner> = BTreeMap::new();
         for rule in rules {
             for sol in join_body(rule, &store, &delta) {
@@ -565,10 +627,19 @@ pub(crate) fn materialize_generic(
             break; // fixpoint
         }
         let mut new_delta: HashSet<usize> = HashSet::with_capacity(round.len());
+        // Commit winners in the BTreeMap's sorted `(relation, row-surface)` order — the
+        // deterministic counting point.  The step budget is charged once per committed
+        // winner; when it is spent we stop BEFORE committing the next winner, leaving a
+        // sound sorted-key-ordered partial prefix (`Exhausted`).
         for ((relation, _surface), (row, rule_iri, antecedents)) in round {
+            if governor.spent() {
+                status = BudgetStatus::Exhausted;
+                break 'fixpoint;
+            }
             if let Some(idx) = store.insert(relation, row, Some(rule_iri), antecedents) {
                 new_delta.insert(idx);
             }
+            governor.charge();
         }
         delta = new_delta;
     }
@@ -613,7 +684,7 @@ pub(crate) fn materialize_generic(
         })
         .collect();
 
-    Ok(TypedChaseResult { rows })
+    Ok((TypedChaseResult { rows }, status))
 }
 
 #[cfg(test)]
@@ -837,6 +908,6 @@ mod tests {
         let rls = "#[name(\"ex:neg\")]\n\
              <http://ex/q>(?x, ?y, ?w) :- <http://ex/p>(?x, ?y, ?w), ~<http://ex/r>(?x, ?y, ?w) .\n";
         let err = parse_generic_rules(rls).expect_err("a negated body atom must be rejected");
-        assert!(err.contains("negated body atom"), "got: {err}");
+        assert!(err.message().contains("negated body atom"), "got: {err}");
     }
 }

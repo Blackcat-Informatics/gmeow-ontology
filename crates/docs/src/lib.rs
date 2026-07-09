@@ -20,21 +20,20 @@ pub mod badge;
 pub mod card;
 pub mod coverage;
 pub mod describe;
+pub mod error;
 pub mod exec;
 pub mod fixture;
+pub mod formats;
 pub mod i18n;
 pub mod i18n_compile;
 pub mod lint;
 pub mod llms;
+pub mod mdbook;
 pub mod model;
 pub mod rdf;
 pub mod render;
 mod store;
 pub mod svg;
-
-// PyO3 bindings — enabled only for the unified native extension.
-#[cfg(feature = "python")]
-pub mod py;
 
 pub use describe::{DescribeGraph, build_card, describe, resolve_term};
 pub use exec::{ExecutableDocsData, InferenceDiff, example_key};
@@ -51,7 +50,3 @@ pub use render::{
     Page, Site, okf_doc_reference, render_site, render_site_lang, render_site_lang_exec, to_html,
     to_markdown,
 };
-// Re-export the module-registration entrypoint so the unified `gmeow_native`
-// cdylib can populate the `gmeow_native.docs` submodule.
-#[cfg(feature = "python")]
-pub use py::register;

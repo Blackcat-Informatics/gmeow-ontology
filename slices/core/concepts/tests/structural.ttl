@@ -21,7 +21,6 @@
 # and gmeow:typicality's rdfs:label (a PROPERTY) each reddened `make validate`,
 # then reverted. That pytest function is therefore deleted rather than migrated.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/concepts/tests/> .

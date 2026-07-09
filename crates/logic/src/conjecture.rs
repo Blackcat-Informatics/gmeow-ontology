@@ -292,13 +292,13 @@ pub fn conjecture_test(
     standpoint: &str,
     assume_context: &[(String, String, String)],
     budget: &Budget,
-) -> Result<ConjectureAnswer, String> {
+) -> gmeow_errors::Result<ConjectureAnswer> {
     if standpoint.trim().is_empty() {
-        return Err(
-            "conjecture_test requires a non-empty standpoint (Principle 9: a conjecture \
-             verdict is always standpoint-scoped, never global)"
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+            detail: "conjecture_test requires a non-empty standpoint (Principle 9: a conjecture \
+                     verdict is always standpoint-scoped, never global)"
                 .to_owned(),
-        );
+        }));
     }
 
     // (1) The scenario EDB = KB ∪ assume_context. The input KB is copied in, never mutated.
@@ -360,13 +360,16 @@ pub fn conjecture_test(
     //      cannot host a meaningful test — ex falso would make every proposition both entailed
     //      and refuted — so it stays a hard error.
     if !base.is_consistent() && !(has_proof && has_counterproof) {
-        return Err(format!(
-            "conjecture_test: the scenario KB in world <{scenario_world}> is ALREADY \
-             inconsistent for a reason UNRELATED to the candidate (it neither entails the \
-             candidate nor genuinely refutes it), so the candidate cannot be tested against it \
-             — ex falso would make every proposition both entailed and refuted. witnesses: {:?}",
-            base.provenance.contradiction_witnesses
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+            detail: format!(
+                "conjecture_test: the scenario KB in world <{scenario_world}> is ALREADY \
+                 inconsistent for a reason UNRELATED to the candidate (it neither entails the \
+                 candidate nor genuinely refutes it), so the candidate cannot be tested against \
+                 it — ex falso would make every proposition both entailed and refuted. \
+                 witnesses: {:?}",
+                base.provenance.contradiction_witnesses
+            ),
+        }));
     }
 
     // (6) Budget as a post-hoc closure-size ceiling ABOVE the oracle (never handed to Nemo).
@@ -468,7 +471,7 @@ fn build_scenario_edb(
     scenario_world: &str,
     assume_context: &[(String, String, String)],
     phi: Option<(String, String, RdfTerm)>,
-) -> Result<std::sync::Arc<RdfDataset>, String> {
+) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
     let mut builder = RdfDatasetBuilder::new();
     builder.push_dataset(kb);
     for (s, p, o) in assume_context {
@@ -481,7 +484,11 @@ fn build_scenario_edb(
             .in_graph(RdfTerm::iri(scenario_world.to_owned()));
         builder.push_owned_quad(&quad);
     }
-    builder.freeze().map_err(|e| e.to_string())
+    builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Reason {
+            detail: e.to_string(),
+        })
+    })
 }
 
 /// Route the candidate: `Some((subject, predicate, object))` when it is a trivially-Horn
@@ -495,7 +502,7 @@ fn build_scenario_edb(
 /// Returns `Err` when the candidate has the trivially-Horn binary shape but is NOT ground
 /// (a variable / sequence-marker subject or object), which cannot be asserted as a fact.
 #[allow(clippy::type_complexity)]
-fn as_ground_fact(candidate: &Formula) -> Result<Option<(String, String, RdfTerm)>, String> {
+fn as_ground_fact(candidate: &Formula) -> gmeow_errors::Result<Option<(String, String, RdfTerm)>> {
     let Formula::Atom { relation, args } = candidate else {
         return Ok(None);
     };
@@ -510,10 +517,12 @@ fn as_ground_fact(candidate: &Formula) -> Result<Option<(String, String, RdfTerm
     let subject = match &args[0] {
         Term::Iri(s) => s.clone(),
         other => {
-            return Err(format!(
-                "conjecture_test: a ground candidate atom's subject must be an IRI, got \
-                 {other:?} — a non-ground binary atom cannot be asserted as a fact"
-            ));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+                detail: format!(
+                    "conjecture_test: a ground candidate atom's subject must be an IRI, got \
+                     {other:?} — a non-ground binary atom cannot be asserted as a fact"
+                ),
+            }));
         }
     };
     let object = match &args[1] {
@@ -526,10 +535,12 @@ fn as_ground_fact(candidate: &Formula) -> Result<Option<(String, String, RdfTerm
             RdfTerm::literal(literal)
         }
         other => {
-            return Err(format!(
-                "conjecture_test: a ground candidate atom's object must be an IRI or literal, \
-                 got {other:?} — a non-ground binary atom cannot be asserted as a fact"
-            ));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+                detail: format!(
+                    "conjecture_test: a ground candidate atom's object must be an IRI or literal, \
+                     got {other:?} — a non-ground binary atom cannot be asserted as a fact"
+                ),
+            }));
         }
     };
     Ok(Some((subject, predicate.clone(), object)))

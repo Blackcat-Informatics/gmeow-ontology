@@ -11,7 +11,7 @@
 //!
 //! # Engine core separation
 //!
-//! This module is PyO3-free (only [`crate::py`] imports pyo3). The remote-$ref
+//! This module is pure Rust with no binding surface. The remote-$ref
 //! resolvers of the `jsonschema` crate are disabled (`default-features = false`)
 //! because the GMEOW schema is fully self-contained — every `$ref` is a local
 //! `#/$defs/...` pointer, so validation never touches the network or filesystem.
@@ -37,30 +37,43 @@ pub enum InstanceFormat {
 /// message, and the list is sorted for deterministic output.
 ///
 /// Hard errors — a schema that fails to compile or an instance that fails to
-/// parse — are returned as `Err(String)`; they are not validation violations but
-/// caller mistakes that must surface (no fallback).
+/// parse — are returned as a typed diagnostic; they are not validation
+/// violations but caller mistakes that must surface (no fallback).
 pub fn validate_instance(
     instance: &[u8],
     format: InstanceFormat,
     schema: &[u8],
-) -> Result<Vec<String>, String> {
-    let schema_value: Value =
-        serde_json::from_slice(schema).map_err(|e| format!("invalid JSON schema: {e}"))?;
+) -> gmeow_errors::Result<Vec<String>> {
+    let schema_value: Value = serde_json::from_slice(schema).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("invalid JSON schema: {e}"),
+        })
+    })?;
 
     // Compile for draft 2020-12 (the dialect the SHACL→JSON-Schema emitter targets
     // in Task 2/3). A compile failure (malformed schema) is a hard error.
     let validator: Validator = jsonschema::options()
         .with_draft(Draft::Draft202012)
         .build(&schema_value)
-        .map_err(|e| format!("invalid JSON schema: {e}"))?;
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!("invalid JSON schema: {e}"),
+            })
+        })?;
 
     let instance_value: Value = match format {
-        InstanceFormat::Json => serde_json::from_slice(instance)
-            .map_err(|e| format!("could not parse JSON instance: {e}"))?,
+        InstanceFormat::Json => serde_json::from_slice(instance).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!("could not parse JSON instance: {e}"),
+            })
+        })?,
         // serde_yaml deserializes directly into serde_json::Value, so the YAML
         // and JSON paths converge on one validation surface.
-        InstanceFormat::Yaml => serde_yaml::from_slice(instance)
-            .map_err(|e| format!("could not parse YAML instance: {e}"))?,
+        InstanceFormat::Yaml => serde_yaml::from_slice(instance).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!("could not parse YAML instance: {e}"),
+            })
+        })?,
     };
 
     let mut messages: Vec<String> = validator
@@ -142,13 +155,18 @@ mod tests {
         let not_json = b"this is not json";
         let err = validate_instance(br#"{}"#, InstanceFormat::Json, not_json)
             .expect_err("a non-JSON schema must be a hard error");
-        assert!(err.contains("invalid JSON schema"), "got {err}");
+        assert!(err.is::<crate::error::Parse>());
+        assert!(err.message().contains("invalid JSON schema"), "got {err}");
     }
 
     #[test]
     fn unparsable_instance_is_a_hard_error() {
         let err = validate_instance(b"not json", InstanceFormat::Json, SCHEMA)
             .expect_err("an unparsable instance must be a hard error");
-        assert!(err.contains("could not parse JSON instance"), "got {err}");
+        assert!(err.is::<crate::error::Parse>());
+        assert!(
+            err.message().contains("could not parse JSON instance"),
+            "got {err}"
+        );
     }
 }

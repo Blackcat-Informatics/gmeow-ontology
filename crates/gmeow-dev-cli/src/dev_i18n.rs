@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 
 use gmeow_docs::i18n_compile;
 
-use crate::dev_common::{fail, project_root};
+use crate::dev_common::{fail, note, project_root};
 
 /// `gmeow-dev i18n extract [--root --output-dir --lang --terms-only]`.
 pub fn extract(
@@ -84,10 +84,10 @@ pub fn sync_english(root: Option<&Path>, dry_run: bool) -> i32 {
         println!("{status} {}", path.display());
     }
     for conflict in &conflicts {
-        eprintln!("conflict {conflict}");
+        note("gmeow-dev.i18n.conflict", format!("conflict {conflict}"));
     }
     for skip in &skipped {
-        eprintln!("skip {skip}");
+        note("gmeow-dev.i18n.skip", format!("skip {skip}"));
     }
     if !conflicts.is_empty() {
         return fail(format!(
@@ -135,9 +135,12 @@ pub fn merge(root: Option<&Path>, output: Option<&Path>, lang: Option<&str>) -> 
             if output.is_none() {
                 print!("{}", report.turtle);
             }
-            eprintln!(
-                "merged {} PO file(s), {} translated triple(s) added -> {}",
-                report.po_files, report.added, report.output_note
+            note(
+                "gmeow-dev.i18n.merged",
+                format!(
+                    "merged {} PO file(s), {} translated triple(s) added -> {}",
+                    report.po_files, report.added, report.output_note
+                ),
             );
             0
         }

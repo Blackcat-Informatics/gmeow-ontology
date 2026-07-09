@@ -1,0 +1,158 @@
+---
+source: crates/docs-print/tests/render.rs
+expression: typ
+---
+#set document(title: "GMEOW Demo Documentation", author: ("GMEOW",))
+#set page(paper: "a4", numbering: "1")
+#set text(font: "Libertinus Serif", size: 10pt, lang: "en")
+#set heading(numbering: "1.1")
+
+#align(center)[
+  #text(size: 24pt, weight: "bold")[#"GMEOW Demo Documentation"]
+  #v(1em)
+  #text(size: 14pt)[Version #"test-1"]
+]
+#pagebreak()
+
+#outline()
+#pagebreak()
+
+= Slice: #"Demo slice"
+
+== #"gmeow:Foo"
+
+*#"Foo"* #h(0.5em) Class
+
+#"A foundational demonstration class."
+
+*Parents:* #"gufo:Object"
+
+*Use when:* #"When you need a demo class."
+
+*Examples:* #"ex:a a gmeow:Foo ."
+
+== #"gmeow:hasValue"
+
+*#"hasValue"* #h(0.5em) Property
+
+#"Relates a Foo to a value."
+
+*Domain:* #"gmeow:Foo"
+
+*Range:* #"http://www.w3.org/2001/XMLSchema#string"
+
+== #"gmeow:Baz"
+
+*#"Baz"* #h(0.5em) Individual
+
+#"An individual of the demo."
+
+= Axiom listings
+
+== #"core"
+
+#raw(block: true, "gmeow:Foo rdfs:subClassOf gufo:Object .")
+
+// <<section:metrics>>
+= Ontology metrics
+
+#table(
+  columns: 2,
+  align: (left, left),
+  "Terms", "3",
+  "Classes", "1",
+  "Properties", "1",
+  "Individuals", "1",
+  "Datatypes", "0",
+  "DL expressivity (observed feature profile)", "ALH(D)",
+  "Consistency", "consistent (no unsatisfiable classes)",
+  "Competency questions", "1",
+  "Competency coverage", "1/3 terms (33.3%)",
+)
+
+// <<section:methodology>>
+= Methodology and reproducibility
+
+This documentation is a projection of a single canonical bundle. The ontology's constitutional principles govern every artifact: the `logic:` core is the one canonical reasoning language and every other serialization is a generated, lossy projection of it, each carrying a preservation judgment in the loss ledger.
+
+The build is deterministic end to end. Every collection is emitted in a stable sorted order, no wall-clock time enters any artifact, and each input is content-addressed with BLAKE3 so a byte-identical input always yields a byte-identical output. This PDF itself carries no creation timestamp and a fixed document identifier, so recompiling the same source reproduces the same bytes.
+
+Attestations bind each released bundle to its content address, so a consumer can verify that a downloaded artifact is exactly the one the pipeline produced.
+
+// <<section:fair>>
+= FAIR statement
+
+The ontology and its documentation are Findable, Accessible, Interoperable, and Reusable. Findability and machine-checkable metadata completeness are enforced by the `meta:gate-fair-metadata` gate, which fails the build if the required descriptive metadata is absent. Accessibility follows from the openly licensed, self-contained bundle; interoperability from the standard RDF, OWL, SHACL, and SSSOM projections; and reusability from the per-term provenance, versioning, and the loss ledger that documents every projection's declared losses.
+
+// <<section:comparison-gufo>>
+= gUFO comparison
+
+#table(
+  columns: 3,
+  align: (left, left, left),
+  table.header("GMEOW term", "Predicate", "gUFO term"),
+  "gmeow:Foo", "closeMatch", "http://purl.org/nemo/gufo#Object",
+)
+
+// <<section:comparison-bfo>>
+= BFO comparison
+
+#table(
+  columns: 3,
+  align: (left, left, left),
+  table.header("GMEOW term", "Predicate", "BFO term"),
+  "gmeow:", "relatesTo", "BFO (no direct term correspondences in this bundle)",
+)
+
+// <<section:comparison-dolce>>
+= DOLCE comparison
+
+#table(
+  columns: 3,
+  align: (left, left, left),
+  table.header("GMEOW term", "Predicate", "DOLCE term"),
+  "gmeow:", "relatesTo", "DOLCE (no direct term correspondences in this bundle)",
+)
+
+// <<section:pipeline-dag>>
+= Pipeline DAG
+
+#figure(
+  caption: [The regeneration pipeline spine.],
+  grid(
+    columns: (auto,) * 9,
+    align: horizon,
+    gutter: 0.4em,
+    box(stroke: 0.5pt, inset: 6pt, radius: 3pt)[#"slices"],
+    [→],
+    box(stroke: 0.5pt, inset: 6pt, radius: 3pt)[#"compose"],
+    [→],
+    box(stroke: 0.5pt, inset: 6pt, radius: 3pt)[#"reason"],
+    [→],
+    box(stroke: 0.5pt, inset: 6pt, radius: 3pt)[#"project"],
+    [→],
+    box(stroke: 0.5pt, inset: 6pt, radius: 3pt)[#"gmeow.gts"],
+  ),
+)
+
+// <<section:loss-appendix>>
+= Loss ledger appendix
+
+This PDF is a lossy projection. The capabilities it declares lost are read directly from the shared per-format capability table, so this appendix matches the ontology's loss ledger by construction.
+
+== Declared losses
+
+- #"Full-text search index" (#"search-index")
+- #"Live SPARQL queries" (#"live-sparql")
+- #"Interactive surfaces" (#"interactivity")
+- #"Rendered diagrams" (#"diagrams")
+- #"Cross-link fidelity" (#"cross-link-fidelity")
+
+== Represented capabilities
+
+_This format represents none of the tracked capabilities._
+
+// <<section:bibliography>>
+= Bibliography
+
+#bibliography("references.bib", full: true, title: none)

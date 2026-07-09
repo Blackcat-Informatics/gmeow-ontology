@@ -11,7 +11,7 @@
 //! site (URLs recovered from the `gmeow:graph/documentation` graph) and the card
 //! is the per-term, context-window-ready twin of the site's `card.md`. `McpServer`
 //! owns the stdio JSON-RPC loop, startup language validation, resource routing,
-//! and grounded-memory triad, leaving Python only as the CLI launcher.
+//! and grounded-memory triad; the native `gmeow`/`gmeow-dev` CLI is the launcher.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::env;
@@ -20,10 +20,6 @@ use std::io::{self, BufRead, Write};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex, OnceLock};
 
-#[cfg(feature = "python")]
-use pyo3::exceptions::PyValueError;
-#[cfg(feature = "python")]
-use pyo3::prelude::*;
 use serde_json::{Value, json};
 
 use gmeow_errors::ResultExt;
@@ -61,7 +57,6 @@ const TOOL_AGENT_NS: &str = "urn:gmeow:tool:";
 const EXTERNAL_OVERLAY_GRAPH: &str = "urn:gmeow:mcp:overlay:external";
 
 /// A loaded, bundle-backed view over the GMEOW snapshot for the MCP consumer.
-#[cfg_attr(feature = "python", pyclass(name = "McpView", skip_from_py_object))]
 pub struct McpView {
     /// THIS server's view of the bundled snapshot as the native carrier dataset:
     /// the MCP server is a gts ARCHIVE CONSUMER — it imports `gmeow.gts` to
@@ -86,13 +81,6 @@ pub struct McpView {
 }
 
 impl McpView {
-    #[cfg(feature = "python")]
-    fn from_snapshot(snapshot: &[u8]) -> gmeow_errors::Result<Self> {
-        let bundle = purrdf::import_gts_events(snapshot)
-            .with_ctx(|| "read snapshot gmeow.gts".to_string())?;
-        Self::from_dataset(bundle.dataset)
-    }
-
     fn from_dataset(dataset: Arc<purrdf::RdfDataset>) -> gmeow_errors::Result<Self> {
         let (title, version) = {
             let view = FoldView::new(dataset.as_ref());
@@ -222,6 +210,130 @@ impl McpView {
         let result = crate::stages::native_query::query(&dataset, sparql)?;
         sparql_result_to_json(result)
     }
+
+    /// Explain a diagnostic witness over the bundle's `graph/diagnostics` named
+    /// graph, addressed by its fingerprint IRI (a finding) or its anchor IRI (a
+    /// cluster). Rehydrates the [`FindingIndex`] through the SAME native SPARQL
+    /// reader the CLI `explain` uses, then returns the STRUCTURED witness surface:
+    /// the focus finding (or the cluster's members), each with its provenance DAG,
+    /// the aggregate ledger [`verdict`], the [`minimal_fatal_cut`] (fingerprint IRIs
+    /// with codes), and the anchor cluster. An unknown/malformed target is a HARD
+    /// FAIL (`Err`) — NEVER an empty-but-ok DAG.
+    ///
+    /// [`FindingIndex`]: crate::diagnostics_reader::FindingIndex
+    /// [`verdict`]: crate::diagnostics_reader::verdict
+    /// [`minimal_fatal_cut`]: crate::diagnostics_reader::minimal_fatal_cut
+    fn explain_finding_json(&self, target: &str) -> gmeow_errors::Result<String> {
+        use crate::diagnostics_reader::{
+            explain_finding, minimal_fatal_cut, read_findings, render_shared_dag, verdict,
+        };
+        // The reader projects the `graph/diagnostics` named graph out of THIS
+        // server's held snapshot — the exact carrier the export surfaces query.
+        let index = read_findings(&self.dataset)?;
+
+        let is_finding = index.get(target).is_some();
+        let cluster: Vec<String> = index
+            .findings
+            .iter()
+            .filter(|(_, f)| f.anchor_iri.as_deref() == Some(target))
+            .map(|(iri, _)| iri.clone())
+            .collect();
+        let is_anchor = !cluster.is_empty();
+        // HARD FAIL: neither a known fingerprint IRI nor a known anchor IRI. Never a
+        // fabricated empty DAG rendered as a success.
+        if !is_finding && !is_anchor {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "unknown explain target `{target}`: not a finding fingerprint IRI or an \
+                     anchor IRI in graph/diagnostics"
+                ),
+            }));
+        }
+
+        let walk = |iri: &str| -> gmeow_errors::Result<String> {
+            let dag = explain_finding(&index, iri).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!("cannot walk provenance DAG for `{iri}`: {e}"),
+                })
+            })?;
+            Ok(render_shared_dag(&dag))
+        };
+
+        // The focus: a single finding's DAG, or every cluster member's DAG.
+        let (kind, focus_anchor, focus) = if is_finding {
+            let f = index.get(target).expect("finding present");
+            (
+                "finding",
+                f.anchor_iri.clone(),
+                json!({
+                    "finding_iri": target,
+                    "code": f.code,
+                    "severity": f.severity.as_str(),
+                    "message": f.message,
+                    "provenance_dag": walk(target)?,
+                }),
+            )
+        } else {
+            let mut members = Vec::with_capacity(cluster.len());
+            for iri in &cluster {
+                let f = index.get(iri).expect("cluster member present");
+                members.push(json!({
+                    "finding_iri": iri,
+                    "code": f.code,
+                    "severity": f.severity.as_str(),
+                    "message": f.message,
+                    "provenance_dag": walk(iri)?,
+                }));
+            }
+            (
+                "anchor",
+                Some(target.to_owned()),
+                json!({"anchor_iri": target, "members": members}),
+            )
+        };
+
+        // The always-emitted substrate algebra: gate verdict + minimal fatal cut.
+        let cut: Vec<Value> = minimal_fatal_cut(&index)
+            .into_iter()
+            .map(|iri| {
+                let (code, message) = index
+                    .get(&iri)
+                    .map(|f| (f.code.clone(), f.message.clone()))
+                    .unwrap_or_default();
+                json!({"finding_iri": iri, "code": code, "message": message})
+            })
+            .collect();
+
+        // The anchor cluster: every finding sharing the focus anchor (the code-blind
+        // co-location the glut/Belnap join reads).
+        let anchor_cluster: Vec<Value> = match focus_anchor.as_deref() {
+            Some(anchor) => index
+                .findings
+                .values()
+                .filter(|f| f.anchor_iri.as_deref() == Some(anchor))
+                .map(|f| {
+                    json!({
+                        "finding_iri": f.finding_iri,
+                        "code": f.code,
+                        "severity": f.severity.as_str(),
+                    })
+                })
+                .collect(),
+            None => Vec::new(),
+        };
+
+        Ok(json!({
+            "ok": true,
+            "kind": kind,
+            "target": target,
+            "focus": focus,
+            "anchor": focus_anchor,
+            "anchor_cluster": anchor_cluster,
+            "verdict": format!("{:?}", verdict(&index)),
+            "minimal_fatal_cut": cut,
+        })
+        .to_string())
+    }
 }
 
 /// A native SPARQL result rendered as a JSON envelope under `"ok"`: an ASK boolean,
@@ -290,46 +402,6 @@ fn sparql_term_to_json(term: &purrdf::TermValue) -> Option<Value> {
     }
 }
 
-#[cfg(feature = "python")]
-#[pymethods]
-impl McpView {
-    /// Load and fold the bundled `gmeow.gts` snapshot bytes. Hard-fails if the
-    /// snapshot does not read or lacks the ontology header (`fold_meta`).
-    #[new]
-    fn new(snapshot: &[u8]) -> PyResult<Self> {
-        Self::from_snapshot(snapshot).map_err(|e| PyValueError::new_err(e.to_string()))
-    }
-
-    /// Resolve a CURIE / local name / IRI / unambiguous prefix to its public
-    /// metadata record (JSON envelope with `"ok"`), or a not-found envelope.
-    fn lookup_term(&self, term: &str, requested: Vec<String>) -> String {
-        self.lookup_term_json(term, requested)
-    }
-
-    /// The standard llmstxt.org vocabulary index (`llms.txt`) for `requested`,
-    /// with bullets linking into the published docs site.
-    fn llms_txt(&self, requested: Vec<String>) -> String {
-        self.llms_txt_text(requested)
-    }
-
-    /// The complete inlined index (`llms-full.txt`) for `requested` — the
-    /// single-file, link-free surface an agent can ingest whole.
-    fn llms_full(&self, requested: Vec<String>) -> String {
-        self.llms_full_text(requested)
-    }
-
-    /// A prompt-ready Markdown card for one term for `requested` — the
-    /// live twin of the docs-site `terms/{slug}/card.md`.
-    fn doc_card(&self, term: &str, requested: Vec<String>) -> String {
-        self.doc_card_text(term, requested)
-    }
-
-    /// The OKF manifest JSON envelope for `requested`.
-    fn okf_index(&self, requested: Vec<String>) -> String {
-        self.okf_index_json(requested)
-    }
-}
-
 impl McpView {
     /// The `term-IRI → site URL` map, built once from the documentation graph and
     /// cached (language-independent).
@@ -367,18 +439,12 @@ pub enum McpMode {
 }
 
 impl McpMode {
-    #[cfg(feature = "python")]
-    fn from_bool(dev: bool) -> Self {
-        if dev { Self::Dev } else { Self::Consumer }
-    }
-
     fn includes_dev_tools(self) -> bool {
         self == Self::Dev
     }
 }
 
 /// A Rust MCP server over the bundled snapshot and optional repository root.
-#[cfg_attr(feature = "python", pyclass(name = "McpServer", skip_from_py_object))]
 pub struct McpServer {
     view: McpView,
     mode: McpMode,
@@ -386,49 +452,6 @@ pub struct McpServer {
     tag_map: BTreeMap<String, String>,
     available: BTreeSet<String>,
     startup_requested: Vec<String>,
-}
-
-#[cfg(feature = "python")]
-#[pymethods]
-impl McpServer {
-    /// Build a Rust MCP server. `dev=true` exposes repository-maintenance tools.
-    #[new]
-    #[pyo3(signature = (snapshot, root = None, dev = false))]
-    fn new(snapshot: &[u8], root: Option<String>, dev: bool) -> PyResult<Self> {
-        Self::from_snapshot(snapshot, root.map(PathBuf::from), McpMode::from_bool(dev))
-            .map_err(|e| PyValueError::new_err(e.to_string()))
-    }
-
-    /// JSON form of the MCP tool list, useful for smoke tests and launchers.
-    fn tools_json(&self) -> String {
-        self.tools_result().to_string()
-    }
-
-    /// JSON form of the MCP resource list, useful for smoke tests and launchers.
-    fn resources_json(&self) -> String {
-        self.resources_result().to_string()
-    }
-
-    /// Call one MCP tool with a JSON object of arguments.
-    #[pyo3(signature = (name, arguments = "{}"))]
-    fn call_tool_json(&self, name: &str, arguments: &str) -> String {
-        let args = serde_json::from_str(arguments).unwrap_or_else(|err| {
-            json!({
-                "__parse_error": err.to_string(),
-            })
-        });
-        self.call_tool_result(name, &args).to_string()
-    }
-
-    /// Read one MCP resource URI.
-    fn read_resource_json(&self, uri: &str) -> String {
-        self.read_resource_result(uri).to_string()
-    }
-
-    /// Handle one JSON-RPC request and return its JSON response.
-    fn handle_message_json(&self, message: &str) -> String {
-        self.handle_message(message)
-    }
 }
 
 impl McpServer {
@@ -511,6 +534,15 @@ impl McpServer {
                 &[("path", "string"), ("query", "string")],
             ),
             tool(
+                "explain_finding",
+                "Explain a diagnostic witness over the bundled graph/diagnostics projection, \
+                 addressed by its fingerprint IRI (a finding) or its anchor IRI (a cluster): \
+                 returns the provenance DAG, the aggregate ledger gate verdict, the minimal fatal \
+                 cut (fingerprint IRIs + codes), and the anchor cluster. An unknown target is a \
+                 hard error (never an empty-but-ok DAG).",
+                &[("target_iri", "string")],
+            ),
+            tool(
                 "store_claim",
                 "Append one attributed memory claim, executed as a Transaction-Logic \
                  transaction (the executional-entailment verdict gates the commit). Pass \
@@ -586,6 +618,11 @@ impl McpServer {
                     "Read the checked-out GMEOW Constitution.",
                     &[],
                 ),
+                tool(
+                    "slice_quality",
+                    "Score a slice against the slice-quality rubric and return its per-axis grades and ranked uplift advice.",
+                    &[("path", "string")],
+                ),
             ]);
         }
         json!({ "tools": tools })
@@ -635,6 +672,7 @@ impl McpServer {
             "okf_index" => self.tool_okf_index(args),
             "query_docs" => self.tool_query_docs(args),
             "query_local" => self.tool_query_local(args),
+            "explain_finding" => self.tool_explain_finding(args),
             "store_claim" => self.tool_store_claim(args),
             "conjecture_test" => self.tool_conjecture_test(args),
             "recall" => self.tool_recall(args),
@@ -643,6 +681,7 @@ impl McpServer {
             "reason" if self.mode.includes_dev_tools() => self.tool_reason(),
             "regenerate" if self.mode.includes_dev_tools() => self.tool_regenerate(),
             "constitution" if self.mode.includes_dev_tools() => self.tool_constitution(),
+            "slice_quality" if self.mode.includes_dev_tools() => self.tool_slice_quality(args),
             _ => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!("unknown tool: {name}"),
             })),
@@ -772,6 +811,11 @@ impl McpServer {
         let path = required_str(args, "path")?;
         let query = required_str(args, "query")?;
         Ok(self.view.query_local_json(path, query))
+    }
+
+    fn tool_explain_finding(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let target = required_str(args, "target_iri")?;
+        self.view.explain_finding_json(target)
     }
 
     fn tool_store_claim(&self, args: &Value) -> gmeow_errors::Result<String> {
@@ -1048,6 +1092,44 @@ impl McpServer {
             "produced": report.produced,
             "reproduced": report.reproduced,
             "drifted": report.drifted,
+        })
+        .to_string())
+    }
+
+    /// Score ONE slice on demand and return its grades + advice as JSON. This is a
+    /// read-only advisory surface: it computes a fresh assessment for the caller and
+    /// folds nothing. The whole-repo `gmeow:QualityAssessment` graph is instead attached
+    /// to the carrier by the regeneration pipeline (`stage-source-load` via
+    /// [`gmeow_slice_quality::assessment_nquads`]) so it ships inside `gmeow.gts`; this
+    /// tool never mutates the bundle.
+    fn tool_slice_quality(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let root = self.root_path()?;
+        let rel = required_str(args, "path")?;
+        let slice_dir = resolve_slice_dir(&root, rel)?;
+        let report = gmeow_slice_quality::report::score_slice(&root, &slice_dir).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("slice_quality: {e}"),
+            })
+        })?;
+        let grades: Vec<Value> = report
+            .assessment
+            .grades
+            .iter()
+            .map(|g| {
+                let axis = g.axis_iri.rsplit(['/', '#']).next().unwrap_or(&g.axis_iri);
+                json!({ "axis": axis, "tier": g.tier.label, "score": g.score })
+            })
+            .collect();
+        let advice: Vec<Value> = report
+            .advisories
+            .iter()
+            .map(|f| json!({ "code": f.code, "message": f.message }))
+            .collect();
+        Ok(json!({
+            "slice": report.assessment.slice,
+            "rollup_tier": report.assessment.rollup.label,
+            "grades": grades,
+            "advice": advice,
         })
         .to_string())
     }
@@ -1371,26 +1453,6 @@ pub fn run_conjecture_test(
     Ok(out)
 }
 
-#[cfg(feature = "python")]
-#[pyfunction]
-pub fn run_consumer_mcp(snapshot: &[u8]) -> PyResult<()> {
-    let server = McpServer::from_snapshot(snapshot, None, McpMode::Consumer)
-        .map_err(|e| PyValueError::new_err(e.to_string()))?;
-    server
-        .run_stdio()
-        .map_err(|e| PyValueError::new_err(e.to_string()))
-}
-
-#[cfg(feature = "python")]
-#[pyfunction]
-pub fn run_dev_mcp(snapshot: &[u8], root: String) -> PyResult<()> {
-    let server = McpServer::from_snapshot(snapshot, Some(PathBuf::from(root)), McpMode::Dev)
-        .map_err(|e| PyValueError::new_err(e.to_string()))?;
-    server
-        .run_stdio()
-        .map_err(|e| PyValueError::new_err(e.to_string()))
-}
-
 fn language_tag_map(dataset: &purrdf::RdfDataset) -> BTreeMap<String, String> {
     let graph = fold_arena::Graph::from_dataset(dataset);
     let graph = &graph;
@@ -1558,7 +1620,7 @@ fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
     let required: Vec<&str> = properties
         .iter()
         .filter_map(|(name, _)| {
-            matches!(*name, "term" | "text" | "claim_id" | "path").then_some(*name)
+            matches!(*name, "term" | "text" | "claim_id" | "path" | "target_iri").then_some(*name)
         })
         .collect();
     let props = properties
@@ -1599,6 +1661,38 @@ fn rpc_error(id: Value, code: i64, message: &str) -> String {
         "error": {"code": code, "message": message},
     })
     .to_string()
+}
+
+/// Resolve the `path` argument of the `slice_quality` tool to a concrete slice
+/// directory, enforcing that it stays inside the repository's `slices/` tree.
+///
+/// The raw argument is joined onto the repo root (so callers keep passing a
+/// root-relative `slices/<group>/<name>`), then canonicalized and checked for
+/// containment under the canonical `slices/` directory. An absolute path or a `../`
+/// sequence that escapes `slices/` — the classic path-traversal vectors — is
+/// rejected rather than scored, so the tool can never be steered to read outside the
+/// slice tree.
+fn resolve_slice_dir(root: &Path, rel: &str) -> gmeow_errors::Result<PathBuf> {
+    let err = |message: String| gmeow_errors::Diag::of_kind(crate::error::Mcp { message });
+    let slices_root = root.join("slices");
+    let canon_root = slices_root.canonicalize().map_err(|e| {
+        err(format!(
+            "slice_quality: cannot resolve slices root {}: {e}",
+            slices_root.display()
+        ))
+    })?;
+    let candidate = root.join(rel);
+    let canon = candidate.canonicalize().map_err(|e| {
+        err(format!(
+            "slice_quality: cannot resolve slice path {rel:?} under the slices tree: {e}"
+        ))
+    })?;
+    if !canon.starts_with(&canon_root) {
+        return Err(err(format!(
+            "slice_quality: path {rel:?} escapes the slices/ tree (path traversal rejected)"
+        )));
+    }
+    Ok(canon)
 }
 
 fn required_str<'a>(args: &'a Value, key: &str) -> gmeow_errors::Result<&'a str> {
@@ -1818,8 +1912,11 @@ fn execute_memory_txn(
     } else {
         CommitMode::Committed
     };
-    execute_transaction(&nq, TXN_WORLD, TXN_ROOT, mode)
-        .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Mcp { message: e }))
+    execute_transaction(&nq, TXN_WORLD, TXN_ROOT, mode).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: e.message().to_owned(),
+        })
+    })
 }
 
 /// The TR outcome rendered for the tool response.
@@ -2157,7 +2254,7 @@ fn parse_candidate_formula(formula_src: &str) -> gmeow_errors::Result<Formula> {
             IrTerm::Iri(ax.predicate),
             vec![IrTerm::Iri(ax.subject), object],
         )
-        .map_err(bad);
+        .map_err(|e| bad(e.message().to_owned()));
     }
     Err(bad(format!(
         "candidate must be exactly one formula/atom, got {formula_count} formula(s) and \
@@ -2298,6 +2395,7 @@ mod tests {
         assert!(consumer_tools.contains("\"query_docs\""));
         assert!(consumer_tools.contains("\"store_claim\""));
         assert!(!consumer_tools.contains("\"validate\""));
+        assert!(!consumer_tools.contains("\"slice_quality\""));
         assert!(
             !consumer
                 .resources_result()
@@ -2312,7 +2410,72 @@ mod tests {
         assert!(dev_tools.contains("\"reason\""));
         assert!(dev_tools.contains("\"regenerate\""));
         assert!(dev_tools.contains("\"constitution\""));
+        assert!(dev_tools.contains("\"slice_quality\""));
         assert!(dev.resources_result().to_string().contains("constitution"));
+    }
+
+    #[test]
+    fn slice_quality_tool_reports_grades_and_advice() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let dev = McpServer::from_snapshot(&bytes, Some(root), McpMode::Dev).unwrap();
+
+        // Functional dispatch: the tool returns the documented JSON shape — grades as
+        // {axis, tier, score} and advice as {code, message}.
+        let out = text_payload(dev.call_tool_result(
+            "slice_quality",
+            &json!({"path": "slices/core/slice-quality-rubric"}),
+        ));
+        assert!(
+            out.get("ok").is_none(),
+            "a successful score carries no error envelope: {out}"
+        );
+        assert!(out["slice"].is_string(), "slice IRI present: {out}");
+        assert!(
+            out["rollup_tier"].is_string(),
+            "roll-up tier present: {out}"
+        );
+        let grades = out["grades"].as_array().expect("grades array");
+        assert!(!grades.is_empty(), "at least one axis grade: {out}");
+        for g in grades {
+            assert!(g["axis"].is_string(), "grade.axis is a string: {g}");
+            assert!(g["tier"].is_string(), "grade.tier is a string: {g}");
+            assert!(g["score"].is_number(), "grade.score is a number: {g}");
+        }
+        for a in out["advice"].as_array().expect("advice array") {
+            assert!(a["code"].is_string(), "advice.code is a string: {a}");
+            assert!(a["message"].is_string(), "advice.message is a string: {a}");
+        }
+    }
+
+    #[test]
+    fn slice_quality_tool_rejects_path_traversal() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let dev = McpServer::from_snapshot(&bytes, Some(root), McpMode::Dev).unwrap();
+
+        // An absolute path escapes the slices/ tree and must be rejected, not scored.
+        let abs = text_payload(dev.call_tool_result("slice_quality", &json!({"path": "/etc"})));
+        assert_eq!(abs["ok"], false, "absolute path must be rejected: {abs}");
+
+        // A `../` sequence that climbs out of slices/ is rejected too.
+        let up = text_payload(dev.call_tool_result(
+            "slice_quality",
+            &json!({"path": "slices/../../../etc/passwd"}),
+        ));
+        assert_eq!(up["ok"], false, "../ traversal must be rejected: {up}");
     }
 
     #[test]
@@ -2984,7 +3147,115 @@ mod tests {
         drop(overlay_dir);
     }
 
-    // ── Conjecture-library persistence (Task 5a) ─────────────────────────────
+    /// The `explain_finding` tool, driven by DISPATCH BY NAME over a server built
+    /// from the shipped bundle: a real fingerprint IRI returns the finding's code +
+    /// a gate verdict; an unknown IRI is a HARD FAIL (isError), never an empty DAG.
+    #[test]
+    fn explain_finding_tool_walks_a_real_witness_and_hard_fails_unknown() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // Obtain a real fingerprint IRI the SAME way `explain` does: the first key of
+        // the FindingIndex the reader rehydrates from the server's held snapshot. An
+        // empty graph/diagnostics is a blocker, not something to paper over.
+        let index = crate::diagnostics_reader::read_findings(&server.view.dataset)
+            .expect("read graph/diagnostics from shipped bundle");
+        assert!(
+            !index.is_empty(),
+            "shipped bundle graph/diagnostics carries NO findings — explain_finding has no witness"
+        );
+        let real_iri = index.findings.keys().next().unwrap().clone();
+        let expected_code = index.get(&real_iri).unwrap().code.clone();
+
+        let ok = text_payload(
+            server.call_tool_result("explain_finding", &json!({"target_iri": real_iri})),
+        );
+        assert_eq!(ok["ok"], true, "explain_finding must succeed: {ok}");
+        assert_eq!(ok["kind"], "finding");
+        assert_eq!(ok["focus"]["code"], expected_code);
+        assert!(
+            ok["verdict"].as_str().is_some(),
+            "explain_finding must carry a gate verdict: {ok}"
+        );
+        assert!(
+            ok["focus"]["provenance_dag"]
+                .as_str()
+                .unwrap()
+                .contains(&real_iri),
+            "provenance DAG must render the focus finding: {ok}"
+        );
+
+        // Unknown target → hard fail (isError result), never a success with an empty DAG.
+        let bad = server.call_tool_result("explain_finding", &json!({"target_iri": "urn:nope"}));
+        assert_eq!(
+            bad["isError"], true,
+            "unknown IRI must be a hard fail: {bad}"
+        );
+        let bad_text = text_payload(bad);
+        assert_eq!(bad_text["ok"], false);
+        assert!(
+            bad_text["error"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("unknown explain target")
+        );
+    }
+
+    /// The SPARQL half of the acceptance criterion, on the PRODUCTION MCP surface:
+    /// `query_local` runs a SELECT over the bundle's `graph/diagnostics` named graph
+    /// and returns a real finding's code — proving SPARQL over the diagnostics
+    /// projection executes through the shipped query tool (its canon is the full
+    /// signed dataset, which retains the diagnostics graph).
+    #[test]
+    fn query_local_selects_a_finding_code_over_graph_diagnostics() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // query_local requires an overlay path; a trivial annex suffices — the query
+        // itself targets the bundle's graph/diagnostics named graph directly.
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("probe.ttl");
+        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
+
+        let query = "SELECT ?s ?code WHERE { \
+                     GRAPH <https://blackcatinformatics.ca/gmeow/graph/diagnostics> { \
+                     ?s a <https://blackcatinformatics.ca/gmeow/Finding> ; \
+                     <https://blackcatinformatics.ca/gmeow/findingCode> ?code } } LIMIT 1";
+        let res = text_payload(server.call_tool_result(
+            "query_local",
+            &json!({"path": overlay_path.to_str().unwrap(), "query": query}),
+        ));
+        assert_eq!(
+            res["ok"], true,
+            "query_local over graph/diagnostics must succeed: {res}"
+        );
+        let bindings = res["results"]["bindings"]
+            .as_array()
+            .expect("bindings array");
+        assert!(
+            !bindings.is_empty(),
+            "expected at least one Finding binding from graph/diagnostics: {res}"
+        );
+        assert!(
+            bindings[0]["code"]["value"].as_str().is_some(),
+            "the Finding binding must carry a findingCode literal: {res}"
+        );
+        drop(overlay_dir);
+    }
+
+    // ── Conjecture-library persistence ───────────────────────────────────────
 
     const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
     const MATH_NS: &str = "https://blackcatinformatics.ca/math/";

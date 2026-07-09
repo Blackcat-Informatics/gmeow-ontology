@@ -22,11 +22,9 @@ conformance corpus as `gmeow-gts`.
 
 ## What this crate is
 
-`gmeow-logic` is the Rust counterpart of the Python reference oracle
-(`src/gmeow_tools/`) for the `logic:` vocabulary. It is the production engine
-that backs world construction, entailment queries, and provenance capture.
-Python remains the conformance oracle (slow, simple, correct); this crate is
-the fast path.
+`gmeow-logic` is the Rust `logic:` engine — the production engine
+that backs world construction, entailment queries, and provenance capture. It
+supersedes the earlier Python reference oracle, which has been retired.
 
 The current scope is the **world-indexed storage layer**: an in-memory
 `WorldStore` wrapping oxigraph that enforces isolated named graphs as worlds.
@@ -36,7 +34,7 @@ Nemo-based rule materialization and PyO3 bindings are included.
 
 ## Static certifier and the budget governor
 
-`certify(rules, profile)` is the Rust mirror of the Python oracle
+`certify(rules, profile)` is the Rust reimplementation of the retired Python oracle
 (`gmeow_tools.logic_certify`). It parses Nemo `.rls` text with Nemo's own parser
 (reusing the engine's surface, never a second IR) and produces a
 `CertificationVerdict` whose JSON shape, violation strings, and SCC-cycle
@@ -198,7 +196,7 @@ The corpus lives under `conformance/logic/cases/profiles/probabilistic-*`.
 - **World-indexed only.** The public API exposes only `insert_quad(world, s, p, o)`
   and `quads_in_world(world)`. There is deliberately no dataset-union method.
 - **Same conformance corpus.** The unit tests validate isolation semantics
-  that both the Python oracle and this crate must satisfy identically.
+  that both the retired Python oracle and this crate satisfy identically.
 
 ---
 
@@ -273,7 +271,6 @@ suite.
 Related packages:
 
 - `gmeow-gts` — Graph Transport Substrate format engine (Rust)
-- Python oracle: `src/gmeow_tools/` (PyPI: `gmeow`)
 
 ---
 

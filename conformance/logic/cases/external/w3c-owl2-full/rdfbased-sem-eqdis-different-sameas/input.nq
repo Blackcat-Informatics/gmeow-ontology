@@ -1,0 +1,2 @@
+<http://www.example.org#x> <http://www.w3.org/2002/07/owl#differentFrom> <http://www.example.org#y> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-different-sameas/w> .
+<http://www.example.org#x> <http://www.w3.org/2002/07/owl#sameAs> <http://www.example.org#y> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-different-sameas/w> .

@@ -67,7 +67,7 @@ meta:gate-rdf12-codec a meta:Gate ;
 
 meta:gate-generator-registry a meta:Gate ;
     rdfs:label "pipeline DAG registry: single-pass regenerate / drift gates"@x-gmeow-english ;
-    meta:artifact "crates/pipeline/src/py.rs", "crates/pipeline/src/run.rs", "slices/core/pipeline/module.ttl" ;
+    meta:artifact "crates/pipeline/src/run.rs", "slices/core/pipeline/module.ttl" ;
     meta:symbol "run_full" ;
     meta:cliCommand "regenerate", "check-generated", "compile-gts" ;
     meta:makeTarget "check-generated", "regenerate" ;
@@ -77,17 +77,23 @@ meta:gate-generator-registry a meta:Gate ;
         "catalog", "profiles", "frame_shapes", "constraint_shapes", "result_shapes", "evals", "parquet",
         "research-objects", "references", "export", "okf", "bench", "conformance" .
 
+meta:gate-docs-export a meta:Gate ;
+    rdfs:label "documentation export surface: export-docs / docs-on projections from the bundle"@x-gmeow-english ;
+    meta:artifact "crates/gmeow-cli/src/commands.rs", "crates/pipeline/src/cli_ops/confirmations.rs" ;
+    meta:symbol "export_docs", "docs_on" ;
+    meta:cliCommand "export-docs", "docs-on" .
+
 meta:tests-narrow-waist a meta:Gate ;
     rdfs:label "narrow-waist seal (GTS is the only exit for data)"@x-gmeow-english ;
     meta:artifact "crates/validate/src/repo_static.rs", "docs/gts-narrow-waist.md" ;
-    meta:symbol "check_repo_static", "check_no_rdflib_in_runtime" ;
+    meta:symbol "check_repo_static" ;
     meta:cliCommand "crate-check" ;
     meta:makeTarget "crate-check" .
 
 meta:lint-sameas-ban a meta:Lint ;
     rdfs:label "owl:sameAs-to-external ban (validate ERROR + allowlist)"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/validate.py" ;
-    meta:symbol "check_sameas_ban" .
+    meta:artifact "crates/validate/src/validate_all.rs" ;
+    meta:symbol "check_sameas_ban_from_parsed" .
 
 meta:lint-equivalence-collapse a meta:Lint ;
     rdfs:label "equivalence-closure collapse gate over disjoint pairs"@x-gmeow-english ;
@@ -185,12 +191,12 @@ meta:practice-consumer-question a meta:Practice ;
 
 meta:gate-core-profile a meta:Gate ;
     rdfs:label "root ontology = CORE profile exactly; manifests are tier truth"@x-gmeow-english ;
-    meta:artifact "tests/test_vocabulary_surface.py", "slices/vocabulary.ttl" ;
-    meta:symbol "test_root_imports_are_exactly_the_core_profile" .
+    meta:artifact "crates/validate/tests/conformance_vocabulary_surface.rs", "slices/vocabulary.ttl" ;
+    meta:symbol "root_imports_are_exactly_the_core_profile" .
 
 meta:tests-slices a meta:TestSuite ;
     rdfs:label "slice anatomy and profile tests"@x-gmeow-english ;
-    meta:artifact "tests/test_slices.py", "crates/validate/tests/conformance_profiles.rs" .
+    meta:artifact "crates/validate/tests/conformance_profiles.rs" .
 
 meta:gate-crate-layering a meta:Gate ;
     rdfs:label "Rust crate layering: acyclic first-party crate DAG"@x-gmeow-english ;
@@ -211,8 +217,8 @@ meta:lint-coequal-facet a meta:Lint ;
 
 meta:lint-term-naming a meta:Lint ;
     rdfs:label "no selector tokens in term local names"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/validate.py" ;
-    meta:symbol "term_naming_lint" .
+    meta:artifact "crates/validate/src/lint.rs" ;
+    meta:symbol "term_naming_lint_dataset" .
 
 meta:gate-suppression-injection a meta:Gate ;
     rdfs:label "suppression guards injected into every projection CONSTRUCT"@x-gmeow-english ;
@@ -434,7 +440,7 @@ meta:Principle12 a meta:Principle ;
 meta:Principle13 a meta:Principle ;
     meta:number 13 ;
     meta:title "The product is a tool; the ontology is its engine" ;
-    meta:enforcedBy meta:gate-products, meta:tests-products .
+    meta:enforcedBy meta:gate-products, meta:tests-products, meta:gate-docs-export .
 
 meta:Principle14 a meta:Principle ;
     meta:number 14 ;
@@ -459,7 +465,27 @@ meta:Principle17 a meta:Principle ;
     meta:enforcedBy meta:gate-logic-conformance, meta:gate-logic-round-trip,
         meta:gate-foundation-conformance, meta:gate-logic-gufo-superset,
         meta:shapes-result-generated, meta:gate-projection-compute-purity,
-        meta:gate-projection-shape-purity .
+        meta:gate-projection-shape-purity, meta:gate-docs-loss-lattice .
+
+# The documentation-format loss lattice: the four docs output surfaces (live site,
+# mdbook, print PDF, term snippets) are lossy projections of one shared documentation
+# body-set, each carrying a preservation judgment DERIVED over a composition DAG and a
+# machine-checkable capability-loss lattice — never a hand-asserted flat grade. The
+# single honest per-format capability source (gmeow_docs::formats) is read by BOTH the
+# print PDF's loss appendix and the carrier grounding graph, so the two match by
+# construction; the A3 gate proves that table total (every capability representable XOR
+# dropped) and monotone (site ⊆ mdbook ⊆ pdf ⊆ snippets in dropped capabilities). Lives
+# in the pipeline crate because it reads gmeow_docs (a validate→docs edge would cycle the
+# acyclic crate DAG); wired onto the crate-check gate surface.
+meta:gate-docs-loss-lattice a meta:Gate ;
+    rdfs:label "documentation formats are preservation-judged lossy projections over a total, monotone capability lattice"@x-gmeow-english ;
+    meta:artifact "crates/pipeline/src/docs_loss_lattice.rs",
+        "crates/pipeline/src/stages/docs_format_rendering.rs",
+        "crates/docs/src/formats.rs",
+        "slices/grounding/lang/module.ttl" ;
+    meta:symbol "check_docs_loss_lattice", "build_docs_format_corpus", "renderingBook" ;
+    meta:cliCommand "crate-check" ;
+    meta:makeTarget "crate-check" .
 
 # The executable lane-purity seal: the two-lane split (primary lane
 # Java/Docker-free; classic-cross-check the SOLE oracle lane) is enforced by an

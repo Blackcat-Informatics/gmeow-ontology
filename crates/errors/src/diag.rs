@@ -359,6 +359,39 @@ impl Diag {
         diag
     }
 
+    /// Build a NON-GATING **note** — general-purpose chatter that narrates a run's
+    /// progress. It carries the [`FindingCategory::Transient`] chatter kind at
+    /// [`Severity::Note`] from an [`Standpoint::Advisory`] stance, so it can never
+    /// reach the gate.
+    #[track_caller]
+    pub fn note(code: Code, message: impl Into<String>) -> Self {
+        Diag::new(
+            code,
+            Grade::new(
+                Severity::Note,
+                FindingCategory::Transient,
+                Standpoint::Advisory,
+            ),
+            message,
+        )
+    }
+
+    /// Build a NON-GATING **info** witness — the lowest-severity chatter. It
+    /// carries the [`FindingCategory::Transient`] chatter kind at [`Severity::Info`]
+    /// from an [`Standpoint::Advisory`] stance, so it can never reach the gate.
+    #[track_caller]
+    pub fn info(code: Code, message: impl Into<String>) -> Self {
+        Diag::new(
+            code,
+            Grade::new(
+                Severity::Info,
+                FindingCategory::Transient,
+                Standpoint::Advisory,
+            ),
+            message,
+        )
+    }
+
     pub fn code(&self) -> Code {
         self.0.code
     }

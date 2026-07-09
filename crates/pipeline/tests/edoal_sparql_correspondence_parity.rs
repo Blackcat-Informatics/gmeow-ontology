@@ -155,19 +155,17 @@ fn assert_corpus(
             mismatches.push(format!("{file}\n{first}"));
         }
     }
-    eprintln!(
-        "{label} corpus parity: {} files, {} byte-exact, {} mismatched",
-        emitted.len(),
-        emitted.len() - mismatches.len(),
-        mismatches.len()
-    );
-    for m in mismatches.iter().take(6) {
-        eprintln!("MISMATCH {m}");
-    }
     assert!(
         mismatches.is_empty(),
-        "{} {label} files diverged from the committed corpus",
-        mismatches.len()
+        "{} {label} files diverged from the committed corpus (of {} emitted):\n{}",
+        mismatches.len(),
+        emitted.len(),
+        mismatches
+            .iter()
+            .take(6)
+            .cloned()
+            .collect::<Vec<_>>()
+            .join("\n"),
     );
 }
 
@@ -304,19 +302,17 @@ fn sparql_lowering_matches_committed_corpus_modulo_order() {
             mismatches.push(format!("{file}\n{first}"));
         }
     }
-    eprintln!(
-        "SPARQL corpus parity (modulo deterministic cell-order): {} files, {} content-equal, {} mismatched",
-        emitted.len(),
-        emitted.len() - mismatches.len(),
-        mismatches.len()
-    );
-    for m in mismatches.iter().take(6) {
-        eprintln!("MISMATCH {m}");
-    }
     assert!(
         mismatches.is_empty(),
-        "{} .rq files diverged beyond the deterministic cell-order reordering",
-        mismatches.len()
+        "{} .rq files diverged beyond the deterministic cell-order reordering (of {} emitted):\n{}",
+        mismatches.len(),
+        emitted.len(),
+        mismatches
+            .iter()
+            .take(6)
+            .cloned()
+            .collect::<Vec<_>>()
+            .join("\n"),
     );
 }
 

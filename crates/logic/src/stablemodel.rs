@@ -35,6 +35,12 @@ use crate::rule_ir::{
     DerivedRow, EvalRule, Fact, FactStore, echo_asserted, least_model_of_reduct, world_edb_facts,
 };
 
+/// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn reason_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Reason { detail })
+}
+
 /// One stable model: its atoms in canonical (key-sorted) order.
 #[derive(Debug, Clone)]
 pub(crate) struct StableModel {
@@ -54,7 +60,7 @@ pub(crate) struct StableModel {
 pub(crate) fn stable_models(
     store: &crate::store::WorldStore,
     rules: &[EvalRule],
-) -> Result<Vec<(String, Vec<StableModel>)>, String> {
+) -> gmeow_errors::Result<Vec<(String, Vec<StableModel>)>> {
     let mut worlds = store.worlds();
     worlds.sort();
 
@@ -71,7 +77,7 @@ fn stable_models_in_world(
     store: &crate::store::WorldStore,
     world: &str,
     rules: &[EvalRule],
-) -> Result<Vec<StableModel>, String> {
+) -> gmeow_errors::Result<Vec<StableModel>> {
     let edb_facts = world_edb_facts(store, world)?;
     let mut edb = FactStore::new();
     for f in &edb_facts {
@@ -100,10 +106,10 @@ fn stable_models_in_world(
     const MAX_CANDIDATE_ATOMS: usize = 20;
     let n = candidates.len();
     if n > MAX_CANDIDATE_ATOMS {
-        return Err(format!(
+        return Err(reason_err(format!(
             "stablemodel: candidate universe too large ({n} atoms > {MAX_CANDIDATE_ATOMS}) \
              for exhaustive enumeration in gmeow-logic v1 (2^{n} reduct evaluations)"
-        ));
+        )));
     }
 
     let mut models: Vec<StableModel> = Vec::new();
@@ -153,7 +159,7 @@ fn model_key_vec(m: &StableModel) -> Vec<(String, String, String)> {
 pub(crate) fn cautious_materialize(
     store: &crate::store::WorldStore,
     rules: &[EvalRule],
-) -> Result<Vec<DerivedRow>, String> {
+) -> gmeow_errors::Result<Vec<DerivedRow>> {
     let mut worlds = store.worlds();
     worlds.sort();
 
@@ -229,14 +235,14 @@ pub(crate) fn cautious_materialize(
             // the documented v1 limitation made real, NOT a silent skip.
             for src in &row.source_quad_ids {
                 if !allowed_reifiers.contains(src) {
-                    return Err(format!(
+                    return Err(reason_err(format!(
                         "stablemodel: cautious atom <{}> <{}> {} cites non-cautious \
                          antecedent {src} — unsound provenance (gmeow-logic v1 does not \
                          materialize cautious consequences with non-cautious support)",
                         crate::provenance::term_display(&row.subject),
                         row.predicate.as_str(),
                         crate::provenance::term_display(&row.object)
-                    ));
+                    )));
                 }
             }
             out.push(DerivedRow {

@@ -165,11 +165,16 @@ mod tests {
         // A minimal source-load product: the executable-docs "try it" EDB reads the
         // authored / imports / alignments graphs off it (empty here — this unit test
         // pins the sink's fail-closed wiring, not a real reasoned closure).
+        let mut source_load_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        source_load_artifacts.insert(
+            crate::stages::carrier::SLICE_QUALITY_REPORT_HTML_ARTIFACT.to_string(),
+            b"<!doctype html><title>slice-quality</title>\n".to_vec(),
+        );
         let source_load = StageProduct::from_artifacts_over(
             "stage-source-load",
             purrdf::parse_dataset(b"", "application/n-quads", None)
                 .expect("empty source-load dataset"),
-            BTreeMap::new(),
+            source_load_artifacts,
         );
 
         let mut compile_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
@@ -326,7 +331,6 @@ mod tests {
         // not a real fanout; the superset gate is exercised end-to-end in fanout_parity).
         let export_leaves: Vec<StageProduct> = [
             "stage-export-agreement",
-            "stage-export-references",
             "stage-export-bench",
             "stage-export-apache",
             "stage-export-matrix",
@@ -338,7 +342,19 @@ mod tests {
         .map(|id| StageProduct::from_artifacts(id, BTreeMap::new()))
         .collect();
 
+        // The references export leaf carries THIS run's generated `references.bib`, which
+        // `build_docs_print_blob` folds into the print PDF's bibliography — a minimal valid
+        // BibTeX database so the print-blob wiring is exercised fail-closed.
+        let mut references_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        references_artifacts.insert(
+            crate::stages::references::BIB_PATH.to_string(),
+            b"@article{gmeow2026,\n  title = {The GMEOW Ontology},\n  author = {Audley, Patrick},\n  year = {2026},\n}\n".to_vec(),
+        );
+        let references =
+            StageProduct::from_artifacts("stage-export-references", references_artifacts);
+
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert("stage-export-references".to_string(), references);
         upstream.insert("stage-compile-logic".to_string(), compile);
         upstream.insert("stage-export-json-schema".to_string(), json_schema);
         upstream.insert("stage-mappings".to_string(), mappings);

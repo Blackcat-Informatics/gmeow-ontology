@@ -32,6 +32,22 @@
 //! The magic-predicate IRIs are minted deterministically from the original predicate IRI
 //! (`<base>magic/<localname>_<adorn>`), stable across runs.
 //!
+//! # Subsumptive demand keying (Tekle & Liu, SIGMOD 2011)
+//!
+//! The demand keying is SUBSUMPTIVE, not variant: when a predicate is demanded at several
+//! adornments, only the ⊑-MINIMAL (most-general — fewest bound positions) ones mint a magic
+//! predicate. Under the adornment lattice `A ⊑ B iff bound(A) ⊆ bound(B)` (A more general), a
+//! demand on the kept general `A` serves every more-specific `B` it subsumes — `A`'s answers
+//! ⊇ `B`'s — so a more-specific call reads `A`'s table filtered by the residual on the extra
+//! positions `bound(B) ∖ bound(A)`. On this binary path that residual is discharged for FREE:
+//! each modified rule keeps its ORIGINAL body atoms (whose constants/variables carry the real
+//! join, so the derived fact set stays a subset of the untransformed least model — never
+//! spurious), and the goal projection re-imposes the goal's own bound positions. Widening a
+//! magic guard to a more-general table therefore only derives a superset of a demand slice of
+//! the SAME least model; the goal answer set is byte-identical to the per-adornment (variant)
+//! keying, while fewer magic predicates and derivations are minted (the structural win). The `#[cfg(test)] magic_transform_variant` is the retained
+//! byte-identity A/B oracle.
+//!
 //! # The transformation (standard magic-sets, left-to-right SIPS)
 //!
 //! For a goal `g(t0, t1)` with adornment `a` (over `{b, f}`):
@@ -48,16 +64,32 @@
 //!    chain): `magic_bi^{a_i} :- magic_h^{a_h}, b1, ..., b(i-1)` (an `ff` body atom adds
 //!    no magic rule — it demands nothing).
 //!
-//! The positive query corpus introduces no negation, so the transformed program is
-//! always stratifiable.  A transform that WOULD break stratification (only possible
-//! once native rules carry negation) falls back to a full stratified evaluation of
-//! the UNTRANSFORMED base program — correct, without the demand pruning — rather than
-//! demoting to an external engine (no-optionality: the native core stays authoritative).
+//! # Stratified negation-as-failure
+//!
+//! The backward surface carries stratified NAF (`\+ p(s, o)`): a negated body atom lowers
+//! to a negated binary [`EvalAtom`] the shared stratified evaluator decides by NAF against
+//! the accumulated lower-stratum least model. Under the transform a negated atom is
+//! demanded exactly like a positive one (its magic rules propagate the demand through its
+//! own recursion, so the NAF test sees a sufficient slice of the negated predicate), is
+//! kept negated in the modified rule, is carried (still negated) into the SIPS prefix, and
+//! binds no SIPS variables. Every negated variable must be range-restricted by a positive
+//! body atom; an unbound one flounders ([`UnsupportedKind::Floundering`]).
+//!
+//! A negative literal inside a magic (demand) rule can make the transformed program
+//! non-stratifiable even when the base program is stratified. Standard magic-sets theory
+//! guarantees the transform is answer-preserving *when its result is stratified*; when the
+//! result is NOT stratifiable, [`eval_with_base_fallback`] evaluates the UNTRANSFORMED base
+//! program — a full stratified materialization (sound and terminating over the finite
+//! Herbrand base, no value invention) — dropping only the demand pruning, and the answer's
+//! preservation is honestly downgraded from `{exact}` to record that. It stays native (no
+//! external-engine demotion: the native core remains authoritative). A base program that is
+//! ALSO non-stratifiable is a genuine gap routed to the oracle.
 
 use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::TermValue;
 
+use crate::physical::binding_pattern::BindingPattern;
 use crate::physical::seminaive::{NativeOutcome, UnsupportedKind, evaluate};
 use crate::physical::store::{RelationStore, extract_edb};
 use crate::profile_gate;
@@ -68,33 +100,19 @@ use crate::query_ir::{
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact};
 use crate::seam::{BudgetStatus, ScryerForeign};
 
+/// Wrap a physical-chase condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn physical_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Physical { detail })
+}
+
 // ── Adornment ────────────────────────────────────────────────────────────────────
-
-/// A two-position adornment over `{b, f}` for a binary atom: `b` = bound, `f` = free.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct Adorn {
-    /// Subject position bound?
-    subj_bound: bool,
-    /// Object position bound?
-    obj_bound: bool,
-}
-
-impl Adorn {
-    /// The two-char adornment string (`"bb"`, `"bf"`, `"fb"`, `"ff"`).
-    fn code(self) -> &'static str {
-        match (self.subj_bound, self.obj_bound) {
-            (true, true) => "bb",
-            (true, false) => "bf",
-            (false, true) => "fb",
-            (false, false) => "ff",
-        }
-    }
-
-    /// `true` if neither position is bound (no demand restriction — `ff`).
-    fn is_free(self) -> bool {
-        !self.subj_bound && !self.obj_bound
-    }
-}
+//
+// The adornment lattice is the arity-generic [`BindingPattern`] (a bitset over
+// argument positions), shared with the forward generic evaluator. Its `code()` is the
+// per-position `{b, f}` string; at arity 2 it is exactly the legacy `"bb"`/`"bf"`/
+// `"fb"`/`"ff"` an `Adorn{subj_bound, obj_bound}` produced, so the minted magic
+// predicate IRIs are byte-identical (the binary parity gate).
 
 // ── IR conversion (QProgram → EvalRule, binary fragment) ──────────────────────────
 
@@ -103,7 +121,10 @@ impl Adorn {
 /// A `Const("<iri>")` → [`EvalTerm::ConstNamed`] (angle brackets stripped); a `Var(v)` →
 /// `EvalTerm::Var("?v")` (the engine's variable surface carries a leading `?`, matching
 /// `parse_eval_rules`); a `Num` is an arithmetic operand the native core does not carry.
-fn term_of(t: &QTerm) -> Result<EvalTerm, UnsupportedKind> {
+///
+/// Shared with the n-ary generic backward path ([`super::magic_generic`]): the same
+/// `QTerm → EvalTerm` codec lowers a generic atom's positional args.
+pub(super) fn term_of(t: &QTerm) -> Result<EvalTerm, UnsupportedKind> {
     match t {
         QTerm::Const(c) => {
             let iri = c
@@ -187,7 +208,11 @@ fn atom_of(atom: &QAtom) -> Result<EvalAtom, UnsupportedKind> {
 ///
 /// Derived from the original predicate IRI: the base (everything up to and including the
 /// last `/` or `#`) plus `magic/<localname>_<adorn>`.  Stable across runs.
-fn magic_pred_iri(pred: &str, adorn: &str) -> String {
+///
+/// A plain, arity-agnostic string transform: the n-ary generic backward path
+/// ([`super::magic_generic`]) mints its magic-relation IRIs through the SAME function, so a
+/// generic magic relation and a binary one share the identical minting rule.
+pub(super) fn magic_pred_iri(pred: &str, adorn: &str) -> String {
     let split = pred.rfind(['/', '#']).map_or(pred.len(), |i| i + 1);
     let (base, local) = pred.split_at(split);
     // `base` ends with the separator; nest the magic predicates under `magic/` so they
@@ -197,19 +222,39 @@ fn magic_pred_iri(pred: &str, adorn: &str) -> String {
 
 /// Build a magic *guard* atom (a body literal) for an adorned IDB atom.
 ///
-/// `bb` carries `(subject, object)`; `bf`/`fb` carry the single bound term as a self-loop
-/// `magic(v, v)`.  `ff` has no guard (returns `None`).
-fn magic_guard_atom(atom: &EvalAtom, adorn: Adorn) -> Option<EvalAtom> {
-    if adorn.is_free() {
+/// The general model of a magic guard is *the bound sub-tuple*: the guard atom carries
+/// exactly the values at `atom`'s bound positions, keyed on the pattern's `code()`.
+/// The engine's [`RelationStore`] is binary, so that bound sub-tuple is packed into the
+/// binary `magic(subject, object)` carrier:
+///
+/// - all-free (`ff`) → NO guard (`None`): the predicate is demanded unrestricted.
+/// - both bound (`bb`) → `magic(subject, object)` — the two-value bound sub-tuple.
+/// - exactly one bound (`bf`/`fb`) → a self-loop `magic(v, v)` carrying the single
+///   bound value `v` in both slots.
+///
+/// This is the arity-2 specialization of the bound-sub-tuple encoding. `atom` is an
+/// [`EvalAtom`], which is structurally binary (subject/predicate/object), so `pattern`
+/// is always arity-2 here — `resolve_native` rejects any non-binary atom before the
+/// transform runs, and no arity != 2 pattern can reach this path. The assertion pins
+/// that invariant; the arity>2 bound-sub-tuple carrier is unreachable until the generic
+/// n-ary evaluator supplies a non-binary store (a later rung), so it is not emitted.
+fn magic_guard_atom(atom: &EvalAtom, pattern: BindingPattern) -> Option<EvalAtom> {
+    assert_eq!(
+        pattern.arity(),
+        2,
+        "magic_guard_atom encodes over the binary RelationStore; EvalAtom is binary so \
+         its adornment is arity-2 (non-binary atoms are rejected before the transform)"
+    );
+    if pattern.is_all_free() {
         return None;
     }
-    let pred = magic_pred_iri(atom.predicate.as_str(), adorn.code());
-    let (subject, object) = match (adorn.subj_bound, adorn.obj_bound) {
+    let pred = magic_pred_iri(atom.predicate.as_str(), &pattern.code());
+    let (subject, object) = match (pattern.is_bound(0), pattern.is_bound(1)) {
         (true, true) => (atom.subject.clone(), atom.object.clone()),
         // self-loop: carry the single bound term in both slots.
         (true, false) => (atom.subject.clone(), atom.subject.clone()),
         (false, true) => (atom.object.clone(), atom.object.clone()),
-        (false, false) => unreachable!("ff handled above"),
+        (false, false) => unreachable!("all-free handled above"),
     };
     Some(EvalAtom {
         subject,
@@ -221,10 +266,10 @@ fn magic_guard_atom(atom: &EvalAtom, adorn: Adorn) -> Option<EvalAtom> {
 
 /// Build a magic *seed* fact atom carrying the goal's bound constants for `goal_atom`.
 ///
-/// Same binary encoding as [`magic_guard_atom`]; returns `None` for an `ff` goal (no seed
-/// — the predicate is demanded unrestricted).
-fn magic_seed_atom(goal_atom: &EvalAtom, adorn: Adorn) -> Option<EvalAtom> {
-    magic_guard_atom(goal_atom, adorn)
+/// Same binary encoding as [`magic_guard_atom`]; returns `None` for an all-free (`ff`)
+/// goal (no seed — the predicate is demanded unrestricted).
+fn magic_seed_atom(goal_atom: &EvalAtom, pattern: BindingPattern) -> Option<EvalAtom> {
+    magic_guard_atom(goal_atom, pattern)
 }
 
 // ── SIPS adornment of an IDB body atom ────────────────────────────────────────────
@@ -239,15 +284,19 @@ fn var_name(t: &EvalTerm) -> Option<&str> {
 
 /// Adorn a body atom under a left-to-right SIPS, given the set of currently-bound
 /// variable names: a position is bound iff it is a constant or a bound variable.
-fn adorn_atom(atom: &EvalAtom, bound: &BTreeSet<String>) -> Adorn {
+fn adorn_atom(atom: &EvalAtom, bound: &BTreeSet<String>) -> BindingPattern {
     let pos_bound = |t: &EvalTerm| match var_name(t) {
         Some(v) => bound.contains(v),
         None => true, // a constant is always bound
     };
-    Adorn {
-        subj_bound: pos_bound(&atom.subject),
-        obj_bound: pos_bound(&atom.object),
-    }
+    BindingPattern::from_bools([pos_bound(&atom.subject), pos_bound(&atom.object)])
+}
+
+/// Whether every variable position of `atom` is already in `bound` (constants count as
+/// bound) — i.e. the atom is fully ground under the current SIPS bindings.
+fn negated_atom_fully_bound(atom: &EvalAtom, bound: &BTreeSet<String>) -> bool {
+    let pos_bound = |t: &EvalTerm| var_name(t).is_none_or(|v| bound.contains(v));
+    pos_bound(&atom.subject) && pos_bound(&atom.object)
 }
 
 /// Add an atom's variable names to the bound set (used to thread SIPS bindings).
@@ -261,19 +310,59 @@ fn bind_atom_vars(atom: &EvalAtom, bound: &mut BTreeSet<String>) {
 }
 
 /// The bound-variable set induced by the head's adornment (the head-bound arguments).
-fn head_bound_vars(head: &EvalAtom, adorn: Adorn) -> BTreeSet<String> {
+fn head_bound_vars(head: &EvalAtom, pattern: BindingPattern) -> BTreeSet<String> {
     let mut bound = BTreeSet::new();
-    if adorn.subj_bound
+    if pattern.is_bound(0)
         && let Some(v) = var_name(&head.subject)
     {
         bound.insert(v.to_owned());
     }
-    if adorn.obj_bound
+    if pattern.is_bound(1)
         && let Some(v) = var_name(&head.object)
     {
         bound.insert(v.to_owned());
     }
     bound
+}
+
+/// Whether any negated body atom carries a variable that no POSITIVE literal binds — the
+/// floundering (NAF-safety / allowedness) test.
+///
+/// A rule is allowed for NAF iff every variable appearing in a negated body atom also
+/// appears in a positive body atom (range restriction) or is bound by an arithmetic `is`
+/// generator. When that holds, the positive join grounds the negated atom's variables
+/// before the NAF membership test, so the test is decided against a fully-ground tuple.
+/// A negated variable that no positive literal binds is still free at NAF time — the goal
+/// flounders, and the caller returns [`UnsupportedKind::Floundering`] rather than a wrong
+/// or empty answer.  Body order is irrelevant: the join computes all positive atoms before
+/// applying negation, so a variable bound by ANY positive atom is bound at NAF time.
+fn negated_body_flounders(body: &[EvalAtom], builtins: &[QBuiltin]) -> bool {
+    let mut bound: BTreeSet<String> = BTreeSet::new();
+    for atom in body.iter().filter(|a| !a.negated) {
+        if let Some(v) = var_name(&atom.subject) {
+            bound.insert(v.to_owned());
+        }
+        if let Some(v) = var_name(&atom.object) {
+            bound.insert(v.to_owned());
+        }
+    }
+    // An `is` generator binds its target variable, so a negated atom over it is range-
+    // restricted; a comparison binds nothing.
+    for b in builtins {
+        if let QBuiltin::Is {
+            target: QTerm::Var(v),
+            ..
+        } = b
+        {
+            bound.insert(v.clone());
+        }
+    }
+    body.iter().filter(|a| a.negated).any(|neg| {
+        [&neg.subject, &neg.object]
+            .into_iter()
+            .filter_map(var_name)
+            .any(|v| !bound.contains(v))
+    })
 }
 
 // ── The magic-sets transformation ─────────────────────────────────────────────────
@@ -305,37 +394,30 @@ struct MagicProgram {
     seed: Option<EvalAtom>,
 }
 
-/// Magic-transform `rules` w.r.t. the goal atom `goal` and its `goal_adorn`.
+/// The full demanded adornment set of a magic-sets demand fixpoint: for each IDB predicate,
+/// the set of adornment codes (`BindingPattern::code`) it is demanded at, discovered by the
+/// standard left-to-right-SIPS demand fixpoint rooted at the goal.
 ///
-/// Returns the transformed binary program (modified rules + magic rules) plus the ground
-/// seed fact.  The IDB predicate set is the set of original rule-head predicates; only IDB
-/// body atoms are adorned/guarded (an EDB body atom propagates SIPS bindings but carries
-/// no magic).
-fn magic_transform(rules: &[EvalRule], goal: &EvalAtom, goal_adorn: Adorn) -> MagicProgram {
-    let idb: BTreeSet<String> = rules
-        .iter()
-        .map(|r| r.head.predicate.as_str().to_owned())
-        .collect();
-
-    let mut out: Vec<EvalRule> = Vec::new();
-
-    // (1) Seed: the goal's magic fact (none for an ff goal). Inserted into the EDB by the
-    // caller — a bodyless rule never fires in the semi-naive engine.
-    let seed = magic_seed_atom(goal, goal_adorn);
-
-    // The query corpus has at most one adornment per IDB predicate reachable from a
-    // single goal (the goal binds the head pattern), so we adorn each rule by its head's
-    // adornment derived from the goal demand.  For a predicate reached only as the goal,
-    // the head adornment is the goal adornment; for an IDB predicate reached via a body
-    // atom, its adornment is computed by the SIPS at that occurrence.  We compute the set
-    // of (head_pred, adornment) demands by a fixpoint over the magic rules so every
-    // reachable adorned IDB predicate gets its modified + magic rules.
-    let mut demands: BTreeSet<(String, &'static str)> = BTreeSet::new();
-    demands.insert((goal.predicate.as_str().to_owned(), goal_adorn.code()));
+/// This is the RAW variant-keyed demand set — the input the subsumptive collapse operates
+/// on. Codes (not `BindingPattern`s) key the inner set so the map stays deterministic
+/// without an arbitrary total order on the lattice, mirroring the code-string identity the
+/// magic-predicate IRIs already carry.
+fn demand_fixpoint(
+    rules: &[EvalRule],
+    idb: &BTreeSet<String>,
+    goal: &EvalAtom,
+    goal_adorn: BindingPattern,
+) -> BTreeMap<String, BTreeSet<String>> {
+    let mut demanded: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    demanded
+        .entry(goal.predicate.as_str().to_owned())
+        .or_default()
+        .insert(goal_adorn.code());
 
     // Fixpoint: expanding a demand (pred, adorn) over every rule whose head is `pred`
     // discovers the adorned IDB body atoms it demands.
-    let mut frontier: Vec<(String, Adorn)> = vec![(goal.predicate.as_str().to_owned(), goal_adorn)];
+    let mut frontier: Vec<(String, BindingPattern)> =
+        vec![(goal.predicate.as_str().to_owned(), goal_adorn)];
 
     while let Some((head_pred, head_adorn)) = frontier.pop() {
         for r in rules
@@ -346,78 +428,295 @@ fn magic_transform(rules: &[EvalRule], goal: &EvalAtom, goal_adorn: Adorn) -> Ma
             let mut bound = head_bound_vars(&r.head, head_adorn);
             for atom in &r.body {
                 if idb.contains(atom.predicate.as_str()) {
+                    // A negated IDB atom is demanded exactly like a positive one (at its
+                    // current-bindings adornment): the demand — propagated through the
+                    // predicate's own recursion by its magic rules — materializes precisely
+                    // the instances the NAF test needs, so `\+ p(s, o)` is decided against a
+                    // sufficient slice of `p`. It only differs in NOT threading its vars into
+                    // the SIPS `bound` set below (NAF binds nothing).
                     let a = adorn_atom(atom, &bound);
-                    let demand = (atom.predicate.as_str().to_owned(), a.code());
-                    // `demands` doubles as the visited-set: insert returns true only the
+                    // The inner set doubles as the visited-set: insert returns true only the
                     // first time a demand is seen, so each frontier node expands once.
-                    if demands.insert(demand) {
+                    if demanded
+                        .entry(atom.predicate.as_str().to_owned())
+                        .or_default()
+                        .insert(a.code())
+                    {
                         frontier.push((atom.predicate.as_str().to_owned(), a));
                     }
                 }
-                // Thread this atom's bindings for the next atom (SIPS).
-                bind_atom_vars(atom, &mut bound);
+                // Thread this atom's bindings for the next atom (SIPS). A negated atom binds
+                // nothing under negation-as-failure, so it never extends `bound`.
+                if !atom.negated {
+                    bind_atom_vars(atom, &mut bound);
+                }
+            }
+        }
+    }
+    demanded
+}
+
+/// The ⊑-MINIMAL antichain of a predicate's demanded adornment set — the MOST-GENERAL
+/// (fewest-bound-positions) patterns, keeping each pattern that no OTHER demanded pattern is
+/// strictly more general than.
+///
+/// Under the lattice `A ⊑ B iff bound(A) ⊆ bound(B)` (A more general), a demand keyed on the
+/// kept general `A` serves every more-specific `B` it subsumes: `A`'s answers ⊇ `B`'s, so the
+/// specific call reads `A`'s table filtered by the residual on `bound(B) ∖ bound(A)` — which
+/// on this binary path is discharged for free by the modified rule's ORIGINAL body atoms plus
+/// the goal projection (see `magic_transform`). This is the subsumptive-tabling
+/// collapse: keep only the most-general table per predicate.
+fn minimal_antichain(codes: &BTreeSet<String>) -> Vec<BindingPattern> {
+    let pats: Vec<BindingPattern> = codes.iter().map(|c| BindingPattern::from_code(c)).collect();
+    pats.iter()
+        .copied()
+        .filter(|p| !pats.iter().any(|q| q != p && q.subsumes(p)))
+        .collect()
+}
+
+/// The kept magic-table adornment that SERVES a demanded `pat`: the most-general kept
+/// pattern that subsumes it. Ties (a `pat` subsumed by two incomparable kept minimals, e.g.
+/// `bb` served by either `bf` or `fb`) are broken deterministically by the smallest `code()`,
+/// so the transform output is stable run-to-run.
+///
+/// # Panics
+///
+/// Panics if no kept pattern subsumes `pat` — impossible when `kept` is the minimal antichain
+/// of a demanded set that CONTAINS `pat` (every element of a finite poset is ≥ some minimal
+/// element).
+fn serve(kept: &[BindingPattern], pat: BindingPattern) -> BindingPattern {
+    kept.iter()
+        .copied()
+        .filter(|a| a.subsumes(&pat))
+        .min_by(|a, b| a.code().cmp(&b.code()))
+        .expect("every demanded pattern is subsumed by a kept minimal (most-general) element")
+}
+
+/// The SUBSUMPTIVE magic-sets transformation — the PRODUCTION demand rewrite.
+///
+/// Runs the standard demand fixpoint ([`demand_fixpoint`]), then COLLAPSES each predicate's
+/// demanded adornment set to its ⊑-minimal (most-general) antichain ([`minimal_antichain`]):
+/// only those most-general adornments mint a magic predicate. A more-specific demanded
+/// adornment `B` is NOT minted — it is SERVED from the kept general `A` that subsumes it
+/// ([`serve`]) plus a residual filter on `bound(B) ∖ bound(A)`. On this binary path that
+/// residual is discharged WITHOUT an extra atom: the modified rule keeps its ORIGINAL body
+/// atoms (which carry the real join constants/variables, so the derived fact set stays a
+/// subset of the untransformed least model — never spurious), and the goal projection
+/// ([`project_answers`]) filters the goal's own bound positions. Widening a magic guard to a
+/// more-general table therefore only DERIVES a superset of a demand-restricted slice of the
+/// same least model, never a wrong answer — the goal answer set is byte-identical to the
+/// variant transform ([`magic_transform_variant`], the `#[cfg(test)]` byte-identity oracle).
+///
+/// Returns the transformed program + seed.
+fn magic_transform(
+    rules: &[EvalRule],
+    goal: &EvalAtom,
+    goal_adorn: BindingPattern,
+) -> MagicProgram {
+    let idb: BTreeSet<String> = rules
+        .iter()
+        .map(|r| r.head.predicate.as_str().to_owned())
+        .collect();
+
+    // (1) Demand fixpoint: the full variant-keyed (pred → exact adornments) demand set.
+    let demanded = demand_fixpoint(rules, &idb, goal, goal_adorn);
+
+    // (2) Collapse: keep only the most-general (⊑-minimal) adornment per predicate. `serve`
+    //     maps every demanded adornment to the kept table that answers it.
+    let kept: BTreeMap<String, Vec<BindingPattern>> = demanded
+        .iter()
+        .map(|(pred, codes)| (pred.clone(), minimal_antichain(codes)))
+        .collect();
+    let served = |pred: &str, pat: BindingPattern| -> BindingPattern {
+        // A predicate reached only as an EDB body atom is not in `kept` (it is never
+        // demanded); such atoms are never guarded, so `served` is only ever asked about an
+        // IDB predicate present in `kept`.
+        serve(
+            kept.get(pred)
+                .expect("a guarded/adorned atom's predicate is a demanded IDB predicate"),
+            pat,
+        )
+    };
+
+    let mut out: Vec<EvalRule> = Vec::new();
+
+    // (3) Seed: the goal's magic fact, keyed on the KEPT table that serves the goal's
+    //     adornment (the goal projection re-imposes the goal's own residual). None for an
+    //     all-free served goal. Inserted into the EDB by the caller.
+    let seed = magic_seed_atom(goal, served(goal.predicate.as_str(), goal_adorn));
+
+    // (4) Modified rules + magic rules, iterating ONLY the KEPT (most-general) head demands.
+    //     Processing the general demand yields the general body demands; every body magic
+    //     guard is routed through `served`, so it references only kept magic predicates.
+    for (head_pred, kept_pats) in &kept {
+        for &head_adorn in kept_pats {
+            for (ri, r) in rules
+                .iter()
+                .enumerate()
+                .filter(|(_, r)| r.head.predicate.as_str() == head_pred.as_str())
+            {
+                let mut bound = head_bound_vars(&r.head, head_adorn);
+
+                // The head guard is the kept head table (`head_adorn` is itself kept, so it
+                // serves itself). (2) Modified rule body: head magic guard ++ original body.
+                let head_guard = magic_guard_atom(&r.head, head_adorn);
+                let mut mod_body: Vec<EvalAtom> = Vec::new();
+                if let Some(guard) = &head_guard {
+                    mod_body.push(guard.clone());
+                }
+
+                // Walk the body, emitting per-IDB-atom magic rules along the SIPS chain.
+                let mut prefix: Vec<EvalAtom> = Vec::new();
+                for (bi, atom) in r.body.iter().enumerate() {
+                    if idb.contains(atom.predicate.as_str()) {
+                        // The body atom's exact SIPS adornment, then the KEPT table that
+                        // serves it (a superset demand — the residual is discharged by the
+                        // original body atom + goal projection).
+                        let a = adorn_atom(atom, &bound);
+                        let served_a = served(atom.predicate.as_str(), a);
+                        // (3) magic rule: magic_served_a :- magic_head, b1..b(i-1) (none when
+                        // the served table is all-free — an unrestricted demand needs none).
+                        if let Some(magic_head) = magic_guard_atom(atom, served_a) {
+                            let mut mbody: Vec<EvalAtom> = Vec::new();
+                            if let Some(hg) = &head_guard {
+                                mbody.push(hg.clone());
+                            }
+                            mbody.extend(prefix.iter().cloned());
+                            let iri = format!(
+                                "{}::magic/{}/{}#{ri}.{bi}",
+                                atom.predicate.as_str(),
+                                served_a.code(),
+                                head_pred
+                            );
+                            out.push(rule(magic_head, mbody, iri));
+                        }
+                    }
+                    // The modified rule always keeps the ORIGINAL body atom (a negated atom
+                    // stays negated — its `negated` flag rides through the `clone`); the
+                    // demand restriction comes from the head guard + the magic rules that gate
+                    // which instances are derived, and the original body atom's own
+                    // constants/variables discharge any subsumptive residual.
+                    mod_body.push(atom.clone());
+                    if atom.negated {
+                        // NAF binds no SIPS variables. Carry the negated atom (still negated)
+                        // into the SIPS `prefix` — so a LATER atom's magic (demand) rule sees
+                        // the NAF condition under which it is reached, the negative literal
+                        // that can make the transformed program non-stratifiable (recovered
+                        // soundly by `eval_with_base_fallback`) — ONLY when it is fully ground
+                        // given the bindings so far. A partially-bound negated guard inside a
+                        // magic rule is existential NAF, strictly STRONGER than the per-tuple
+                        // test, and would UNDER-demand a later atom (dropping needed
+                        // instances); omitting it instead only WIDENS demand, always sound.
+                        if negated_atom_fully_bound(atom, &bound) {
+                            prefix.push(atom.clone());
+                        }
+                    } else {
+                        prefix.push(atom.clone());
+                        bind_atom_vars(atom, &mut bound);
+                    }
+                }
+
+                // The modified rule carries the ORIGINAL rule's builtins: the shared
+                // constraint stage evaluates them post-join, generating the head's
+                // arithmetic answer (or filtering).  The magic (demand) rules carry NO
+                // builtins — magic-sets is sound and complete under ANY sideways-
+                // information-passing strategy, so adorning a builtin-bound variable as
+                // free merely loosens demand (never changes the goal answers), and for
+                // the binary arithmetic fragment the builtin is terminal, so the
+                // adornment is in fact exact.
+                let iri = format!(
+                    "{}::mod/{}#{ri}",
+                    r.head.predicate.as_str(),
+                    head_adorn.code()
+                );
+                let mut modified = rule(r.head.clone(), mod_body, iri);
+                modified.builtins = r.builtins.clone();
+                out.push(modified);
             }
         }
     }
 
-    // (2) Modified rules + (3) magic rules, for every demanded (head_pred, adorn).
-    for (head_pred, adorn_code) in &demands {
-        let head_adorn = adorn_from_code(adorn_code);
-        for (ri, r) in rules
-            .iter()
-            .enumerate()
-            .filter(|(_, r)| r.head.predicate.as_str() == head_pred.as_str())
-        {
-            let mut bound = head_bound_vars(&r.head, head_adorn);
+    MagicProgram { rules: out, seed }
+}
 
-            // (2) Modified rule body: head magic guard (if any) ++ original body.
-            let mut mod_body: Vec<EvalAtom> = Vec::new();
-            if let Some(guard) = magic_guard_atom(&r.head, head_adorn) {
-                mod_body.push(guard);
-            }
+/// The VARIANT (per-exact-adornment) magic-sets transformation — the `#[cfg(test)]`
+/// byte-identity reference the production [`magic_transform`] is checked against.
+///
+/// Mints a SEPARATE magic predicate per distinct demanded adornment (no subsumptive collapse):
+/// this is the pre-upgrade demand keying, kept only as the A/B oracle proving the subsumptive
+/// collapse leaves the answer set byte-identical. It is NOT a production path (greenfield: one
+/// production demand rewrite, the subsumptive one).
+#[cfg(test)]
+fn magic_transform_variant(
+    rules: &[EvalRule],
+    goal: &EvalAtom,
+    goal_adorn: BindingPattern,
+) -> MagicProgram {
+    let idb: BTreeSet<String> = rules
+        .iter()
+        .map(|r| r.head.predicate.as_str().to_owned())
+        .collect();
 
-            // Walk the body, emitting per-IDB-atom magic rules along the SIPS chain.
-            let head_guard = magic_guard_atom(&r.head, head_adorn);
-            let mut prefix: Vec<EvalAtom> = Vec::new();
-            for (bi, atom) in r.body.iter().enumerate() {
-                if idb.contains(atom.predicate.as_str()) {
-                    let a = adorn_atom(atom, &bound);
-                    // (3) magic rule: magic_bi :- magic_head, b1..b(i-1)  (none for ff).
-                    if let Some(magic_head) = magic_guard_atom(atom, a) {
-                        let mut mbody: Vec<EvalAtom> = Vec::new();
-                        if let Some(hg) = &head_guard {
-                            mbody.push(hg.clone());
+    let mut out: Vec<EvalRule> = Vec::new();
+
+    // (1) Seed: the goal's magic fact (none for an ff goal).
+    let seed = magic_seed_atom(goal, goal_adorn);
+
+    // The full variant-keyed (pred → exact adornments) demand set.
+    let demanded = demand_fixpoint(rules, &idb, goal, goal_adorn);
+
+    // (2) Modified rules + (3) magic rules, for every demanded (head_pred, exact adorn).
+    for (head_pred, codes) in &demanded {
+        for adorn_code in codes {
+            let head_adorn = BindingPattern::from_code(adorn_code);
+            for (ri, r) in rules
+                .iter()
+                .enumerate()
+                .filter(|(_, r)| r.head.predicate.as_str() == head_pred.as_str())
+            {
+                let mut bound = head_bound_vars(&r.head, head_adorn);
+
+                let head_guard = magic_guard_atom(&r.head, head_adorn);
+                let mut mod_body: Vec<EvalAtom> = Vec::new();
+                if let Some(guard) = &head_guard {
+                    mod_body.push(guard.clone());
+                }
+
+                let mut prefix: Vec<EvalAtom> = Vec::new();
+                for (bi, atom) in r.body.iter().enumerate() {
+                    if idb.contains(atom.predicate.as_str()) {
+                        let a = adorn_atom(atom, &bound);
+                        if let Some(magic_head) = magic_guard_atom(atom, a) {
+                            let mut mbody: Vec<EvalAtom> = Vec::new();
+                            if let Some(hg) = &head_guard {
+                                mbody.push(hg.clone());
+                            }
+                            mbody.extend(prefix.iter().cloned());
+                            let iri = format!(
+                                "{}::magic/{}/{}#{ri}.{bi}",
+                                atom.predicate.as_str(),
+                                a.code(),
+                                head_pred
+                            );
+                            out.push(rule(magic_head, mbody, iri));
                         }
-                        mbody.extend(prefix.iter().cloned());
-                        let iri = format!(
-                            "{}::magic/{}/{}#{ri}.{bi}",
-                            atom.predicate.as_str(),
-                            a.code(),
-                            head_pred
-                        );
-                        out.push(rule(magic_head, mbody, iri));
+                    }
+                    mod_body.push(atom.clone());
+                    if atom.negated {
+                        if negated_atom_fully_bound(atom, &bound) {
+                            prefix.push(atom.clone());
+                        }
+                    } else {
+                        prefix.push(atom.clone());
+                        bind_atom_vars(atom, &mut bound);
                     }
                 }
-                // The modified rule keeps the ORIGINAL body atom (positive, unguarded);
-                // the demand restriction comes from the head guard + the magic rules that
-                // gate which instances are derived.
-                mod_body.push(atom.clone());
-                prefix.push(atom.clone());
-                bind_atom_vars(atom, &mut bound);
-            }
 
-            // The modified rule carries the ORIGINAL rule's builtins: the shared
-            // constraint stage evaluates them post-join, generating the head's
-            // arithmetic answer (or filtering).  The magic (demand) rules carry NO
-            // builtins — magic-sets is sound and complete under ANY sideways-
-            // information-passing strategy, so adorning a builtin-bound variable as
-            // free merely loosens demand (never changes the goal answers), and for
-            // the binary arithmetic fragment the builtin is terminal, so the
-            // adornment is in fact exact.
-            let iri = format!("{}::mod/{}#{ri}", r.head.predicate.as_str(), adorn_code);
-            let mut modified = rule(r.head.clone(), mod_body, iri);
-            modified.builtins = r.builtins.clone();
-            out.push(modified);
+                let iri = format!("{}::mod/{}#{ri}", r.head.predicate.as_str(), adorn_code);
+                let mut modified = rule(r.head.clone(), mod_body, iri);
+                modified.builtins = r.builtins.clone();
+                out.push(modified);
+            }
         }
     }
 
@@ -427,11 +726,11 @@ fn magic_transform(rules: &[EvalRule], goal: &EvalAtom, goal_adorn: Adorn) -> Ma
 /// Convert a ground magic seed [`EvalAtom`] into a [`crate::rule_ir::Fact`] for EDB
 /// insertion.  The seed is always ground (its terms are goal constants), so this never
 /// hits an unbound variable.
-fn seed_to_fact(seed: &EvalAtom) -> Result<crate::rule_ir::Fact, String> {
+fn seed_to_fact(seed: &EvalAtom) -> gmeow_errors::Result<crate::rule_ir::Fact> {
     let to_term = |t: &EvalTerm| match t {
         EvalTerm::ConstNamed(nn) => Ok(TermValue::iri(nn.clone())),
         EvalTerm::ConstLit(term) => Ok(term.clone()),
-        EvalTerm::Var(v) => Err(format!("magic seed term {v:?} is not ground")),
+        EvalTerm::Var(v) => Err(physical_err(format!("magic seed term {v:?} is not ground"))),
     };
     Ok(crate::rule_ir::Fact {
         subject: to_term(&seed.subject)?,
@@ -440,24 +739,157 @@ fn seed_to_fact(seed: &EvalAtom) -> Result<crate::rule_ir::Fact, String> {
     })
 }
 
-/// Reconstruct an [`Adorn`] from its two-char code (`"bb"`, `"bf"`, `"fb"`, `"ff"`).
-fn adorn_from_code(code: &str) -> Adorn {
-    let bytes = code.as_bytes();
-    Adorn {
-        subj_bound: bytes[0] == b'b',
-        obj_bound: bytes[1] == b'b',
+// ── Value-generating-recursion termination guard ──────────────────────────────────
+
+/// The transitive (≥1-step) reachability closure of the IDB predicate-dependency graph.
+///
+/// A node is `head_pred`; an edge `p → q` exists iff some rule with head `p` carries a
+/// POSITIVE body atom over the IDB predicate `q`.  The returned map sends each IDB
+/// predicate to the set of IDB predicates reachable from it in one or more edges — so
+/// `reach[p]` contains `p` exactly when `p` lies on a directed cycle (a self-loop or a
+/// larger SCC), and `q ∈ reach[p] ∧ p ∈ reach[q]` iff `p` and `q` are mutually recursive
+/// (share an SCC).  Only positive edges count: a negated body atom binds nothing and
+/// drives no derivation, so it cannot carry the recursion.
+fn idb_reachability<'a>(
+    rules: &'a [EvalRule],
+    idb: &BTreeSet<&'a str>,
+) -> BTreeMap<&'a str, BTreeSet<&'a str>> {
+    let mut adj: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
+    for r in rules {
+        let h = r.head.predicate.as_str();
+        for a in r.body.iter().filter(|a| !a.negated) {
+            let p = a.predicate.as_str();
+            if idb.contains(p) {
+                adj.entry(h).or_default().insert(p);
+            }
+        }
     }
+    let mut reach: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
+    for &n in idb {
+        let mut seen: BTreeSet<&str> = BTreeSet::new();
+        let mut stack: Vec<&str> = adj.get(n).into_iter().flatten().copied().collect();
+        while let Some(x) = stack.pop() {
+            if seen.insert(x)
+                && let Some(succ) = adj.get(x)
+            {
+                for &y in succ {
+                    if !seen.contains(y) {
+                        stack.push(y);
+                    }
+                }
+            }
+        }
+        reach.insert(n, seen);
+    }
+    reach
+}
+
+/// Whether `rule` carries an arithmetic value-generating `is` builtin whose target
+/// variable reaches (contributes a value to) the rule head.
+///
+/// The set of variables that reach the head is seeded with the head's own variables and
+/// closed BACKWARD over the `is` builtins: if a builtin's target reaches the head, its
+/// operands reach the head too (they are consumed to compute a head-reaching value).  A
+/// value-generating `is` whose target lands in that set drives a fresh term into the head
+/// — the only way a binary backward rule can invent an unbounded Herbrand value.  A
+/// `Compare` builtin has no target and generates nothing, so it never qualifies.
+fn is_generator_reaches_head(rule: &EvalRule) -> bool {
+    let mut reach: BTreeSet<String> = BTreeSet::new();
+    for t in [&rule.head.subject, &rule.head.object] {
+        if let EvalTerm::Var(v) = t {
+            reach.insert(v.clone());
+        }
+    }
+    loop {
+        let mut changed = false;
+        for b in &rule.builtins {
+            if let QBuiltin::Is {
+                target: QTerm::Var(t),
+                lhs,
+                rhs,
+                ..
+            } = b
+                && reach.contains(t)
+            {
+                for op in [lhs, rhs] {
+                    if let QTerm::Var(v) = op
+                        && reach.insert(v.clone())
+                    {
+                        changed = true;
+                    }
+                }
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
+    rule.builtins.iter().any(|b| {
+        matches!(
+            b,
+            QBuiltin::Is {
+                target: QTerm::Var(t),
+                ..
+            } if reach.contains(t)
+        )
+    })
+}
+
+/// Whether any rule in `rules` is potentially non-terminating via arithmetic self-drive.
+///
+/// A rule is flagged iff ALL of:
+///
+/// 1. **Its head predicate lies on a dependency cycle** (`reach[head]` contains `head`) —
+///    the recursion that a value-generator could feed forever.
+/// 2. **It carries a value-generating `is` builtin whose target reaches the head**
+///    ([`is_generator_reaches_head`]) — the source of fresh Herbrand terms.
+/// 3. **It has NO finite driver**: every POSITIVE body atom is over a relation in the
+///    head's own cycle (an IDB predicate mutually recursive with the head).  A body atom
+///    over an EDB relation, or over a strictly-lower-stratum IDB predicate (one that
+///    cannot reach the head back), is a FINITE driver — it ranges over an already-settled
+///    finite set, so the recursion is bounded and terminates.
+///
+/// This is precise and SOUND: it never flags the terminating list-length shape
+/// `len(L,N) :- rest(L,R), len(R,M), N is M+1`, because its `rest(L,R)` body atom is an
+/// EDB (non-cyclic) finite driver — condition 3 is false.  It DOES flag a pure self-drive
+/// `count(X,S) :- count(X,Y), S is Y+1` whose only body atom is the cyclic head predicate.
+/// Over-flagging a comparison-bounded terminating program is acceptable (it routes to the
+/// oracle — incomplete, never wrong); under-flagging a genuine hang is not, and the
+/// finite-driver test rules out exactly the terminating cases.
+fn potentially_nonterminating_arithmetic(rules: &[EvalRule]) -> bool {
+    let idb: BTreeSet<&str> = rules.iter().map(|r| r.head.predicate.as_str()).collect();
+    let reach = idb_reachability(rules, &idb);
+    let in_cycle = |p: &str| reach.get(p).is_some_and(|s| s.contains(p));
+    for r in rules {
+        let h = r.head.predicate.as_str();
+        // (1) head on a cycle.
+        if !in_cycle(h) {
+            continue;
+        }
+        // (2) a value-generating `is` reaching the head.
+        if !is_generator_reaches_head(r) {
+            continue;
+        }
+        // (3) no finite driver: every positive body atom is cyclic with the head.
+        let has_finite_driver = r.body.iter().filter(|a| !a.negated).any(|a| {
+            let p = a.predicate.as_str();
+            // A finite driver is an EDB relation (not IDB) or a strictly-lower IDB
+            // predicate that cannot reach the head back (not mutually recursive).
+            !idb.contains(p) || !reach.get(p).is_some_and(|s| s.contains(h))
+        });
+        if !has_finite_driver {
+            return true;
+        }
+    }
+    false
 }
 
 // ── Backward entry: resolve_native ────────────────────────────────────────────────
 
 /// Compute the goal atom's adornment from its `(subject, object)` terms.
-fn goal_adornment(goal: &QAtom) -> Adorn {
+fn goal_adornment(goal: &QAtom) -> BindingPattern {
     let bound = |t: &QTerm| matches!(t, QTerm::Const(_) | QTerm::Num(_));
-    Adorn {
-        subj_bound: bound(&goal.args[0]),
-        obj_bound: bound(&goal.args[1]),
-    }
+    BindingPattern::from_bools([bound(&goal.args[0]), bound(&goal.args[1])])
 }
 
 /// Project the goal predicate's derived tuples into [`AnswerSet`] bindings, exactly as
@@ -559,8 +991,16 @@ fn project_answers(facts: &[crate::rule_ir::Fact], goal: &QAtom, goal_pred: &str
 /// A private mirror of [`NativeOutcome`] specialized to the fallback decision, so the
 /// two-tier evaluate/fall-back-to-base logic lives in one testable place.
 enum FallbackOutcome {
-    /// The (transformed or base) program was decided.
-    Decided(Vec<Fact>, BudgetStatus, CompletionFrontier),
+    /// The (transformed or base) program was decided. `demand_pruning_dropped` is `true`
+    /// iff the DEMAND transform was non-stratifiable and the answer came from evaluating
+    /// the untransformed base program (full materialization, no demand pruning) — the
+    /// honest signal the caller uses to downgrade the answer's preservation claim.
+    Decided {
+        facts: Vec<Fact>,
+        status: BudgetStatus,
+        frontier: CompletionFrontier,
+        demand_pruning_dropped: bool,
+    },
     /// A declared native gap the caller routes to the oracle.
     Unsupported(UnsupportedKind),
 }
@@ -587,30 +1027,33 @@ fn eval_with_base_fallback(
     base_rules: &[EvalRule],
     max_steps: Option<u64>,
     base_edb: impl FnOnce() -> RelationStore,
-) -> Result<FallbackOutcome, String> {
+) -> gmeow_errors::Result<FallbackOutcome> {
     match evaluate(edb, transformed_rules, max_steps)? {
         NativeOutcome::Decided(budgeted) => {
             let frontier = budgeted.frontier();
-            Ok(FallbackOutcome::Decided(
-                budgeted.rows,
-                budgeted.status,
+            Ok(FallbackOutcome::Decided {
+                facts: budgeted.rows,
+                status: budgeted.status,
                 frontier,
-            ))
+                demand_pruning_dropped: false,
+            })
         }
-        // A magic (demand) transform threads a magic guard through the program; a negative
-        // edge in that guarded cycle could make the transformed program non-stratifiable
-        // even though the UNTRANSFORMED program is stratified by construction. Fall back to
-        // the base rules over a freshly extracted EDB (without the demand seed the base
-        // rules never reference).
+        // A magic (demand) transform threads a magic guard — and, under stratified NAF, a
+        // negated guard — through the program; a negative edge in that guarded cycle can
+        // make the transformed program non-stratifiable even though the UNTRANSFORMED
+        // program is stratified. Fall back to the base rules over a freshly extracted EDB
+        // (without the demand seed the base rules never reference); the answer is exact but
+        // the demand pruning was dropped, so the caller downgrades the preservation claim.
         NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable) => {
             match evaluate(base_edb(), base_rules, max_steps)? {
                 NativeOutcome::Decided(budgeted) => {
                     let frontier = budgeted.frontier();
-                    Ok(FallbackOutcome::Decided(
-                        budgeted.rows,
-                        budgeted.status,
+                    Ok(FallbackOutcome::Decided {
+                        facts: budgeted.rows,
+                        status: budgeted.status,
                         frontier,
-                    ))
+                        demand_pruning_dropped: true,
+                    })
                 }
                 // If the BASE program is also non-stratifiable, the program genuinely is —
                 // a real declared gap the caller routes to the oracle.
@@ -623,12 +1066,46 @@ fn eval_with_base_fallback(
     }
 }
 
+/// The preservation claim for an answer produced by the base fallback because the demand
+/// transform was non-stratifiable.
+///
+/// The base-fallback answer is complete AND sound (a full stratified materialization of the
+/// untransformed program, projected to the goal), so its ANSWERS are exact. What changed is
+/// the mechanism: the demand pruning was dropped and the evaluation WIDENED to the full
+/// least model. The honest, conservative disclosure of that widening is
+/// [`PreservationKind::CompleteOver`] — a complete over-approximation (every true answer is
+/// present; the evaluation may have materialized more than the demand slice). It is the
+/// correct polarity direction: never `{sound-under}` (which would falsely imply an answer
+/// could be MISSING), and no longer a bare `{exact}` (which would hide that the intended
+/// demand transform did not run). No new global ledger is invented — this downgrade IS the
+/// required honest signal at this layer.
+fn demand_pruning_dropped_claim() -> crate::result::PreservationClaim {
+    let mut claim = crate::result::PreservationClaim::default();
+    claim
+        .insert(gmeow_logic_compile::ir::PreservationKind::CompleteOver)
+        .expect("CompleteOver is a valid answer-preservation polarity (not ValidationOnly)");
+    claim
+}
+
+/// Resolve `program`'s single backward goal against `world` via the native magic-sets core.
+///
+/// # Oracle-soundness contract
+///
+/// The native core is AUTHORITATIVE for every request it decides: a
+/// [`NativeOutcome::Decided`] answer is the whole answer (exact, or an honestly-downgraded
+/// complete over-approximation on the base fallback), and dispatch returns it without
+/// consulting any oracle. The oracle is consulted ONLY where the native core declares a
+/// [`NativeOutcome::Unsupported`] gap — cut, arithmetic residue, a non-binary shape, a
+/// genuinely non-stratifiable program, or a floundering NAF goal. The two never overlap:
+/// native never silently defers a case it can decide, and the oracle never overrides a
+/// native verdict. Stratified negation stays entirely inside this native path (decided or a
+/// declared gap); it is never a silent drop.
 pub(crate) fn resolve_native(
     foreign: &dyn ScryerForeign,
     world: &str,
     program: &QProgram,
     budget: &Budget,
-) -> Result<NativeOutcome<AnswerSet>, String> {
+) -> gmeow_errors::Result<NativeOutcome<AnswerSet>> {
     // (0) Gate cut (reuse the structural detector the dispatch gate uses).  Arithmetic
     // is no longer a whole-program gap — the closed builtin set is evaluated natively;
     // any residual (unbound operand / ÷0 / overflow) surfaces as a gap DURING the
@@ -638,14 +1115,33 @@ pub(crate) fn resolve_native(
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut));
     }
 
-    // The corpus goal is a single binary atom; the native backward leg handles exactly
-    // that.  A multi-atom conjunctive goal (or a non-binary goal atom) is a declared gap.
+    // The backward leg handles a SINGLE goal atom; a multi-atom conjunctive goal is a
+    // declared gap on either path.
     if program.goal.atoms.len() != 1 {
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
     }
     let goal = &program.goal.atoms[0];
-    if goal.args.len() != 2 {
-        return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
+
+    // ── Arity-eligibility dispatch (mirrors the forward oracle's binary/generic split
+    //    at `crate::oracle`'s `binary_eligible`) ────────────────────────────────────
+    //
+    // The binary fragment stays on the byte-identical binary magic path below (it carries
+    // the arithmetic-builtin seminaive constraint stage the binary corpus depends on).
+    // ANY atom of arity != 2 — the goal, a rule head, or a rule body atom — routes to the
+    // arity-generic n-ary evaluator, which resolves the real predicate-as-data
+    // `triple(s, p, o, w)` shape the binary store cannot query.  A builtin literal is not
+    // an atom (it never carries an argument position) and never disqualifies the binary
+    // path: the binary arithmetic corpus stays binary.
+    let binary_eligible = goal.args.len() == 2
+        && program.rules.iter().all(|r| {
+            r.head.args.len() == 2
+                && r.body.iter().all(|lit| match lit {
+                    QBodyLit::Atom(a) | QBodyLit::Neg(a) => a.args.len() == 2,
+                    QBodyLit::Builtin(_) | QBodyLit::Cut => true,
+                })
+        });
+    if !binary_eligible {
+        return super::magic_generic::resolve_native_generic(foreign, world, program, budget);
     }
 
     // (1) Convert program rules → binary EvalRules, splitting each body into its atoms
@@ -669,10 +1165,27 @@ pub(crate) fn resolve_native(
                     Ok(ea) => body.push(ea),
                     Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
                 },
+                // A negated body atom lowers to the same binary `EvalAtom` with the
+                // `negated` flag set: the shared stratified evaluator decides it by NAF
+                // against the accumulated lower-stratum least model.
+                QBodyLit::Neg(a) => match atom_of(a) {
+                    Ok(ea) => body.push(EvalAtom {
+                        negated: true,
+                        ..ea
+                    }),
+                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+                },
                 QBodyLit::Builtin(b) => builtins.push(builtin_of(b)),
                 // Cut already returned above.
                 QBodyLit::Cut => unreachable!("cut handled above"),
             }
+        }
+        // Floundering guard: NAF is sound only when every variable of a negated body
+        // atom is range-restricted by a POSITIVE body atom (or bound by an `is`
+        // generator). A negated variable no positive literal binds is still free when
+        // the NAF goal fires — an unsound goal that must NOT be silently decided.
+        if negated_body_flounders(&body, &builtins) {
+            return Ok(NativeOutcome::Unsupported(UnsupportedKind::Floundering));
         }
         // A synthesized stable rule IRI for the modified/original rule.
         let rule_iri = format!("{}::rule", head.predicate.as_str());
@@ -683,6 +1196,19 @@ pub(crate) fn resolve_native(
             distinct_pairs: vec![],
             builtins,
         });
+    }
+
+    // (1b) Value-generating-recursion termination guard.  Over the finite triple EDB a
+    // pure-Datalog backward program always terminates; the ONE divergence source is an
+    // arithmetic `is` value-generator inside an IDB dependency cycle with no finite
+    // driver.  With no `max_steps` budget that is an unbounded hang, so — detected
+    // STATICALLY here, before any evaluation — the request is refused to the oracle
+    // (incomplete-never-wrong, never a hang).  WITH a `max_steps` budget the
+    // `StepGovernor` cuts the recursion deterministically, so it is evaluated normally.
+    if budget.max_steps.is_none() && potentially_nonterminating_arithmetic(&rules) {
+        return Ok(NativeOutcome::Unsupported(
+            UnsupportedKind::NonTerminatingArithmetic,
+        ));
     }
 
     // (2) Compute the goal adornment and magic-transform.
@@ -708,11 +1234,16 @@ pub(crate) fn resolve_native(
     // incomplete, and the caller reads `completed < total` to tell that from a conclusive
     // result.  On a non-stratifiable transformed program the helper falls back to the base
     // rules over a lazily re-extracted EDB (see `eval_with_base_fallback`).
-    let (facts, fixpoint_status, frontier) =
+    let (facts, fixpoint_status, frontier, demand_pruning_dropped) =
         match eval_with_base_fallback(edb, &transformed.rules, &rules, budget.max_steps, || {
             extract_edb(foreign, world)
         })? {
-            FallbackOutcome::Decided(f, s, fr) => (f, s, fr),
+            FallbackOutcome::Decided {
+                facts,
+                status,
+                frontier,
+                demand_pruning_dropped,
+            } => (facts, status, frontier, demand_pruning_dropped),
             FallbackOutcome::Unsupported(k) => return Ok(NativeOutcome::Unsupported(k)),
         };
 
@@ -742,10 +1273,19 @@ pub(crate) fn resolve_native(
         bindings = tmp.bindings;
     }
 
+    // Preservation: `{exact}` on the demand-transformed happy path; a downgraded claim
+    // when the transform was non-stratifiable and the answer came from the base fallback
+    // (the answer set is still complete and sound, but the demand pruning was dropped —
+    // recorded honestly rather than left as a silent free-transform assumption).
+    let preservation = if demand_pruning_dropped {
+        demand_pruning_dropped_claim()
+    } else {
+        crate::result::PreservationClaim::exact()
+    };
     let mut answer = AnswerSet {
         bindings,
         status,
-        preservation: crate::result::PreservationClaim::exact(),
+        preservation,
         frontier,
     };
 
@@ -1225,28 +1765,120 @@ mod tests {
         );
     }
 
+    // NOTE: a non-binary goal atom is NO LONGER a binary-path `Unsupported(NonBinaryAtom)`
+    // gap — the arity-eligibility dispatch in `resolve_native` routes it to the arity-generic
+    // n-ary evaluator instead (see `super::magic_generic`, where the `triple(s, p, o, w)`
+    // predicate-as-data resolution and its demand-provenance coverage live). Only a
+    // multi-atom conjunctive goal remains a declared gap on the binary leg.
+
+    // ── Value-generating-recursion termination guard ─────────────────────────────
+    //
+    // Over the finite triple EDB a pure-Datalog backward program always terminates; the
+    // ONLY divergence source is an arithmetic `is` value-generator inside an IDB cycle
+    // with no finite driver.  `potentially_nonterminating_arithmetic` flags EXACTLY that
+    // shape, and `resolve_native` routes it to the oracle when `max_steps` is None (no
+    // hang possible), evaluating normally when a step budget can cut the recursion.
+
+    /// A binary self-drive `count(X,S) :- count(X,Y), S is Y+1` (seeded from an EDB
+    /// `seed(a,a)` via a base rule) has NO finite driver in its recursive rule — its only
+    /// positive body atom is the cyclic head predicate `count`, and the `is` generates a
+    /// fresh successor forever.  With no step budget that is an unbounded hang, so the
+    /// native core refuses it to the oracle as `NonTerminatingArithmetic`.
+    fn self_drive_program() -> String {
+        format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:count(X, 0) :- ex:seed(X, X).\n\
+             ex:count(X, S) :- ex:count(X, Y), S is Y + 1.\n\
+             ?- ex:count(ex:a, N).\n"
+        )
+    }
+
     #[test]
-    fn magic_non_binary_goal_is_unsupported() {
+    fn magic_value_generating_self_drive_is_unsupported_without_budget() {
         let (store, world_nn) = make_world(&[(
             &format!("{BASE}a"),
-            &format!("{BASE}parentOf"),
-            &format!("{BASE}b"),
+            &format!("{BASE}seed"),
+            &format!("{BASE}a"),
         )]);
         let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
-        // get/3 is a non-binary (ternary) IDB atom — outside the binary native fragment.
-        let src = format!(
-            ":- prefix(ex, '{BASE}').\n\
-             ex:get(L, N, X) :- ex:parentOf(L, X).\n\
-             ?- ex:get(ex:a, ex:b, X).\n"
-        );
-        let prog = parse_query_program(&src).unwrap();
+        let prog = parse_query_program(&self_drive_program()).unwrap();
+        // No max_steps ⇒ the guard fires (an unbounded hang would otherwise occur).
         let outcome = resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
         assert!(
             matches!(
                 outcome,
-                NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom)
+                NativeOutcome::Unsupported(UnsupportedKind::NonTerminatingArithmetic)
             ),
-            "non-binary goal atom must be Unsupported(NonBinaryAtom): {outcome:?}"
+            "a value-generating self-drive with no finite driver and no budget must be \
+             Unsupported(NonTerminatingArithmetic): {outcome:?}"
+        );
+    }
+
+    #[test]
+    fn magic_value_generating_self_drive_is_budgeted_partial_prefix() {
+        let (store, world_nn) = make_world(&[(
+            &format!("{BASE}a"),
+            &format!("{BASE}seed"),
+            &format!("{BASE}a"),
+        )]);
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = parse_query_program(&self_drive_program()).unwrap();
+        // WITH a step budget the guard is bypassed: the StepGovernor cuts the otherwise-
+        // infinite recursion deterministically, yielding a SOUND partial prefix.
+        let budget = Budget {
+            max_steps: Some(3),
+            ..Default::default()
+        };
+        let cut = decided(resolve_native(&foreign, &world_nn, &prog, &budget).unwrap());
+        assert_eq!(
+            cut.status,
+            BudgetStatus::Exhausted,
+            "a budgeted value-generator is cut mid-recursion ⇒ Exhausted: {cut:?}"
+        );
+        // Every answer is a genuine `count(a, k)` for a distinct integer k — sound
+        // (present in the infinite least model), and the governor cut it to a finite set.
+        let mut seen: BTreeSet<String> = BTreeSet::new();
+        for b in &cut.bindings {
+            let n = &b["N"];
+            assert!(
+                n.contains("XMLSchema#integer"),
+                "each answer binds N to an integer successor: {n}"
+            );
+            assert!(seen.insert(n.clone()), "successors are distinct: {n}");
+        }
+        assert!(
+            !cut.bindings.is_empty() && cut.bindings.len() <= 4,
+            "a 3-step budget admits a small finite prefix, not the infinite model: {cut:?}"
+        );
+    }
+
+    #[test]
+    fn magic_finite_driver_arithmetic_is_not_flagged() {
+        // The list-length program is in an IDB cycle (len→len) WITH arithmetic, but its
+        // recursive rule carries the non-cyclic EDB body atom `rdf:rest(L,R)` — a finite
+        // driver.  The guard must NOT flag it (condition 3 is false), so it is decided
+        // natively even with no step budget.  This is the direct guard-precision check
+        // complementing `magic_binary_arithmetic_is_decided_natively`.
+        let (store, world_nn) = make_world(&[(
+            &format!("{BASE}l0"),
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
+        )]);
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             :- prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').\n\
+             ex:len(rdf:nil, 0).\n\
+             ex:len(L, N) :- rdf:rest(L, R), ex:len(R, M), N is M + 1.\n\
+             ?- ex:len(ex:l0, N).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        // Budget::default() ⇒ max_steps None ⇒ the guard is ACTIVE. A finite-driver
+        // program must survive it and decide.
+        let outcome = resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
+        assert!(
+            matches!(outcome, NativeOutcome::Decided(_)),
+            "the finite-driver len program must NOT be flagged non-terminating: {outcome:?}"
         );
     }
 
@@ -1308,6 +1940,120 @@ mod tests {
             cut.bindings.len() < full.len(),
             "the cut answer set is a strict subset of the full model"
         );
+    }
+
+    /// The step budget is charged at the SINGLE committed-derivation counting point
+    /// (`StepGovernor::charge` in `eval_stratum_fixpoint`): `max_steps = n` charges EXACTLY
+    /// `n` committed derivations before stamping `Exhausted`, and the returned bindings are
+    /// a SOUND prefix — a strict subset of the unbudgeted answer set, every member of which
+    /// is genuinely in the least model.  Asserted across several `n`.
+    #[test]
+    fn magic_budget_single_counting_point_exact_charge_and_sound_prefix() {
+        let (store, world_nn) = tc_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = tc_program();
+
+        let full: BTreeSet<String> =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap())
+                .bindings
+                .iter()
+                .map(|b| b["Y"].clone())
+                .collect();
+        assert_eq!(full.len(), 3);
+
+        for n in 1..=3u64 {
+            let budget = Budget {
+                max_steps: Some(n),
+                ..Default::default()
+            };
+            let cut = decided(resolve_native(&foreign, &world_nn, &prog, &budget).unwrap());
+            // Every cut answer is sound (present in the full least model).
+            let got: BTreeSet<String> = cut.bindings.iter().map(|b| b["Y"].clone()).collect();
+            assert!(
+                got.is_subset(&full),
+                "n={n}: cut answers must be a sound subset of the full model: {got:?} ⊄ {full:?}"
+            );
+            // The tc closure needs more than 3 committed derivations (magic seeds +
+            // ancestor facts), so every n in 1..=3 cuts mid-fixpoint.
+            assert_eq!(
+                cut.status,
+                BudgetStatus::Exhausted,
+                "n={n}: below the completion cost ⇒ Exhausted"
+            );
+            // The single counting point charged EXACTLY n derivations: on `Exhausted` the
+            // governor stopped the instant `consumed == n` (spent-before-commit).
+            assert_eq!(
+                cut.frontier.consumed_steps, n,
+                "n={n}: exactly n committed derivations charged at the single counting point"
+            );
+        }
+    }
+
+    /// Budget composition is a stable status matrix at the `resolve_native` surface,
+    /// unchanged by the arity-generic dispatch rewrites: a generous budget completes
+    /// (`Ok`), a tight `max_steps` cuts (`Exhausted`), and a reached `max_answers` cap is
+    /// `Partial` (taking precedence over any concurrent step cut).  This locks the budget
+    /// transfer through the profile-gated backward leg.
+    #[test]
+    fn magic_budget_composition_status_matrix() {
+        let (store, world_nn) = tc_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = tc_program();
+
+        // Ok: a generous step budget, no answer cap ⇒ the fixpoint completes.
+        let ok = decided(
+            resolve_native(
+                &foreign,
+                &world_nn,
+                &prog,
+                &Budget {
+                    max_steps: Some(1_000_000),
+                    max_answers: None,
+                },
+            )
+            .unwrap(),
+        );
+        assert_eq!(ok.status, BudgetStatus::Ok, "generous budget ⇒ Ok");
+        assert_eq!(ok.bindings.len(), 3);
+
+        // Exhausted: a tight step budget cuts before the fixpoint settles.
+        let exhausted = decided(
+            resolve_native(
+                &foreign,
+                &world_nn,
+                &prog,
+                &Budget {
+                    max_steps: Some(1),
+                    max_answers: None,
+                },
+            )
+            .unwrap(),
+        );
+        assert_eq!(
+            exhausted.status,
+            BudgetStatus::Exhausted,
+            "tight max_steps ⇒ Exhausted"
+        );
+
+        // Partial: a reached answer cap overrides even a concurrent step cut.
+        let partial = decided(
+            resolve_native(
+                &foreign,
+                &world_nn,
+                &prog,
+                &Budget {
+                    max_steps: Some(1),
+                    max_answers: Some(1),
+                },
+            )
+            .unwrap(),
+        );
+        assert_eq!(
+            partial.status,
+            BudgetStatus::Partial,
+            "a reached max_answers cap ⇒ Partial (precedence over the step cut)"
+        );
+        assert_eq!(partial.bindings.len(), 1);
     }
 
     /// A step cut is DETERMINISTIC on the backward leg: the same intermediate budget
@@ -1452,13 +2198,25 @@ mod tests {
         let out =
             eval_with_base_fallback(RelationStore::new(), &transformed, &base, None, base_edb)
                 .expect("fallback must not error");
-        let FallbackOutcome::Decided(facts, status, _frontier) = out else {
+        let FallbackOutcome::Decided {
+            facts,
+            status,
+            demand_pruning_dropped,
+            ..
+        } = out
+        else {
             panic!("expected the base fallback to decide, got a declared gap");
         };
         assert_eq!(
             status,
             BudgetStatus::Ok,
             "the base fixpoint runs to its natural end"
+        );
+        // The base fallback fired: the demand pruning was dropped, and the caller must be
+        // told so it can downgrade the answer's preservation claim from `{exact}`.
+        assert!(
+            demand_pruning_dropped,
+            "a base-fallback decision must flag that demand pruning was dropped"
         );
         let keys: BTreeSet<_> = facts.iter().map(Fact::key).collect();
         // The base rule derived exactly derived(x, y) — proof the arm executed the BASE
@@ -1501,6 +2259,604 @@ mod tests {
                 FallbackOutcome::Unsupported(UnsupportedKind::NonStratifiable)
             ),
             "both transformed and base non-stratifiable ⇒ the genuine gap passes through"
+        );
+    }
+
+    // ── Stratified negation-as-failure (backward surface) ────────────────────────
+
+    /// The `unsupported` kind of a native outcome, or a panic if it decided.
+    fn unsupported_kind(outcome: NativeOutcome<AnswerSet>) -> UnsupportedKind {
+        match outcome {
+            NativeOutcome::Unsupported(k) => k,
+            NativeOutcome::Decided(a) => panic!("expected Unsupported, got Decided({a:?})"),
+        }
+    }
+
+    /// A small reachability world: edges a→b, b→c (so a reaches b and c, b reaches c), plus
+    /// a `node(v, v)` self-loop domain marker for a, b, c (a binary encoding of the vertex
+    /// set so the whole program stays on the binary backward path).
+    fn reachability_world() -> (WorldStore, String) {
+        make_world(&[
+            (
+                &format!("{BASE}a"),
+                &format!("{BASE}edge"),
+                &format!("{BASE}b"),
+            ),
+            (
+                &format!("{BASE}b"),
+                &format!("{BASE}edge"),
+                &format!("{BASE}c"),
+            ),
+            (
+                &format!("{BASE}a"),
+                &format!("{BASE}node"),
+                &format!("{BASE}a"),
+            ),
+            (
+                &format!("{BASE}b"),
+                &format!("{BASE}node"),
+                &format!("{BASE}b"),
+            ),
+            (
+                &format!("{BASE}c"),
+                &format!("{BASE}node"),
+                &format!("{BASE}c"),
+            ),
+        ])
+    }
+
+    // (a) A stratified-negation program whose BASE is stratifiable: the native core decides
+    // it with the correct hand-computed answer set. `reachable` is the transitive closure of
+    // `edge`; `unreachable(X, Y)` holds for domain vertices with no path X ⇝ Y.
+    #[test]
+    fn magic_stratified_negation_reachability_decides_correctly() {
+        let (store, world_nn) = reachability_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:reachable(X, Y) :- ex:edge(X, Y).\n\
+             ex:reachable(X, Y) :- ex:edge(X, Z), ex:reachable(Z, Y).\n\
+             ex:unreachable(X, Y) :- ex:node(X, X), ex:node(Y, Y), \\+ ex:reachable(X, Y).\n\
+             ?- ex:unreachable(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let native =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap());
+
+        // `a` reaches {b, c}; the domain is {a, b, c}; so `a` is unreachable only to `a`
+        // itself (no self-loop edge). The sole answer is Y = a.
+        let ys: Vec<&str> = native.bindings.iter().map(|b| b["Y"].as_str()).collect();
+        assert_eq!(
+            ys,
+            vec![format!("<{BASE}a>").as_str()],
+            "unreachable(a, Y) must be exactly {{a}}: {native:?}"
+        );
+        assert_eq!(native.status, BudgetStatus::Ok);
+        // The demand transform of THIS program stays stratifiable (`unreachable` negates
+        // `reachable`, which does not reach back), so the answer is fully demand-pruned and
+        // its preservation is `{exact}` — no base fallback, nothing dropped.
+        assert!(
+            native
+                .preservation
+                .polarities
+                .contains(&gmeow_logic_compile::ir::PreservationKind::Exact),
+            "a stratifiable-transform answer is exact: {:?}",
+            native.preservation
+        );
+    }
+
+    // (a, downgrade) A stratified-negation program whose BASE is stratifiable but whose
+    // DEMAND transform is NOT: a negated recursive IDB atom placed before its positive use
+    // puts a negative literal inside a magic (demand) rule, breaking the transform's
+    // stratification. `eval_with_base_fallback` recovers the SOUND answer from the base
+    // program (full materialization), and the answer's preservation is honestly downgraded
+    // from `{exact}` to `{complete-over}` to record that the demand pruning was dropped.
+    //
+    // `asym(X, Y)`: X reaches Y but Y does not reach X (asymmetric reachability). Over the
+    // chain a→b→c, `asym(a, Y)` = {b, c}. Correctness of this answer set is the primary
+    // assertion; the preservation downgrade is the honest re-stratify signal.
+    #[test]
+    fn magic_negation_transform_nonstratifiable_falls_back_correctly_and_downgrades() {
+        let (store, world_nn) = reachability_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:r(X, Y) :- ex:edge(X, Y).\n\
+             ex:r(X, Y) :- ex:edge(X, Z), ex:r(Z, Y).\n\
+             ex:asym(X, Y) :- ex:node(X, X), ex:node(Y, Y), \\+ ex:r(Y, X), ex:r(X, Y).\n\
+             ?- ex:asym(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let native =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap());
+
+        let mut ys: Vec<&str> = native.bindings.iter().map(|b| b["Y"].as_str()).collect();
+        ys.sort_unstable();
+        assert_eq!(
+            ys,
+            [format!("<{BASE}b>"), format!("<{BASE}c>")]
+                .iter()
+                .map(String::as_str)
+                .collect::<Vec<_>>(),
+            "asym(a, Y) must be exactly {{b, c}} (full-materialization ground truth): {native:?}"
+        );
+        assert_eq!(native.status, BudgetStatus::Ok);
+        // The transform was non-stratifiable ⇒ base fallback ⇒ demand pruning dropped ⇒ the
+        // preservation is downgraded from `{exact}` to the conservative `{complete-over}`.
+        assert_eq!(
+            native.preservation.polarities,
+            std::iter::once(gmeow_logic_compile::ir::PreservationKind::CompleteOver).collect(),
+            "a base-fallback answer downgrades to a single {{complete-over}} polarity: {:?}",
+            native.preservation
+        );
+        assert!(
+            !native
+                .preservation
+                .polarities
+                .contains(&gmeow_logic_compile::ir::PreservationKind::Exact),
+            "the downgraded claim must NOT still assert exact"
+        );
+    }
+
+    // (b) A genuinely non-stratifiable program (a negative cycle p ⇄ q at the BASE level,
+    // over binary atoms with the negated vars range-restricted by `e`): both the demand
+    // transform AND the base are non-stratifiable, so the native core declares the gap and
+    // dispatch routes it to the oracle.
+    #[test]
+    fn magic_negative_cycle_is_unsupported_nonstratifiable() {
+        let (store, world_nn) = make_world(&[(
+            &format!("{BASE}a"),
+            &format!("{BASE}e"),
+            &format!("{BASE}b"),
+        )]);
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(X, Y) :- ex:e(X, Y), \\+ ex:q(X, Y).\n\
+             ex:q(X, Y) :- ex:e(X, Y), \\+ ex:p(X, Y).\n\
+             ?- ex:p(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        assert_eq!(
+            unsupported_kind(
+                resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap()
+            ),
+            UnsupportedKind::NonStratifiable,
+            "a base negative cycle is a genuine non-stratifiable gap"
+        );
+    }
+
+    // (c) A floundering program: the negated atom carries a variable (`Z`) that no positive
+    // body atom binds, so it is still free when NAF fires. NAF over an unbound goal is
+    // unsound — the native core refuses it as a declared gap rather than answer wrongly.
+    #[test]
+    fn magic_floundering_negation_is_unsupported() {
+        let (store, world_nn) = make_world(&[(
+            &format!("{BASE}a"),
+            &format!("{BASE}e"),
+            &format!("{BASE}b"),
+        )]);
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(X, Y) :- ex:e(X, Y), \\+ ex:q(Y, Z).\n\
+             ?- ex:p(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        assert_eq!(
+            unsupported_kind(
+                resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap()
+            ),
+            UnsupportedKind::Floundering,
+            "an unbound variable under NAF flounders"
+        );
+    }
+
+    // Soundness under a negated atom whose variable is bound only by a LATER positive atom:
+    // `\+ q(X, Y)` precedes the recursive `r(X, Y)` that binds `Y`. The negated guard must
+    // NOT leak into `r`'s magic (demand) rule as existential NAF (`\+ q(X, _)`), which would
+    // wrongly prune `r(a, ·)` whenever `a` has ANY `q` edge and drop valid answers. The
+    // correct answer for the chain a→b→c is `p(a, Y) = {c}` (a↛directly-c but a⇝c).
+    #[test]
+    fn magic_negation_var_bound_by_later_atom_stays_sound() {
+        let (store, world_nn) = reachability_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:r(X, Y) :- ex:edge(X, Y).\n\
+             ex:r(X, Y) :- ex:edge(X, Z), ex:r(Z, Y).\n\
+             ex:q(X, Y) :- ex:edge(X, Y).\n\
+             ex:p(X, Y) :- ex:node(X, X), \\+ ex:q(X, Y), ex:r(X, Y).\n\
+             ?- ex:p(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let native =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap());
+        let ys: Vec<&str> = native.bindings.iter().map(|b| b["Y"].as_str()).collect();
+        assert_eq!(
+            ys,
+            vec![format!("<{BASE}c>").as_str()],
+            "p(a, Y) must be exactly {{c}} — the later-bound negated var must not under-demand \
+             r: {native:?}"
+        );
+    }
+
+    // The `not` keyword is an accepted synonym for `\+` on the query surface, decided
+    // identically by the native stratified core.
+    #[test]
+    fn magic_not_keyword_negation_decides_like_backslash_plus() {
+        let (store, world_nn) = reachability_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:reachable(X, Y) :- ex:edge(X, Y).\n\
+             ex:reachable(X, Y) :- ex:edge(X, Z), ex:reachable(Z, Y).\n\
+             ex:unreachable(X, Y) :- ex:node(X, X), ex:node(Y, Y), not ex:reachable(X, Y).\n\
+             ?- ex:unreachable(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let native =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap());
+        let ys: Vec<&str> = native.bindings.iter().map(|b| b["Y"].as_str()).collect();
+        assert_eq!(ys, vec![format!("<{BASE}a>").as_str()]);
+    }
+
+    // An n-ary (non-binary) program that also carries negation is an explicit, honest gap:
+    // stratified NAF lives only on the binary backward path, so the generic n-ary path
+    // refuses it to the oracle rather than silently dropping the negation.
+    #[test]
+    fn magic_nary_with_negation_is_unsupported() {
+        let (store, world_nn) = make_world(&[(
+            &format!("{BASE}a"),
+            &format!("{BASE}e"),
+            &format!("{BASE}b"),
+        )]);
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        // `t(X, Y, Z)` is arity 3 ⇒ the whole program routes to the generic n-ary path,
+        // which declares negation unsupported.
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(X, Y) :- ex:t(X, Y, Z), \\+ ex:q(X, Y).\n\
+             ?- ex:p(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        assert!(
+            matches!(
+                resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap(),
+                NativeOutcome::Unsupported(_)
+            ),
+            "n-ary + negation is a declared gap"
+        );
+    }
+
+    // ── Subsumptive demand keying: A/B byte-identity vs the variant transform ─────
+    //
+    // Tekle & Liu (SIGMOD 2011): subsumptive tabling keeps only the most-general demanded
+    // adornment per predicate and serves the more-specific calls from it. The perf win must
+    // be answer-preserving: the subsumptive transform's goal answer set is BYTE-IDENTICAL to
+    // the per-adornment (variant) transform's. `magic_transform_variant` is the retained
+    // reference; these tests are the load-bearing correctness gate for the collapse.
+
+    /// Lower a positive/negated-atom program to binary `EvalRule`s (no builtins) — the shared
+    /// setup for the A/B transform-parity tests.
+    fn eval_rules_of(prog: &QProgram) -> Vec<EvalRule> {
+        prog.rules
+            .iter()
+            .map(|r| {
+                let head = atom_of(&r.head).unwrap();
+                let body = r
+                    .body
+                    .iter()
+                    .filter_map(|l| match l {
+                        QBodyLit::Atom(a) => Some(atom_of(a).unwrap()),
+                        QBodyLit::Neg(a) => Some(EvalAtom {
+                            negated: true,
+                            ..atom_of(a).unwrap()
+                        }),
+                        _ => None,
+                    })
+                    .collect();
+                let rule_iri = format!("{}::rule", head.predicate.as_str());
+                EvalRule {
+                    head,
+                    body,
+                    rule_iri,
+                    distinct_pairs: vec![],
+                    builtins: vec![],
+                }
+            })
+            .collect()
+    }
+
+    /// Resolve `prog` through the given magic transform, returning the canonicalized goal
+    /// binding set — the A/B comparison surface. Evaluates the transformed program directly
+    /// (the stratifiable-transform corpus), so it never needs the base fallback.
+    fn answers_via(
+        transform: impl Fn(&[EvalRule], &EvalAtom, BindingPattern) -> MagicProgram,
+        foreign: &dyn ScryerForeign,
+        world: &str,
+        prog: &QProgram,
+    ) -> Vec<Binding> {
+        let rules = eval_rules_of(prog);
+        let goal = &prog.goal.atoms[0];
+        let goal_atom = atom_of(goal).unwrap();
+        let transformed = transform(&rules, &goal_atom, goal_adornment(goal));
+        let mut edb = extract_edb(foreign, world);
+        if let Some(seed) = &transformed.seed {
+            let f = seed_to_fact(seed).unwrap();
+            edb.insert(&f.predicate, f.subject, f.object);
+        }
+        let facts = match evaluate(edb, &transformed.rules, None).unwrap() {
+            NativeOutcome::Decided(b) => b.rows,
+            other => panic!("expected Decided, got {other:?}"),
+        };
+        let bindings = project_answers(&facts, goal, goal_atom.predicate.as_str());
+        let mut answer = AnswerSet {
+            bindings,
+            status: BudgetStatus::Ok,
+            preservation: crate::result::PreservationClaim::exact(),
+            frontier: crate::query_ir::CompletionFrontier::empty(),
+        };
+        answer.canonicalize();
+        answer.bindings
+    }
+
+    /// Assert the subsumptive transform produces the byte-identical goal answer set to the
+    /// variant transform for `prog`.
+    fn assert_ab_identical(foreign: &dyn ScryerForeign, world: &str, prog: &QProgram, label: &str) {
+        let variant = answers_via(magic_transform_variant, foreign, world, prog);
+        let subsumptive = answers_via(magic_transform, foreign, world, prog);
+        assert_eq!(
+            variant, subsumptive,
+            "A/B byte-identity failed on {label}: variant {variant:?} vs subsumptive {subsumptive:?}"
+        );
+    }
+
+    /// The distinct magic-predicate IRIs (`.../magic/...`) appearing in a transformed program
+    /// — the count of magic predicates actually MINTED.
+    fn minted_magic_preds(mp: &MagicProgram) -> BTreeSet<String> {
+        let mut preds = BTreeSet::new();
+        for r in &mp.rules {
+            for p in std::iter::once(&r.head).chain(r.body.iter()) {
+                if p.predicate.contains("/magic/") {
+                    preds.insert(p.predicate.clone());
+                }
+            }
+        }
+        preds
+    }
+
+    /// The multi-adornment program: `p` is demanded at BOTH `bf` (from `q`'s first rule and
+    /// `p(c, Y)` in the second) and `bb` (from `p(X, c)` in the second rule). `bf ⊑ bb`, so
+    /// the subsumptive collapse keeps only `magic_p_bf` and serves the `bb` demand from it.
+    fn multi_adornment_program() -> QProgram {
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(X, Y) :- ex:e(X, Y).\n\
+             ex:q(X, Y) :- ex:p(X, Y).\n\
+             ex:q(X, Y) :- ex:p(X, ex:c), ex:p(ex:c, Y).\n\
+             ?- ex:q(ex:a, W).\n"
+        );
+        parse_query_program(&src).unwrap()
+    }
+
+    /// The multi-adornment world: `e(a,b), e(a,c), e(c,d), e(b,z)`. The `e(b,z)` edge is the
+    /// LEAK TRAP: it is reachable only if the general `bf` demand's over-derived `p(a,b)` were
+    /// wrongly used in the `p(X, c)` (bb) join slot of `q`'s second rule.
+    fn multi_adornment_world() -> (WorldStore, String) {
+        make_world(&[
+            (
+                &format!("{BASE}a"),
+                &format!("{BASE}e"),
+                &format!("{BASE}b"),
+            ),
+            (
+                &format!("{BASE}a"),
+                &format!("{BASE}e"),
+                &format!("{BASE}c"),
+            ),
+            (
+                &format!("{BASE}c"),
+                &format!("{BASE}e"),
+                &format!("{BASE}d"),
+            ),
+            (
+                &format!("{BASE}b"),
+                &format!("{BASE}e"),
+                &format!("{BASE}z"),
+            ),
+        ])
+    }
+
+    // ── Test 1: byte-identity over the full existing corpus + the multi-adornment program ─
+
+    #[test]
+    fn magic_subsumptive_matches_variant_over_corpus() {
+        // Single-adornment corpus (subsumptive ≡ variant trivially — each predicate is
+        // demanded at ONE adornment, so nothing collapses) over the tc / reachability worlds.
+        let (tc_store, tc_w) = tc_world();
+        let tc = WorldStoreForeign::from_world(&tc_store, W, PROFILE).unwrap();
+        let bf = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:ancestor(X, Y) :- ex:parentOf(X, Y).\n\
+             ex:ancestor(X, Y) :- ex:parentOf(X, Z), ex:ancestor(Z, Y).\n\
+             ?- ex:ancestor(ex:a, Y).\n"
+        );
+        let bb = bf.replace("?- ex:ancestor(ex:a, Y).", "?- ex:ancestor(ex:a, ex:c).");
+        let fb = bf.replace("?- ex:ancestor(ex:a, Y).", "?- ex:ancestor(X, ex:d).");
+        let ff = bf.replace("?- ex:ancestor(ex:a, Y).", "?- ex:ancestor(X, Y).");
+        let nonrec = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:ancestorOf(X, Y) :- ex:parentOf(X, Y).\n\
+             ?- ex:ancestorOf(ex:a, Y).\n"
+        );
+        for (label, src) in [
+            ("tc-bf", &bf),
+            ("tc-bb", &bb),
+            ("tc-fb", &fb),
+            ("tc-ff", &ff),
+            ("non-recursive", &nonrec),
+        ] {
+            let prog = parse_query_program(src).unwrap();
+            assert_ab_identical(&tc, &tc_w, &prog, label);
+        }
+
+        // Stratified-negation corpus (transform stays stratifiable) over the reachability
+        // world: `unreachable` and the later-bound-negated-var soundness shape.
+        let (rw_store, rw_w) = reachability_world();
+        let rw = WorldStoreForeign::from_world(&rw_store, W, PROFILE).unwrap();
+        let unreachable = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:reachable(X, Y) :- ex:edge(X, Y).\n\
+             ex:reachable(X, Y) :- ex:edge(X, Z), ex:reachable(Z, Y).\n\
+             ex:unreachable(X, Y) :- ex:node(X, X), ex:node(Y, Y), \\+ ex:reachable(X, Y).\n\
+             ?- ex:unreachable(ex:a, Y).\n"
+        );
+        let later_bound = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:r(X, Y) :- ex:edge(X, Y).\n\
+             ex:r(X, Y) :- ex:edge(X, Z), ex:r(Z, Y).\n\
+             ex:q(X, Y) :- ex:edge(X, Y).\n\
+             ex:p(X, Y) :- ex:node(X, X), \\+ ex:q(X, Y), ex:r(X, Y).\n\
+             ?- ex:p(ex:a, Y).\n"
+        );
+        for (label, src) in [
+            ("unreachable", &unreachable),
+            ("later-bound-neg", &later_bound),
+        ] {
+            let prog = parse_query_program(src).unwrap();
+            assert_ab_identical(&rw, &rw_w, &prog, label);
+        }
+
+        // The multi-adornment program — where the collapse actually FIRES — must stay
+        // byte-identical too.
+        let (ma_store, ma_w) = multi_adornment_world();
+        let ma = WorldStoreForeign::from_world(&ma_store, W, PROFILE).unwrap();
+        assert_ab_identical(&ma, &ma_w, &multi_adornment_program(), "multi-adornment");
+    }
+
+    // ── Test 2: the collapse fires — strictly fewer magic predicates on multi-adornment ──
+
+    #[test]
+    fn magic_subsumptive_collapses_multi_adornment_demand() {
+        let (store, world_nn) = multi_adornment_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = multi_adornment_program();
+
+        // (a) Byte-identical goal answers: q(a, W) = {b, c, d}. The leak-trap `z` is absent.
+        let variant = answers_via(magic_transform_variant, &foreign, &world_nn, &prog);
+        let subsumptive = answers_via(magic_transform, &foreign, &world_nn, &prog);
+        assert_eq!(
+            variant, subsumptive,
+            "collapse must preserve the answer set"
+        );
+        let mut ws: Vec<&str> = subsumptive.iter().map(|b| b["W"].as_str()).collect();
+        ws.sort_unstable();
+        assert_eq!(
+            ws,
+            [
+                format!("<{BASE}b>"),
+                format!("<{BASE}c>"),
+                format!("<{BASE}d>")
+            ]
+            .iter()
+            .map(String::as_str)
+            .collect::<Vec<_>>(),
+            "q(a, W) must be exactly {{b, c, d}}: {subsumptive:?}"
+        );
+
+        // (b) Strictly fewer magic predicates minted than the variant transform.
+        let rules = eval_rules_of(&prog);
+        let goal_atom = atom_of(&prog.goal.atoms[0]).unwrap();
+        let adorn = goal_adornment(&prog.goal.atoms[0]);
+        let variant_mp = magic_transform_variant(&rules, &goal_atom, adorn);
+        let subsumptive_mp = magic_transform(&rules, &goal_atom, adorn);
+
+        let variant_preds = minted_magic_preds(&variant_mp);
+        let subsumptive_preds = minted_magic_preds(&subsumptive_mp);
+        assert!(
+            subsumptive_preds.len() < variant_preds.len(),
+            "subsumptive must mint strictly fewer magic predicates: subsumptive {subsumptive_preds:?} vs variant {variant_preds:?}"
+        );
+        // The variant mints `magic/p_bb`; the subsumptive folds it into `magic/p_bf` and mints
+        // NO `p_bb` table (the bb demand is served from the more-general bf table).
+        assert!(
+            variant_preds.iter().any(|p| p.ends_with("p_bb")),
+            "variant mints the separate p_bb table: {variant_preds:?}"
+        );
+        assert!(
+            !subsumptive_preds.iter().any(|p| p.ends_with("p_bb")),
+            "subsumptive must NOT mint p_bb (served by the general p_bf): {subsumptive_preds:?}"
+        );
+        assert!(
+            subsumptive_preds.iter().any(|p| p.ends_with("p_bf")),
+            "subsumptive keeps the most-general p_bf table: {subsumptive_preds:?}"
+        );
+    }
+
+    // ── Test 3: residual no-leak — the general demand over-derives, the answer stays exact ─
+
+    #[test]
+    fn magic_subsumptive_residual_no_leak() {
+        let (store, world_nn) = multi_adornment_world();
+        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let prog = multi_adornment_program();
+        let rules = eval_rules_of(&prog);
+        let goal_atom = atom_of(&prog.goal.atoms[0]).unwrap();
+        let adorn = goal_adornment(&prog.goal.atoms[0]);
+
+        // Evaluate the SUBSUMPTIVE transformed program and inspect the derived `p` facts.
+        let mp = magic_transform(&rules, &goal_atom, adorn);
+        let mut edb = extract_edb(&foreign, &world_nn);
+        if let Some(seed) = &mp.seed {
+            let f = seed_to_fact(seed).unwrap();
+            edb.insert(&f.predicate, f.subject, f.object);
+        }
+        let facts = match evaluate(edb, &mp.rules, None).unwrap() {
+            NativeOutcome::Decided(b) => b.rows,
+            other => panic!("expected Decided, got {other:?}"),
+        };
+        let p = format!("{BASE}p");
+        let derived_p: BTreeSet<(String, String)> = facts
+            .iter()
+            .filter(|f| f.predicate.as_str() == p)
+            .map(|f| (term_display(&f.subject), term_display(&f.object)))
+            .collect();
+
+        // The general `bf` demand for `p(a, _)` OVER-DERIVES: it materializes BOTH `p(a, b)`
+        // and `p(a, c)` (a superset of the `bb` request `p(a, c)`). This is the widened demand
+        // the collapse produces — the residual on the extra bound position is NOT enforced at
+        // the magic table.
+        assert!(
+            derived_p.contains(&(format!("<{BASE}a>"), format!("<{BASE}b>"))),
+            "the general bf demand over-derives p(a, b): {derived_p:?}"
+        );
+        assert!(
+            derived_p.contains(&(format!("<{BASE}a>"), format!("<{BASE}c>"))),
+            "the general bf demand derives the bb-requested p(a, c): {derived_p:?}"
+        );
+
+        // Despite the over-derivation, the goal answer is EXACT: the `p(X, ex:c)` (bb) body
+        // atom in q's second rule carries the constant `c`, so the over-derived `p(a, b)` is
+        // filtered out of the join — it can NEVER reach `p(c, Y)` and drag in the `e(b, z)`
+        // trap edge. The residual is discharged by the ORIGINAL body atom's own constant.
+        let answers = answers_via(magic_transform, &foreign, &world_nn, &prog);
+        let ws: BTreeSet<&str> = answers.iter().map(|b| b["W"].as_str()).collect();
+        assert!(
+            !ws.contains(format!("<{BASE}z>").as_str()),
+            "the over-derived p(a, b) must NOT leak the z trap into the answer: {answers:?}"
+        );
+        assert_eq!(
+            ws,
+            [
+                format!("<{BASE}b>"),
+                format!("<{BASE}c>"),
+                format!("<{BASE}d>")
+            ]
+            .iter()
+            .map(String::as_str)
+            .collect::<BTreeSet<_>>(),
+            "the specific request yields exactly the correct instances, no leak: {answers:?}"
         );
     }
 }

@@ -89,13 +89,19 @@ pub fn rank_language(lang: &str) -> (u8, String) {
 /// - More than one distinct value for either property → returns `Err`.
 ///
 /// Returns ``{internal_tag: bcp47_tag}``.
-pub fn load_tag_map(rdf_bytes: &[u8], format: &str) -> Result<HashMap<String, String>, String> {
+pub fn load_tag_map(
+    rdf_bytes: &[u8],
+    format: &str,
+) -> gmeow_errors::Result<HashMap<String, String>> {
     let media_type = media_type_for(format)?;
 
     // Parse straight into the gmeow-rdf IR via the native codecs: no oxigraph `io`
     // parser, and lenient private-use language tags by construction.
-    let dataset =
-        parse_dataset(rdf_bytes, media_type, None).map_err(|e| format!("RDF parse error: {e}"))?;
+    let dataset = parse_dataset(rdf_bytes, media_type, None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("RDF parse error: {e}"),
+        })
+    })?;
 
     build_tag_map(&dataset)
 }
@@ -106,7 +112,7 @@ pub fn load_tag_map(rdf_bytes: &[u8], format: &str) -> Result<HashMap<String, St
 /// ``lang:carrierTag``.
 ///
 /// Extracted for testability. Delegates to [`build_tag_map_for`].
-fn build_tag_map(dataset: &purrdf::RdfDataset) -> Result<HashMap<String, String>, String> {
+fn build_tag_map(dataset: &purrdf::RdfDataset) -> gmeow_errors::Result<HashMap<String, String>> {
     let lang_class = format!("{NAMESPACE}Language");
     let variety_class = format!("{LANG_NAMESPACE}LanguageVariety");
     build_tag_map_for(dataset, &[&lang_class, &variety_class])
@@ -125,7 +131,7 @@ fn build_tag_map(dataset: &purrdf::RdfDataset) -> Result<HashMap<String, String>
 fn build_tag_map_for(
     dataset: &purrdf::RdfDataset,
     classes: &[&str],
-) -> Result<HashMap<String, String>, String> {
+) -> gmeow_errors::Result<HashMap<String, String>> {
     let tag_prop = format!("{LANG_NAMESPACE}carrierTag");
     let bcp_prop = format!("{NAMESPACE}bcp47Tag");
 
@@ -181,16 +187,20 @@ fn build_tag_map_for(
             continue;
         }
         if int_vals.len() > 1 {
-            return Err(format!(
-                "individual <{subject}> has ambiguous carrierTag values: {int_vals:?}; \
-                 tag-map projection requires a single canonical value"
-            ));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::LanguageTag {
+                detail: format!(
+                    "individual <{subject}> has ambiguous carrierTag values: {int_vals:?}; \
+                     tag-map projection requires a single canonical value"
+                ),
+            }));
         }
         if bcp_vals.len() > 1 {
-            return Err(format!(
-                "individual <{subject}> has ambiguous bcp47Tag values: {bcp_vals:?}; \
-                 tag-map projection requires a single canonical value"
-            ));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::LanguageTag {
+                detail: format!(
+                    "individual <{subject}> has ambiguous bcp47Tag values: {bcp_vals:?}; \
+                     tag-map projection requires a single canonical value"
+                ),
+            }));
         }
         let int_val = int_vals.into_iter().next().unwrap();
         let bcp_val = bcp_vals.into_iter().next().unwrap();
@@ -201,11 +211,13 @@ fn build_tag_map_for(
         if let Some(existing) = tag_map.get(&int_val)
             && existing != &bcp_val
         {
-            return Err(format!(
-                "conflicting bcp47Tag for internal carrierTag {int_val:?}: \
+            return Err(gmeow_errors::Diag::of_kind(crate::error::LanguageTag {
+                detail: format!(
+                    "conflicting bcp47Tag for internal carrierTag {int_val:?}: \
                      {existing:?} vs {bcp_val:?}; the tag-map projection requires a \
                      single canonical bcp47Tag per internal tag"
-            ));
+                ),
+            }));
         }
         tag_map.insert(int_val, bcp_val);
     }
@@ -222,10 +234,13 @@ fn build_tag_map_for(
 pub fn load_inverse_tag_map(
     rdf_bytes: &[u8],
     format: &str,
-) -> Result<HashMap<String, String>, String> {
+) -> gmeow_errors::Result<HashMap<String, String>> {
     let media_type = media_type_for(format)?;
-    let dataset =
-        parse_dataset(rdf_bytes, media_type, None).map_err(|e| format!("RDF parse error: {e}"))?;
+    let dataset = parse_dataset(rdf_bytes, media_type, None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("RDF parse error: {e}"),
+        })
+    })?;
 
     let lang_class = format!("{NAMESPACE}Language");
     let variety_class = format!("{LANG_NAMESPACE}LanguageVariety");
@@ -659,7 +674,7 @@ pub fn retag_graph(
     rdf_bytes: &[u8],
     format: &str,
     tag_map: &HashMap<String, String>,
-) -> Result<Vec<u8>, String> {
+) -> gmeow_errors::Result<Vec<u8>> {
     rewrite_graph(rdf_bytes, format, |lit| retagged_literal(lit, tag_map))
 }
 
@@ -673,7 +688,7 @@ pub fn retag_graph_to_internal(
     rdf_bytes: &[u8],
     format: &str,
     inverse_map: &HashMap<String, String>,
-) -> Result<Vec<u8>, String> {
+) -> gmeow_errors::Result<Vec<u8>> {
     rewrite_graph(rdf_bytes, format, |lit| {
         let lang = lit.language.as_deref()?;
         if is_internal_tag(lang) {
@@ -693,13 +708,16 @@ pub fn retag_graph_to_internal(
 /// annotations) and quoted-triple terms are carried through — reifier statement
 /// objects are updated when the underlying quad's literal was rewritten, keeping
 /// the reifier's statement in sync with the base triple.
-fn rewrite_graph<F>(rdf_bytes: &[u8], format: &str, rewrite: F) -> Result<Vec<u8>, String>
+fn rewrite_graph<F>(rdf_bytes: &[u8], format: &str, rewrite: F) -> gmeow_errors::Result<Vec<u8>>
 where
     F: Fn(&purrdf::RdfLiteral) -> Option<purrdf::RdfLiteral>,
 {
     let media_type = media_type_for(format)?;
-    let dataset =
-        parse_dataset(rdf_bytes, media_type, None).map_err(|e| format!("RDF parse error: {e}"))?;
+    let dataset = parse_dataset(rdf_bytes, media_type, None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("RDF parse error: {e}"),
+        })
+    })?;
 
     // First pass: build the quad set and record which (subject, predicate, old_lit)
     // triples had their literal rewritten, so we can update matching reifier statements.
@@ -758,10 +776,13 @@ pub fn filter_graph(
     tag_map: &HashMap<String, String>,
     requested: &[String],
     predicates: &[String],
-) -> Result<Vec<u8>, String> {
+) -> gmeow_errors::Result<Vec<u8>> {
     let media_type = media_type_for(format)?;
-    let dataset =
-        parse_dataset(rdf_bytes, media_type, None).map_err(|e| format!("RDF parse error: {e}"))?;
+    let dataset = parse_dataset(rdf_bytes, media_type, None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("RDF parse error: {e}"),
+        })
+    })?;
 
     let target_preds: HashSet<&str> = predicates.iter().map(String::as_str).collect();
 
@@ -913,29 +934,37 @@ pub fn filter_graph(
 }
 
 /// Freeze `builder` and serialize the result to N-Triples bytes (default graph).
-fn serialize_ntriples(builder: purrdf::RdfDatasetBuilder) -> Result<Vec<u8>, String> {
-    let dataset = builder
-        .freeze()
-        .map_err(|e| format!("dataset freeze error: {e}"))?;
+fn serialize_ntriples(builder: purrdf::RdfDatasetBuilder) -> gmeow_errors::Result<Vec<u8>> {
+    let dataset = builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Serialize {
+            detail: format!("dataset freeze error: {e}"),
+        })
+    })?;
     purrdf::serialize_dataset(
         &dataset,
         "application/n-triples",
         purrdf::SerializeGraph::DefaultGraph,
     )
-    .map_err(|e| format!("RDF serialize error: {e}"))
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Serialize {
+            detail: format!("RDF serialize error: {e}"),
+        })
+    })
 }
 
 // ── helpers ─────────────────────────────────────────────────────────────────────
 
 /// Map a format string (legacy short ids or media types) to a native-codec media
 /// type understood by [`parse_dataset`].
-fn media_type_for(format: &str) -> Result<&'static str, String> {
+fn media_type_for(format: &str) -> gmeow_errors::Result<&'static str> {
     match format.to_ascii_lowercase().as_str() {
         "turtle" | "text/turtle" | "ttl" => Ok("text/turtle"),
         "n-triples" | "ntriples" | "nt" | "application/n-triples" => Ok("application/n-triples"),
         "n-quads" | "nquads" | "nq" | "application/n-quads" => Ok("application/n-quads"),
         "trig" | "application/trig" => Ok("application/trig"),
-        _ => Err(format!("unsupported RDF format: {format:?}")),
+        _ => Err(gmeow_errors::Diag::of_kind(crate::error::Format {
+            detail: format!("unsupported RDF format: {format:?}"),
+        })),
     }
 }
 
@@ -1033,7 +1062,12 @@ gmeow:EnglishAlt a gmeow:Language ;
     gmeow:bcp47Tag "en-GB" .
 "#;
         let err = load_tag_map(ttl.as_bytes(), "turtle").expect_err("conflict must error");
-        assert!(err.contains("conflicting bcp47Tag"), "{err}");
+        assert!(err.is::<crate::error::LanguageTag>());
+        assert!(
+            err.message().contains("conflicting bcp47Tag"),
+            "{}",
+            err.message()
+        );
     }
 
     #[test]
