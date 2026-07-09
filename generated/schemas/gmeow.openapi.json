@@ -152,28 +152,66 @@
             ]
           },
           "gmeow:adequacyUnderStandard": {
-            "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           },
           "gmeow:meetsThreshold": {
-            "$comment": "gmeow:AdequacyVerdict has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:AdequacyVerdict has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:AdequacyVerdict has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           }
         },
         "type": "object"
@@ -499,7 +537,10 @@
           }
         },
         "required": [
+          "gmeow:decidedLabel",
+          "gmeow:decisionCrossedThreshold",
           "gmeow:derivedByFunction",
+          "gmeow:observedFeature",
           "gmeow:vantage"
         ],
         "type": "object"
@@ -1119,18 +1160,43 @@
           "gmeow:appraisalScaleProfile": {
             "anyOf": [
               {
-                "$ref": "#/$defs/AffectScaleProfile"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/AffectScaleProfile"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/AffectScaleProfile"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           },
@@ -1165,6 +1231,7 @@
           }
         },
         "required": [
+          "gmeow:appraisalOf",
           "gmeow:vantage"
         ],
         "type": "object"
@@ -1193,18 +1260,43 @@
           "gmeow:samplePosition": {
             "anyOf": [
               {
-                "$ref": "#/$defs/NarrativePosition"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/NarrativePosition"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/NarrativePosition"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           },
@@ -1222,6 +1314,8 @@
           }
         },
         "required": [
+          "gmeow:sampleState",
+          "gmeow:sampleSubject",
           "gmeow:vantage"
         ],
         "type": "object"
@@ -1446,6 +1540,9 @@
             ]
           }
         },
+        "required": [
+          "gmeow:argumentConclusion"
+        ],
         "type": "object"
       },
       "ArgumentEvaluation": {
@@ -1470,23 +1567,9 @@
             ]
           },
           "gmeow:acceptanceStatus": {
-            "$comment": "gmeow:AcceptanceStatus has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
-          "gmeow:evaluatesArgument": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Argument"
-              },
-              {
+                "$comment": "gmeow:AcceptanceStatus has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -1496,11 +1579,72 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:AcceptanceStatus has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:evaluatesArgument": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Argument"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Argument"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
               }
             ]
           },
           "gmeow:underSemantics": {}
         },
+        "required": [
+          "gmeow:underSemantics"
+        ],
         "type": "object"
       },
       "Assessment": {
@@ -1527,9 +1671,50 @@
           "gmeow:assessmentCriterion": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Criterion"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Criterion"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Criterion"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:assessmentRubric": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:Rubric has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -1539,20 +1724,23 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:Rubric has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
             ]
-          },
-          "gmeow:assessmentRubric": {
-            "$comment": "gmeow:Rubric has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
           },
           "gmeow:assessmentScoreValue": {
             "anyOf": [
@@ -1586,6 +1774,8 @@
           }
         },
         "required": [
+          "gmeow:assessmentScoreValue",
+          "gmeow:assessmentTarget",
           "gmeow:vantage"
         ],
         "type": "object"
@@ -1722,23 +1912,9 @@
             ]
           },
           "gmeow:attackKind": {
-            "$comment": "gmeow:AttackKind has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
-          "gmeow:attackSource": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Argument"
-              },
-              {
+                "$comment": "gmeow:AttackKind has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -1748,11 +1924,72 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:AttackKind has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:attackSource": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Argument"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Argument"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
               }
             ]
           },
           "gmeow:attackTarget": {}
         },
+        "required": [
+          "gmeow:attackTarget"
+        ],
         "type": "object"
       },
       "Attestation": {
@@ -3815,23 +4052,51 @@
           "gmeow:cascadeFirstLink": {
             "anyOf": [
               {
-                "$ref": "#/$defs/CausalLink"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/CausalLink"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/CausalLink"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           },
           "gmeow:cascadeSeverity": {}
         },
+        "required": [
+          "gmeow:cascadeSeverity"
+        ],
         "type": "object"
       },
       "CausalLink": {
@@ -4086,6 +4351,11 @@
           "gmeow:spanEnd": {},
           "gmeow:spanStart": {}
         },
+        "required": [
+          "gmeow:chunkOf",
+          "gmeow:spanEnd",
+          "gmeow:spanStart"
+        ],
         "type": "object"
       },
       "CitationAct": {
@@ -4239,16 +4509,35 @@
             ]
           },
           "gmeow:evaluates": {
-            "$comment": "gmeow:ClaimToken has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:ClaimToken has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:ClaimToken has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           }
         },
         "type": "object"
@@ -4740,23 +5029,9 @@
             ]
           },
           "gmeow:observationResult": {
-            "$comment": "gmeow:Concept has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
-          "gmeow:observedFeature": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Entity"
-              },
-              {
+                "$comment": "gmeow:Concept has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -4766,6 +5041,64 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:Concept has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:observedFeature": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Entity"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Entity"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
               }
             ]
           },
@@ -4843,23 +5176,9 @@
             ]
           },
           "gmeow:conceptHoldsFor": {
-            "$comment": "gmeow:Concept has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
-          "gmeow:duringInterval": {
             "anyOf": [
               {
-                "$ref": "#/$defs/TimeInterval"
-              },
-              {
+                "$comment": "gmeow:Concept has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -4869,6 +5188,64 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:Concept has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:duringInterval": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/TimeInterval"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/TimeInterval"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
               }
             ]
           }
@@ -4956,6 +5333,8 @@
           }
         },
         "required": [
+          "gmeow:evaluatedCondition",
+          "gmeow:evaluationVerdict",
           "gmeow:vantage"
         ],
         "type": "object"
@@ -5029,7 +5408,8 @@
           "gmeow:groupOperator": {}
         },
         "required": [
-          "gmeow:groupMember"
+          "gmeow:groupMember",
+          "gmeow:groupOperator"
         ],
         "type": "object"
       },
@@ -5056,6 +5436,9 @@
           },
           "gmeow:parameterName": {}
         },
+        "required": [
+          "gmeow:parameterName"
+        ],
         "type": "object"
       },
       "ContactPoint": {
@@ -5438,23 +5821,9 @@
             ]
           },
           "gmeow:determinationForce": {
-            "$comment": "gmeow:DeterminationForce has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
-          "gmeow:determinationValidity": {
             "anyOf": [
               {
-                "$ref": "#/$defs/TimeInterval"
-              },
-              {
+                "$comment": "gmeow:DeterminationForce has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -5464,24 +5833,107 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:DeterminationForce has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:determinationValidity": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/TimeInterval"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/TimeInterval"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
               }
             ]
           },
           "gmeow:determiningAuthority": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Agent"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           }
@@ -5683,27 +6135,93 @@
           "gmeow:controlAgent": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Agent"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           },
           "gmeow:controlInterval": {
             "anyOf": [
               {
-                "$ref": "#/$defs/TimeInterval"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/TimeInterval"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/TimeInterval"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:controlLevel": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:ControlLevel has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -5713,20 +6231,23 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:ControlLevel has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
             ]
-          },
-          "gmeow:controlLevel": {
-            "$comment": "gmeow:ControlLevel has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
           }
         },
         "type": "object"
@@ -6087,6 +6608,10 @@
           "gmeow:correspondingSource": {},
           "gmeow:correspondingTarget": {}
         },
+        "required": [
+          "gmeow:correspondingSource",
+          "gmeow:correspondingTarget"
+        ],
         "type": "object"
       },
       "CreativeDerivation": {
@@ -6295,28 +6820,66 @@
             ]
           },
           "gmeow:penaltyPole": {
-            "$comment": "gmeow:CriterionPole has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:CriterionPole has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:CriterionPole has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           },
           "gmeow:rewardPole": {
-            "$comment": "gmeow:CriterionPole has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:CriterionPole has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:CriterionPole has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           }
         },
         "type": "object"
@@ -6381,7 +6944,6 @@
                     }
                   ]
                 },
-                "maxItems": 2,
                 "type": "array"
               }
             ]
@@ -6759,6 +7321,10 @@
           },
           "gmeow:dofWork": {}
         },
+        "required": [
+          "gmeow:dofParameter",
+          "gmeow:dofStatus"
+        ],
         "type": "object"
       },
       "DepictionUsage": {
@@ -7003,6 +7569,10 @@
           "gmeow:intentBearer": {},
           "gmeow:intentionGoal": {}
         },
+        "required": [
+          "gmeow:intentBearer",
+          "gmeow:intentionGoal"
+        ],
         "type": "object"
       },
       "Diastolic": {
@@ -7235,18 +7805,43 @@
           "gmeow:tenureSubjectAgent": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Agent"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           },
@@ -7296,18 +7891,43 @@
           "gmeow:tenureVantage": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Agent"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           }
@@ -7412,18 +8032,43 @@
           "gmeow:claimOfBelief": {
             "anyOf": [
               {
-                "$ref": "#/$defs/DoxasticState"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/DoxasticState"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/DoxasticState"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           },
@@ -7740,39 +8385,50 @@
           "gmeow:doxasticClaim": {
             "anyOf": [
               {
-                "$ref": "#/$defs/StandpointClaim"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/StandpointClaim"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/StandpointClaim"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           },
           "gmeow:doxasticContent": {
-            "$comment": "gmeow:Proposition has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
-          "gmeow:epistemicAgent": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Agent"
-              },
-              {
+                "$comment": "gmeow:Proposition has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -7782,6 +8438,64 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:Proposition has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:epistemicAgent": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
               }
             ]
           },
@@ -7917,36 +8631,86 @@
           "gmeow:duringInterval": {
             "anyOf": [
               {
-                "$ref": "#/$defs/TimeInterval"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/TimeInterval"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/TimeInterval"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           },
           "gmeow:tenureOfDoxasticState": {
             "anyOf": [
               {
-                "$ref": "#/$defs/DoxasticState"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/DoxasticState"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/DoxasticState"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           }
@@ -8080,6 +8844,9 @@
           },
           "gmeow:ruleAction": {}
         },
+        "required": [
+          "gmeow:ruleAction"
+        ],
         "type": "object"
       },
       "Embedding": {
@@ -8146,6 +8913,11 @@
             "type": "object"
           }
         },
+        "required": [
+          "gmeow:distanceMetric",
+          "gmeow:embeddingModel",
+          "gmeow:embeddingOf"
+        ],
         "type": "object"
       },
       "EmbodimentAssignment": {
@@ -8170,23 +8942,9 @@
             ]
           },
           "gmeow:assignmentCarrier": {
-            "$comment": "gmeow:EmbodimentCarrierRole has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
-          "gmeow:assignmentSubject": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Agent"
-              },
-              {
+                "$comment": "gmeow:EmbodimentCarrierRole has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -8196,6 +8954,64 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:EmbodimentCarrierRole has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:assignmentSubject": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
               }
             ]
           }
@@ -8236,6 +9052,7 @@
           }
         },
         "required": [
+          "gmeow:emotionBearer",
           "gmeow:emotionType"
         ],
         "type": "object"
@@ -8447,6 +9264,10 @@
             ]
           }
         },
+        "required": [
+          "gmeow:duringInterval",
+          "gmeow:existenceEntity"
+        ],
         "type": "object"
       },
       "EtymologicalDerivation": {
@@ -8892,6 +9713,12 @@
           "gmeow:citingEntity": {},
           "gmeow:exemplarPolarity": {}
         },
+        "required": [
+          "gmeow:citationIntent",
+          "gmeow:citedEntity",
+          "gmeow:citingEntity",
+          "gmeow:exemplarPolarity"
+        ],
         "type": "object"
       },
       "Expression": {
@@ -8997,6 +9824,10 @@
             "type": "object"
           }
         },
+        "required": [
+          "gmeow:relationshipSource",
+          "gmeow:relationshipTarget"
+        ],
         "type": "object"
       },
       "FeedPosting": {
@@ -9303,18 +10134,41 @@
             ]
           },
           "gmeow:findingSeverity": {
-            "$comment": "gmeow:DiagnosticSeverity has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:DiagnosticSeverity has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:DiagnosticSeverity has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           }
         },
+        "required": [
+          "gmeow:findingCode",
+          "gmeow:findingMessage"
+        ],
         "type": "object"
       },
       "GTSDocument": {
@@ -9383,16 +10237,35 @@
             ]
           },
           "gmeow:gtsProfile": {
-            "$comment": "gmeow:GTSProfile has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:GTSProfile has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:GTSProfile has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           },
           "gmeow:gtsSegmentIndex": {
             "anyOf": [
@@ -9414,6 +10287,10 @@
             ]
           }
         },
+        "required": [
+          "gmeow:gtsHeadId",
+          "gmeow:gtsSegmentIndex"
+        ],
         "type": "object"
       },
       "Gender": {
@@ -10021,6 +10898,11 @@
             ]
           }
         },
+        "required": [
+          "gmeow:facetSubject",
+          "gmeow:facetVantage",
+          "gmeow:genderValue"
+        ],
         "type": "object"
       },
       "GenerativeProcess": {
@@ -10069,6 +10951,7 @@
           }
         },
         "required": [
+          "gmeow:processKind",
           "gmeow:processRuleText"
         ],
         "type": "object"
@@ -10134,29 +11017,9 @@
           },
           "gmeow:gmnCompacts": {
             "anyOf": [
+              {},
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "minItems": 1,
                 "type": "array"
               }
@@ -10234,14 +11097,29 @@
             "anyOf": [
               {
                 "$comment": "external class https://blackcatinformatics.ca/logic/Correspondence",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
                   "$comment": "external class https://blackcatinformatics.ca/logic/Correspondence",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -10293,7 +11171,6 @@
                   ],
                   "type": "object"
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -10313,10 +11190,8 @@
           "gmeow:accordingTo",
           "gmeow:contentDigest",
           "gmeow:gmnDictionaryVersion",
-          "gmeow:gmnEnvelopeCorrespondence",
           "gmeow:gmnGlyphTableVersion",
           "gmeow:gmnSchemaVersion",
-          "gmeow:gmnSecurityRing",
           "gmeow:wasGeneratedBy"
         ],
         "type": "object"
@@ -10389,6 +11264,11 @@
           },
           "gmeow:grooveKind": {}
         },
+        "required": [
+          "gmeow:appliesToTimeFrame",
+          "gmeow:grooveGridUnit",
+          "gmeow:grooveKind"
+        ],
         "type": "object"
       },
       "Hazard": {
@@ -10441,14 +11321,13 @@
                   ],
                   "type": "object"
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
         "required": [
-          "gmeow:manifestedAsType"
+          "gmeow:hazardBearer"
         ],
         "type": "object"
       },
@@ -10823,40 +11702,97 @@
             ]
           },
           "gmeow:assessmentFromStage": {
-            "$comment": "gmeow:SubjectStage has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:SubjectStage has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:SubjectStage has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           },
           "gmeow:assessmentToStage": {
-            "$comment": "gmeow:SubjectStage has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:SubjectStage has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:SubjectStage has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           },
           "gmeow:continuityVerdict": {
-            "$comment": "gmeow:ContinuityVerdict has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:ContinuityVerdict has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:ContinuityVerdict has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           }
         },
         "type": "object"
@@ -11106,6 +12042,9 @@
             ]
           }
         },
+        "required": [
+          "gmeow:appliedRule"
+        ],
         "type": "object"
       },
       "InferenceCommitment": {
@@ -11132,18 +12071,43 @@
           "gmeow:conclusion": {
             "anyOf": [
               {
-                "$ref": "#/$defs/StandpointClaim"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/StandpointClaim"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/StandpointClaim"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           },
@@ -11188,54 +12152,129 @@
           "gmeow:configurationEmbodiment": {
             "anyOf": [
               {
-                "$ref": "#/$defs/EmbodimentAssignment"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/EmbodimentAssignment"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/EmbodimentAssignment"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           },
           "gmeow:configurationOfTenure": {
             "anyOf": [
               {
-                "$ref": "#/$defs/InhabitationTenure"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/InhabitationTenure"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/InhabitationTenure"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           },
           "gmeow:duringInterval": {
             "anyOf": [
               {
-                "$ref": "#/$defs/TimeInterval"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/TimeInterval"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/TimeInterval"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           }
@@ -11264,23 +12303,9 @@
             ]
           },
           "gmeow:inhabitationLocusKind": {
-            "$comment": "gmeow:InhabitationLocusKind has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
-          "gmeow:inhabitationSubject": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Agent"
-              },
-              {
+                "$comment": "gmeow:InhabitationLocusKind has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -11290,24 +12315,107 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:InhabitationLocusKind has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:inhabitationSubject": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
               }
             ]
           },
           "gmeow:inhabitedHost": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Entity"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Entity"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Entity"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           }
@@ -11872,6 +12980,10 @@
           "gmeow:tenureAgent": {},
           "gmeow:tenureIntention": {}
         },
+        "required": [
+          "gmeow:tenureAgent",
+          "gmeow:tenureIntention"
+        ],
         "type": "object"
       },
       "InterpersonalRelationship": {
@@ -12060,9 +13172,43 @@
           },
           "gmeow:journalEntryPostings": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Posting"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Posting"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
                 "type": "array"
               }
             ]
@@ -12234,39 +13380,50 @@
           "gmeow:attributedKnower": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Agent"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           },
           "gmeow:attributedProposition": {
-            "$comment": "gmeow:Proposition has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
-          "gmeow:attributingAgent": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Agent"
-              },
-              {
+                "$comment": "gmeow:Proposition has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -12276,6 +13433,64 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:Proposition has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:attributingAgent": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
               }
             ]
           }
@@ -12306,9 +13521,50 @@
           "gmeow:knowerAgent": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Agent"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:knownInWorld": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:EpistemicContext has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -12318,44 +13574,85 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:EpistemicContext has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
             ]
           },
-          "gmeow:knownInWorld": {
-            "$comment": "gmeow:EpistemicContext has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
           "gmeow:knownProposition": {
-            "$comment": "gmeow:Proposition has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:Proposition has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:Proposition has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           },
           "gmeow:underStandard": {
-            "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           }
         },
         "type": "object"
@@ -14025,7 +15322,8 @@
         },
         "required": [
           "gmeow:mergeBase",
-          "gmeow:mergeSource"
+          "gmeow:mergeSource",
+          "gmeow:mergeTarget"
         ],
         "type": "object"
       },
@@ -14222,6 +15520,11 @@
             ]
           }
         },
+        "required": [
+          "gmeow:assignedMeter",
+          "gmeow:assignmentSpan",
+          "gmeow:meterCarrier"
+        ],
         "type": "object"
       },
       "MetricGroup": {
@@ -14322,6 +15625,11 @@
             ]
           }
         },
+        "required": [
+          "gmeow:groupLengthDenominator",
+          "gmeow:groupLengthNumerator",
+          "gmeow:metricGroupOrder"
+        ],
         "type": "object"
       },
       "MetricModulation": {
@@ -14420,6 +15728,12 @@
             ]
           }
         },
+        "required": [
+          "gmeow:modulationFromFrame",
+          "gmeow:modulationToFrame",
+          "gmeow:pivotSourceValue",
+          "gmeow:pivotTargetValue"
+        ],
         "type": "object"
       },
       "MetricStructure": {
@@ -14692,23 +16006,9 @@
             ]
           },
           "gmeow:deploymentArtifact": {
-            "$comment": "gmeow:ModelArtifact has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
-          "gmeow:deploymentHost": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Entity"
-              },
-              {
+                "$comment": "gmeow:ModelArtifact has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -14718,24 +16018,107 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:ModelArtifact has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:deploymentHost": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Entity"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Entity"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
               }
             ]
           },
           "gmeow:deploymentService": {
             "anyOf": [
               {
-                "$ref": "#/$defs/SoftwareAgent"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/SoftwareAgent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SoftwareAgent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           }
@@ -14943,9 +16326,50 @@
           "gmeow:analysisFrame": {
             "anyOf": [
               {
-                "$ref": "#/$defs/ReferenceFrame"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ReferenceFrame"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/ReferenceFrame"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:analysisProperty": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:AnalysisProperty has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -14955,20 +16379,23 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:AnalysisProperty has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
             ]
-          },
-          "gmeow:analysisProperty": {
-            "$comment": "gmeow:AnalysisProperty has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
           },
           "gmeow:analysisResult": {
             "properties": {
@@ -15011,6 +16438,11 @@
             ]
           }
         },
+        "required": [
+          "gmeow:analysisResult",
+          "gmeow:analysisTarget",
+          "gmeow:vantage"
+        ],
         "type": "object"
       },
       "MusicalSegment": {
@@ -15037,6 +16469,9 @@
           "gmeow:segmentKind": {},
           "gmeow:segmentSpan": {}
         },
+        "required": [
+          "gmeow:segmentKind"
+        ],
         "type": "object"
       },
       "MusicalTimeFrame": {
@@ -15110,6 +16545,13 @@
             ]
           }
         },
+        "required": [
+          "gmeow:dimensionCount",
+          "gmeow:frameKind",
+          "gmeow:frameRealm",
+          "gmeow:hasAxis",
+          "gmeow:requiresHost"
+        ],
         "type": "object"
       },
       "MusicalTimeSpan": {
@@ -15228,6 +16670,13 @@
             ]
           }
         },
+        "required": [
+          "gmeow:hasMusicalTimeFrame",
+          "gmeow:timeDurationDenominator",
+          "gmeow:timeDurationNumerator",
+          "gmeow:timeStartDenominator",
+          "gmeow:timeStartNumerator"
+        ],
         "type": "object"
       },
       "Myth": {
@@ -15694,25 +17143,51 @@
           "gmeow:narrationSegment": {
             "anyOf": [
               {
-                "$ref": "#/$defs/ContentSegment"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ContentSegment"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/ContentSegment"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           },
           "gmeow:narrationSubject": {}
         },
         "required": [
-          "gmeow:narrationMode"
+          "gmeow:narrationMode",
+          "gmeow:narrationSubject"
         ],
         "type": "object"
       },
@@ -15897,6 +17372,10 @@
           },
           "gmeow:narrativeTimeAxis": {}
         },
+        "required": [
+          "gmeow:frameRealm",
+          "gmeow:narrativeTimeAxis"
+        ],
         "type": "object"
       },
       "NetworkAddress": {
@@ -29364,18 +30843,43 @@
           "gmeow:notationSystemOf": {
             "anyOf": [
               {
-                "$ref": "#/$defs/NotationSystem"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/NotationSystem"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/NotationSystem"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           },
@@ -29866,23 +31370,9 @@
             ]
           },
           "gmeow:opacityReason": {
-            "$comment": "gmeow:OpacityReason has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
-          "gmeow:opaqueFrameIn": {
             "anyOf": [
               {
-                "$ref": "#/$defs/GTSSegment"
-              },
-              {
+                "$comment": "gmeow:OpacityReason has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -29892,6 +31382,64 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:OpacityReason has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:opaqueFrameIn": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/GTSSegment"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/GTSSegment"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
               }
             ]
           }
@@ -30722,6 +32270,9 @@
           },
           "gmeow:ornamentReferenceFrame": {}
         },
+        "required": [
+          "gmeow:ornamentProfileKind"
+        ],
         "type": "object"
       },
       "ParentChildRelationship": {
@@ -30936,6 +32487,11 @@
             ]
           }
         },
+        "required": [
+          "gmeow:decisionConstraint",
+          "gmeow:decisionPerformance",
+          "gmeow:decisionSequence"
+        ],
         "type": "object"
       },
       "PerformanceParticipation": {
@@ -31012,6 +32568,11 @@
           },
           "gmeow:participationTechnique": {}
         },
+        "required": [
+          "gmeow:participationEvent",
+          "gmeow:participationParticipant",
+          "gmeow:participationRole"
+        ],
         "type": "object"
       },
       "Permission": {
@@ -31321,6 +32882,7 @@
           }
         },
         "required": [
+          "gmeow:personaBearer",
           "gmeow:personaRegister"
         ],
         "type": "object"
@@ -31477,15 +33039,11 @@
                     }
                   ]
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
-        "required": [
-          "gmeow:hasStage"
-        ],
         "type": "object"
       },
       "PipelineStage": {
@@ -31634,6 +33192,9 @@
             ]
           }
         },
+        "required": [
+          "gmeow:stageImpl"
+        ],
         "type": "object"
       },
       "PitchAnchor": {
@@ -31714,6 +33275,11 @@
             ]
           }
         },
+        "required": [
+          "gmeow:anchorDegree",
+          "gmeow:anchorFrequency",
+          "gmeow:pitchAnchorOf"
+        ],
         "type": "object"
       },
       "PitchCollection": {
@@ -31759,6 +33325,9 @@
           },
           "gmeow:derivedFromSpectrum": {}
         },
+        "required": [
+          "gmeow:collectionKind"
+        ],
         "type": "object"
       },
       "PitchCollectionMembership": {
@@ -31850,6 +33419,11 @@
             "type": "object"
           }
         },
+        "required": [
+          "gmeow:membershipCollection",
+          "gmeow:membershipPitch",
+          "gmeow:membershipRole"
+        ],
         "type": "object"
       },
       "PitchExpression": {
@@ -31958,6 +33532,9 @@
             ]
           }
         },
+        "required": [
+          "gmeow:hasTuningFrame"
+        ],
         "type": "object"
       },
       "PitchSpelling": {
@@ -32031,6 +33608,11 @@
             "type": "object"
           }
         },
+        "required": [
+          "gmeow:spelledName",
+          "gmeow:spellingPitch",
+          "gmeow:spellingSystem"
+        ],
         "type": "object"
       },
       "PitchTrajectory": {
@@ -32062,6 +33644,7 @@
           }
         },
         "required": [
+          "gmeow:interpolationKind",
           "gmeow:trajectoryControlPoint"
         ],
         "type": "object"
@@ -32182,6 +33765,14 @@
             ]
           }
         },
+        "required": [
+          "gmeow:controlPointOfTrajectory",
+          "gmeow:controlPointOrder",
+          "gmeow:controlPointPitch",
+          "gmeow:controlPointTimeFrame",
+          "gmeow:controlPointTimePositionDenominator",
+          "gmeow:controlPointTimePositionNumerator"
+        ],
         "type": "object"
       },
       "PitchValue": {
@@ -32252,6 +33843,9 @@
             ]
           }
         },
+        "required": [
+          "gmeow:hasTuningFrame"
+        ],
         "type": "object"
       },
       "Place": {
@@ -32665,6 +34259,9 @@
           },
           "gmeow:premiseUsed": {}
         },
+        "required": [
+          "gmeow:premiseUsed"
+        ],
         "type": "object"
       },
       "PrivacyNotice": {
@@ -32774,7 +34371,15 @@
                 "anyOf": [
                   {
                     "$comment": "external class http://www.w3.org/2002/07/owl#Class",
-                    "type": "string"
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   },
                   {
                     "properties": {
@@ -32794,7 +34399,15 @@
                   "anyOf": [
                     {
                       "$comment": "external class http://www.w3.org/2002/07/owl#Class",
-                      "type": "string"
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     },
                     {
                       "properties": {
@@ -33195,6 +34808,11 @@
           "gmeow:observedFeature": {},
           "gmeow:proximityTo": {}
         },
+        "required": [
+          "gmeow:observationResult",
+          "gmeow:observedFeature",
+          "gmeow:proximityTo"
+        ],
         "type": "object"
       },
       "Quality": {
@@ -34192,6 +35810,9 @@
             "type": "object"
           }
         },
+        "required": [
+          "gmeow:againstIndex"
+        ],
         "type": "object"
       },
       "RightsStatement": {
@@ -34244,6 +35865,11 @@
           "gmeow:narrativeRoleScope": {},
           "gmeow:narrativeRoleValue": {}
         },
+        "required": [
+          "gmeow:narrativeRoleBearer",
+          "gmeow:narrativeRoleScope",
+          "gmeow:narrativeRoleValue"
+        ],
         "type": "object"
       },
       "RomanticOrientation": {
@@ -34799,7 +36425,9 @@
           }
         },
         "required": [
-          "gmeow:anchorMeaning"
+          "gmeow:anchorMeaning",
+          "gmeow:anchorRangeMax",
+          "gmeow:anchorRangeMin"
         ],
         "type": "object"
       },
@@ -34882,6 +36510,10 @@
             ]
           }
         },
+        "required": [
+          "gmeow:scaleMax",
+          "gmeow:scaleMin"
+        ],
         "type": "object"
       },
       "ScriptLanguageAttribution": {
@@ -35093,6 +36725,11 @@
             ]
           }
         },
+        "required": [
+          "gmeow:transformationSource",
+          "gmeow:transformationTarget",
+          "gmeow:transformationType"
+        ],
         "type": "object"
       },
       "SensoryEnvironment": {
@@ -36669,18 +38306,43 @@
           "gmeow:standpointClaim": {
             "anyOf": [
               {
-                "$ref": "#/$defs/StandpointClaim"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/StandpointClaim"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/StandpointClaim"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           },
@@ -36706,6 +38368,9 @@
             "type": "object"
           }
         },
+        "required": [
+          "gmeow:tenureStandpoint"
+        ],
         "type": "object"
       },
       "Stream": {
@@ -36837,22 +38502,50 @@
           "gmeow:supportTarget": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Argument"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Argument"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Argument"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "gmeow:supportSource"
+        ],
         "type": "object"
       },
       "SupportAssessment": {
@@ -36877,16 +38570,35 @@
             ]
           },
           "gmeow:supportGround": {
-            "$comment": "gmeow:JustificationGround has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:JustificationGround has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:JustificationGround has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           },
           "gmeow:supportStrength": {
             "anyOf": [
@@ -36934,16 +38646,35 @@
             ]
           },
           "gmeow:supportUnderStandard": {
-            "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           }
         },
         "type": "object"
@@ -37168,7 +38899,6 @@
                     }
                   ]
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -37186,24 +38916,48 @@
           "gmeow:teacher": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Agent"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Agent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "type": "array"
               }
             ]
           }
         },
         "required": [
-          "gmeow:learner",
           "gmeow:subjectTaught"
         ],
         "type": "object"
@@ -37324,6 +39078,13 @@
           "gmeow:segmentTempoMapKind": {},
           "gmeow:tempoMapSegmentOf": {}
         },
+        "required": [
+          "gmeow:segmentMapRatioDenominator",
+          "gmeow:segmentMapRatioNumerator",
+          "gmeow:segmentSpan",
+          "gmeow:segmentTempoMapKind",
+          "gmeow:tempoMapSegmentOf"
+        ],
         "type": "object"
       },
       "TemporalFrame": {
@@ -37348,40 +39109,97 @@
             ]
           },
           "gmeow:frameKind": {
-            "$comment": "gmeow:FrameKind has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:FrameKind has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:FrameKind has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           },
           "gmeow:frameRealm": {
-            "$comment": "gmeow:FrameRealm has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:FrameRealm has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:FrameRealm has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           },
           "gmeow:frameTimeScale": {
-            "$comment": "gmeow:TimeScale has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "gmeow:TimeScale has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:TimeScale has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           }
         },
         "type": "object"
@@ -37552,6 +39370,11 @@
           "gmeow:mapsToFrame": {},
           "gmeow:timeMappingKind": {}
         },
+        "required": [
+          "gmeow:mapsFrame",
+          "gmeow:mapsToFrame",
+          "gmeow:timeMappingKind"
+        ],
         "type": "object"
       },
       "TimeZone": {
@@ -37670,61 +39493,9 @@
             ]
           },
           "gmeow:calledByInvocation": {
-            "$comment": "gmeow:ModelInvocation has no NodeShape; node reference only",
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
-          "gmeow:toolArguments": {
             "anyOf": [
               {
-                "properties": {
-                  "@type": {
-                    "type": "string"
-                  },
-                  "@value": {}
-                },
-                "required": [
-                  "@value"
-                ],
-                "type": "object"
-              },
-              {
-                "type": "string"
-              }
-            ]
-          },
-          "gmeow:toolResult": {
-            "anyOf": [
-              {
-                "properties": {
-                  "@type": {
-                    "type": "string"
-                  },
-                  "@value": {}
-                },
-                "required": [
-                  "@value"
-                ],
-                "type": "object"
-              },
-              {
-                "type": "string"
-              }
-            ]
-          },
-          "gmeow:usedTool": {
-            "anyOf": [
-              {
-                "$ref": "#/$defs/SoftwareAgent"
-              },
-              {
+                "$comment": "gmeow:ModelInvocation has no NodeShape; node reference only",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -37734,6 +39505,126 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "gmeow:ModelInvocation has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:toolArguments": {
+            "anyOf": [
+              {
+                "$comment": "external class http://www.w3.org/2000/01/rdf-schema#Literal",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class http://www.w3.org/2000/01/rdf-schema#Literal",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:toolResult": {
+            "anyOf": [
+              {
+                "$comment": "external class http://www.w3.org/2000/01/rdf-schema#Literal",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class http://www.w3.org/2000/01/rdf-schema#Literal",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:usedTool": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/SoftwareAgent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/SoftwareAgent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
               }
             ]
           }
@@ -37986,6 +39877,7 @@
           }
         },
         "required": [
+          "gmeow:constraintAppliesTo",
           "gmeow:constraintText"
         ],
         "type": "object"
@@ -38312,6 +40204,12 @@
           },
           "gmeow:tuningKind": {}
         },
+        "required": [
+          "gmeow:frameKind",
+          "gmeow:frameRealm",
+          "gmeow:requiresHost",
+          "gmeow:tuningKind"
+        ],
         "type": "object"
       },
       "UsageAttestation": {
@@ -38744,17 +40642,7 @@
               }
             ]
           },
-          "lang:demonstratedByCompetency": {
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
+          "lang:demonstratedByCompetency": {},
           "lang:demonstratedByExample": {
             "anyOf": [
               {
@@ -38793,17 +40681,7 @@
               }
             ]
           },
-          "lang:enforcesFailureClass": {
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
+          "lang:enforcesFailureClass": {},
           "lang:guardedByCounterExample": {
             "anyOf": [
               {
@@ -38824,6 +40702,12 @@
             ]
           }
         },
+        "required": [
+          "lang:demonstratedByCompetency",
+          "lang:demonstratedByExample",
+          "lang:enforcesFailureClass",
+          "lang:guardedByCounterExample"
+        ],
         "type": "object"
       },
       "lang:Form": {
@@ -38894,8 +40778,35 @@
             ]
           },
           "lang:inSignSystem": {
-            "$comment": "external class https://blackcatinformatics.ca/lang/SignSystem",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/lang/SignSystem",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/lang/SignSystem",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           }
         },
         "type": "object"
@@ -39068,29 +40979,68 @@
             ]
           },
           "lang:featureKey": {
-            "$comment": "external class https://blackcatinformatics.ca/lang/FeatureKey",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/lang/FeatureKey",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/lang/FeatureKey",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "lang:featureValue": {
             "anyOf": [
               {
                 "$comment": "external class https://blackcatinformatics.ca/lang/FeatureValue",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
                   "$comment": "external class https://blackcatinformatics.ca/lang/FeatureValue",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
-        "required": [
-          "lang:featureValue"
-        ],
         "type": "object"
       },
       "lang:Paraphrase": {
@@ -39115,8 +41065,35 @@
             ]
           },
           "lang:paraphraseSamenessKind": {
-            "$comment": "external class https://blackcatinformatics.ca/lang/ParaphraseSamenessKind",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/lang/ParaphraseSamenessKind",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/lang/ParaphraseSamenessKind",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           }
         },
         "type": "object"
@@ -39211,8 +41188,35 @@
             ]
           },
           "lang:renderingKind": {
-            "$comment": "external class https://blackcatinformatics.ca/lang/RenderingKind",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/lang/RenderingKind",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/lang/RenderingKind",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "lang:renderingPreservation": {
             "anyOf": [
@@ -39386,7 +41390,15 @@
                 "anyOf": [
                   {
                     "$comment": "external class https://blackcatinformatics.ca/lang/OffsetSpace",
-                    "type": "string"
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   },
                   {
                     "properties": {
@@ -39406,7 +41418,15 @@
                   "anyOf": [
                     {
                       "$comment": "external class https://blackcatinformatics.ca/lang/OffsetSpace",
-                      "type": "string"
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     },
                     {
                       "properties": {
@@ -39461,7 +41481,15 @@
             "anyOf": [
               {
                 "$comment": "external class https://blackcatinformatics.ca/lang/AnalysisLevel",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "properties": {
@@ -39510,7 +41538,15 @@
                 "anyOf": [
                   {
                     "$comment": "external class https://blackcatinformatics.ca/lang/TranslationMethod",
-                    "type": "string"
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   },
                   {
                     "properties": {
@@ -39530,7 +41566,15 @@
                   "anyOf": [
                     {
                       "$comment": "external class https://blackcatinformatics.ca/lang/TranslationMethod",
-                      "type": "string"
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     },
                     {
                       "properties": {
@@ -39778,25 +41822,73 @@
             ]
           },
           "logic:conjectureLifecycleState": {
-            "$comment": "external class https://blackcatinformatics.ca/logic/ConjectureLifecycleState",
-            "type": "string"
-          },
-          "logic:conjectureStandpoint": {
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/ConjectureLifecycleState",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/ConjectureLifecycleState",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           },
+          "logic:conjectureStandpoint": {},
           "logic:verdictProvenance": {
-            "$comment": "external class https://blackcatinformatics.ca/logic/VerdictProvenanceKind",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/VerdictProvenanceKind",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/VerdictProvenanceKind",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           }
         },
+        "required": [
+          "logic:conjectureFormula",
+          "logic:conjectureStandpoint"
+        ],
         "type": "object"
       },
       "logic:ContradictionWitness": {
@@ -39906,7 +41998,9 @@
           }
         },
         "required": [
-          "logic:witnessPremise"
+          "logic:witnessIndividual",
+          "logic:witnessPremise",
+          "logic:witnessWorld"
         ],
         "type": "object"
       },
@@ -40028,12 +42122,66 @@
             ]
           },
           "logic:candidateCategory": {
-            "$comment": "external class https://blackcatinformatics.ca/logic/FormalizationCategory",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/FormalizationCategory",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/FormalizationCategory",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "logic:candidateContract": {
-            "$comment": "external class https://blackcatinformatics.ca/logic/ReasoningContract",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/ReasoningContract",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/ReasoningContract",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "logic:candidateExtractionProvenance": {
             "anyOf": [
@@ -40056,12 +42204,66 @@
           },
           "logic:candidateFormalizes": {},
           "logic:candidateLifecycle": {
-            "$comment": "external class https://blackcatinformatics.ca/logic/CandidateLifecycleState",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/CandidateLifecycleState",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/CandidateLifecycleState",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "logic:candidateProjectionBehavior": {
-            "$comment": "external class https://blackcatinformatics.ca/logic/PreservationKind",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/PreservationKind",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/PreservationKind",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "logic:candidateScope": {
             "anyOf": [
@@ -40083,12 +42285,66 @@
             ]
           },
           "logic:candidateSemanticRisk": {
-            "$comment": "external class https://blackcatinformatics.ca/logic/SemanticRiskClass",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/SemanticRiskClass",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/SemanticRiskClass",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "logic:candidateSourceField": {
-            "$comment": "external class https://blackcatinformatics.ca/logic/ProseField",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/ProseField",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/ProseField",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "logic:candidateSourceHash": {
             "anyOf": [
@@ -40110,6 +42366,11 @@
             ]
           }
         },
+        "required": [
+          "logic:candidateExtractionProvenance",
+          "logic:candidateScope",
+          "logic:candidateSourceHash"
+        ],
         "type": "object"
       },
       "logic:FreshnessGuard": {
@@ -40194,6 +42455,9 @@
           },
           "logic:guardsPrecondition": {}
         },
+        "required": [
+          "logic:guardsPrecondition"
+        ],
         "type": "object"
       },
       "logic:FunctionalComplex": {
@@ -40304,34 +42568,138 @@
                     }
                   ]
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
           },
           "logic:feasibilityStatus": {
-            "$comment": "external class https://blackcatinformatics.ca/logic/FeasibilityStatus",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/FeasibilityStatus",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/FeasibilityStatus",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "logic:goalEvaluationStatus": {
-            "$comment": "external class https://blackcatinformatics.ca/logic/GoalEvaluationStatus",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/GoalEvaluationStatus",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/GoalEvaluationStatus",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "logic:lifecycleStatus": {
-            "$comment": "external class https://blackcatinformatics.ca/logic/LifecycleStatus",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/LifecycleStatus",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/LifecycleStatus",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "logic:objectiveValue": {},
           "logic:satisfactionDegree": {},
           "logic:satisfactionStatus": {
-            "$comment": "external class https://blackcatinformatics.ca/logic/SatisfactionStatus",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/SatisfactionStatus",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/SatisfactionStatus",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "logic:utility": {}
         },
-        "required": [
-          "logic:evaluatesGoal"
-        ],
         "type": "object"
       },
       "logic:McpActionSchema": {
@@ -40418,12 +42786,28 @@
             "anyOf": [
               {
                 "$comment": "external class https://blackcatinformatics.ca/logic/DischargeCondition",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
                   "$comment": "external class https://blackcatinformatics.ca/logic/DischargeCondition",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 "type": "array"
               }
@@ -40450,6 +42834,9 @@
             ]
           }
         },
+        "required": [
+          "logic:obligationForbiddenPredicate"
+        ],
         "type": "object"
       },
       "logic:NotificationWaitSchema": {
@@ -40513,9 +42900,50 @@
           "logic:planGoal": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Goal"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Goal"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/Goal"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "logic:planSuccessMode": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/logic/PlanSuccessMode",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -40525,12 +42953,23 @@
                   "@id"
                 ],
                 "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/PlanSuccessMode",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
               }
             ]
-          },
-          "logic:planSuccessMode": {
-            "$comment": "external class https://blackcatinformatics.ca/logic/PlanSuccessMode",
-            "type": "string"
           }
         },
         "type": "object"
@@ -40570,26 +43009,67 @@
             "anyOf": [
               {
                 "$comment": "external class https://blackcatinformatics.ca/math/Operation",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
                   "$comment": "external class https://blackcatinformatics.ca/math/Operation",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
           },
           "math:underlyingSet": {
-            "$comment": "external class https://blackcatinformatics.ca/math/Set",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/Set",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/Set",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           }
         },
         "required": [
-          "math:satisfiesAxiom",
-          "math:structureOperation"
+          "math:satisfiesAxiom"
         ],
         "type": "object"
       },
@@ -40616,6 +43096,9 @@
           },
           "math:operator": {}
         },
+        "required": [
+          "math:operator"
+        ],
         "type": "object"
       },
       "math:ApproximateValue": {
@@ -40640,8 +43123,35 @@
             ]
           },
           "math:approximates": {
-            "$comment": "external class https://blackcatinformatics.ca/math/Number",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/Number",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/Number",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "math:approximationError": {
             "anyOf": [
@@ -40680,17 +43190,7 @@
               }
             ]
           },
-          "math:slotExpression": {
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
+          "math:slotExpression": {},
           "math:slotIndex": {
             "anyOf": [
               {
@@ -40711,6 +43211,10 @@
             ]
           }
         },
+        "required": [
+          "math:slotExpression",
+          "math:slotIndex"
+        ],
         "type": "object"
       },
       "math:AutomorphismGroup": {
@@ -40736,29 +43240,9 @@
           },
           "math:automorphismGroupOf": {
             "anyOf": [
+              {},
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "minItems": 1,
                 "type": "array"
               }
@@ -40804,7 +43288,8 @@
           "math:boundVariable": {}
         },
         "required": [
-          "math:argumentSlot"
+          "math:argumentSlot",
+          "math:boundVariable"
         ],
         "type": "object"
       },
@@ -40833,6 +43318,11 @@
           "math:coordinateMap": {},
           "math:targetCoordinateSpace": {}
         },
+        "required": [
+          "math:chartDomain",
+          "math:coordinateMap",
+          "math:targetCoordinateSpace"
+        ],
         "type": "object"
       },
       "math:CompactSpace": {
@@ -40876,6 +43366,9 @@
             ]
           }
         },
+        "required": [
+          "math:isCompact"
+        ],
         "type": "object"
       },
       "math:Complement": {
@@ -40901,10 +43394,40 @@
           },
           "math:ambientSpace": {},
           "math:complementSemantics": {
-            "$comment": "external class https://blackcatinformatics.ca/math/ComplementSemantics",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/ComplementSemantics",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/ComplementSemantics",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           }
         },
+        "required": [
+          "math:ambientSpace"
+        ],
         "type": "object"
       },
       "math:ConnectedSpace": {
@@ -40948,6 +43471,9 @@
             ]
           }
         },
+        "required": [
+          "math:isConnected"
+        ],
         "type": "object"
       },
       "math:ContinuousMap": {
@@ -40991,6 +43517,9 @@
             ]
           }
         },
+        "required": [
+          "math:isContinuous"
+        ],
         "type": "object"
       },
       "math:Convergence": {
@@ -41015,8 +43544,35 @@
             ]
           },
           "math:convergenceMode": {
-            "$comment": "external class https://blackcatinformatics.ca/math/ConvergenceMode",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/ConvergenceMode",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/ConvergenceMode",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "math:convergesTo": {
             "anyOf": [
@@ -41055,17 +43611,7 @@
               }
             ]
           },
-          "math:derivativeOf": {
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
+          "math:derivativeOf": {},
           "math:derivativeOrder": {
             "anyOf": [
               {
@@ -41085,18 +43631,13 @@
               }
             ]
           },
-          "math:withRespectToVariable": {
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          }
+          "math:withRespectToVariable": {}
         },
+        "required": [
+          "math:derivativeOf",
+          "math:derivativeOrder",
+          "math:withRespectToVariable"
+        ],
         "type": "object"
       },
       "math:DerivedDimension": {
@@ -41124,22 +43665,34 @@
             "anyOf": [
               {
                 "$comment": "external class https://blackcatinformatics.ca/math/DimensionExponent",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
                   "$comment": "external class https://blackcatinformatics.ca/math/DimensionExponent",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
-        "required": [
-          "math:baseDimensionExponent"
-        ],
         "type": "object"
       },
       "math:DimensionExponent": {
@@ -41202,10 +43755,41 @@
             ]
           },
           "math:exponentOfDimension": {
-            "$comment": "external class https://blackcatinformatics.ca/math/BaseDimension",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/BaseDimension",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/BaseDimension",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           }
         },
+        "required": [
+          "math:exponentDenominator",
+          "math:exponentNumerator"
+        ],
         "type": "object"
       },
       "math:DimensionalExpression": {
@@ -41335,14 +43919,29 @@
             "anyOf": [
               {
                 "$comment": "external class https://blackcatinformatics.ca/math/DatasetMatrix",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
                   "$comment": "external class https://blackcatinformatics.ca/math/DatasetMatrix",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -41351,23 +43950,34 @@
             "anyOf": [
               {
                 "$comment": "external class https://blackcatinformatics.ca/math/ModelFormula",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
                   "$comment": "external class https://blackcatinformatics.ca/math/ModelFormula",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
-        "required": [
-          "math:fittedToData",
-          "math:modelFormula"
-        ],
         "type": "object"
       },
       "math:FlagshipScenario": {
@@ -41391,17 +44001,7 @@
               }
             ]
           },
-          "math:demonstratedByCompetency": {
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
+          "math:demonstratedByCompetency": {},
           "math:demonstratedByExample": {
             "anyOf": [
               {
@@ -41421,17 +44021,7 @@
               }
             ]
           },
-          "math:enforcesFailureClass": {
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
+          "math:enforcesFailureClass": {},
           "math:guardedByCounterExample": {
             "anyOf": [
               {
@@ -41452,6 +44042,12 @@
             ]
           }
         },
+        "required": [
+          "math:demonstratedByCompetency",
+          "math:demonstratedByExample",
+          "math:enforcesFailureClass",
+          "math:guardedByCounterExample"
+        ],
         "type": "object"
       },
       "math:FormalVerificationResult": {
@@ -41524,12 +44120,66 @@
             ]
           },
           "math:codomain": {
-            "$comment": "external class https://blackcatinformatics.ca/math/Set",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/Set",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/Set",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "math:domain": {
-            "$comment": "external class https://blackcatinformatics.ca/math/Set",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/Set",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/Set",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           }
         },
         "type": "object"
@@ -41556,12 +44206,66 @@
             ]
           },
           "math:inBasis": {
-            "$comment": "external class https://blackcatinformatics.ca/math/Basis",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/Basis",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/Basis",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "math:representsForm": {
-            "$comment": "external class https://blackcatinformatics.ca/math/SymmetricBilinearForm",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/SymmetricBilinearForm",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/SymmetricBilinearForm",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           }
         },
         "type": "object"
@@ -41591,14 +44295,29 @@
             "anyOf": [
               {
                 "$comment": "external class https://blackcatinformatics.ca/math/Operation",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
                   "$comment": "external class https://blackcatinformatics.ca/math/Operation",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -41617,23 +44336,36 @@
             "anyOf": [
               {
                 "$comment": "external class https://blackcatinformatics.ca/math/LatticeHardnessAssumption",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
                   "$comment": "external class https://blackcatinformatics.ca/math/LatticeHardnessAssumption",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
         "required": [
-          "math:homomorphicOver",
-          "math:noiseModel",
-          "math:securityAssumption"
+          "math:noiseModel"
         ],
         "type": "object"
       },
@@ -41660,7 +44392,18 @@
           },
           "math:preservationLaw": {
             "anyOf": [
+              {},
               {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "math:preservedOperation": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/Operation",
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -41673,6 +44416,7 @@
               },
               {
                 "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/Operation",
                   "properties": {
                     "@id": {
                       "type": "string"
@@ -41683,31 +44427,13 @@
                   ],
                   "type": "object"
                 },
-                "minItems": 1,
-                "type": "array"
-              }
-            ]
-          },
-          "math:preservedOperation": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/Operation",
-                "type": "string"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/Operation",
-                  "type": "string"
-                },
-                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
         "required": [
-          "math:preservationLaw",
-          "math:preservedOperation"
+          "math:preservationLaw"
         ],
         "type": "object"
       },
@@ -41780,14 +44506,29 @@
             "anyOf": [
               {
                 "$comment": "external class https://blackcatinformatics.ca/logic/Correspondence",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
                   "$comment": "external class https://blackcatinformatics.ca/logic/Correspondence",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -41806,7 +44547,6 @@
         "required": [
           "logic:instantiatesPlan",
           "logic:instantiatesSchema",
-          "math:ingestCorrespondence",
           "math:parseSource"
         ],
         "type": "object"
@@ -41833,15 +44573,72 @@
             ]
           },
           "math:integrand": {
-            "$comment": "external class https://blackcatinformatics.ca/math/MeasurableFunction",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/MeasurableFunction",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/MeasurableFunction",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "math:integrationDomain": {},
           "math:withRespectTo": {
-            "$comment": "external class https://blackcatinformatics.ca/math/Measure",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/Measure",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/Measure",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           }
         },
+        "required": [
+          "math:integrationDomain"
+        ],
         "type": "object"
       },
       "math:LieGroup": {
@@ -41869,22 +44666,34 @@
             "anyOf": [
               {
                 "$comment": "external class https://blackcatinformatics.ca/math/RootSystem",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
                   "$comment": "external class https://blackcatinformatics.ca/math/RootSystem",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
-        "required": [
-          "math:hasRootSystem"
-        ],
         "type": "object"
       },
       "math:Limit": {
@@ -41908,19 +44717,13 @@
               }
             ]
           },
-          "math:limitOf": {
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
+          "math:limitOf": {},
           "math:limitPoint": {}
         },
+        "required": [
+          "math:limitOf",
+          "math:limitPoint"
+        ],
         "type": "object"
       },
       "math:Manifold": {
@@ -41964,10 +44767,40 @@
             ]
           },
           "math:manifoldStructureKind": {
-            "$comment": "external class https://blackcatinformatics.ca/math/ManifoldStructureKind",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/ManifoldStructureKind",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/ManifoldStructureKind",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           }
         },
+        "required": [
+          "math:manifoldDimension"
+        ],
         "type": "object"
       },
       "math:MathematicalConstant": {
@@ -42045,11 +44878,41 @@
             ]
           },
           "math:measureOn": {
-            "$comment": "external class https://blackcatinformatics.ca/math/MeasurableSpace",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/MeasurableSpace",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/MeasurableSpace",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "math:totalMass": {}
         },
+        "required": [
+          "math:totalMass"
+        ],
         "type": "object"
       },
       "math:MetricSignature": {
@@ -42102,22 +44965,34 @@
             "anyOf": [
               {
                 "$comment": "external class https://blackcatinformatics.ca/math/ArgumentSlot",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
                   "$comment": "external class https://blackcatinformatics.ca/math/ArgumentSlot",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
-        "required": [
-          "math:argumentSlot"
-        ],
         "type": "object"
       },
       "math:Norm": {
@@ -42167,8 +45042,35 @@
             ]
           },
           "math:inNumberSystem": {
-            "$comment": "external class https://blackcatinformatics.ca/math/NumberSystem",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/NumberSystem",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/NumberSystem",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           }
         },
         "type": "object"
@@ -42194,18 +45096,11 @@
               }
             ]
           },
-          "math:definedByInnerProduct": {
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          }
+          "math:definedByInnerProduct": {}
         },
+        "required": [
+          "math:definedByInnerProduct"
+        ],
         "type": "object"
       },
       "math:PCAAnalysis": {
@@ -42264,8 +45159,35 @@
             ]
           },
           "math:centeringPolicy": {
-            "$comment": "external class https://blackcatinformatics.ca/math/CenteringPolicy",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/CenteringPolicy",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/CenteringPolicy",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "math:covarianceOperator": {
             "anyOf": [
@@ -42328,8 +45250,35 @@
             ]
           },
           "math:scalingPolicy": {
-            "$comment": "external class https://blackcatinformatics.ca/math/ScalingPolicy",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/ScalingPolicy",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/ScalingPolicy",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           },
           "math:scoreVector": {
             "anyOf": [
@@ -42467,8 +45416,35 @@
             ]
           },
           "math:hasDimension": {
-            "$comment": "external class https://blackcatinformatics.ca/math/Dimension",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/Dimension",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/Dimension",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           }
         },
         "type": "object"
@@ -42580,29 +45556,9 @@
           },
           "math:satisfiesDistributivity": {
             "anyOf": [
+              {},
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "minItems": 1,
                 "type": "array"
               }
@@ -42664,22 +45620,34 @@
             "anyOf": [
               {
                 "$comment": "external class https://blackcatinformatics.ca/math/Convergence",
-                "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
                   "$comment": "external class https://blackcatinformatics.ca/math/Convergence",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
-        "required": [
-          "math:hasConvergence"
-        ],
         "type": "object"
       },
       "math:Series": {
@@ -42707,21 +45675,6 @@
             "anyOf": [
               {
                 "$comment": "external class https://blackcatinformatics.ca/math/Convergence",
-                "type": "string"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/Convergence",
-                  "type": "string"
-                },
-                "minItems": 1,
-                "type": "array"
-              }
-            ]
-          },
-          "math:seriesTerm": {
-            "anyOf": [
-              {
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -42734,6 +45687,7 @@
               },
               {
                 "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/Convergence",
                   "properties": {
                     "@id": {
                       "type": "string"
@@ -42744,6 +45698,15 @@
                   ],
                   "type": "object"
                 },
+                "type": "array"
+              }
+            ]
+          },
+          "math:seriesTerm": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
                 "minItems": 1,
                 "type": "array"
               }
@@ -42751,7 +45714,6 @@
           }
         },
         "required": [
-          "math:hasConvergence",
           "math:seriesTerm"
         ],
         "type": "object"
@@ -42867,29 +45829,9 @@
           },
           "math:computationNode": {
             "anyOf": [
+              {},
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "minItems": 1,
                 "type": "array"
               }
@@ -42924,29 +45866,9 @@
           },
           "math:roleInTheory": {
             "anyOf": [
+              {},
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "minItems": 1,
                 "type": "array"
               }
@@ -42979,18 +45901,11 @@
               }
             ]
           },
-          "math:declaredVariable": {
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          }
+          "math:declaredVariable": {}
         },
+        "required": [
+          "math:declaredVariable"
+        ],
         "type": "object"
       },
       "math:WeightTensor": {
@@ -43015,8 +45930,35 @@
             ]
           },
           "math:inParameterSpace": {
-            "$comment": "external class https://blackcatinformatics.ca/math/ParameterSpace",
-            "type": "string"
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/ParameterSpace",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/ParameterSpace",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ]
           }
         },
         "type": "object"
@@ -46162,7 +49104,7 @@
   },
   "info": {
     "title": "PURRDF",
-    "version": "0.4.0"
+    "version": "0.4.1"
   },
   "openapi": "3.1.0",
   "paths": {

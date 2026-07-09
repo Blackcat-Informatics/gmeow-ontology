@@ -193,4 +193,4 @@ skip = "uv.lock,Cargo.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/cov
 # "ex falso quodlibet" — the principle of explosion — not a misspelling of
 # "false"), atMost (the SHACL sh:maxCount-analogue comparison predicate name
 # used in the procedural-constraint IR round-trip fixtures, not "at most").
-ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intensionally,intension,hendler,pease,vor,ans,notin,fof,ehr,sme,ore,lits,ot,covert,pres,falso,atmost"
+ignore-words-list = "lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intensionally,intension,hendler,pease,vor,ans,notin,fof,ehr,sme,ore,lits,ot,covert,pres,falso,atmost,deriver"
