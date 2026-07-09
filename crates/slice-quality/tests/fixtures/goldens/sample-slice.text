@@ -11,6 +11,7 @@ slice-quality: https://blackcatinformatics.ca/gmeow/slices/sample-slice
     axisMaximalProjection: Maximal (1.00)
     axisProseQuality: Maximal (1.00)
     axisProvenanceHonesty: Maximal (1.00)
+    axisFlagshipCounterExampleDepth: Maximal (1.00)
   ranked uplift advice (5):
     1. [slice-quality.linkage.no-calculus-eligible-correspondence] the slice authors no identity-strength correspondence (none, or only lossy closeMatch-class alignments the lens calculus cannot carry) — the correspondence-calculus adoption axis is not applicable (vacuous 1.0), not a full-adoption pass.
     2. [slice-quality.testing.no-cells] the slice ships no test cells or competency queries (SLICE_QA).

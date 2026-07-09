@@ -498,3 +498,51 @@ gmeow:enforcesFailureClass a owl:AnnotationProperty ;
     gmeow:useWhen "Use on a SHACL gate shape or a gmeow:FlagshipScenario to name the conformance-failure subclass it enforces, cross-referencing the machine-checked gate with the typed failure vocabulary."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating it as a reasoned axiom (it is an annotation) and avoid pointing it at a class that is not one of the owning slice's conformance-failure subclasses."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+# --- Counter-example discharge depth --------------------------------------- #
+# How a flagship scenario's GUARDING counter-example proves its gate bites: a
+# structural/SHACL well-formedness proxy (the floor today) or a reasoner-driven
+# counter-example whose malformed input the native solver runs to observe the
+# missing/failed entailment directly (the depth target — see
+# slices/grounding/logic/design/LOGIC-CONFORMANCE.md, Tests as ontology data).
+# The classification is an HONEST factual annotation authored per scenario; the
+# slice-quality flagship-counter-example-depth axis reads it to surface how many
+# counter-examples remain structural-only (Principle 17: SHACL is a lossy
+# projection of the canonical logic: core; Principle 18: the native solver is the
+# authoritative gate).
+
+gmeow:CounterExampleDischarge a owl:Class ;
+    rdfs:label "counter-example discharge"@x-gmeow-english ;
+    skos:definition "The value vocabulary classifying HOW a gmeow:FlagshipScenario's guarding counter-example discharges its guard-bites leg: by a structural/SHACL well-formedness proxy (gmeow:structuralDischarge) or by a reasoner-driven counter-example the native solver runs to observe the missing entailment (gmeow:reasonerDrivenDischarge). An open value vocabulary of individuals, never subclasses. It is NOT the counter-example path (that is gmeow:guardedByCounterExample) and NOT the enforced failure class (that is gmeow:enforcesFailureClass): it records the DEPTH at which the negative space is proven."@x-gmeow-english ;
+    skos:example "gmeow:structuralDischarge a gmeow:CounterExampleDischarge ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for gmeow:counterExampleDischarge — the honest classification of whether a flagship counter-example bites at the reasoning-runtime layer or only at the SHACL projection surface."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subclassing to add a discharge kind (mint an individual) and avoid asserting gmeow:reasonerDrivenDischarge for a counter-example the native solver is not actually run over — the marker must be truthful, never aspirational."@x-gmeow-english ;
+    gmeow:howToUse "Reference gmeow:structuralDischarge or gmeow:reasonerDrivenDischarge from a gmeow:FlagshipScenario through gmeow:counterExampleDischarge, classifying that scenario's guarding counter-example by the layer at which it proves the gate bites."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:counterExampleDischarge a owl:ObjectProperty ;
+    rdfs:domain gmeow:FlagshipScenario ;
+    rdfs:range gmeow:CounterExampleDischarge ;
+    rdfs:label "counter-example discharge"@x-gmeow-english ;
+    skos:definition "Classifies a gmeow:FlagshipScenario's guarding counter-example by the layer at which it proves the gate bites: gmeow:structuralDischarge when a structural/SHACL well-formedness shape stands in for the failure, or gmeow:reasonerDrivenDischarge when the native solver is run over the malformed input and observes the missing/failed entailment at reasoning-runtime. An HONEST per-scenario annotation — never asserted reasoner-driven for a counter-example the solver is not actually run over — read by the slice-quality flagship-counter-example-depth axis. It is NOT a gate itself: it records depth, and the depth target (Principle 17/18) is that every flagship counter-example become reasoner-driven."@x-gmeow-english ;
+    skos:example "exa:elRlDlClosure gmeow:counterExampleDischarge gmeow:structuralDischarge ."@x-gmeow-english ;
+    gmeow:useWhen "Use on every gmeow:FlagshipScenario to record, honestly, whether its guarding counter-example is discharged by a structural/SHACL proxy or by a reasoner-driven counter-example."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid marking a scenario gmeow:reasonerDrivenDischarge when its counter-example only trips a SHACL well-formedness shape (that is gmeow:structuralDischarge), and avoid omitting the marker — an unclassified counter-example is read as structural-only by the depth axis."@x-gmeow-english ;
+    gmeow:howToUse "Assert one gmeow:counterExampleDischarge per gmeow:FlagshipScenario pointing at gmeow:structuralDischarge or gmeow:reasonerDrivenDischarge; the flagship-counter-example-depth slice-quality axis scores the fraction reasoner-driven and advises on each structural-only scenario."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:structuralDischarge a gmeow:CounterExampleDischarge ;
+    rdfs:label "structural discharge"@x-gmeow-english ;
+    skos:definition "The floor: a flagship scenario's guarding counter-example proves its gate bites through a structural/SHACL well-formedness proxy — the malformed input trips a shape (a sh:minCount, a sh:sparql) that stands in for the failure class, rather than the native solver observing the missing entailment. It is NOT a defect but the current baseline; the depth target is gmeow:reasonerDrivenDischarge (Principle 17: the SHACL proxy is a lossy projection of the canonical logic: negative space)."@x-gmeow-english ;
+    skos:example "exa:elRlDlClosure gmeow:counterExampleDischarge gmeow:structuralDischarge ."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a counter-example that bites only at the SHACL projection surface — a structural well-formedness shape standing in for the failure the reasoner would otherwise observe."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for a counter-example the native solver is actually run over to observe the missing entailment (that is gmeow:reasonerDrivenDischarge)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:reasonerDrivenDischarge a gmeow:CounterExampleDischarge ;
+    rdfs:label "reasoner-driven discharge"@x-gmeow-english ;
+    skos:definition "The depth target: a flagship scenario's guarding counter-example proves its gate bites by driving the native solver (Principle 18) over the malformed input and observing the missing or failed entailment at reasoning-runtime — the closure genuinely fails to derive the atom the scenario demands — rather than resting on a structural/SHACL stand-in. It is NOT merely a SHACL shape firing (that is gmeow:structuralDischarge): the failure class is raised by the reasoner, in the canonical logic: core."@x-gmeow-english ;
+    skos:example "exa:someScenario gmeow:counterExampleDischarge gmeow:reasonerDrivenDischarge ."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a counter-example the native solver is actually run over, observing the missing/failed entailment that raises the scenario's failure class at reasoning-runtime."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it for a counter-example that only trips a structural/SHACL well-formedness shape (that is gmeow:structuralDischarge) — the marker must be truthful."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .

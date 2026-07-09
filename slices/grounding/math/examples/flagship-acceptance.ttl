@@ -39,7 +39,8 @@ exa:e8Symmetry a gmeow:FlagshipScenario ;
     gmeow:demonstratedByCompetency cq:cqE8RootSystem ;
     gmeow:demonstratedByProducer "math::producers::e8_weyl_order" ;
     gmeow:guardedByCounterExample "tests/counter-examples/e8-wrong-weyl-order.ttl" ;
-    gmeow:enforcesFailureClass math:WrongE8WeylOrder .
+    gmeow:enforcesFailureClass math:WrongE8WeylOrder ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 2 — how homomorphic encryption works ------------------------- #
 exa:homomorphicEncryption a gmeow:FlagshipScenario ;
@@ -49,7 +50,8 @@ exa:homomorphicEncryption a gmeow:FlagshipScenario ;
     gmeow:demonstratedByCompetency cq:cqHeSchemeFrame ;
     gmeow:demonstratedByProducer "math::producers::additive_he_demo" ;
     gmeow:guardedByCounterExample "tests/counter-examples/he-scheme-missing-noise-model.ttl" ;
-    gmeow:enforcesFailureClass math:UnderspecifiedEncryptionScheme .
+    gmeow:enforcesFailureClass math:UnderspecifiedEncryptionScheme ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 3 — complex proofs as process -------------------------------- #
 exa:proofAsProcess a gmeow:FlagshipScenario ;
@@ -59,7 +61,8 @@ exa:proofAsProcess a gmeow:FlagshipScenario ;
     gmeow:demonstratedByCompetency cq:cqBridgeProof ;
     gmeow:demonstratedByProducer "math::producers::proof_ingest" ;
     gmeow:guardedByCounterExample "tests/counter-examples/verification-result-ungrounded.ttl" ;
-    gmeow:enforcesFailureClass math:UngroundedVerificationResult .
+    gmeow:enforcesFailureClass math:UngroundedVerificationResult ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 4 — the universal R → math: bridge --------------------------- #
 exa:rBridge a gmeow:FlagshipScenario ;
@@ -69,7 +72,8 @@ exa:rBridge a gmeow:FlagshipScenario ;
     gmeow:demonstratedByCompetency cq:cqBridgeRFidelity ;
     gmeow:demonstratedByProducer "math::producers::r_bridge_lift" ;
     gmeow:guardedByCounterExample "tests/counter-examples/ingest-run-unliftable.ttl" ;
-    gmeow:enforcesFailureClass math:UnliftableIngest .
+    gmeow:enforcesFailureClass math:UnliftableIngest ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 5 — an AI describing its own structure ----------------------- #
 # The native producer math::producers::exact_pca_residual emits an AI's residual PCA — a
@@ -86,4 +90,5 @@ exa:aiSelfStructure a gmeow:FlagshipScenario ;
     gmeow:demonstratedByCompetency cq:cqPCAAnalysis ;
     gmeow:demonstratedByProducer "math::producers::exact_pca_residual" ;
     gmeow:guardedByCounterExample "tests/counter-examples/pca-analysis-missing-covariance.ttl" ;
-    gmeow:enforcesFailureClass math:IncompletePCAAnalysis .
+    gmeow:enforcesFailureClass math:IncompletePCAAnalysis ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
