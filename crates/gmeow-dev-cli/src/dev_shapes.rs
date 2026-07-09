@@ -33,6 +33,7 @@ use gmeow_logic_compile::ir::{
     ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShaclNodeKind, ShapeTarget,
     ValidationShapeIr,
 };
+use gmeow_logic_compile::projections::lift::{certify, lift};
 use gmeow_validate::shape_oracle::{OracleVerdict, ShapeRead, oracle, read_shacl_shape};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue, parse_dataset};
 
@@ -461,6 +462,78 @@ pub fn shape_equivalence(path: Option<&Path>) -> i32 {
     }
     // A clean scope is one where every remaining legacy shape is a proven-redundant projection.
     if ungrounded == 0 { 0 } else { 1 }
+}
+
+/// `gmeow-dev shape-lift [--path <dir>]` — the LIFT (the projector's Galois lower adjoint) as a
+/// migration review tool. For every legacy `shapes.ttl` shape in scope it proposes the OWL/RDFS
+/// axioms whose forward `derive_validation_shapes` would reproduce the shape, and CERTIFIES the
+/// proposal by re-deriving the shape from it (`lift` then `derive` re-attains the covered fragment
+/// — the `certify` round-trip). The proposal is human-review output that seeds the module.ttl
+/// grounding a `shape-equivalence` run then proves `EQUIV`; it is NEVER written to `slices/` (the
+/// canon, not a lift, is the authoring ground — Principle 4). The `residue` names the components no
+/// OWL antecedent can carry (a genuine ValidationOnly obligation to author in the `logic:` canon).
+///
+/// Exits non-zero when any proposal fails to certify (a lift that does not re-derive its own shape
+/// would be an unsound migration suggestion) or a shape cannot be read.
+pub fn shape_lift(path: Option<&Path>) -> i32 {
+    let root = project_root();
+    let scan_root = match path {
+        Some(p) if p.is_absolute() => p.to_path_buf(),
+        Some(p) => root.join(p),
+        None => root.join("slices"),
+    };
+    let mut legacy_files = Vec::new();
+    collect_legacy_shape_files(&scan_root, &mut legacy_files);
+
+    let mut total = 0usize;
+    let mut uncertified = 0usize;
+    let mut had_error = false;
+    for file in &legacy_files {
+        let ds = match parse_ttl_file(file) {
+            Ok(ds) => ds,
+            Err(_) => {
+                had_error = true;
+                continue;
+            }
+        };
+        let mut read_errors = Vec::new();
+        let legacy = shapes_by_target(&ds, &mut read_errors);
+        for e in &read_errors {
+            eprintln!(
+                "shape-lift: {}: legacy shape read error: {e}",
+                rel(&root, file)
+            );
+            had_error = true;
+        }
+        if legacy.is_empty() {
+            continue;
+        }
+        println!("{}", rel(&root, file));
+        for (iri, read) in legacy.values() {
+            total += 1;
+            let proposal = lift(&read.ir);
+            println!("  # {iri} — proposed OWL antecedent:");
+            for line in proposal.axioms_ttl.lines() {
+                println!("  {line}");
+            }
+            if !proposal.residue.is_empty() {
+                println!(
+                    "  # residue (no OWL antecedent — author in the logic: canon as ValidationOnly): {}",
+                    proposal.residue.join(", ")
+                );
+            }
+            if let Err(e) = certify(&read.ir) {
+                eprintln!(
+                    "shape-lift: {iri}: the lifted proposal does not re-derive the shape: {e}"
+                );
+                uncertified += 1;
+            }
+        }
+    }
+    println!(
+        "shape-lift: proposed OWL for {total} legacy shape(s); {uncertified} failed to certify."
+    );
+    if had_error || uncertified > 0 { 1 } else { 0 }
 }
 
 /// A path made relative to the repo root for display (best-effort).

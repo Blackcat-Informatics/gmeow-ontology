@@ -415,6 +415,14 @@ pub enum Commands {
         #[arg(long = "path")]
         path: Option<PathBuf>,
     },
+    /// Propose (and certify) the OWL antecedent that would ground each legacy `shapes.ttl` block.
+    #[command(name = "shape-lift")]
+    ShapeLift {
+        /// Restrict the scan (and the exit code) to legacy `shapes.ttl` under this directory
+        /// (repo-relative or absolute); default scans every slice.
+        #[arg(long = "path")]
+        path: Option<PathBuf>,
+    },
     /// Statically certify a logic program against its declared profile.
     Certify {
         input_path: PathBuf,
@@ -834,6 +842,7 @@ pub fn run() -> i32 {
             lang,
         } => dev_project::extract_docs(gts_file.as_deref(), &directory, force, lang.as_deref()),
         Commands::ShapeEquivalence { path } => dev_shapes::shape_equivalence(path.as_deref()),
+        Commands::ShapeLift { path } => dev_shapes::shape_lift(path.as_deref()),
         Commands::Certify {
             input_path,
             profile,
