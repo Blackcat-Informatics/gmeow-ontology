@@ -1,0 +1,171 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! The `math_producers` stage: fold the five `math:` flagship producers' output into the
+//! carrier (Design A).
+//!
+//! Each flagship-acceptance scenario in
+//! `slices/grounding/math/examples/flagship-acceptance.ttl` names a native producer entrypoint
+//! (`gmeow:demonstratedByProducer`). Those entrypoints are the five deterministic,
+//! exact-arithmetic functions in [`gmeow_math::producers`]; each returns a byte-deterministic
+//! RDF graph fragment (Turtle) built from constants + formatted exact integers/rationals.
+//!
+//! This stage RUNS all five and parses each producer's `.turtle` into its own named carrier
+//! graph ([`crate::stages::carrier::MATH_PRODUCER_GRAPHS`], in producer order). The snapshot
+//! presenter reads those graphs back via `producer_graph` and folds them into `gmeow.gts`, so
+//! the producer output ships in the bundle — the shippable deliverable, maximal dogfooding —
+//! rather than living only behind a test-side equality gate.
+//!
+//! The graph content comes ONLY from the producers: no hand-typed constant, no disk read, no
+//! clock, no randomness (the producers are pure), so the attached dataset is byte-deterministic.
+//! A producer/parse failure is a HARD FAIL — propagated, never swallowed (no-optionality).
+
+use std::collections::BTreeMap;
+use std::path::Path;
+
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::stages::carrier::{MATH_PRODUCER_GRAPHS, parse_into_graph};
+
+/// Run the five producers in the pinned [`MATH_PRODUCER_GRAPHS`] order and pair each with its
+/// target graph IRI. The order is the SINGLE source of the producer→graph mapping shared with
+/// the snapshot presenter (both index into `MATH_PRODUCER_GRAPHS`).
+fn producer_turtles() -> [(&'static str, String); 5] {
+    [
+        (
+            MATH_PRODUCER_GRAPHS[0],
+            gmeow_math::producers::e8_weyl_order().turtle,
+        ),
+        (
+            MATH_PRODUCER_GRAPHS[1],
+            gmeow_math::producers::additive_he_demo().turtle,
+        ),
+        (
+            MATH_PRODUCER_GRAPHS[2],
+            gmeow_math::producers::proof_ingest().turtle,
+        ),
+        (
+            MATH_PRODUCER_GRAPHS[3],
+            gmeow_math::producers::r_bridge_lift().turtle,
+        ),
+        (
+            MATH_PRODUCER_GRAPHS[4],
+            gmeow_math::producers::exact_pca_residual().turtle,
+        ),
+    ]
+}
+
+/// The `math_producers` pipeline stage — a leaf compute node. It consumes no upstream product
+/// (the producers are self-contained native functions) and attaches the five producer graphs to
+/// its carrier dataset.
+pub struct MathProducersStage {
+    consumes: Vec<String>,
+}
+
+impl MathProducersStage {
+    /// Construct the stage. It reads nothing upstream — the producers compute from pinned
+    /// in-code constants.
+    pub fn new() -> Self {
+        Self {
+            consumes: Vec::new(),
+        }
+    }
+}
+
+impl Default for MathProducersStage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Stage for MathProducersStage {
+    fn id(&self) -> &str {
+        "stage-math-producers"
+    }
+    fn consumes(&self) -> &[String] {
+        &self.consumes
+    }
+    fn impl_version(&self) -> &str {
+        // v1: fold the five math flagship producers' graphs into the carrier.
+        "math_producers.v1"
+    }
+    fn input_files(&self, _root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
+        // No source files: the producers are self-contained native functions whose bytes ride
+        // the workspace-source BUILD_FINGERPRINT (any code change to `crates/math` yields fresh
+        // cache keys), so there is nothing to declare here.
+        Ok(Vec::new())
+    }
+    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        // Parse each producer's deterministic Turtle into its own named carrier graph and union
+        // them into one frozen dataset the snapshot presenter folds into the bundle. The content
+        // is the producers' output ALONE — a parse failure hard-fails (propagated).
+        let turtles = producer_turtles();
+        let mut graphs: Vec<std::sync::Arc<purrdf::RdfDataset>> = Vec::with_capacity(turtles.len());
+        for (graph_iri, turtle) in &turtles {
+            graphs.push(parse_into_graph(
+                turtle.as_bytes(),
+                "text/turtle",
+                graph_iri,
+            )?);
+        }
+        let refs: Vec<&purrdf::RdfDataset> = graphs.iter().map(|g| g.as_ref()).collect();
+        let dataset = std::sync::Arc::new(purrdf::RdfDataset::union(&refs));
+        Ok(StageOutput::new(StageProduct::from_artifacts_over(
+            self.id(),
+            dataset,
+            BTreeMap::new(),
+        )))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The stage attaches EXACTLY the five producer graphs, each non-empty and carrying its
+    /// producer's pinned content — the proof the producer output reaches the carrier (and thence
+    /// `gmeow.gts`), not merely a test.
+    #[test]
+    fn run_attaches_the_five_producer_graphs() {
+        let stage = MathProducersStage::new();
+        let upstream = BTreeMap::new();
+        let out = stage
+            .run(StageInput {
+                root: Path::new("."),
+                upstream: &upstream,
+            })
+            .expect("math_producers stage runs");
+        let dataset = out.product.dataset();
+        for graph_iri in MATH_PRODUCER_GRAPHS {
+            let projected = dataset.project_named_graph(graph_iri);
+            assert!(
+                projected.quad_count() > 0,
+                "producer graph <{graph_iri}> must carry the producer's triples"
+            );
+        }
+    }
+
+    /// Determinism: two runs attach byte-identical carrier datasets (the producers are pure —
+    /// no clock, no RNG, no HashMap iteration order).
+    #[test]
+    fn run_is_deterministic() {
+        let stage = MathProducersStage::new();
+        let upstream = BTreeMap::new();
+        let a = stage
+            .run(StageInput {
+                root: Path::new("."),
+                upstream: &upstream,
+            })
+            .expect("run a");
+        let b = stage
+            .run(StageInput {
+                root: Path::new("."),
+                upstream: &upstream,
+            })
+            .expect("run b");
+        assert_eq!(
+            purrdf::canonical_flat_nquads(a.product.dataset()).expect("canon a"),
+            purrdf::canonical_flat_nquads(b.product.dataset()).expect("canon b"),
+            "the math-producers carrier dataset must be deterministic"
+        );
+    }
+}

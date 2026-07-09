@@ -4514,3 +4514,64 @@ gmeow:MediaTypeShape
         sh:severity sh:Violation ;
         sh:message "A subject carries at most one gmeow:mediaType (the functional contract)." ;
     ] .
+
+# =========================================================================== #
+# Flagship acceptance manifest — the shared depth-bar wiring shape.
+#
+# The single, slice-agnostic structural gate for gmeow:FlagshipScenario: every
+# flagship scenario (in any grounding slice's examples/flagship-acceptance.ttl,
+# validated against the data-graph shape union) binds exactly one worked example,
+# one competency question, one native producer, one counter-example, and one
+# enforcing failure class. The FAILURE-RANGE check (that the enforcing class is one
+# of the owning slice's conformance-failure subclasses) is a per-slice concern —
+# each grounding slice carries its own thin FlagshipScenarioShape with that
+# slice-namespaced sh:sparql. This shape carries only the shared cardinalities.
+# =========================================================================== #
+
+gmeow:FlagshipScenarioShape
+    a sh:NodeShape ;
+    rdfs:label "Flagship scenario wiring shape"@x-gmeow-english ;
+    skos:definition "The shared SHACL cardinality gate for gmeow:FlagshipScenario: it binds exactly one worked example (gmeow:demonstratedByExample), one competency question (gmeow:demonstratedByCompetency), one native producer (gmeow:demonstratedByProducer, REQUIRED), one counter-example (gmeow:guardedByCounterExample), and one enforcing failure class (gmeow:enforcesFailureClass). An acceptance scenario that does not wire all realizing artifacts to a failure class cannot claim the scenario is met (gmeow:UnwiredFlagshipScenario). The failure-range check — that the enforcing class is a slice-local conformance-failure subclass — is carried by each grounding slice's own thin FlagshipScenarioShape, not here."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario ;
+    sh:targetClass gmeow:FlagshipScenario ;
+    sh:property [
+        sh:path gmeow:demonstratedByExample ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:FlagshipScenario must name exactly one worked example through gmeow:demonstratedByExample (a slice-relative path); an acceptance scenario with no realizing example is unwired." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:demonstratedByCompetency ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:FlagshipScenario must name exactly one competency question through gmeow:demonstratedByCompetency (an IRI into tests/competency.ttl); an acceptance scenario with no pinning competency question is unwired." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:demonstratedByProducer ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:FlagshipScenario must name exactly one native producer through gmeow:demonstratedByProducer; the execution-discharge harness runs the named producer, so an acceptance bar with no producer is not discharged by execution." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:guardedByCounterExample ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:FlagshipScenario must name exactly one counter-example through gmeow:guardedByCounterExample (a slice-relative path); a rule with no negative fixture is not considered enforced." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:enforcesFailureClass ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:FlagshipScenario must name exactly one enforcing failure class through gmeow:enforcesFailureClass; an acceptance scenario whose gate raises no named failure is unwired." ;
+    ] .

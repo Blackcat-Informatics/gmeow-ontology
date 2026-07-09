@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example for the correspondenceSection flagship: a
+# logic:SectionAcceptanceWitness naming the section obligation its executed get/put
+# round-trip discharges (put ∘ get = identity). Satisfies
+# logic:SectionAcceptanceWitnessShape (sh:minCount 1 on
+# logic:dischargesSectionObligation), so it validates with no findings. Bound by
+# ex:ecSectionComplete and queried by ex:cqLogicSection.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/logic/> .
+
+ex:sectionWitness a logic:SectionAcceptanceWitness ;
+    logic:dischargesSectionObligation ex:sectionObligationRoundTrip .

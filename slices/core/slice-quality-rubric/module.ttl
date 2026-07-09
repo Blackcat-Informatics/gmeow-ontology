@@ -419,8 +419,17 @@ gmeow:qualityDimensionTranslationCoverage
     skos:definition "The data-quality dimension for translation coverage — the fraction of a slice's label and definition literals carrying audited translations, measured per language, with full coverage requiring English, French, and Mandarin."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:qualityDimensionCounterExampleDepth
+    a gmeow:QualityDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "counter-example depth"@x-gmeow-english ;
+    skos:definition "The data-quality dimension for flagship counter-example reasoner-depth — the fraction of a slice's gmeow:FlagshipScenario individuals whose guarding counter-example is reasoner-driven (the native solver observes the missing entailment at reasoning-runtime) rather than discharged by a structural/SHACL well-formedness proxy. It is NOT counter-example presence (that is the flagship wiring shape): it measures the DEPTH at which the negative space is proven (Principle 17/18)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 #################################################################
-# The nine quality axes (+ the provenance-honesty sub-dimension)
+# The quality axes (grounding, reasoner-derived, information, linkage, projection,
+# testing, documentation, prose, the provenance-honesty sub-dimension, translation,
+# and the advisory flagship-counter-example-depth axis)
 #################################################################
 
 gmeow:axisMaximalGrounding
@@ -654,6 +663,28 @@ gmeow:axisTranslationCoverage
         gmeow:thrTranslationMaximal ;
     gmeow:axisAdviceTemplate "Add audited French and Mandarin translations for every label and definition literal, recorded in the slice's i18n/fr.po and i18n/zh.po catalogs."@x-gmeow-english .
 
+gmeow:axisFlagshipCounterExampleDepth
+    a gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Flagship Counter-Example Depth"@x-gmeow-english ;
+    skos:definition "The axis for flagship counter-example reasoner-depth: the fraction of a slice's gmeow:FlagshipScenario individuals whose guarding counter-example is reasoner-driven (the native solver is run over the malformed input and observes the missing entailment at reasoning-runtime, marked gmeow:reasonerDrivenDischarge) rather than discharged by a structural/SHACL well-formedness proxy (gmeow:structuralDischarge). A slice with no flagship scenarios scores vacuously 1.0. It is ADVISORY — its tier floors are all 0.0, so it surfaces the depth opportunity without yet gating the ratchet. It is NOT the reasoner-derived axis (which measures axiom load-bearingness and disjointness clash), and it is NOT the flagship WIRING shape (which checks the counter-example is present): this axis measures how deep the counter-example bites (Principle 17: the SHACL proxy is a lossy projection of the canonical logic: negative space; Principle 18: the native solver is the authoritative gate)."@x-gmeow-english ;
+    skos:example "gmeow:axisFlagshipCounterExampleDepth gmeow:axisProducer \"flagship_counterexample_depth_axis\" ; gmeow:axisContextScope gmeow:scopeSliceLocal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading its 0.0 tier floors as score calibration — the floors are a not-yet-gated POLICY, while the score is an objective intrinsic fraction — and avoid conflating it with the reasoner-derived axis (that measures axiom load-bearingness and disjointness clash, not counter-example discharge depth)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox ;
+    gmeow:howToUse "The advisor reads each flagship scenario's gmeow:counterExampleDischarge marker, scores the fraction reasoner-driven, and names each structural-only counter-example as an uplift target toward a reasoner-driven counter-example."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure how many of a slice's flagship counter-examples drive the reasoner to the failure rather than tripping a structural/SHACL well-formedness shape."@x-gmeow-english ;
+    gmeow:axisProducer "flagship_counterexample_depth_axis" ;
+    gmeow:axisDimension gmeow:qualityDimensionCounterExampleDepth ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisWeight 0.5 ;
+    gmeow:axisThreshold gmeow:thrFlagshipDepthRegistered ,
+        gmeow:thrFlagshipDepthGrounded ,
+        gmeow:thrFlagshipDepthLinked ,
+        gmeow:thrFlagshipDepthExemplified ,
+        gmeow:thrFlagshipDepthMaximal ;
+    gmeow:axisAdviceTemplate "Raise each structural-only flagship counter-example to a reasoner-driven one: run the native solver over the malformed input so it observes the missing entailment at reasoning-runtime, then mark the scenario gmeow:reasonerDrivenDischarge (LOGIC-CONFORMANCE.md, Tests as ontology data; Principle 17/18)."@x-gmeow-english .
+
 #################################################################
 # The rubric Profile — one closed descriptor schema over Slice
 #################################################################
@@ -775,6 +806,17 @@ gmeow:thrTranslationGrounded a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://b
 gmeow:thrTranslationLinked a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "translation floor — Linked"@x-gmeow-english ; skos:definition "The translation-coverage-axis score floor to earn the Linked tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierLinked ; gmeow:thresholdFloor 0.75 .
 gmeow:thrTranslationExemplified a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "translation floor — Exemplified"@x-gmeow-english ; skos:definition "The translation-coverage-axis score floor to earn the Exemplified tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierExemplified ; gmeow:thresholdFloor 0.85 .
 gmeow:thrTranslationMaximal a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "translation floor — Maximal"@x-gmeow-english ; skos:definition "The translation-coverage-axis score floor to earn the Maximal tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierMaximal ; gmeow:thresholdFloor 0.95 .
+
+# The flagship-counter-example-depth floors are ALL 0.0 — an advisory, not-yet-gated
+# axis: it scores and advises but every tier is reachable at any score, so it never
+# caps the roll-up meet and cannot drop a slice's ratchet tier. The 0.0 floors are a
+# not-yet-gated POLICY, NOT score calibration (the score is an objective intrinsic
+# fraction); the axis surfaces the reasoner-depth opportunity without forcing the work.
+gmeow:thrFlagshipDepthRegistered a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "flagship-depth floor — Registered"@x-gmeow-english ; skos:definition "The flagship-counter-example-depth-axis score floor to earn the Registered tier — 0.0, the advisory-only not-yet-gated policy."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierRegistered ; gmeow:thresholdFloor 0.0 .
+gmeow:thrFlagshipDepthGrounded a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "flagship-depth floor — Grounded"@x-gmeow-english ; skos:definition "The flagship-counter-example-depth-axis score floor to earn the Grounded tier — 0.0, the advisory-only not-yet-gated policy."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierGrounded ; gmeow:thresholdFloor 0.0 .
+gmeow:thrFlagshipDepthLinked a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "flagship-depth floor — Linked"@x-gmeow-english ; skos:definition "The flagship-counter-example-depth-axis score floor to earn the Linked tier — 0.0, the advisory-only not-yet-gated policy."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierLinked ; gmeow:thresholdFloor 0.0 .
+gmeow:thrFlagshipDepthExemplified a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "flagship-depth floor — Exemplified"@x-gmeow-english ; skos:definition "The flagship-counter-example-depth-axis score floor to earn the Exemplified tier — 0.0, the advisory-only not-yet-gated policy."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierExemplified ; gmeow:thresholdFloor 0.0 .
+gmeow:thrFlagshipDepthMaximal a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "flagship-depth floor — Maximal"@x-gmeow-english ; skos:definition "The flagship-counter-example-depth-axis score floor to earn the Maximal tier — 0.0, the advisory-only not-yet-gated policy."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierMaximal ; gmeow:thresholdFloor 0.0 .
 
 #################################################################
 # Ontology node

@@ -12,10 +12,7 @@
 use gmeow_slicetest::flagship::assert_flagship_manifest;
 use gmeow_slicetest::paths::slices_root;
 
-/// The math layer namespace the manifest's scenarios and properties live under.
-const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
-
-/// The five canonical flagship-scenario IRIs the epic's depth bar requires.
+/// The five canonical flagship-scenario IRIs the depth bar requires.
 const CANONICAL: [&str; 5] = [
     "https://blackcatinformatics.ca/gmeow/examples/math/acceptance/e8Symmetry",
     "https://blackcatinformatics.ca/gmeow/examples/math/acceptance/homomorphicEncryption",
@@ -27,5 +24,5 @@ const CANONICAL: [&str; 5] = [
 #[test]
 fn every_flagship_scenario_is_wired_to_a_green_competency_and_real_artifacts() {
     let slice = slices_root().join("grounding").join("math");
-    assert_flagship_manifest(&slice, MATH_NS, &CANONICAL);
+    assert_flagship_manifest(&slice, &CANONICAL);
 }

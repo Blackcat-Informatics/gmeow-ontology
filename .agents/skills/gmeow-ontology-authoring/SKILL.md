@@ -48,6 +48,27 @@ resources in the current slices-first, Rust-native repository.
      and `gmeow:ProjectionMapping` frontend honestly so it can lower to
      `logic:Correspondence` with the right relation, direction, loss, law, and
      preservation claims.
+5. **Reasoner-driven flagship counter-examples (Principle 17/18)**:
+   - When authoring or improving a slice's flagship acceptance scenarios
+     (`gmeow:FlagshipScenario`), drive each guarding counter-example to the
+     reasoner: the malformed input should make the native solver observe the
+     missing or failed entailment at reasoning-runtime, raising the scenario's
+     named failure class — not merely trip a structural/SHACL well-formedness
+     shape. Because SHACL is a lossy projection of the canonical `logic:` core
+     (Principle 17), a counter-example that bites only at the projection surface
+     leaves the negative space unproven; run it through the native solver
+     (Principle 18) so the failure is raised in the core.
+   - The structural/SHACL proxy is the floor; the reasoner-driven counter-example
+     is the depth target. Mark each scenario honestly with
+     `gmeow:counterExampleDischarge` (`gmeow:structuralDischarge` today,
+     `gmeow:reasonerDrivenDischarge` once the solver is actually run over the
+     counter-example) — never assert reasoner-driven for a counter-example the
+     solver is not run over. The `flagship_counterexample_depth` slice-quality
+     axis reads that marker and surfaces which counter-examples remain
+     structural-only.
+   - See
+     [`slices/grounding/logic/design/LOGIC-CONFORMANCE.md`](../../../slices/grounding/logic/design/LOGIC-CONFORMANCE.md)
+     (Tests as ontology data) for the counter-example depth expectation.
 
 ## Actionable Instructions
 

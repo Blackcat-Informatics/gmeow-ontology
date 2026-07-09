@@ -200,6 +200,23 @@ pub(crate) const CORRESPONDENCE_LAWS_PATH: &str = "generated/logic/gmeow.corresp
 /// as a named graph in the emitted bundle (never a committed-file reconstruction rep).
 pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
     "https://blackcatinformatics.ca/gmeow/graph/authored-default";
+
+/// The five `math:` flagship producer graphs, one per native producer entrypoint. The
+/// `stage-math-producers` stage RUNS each `gmeow_math::producers::*` function and parses its
+/// deterministic `.turtle` into the matching named graph here; the snapshot presenter reads
+/// each back via `producer_graph` and folds it into `gmeow.gts` (Design A — the producer
+/// output ships in the bundle, the shippable deliverable). Bundle-internal, like the `lang:`
+/// corpus graphs: excluded from the reasoned object-level EDB (`gts_compose` folds only the
+/// default graph) and NOT a `generated/` file, so they map to no committed path — the superset
+/// gate's orphan sweep only considers `graph/fanout/…` / `graph/projections/…` reps. The array
+/// order pins the producer→graph pairing shared by the stage and the presenter.
+pub(crate) const MATH_PRODUCER_GRAPHS: [&str; 5] = [
+    "https://blackcatinformatics.ca/gmeow/graph/math-producers/e8-weyl",
+    "https://blackcatinformatics.ca/gmeow/graph/math-producers/additive-he",
+    "https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-ingest",
+    "https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge",
+    "https://blackcatinformatics.ca/gmeow/graph/math-producers/pca-residual",
+];
 const REP_SHACL_SARIF: &str = "gmeow:report/shacl/sarif";
 const REP_SHACL_FINDINGS: &str = "gmeow:report/shacl/findings";
 
@@ -781,6 +798,15 @@ fn assemble_carrier(
         quality_assessment,
         quality_assessment_fanout,
     ];
+    // graph/math-producers/<name> — the five `math:` flagship producers' deterministic RDF
+    // graphs, each read off the `stage-math-producers` product's attached named graph (a pure
+    // keyed fold, PIPELINE_SPINE §4) and folded into gmeow.gts (Design A — the producer output
+    // ships in the bundle). Bundle-internal, like the `lang:` corpus graphs: they carry no
+    // committed `generated/` file, so they map to no reconstruction rep (no orphan) and stay
+    // OUT of the reasoned EDB (`gts_compose` folds only the default graph).
+    for graph_iri in MATH_PRODUCER_GRAPHS {
+        datasets.push(producer_graph(upstream, "stage-math-producers", graph_iri)?);
+    }
     datasets.extend(compile_logic_object_graphs(upstream)?);
     datasets.push(rooted_in_graph(
         &reason.bundle().dataset().project_named_graph(reasoning_iri),
@@ -2559,6 +2585,9 @@ impl SnapshotStage {
                 // The mappings product carries the FINAL projection-report loss ledger
                 // (logic rows ∪ correspondence rows), folded into graph/projection-ledger.
                 "stage-mappings".to_string(),
+                // The five math flagship producer graphs, folded into gmeow.gts as their own
+                // bundle-internal named graphs (Design A — the producer output ships).
+                "stage-math-producers".to_string(),
                 // The SHACL→JSON-Schema export leaf: its in-memory product
                 // carries THIS run's freshly-emitted gmeow.schema.json / .openapi.json
                 // bytes, which `build_archive_blobs` folds into the `schemas-archive`
@@ -2650,7 +2679,9 @@ impl Stage for SnapshotStage {
         // built concurrently with the ontology-docs site render so the PDF compile overlaps
         // the per-language renders; the print blob additionally consumes stage-export-references
         // for the bibliography.
-        "snapshot.v21-docs-book-and-print-blobs"
+        // v22 additionally consumes stage-math-producers and folds its five math flagship
+        // producer graphs into gmeow.gts as bundle-internal named graphs (Design A).
+        "snapshot.v22-math-producer-graphs-and-docs-blobs"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
