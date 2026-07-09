@@ -228,3 +228,8 @@ DOCTRINE.
     skos:definition "The GMEOW Learning Module — learning as PROCESS: gmeow:LearningEvent, the occurrent that transitions an agent along the cognition knowledge spectrum or the expertise proficiency scale, together with the gmeow:LearningEventType value vocabulary for its varieties, the gmeow:Teaching relator, and the provenance / trajectory / product relations that tie an event to what it was learned from and the state it raised."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+<https://blackcatinformatics.ca/gmeow/Teaching> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/subjectTaught> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Teaching> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/teacher> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .

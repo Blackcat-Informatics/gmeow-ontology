@@ -1001,3 +1001,6 @@ DOCTRINE.
     skos:definition "The GMEOW Diagnostics Module — gmeow:Finding as a specialization of gmeow:Observation: a validation, lint, or reasoning diagnostic modelled as a reified observation about an RDF statement, with the tool as gmeow:vantage, the offending statement (located by GTS wire coordinates) as gmeow:observedFeature, and a gmeow:DiagnosticSeverity verdict as gmeow:observationResult. The gmeow: RDF projection of the Rust-owned Finding/Report engine model."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/glutWitnessOf> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Finding> ] .

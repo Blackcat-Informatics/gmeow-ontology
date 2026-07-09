@@ -467,3 +467,10 @@ REUSE (no parallel mechanisms — GTS transport design).
     skos:definition "The GMEOW GTS Transport Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gtsHeadId> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gtsProfile> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/GTSProfile> ] .
+<https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gtsSegmentIndex> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
+<https://blackcatinformatics.ca/gmeow/OpaqueFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/opacityReason> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/OpacityReason> ] .
+<https://blackcatinformatics.ca/gmeow/OpaqueFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/opaqueFrameIn> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/GTSSegment> ] .
