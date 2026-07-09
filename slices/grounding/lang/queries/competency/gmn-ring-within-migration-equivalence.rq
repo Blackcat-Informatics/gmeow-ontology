@@ -1,0 +1,24 @@
+# Competency question (native gmeow:reasoningLogic lane): "Does the DERIVED
+# gmeow:gmnRingWithin order, computed by gmeow:ruleGmnRingWithinDerive /
+# gmeow:ruleGmnRingCompartmentGap from the three default-preset rings' AUTHORED
+# (gmeow:gmnRingLevel, gmeow:gmnRingCompartment) coordinates, reproduce the
+# retired hand-chained core-within-trusted-within-restricted edge set?"  The
+# FILTER(?x IN (...)) / FILTER(?y IN (...)) pair restricts both variables to
+# the three gmeow:gmnRingPresetDefault members so gmeow:gmnRingNato (a fourth,
+# differently-compartmented ring at the trusted level) does not contaminate the
+# row set. gmeow:gmnRingWithin is REFLEXIVE by construction (a ring is
+# trivially within itself, the standard Denning ⊑ reading — see the property's
+# skos:definition); FILTER(?x != ?y) excludes those trivial self-pairs so the
+# comparison is against the retired chain's STRICT edges, where irreflexivity
+# is the property actually being witnessed. Nothing asserts gmeow:gmnRingWithin
+# anywhere in the source graph (a separate structural gate enforces that);
+# every row here exists only because the derivation fired.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?x ?y WHERE {
+    ?x gmeow:gmnRingWithin ?y .
+    FILTER(?x IN (gmeow:gmnRingCore, gmeow:gmnRingTrusted, gmeow:gmnRingRestricted))
+    FILTER(?y IN (gmeow:gmnRingCore, gmeow:gmnRingTrusted, gmeow:gmnRingRestricted))
+    FILTER(?x != ?y)
+}
+ORDER BY ?x ?y
