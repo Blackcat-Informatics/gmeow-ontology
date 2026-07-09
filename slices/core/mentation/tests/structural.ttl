@@ -93,7 +93,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:MentalProcessType MUST be typed owl:Class AND logic:AbstractIndividualType AND be a subClassOf logic:QualityValue — the value-vocab pattern (Principle 9: no overtyping)." .
 
-# --- 6. All nine process* seed individuals are typed MentalProcessType (MUST) --
+# --- 6. All twelve process* seed individuals are typed MentalProcessType (MUST) --
 ex:saAllNineProcessIndividuals a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -108,8 +108,11 @@ ASK {
     gmeow:processMindWandering a gmeow:MentalProcessType .
     gmeow:processDreaming      a gmeow:MentalProcessType .
     gmeow:processLearning      a gmeow:MentalProcessType .
+    gmeow:processTraining      a gmeow:MentalProcessType .
+    gmeow:processAudit         a gmeow:MentalProcessType .
+    gmeow:processExport        a gmeow:MentalProcessType .
 }""" ;
-    gmeow:saRationale "All nine gmeow:process* seed individuals MUST be explicitly typed gmeow:MentalProcessType (the value-vocab closed set for this slice)." .
+    gmeow:saRationale "All twelve gmeow:process* seed individuals — the original nine plus the train/audit/export triple (Item 4 of #1475) — MUST be explicitly typed gmeow:MentalProcessType (the value-vocab closed set for this slice)." .
 
 # --- 7. realizesMentalMoment is a non-functional ObjectProperty (MUST/-NOT) ---
 ex:saRealizesMentalMomentProperty a gmeow:StructuralAssertion ;

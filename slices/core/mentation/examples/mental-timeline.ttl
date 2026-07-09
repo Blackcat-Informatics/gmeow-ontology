@@ -3,7 +3,7 @@
 #
 # Worked example — a small mental timeline for one agent.
 #
-# Three mental occurrents illustrate the mentation slice's core idioms:
+# Four mental occurrents illustrate the mentation slice's core idioms:
 #   1. A gmeow:MentalProcess of type processPerception — Ada notices morning light.
 #      Carries a temporal frame the same way gmeow:Event takes one (events idiom,
 #      gmeow:eventTime + gmeow:eventTemporalFrame), and MANIFESTS a perceptual
@@ -14,8 +14,14 @@
 #   3. A gmeow:Experience (the phenomenal subset of MentalProcess) of type
 #      processDreaming — Ada's dream last night. gmeow:Experience is used because
 #      there is something it is like to undergo a dream (the qualia-bearing subset).
+#   4. A gmeow:MentalProcess of type processExport — Ada writes up her proof as a
+#      report. The emit member of the train/audit/export triple (Item 4 of #1475):
+#      an externalization episode whose disclosure semantics, when it crosses a
+#      serialization boundary, are governed by reference to the lang slice's
+#      gmeow:GmnSecurityRing (see slices/grounding/lang/shapes.ttl's
+#      lang:GmnExportRingBindingShape for the executable binding gate).
 #
-# All three are borne by exactly one experiencer (gmeow:experiencer is functional);
+# All four are borne by exactly one experiencer (gmeow:experiencer is functional);
 # gmeow:mentalProcessType is non-functional, so a process can carry multiple types.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -79,3 +85,19 @@ ex:lastNightsDream a gmeow:Experience ;                   # qualia-bearing: ther
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
     # No bridge property: a dream need not produce or update a belief state;
     # all three bridge properties are non-functional so their absence is valid.
+
+# --------------------------------------------------------------------------- #
+# 4. Writing up the proof — a MentalProcess of type processExport
+# --------------------------------------------------------------------------- #
+
+ex:exportingProofReport a gmeow:MentalProcess ;
+    rdfs:label "Ada externalizes her proof as a written report"@x-gmeow-english ;
+    gmeow:experiencer ex:ada ;
+    gmeow:mentalProcessType gmeow:processExport ;         # the emit member of the train/audit/export triple
+    gmeow:eventTime "2026-06-15T10:15:00Z"^^xsd:dateTime ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
+    # No bridge property here either: the export externalizes ex:beliefQEDholds
+    # rather than producing or manifesting a fresh mental moment of its own. Its
+    # disclosure semantics, should this export cross a serialization boundary, are
+    # governed BY REFERENCE (Principle 5) to lang:GmnSecurityRing — this slice
+    # asserts no structural edge on lang; see lang:GmnExportRingBindingShape.

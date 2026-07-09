@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example (Item 4 of #1475): an export crossing a serialization boundary with NO
+# ring bound. ex:exportRun carries gmeow:mentalProcessType gmeow:processExport (mentation)
+# and generated ex:envelopeExportUnbound, which omits gmeow:gmnSecurityRing — the sh:sparql
+# of lang:GmnExportRingBindingShape fires shacl.SPARQLConstraintComponent
+# (lang:GmnUnringedExportCrossing). Because the omitted field is genuinely the ring, the
+# pre-existing general lang:GmnEnvelopeContractShape ALSO fires its sh:minCount 1 on
+# gmeow:gmnSecurityRing (shacl.MinCountConstraintComponent, lang:GmnMissingEnvelopeField) —
+# this fixture is not crafted to isolate a single shape the way the other GMN counter-
+# examples are, because ring-absence is inherently covered by both the general
+# every-envelope-needs-a-ring contract gate and this export-specific binding gate; the two
+# firing together is the honest, expected double coverage, not a fixture defect.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:archiveTeam a gmeow:Agent .
+
+ex:agentLillith a gmeow:Agent .
+
+ex:exportRun a gmeow:MentalProcess , gmeow:Activity ;
+    gmeow:experiencer ex:agentLillith ;
+    gmeow:mentalProcessType gmeow:processExport .
+
+ex:corrExportEnvelope a logic:Correspondence ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:morphismClass logic:LossyLens ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic false .
+
+# The ring is missing: an export whose payload crossed the serialization boundary with
+# no admission class checked.
+ex:envelopeExportUnbound a gmeow:GmnEnvelope ;
+    gmeow:gmnSchemaVersion "1" ;
+    gmeow:gmnDictionaryVersion "1" ;
+    gmeow:gmnGlyphTableVersion "1" ;
+    gmeow:accordingTo ex:archiveTeam ;
+    gmeow:wasGeneratedBy ex:exportRun ;
+    gmeow:contentDigest "blake3:0f1e2d3c4b5a69788796a5b4c3d2e1f00f1e2d3c4b5a69788796a5b4c3d2e1f0" ;
+    gmeow:gmnEnvelopeCorrespondence ex:corrExportEnvelope .
