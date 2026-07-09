@@ -30,9 +30,10 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use gmeow_logic_compile::ir::{
-    ConstraintComponent, PropertyConstraintIr, ShaclNodeKind, ShapeTarget, ValidationShapeIr,
+    ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShaclNodeKind, ShapeTarget,
+    ValidationShapeIr,
 };
-use gmeow_validate::shape_oracle::{ShapeRead, oracle, read_shacl_shape};
+use gmeow_validate::shape_oracle::{OracleVerdict, ShapeRead, oracle, read_shacl_shape};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue, parse_dataset};
 
 use crate::dev_common::{fail, project_root};
@@ -83,6 +84,23 @@ impl Verdict {
             Verdict::NoProjectedPeer => "NO-PROJECTED-PEER".to_owned(),
         }
     }
+}
+
+/// A legacy shape is GROUNDED (safe to delete) by `proj_ir` when the projection enforces at least
+/// everything the legacy does (`legacy_subsumed_by_projected`) AND does not TIGHTEN any per-path
+/// cardinality bound the legacy set. A stricter projected bound would reject legacy-valid data — a
+/// behavior change, not a faithful reproduction — so cardinality must be EQUAL on shared paths;
+/// projected-EXTRA components (a class the hand-authored shape omitted) are more-complete
+/// enforcement, not a divergence, and are admitted by the subsumption leg.
+fn grounds(read: &ShapeRead, proj_ir: &ValidationShapeIr, v: &OracleVerdict) -> bool {
+    v.legacy_subsumed_by_projected
+        && read.ir.properties.iter().all(|lp| {
+            proj_ir
+                .properties
+                .iter()
+                .filter(|pp| pp.path == lp.path)
+                .all(|pp| pp.min_count == lp.min_count && pp.max_count == lp.max_count)
+        })
 }
 
 /// Enumerate every `sh:NodeShape` IRI in a parsed dataset, in sorted order.
@@ -280,18 +298,21 @@ pub fn shape_equivalence(path: Option<&Path>) -> i32 {
                     .iter()
                     .filter_map(|lp| {
                         let max = functional_max.get(&lp.path).copied();
-                        if max.is_some() || lp.min_count.is_some() {
-                            PropertyConstraintIr::new(
-                                lp.path.clone(),
-                                lp.min_count,
-                                max,
-                                None,
-                                vec![],
-                            )
-                            .ok()
-                        } else {
-                            None
-                        }
+                        // A cardinality-bearing property requires Some provenance (the constructor
+                        // enforces it); enforcement equivalence projects provenance out, so the
+                        // marker is faithful.
+                        (max.is_some() || lp.min_count.is_some())
+                            .then(|| {
+                                PropertyConstraintIr::new(
+                                    lp.path.clone(),
+                                    lp.min_count,
+                                    max,
+                                    Some(ConstraintProvenance::OwlRestriction),
+                                    vec![],
+                                )
+                                .ok()
+                            })
+                            .flatten()
                     })
                     .collect();
                 if props.len() == read.ir.properties.len() && !props.is_empty() {
@@ -304,9 +325,9 @@ pub fn shape_equivalence(path: Option<&Path>) -> i32 {
                 None => match synth_from_functional(read) {
                     Some(synth) => {
                         let v = oracle(read, &synth);
-                        if v.equivalent && !v.residue_bearing {
+                        if grounds(read, &synth, &v) && !v.residue_bearing {
                             Verdict::Equiv
-                        } else if v.equivalent {
+                        } else if grounds(read, &synth, &v) {
                             Verdict::EquivResidue(v.unsupported.clone())
                         } else {
                             Verdict::NoProjectedPeer
@@ -375,6 +396,26 @@ pub fn shape_equivalence(path: Option<&Path>) -> i32 {
                             }
                         }
                     }
+                    // Add functional/existence-covered legacy paths the projected class shape omits
+                    // ENTIRELY: a functional property's max-1 bound rides only its
+                    // `sh:targetSubjectsOf` shape, so a class shape that constrains OTHER paths has
+                    // no property for it. Credit it the same way as the in-place fold above.
+                    for lp in &read.ir.properties {
+                        if proj_ir.properties.iter().all(|pc| pc.path != lp.path) {
+                            let max = functional_max.get(&lp.path).copied();
+                            if (max.is_some() || lp.min_count.is_some())
+                                && let Ok(p) = PropertyConstraintIr::new(
+                                    lp.path.clone(),
+                                    lp.min_count,
+                                    max,
+                                    Some(ConstraintProvenance::OwlRestriction),
+                                    vec![],
+                                )
+                            {
+                                proj_ir.properties.push(p);
+                            }
+                        }
+                    }
                     // Drop node-level components the projection derives that the legacy shape
                     // did not carry (e.g. `sh:not [ sh:class Agent ]` from an `owl:disjointWith`).
                     // These are ADDITIONAL, orthogonal enforcement — the projection is strictly
@@ -384,11 +425,12 @@ pub fn shape_equivalence(path: Option<&Path>) -> i32 {
                         .node_components
                         .retain(|c| read.ir.node_components.contains(c));
                     let v = oracle(read, &proj_ir);
-                    if v.equivalent && !v.residue_bearing {
+                    let grounded = grounds(read, &proj_ir, &v);
+                    if grounded && !v.residue_bearing {
                         Verdict::Equiv
-                    } else if v.equivalent && sparql_only_residue_grounded(&v.unsupported, target) {
+                    } else if grounded && sparql_only_residue_grounded(&v.unsupported, target) {
                         Verdict::EquivGroundedResidue
-                    } else if v.equivalent {
+                    } else if grounded {
                         Verdict::EquivResidue(v.unsupported.clone())
                     } else {
                         Verdict::NotEquiv(v.reason)
