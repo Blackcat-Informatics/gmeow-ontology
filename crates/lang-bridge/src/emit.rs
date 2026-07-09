@@ -42,15 +42,16 @@ pub fn ntriples_sorted(mut lines: Vec<String>) -> Vec<u8> {
 ///
 /// `entries` is a list of `(full_key, digest)` pairs. Returns `Err` describing the first
 /// colliding pair found; `Ok(())` when every digest maps to a single full key.
-pub fn assert_no_digest_collision(entries: &[(String, String)]) -> Result<(), String> {
+pub fn assert_no_digest_collision(entries: &[(String, String)]) -> gmeow_errors::Result<()> {
     let mut seen: HashMap<&str, &str> = HashMap::new();
     for (full_key, digest) in entries {
         match seen.get(digest.as_str()) {
             Some(prior) if *prior != full_key.as_str() => {
-                return Err(format!(
-                    "digest collision: distinct keys '{prior}' and '{full_key}' both map to \
-                     digest '{digest}'"
-                ));
+                return Err(gmeow_errors::Diag::of_kind(crate::error::DigestCollision {
+                    prior: (*prior).to_owned(),
+                    key: full_key.clone(),
+                    digest: digest.clone(),
+                }));
             }
             _ => {
                 seen.insert(digest.as_str(), full_key.as_str());

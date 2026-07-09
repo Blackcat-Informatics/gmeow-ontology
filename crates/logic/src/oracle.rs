@@ -58,6 +58,12 @@ use purrdf::provenance::Attribution;
 use crate::query_ir::{AnswerSet, Budget, QProgram};
 use crate::seam::ScryerForeign;
 
+/// Wrap a reasoning-oracle condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn oracle_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Oracle { detail })
+}
+
 // ── Neutral closure vocabulary ────────────────────────────────────────────────
 
 /// A single materialized row with decoded, native-term arguments.
@@ -161,7 +167,7 @@ pub(crate) trait ForwardOracle {
         facts: &crate::facts::TypedFactSet,
         rules: &str,
         budget: &ForwardBudget,
-    ) -> Result<TypedChaseResult, String>;
+    ) -> gmeow_errors::Result<TypedChaseResult>;
 
     /// Whether [`materialize`](Self::materialize) populates per-row provenance.
     fn provides_provenance(&self) -> bool;
@@ -185,16 +191,16 @@ impl ForwardOracle for NemoForwardOracle {
         facts: &crate::facts::TypedFactSet,
         rules: &str,
         budget: &ForwardBudget,
-    ) -> Result<TypedChaseResult, String> {
+    ) -> gmeow_errors::Result<TypedChaseResult> {
         // The Nemo chase is not interruptible and applies no budget inline; a
         // non-default budget cannot be honored here.  Hard-fail rather than run
         // an unbounded chase and pretend the bound was respected (no seam lie).
         if budget.is_bounded() {
-            return Err(format!(
+            return Err(oracle_err(format!(
                 "NemoForwardOracle cannot honor a forward budget inline \
                  ({budget:?}); forward-budget governance is a router/native-governor \
                  concern above the oracle boundary"
-            ));
+            )));
         }
         crate::nemo_engine::run_chase_typed(facts, rules)
     }
@@ -259,13 +265,13 @@ impl ForwardOracle for NemoFactsOracle {
         facts: &crate::facts::TypedFactSet,
         rules: &str,
         budget: &ForwardBudget,
-    ) -> Result<TypedChaseResult, String> {
+    ) -> gmeow_errors::Result<TypedChaseResult> {
         if budget.is_bounded() {
-            return Err(format!(
+            return Err(oracle_err(format!(
                 "NemoFactsOracle cannot honor a forward budget inline ({budget:?}); \
                  forward-budget governance is a router/native-governor concern above \
                  the oracle boundary"
-            ));
+            )));
         }
         let rows = crate::nemo_engine::run_chase_typed_facts_only(facts, rules)?;
         // `provides_provenance() == false`, so every row carries EMPTY provenance
@@ -331,17 +337,17 @@ impl ForwardOracle for NativeForwardOracle {
         facts: &crate::facts::TypedFactSet,
         rules: &str,
         budget: &ForwardBudget,
-    ) -> Result<TypedChaseResult, String> {
+    ) -> gmeow_errors::Result<TypedChaseResult> {
         // Forward-budget governance is a router/native-governor concern layered
         // ABOVE the oracle boundary (the 5-field incomplete-never-wrong result is
         // minted there): this seam stays UNBOUNDED, exactly like Nemo's.  A
         // non-default budget is a hard error, never a silently-unbudgeted chase.
         if budget.is_bounded() {
-            return Err(format!(
+            return Err(oracle_err(format!(
                 "NativeForwardOracle cannot honor a forward budget inline ({budget:?}); \
                  forward-budget governance is a router/native-governor concern above \
                  the oracle boundary"
-            ));
+            )));
         }
 
         // ── Dispatch: binary (named-ternary EL/DL) vs generic (n-ary RL/RDF, or
@@ -408,20 +414,20 @@ impl ForwardOracle for NativeForwardOracle {
         let store = crate::store::WorldStore::new();
         for fact in facts.facts() {
             if fact.args.len() != 3 {
-                return Err(format!(
+                return Err(oracle_err(format!(
                     "NativeForwardOracle EDB fact for predicate {:?} has arity {} \
                      (expected 3): the ternary reasoning encoding is \
                      predicate(subject, object, world)",
                     fact.predicate,
                     fact.args.len()
-                ));
+                )));
             }
             let subject = interner.resolve(fact.args[0]).clone();
             let object = interner.resolve(fact.args[1]).clone();
             let world = world_lexical(interner.resolve(fact.args[2]))?;
             store
                 .insert_quad_terms(&world, subject, TermValue::iri(&fact.predicate), object)
-                .map_err(|e| format!("NativeForwardOracle store seed failed: {e}"))?;
+                .map_err(|e| oracle_err(format!("NativeForwardOracle store seed failed: {e}")))?;
         }
 
         // Parse the rule text into the Horn/stratified IR and run the native
@@ -433,10 +439,10 @@ impl ForwardOracle for NativeForwardOracle {
             // A non-stratifiable program is a DECLARED gap the native engine does
             // not decide — never approximate it into a fabricated closure.
             crate::physical::NativeOutcome::Unsupported(kind) => {
-                return Err(format!(
+                return Err(oracle_err(format!(
                     "NativeForwardOracle: the native chase does not decide this rule set \
                      (Unsupported({kind:?})); it must not approximate an undecided fragment"
-                ));
+                )));
             }
         };
 
@@ -512,7 +518,7 @@ impl ForwardOracle for NativeForwardOracle {
 /// this string-front wrapper is exercised only by the dispatch-predicate gate tests.
 /// A pure syntax error propagates.
 #[cfg(test)]
-pub(crate) fn rules_are_pure_ternary(rules: &str) -> Result<bool, String> {
+pub(crate) fn rules_are_pure_ternary(rules: &str) -> gmeow_errors::Result<bool> {
     use crate::nemo_engine::NemoParsedRules;
 
     let program = NemoParsedRules::parse_unvalidated(rules)?.into_program();
@@ -568,7 +574,7 @@ pub(crate) fn program_is_pure_ternary(
 ///
 /// Called on the production dispatch path by [`NativeForwardOracle::materialize`]
 /// (now that [`forward_oracle`] returns the native adapter).
-fn world_lexical(term: &TermValue) -> Result<String, String> {
+fn world_lexical(term: &TermValue) -> gmeow_errors::Result<String> {
     match term {
         TermValue::Literal {
             lexical_form,
@@ -576,9 +582,9 @@ fn world_lexical(term: &TermValue) -> Result<String, String> {
             language: None,
             ..
         } if datatype == "http://www.w3.org/2001/XMLSchema#string" => Ok(lexical_form.clone()),
-        other => Err(format!(
+        other => Err(oracle_err(format!(
             "NativeForwardOracle EDB world term must be a plain string literal, got {other:?}"
-        )),
+        ))),
     }
 }
 
@@ -603,7 +609,7 @@ pub(crate) trait BackwardOracle {
         program: &QProgram,
         tabling: &[String],
         budget: &Budget,
-    ) -> Result<AnswerSet, String>;
+    ) -> gmeow_errors::Result<AnswerSet>;
 }
 
 /// The Scryer backward adapter.  Wraps `scryer_engine::run_scryer` verbatim; the
@@ -622,7 +628,7 @@ impl BackwardOracle for ScryerBackwardOracle {
         program: &QProgram,
         tabling: &[String],
         budget: &Budget,
-    ) -> Result<AnswerSet, String> {
+    ) -> gmeow_errors::Result<AnswerSet> {
         crate::scryer_engine::run_scryer(foreign, world, program, tabling, budget)
     }
 }
@@ -650,7 +656,7 @@ impl BackwardOracle for ReferenceBackwardOracle {
         program: &QProgram,
         _tabling: &[String],
         budget: &Budget,
-    ) -> Result<AnswerSet, String> {
+    ) -> gmeow_errors::Result<AnswerSet> {
         crate::reference_resolver::resolve(foreign, world, program, budget)
     }
 }
@@ -726,7 +732,10 @@ mod tests {
         let err = oracle
             .materialize(&edb, "", &budget)
             .expect_err("a bounded budget must be rejected, not silently ignored");
-        assert!(err.contains("cannot honor a forward budget"), "got: {err}");
+        assert!(
+            err.message().contains("cannot honor a forward budget"),
+            "got: {err}"
+        );
     }
 
     /// The default backward oracle is the Scryer adapter.

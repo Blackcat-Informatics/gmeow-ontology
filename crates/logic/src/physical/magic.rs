@@ -100,6 +100,12 @@ use crate::query_ir::{
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact};
 use crate::seam::{BudgetStatus, ScryerForeign};
 
+/// Wrap a physical-chase condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn physical_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Physical { detail })
+}
+
 // ── Adornment ────────────────────────────────────────────────────────────────────
 //
 // The adornment lattice is the arity-generic [`BindingPattern`] (a bitset over
@@ -720,11 +726,11 @@ fn magic_transform_variant(
 /// Convert a ground magic seed [`EvalAtom`] into a [`crate::rule_ir::Fact`] for EDB
 /// insertion.  The seed is always ground (its terms are goal constants), so this never
 /// hits an unbound variable.
-fn seed_to_fact(seed: &EvalAtom) -> Result<crate::rule_ir::Fact, String> {
+fn seed_to_fact(seed: &EvalAtom) -> gmeow_errors::Result<crate::rule_ir::Fact> {
     let to_term = |t: &EvalTerm| match t {
         EvalTerm::ConstNamed(nn) => Ok(TermValue::iri(nn.clone())),
         EvalTerm::ConstLit(term) => Ok(term.clone()),
-        EvalTerm::Var(v) => Err(format!("magic seed term {v:?} is not ground")),
+        EvalTerm::Var(v) => Err(physical_err(format!("magic seed term {v:?} is not ground"))),
     };
     Ok(crate::rule_ir::Fact {
         subject: to_term(&seed.subject)?,
@@ -1021,7 +1027,7 @@ fn eval_with_base_fallback(
     base_rules: &[EvalRule],
     max_steps: Option<u64>,
     base_edb: impl FnOnce() -> RelationStore,
-) -> Result<FallbackOutcome, String> {
+) -> gmeow_errors::Result<FallbackOutcome> {
     match evaluate(edb, transformed_rules, max_steps)? {
         NativeOutcome::Decided(budgeted) => {
             let frontier = budgeted.frontier();
@@ -1099,7 +1105,7 @@ pub(crate) fn resolve_native(
     world: &str,
     program: &QProgram,
     budget: &Budget,
-) -> Result<NativeOutcome<AnswerSet>, String> {
+) -> gmeow_errors::Result<NativeOutcome<AnswerSet>> {
     // (0) Gate cut (reuse the structural detector the dispatch gate uses).  Arithmetic
     // is no longer a whole-program gap — the closed builtin set is evaluated natively;
     // any residual (unbound operand / ÷0 / overflow) surfaces as a gap DURING the

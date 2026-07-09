@@ -20,6 +20,7 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use gmeow_errors::{Diag, Result};
 use gmeow_logic_compile::result_shape::{ObservedBinding, ObservedTerm};
 use gmeow_validate::findings::finding_from_shacl;
 use purrdf::shapes::engine::{parse_shapes, validate_dataset};
@@ -28,6 +29,10 @@ use purrdf::{RdfDataset, SparqlResult, TermValue};
 use crate::dsl::{
     self, CompetencyQuestion, ExampleConformance, ExpectedRow, Outcome, Polarity, ReasoningProfile,
     Scope, StructuralAssertion,
+};
+use crate::error::{
+    CellAggregate, CompetencyMismatch, ConformanceCell, DatasetRead, ExampleDiscovery, QueryLoad,
+    ShapeValidation, SparqlEval, StructuralCell,
 };
 use crate::native_query::{self, render_term, union};
 use crate::paths;
@@ -43,8 +48,8 @@ type CanonRow = Vec<(String, String)>;
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` aggregating each failing cell's diagnostic.
-pub fn run_competency_file(path: &Path) -> Result<(), String> {
+/// Hard-fails with a diagnostic aggregating each failing cell's diagnostic.
+pub fn run_competency_file(path: &Path) -> Result<()> {
     let spec = dsl::load_spec(path)?;
     let slice_dir = paths::slice_dir(path);
     // The asserted merged graph is the default lane and is always built once.
@@ -65,31 +70,41 @@ pub fn run_competency_file(path: &Path) -> Result<(), String> {
         .map(|cq| (cq.iri.as_str(), cq))
         .collect();
 
-    let mut results: Vec<(&str, Result<(), String>)> = Vec::with_capacity(spec.competency.len());
+    let mut results: Vec<(&str, Result<()>)> = Vec::with_capacity(spec.competency.len());
     for cq in &spec.competency {
         // Composition pre-check: if this question declares a gmeow:cqConsumes
         // dependency, verify the producer's output satisfies this question's
         // declared input contract BEFORE running the query. Hard-fail, surfaced.
         if let Some(producer_iri) = &cq.consumes {
-            let pre_check = (|| -> Result<(), String> {
+            let pre_check = (|| -> Result<()> {
                 let producer = by_iri.get(producer_iri.as_str()).ok_or_else(|| {
-                    format!(
-                        "gmeow:cqConsumes references unknown question <{producer_iri}> (not declared in this spec file)"
-                    )
+                    Diag::of_kind(CompetencyMismatch {
+                        detail: format!(
+                            "gmeow:cqConsumes references unknown question <{producer_iri}> (not declared in this spec file)"
+                        ),
+                    })
                 })?;
                 let producer_shape = producer.result_shape.as_ref().ok_or_else(|| {
-                    format!(
-                        "producer <{producer_iri}> has no gmeow:cqResultShape — cannot satisfy the input contract"
-                    )
+                    Diag::of_kind(CompetencyMismatch {
+                        detail: format!(
+                            "producer <{producer_iri}> has no gmeow:cqResultShape — cannot satisfy the input contract"
+                        ),
+                    })
                 })?;
                 let input_shape = cq.input_shape.as_ref().ok_or_else(|| {
-                    format!(
-                        "gmeow:cqConsumes requires a paired gmeow:cqInputShape on <{}>",
-                        cq.iri
-                    )
+                    Diag::of_kind(CompetencyMismatch {
+                        detail: format!(
+                            "gmeow:cqConsumes requires a paired gmeow:cqInputShape on <{}>",
+                            cq.iri
+                        ),
+                    })
                 })?;
                 input_shape.is_satisfiable_by(producer_shape).map_err(|e| {
-                    format!("input-shape composition contract (checked before execution): {e}")
+                    Diag::of_kind(CompetencyMismatch {
+                        detail: format!(
+                            "input-shape composition contract (checked before execution): {e}"
+                        ),
+                    })
                 })
             })();
             if let Err(e) = pre_check {
@@ -122,8 +137,8 @@ pub fn run_competency_file(path: &Path) -> Result<(), String> {
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` aggregating each failing cell's diagnostic.
-pub fn run_structural_file(path: &Path) -> Result<(), String> {
+/// Hard-fails with a diagnostic aggregating each failing cell's diagnostic.
+pub fn run_structural_file(path: &Path) -> Result<()> {
     let spec = dsl::load_spec(path)?;
     let slice_dir = paths::slice_dir(path);
     aggregate(
@@ -139,8 +154,8 @@ pub fn run_structural_file(path: &Path) -> Result<(), String> {
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` aggregating each failing cell's diagnostic.
-pub fn run_conformance_file(path: &Path) -> Result<(), String> {
+/// Hard-fails with a diagnostic aggregating each failing cell's diagnostic.
+pub fn run_conformance_file(path: &Path) -> Result<()> {
     let spec = dsl::load_spec(path)?;
     let slice_dir = paths::slice_dir(path);
     aggregate(
@@ -156,8 +171,8 @@ pub fn run_conformance_file(path: &Path) -> Result<(), String> {
 fn aggregate<'a>(
     path: &Path,
     kind: &str,
-    cells: impl Iterator<Item = (&'a str, Result<(), String>)>,
-) -> Result<(), String> {
+    cells: impl Iterator<Item = (&'a str, Result<()>)>,
+) -> Result<()> {
     let mut count = 0usize;
     let mut failures: Vec<String> = Vec::new();
     for (iri, result) in cells {
@@ -169,12 +184,14 @@ fn aggregate<'a>(
     if failures.is_empty() {
         return Ok(());
     }
-    Err(format!(
-        "{} of {count} {kind} cell(s) failed in {}:\n{}",
-        failures.len(),
-        path.display(),
-        failures.join("\n")
-    ))
+    Err(Diag::of_kind(CellAggregate {
+        detail: format!(
+            "{} of {count} {kind} cell(s) failed in {}:\n{}",
+            failures.len(),
+            path.display(),
+            failures.join("\n")
+        ),
+    }))
 }
 
 // ── Competency ──────────────────────────────────────────────────────────────────
@@ -183,7 +200,7 @@ fn run_competency_cell(
     store: &Arc<RdfDataset>,
     cq: &CompetencyQuestion,
     slice_dir: &Path,
-) -> Result<(), String> {
+) -> Result<()> {
     let query = load_query(cq)?;
 
     // The dataset the cqQuery runs over starts as the (asserted or RDFS) merged store.
@@ -198,15 +215,20 @@ fn run_competency_cell(
                 // The RDFS/native closure is computed BEFORE the overlay, so an overlaid
                 // fixture's entailments would be invisible. Refuse rather than silently
                 // under-answer.
-                return Err(format!(
-                    "{}: gmeow:cqDataFile is only honoured in the asserted (reasoningNone) lane, \
-                     not gmeow:reasoningRdfs / gmeow:reasoningLogic",
-                    cq.iri
-                ));
+                return Err(Diag::of_kind(CompetencyMismatch {
+                    detail: format!(
+                        "{}: gmeow:cqDataFile is only honoured in the asserted (reasoningNone) lane, \
+                         not gmeow:reasoningRdfs / gmeow:reasoningLogic",
+                        cq.iri
+                    ),
+                }));
             }
             let fixture_path = paths::example_file(slice_dir, rel);
-            let fixture = native_query::dataset_from_file(&fixture_path)
-                .map_err(|e| format!("parsing cqDataFile {}: {e}", fixture_path.display()))?;
+            let fixture = native_query::dataset_from_file(&fixture_path).map_err(|e| {
+                Diag::of_kind(DatasetRead {
+                    detail: format!("parsing cqDataFile {}: {e}", fixture_path.display()),
+                })
+            })?;
             union(&[Arc::clone(store), fixture])
         }
     };
@@ -221,17 +243,24 @@ fn run_competency_cell(
         None => base,
         Some(rel) => {
             let path = paths::query_file(rel);
-            let construct = std::fs::read_to_string(&path)
-                .map_err(|e| format!("cannot read cqProject {}: {e}", path.display()))?;
-            match native_query::query(&base, &construct)
-                .map_err(|e| format!("cqProject query error: {e}"))?
-            {
+            let construct = std::fs::read_to_string(&path).map_err(|e| {
+                Diag::of_kind(DatasetRead {
+                    detail: format!("cannot read cqProject {}: {e}", path.display()),
+                })
+            })?;
+            match native_query::query(&base, &construct).map_err(|e| {
+                Diag::of_kind(SparqlEval {
+                    detail: format!("cqProject query error: {e}"),
+                })
+            })? {
                 SparqlResult::Graph(g) => union(&[base, g]),
                 _ => {
-                    return Err(format!(
-                        "{}: gmeow:cqProject must be a CONSTRUCT query (returning a graph)",
-                        cq.iri
-                    ));
+                    return Err(Diag::of_kind(CompetencyMismatch {
+                        detail: format!(
+                            "{}: gmeow:cqProject must be a CONSTRUCT query (returning a graph)",
+                            cq.iri
+                        ),
+                    }));
                 }
             }
         }
@@ -246,16 +275,24 @@ fn execute_competency_query(
     store: &Arc<RdfDataset>,
     cq: &CompetencyQuestion,
     query: &str,
-) -> Result<(), String> {
-    let results = native_query::query(store, query).map_err(|e| format!("query error: {e}"))?;
+) -> Result<()> {
+    let results = native_query::query(store, query).map_err(|e| {
+        Diag::of_kind(SparqlEval {
+            detail: format!("query error: {e}"),
+        })
+    })?;
 
     match results {
         SparqlResult::Boolean(actual) => {
-            let expected = cq
-                .expect_ask
-                .ok_or("ASK query but no gmeow:cqExpectAsk on the question")?;
+            let expected = cq.expect_ask.ok_or_else(|| {
+                Diag::of_kind(CompetencyMismatch {
+                    detail: "ASK query but no gmeow:cqExpectAsk on the question".to_owned(),
+                })
+            })?;
             if actual != expected {
-                return Err(format!("ASK expected {expected}, got {actual}"));
+                return Err(Diag::of_kind(CompetencyMismatch {
+                    detail: format!("ASK expected {expected}, got {actual}"),
+                }));
             }
             Ok(())
         }
@@ -286,20 +323,22 @@ fn execute_competency_query(
             // shape (term-kind / datatype / requiredness / cardinality) BEFORE the
             // example-row comparison. Hard-fail, surfaced.
             if let Some(shape) = &cq.result_shape {
-                shape
-                    .validate_bindings(&observed)
-                    .map_err(|e| format!("result-shape contract: {e}"))?;
+                shape.validate_bindings(&observed).map_err(|e| {
+                    Diag::of_kind(CompetencyMismatch {
+                        detail: format!("result-shape contract: {e}"),
+                    })
+                })?;
             }
             check_select(cq, &actual)
         }
-        SparqlResult::Graph(_) => {
-            Err("competency query must be ASK or SELECT, got CONSTRUCT/DESCRIBE".to_owned())
-        }
+        SparqlResult::Graph(_) => Err(Diag::of_kind(CompetencyMismatch {
+            detail: "competency query must be ASK or SELECT, got CONSTRUCT/DESCRIBE".to_owned(),
+        })),
     }
 }
 
 /// Compare a SELECT competency question's actual rows against its expectation.
-fn check_select(cq: &CompetencyQuestion, actual: &[CanonRow]) -> Result<(), String> {
+fn check_select(cq: &CompetencyQuestion, actual: &[CanonRow]) -> Result<()> {
     let actual_set: BTreeSet<CanonRow> = actual.iter().cloned().collect();
     let expected_set: BTreeSet<CanonRow> =
         cq.expected_rows.iter().map(canon_expected_row).collect();
@@ -309,42 +348,53 @@ fn check_select(cq: &CompetencyQuestion, actual: &[CanonRow]) -> Result<(), Stri
         // be a subset of the actual result.
         let got = actual.len() as u64;
         if got != want {
-            return Err(format!("expected {want} rows, got {got}"));
+            return Err(Diag::of_kind(CompetencyMismatch {
+                detail: format!("expected {want} rows, got {got}"),
+            }));
         }
-        return missing_rows(&expected_set, &actual_set)
-            .map_err(|m| format!("sample row(s) absent from result: {m}"));
+        return missing_rows(&expected_set, &actual_set).map_err(|m| {
+            Diag::of_kind(CompetencyMismatch {
+                detail: format!("sample row(s) absent from result: {m}"),
+            })
+        });
     }
 
     // Enumerated tier: the question must carry expected rows.
     if cq.expected_rows.is_empty() {
-        return Err(
-            "SELECT competency question has neither gmeow:cqExpectRowCount nor gmeow:cqExpectRow"
-                .to_owned(),
-        );
+        return Err(Diag::of_kind(CompetencyMismatch {
+            detail:
+                "SELECT competency question has neither gmeow:cqExpectRowCount nor gmeow:cqExpectRow"
+                    .to_owned(),
+        }));
     }
     if cq.exact_rows {
         if actual_set != expected_set {
             let missing = set_diff(&expected_set, &actual_set);
             let extra = set_diff(&actual_set, &expected_set);
-            return Err(format!(
-                "exact-row mismatch: {} expected-but-absent, {} unexpected (missing={missing}; extra={extra})",
-                expected_set.difference(&actual_set).count(),
-                actual_set.difference(&expected_set).count(),
-            ));
+            return Err(Diag::of_kind(CompetencyMismatch {
+                detail: format!(
+                    "exact-row mismatch: {} expected-but-absent, {} unexpected (missing={missing}; extra={extra})",
+                    expected_set.difference(&actual_set).count(),
+                    actual_set.difference(&expected_set).count(),
+                ),
+            }));
         }
         Ok(())
     } else {
-        missing_rows(&expected_set, &actual_set)
-            .map_err(|m| format!("expected row(s) absent from result: {m}"))
+        missing_rows(&expected_set, &actual_set).map_err(|m| {
+            Diag::of_kind(CompetencyMismatch {
+                detail: format!("expected row(s) absent from result: {m}"),
+            })
+        })
     }
 }
 
-fn missing_rows(expected: &BTreeSet<CanonRow>, actual: &BTreeSet<CanonRow>) -> Result<(), String> {
+fn missing_rows(expected: &BTreeSet<CanonRow>, actual: &BTreeSet<CanonRow>) -> Result<()> {
     let missing = set_diff(expected, actual);
     if missing.is_empty() {
         Ok(())
     } else {
-        Err(missing)
+        Err(Diag::of_kind(CompetencyMismatch { detail: missing }))
     }
 }
 
@@ -367,7 +417,7 @@ const DIR_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLan
 /// Project one native result binding into the pure-data [`ObservedTerm`] the
 /// result-shape contract checks. An RDF-star triple term cannot be typed by a
 /// column kind, so it hard-fails rather than being silently misclassified.
-fn observed_term(cq_iri: &str, var: &str, term: &TermValue) -> Result<ObservedTerm, String> {
+fn observed_term(cq_iri: &str, var: &str, term: &TermValue) -> Result<ObservedTerm> {
     Ok(match term {
         TermValue::Iri(_) => ObservedTerm::Iri,
         TermValue::Blank { .. } => ObservedTerm::BlankNode,
@@ -385,9 +435,11 @@ fn observed_term(cq_iri: &str, var: &str, term: &TermValue) -> Result<ObservedTe
             ObservedTerm::Literal { datatype }
         }
         TermValue::Triple { .. } => {
-            return Err(format!(
-                "{cq_iri}: result binding ?{var} is an RDF-star triple term, which a logic:ResultShape does not type"
-            ));
+            return Err(Diag::of_kind(CompetencyMismatch {
+                detail: format!(
+                    "{cq_iri}: result binding ?{var} is an RDF-star triple term, which a logic:ResultShape does not type"
+                ),
+            }));
         }
     })
 }
@@ -402,66 +454,92 @@ fn canon_expected_row(row: &ExpectedRow) -> CanonRow {
     cells
 }
 
-fn load_query(cq: &CompetencyQuestion) -> Result<String, String> {
+fn load_query(cq: &CompetencyQuestion) -> Result<String> {
     match (&cq.query_inline, &cq.query_file) {
         (Some(q), None) => Ok(q.clone()),
         (None, Some(rel)) => {
             let p = paths::query_file(rel);
-            std::fs::read_to_string(&p)
-                .map_err(|e| format!("cannot read cqQueryFile {}: {e}", p.display()))
+            std::fs::read_to_string(&p).map_err(|e| {
+                Diag::of_kind(QueryLoad {
+                    detail: format!("cannot read cqQueryFile {}: {e}", p.display()),
+                })
+            })
         }
-        (Some(_), Some(_)) => {
-            Err("competency question sets both cqQuery and cqQueryFile".to_owned())
-        }
-        (None, None) => Err("competency question sets neither cqQuery nor cqQueryFile".to_owned()),
+        (Some(_), Some(_)) => Err(Diag::of_kind(QueryLoad {
+            detail: "competency question sets both cqQuery and cqQueryFile".to_owned(),
+        })),
+        (None, None) => Err(Diag::of_kind(QueryLoad {
+            detail: "competency question sets neither cqQuery nor cqQueryFile".to_owned(),
+        })),
     }
 }
 
 // ── Structural ──────────────────────────────────────────────────────────────────
 
-fn run_structural_cell(sa: &StructuralAssertion, slice_dir: &Path) -> Result<(), String> {
+fn run_structural_cell(sa: &StructuralAssertion, slice_dir: &Path) -> Result<()> {
     let pattern = match (&sa.pattern, &sa.shape) {
         (Some(p), None) => p,
         (None, Some(shape)) => {
             // No T2 exemplar exercises saShape; fail loudly rather than silently
             // pass (the no-optionality / hard-fail doctrine).
-            return Err(format!(
-                "saShape execution is not yet implemented (shape {shape}); refusing to silently pass"
-            ));
+            return Err(Diag::of_kind(StructuralCell {
+                detail: format!(
+                    "saShape execution is not yet implemented (shape {shape}); refusing to silently pass"
+                ),
+            }));
         }
-        (Some(_), Some(_)) => return Err("assertion sets both saPattern and saShape".to_owned()),
-        (None, None) => return Err("assertion sets neither saPattern nor saShape".to_owned()),
+        (Some(_), Some(_)) => {
+            return Err(Diag::of_kind(StructuralCell {
+                detail: "assertion sets both saPattern and saShape".to_owned(),
+            }));
+        }
+        (None, None) => {
+            return Err(Diag::of_kind(StructuralCell {
+                detail: "assertion sets neither saPattern nor saShape".to_owned(),
+            }));
+        }
     };
 
     let mut sources = vec![paths::module_file(slice_dir)];
     if sa.scope == Scope::ModuleAndExamples {
         sources.extend(example_ttls(&paths::examples_dir(slice_dir))?);
     }
-    let store = native_query::dataset_from_files(&sources)
-        .map_err(|e| format!("building scoped dataset for structural assertion: {e}"))?;
+    let store = native_query::dataset_from_files(&sources).map_err(|e| {
+        Diag::of_kind(DatasetRead {
+            detail: format!("building scoped dataset for structural assertion: {e}"),
+        })
+    })?;
     let holds = run_ask(&store, pattern)?;
 
     match (sa.polarity, holds) {
-        (Polarity::Must, false) => {
-            Err("polarity 'must' but the ASK pattern did NOT hold".to_owned())
-        }
-        (Polarity::MustNot, true) => Err("polarity 'mustNot' but the ASK pattern HELD".to_owned()),
+        (Polarity::Must, false) => Err(Diag::of_kind(StructuralCell {
+            detail: "polarity 'must' but the ASK pattern did NOT hold".to_owned(),
+        })),
+        (Polarity::MustNot, true) => Err(Diag::of_kind(StructuralCell {
+            detail: "polarity 'mustNot' but the ASK pattern HELD".to_owned(),
+        })),
         _ => Ok(()),
     }
 }
 
-fn run_ask(store: &Arc<RdfDataset>, query: &str) -> Result<bool, String> {
-    match native_query::query(store, query).map_err(|e| format!("saPattern error: {e}"))? {
+fn run_ask(store: &Arc<RdfDataset>, query: &str) -> Result<bool> {
+    match native_query::query(store, query).map_err(|e| {
+        Diag::of_kind(SparqlEval {
+            detail: format!("saPattern error: {e}"),
+        })
+    })? {
         SparqlResult::Boolean(b) => Ok(b),
         SparqlResult::Solutions { .. } | SparqlResult::Graph(_) => {
-            Err("saPattern must be a SPARQL ASK query".to_owned())
+            Err(Diag::of_kind(StructuralCell {
+                detail: "saPattern must be a SPARQL ASK query".to_owned(),
+            }))
         }
     }
 }
 
 /// Every `*.ttl` directly under a slice's `examples/` dir (sorted; empty if the
 /// directory is absent).
-fn example_ttls(examples_dir: &Path) -> Result<Vec<PathBuf>, String> {
+fn example_ttls(examples_dir: &Path) -> Result<Vec<PathBuf>> {
     // An absent examples/ dir is normal (→ no examples). Any OTHER read error
     // (permissions, I/O) must propagate, not masquerade as "no examples": that
     // would silently run a scopeModuleAndExamples assertion against module-only
@@ -469,12 +547,19 @@ fn example_ttls(examples_dir: &Path) -> Result<Vec<PathBuf>, String> {
     let entries = match std::fs::read_dir(examples_dir) {
         Ok(entries) => entries,
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
-        Err(e) => return Err(format!("read_dir {}: {e}", examples_dir.display())),
+        Err(e) => {
+            return Err(Diag::of_kind(ExampleDiscovery {
+                detail: format!("read_dir {}: {e}", examples_dir.display()),
+            }));
+        }
     };
     let mut files: Vec<PathBuf> = Vec::new();
     for entry in entries {
-        let entry =
-            entry.map_err(|e| format!("read_dir entry under {}: {e}", examples_dir.display()))?;
+        let entry = entry.map_err(|e| {
+            Diag::of_kind(ExampleDiscovery {
+                detail: format!("read_dir entry under {}: {e}", examples_dir.display()),
+            })
+        })?;
         let path = entry.path();
         if path.is_file() && path.extension().is_some_and(|x| x == "ttl") {
             files.push(path);
@@ -486,25 +571,41 @@ fn example_ttls(examples_dir: &Path) -> Result<Vec<PathBuf>, String> {
 
 // ── Example conformance ─────────────────────────────────────────────────────────
 
-fn run_conformance_cell(ec: &ExampleConformance, slice_dir: &Path) -> Result<(), String> {
-    let module = native_query::dataset_from_file(&paths::module_file(slice_dir))
-        .map_err(|e| format!("building module dataset: {e}"))?;
+fn run_conformance_cell(ec: &ExampleConformance, slice_dir: &Path) -> Result<()> {
+    let module = native_query::dataset_from_file(&paths::module_file(slice_dir)).map_err(|e| {
+        Diag::of_kind(DatasetRead {
+            detail: format!("building module dataset: {e}"),
+        })
+    })?;
     let shapes_path = paths::shapes_file(slice_dir);
-    let shapes_ttl = std::fs::read_to_string(&shapes_path)
-        .map_err(|e| format!("cannot read {}: {e}", shapes_path.display()))?;
-    let shapes = parse_shapes(&shapes_ttl).map_err(|e| format!("parsing slice shapes: {e}"))?;
+    let shapes_ttl = std::fs::read_to_string(&shapes_path).map_err(|e| {
+        Diag::of_kind(DatasetRead {
+            detail: format!("cannot read {}: {e}", shapes_path.display()),
+        })
+    })?;
+    let shapes = parse_shapes(&shapes_ttl).map_err(|e| {
+        Diag::of_kind(ShapeValidation {
+            detail: format!("parsing slice shapes: {e}"),
+        })
+    })?;
 
     let example_path = paths::example_file(slice_dir, &ec.file);
-    let example = native_query::dataset_from_file(&example_path)
-        .map_err(|e| format!("parsing example {}: {e}", example_path.display()))?;
+    let example = native_query::dataset_from_file(&example_path).map_err(|e| {
+        Diag::of_kind(DatasetRead {
+            detail: format!("parsing example {}: {e}", example_path.display()),
+        })
+    })?;
 
     // Validate (module + example) against the slice shapes. The IR is immutable, so
     // instead of an in-place insert/remove overlay we UNION the module and example
     // into a fresh dataset (blanks standardized apart) and validate that — exactly
     // the validation-path example idiom, no shared store to restore.
     let data = union(&[module, example]);
-    let report = validate_dataset(&data, &shapes)
-        .map_err(|e| format!("native SHACL validation failed: {e}"))?;
+    let report = validate_dataset(&data, &shapes).map_err(|e| {
+        Diag::of_kind(ShapeValidation {
+            detail: format!("native SHACL validation failed: {e}"),
+        })
+    })?;
 
     let codes: BTreeSet<String> = report
         .results
@@ -517,24 +618,29 @@ fn run_conformance_cell(ec: &ExampleConformance, slice_dir: &Path) -> Result<(),
             if codes.is_empty() {
                 Ok(())
             } else {
-                Err(format!(
-                    "expected conformance, got finding(s): {}",
-                    join_codes(&codes)
-                ))
+                Err(Diag::of_kind(ConformanceCell {
+                    detail: format!(
+                        "expected conformance, got finding(s): {}",
+                        join_codes(&codes)
+                    ),
+                }))
             }
         }
         Outcome::Violates => {
-            let expected = ec
-                .violation_code
-                .as_deref()
-                .ok_or("outcome 'violates' but no gmeow:expectedViolationCode")?;
+            let expected = ec.violation_code.as_deref().ok_or_else(|| {
+                Diag::of_kind(ConformanceCell {
+                    detail: "outcome 'violates' but no gmeow:expectedViolationCode".to_owned(),
+                })
+            })?;
             if codes.contains(expected) {
                 Ok(())
             } else {
-                Err(format!(
-                    "expected violation {expected}, got finding(s): {}",
-                    join_codes(&codes)
-                ))
+                Err(Diag::of_kind(ConformanceCell {
+                    detail: format!(
+                        "expected violation {expected}, got finding(s): {}",
+                        join_codes(&codes)
+                    ),
+                }))
             }
         }
     }
@@ -616,7 +722,7 @@ mod tests {
         let err = execute_competency_query(&store, &cq, Q_X)
             .expect_err("term-kind mismatch must hard-fail");
         assert!(
-            err.contains("result-shape contract") && err.contains("term-kind"),
+            err.message().contains("result-shape contract") && err.message().contains("term-kind"),
             "unexpected error: {err}"
         );
     }
@@ -703,7 +809,10 @@ mod tests {
         rdfs_cq.reasoning = ReasoningProfile::Rdfs;
         let err = run_competency_cell(&store, &rdfs_cq, &dir)
             .expect_err("cqDataFile + reasoningRdfs must be rejected");
-        assert!(err.contains("reasoningNone"), "unexpected error: {err}");
+        assert!(
+            err.message().contains("reasoningNone"),
+            "unexpected error: {err}"
+        );
 
         std::fs::remove_dir_all(&dir).ok();
     }

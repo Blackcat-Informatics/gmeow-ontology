@@ -8,7 +8,8 @@
 use std::collections::{BTreeSet, HashMap};
 use std::path::PathBuf;
 
-use gmeow_cli_core::{ConsoleMode, DiagnosticsConfig, DiagnosticsConfigError};
+use gmeow_cli_core::error::{UnknownArtifactKind, UnknownConsoleMode};
+use gmeow_cli_core::{ConsoleMode, DiagnosticsConfig};
 
 fn dist_dir() -> PathBuf {
     PathBuf::from("dist")
@@ -210,7 +211,7 @@ fn artifacts_parsing() {
 #[test]
 fn unknown_artifact_token_hard_fails() {
     for raw in ["json,xml", "pdf", "json,,sarif,bogus"] {
-        let result = DiagnosticsConfig::resolve(
+        let err = DiagnosticsConfig::resolve(
             None,
             Some(raw),
             None,
@@ -219,20 +220,21 @@ fn unknown_artifact_token_hard_fails() {
             &env_empty(),
             true,
             &dist_dir(),
-        );
+        )
+        .expect_err(&format!("raw={raw} must hard-fail"));
+        // The hard failure is the substrate's own downcastable kind, carrying the
+        // stable registered code — not a bespoke error enum.
         assert!(
-            matches!(
-                result,
-                Err(DiagnosticsConfigError::UnknownArtifactKind { .. })
-            ),
-            "raw={raw}"
+            err.is::<UnknownArtifactKind>(),
+            "raw={raw}: expected UnknownArtifactKind, got {err}"
         );
+        assert_eq!(err.code(), UnknownArtifactKind::register(), "raw={raw}");
     }
 }
 
 #[test]
 fn invalid_console_token_hard_fails() {
-    let result = DiagnosticsConfig::resolve(
+    let err = DiagnosticsConfig::resolve(
         Some("loud"),
         None,
         None,
@@ -241,11 +243,13 @@ fn invalid_console_token_hard_fails() {
         &env_empty(),
         true,
         &dist_dir(),
+    )
+    .expect_err("an unknown console token must hard-fail");
+    assert!(
+        err.is::<UnknownConsoleMode>(),
+        "expected UnknownConsoleMode, got {err}"
     );
-    assert!(matches!(
-        result,
-        Err(DiagnosticsConfigError::UnknownConsoleMode(_))
-    ));
+    assert_eq!(err.code(), UnknownConsoleMode::register());
 }
 
 #[test]

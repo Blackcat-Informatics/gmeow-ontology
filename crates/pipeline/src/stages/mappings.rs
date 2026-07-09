@@ -305,6 +305,15 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     loss.union(&docs_rendering_corpus.loss);
     let lang_docs_rendering_corpus = docs_rendering_corpus.ntriples;
 
+    // Docs-format grounding loss (A9/F2): fold the four documentation output formats'
+    // (site / mdbook / print PDF / snippets) dropped-capability rows into the single loss
+    // ledger, mirroring the lang: corpora. Blob-free — a pure function of
+    // `gmeow_docs::formats`, the SAME table the print PDF's loss appendix reads, so the
+    // appendix ↔ ledger join holds by construction. The RDF grounding graph (which
+    // additionally content-addresses the packed docs blobs) rides in the carrier stage,
+    // the only point those blob digests exist.
+    crate::stages::docs_format_rendering::fold_docs_format_loss(&mut ledger, &mut loss);
+
     // Standpoint projections — the seven fixed `standpoint-*.rq` queries (template-coded;
     // no DSL input).
     let standpoint = emit_standpoint_sets(root, &vocab).map_err(|e| {
@@ -1455,6 +1464,9 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             "/target/lang-docs-rendering:",
             "/target/lang-docs-translation:",
             "/target/lang-docs-execgap:",
+            // The docs-format grounding rows: the four documentation output formats' derived
+            // preservation + dropped-capability residue (folded from `docs_format_rendering`).
+            "/target/docs-format:",
         ];
         // A Turtle subject block is a blank-line-separated group. Drop any block that
         // MENTIONS a non-logic target IRI anywhere: the non-logic target blocks themselves

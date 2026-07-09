@@ -171,7 +171,8 @@ fn crossmark_enabled_without_policy_doi_is_err() {
         gmeow_validate::crossref::build_deposit_xml(&blanked, FIXED_TIMESTAMP, FIXED_BATCH_ID);
     let err = result.expect_err("crossmark enabled with empty policy DOI must fail fast");
     assert!(
-        err.contains("CROSSMARK_POLICY_DOI must be non-empty"),
+        err.message()
+            .contains("CROSSMARK_POLICY_DOI must be non-empty"),
         "unexpected error message: {err}"
     );
 }

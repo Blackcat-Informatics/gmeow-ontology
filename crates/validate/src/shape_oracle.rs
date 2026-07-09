@@ -594,14 +594,15 @@ fn parse_property_shape(
     let provenance =
         (min_count.is_some() || max_count.is_some()).then_some(ConstraintProvenance::OptNative);
     let mut prop =
-        PropertyConstraintIr::new(path_iri, min_count, max_count, provenance, components)?;
+        PropertyConstraintIr::new(path_iri, min_count, max_count, provenance, components)
+            .map_err(|e| e.to_string())?;
     if let Some(sev) = severity {
         prop = prop.with_severity(sev);
     }
     if let Some(msg) = message
         && !msg.trim().is_empty()
     {
-        prop = prop.with_message(msg)?;
+        prop = prop.with_message(msg).map_err(|e| e.to_string())?;
     }
     if inverse {
         prop = prop.inverted();
@@ -609,7 +610,9 @@ fn parse_property_shape(
     if reifier_shape.is_some() || reification_required {
         // `with_reifier` hard-fails on an inverse path — the exact HARD FAIL the emitter's
         // suppression means should never round-trip; propagate it rather than paper over it.
-        prop = prop.with_reifier(reifier_shape, reification_required)?;
+        prop = prop
+            .with_reifier(reifier_shape, reification_required)
+            .map_err(|e| e.to_string())?;
     }
     Ok(Some(prop))
 }
@@ -994,8 +997,10 @@ pub fn read_shacl_shape(graph: &RdfDataset, node_shape_iri: &str) -> Result<Shap
         })?,
     };
     let node_components = node_acc.finish(node_shape_iri)?;
-    let ir = ValidationShapeIr::new(node_shape_iri, target, properties, None)?
-        .with_node_components(node_components)?;
+    let ir = ValidationShapeIr::new(node_shape_iri, target, properties, None)
+        .map_err(|e| e.to_string())?
+        .with_node_components(node_components)
+        .map_err(|e| e.to_string())?;
 
     unsupported.sort();
     unsupported.dedup();

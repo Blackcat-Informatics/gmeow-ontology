@@ -36,6 +36,12 @@ use crate::result::{ReasoningResult, ResultProvenance};
 use crate::store::WorldStore;
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, TermValue};
 
+/// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn reason_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Reason { detail })
+}
+
 /// The content-addressed identity of the native EL/DL/RL reasoning contract —
 /// the `contract_hash` every native-reason result is produced under.
 ///
@@ -76,12 +82,12 @@ pub fn native_contract_hash() -> String {
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the source store cannot be loaded, if the Nemo chase
+/// Returns `Err` if the source store cannot be loaded, if the Nemo chase
 /// fails to parse/validate/evaluate/decode, or if coverage/consistency scanning
 /// fails.
 pub(crate) fn reason_closure(
     edb: &RdfDataset,
-) -> Result<(Vec<InferredAxiom>, dl::DlVerdict), String> {
+) -> gmeow_errors::Result<(Vec<InferredAxiom>, dl::DlVerdict)> {
     let mut inferred = run_reasoning(edb, &dl::dl_rules())?;
     dl::augment_inferred_with_dl(&mut inferred, edb)?;
     inferred.sort();
@@ -105,10 +111,10 @@ pub(crate) fn reason_closure(
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the source store cannot be loaded, if the Nemo
+/// Returns `Err` if the source store cannot be loaded, if the Nemo
 /// chase fails to parse/validate/evaluate/decode, or if coverage/consistency
 /// scanning fails.
-pub fn reason_all(edb: &RdfDataset) -> Result<ReasoningResult, String> {
+pub fn reason_all(edb: &RdfDataset) -> gmeow_errors::Result<ReasoningResult> {
     let (inferred, verdict) = reason_closure(edb)?;
     Ok(typed_result(inferred, &verdict))
 }
@@ -135,12 +141,12 @@ pub fn reason_all(edb: &RdfDataset) -> Result<ReasoningResult, String> {
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the Nemo projection of the program rules fails (e.g. a head
+/// Returns `Err` if the Nemo projection of the program rules fails (e.g. a head
 /// variable unbound by any body atom), or if the chase fails to parse/validate/evaluate/decode.
 pub fn reason_program(
     program: &gmeow_logic_compile::ir::LogicProgram,
     edb: &RdfDataset,
-) -> Result<ReasoningResult, String> {
+) -> gmeow_errors::Result<ReasoningResult> {
     use gmeow_logic_compile::projections::text::{extract_nemo_rules_section, project_nemo};
 
     // 1. Lower the full-FOL formulas through the relational-core waist.
@@ -202,7 +208,7 @@ pub fn reason_program(
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if [`reason_program`] fails, if an object surface cannot be
+/// Returns `Err` if [`reason_program`] fails, if an object surface cannot be
 /// re-parsed, or if the projected dataset fails the freeze-time structural contract.
 /// Whether `value` is an absolute IRI (carries a `scheme:` prefix per RFC 3986). Used to
 /// decide whether a reasoned axiom's non-default `world` is a genuine named graph. A robust
@@ -226,7 +232,7 @@ fn is_absolute_iri(value: &str) -> bool {
 pub fn reason_program_closure_dataset(
     program: &gmeow_logic_compile::ir::LogicProgram,
     edb: &RdfDataset,
-) -> Result<std::sync::Arc<RdfDataset>, String> {
+) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
     let result = reason_program(program, edb)?;
     let mut builder = RdfDatasetBuilder::new();
     for ax in result.inferred() {
@@ -243,7 +249,7 @@ pub fn reason_program_closure_dataset(
         }
         builder.push_owned_quad(&quad);
     }
-    builder.freeze().map_err(|e| e.to_string())
+    builder.freeze().map_err(|e| reason_err(e.to_string()))
 }
 
 /// Re-materialize a native [`TermValue`] (as produced by
@@ -251,7 +257,7 @@ pub fn reason_program_closure_dataset(
 ///
 /// `surface_to_value` only ever yields an IRI, a blank node, or a literal, so a triple
 /// term is a hard error rather than a silent drop (the no-optionality discipline).
-fn term_value_to_rdf_term(value: &TermValue) -> Result<RdfTerm, String> {
+fn term_value_to_rdf_term(value: &TermValue) -> gmeow_errors::Result<RdfTerm> {
     Ok(match value {
         TermValue::Iri(iri) => RdfTerm::iri(iri.clone()),
         TermValue::Blank { label, .. } => RdfTerm::blank_node(label.clone()),
@@ -271,9 +277,9 @@ fn term_value_to_rdf_term(value: &TermValue) -> Result<RdfTerm, String> {
             let predicate = match p.as_ref() {
                 TermValue::Iri(iri) => iri.clone(),
                 other => {
-                    return Err(format!(
+                    return Err(reason_err(format!(
                         "closure→RDF: triple-term predicate must be an IRI, got {other:?}"
-                    ));
+                    )));
                 }
             };
             RdfTerm::triple(RdfTriple::new(
@@ -303,7 +309,7 @@ fn term_value_to_rdf_term(value: &TermValue) -> Result<RdfTerm, String> {
 fn run_nary_head_chase(
     nary_head_rls: &str,
     edb: &RdfDataset,
-) -> Result<Vec<InferredAxiom>, String> {
+) -> gmeow_errors::Result<Vec<InferredAxiom>> {
     let rules = crate::physical::parse_existential_rules(nary_head_rls)?;
     let store = WorldStore::new();
     store.load_dataset(edb)?;
@@ -311,11 +317,11 @@ fn run_nary_head_chase(
     let budgeted = match outcome {
         crate::physical::NativeOutcome::Decided(budgeted) => budgeted,
         crate::physical::NativeOutcome::Unsupported(kind) => {
-            return Err(format!(
+            return Err(reason_err(format!(
                 "n-ary head derivation: the native restricted chase declined the program \
                  ({kind:?}) — an uncertified (non-terminating) existential rule set the reasoner \
                  cannot materialize"
-            ));
+            )));
         }
     };
 
@@ -352,16 +358,16 @@ fn run_nary_head_chase(
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the merged dataset fails the freeze-time structural
+/// Returns `Err` if the merged dataset fails the freeze-time structural
 /// contract, or if the chase fails to parse/validate/evaluate/decode.
 pub fn reason_all_with_data(
     bundle: &RdfDataset,
     user: &RdfDataset,
-) -> Result<ReasoningResult, String> {
+) -> gmeow_errors::Result<ReasoningResult> {
     let mut builder = RdfDatasetBuilder::new();
     builder.push_dataset(bundle);
     builder.push_dataset(user);
-    let merged = builder.freeze().map_err(|e| e.to_string())?;
+    let merged = builder.freeze().map_err(|e| reason_err(e.to_string()))?;
     reason_all(&merged)
 }
 
@@ -385,12 +391,12 @@ pub(crate) fn typed_result(
 /// A world-scoped reasoning fact never carries a literal (or triple-term)
 /// subject — blanks were Skolemized to IRIs before the chase — so any other
 /// shape is a hard error.
-fn subject_iri(term: &TermValue) -> Result<String, String> {
+fn subject_iri(term: &TermValue) -> gmeow_errors::Result<String> {
     match term {
         TermValue::Iri(iri) => Ok(iri.clone()),
-        other => Err(format!(
+        other => Err(reason_err(format!(
             "reasoning row subject must be an IRI (or Skolem IRI) term, got {other:?}"
-        )),
+        ))),
     }
 }
 
@@ -398,7 +404,7 @@ fn subject_iri(term: &TermValue) -> Result<String, String> {
 ///
 /// The world position of a ternary reasoning fact is always a plain string
 /// literal (the Nemo string-constant treatment); any other shape is a hard error.
-fn world_string(term: &TermValue) -> Result<String, String> {
+fn world_string(term: &TermValue) -> gmeow_errors::Result<String> {
     match term {
         TermValue::Literal {
             lexical_form,
@@ -406,9 +412,9 @@ fn world_string(term: &TermValue) -> Result<String, String> {
             language: None,
             ..
         } if datatype == "http://www.w3.org/2001/XMLSchema#string" => Ok(lexical_form.clone()),
-        other => Err(format!(
+        other => Err(reason_err(format!(
             "reasoning row world must be a plain string literal, got {other:?}"
-        )),
+        ))),
     }
 }
 
@@ -418,12 +424,12 @@ fn world_string(term: &TermValue) -> Result<String, String> {
 /// an IRI term, object is any typed term (surfaced as its display string), and
 /// the third value is the world string constant (dropped here — premises carry
 /// only the triple shape).
-fn decode_premise(row: &TypedRow) -> Result<(String, String, String), String> {
+fn decode_premise(row: &TypedRow) -> gmeow_errors::Result<(String, String, String)> {
     if row.args.len() != 3 {
-        return Err(format!(
+        return Err(reason_err(format!(
             "antecedent row has arity {} (expected 3): {row:?}",
             row.args.len()
-        ));
+        )));
     }
     let subject = subject_iri(&row.args[0])?;
     let object = crate::provenance::term_display(&row.args[1]);
@@ -443,10 +449,13 @@ fn decode_premise(row: &TypedRow) -> Result<(String, String, String), String> {
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the source store cannot be loaded, if the Nemo
+/// Returns `Err` if the source store cannot be loaded, if the Nemo
 /// chase fails to parse/validate/evaluate/decode, or if a materialized row is
 /// not the ternary reasoning shape.
-pub(crate) fn run_reasoning(edb: &RdfDataset, rules: &str) -> Result<Vec<InferredAxiom>, String> {
+pub(crate) fn run_reasoning(
+    edb: &RdfDataset,
+    rules: &str,
+) -> gmeow_errors::Result<Vec<InferredAxiom>> {
     // The primary reasoning path funnels through the single naming site
     // `forward_oracle()` (the native core after the Task-6 flip).
     let oracle = forward_oracle();
@@ -467,14 +476,14 @@ pub(crate) fn run_reasoning(edb: &RdfDataset, rules: &str) -> Result<Vec<Inferre
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the source store cannot be loaded, if the chase fails
+/// Returns `Err` if the source store cannot be loaded, if the chase fails
 /// to parse/validate/evaluate/decode, or if a materialized row is not the ternary
 /// reasoning shape.
 pub(crate) fn run_reasoning_with(
     edb: &RdfDataset,
     rules: &str,
     oracle: &dyn ForwardOracle,
-) -> Result<Vec<InferredAxiom>, String> {
+) -> gmeow_errors::Result<Vec<InferredAxiom>> {
     // 1. Load the source into a fresh world-indexed store.
     let store = WorldStore::new();
     store.load_dataset(edb)?;
@@ -559,9 +568,9 @@ fn subsumption_tuples(inferred: &[InferredAxiom]) -> Vec<(String, String, String
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if either engine's chase fails to
+/// Returns `Err` if either engine's chase fails to
 /// parse/validate/evaluate/decode over the committed corpus.
-pub fn crosscheck_native_vs_nemo(edb: &RdfDataset) -> Result<DivergenceLedger, String> {
+pub fn crosscheck_native_vs_nemo(edb: &RdfDataset) -> gmeow_errors::Result<DivergenceLedger> {
     let rules = dl::dl_rules();
 
     // Native: the production forward oracle (the single-naming-site native core).
@@ -604,21 +613,21 @@ pub fn crosscheck_native_vs_nemo(edb: &RdfDataset) -> Result<DivergenceLedger, S
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if a materialized row is not the ternary reasoning
+/// Returns `Err` if a materialized row is not the ternary reasoning
 /// shape or if a subject/world/premise term cannot be decoded.
 pub(crate) fn chase_rows_to_inferred(
     chase: &crate::oracle::TypedChaseResult,
-) -> Result<Vec<InferredAxiom>, String> {
+) -> gmeow_errors::Result<Vec<InferredAxiom>> {
     let mut inferred: Vec<InferredAxiom> = Vec::new();
     for (row, prov) in &chase.rows {
         if row.args.len() != 3 {
-            return Err(format!(
+            return Err(reason_err(format!(
                 "reasoning chase produced a non-ternary row for predicate \
                  {:?} (arity {}): the fixed reasoning rule texts declare only \
                  ternary relations, so this is a rule-text bug",
                 row.predicate,
                 row.args.len()
-            ));
+            )));
         }
 
         let predicate = row.predicate.clone();
@@ -630,7 +639,7 @@ pub(crate) fn chase_rows_to_inferred(
             .antecedents
             .iter()
             .map(decode_premise)
-            .collect::<Result<Vec<_>, String>>()?;
+            .collect::<gmeow_errors::Result<Vec<_>>>()?;
         premises.sort();
 
         inferred.push(InferredAxiom {

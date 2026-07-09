@@ -22,6 +22,7 @@
 //! scattering per-item attributes.
 #![allow(dead_code)]
 
+use gmeow_errors::Diag;
 use purrdf::{BlankScope, RdfDataset, TermId, TermRef, TermValue, canonicalize, parse_dataset};
 use std::sync::Arc;
 
@@ -268,10 +269,13 @@ fn object_id(ds: &RdfDataset, object: &Node) -> Option<TermId> {
 /// become the dataset's blank labels. The labeling is identical to the oxigraph
 /// `canonicalize_store` it replaces (both are conformant RDFC-1.0 / SHA-256), so the
 /// text back-ends and conformance goldens are unchanged.
-pub(crate) fn canonicalize_blank_nodes(ds: &RdfDataset) -> Result<Arc<RdfDataset>, String> {
+pub(crate) fn canonicalize_blank_nodes(ds: &RdfDataset) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let canon = canonicalize(ds);
-    parse_dataset(canon.nquads.as_bytes(), "application/n-quads", None)
-        .map_err(|e| format!("blank-node canonicalization re-parse: {e}"))
+    parse_dataset(canon.nquads.as_bytes(), "application/n-quads", None).map_err(|e| {
+        Diag::of_kind(crate::error::Graph {
+            detail: format!("blank-node canonicalization re-parse: {e}"),
+        })
+    })
 }
 
 // --------------------------------------------------------------------------- //

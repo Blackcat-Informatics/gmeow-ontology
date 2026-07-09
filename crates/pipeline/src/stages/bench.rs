@@ -221,17 +221,19 @@ pub fn compare_against_baseline(criterion_root: &Path, baseline_json: &str) -> S
         BTreeMap::new()
     } else {
         serde_json::from_str(baseline_json).unwrap_or_else(|e| {
-            eprintln!(
-                "warning: committed baseline JSON is unparsable ({e}); \
-treating every benchmark as `new`."
+            tracing::warn!(
+                target: "bench_compare",
+                error = %e,
+                "committed baseline JSON is unparsable; treating every benchmark as `new`",
             );
             BTreeMap::new()
         })
     };
     let current = collect_estimates(criterion_root).unwrap_or_else(|e| {
-        eprintln!(
-            "warning: could not collect live criterion estimates ({e}); \
-treating every baseline benchmark as `missing`."
+        tracing::warn!(
+            target: "bench_compare",
+            error = %e,
+            "could not collect live criterion estimates; treating every baseline benchmark as `missing`",
         );
         BTreeMap::new()
     });

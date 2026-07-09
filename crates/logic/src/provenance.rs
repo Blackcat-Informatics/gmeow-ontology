@@ -41,6 +41,12 @@
 use purrdf::TermValue;
 use sha1::{Digest, Sha1};
 
+/// Wrap a provenance-derivation condition message as a typed diagnostic on the
+/// shared substrate, preserving the authored text verbatim.
+fn provenance_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Provenance { detail })
+}
+
 // ── Namespace constants ────────────────────────────────────────────────────────
 
 /// Vocabulary namespace — term IRIs are `NAMESPACE + local`.
@@ -145,7 +151,7 @@ fn literal_n3_parts(lexical_form: &str, datatype: &str, language: Option<&str>) 
 /// # Errors
 ///
 /// Returns an error string if `term` is a `TermValue::Triple`.
-pub fn term_n3(term: &TermValue) -> Result<String, String> {
+pub fn term_n3(term: &TermValue) -> gmeow_errors::Result<String> {
     match term {
         TermValue::Iri(iri) => Ok(format!("<{}>", iri)),
         TermValue::Blank { label, scope } => Ok(format!("_:{}", scope.qualify_label(label))),
@@ -159,11 +165,11 @@ pub fn term_n3(term: &TermValue) -> Result<String, String> {
             datatype,
             language.as_deref(),
         )),
-        TermValue::Triple { .. } => Err(
+        TermValue::Triple { .. } => Err(provenance_err(
             "RDF-star quoted-triple terms are not supported in gmeow-logic v1 \
              (TermValue::Triple cannot be hashed without risking ID collisions)"
                 .to_owned(),
-        ),
+        )),
     }
 }
 
@@ -239,7 +245,7 @@ pub fn term_display(term: &TermValue) -> String {
 /// # Returns
 ///
 /// The reifier IRI as a `String`.
-pub fn mint_reifier(s: &TermValue, p: &str, o: &TermValue) -> Result<String, String> {
+pub fn mint_reifier(s: &TermValue, p: &str, o: &TermValue) -> gmeow_errors::Result<String> {
     let s_n3 = term_n3(s)?;
     let o_n3 = term_n3(o)?;
     let canonical = format!("{} {} {}", s_n3, named_node_n3(p), o_n3);
@@ -302,7 +308,7 @@ pub const NARY_REIFIER_PREFIX: &str = "https://blackcatinformatics.ca/gmeow/reif
 ///
 /// Returns an error string if any argument is a `TermValue::Triple` (RDF-star
 /// quoted triples are out of scope for gmeow-logic v1, per [`term_n3`]).
-pub fn mint_nary_reifier(relation: &str, args: &[TermValue]) -> Result<String, String> {
+pub fn mint_nary_reifier(relation: &str, args: &[TermValue]) -> gmeow_errors::Result<String> {
     let mut payload = String::from("nary\n");
     let rel = named_node_n3(relation);
     payload.push_str(&format!("{}:{},", rel.len(), rel));

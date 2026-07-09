@@ -368,7 +368,7 @@ fn build_contributors(contributors: &[ContributorInput]) -> Node {
 /// Validate that `date` is an `xsd:date`-shaped `YYYY-MM-DD` string (the only shape
 /// `build_date` can split into year/month/day). Returns a precise error otherwise so
 /// the deposit-XML builder hard-fails instead of panicking on an out-of-range index.
-fn validate_iso_date(date: &str) -> Result<(), String> {
+fn validate_iso_date(date: &str) -> gmeow_errors::Result<()> {
     let parts: Vec<&str> = date.splitn(3, '-').collect();
     let well_formed = parts.len() == 3
         && parts[0].len() == 4
@@ -378,10 +378,12 @@ fn validate_iso_date(date: &str) -> Result<(), String> {
     if well_formed {
         Ok(())
     } else {
-        Err(format!(
-            "release_date {date:?} is not a well-formed YYYY-MM-DD date; \
+        Err(gmeow_errors::Diag::of_kind(crate::error::Crossref {
+            detail: format!(
+                "release_date {date:?} is not a well-formed YYYY-MM-DD date; \
              the Crossref deposit requires an xsd:date-shaped release_date"
-        ))
+            ),
+        }))
     }
 }
 
@@ -736,8 +738,16 @@ fn build_dataset(
 /// `YYYYMMDDHHMMSS` string; `batch_id` is the unique submission id.
 ///
 /// Returns a string byte-identical to the Python `build_deposit_xml`.
-pub fn build_deposit_xml(json: &str, timestamp: &str, batch_id: &str) -> Result<String, String> {
-    let input: DepositInput = serde_json::from_str(json).map_err(|e| e.to_string())?;
+pub fn build_deposit_xml(
+    json: &str,
+    timestamp: &str,
+    batch_id: &str,
+) -> gmeow_errors::Result<String> {
+    let input: DepositInput = serde_json::from_str(json).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: e.to_string(),
+        })
+    })?;
     let sd = &input.self_description;
     let config = &input.config;
 
@@ -749,10 +759,10 @@ pub fn build_deposit_xml(json: &str, timestamp: &str, batch_id: &str) -> Result<
 
     let crossmark_policy: Option<String> = if config.crossmark_enabled {
         if config.crossmark_policy_doi.trim().is_empty() {
-            return Err(
-                "CROSSMARK_POLICY_DOI must be non-empty when CROSSMARK_ENABLED is True."
+            return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+                detail: "CROSSMARK_POLICY_DOI must be non-empty when CROSSMARK_ENABLED is True."
                     .to_string(),
-            );
+            }));
         }
         Some(config.crossmark_policy_doi.clone())
     } else {
@@ -925,8 +935,12 @@ pub fn build_deposit_xml(json: &str, timestamp: &str, batch_id: &str) -> Result<
 /// `json` is a JSON-serialised [`LintInput`].  The Python caller reads the
 /// CITATION.cff and ontology files and passes their text in, so this function
 /// never does I/O.
-pub fn lint_deposit(json: &str) -> Result<Vec<String>, String> {
-    let input: LintInput = serde_json::from_str(json).map_err(|e| e.to_string())?;
+pub fn lint_deposit(json: &str) -> gmeow_errors::Result<Vec<String>> {
+    let input: LintInput = serde_json::from_str(json).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: e.to_string(),
+        })
+    })?;
     let sd = &input.self_description;
     let config = &input.config;
     let mut problems: Vec<String> = vec![];
@@ -1002,7 +1016,11 @@ pub fn lint_deposit(json: &str) -> Result<Vec<String>, String> {
         self_description: sd.clone(),
         config: config.clone(),
     };
-    let deposit_json = serde_json::to_string(&deposit_input).map_err(|e| e.to_string())?;
+    let deposit_json = serde_json::to_string(&deposit_input).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Serialize {
+            detail: e.to_string(),
+        })
+    })?;
     let xml: String = build_deposit_xml(&deposit_json, "00000000000000", "lint-roundtrip")?;
 
     let pairs = extract_doi_resource_pairs(&xml);
@@ -1178,7 +1196,8 @@ mod date_tests {
         // A malformed release_date must surface as an Err, never an out-of-range panic.
         for bad in ["2026", "2026-06", "not-a-date", "2026/06/21", "26-6-1", ""] {
             let err = validate_iso_date(bad).expect_err("malformed date must be rejected");
-            assert!(err.contains("YYYY-MM-DD"), "{err}");
+            let message = err.message();
+            assert!(message.contains("YYYY-MM-DD"), "{message}");
         }
     }
 }

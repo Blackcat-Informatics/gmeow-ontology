@@ -139,6 +139,20 @@ impl Standpoint {
         }
     }
 
+    /// The inverse of [`iri_local`](Standpoint::iri_local) — read the
+    /// `gmeow:standpoint*` individual's local name (`gmeow:findingStandpoint`
+    /// object) back into the standpoint. The section of the RDF projection's
+    /// standpoint leg. `None` for an unknown local name (hard fail, never a silent
+    /// default).
+    pub fn from_iri_local(local: &str) -> Option<Self> {
+        match local {
+            "standpointAdvisory" => Some(Self::Advisory),
+            "standpointPerspectival" => Some(Self::Perspectival),
+            "standpointBinding" => Some(Self::Binding),
+            _ => None,
+        }
+    }
+
     /// The local name of the matching `gmeow:standpoint*` ontology individual, so
     /// the RDF projection emits the same IRI the diagnostics vocabulary mints.
     pub fn iri_local(self) -> &'static str {
@@ -206,11 +220,13 @@ impl BoundedLattice for Blocking {
 
 impl FindingCategory {
     /// The gating projection of a category. Exactly the three *failure* kinds are
-    /// Blocking; the other six — including [`PermittedEpistemicConflict`] and the
-    /// non-blocking [`Corroboration`](FindingCategory::Corroboration) — are
-    /// Coherent and can never contribute to gate fatality.
+    /// Blocking; the other seven — including [`PermittedEpistemicConflict`], the
+    /// non-blocking [`Corroboration`](FindingCategory::Corroboration), and the
+    /// [`Transient`](FindingCategory::Transient) chatter kind — are Coherent and
+    /// can never contribute to gate fatality.
     ///
     /// [`PermittedEpistemicConflict`]: FindingCategory::PermittedEpistemicConflict
+    /// [`Transient`]: FindingCategory::Transient
     pub fn blocking(self) -> Blocking {
         match self {
             Self::DataShapeViolation
@@ -221,7 +237,8 @@ impl FindingCategory {
             | Self::IncompleteCheck
             | Self::ProjectionLoss
             | Self::PolicyWarning
-            | Self::Corroboration => Blocking::Coherent,
+            | Self::Corroboration
+            | Self::Transient => Blocking::Coherent,
         }
     }
 
@@ -239,12 +256,17 @@ impl FindingCategory {
             | Self::IncompleteCheck
             | Self::ProjectionLoss
             | Self::PolicyWarning
-            | Self::Corroboration => Belnap::Neither,
+            | Self::Corroboration
+            | Self::Transient => Belnap::Neither,
         }
     }
 
     /// A deterministic total order on categories, used only to break ties when two
-    /// equally-blocking categories merge — so the merge is commutative.
+    /// equally-blocking categories merge — so the merge is commutative. The smaller
+    /// rank wins the tie-break, so the [`Transient`] chatter kind sits LAST (the
+    /// weakest): merging it against any real category always keeps the real one.
+    ///
+    /// [`Transient`]: FindingCategory::Transient
     fn merge_rank(self) -> u8 {
         match self {
             Self::DataShapeViolation => 0,
@@ -256,10 +278,11 @@ impl FindingCategory {
             Self::ProjectionLoss => 6,
             Self::PolicyWarning => 7,
             Self::Corroboration => 8,
+            Self::Transient => 9,
         }
     }
 
-    pub const ALL: [FindingCategory; 9] = [
+    pub const ALL: [FindingCategory; 10] = [
         FindingCategory::DataShapeViolation,
         FindingCategory::ModelingDisciplineViolation,
         FindingCategory::ContradictionWitness,
@@ -269,6 +292,7 @@ impl FindingCategory {
         FindingCategory::ProjectionLoss,
         FindingCategory::PolicyWarning,
         FindingCategory::Corroboration,
+        FindingCategory::Transient,
     ];
 }
 
@@ -602,6 +626,24 @@ mod tests {
                 expected,
                 "gate fatal region mismatch at {g:?}"
             );
+        }
+    }
+
+    #[test]
+    fn transient_chatter_never_gates_and_takes_no_stance() {
+        // The closed chatter kind is non-gating at EVERY severity and standpoint,
+        // and carries no coherence stance — it is transient bookkeeping only.
+        assert_eq!(FindingCategory::Transient.blocking(), Blocking::Coherent);
+        assert_eq!(FindingCategory::Transient.polarity(), Belnap::Neither);
+        for &sev in &Severity::ALL {
+            for &standpoint in &Standpoint::ALL {
+                let g = Grade::new(sev, FindingCategory::Transient, standpoint);
+                assert_ne!(
+                    gate(g),
+                    GateVerdict::Fatal,
+                    "transient chatter must never gate: {g:?}"
+                );
+            }
         }
     }
 

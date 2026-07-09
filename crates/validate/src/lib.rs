@@ -33,6 +33,7 @@
 // Wasm-clean Tier-1 core: compiled on every target.
 pub mod codes;
 pub mod data_validate;
+pub mod error;
 pub mod findings;
 pub mod gufo;
 pub mod model;

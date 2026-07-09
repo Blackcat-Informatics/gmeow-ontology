@@ -20,6 +20,13 @@
 
 use purrdf::RdfDataset;
 
+/// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+#[allow(dead_code)]
+fn reason_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Reason { detail })
+}
+
 /// The fixed OWL-2-EL/RL class-level entailment rule set, in the world-scoped
 /// ternary gmeow encoding. Full IRIs in angle brackets; `?w` threads the world.
 pub const EL_RULES: &str = r#"
@@ -89,7 +96,7 @@ pub struct ElClosure {
 ///
 /// Returns `Err(String)` if the source store cannot be loaded, if the Nemo
 /// chase fails to parse/validate/evaluate, or if a derived row fails to decode.
-pub fn el_closure(edb: &RdfDataset) -> Result<ElClosure, String> {
+pub fn el_closure(edb: &RdfDataset) -> gmeow_errors::Result<ElClosure> {
     // 1. Run the fixed EL rule set through the shared chase machinery.
     let all = crate::reason::run_reasoning(edb, EL_RULES)?;
 

@@ -17,7 +17,10 @@
 
 use serde_json::{Map, Value};
 
+use gmeow_errors::Diag;
 use gmeow_license::{LicensePolicy, policy_for_license};
+
+use crate::error::{CorpusInvalid, Io, LicenseNotVendorable};
 
 /// Which run lane a corpus targets.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -38,14 +41,16 @@ pub enum Lane {
 }
 
 impl Lane {
-    fn parse(s: &str) -> Result<Lane, String> {
+    fn parse(s: &str) -> gmeow_errors::Result<Lane> {
         match s {
             "a" | "A" => Ok(Lane::A),
             "b" | "B" => Ok(Lane::B),
             "divergence" => Ok(Lane::Divergence),
-            other => Err(format!(
-                "corpus.json lane must be \"a\", \"b\", or \"divergence\", got {other:?}"
-            )),
+            other => Err(Diag::of_kind(CorpusInvalid {
+                detail: format!(
+                    "corpus.json lane must be \"a\", \"b\", or \"divergence\", got {other:?}"
+                ),
+            })),
         }
     }
 
@@ -88,10 +93,12 @@ const ALLOWED_KEYS: [&str; 6] = [
 ];
 
 /// Parse and validate a `corpus.json` value (hard-fail).
-pub fn parse_corpus_meta(value: &Value) -> Result<CorpusMeta, String> {
-    let obj = value
-        .as_object()
-        .ok_or_else(|| "corpus.json must be a JSON object".to_string())?;
+pub fn parse_corpus_meta(value: &Value) -> gmeow_errors::Result<CorpusMeta> {
+    let obj = value.as_object().ok_or_else(|| {
+        Diag::of_kind(CorpusInvalid {
+            detail: "corpus.json must be a JSON object".to_string(),
+        })
+    })?;
 
     let mut unknown: Vec<&str> = obj
         .keys()
@@ -100,12 +107,14 @@ pub fn parse_corpus_meta(value: &Value) -> Result<CorpusMeta, String> {
         .collect();
     unknown.sort_unstable();
     if !unknown.is_empty() {
-        return Err(format!(
-            "corpus.json has unknown key(s) {unknown:?}; allowed keys are {ALLOWED_KEYS:?}"
-        ));
+        return Err(Diag::of_kind(CorpusInvalid {
+            detail: format!(
+                "corpus.json has unknown key(s) {unknown:?}; allowed keys are {ALLOWED_KEYS:?}"
+            ),
+        }));
     }
 
-    let string_field = |key: &str| -> Result<String, String> { required_string(obj, key) };
+    let string_field = |key: &str| -> gmeow_errors::Result<String> { required_string(obj, key) };
 
     let lane = Lane::parse(&string_field("lane")?)?;
     Ok(CorpusMeta {
@@ -119,12 +128,22 @@ pub fn parse_corpus_meta(value: &Value) -> Result<CorpusMeta, String> {
 }
 
 /// Read and parse a `corpus.json` file from disk.
-pub fn load_corpus_meta(path: &std::path::Path) -> Result<CorpusMeta, String> {
-    let text = std::fs::read_to_string(path)
-        .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
-    let value: Value =
-        serde_json::from_str(&text).map_err(|e| format!("cannot parse {}: {e}", path.display()))?;
-    parse_corpus_meta(&value).map_err(|e| format!("{}: {e}", path.display()))
+pub fn load_corpus_meta(path: &std::path::Path) -> gmeow_errors::Result<CorpusMeta> {
+    let text = std::fs::read_to_string(path).map_err(|e| {
+        Diag::of_kind(Io {
+            detail: format!("cannot read {}: {e}", path.display()),
+        })
+    })?;
+    let value: Value = serde_json::from_str(&text).map_err(|e| {
+        Diag::of_kind(CorpusInvalid {
+            detail: format!("cannot parse {}: {e}", path.display()),
+        })
+    })?;
+    parse_corpus_meta(&value).map_err(|e| {
+        Diag::of_kind(CorpusInvalid {
+            detail: format!("{}: {e}", path.display()),
+        })
+    })
 }
 
 /// Audit a corpus's declared license: an IMPORT_OK license may be vendored; a
@@ -132,15 +151,17 @@ pub fn load_corpus_meta(path: &std::path::Path) -> Result<CorpusMeta, String> {
 ///
 /// This is the separately-testable precondition the lowering / ingest binary calls
 /// BEFORE writing a vendored case (kept out of the pure `lower` transform).
-pub fn audit_vendorable(meta: &CorpusMeta) -> Result<(), String> {
+pub fn audit_vendorable(meta: &CorpusMeta) -> gmeow_errors::Result<()> {
     match policy_for_license(&meta.spdx_license) {
         LicensePolicy::ImportOk => Ok(()),
-        LicensePolicy::ReferenceOnly => Err(format!(
-            "corpus {:?} declares license {:?}, which is REFERENCE_ONLY — it cannot be vendored \
-             under cases/external/. Such corpora may only be fetched live in the Lane-B \
-             (make -C validations/classic-cross-check validate) lane and never committed.",
-            meta.name, meta.spdx_license
-        )),
+        LicensePolicy::ReferenceOnly => Err(Diag::of_kind(LicenseNotVendorable {
+            detail: format!(
+                "corpus {:?} declares license {:?}, which is REFERENCE_ONLY — it cannot be vendored \
+                 under cases/external/. Such corpora may only be fetched live in the Lane-B \
+                 (make -C validations/classic-cross-check validate) lane and never committed.",
+                meta.name, meta.spdx_license
+            ),
+        })),
     }
 }
 
@@ -156,7 +177,7 @@ pub fn audit_vendorable(meta: &CorpusMeta) -> Result<(), String> {
 /// # Errors
 /// Hard-fails (no-optionality) when a parent `corpus.json` exists but is unreadable or
 /// invalid — a malformed corpus metadata file is an error, never a silent skip.
-pub fn lane_for_case(case_dir: &std::path::Path) -> Result<Option<Lane>, String> {
+pub fn lane_for_case(case_dir: &std::path::Path) -> gmeow_errors::Result<Option<Lane>> {
     let Some(parent) = case_dir.parent() else {
         return Ok(None);
     };
@@ -167,11 +188,15 @@ pub fn lane_for_case(case_dir: &std::path::Path) -> Result<Option<Lane>, String>
     Ok(Some(load_corpus_meta(&corpus_json)?.lane))
 }
 
-fn required_string(obj: &Map<String, Value>, key: &str) -> Result<String, String> {
+fn required_string(obj: &Map<String, Value>, key: &str) -> gmeow_errors::Result<String> {
     obj.get(key)
         .and_then(Value::as_str)
         .map(str::to_string)
-        .ok_or_else(|| format!("corpus.json is missing the required string field {key:?}"))
+        .ok_or_else(|| {
+            Diag::of_kind(CorpusInvalid {
+                detail: format!("corpus.json is missing the required string field {key:?}"),
+            })
+        })
 }
 
 #[cfg(test)]
@@ -208,7 +233,7 @@ mod tests {
     fn reference_only_corpus_fails_the_audit() {
         let m = parse_corpus_meta(&meta_value("CC-BY-NC-SA-4.0", "b")).unwrap();
         let err = audit_vendorable(&m).unwrap_err();
-        assert!(err.contains("REFERENCE_ONLY"), "{err}");
+        assert!(err.message().contains("REFERENCE_ONLY"), "{err}");
     }
 
     #[test]
@@ -220,7 +245,7 @@ mod tests {
     #[test]
     fn unknown_lane_hard_fails() {
         let err = parse_corpus_meta(&meta_value("CC-BY-4.0", "c")).unwrap_err();
-        assert!(err.contains("lane must be"), "{err}");
+        assert!(err.message().contains("lane must be"), "{err}");
     }
 
     #[test]
@@ -232,7 +257,10 @@ mod tests {
     #[test]
     fn missing_field_hard_fails() {
         let err = parse_corpus_meta(&json!({ "name": "tiny" })).unwrap_err();
-        assert!(err.contains("missing the required string field"), "{err}");
+        assert!(
+            err.message().contains("missing the required string field"),
+            "{err}"
+        );
     }
 
     #[test]
@@ -240,7 +268,7 @@ mod tests {
         let mut v = meta_value("CC-BY-4.0", "a");
         v.as_object_mut().unwrap().insert("nope".into(), json!(1));
         let err = parse_corpus_meta(&v).unwrap_err();
-        assert!(err.contains("unknown key"), "{err}");
+        assert!(err.message().contains("unknown key"), "{err}");
     }
 
     /// `lane_for_case` is the consumer that makes the `lane` field load-bearing: the

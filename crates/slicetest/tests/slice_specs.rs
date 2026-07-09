@@ -17,18 +17,22 @@ use datatest_stable::Utf8Path;
 
 use gmeow_slicetest::exec;
 
+// The harness boundary: `datatest_stable::Result` is `Result<(), Box<dyn Error>>`, and a
+// `Diag` deliberately does NOT implement `std::error::Error` (the coherence rule that keeps
+// its blanket `From` sound), so it cannot cross the `?` seam directly. Render the aggregated
+// diagnostic to its display text — the same report a failing nextest case has always shown.
 fn run_competency_file(path: &Utf8Path) -> datatest_stable::Result<()> {
-    exec::run_competency_file(path.as_std_path())?;
+    exec::run_competency_file(path.as_std_path()).map_err(|d| d.to_string())?;
     Ok(())
 }
 
 fn run_structural_file(path: &Utf8Path) -> datatest_stable::Result<()> {
-    exec::run_structural_file(path.as_std_path())?;
+    exec::run_structural_file(path.as_std_path()).map_err(|d| d.to_string())?;
     Ok(())
 }
 
 fn run_conformance_file(path: &Utf8Path) -> datatest_stable::Result<()> {
-    exec::run_conformance_file(path.as_std_path())?;
+    exec::run_conformance_file(path.as_std_path()).map_err(|d| d.to_string())?;
     Ok(())
 }
 

@@ -123,7 +123,6 @@ fn unknown_subcommand_is_a_usage_error() {
 fn logic_query_recursive_ancestor() {
     let case = repo_root().join("conformance/logic/cases/profiles/goal-recursive-ancestor");
     if !case.is_dir() {
-        eprintln!("conformance case absent; skipping");
         return;
     }
     let assert = dev_cmd()

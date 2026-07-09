@@ -13,10 +13,22 @@
 
 use gmeow_errors::model::{Finding, Location, Report, Rule, Severity};
 use lsp_types::{
-    CodeDescription, Diagnostic, DiagnosticSeverity, NumberOrString, Position, Range, Uri,
+    CodeDescription, Diagnostic, DiagnosticRelatedInformation, DiagnosticSeverity,
+    Location as LspLocation, NumberOrString, Position, Range, Uri,
 };
 use purrdf::RdfDiagnostic;
 use purrdf::{NativeRdfFormat, parse_dataset};
+
+/// The embedded canonical GMEOW snapshot — the whole ontology + its transforms,
+/// folded into one GTS bundle, baked into the analyzer so the `.ttl` linter needs no
+/// repository, no generator inputs, and no network (the same `include_bytes!` the
+/// consumer CLI uses). The `.ttl` analysis path reads the bundle's `shapes-archive`
+/// through this constant to run the substrate SHACL validation — a HARD dependency:
+/// the build fails if `generated/dist/gmeow.gts` is absent, never a degraded fallback.
+pub const BUNDLE_GTS: &[u8] = include_bytes!(concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../../generated/dist/gmeow.gts"
+));
 
 // ─── Language discriminant ───────────────────────────────────────────────────
 
@@ -59,21 +71,65 @@ pub fn analyze(lang: Lang, text: &str, virtual_path: &str) -> Report {
 // ─── Turtle analysis ─────────────────────────────────────────────────────────
 
 fn analyze_ttl(text: &str, virtual_path: &str) -> Report {
-    let mut report = Report::new("gmeow-lsp");
     let bytes = text.as_bytes();
 
     // Parse through the native (oxigraph-free) codec. The native parser is
     // fail-fast (one diagnostic per parse) rather than lenient-multi-error; that is
-    // acceptable for an editor linter, which re-lints on every edit.
+    // acceptable for an editor linter, which re-lints on every edit. A parse error
+    // fast-fails with a single structured `turtle.syntax` finding (carrying the
+    // 1-based line/column), exactly as before — the substrate pass runs only once the
+    // document parses, so there is nothing to validate against the shapes otherwise.
     if let Err(diagnostic) = parse_dataset(bytes, NativeRdfFormat::Turtle.media_type(), None) {
+        let mut report = Report::new("gmeow-lsp");
         let (line, col, msg) = extract_rdf_error(&diagnostic);
         let mut finding = Finding::new(Severity::Error, "turtle.syntax", msg);
         let loc = Location::new(Some(virtual_path.to_string()), Some(line), Some(col), None);
         finding.add_location(loc);
         report.add_finding(finding);
+        report.normalize();
+        return report;
     }
+
+    // The document parses: READ THE SUBSTRATE. Route the parsed data graph through the
+    // repo-free Tier-1 consumer SHACL validator against the bundle's data-graph shape
+    // union, projecting each result THROUGH a `DiagLedger`, so a shape violation
+    // surfaces with the SHACL result-path / offending-value secondary labels the LSP
+    // renders as `DiagnosticRelatedInformation`. The embedded [`BUNDLE_GTS`] is the
+    // shapes source — a hard dependency, never a degraded parse-only fallback.
+    let mut report = analyze_ttl_substrate(bytes, virtual_path);
     report.normalize();
     report
+}
+
+/// Run the substrate SHACL validation of an already-parsed Turtle document `bytes`
+/// against the bundled data-graph shapes, projected through the ledger so the returned
+/// [`Report`]'s findings carry the SHACL secondary labels (`related_labels`).
+///
+/// A substrate failure is a HARD FAIL surfaced as a visible `lsp.substrate` error
+/// finding (never a silent swallow): the shapes are embedded and always parse, and the
+/// document has already parsed cleanly here, so this path is reached only on a genuine
+/// internal fault — which must be reported, not hidden.
+fn analyze_ttl_substrate(bytes: &[u8], virtual_path: &str) -> Report {
+    match gmeow_validate::data_validate::shacl_report_via_ledger(
+        bytes,
+        NativeRdfFormat::Turtle.media_type(),
+        BUNDLE_GTS,
+        "gmeow-lsp",
+    ) {
+        Ok(report) => report,
+        Err(diag) => {
+            let mut report = Report::new("gmeow-lsp");
+            let mut finding = Finding::new(Severity::Error, "lsp.substrate", diag.message());
+            finding.add_location(Location::new(
+                Some(virtual_path.to_string()),
+                None,
+                None,
+                None,
+            ));
+            report.add_finding(finding);
+            report
+        }
+    }
 }
 
 /// Extract a (1-based line, 1-based column, message) triple from a native
@@ -124,7 +180,73 @@ fn make_code_description(uri: &str) -> Option<CodeDescription> {
     uri.parse::<Uri>().ok().map(|href| CodeDescription { href })
 }
 
-pub fn report_to_diagnostics(report: &Report) -> Vec<Diagnostic> {
+/// Resolve a secondary label's [`Location::path`] into an LSP [`Uri`].
+///
+/// A related label may anchor at the SAME document the diagnostic rides on, or at
+/// another file (a "defined here" span in a companion module). The `path` a label
+/// carries is the same virtual-path spelling the analyzer attributes primary
+/// locations to (an absolute filesystem path for `file://` documents), so we
+/// invert it back to a `file://` [`Uri`]:
+///
+/// * An absolute filesystem path → a `file://` URI (the common case; a same-document
+///   label round-trips back to the document's own `doc_uri`).
+/// * A path that is already a URI string (e.g. `untitled:foo`) → parsed as-is.
+/// * No usable path, or an unresolvable one → the primary document's `doc_uri`, so
+///   the labelled message is never dropped — it stays attached to the diagnostic's
+///   own document.
+fn resolve_label_uri(path: Option<&str>, doc_uri: &Uri) -> Uri {
+    let Some(path) = path.map(str::trim).filter(|p| !p.is_empty()) else {
+        return doc_uri.clone();
+    };
+    if let Ok(url) = url::Url::from_file_path(path)
+        && let Ok(uri) = url.as_str().parse::<Uri>()
+    {
+        return uri;
+    }
+    if let Ok(uri) = path.parse::<Uri>() {
+        return uri;
+    }
+    doc_uri.clone()
+}
+
+/// Project a witness node's TEXT-bearing secondary labels into LSP
+/// [`DiagnosticRelatedInformation`]. Each labelled span keeps its MESSAGE beside a
+/// resolved [`LspLocation`]; the 1-based line/column is converted to LSP's 0-based
+/// coordinates with the SAME `saturating_sub` the primary range uses, producing a
+/// zero-width range at the span's start. Returns `None` when the finding carries no
+/// labelled spans (never `Some(vec![])`), and skips any empty-message label so no
+/// empty related info is emitted.
+fn related_information(
+    finding: &Finding,
+    doc_uri: &Uri,
+) -> Option<Vec<DiagnosticRelatedInformation>> {
+    let infos: Vec<DiagnosticRelatedInformation> = finding
+        .related_labels
+        .iter()
+        .filter(|label| !label.message.is_empty())
+        .map(|label| {
+            let line = label.location.line.unwrap_or(1).saturating_sub(1);
+            let character = label.location.column.unwrap_or(1).saturating_sub(1);
+            let start = Position { line, character };
+            DiagnosticRelatedInformation {
+                location: LspLocation {
+                    uri: resolve_label_uri(label.location.path.as_deref(), doc_uri),
+                    range: Range { start, end: start },
+                },
+                message: label.message.clone(),
+            }
+        })
+        .collect();
+    (!infos.is_empty()).then_some(infos)
+}
+
+/// Project a [`Report`] to LSP [`Diagnostic`]s for `doc_uri`'s
+/// `textDocument/publishDiagnostics` notification.
+///
+/// `doc_uri` is the document the diagnostics ride on; it anchors every secondary
+/// [`DiagnosticRelatedInformation`] whose label carries no cross-file path (see
+/// [`resolve_label_uri`]).
+pub fn report_to_diagnostics(report: &Report, doc_uri: &Uri) -> Vec<Diagnostic> {
     // Build a rule lookup once so each finding can resolve its help URI in O(log n).
     let rules: std::collections::BTreeMap<&str, &Rule> =
         report.rules.iter().map(|r| (r.id.as_str(), r)).collect();
@@ -176,6 +298,7 @@ pub fn report_to_diagnostics(report: &Report) -> Vec<Diagnostic> {
                 source: Some(report.tool.clone()),
                 message,
                 code_description,
+                related_information: related_information(finding, doc_uri),
                 ..Default::default()
             }
         })
@@ -187,6 +310,12 @@ pub fn report_to_diagnostics(report: &Report) -> Vec<Diagnostic> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gmeow_errors::model::RelatedLabel;
+
+    /// A stable primary-document URI for the projection tests.
+    fn doc_uri() -> Uri {
+        "file:///home/user/bad.ttl".parse().expect("valid doc uri")
+    }
 
     #[test]
     fn classify_ttl() {
@@ -230,7 +359,7 @@ mod tests {
     fn report_to_diagnostics_maps_severity_and_position() {
         let ttl = "@prefix : <http://bad";
         let report = analyze(Lang::Ttl, ttl, "bad.ttl");
-        let diags = report_to_diagnostics(&report);
+        let diags = report_to_diagnostics(&report, &doc_uri());
         assert!(!diags.is_empty());
         let d = &diags[0];
         assert_eq!(d.severity, Some(DiagnosticSeverity::ERROR));
@@ -247,7 +376,7 @@ mod tests {
     fn report_to_diagnostics_no_location_uses_default_range() {
         let mut report = Report::new("gmeow-lsp");
         report.add_finding(Finding::new(Severity::Warning, "test.warn", "no location"));
-        let diags = report_to_diagnostics(&report);
+        let diags = report_to_diagnostics(&report, &doc_uri());
         assert_eq!(diags.len(), 1);
         assert_eq!(diags[0].range, Range::default());
     }
@@ -270,7 +399,7 @@ mod tests {
         finding.suggestions.push("use gmeow:Kind".to_owned());
         report.add_finding(finding);
 
-        let diags = report_to_diagnostics(&report);
+        let diags = report_to_diagnostics(&report, &doc_uri());
         assert_eq!(diags.len(), 1);
         let diag = &diags[0];
 
@@ -298,6 +427,70 @@ mod tests {
             "message missing suggestion: {:?}",
             diag.message
         );
+    }
+
+    #[test]
+    fn related_labels_project_to_related_information() {
+        // A finding carrying two secondary labelled spans: one anchored at another
+        // file (cross-file "defined here") and one with no path (same document).
+        let mut report = Report::new("gmeow-lsp");
+        let mut finding = Finding::new(Severity::Error, "logic.conflict", "unsatisfiable class");
+        finding.add_location(Location::new(
+            Some("/home/user/bad.ttl".to_owned()),
+            Some(4),
+            Some(2),
+            None,
+        ));
+        finding.add_related_label(RelatedLabel {
+            location: Location::new(
+                Some("/home/user/other.ttl".to_owned()),
+                Some(3),
+                Some(5),
+                None,
+            ),
+            message: "conflicting axiom defined here".to_owned(),
+        });
+        finding.add_related_label(RelatedLabel {
+            location: Location::new(None, Some(9), None, None),
+            message: "witnessed in this document".to_owned(),
+        });
+        report.add_finding(finding);
+
+        let diags = report_to_diagnostics(&report, &doc_uri());
+        assert_eq!(diags.len(), 1);
+        let infos = diags[0]
+            .related_information
+            .as_ref()
+            .expect("related_information should be Some");
+        assert_eq!(infos.len(), 2);
+
+        // Cross-file label: resolved to a file:// URI at the 0-based span, message intact.
+        let cross = infos
+            .iter()
+            .find(|i| i.message == "conflicting axiom defined here")
+            .expect("cross-file related info present");
+        assert_eq!(cross.location.uri.as_str(), "file:///home/user/other.ttl");
+        assert_eq!(cross.location.range.start.line, 2);
+        assert_eq!(cross.location.range.start.character, 4);
+
+        // Path-less label falls back to the primary document URI (never dropped).
+        let same = infos
+            .iter()
+            .find(|i| i.message == "witnessed in this document")
+            .expect("same-document related info present");
+        assert_eq!(same.location.uri.as_str(), doc_uri().as_str());
+        assert_eq!(same.location.range.start.line, 8);
+    }
+
+    #[test]
+    fn no_related_labels_yields_none() {
+        // A finding with no labelled spans must set related_information to None,
+        // not Some(vec![]).
+        let mut report = Report::new("gmeow-lsp");
+        report.add_finding(Finding::new(Severity::Warning, "test.warn", "plain"));
+        let diags = report_to_diagnostics(&report, &doc_uri());
+        assert_eq!(diags.len(), 1);
+        assert!(diags[0].related_information.is_none());
     }
 
     #[test]

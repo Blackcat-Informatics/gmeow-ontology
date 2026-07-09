@@ -37,6 +37,10 @@ use gmeow_math::{
     has_type, index_graph, load_gram, sqrt_rational_decimal, subjects,
 };
 
+use gmeow_errors::Diag;
+
+pub mod error;
+
 const GM: &str = "https://blackcatinformatics.ca/gmeow/";
 const MATH: &str = "https://blackcatinformatics.ca/math/";
 
@@ -112,23 +116,36 @@ struct Inputs {
 fn load_cells(
     index: &TripleIndex,
     vector_iri: &str,
-) -> Result<Vec<(usize, String, Rational)>, String> {
+) -> gmeow_errors::Result<Vec<(usize, String, Rational)>> {
     let component_iris = all_iris(index, vector_iri, &gm("vectorComponent"));
     if component_iris.is_empty() {
-        return Err(format!(
-            "affect vector {vector_iri} declares no gmeow:vectorComponent cells"
-        ));
+        return Err(Diag::of_kind(error::MissingAffectProperty {
+            node: vector_iri.to_owned(),
+            property: "gmeow:vectorComponent cells".to_owned(),
+        }));
     }
     let mut cells = Vec::new();
     for cell in component_iris {
-        let dimension = first_iri(index, &cell, &gm("appraisalDimension"))
-            .ok_or_else(|| format!("appraisal {cell} missing gmeow:appraisalDimension"))?;
-        let axis = first_i128(index, &dimension, &gm("coreAxisIndex"))
-            .ok_or_else(|| format!("appraisal dimension {dimension} has no gmeow:coreAxisIndex"))?;
+        let dimension = first_iri(index, &cell, &gm("appraisalDimension")).ok_or_else(|| {
+            Diag::of_kind(error::MissingAffectProperty {
+                node: cell.clone(),
+                property: "gmeow:appraisalDimension".to_owned(),
+            })
+        })?;
+        let axis = first_i128(index, &dimension, &gm("coreAxisIndex")).ok_or_else(|| {
+            Diag::of_kind(error::MissingAffectProperty {
+                node: dimension.clone(),
+                property: "gmeow:coreAxisIndex".to_owned(),
+            })
+        })?;
         let axis = bounded_index(axis, "core axis")?;
         let value = Rational::parse_decimal(
-            &first_literal(index, &cell, &gm("appraisalValue"))
-                .ok_or_else(|| format!("appraisal {cell} missing gmeow:appraisalValue"))?,
+            &first_literal(index, &cell, &gm("appraisalValue")).ok_or_else(|| {
+                Diag::of_kind(error::MissingAffectProperty {
+                    node: cell.clone(),
+                    property: "gmeow:appraisalValue".to_owned(),
+                })
+            })?,
         )?;
         cells.push((axis, dimension, value));
     }
@@ -136,32 +153,64 @@ fn load_cells(
     Ok(cells)
 }
 
-fn load_inputs(index: &TripleIndex, observation: &str) -> Result<Inputs, String> {
-    let norm_fn = first_iri(index, observation, &gm("normFunction"))
-        .ok_or_else(|| format!("observation {observation} missing gmeow:normFunction"))?;
+fn load_inputs(index: &TripleIndex, observation: &str) -> gmeow_errors::Result<Inputs> {
+    let norm_fn = first_iri(index, observation, &gm("normFunction")).ok_or_else(|| {
+        Diag::of_kind(error::MissingAffectProperty {
+            node: format!("observation {observation}"),
+            property: "gmeow:normFunction".to_owned(),
+        })
+    })?;
     if norm_fn != NORM_FUNCTION_IRI {
-        return Err(format!(
-            "unrecognized gmeow:normFunction {norm_fn}: expected {NORM_FUNCTION_IRI}"
-        ));
+        return Err(Diag::of_kind(error::UnrecognizedAffectHandle {
+            detail: format!(
+                "unrecognized gmeow:normFunction {norm_fn}: expected {NORM_FUNCTION_IRI}"
+            ),
+        }));
     }
-    let policy = first_iri(index, observation, &gm("weightingPolicy"))
-        .ok_or_else(|| format!("observation {observation} missing gmeow:weightingPolicy"))?;
+    let policy = first_iri(index, observation, &gm("weightingPolicy")).ok_or_else(|| {
+        Diag::of_kind(error::MissingAffectProperty {
+            node: format!("observation {observation}"),
+            property: "gmeow:weightingPolicy".to_owned(),
+        })
+    })?;
     if !KNOWN_WEIGHTING_POLICIES.contains(&policy.as_str()) {
-        return Err(format!("unrecognized gmeow:weightingPolicy {policy}"));
+        return Err(Diag::of_kind(error::UnrecognizedAffectHandle {
+            detail: format!("unrecognized gmeow:weightingPolicy {policy}"),
+        }));
     }
-    let basis = first_iri(index, observation, &gm("intensityBasis"))
-        .ok_or_else(|| format!("observation {observation} missing gmeow:intensityBasis"))?;
-    let profile = first_iri(index, observation, &gm("metricProfile"))
-        .ok_or_else(|| format!("observation {observation} missing gmeow:metricProfile"))?;
-    let gram_iri = first_iri(index, &profile, &gm("metricGram"))
-        .ok_or_else(|| format!("scale profile {profile} missing gmeow:metricGram"))?;
+    let basis = first_iri(index, observation, &gm("intensityBasis")).ok_or_else(|| {
+        Diag::of_kind(error::MissingAffectProperty {
+            node: format!("observation {observation}"),
+            property: "gmeow:intensityBasis".to_owned(),
+        })
+    })?;
+    let profile = first_iri(index, observation, &gm("metricProfile")).ok_or_else(|| {
+        Diag::of_kind(error::MissingAffectProperty {
+            node: format!("observation {observation}"),
+            property: "gmeow:metricProfile".to_owned(),
+        })
+    })?;
+    let gram_iri = first_iri(index, &profile, &gm("metricGram")).ok_or_else(|| {
+        Diag::of_kind(error::MissingAffectProperty {
+            node: format!("scale profile {profile}"),
+            property: "gmeow:metricGram".to_owned(),
+        })
+    })?;
     let range_min = Rational::parse_decimal(
-        &first_literal(index, &profile, &gm("profileRangeMin"))
-            .ok_or_else(|| format!("scale profile {profile} missing gmeow:profileRangeMin"))?,
+        &first_literal(index, &profile, &gm("profileRangeMin")).ok_or_else(|| {
+            Diag::of_kind(error::MissingAffectProperty {
+                node: format!("scale profile {profile}"),
+                property: "gmeow:profileRangeMin".to_owned(),
+            })
+        })?,
     )?;
     let range_max = Rational::parse_decimal(
-        &first_literal(index, &profile, &gm("profileRangeMax"))
-            .ok_or_else(|| format!("scale profile {profile} missing gmeow:profileRangeMax"))?,
+        &first_literal(index, &profile, &gm("profileRangeMax")).ok_or_else(|| {
+            Diag::of_kind(error::MissingAffectProperty {
+                node: format!("scale profile {profile}"),
+                property: "gmeow:profileRangeMax".to_owned(),
+            })
+        })?,
     )?;
 
     let gram_cells = load_gram(index, &gram_iri)?;
@@ -175,7 +224,7 @@ fn load_inputs(index: &TripleIndex, observation: &str) -> Result<Inputs, String>
         .map(|m| m + 1)
         .unwrap_or(0);
     if dim == 0 {
-        return Err("affect geometry has an empty basis".to_string());
+        return Err(Diag::of_kind(error::EmptyAffectBasis {}));
     }
     // Every contributing index was bounded below `MAX_BASIS_DIM`, so the
     // derived dimension is bounded too; assert it before it sizes the matrix.
@@ -204,17 +253,18 @@ fn load_inputs(index: &TripleIndex, observation: &str) -> Result<Inputs, String>
     })
 }
 
-fn compute_geometry(index: &TripleIndex, observation: &str) -> Result<Geometry, String> {
+fn compute_geometry(index: &TripleIndex, observation: &str) -> gmeow_errors::Result<Geometry> {
     let inputs = load_inputs(index, observation)?;
     let quadratic = inputs.space.quadratic_form(&inputs.vector)?;
     let intensity = sqrt_rational_decimal(quadratic)?;
     let pivots = inputs.space.ldlt_pivots()?; // hard-fails on non-PD G
     let dominant = inputs.space.dominant_axis(&inputs.vector)?;
-    let dominant_axis = inputs
-        .axis_to_dim
-        .get(&dominant)
-        .cloned()
-        .ok_or_else(|| format!("dominant axis {dominant} has no declared dimension"))?;
+    let dominant_axis = inputs.axis_to_dim.get(&dominant).cloned().ok_or_else(|| {
+        Diag::of_kind(error::MissingAffectProperty {
+            node: format!("dominant axis {dominant}"),
+            property: "declared dimension".to_owned(),
+        })
+    })?;
     let normalized = inputs
         .cells
         .iter()
@@ -225,7 +275,7 @@ fn compute_geometry(index: &TripleIndex, observation: &str) -> Result<Geometry, 
                 value: normalize_to_unit(value, &inputs.range_min, &inputs.range_max)?,
             })
         })
-        .collect::<Result<Vec<_>, String>>()?;
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
     Ok(Geometry {
         observation: observation.to_string(),
         quadratic_form: quadratic.ratio_string(),
@@ -242,7 +292,7 @@ fn compute_geometry(index: &TripleIndex, observation: &str) -> Result<Geometry, 
 
 /// Compute the affect-intensity geometry of one
 /// `gmeow:DerivedAffectIntensityObservation` in `graph`.
-pub fn affective_geometry(graph: &Graph, observation_iri: &str) -> Result<Geometry, String> {
+pub fn affective_geometry(graph: &Graph, observation_iri: &str) -> gmeow_errors::Result<Geometry> {
     compute_geometry(&index_graph(graph), observation_iri)
 }
 
@@ -262,7 +312,7 @@ fn derived_observations(index: &TripleIndex) -> Vec<String> {
 pub fn geometry_from_gts_bytes(
     bytes: &[u8],
     observation_iri: Option<&str>,
-) -> Result<Vec<Geometry>, String> {
+) -> gmeow_errors::Result<Vec<Geometry>> {
     let graph = purrdf::gts::reader::read(bytes, false, None);
     let index = index_graph(&graph);
     let observations = match observation_iri {
@@ -270,7 +320,7 @@ pub fn geometry_from_gts_bytes(
         None => derived_observations(&index),
     };
     if observations.is_empty() {
-        return Err("no gmeow:DerivedAffectIntensityObservation found in graph".to_string());
+        return Err(Diag::of_kind(error::NoAffectObservations {}));
     }
     observations
         .iter()
@@ -295,12 +345,14 @@ pub fn geometry_from_gts_bytes(
 pub fn crosscheck_authored_definiteness(
     bytes: &[u8],
     gram_iri: &str,
-) -> Result<Vec<String>, String> {
+) -> gmeow_errors::Result<Vec<String>> {
     let graph = purrdf::gts::reader::read(bytes, false, None);
     let index = index_graph(&graph);
 
     let authored = first_iri(&index, gram_iri, &math("definiteness")).ok_or_else(|| {
-        format!("Gram matrix {gram_iri} declares no math:definiteness (authored PD absent)")
+        Diag::of_kind(error::AuthoredDefinitenessAbsent {
+            gram_iri: gram_iri.to_owned(),
+        })
     })?;
     let authored_pd = authored == math("positiveDefinite");
 
@@ -312,7 +364,11 @@ pub fn crosscheck_authored_definiteness(
         .flat_map(|(r, c, _)| [*r, *c])
         .max()
         .map(|m| m + 1)
-        .ok_or_else(|| format!("Gram matrix {gram_iri} has no entries"))?;
+        .ok_or_else(|| {
+            Diag::of_kind(error::GramHasNoEntries {
+                gram_iri: gram_iri.to_owned(),
+            })
+        })?;
     debug_assert!(dim <= MAX_BASIS_DIM, "derived dimension {dim} exceeds cap");
     let mut gram = vec![vec![Rational::zero(); dim]; dim];
     for (row, col, value) in cells {
@@ -325,14 +381,16 @@ pub fn crosscheck_authored_definiteness(
     let computed_pd = pivots.is_ok();
 
     if authored_pd != computed_pd {
-        return Err(format!(
-            "definiteness cross-check failed for {gram_iri}: authored {authored} but LDLᵀ says {}",
-            if computed_pd {
-                "positive-definite".to_string()
-            } else {
-                pivots.unwrap_err()
-            }
-        ));
+        return Err(Diag::of_kind(error::DefinitenessCrosscheckFailed {
+            detail: format!(
+                "definiteness cross-check failed for {gram_iri}: authored {authored} but LDLᵀ says {}",
+                if computed_pd {
+                    "positive-definite".to_string()
+                } else {
+                    pivots.unwrap_err().message().to_string()
+                }
+            ),
+        }));
     }
 
     // Verdicts agree. When both say positive-definite the pivots are the
@@ -351,7 +409,7 @@ pub fn distance_and_cosine(
     graph: &Graph,
     obs_a_iri: &str,
     obs_b_iri: &str,
-) -> Result<(String, String), String> {
+) -> gmeow_errors::Result<(String, String)> {
     let index = index_graph(graph);
     let a = load_inputs(&index, obs_a_iri)?;
     let b = load_inputs(&index, obs_b_iri)?;
@@ -361,10 +419,12 @@ pub fn distance_and_cosine(
     // mismatch would otherwise be silently zero-padded/truncated into a
     // well-formed but meaningless number. Hard-fail instead.
     if a.space != b.space || a.axis_to_dim != b.axis_to_dim {
-        return Err(format!(
-            "distance requires both observations to share the same metric basis; \
-             obs_a {obs_a_iri} and obs_b {obs_b_iri} differ in Gram matrix / axis map"
-        ));
+        return Err(Diag::of_kind(error::MetricBasisMismatch {
+            detail: format!(
+                "distance requires both observations to share the same metric basis; \
+                 obs_a {obs_a_iri} and obs_b {obs_b_iri} differ in Gram matrix / axis map"
+            ),
+        }));
     }
     let distance = a.space.distance(&a.vector, &b.vector)?;
     let cosine = a.space.cosine(&a.vector, &b.vector)?;
@@ -419,12 +479,12 @@ mod tests {
             "gmeow:weightingValenceDominant",
         );
         let err = geometry_from_gts_bytes(&turtle_to_gts(&bad_norm), None).unwrap_err();
-        assert!(err.contains("normFunction"), "{err}");
+        assert!(err.message().contains("normFunction"), "{err}");
 
         let bad_policy =
             observation_turtle("gmeow:affectMetricTensorNorm", "gmeow:weightingMadeUp");
         let err = geometry_from_gts_bytes(&turtle_to_gts(&bad_policy), None).unwrap_err();
-        assert!(err.contains("weightingPolicy"), "{err}");
+        assert!(err.message().contains("weightingPolicy"), "{err}");
     }
 
     // A vector cell whose dimension lacks coreAxisIndex is a hard fail.
@@ -441,7 +501,7 @@ mod tests {
             .collect::<Vec<_>>()
             .join("\n");
         let err = geometry_from_gts_bytes(&turtle_to_gts(&turtle), None).unwrap_err();
-        assert!(err.contains("coreAxisIndex"), "{err}");
+        assert!(err.message().contains("coreAxisIndex"), "{err}");
     }
 
     // An oversized Gram-matrix index is a hard fail, NOT a lossy `usize` cast or
@@ -459,7 +519,7 @@ mod tests {
         );
         let err = geometry_from_gts_bytes(&turtle_to_gts(&turtle), None).unwrap_err();
         assert!(
-            err.contains("matrix row") && err.contains("100000000000"),
+            err.message().contains("matrix row") && err.message().contains("100000000000"),
             "{err}"
         );
     }
@@ -476,7 +536,7 @@ mod tests {
             "gmeow:coreAxisIndex \"9999999999\"^^xsd:nonNegativeInteger",
         );
         let err = geometry_from_gts_bytes(&turtle_to_gts(&turtle), None).unwrap_err();
-        assert!(err.contains("core axis"), "{err}");
+        assert!(err.message().contains("core axis"), "{err}");
     }
 
     // Graph-parse path is load-bearing: intensity + dominant axis from turtle.
@@ -671,8 +731,8 @@ ex:ratOff a math:RationalValue ; math:numerator "{off_num}"^^xsd:integer ; math:
     fn crosscheck_authored_pd_but_indefinite_hard_fails() {
         let bytes = turtle_to_gts(&gram_only_turtle(2, 1, true));
         let err = crosscheck_authored_definiteness(&bytes, TEST_GRAM_IRI).unwrap_err();
-        assert!(err.contains("cross-check failed"), "{err}");
-        assert!(err.contains("positiveDefinite"), "{err}");
+        assert!(err.message().contains("cross-check failed"), "{err}");
+        assert!(err.message().contains("positiveDefinite"), "{err}");
     }
 
     // A Gram with NO `math:definiteness` is a loud error — SHACL does not require
@@ -681,7 +741,7 @@ ex:ratOff a math:RationalValue ; math:numerator "{off_num}"^^xsd:integer ; math:
     fn crosscheck_missing_definiteness_hard_fails() {
         let bytes = turtle_to_gts(&gram_only_turtle(1, 4, false));
         let err = crosscheck_authored_definiteness(&bytes, TEST_GRAM_IRI).unwrap_err();
-        assert!(err.contains("authored PD absent"), "{err}");
+        assert!(err.message().contains("authored PD absent"), "{err}");
     }
 
     fn two_observation_graph(a: &str, b: &str) -> Graph {
@@ -737,7 +797,7 @@ ex:ratOff a math:RationalValue ; math:numerator "{off_num}"^^xsd:integer ; math:
         let graph = two_observation_graph(&a, &b);
         let err = distance_and_cosine(&graph, &obs_iri("A"), &obs_iri("B"))
             .expect_err("mismatched Gram must hard fail");
-        assert!(err.contains("metric basis"), "{err}");
-        assert!(err.contains("Gram matrix / axis map"), "{err}");
+        assert!(err.message().contains("metric basis"), "{err}");
+        assert!(err.message().contains("Gram matrix / axis map"), "{err}");
     }
 }
