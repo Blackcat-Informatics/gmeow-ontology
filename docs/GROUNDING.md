@@ -117,6 +117,12 @@ counter-example and asserts exactly the declared failure class fires, runs the
 worked example and asserts nothing fires, and runs the producer and asserts
 its folded output. Existence-only manifests and slices with no manifest are
 below the bar. The flagship vocabulary is shared, not copy-forked per slice.
+Each scenario's guarding counter-example is today discharged by a
+structural / SHACL well-formedness proxy; the depth target is a reasoner-driven
+counter-example whose malformed input the native solver runs to observe the
+missing entailment directly, and each scenario records its discharge honestly so
+the gap is surfaced (see
+[`LOGIC-CONFORMANCE.md`](../slices/grounding/logic/design/LOGIC-CONFORMANCE.md)).
 
 ## The coverage duty
 

@@ -570,6 +570,11 @@ fn derived_row_to_quad(row: crate::rule_ir::DerivedRow) -> Result<DerivedQuad, M
 /// asserted facts because the declared engine cannot evaluate the rules, carries
 /// `{sound-under}` naming the dropped rule IRIs, so the loss is disclosed rather
 /// than silently swallowed.
+/// The chase termination certificate, surfaced publicly through this module so a caller
+/// can read the weak-acyclicity certificate and its `to_finding()` gmeow:Finding off a
+/// [`Materialization`]. Re-exported from the (crate-private) native physical core.
+pub use crate::physical::ChaseAdmission;
+
 #[derive(Debug, Clone)]
 pub struct Materialization {
     /// The derived quads (asserted EDB + any derived IDB).
@@ -586,6 +591,14 @@ pub struct Materialization {
     /// input, well-founded / cautious-stable / echo, the Nemo fallback), so the field is
     /// always present — a consumer never has to assume "no frontier ⇒ complete".
     pub frontier: crate::query_ir::CompletionFrontier,
+    /// The chase termination certificate, `Some` ONLY when this materialization routed
+    /// through the value-inventing existential-rule chase (the arm that runs
+    /// [`ChaseAdmission::certify`]); `None` on every non-existential route (empty input,
+    /// the well-founded / cautious-stable / echo native routes, the Datalog Nemo
+    /// fallback). When present it carries the weak-acyclicity verdict and, via
+    /// [`ChaseAdmission::to_finding`], the first-class `gmeow:Finding` certificate — so a
+    /// caller never has to re-run the certifier to learn whether the chase terminated.
+    pub chase_admission: Option<ChaseAdmission>,
 }
 
 /// The rule IRIs of a non-stratifiable rule set — the derivation rules the EDB-echo
@@ -683,8 +696,13 @@ pub fn materialize_routed(
             non_quad_rows: vec![],
             preservation,
             frontier: crate::query_ir::CompletionFrontier::empty(),
+            chase_admission: None,
         });
     }
+
+    // The chase termination certificate, threaded out of the existential arm below and
+    // carried on the final assembled result. `None` on every non-existential route.
+    let mut chase_admission: Option<ChaseAdmission> = None;
 
     // Non-stratifiable native routing. `None` ⇒ fall through to Nemo. The well-founded
     // and cautious-stable evaluators run their native fixpoints; any other profile with
@@ -782,6 +800,10 @@ pub fn materialize_routed(
                 match chase_outcome {
                     crate::physical::NativeOutcome::Decided(budgeted) => {
                         let frontier = budgeted.frontier();
+                        // Surface the termination certificate on the result: the chase
+                        // ran and DECIDED, so the caller can read its weakly-acyclic
+                        // verdict and `to_finding()` gmeow:Finding.
+                        chase_admission = Some(admission);
                         Some((budgeted.rows, budgeted.status, frontier))
                     }
                     // Uncertified with no budget ⇒ a declared native gap: demote to the
@@ -803,7 +825,15 @@ pub fn materialize_routed(
                             !admission.capability_gap_rows().is_empty(),
                             "a refused existential program must surface ≥1 counted capability-gap row"
                         );
-                        return demote_existential_to_facts_only(rules, input, preservation);
+                        // The demoted facts-only path still carries the certificate: the
+                        // caller learns the chase was UNCERTIFIED (and why) from the
+                        // surfaced admission, never a silent demotion.
+                        return demote_existential_to_facts_only(
+                            rules,
+                            input,
+                            preservation,
+                            Some(admission),
+                        );
                     }
                 }
             } else if !preservation.unsupported_constructs.is_empty() {
@@ -893,6 +923,7 @@ pub fn materialize_routed(
             non_quad_rows: vec![],
             preservation,
             frontier,
+            chase_admission,
         });
     }
 
@@ -906,6 +937,8 @@ pub fn materialize_routed(
         // The Nemo chase runs its own post-hoc governor, not the native semi-naive one,
         // so it exposes no stratum frontier.
         frontier: crate::query_ir::CompletionFrontier::empty(),
+        // This is a Datalog (non-existential) route, so there is no chase certificate.
+        chase_admission: None,
     })
 }
 
@@ -931,6 +964,7 @@ fn demote_existential_to_facts_only(
     rules: &str,
     input: &str,
     preservation: PreservationClaim,
+    chase_admission: Option<ChaseAdmission>,
 ) -> Result<Materialization, MaterializeError> {
     use crate::oracle::ForwardOracle;
 
@@ -949,6 +983,9 @@ fn demote_existential_to_facts_only(
         // Nemo runs to its natural fixpoint outside the native semi-naive governor, so it
         // exposes no stratum frontier — same as the Datalog Nemo fallback.
         frontier: crate::query_ir::CompletionFrontier::empty(),
+        // The (Uncertified) chase certificate that demoted this program, so the caller
+        // still learns why the native chase refused it.
+        chase_admission,
     })
 }
 

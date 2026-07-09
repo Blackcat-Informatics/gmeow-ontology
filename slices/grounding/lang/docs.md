@@ -57,7 +57,7 @@ status. Competing analyses of one surface are held co-resident and non-collapsin
 ## Hard rules → gates → failure classes
 
 Every hard rule of the form AST maps to a SHACL gate (in `shapes.ttl`) that points at a typed
-`lang:LangConformanceFailure` subclass through `lang:enforcesFailureClass`, so a violation is a
+`lang:LangConformanceFailure` subclass through `gmeow:enforcesFailureClass`, so a violation is a
 queryable object rather than a log line.
 
 | Rule | Gate | Failure class |

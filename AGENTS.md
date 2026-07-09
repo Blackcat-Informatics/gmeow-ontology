@@ -319,6 +319,14 @@ so the cost is the ontology-union validation and is fixture-independent — the 
 ride the 25 s cliff together and CI jitter alone decides which trip, so the whole
 class is carved out; the ~35 fixture-only `conformance_*` domain tests stay on-gate
 against the same shape corpus and the union path stays covered on `maint-heavy`);
+the `gmeow-validate` `conformance_math_producers` binary (~20 s per test in CI;
+each validates a native math-flagship producer's emitted graph, merged with the
+WHOLE base ontology, against the ENTIRE shape corpus via `validate_with_ontology()`
+— the identical whole-ontology-union cost, so it joins the same off-gate group;
+no coverage leaves the per-commit gate because the five producers are still RUN and
+their pinned values asserted on-gate by `crates/pipeline/tests/math_flagship_discharge.rs`,
+this binary being the extra cross-crate proof that the producer output validates
+SHACL-clean);
 `gmeow-pipeline::stages::carrier::quality_assessment_tests::quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate`
 (86.2 s; it builds the full self-description carrier, scoring every one of the ~81
 slices to attach the `graph/quality-assessment` named graph that folds into

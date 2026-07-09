@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example for the symmetricConjecture flagship: a
+# logic:RefutationAcceptanceWitness naming the concrete logic:ContradictionWitness
+# its refutation rests on. Satisfies logic:RefutationAcceptanceWitnessShape
+# (sh:minCount 1 on logic:namesContradictionWitness), so it validates with no
+# findings. Bound by ex:ecRefutationComplete and queried by ex:cqLogicConjecture.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/logic/> .
+
+ex:refutationWitness a logic:RefutationAcceptanceWitness ;
+    logic:namesContradictionWitness ex:contradictionWitnessAB .

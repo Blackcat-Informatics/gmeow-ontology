@@ -124,3 +124,83 @@ ex:ecDagStrongCyclicPlan a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/dag-strong-cyclic-plan.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A strong-cyclic logic:Plan (logic:StrongCyclicPlanSuccess) with a retry LOOP in its control flow is valid CANONICALLY: it carries exactly one logic:planGoal and one logic:planSuccessMode, satisfying logic:PlanShape with no findings — a loop is legitimate canonical structure, not a well-formedness defect. This case checks that canonical validity. The loop only places the plan OUTSIDE the certified acyclic fragment: the plan reaches its flow graph through logic:planFlowEdge and runs logic:executedUnderContract logic:DagWorkflowContract, so under the DAG-workflow profile (logic:DagWorkflowResource) the SAME plan resolves to `unsupported` with the offending cycle members named by logic:dagCycleWitness, never silently truncated. That produced verdict is exercised end-to-end — the teleology evaluator emits a logic:ReasoningResult carrying logic:EvaluationUnsupported and the logic:dagCycleWitness, pinned by the conformance case conformance/logic/cases/teleology/strong-cyclic-plan, and the same acyclicity authority is unit-tested in the shared certifier (crates/logic dag_profile::strong_cyclic_plan_vs_its_acyclic_projection): the cyclic edge set certifies as a Cycle (unsupported; the witness names the back-edge), and the acyclic projection that drops the back-edge certifies as Certified (complete-for-fragment)." .
+
+# =========================================================================== #
+# Flagship acceptance — the five scenario worked examples conform, and their five
+# counter-examples each trip exactly one enforcing shape (shacl.MinCountConstraint-
+# Component). Plus the thin logic:FlagshipScenarioShape failure-range pair: a
+# canonical scenario conforms, and one whose enforcing class is not a
+# logic:LogicConformanceFailure subclass raises shacl.SPARQLConstraintComponent.
+# =========================================================================== #
+
+# --- FS1 elRlDlClosure ------------------------------------------------------ #
+ex:ecClosureComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/closure-witness-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A logic:ClosureAcceptanceWitness naming a logic:closureEntailedAtom satisfies logic:ClosureAcceptanceWitnessShape (sh:minCount 1) and validates with no findings." .
+
+ex:ecClosureEmpty a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/closure-witness-empty.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits logic:closureEntailedAtom (sh:minCount 1 on logic:ClosureAcceptanceWitnessShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (logic:IncompleteClosure)." .
+
+# --- FS2 correspondenceSection --------------------------------------------- #
+ex:ecSectionComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/section-witness-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A logic:SectionAcceptanceWitness naming a logic:dischargesSectionObligation IRI satisfies logic:SectionAcceptanceWitnessShape (sh:minCount 1) and validates with no findings." .
+
+ex:ecSectionUnobligated a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/section-witness-unobligated.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits logic:dischargesSectionObligation (sh:minCount 1 on logic:SectionAcceptanceWitnessShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (logic:SectionObligationViolated)." .
+
+# --- FS3 counterfactualStratumC -------------------------------------------- #
+ex:ecCounterfactualComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/counterfactual-witness-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A logic:CounterfactualAcceptanceWitness naming a logic:selectedByEntrenchment IRI satisfies logic:CounterfactualAcceptanceWitnessShape (sh:minCount 1) and validates with no findings." .
+
+ex:ecCounterfactualUnentrenched a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/counterfactual-witness-unentrenched.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits logic:selectedByEntrenchment (sh:minCount 1 on logic:CounterfactualAcceptanceWitnessShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (logic:UnentrenchedCounterfactual)." .
+
+# --- FS4 symmetricConjecture ----------------------------------------------- #
+ex:ecRefutationComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/refutation-witness-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A logic:RefutationAcceptanceWitness naming a logic:namesContradictionWitness IRI satisfies logic:RefutationAcceptanceWitnessShape (sh:minCount 1) and validates with no findings." .
+
+ex:ecRefutationUnwitnessed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/refutation-witness-unwitnessed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits logic:namesContradictionWitness (sh:minCount 1 on logic:RefutationAcceptanceWitnessShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (logic:UnwitnessedRefutation)." .
+
+# --- FS5 chaseTerminationCertificate --------------------------------------- #
+ex:ecChaseComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/chase-witness-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A logic:ChaseAcceptanceWitness carrying a logic:carriesTerminationCertificate literal satisfies logic:ChaseAcceptanceWitnessShape (sh:minCount 1) and validates with no findings." .
+
+ex:ecChaseUncertified a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/chase-witness-uncertified.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits logic:carriesTerminationCertificate (sh:minCount 1 on logic:ChaseAcceptanceWitnessShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (logic:UncertifiedChase)." .
+
+# --- The thin logic:FlagshipScenarioShape failure-range pair ---------------- #
+ex:ecFlagshipCanonical a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/flagship-scenario-canonical.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A gmeow:FlagshipScenario binding all artifacts and naming an enforcing failure class that IS a logic:LogicConformanceFailure subclass (logic:IncompleteClosure) passes the slice's thin logic:FlagshipScenarioShape failure-range sh:sparql, and validates with no findings." .
+
+ex:ecFlagshipNonFailureClass a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/flagship-scenario-nonfailure-class.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a gmeow:FlagshipScenario whose gmeow:enforcesFailureClass names logic:Conjecture — a real class that is NOT a logic:LogicConformanceFailure subclass (the failure-range sh:sparql of the slice's thin logic:FlagshipScenarioShape). That constraint fires, so validation MUST emit shacl.SPARQLConstraintComponent (logic:UnwiredFlagshipScenario) — the enforcing failure class is checked by value." .

@@ -532,3 +532,118 @@ logic:ContradictionWitnessShape
         sh:severity sh:Violation ;
         sh:message "A ContradictionWitness must have at least one logic:witnessPremise (a serialized triple; the jointly-inconsistent premises that entailed the contradiction)." ;
     ] .
+
+# =========================================================================== #
+# Flagship acceptance — the five thin per-scenario enforcing shapes plus the
+# slice's thin failure-range gate.
+#
+# Each of the five flagship acceptance scenarios is guarded by a counter-example
+# that must trip EXACTLY one slice failure class. Each enforcing shape below
+# targets that scenario's acceptance-witness class, requires its single defining
+# carrier (sh:minCount 1), and names — through gmeow:enforcesFailureClass — the
+# logic:LogicConformanceFailure subclass a missing carrier raises. A witness that
+# omits its carrier trips shacl.MinCountConstraintComponent, resolved through the
+# shape → failure-class map to precisely that one class (set equality in the
+# execution-discharge harness). The thin logic:FlagshipScenarioShape carries only
+# the failure-range check; the shared cardinality wiring is
+# gmeow:FlagshipScenarioShape's job (shapes/gmeow-shapes.ttl).
+# =========================================================================== #
+
+logic:ClosureAcceptanceWitnessShape
+    a sh:NodeShape ;
+    rdfs:label "Closure acceptance-witness shape"@x-gmeow-english ;
+    skos:definition "The thin enforcing gate for the elRlDlClosure flagship: a logic:ClosureAcceptanceWitness must name at least one logic:closureEntailedAtom — an atom the EL→RL→DL closure entails beyond its asserted EDB. A witness carrying none demonstrates no reasoning and is the logic:IncompleteClosure failure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:enforcesFailureClass logic:IncompleteClosure ;
+    sh:targetClass logic:ClosureAcceptanceWitness ;
+    sh:property [
+        sh:path logic:closureEntailedAtom ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A logic:ClosureAcceptanceWitness must name at least one logic:closureEntailedAtom (an atom the closure entails beyond its EDB); a closure that entails nothing new is incomplete (logic:IncompleteClosure)." ;
+    ] .
+
+logic:SectionAcceptanceWitnessShape
+    a sh:NodeShape ;
+    rdfs:label "Section acceptance-witness shape"@x-gmeow-english ;
+    skos:definition "The thin enforcing gate for the correspondenceSection flagship: a logic:SectionAcceptanceWitness must name at least one logic:dischargesSectionObligation edge — the section obligation its executed get/put round-trip discharges. A witness discharging no obligation is unfalsifiable and is the logic:SectionObligationViolated failure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:enforcesFailureClass logic:SectionObligationViolated ;
+    sh:targetClass logic:SectionAcceptanceWitness ;
+    sh:property [
+        sh:path logic:dischargesSectionObligation ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A logic:SectionAcceptanceWitness must name at least one logic:dischargesSectionObligation (the section obligation its round-trip discharges); a section claim discharging no obligation is unfalsifiable (logic:SectionObligationViolated)." ;
+    ] .
+
+logic:CounterfactualAcceptanceWitnessShape
+    a sh:NodeShape ;
+    rdfs:label "Counterfactual acceptance-witness shape"@x-gmeow-english ;
+    skos:definition "The thin enforcing gate for the counterfactualStratumC flagship: a logic:CounterfactualAcceptanceWitness must name at least one logic:selectedByEntrenchment outcome — the entrenchment-ranked selection that made the resolution deterministic. A witness naming none records an arbitrary, unentrenched choice and is the logic:UnentrenchedCounterfactual failure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:enforcesFailureClass logic:UnentrenchedCounterfactual ;
+    sh:targetClass logic:CounterfactualAcceptanceWitness ;
+    sh:property [
+        sh:path logic:selectedByEntrenchment ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A logic:CounterfactualAcceptanceWitness must name at least one logic:selectedByEntrenchment outcome (the entrenchment-ranked deterministic selection); an outcome chosen without a recorded ordering is arbitrary (logic:UnentrenchedCounterfactual)." ;
+    ] .
+
+logic:RefutationAcceptanceWitnessShape
+    a sh:NodeShape ;
+    rdfs:label "Refutation acceptance-witness shape"@x-gmeow-english ;
+    skos:definition "The thin enforcing gate for the symmetricConjecture flagship: a logic:RefutationAcceptanceWitness must name at least one logic:namesContradictionWitness — the concrete logic:ContradictionWitness its refutation rests on. A refutation naming no witness is an unreplayable assertion and is the logic:UnwitnessedRefutation failure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:enforcesFailureClass logic:UnwitnessedRefutation ;
+    sh:targetClass logic:RefutationAcceptanceWitness ;
+    sh:property [
+        sh:path logic:namesContradictionWitness ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A logic:RefutationAcceptanceWitness must name at least one logic:namesContradictionWitness (the concrete logic:ContradictionWitness the clash rests on); a refutation with no witness is unreplayable (logic:UnwitnessedRefutation)." ;
+    ] .
+
+logic:ChaseAcceptanceWitnessShape
+    a sh:NodeShape ;
+    rdfs:label "Chase acceptance-witness shape"@x-gmeow-english ;
+    skos:definition "The thin enforcing gate for the chaseTerminationCertificate flagship: a logic:ChaseAcceptanceWitness must carry at least one logic:carriesTerminationCertificate — the weak-acyclicity termination-certificate evidence admitting its chase. A witness carrying none reports a closure that may never terminate and is the logic:UncertifiedChase failure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:enforcesFailureClass logic:UncertifiedChase ;
+    sh:targetClass logic:ChaseAcceptanceWitness ;
+    sh:property [
+        sh:path logic:carriesTerminationCertificate ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A logic:ChaseAcceptanceWitness must carry at least one logic:carriesTerminationCertificate (the weak-acyclicity termination-certificate evidence); a chase with no certificate may not terminate (logic:UncertifiedChase)." ;
+    ] .
+
+# The slice's thin failure-range gate for gmeow:FlagshipScenario: it checks ONLY
+# that gmeow:enforcesFailureClass names a logic:LogicConformanceFailure subclass —
+# the shared cardinality wiring is gmeow:FlagshipScenarioShape's job. Mirrors the
+# math:/lang: thin FlagshipScenarioShape.
+logic:FlagshipScenarioShape
+    a sh:NodeShape ;
+    rdfs:label "Flagship scenario failure-range shape"@x-gmeow-english ;
+    skos:definition "The logic: slice's THIN failure-range gate for gmeow:FlagshipScenario: it checks only that the scenario's gmeow:enforcesFailureClass names a logic:LogicConformanceFailure subclass — the typed failure its counter-example raises. The shared cardinality wiring (an example, a competency, a producer, a counter-example, and an enforcing class, each exactly once) is carried by the shared gmeow:FlagshipScenarioShape in shapes/gmeow-shapes.ttl; this slice contributes only the slice-namespaced failure-range check."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:enforcesFailureClass logic:UnwiredFlagshipScenario ;
+    sh:targetClass gmeow:FlagshipScenario ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:FlagshipScenario's gmeow:enforcesFailureClass must name a logic:LogicConformanceFailure subclass — the typed failure its counter-example raises; naming a class that is not a conformance failure leaves the scenario unwired (logic:UnwiredFlagshipScenario)." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> ?fc .
+                FILTER NOT EXISTS {
+                    ?fc <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ <https://blackcatinformatics.ca/logic/LogicConformanceFailure> .
+                }
+            }
+        """ ;
+    ] .

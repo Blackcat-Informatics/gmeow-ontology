@@ -25,6 +25,8 @@ use std::collections::HashMap;
 use gmeow_errors::{Diag, Result};
 use purrdf::gts::model::{Graph, Term, TermKind};
 
+pub mod producers;
+
 mod error;
 use error::{
     ArithmeticOverflow, BadCosine, DecimalParse, DegenerateScale, EmptySpace, GraphRead,
