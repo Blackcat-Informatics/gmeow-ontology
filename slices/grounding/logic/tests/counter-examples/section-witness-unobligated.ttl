@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the correspondenceSection flagship: a
+# logic:SectionAcceptanceWitness that discharges NO section obligation — a
+# round-trip claim naming no law it satisfies is unfalsifiable. Trips
+# logic:SectionAcceptanceWitnessShape (sh:minCount 1) →
+# shacl.MinCountConstraintComponent (logic:SectionObligationViolated), and no
+# other finding. Bound by ex:ecSectionUnobligated.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/logic/> .
+
+ex:sectionWitness a logic:SectionAcceptanceWitness .

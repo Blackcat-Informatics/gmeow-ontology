@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example for the elRlDlClosure flagship: a logic:ClosureAcceptanceWitness
+# that names an atom the EL→RL→DL closure entails beyond its EDB (the transitive
+# subClassOf(A, C) the native reason_all derives from A ⊑ B, B ⊑ C). Satisfies
+# logic:ClosureAcceptanceWitnessShape (sh:minCount 1 on logic:closureEntailedAtom),
+# so it validates with no findings. Bound by ex:ecClosureComplete and queried by
+# ex:cqLogicClosure.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/logic/> .
+
+ex:closureWitness a logic:ClosureAcceptanceWitness ;
+    logic:closureEntailedAtom "A subClassOf C" .

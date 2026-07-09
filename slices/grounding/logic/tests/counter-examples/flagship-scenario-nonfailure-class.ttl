@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the logic: slice's thin logic:FlagshipScenarioShape: a
+# gmeow:FlagshipScenario that binds ALL links, so the shared cardinalities are
+# satisfied, but gmeow:enforcesFailureClass names logic:Conjecture — a real class
+# that is NOT a logic:LogicConformanceFailure subclass. The failure-range sh:sparql
+# fires, so validation MUST emit shacl.SPARQLConstraintComponent: an acceptance
+# scenario whose enforcing failure class is not a typed conformance failure is
+# unwired by value (logic:UnwiredFlagshipScenario). Bound by
+# ex:ecFlagshipNonFailureClass.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/logic/> .
+
+ex:nonFailureClassScenario a gmeow:FlagshipScenario ;
+    gmeow:demonstratedByExample "tests/conformance-fixtures/closure-witness-complete.ttl" ;
+    gmeow:demonstratedByCompetency <https://blackcatinformatics.ca/gmeow/examples/logic/tests/cqLogicClosure> ;
+    gmeow:demonstratedByProducer "logic::reason::reason_all" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/closure-witness-empty.ttl" ;
+    gmeow:enforcesFailureClass logic:Conjecture .
