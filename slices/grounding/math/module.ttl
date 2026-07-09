@@ -5223,6 +5223,40 @@ math:FlagshipScenarioFailureClassConstraint
     logic:formalizes math:FlagshipScenario ;
     logic:message "A math:FlagshipScenario's math:enforcesFailureClass must transitively rdfs:subClassOf math:MathConformanceFailure; a scenario that enforces a non-failure class is ill-formed." .
 
+# A math:Set is given extensionally (math:hasElement) or intensionally
+# (math:memberCondition), not silently both without a declared equality: a node
+# carrying BOTH has an ambiguous extent (a choice-group at-most-one over the two
+# extent predicates — the two must not both be present).
+math:SetExtentDisjointConstraint
+    a logic:ChoiceGroupConstraint ;
+    logic:onClass math:Set ;
+    logic:choicePredicate math:hasElement , math:memberCondition ;
+    logic:choiceMode "at-most-one" ;
+    logic:formalizes math:Set ;
+    logic:message "A math:Set must be extensional or intensional, not both: a node carrying both math:hasElement and math:memberCondition without a declared equality has an ambiguous extent (math:AmbiguousSetExtent)." .
+
+# A math:DimensionExponent's math:exponentDenominator must be non-zero: a zero
+# denominator is not a rational power (a forbidden pinned-value pattern — the
+# focus must not carry math:exponentDenominator 0).
+math:DimensionExponentDenominatorNonZeroConstraint
+    a logic:ForbiddenPatternConstraint ;
+    logic:onClass math:DimensionExponent ;
+    logic:forbiddenPredicate math:exponentDenominator ;
+    logic:forbiddenValue "0"^^xsd:integer ;
+    logic:formalizes math:DimensionExponent ;
+    logic:message "A math:DimensionExponent must declare a non-zero integer math:exponentDenominator; a zero denominator is not a rational power (math:MalformedDimension)." .
+
+# A math:Homomorphism's math:preservationLaw must be a resource denoting a logic:
+# formula (a blank node or IRI), not an opaque literal string (a path node-kind
+# constraint).
+math:PreservationLawNodeKindConstraint
+    a logic:PathNodeKindConstraint ;
+    logic:onClass math:Homomorphism ;
+    logic:valuePath math:preservationLaw ;
+    logic:nodeKind "BlankNodeOrIRI" ;
+    logic:formalizes math:Homomorphism ;
+    logic:message "A math:Homomorphism must name its math:preservationLaw as a resource denoting a logic: formula, not an opaque literal string (math:StringOnlyPreservationLaw)." .
+
 # =========================================================================== #
 # Procedural constraints authored as raw logic:Formula integrity trees — the   #
 # compound closed-world checks whose violation is a finding, lowered to a       #

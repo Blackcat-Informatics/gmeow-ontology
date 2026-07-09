@@ -1,6 +1,10 @@
 # Well-formed proximity measurement fixture (#95).
 # A ProximityMeasurement with exactly one proximityTo and one observationResult
 # pointing to a ScalarQuantity with value and unit. Must pass SHACL.
+#
+# As a gmeow:Measurement it also carries the inherited gmeow:observationMethod
+# (min 1, onClass gmeow:ObservationMethod) — a proximity value is solver-computed,
+# so its method is gmeow:methodComputationalModel.
 
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -12,6 +16,7 @@ ex:home a gmeow:Place .
 ex:commute a gmeow:ProximityMeasurement ;
     gmeow:observedFeature ex:office ;
     gmeow:proximityTo ex:home ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
     gmeow:observationResult [
         a gmeow:ScalarQuantity ;
         gmeow:quantityValue "12.4"^^xsd:decimal ;

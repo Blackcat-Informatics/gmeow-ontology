@@ -370,3 +370,33 @@ DOCTRINE.
     skos:definition "The GMEOW Cognition Module — an agent's objectual cognitive relations to subjects, beginning with the graded knowledge spectrum (issue: core/cognition slice)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Relational-dependence cardinality (issue #1194): a gmeow:KnowledgeProficiency #
+# relator names its subject and its knowledge level. Migrated from the         #
+# hand-authored gmeow:KnowledgeProficiencyShape min-count property constraints  #
+# to compact logic: disjunctive-requiredness records, projected to a           #
+# sh:SPARQLConstraint keyed onto gmeow:KnowledgeProficiency.                    #
+# =========================================================================== #
+
+gmeow:KnowledgeProficiencySubjectRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "KnowledgeProficiency subject requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:KnowledgeProficiency relator must reference a subject through gmeow:knowledgeProficiencySubject."@x-gmeow-english ;
+    logic:onClass gmeow:KnowledgeProficiency ;
+    logic:anyOf gmeow:knowledgeProficiencySubject ;
+    logic:formalizes gmeow:KnowledgeProficiency ;
+    logic:message "A KnowledgeProficiency must reference a subject (gmeow:knowledgeProficiencySubject)." .
+
+gmeow:KnowledgeProficiencyLevelRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "KnowledgeProficiency level requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:KnowledgeProficiency relator must carry a gmeow:KnowledgeLevel through gmeow:knowledgeProficiencyLevel."@x-gmeow-english ;
+    logic:onClass gmeow:KnowledgeProficiency ;
+    logic:anyOf gmeow:knowledgeProficiencyLevel ;
+    logic:formalizes gmeow:KnowledgeProficiency ;
+    logic:message "A KnowledgeProficiency must carry a KnowledgeLevel (gmeow:knowledgeProficiencyLevel)." .

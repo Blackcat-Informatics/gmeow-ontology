@@ -2222,3 +2222,22 @@ logic:pakAction a logic:Formula ; logic:relation gmeow:ruleAction ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
 logic:pakKind a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri gmeow:RightsAction ] .
+
+# =========================================================================== #
+# Relational-dependence cardinality (issue #1194): a gmeow:Copyright relator   #
+# mediates at least one holder. Migrated from the hand-authored                #
+# gmeow:CopyrightShape gmeow:copyrightHolder min-count property constraint to a #
+# compact logic: disjunctive-requiredness record, projected to a               #
+# sh:SPARQLConstraint keyed onto gmeow:Copyright.                              #
+# =========================================================================== #
+
+gmeow:CopyrightHolderRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Copyright holder requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:Copyright relator must mediate at least one holder through gmeow:copyrightHolder."@x-gmeow-english ;
+    logic:onClass gmeow:Copyright ;
+    logic:anyOf gmeow:copyrightHolder ;
+    logic:formalizes gmeow:Copyright ;
+    logic:message "A Copyright must have at least one holder (gmeow:copyrightHolder)." .
