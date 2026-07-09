@@ -1343,6 +1343,59 @@ fn derive_has_value_iri_emits_sh_has_value() {
 }
 
 #[test]
+fn derive_has_value_typed_literal_preserves_datatype() {
+    // A typed fixed value `owl:hasValue "1"^^xsd:integer` must derive a TYPED sh:hasValue,
+    // carrying the datatype IRI — never a bare untyped `"1"` (which would match the wrong
+    // literal). This exercises the graphutil `Node::Lit` datatype-preservation fix.
+    let ds = shape_dataset(
+        "g:Prob a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:totalMass ; owl:hasValue \"1\"^^xsd:integer ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let has_typed = all_components(&shapes).iter().any(|c| matches!(
+        c,
+        ConstraintComponent::HasValue(crate::ir::ShapeValue::Literal { lexical, datatype, lang })
+            if lexical == "1"
+                && datatype.as_deref() == Some("http://www.w3.org/2001/XMLSchema#integer")
+                && lang.is_none()
+    ));
+    assert!(
+        has_typed,
+        "owl:hasValue \"1\"^^xsd:integer must derive a TYPED sh:hasValue (datatype preserved): {:?}",
+        all_components(&shapes)
+    );
+    // The projected SHACL surface carries the datatype, not a bare untyped literal.
+    let ttl = crate::projections::shapes::project_validation_shapes_shacl(
+        &crate::ir::LogicProgram::new(vec![], vec![], vec![], None).with_validation_shapes(shapes),
+    );
+    assert!(
+        ttl.contains("sh:hasValue \"1\"^^<http://www.w3.org/2001/XMLSchema#integer>"),
+        "the derived SHACL must carry the typed literal: {ttl}"
+    );
+}
+
+#[test]
+fn derive_has_value_plain_literal_stays_untyped() {
+    // A plain `xsd:string` fixed value normalizes to an untyped carrier (datatype None), so an
+    // authored `"foo"` and an equivalent `"foo"^^xsd:string` derive the same untyped sh:hasValue.
+    let ds = shape_dataset(
+        "g:Doc a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:label ; owl:hasValue \"foo\" ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let untyped = all_components(&shapes).iter().any(|c| matches!(
+        c,
+        ConstraintComponent::HasValue(crate::ir::ShapeValue::Literal { lexical, datatype, lang })
+            if lexical == "foo" && datatype.is_none() && lang.is_none()
+    ));
+    assert!(
+        untyped,
+        "a plain literal must derive an untyped sh:hasValue (datatype None): {:?}",
+        all_components(&shapes)
+    );
+}
+
+#[test]
 fn derive_has_value_blank_hard_fails() {
     // A fixed value cannot be an anonymous node — hard-fail, never a silent drop.
     let ds = shape_dataset(

@@ -43,11 +43,11 @@ use super::graphutil::{
     term_as_subject, term_is_literal, term_str, value,
 };
 use super::ir::{
-    AggregateSpec, ComplexityClass, ConstraintComponent, ConstraintIr, ConstraintProvenance,
-    ContextualScope, Correspondence, Formula, LOGIC_NAMESPACE, LogicAxiom, LogicModality,
-    LogicProgram, LogicRule, PathBase, PathShapeIr, PropertyConstraintIr, ReasoningContract,
-    SemanticProfileId, ShaclNodeKind, ShaclSeverity, ShapeTarget, ShapeValue, Term,
-    ValidationShapeIr,
+    AggregateComparator, AggregateComparison, AggregateRhs, AggregateSpec, ComplexityClass,
+    ConstraintComponent, ConstraintIr, ConstraintProvenance, ContextualScope, Correspondence,
+    Formula, LOGIC_NAMESPACE, LogicAxiom, LogicModality, LogicProgram, LogicRule, PathBase,
+    PathShapeIr, PropertyConstraintIr, ReasoningContract, SemanticProfileId, ShaclNodeKind,
+    ShaclSeverity, ShapeTarget, ShapeValue, Term, ValidationShapeIr,
 };
 use super::restriction;
 
@@ -143,7 +143,7 @@ impl std::error::Error for LogicParseError {}
 // --------------------------------------------------------------------------- //
 
 fn confidence_from_term(term: &Node) -> Option<f64> {
-    if let Node::Lit(lexical) = term
+    if let Node::Lit { lexical, .. } = term
         && let Ok(val) = lexical.parse::<f64>()
         && (0.0..=1.0).contains(&val)
     {
@@ -242,6 +242,54 @@ fn is_formula_structural_predicate(prop_local: &str) -> bool {
             | "termLiteral"
             | "termLiteralDatatype"
             | "termSequenceMarker"
+    )
+}
+
+/// The reserved `logic:` predicate-local names that carry a `logic:Constraint` (or a compact
+/// constraint-sugar record) — its integrity/severity/message/formalizes annotations, the sugar
+/// pattern parameters, and the aggregate-comparison satellite. Like the formula-structural
+/// predicates, these are consumed by the constraint / sugar readers and must NOT leak into
+/// `prog.axioms` (where they would pollute the Datalog / N3 / ledger projections). A constraint's
+/// integrity formula tree is already excluded (its root is in the referenced set), so this covers
+/// the constraint-level annotations and the sugar surface.
+fn is_constraint_structural_predicate(prop_local: &str) -> bool {
+    matches!(
+        prop_local,
+        // Core logic:Constraint annotations.
+        "integrity" | "severity" | "message" | "formalizes"
+            // Shared sugar target.
+            | "onClass"
+            // P1 choice-group.
+            | "choicePredicate" | "choiceMode"
+            // P2 guarded implication.
+            | "trigger" | "triggerValue" | "requires"
+            // P3 disjunctive requiredness.
+            | "anyOf"
+            // P4 path-value type membership.
+            | "valuePath" | "valueClass"
+            // P5 cross-node co-occurrence / inequality.
+            | "roleA" | "roleB" | "crossMode"
+            // P7 forbidden-pattern.
+            | "forbiddenPredicate" | "forbiddenValue"
+            // Aggregate-comparison satellite.
+            | "aggFunction" | "aggDistinct" | "aggPath" | "aggComparator" | "aggCompareTo"
+    )
+}
+
+/// The `logic:` class local names that TYPE a constraint or a compact constraint-sugar record.
+/// Their `rdf:type` triples are consumed by the constraint / sugar readers and must NOT leak into
+/// `prog.axioms` as spurious class-membership facts.
+fn is_constraint_sugar_class(local: &str) -> bool {
+    matches!(
+        local,
+        "Constraint"
+            | "ChoiceGroupConstraint"
+            | "GuardedImplicationConstraint"
+            | "DisjunctiveRequirednessConstraint"
+            | "PathValueTypeConstraint"
+            | "CrossNodeConstraint"
+            | "ForbiddenPatternConstraint"
+            | "AggregateConstraint"
     )
 }
 
@@ -393,6 +441,11 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
         if is_rule_aggregation_predicate(p_local) {
             continue;
         }
+        // Constraint / sugar structural triples are consumed by the constraint + sugar readers;
+        // they are never domain facts.
+        if is_constraint_structural_predicate(p_local) {
+            continue;
+        }
         match LogicAxiom::new(
             subject_str(&quad.subject),
             p_str,
@@ -435,6 +488,11 @@ fn extract_axioms(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<
             "ReasoningContract" | "ReasoningPreset" | "ClosureEntry"
         ) && config_subjects.contains(&subject_str(&quad.subject))
         {
+            continue;
+        }
+        // A `logic:Constraint` / constraint-sugar type triple is consumed by the constraint +
+        // sugar readers; it is never a domain class-membership fact.
+        if is_constraint_sugar_class(o_local) {
             continue;
         }
         if subject_str(&quad.subject).starts_with(LOGIC_NAMESPACE) {
@@ -1305,39 +1363,39 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
         let (mut lo, mut hi): (Option<f64>, Option<f64>) = (None, None);
         let (mut lo_incl, mut hi_incl) = (true, true);
         for facet in read_list_member_subjects(store, &list_head) {
-            if let Some(Node::Lit(regex)) = value(store, &facet, &xsd_pattern) {
+            if let Some(Node::Lit { lexical: regex, .. }) = value(store, &facet, &xsd_pattern) {
                 comps.push(ConstraintComponent::Pattern { regex, flags: None });
             }
-            if let Some(Node::Lit(n)) = value(store, &facet, &xsd_minlength)
+            if let Some(Node::Lit { lexical: n, .. }) = value(store, &facet, &xsd_minlength)
                 && let Ok(n) = n.trim().parse::<u32>()
             {
                 comps.push(ConstraintComponent::MinLength(n));
             }
-            if let Some(Node::Lit(n)) = value(store, &facet, &xsd_maxlength)
+            if let Some(Node::Lit { lexical: n, .. }) = value(store, &facet, &xsd_maxlength)
                 && let Ok(n) = n.trim().parse::<u32>()
             {
                 comps.push(ConstraintComponent::MaxLength(n));
             }
-            if let Some(Node::Lit(n)) = value(store, &facet, &xsd_mininclusive)
+            if let Some(Node::Lit { lexical: n, .. }) = value(store, &facet, &xsd_mininclusive)
                 && let Ok(n) = n.trim().parse::<f64>()
             {
                 lo = Some(n);
                 lo_incl = true;
             }
-            if let Some(Node::Lit(n)) = value(store, &facet, &xsd_minexclusive)
+            if let Some(Node::Lit { lexical: n, .. }) = value(store, &facet, &xsd_minexclusive)
                 && let Ok(n) = n.trim().parse::<f64>()
                 && lo.is_none()
             {
                 lo = Some(n);
                 lo_incl = false;
             }
-            if let Some(Node::Lit(n)) = value(store, &facet, &xsd_maxinclusive)
+            if let Some(Node::Lit { lexical: n, .. }) = value(store, &facet, &xsd_maxinclusive)
                 && let Ok(n) = n.trim().parse::<f64>()
             {
                 hi = Some(n);
                 hi_incl = true;
             }
-            if let Some(Node::Lit(n)) = value(store, &facet, &xsd_maxexclusive)
+            if let Some(Node::Lit { lexical: n, .. }) = value(store, &facet, &xsd_maxexclusive)
                 && let Ok(n) = n.trim().parse::<f64>()
                 && hi.is_none()
             {
@@ -1360,7 +1418,7 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
     // hard error here) for an absent or non-integer object — a broken count contributes nothing.
     let card_of = |restr: &Subject, p: &Iri| -> Option<u32> {
         match value(store, restr, p) {
-            Some(Node::Lit(lex)) => lex.trim().parse::<u32>().ok(),
+            Some(Node::Lit { lexical: lex, .. }) => lex.trim().parse::<u32>().ok(),
             _ => None,
         }
     };
@@ -1505,7 +1563,14 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
                         .2
                         .push(pc);
                 }
-                Some(Node::Lit(lexical)) => {
+                Some(Node::Lit {
+                    lexical,
+                    datatype,
+                    lang,
+                }) => {
+                    // Preserve the fixed value's datatype / language tag: a typed
+                    // `owl:hasValue "1"^^xsd:integer` derives a TYPED `sh:hasValue`, never a
+                    // bare untyped `"1"` that would match the wrong literal.
                     let pc = PropertyConstraintIr::new(
                         &on,
                         None,
@@ -1513,8 +1578,8 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
                         None,
                         vec![ConstraintComponent::HasValue(ShapeValue::Literal {
                             lexical,
-                            datatype: None,
-                            lang: None,
+                            datatype,
+                            lang,
                         })],
                     )?;
                     entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
@@ -1553,7 +1618,7 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
                     }
                     // An anonymous qualifying class expression is carried in the canon, never a
                     // bare blank shape — skip (do not emit).
-                    Some(Node::Blank { .. }) | Some(Node::Lit(_)) | Some(Node::Triple(_)) => {}
+                    Some(Node::Blank { .. }) | Some(Node::Lit { .. }) | Some(Node::Triple(_)) => {}
                     Some(Node::Iri(q)) if q == owl_thing => {
                         // `owl:onClass owl:Thing` qualifies over "any individual" — the qualified
                         // count degrades to an unqualified `sh:minCount`/`sh:maxCount` rather than
@@ -2315,6 +2380,429 @@ fn read_constraint(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, S
     Ok(constraint)
 }
 
+// --------------------------------------------------------------------------- //
+// Compact constraint-sugar records — a few authoring shortcuts the compiler expands into a
+// canonical `logic:Constraint` + integrity `Formula`, so an author never hand-writes a formula
+// tree for the common patterns. Sugar is FRONTEND-ONLY: each record expands to exactly one
+// `ConstraintIr` (carrying the honest reified FOL integrity + a required `logic:formalizes`), so
+// there is one canonical home per authored constraint. The expansion reuses `Formula`/`Term`
+// constructors and `ConstraintIr::new` (which derives the target from the `∀` guard) — never a
+// parallel constraint AST.
+// --------------------------------------------------------------------------- //
+
+/// A bound variable term.
+fn t_var(n: &str) -> Term {
+    Term::Var(n.to_owned())
+}
+
+/// A binary atom `rel(a, b)` (relation is always an IRI).
+fn f_atom2(rel: &str, a: Term, b: Term) -> Result<Formula, String> {
+    Formula::atom(Term::iri(rel)?, vec![a, b])
+}
+
+/// An existential `∃ var . pred(this, var)` — "the focus has some value on `pred`".
+fn f_pred_exists(pred: &str, var: &str) -> Result<Formula, String> {
+    Ok(Formula::Exists {
+        vars: vec![var.to_owned()],
+        body: Box::new(f_atom2(pred, t_var("this"), t_var(var))?),
+    })
+}
+
+/// A class-membership guard atom `rdf:type(this, class)`.
+fn f_guard_class(class: &str) -> Result<Formula, String> {
+    f_atom2(RDF_TYPE, t_var("this"), Term::iri(class)?)
+}
+
+/// Wrap `consequent` in the canonical range-restricted guarded universal
+/// `∀ this . guard → consequent`, from which [`ConstraintIr::new`] derives the target.
+fn f_forall_this(guard: Formula, consequent: Formula) -> Formula {
+    Formula::Forall {
+        vars: vec!["this".to_owned()],
+        body: Box::new(Formula::Implies(Box::new(guard), Box::new(consequent))),
+    }
+}
+
+/// The required `logic:onClass` target of a sugar record.
+fn sugar_target_class(store: &RdfDataset, node: &Subject) -> Result<String, String> {
+    value(store, node, &nn(&logic_iri("onClass")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| {
+            "constraint-sugar record requires logic:onClass (the target class)".to_owned()
+        })
+}
+
+/// The `logic:severity` of a sugar record (absent ⇒ the SHACL default `Violation`).
+fn sugar_severity(store: &RdfDataset, node: &Subject) -> Result<ShaclSeverity, String> {
+    match value(store, node, &nn(&logic_iri("severity"))) {
+        Some(t) => {
+            let token = term_str(&t);
+            ShaclSeverity::from_local(&token).ok_or_else(|| {
+                format!("logic:severity '{token}' is not one of Violation/Warning/Info")
+            })
+        }
+        None => Ok(ShaclSeverity::Violation),
+    }
+}
+
+/// The ordered, deduped IRI objects of `pred` on `node` (sorted for byte-deterministic expansion
+/// regardless of the source triple order).
+fn sugar_iri_list(store: &RdfDataset, node: &Subject, pred_local: &str) -> Vec<String> {
+    let mut v: Vec<String> = objects(store, node, &nn(&logic_iri(pred_local)))
+        .iter()
+        .map(term_str)
+        .collect();
+    v.sort();
+    v.dedup();
+    v
+}
+
+/// Finalize a sugar expansion: build the [`ConstraintIr`] from the integrity formula and attach the
+/// REQUIRED `logic:formalizes` back-reference (so the projected shape passes the purity gate).
+fn finalize_sugar(
+    store: &RdfDataset,
+    node: &Subject,
+    integrity: Formula,
+) -> Result<ConstraintIr, String> {
+    let severity = sugar_severity(store, node)?;
+    let message = value(store, node, &nn(&logic_iri("message"))).map(|t| term_str(&t));
+    let formalizes = value(store, node, &nn(&logic_iri("formalizes")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| {
+            "constraint-sugar record requires logic:formalizes (the gmeow term it formalizes)"
+                .to_owned()
+        })?;
+    ConstraintIr::new(subject_str(node), integrity, severity, message)?.with_formalizes(formalizes)
+}
+
+/// P1 — choice-group cardinality: a target class + a set of predicates + a mode
+/// (`exactly-one` / `at-most-one`; `exactly-one-of-N` is an alias of `exactly-one`). Expands to
+/// the XOR / at-most formula over `∃`-requiredness of each predicate.
+fn read_choice_group(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+    let class = sugar_target_class(store, node)?;
+    let preds = sugar_iri_list(store, node, "choicePredicate");
+    if preds.len() < 2 {
+        return Err(
+            "logic:ChoiceGroupConstraint needs at least two logic:choicePredicate".to_owned(),
+        );
+    }
+    let mode = value(store, node, &nn(&logic_iri("choiceMode")))
+        .map(|t| term_str(&t).trim().to_ascii_lowercase())
+        .ok_or_else(|| "logic:ChoiceGroupConstraint requires logic:choiceMode".to_owned())?;
+    let ex = |i: usize| f_pred_exists(&preds[i], &format!("v{i}"));
+    let consequent = match mode.as_str() {
+        "exactly-one" | "exactly-one-of-n" => {
+            // OR over i of (∃pᵢ ∧ AND over j≠i of ¬∃pⱼ) — exactly one predicate present.
+            let mut branches = Vec::with_capacity(preds.len());
+            for i in 0..preds.len() {
+                let mut conj = vec![ex(i)?];
+                for j in 0..preds.len() {
+                    if j != i {
+                        conj.push(Formula::Not(Box::new(ex(j)?)));
+                    }
+                }
+                branches.push(Formula::And(conj));
+            }
+            Formula::Or(branches)
+        }
+        "at-most-one" => {
+            // AND over pairs (i<j) of ¬(∃pᵢ ∧ ∃pⱼ) — no two predicates present together.
+            let mut pairs = Vec::new();
+            for i in 0..preds.len() {
+                for j in (i + 1)..preds.len() {
+                    pairs.push(Formula::Not(Box::new(Formula::And(vec![ex(i)?, ex(j)?]))));
+                }
+            }
+            if pairs.len() == 1 {
+                pairs.pop().expect("one pair")
+            } else {
+                Formula::And(pairs)
+            }
+        }
+        other => {
+            return Err(format!(
+                "logic:choiceMode '{other}' must be exactly-one / at-most-one / exactly-one-of-N"
+            ));
+        }
+    };
+    finalize_sugar(
+        store,
+        node,
+        f_forall_this(f_guard_class(&class)?, consequent),
+    )
+}
+
+/// P2 — guarded implication: a target class + a trigger predicate (optionally pinned to a
+/// `logic:triggerValue`) + one or more required companion predicates. Expands to
+/// `∀ this . C(this) ∧ trigger(this, …) → ∃ companion`.
+fn read_guarded_implication(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+    let class = sugar_target_class(store, node)?;
+    let trigger = value(store, node, &nn(&logic_iri("trigger")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| "logic:GuardedImplicationConstraint requires logic:trigger".to_owned())?;
+    let companions = sugar_iri_list(store, node, "requires");
+    if companions.is_empty() {
+        return Err(
+            "logic:GuardedImplicationConstraint requires at least one logic:requires companion \
+             predicate"
+                .to_owned(),
+        );
+    }
+    // The trigger atom: pinned to a fixed object value when `logic:triggerValue` is present, else
+    // an existential occurrence `trigger(this, ?t)` (the mere presence of the trigger predicate).
+    let trigger_atom = match value(store, node, &nn(&logic_iri("triggerValue"))) {
+        Some(v) => {
+            let obj = match &v {
+                Node::Iri(i) => Term::iri(i)?,
+                Node::Lit {
+                    lexical, datatype, ..
+                } => Term::literal(lexical.clone(), datatype.clone())?,
+                _ => return Err("logic:triggerValue must be an IRI or a literal".to_owned()),
+            };
+            f_atom2(&trigger, t_var("this"), obj)?
+        }
+        None => f_atom2(&trigger, t_var("this"), t_var("t"))?,
+    };
+    let guard = Formula::And(vec![f_guard_class(&class)?, trigger_atom]);
+    // The consequent: one required companion, or the conjunction of their existentials.
+    let mut req: Vec<Formula> = Vec::with_capacity(companions.len());
+    for (i, c) in companions.iter().enumerate() {
+        req.push(f_pred_exists(c, &format!("c{i}"))?);
+    }
+    let consequent = if req.len() == 1 {
+        req.pop().expect("one companion")
+    } else {
+        Formula::And(req)
+    };
+    finalize_sugar(store, node, f_forall_this(guard, consequent))
+}
+
+/// P3 — disjunctive requiredness: a target class + a set of predicates, at least one required.
+/// Expands to `∀ this . C(this) → (∃p₁ ∨ … ∨ ∃pₙ)`.
+fn read_disjunctive_requiredness(
+    store: &RdfDataset,
+    node: &Subject,
+) -> Result<ConstraintIr, String> {
+    let class = sugar_target_class(store, node)?;
+    let preds = sugar_iri_list(store, node, "anyOf");
+    if preds.is_empty() {
+        return Err(
+            "logic:DisjunctiveRequirednessConstraint requires at least one logic:anyOf predicate"
+                .to_owned(),
+        );
+    }
+    let mut disj: Vec<Formula> = Vec::with_capacity(preds.len());
+    for (i, p) in preds.iter().enumerate() {
+        disj.push(f_pred_exists(p, &format!("v{i}"))?);
+    }
+    let consequent = if disj.len() == 1 {
+        disj.pop().expect("one predicate")
+    } else {
+        Formula::Or(disj)
+    };
+    finalize_sugar(
+        store,
+        node,
+        f_forall_this(f_guard_class(&class)?, consequent),
+    )
+}
+
+/// P4 — path-value type membership: a target class + a path `P` + a required value class `D`.
+/// Expands to `∀ this . C(this) → ∀ v . P(this, v) → D(v)`.
+fn read_path_value_type(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+    let class = sugar_target_class(store, node)?;
+    let path = value(store, node, &nn(&logic_iri("valuePath")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| "logic:PathValueTypeConstraint requires logic:valuePath".to_owned())?;
+    let value_class = value(store, node, &nn(&logic_iri("valueClass")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| "logic:PathValueTypeConstraint requires logic:valueClass".to_owned())?;
+    let inner = Formula::Forall {
+        vars: vec!["v".to_owned()],
+        body: Box::new(Formula::Implies(
+            Box::new(f_atom2(&path, t_var("this"), t_var("v"))?),
+            Box::new(f_atom2(RDF_TYPE, t_var("v"), Term::iri(&value_class)?)?),
+        )),
+    };
+    finalize_sugar(store, node, f_forall_this(f_guard_class(&class)?, inner))
+}
+
+/// P5 — cross-node co-occurrence / inequality: a target class + two roles that must
+/// **co-occur** (present together) or **differ** (never bind the same value). Expands to the
+/// join + inequality (`logic:termDistinct` / `logic:termEqual` filter) or bi-implication form.
+fn read_cross_node(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+    let class = sugar_target_class(store, node)?;
+    let role_a = value(store, node, &nn(&logic_iri("roleA")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| "logic:CrossNodeConstraint requires logic:roleA".to_owned())?;
+    let role_b = value(store, node, &nn(&logic_iri("roleB")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| "logic:CrossNodeConstraint requires logic:roleB".to_owned())?;
+    let mode = value(store, node, &nn(&logic_iri("crossMode")))
+        .map(|t| term_str(&t).trim().to_ascii_lowercase())
+        .ok_or_else(|| "logic:CrossNodeConstraint requires logic:crossMode".to_owned())?;
+    let consequent = match mode.as_str() {
+        // Co-occur: role A present iff role B present (each implies the other).
+        "co-occur" | "cooccur" => {
+            let a = || f_pred_exists(&role_a, "a");
+            let b = || f_pred_exists(&role_b, "b");
+            Formula::And(vec![
+                Formula::Implies(Box::new(a()?), Box::new(b()?)),
+                Formula::Implies(Box::new(b()?), Box::new(a()?)),
+            ])
+        }
+        // Differ: no value bound by both roles — ¬∃a,b. (roleA(this,a) ∧ roleB(this,b) ∧ a = b).
+        "differ" | "distinct" => Formula::Not(Box::new(Formula::Exists {
+            vars: vec!["a".to_owned(), "b".to_owned()],
+            body: Box::new(Formula::And(vec![
+                f_atom2(&role_a, t_var("this"), t_var("a"))?,
+                f_atom2(&role_b, t_var("this"), t_var("b"))?,
+                f_atom2(&logic_iri("termEqual"), t_var("a"), t_var("b"))?,
+            ])),
+        })),
+        other => {
+            return Err(format!(
+                "logic:crossMode '{other}' must be co-occur or differ"
+            ));
+        }
+    };
+    finalize_sugar(
+        store,
+        node,
+        f_forall_this(f_guard_class(&class)?, consequent),
+    )
+}
+
+/// P7 — forbidden pattern: a target class + a forbidden predicate (optionally pinned to a
+/// forbidden value). Expands to `∀ this . C(this) → ¬∃ b . forbidden(this, b)` (or the
+/// pinned-value form `¬ forbidden(this, value)`).
+fn read_forbidden_pattern(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+    let class = sugar_target_class(store, node)?;
+    let forbidden = value(store, node, &nn(&logic_iri("forbiddenPredicate")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| {
+            "logic:ForbiddenPatternConstraint requires logic:forbiddenPredicate".to_owned()
+        })?;
+    let consequent = match value(store, node, &nn(&logic_iri("forbiddenValue"))) {
+        Some(v) => {
+            let obj = match &v {
+                Node::Iri(i) => Term::iri(i)?,
+                Node::Lit {
+                    lexical, datatype, ..
+                } => Term::literal(lexical.clone(), datatype.clone())?,
+                _ => return Err("logic:forbiddenValue must be an IRI or a literal".to_owned()),
+            };
+            Formula::Not(Box::new(f_atom2(&forbidden, t_var("this"), obj)?))
+        }
+        None => Formula::Not(Box::new(f_pred_exists(&forbidden, "b")?)),
+    };
+    finalize_sugar(
+        store,
+        node,
+        f_forall_this(f_guard_class(&class)?, consequent),
+    )
+}
+
+/// P6 / aggregate — an aggregate-comparison constraint: a target class + an aggregate function
+/// over a path + a comparator + a right-hand side (a compared property of the focus, or a
+/// literal). Expands to a [`ConstraintIr`] carrying BOTH the honest reified FOL integrity (so the
+/// FOL canon is complete + the target derives) AND the structured [`AggregateComparison`] satellite
+/// (which drives the real `GROUP BY`/`HAVING` SPARQL projection).
+fn read_aggregate_constraint(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+    let class = sugar_target_class(store, node)?;
+    let function = value(store, node, &nn(&logic_iri("aggFunction")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| "logic:AggregateConstraint requires logic:aggFunction".to_owned())?;
+    let path = value(store, node, &nn(&logic_iri("aggPath")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| "logic:AggregateConstraint requires logic:aggPath".to_owned())?;
+    let comparator = value(store, node, &nn(&logic_iri("aggComparator")))
+        .map(|t| term_str(&t))
+        .and_then(|s| AggregateComparator::from_symbol(&s))
+        .ok_or_else(|| {
+            "logic:AggregateConstraint requires a logic:aggComparator in =/!=/</<=/>/>=".to_owned()
+        })?;
+    let distinct = value(store, node, &nn(&logic_iri("aggDistinct")))
+        .map(|t| term_str(&t).trim().eq_ignore_ascii_case("true"))
+        .unwrap_or(false);
+    // The right-hand side: an IRI object is a compared PROPERTY of the focus; a literal is a fixed
+    // comparison value.
+    let compare_to = match value(store, node, &nn(&logic_iri("aggCompareTo"))) {
+        Some(Node::Iri(p)) => AggregateRhs::Property(p),
+        Some(Node::Lit {
+            lexical, datatype, ..
+        }) => AggregateRhs::Literal { lexical, datatype },
+        _ => {
+            return Err(
+                "logic:AggregateConstraint requires logic:aggCompareTo (a property IRI or a literal)"
+                    .to_owned(),
+            );
+        }
+    };
+    let agg = AggregateComparison::new(function, distinct, path, comparator, compare_to)?;
+
+    // The honest reified FOL integrity: a single reified `aggregateComparison` predication over
+    // the focus, guarded by the target class so the target derives. It carries the function, the
+    // DISTINCT flag, the path, the comparator, and the right-hand side, so the FOL canon is
+    // complete (the SPARQL projection uses the satellite for a real GROUP BY/HAVING instead).
+    let rhs_term = match &agg.compare_to {
+        AggregateRhs::Property(p) => Term::iri(p)?,
+        AggregateRhs::Literal { lexical, datatype } => {
+            Term::literal(lexical.clone(), datatype.clone())?
+        }
+    };
+    let reified = Formula::atom(
+        Term::iri(logic_iri("aggregateComparison"))?,
+        vec![
+            t_var("this"),
+            Term::literal(agg.function.clone(), None)?,
+            Term::literal(agg.distinct.to_string(), None)?,
+            Term::iri(&agg.path)?,
+            Term::literal(agg.comparator.as_sparql(), None)?,
+            rhs_term,
+        ],
+    )?;
+    let integrity = f_forall_this(f_guard_class(&class)?, reified);
+    Ok(finalize_sugar(store, node, integrity)?.with_aggregate(agg))
+}
+
+/// Read every compact constraint-sugar record (P1–P5, P7, and the aggregate P6) into
+/// [`ConstraintIr`]s. Fail-soft like the other extractors: a malformed record emits a
+/// `MALFORMED_CONSTRAINT` warning and is skipped, never silently dropped. A sugar-free source
+/// yields an empty vector (append-only, so the canonical key stays byte-identical).
+fn extract_sugar_constraints(
+    store: &RdfDataset,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<ConstraintIr> {
+    type Reader = fn(&RdfDataset, &Subject) -> Result<ConstraintIr, String>;
+    let readers: [(&str, Reader); 7] = [
+        ("ChoiceGroupConstraint", read_choice_group),
+        ("GuardedImplicationConstraint", read_guarded_implication),
+        (
+            "DisjunctiveRequirednessConstraint",
+            read_disjunctive_requiredness,
+        ),
+        ("PathValueTypeConstraint", read_path_value_type),
+        ("CrossNodeConstraint", read_cross_node),
+        ("ForbiddenPatternConstraint", read_forbidden_pattern),
+        ("AggregateConstraint", read_aggregate_constraint),
+    ];
+    let mut out: Vec<ConstraintIr> = Vec::new();
+    for (class_local, reader) in readers {
+        let class_ty = Node::iri(logic_iri(class_local));
+        for subj in subjects_with(store, &nn(RDF_TYPE), &class_ty) {
+            match reader(store, &subj) {
+                Ok(c) => out.push(c),
+                Err(message) => diagnostics.push(Diagnostic::warning(
+                    "MALFORMED_CONSTRAINT",
+                    message,
+                    Some(subject_str(&subj)),
+                )),
+            }
+        }
+    }
+    out
+}
+
 /// Parse a `logic:` RDF source already loaded into a wasm-clean [`RdfDataset`]
 /// (default graph) into a [`LogicProgram`] + diagnostics.
 pub fn parse_logic_dataset(
@@ -2393,7 +2881,11 @@ pub fn parse_logic_dataset(
     let transaction_programs =
         crate::projections::correspondence::extract_leg_programs(store, &correspondences);
 
-    let constraints = extract_constraints(store, &mut diagnostics);
+    // Authored `logic:Constraint` individuals PLUS the compact constraint-sugar records (P1–P5,
+    // P7, and the aggregate P6), each expanded to one canonical `ConstraintIr`. Both feed the same
+    // `LogicProgram::constraints` home (which sorts + content-keys them canonically).
+    let mut constraints = extract_constraints(store, &mut diagnostics);
+    constraints.extend(extract_sugar_constraints(store, &mut diagnostics));
 
     let program = LogicProgram::new(all_axioms, rules, contracts, source_iri)
         .with_path_shapes(path_shapes)

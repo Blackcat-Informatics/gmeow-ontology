@@ -19,11 +19,18 @@
 //! them; they are never dropped in silence.
 
 use crate::ir::{
-    ConstraintComponent, ConstraintIr, Formula, LogicProgram, PropertyConstraintIr, ShaclNodeKind,
-    ShapeTarget, ShapeValue, Term, ValidationShapeIr,
+    AggregateComparison, AggregateRhs, ConstraintComponent, ConstraintIr, Formula, LogicProgram,
+    PropertyConstraintIr, ShaclNodeKind, ShapeTarget, ShapeValue, Term, ValidationShapeIr,
 };
 
 use super::sparql_lower::{sparql_literal, sparql_predicate};
+
+/// The `logic:` comparison relations the procedural-constraint fragment lowers to a SPARQL
+/// `FILTER` rather than a triple pattern: an equality / inequality between two already-bound
+/// terms (the cross-node co-occurrence / inequality pattern). They are recognized here (not in a
+/// second Formula→SPARQL lowering) so a `logic:Constraint` can express `?a = ?b` / `?a != ?b`.
+const LOGIC_TERM_EQUAL: &str = "https://blackcatinformatics.ca/logic/termEqual";
+const LOGIC_TERM_DISTINCT: &str = "https://blackcatinformatics.ca/logic/termDistinct";
 
 /// The prefix header prepended to a multi-shape SHACL document.
 const SHACL_PREFIXES: &str = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
@@ -811,8 +818,18 @@ fn constraint_atom(f: &Formula, focus: &str) -> Result<String, String> {
         ));
     }
     let s = constraint_term(&args[0], focus)?;
-    let p = sparql_predicate(pred);
     let o = constraint_term(&args[1], focus)?;
+    // The `logic:termEqual` / `logic:termDistinct` comparison relations lower to a `FILTER` over
+    // two already-bound terms, not a triple pattern (the cross-node co-occurrence / inequality
+    // pattern). A comparison between two bound terms binds nothing, so it never introduces a new
+    // variable that must be triple-bound.
+    if pred == LOGIC_TERM_EQUAL {
+        return Ok(format!("FILTER ( {s} = {o} )"));
+    }
+    if pred == LOGIC_TERM_DISTINCT {
+        return Ok(format!("FILTER ( {s} != {o} )"));
+    }
+    let p = sparql_predicate(pred);
     Ok(format!("{s} {p} {o} ."))
 }
 
@@ -928,6 +945,54 @@ fn violation_where(constraint: &ConstraintIr) -> Result<String, String> {
     Ok(pats.join(" "))
 }
 
+/// Lower an [`AggregateComparison`] to a whole `SELECT $this … GROUP BY $this HAVING(…)` query
+/// selecting the focus nodes that VIOLATE the invariant. The aggregated path binds `?value`; a
+/// property right-hand side binds `?rhs` (added to the `GROUP BY` so it stays available in the
+/// `HAVING`, on the assumption of one right-hand value per focus). Because a `sh:SPARQLConstraint`
+/// `sh:select` returns violations, the `HAVING` uses the comparator's logical negation (`=` ↦
+/// `!=`, `<` ↦ `>=`, …). Reuses the same `GROUP BY` sub-`SELECT` shape as the SHACL-AF reduce-rule
+/// projection rather than a bespoke aggregate lowering.
+fn aggregate_select(agg: &AggregateComparison) -> String {
+    let agg_var = "?value";
+    let inner = if agg.distinct {
+        format!("{}(DISTINCT {agg_var})", agg.function)
+    } else {
+        format!("{}({agg_var})", agg.function)
+    };
+    let path = sparql_predicate(&agg.path);
+    let mut where_pats = vec![format!("$this {path} {agg_var} .")];
+    let mut group_by = String::from("$this");
+    let rhs = match &agg.compare_to {
+        AggregateRhs::Property(p) => {
+            where_pats.push(format!("$this {} ?rhs .", sparql_predicate(p)));
+            group_by.push_str(" ?rhs");
+            "?rhs".to_owned()
+        }
+        AggregateRhs::Literal { lexical, datatype } => {
+            let lit = sparql_literal(lexical);
+            match datatype {
+                Some(dt) => format!("{lit}^^<{dt}>"),
+                None => lit,
+            }
+        }
+    };
+    let op = agg.comparator.negated().as_sparql();
+    format!(
+        "SELECT $this WHERE {{ {} }} GROUP BY {group_by} HAVING ( {inner} {op} {rhs} )",
+        where_pats.join(" ")
+    )
+}
+
+/// The whole `sh:select` query body of a constraint: the aggregate `GROUP BY`/`HAVING` form when
+/// the constraint carries an [`AggregateComparison`] satellite, else the range-restricted
+/// `guard ∧ ¬φ` violation query lowered from the integrity formula.
+fn constraint_select(c: &ConstraintIr) -> Result<String, String> {
+    match &c.aggregate {
+        Some(agg) => Ok(aggregate_select(agg)),
+        None => Ok(format!("SELECT $this WHERE {{ {} }}", violation_where(c)?)),
+    }
+}
+
 /// The `sh:target*` clause for a constraint's focus selector.
 fn procedural_target_clause(t: &ShapeTarget) -> String {
     match t {
@@ -959,7 +1024,7 @@ fn procedural_formalizes_term(c: &ConstraintIr) -> String {
 /// range-restricted guarded SPARQL-constraint fragment (so the caller carries it as flagged
 /// residue rather than emitting a broken query).
 fn try_project_block(c: &ConstraintIr) -> Result<String, String> {
-    let where_body = violation_where(c)?;
+    let select = constraint_select(c)?;
     let shape = procedural_shape_iri(c);
     let formalizes = procedural_formalizes_term(c);
     let sev = c.severity.as_str();
@@ -971,7 +1036,7 @@ fn try_project_block(c: &ConstraintIr) -> Result<String, String> {
     Ok(format!(
         "<{shape}>\n    a sh:NodeShape ;\n    logic:formalizes <{formalizes}> ;\n    {target} ;\n    \
          sh:sparql [\n        a sh:SPARQLConstraint ;\n        sh:severity sh:{sev} ;\n{message_line}        \
-         sh:select \"\"\"SELECT $this WHERE {{ {where_body} }}\"\"\" ;\n    ] .\n"
+         sh:select \"\"\"{select}\"\"\" ;\n    ] .\n"
     ))
 }
 
@@ -2103,6 +2168,285 @@ mod procedural_tests {
         assert!(
             !flagged.iter().any(|f| f.contains("goodW")),
             "the clean widget must NOT be flagged; flagged: {flagged:?}"
+        );
+    }
+
+    // ── Constraint-sugar expansion (P1–P5, P7) + aggregate (P6) projection ────────
+
+    /// The prefix header for the sugar fixtures.
+    const SUGAR_PREFIXES: &str = "\
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ex: <https://ex/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+";
+
+    /// Parse a sugar fixture (asserting no MALFORMED_CONSTRAINT) and project its single constraint
+    /// to a `sh:SPARQLConstraint` block.
+    fn project_sugar(ttl: &str) -> String {
+        let src = format!("{SUGAR_PREFIXES}{ttl}");
+        let (program, diags) =
+            crate::frontend::parse_logic_str(&src, None).expect("sugar fixture must parse");
+        assert!(
+            !diags.iter().any(|d| d.code == "MALFORMED_CONSTRAINT"),
+            "unexpected MALFORMED_CONSTRAINT diagnostics: {diags:?}"
+        );
+        assert_eq!(
+            program.constraints.len(),
+            1,
+            "expected exactly one constraint"
+        );
+        let block = project_procedural_constraint(&program.constraints[0]);
+        assert!(
+            !block.is_empty(),
+            "the sugar constraint must project a block"
+        );
+        block
+    }
+
+    #[test]
+    fn p1_choice_group_sugar_expands_and_projects() {
+        let b = project_sugar(
+            "ex:c1 a logic:ChoiceGroupConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:choicePredicate ex:hasA , ex:hasB ;\n\
+             logic:choiceMode \"exactly-one\" ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        assert!(b.contains("sh:targetClass <https://ex/Widget>"), "{b}");
+        assert!(b.contains("logic:formalizes <https://ex/Widget>"), "{b}");
+        // exactly-one → a UNION of per-predicate branches under FILTER NOT EXISTS.
+        assert!(b.contains("UNION"), "{b}");
+        assert!(
+            b.contains("<https://ex/hasA>") && b.contains("<https://ex/hasB>"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p1_at_most_one_sugar_projects() {
+        let b = project_sugar(
+            "ex:c1b a logic:ChoiceGroupConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:choicePredicate ex:hasA , ex:hasB ;\n\
+             logic:choiceMode \"at-most-one\" ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        // at-most-one over two predicates → the violation is the pair present together.
+        assert!(
+            b.contains("<https://ex/hasA>") && b.contains("<https://ex/hasB>"),
+            "{b}"
+        );
+        assert!(b.contains("SELECT $this WHERE"), "{b}");
+    }
+
+    #[test]
+    fn p2_guarded_implication_sugar_expands_and_projects() {
+        let b = project_sugar(
+            "ex:c2 a logic:GuardedImplicationConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:trigger ex:isActive ;\n\
+             logic:requires ex:companion ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        assert!(b.contains("sh:targetClass <https://ex/Widget>"), "{b}");
+        // Guard: the trigger predicate is a positive triple; the missing companion is the violation.
+        assert!(b.contains("<https://ex/isActive>"), "{b}");
+        assert!(
+            b.contains("FILTER NOT EXISTS") && b.contains("<https://ex/companion>"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p2_guarded_implication_with_trigger_value_projects() {
+        let b = project_sugar(
+            "ex:c2v a logic:GuardedImplicationConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:trigger ex:kind ;\n\
+             logic:triggerValue ex:Special ;\n\
+             logic:requires ex:companion ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        // The pinned trigger value appears in the guard triple's object position.
+        assert!(b.contains("<https://ex/kind> <https://ex/Special>"), "{b}");
+    }
+
+    #[test]
+    fn p3_disjunctive_requiredness_sugar_expands_and_projects() {
+        let b = project_sugar(
+            "ex:c3 a logic:DisjunctiveRequirednessConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:anyOf ex:hasA , ex:hasB ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        // ≥1 required → violation is NONE present: FILTER NOT EXISTS { {hasA} UNION {hasB} }.
+        assert!(b.contains("FILTER NOT EXISTS"), "{b}");
+        assert!(b.contains("UNION"), "{b}");
+        assert!(
+            b.contains("<https://ex/hasA>") && b.contains("<https://ex/hasB>"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p4_path_value_type_sugar_expands_and_projects() {
+        let b = project_sugar(
+            "ex:c4 a logic:PathValueTypeConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:valuePath ex:part ;\n\
+             logic:valueClass ex:Part ;\n\
+             logic:formalizes ex:part .",
+        );
+        assert!(b.contains("logic:formalizes <https://ex/part>"), "{b}");
+        // Violation: ∃v. part(this,v) ∧ ¬ Part(v).
+        assert!(b.contains("<https://ex/part>"), "{b}");
+        assert!(
+            b.contains("FILTER NOT EXISTS") && b.contains("<https://ex/Part>"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p5_cross_node_co_occur_sugar_expands_and_projects() {
+        let b = project_sugar(
+            "ex:c5 a logic:CrossNodeConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:roleA ex:left ;\n\
+             logic:roleB ex:right ;\n\
+             logic:crossMode \"co-occur\" ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        assert!(
+            b.contains("<https://ex/left>") && b.contains("<https://ex/right>"),
+            "{b}"
+        );
+        assert!(b.contains("UNION"), "{b}");
+    }
+
+    #[test]
+    fn p5_cross_node_differ_sugar_projects_an_equality_filter() {
+        let b = project_sugar(
+            "ex:c5d a logic:CrossNodeConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:roleA ex:left ;\n\
+             logic:roleB ex:right ;\n\
+             logic:crossMode \"differ\" ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        // Violation of "roles must differ" = the two roles bind an EQUAL value.
+        assert!(b.contains("FILTER ( ?a = ?b )"), "{b}");
+        assert!(
+            b.contains("<https://ex/left>") && b.contains("<https://ex/right>"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p7_forbidden_pattern_sugar_expands_and_projects() {
+        let b = project_sugar(
+            "ex:c7 a logic:ForbiddenPatternConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:forbiddenPredicate ex:forbidden ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        // A forbidden-pattern violation is the PRESENCE of the pattern: the SHACL
+        // sh:select returns the focus nodes that HAVE the forbidden predicate (a
+        // positive BGP match), not a FILTER NOT EXISTS over its absence.
+        assert!(
+            b.contains("<https://ex/forbidden> ?") && !b.contains("NOT EXISTS"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p6_aggregate_count_distinct_property_rhs_projects_group_by_having() {
+        let b = project_sugar(
+            "ex:agg1 a logic:AggregateConstraint ;\n\
+             logic:onClass ex:Dimensional ;\n\
+             logic:aggFunction \"COUNT\" ;\n\
+             logic:aggDistinct true ;\n\
+             logic:aggPath ex:hasAxis ;\n\
+             logic:aggComparator \"=\" ;\n\
+             logic:aggCompareTo ex:dimensionCount ;\n\
+             logic:formalizes ex:Dimensional .",
+        );
+        assert!(b.contains("sh:targetClass <https://ex/Dimensional>"), "{b}");
+        assert!(b.contains("COUNT(DISTINCT ?value)"), "{b}");
+        // A property RHS binds ?rhs and joins it into the GROUP BY.
+        assert!(b.contains("$this <https://ex/dimensionCount> ?rhs"), "{b}");
+        assert!(b.contains("GROUP BY $this ?rhs"), "{b}");
+        // The invariant is `=`, so the violation-selecting HAVING uses the negation `!=`.
+        assert!(
+            b.contains("HAVING ( COUNT(DISTINCT ?value) != ?rhs )"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p6_aggregate_sum_literal_rhs_projects_group_by_having() {
+        let b = project_sugar(
+            "ex:agg2 a logic:AggregateConstraint ;\n\
+             logic:onClass ex:Portfolio ;\n\
+             logic:aggFunction \"SUM\" ;\n\
+             logic:aggPath ex:weight ;\n\
+             logic:aggComparator \"=\" ;\n\
+             logic:aggCompareTo \"1\"^^xsd:integer ;\n\
+             logic:formalizes ex:Portfolio .",
+        );
+        assert!(b.contains("SUM(?value)"), "{b}");
+        assert!(b.contains("$this <https://ex/weight> ?value"), "{b}");
+        assert!(b.contains("GROUP BY $this"), "{b}");
+        // The literal RHS keeps its datatype in the HAVING comparison.
+        assert!(
+            b.contains("HAVING ( SUM(?value) != '1'^^<http://www.w3.org/2001/XMLSchema#integer> )"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p6_aggregate_count_distinct_validates_against_a_graph() {
+        // End-to-end: the generated GROUP BY/HAVING SELECT must be valid SPARQL and flag the right
+        // focus nodes. `good` has 2 distinct axes and dimensionCount 2 (conforms); `bad` has 2
+        // distinct axes and dimensionCount 3 (violates COUNT(DISTINCT) = dimensionCount).
+        use purrdf::shapes::engine::validate_graphs;
+        let src = format!(
+            "{SUGAR_PREFIXES}\
+ex:aggv a logic:AggregateConstraint ;\n\
+  logic:onClass ex:Dimensional ;\n\
+  logic:aggFunction \"COUNT\" ;\n\
+  logic:aggDistinct true ;\n\
+  logic:aggPath ex:hasAxis ;\n\
+  logic:aggComparator \"=\" ;\n\
+  logic:aggCompareTo ex:dimensionCount ;\n\
+  logic:formalizes ex:Dimensional ."
+        );
+        let (program, _) = crate::frontend::parse_logic_str(&src, None).expect("parse");
+        let shapes_ttl = project_procedural_constraints(&program);
+        let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+        let data = format!(
+            "<https://ex/good> {ty} <https://ex/Dimensional> .\n\
+<https://ex/good> <https://ex/hasAxis> <https://ex/x> .\n\
+<https://ex/good> <https://ex/hasAxis> <https://ex/y> .\n\
+<https://ex/good> <https://ex/dimensionCount> \"2\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n\
+<https://ex/bad> {ty} <https://ex/Dimensional> .\n\
+<https://ex/bad> <https://ex/hasAxis> <https://ex/x> .\n\
+<https://ex/bad> <https://ex/hasAxis> <https://ex/y> .\n\
+<https://ex/bad> <https://ex/dimensionCount> \"3\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n"
+        );
+        let report = validate_graphs(&data, &shapes_ttl).expect("validate");
+        let flagged: Vec<String> = report
+            .results
+            .iter()
+            .map(|r| r.focus_node.to_string())
+            .collect();
+        assert!(
+            flagged.iter().any(|f| f.contains("bad")),
+            "the count-mismatch node must be flagged; flagged: {flagged:?}"
+        );
+        assert!(
+            !flagged.iter().any(|f| f.contains("good")),
+            "the conforming node must NOT be flagged; flagged: {flagged:?}"
         );
     }
 }
