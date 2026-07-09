@@ -508,7 +508,8 @@ gmeow:configurationFacet
         gmeow:boxRBox .
 
 gmeow:configurationOfTenure
-    a owl:ObjectProperty ;
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
     rdfs:domain gmeow:InhabitationConfiguration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "configuration of tenure"@x-gmeow-english ;

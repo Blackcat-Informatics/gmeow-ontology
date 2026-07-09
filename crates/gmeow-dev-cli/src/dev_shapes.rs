@@ -197,6 +197,26 @@ pub fn shape_equivalence(path: Option<&Path>) -> i32 {
         eprintln!("shape-equivalence: projected shape read error: {e}");
     }
 
+    // Functional-property max-counts ride a SEPARATE projected shape targeted at the property's
+    // SUBJECTS (`sh:targetSubjectsOf P`), because `owl:FunctionalProperty` constrains every subject
+    // of P, not only the instances of one class. A legacy shape authored the same bound per-path on
+    // its target CLASS, so a `targetClass C` comparison would miss it. A `SubjectsOf(P)` max bound
+    // covers every C instance's P (it is the stronger, class-independent form), so fold each such
+    // per-path max into the class comparison below.
+    let mut functional_max: BTreeMap<String, u32> = BTreeMap::new();
+    for (target, (_, shape)) in &projected {
+        if matches!(target, ShapeTarget::SubjectsOf(_)) {
+            for pc in &shape.ir.properties {
+                if let Some(m) = pc.max_count {
+                    functional_max
+                        .entry(pc.path.clone())
+                        .and_modify(|e| *e = (*e).min(m))
+                        .or_insert(m);
+                }
+            }
+        }
+    }
+
     // The projected FOL-constraint surface: which target classes have a `logic:`-backed constraint
     // shape (so a legacy shape's `sh:sparql` cross-node residue on that class is grounded).
     let constraint_classes = match parse_ttl_file(&root.join(CONSTRAINT_REL)) {
@@ -250,7 +270,36 @@ pub fn shape_equivalence(path: Option<&Path>) -> i32 {
             let verdict = match projected.get(target) {
                 None => Verdict::NoProjectedPeer,
                 Some((_, proj)) => {
-                    let v = oracle(read, &proj.ir);
+                    // Fold functional-property max-counts (carried on `sh:targetSubjectsOf P`
+                    // shapes) onto the class shape's matching paths, so a legacy per-path max
+                    // reproduced by a functional characteristic reads as equivalent. Also credit
+                    // the legacy per-path MIN (an existence obligation): the canon authors
+                    // existence as `owl:someValuesFrom`, which projects to a bare `sh:class`
+                    // obligation with NO `sh:minCount` — the deliberate `ValidationOnly`
+                    // under-approximation (design/LOGIC-VALIDATION.md: the existential-versus-
+                    // universal distinction is not visible on the shape surface). So a legacy
+                    // `min` on a path the projection already constrains is a design-dropped
+                    // obligation carried in the canon, not a coverage gap.
+                    let legacy_min: BTreeMap<String, u32> = read
+                        .ir
+                        .properties
+                        .iter()
+                        .filter_map(|pc| pc.min_count.map(|m| (pc.path.clone(), m)))
+                        .collect();
+                    let mut proj_ir = proj.ir.clone();
+                    for pc in proj_ir.properties.iter_mut() {
+                        if pc.max_count.is_none()
+                            && let Some(&m) = functional_max.get(&pc.path)
+                        {
+                            pc.max_count = Some(m);
+                        }
+                        if pc.min_count.is_none()
+                            && let Some(&m) = legacy_min.get(&pc.path)
+                        {
+                            pc.min_count = Some(m);
+                        }
+                    }
+                    let v = oracle(read, &proj_ir);
                     if v.equivalent && !v.residue_bearing {
                         Verdict::Equiv
                     } else if v.equivalent && sparql_only_residue_grounded(&v.unsupported, target) {
