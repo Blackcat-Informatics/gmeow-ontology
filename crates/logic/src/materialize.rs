@@ -78,7 +78,7 @@ pub(crate) fn reifier_for_quad(
     subject: &TermValue,
     predicate: &str,
     object: &TermValue,
-) -> Result<String, String> {
+) -> gmeow_errors::Result<String> {
     mint_reifier(subject, predicate, object)
 }
 
@@ -88,21 +88,25 @@ pub(crate) fn reifier_for_quad(
 /// term; the typed terms feed [`mint_reifier`] directly.  Returns an error for
 /// any other shape — a partial antecedent list would produce a wrong
 /// derivation_id, which is worse than failing loudly.
-pub(crate) fn reifier_for_antecedent_row(row: &TypedRow) -> Result<String, String> {
+pub(crate) fn reifier_for_antecedent_row(row: &TypedRow) -> gmeow_errors::Result<String> {
     if row.args.len() != 3 {
-        return Err(format!(
-            "antecedent row has {} values (expected 3): {:?}",
-            row.args.len(),
-            row
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+            detail: format!(
+                "antecedent row has {} values (expected 3): {:?}",
+                row.args.len(),
+                row
+            ),
+        }));
     }
     // subject: must be an IRI (or Skolem IRI) term — a world-scoped quad never
     // carries a literal subject, so anything else is a malformed antecedent.
     let subject = &row.args[0];
     if !matches!(subject, TermValue::Iri(_)) {
-        return Err(format!(
-            "antecedent subject must be an IRI (or Skolem IRI) term, got {subject:?}"
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+            detail: format!(
+                "antecedent subject must be an IRI (or Skolem IRI) term, got {subject:?}"
+            ),
+        }));
     }
     // predicate: raw IRI string; object: any term.
     mint_reifier(subject, &row.predicate, &row.args[1])
@@ -612,7 +616,8 @@ fn routed_preservation(
         profile,
         Some("WellFoundedProfile") | Some("StableModelProfile")
     ) || rules.trim().is_empty()
-        || crate::certify::is_stratifiable(rules).map_err(MaterializeError::Parse)?;
+        || crate::certify::is_stratifiable(rules)
+            .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
     Ok(if faithful {
         PreservationClaim::exact()
     } else {
@@ -625,7 +630,9 @@ fn routed_preservation(
 /// `py::echo_edb_only`.
 fn echo_edb_only(input: &str) -> Result<Vec<crate::rule_ir::DerivedRow>, MaterializeError> {
     let store = crate::store::WorldStore::new();
-    store.load_nquads(input).map_err(MaterializeError::Parse)?;
+    store
+        .load_nquads(input)
+        .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
     let mut worlds = store.worlds();
     worlds.sort();
     let mut rows = Vec::new();
@@ -699,24 +706,28 @@ pub fn materialize_routed(
     let routed: Option<RoutedRows> = match profile {
         Some("WellFoundedProfile") => {
             let store = crate::store::WorldStore::new();
-            store.load_nquads(input).map_err(MaterializeError::Parse)?;
+            store
+                .load_nquads(input)
+                .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
             let eval_rules = crate::rule_ir::parse_eval_rules(rules)
                 .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
             Some((
                 crate::wellfounded::materialize(&store, &eval_rules)
-                    .map_err(MaterializeError::Chase)?,
+                    .map_err(|e| MaterializeError::Chase(e.message().to_owned()))?,
                 BudgetStatus::Ok,
                 crate::query_ir::CompletionFrontier::empty(),
             ))
         }
         Some("StableModelProfile") => {
             let store = crate::store::WorldStore::new();
-            store.load_nquads(input).map_err(MaterializeError::Parse)?;
+            store
+                .load_nquads(input)
+                .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
             let eval_rules = crate::rule_ir::parse_eval_rules(rules)
                 .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
             Some((
                 crate::stablemodel::cautious_materialize(&store, &eval_rules)
-                    .map_err(MaterializeError::Chase)?,
+                    .map_err(|e| MaterializeError::Chase(e.message().to_owned()))?,
                 BudgetStatus::Ok,
                 crate::query_ir::CompletionFrontier::empty(),
             ))
@@ -756,7 +767,9 @@ pub fn materialize_routed(
                     ));
                 }
                 let store = crate::store::WorldStore::new();
-                store.load_nquads(input).map_err(MaterializeError::Parse)?;
+                store
+                    .load_nquads(input)
+                    .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
                 let max_steps = match (max_rule_firings, max_answers) {
                     (Some(a), Some(b)) => Some(a.min(b)),
                     (Some(a), None) => Some(a),
@@ -807,7 +820,9 @@ pub fn materialize_routed(
                 None
             } else {
                 let store = crate::store::WorldStore::new();
-                store.load_nquads(input).map_err(MaterializeError::Parse)?;
+                store
+                    .load_nquads(input)
+                    .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
                 let eval_rules = crate::rule_ir::parse_eval_rules(rules)
                     .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
                 // The forward step/derivation budget: a rule firing IS a committed

@@ -951,7 +951,9 @@ fn resolve_query(
     let err = |msg: String| run_fail(format!("case {case_id}: query failed: {msg}"));
 
     let store = WorldStore::new();
-    store.load_nquads(world_nquads).map_err(err)?;
+    store
+        .load_nquads(world_nquads)
+        .map_err(|e| err(e.message().to_owned()))?;
 
     // Auto-detect the single world (the conformance queries target one world).
     let worlds = store.worlds();
@@ -971,7 +973,7 @@ fn resolve_query(
     if gmeow_logic::profile_gate::is_probabilistic_profile(profile_str) {
         let answer =
             gmeow_logic::probabilistic::evaluate(&store, &world, &program, profile_str, None)
-                .map_err(err)?;
+                .map_err(|e| err(e.message().to_owned()))?;
         let bindings: Vec<serde_json::Value> = answer
             .bindings
             .iter()
@@ -1018,7 +1020,7 @@ fn resolve_query(
             depth,
             None,
         )
-        .map_err(err)?;
+        .map_err(|e| err(e.message().to_owned()))?;
         let status = cf.status_str().to_string();
         let preservation = cf.result.preservation.clone();
         // The counterfactual constructor runs its own bounded search, not the native
@@ -1030,7 +1032,8 @@ fn resolve_query(
             gmeow_logic::query_ir::CompletionFrontier::empty(),
         )
     } else {
-        let foreign = WorldStoreForeign::from_world(&store, &world, profile_str).map_err(err)?;
+        let foreign = WorldStoreForeign::from_world(&store, &world, profile_str)
+            .map_err(|e| err(e.message().to_owned()))?;
         let answer = gmeow_logic::dispatch::dispatch_query(
             &foreign,
             &store,
@@ -1039,7 +1042,7 @@ fn resolve_query(
             profile_str,
             &budget,
         )
-        .map_err(err)?;
+        .map_err(|e| err(e.message().to_owned()))?;
         let preservation = answer.preservation.clone();
         (
             answer.bindings,

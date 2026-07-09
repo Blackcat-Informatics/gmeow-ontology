@@ -157,7 +157,7 @@ fn self_attestation_direct_self_premise_rejected() {
         .add_derivation(fk(R_F), app)
         .expect_err("a fact listing itself as a premise must be rejected");
     assert!(
-        err.contains("self-attestation"),
+        err.message().contains("self-attestation"),
         "error must name the guard: {err}"
     );
     assert!(g.is_empty(), "no justification recorded on rejection");
@@ -206,7 +206,7 @@ fn two_independent_derivations_preserve_the_or_of_and() {
         .add_derivation(fk(R_F), self_app)
         .expect_err("a fact listing itself as a premise must be rejected");
     assert!(
-        err.contains("self-attestation"),
+        err.message().contains("self-attestation"),
         "the error must name the self-attestation guard: {err}"
     );
 }
@@ -502,5 +502,5 @@ fn from_foundation_quads_rejects_self_referential_derivation() {
     q.source_quad_ids = vec![self_reifier];
     let err =
         super::from_foundation_quads(&[q]).expect_err("self-referential quad must be rejected");
-    assert!(err.contains("self-attestation"), "got: {err}");
+    assert!(err.message().contains("self-attestation"), "got: {err}");
 }

@@ -54,7 +54,9 @@ pub fn lower_and_evaluate(
 ) -> Result<(Vec<FoundationQuad>, String, usize), OntoumlError> {
     let (nq, count) = lower_model(model, world_iri)?;
     let store = WorldStore::new();
-    store.load_nquads(&nq).map_err(OntoumlError::Syntax)?;
+    store
+        .load_nquads(&nq)
+        .map_err(|e| OntoumlError::Syntax(e.message().to_owned()))?;
     let quads =
         evaluate(&store, policy).map_err(|e| OntoumlError::Syntax(e.message().to_owned()))?;
     Ok((quads, nq, count))

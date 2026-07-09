@@ -68,13 +68,13 @@ fn query_stem(name: &str) -> &str {
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if a query fails to parse/evaluate, if a query is not a
+/// Returns `Err` if a query fails to parse/evaluate, if a query is not a
 /// SELECT, or if a derived edge cannot be built as a quad.
 pub fn verify_with_reasoning_result(
     edb: &RdfDataset,
     result: &ReasoningResult,
     queries: &[(String, String)],
-) -> Result<Report, String> {
+) -> gmeow_errors::Result<Report> {
     // 1. Flat asserted graph (default graph; literals + owl:members lists kept).
     //    A no-GRAPH verify query then matches it, exactly like ROBOT's single
     //    merged reasoned graph. The native flatten re-materializes the RDF 1.2
@@ -169,9 +169,11 @@ pub fn verify_with_reasoning_result(
 
     // Freeze the reasoned graph once; every verify query + the obligation checks
     // evaluate against this shared frozen dataset via the native engine.
-    let reasoned = store
-        .freeze()
-        .map_err(|e| format!("freeze reasoned graph failed: {e}"))?;
+    let reasoned = store.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Verify {
+            detail: format!("freeze reasoned graph failed: {e}"),
+        })
+    })?;
     let engine = NativeSparqlEngine::new();
 
     // 3. Evaluate each verify query; any solution row is a violation.
@@ -187,16 +189,23 @@ pub fn verify_with_reasoning_result(
                     substitutions: &[],
                 },
             )
-            .map_err(|e| format!("verify query {name} evaluation error: {e}"))?;
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Verify {
+                    detail: format!("verify query {name} evaluation error: {e}"),
+                })
+            })?;
 
         let (variables, result_rows) = match result {
             SparqlResult::Solutions {
                 variables, rows, ..
             } => (variables, rows),
             SparqlResult::Boolean(_) | SparqlResult::Graph(_) => {
-                return Err(format!(
-                    "verify query {name} must be a SPARQL SELECT (got ASK or CONSTRUCT/DESCRIBE)"
-                ));
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Verify {
+                    detail: format!(
+                        "verify query {name} must be a SPARQL SELECT (got ASK or \
+                         CONSTRUCT/DESCRIBE)"
+                    ),
+                }));
             }
         };
 
@@ -284,8 +293,8 @@ pub fn verify_with_reasoning_result(
 ///
 /// Call [`verify_with_reasoning_result`] when the caller has already run
 /// [`reason_all`] and needs to avoid a second Nemo chase.
-pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, String> {
-    let result = reason_all(edb).map_err(|e| e.message().to_owned())?;
+pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> gmeow_errors::Result<Report> {
+    let result = reason_all(edb)?;
     verify_with_reasoning_result(edb, &result, queries)
 }
 
@@ -362,7 +371,10 @@ mod tests {
         );
         let dataset = store();
         let err = verify(dataset.as_ref(), std::slice::from_ref(&q)).unwrap_err();
-        assert!(err.contains("SELECT"), "ASK must be rejected: {err}");
+        assert!(
+            err.message().contains("SELECT"),
+            "ASK must be rejected: {err}"
+        );
     }
 
     /// A DL coverage gap makes `verify` hard-fail with an `error` Finding.

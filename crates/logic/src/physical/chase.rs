@@ -363,7 +363,7 @@ fn chase_world_into(
                     for t in &arg_terms {
                         arg_values.push(eval_term_value(t, &sol)?);
                     }
-                    let witness_iri = mint_nary_reifier(&rel, &arg_values).map_err(physical_err)?;
+                    let witness_iri = mint_nary_reifier(&rel, &arg_values)?;
                     extended.bindings.push((
                         reifier_var,
                         term_display(&purrdf::TermValue::iri(witness_iri)),

@@ -91,18 +91,17 @@ pub fn execute_transaction(
     world: &str,
     root: &str,
     mode: CommitMode,
-) -> Result<TxReceipt, String> {
+) -> gmeow_errors::Result<TxReceipt> {
     let store = WorldStore::new();
     store.load_nquads(nquads)?;
     let facts = WorldFacts::read(&store, world);
 
-    let (start, sits) = root_start(&facts, root).map_err(|e| e.message().to_owned())?;
-    let program = parse_program(&facts, root, 0).map_err(|e| e.message().to_owned())?;
+    let (start, sits) = root_start(&facts, root)?;
+    let program = parse_program(&facts, root, 0)?;
     // Ground the outcome on the root's `logic:transitionFromState` quad — a REAL input quad.
     // A primitive root has no `rdf:type` to reify, and the explain engine refuses a dangling
     // reifier; mirror `trajectory::emit_trajectory_audits`, which grounds on the same anchor.
-    let source = triple_reifier(root, &logic(TRANSITION_FROM_STATE), &start)
-        .map_err(|e| e.message().to_owned())?;
+    let source = triple_reifier(root, &logic(TRANSITION_FROM_STATE), &start)?;
 
     let exec_mode = match mode {
         CommitMode::Committed => ExecutionMode::Committed,
@@ -110,8 +109,7 @@ pub fn execute_transaction(
     };
     let quads = emit_program_outcome(
         &facts, world, root, &program, exec_mode, &start, &sits, &source,
-    )
-    .map_err(|e| e.message().to_owned())?;
+    )?;
 
     let succeeds_pred = logic(TRANSACTION_SUCCEEDS);
     let succeeded_true = xsd_bool(true);
@@ -129,7 +127,11 @@ pub fn execute_transaction(
         },
         (CommitMode::Hypothetical, true) => TxReceipt::HypotheticalSuccess {
             witness: witness(&quads).ok_or_else(|| {
-                "hypothetical success emitted no logic:executedHypotheticallyAs witness".to_owned()
+                gmeow_errors::Diag::of_kind(crate::error::Transaction {
+                    detail: "hypothetical success emitted no logic:executedHypotheticallyAs \
+                             witness"
+                        .to_owned(),
+                })
             })?,
         },
         (CommitMode::Hypothetical, false) => TxReceipt::HypotheticalFailure {

@@ -39,6 +39,12 @@ use crate::seam::{BudgetStatus, WorldStoreForeign};
 use crate::store::WorldStore;
 use crate::versioning::{CounterfactualKeyInputs, counterfactual_world_key};
 
+/// Wrap a counterfactual-construction condition message as a typed diagnostic on
+/// the shared substrate, preserving the authored text verbatim.
+fn counterfactual_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Counterfactual { detail })
+}
+
 /// Default hard cap on nested-counterfactual depth when a query does not declare
 /// its own `depth_budget(N)`.
 pub const DEFAULT_DEPTH_BUDGET: u64 = 4;
@@ -267,7 +273,7 @@ pub fn construct_and_resolve(
     budget: &Budget,
     depth: u64,
     declared_row_schema: Option<crate::result_shape::ResultShape>,
-) -> Result<CfAnswer, String> {
+) -> gmeow_errors::Result<CfAnswer> {
     let mut cache = CfCache::new();
     construct_and_resolve_cached(
         store,
@@ -304,11 +310,12 @@ pub fn construct_and_resolve_cached(
     depth: u64,
     cache: &mut CfCache,
     declared_row_schema: Option<crate::result_shape::ResultShape>,
-) -> Result<CfAnswer, String> {
-    let cf = program
-        .counterfactual
-        .as_ref()
-        .ok_or_else(|| "construct_and_resolve called on a non-counterfactual program".to_owned())?;
+) -> gmeow_errors::Result<CfAnswer> {
+    let cf = program.counterfactual.as_ref().ok_or_else(|| {
+        counterfactual_err(
+            "construct_and_resolve called on a non-counterfactual program".to_owned(),
+        )
+    })?;
 
     let cf_world = strip_brackets(&cf.cf_world);
     let base_world = strip_brackets(&cf.base_world);
@@ -444,12 +451,12 @@ pub fn construct_and_resolve_cached(
 fn apply_schema(
     mut answer: CfAnswer,
     schema: Option<crate::result_shape::ResultShape>,
-) -> Result<CfAnswer, String> {
+) -> gmeow_errors::Result<CfAnswer> {
     if let Some(s) = schema {
         answer.result = answer
             .result
             .with_declared_row_schema(s)
-            .map_err(|v| v.to_string())?;
+            .map_err(|v| counterfactual_err(v.to_string()))?;
     }
     Ok(answer)
 }
@@ -472,13 +479,24 @@ struct SlotChoice {
 /// it. A slot with several distinct values is internally over-determined; the
 /// **most-entrenched** value(s) are kept — one when comparable, the incomparable
 /// maxima when not (a genuine tie surfaced to the caller as a multi-value slot).
-fn slot_choices(antecedent: &[QAtom], entrench: &Entrenchment) -> Result<Vec<SlotChoice>, String> {
+fn slot_choices(
+    antecedent: &[QAtom],
+    entrench: &Entrenchment,
+) -> gmeow_errors::Result<Vec<SlotChoice>> {
     let mut slots: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
     for atom in antecedent {
-        let s = const_iri(&atom.args[0])
-            .ok_or_else(|| format!("antecedent subject must be a ground IRI: {:?}", atom.pred))?;
-        let o = const_iri(&atom.args[1])
-            .ok_or_else(|| format!("antecedent object must be a ground IRI: {:?}", atom.pred))?;
+        let s = const_iri(&atom.args[0]).ok_or_else(|| {
+            counterfactual_err(format!(
+                "antecedent subject must be a ground IRI: {:?}",
+                atom.pred
+            ))
+        })?;
+        let o = const_iri(&atom.args[1]).ok_or_else(|| {
+            counterfactual_err(format!(
+                "antecedent object must be a ground IRI: {:?}",
+                atom.pred
+            ))
+        })?;
         slots.entry((s, atom.pred.clone())).or_default().insert(o);
     }
 
@@ -490,7 +508,11 @@ fn slot_choices(antecedent: &[QAtom], entrench: &Entrenchment) -> Result<Vec<Slo
             _ => match entrench.most_entrenched(&vals) {
                 LeastEntrenched::Unique(v) => vec![v],
                 LeastEntrenched::Tie(t) => t,
-                LeastEntrenched::Empty => return Err("internal: empty antecedent slot".to_owned()),
+                LeastEntrenched::Empty => {
+                    return Err(counterfactual_err(
+                        "internal: empty antecedent slot".to_owned(),
+                    ));
+                }
             },
         };
         choices.push(SlotChoice {
@@ -534,7 +556,7 @@ fn resolve_in_world(
     profile: &str,
     budget: &Budget,
     world_iri: &str,
-) -> Result<(BTreeSet<Binding>, CfStatus), String> {
+) -> gmeow_errors::Result<(BTreeSet<Binding>, CfStatus)> {
     let cf_store = WorldStore::new();
     // Borrow the (subject, predicate) slots from `admitted` (which outlives this
     // function) rather than cloning every key — and the per-fact lookup below
@@ -783,7 +805,7 @@ mod tests {
         let err =
             construct_and_resolve(&store, &plain_program(), HORN, &Budget::default(), 4, None)
                 .unwrap_err();
-        assert!(err.contains("non-counterfactual"), "got: {err}");
+        assert!(err.message().contains("non-counterfactual"), "got: {err}");
     }
 
     // ── AC-1: a counterfactual query yields the expected consequent ───────────
@@ -1211,7 +1233,7 @@ mod tests {
         let err = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4, Some(schema))
             .unwrap_err();
         assert!(
-            err.contains("result-shape violation"),
+            err.message().contains("result-shape violation"),
             "ContractViolation must be propagated as Err: {err}"
         );
     }

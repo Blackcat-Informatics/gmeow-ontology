@@ -96,6 +96,12 @@ use crate::nemo_engine::NemoParsedRules;
 use nemo::rule_model::components::atom::Atom;
 use nemo::rule_model::programs::ProgramRead;
 
+/// Wrap a certification condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn certify_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Certify { detail })
+}
+
 // ── Constants (verbatim from logic_certify.py) ───────────────────────────────
 
 /// The governing design document, cited in messages so failures self-document.
@@ -295,11 +301,11 @@ fn atom_so_positions(atom: &Atom) -> Vec<PosTerm> {
 /// # Errors
 ///
 /// Returns the Nemo parse-error string when the `.rls` text does not parse.
-fn parse_rule_views(rules: &str) -> Result<Vec<RuleView>, String> {
+fn parse_rule_views(rules: &str) -> gmeow_errors::Result<Vec<RuleView>> {
     // Parse WITHOUT Nemo's semantic validation: the validator rejects the very
     // rule shapes the certifier must flag (unsafe head vars, negation-only
     // bodies). Syntax errors still fail loudly. See `parse_unvalidated`.
-    let parsed = NemoParsedRules::parse_unvalidated(rules).map_err(|e| e.message().to_owned())?;
+    let parsed = NemoParsedRules::parse_unvalidated(rules)?;
     let program = parsed.into_program();
 
     let mut views: Vec<RuleView> = Vec::new();
@@ -624,7 +630,7 @@ fn is_stratified(graph: &DepGraph) -> bool {
 // stratifiability (Nemo chase vs native well-founded / stable-model evaluators) is
 // Phase B; this helper is landed now so the routing change is additive.
 #[allow(dead_code)]
-pub(crate) fn is_stratifiable(rules: &str) -> Result<bool, String> {
+pub(crate) fn is_stratifiable(rules: &str) -> gmeow_errors::Result<bool> {
     let views = parse_rule_views(rules)?;
     let graph = DepGraph::from_views(&views);
     Ok(is_stratified(&graph))
@@ -872,7 +878,7 @@ fn decidability_class(profile: &str) -> &'static str {
 ///
 /// Returns `Err` naming the offending value when `evolution` denotes none of the
 /// three `logic:EvolutionMode` values.
-pub fn evolution_decidability_class(evolution: &str) -> Result<&'static str, String> {
+pub fn evolution_decidability_class(evolution: &str) -> gmeow_errors::Result<&'static str> {
     match crate::profile_gate::evolution_mode_local(evolution) {
         Some("StaticEvolution") => Ok("static/single-state"),
         Some("StateTransitionEvolution") => Ok("state-transition/PTIME-per-step"),
@@ -882,16 +888,16 @@ pub fn evolution_decidability_class(evolution: &str) -> Result<&'static str, Str
         ),
         // `evolution_mode_local` only ever returns those three (or None); the
         // catch-all keeps the match total without inventing a fourth class.
-        Some(other) => Err(format!(
+        Some(other) => Err(certify_err(format!(
             "unrecognized logic:EvolutionMode {other:?} — expected one of \
              StaticEvolution / StateTransitionEvolution / TransactionPathEvolution \
              ({DOC} {SEC_DECIDABILITY})"
-        )),
-        None => Err(format!(
+        ))),
+        None => Err(certify_err(format!(
             "unrecognized logic:EvolutionMode {evolution:?} — expected one of \
              StaticEvolution / StateTransitionEvolution / TransactionPathEvolution \
              ({DOC} {SEC_DECIDABILITY})"
-        )),
+        ))),
     }
 }
 
@@ -925,7 +931,7 @@ pub fn certify(
     rules: &str,
     profile: &str,
     evolution: Option<&str>,
-) -> Result<CertificationVerdict, String> {
+) -> gmeow_errors::Result<CertificationVerdict> {
     // Collapse the Option → StaticEvolution at the certify boundary, then map to
     // the required evolution_class string (unknown non-empty value → hard fail).
     let evolution_class = evolution_decidability_class(evolution.unwrap_or("StaticEvolution"))?;
@@ -992,17 +998,17 @@ pub fn certify(
 pub fn certify_program(
     program: &gmeow_logic_compile::ir::LogicProgram,
     profile: &str,
-) -> Result<CertificationVerdict, String> {
+) -> gmeow_errors::Result<CertificationVerdict> {
     // Only the `.rls` rule text is consumed here; the nemo projection's drops are interned
     // into a throwaway loss store.
     let nemo = gmeow_logic_compile::projections::text::project_nemo(
         program,
         &mut gmeow_logic_compile::loss_ledger::LossLedger::new(),
     )
-    .map_err(|e| e.to_string())?;
+    .map_err(|e| certify_err(e.to_string()))?;
     let rules_section =
         gmeow_logic_compile::projections::text::extract_nemo_rules_section(&nemo.content)
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| certify_err(e.to_string()))?;
     let evolution = program_evolution(program)?;
     certify(&rules_section, profile, evolution.as_deref())
 }
@@ -1021,7 +1027,7 @@ pub fn certify_program(
 /// Returns `Err` when two contracts select different `logic:EvolutionMode` values.
 pub fn program_evolution(
     program: &gmeow_logic_compile::ir::LogicProgram,
-) -> Result<Option<String>, String> {
+) -> gmeow_errors::Result<Option<String>> {
     let mut chosen: Option<&str> = None;
     for contract in &program.contracts {
         if let Some(ev) = contract.evolution.as_deref() {
@@ -1029,11 +1035,11 @@ pub fn program_evolution(
                 None => chosen = Some(ev),
                 Some(prev) if prev == ev => {}
                 Some(prev) => {
-                    return Err(format!(
+                    return Err(certify_err(format!(
                         "conflicting logic:EvolutionMode across reasoning contracts: \
                          {prev:?} vs {ev:?} — the governing evolution facet is ambiguous \
                          ({DOC} {SEC_DECIDABILITY})"
-                    ));
+                    )));
                 }
             }
         }
@@ -1401,6 +1407,9 @@ mod tests {
     fn certify_unknown_evolution_hard_fails() {
         let err = certify(&stratified_rls(), "StratifiedNAFProfile", Some("Bogus"))
             .expect_err("unknown evolution must hard-fail");
-        assert!(err.contains("unrecognized logic:EvolutionMode"), "{err}");
+        assert!(
+            err.message().contains("unrecognized logic:EvolutionMode"),
+            "{err}"
+        );
     }
 }

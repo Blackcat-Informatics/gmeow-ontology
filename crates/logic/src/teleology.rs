@@ -236,7 +236,7 @@ pub(crate) fn n3(iri: &str) -> String {
 pub(crate) fn triple_reifier(s: &str, p: &str, o: &str) -> gmeow_errors::Result<String> {
     let sn = TermValue::iri(s);
     let on = TermValue::iri(o);
-    mint_reifier(&sn, p, &on).map_err(teleology_err)
+    mint_reifier(&sn, p, &on)
 }
 
 // ── EDB: insertion-ordered, content-sorted fact view of one world ───────────────

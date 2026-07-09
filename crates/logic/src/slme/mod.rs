@@ -34,6 +34,12 @@ use purrdf::{
     serialize_dataset,
 };
 
+/// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn reason_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Reason { detail })
+}
+
 // ── Vocabulary IRIs ─────────────────────────────────────────────────────────────
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -171,7 +177,7 @@ pub fn extract_module(
     method: &str,
     namespace: &str,
     source_iri: &str,
-) -> Result<ModuleResult, String> {
+) -> gmeow_errors::Result<ModuleResult> {
     let (method, unknown_method) = Method::parse(method);
     let mut findings: Vec<Finding> = Vec::new();
     if let Some(name) = unknown_method {
@@ -189,7 +195,7 @@ pub fn extract_module(
     // reads the IR's owned quads directly (no Store hop), so the parse path can never
     // drift from the rest of the stack's codec.
     let dataset = parse_dataset(ontology_ttl.as_bytes(), "text/turtle", None)
-        .map_err(|e| format!("Failed to parse Turtle source: {e}"))?;
+        .map_err(|e| reason_err(format!("Failed to parse Turtle source: {e}")))?;
 
     // Snapshot all source triples (graph-flat; the SLME notion drops the graph axis).
     let mut all_triples: Vec<RdfTriple> = Vec::new();
@@ -786,21 +792,22 @@ fn rdf_term_to_value(t: &RdfTerm) -> purrdf::TermValue {
 /// Turtle — so no manual pre-sort is needed (and the codec never drifts from the rest
 /// of the stack). All module quads live in the default graph, so
 /// `SerializeGraph::DefaultGraph` is the faithful selector.
-fn serialize_turtle(quads: Vec<RdfQuad>) -> Result<String, String> {
+fn serialize_turtle(quads: Vec<RdfQuad>) -> gmeow_errors::Result<String> {
     let mut builder = RdfDatasetBuilder::new();
     for quad in &quads {
         builder.push_owned_quad(quad);
     }
     let dataset = builder
         .freeze()
-        .map_err(|e| format!("Turtle fold error: {e}"))?;
+        .map_err(|e| reason_err(format!("Turtle fold error: {e}")))?;
     let bytes = serialize_dataset(
         dataset.as_ref(),
         "text/turtle",
         SerializeGraph::DefaultGraph,
     )
-    .map_err(|e| format!("Turtle serialize error: {e}"))?;
-    let body = String::from_utf8(bytes).map_err(|e| format!("Turtle serialize utf8 error: {e}"))?;
+    .map_err(|e| reason_err(format!("Turtle serialize error: {e}")))?;
+    let body = String::from_utf8(bytes)
+        .map_err(|e| reason_err(format!("Turtle serialize utf8 error: {e}")))?;
     Ok(format!("{}\n", body.trim_end_matches('\n')))
 }
 

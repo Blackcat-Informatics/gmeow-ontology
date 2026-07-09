@@ -2108,7 +2108,7 @@ pub fn quad_reifier(quad: &FoundationQuad) -> gmeow_errors::Result<String> {
 fn triple_reifier(s: &str, p: &str, o: &str) -> gmeow_errors::Result<String> {
     let sn = TermValue::iri(s);
     let on = TermValue::iri(o);
-    mint_reifier(&sn, p, &on).map_err(foundation_err)
+    mint_reifier(&sn, p, &on)
 }
 
 /// Strip a leading `<` and trailing `>` from an N3 IRI form, returning the inner
@@ -3009,7 +3009,7 @@ pub fn derivation_graph(
     policy: AntiRigidityPolicy,
 ) -> gmeow_errors::Result<crate::derivation_graph::DerivationGraph> {
     let quads = evaluate(store, policy)?;
-    crate::derivation_graph::from_foundation_quads(&quads).map_err(foundation_err)
+    crate::derivation_graph::from_foundation_quads(&quads)
 }
 
 /// The semantic-profile IRI stamped on every emitted quad (exposed for the PyO3 seam).
