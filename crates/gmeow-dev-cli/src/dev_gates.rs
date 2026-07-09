@@ -127,6 +127,21 @@ pub fn crate_check() -> i32 {
     for f in gmeow_validate::repo_static::to_diagnostics_report(&static_rep).findings {
         report.add_finding(f);
     }
+    // A3 docs-loss-lattice gate: the four documentation formats' capability partitions
+    // (from the single gmeow_docs::formats source) must be total + monotone. Lives in the
+    // pipeline crate because it reads gmeow_docs (a validate→docs edge would cycle the
+    // crate DAG); wired here onto the crate-check gate surface.
+    let lattice = gmeow_pipeline::docs_loss_lattice::check_docs_loss_lattice();
+    for message in &lattice.errors {
+        report.add_finding(
+            Finding::new(
+                Severity::Error,
+                "docs-loss-lattice-violation",
+                message.clone(),
+            )
+            .with_tool("docs-loss-lattice"),
+        );
+    }
     let text = render::to_text(&report.normalized());
     if !text.trim().is_empty() {
         eprintln!("{text}");

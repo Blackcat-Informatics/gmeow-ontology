@@ -465,7 +465,27 @@ meta:Principle17 a meta:Principle ;
     meta:enforcedBy meta:gate-logic-conformance, meta:gate-logic-round-trip,
         meta:gate-foundation-conformance, meta:gate-logic-gufo-superset,
         meta:shapes-result-generated, meta:gate-projection-compute-purity,
-        meta:gate-projection-shape-purity .
+        meta:gate-projection-shape-purity, meta:gate-docs-loss-lattice .
+
+# The documentation-format loss lattice: the four docs output surfaces (live site,
+# mdbook, print PDF, term snippets) are lossy projections of one shared documentation
+# body-set, each carrying a preservation judgment DERIVED over a composition DAG and a
+# machine-checkable capability-loss lattice — never a hand-asserted flat grade. The
+# single honest per-format capability source (gmeow_docs::formats) is read by BOTH the
+# print PDF's loss appendix and the carrier grounding graph, so the two match by
+# construction; the A3 gate proves that table total (every capability representable XOR
+# dropped) and monotone (site ⊆ mdbook ⊆ pdf ⊆ snippets in dropped capabilities). Lives
+# in the pipeline crate because it reads gmeow_docs (a validate→docs edge would cycle the
+# acyclic crate DAG); wired onto the crate-check gate surface.
+meta:gate-docs-loss-lattice a meta:Gate ;
+    rdfs:label "documentation formats are preservation-judged lossy projections over a total, monotone capability lattice"@x-gmeow-english ;
+    meta:artifact "crates/pipeline/src/docs_loss_lattice.rs",
+        "crates/pipeline/src/stages/docs_format_rendering.rs",
+        "crates/docs/src/formats.rs",
+        "slices/grounding/lang/module.ttl" ;
+    meta:symbol "check_docs_loss_lattice", "build_docs_format_corpus", "renderingBook" ;
+    meta:cliCommand "crate-check" ;
+    meta:makeTarget "crate-check" .
 
 # The executable lane-purity seal: the two-lane split (primary lane
 # Java/Docker-free; classic-cross-check the SOLE oracle lane) is enforced by an
