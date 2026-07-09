@@ -400,6 +400,212 @@ impl Bundle {
     }
 }
 
+/// The blob-DAG integrity law over a folded bundle, computed by
+/// [`Bundle::integrity_report`]: a content-addressed store's defining
+/// invariant is that (a) every reference resolves to a stored blob, (b) every
+/// stored blob is reachable from a reference or declares its own producer
+/// `rep`, and (c) a stored key IS the hash of its decoded value.
+///
+/// Reused as production code by `gmeow verify`'s "blob integrity" table row
+/// (not test-local), so a regression in the bundle writer, a mis-keyed digest,
+/// or truncated blob is caught for every consumer of the shipped bundle, not
+/// just the gate.
+#[derive(Debug, Default, Clone)]
+pub struct BundleIntegrityReport {
+    /// Every referenced content-addressed digest, keyed by the referencing
+    /// predicate IRI (every property whose local name ends in `Blob`, e.g.
+    /// `gmeow:guideBlob`, `lang:surfaceBlob`).
+    pub referenced: BTreeMap<String, Vec<String>>,
+    /// The subset of each predicate's referenced digests with no matching key
+    /// in the bundle's blob store. Empty (every value empty) = pass.
+    pub dangling: BTreeMap<String, Vec<String>>,
+    /// Stored blob digests reachable from no reference predicate above and
+    /// carrying no producer-declared `rep` label (an undeclared, unreferenced
+    /// blob nobody can find). Empty = pass.
+    pub orphan_blobs: Vec<String>,
+    /// `(stored digest, recomputed blake3 digest)` pairs where decoding the
+    /// blob and rehashing it does not reproduce the stored key. Empty = pass.
+    pub hash_mismatches: Vec<(String, String)>,
+}
+
+impl BundleIntegrityReport {
+    /// True iff there is no dangling reference, no orphan blob, and no
+    /// hash-integrity mismatch across the whole bundle.
+    pub fn is_clean(&self) -> bool {
+        self.dangling.values().all(Vec::is_empty)
+            && self.orphan_blobs.is_empty()
+            && self.hash_mismatches.is_empty()
+    }
+
+    /// A short, readable summary naming the first few offenders per category —
+    /// sized for both a test-failure message and a `gmeow verify` table cell.
+    pub fn summary(&self) -> String {
+        if self.is_clean() {
+            return "clean: no dangling refs, no orphan blobs, no hash mismatches".to_owned();
+        }
+        let preview = |items: &[String]| -> String {
+            items.iter().take(3).cloned().collect::<Vec<_>>().join(", ")
+        };
+        let mut lines = Vec::new();
+        for (pred, digests) in &self.dangling {
+            if digests.is_empty() {
+                continue;
+            }
+            lines.push(format!(
+                "dangling {pred}: {} ref(s), e.g. {}",
+                digests.len(),
+                preview(digests)
+            ));
+        }
+        if !self.orphan_blobs.is_empty() {
+            lines.push(format!(
+                "orphan blobs: {} unreferenced, e.g. {}",
+                self.orphan_blobs.len(),
+                preview(&self.orphan_blobs)
+            ));
+        }
+        if !self.hash_mismatches.is_empty() {
+            let sample: Vec<String> = self
+                .hash_mismatches
+                .iter()
+                .take(3)
+                .map(|(digest, recomputed)| format!("{digest} != {recomputed}"))
+                .collect();
+            lines.push(format!(
+                "hash mismatches: {} blob(s), e.g. {}",
+                self.hash_mismatches.len(),
+                sample.join(", ")
+            ));
+        }
+        lines.join("\n")
+    }
+}
+
+impl std::fmt::Display for BundleIntegrityReport {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.summary())
+    }
+}
+
+impl Bundle {
+    /// Compute the [`BundleIntegrityReport`] over this bundle's graph: the
+    /// content-addressed blob-reference predicates (`gmeow:guideBlob`,
+    /// `lang:surfaceBlob`, and any other predicate following the same
+    /// naming/documentation convention), their dangling refs, the orphan
+    /// blobs, and the hash-integrity mismatches.
+    ///
+    /// Modeled on the attestation-digest walk in
+    /// [`crate::stages::release::verify_release_bundle`] — same idiom, applied
+    /// to the whole blob DAG rather than just the attested subset.
+    ///
+    /// Reference predicates are found by the ontology's own naming
+    /// convention — every property whose local name ends in `Blob`
+    /// (`gmeow:guideBlob`, `lang:surfaceBlob`) is documented (`skos:definition`
+    /// in `slices/core/kernel/module.ttl` / `slices/grounding/lang/module.ttl`)
+    /// as "held in the bundle's content-addressed blob channel", i.e. an actual
+    /// dereference contract against `graph().blobs`. This is deliberately
+    /// narrower than "any predicate whose object literal is `blake3:`-shaped":
+    /// the ontology also carries generic content-hash/fingerprint predicates
+    /// (`gmeow:contentDigest`, domain-free identity-by-content;
+    /// `gmeow:definitionDigest`, a term's citation permalink; SPDX
+    /// `checksumValue`) that legitimately use the same `blake3:`/`sha256:`
+    /// literal shape without ever promising a matching bundle blob — for
+    /// `gmeow:contentDigest` specifically, that dereference contract holds only
+    /// inside a fully folded release-attestation graph, which is
+    /// [`crate::stages::release::verify_release_bundle`]'s own, separate
+    /// concern. Scanning those generically here would flag thousands of
+    /// legitimate fingerprints as "dangling", which is not what this law means.
+    pub fn integrity_report(&self) -> Result<BundleIntegrityReport, gmeow_errors::Diag> {
+        let graph = self.view.graph();
+
+        // Referenced digests per predicate: every property whose local name
+        // ends in `Blob` — the ontology's documented content-addressed
+        // blob-reference convention (see the doc comment above).
+        let mut referenced: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        for (_s, p, o, _g) in &graph.quads {
+            let Some(pred) = graph.terms.get(*p).and_then(|t| t.value.as_deref()) else {
+                continue;
+            };
+            if !pred.ends_with("Blob") {
+                continue;
+            }
+            let Some(text) = graph.terms.get(*o).and_then(|t| t.value.as_deref()) else {
+                continue;
+            };
+            referenced
+                .entry(pred.to_owned())
+                .or_default()
+                .push(text.to_owned());
+        }
+        for digests in referenced.values_mut() {
+            digests.sort();
+            digests.dedup();
+        }
+
+        // Dangling refs: referenced digests with no matching stored blob key.
+        let stored: std::collections::BTreeSet<&str> =
+            graph.blobs.iter().map(|(d, _)| d.as_str()).collect();
+        let mut dangling: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        for (pred, digests) in &referenced {
+            let missing: Vec<String> = digests
+                .iter()
+                .filter(|d| !stored.contains(d.as_str()))
+                .cloned()
+                .collect();
+            dangling.insert(pred.clone(), missing);
+        }
+
+        // Orphan blobs: stored digests reachable from no `*Blob` reference
+        // predicate above AND carrying no producer-declared `rep` label at all.
+        // A `blob_meta` "pub" map's `rep` field is the producer's own
+        // declaration of why the blob exists (§12) — every archive/report/
+        // export the pipeline folds sets one (see the `REP_*` catalogs spread
+        // across `crate::stages::carrier` / `crate::stages::compile_logic` and
+        // this module's own subset), so "carries a rep" is the complete,
+        // forward-compatible test for "intentionally shipped", not a
+        // hand-maintained enumeration of the reps this module happens to
+        // expose a typed accessor for.
+        let all_referenced: std::collections::BTreeSet<&str> =
+            referenced.values().flatten().map(String::as_str).collect();
+        let mut orphan_blobs: Vec<String> = Vec::new();
+        for (digest, _entry) in &graph.blobs {
+            if all_referenced.contains(digest.as_str()) {
+                continue;
+            }
+            let has_declared_rep = graph
+                .blob_meta
+                .iter()
+                .any(|(d, meta)| d == digest && blob_meta_rep(meta).is_some());
+            if !has_declared_rep {
+                orphan_blobs.push(digest.clone());
+            }
+        }
+        orphan_blobs.sort();
+
+        // Hash-integrity: the stored key must equal blake3(decoded bytes) — the
+        // content-addressed store's actual defining law.
+        let mut hash_mismatches: Vec<(String, String)> = Vec::new();
+        for (digest, entry) in &graph.blobs {
+            let decoded = entry.decoded_vec().map_err(|e| {
+                gmeow_errors::Diag::of_kind(BundleDecode {
+                    message: format!("blob {digest}: {e}"),
+                })
+            })?;
+            let recomputed = format!("blake3:{}", blake3::hash(&decoded).to_hex());
+            if &recomputed != digest {
+                hash_mismatches.push((digest.clone(), recomputed));
+            }
+        }
+
+        Ok(BundleIntegrityReport {
+            referenced,
+            dangling,
+            orphan_blobs,
+            hash_mismatches,
+        })
+    }
+}
+
 /// Extract the `rep` text from a blob's folded `pub` metadata map (CBOR). Mirrors
 /// the release-fold recovery: a blob frame's `pub` map carries `mt` + `rep`.
 fn blob_meta_rep(meta: &ciborium::value::Value) -> Option<String> {
@@ -696,5 +902,61 @@ mod tests {
         assert!(!is_slice_mapping("dsl/mappings/equivalences/x.ttl"));
         assert!(!is_slice_mapping("slices/core/inhabitation/shapes.ttl"));
         assert!(!is_slice_mapping("slices/a/b/mappings/x.rq"));
+    }
+
+    /// Regression pin for the scoping decision in [`Bundle::integrity_report`]:
+    /// `gmeow:contentDigest` and `gmeow:definitionDigest` are domain-free
+    /// content-hash/fingerprint predicates over the committed bundle (thousands
+    /// of `gmeow:definitionDigest` triples alone), and legitimately carry
+    /// `blake3:`-shaped literals with NO promise of a matching bundle blob —
+    /// only properties whose local name ends in `Blob` are a dereference
+    /// contract. Scanning by literal shape instead of by name previously
+    /// flagged this committed bundle's real, correct data as thousands of
+    /// false "dangling references".
+    #[test]
+    fn integrity_report_does_not_flag_fingerprint_predicates_as_references() {
+        let snapshot = committed_snapshot();
+        let bundle = Bundle::from_snapshot(&snapshot).expect("fold committed gmeow.gts");
+        let report = bundle.integrity_report().expect("integrity report");
+        assert!(
+            !report
+                .referenced
+                .contains_key(&format!("{GMEOW_NS}contentDigest")),
+            "gmeow:contentDigest is a content-hash identity predicate, not a blob-store \
+             reference — it must not appear in the referenced-digest map"
+        );
+        assert!(
+            !report
+                .referenced
+                .contains_key(&format!("{GMEOW_NS}definitionDigest")),
+            "gmeow:definitionDigest is a term-definition fingerprint, not a blob-store \
+             reference — it must not appear in the referenced-digest map"
+        );
+    }
+
+    /// Regression pin for the orphan-detection scoping: a stored blob that
+    /// carries a producer-declared `rep` label (e.g. the SHACL findings/SARIF
+    /// reports, the compiled shape surfaces) is a legitimate, intentionally
+    /// shipped blob even when this module exposes no dedicated typed accessor
+    /// for that particular rep, and even when no graph predicate references
+    /// its digest by name. Only a blob with NEITHER a reference NOR a
+    /// declared rep is a genuine orphan.
+    #[test]
+    fn integrity_report_does_not_flag_rep_labeled_blobs_as_orphans() {
+        let snapshot = committed_snapshot();
+        let bundle = Bundle::from_snapshot(&snapshot).expect("fold committed gmeow.gts");
+        let report = bundle.integrity_report().expect("integrity report");
+        let graph = bundle.view.graph();
+        for orphan in &report.orphan_blobs {
+            let has_rep = graph
+                .blob_meta
+                .iter()
+                .any(|(d, meta)| d == orphan && blob_meta_rep(meta).is_some());
+            assert!(
+                !has_rep,
+                "blob {orphan} carries a producer-declared rep label and must not be \
+                 flagged as an orphan"
+            );
+        }
     }
 }
