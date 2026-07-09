@@ -283,20 +283,44 @@ fn atom_bound(rel: &RelationStore, subj: Option<&str>, obj: Option<&str>) -> Opt
 
 /// Extend each partial solution by index-selecting `atom`'s matching rows under `scan`.
 ///
-/// This is the index-selected analogue of `rule_ir::extend_solutions`: instead of
-/// scanning the whole predicate bucket and post-filtering on the bound positions,
-/// it computes a [`Bound`] from each partial solution and calls
-/// [`RelationStore::select`], which returns ONLY the matching rows in insertion
-/// order.  Each returned `(subject, object)` tuple is wrapped as a [`Fact`] and
-/// handed to [`match_atom`] exactly as `extend_solutions` does, so the produced
-/// solution sequence (and `source_facts` order) is identical to the full-scan
-/// engine.  The semi-naive [`Scan`] filter tests each selected row's dense [`RowId`]
-/// against the round `delta` bitset — one word test, no hashing.
+/// This is the ONE-TIME [`Scan`]-mode dispatch (issue 1418, item 4): once per operator
+/// (per atom-scan invocation, NOT per row) it lifts the semi-naive scan mode to the
+/// `const SCAN: u8` compile-time parameter of [`extend_solutions_kernel`] via this
+/// single enum `match`, so the per-row delta filter is resolved at monomorphization
+/// instead of re-branched per tuple.  Dispatch is a plain enum `match` into the
+/// concrete monomorphized kernel — never a trait object.
 fn extend_solutions_indexed(
     atom: &EvalAtom,
     rel: &RelationStore,
     delta: &DenseBitset,
     scan: Scan,
+    solutions: &[Solution],
+) -> Vec<Solution> {
+    match scan {
+        Scan::Delta => extend_solutions_kernel::<SCAN_DELTA>(atom, rel, delta, solutions),
+        Scan::Full => extend_solutions_kernel::<SCAN_FULL>(atom, rel, delta, solutions),
+        Scan::OldOnly => extend_solutions_kernel::<SCAN_OLD_ONLY>(atom, rel, delta, solutions),
+    }
+}
+
+/// The monomorphized index-selected join kernel for a fixed compile-time scan mode.
+///
+/// The index-selected analogue of `rule_ir::extend_solutions`: instead of scanning the
+/// whole predicate bucket and post-filtering on the bound positions, it computes a
+/// [`Bound`] from each partial solution and calls [`RelationStore::select`], which
+/// returns ONLY the matching rows in insertion order.  Each returned `(subject, object)`
+/// tuple is wrapped as a [`Fact`] and handed to [`match_atom`] exactly as
+/// `extend_solutions` does, so the produced solution sequence (and `source_facts` order)
+/// is identical to the full-scan engine.
+///
+/// `SCAN` is a compile-time constant ([`SCAN_DELTA`] / [`SCAN_FULL`] / [`SCAN_OLD_ONLY`]),
+/// so the per-row semi-naive delta filter ([`keep_row`]) monomorphizes to a single
+/// constant / one-word bitset probe with NO runtime branch on the scan mode — the
+/// `match scan { … }` that formerly sat INSIDE this per-tuple loop is gone (greenfield).
+fn extend_solutions_kernel<const SCAN: u8>(
+    atom: &EvalAtom,
+    rel: &RelationStore,
+    delta: &DenseBitset,
     solutions: &[Solution],
 ) -> Vec<Solution> {
     let pred = atom.predicate.as_str();
@@ -314,16 +338,10 @@ fn extend_solutions_indexed(
         for (s_id, o_id, row_id) in rel.select(pred, bound) {
             // Semi-naive position decomposition on the selected row's dense RowId — the
             // same delta×full split `extend_solutions` applies, but membership is one
-            // `u64`-word test on the delta bitset (issue 1418, item 5), with NO three-
-            // `String` `Fact::key()` allocation and NO hashing per selected row.
-            let keep = match scan {
-                Scan::Full => true,
-                Scan::Delta | Scan::OldOnly => {
-                    let in_delta = delta.contains(row_id);
-                    matches!(scan, Scan::Delta) == in_delta
-                }
-            };
-            if !keep {
+            // `u64`-word test on the delta bitset (issue 1418, item 5).  `SCAN` is a
+            // monomorphization constant, so `keep_row` is branch-free on the scan mode,
+            // with NO three-`String` `Fact::key()` allocation and NO hashing per row.
+            if !keep_row::<SCAN>(delta, row_id) {
                 continue;
             }
             // Resolve the id row to its `TermValue` surfaces ONLY now — at the single
@@ -342,10 +360,39 @@ fn extend_solutions_indexed(
     next
 }
 
+/// The compile-time scan-mode codes for [`extend_solutions_kernel`]'s `const SCAN`
+/// parameter — the const-generic translation of [`Scan`]'s three variants (Rust const
+/// generics range over primitive `u8`, not enum variants directly).
+const SCAN_DELTA: u8 = 0;
+const SCAN_FULL: u8 = 1;
+const SCAN_OLD_ONLY: u8 = 2;
+
+/// The monomorphized per-row semi-naive keep test for a fixed scan mode.
+///
+/// `SCAN` is a compile-time constant, so this `match` folds at monomorphization to a
+/// single arm — `true` (Full), `delta.contains(row_id)` (Delta), or its negation
+/// (OldOnly) — with the other arms (and the `unreachable!`) dead-code eliminated.  The
+/// result is byte-identical to the former runtime `match scan { … }`, but the branch is
+/// resolved at compile time, once per operator, not per tuple.
+#[inline(always)]
+fn keep_row<const SCAN: u8>(delta: &DenseBitset, row_id: RowId) -> bool {
+    match SCAN {
+        SCAN_FULL => true,
+        SCAN_DELTA => delta.contains(row_id),
+        SCAN_OLD_ONLY => !delta.contains(row_id),
+        // `extend_solutions_indexed` instantiates only the three `Scan` codes above;
+        // no other `SCAN` value is constructible, so this arm is statically unreachable.
+        _ => unreachable!("SCAN is one of SCAN_DELTA / SCAN_FULL / SCAN_OLD_ONLY"),
+    }
+}
+
 /// The semi-naive position-decomposition scan mode for one positive body atom.
 ///
 /// Identical in meaning to `rule_ir::Scan` (which is private), reproduced here so the
-/// index-selected join applies the same delta×full decomposition.
+/// index-selected join applies the same delta×full decomposition.  It is the fixed
+/// per-(round, atom-position) shape [`join_body_indexed`] decides once, then hands to
+/// [`extend_solutions_indexed`] which lifts it to the `const SCAN` monomorphization
+/// parameter.
 #[derive(Clone, Copy)]
 enum Scan {
     /// Bind to rows whose key is in `delta` (the "new at p" position).
