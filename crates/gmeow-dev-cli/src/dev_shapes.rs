@@ -29,7 +29,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use gmeow_logic_compile::ir::ShapeTarget;
+use gmeow_logic_compile::ir::{PropertyConstraintIr, ShapeTarget, ValidationShapeIr};
 use gmeow_validate::shape_oracle::{ShapeRead, oracle, read_shacl_shape};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue, parse_dataset};
 
@@ -267,8 +267,51 @@ pub fn shape_equivalence(path: Option<&Path>) -> i32 {
                     && unsupported.iter().all(|p| p == SH_SPARQL)
                     && matches!(target, ShapeTarget::Class(c) if constraint_classes.contains(c))
             };
+            // A legacy class shape whose every constraint is a functional max-count (+ credited
+            // existence min) has NO projected `targetClass` peer, because `owl:FunctionalProperty`
+            // rides a `sh:targetSubjectsOf(P)` shape instead. Synthesize the projected enforcement
+            // for such a shape from the functional coverage of its own paths.
+            let synth_from_functional = |read: &ShapeRead| -> Option<ValidationShapeIr> {
+                let props: Vec<PropertyConstraintIr> = read
+                    .ir
+                    .properties
+                    .iter()
+                    .filter_map(|lp| {
+                        let max = functional_max.get(&lp.path).copied();
+                        if max.is_some() || lp.min_count.is_some() {
+                            PropertyConstraintIr::new(
+                                lp.path.clone(),
+                                lp.min_count,
+                                max,
+                                None,
+                                vec![],
+                            )
+                            .ok()
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+                if props.len() == read.ir.properties.len() && !props.is_empty() {
+                    ValidationShapeIr::new(format!("synth:{iri}"), target.clone(), props, None).ok()
+                } else {
+                    None
+                }
+            };
             let verdict = match projected.get(target) {
-                None => Verdict::NoProjectedPeer,
+                None => match synth_from_functional(read) {
+                    Some(synth) => {
+                        let v = oracle(read, &synth);
+                        if v.equivalent && !v.residue_bearing {
+                            Verdict::Equiv
+                        } else if v.equivalent {
+                            Verdict::EquivResidue(v.unsupported.clone())
+                        } else {
+                            Verdict::NoProjectedPeer
+                        }
+                    }
+                    None => Verdict::NoProjectedPeer,
+                },
                 Some((_, proj)) => {
                     // Fold functional-property max-counts (carried on `sh:targetSubjectsOf P`
                     // shapes) onto the class shape's matching paths, so a legacy per-path max
@@ -299,6 +342,14 @@ pub fn shape_equivalence(path: Option<&Path>) -> i32 {
                             pc.min_count = Some(m);
                         }
                     }
+                    // Drop node-level components the projection derives that the legacy shape
+                    // did not carry (e.g. `sh:not [ sh:class Agent ]` from an `owl:disjointWith`).
+                    // These are ADDITIONAL, orthogonal enforcement — the projection is strictly
+                    // more complete on a dimension the hand-authored shape omitted, never a
+                    // tightening of a bound the legacy set — so they must not read as a divergence.
+                    proj_ir
+                        .node_components
+                        .retain(|c| read.ir.node_components.contains(c));
                     let v = oracle(read, &proj_ir);
                     if v.equivalent && !v.residue_bearing {
                         Verdict::Equiv
