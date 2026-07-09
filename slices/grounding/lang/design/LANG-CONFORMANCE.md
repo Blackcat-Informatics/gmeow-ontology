@@ -98,7 +98,7 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 
 The hard rules of the GMN dialect charter ([`LANG-GMN.md`](LANG-GMN.md)). SHACL-tier rows are
 enforced by the `lang:Gmn*Shape` gates in `shapes.ttl` (each naming its class through
-`lang:enforcesFailureClass`) and cite their `tests/counter-examples/` fixture; Rust-validator rows
+`gmeow:enforcesFailureClass`) and cite their `tests/counter-examples/` fixture; Rust-validator rows
 are the GMN parser/writer's table-driven tier and cite the charter normative-example block their
 machine fixtures are seeded from.
 

@@ -379,6 +379,11 @@ class AxisThresholdEnum(str, Enum):
     thrDocumentationGrounded = "thrDocumentationGrounded"
     thrDocumentationLinked = "thrDocumentationLinked"
     thrDocumentationMaximal = "thrDocumentationMaximal"
+    thrFlagshipDepthExemplified = "thrFlagshipDepthExemplified"
+    thrFlagshipDepthGrounded = "thrFlagshipDepthGrounded"
+    thrFlagshipDepthLinked = "thrFlagshipDepthLinked"
+    thrFlagshipDepthMaximal = "thrFlagshipDepthMaximal"
+    thrFlagshipDepthRegistered = "thrFlagshipDepthRegistered"
     thrGroundingExemplified = "thrGroundingExemplified"
     thrGroundingGrounded = "thrGroundingGrounded"
     thrGroundingLinked = "thrGroundingLinked"
@@ -2288,6 +2293,7 @@ class PipelineStageEnum(str, Enum):
     stage_gts_compose = "stage-gts-compose"
     stage_gts_sink = "stage-gts-sink"
     stage_mappings = "stage-mappings"
+    stage_math_producers = "stage-math-producers"
     stage_reason = "stage-reason"
     stage_snapshot = "stage-snapshot"
     stage_source_load = "stage-source-load"
@@ -2612,6 +2618,7 @@ class PronounSetEnum(str, Enum):
 
 class QualityAxisEnum(str, Enum):
     axisDocumentation = "axisDocumentation"
+    axisFlagshipCounterExampleDepth = "axisFlagshipCounterExampleDepth"
     axisMaximalGrounding = "axisMaximalGrounding"
     axisMaximalInformation = "axisMaximalInformation"
     axisMaximalLinkage = "axisMaximalLinkage"
@@ -2625,6 +2632,7 @@ class QualityAxisEnum(str, Enum):
 
 class QualityDimensionEnum(str, Enum):
     qualityDimensionCompleteness = "qualityDimensionCompleteness"
+    qualityDimensionCounterExampleDepth = "qualityDimensionCounterExampleDepth"
     qualityDimensionDocumentation = "qualityDimensionDocumentation"
     qualityDimensionGrounding = "qualityDimensionGrounding"
     qualityDimensionInferentialDensity = "qualityDimensionInferentialDensity"

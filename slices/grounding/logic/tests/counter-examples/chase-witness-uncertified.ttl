@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the chaseTerminationCertificate flagship: a
+# logic:ChaseAcceptanceWitness carrying NO logic:carriesTerminationCertificate — a
+# chase reporting a closure with no weak-acyclicity certificate may never terminate.
+# Trips logic:ChaseAcceptanceWitnessShape (sh:minCount 1) →
+# shacl.MinCountConstraintComponent (logic:UncertifiedChase), and no other finding.
+# Bound by ex:ecChaseUncertified.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/logic/> .
+
+ex:chaseWitness a logic:ChaseAcceptanceWitness .

@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The proofAsProcess flagship's worked example: the exact output of the native producer
+# math::producers::proof_ingest (dogfooded — the worked example IS what the producer emits;
+# the math flagship discharge harness asserts this fixture is graph-isomorphic to the
+# producer's Turtle, so neither can silently drift). A proof trace whose QED
+# math:FormalVerificationResult is grounded BY a separate gmeow:Observation that names it
+# through gmeow:observationResult and carries a gmeow:vantage (the checker's standpoint) — the
+# result is the object, the observation holds the verdict. Conforms to
+# math:FormalVerificationResultShape (math:UngroundedVerificationResult does not fire).
+# Bound by ex:ecVerificationResultProduced.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix mprod:     <https://blackcatinformatics.ca/gmeow/examples/math/producers/> .
+
+# Flagship 3 — a proof trace whose QED verdict is a grounded observation.
+mprod:qedResult a math:FormalVerificationResult .
+
+mprod:pythagorasProof a math:Proof ;
+    math:provesStatement mprod:pythagorasStatement .
+mprod:pythagorasStatement a math:MathematicalObject .
+
+# The QED result is grounded BY a separate observation carrying the
+# checker's vantage — result ≠ held claim.
+mprod:qedObservation a gmeow:Observation ;
+    gmeow:observedFeature mprod:pythagorasProof ;
+    gmeow:observationResult mprod:qedResult ;
+    gmeow:vantage mprod:proofChecker .
+mprod:proofChecker a gmeow:Standpoint .

@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example for the counterfactualStratumC flagship: a
+# logic:CounterfactualAcceptanceWitness naming the outcome the entrenchment ranking
+# deterministically selected when resolving the counterfactual antecedent. Satisfies
+# logic:CounterfactualAcceptanceWitnessShape (sh:minCount 1 on
+# logic:selectedByEntrenchment), so it validates with no findings. Bound by
+# ex:ecCounterfactualComplete and queried by ex:cqLogicCounterfactual.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/logic/> .
+
+ex:counterfactualWitness a logic:CounterfactualAcceptanceWitness ;
+    logic:selectedByEntrenchment ex:outcomeAlertFired .

@@ -55,6 +55,14 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # the worked-<emotion> intensity + per-dimension unit-clamp values are COMPUTED from the
 # committed affect slice files here — never a hand-typed constant (affect honesty).
 gmeow-affect = { path = "../affect" }
+# The five native math flagship producers (gmeow_math::producers): the
+# `math_producers` stage RUNS them and folds each producer's deterministic RDF
+# graph into gmeow.gts (Design A — the producer output ships in the bundle, the
+# shippable deliverable, not merely a test-side equality gate). Leaf compute crate
+# (no dependency back on gmeow-pipeline), so no cycle. A normal dependency also
+# satisfies the dev-only math flagship discharge harness, so it is NOT duplicated
+# in [dev-dependencies].
+gmeow-math = { path = "../math" }
 # The structured snapshot's verify-attestation graph reads the native verify
 # lane's `Report` findings (severity / `verify.<stem>` codes) to build the
 # `gmeow:graph/verify` attestation (#861 P6, two-pass like build_snapshot_bytes).
@@ -166,7 +174,7 @@ ahash = "0.8"
 # Issue #699 / PR #978: validate sample @annotation fragments against the
 # SHACL-derived JSON Schema from #700.
 jsonschema = { version = "0.46", default-features = false }
-# The lang:FlagshipScenario execution-discharge harness (tests/lang_flagship_discharge.rs)
+# The gmeow:FlagshipScenario execution-discharge harness (tests/lang_flagship_discharge.rs)
 # drives BOTH validation channels over each flagship's counter-example and worked example,
 # and RUNS each named native producer. Integration-test crates do NOT inherit the normal
 # dependency table, so the crates the harness touches are redeclared here.
@@ -181,3 +189,14 @@ gmeow-logic-compile = { path = "../logic-compile" }
 #   * purrdf — the frozen RdfDataset carrier (DatasetView), the parsed SHACL Shapes, the
 #     ValidationReport terms, and the SliceCatalog the FS2/FS4/FS5 producers ingest.
 purrdf = "0.4"
+#   * gmeow-math — the five native math producers (gmeow_math::producers) the math
+#     execution-discharge harness (tests/math_flagship_discharge.rs) RUNS and pins. It is
+#     now a NORMAL [dependencies] entry (the `math_producers` stage folds the producer
+#     output into gmeow.gts), which the integration-test crates also see — so it is NOT
+#     redeclared here (no duplicate entry).
+#   * gmeow-logic — the five native logic producers the logic execution-discharge harness
+#     (tests/logic_flagship_discharge.rs) RUNS and pins: reason::reason_all,
+#     correspondence_exec::leg_pair_verdict, counterfactual::construct_and_resolve,
+#     conjecture::conjecture_test, and materialize::materialize_routed (with its surfaced
+#     ChaseAdmission termination certificate + explain::assert_faithful trace).
+gmeow-logic = { path = "../logic" }
