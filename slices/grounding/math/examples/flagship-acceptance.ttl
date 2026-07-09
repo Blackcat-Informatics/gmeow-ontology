@@ -35,7 +35,7 @@
 exa:e8Symmetry a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: the symmetry groups of E8"@x-gmeow-english ;
     skos:definition "Lie group and Lie algebra, root system (240 roots in rank 8), Weyl group modelled as the automorphism group preserving the root system, its numbers pinned by an exact-match competency gate."@x-gmeow-english ;
-    gmeow:demonstratedByExample "tests/conformance-fixtures/e8-weyl-canonical.ttl" ;
+    gmeow:demonstratedByExample "tests/conformance-fixtures/e8-weyl-produced.ttl" ;
     gmeow:demonstratedByCompetency cq:cqE8RootSystem ;
     gmeow:demonstratedByProducer "math::producers::e8_weyl_order" ;
     gmeow:guardedByCounterExample "tests/counter-examples/e8-wrong-weyl-order.ttl" ;
@@ -45,7 +45,7 @@ exa:e8Symmetry a gmeow:FlagshipScenario ;
 exa:homomorphicEncryption a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: how homomorphic encryption works"@x-gmeow-english ;
     skos:definition "A ring homomorphism whose homomorphic law (Dec(E(a) ⊗ E(b)) = a ⊕ b) is a logic: formula grounded in math: ring/lattice structure, framed by its noise model and security assumption."@x-gmeow-english ;
-    gmeow:demonstratedByExample "tests/conformance-fixtures/he-scheme-complete.ttl" ;
+    gmeow:demonstratedByExample "tests/conformance-fixtures/he-scheme-produced.ttl" ;
     gmeow:demonstratedByCompetency cq:cqHeSchemeFrame ;
     gmeow:demonstratedByProducer "math::producers::additive_he_demo" ;
     gmeow:guardedByCounterExample "tests/counter-examples/he-scheme-missing-noise-model.ttl" ;
@@ -55,7 +55,7 @@ exa:homomorphicEncryption a gmeow:FlagshipScenario ;
 exa:proofAsProcess a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: complex proofs as process"@x-gmeow-english ;
     skos:definition "A proof effort as a goal-decomposed process whose QED is a verification observation grounded in a vantage — the proof-dependency DAG lifted through the bridge, with an ungrounded verdict rejected."@x-gmeow-english ;
-    gmeow:demonstratedByExample "tests/conformance-fixtures/verification-result-grounded.ttl" ;
+    gmeow:demonstratedByExample "tests/conformance-fixtures/verification-result-produced.ttl" ;
     gmeow:demonstratedByCompetency cq:cqBridgeProof ;
     gmeow:demonstratedByProducer "math::producers::proof_ingest" ;
     gmeow:guardedByCounterExample "tests/counter-examples/verification-result-ungrounded.ttl" ;
@@ -72,11 +72,18 @@ exa:rBridge a gmeow:FlagshipScenario ;
     gmeow:enforcesFailureClass math:UnliftableIngest .
 
 # --- Flagship 5 — an AI describing its own structure ----------------------- #
+# The native producer math::producers::exact_pca_residual emits an AI's residual PCA — a
+# math:PCAAnalysis over the exact-rational math:GramMatrix G = [[4,1,0],[1,3,1],[0,1,2]] it
+# decomposes (dominant axis + LDLᵀ pivots pinned exactly). The worked example IS that producer
+# output (dogfooded, like the rBridge flagship): the manifest's gmeow:demonstratedByExample
+# names the object the producer emits, and the discharge harness asserts the two are
+# graph-isomorphic so neither can silently drift. The gate is the PCA-completeness rule
+# (math:IncompletePCAAnalysis), guarded by a PCA missing its covariance operator.
 exa:aiSelfStructure a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: an AI describing its own structure"@x-gmeow-english ;
-    skos:definition "A tensor computational graph as a math: object, weights as matrices in a parameter space, embeddings as latent-space geometry with residual meaning, and the AI's reflection carried at the logic: metalevel — the dogfooding apex."@x-gmeow-english ;
-    gmeow:demonstratedByExample "tests/conformance-fixtures/tensor-graph-framed.ttl" ;
-    gmeow:demonstratedByCompetency cq:cqTensorGraph ;
+    skos:definition "An AI's own latent-space geometry AS a math: object: an exact-rational residual PCA (math:PCAAnalysis) over the math:GramMatrix it decomposes, its dominant axis and LDLᵀ positive-definiteness certificate pinned exactly, with the AI's reflection on that structure carried at the logic: metalevel — the dogfooding apex."@x-gmeow-english ;
+    gmeow:demonstratedByExample "tests/conformance-fixtures/pca-residual-lifted.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqPCAAnalysis ;
     gmeow:demonstratedByProducer "math::producers::exact_pca_residual" ;
-    gmeow:guardedByCounterExample "tests/counter-examples/tensor-graph-no-node.ttl" ;
-    gmeow:enforcesFailureClass math:MalformedTensorComputationGraph .
+    gmeow:guardedByCounterExample "tests/counter-examples/pca-analysis-missing-covariance.ttl" ;
+    gmeow:enforcesFailureClass math:IncompletePCAAnalysis .

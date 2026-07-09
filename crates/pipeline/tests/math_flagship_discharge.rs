@@ -79,6 +79,8 @@ fn run_producer(flagship: &Flagship, _ctx: &FlagshipCtx<'_>) {
                 out.turtle.contains("696729600"),
                 "the folded E8 corpus must carry the computed Weyl order"
             );
+            // No-drift tie: the worked-example fixture the manifest names IS the producer output.
+            assert_producer_matches_example(flagship, &out.turtle);
         }
         // homomorphicEncryption: the additive-homomorphic law Dec(Enc(a)⊕Enc(b)) = a+b holds.
         "math::producers::additive_he_demo" => {
@@ -93,6 +95,8 @@ fn run_producer(flagship: &Flagship, _ctx: &FlagshipCtx<'_>) {
                 out.a + out.b,
                 "the pinned operands stay within the modulus, so the plaintext sum is exact"
             );
+            // No-drift tie: the worked-example fixture the manifest names IS the producer output.
+            assert_producer_matches_example(flagship, &out.turtle);
         }
         // proofAsProcess: the emitted verification result carries its grounding edge.
         "math::producers::proof_ingest" => {
@@ -101,6 +105,8 @@ fn run_producer(flagship: &Flagship, _ctx: &FlagshipCtx<'_>) {
                 out.grounded,
                 "proof-ingest must emit a verification result grounded in its process"
             );
+            // No-drift tie: the worked-example fixture the manifest names IS the producer output.
+            assert_producer_matches_example(flagship, &out.turtle);
         }
         // rBridge: the ingest run lifts exactly the pinned observation count (non-empty lift).
         "math::producers::r_bridge_lift" => {
@@ -109,6 +115,8 @@ fn run_producer(flagship: &Flagship, _ctx: &FlagshipCtx<'_>) {
                 out.lifted_observations, 5,
                 "the R-bridge lift must produce the pinned number of ingest observations"
             );
+            // No-drift tie: the worked-example fixture the manifest names IS the producer output.
+            assert_producer_matches_example(flagship, &out.turtle);
         }
         // aiSelfStructure: the exact-rational PCA's dominant axis and LDLᵀ pivots are exact.
         "math::producers::exact_pca_residual" => {
@@ -122,7 +130,58 @@ fn run_producer(flagship: &Flagship, _ctx: &FlagshipCtx<'_>) {
                 expected_pivots(),
                 "the exact LDLᵀ pivots must be [4, 11/4, 18/11] over the pinned Gram matrix"
             );
+            // No-drift tie: the worked-example fixture the manifest names IS the producer output
+            // (the F5 fix — the example now types as math:PCAAnalysis/math:GramMatrix, matching
+            // exact_pca_residual, not the mismatched math:TensorComputationGraph it once named).
+            assert_producer_matches_example(flagship, &out.turtle);
         }
         other => panic!("unknown math flagship producer identifier: {other}"),
     }
+}
+
+/// Assert the worked-example fixture the manifest binds to `flagship`
+/// (`gmeow:demonstratedByExample`) is GRAPH-ISOMORPHIC to the producer's emitted Turtle — the
+/// dogfooding no-drift tie: the example the manifest names IS the object the producer emits, so
+/// a producer change that is not mirrored in the committed fixture (or vice versa) HARD-fails
+/// here. Isomorphism (not byte-equality) because the fixture carries an SPDX header and a
+/// `mprod:` prefix label where the producer emits `p:` — the SAME expanded IRIs and literals.
+fn assert_producer_matches_example(flagship: &Flagship, producer_turtle: &str) {
+    let fixture = std::fs::read(&flagship.example).unwrap_or_else(|e| {
+        panic!(
+            "read worked-example fixture {}: {e}",
+            flagship.example.display()
+        )
+    });
+    let fixture_quads = canonical_quad_set(&fixture).unwrap_or_else(|| {
+        panic!(
+            "parse worked-example fixture {}",
+            flagship.example.display()
+        )
+    });
+    let producer_quads = canonical_quad_set(producer_turtle.as_bytes())
+        .expect("parse producer Turtle for the isomorphism tie");
+    assert_eq!(
+        producer_quads,
+        fixture_quads,
+        "producer {} drifted from its worked example {}: the manifest's \
+         gmeow:demonstratedByExample MUST be graph-isomorphic to the producer output",
+        flagship.producer,
+        flagship.example.display()
+    );
+}
+
+/// The RDFC-1.0-canonical quad set of a Turtle document, as sorted N-Quads lines. `None` on a
+/// parse error. Mirrors the pipeline's own isomorphism check: flatten to the plain-quad stream,
+/// re-freeze, canonicalize.
+fn canonical_quad_set(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>> {
+    let ir = purrdf::parse_dataset(bytes, "text/turtle", None).ok()?;
+    let quads = purrdf::flat_rdf_quads_from_dataset(&ir);
+    let flat = purrdf::flat_dataset_from_quads(&quads).ok()?;
+    Some(
+        purrdf::canonicalize(&flat)
+            .nquads
+            .lines()
+            .map(str::to_owned)
+            .collect(),
+    )
 }
