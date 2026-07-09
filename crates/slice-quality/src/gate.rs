@@ -217,7 +217,7 @@ pub fn evaluate_ratchet(
 /// # Errors
 /// Returns a message if the manifest cannot be read or names a tier the rubric
 /// does not define (a hard error — an unknown tier is not silently ignored).
-pub fn declared_tier(slice_dir: &Path, rubric: &Rubric) -> Result<Option<Tier>, String> {
+pub fn declared_tier(slice_dir: &Path, rubric: &Rubric) -> gmeow_errors::Result<Option<Tier>> {
     let manifest = slice_dir.join("manifest.ttl");
     let ds = crate::dataset_from_paths(&[&manifest])?;
     let Some(slice_iri) = instances_of(&ds, &graph::g("Slice")).into_iter().next() else {
@@ -229,11 +229,11 @@ pub fn declared_tier(slice_dir: &Path, rubric: &Rubric) -> Result<Option<Tier>, 
     };
     match one_iri(&ds, sid, pred) {
         None => Ok(None),
-        Some(tier_iri) => rubric
-            .tier(&tier_iri)
-            .cloned()
-            .map(Some)
-            .ok_or_else(|| format!("{slice_iri} declares unknown quality tier {tier_iri}")),
+        Some(tier_iri) => rubric.tier(&tier_iri).cloned().map(Some).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Gate {
+                detail: format!("{slice_iri} declares unknown quality tier {tier_iri}"),
+            })
+        }),
     }
 }
 

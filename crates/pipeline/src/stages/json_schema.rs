@@ -95,9 +95,13 @@ fn report_losses(losses: &[purrdf::shapes::json_schema::LossRecord]) {
         } else {
             String::new()
         };
-        eprintln!(
-            "[json-schema] lossy drop: {construct} on {} shape(s) — {reason}; examples: {examples}{suffix}",
-            shapes.len()
+        tracing::info!(
+            target: "json_schema_loss",
+            construct = construct,
+            shapes = shapes.len(),
+            reason = reason,
+            examples = %format!("{examples}{suffix}"),
+            "lossy drop projecting SHACL to JSON Schema",
         );
     }
 }

@@ -143,7 +143,7 @@ pub fn lower_sssom(
     version: &str,
     release_date: &str,
     lookup: &CorrespondenceLookup,
-) -> Result<SssomLowering, String> {
+) -> gmeow_errors::Result<SssomLowering> {
     let mut loss = crate::loss_ledger::LossLedger::new();
     let sources = collect_sources(view)?;
     let (rows_by_file, ledger) = build_rows_and_ledger(&sources, lookup, &mut loss)?;
@@ -203,7 +203,7 @@ fn build_rows_and_ledger(
     sources: &SssomSources,
     lookup: &CorrespondenceLookup,
     loss: &mut crate::loss_ledger::LossLedger,
-) -> Result<(RowsByFile, PreservationLedger), String> {
+) -> gmeow_errors::Result<(RowsByFile, PreservationLedger)> {
     let table = ns_to_prefix();
     let mut by_file: RowsByFile = BTreeMap::new();
     let mut ledger: PreservationLedger = Vec::new();
@@ -219,7 +219,7 @@ fn build_rows_and_ledger(
             typed.morphism_kind,
             &cell.predicate,
         )
-        .map_err(|e| e.0)?;
+        .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Sssom { detail: e.0 }))?;
 
         // SSSOM carries only subject/predicate/object + confidence + justification; the
         // correspondence's caveat/law/leg structure and world/standpoint scope are
@@ -267,16 +267,20 @@ fn build_rows_and_ledger(
                 continue;
             }
             let predicate = binding.sssom_predicate.as_deref().ok_or_else(|| {
-                format!(
-                    "projection binding {}::{} has gmeow:emitSssom true but no gmeow:sssomPredicate",
-                    cell.iri, binding.profile
-                )
+                gmeow_errors::Diag::of_kind(crate::error::Sssom {
+                    detail: format!(
+                        "projection binding {}::{} has gmeow:emitSssom true but no gmeow:sssomPredicate",
+                        cell.iri, binding.profile
+                    ),
+                })
             })?;
             let file = binding.sssom_file.as_deref().ok_or_else(|| {
-                format!(
-                    "projection binding {}::{} has gmeow:emitSssom true but no gmeow:sssomFile",
-                    cell.iri, binding.profile
-                )
+                gmeow_errors::Diag::of_kind(crate::error::Sssom {
+                    detail: format!(
+                        "projection binding {}::{} has gmeow:emitSssom true but no gmeow:sssomFile",
+                        cell.iri, binding.profile
+                    ),
+                })
             })?;
 
             let typed = lookup.binding(&cell.iri, &binding.profile)?;
@@ -287,7 +291,7 @@ fn build_rows_and_ledger(
                 typed.morphism_kind,
                 predicate,
             )
-            .map_err(|e| e.0)?;
+            .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Sssom { detail: e.0 }))?;
 
             let pairs = projection_sssom_pairs(cell, binding)?;
             for (subject, obj) in pairs {
@@ -362,7 +366,7 @@ pub(crate) fn equivalence_cells(view: &DslView) -> Vec<EquivalenceCell> {
     out
 }
 
-fn collect_sources(view: &DslView) -> Result<SssomSources, String> {
+fn collect_sources(view: &DslView) -> gmeow_errors::Result<SssomSources> {
     let mut equivalences = Vec::new();
     let mut mapping_sets = BTreeMap::new();
     extract_equivalences(view, &mut equivalences);
@@ -381,7 +385,7 @@ fn local_name(iri: &str) -> &str {
 fn projection_sssom_pairs(
     cell: &ProjectionCell,
     binding: &ProfileBinding,
-) -> Result<Vec<(String, String)>, String> {
+) -> gmeow_errors::Result<Vec<(String, String)>> {
     if !binding.value_class_map.is_empty() {
         return Ok(binding
             .value_class_map
@@ -398,7 +402,7 @@ fn projection_sssom_pairs(
 fn projection_sssom_subject(
     cell: &ProjectionCell,
     binding: &ProfileBinding,
-) -> Result<String, String> {
+) -> gmeow_errors::Result<String> {
     if let Some(source) = &cell.pattern.edoal_source {
         return Ok(source.clone());
     }
@@ -408,17 +412,19 @@ fn projection_sssom_subject(
     if source_values.len() == 1 && target_values.len() == 1 {
         return Ok(source_values[0].clone());
     }
-    Err(format!(
-        "cannot derive SSSOM subject for projection binding {}::{}; author gmeow:edoalSource \
-         or use an unambiguous fixed value rewrite",
-        cell.iri, binding.profile
-    ))
+    Err(gmeow_errors::Diag::of_kind(crate::error::Sssom {
+        detail: format!(
+            "cannot derive SSSOM subject for projection binding {}::{}; author gmeow:edoalSource \
+             or use an unambiguous fixed value rewrite",
+            cell.iri, binding.profile
+        ),
+    }))
 }
 
 fn projection_sssom_object(
     cell: &ProjectionCell,
     binding: &ProfileBinding,
-) -> Result<String, String> {
+) -> gmeow_errors::Result<String> {
     if let Some(target) = binding
         .to_predicate
         .as_ref()
@@ -433,12 +439,14 @@ fn projection_sssom_object(
     if source_values.len() == 1 && target_values.len() == 1 {
         return Ok(target_values[0].clone());
     }
-    Err(format!(
-        "cannot derive SSSOM object for projection binding {}::{}; author gmeow:toPredicate, \
-         gmeow:toClass, gmeow:edoalTarget, gmeow:valueClassMap, or use an unambiguous fixed \
-         value rewrite",
-        cell.iri, binding.profile
-    ))
+    Err(gmeow_errors::Diag::of_kind(crate::error::Sssom {
+        detail: format!(
+            "cannot derive SSSOM object for projection binding {}::{}; author gmeow:toPredicate, \
+             gmeow:toClass, gmeow:edoalTarget, gmeow:valueClassMap, or use an unambiguous fixed \
+             value rewrite",
+            cell.iri, binding.profile
+        ),
+    }))
 }
 
 fn fixed_pattern_values(pattern: &MappingPattern) -> Vec<String> {
@@ -558,7 +566,7 @@ fn render_sets(
     by_file: &BTreeMap<String, Vec<Row>>,
     version: &str,
     release_date: &str,
-) -> Result<BTreeMap<String, String>, String> {
+) -> gmeow_errors::Result<BTreeMap<String, String>> {
     let mut out: BTreeMap<String, String> = BTreeMap::new();
     for (file, rows) in by_file {
         let meta = mapping_sets.get(file);
@@ -570,11 +578,13 @@ fn render_sets(
 /// Reject a TSV cell whose value carries a raw tab/CR/LF. SSSOM is tab-separated,
 /// newline-delimited, so such a character would silently split a value across
 /// columns or rows — corrupting the table. Hard-fail rather than mangle the data.
-fn check_tsv_cell(column: &str, value: &str) -> Result<(), String> {
+fn check_tsv_cell(column: &str, value: &str) -> gmeow_errors::Result<()> {
     if value.contains(['\t', '\r', '\n']) {
-        return Err(format!(
-            "SSSOM cell `{column}` contains a tab/CR/LF that would corrupt the TSV: {value:?}"
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Sssom {
+            detail: format!(
+                "SSSOM cell `{column}` contains a tab/CR/LF that would corrupt the TSV: {value:?}"
+            ),
+        }));
     }
     Ok(())
 }
@@ -584,7 +594,7 @@ fn render_one(
     meta: Option<&MappingSet>,
     version: &str,
     release_date: &str,
-) -> Result<String, String> {
+) -> gmeow_errors::Result<String> {
     let columns: Vec<&str> = SSSOM_ORDER
         .iter()
         .copied()
@@ -864,7 +874,7 @@ gmeow:Zeta\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.8\t
         };
         let err = render_one(&[row], None, "0.1.0", "2026-06-03")
             .expect_err("a cell with a tab must be rejected");
-        assert!(err.contains("subject_label"), "{err}");
+        assert!(err.message().contains("subject_label"), "{err}");
     }
 
     #[test]
@@ -1054,7 +1064,7 @@ gmeow:mapLossyName a gmeow:ProjectionMapping ;
             Ok(_) => panic!("overclaim should be rejected"),
             Err(err) => err,
         };
-        assert!(err.contains("Overclaim"), "{err}");
-        assert!(err.contains("exactMatch"), "{err}");
+        assert!(err.message().contains("Overclaim"), "{err}");
+        assert!(err.message().contains("exactMatch"), "{err}");
     }
 }

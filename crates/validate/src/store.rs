@@ -23,6 +23,7 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use gmeow_errors::Diag;
 use purrdf::{RdfDataset, RdfDatasetBuilder, parse_dataset};
 
 use crate::model::owl;
@@ -48,10 +49,18 @@ pub fn shacl_validate_dataset(
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if the file cannot be read or the Turtle fails to parse.
-pub fn parse_file_dataset(path: &Path) -> Result<Arc<RdfDataset>, String> {
-    let bytes = std::fs::read(path).map_err(|e| e.to_string())?;
-    parse_dataset(&bytes, "text/turtle", None).map_err(|e| e.to_string())
+/// Returns `Err` if the file cannot be read or the Turtle fails to parse.
+pub fn parse_file_dataset(path: &Path) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    let bytes = std::fs::read(path).map_err(|e| {
+        Diag::of_kind(crate::error::Io {
+            detail: e.to_string(),
+        })
+    })?;
+    parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+        Diag::of_kind(crate::error::Parse {
+            detail: e.to_string(),
+        })
+    })
 }
 
 /// Build one merged frozen [`RdfDataset`] from every Turtle source in `paths`.
@@ -64,19 +73,28 @@ pub fn parse_file_dataset(path: &Path) -> Result<Arc<RdfDataset>, String> {
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if any file fails to read or parse.
-pub fn dataset_from_paths(paths: &[PathBuf]) -> Result<Arc<RdfDataset>, String> {
+/// Returns `Err` if any file fails to read or parse.
+pub fn dataset_from_paths(paths: &[PathBuf]) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let mut builder = RdfDatasetBuilder::new();
     for path in paths {
         let path_str = path.display().to_string();
-        let bytes = std::fs::read(path).map_err(|e| format!("failed to read {path_str}: {e}"))?;
-        let dataset = parse_dataset(&bytes, "text/turtle", None)
-            .map_err(|e| format!("syntax error in {path_str}: {e}"))?;
+        let bytes = std::fs::read(path).map_err(|e| {
+            Diag::of_kind(crate::error::Io {
+                detail: format!("failed to read {path_str}: {e}"),
+            })
+        })?;
+        let dataset = parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+            Diag::of_kind(crate::error::Parse {
+                detail: format!("syntax error in {path_str}: {e}"),
+            })
+        })?;
         builder.push_dataset(&dataset);
     }
-    builder
-        .freeze()
-        .map_err(|e| format!("dataset freeze failed: {e}"))
+    builder.freeze().map_err(|e| {
+        Diag::of_kind(crate::error::Serialize {
+            detail: format!("dataset freeze failed: {e}"),
+        })
+    })
 }
 
 /// Build a frozen native [`RdfDataset`] from an N-Triples document, flattening any
@@ -87,10 +105,13 @@ pub fn dataset_from_paths(paths: &[PathBuf]) -> Result<Arc<RdfDataset>, String> 
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if the N-Triples fails to parse.
-pub fn dataset_from_nt(data_nt: &str) -> Result<Arc<RdfDataset>, String> {
-    parse_dataset(data_nt.as_bytes(), "application/n-triples", None)
-        .map_err(|e| format!("N-Triples parse error: {e}"))
+/// Returns `Err` if the N-Triples fails to parse.
+pub fn dataset_from_nt(data_nt: &str) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    parse_dataset(data_nt.as_bytes(), "application/n-triples", None).map_err(|e| {
+        Diag::of_kind(crate::error::Parse {
+            detail: format!("N-Triples parse error: {e}"),
+        })
+    })
 }
 
 /// Build a frozen native [`RdfDataset`] from a GTS byte bundle, flattening every named
@@ -102,10 +123,14 @@ pub fn dataset_from_nt(data_nt: &str) -> Result<Arc<RdfDataset>, String> {
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if the GTS fold reports any diagnostics or the projected
+/// Returns `Err` if the GTS fold reports any diagnostics or the projected
 /// quads cannot be folded into the IR.
-pub fn dataset_from_gts(bytes: &[u8]) -> Result<Arc<RdfDataset>, String> {
-    purrdf::gts::flattened_dataset_from_bytes(bytes).map_err(|e| e.to_string())
+pub fn dataset_from_gts(bytes: &[u8]) -> gmeow_errors::Result<Arc<RdfDataset>> {
+    purrdf::gts::flattened_dataset_from_bytes(bytes).map_err(|e| {
+        Diag::of_kind(crate::error::Dataset {
+            detail: e.to_string(),
+        })
+    })
 }
 
 /// Render a resolved subject term the way the legacy `_ox_term_display` did:
@@ -169,10 +194,14 @@ pub fn sameas_violations(
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if the GTS fold reports any diagnostics (corruption,
+/// Returns `Err` if the GTS fold reports any diagnostics (corruption,
 /// truncation, empty input, or unfolded segments).
-pub fn read_gts_graph(bytes: &[u8]) -> Result<purrdf::gts::model::Graph, String> {
-    purrdf::gts::read_all_segments(bytes).map_err(|e| e.to_string())
+pub fn read_gts_graph(bytes: &[u8]) -> gmeow_errors::Result<purrdf::gts::model::Graph> {
+    purrdf::gts::read_all_segments(bytes).map_err(|e| {
+        Diag::of_kind(crate::error::Dataset {
+            detail: e.to_string(),
+        })
+    })
 }
 
 #[cfg(test)]
@@ -239,7 +268,8 @@ mod tests {
         std::fs::remove_file(&good).ok();
         std::fs::remove_file(&bad).ok();
         assert!(result.is_err(), "a malformed file must propagate");
-        let msg = result.err().unwrap();
+        let err = result.err().unwrap();
+        let msg = err.message();
         assert!(
             msg.contains("syntax error in") && msg.contains("gmeow_validate_parsed_err_bad.ttl"),
             "error must use 'syntax error in' format naming the bad file; got: {msg}"
@@ -421,7 +451,8 @@ mod tests {
             result.is_err(),
             "malformed bytes must be rejected by read_gts_graph"
         );
-        let msg = result.err().unwrap();
+        let err = result.err().unwrap();
+        let msg = err.message();
         assert!(
             msg.contains("magic")
                 || msg.contains("header")

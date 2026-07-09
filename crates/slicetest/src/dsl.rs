@@ -16,11 +16,13 @@ use std::collections::BTreeMap;
 use std::path::Path;
 use std::sync::Arc;
 
+use gmeow_errors::{Diag, Result};
 use gmeow_logic_compile::result_shape::{
     ColumnBinding, ColumnKind, ResultColumn, ResultShape, RowCardinality, TermKind,
 };
 use purrdf::{RdfDataset, TermValue};
 
+use crate::error::{ResultShapeParse, SparqlEval, SpecCell, SpecLoad, TypedBinding};
 use crate::native_query::{self, render_term};
 
 /// The GMEOW namespace; the test-DSL terms live directly under it.
@@ -226,11 +228,14 @@ SELECT ?ec ?file ?outcome ?code ?rationale WHERE {
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the file cannot be parsed, an introspection query
-/// fails, or a cell declares an unrecognized controlled-vocabulary value.
-pub fn load_spec(path: &Path) -> Result<SpecFile, String> {
-    let dataset = native_query::dataset_from_file(path)
-        .map_err(|e| format!("failed to load spec {}: {e}", path.display()))?;
+/// Hard-fails if the file cannot be parsed, an introspection query fails, or a cell
+/// declares an unrecognized controlled-vocabulary value.
+pub fn load_spec(path: &Path) -> Result<SpecFile> {
+    let dataset = native_query::dataset_from_file(path).map_err(|e| {
+        Diag::of_kind(SpecLoad {
+            detail: format!("failed to load spec {}: {e}", path.display()),
+        })
+    })?;
     Ok(SpecFile {
         competency: parse_competency(&dataset)?,
         structural: parse_structural(&dataset)?,
@@ -240,7 +245,7 @@ pub fn load_spec(path: &Path) -> Result<SpecFile, String> {
 
 // ── Parsers ────────────────────────────────────────────────────────────────────
 
-fn parse_competency(store: &Arc<RdfDataset>) -> Result<Vec<CompetencyQuestion>, String> {
+fn parse_competency(store: &Arc<RdfDataset>) -> Result<Vec<CompetencyQuestion>> {
     // 1. Scalars: one solution per CompetencyQuestion (all OPTIONALs single-valued).
     let mut by_iri: BTreeMap<String, CompetencyQuestion> = BTreeMap::new();
     for sol in select(store, &with_prefix(Q_COMPETENCY))? {
@@ -260,7 +265,11 @@ fn parse_competency(store: &Arc<RdfDataset>) -> Result<Vec<CompetencyQuestion>, 
                     "reasoningNone" => ReasoningProfile::None,
                     "reasoningRdfs" => ReasoningProfile::Rdfs,
                     "reasoningLogic" => ReasoningProfile::Native,
-                    other => return Err(format!("unknown cqReasoning gmeow:{other}")),
+                    other => {
+                        return Err(Diag::of_kind(SpecCell {
+                            detail: format!("unknown cqReasoning gmeow:{other}"),
+                        }));
+                    }
                 },
             },
             data_file: opt_string(&sol, "dataFile"),
@@ -279,11 +288,13 @@ fn parse_competency(store: &Arc<RdfDataset>) -> Result<Vec<CompetencyQuestion>, 
             }
             std::collections::btree_map::Entry::Occupied(existing) => {
                 if *existing.get() != candidate {
-                    return Err(format!(
-                        "competency question {} has conflicting duplicate definitions \
-                         (multiple solutions with differing scalar fields)",
-                        existing.key()
-                    ));
+                    return Err(Diag::of_kind(SpecCell {
+                        detail: format!(
+                            "competency question {} has conflicting duplicate definitions \
+                             (multiple solutions with differing scalar fields)",
+                            existing.key()
+                        ),
+                    }));
                 }
             }
         }
@@ -294,23 +305,32 @@ fn parse_competency(store: &Arc<RdfDataset>) -> Result<Vec<CompetencyQuestion>, 
     let mut rows_by_cq: BTreeMap<String, BTreeMap<String, Vec<ExpectedCell>>> = BTreeMap::new();
     for sol in select(store, &with_prefix(Q_ROWS))? {
         let cq = require_iri(&sol, "cq")?;
-        let row_key = sol
-            .get("row")
-            .map(render_term)
-            .ok_or("cqExpectRow row missing ?row binding")?;
-        let var = opt_string(&sol, "var").ok_or("ExpectedCell missing gmeow:cellVar")?;
+        let row_key = sol.get("row").map(render_term).ok_or_else(|| {
+            Diag::of_kind(SpecCell {
+                detail: "cqExpectRow row missing ?row binding".to_owned(),
+            })
+        })?;
+        let var = opt_string(&sol, "var").ok_or_else(|| {
+            Diag::of_kind(SpecCell {
+                detail: "ExpectedCell missing gmeow:cellVar".to_owned(),
+            })
+        })?;
         let value = match (sol.get("iri"), sol.get("lit")) {
             (Some(iri), None) => iri.clone(),
             (None, Some(lit)) => lit.clone(),
             (Some(_), Some(_)) => {
-                return Err(format!(
-                    "ExpectedCell ?{var} binds both cellValueIri and cellValueLiteral (exactly one allowed)"
-                ));
+                return Err(Diag::of_kind(SpecCell {
+                    detail: format!(
+                        "ExpectedCell ?{var} binds both cellValueIri and cellValueLiteral (exactly one allowed)"
+                    ),
+                }));
             }
             (None, None) => {
-                return Err(format!(
-                    "ExpectedCell ?{var} binds neither cellValueIri nor cellValueLiteral"
-                ));
+                return Err(Diag::of_kind(SpecCell {
+                    detail: format!(
+                        "ExpectedCell ?{var} binds neither cellValueIri nor cellValueLiteral"
+                    ),
+                }));
             }
         };
         rows_by_cq
@@ -325,9 +345,9 @@ fn parse_competency(store: &Arc<RdfDataset>) -> Result<Vec<CompetencyQuestion>, 
         // typo — fail loudly rather than silently dropping the rows, which could
         // leave a subset-check question passing against an empty expectation.
         let Some(question) = by_iri.get_mut(&cq) else {
-            return Err(format!(
-                "gmeow:cqExpectRow references unknown competency question {cq}"
-            ));
+            return Err(Diag::of_kind(SpecCell {
+                detail: format!("gmeow:cqExpectRow references unknown competency question {cq}"),
+            }));
         };
         question.expected_rows = rows
             .into_values()
@@ -338,21 +358,29 @@ fn parse_competency(store: &Arc<RdfDataset>) -> Result<Vec<CompetencyQuestion>, 
     Ok(by_iri.into_values().collect())
 }
 
-fn parse_structural(store: &Arc<RdfDataset>) -> Result<Vec<StructuralAssertion>, String> {
+fn parse_structural(store: &Arc<RdfDataset>) -> Result<Vec<StructuralAssertion>> {
     let mut out = Vec::new();
     for sol in select(store, &with_prefix(Q_STRUCTURAL))? {
         let iri = require_iri(&sol, "sa")?;
         let polarity = match local_name(&require_iri(&sol, "polarity")?) {
             "must" => Polarity::Must,
             "mustNot" => Polarity::MustNot,
-            other => return Err(format!("{iri}: unknown saPolarity gmeow:{other}")),
+            other => {
+                return Err(Diag::of_kind(SpecCell {
+                    detail: format!("{iri}: unknown saPolarity gmeow:{other}"),
+                }));
+            }
         };
         let scope = match sol.get("scope").and_then(term_iri) {
             None => Scope::ModuleAndExamples, // default per the DSL vocabulary
             Some(iri) => match local_name(&iri) {
                 "scopeModule" => Scope::Module,
                 "scopeModuleAndExamples" => Scope::ModuleAndExamples,
-                other => return Err(format!("unknown saScope gmeow:{other}")),
+                other => {
+                    return Err(Diag::of_kind(SpecCell {
+                        detail: format!("unknown saScope gmeow:{other}"),
+                    }));
+                }
             },
         };
         out.push(StructuralAssertion {
@@ -367,18 +395,26 @@ fn parse_structural(store: &Arc<RdfDataset>) -> Result<Vec<StructuralAssertion>,
     Ok(out)
 }
 
-fn parse_conformance(store: &Arc<RdfDataset>) -> Result<Vec<ExampleConformance>, String> {
+fn parse_conformance(store: &Arc<RdfDataset>) -> Result<Vec<ExampleConformance>> {
     let mut out = Vec::new();
     for sol in select(store, &with_prefix(Q_CONFORMANCE))? {
         let iri = require_iri(&sol, "ec")?;
         let outcome = match local_name(&require_iri(&sol, "outcome")?) {
             "conforms" => Outcome::Conforms,
             "violates" => Outcome::Violates,
-            other => return Err(format!("{iri}: unknown expectedOutcome gmeow:{other}")),
+            other => {
+                return Err(Diag::of_kind(SpecCell {
+                    detail: format!("{iri}: unknown expectedOutcome gmeow:{other}"),
+                }));
+            }
         };
         out.push(ExampleConformance {
             iri,
-            file: opt_string(&sol, "file").ok_or("ExampleConformance missing gmeow:exampleFile")?,
+            file: opt_string(&sol, "file").ok_or_else(|| {
+                Diag::of_kind(SpecCell {
+                    detail: "ExampleConformance missing gmeow:exampleFile".to_owned(),
+                })
+            })?,
             outcome,
             violation_code: opt_string(&sol, "code"),
             rationale: opt_string(&sol, "rationale"),
@@ -396,7 +432,7 @@ fn logic_local(iri: &str) -> &str {
 
 /// Resolve an optional `gmeow:cqResultShape` / `gmeow:cqInputShape` IRI binding into
 /// the typed [`ResultShape`] it points at, parsed from the same spec store.
-fn opt_shape(store: &Arc<RdfDataset>, sol: &Sol, var: &str) -> Result<Option<ResultShape>, String> {
+fn opt_shape(store: &Arc<RdfDataset>, sol: &Sol, var: &str) -> Result<Option<ResultShape>> {
     match sol.get(var).and_then(term_iri) {
         None => Ok(None),
         Some(iri) => Ok(Some(parse_result_shape(store, &iri)?)),
@@ -416,7 +452,7 @@ fn opt_shape(store: &Arc<RdfDataset>, sol: &Sol, var: &str) -> Result<Option<Res
 /// column node yields exactly one solution row — a missing required field becomes
 /// an observable NULL rather than silently dropping the row and narrowing the
 /// contract without error.
-fn parse_result_shape(store: &Arc<RdfDataset>, shape_iri: &str) -> Result<ResultShape, String> {
+fn parse_result_shape(store: &Arc<RdfDataset>, shape_iri: &str) -> Result<ResultShape> {
     // Match every declared column node unconditionally, then OPTIONAL the three
     // required fields.  This guarantees one solution row per declared column,
     // so a missing required field is an observable NULL that we can name precisely
@@ -443,30 +479,44 @@ fn parse_result_shape(store: &Arc<RdfDataset>, shape_iri: &str) -> Result<Result
         // All three fields are required; their absence is a hard-fail with a
         // precise per-field error naming both the shape and the column node.
         let var = opt_string(&sol, "var").ok_or_else(|| {
-            format!(
-                "ResultShape <{shape_iri}>: logic:declaresColumn {col} \
-                 is missing logic:columnVariable"
-            )
+            Diag::of_kind(ResultShapeParse {
+                detail: format!(
+                    "ResultShape <{shape_iri}>: logic:declaresColumn {col} \
+                     is missing logic:columnVariable"
+                ),
+            })
         })?;
         let kind_iri = sol.get("kind").and_then(term_iri).ok_or_else(|| {
-            format!(
-                "ResultShape <{shape_iri}>: logic:declaresColumn {col} \
-                 is missing logic:columnTermKind"
-            )
+            Diag::of_kind(ResultShapeParse {
+                detail: format!(
+                    "ResultShape <{shape_iri}>: logic:declaresColumn {col} \
+                     is missing logic:columnTermKind"
+                ),
+            })
         })?;
         let kind_local = logic_local(&kind_iri).to_owned();
         let term_kind = TermKind::from_local(&kind_local).ok_or_else(|| {
-            format!("ResultShape <{shape_iri}>: unknown logic:columnTermKind logic:{kind_local}")
+            Diag::of_kind(ResultShapeParse {
+                detail: format!(
+                    "ResultShape <{shape_iri}>: unknown logic:columnTermKind logic:{kind_local}"
+                ),
+            })
         })?;
         let binding_iri = sol.get("binding").and_then(term_iri).ok_or_else(|| {
-            format!(
-                "ResultShape <{shape_iri}>: logic:declaresColumn {col} \
-                 is missing logic:columnBinding"
-            )
+            Diag::of_kind(ResultShapeParse {
+                detail: format!(
+                    "ResultShape <{shape_iri}>: logic:declaresColumn {col} \
+                     is missing logic:columnBinding"
+                ),
+            })
         })?;
         let binding_local = logic_local(&binding_iri).to_owned();
         let binding = ColumnBinding::from_local(&binding_local).ok_or_else(|| {
-            format!("ResultShape <{shape_iri}>: unknown logic:columnBinding logic:{binding_local}")
+            Diag::of_kind(ResultShapeParse {
+                detail: format!(
+                    "ResultShape <{shape_iri}>: unknown logic:columnBinding logic:{binding_local}"
+                ),
+            })
         })?;
         // columnDatatype is genuinely optional — absent for IRI/blank-node columns
         // and for untyped-literal columns.
@@ -479,9 +529,11 @@ fn parse_result_shape(store: &Arc<RdfDataset>, shape_iri: &str) -> Result<Result
         columns.push(ResultColumn { var, kind, binding });
     }
     if columns.is_empty() {
-        return Err(format!(
-            "ResultShape <{shape_iri}> declares no logic:declaresColumn — an empty result shape types nothing"
-        ));
+        return Err(Diag::of_kind(ResultShapeParse {
+            detail: format!(
+                "ResultShape <{shape_iri}> declares no logic:declaresColumn — an empty result shape types nothing"
+            ),
+        }));
     }
 
     let card_q = format!(
@@ -492,23 +544,31 @@ fn parse_result_shape(store: &Arc<RdfDataset>, shape_iri: &str) -> Result<Result
          }}"
     );
     let card_sols = select(store, &card_q)?;
-    let card_sol = card_sols
-        .first()
-        .ok_or_else(|| format!("ResultShape <{shape_iri}> has no logic:shapeCardinality"))?;
+    let card_sol = card_sols.first().ok_or_else(|| {
+        Diag::of_kind(ResultShapeParse {
+            detail: format!("ResultShape <{shape_iri}> has no logic:shapeCardinality"),
+        })
+    })?;
     let card_local = logic_local(&require_iri(card_sol, "card")?).to_owned();
     let cardinality = match card_local.as_str() {
         "RowsExact" => RowCardinality::Exact,
         "RowsContains" => RowCardinality::Contains,
         "RowsCount" => {
             let count = opt_u64(card_sol, "count")?.ok_or_else(|| {
-                format!("ResultShape <{shape_iri}>: logic:RowsCount requires logic:shapeRowCount")
+                Diag::of_kind(ResultShapeParse {
+                    detail: format!(
+                        "ResultShape <{shape_iri}>: logic:RowsCount requires logic:shapeRowCount"
+                    ),
+                })
             })?;
             RowCardinality::Count(count)
         }
         other => {
-            return Err(format!(
-                "ResultShape <{shape_iri}>: unknown logic:shapeCardinality logic:{other}"
-            ));
+            return Err(Diag::of_kind(ResultShapeParse {
+                detail: format!(
+                    "ResultShape <{shape_iri}>: unknown logic:shapeCardinality logic:{other}"
+                ),
+            }));
         }
     };
     Ok(ResultShape::new(columns, cardinality))
@@ -536,9 +596,12 @@ impl Sol {
 }
 
 /// Run a SELECT introspection query and collect its solutions as [`Sol`] views.
-fn select(store: &Arc<RdfDataset>, query: &str) -> Result<Vec<Sol>, String> {
-    let solutions = native_query::select(store, query)
-        .map_err(|e| format!("introspection query error: {e}"))?;
+fn select(store: &Arc<RdfDataset>, query: &str) -> Result<Vec<Sol>> {
+    let solutions = native_query::select(store, query).map_err(|e| {
+        Diag::of_kind(SparqlEval {
+            detail: format!("introspection query error: {e}"),
+        })
+    })?;
     let variables = Arc::new(solutions.variables);
     Ok(solutions
         .rows
@@ -562,10 +625,12 @@ fn term_iri(term: &TermValue) -> Option<String> {
     }
 }
 
-fn require_iri(sol: &Sol, var: &str) -> Result<String, String> {
-    sol.get(var)
-        .and_then(term_iri)
-        .ok_or_else(|| format!("expected ?{var} to bind an IRI"))
+fn require_iri(sol: &Sol, var: &str) -> Result<String> {
+    sol.get(var).and_then(term_iri).ok_or_else(|| {
+        Diag::of_kind(TypedBinding {
+            detail: format!("expected ?{var} to bind an IRI"),
+        })
+    })
 }
 
 /// The lexical value of a bound literal (or the IRI string of a named node).
@@ -577,7 +642,7 @@ fn opt_string(sol: &Sol, var: &str) -> Option<String> {
     })
 }
 
-fn opt_bool(sol: &Sol, var: &str) -> Result<Option<bool>, String> {
+fn opt_bool(sol: &Sol, var: &str) -> Result<Option<bool>> {
     match sol.get(var) {
         None => Ok(None),
         // xsd:boolean lexical space: true/false plus the 1/0 alternatives. Anything
@@ -586,28 +651,29 @@ fn opt_bool(sol: &Sol, var: &str) -> Result<Option<bool>, String> {
         Some(TermValue::Literal { lexical_form, .. }) => match lexical_form.as_str() {
             "true" | "1" => Ok(Some(true)),
             "false" | "0" => Ok(Some(false)),
-            other => Err(format!(
-                "?{var} is not an xsd:boolean (true/false): {other:?}"
-            )),
+            other => Err(Diag::of_kind(TypedBinding {
+                detail: format!("?{var} is not an xsd:boolean (true/false): {other:?}"),
+            })),
         },
-        Some(other) => Err(format!(
-            "?{var} expected a literal, got {}",
-            render_term(other)
-        )),
+        Some(other) => Err(Diag::of_kind(TypedBinding {
+            detail: format!("?{var} expected a literal, got {}", render_term(other)),
+        })),
     }
 }
 
-fn opt_u64(sol: &Sol, var: &str) -> Result<Option<u64>, String> {
+fn opt_u64(sol: &Sol, var: &str) -> Result<Option<u64>> {
     match sol.get(var) {
         None => Ok(None),
-        Some(TermValue::Literal { lexical_form, .. }) => lexical_form
-            .parse::<u64>()
-            .map(Some)
-            .map_err(|e| format!("?{var} is not a non-negative integer: {e}")),
-        Some(other) => Err(format!(
-            "?{var} expected a literal, got {}",
-            render_term(other)
-        )),
+        Some(TermValue::Literal { lexical_form, .. }) => {
+            lexical_form.parse::<u64>().map(Some).map_err(|e| {
+                Diag::of_kind(TypedBinding {
+                    detail: format!("?{var} is not a non-negative integer: {e}"),
+                })
+            })
+        }
+        Some(other) => Err(Diag::of_kind(TypedBinding {
+            detail: format!("?{var} expected a literal, got {}", render_term(other)),
+        })),
     }
 }
 
@@ -745,7 +811,7 @@ mod tests {
         let err = parse_competency(&store_from_turtle(ttl))
             .expect_err("conflicting duplicate must hard-fail");
         assert!(
-            err.contains("conflicting duplicate"),
+            err.message().contains("conflicting duplicate"),
             "unexpected error: {err}"
         );
     }
@@ -775,7 +841,10 @@ mod tests {
                 gmeow:cqExactRows \"ture\" .\n"; // codespell:ignore ture
         let err = parse_competency(&store_from_turtle(ttl))
             .expect_err("malformed boolean must hard-fail");
-        assert!(err.contains("xsd:boolean"), "unexpected error: {err}");
+        assert!(
+            err.message().contains("xsd:boolean"),
+            "unexpected error: {err}"
+        );
     }
 
     #[test]
@@ -824,7 +893,10 @@ mod tests {
                 logic:shapeCardinality logic:RowsContains .\n";
         let err = parse_competency(&store_from_turtle(ttl))
             .expect_err("unknown term-kind must hard-fail");
-        assert!(err.contains("columnTermKind"), "unexpected error: {err}");
+        assert!(
+            err.message().contains("columnTermKind"),
+            "unexpected error: {err}"
+        );
     }
 
     // ── ResultShape hard-fail discipline (Gap C5) ─────────────────────────────
@@ -853,7 +925,7 @@ mod tests {
         let err = parse_competency(&store_from_turtle(ttl))
             .expect_err("missing columnTermKind must hard-fail");
         assert!(
-            err.contains("columnTermKind"),
+            err.message().contains("columnTermKind"),
             "error must name the missing predicate; got: {err}"
         );
     }
@@ -875,7 +947,7 @@ mod tests {
         let err = parse_competency(&store_from_turtle(ttl))
             .expect_err("missing columnVariable must hard-fail");
         assert!(
-            err.contains("columnVariable"),
+            err.message().contains("columnVariable"),
             "error must name the missing predicate; got: {err}"
         );
     }
@@ -897,7 +969,7 @@ mod tests {
         let err = parse_competency(&store_from_turtle(ttl))
             .expect_err("missing columnBinding must hard-fail");
         assert!(
-            err.contains("columnBinding"),
+            err.message().contains("columnBinding"),
             "error must name the missing predicate; got: {err}"
         );
     }
@@ -954,7 +1026,7 @@ mod tests {
         let err = parse_competency(&store_from_turtle(ttl))
             .expect_err("orphan expected rows must hard-fail");
         assert!(
-            err.contains("unknown competency question"),
+            err.message().contains("unknown competency question"),
             "unexpected error: {err}"
         );
     }

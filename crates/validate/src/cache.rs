@@ -17,7 +17,7 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use gmeow_errors::Finding;
+use gmeow_errors::{Diag, Finding};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -87,14 +87,17 @@ impl ValidationCache {
     /// Mirrors Python `generator.source_hash`: paths are resolved and sorted,
     /// then each contributes its path (relative to the project root when
     /// possible), file size, and raw content to a SHA-256 hash. Missing paths
-    /// are skipped with a warning to stderr rather than failing, matching the
-    /// Python lenient behavior.
-    pub fn files_cache_key(&self, paths: &[PathBuf]) -> Result<String, String> {
+    /// are skipped with a `tracing` warning rather than failing, matching the
+    /// lenient behavior.
+    pub fn files_cache_key(&self, paths: &[PathBuf]) -> gmeow_errors::Result<String> {
         Self::files_cache_key_with_root(paths, &self.project_root)
     }
 
     /// Core implementation of [`Self::files_cache_key`] with an explicit root.
-    pub fn files_cache_key_with_root(paths: &[PathBuf], root: &Path) -> Result<String, String> {
+    pub fn files_cache_key_with_root(
+        paths: &[PathBuf],
+        root: &Path,
+    ) -> gmeow_errors::Result<String> {
         let mut h = Sha256::new();
         let mut sorted: Vec<PathBuf> = paths
             .iter()
@@ -103,7 +106,11 @@ impl ValidationCache {
         sorted.sort();
         for path in sorted {
             if !path.exists() {
-                eprintln!("validation cache input missing: {}", path.display());
+                tracing::warn!(
+                    target: "validation_cache",
+                    path = %path.display(),
+                    "validation cache input missing; skipping",
+                );
                 continue;
             }
             let rel = if let Ok(r) = path.strip_prefix(root) {
@@ -111,10 +118,16 @@ impl ValidationCache {
             } else {
                 path.to_string_lossy().into_owned()
             };
-            let meta =
-                fs::metadata(&path).map_err(|e| format!("metadata for {}: {e}", path.display()))?;
-            let bytes = fs::read(&path)
-                .map_err(|e| format!("read {} for cache key: {e}", path.display()))?;
+            let meta = fs::metadata(&path).map_err(|e| {
+                Diag::of_kind(crate::error::Io {
+                    detail: format!("metadata for {}: {e}", path.display()),
+                })
+            })?;
+            let bytes = fs::read(&path).map_err(|e| {
+                Diag::of_kind(crate::error::Io {
+                    detail: format!("read {} for cache key: {e}", path.display()),
+                })
+            })?;
             h.update(rel.as_bytes());
             h.update(meta.len().to_string().as_bytes());
             h.update(&bytes);
@@ -156,16 +169,24 @@ impl ValidationCache {
         kind: &str,
         key: &str,
         result: &CachedResult,
-    ) -> Result<(), String> {
+    ) -> gmeow_errors::Result<()> {
         let path = self.cache_path(kind, key);
-        let parent = path
-            .parent()
-            .ok_or_else(|| format!("cache path has no parent: {}", path.display()))?;
-        fs::create_dir_all(parent)
-            .map_err(|e| format!("create cache dir {}: {e}", parent.display()))?;
+        let parent = path.parent().ok_or_else(|| {
+            Diag::of_kind(crate::error::Io {
+                detail: format!("cache path has no parent: {}", path.display()),
+            })
+        })?;
+        fs::create_dir_all(parent).map_err(|e| {
+            Diag::of_kind(crate::error::Io {
+                detail: format!("create cache dir {}: {e}", parent.display()),
+            })
+        })?;
 
-        let payload =
-            serde_json::to_vec(result).map_err(|e| format!("serialize cached result: {e}"))?;
+        let payload = serde_json::to_vec(result).map_err(|e| {
+            Diag::of_kind(crate::error::Serialize {
+                detail: format!("serialize cached result: {e}"),
+            })
+        })?;
 
         let tmp_name = format!(
             ".{}.{}.{}",
@@ -174,20 +195,29 @@ impl ValidationCache {
             TMP_COUNTER.fetch_add(1, Ordering::Relaxed)
         );
         let tmp_path = parent.join(tmp_name);
-        let write_result: Result<(), String> = (|| {
+        let write_result: gmeow_errors::Result<()> = (|| {
             let mut file = fs::OpenOptions::new()
                 .write(true)
                 .create_new(true)
                 .open(&tmp_path)
-                .map_err(|e| format!("create temp cache file {}: {e}", tmp_path.display()))?;
-            file.write_all(&payload)
-                .map_err(|e| format!("write temp cache file {}: {e}", tmp_path.display()))?;
+                .map_err(|e| {
+                    Diag::of_kind(crate::error::Io {
+                        detail: format!("create temp cache file {}: {e}", tmp_path.display()),
+                    })
+                })?;
+            file.write_all(&payload).map_err(|e| {
+                Diag::of_kind(crate::error::Io {
+                    detail: format!("write temp cache file {}: {e}", tmp_path.display()),
+                })
+            })?;
             fs::rename(&tmp_path, &path).map_err(|e| {
-                format!(
-                    "rename cache file {} -> {}: {e}",
-                    tmp_path.display(),
-                    path.display()
-                )
+                Diag::of_kind(crate::error::Io {
+                    detail: format!(
+                        "rename cache file {} -> {}: {e}",
+                        tmp_path.display(),
+                        path.display()
+                    ),
+                })
             })
         })();
         if write_result.is_err() {

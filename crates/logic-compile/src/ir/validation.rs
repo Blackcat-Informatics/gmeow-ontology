@@ -19,6 +19,7 @@
 //! of the IR verbatim.
 
 use super::{NodeKind, SEP, opt_axis_key};
+use gmeow_errors::Diag;
 
 /// Length-prefix a free-form fragment so field boundaries can never collide when fragments are
 /// concatenated into a content key: `{predicate:"a=b", value:"c"}` and
@@ -318,7 +319,7 @@ impl ConstraintComponent {
     /// identity, and reject an `In` literal that illegally carries BOTH a datatype and a
     /// language tag (the [`ShapeValue::Literal`] invariant is datatype XOR lang). Called at
     /// construction so the stored form — not just the key — is canonical.
-    fn normalize(&mut self) -> Result<(), String> {
+    fn normalize(&mut self) -> gmeow_errors::Result<()> {
         match self {
             ConstraintComponent::In(vs) => {
                 for v in vs.iter() {
@@ -328,9 +329,11 @@ impl ConstraintComponent {
                         ..
                     } = v
                     {
-                        return Err("ConstraintComponent::In: a value-set literal may carry a \
+                        return Err(Diag::of_kind(crate::error::Validation {
+                            detail: "ConstraintComponent::In: a value-set literal may carry a \
                                     datatype XOR a language tag, never both"
-                            .to_owned());
+                                .to_owned(),
+                        }));
                     }
                 }
                 // Sort by the type's own derived `Ord`, NOT by `content_key`: the content key is
@@ -350,11 +353,11 @@ impl ConstraintComponent {
                 lang: Some(_),
                 ..
             }) => {
-                return Err(
-                    "ConstraintComponent::HasValue: a literal value may carry a \
+                return Err(Diag::of_kind(crate::error::Validation {
+                    detail: "ConstraintComponent::HasValue: a literal value may carry a \
                             datatype XOR a language tag, never both"
                         .to_owned(),
-                );
+                }));
             }
             ConstraintComponent::QualifiedValueShape { shape, .. } => {
                 for c in shape.iter_mut() {
@@ -497,28 +500,32 @@ impl PropertyConstraintIr {
         max_count: Option<u32>,
         cardinality_provenance: Option<ConstraintProvenance>,
         components: Vec<ConstraintComponent>,
-    ) -> Result<Self, String> {
+    ) -> gmeow_errors::Result<Self> {
         let path = path.into();
         if path.trim().is_empty() {
-            return Err("PropertyConstraintIr.path must be a non-empty IRI string".to_owned());
+            return Err(Diag::of_kind(crate::error::Validation {
+                detail: "PropertyConstraintIr.path must be a non-empty IRI string".to_owned(),
+            }));
         }
         if let (Some(lo), Some(hi)) = (min_count, max_count)
             && lo > hi
         {
-            return Err(format!(
-                "PropertyConstraintIr min_count ({lo}) must not exceed max_count ({hi})"
-            ));
+            return Err(Diag::of_kind(crate::error::Validation {
+                detail: format!(
+                    "PropertyConstraintIr min_count ({lo}) must not exceed max_count ({hi})"
+                ),
+            }));
         }
         // A provenance without a cardinality is a determinism hazard (it would perturb the
         // key while claiming nothing); a cardinality without a provenance leaves the ledger
         // polarity undecidable. Bind the two together.
         let has_card = min_count.is_some() || max_count.is_some();
         if has_card != cardinality_provenance.is_some() {
-            return Err(
-                "PropertyConstraintIr.cardinality_provenance must be Some iff a \
+            return Err(Diag::of_kind(crate::error::Validation {
+                detail: "PropertyConstraintIr.cardinality_provenance must be Some iff a \
                  min_count/max_count is present"
                     .to_owned(),
-            );
+            }));
         }
         let mut components = components;
         for component in &mut components {
@@ -550,30 +557,31 @@ impl PropertyConstraintIr {
         mut self,
         reifier_shape: Option<String>,
         reification_required: bool,
-    ) -> Result<Self, String> {
+    ) -> gmeow_errors::Result<Self> {
         if reifier_shape.is_none() && !reification_required {
-            return Err(
-                "PropertyConstraintIr.with_reifier: at least one of reifier_shape / \
+            return Err(Diag::of_kind(crate::error::Validation {
+                detail: "PropertyConstraintIr.with_reifier: at least one of reifier_shape / \
                  reification_required must be set (a no-op reifier condition is a determinism \
                  hazard)"
                     .to_owned(),
-            );
+            }));
         }
         if let Some(rs) = &reifier_shape
             && rs.trim().is_empty()
         {
-            return Err(
-                "PropertyConstraintIr.with_reifier: reifier_shape must be a non-empty IRI when \
+            return Err(Diag::of_kind(crate::error::Validation {
+                detail:
+                    "PropertyConstraintIr.with_reifier: reifier_shape must be a non-empty IRI when \
                  present; pass None to leave it unset"
-                    .to_owned(),
-            );
+                        .to_owned(),
+            }));
         }
         if self.inverse {
-            return Err(
-                "PropertyConstraintIr.with_reifier: the SHACL 1.2 reifier component is defined only \
+            return Err(Diag::of_kind(crate::error::Validation {
+                detail: "PropertyConstraintIr.with_reifier: the SHACL 1.2 reifier component is defined only \
                  on a single forward-predicate path, not an inverse path"
                     .to_owned(),
-            );
+            }));
         }
         self.reifier_shape = reifier_shape;
         self.reification_required = reification_required;
@@ -596,10 +604,12 @@ impl PropertyConstraintIr {
     /// Attach an `sh:message`. Chainable; leaves the content key byte-identical when unset.
     /// A blank message is rejected (a required presentation string that says nothing is a
     /// determinism hazard, not a silent no-op).
-    pub fn with_message(mut self, message: impl Into<String>) -> Result<Self, String> {
+    pub fn with_message(mut self, message: impl Into<String>) -> gmeow_errors::Result<Self> {
         let message = message.into();
         if message.trim().is_empty() {
-            return Err("PropertyConstraintIr.with_message: message must be non-empty".to_owned());
+            return Err(Diag::of_kind(crate::error::Validation {
+                detail: "PropertyConstraintIr.with_message: message must be non-empty".to_owned(),
+            }));
         }
         self.message = Some(message);
         Ok(self)
@@ -677,45 +687,52 @@ impl ValidationShapeIr {
         target: ShapeTarget,
         properties: Vec<PropertyConstraintIr>,
         standpoint: Option<String>,
-    ) -> Result<Self, String> {
+    ) -> gmeow_errors::Result<Self> {
         let iri = iri.into();
         if iri.trim().is_empty() {
-            return Err("ValidationShapeIr.iri must be a non-empty IRI string".to_owned());
+            return Err(Diag::of_kind(crate::error::Validation {
+                detail: "ValidationShapeIr.iri must be a non-empty IRI string".to_owned(),
+            }));
         }
         match &target {
             ShapeTarget::Class(c) if c.trim().is_empty() => {
-                return Err("ValidationShapeIr target class must be a non-empty IRI".to_owned());
+                return Err(Diag::of_kind(crate::error::Validation {
+                    detail: "ValidationShapeIr target class must be a non-empty IRI".to_owned(),
+                }));
             }
             ShapeTarget::SubjectsOf(p) if p.trim().is_empty() => {
-                return Err(
-                    "ValidationShapeIr subjects-of target must be a non-empty predicate IRI"
-                        .to_owned(),
-                );
+                return Err(Diag::of_kind(crate::error::Validation {
+                    detail:
+                        "ValidationShapeIr subjects-of target must be a non-empty predicate IRI"
+                            .to_owned(),
+                }));
             }
             ShapeTarget::ObjectsOf(p) if p.trim().is_empty() => {
-                return Err(
-                    "ValidationShapeIr objects-of target must be a non-empty predicate IRI"
+                return Err(Diag::of_kind(crate::error::Validation {
+                    detail: "ValidationShapeIr objects-of target must be a non-empty predicate IRI"
                         .to_owned(),
-                );
+                }));
             }
             ShapeTarget::ValueKeyed { predicate, value }
                 if predicate.trim().is_empty() || value.trim().is_empty() =>
             {
-                return Err(
-                    "ValidationShapeIr value-keyed target needs a non-empty predicate and value"
-                        .to_owned(),
-                );
+                return Err(Diag::of_kind(crate::error::Validation {
+                    detail:
+                        "ValidationShapeIr value-keyed target needs a non-empty predicate and value"
+                            .to_owned(),
+                }));
             }
             _ => {}
         }
         if let Some(sp) = &standpoint
             && sp.trim().is_empty()
         {
-            return Err(
-                "ValidationShapeIr.standpoint must be a non-empty IRI when present; pass None \
+            return Err(Diag::of_kind(crate::error::Validation {
+                detail:
+                    "ValidationShapeIr.standpoint must be a non-empty IRI when present; pass None \
                      to leave it unset"
-                    .to_owned(),
-            );
+                        .to_owned(),
+            }));
         }
         let mut properties = properties;
         properties.sort_by_cached_key(PropertyConstraintIr::content_key);
@@ -737,7 +754,7 @@ impl ValidationShapeIr {
     pub fn with_node_components(
         mut self,
         node_components: Vec<ConstraintComponent>,
-    ) -> Result<Self, String> {
+    ) -> gmeow_errors::Result<Self> {
         let mut node_components = node_components;
         for component in &mut node_components {
             component.normalize()?;
@@ -750,10 +767,12 @@ impl ValidationShapeIr {
     /// Attach an `rdfs:label`. Chainable; leaves the content key byte-identical when unset. A
     /// blank label is rejected (a required presentation string that says nothing is a
     /// determinism hazard, not a silent no-op).
-    pub fn with_label(mut self, label: impl Into<String>) -> Result<Self, String> {
+    pub fn with_label(mut self, label: impl Into<String>) -> gmeow_errors::Result<Self> {
         let label = label.into();
         if label.trim().is_empty() {
-            return Err("ValidationShapeIr.with_label: label must be non-empty".to_owned());
+            return Err(Diag::of_kind(crate::error::Validation {
+                detail: "ValidationShapeIr.with_label: label must be non-empty".to_owned(),
+            }));
         }
         self.label = Some(label);
         Ok(self)
@@ -854,7 +873,7 @@ mod tests {
             }])],
         )
         .unwrap_err();
-        assert!(err.contains("XOR"), "got: {err}");
+        assert!(err.message().contains("XOR"), "got: {err}");
     }
 
     #[test]
@@ -1028,7 +1047,7 @@ mod tests {
             })],
         )
         .unwrap_err();
-        assert!(err.contains("XOR"), "got: {err}");
+        assert!(err.message().contains("XOR"), "got: {err}");
     }
 
     #[test]

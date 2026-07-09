@@ -181,7 +181,7 @@ fn compare_materialization(
     facts: &TypedFactSet,
     rules: &str,
     world: &str,
-) -> Result<ParityLedger, String> {
+) -> gmeow_errors::Result<ParityLedger> {
     let closure = oracle.materialize(facts, rules, &ForwardBudget::UNBOUNDED)?;
     let oracle_name = oracle.name();
 
@@ -372,7 +372,7 @@ fn compare_existential_materialization(
     facts: &TypedFactSet,
     rules: &str,
     world: &str,
-) -> Result<ParityLedger, String> {
+) -> gmeow_errors::Result<ParityLedger> {
     let closure = oracle.materialize(facts, rules, &ForwardBudget::UNBOUNDED)?;
     let oracle_name = oracle.name();
 
@@ -485,7 +485,7 @@ fn compare_answers(
     world: &str,
     program: &QProgram,
     budget: &Budget,
-) -> Result<ParityLedger, String> {
+) -> gmeow_errors::Result<ParityLedger> {
     let answers = oracle.solve(foreign, world, program, &[], budget)?;
     let oracle_name = oracle.name();
 
@@ -1342,7 +1342,7 @@ mod tests {
             _facts: &crate::facts::TypedFactSet,
             _rules: &str,
             _budget: &ForwardBudget,
-        ) -> Result<TypedChaseResult, String> {
+        ) -> gmeow_errors::Result<TypedChaseResult> {
             Ok(TypedChaseResult {
                 rows: self.rows.clone(),
             })
@@ -1763,7 +1763,7 @@ mod tests {
             program: &QProgram,
             _tabling: &[String],
             budget: &Budget,
-        ) -> Result<AnswerSet, String> {
+        ) -> gmeow_errors::Result<AnswerSet> {
             let table_preds = crate::dispatch::cyclic_predicates(program);
             crate::scryer_engine::run_scryer(foreign, world, program, &table_preds, budget)
         }

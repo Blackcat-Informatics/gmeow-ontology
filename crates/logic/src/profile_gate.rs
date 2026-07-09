@@ -58,20 +58,22 @@ pub fn has_cut(program: &QProgram) -> bool {
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` with a message naming the offending profile when the program
+/// Returns `Err` with a message naming the offending profile when the program
 /// contains cut and the profile resolves to no cut-licensing preset.
-pub fn check_cut_profile(program: &QProgram, profile: &str) -> Result<(), String> {
+pub fn check_cut_profile(program: &QProgram, profile: &str) -> gmeow_errors::Result<()> {
     if !has_cut(program) {
         return Ok(());
     }
     if is_procedural_profile(profile) {
         return Ok(());
     }
-    Err(format!(
-        "program contains cut (`!`) but profile {profile:?} does not denote \
-         ProceduralPrologProfile; cut is only permitted under \
-         {PROCEDURAL_PROLOG_PROFILE:?}"
-    ))
+    Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+        detail: format!(
+            "program contains cut (`!`) but profile {profile:?} does not denote \
+             ProceduralPrologProfile; cut is only permitted under \
+             {PROCEDURAL_PROLOG_PROFILE:?}"
+        ),
+    }))
 }
 
 // ── Arithmetic-builtin gate (G2a) ──────────────────────────────────────
@@ -99,20 +101,22 @@ pub fn has_builtin(program: &QProgram) -> bool {
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` naming the offending profile when the program contains a
+/// Returns `Err` naming the offending profile when the program contains a
 /// builtin and the profile resolves to no procedural-licensing preset.
-pub fn check_builtin_profile(program: &QProgram, profile: &str) -> Result<(), String> {
+pub fn check_builtin_profile(program: &QProgram, profile: &str) -> gmeow_errors::Result<()> {
     if !has_builtin(program) {
         return Ok(());
     }
     if is_procedural_profile(profile) {
         return Ok(());
     }
-    Err(format!(
-        "program contains an arithmetic/comparison builtin but profile {profile:?} \
-         does not denote ProceduralPrologProfile; builtins are only permitted under \
-         {PROCEDURAL_PROLOG_PROFILE:?}"
-    ))
+    Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+        detail: format!(
+            "program contains an arithmetic/comparison builtin but profile {profile:?} \
+             does not denote ProceduralPrologProfile; builtins are only permitted under \
+             {PROCEDURAL_PROLOG_PROFILE:?}"
+        ),
+    }))
 }
 
 /// Extract the local name from a profile reference (full IRI, `prefix:Local`, or a
@@ -327,7 +331,7 @@ mod tests {
         let prog = cut_program();
         let result = check_cut_profile(&prog, HORN_PROFILE);
         assert!(result.is_err(), "cut + PositiveHornProfile must be Err");
-        let msg = result.unwrap_err();
+        let msg = result.unwrap_err().message().to_owned();
         assert!(
             msg.contains(HORN_PROFILE),
             "error message must name the offending profile: {msg:?}"

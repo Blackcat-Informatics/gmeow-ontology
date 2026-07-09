@@ -3781,7 +3781,7 @@ logic:FindingCategory
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Finding Category"@x-gmeow-english ;
-    skos:definition "The closed value class of a validator finding's KIND — an axis orthogonal to its severity, because not all findings are failures. Its individuals are logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, logic:FindingContradictionWitness, logic:FindingPermittedEpistemicConflict, logic:FindingUnsupportedSemanticFeature, logic:FindingIncompleteCheck, logic:FindingProjectionLoss, logic:FindingPolicyWarning and logic:FindingCorroboration. The set is closed; a misspelt value names no declared kind and is rejected. The load-bearing case is logic:FindingPermittedEpistemicConflict: a disclosed, witnessed contradiction permitted by a glut-admitting contract is coherent and does NOT fail the gate; the mirror case is logic:FindingCorroboration, a native↔published agreement folded as non-blocking positive evidence rather than dropped (design/LOGIC-CONFORMANCE.md, §The coherence certificate)."@x-gmeow-english ;
+    skos:definition "The closed value class of a validator finding's KIND — an axis orthogonal to its severity, because not all findings are failures. Its individuals are logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, logic:FindingContradictionWitness, logic:FindingPermittedEpistemicConflict, logic:FindingUnsupportedSemanticFeature, logic:FindingIncompleteCheck, logic:FindingProjectionLoss, logic:FindingPolicyWarning, logic:FindingCorroboration and logic:FindingTransientChatter. The set is closed; a misspelt value names no declared kind and is rejected. The load-bearing case is logic:FindingPermittedEpistemicConflict: a disclosed, witnessed contradiction permitted by a glut-admitting contract is coherent and does NOT fail the gate; the mirror case is logic:FindingCorroboration, a native↔published agreement folded as non-blocking positive evidence rather than dropped; logic:FindingTransientChatter is the non-gating chatter kind for general-purpose logging witnesses (design/LOGIC-CONFORMANCE.md, §The coherence certificate)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:FindingDataShapeViolation
@@ -3846,6 +3846,13 @@ logic:FindingCorroboration
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Finding Corroboration"@x-gmeow-english ;
     skos:definition "The logic:FindingCategory for a native↔published AGREEMENT — the native reasoner's verdict matches the community-decided ground truth of an external-corpus case. NOT a failure and the exact opposite of a logic:FindingIncompleteCheck: it is positive corroborating evidence surfaced for the benchmark surface, coherent, and never blocks a logic:CoherenceCertificate. It is the honest, non-blocking kind an agreeing external-corpus comparison folds as, so agreements are retained as first-class findings rather than dropped. Wire value `corroboration`."@x-gmeow-english .
+
+logic:FindingTransientChatter
+    a owl:NamedIndividual ,
+        logic:FindingCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Finding Transient Chatter"@x-gmeow-english ;
+    skos:definition "The closed CHATTER logic:FindingCategory for general-purpose logging witnesses — the ordinary note/info stream a run emits to narrate its own progress. Never a failure and never a coherence stance: it is transient bookkeeping that carries no evidential weight, contributes nothing to the gate, and can never block a logic:CoherenceCertificate. The home category for a Note or Info witness that records what happened without asserting anything about the data. Wire value `transient-chatter`."@x-gmeow-english .
 
 logic:CoherenceCertificate
     a owl:Class ;

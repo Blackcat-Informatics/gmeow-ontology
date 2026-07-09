@@ -250,7 +250,7 @@ pub fn build_report(
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if the manifest cannot be read or parsed.
+/// Fails if the manifest cannot be read or parsed.
 pub fn compliance_report(
     manifest_path: &Path,
     constitution_path: &Path,
@@ -258,11 +258,17 @@ pub fn compliance_report(
     supplied_gate_runs: &BTreeMap<String, GateRun>,
     toolchain_version: &str,
     evidence_mode: &str,
-) -> Result<String, String> {
-    let ttl = std::fs::read(manifest_path)
-        .map_err(|e| format!("{}: cannot read: {e}", manifest_path.display()))?;
-    let dataset = purrdf::parse_dataset(&ttl, "text/turtle", None)
-        .map_err(|e| format!("{}: does not parse: {e}", manifest_path.display()))?;
+) -> gmeow_errors::Result<String> {
+    let ttl = std::fs::read(manifest_path).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: cannot read: {e}", manifest_path.display()),
+        })
+    })?;
+    let dataset = purrdf::parse_dataset(&ttl, "text/turtle", None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("{}: does not parse: {e}", manifest_path.display()),
+        })
+    })?;
     let principles = collect_principles(&dataset);
     let enforcements = collect_enforcements(&dataset);
 

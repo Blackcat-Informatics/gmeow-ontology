@@ -8,6 +8,8 @@
 //! RDF/predication channel (everything else) as `(<P> <S> <O>)` predications after the
 //! [`RDF_META_SENTINEL`](super::RDF_META_SENTINEL).
 
+use gmeow_errors::Diag;
+
 use crate::ir::{Formula, LogicAxiom, LogicProgram, Term};
 use crate::projections::{ProjectionResult, rdf, target_meta};
 
@@ -28,7 +30,7 @@ const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 /// canonical-RDF-1.2 projection or its re-parse failing is an invariant break, not a
 /// recoverable condition) — surfacing a structured error to `compile_program` exactly like
 /// the sibling projectors, rather than panicking.
-pub fn project_clif(program: &LogicProgram) -> Result<ProjectionResult, String> {
+pub fn project_clif(program: &LogicProgram) -> gmeow_errors::Result<ProjectionResult> {
     // Registry is the single source of truth for (preservation, complexity, drops);
     // mirror `project_datalog`'s pattern so the ledger and the result agree.
     let (kind, cx, _) = target_meta("clif");
@@ -272,7 +274,7 @@ fn term_to_clif(term: &Term) -> String {
 ///
 /// Returns `Err` if the canonical-RDF-1.2 leg (or its re-parse) fails — the lossless carrier
 /// cannot be assembled, which is an invariant break surfaced to the caller, not a panic.
-fn meta_predications(program: &LogicProgram) -> Result<Vec<String>, String> {
+fn meta_predications(program: &LogicProgram) -> gmeow_errors::Result<Vec<String>> {
     let mut preds: Vec<String> = Vec::new();
 
     // (0) Path shapes — emitted as the logic:PathShape triples `extract_path_shapes` reads.
@@ -334,7 +336,11 @@ fn meta_predications(program: &LogicProgram) -> Result<Vec<String>, String> {
     )
     .with_formulas(program.formulas.clone());
     let ttl = rdf::project_canonical_rdf12(&canon_meta)
-        .map_err(|e| format!("CLIF meta channel: canonical-rdf12 projection failed: {e}"))?
+        .map_err(|e| {
+            Diag::of_kind(crate::error::Clif {
+                detail: format!("CLIF meta channel: canonical-rdf12 projection failed: {e}"),
+            })
+        })?
         .content;
     preds.extend(quads_as_predications(ttl.as_bytes(), "text/turtle")?);
 
@@ -575,9 +581,12 @@ fn is_correspondence_owned(subject: &str, corr_subjects: &[String]) -> bool {
 /// Parse RDF `bytes` of `media_type` and emit each quad as a sorted-later CL predication.
 /// Returns `Err` if the projection's own serialized output cannot be re-parsed (an invariant
 /// break in the canonical leg, surfaced to the caller rather than panicking).
-fn quads_as_predications(bytes: &[u8], media_type: &str) -> Result<Vec<String>, String> {
-    let ds = parse_dataset(bytes, media_type, None)
-        .map_err(|e| format!("CLIF meta channel: re-parse of {media_type} failed: {e}"))?;
+fn quads_as_predications(bytes: &[u8], media_type: &str) -> gmeow_errors::Result<Vec<String>> {
+    let ds = parse_dataset(bytes, media_type, None).map_err(|e| {
+        Diag::of_kind(crate::error::Clif {
+            detail: format!("CLIF meta channel: re-parse of {media_type} failed: {e}"),
+        })
+    })?;
     Ok(ds
         .quad_refs()
         .map(|q| {

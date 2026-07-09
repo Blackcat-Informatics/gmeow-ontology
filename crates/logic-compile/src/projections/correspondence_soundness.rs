@@ -45,6 +45,8 @@
 
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
+use gmeow_errors::Diag;
+
 use crate::ingest::dataset::{DslTerm, DslView};
 use crate::ingest::prefixes::{ns_to_prefix, registry_iri, sssom_id};
 
@@ -336,7 +338,7 @@ pub struct Mapping {
 /// Parse one SSSOM TSV file's text into [`Mapping`] rows (pure; the file-reading edge
 /// reads the bytes). Comment lines starting with `#` are skipped; the first non-comment
 /// line is the TSV header. Mirrors the retired `parse_sssom_tsv`.
-pub fn parse_sssom_tsv(text: &str) -> Result<Vec<Mapping>, String> {
+pub fn parse_sssom_tsv(text: &str) -> gmeow_errors::Result<Vec<Mapping>> {
     let mut lines: Vec<&str> = text.lines().filter(|l| !l.starts_with('#')).collect();
     if lines.is_empty() {
         return Ok(Vec::new());
@@ -345,10 +347,21 @@ pub fn parse_sssom_tsv(text: &str) -> Result<Vec<Mapping>, String> {
     let columns: Vec<&str> = header.split('\t').collect();
     let idx = |name: &str| columns.iter().position(|c| *c == name);
 
-    let subject_idx = idx("subject_id").ok_or_else(|| "missing subject_id column".to_owned())?;
-    let predicate_idx =
-        idx("predicate_id").ok_or_else(|| "missing predicate_id column".to_owned())?;
-    let object_idx = idx("object_id").ok_or_else(|| "missing object_id column".to_owned())?;
+    let subject_idx = idx("subject_id").ok_or_else(|| {
+        Diag::of_kind(crate::error::Correspondence {
+            detail: "missing subject_id column".to_owned(),
+        })
+    })?;
+    let predicate_idx = idx("predicate_id").ok_or_else(|| {
+        Diag::of_kind(crate::error::Correspondence {
+            detail: "missing predicate_id column".to_owned(),
+        })
+    })?;
+    let object_idx = idx("object_id").ok_or_else(|| {
+        Diag::of_kind(crate::error::Correspondence {
+            detail: "missing object_id column".to_owned(),
+        })
+    })?;
     let justification_idx = idx("mapping_justification");
     let confidence_idx = idx("confidence");
 

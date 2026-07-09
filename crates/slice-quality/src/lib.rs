@@ -14,6 +14,7 @@
 //! ([`lattice`]). This crate is bound by both the dev CLI and the pipeline MCP.
 
 pub mod axes;
+pub mod error;
 pub mod gate;
 pub mod graph;
 pub mod lattice;
@@ -48,17 +49,26 @@ pub struct AssessmentArtifacts {
 ///
 /// # Errors
 /// Returns a message if a file cannot be read or fails to parse.
-pub fn dataset_from_paths(paths: &[&Path]) -> Result<Arc<RdfDataset>, String> {
+pub fn dataset_from_paths(paths: &[&Path]) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let mut builder = purrdf::RdfDatasetBuilder::new();
     for path in paths {
-        let bytes = std::fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
-        let ds = purrdf::parse_dataset(&bytes, "text/turtle", None)
-            .map_err(|e| format!("{}: {e}", path.display()))?;
+        let bytes = std::fs::read(path).map_err(|e| {
+            gmeow_errors::Diag::of_kind(error::Io {
+                detail: format!("{}: {e}", path.display()),
+            })
+        })?;
+        let ds = purrdf::parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(error::Io {
+                detail: format!("{}: {e}", path.display()),
+            })
+        })?;
         builder.push_dataset(&ds);
     }
-    builder
-        .freeze()
-        .map_err(|e| format!("dataset freeze failed: {e}"))
+    builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(error::Io {
+            detail: format!("dataset freeze failed: {e}"),
+        })
+    })
 }
 
 /// Load the rubric from the canonical rubric slice under `repo_root`.
@@ -66,7 +76,7 @@ pub fn dataset_from_paths(paths: &[&Path]) -> Result<Arc<RdfDataset>, String> {
 /// # Errors
 /// Returns a message if the rubric module cannot be read or is structurally
 /// incomplete (a missing tier ladder, an axis without a producer, etc.).
-pub fn load_repo_rubric(repo_root: &Path) -> Result<Rubric, String> {
+pub fn load_repo_rubric(repo_root: &Path) -> gmeow_errors::Result<Rubric> {
     let module = repo_root.join("slices/core/slice-quality-rubric/module.ttl");
     let ds = dataset_from_paths(&[&module])?;
     rubric::load_rubric(&ds)
@@ -126,11 +136,13 @@ pub fn scored_source_files(repo_root: &Path) -> Vec<PathBuf> {
 ///
 /// # Errors
 /// Hard-fails if the rubric or ANY discovered slice cannot be scored.
-pub fn assessment_artifacts(repo_root: &Path) -> Result<AssessmentArtifacts, String> {
+pub fn assessment_artifacts(repo_root: &Path) -> gmeow_errors::Result<AssessmentArtifacts> {
     let rubric = load_repo_rubric(repo_root)?;
     let dirs = discover_slice_dirs(&repo_root.join("slices"));
     if dirs.is_empty() {
-        return Err("quality-assessment sweep found no slices".to_string());
+        return Err(gmeow_errors::Diag::of_kind(error::Report {
+            detail: "quality-assessment sweep found no slices".to_string(),
+        }));
     }
 
     let mut nquads = String::new();
@@ -162,6 +174,6 @@ pub fn assessment_artifacts(repo_root: &Path) -> Result<AssessmentArtifacts, Str
 /// # Errors
 /// Hard-fails (never a silent skip — no-optionality) if the rubric or ANY discovered
 /// slice cannot be scored.
-pub fn assessment_nquads(repo_root: &Path) -> Result<String, String> {
+pub fn assessment_nquads(repo_root: &Path) -> gmeow_errors::Result<String> {
     Ok(assessment_artifacts(repo_root)?.nquads)
 }

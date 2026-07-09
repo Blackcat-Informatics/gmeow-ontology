@@ -184,7 +184,7 @@ fn unknown_format_hard_fails() {
     let gts = bundle_bytes();
     let err = data_validate::run(b"{}", "application/json", &gts, NS, "x.json", false)
         .expect_err("JSON instance is not an RDF format");
-    assert!(err.contains("parse error") || err.contains("unsupported"));
+    assert!(err.message().contains("parse error") || err.message().contains("unsupported"));
 }
 
 /// An individual typed into two classes the bundled TBox declares

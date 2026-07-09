@@ -70,13 +70,17 @@ pub struct SliceReport {
 }
 
 /// Discover a slice's ontology IRI from its `manifest.ttl` (`a gmeow:Slice`).
-fn slice_iri_of(slice_dir: &Path) -> Result<String, String> {
+fn slice_iri_of(slice_dir: &Path) -> gmeow_errors::Result<String> {
     let manifest = slice_dir.join("manifest.ttl");
     let ds = crate::dataset_from_paths(&[&manifest])?;
     instances_of(&ds, &graph::g("Slice"))
         .into_iter()
         .next()
-        .ok_or_else(|| format!("{} declares no gmeow:Slice", manifest.display()))
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Report {
+                detail: format!("{} declares no gmeow:Slice", manifest.display()),
+            })
+        })
 }
 
 /// Every `.ttl` under `slice_dir`'s `module.ttl`, `examples/`, and `tests/` —
@@ -116,7 +120,7 @@ fn collect_ttl(dir: &Path, out: &mut Vec<PathBuf>) {
 /// # Errors
 /// Returns a message if the rubric or the slice graph cannot be loaded, or if the
 /// rubric names a producer with no implemented primitive.
-pub fn score_slice(repo_root: &Path, slice_dir: &Path) -> Result<SliceReport, String> {
+pub fn score_slice(repo_root: &Path, slice_dir: &Path) -> gmeow_errors::Result<SliceReport> {
     let rubric = crate::load_repo_rubric(repo_root)?;
     score_slice_with_rubric(slice_dir, rubric)
 }
@@ -125,7 +129,10 @@ pub fn score_slice(repo_root: &Path, slice_dir: &Path) -> Result<SliceReport, St
 ///
 /// # Errors
 /// As [`score_slice`].
-pub fn score_slice_with_rubric(slice_dir: &Path, rubric: Rubric) -> Result<SliceReport, String> {
+pub fn score_slice_with_rubric(
+    slice_dir: &Path,
+    rubric: Rubric,
+) -> gmeow_errors::Result<SliceReport> {
     let slice_iri = slice_iri_of(slice_dir)?;
     let paths = slice_ttl_paths(slice_dir);
     let path_refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
@@ -138,10 +145,12 @@ pub fn score_slice_with_rubric(slice_dir: &Path, rubric: Rubric) -> Result<Slice
     for axis in &rubric.axes {
         axis_weight.insert(axis.iri.clone(), axis.weight);
         let primitive = axes::resolve(&axis.producer).ok_or_else(|| {
-            format!(
-                "rubric axis {} names producer '{}' with no implemented primitive (hard fail)",
-                axis.iri, axis.producer
-            )
+            gmeow_errors::Diag::of_kind(crate::error::Report {
+                detail: format!(
+                    "rubric axis {} names producer '{}' with no implemented primitive (hard fail)",
+                    axis.iri, axis.producer
+                ),
+            })
         })?;
         let result = primitive(&ctx);
         for f in result.findings {
