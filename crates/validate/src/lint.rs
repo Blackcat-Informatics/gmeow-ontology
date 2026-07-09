@@ -10,8 +10,7 @@
 //! [`py_str_repr`], which mirrors CPython's `str.__repr__` so the rdflib
 //! `Literal` repr framing is preserved on the rare violation paths.
 //!
-//! Engine-core separation: this module imports no pyo3. The [`crate::py`]
-//! bindings adapt these functions to Python.
+//! Engine-core separation: this module is pure Rust with no binding surface.
 
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 

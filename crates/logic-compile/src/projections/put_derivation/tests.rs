@@ -26,6 +26,7 @@ fn mnemomorphic_get_only(class: MorphismClass) -> Correspondence {
         None,
         None,
         None,
+        None,
     )
     .expect("well-formed mnemomorphic get-only correspondence")
 }
@@ -106,6 +107,7 @@ fn amnesic_co_authored_claim_mints_with_claim_validation_only() {
         None,
         None,
         None,
+        None,
     )
     .expect("well-formed amnesic correspondence");
 
@@ -147,6 +149,7 @@ fn no_witness_no_claim_is_the_unsupported_floor() {
         None,
         None,
         None,
+        None,
     )
     .expect("well-formed unsupported correspondence");
 
@@ -170,6 +173,7 @@ fn unsupported_cell_keeps_its_put_less_form_through_with_derived_puts() {
         Some(format!("{GMEOW}example/prismGetLeg")),
         None,
         Vec::new(),
+        None,
         None,
         None,
         None,
@@ -216,6 +220,7 @@ fn get_only_with_no_get_leg_is_a_hard_fail() {
         None,
         None,
         Vec::new(),
+        None,
         None,
         None,
         None,

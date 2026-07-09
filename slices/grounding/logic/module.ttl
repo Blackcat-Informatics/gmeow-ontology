@@ -260,6 +260,34 @@ logic:ConcreteIndividualType
     skos:definition "A logic:Type whose instances are logic:ConcreteIndividuals — the type whose extension (via logic:instanceOf) is drawn from individuals located in spacetime (endurants and perdurants). The counterpart of gufo:ConcreteIndividualType; the umbrella over logic:EndurantType together with the type-of-perdurants. Stated in prose, not as a subclass edge. Contrast logic:AbstractIndividualType."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:ConfConsistent
+    a owl:NamedIndividual ,
+        logic:ConformanceVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Conformance Consistent"@x-gmeow-english ;
+    skos:definition "The conformance-verdict value when a model exists and the conjecture is NOT entailed: the reduction premises ∧ ¬conclusion is satisfiable, so the axiom set is consistent and the entailment fails. The decided-negative outcome the coarse three-bucket view assigns to the TPTP SZS logic:SzsSatisfiable and logic:SzsCounterSatisfiable statuses and to the W3C mf:NegativeEntailment test kind. One of the two informative meet-elements of the logic:ConformanceVerdict lattice (with logic:ConfInconsistent), below the least-informative join logic:ConfIncomplete; the RDF image of the native runner verdict `consistent`."@x-gmeow-english .
+
+logic:ConfInconsistent
+    a owl:NamedIndividual ,
+        logic:ConformanceVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Conformance Inconsistent"@x-gmeow-english ;
+    skos:definition "The conformance-verdict value when the conjecture is entailed / the axiom set has no model: the reduction premises ∧ ¬conclusion is UNSATISFIABLE. The decided-positive outcome the coarse three-bucket view assigns to the TPTP SZS logic:SzsTheorem, logic:SzsUnsatisfiable, and logic:SzsContradictoryAxioms statuses and to the W3C mf:PositiveEntailment test kind. One of the two informative meet-elements of the logic:ConformanceVerdict lattice (with logic:ConfConsistent), below the least-informative join logic:ConfIncomplete; the RDF image of the native runner verdict `inconsistent`. The coarse bucket is a lossy projection: it does not distinguish logic:SzsContradictoryAxioms from logic:SzsUnsatisfiable, so the verbatim token is preserved as provenance via logic:rawStatusToken (design/LOGIC-CONFORMANCE.md, the external FOL soundness oracle)."@x-gmeow-english .
+
+logic:ConfIncomplete
+    a owl:NamedIndividual ,
+        logic:ConformanceVerdict ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Conformance Incomplete"@x-gmeow-english ;
+    skos:definition "The conformance-verdict value when the reasoner did not decide the problem — it gave up, exhausted its resource budget, or returned an explicit unknown. The decided-nothing outcome the coarse three-bucket view assigns to the TPTP SZS logic:SzsUnknown, logic:SzsGaveUp, logic:SzsTimeout, and logic:SzsResourceOut statuses. The least-informative join (⊤) of the logic:ConformanceVerdict lattice, above both logic:ConfInconsistent and logic:ConfConsistent, so a genuinely-undecided result is never silently read as a decided one; the RDF image of the native runner verdict `incomplete`. Kept strictly distinct from a native capability gap (an out-of-fragment construct is a hard-fail ledger row, not an incomplete swallowed into agreement)."@x-gmeow-english .
+
+logic:ConformanceVerdict
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Conformance Verdict"@x-gmeow-english ;
+    skos:definition "The closed, three-valued lattice of external-corpus conformance outcomes: the result a conformance comparison receives when a native verdict is graded against a community-decided ground truth. Its three named individuals are logic:ConfInconsistent (entailment holds / no model), logic:ConfConsistent (a model exists / entailment fails), and logic:ConfIncomplete (the reasoner did not decide) — the last being the least-informative join (⊤) so an undecided result never masquerades as a decided one. The RDF image of the native runner's verdict-status value, and the target of the SZS-status and W3C manifest-kind alignment; the SZS→verdict collapse is a declared lossy projection (logic:SoundUnderApproximation) that this closed lattice makes machine-checkable. The set is closed, so a misspelt verdict names no declared value and is rejected rather than silently accepted, mirroring logic:EmergenceVerdict and logic:ConstraintVerdict (design/LOGIC-CONFORMANCE.md, the two orthogonal correctness axes)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:Constraint
     a owl:NamedIndividual ,
         logic:NodeKind ;
@@ -1661,6 +1689,124 @@ logic:Substantial
     skos:definition "An endurant that does NOT inhere in another individual: an independent bearer that can exist on its own and onto which aspects inhere. The complement of logic:Aspect within the endurant category; every logic:Object is a Substantial (stated in prose, not as a subclass edge)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:SzsStatus
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "SZS Status"@x-gmeow-english ;
+    skos:definition "The TPTP SZS result-status ontology, subsumed by reference (Principle 5 — no vendored axioms) as a first-class logic: vocabulary rather than parsed and discarded. An SZS status is the community-decided ground-truth outcome a problem carries in the external FOL soundness corpus. The vocabulary is partitioned by rdfs:subClassOf into logic:SzsSuccess (the prover decided) and logic:SzsNoSuccess (the prover did not), and the intra-branch strength order is carried by logic:szsStrengthens (logic:SzsContradictoryAxioms strengthens logic:SzsUnsatisfiable). The coarse three-bucket runner view (logic:ConformanceVerdict) is a monotone lossy projection of this ordered structure — a logic:SoundUnderApproximation that collapses distinctions the raw token preserves via logic:rawStatusToken (design/LOGIC-CONFORMANCE.md, the external FOL soundness oracle)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:SzsSuccess
+    a owl:Class ;
+    rdfs:subClassOf logic:SzsStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "SZS Success"@x-gmeow-english ;
+    skos:definition "The SZS success sort: the statuses under which the prover reached a decision about the problem — the axiom set's satisfiability or the conjecture's entailment was settled. Its members (logic:SzsTheorem, logic:SzsUnsatisfiable, logic:SzsContradictoryAxioms, logic:SzsSatisfiable, logic:SzsCounterSatisfiable) project onto the two informative logic:ConformanceVerdict meet-elements. The decided half of the logic:SzsStatus partition, complement of logic:SzsNoSuccess."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:SzsNoSuccess
+    a owl:Class ;
+    rdfs:subClassOf logic:SzsStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "SZS No-Success"@x-gmeow-english ;
+    skos:definition "The SZS no-success sort: the statuses under which the prover did NOT reach a decision — it gave up, timed out, ran out of resources, or returned an explicit unknown. Its members (logic:SzsUnknown, logic:SzsGaveUp, logic:SzsTimeout, logic:SzsResourceOut) project onto the least-informative join logic:ConfIncomplete, kept strictly distinct from a native capability gap (a hard fail, never an incomplete swallowed into agreement). The undecided half of the logic:SzsStatus partition, complement of logic:SzsSuccess."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:SzsTheorem
+    a owl:NamedIndividual ,
+        logic:SzsSuccess ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "SZS Theorem"@x-gmeow-english ;
+    logic:rawStatusToken "Theorem" ;
+    logic:projectsToVerdict logic:ConfInconsistent ;
+    skos:definition "The SZS status asserting the conjecture is a theorem of the axioms — entailment holds. Projects to logic:ConfInconsistent (the negated-conjecture reduction is unsatisfiable). A logic:SzsSuccess status; the canonical positive-entailment outcome, the SZS twin of the W3C mf:PositiveEntailment kind."@x-gmeow-english .
+
+logic:SzsUnsatisfiable
+    a owl:NamedIndividual ,
+        logic:SzsSuccess ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "SZS Unsatisfiable"@x-gmeow-english ;
+    logic:rawStatusToken "Unsatisfiable" ;
+    logic:projectsToVerdict logic:ConfInconsistent ;
+    skos:definition "The SZS status asserting the axiom set has no model. Projects to logic:ConfInconsistent. A logic:SzsSuccess status; strengthened by logic:SzsContradictoryAxioms (which additionally asserts the inconsistency is intrinsic to the axioms, not conjecture-relative)."@x-gmeow-english .
+
+logic:SzsContradictoryAxioms
+    a owl:NamedIndividual ,
+        logic:SzsSuccess ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "SZS Contradictory Axioms"@x-gmeow-english ;
+    logic:rawStatusToken "ContradictoryAxioms" ;
+    logic:szsStrengthens logic:SzsUnsatisfiable ;
+    logic:projectsToVerdict logic:ConfInconsistent ;
+    skos:definition "The SZS status asserting the axioms are themselves contradictory (unsatisfiable independent of any conjecture). Projects to logic:ConfInconsistent, and logic:szsStrengthens logic:SzsUnsatisfiable — it is the strictly stronger outcome, entailing unsatisfiability while additionally locating the inconsistency in the axiom set. This is precisely the distinction the coarse three-bucket collapse loses, preserved verbatim as logic:rawStatusToken. A logic:SzsSuccess status."@x-gmeow-english .
+
+logic:SzsSatisfiable
+    a owl:NamedIndividual ,
+        logic:SzsSuccess ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "SZS Satisfiable"@x-gmeow-english ;
+    logic:rawStatusToken "Satisfiable" ;
+    logic:projectsToVerdict logic:ConfConsistent ;
+    skos:definition "The SZS status asserting the axiom set has a model. Projects to logic:ConfConsistent. A logic:SzsSuccess status; the decided-negative outcome for a consistency question."@x-gmeow-english .
+
+logic:SzsCounterSatisfiable
+    a owl:NamedIndividual ,
+        logic:SzsSuccess ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "SZS Counter-Satisfiable"@x-gmeow-english ;
+    logic:rawStatusToken "CounterSatisfiable" ;
+    logic:projectsToVerdict logic:ConfConsistent ;
+    skos:definition "The SZS status asserting the conjecture is not entailed — a counter-model exists (the negated conjecture is satisfiable together with the axioms). Projects to logic:ConfConsistent, the entailment-fails twin of the W3C mf:NegativeEntailment kind. This is the distinction from logic:SzsSatisfiable the coarse collapse loses, preserved as logic:rawStatusToken. A logic:SzsSuccess status."@x-gmeow-english .
+
+logic:SzsUnknown
+    a owl:NamedIndividual ,
+        logic:SzsNoSuccess ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "SZS Unknown"@x-gmeow-english ;
+    logic:rawStatusToken "Unknown" ;
+    logic:projectsToVerdict logic:ConfIncomplete ;
+    skos:definition "The SZS status asserting the prover could not determine the result. Projects to logic:ConfIncomplete. A logic:SzsNoSuccess status; the explicit undecided outcome, distinct from a native capability gap."@x-gmeow-english .
+
+logic:SzsGaveUp
+    a owl:NamedIndividual ,
+        logic:SzsNoSuccess ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "SZS Gave Up"@x-gmeow-english ;
+    logic:rawStatusToken "GaveUp" ;
+    logic:projectsToVerdict logic:ConfIncomplete ;
+    skos:definition "The SZS status asserting the prover abandoned the attempt without a decision. Projects to logic:ConfIncomplete. A logic:SzsNoSuccess status."@x-gmeow-english .
+
+logic:SzsTimeout
+    a owl:NamedIndividual ,
+        logic:SzsNoSuccess ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "SZS Timeout"@x-gmeow-english ;
+    logic:rawStatusToken "Timeout" ;
+    logic:projectsToVerdict logic:ConfIncomplete ;
+    skos:definition "The SZS status asserting the prover exhausted its wall-clock budget before deciding. Projects to logic:ConfIncomplete. A logic:SzsNoSuccess status; the budget-tripped outcome."@x-gmeow-english .
+
+logic:SzsResourceOut
+    a owl:NamedIndividual ,
+        logic:SzsNoSuccess ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "SZS Resource Out"@x-gmeow-english ;
+    logic:rawStatusToken "ResourceOut" ;
+    logic:projectsToVerdict logic:ConfIncomplete ;
+    skos:definition "The SZS status asserting the prover exhausted a resource bound (memory, inferences) before deciding. Projects to logic:ConfIncomplete. A logic:SzsNoSuccess status; the resource-bounded outcome."@x-gmeow-english .
+
+logic:corrSzsToVerdict
+    a logic:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "SZS status → conformance verdict correspondence"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:morphismClass logic:LossyLens ;
+    logic:morphismKind logic:InstitutionMorphism ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic false ;
+    skos:definition "The first-class correspondence recording the SZS-status → logic:ConformanceVerdict collapse as a monotone (Galois) lossy projection. It carries logic:preservationKind logic:SoundUnderApproximation because the three-bucket view drops the logic:SzsContradictoryAxioms/logic:SzsUnsatisfiable and logic:SzsCounterSatisfiable/logic:SzsSatisfiable distinctions (a logic:LossyLens, logic:mnemomorphic false — the coarse verdict cannot recover the source token, which is why logic:rawStatusToken preserves it). Modelling the collapse as a logic:Correspondence rather than a bespoke check means its preservation rung is verified by two concrete mechanisms: the per-correspondence loss-ledger row (the Principle-17 residue that names the dropped logic:SzsContradictoryAxioms/logic:SzsUnsatisfiable and logic:SzsCounterSatisfiable/logic:SzsSatisfiable distinctions as structured actual-drop notes), and the preservation-consistency gate, which reds the build if a non-injective rung such as this logic:LossyLens ever declares logic:ExactPreservation instead of the honest logic:SoundUnderApproximation (design/LOGIC-CORRESPONDENCE.md, the loss ledger and correspondence gates)."@x-gmeow-english .
+
 logic:TimeContextAxis
     a owl:NamedIndividual ,
         logic:ContextAxis ;
@@ -2271,6 +2417,29 @@ logic:instantiatesPlan
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "instantiates plan"@x-gmeow-english ;
     skos:definition "Relates an executed action occurrence — a materialized logic:TransactionStep (a gmeow:Event minted per run position) — to the logic:Plan program it was executed under. Domain the occurrence, range logic:Plan (stated in prose). It is the plan-level companion of logic:instantiatesSchema: where that link records the reusable type an occurrence instantiates (Event to ActionSchema), this records the whole plan the occurrence realizes (Event to Plan). The pair is a load-bearing in-band recovery witness — the executed record carries, in band, a back-reference to both the schema and the plan it instantiates — so a correspondence's put leg can recover the planned skeleton from an execution record (the mnemomorphism's in-band complement at the process layer) rather than synthesizing a plausible plan. Without it the descriptive run and the prescriptive plan are only externally related; with it the planned portion round-trips."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- External-corpus conformance provenance and SZS-status strength order -------
+
+logic:rawStatusToken
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "raw status token"@x-gmeow-english ;
+    skos:definition "The verbatim external result-status token carried as provenance, so the coarse logic:ConformanceVerdict projection never discards the distinction the community source drew. Domain a logic:SzsStatus individual or a conformance comparison, range xsd:string (stated in prose): the exact SZS token (e.g. \"ContradictoryAxioms\") or W3C manifest kind before the lossy collapse. This realizes maximal information flow — logic:SzsContradictoryAxioms and logic:SzsUnsatisfiable both project to logic:ConfInconsistent, yet stay distinguishable on the folded individual through this token (design/LOGIC-CONFORMANCE.md, the external FOL soundness oracle)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:szsStrengthens
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "SZS strengthens"@x-gmeow-english ;
+    skos:definition "The strength order over logic:SzsStatus: relates a status to a weaker status it entails (logic:SzsContradictoryAxioms szsStrengthens logic:SzsUnsatisfiable — contradictory axioms entail, and are strictly stronger than, bare unsatisfiability). Domain and range logic:SzsStatus (stated in prose); transitive. The intra-branch partial order that makes the SZS vocabulary an ordered structure rather than a flat token set, mirroring gmeow:coarserThan over granularity levels; the ordering the monotone logic:ConformanceVerdict projection respects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:projectsToVerdict
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "projects to verdict"@x-gmeow-english ;
+    skos:definition "The machine-readable image of the SZS→conformance-verdict collapse: relates a logic:SzsStatus individual to the logic:ConformanceVerdict its outcome projects onto. Domain logic:SzsStatus, range logic:ConformanceVerdict (stated in prose). This is the dogfooded, on-gate-checkable form of the native crates/conformance/src/external/status.rs::outcome_for_szs table — the monotone map whose lossiness (many statuses to one verdict) is declared by logic:corrSzsToVerdict and whose per-status edges the no-drift gate compares against the Rust table so the ontology and the code can never disagree."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Goal decomposition (gmeow:Goal -> gmeow:Goal, satisfaction dependency) ----
@@ -3613,7 +3782,7 @@ logic:FindingCategory
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Finding Category"@x-gmeow-english ;
-    skos:definition "The closed value class of a validator finding's KIND — an axis orthogonal to its severity, because not all findings are failures. Its individuals are logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, logic:FindingContradictionWitness, logic:FindingPermittedEpistemicConflict, logic:FindingUnsupportedSemanticFeature, logic:FindingIncompleteCheck, logic:FindingProjectionLoss and logic:FindingPolicyWarning. The set is closed; a misspelt value names no declared kind and is rejected. The load-bearing case is logic:FindingPermittedEpistemicConflict: a disclosed, witnessed contradiction permitted by a glut-admitting contract is coherent and does NOT fail the gate (design/LOGIC-CONFORMANCE.md, §The coherence certificate)."@x-gmeow-english ;
+    skos:definition "The closed value class of a validator finding's KIND — an axis orthogonal to its severity, because not all findings are failures. Its individuals are logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, logic:FindingContradictionWitness, logic:FindingPermittedEpistemicConflict, logic:FindingUnsupportedSemanticFeature, logic:FindingIncompleteCheck, logic:FindingProjectionLoss, logic:FindingPolicyWarning, logic:FindingCorroboration and logic:FindingTransientChatter. The set is closed; a misspelt value names no declared kind and is rejected. The load-bearing case is logic:FindingPermittedEpistemicConflict: a disclosed, witnessed contradiction permitted by a glut-admitting contract is coherent and does NOT fail the gate; the mirror case is logic:FindingCorroboration, a native↔published agreement folded as non-blocking positive evidence rather than dropped; logic:FindingTransientChatter is the non-gating chatter kind for general-purpose logging witnesses (design/LOGIC-CONFORMANCE.md, §The coherence certificate)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:FindingDataShapeViolation
@@ -3671,6 +3840,20 @@ logic:FindingPolicyWarning
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Finding Policy Warning"@x-gmeow-english ;
     skos:definition "The logic:FindingCategory for a trust/policy advisory — an untrusted signer, a missing-but-not-required attestation, a soft governance note. Advisory, not a hard failure. Wire value `policy-warning`."@x-gmeow-english .
+
+logic:FindingCorroboration
+    a owl:NamedIndividual ,
+        logic:FindingCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Finding Corroboration"@x-gmeow-english ;
+    skos:definition "The logic:FindingCategory for a native↔published AGREEMENT — the native reasoner's verdict matches the community-decided ground truth of an external-corpus case. NOT a failure and the exact opposite of a logic:FindingIncompleteCheck: it is positive corroborating evidence surfaced for the benchmark surface, coherent, and never blocks a logic:CoherenceCertificate. It is the honest, non-blocking kind an agreeing external-corpus comparison folds as, so agreements are retained as first-class findings rather than dropped. Wire value `corroboration`."@x-gmeow-english .
+
+logic:FindingTransientChatter
+    a owl:NamedIndividual ,
+        logic:FindingCategory ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Finding Transient Chatter"@x-gmeow-english ;
+    skos:definition "The closed CHATTER logic:FindingCategory for general-purpose logging witnesses — the ordinary note/info stream a run emits to narrate its own progress. Never a failure and never a coherence stance: it is transient bookkeeping that carries no evidential weight, contributes nothing to the gate, and can never block a logic:CoherenceCertificate. The home category for a Note or Info witness that records what happened without asserting anything about the data. Wire value `transient-chatter`."@x-gmeow-english .
 
 logic:CoherenceCertificate
     a owl:Class ;

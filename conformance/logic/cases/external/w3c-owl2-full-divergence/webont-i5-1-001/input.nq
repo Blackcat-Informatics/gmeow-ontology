@@ -1,0 +1,5 @@
+<http://example.org/vocab#stateCode> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#InverseFunctionalProperty> <https://gmeow.example/w3c-owl2-full/webont-i5-1-001/w> .
+_:A0 <http://example.org/vocab#population> "2688418" <https://gmeow.example/w3c-owl2-full/webont-i5-1-001/w> .
+_:A0 <http://example.org/vocab#stateCode> "KS" <https://gmeow.example/w3c-owl2-full/webont-i5-1-001/w> .
+_:A1 <http://example.org/vocab#stateBird> <http://example.org/vocab#WesternMeadowlark> <https://gmeow.example/w3c-owl2-full/webont-i5-1-001/w> .
+_:A1 <http://example.org/vocab#stateCode> "KS" <https://gmeow.example/w3c-owl2-full/webont-i5-1-001/w> .

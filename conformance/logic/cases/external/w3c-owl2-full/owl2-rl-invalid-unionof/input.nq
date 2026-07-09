@@ -1,0 +1,9 @@
+<http://owl2.test/rules#C1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-unionof/w> .
+<http://owl2.test/rules#C2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-unionof/w> .
+<http://owl2.test/rules#C> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-unionof/w> .
+<http://owl2.test/rules#C> <http://www.w3.org/2002/07/owl#unionOf> _:rdfxml_list_00000000000000000000000000 <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-unionof/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-unionof/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://owl2.test/rules#C1> <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-unionof/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_list_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-unionof/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://owl2.test/rules#C2> <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-unionof/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-unionof/w> .

@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric>
+    a gmeow:Slice ;
+    rdfs:label "slice-quality-rubric"@x-gmeow-english ;
+    skos:definition "The slice-quality rubric slice of the GMEOW ontology (core tier): the ontology-resident, data-driven rubric the gmeow-dev slice-quality advisor binds to — quality axes, the lattice tier ladder, per-tier thresholds, advice text, read-scope coeffects, and dated exemptions as individuals. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier. This slice is its own self-application capstone: it must score Maximal on the rubric it defines."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    dcterms:title "GMEOW Slice-Quality Rubric Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/quality> ,
+        <https://blackcatinformatics.ca/gmeow/slices/profiles> ,
+        <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:sliceConsumer "The gmeow-dev slice-quality advisor (the per-slice quality report + uplift advisor) and its make-check tier-ratchet gate."@x-gmeow-english ;
+    gmeow:sliceQualityTier gmeow:tierRegistered .

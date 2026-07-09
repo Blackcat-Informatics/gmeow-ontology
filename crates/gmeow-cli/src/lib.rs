@@ -18,12 +18,14 @@
 //! a passthrough child's own exit code for `gts` / `music`.
 
 mod commands;
+mod error;
 mod passthrough;
 
 use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 use gmeow_cli_core::ConsoleMode;
+pub use gmeow_cli_core::ExportFormat;
 
 /// The embedded canonical GMEOW snapshot: the whole ontology + transforms, folded
 /// into one GTS bundle, baked into the binary so `gmeow` needs no repository, no
@@ -173,10 +175,14 @@ pub enum Commands {
         #[arg(long = "base")]
         base: Option<String>,
     },
-    /// Extract the browsable docs tree from a GTS snapshot.
-    #[command(name = "extract-docs")]
-    ExtractDocs {
-        /// Output directory for the docs tree.
+    /// Export documentation projections (site, mdbook, PDF, snippets) from a GTS
+    /// snapshot.
+    #[command(name = "export-docs")]
+    ExportDocs {
+        /// Which documentation projection to export (default: all).
+        #[arg(long, default_value = "all")]
+        format: ExportFormat,
+        /// Output directory for the exported documentation.
         #[arg(long = "directory", short = 'd')]
         directory: PathBuf,
         /// GTS snapshot to document (default: bundled gmeow.gts).
@@ -184,6 +190,18 @@ pub enum Commands {
         /// Write into a non-empty output directory.
         #[arg(long = "force")]
         force: bool,
+    },
+    /// Print the documentation page for one GMEOW term from a GTS snapshot.
+    #[command(name = "docs-on")]
+    DocsOn {
+        /// A GMEOW term: `gmeow:X`, a local name, or a prefix.
+        term: String,
+        /// Print the prompt-ready term card instead of the full page.
+        #[arg(long)]
+        card: bool,
+        /// Read the page from this `.gts` package instead of the bundle.
+        #[arg(long = "gts")]
+        gts: Option<PathBuf>,
     },
     /// Generate CrossRef DOI deposit XML from bundled self-description data.
     Crossref {
@@ -193,6 +211,16 @@ pub enum Commands {
         /// GTS snapshot with self-description metadata.
         #[arg(long = "gts")]
         gts: Option<PathBuf>,
+    },
+    /// Explain a diagnostic witness by its stable fingerprint IRI (a finding) or
+    /// anchor IRI (a cluster): print its provenance DAG plus the substrate algebra
+    /// (gate verdict, minimal fatal cut, anchor cluster, and any Belnap gluts).
+    Explain {
+        /// A finding fingerprint IRI or an anchor IRI from `graph/diagnostics`.
+        target_iri: String,
+        /// GTS snapshot to read diagnostics from (default: bundled gmeow.gts).
+        #[arg(long)]
+        file: Option<PathBuf>,
     },
     /// Start the consumer-safe GMEOW MCP server (stdio transport).
     Mcp,
@@ -326,7 +354,11 @@ pub enum MusicCommands {
 pub(crate) fn resolve_console(flag: Option<ConsoleMode>) -> ConsoleMode {
     use std::io::IsTerminal;
     let env_val = std::env::var("GMEOW_CONSOLE").ok();
-    ConsoleMode::resolve(flag, env_val.as_deref(), std::io::stderr().is_terminal())
+    // The consumer razor: stdout is the product stream, so `auto` resolves to a
+    // human stderr surface (Pretty on a TTY, Text off it) and diagnostics never
+    // interleave NDJSON into piped output. `--console jsonl` opts into the agent
+    // surface deliberately.
+    ConsoleMode::resolve_stderr_default(flag, env_val.as_deref(), std::io::stderr().is_terminal())
 }
 
 /// Parse the arguments, dispatch to the wired backend, and return the process
@@ -334,40 +366,65 @@ pub(crate) fn resolve_console(flag: Option<ConsoleMode>) -> ConsoleMode {
 pub fn run() -> i32 {
     let cli = Cli::parse();
     let console = resolve_console(cli.console);
+    // One boxed reporter for the whole run, chosen from the resolved console mode:
+    // human stderr text, NDJSON for agents, or a silent sink. Every command emits
+    // its diagnostics through this shared reporter channel, never a bare stderr line.
+    let reporter = gmeow_cli_core::reporter_for(console);
+    let reporter = reporter.as_ref();
     let lang = cli.lang;
     match cli.command {
         Commands::Version => commands::version(),
-        Commands::Info { file } => commands::info(file.as_deref()),
+        Commands::Info { file } => commands::info(reporter, file.as_deref()),
         Commands::Verify {
             file,
             trusted_key,
             allow_unsigned,
-        } => commands::verify(file.as_deref(), trusted_key.as_deref(), allow_unsigned),
+        } => commands::verify(
+            reporter,
+            file.as_deref(),
+            trusted_key.as_deref(),
+            allow_unsigned,
+        ),
         Commands::VerifyReleaseBundle { bundle, public_key } => {
-            commands::verify_release_bundle(&bundle, public_key.as_deref())
+            commands::verify_release_bundle(reporter, &bundle, public_key.as_deref())
         }
         Commands::Describe { term, gts } => {
-            commands::describe(&term, gts.as_deref(), lang.as_deref())
+            commands::describe(reporter, &term, gts.as_deref(), lang.as_deref())
         }
         Commands::Validate {
             instance,
             schema,
             format,
             deep,
-        } => commands::validate(&instance, schema.as_deref(), &format, deep, console),
-        Commands::Build { out, gts } => commands::build(&out, gts.as_deref()),
+        } => commands::validate(reporter, &instance, schema.as_deref(), &format, deep),
+        Commands::Build { out, gts } => commands::build(reporter, &out, gts.as_deref()),
         Commands::Project {
             source,
             profile,
             out,
             format,
-        } => commands::project(source.as_deref(), &profile, &out, &format, lang.as_deref()),
+        } => commands::project(
+            reporter,
+            source.as_deref(),
+            &profile,
+            &out,
+            &format,
+            lang.as_deref(),
+        ),
         Commands::Transpile {
             source,
             out,
             profiles,
-        } => commands::transpile(&source, out.as_deref(), &profiles, lang.as_deref()),
-        Commands::Export { out, gts } => commands::export(&out, gts.as_deref(), lang.as_deref()),
+        } => commands::transpile(
+            reporter,
+            &source,
+            out.as_deref(),
+            &profiles,
+            lang.as_deref(),
+        ),
+        Commands::Export { out, gts } => {
+            commands::export(reporter, &out, gts.as_deref(), lang.as_deref())
+        }
         Commands::Convert {
             source,
             from,
@@ -376,6 +433,7 @@ pub fn run() -> i32 {
             loss_report,
             base,
         } => commands::convert(
+            reporter,
             &source,
             &from,
             &to,
@@ -383,16 +441,28 @@ pub fn run() -> i32 {
             loss_report.as_deref(),
             base.as_deref(),
         ),
-        Commands::ExtractDocs {
+        Commands::ExportDocs {
+            format,
             directory,
             file,
             force,
-        } => commands::extract_docs(&directory, file.as_deref(), force, lang.as_deref()),
-        Commands::Crossref { out, gts } => commands::crossref(&out, gts.as_deref()),
-        Commands::Mcp => commands::mcp(),
-        Commands::Gts { args } => passthrough::gts(&args),
-        Commands::Music { command } => passthrough::music(&command),
-        Commands::Affect { command } => passthrough::affect(&command),
+        } => commands::export_docs(
+            reporter,
+            &format,
+            &directory,
+            file.as_deref(),
+            force,
+            lang.as_deref(),
+        ),
+        Commands::DocsOn { term, card, gts } => {
+            commands::docs_on(reporter, &term, card, gts.as_deref(), lang.as_deref())
+        }
+        Commands::Crossref { out, gts } => commands::crossref(reporter, &out, gts.as_deref()),
+        Commands::Explain { target_iri, file } => commands::explain(reporter, target_iri, file),
+        Commands::Mcp => commands::mcp(reporter),
+        Commands::Gts { args } => passthrough::gts(reporter, &args),
+        Commands::Music { command } => passthrough::music(reporter, &command),
+        Commands::Affect { command } => passthrough::affect(reporter, &command),
         Commands::Conjecture { command } => match command {
             ConjectureCommands::Test {
                 formula,
@@ -403,6 +473,7 @@ pub fn run() -> i32 {
                 max_steps,
                 max_answers,
             } => commands::conjecture_test(
+                reporter,
                 &formula,
                 &kb,
                 &standpoint,

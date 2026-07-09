@@ -176,6 +176,7 @@ enum AttestationTypeEnum {
   attestationTypeConformanceVerdict
   attestationTypeCrossCheckAgreement
   attestationTypeDSSE
+  attestationTypeDocumentationArtifact
   attestationTypeEAT
   attestationTypeFactCheck
   attestationTypeGitSignedTag
@@ -230,6 +231,12 @@ enum AwarenessModeEnum {
   modeSedated
   modeTraining
   modeWaking
+}
+
+enum AxisContextScopeEnum {
+  scopeDepsClosure
+  scopeMergedClosure
+  scopeSliceLocal
 }
 
 enum AxisEnum {
@@ -335,6 +342,55 @@ enum AxisEnum {
   axisYear
   axisYellow
   axisZ
+}
+
+enum AxisExemptionEnum {
+  exemptionDocMaturity
+  exemptionDocsPanels
+  exemptionGmnProjection
+}
+
+enum AxisThresholdEnum {
+  thrDocumentationExemplified
+  thrDocumentationGrounded
+  thrDocumentationLinked
+  thrDocumentationMaximal
+  thrGroundingExemplified
+  thrGroundingGrounded
+  thrGroundingLinked
+  thrGroundingMaximal
+  thrInformationExemplified
+  thrInformationGrounded
+  thrInformationLinked
+  thrInformationMaximal
+  thrLinkageExemplified
+  thrLinkageGrounded
+  thrLinkageLinked
+  thrLinkageMaximal
+  thrProjectionExemplified
+  thrProjectionGrounded
+  thrProjectionLinked
+  thrProjectionMaximal
+  thrProseExemplified
+  thrProseGrounded
+  thrProseLinked
+  thrProseMaximal
+  thrProvenanceExemplified
+  thrProvenanceGrounded
+  thrProvenanceLinked
+  thrProvenanceMaximal
+  thrReasonerExemplified
+  thrReasonerGrounded
+  thrReasonerLinked
+  thrReasonerMaximal
+  thrTestingExemplified
+  thrTestingGrounded
+  thrTestingLinked
+  thrTestingMaximal
+  thrTranslationExemplified
+  thrTranslationGrounded
+  thrTranslationLinked
+  thrTranslationMaximal
 }
 
 enum BlockingDispositionEnum {
@@ -2465,6 +2521,7 @@ enum ProfileEnum {
   profileReferenceFrame
   profileTemporalFrame
   profileTemporalProvenance
+  sliceQualityRubric
 }
 
 enum ProjectionContextEnum {
@@ -2529,14 +2586,44 @@ enum PronounSetEnum {
   pronounZheZher
 }
 
+enum QualityAxisEnum {
+  axisDocumentation
+  axisMaximalGrounding
+  axisMaximalInformation
+  axisMaximalLinkage
+  axisMaximalProjection
+  axisOptimalTesting
+  axisProseQuality
+  axisProvenanceHonesty
+  axisReasonerDerived
+  axisTranslationCoverage
+}
+
 enum QualityDimensionEnum {
   qualityDimensionCompleteness
+  qualityDimensionDocumentation
+  qualityDimensionGrounding
+  qualityDimensionInferentialDensity
   qualityDimensionLineage
+  qualityDimensionLinkage
   qualityDimensionLogicalConsistency
   qualityDimensionPositionalAccuracy
+  qualityDimensionProjection
+  qualityDimensionProseQuality
+  qualityDimensionProvenanceHonesty
   qualityDimensionTemporalAccuracy
+  qualityDimensionTesting
   qualityDimensionThematicAccuracy
   qualityDimensionTopologicalConsistency
+  qualityDimensionTranslationCoverage
+}
+
+enum QualityTierEnum {
+  tierExemplified
+  tierGrounded
+  tierLinked
+  tierMaximal
+  tierRegistered
 }
 
 enum QuestionTypeEnum {
@@ -3245,6 +3332,12 @@ enum TuningSystemKindEnum {
   tuningSystemKindWellTemperament
 }
 
+enum VerdictLatticeRelationEnum {
+  VerdictEquivalent
+  VerdictIncomparable
+  VerdictWeaker
+}
+
 enum VerificationStatusEnum {
   verificationStatusExpired
   verificationStatusFailed
@@ -3824,6 +3917,27 @@ type Axis {
   iri: String
 }
 
+type AxisContextScope {
+  id: String
+  iri: String
+}
+
+type AxisExemption {
+  id: String
+  iri: String
+  exemptionDate: String
+  exemptionProducer: String
+  exemptionReason: String
+  exemptsAxis: [QualityAxis!]
+}
+
+type AxisThreshold {
+  id: String
+  iri: String
+  thresholdFloor: Float
+  thresholdTier: QualityTier
+}
+
 type BiologicalParentChild {
   id: String
   iri: String
@@ -4219,6 +4333,11 @@ type ConflictStrategy {
   iri: String
 }
 
+type ConformanceComparison {
+  id: String
+  iri: String
+}
+
 type Connection {
   id: String
   iri: String
@@ -4404,6 +4523,11 @@ type Corpus {
   id: String
   iri: String
   corpusMember: [InformationObject!]
+}
+
+type CorpusAgreementTally {
+  id: String
+  iri: String
 }
 
 type Correspondence {
@@ -7354,9 +7478,26 @@ type QualityAssessment {
   qualityDimension: [QualityDimension!]
 }
 
+type QualityAxis {
+  id: String
+  iri: String
+  axisAdviceTemplate: String
+  axisContextScope: AxisContextScope
+  axisDimension: [QualityDimension!]
+  axisProducer: String
+  axisThreshold: [AxisThreshold!]
+  axisWeight: Float
+}
+
 type QualityDimension {
   id: String
   iri: String
+}
+
+type QualityTier {
+  id: String
+  iri: String
+  tierRank: Int
 }
 
 type Quantity {
@@ -8490,6 +8631,11 @@ type VectorIndex {
   indexAlgorithm: IndexAlgorithm
   indexParameters: [String!]
   indexesCorpus: [Corpus!]
+}
+
+type VerdictLatticeRelation {
+  id: String
+  iri: String
 }
 
 type VerificationActivity {

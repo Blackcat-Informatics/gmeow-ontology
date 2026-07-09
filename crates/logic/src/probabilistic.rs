@@ -40,6 +40,12 @@ use crate::profile_gate::is_probabilistic_profile;
 use crate::query_ir::{QAtom, QBodyLit, QGoal, QProbModel, QProgram, QRule, QTerm};
 use crate::store::WorldStore;
 
+/// Wrap a probabilistic-inference condition message as a typed diagnostic on the
+/// shared substrate, preserving the authored text verbatim.
+fn probabilistic_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Probabilistic { detail })
+}
+
 /// Tolerance for the joint-table sum-to-one check and for treating a marginal as zero.
 const EPS: f64 = 1e-9;
 /// Decimals of precision the returned marginals are rounded to, so the float matches
@@ -197,11 +203,11 @@ pub fn evaluate(
     program: &QProgram,
     profile: &str,
     declared_row_schema: Option<crate::result_shape::ResultShape>,
-) -> Result<ProbAnswer, String> {
+) -> gmeow_errors::Result<ProbAnswer> {
     if !is_probabilistic_profile(profile) {
-        return Err(format!(
+        return Err(probabilistic_err(format!(
             "probabilistic::evaluate called with non-probabilistic profile {profile:?}"
-        ));
+        )));
     }
 
     // Cut is operational and belongs only to ProceduralPrologProfile; it has no
@@ -211,11 +217,11 @@ pub fn evaluate(
         .iter()
         .any(|r| r.body.iter().any(|l| matches!(l, QBodyLit::Cut)))
     {
-        return Err(
+        return Err(probabilistic_err(
             "program contains cut (`!`) under ProbabilisticProfile; cut is permitted only \
              under ProceduralPrologProfile"
                 .to_owned(),
-        );
+        ));
     }
 
     // ── Refusal guard: probabilistic facts but no declared model → unknown ────
@@ -229,7 +235,7 @@ pub fn evaluate(
         let result = if let Some(schema) = declared_row_schema {
             result
                 .with_declared_row_schema(schema)
-                .map_err(|v| v.to_string())?
+                .map_err(|v| probabilistic_err(v.to_string()))?
         } else {
             result
         };
@@ -338,7 +344,7 @@ pub fn evaluate(
     let result = if let Some(schema) = declared_row_schema {
         result
             .with_declared_row_schema(schema)
-            .map_err(|v| v.to_string())?
+            .map_err(|v| probabilistic_err(v.to_string()))?
     } else {
         result
     };
@@ -365,7 +371,10 @@ pub fn evaluate(
 /// `conformance/logic/cases/profiles/probabilistic-*` cases). On-demand mask
 /// materialization (`push_facts_for_mask`, streamed through `sink`) still avoids
 /// the upfront `2^N Vec<Fact>` allocation.
-fn for_each_choice(program: &QProgram, sink: &mut dyn FnMut(&[Fact], f64)) -> Result<(), String> {
+fn for_each_choice(
+    program: &QProgram,
+    sink: &mut dyn FnMut(&[Fact], f64),
+) -> gmeow_errors::Result<()> {
     // Independent probabilistic facts (always present; under a dependency model
     // they are the facts OUTSIDE the correlated set). Each fact must be declared
     // at most once: a duplicate `:- probability(...)` would otherwise be counted
@@ -376,10 +385,10 @@ fn for_each_choice(program: &QProgram, sink: &mut dyn FnMut(&[Fact], f64)) -> Re
     for pf in &program.prob_facts {
         let fact = atom_to_fact(&pf.atom)?;
         if !seen.insert(fact.clone()) {
-            return Err(format!(
+            return Err(probabilistic_err(format!(
                 "duplicate probability(...) declaration for fact {fact:?}; each probabilistic \
                  fact must be declared at most once"
-            ));
+            )));
         }
         indep.push((fact, parse_prob(&pf.prob)?));
     }
@@ -387,11 +396,11 @@ fn for_each_choice(program: &QProgram, sink: &mut dyn FnMut(&[Fact], f64)) -> Re
     // Exact enumeration is 2^N over the independent facts; refuse an N that would
     // overflow the `1u64 << N` shift or exhaust memory/CPU (see MAX_INDEPENDENT_FACTS).
     if indep.len() > MAX_INDEPENDENT_FACTS {
-        return Err(format!(
+        return Err(probabilistic_err(format!(
             "too many independent probabilistic facts ({}); exact weighted model counting is \
              limited to {MAX_INDEPENDENT_FACTS} to avoid overflow and out-of-memory",
             indep.len()
-        ));
+        )));
     }
 
     // The independent power set as `(u64 mask, product weight)` — masks only, so we
@@ -410,10 +419,10 @@ fn for_each_choice(program: &QProgram, sink: &mut dyn FnMut(&[Fact], f64)) -> Re
                 .collect::<Result<HashSet<_>, _>>()?;
             for (f, _) in &indep {
                 if correlated.contains(f) {
-                    return Err(format!(
+                    return Err(probabilistic_err(format!(
                         "fact {f:?} is declared both as an independent probability(...) and in a \
                          joint(...) outcome; it must be one or the other"
-                    ));
+                    )));
                 }
             }
             // Joint outcome probabilities must sum to one.
@@ -430,9 +439,9 @@ fn for_each_choice(program: &QProgram, sink: &mut dyn FnMut(&[Fact], f64)) -> Re
                 joint_choices.push((facts, p));
             }
             if (sum - 1.0).abs() > EPS {
-                return Err(format!(
+                return Err(probabilistic_err(format!(
                     "joint(...) outcome probabilities must sum to 1.0; got {sum}"
-                ));
+                )));
             }
             // Cross product: each joint outcome × each independent subset, streamed.
             // The combined fact list is built in a reusable scratch buffer and
@@ -683,12 +692,12 @@ fn goal_bindings(goal: &QGoal, model: &HashSet<Fact>) -> Vec<BTreeMap<String, St
 
 /// Convert a (possibly variable-bearing) atom to a ground [`Fact`], erroring on a
 /// variable — used for `probability`/`joint`/`confidence` atoms, which must be ground.
-fn atom_to_fact(atom: &QAtom) -> Result<Fact, String> {
+fn atom_to_fact(atom: &QAtom) -> gmeow_errors::Result<Fact> {
     ground_atom_to_fact(atom).ok_or_else(|| {
-        format!(
+        probabilistic_err(format!(
             "atom {:?} must be ground (no variables) in a probabilistic declaration",
             atom.pred
-        )
+        ))
     })
 }
 
@@ -711,10 +720,10 @@ fn ground_atom_to_fact(atom: &QAtom) -> Option<Fact> {
 }
 
 /// Parse a probability token to `f64` (already range-validated by the parser).
-fn parse_prob(tok: &str) -> Result<f64, String> {
+fn parse_prob(tok: &str) -> gmeow_errors::Result<f64> {
     tok.trim()
         .parse::<f64>()
-        .map_err(|e| format!("probability token {tok:?} is not a decimal: {e}"))
+        .map_err(|e| probabilistic_err(format!("probability token {tok:?} is not a decimal: {e}")))
 }
 
 /// Strip surrounding angle brackets from an `<iri>` string; pass other forms through.
@@ -940,7 +949,10 @@ mod tests {
         );
         let prog = parse_query_program(&src).unwrap();
         let err = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap_err();
-        assert!(err.contains("duplicate"), "unexpected error: {err}");
+        assert!(
+            err.message().contains("duplicate"),
+            "unexpected error: {err}"
+        );
     }
 
     // ── Too many independent facts is refused, not panicked ───────────────────
@@ -960,7 +972,10 @@ mod tests {
         src.push_str("?- ex:f0(ex:s, X).\n");
         let prog = parse_query_program(&src).unwrap();
         let err = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap_err();
-        assert!(err.contains("too many"), "unexpected error: {err}");
+        assert!(
+            err.message().contains("too many"),
+            "unexpected error: {err}"
+        );
     }
 
     // ── Cut is rejected under the probabilistic profile ───────────────────────
@@ -976,7 +991,7 @@ mod tests {
         );
         let prog = parse_query_program(&src).unwrap();
         let err = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap_err();
-        assert!(err.contains("cut"), "unexpected error: {err}");
+        assert!(err.message().contains("cut"), "unexpected error: {err}");
     }
 
     // ── Malformed joint table: probabilities must sum to one ──────────────────
@@ -993,7 +1008,10 @@ mod tests {
         );
         let prog = parse_query_program(&src).unwrap();
         let err = evaluate(&store, WORLD, &prog, PROFILE, None).unwrap_err();
-        assert!(err.contains("sum to 1"), "unexpected error: {err}");
+        assert!(
+            err.message().contains("sum to 1"),
+            "unexpected error: {err}"
+        );
     }
 
     // ── SIMD bit-identity probe: power_set_weights matches independent scalar ──
@@ -1152,7 +1170,7 @@ mod tests {
 
         let err = evaluate(&store, WORLD, &prog, PROFILE, Some(schema)).unwrap_err();
         assert!(
-            err.contains("result-shape violation"),
+            err.message().contains("result-shape violation"),
             "ContractViolation must be propagated as Err: {err}"
         );
     }

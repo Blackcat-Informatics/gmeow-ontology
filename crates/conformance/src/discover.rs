@@ -24,6 +24,10 @@
 
 use std::path::{Path, PathBuf};
 
+use gmeow_errors::Diag;
+
+use crate::error::{CaseAnatomy, Io, ProfileInvalid};
+
 /// A discovered, validated conformance case.
 #[derive(Debug, Clone)]
 pub struct ConformanceCase {
@@ -42,15 +46,17 @@ pub struct ConformanceCase {
 /// silent skip — verification-honesty). This is the harness entry point: the
 /// glob already proved `profile.json` exists, so a missing `input.logic.ttl` here
 /// is a malformed case and a hard failure.
-pub fn validate_case(case_dir: &Path) -> Result<ConformanceCase, String> {
+pub fn validate_case(case_dir: &Path) -> gmeow_errors::Result<ConformanceCase> {
     let case_id = crate::paths::case_id(case_dir);
 
     let input = case_dir.join("input.logic.ttl");
     if !input.is_file() {
-        return Err(format!(
-            "case {case_id}: input.logic.ttl not found at {}",
-            input.display()
-        ));
+        return Err(Diag::of_kind(CaseAnatomy {
+            detail: format!(
+                "case {case_id}: input.logic.ttl not found at {}",
+                input.display()
+            ),
+        }));
     }
 
     let profile = read_profile_object(&case_id, case_dir)?;
@@ -77,13 +83,15 @@ pub fn validate_case(case_dir: &Path) -> Result<ConformanceCase, String> {
 /// # Errors
 /// Returns an error if `cases_root` is not a directory, or any discovered case's
 /// `profile.json` is unreadable / not a JSON object.
-pub fn discover_cases(cases_root: &Path) -> Result<Vec<ConformanceCase>, String> {
+pub fn discover_cases(cases_root: &Path) -> gmeow_errors::Result<Vec<ConformanceCase>> {
     if !cases_root.is_dir() {
-        return Err(format!(
-            "conformance cases directory does not exist: {}. \
-             Expected conformance/logic/cases/ to be present.",
-            cases_root.display()
-        ));
+        return Err(Diag::of_kind(CaseAnatomy {
+            detail: format!(
+                "conformance cases directory does not exist: {}. \
+                 Expected conformance/logic/cases/ to be present.",
+                cases_root.display()
+            ),
+        }));
     }
 
     let mut found = Vec::new();
@@ -94,7 +102,7 @@ pub fn discover_cases(cases_root: &Path) -> Result<Vec<ConformanceCase>, String>
 /// Recursively collect cases under `dir`. A directory holding both sentinels is a
 /// case (and is not descended into); otherwise its subdirectories are walked in
 /// sorted order.
-fn collect_cases(dir: &Path, found: &mut Vec<ConformanceCase>) -> Result<(), String> {
+fn collect_cases(dir: &Path, found: &mut Vec<ConformanceCase>) -> gmeow_errors::Result<()> {
     let input = dir.join("input.logic.ttl");
     let profile_path = dir.join("profile.json");
     // Sentinels must be FILES (not e.g. a directory named `profile.json`), matching
@@ -116,25 +124,37 @@ fn collect_cases(dir: &Path, found: &mut Vec<ConformanceCase>) -> Result<(), Str
 }
 
 /// Read `<case_dir>/profile.json`, requiring it to be a readable JSON object.
-fn read_profile_object(case_id: &str, case_dir: &Path) -> Result<serde_json::Value, String> {
+fn read_profile_object(case_id: &str, case_dir: &Path) -> gmeow_errors::Result<serde_json::Value> {
     let profile_path = case_dir.join("profile.json");
-    let text = std::fs::read_to_string(&profile_path)
-        .map_err(|e| format!("case {case_id}: cannot read profile.json: {e}"))?;
-    let value: serde_json::Value = serde_json::from_str(&text)
-        .map_err(|e| format!("case {case_id}: cannot parse profile.json: {e}"))?;
+    let text = std::fs::read_to_string(&profile_path).map_err(|e| {
+        Diag::of_kind(Io {
+            detail: format!("case {case_id}: cannot read profile.json: {e}"),
+        })
+    })?;
+    let value: serde_json::Value = serde_json::from_str(&text).map_err(|e| {
+        Diag::of_kind(ProfileInvalid {
+            detail: format!("case {case_id}: cannot parse profile.json: {e}"),
+        })
+    })?;
     if !value.is_object() {
-        return Err(format!(
-            "case {case_id}: profile.json must be a JSON object, got {}",
-            json_type_name(&value)
-        ));
+        return Err(Diag::of_kind(ProfileInvalid {
+            detail: format!(
+                "case {case_id}: profile.json must be a JSON object, got {}",
+                json_type_name(&value)
+            ),
+        }));
     }
     Ok(value)
 }
 
 /// The immediate subdirectories of `dir`, sorted by path for deterministic order.
-fn sorted_subdirs(dir: &Path) -> Result<Vec<PathBuf>, String> {
+fn sorted_subdirs(dir: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let mut subdirs: Vec<PathBuf> = std::fs::read_dir(dir)
-        .map_err(|e| format!("cannot read directory {}: {e}", dir.display()))?
+        .map_err(|e| {
+            Diag::of_kind(Io {
+                detail: format!("cannot read directory {}: {e}", dir.display()),
+            })
+        })?
         .filter_map(Result::ok)
         .map(|entry| entry.path())
         .filter(|p| p.is_dir())
@@ -245,7 +265,7 @@ mod tests {
         std::fs::create_dir_all(&case).expect("mkdir");
         std::fs::write(case.join("profile.json"), "{}").expect("write");
         let err = validate_case(&case).unwrap_err();
-        assert!(err.contains("input.logic.ttl not found"));
+        assert!(err.message().contains("input.logic.ttl not found"));
         let _ = std::fs::remove_dir_all(&tmp);
     }
 
@@ -258,7 +278,7 @@ mod tests {
         std::fs::write(case.join("input.logic.ttl"), "").expect("write input");
         std::fs::write(case.join("profile.json"), "[1, 2, 3]").expect("write profile");
         let err = validate_case(&case).unwrap_err();
-        assert!(err.contains("must be a JSON object"));
+        assert!(err.message().contains("must be a JSON object"));
         let _ = std::fs::remove_dir_all(&tmp);
     }
 }

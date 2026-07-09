@@ -1,0 +1,5 @@
+<http://example.org/user/data#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Datatype> <https://gmeow.example/w3c-owl2-full/webont-i5-8-013/w> .
+<http://example.org/user/data#type> <http://www.w3.org/2000/01/rdf-schema#comment> "\n  This type maps the string \"foo\" to the number 3.\n  All other strings are not in the lexical space.\n       " <https://gmeow.example/w3c-owl2-full/webont-i5-8-013/w> .
+<http://www.w3.org/2002/03owlt/I5.8/consistent013#prop> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> <https://gmeow.example/w3c-owl2-full/webont-i5-8-013/w> .
+<http://www.w3.org/2002/03owlt/I5.8/consistent013#prop> <http://www.w3.org/2000/01/rdf-schema#range> <http://example.org/user/data#type> <https://gmeow.example/w3c-owl2-full/webont-i5-8-013/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-i5-8-013/w> .

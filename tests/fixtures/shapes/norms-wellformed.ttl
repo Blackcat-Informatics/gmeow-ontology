@@ -13,6 +13,7 @@
 
 ex:principia a gmeow:Standpoint ; rdfs:label "the principia standpoint"@en .
 ex:ada       a gmeow:Person ; rdfs:label "Ada"@en .
+gmeow:actionReproduce a gmeow:RightsAction .
 
 ex:system a gmeow:NormativeSystem ;
     rdfs:label "example normative system"@en ;

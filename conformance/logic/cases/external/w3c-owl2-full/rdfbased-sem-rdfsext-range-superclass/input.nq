@@ -1,0 +1,2 @@
+<http://www.example.org#c1> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.example.org#c2> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-rdfsext-range-superclass/w> .
+<http://www.example.org#p> <http://www.w3.org/2000/01/rdf-schema#range> <http://www.example.org#c1> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-rdfsext-range-superclass/w> .

@@ -18,6 +18,8 @@
 //! diagnostic, or an IR mismatch — is a HARD error (no-optionality doctrine); the
 //! Exact claim forbids a silent drop, so there is no fallback path.
 
+use gmeow_errors::Diag;
+
 use crate::adapter::assert_ir_isomorphic;
 use crate::cgif::{parse_cgif_str, project_cgif};
 use crate::clif::{parse_clif_str, project_clif};
@@ -44,7 +46,7 @@ use crate::xcl::{parse_xcl_str, project_xcl};
 /// Returns a human-readable, dialect-prefixed error on a projection failure, a fatal
 /// re-parse, a `Severity::Error` diagnostic, a non-idempotent fixpoint, or a cross-dialect
 /// disagreement.
-pub fn assert_all_dialects_isomorphic(program: &LogicProgram) -> Result<(), String> {
+pub fn assert_all_dialects_isomorphic(program: &LogicProgram) -> gmeow_errors::Result<()> {
     let [clif, cgif, xcl] = dialect_fixpoints(program)?;
 
     // Cross-dialect equivalence — all three edges explicit (do NOT lean on transitivity
@@ -66,7 +68,7 @@ pub fn assert_all_dialects_isomorphic(program: &LogicProgram) -> Result<(), Stri
 /// is a no-op. Hard-fails on the same projection / re-parse errors as the round-trip.
 pub fn dialect_fixpoint_projections(
     program: &LogicProgram,
-) -> Result<[(&'static str, String); 3], String> {
+) -> gmeow_errors::Result<[(&'static str, String); 3]> {
     let [clif, cgif, xcl] = dialect_fixpoints(program)?;
     Ok([
         ("clif", project_content("clif", project_clif(&clif.1))?),
@@ -77,24 +79,35 @@ pub fn dialect_fixpoint_projections(
 
 /// Compute each dialect's idempotence-proved fixpoint, returned as
 /// `[(name, fp); 3]` in `clif, cgif, xcl` order.
-fn dialect_fixpoints(program: &LogicProgram) -> Result<[(&'static str, LogicProgram); 3], String> {
+fn dialect_fixpoints(
+    program: &LogicProgram,
+) -> gmeow_errors::Result<[(&'static str, LogicProgram); 3]> {
     let clif = dialect_fixpoint(
         "clif",
         program,
         |p| project_content("clif", project_clif(p)),
-        |text| parse_clif_str(text, program.source_iri.clone()).map_err(|e| e.0),
+        |text| {
+            parse_clif_str(text, program.source_iri.clone())
+                .map_err(|e| Diag::of_kind(crate::error::Roundtrip { detail: e.0 }))
+        },
     )?;
     let cgif = dialect_fixpoint(
         "cgif",
         program,
         |p| project_content("cgif", project_cgif(p)),
-        |text| parse_cgif_str(text, program.source_iri.clone()).map_err(|e| e.0),
+        |text| {
+            parse_cgif_str(text, program.source_iri.clone())
+                .map_err(|e| Diag::of_kind(crate::error::Roundtrip { detail: e.0 }))
+        },
     )?;
     let xcl = dialect_fixpoint(
         "xcl",
         program,
         |p| project_content("xcl", project_xcl(p)),
-        |text| parse_xcl_str(text, program.source_iri.clone()).map_err(|e| e.0),
+        |text| {
+            parse_xcl_str(text, program.source_iri.clone())
+                .map_err(|e| Diag::of_kind(crate::error::Roundtrip { detail: e.0 }))
+        },
     )?;
     Ok([("clif", clif), ("cgif", cgif), ("xcl", xcl)])
 }
@@ -108,16 +121,18 @@ fn dialect_fixpoints(program: &LogicProgram) -> Result<[(&'static str, LogicProg
 fn dialect_fixpoint(
     dialect: &str,
     program: &LogicProgram,
-    project: impl Fn(&LogicProgram) -> Result<String, String>,
-    parse: impl Fn(&str) -> Result<(LogicProgram, Vec<Diagnostic>), String>,
-) -> Result<LogicProgram, String> {
+    project: impl Fn(&LogicProgram) -> gmeow_errors::Result<String>,
+    parse: impl Fn(&str) -> gmeow_errors::Result<(LogicProgram, Vec<Diagnostic>)>,
+) -> gmeow_errors::Result<LogicProgram> {
     let fp1 = parse_checked(dialect, &project(program)?, &parse)?;
     let fp2 = parse_checked(dialect, &project(&fp1)?, &parse)?;
     assert_ir_isomorphic(&fp1, &fp2).map_err(|e| {
-        format!(
-            "cl-roundtrip [{dialect}]: not idempotent at its fixpoint: {}",
-            e.0
-        )
+        Diag::of_kind(crate::error::Roundtrip {
+            detail: format!(
+                "cl-roundtrip [{dialect}]: not idempotent at its fixpoint: {}",
+                e.0
+            ),
+        })
     })?;
     Ok(fp1)
 }
@@ -127,15 +142,20 @@ fn dialect_fixpoint(
 fn parse_checked(
     dialect: &str,
     text: &str,
-    parse: impl Fn(&str) -> Result<(LogicProgram, Vec<Diagnostic>), String>,
-) -> Result<LogicProgram, String> {
-    let (program, diagnostics) =
-        parse(text).map_err(|e| format!("cl-roundtrip [{dialect}]: re-parse failed: {e}"))?;
+    parse: impl Fn(&str) -> gmeow_errors::Result<(LogicProgram, Vec<Diagnostic>)>,
+) -> gmeow_errors::Result<LogicProgram> {
+    let (program, diagnostics) = parse(text).map_err(|e| {
+        Diag::of_kind(crate::error::Roundtrip {
+            detail: format!("cl-roundtrip [{dialect}]: re-parse failed: {e}"),
+        })
+    })?;
     if let Some(err) = diagnostics.iter().find(|d| d.severity == Severity::Error) {
-        return Err(format!(
-            "cl-roundtrip [{dialect}]: re-parse emitted a Severity::Error diagnostic [{}]: {}",
-            err.code, err.message
-        ));
+        return Err(Diag::of_kind(crate::error::Roundtrip {
+            detail: format!(
+                "cl-roundtrip [{dialect}]: re-parse emitted a Severity::Error diagnostic [{}]: {}",
+                err.code, err.message
+            ),
+        }));
     }
     Ok(program)
 }
@@ -143,17 +163,22 @@ fn parse_checked(
 /// Unwrap one dialect projection into its content text, dialect-prefixing any error.
 fn project_content(
     dialect: &str,
-    projected: Result<ProjectionResult, String>,
-) -> Result<String, String> {
-    projected
-        .map(|p| p.content)
-        .map_err(|e| format!("cl-roundtrip [{dialect}]: projection failed: {e}"))
+    projected: gmeow_errors::Result<ProjectionResult>,
+) -> gmeow_errors::Result<String> {
+    projected.map(|p| p.content).map_err(|e| {
+        Diag::of_kind(crate::error::Roundtrip {
+            detail: format!("cl-roundtrip [{dialect}]: projection failed: {e}"),
+        })
+    })
 }
 
 /// Assert two dialect reconstructions are IR-isomorphic (one cross-dialect edge).
-fn cross_edge(da: &str, a: &LogicProgram, db: &str, b: &LogicProgram) -> Result<(), String> {
-    assert_ir_isomorphic(a, b)
-        .map_err(|e| format!("cl-roundtrip cross-dialect {da} != {db}: {}", e.0))
+fn cross_edge(da: &str, a: &LogicProgram, db: &str, b: &LogicProgram) -> gmeow_errors::Result<()> {
+    assert_ir_isomorphic(a, b).map_err(|e| {
+        Diag::of_kind(crate::error::Roundtrip {
+            detail: format!("cl-roundtrip cross-dialect {da} != {db}: {}", e.0),
+        })
+    })
 }
 
 #[cfg(test)]
@@ -248,7 +273,10 @@ mod tests {
         // Two programs that differ in one axiom subject must not pass a cross edge.
         let err = cross_edge("clif", &fixture("socrates"), "cgif", &fixture("plato"))
             .expect_err("divergent programs must fail the cross edge");
-        assert!(err.contains("cross-dialect clif != cgif"), "{err}");
+        assert!(
+            err.message().contains("cross-dialect clif != cgif"),
+            "{err}"
+        );
     }
 
     #[test]
@@ -275,7 +303,10 @@ mod tests {
             },
         )
         .expect_err("non-idempotent fixpoint must fail");
-        assert!(err.contains("not idempotent at its fixpoint"), "{err}");
+        assert!(
+            err.message().contains("not idempotent at its fixpoint"),
+            "{err}"
+        );
     }
 
     #[test]
@@ -294,6 +325,6 @@ mod tests {
             ))
         })
         .expect_err("error diagnostic must fail");
-        assert!(err.contains("Severity::Error"), "{err}");
+        assert!(err.message().contains("Severity::Error"), "{err}");
     }
 }

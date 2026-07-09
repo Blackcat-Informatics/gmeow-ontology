@@ -22,14 +22,6 @@ use crate::model::rdf;
 
 const TOOL: &str = "repo-static";
 
-// No runtime rdflib keeper remains: the rdflib↔purrdf query cross-check
-// (`oracles/engine_crosscheck.py`) — the last first-party user of upstream
-// rdflib — has been DELETED (purrdf's own rdflib-parity + W3C SPARQL
-// conformance make it redundant), so first-party code is now rdflib-free and
-// must use `purrdf.compat.rdflib` exclusively. An empty keeper list means the
-// lint rejects ANY upstream-rdflib import in `src/gmeow_tools`.
-const RDFLIB_KEEPERS: &[&str] = &[];
-
 // The ELK/HermiT/Docker OWL-reasoner lane has been DELETED entirely — the
 // native `logic:` reasoner + in-process `purrdf::entail` oracle replaced it, so
 // no Makefile target reaches Docker/Java anymore. The invariant is now that the
@@ -78,12 +70,11 @@ impl RepoStaticReport {
 pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     let mut report = RepoStaticReport::default();
     check_lane_purity(root, &mut report);
-    check_no_rdflib_in_runtime(root, &mut report);
-    check_no_docker_lane_python(root, &mut report);
     check_projection_compute_purity(root, &mut report);
     check_projection_shape_purity(root, &mut report);
     check_no_generated_read_in_pipeline_stages(root, &mut report);
-    check_no_run_shacl_seam(root, &mut report);
+    check_no_first_party_error_crate_deps(root, &mut report);
+    check_no_string_result_error_type(root, &mut report);
     report
 }
 
@@ -110,202 +101,6 @@ pub fn to_diagnostics_report(report: &RepoStaticReport) -> Report {
         );
     }
     out
-}
-
-fn check_no_rdflib_in_runtime(root: &Path, report: &mut RepoStaticReport) {
-    let src = root.join("src").join("gmeow_tools");
-    let allowed = RDFLIB_KEEPERS
-        .iter()
-        .copied()
-        .collect::<BTreeSet<&'static str>>();
-    let mut actual = BTreeSet::new();
-    for path in python_files(&src, report) {
-        let rel = slash_path(path.strip_prefix(&src).unwrap_or(&path));
-        let text = match fs::read_to_string(&path) {
-            Ok(text) => text,
-            Err(err) => {
-                report.error(format!("{}: cannot read: {err}", path.display()));
-                continue;
-            }
-        };
-        let code = strip_python_non_code(&text);
-        let imports = python_imported_top_modules(&code);
-        if imports.contains("rdflib") {
-            actual.insert(rel);
-        }
-    }
-
-    let allowed_owned = allowed
-        .iter()
-        .map(|s| (*s).to_owned())
-        .collect::<BTreeSet<_>>();
-    let offenders = actual
-        .difference(&allowed_owned)
-        .cloned()
-        .collect::<Vec<_>>();
-    if !offenders.is_empty() {
-        report.error(format!(
-            "first-party modules must use purrdf.compat.rdflib, not upstream rdflib: {}",
-            offenders.join(", ")
-        ));
-    }
-
-    let actual_refs = actual.iter().map(String::as_str).collect::<BTreeSet<_>>();
-    if actual_refs != allowed {
-        let expected = allowed.iter().copied().collect::<Vec<_>>().join(", ");
-        let found = actual.iter().cloned().collect::<Vec<_>>().join(", ");
-        report.error(format!(
-            "rdflib keeper allow-list is stale: expected {{{expected}}}, found {{{found}}}"
-        ));
-    }
-}
-
-/// The retired Docker/Java OWL-reasoner lane's first-party Python symbols. That lane (ROBOT +
-/// Jena pinned-image subprocess reasoning) has been permanently removed; no `src/gmeow_tools`
-/// module or the root `conftest.py` may reference these again. This seals the deletion against
-/// re-introduction — the Python-surface complement of the Makefile + required-CI Docker-freedom
-/// guards (`check_makefile_lane_purity` / `check_required_ci_jobs`).
-const DOCKER_LANE_PYTHON_SYMBOLS: &[&str] = &[
-    "gmeow_tools.runner",
-    "image_available",
-    "ROBOT_IMAGE",
-    "JENA_IMAGE",
-];
-
-/// Hard-fail if any first-party Python (`src/gmeow_tools/**` + the root `conftest.py`) references
-/// a retired Docker-reasoning-lane symbol. Scans code only (comments/strings are stripped), so a
-/// docstring mentioning the removed lane does not trip it. Scoped ONLY to the permanently-gone
-/// Docker symbols — NOT a general dead-module gate (that is a whole-surface concern for later).
-fn check_no_docker_lane_python(root: &Path, report: &mut RepoStaticReport) {
-    let mut files = python_files(&root.join("src").join("gmeow_tools"), report);
-    let conftest = root.join("conftest.py");
-    if conftest.is_file() {
-        files.push(conftest);
-    }
-    files.sort();
-    // Match each retired symbol on a word boundary, NOT as a bare substring: `contains` would
-    // false-positive when a symbol is a substring of a live identifier (`ROBOT_IMAGE` ⊂
-    // `ROBOT_IMAGE_PATH`, `image_available` ⊂ `is_image_available`). `regex::escape` neutralizes
-    // the `.` in `gmeow_tools.runner`; `_` is a word char, so `\bROBOT_IMAGE\b` cannot match
-    // inside `ROBOT_IMAGE_PATH` (the boundary between `E` and `_` fails).
-    let mut symbol_regexes: Vec<(&&str, Regex)> =
-        Vec::with_capacity(DOCKER_LANE_PYTHON_SYMBOLS.len());
-    for sym in DOCKER_LANE_PYTHON_SYMBOLS {
-        let pattern = format!(r"\b{}\b", regex::escape(sym));
-        match Regex::new(&pattern) {
-            Ok(re) => symbol_regexes.push((sym, re)),
-            Err(err) => {
-                report.error(format!(
-                    "Docker-reasoning-lane guard: symbol regex for `{sym}` failed to compile: {err}"
-                ));
-                return;
-            }
-        }
-    }
-    for path in files {
-        let text = match fs::read_to_string(&path) {
-            Ok(text) => text,
-            Err(err) => {
-                report.error(format!("{}: cannot read: {err}", path.display()));
-                continue;
-            }
-        };
-        let code = strip_python_non_code(&text);
-        let hits = symbol_regexes
-            .iter()
-            .filter(|(_, re)| re.is_match(&code))
-            .map(|(sym, _)| **sym)
-            .collect::<Vec<_>>();
-        if !hits.is_empty() {
-            let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
-            report.error(format!(
-                "retired Docker-reasoning-lane symbol(s) re-introduced in first-party Python {rel}: {} — that lane is permanently removed",
-                hits.join(", ")
-            ));
-        }
-    }
-}
-
-/// Hard-fail if the retired black-box SHACL test seam is re-introduced. The
-/// `gmeow_tools.validate.run_shacl` helper (validate an rdflib graph → N-Triples → SHACL) and the
-/// `tests/_graph_nt.py` rdflib→N-Triples adapter drove the domain conformance tests; that surface
-/// is now native (`crates/validate/tests/conformance_*.rs` + `label_completeness.rs` over
-/// `structural_lint_dataset`). This seals the deletion — the Python-surface complement of the
-/// native conformance twins — so the next author cannot silently re-add a black-box Python SHACL
-/// helper. Scans code only (comments/strings stripped), so a docstring mentioning `run_shacl` is
-/// fine. NOT tripped by `src/gmeow_tools/language_tags.py`'s unrelated private `_graph_nt` helper
-/// (that is not the `tests._graph_nt` module).
-fn check_no_run_shacl_seam(root: &Path, report: &mut RepoStaticReport) {
-    // 1. The rdflib→N-Triples adapter file must not exist.
-    if root.join("tests").join("_graph_nt.py").is_file() {
-        report.error(
-            "tests/_graph_nt.py has been retired (its run_shacl / structural_lint shims are \
-             native now); it must not be re-created"
-                .to_owned(),
-        );
-    }
-
-    // 2. No first-party Python may define a `run_shacl` helper or import `tests._graph_nt`.
-    let mut files = python_files(&root.join("src").join("gmeow_tools"), report);
-    for dir in [root.join("tests"), root.join("slices")] {
-        if dir.is_dir() {
-            collect_python_files(&dir, report, &mut files);
-        }
-    }
-    files.sort();
-    files.dedup();
-
-    let run_shacl_def = match Regex::new(r"\bdef\s+run_shacl\b") {
-        Ok(re) => re,
-        Err(err) => {
-            report.error(format!(
-                "run_shacl-seam guard: def regex failed to compile: {err}"
-            ));
-            return;
-        }
-    };
-    // Match every import shape that pulls in the retired `_graph_nt` *module*, not the unrelated
-    // private `_graph_nt` *function* in `language_tags.py`. Two alternations:
-    //   1. the dotted form — `import tests._graph_nt` / `from tests._graph_nt import ...`;
-    //   2. a `from <pkg> import ... _graph_nt` form where `<pkg>` is `tests` or a relative-import
-    //      dot-run (`.` / `..` / `.tests` / ...) — catches `from tests import _graph_nt` and
-    //      `from . import _graph_nt`. The `from ... import` context is required, so a `def
-    //      _graph_nt(` definition or a `_graph_nt(graph)` call can never trip it.
-    let graph_nt_import = match Regex::new(
-        r"\btests\._graph_nt\b|\bfrom\s+(?:tests|\.+[\w.]*)\s+import\b[^\n]*\b_graph_nt\b",
-    ) {
-        Ok(re) => re,
-        Err(err) => {
-            report.error(format!(
-                "run_shacl-seam guard: import regex failed to compile: {err}"
-            ));
-            return;
-        }
-    };
-
-    for path in files {
-        let text = match fs::read_to_string(&path) {
-            Ok(text) => text,
-            Err(err) => {
-                report.error(format!("{}: cannot read: {err}", path.display()));
-                continue;
-            }
-        };
-        let code = strip_python_non_code(&text);
-        let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
-        if run_shacl_def.is_match(&code) {
-            report.error(format!(
-                "black-box SHACL test seam re-introduced in {rel}: `def run_shacl` — SHACL \
-                 conformance is native now (crates/validate/tests/conformance_*.rs)"
-            ));
-        }
-        if graph_nt_import.is_match(&code) {
-            report.error(format!(
-                "import of the retired tests._graph_nt rdflib→N-Triples seam in {rel} — it has \
-                 been deleted"
-            ));
-        }
-    }
 }
 
 /// The SHACL namespace — the SHACL-AF computational vocabulary all lives under it, so the
@@ -831,130 +626,6 @@ fn makefile_target_name(line: &str) -> Option<String> {
     Some(line[..end].to_owned())
 }
 
-fn python_imported_top_modules(code: &str) -> BTreeSet<String> {
-    let mut out = BTreeSet::new();
-    let import_re = Regex::new(r"(?m)^\s*import\s+([^\n]+)").expect("static regex");
-    for caps in import_re.captures_iter(code) {
-        for part in caps[1].split(',') {
-            let name = part
-                .split_whitespace()
-                .next()
-                .unwrap_or_default()
-                .split('.')
-                .next()
-                .unwrap_or_default();
-            if is_identifier(name) {
-                out.insert(name.to_owned());
-            }
-        }
-    }
-    let from_re =
-        Regex::new(r"(?m)^\s*from\s+([A-Za-z_][A-Za-z0-9_\.]*)\s+import\b").expect("static regex");
-    for caps in from_re.captures_iter(code) {
-        if let Some(name) = caps[1].split('.').next().filter(|name| is_identifier(name)) {
-            out.insert(name.to_owned());
-        }
-    }
-    out
-}
-
-fn is_identifier(value: &str) -> bool {
-    let mut chars = value.chars();
-    let Some(first) = chars.next() else {
-        return false;
-    };
-    (first == '_' || first.is_ascii_alphabetic())
-        && chars.all(|ch| ch == '_' || ch.is_ascii_alphanumeric())
-}
-
-fn strip_python_non_code(text: &str) -> String {
-    let chars = text.chars().collect::<Vec<_>>();
-    let mut out = String::with_capacity(text.len());
-    let mut idx = 0;
-    while idx < chars.len() {
-        let ch = chars[idx];
-        if ch == '#' {
-            while idx < chars.len() && chars[idx] != '\n' {
-                idx += 1;
-            }
-            continue;
-        }
-        if ch == '\'' || ch == '"' {
-            idx = skip_python_string(&chars, idx, &mut out);
-            continue;
-        }
-        out.push(ch);
-        idx += 1;
-    }
-    out
-}
-
-fn skip_python_string(chars: &[char], start: usize, out: &mut String) -> usize {
-    let quote = chars[start];
-    let triple = chars.get(start + 1) == Some(&quote) && chars.get(start + 2) == Some(&quote);
-    let mut idx = start + if triple { 3 } else { 1 };
-    while idx < chars.len() {
-        if chars[idx] == '\n' {
-            out.push('\n');
-            idx += 1;
-            continue;
-        }
-        if chars[idx] == '\\' {
-            idx = (idx + 2).min(chars.len());
-            continue;
-        }
-        if triple {
-            if chars[idx] == quote
-                && chars.get(idx + 1) == Some(&quote)
-                && chars.get(idx + 2) == Some(&quote)
-            {
-                return idx + 3;
-            }
-            idx += 1;
-        } else if chars[idx] == quote {
-            return idx + 1;
-        } else {
-            idx += 1;
-        }
-    }
-    idx
-}
-
-fn python_files(src: &Path, report: &mut RepoStaticReport) -> Vec<PathBuf> {
-    let mut out = Vec::new();
-    collect_python_files(src, report, &mut out);
-    out.sort();
-    out
-}
-
-fn collect_python_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<PathBuf>) {
-    let entries = match fs::read_dir(dir) {
-        Ok(entries) => entries,
-        Err(err) => {
-            report.error(format!("{}: cannot read directory: {err}", dir.display()));
-            return;
-        }
-    };
-    for entry in entries {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(err) => {
-                report.error(format!(
-                    "{}: cannot read directory entry: {err}",
-                    dir.display()
-                ));
-                continue;
-            }
-        };
-        let path = entry.path();
-        if path.is_dir() {
-            collect_python_files(&path, report, out);
-        } else if path.extension().is_some_and(|ext| ext == "py") {
-            out.push(path);
-        }
-    }
-}
-
 fn slash_path(path: &Path) -> String {
     path.components()
         .map(|component| component.as_os_str().to_string_lossy())
@@ -1105,15 +776,19 @@ fn generated_read_ok_marked(orig_lines: &[&str], idx: usize) -> bool {
     false
 }
 
-/// Return `text` with (a) all comments and (b) every `#[cfg(test)]`-attributed item body
-/// replaced by spaces, preserving newlines (so line numbers and column offsets are unchanged)
-/// and KEEPING string-literal contents (so `.join("generated"…)` stays visible to the scanner).
-/// A Rust-aware char scanner — handling line/block comments, string / raw-string / byte-string
-/// literals, char literals **distinguished from lifetimes** (`'a`, `'static`), and byte prefixes
-/// — builds a `skeleton` (strings + comments blanked) so the `#[cfg(test)]` item body can be
-/// brace-matched without being fooled by braces inside strings/comments. Works entirely in CHAR
-/// indices (never byte offsets), so multi-byte chars (→, ∪, ×) never misalign it.
-fn blank_comments_and_cfg_test_modules(text: &str) -> String {
+/// Return `text` blanked two ways in parallel, both with (a) all comments and (b) every
+/// `#[cfg(test)]`-attributed item body replaced by spaces, preserving newlines (so line numbers
+/// and column offsets are unchanged): `.0` KEEPS string-literal contents (so
+/// `.join("generated"…)` stays visible to the generated/-read-ban scanner) and `.1` also blanks
+/// string/char literal contents (CODE ONLY, for the `Result<_, String>` scan — a mention inside
+/// a string literal is prose, not a type occurrence). A Rust-aware char scanner — handling
+/// line/block comments, string / raw-string / byte-string literals, char literals
+/// **distinguished from lifetimes** (`'a`, `'static`), and byte prefixes — builds `.1` (a
+/// `skeleton`, strings + comments blanked) so the `#[cfg(test)]` item body can be brace-matched
+/// without being fooled by braces inside strings/comments, and reuses the same brace-matched
+/// span to blank both variants identically. Works entirely in CHAR indices (never byte
+/// offsets), so multi-byte chars (→, ∪, ×) never misalign it.
+fn blank_regions(text: &str) -> (String, String) {
     let src: Vec<char> = text.chars().collect();
     let n = src.len();
     let mut out: Vec<char> = src.clone();
@@ -1286,10 +961,287 @@ fn blank_comments_and_cfg_test_modules(text: &str) -> String {
         }
         for pos in j..k.min(out.len()) {
             out[pos] = blank(src[pos]);
+            skeleton[pos] = blank(src[pos]);
         }
         m = k;
     }
-    out.iter().collect()
+    (out.iter().collect(), skeleton.iter().collect())
+}
+
+/// Comments and `#[cfg(test)]` bodies blanked, string/char literal CONTENTS kept — the
+/// generated/-read ban's view (it must still see `.join("generated"…)` string literals).
+fn blank_comments_and_cfg_test_modules(text: &str) -> String {
+    blank_regions(text).0
+}
+
+/// Comments, string/char literals, AND `#[cfg(test)]` bodies all blanked — CODE ONLY. Used by
+/// the `Result<_, String>` honest-invariant scan: a `Result<_, String>` mention inside a
+/// string literal (a diagnostic message, a doc example, this very gate's own error text) is
+/// prose, not a type occurrence, and must never be flagged.
+fn blank_comments_strings_and_cfg_test_modules(text: &str) -> String {
+    blank_regions(text).1
+}
+
+// ── honest-invariant #1: no first-party thiserror/anyhow dependency ──────
+
+/// The dependency-table keys checked in every first-party `crates/*/Cargo.toml` (top-level
+/// and inside every `[target.'cfg(...)'.dependencies]`-style sub-table): the Phase-6
+/// Diag-substrate honest invariant that first-party manifests never declare `thiserror` or
+/// `anyhow` — `gmeow_errors::Diag` is the single first-party error type. Transitive
+/// occurrences pulled in by vendored third-party crates (`nemo`, `tiktoken-rs`, …) are
+/// allowed and out of scope: this gate scans MANIFESTS only, never the resolved dependency
+/// tree / `Cargo.lock`.
+const DEP_TABLE_KEYS_STATIC: &[&str] = &["dependencies", "dev-dependencies", "build-dependencies"];
+const BANNED_ERROR_CRATES: &[&str] = &["thiserror", "anyhow"];
+
+/// Every dependency table in `manifest` a banned crate could be declared in: the three
+/// top-level tables plus the same three tables nested under every `[target.'cfg(...)'.…]`
+/// entry (the native-only-dependency idiom this workspace's own crates use).
+fn dependency_tables_static(manifest: &toml::Value) -> Vec<&toml::map::Map<String, toml::Value>> {
+    let mut tables = Vec::new();
+    for key in DEP_TABLE_KEYS_STATIC {
+        if let Some(table) = manifest.get(*key).and_then(toml::Value::as_table) {
+            tables.push(table);
+        }
+    }
+    if let Some(targets) = manifest.get("target").and_then(toml::Value::as_table) {
+        for cfg_table in targets.values().filter_map(toml::Value::as_table) {
+            for key in DEP_TABLE_KEYS_STATIC {
+                if let Some(table) = cfg_table.get(*key).and_then(toml::Value::as_table) {
+                    tables.push(table);
+                }
+            }
+        }
+    }
+    tables
+}
+
+/// Honest invariant #1 (Phase-6 Diag-substrate epic): no `crates/*/Cargo.toml` may declare
+/// `thiserror` or `anyhow` in `[dependencies]`, `[dev-dependencies]`, or
+/// `[build-dependencies]` (including target-cfg-scoped variants). `gmeow_errors::Diag` is
+/// the sole first-party error type; a first-party crate reaching for `thiserror`/`anyhow`
+/// would be a second, competing error substrate. Parses each manifest with the `toml` crate
+/// (already a native-only dependency of this crate) so `thiserror.workspace = true`,
+/// `anyhow = "1"`, and `anyhow = { version = "1", features = […] }` are all caught
+/// identically — a key lookup, not a string scan.
+fn check_no_first_party_error_crate_deps(root: &Path, report: &mut RepoStaticReport) {
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return;
+    }
+    let mut crate_dirs: Vec<PathBuf> = match fs::read_dir(&crates_dir) {
+        Ok(entries) => entries
+            .filter_map(|entry| entry.ok())
+            .map(|entry| entry.path())
+            .filter(|path| path.is_dir())
+            .collect(),
+        Err(err) => {
+            report.error(format!(
+                "{}: cannot read directory: {err}",
+                crates_dir.display()
+            ));
+            return;
+        }
+    };
+    crate_dirs.sort();
+
+    for crate_dir in crate_dirs {
+        let manifest_path = crate_dir.join("Cargo.toml");
+        if !manifest_path.is_file() {
+            continue;
+        }
+        let rel = slash_path(manifest_path.strip_prefix(root).unwrap_or(&manifest_path));
+        let text = match fs::read_to_string(&manifest_path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{rel}: cannot read Cargo.toml: {err}"));
+                continue;
+            }
+        };
+        let manifest = match text.parse::<toml::Value>() {
+            Ok(manifest) => manifest,
+            Err(err) => {
+                report.error(format!("{rel}: cannot parse Cargo.toml: {err}"));
+                continue;
+            }
+        };
+        let crate_name = manifest
+            .get("package")
+            .and_then(toml::Value::as_table)
+            .and_then(|package| package.get("name"))
+            .and_then(toml::Value::as_str)
+            .unwrap_or("<unnamed>")
+            .to_owned();
+        for table in dependency_tables_static(&manifest) {
+            for banned in BANNED_ERROR_CRATES {
+                if table.contains_key(*banned) {
+                    report.error(format!(
+                        "{rel}: first-party crate {crate_name:?} declares a `{banned}` \
+                         dependency — gmeow_errors::Diag is the sole first-party error \
+                         substrate (Phase-6 Diag-substrate honest invariant); a transitive \
+                         occurrence via a vendored third-party crate is fine, but a first-party \
+                         manifest entry is not"
+                    ));
+                }
+            }
+        }
+    }
+}
+
+// ── honest-invariant #2: String is never a Result error type ─────────────
+
+/// True at `chars[i]` iff a `Result` identifier starts there (word-boundary on both sides —
+/// so `MyResult<` / `ResultSet<` never match).
+fn result_word_at(chars: &[char], i: usize) -> bool {
+    const WORD: [char; 6] = ['R', 'e', 's', 'u', 'l', 't'];
+    if i + WORD.len() > chars.len() || chars[i..i + WORD.len()] != WORD {
+        return false;
+    }
+    let before_ok = i == 0 || !(chars[i - 1].is_alphanumeric() || chars[i - 1] == '_');
+    let after = i + WORD.len();
+    let after_ok = after >= chars.len() || !(chars[after].is_alphanumeric() || chars[after] == '_');
+    before_ok && after_ok
+}
+
+/// Parse the top-level (depth-1, outside any nested `<>`/`()`/`[]`) comma-separated generic
+/// argument list opening at `chars[open]` (which must be `<`). Returns the trimmed argument
+/// strings and the index just past the matching closing `>`, or `None` if the angle brackets
+/// never balance (a scan artifact — left unflagged rather than mis-flagged).
+fn parse_top_level_generic_args(chars: &[char], open: usize) -> Option<(Vec<String>, usize)> {
+    debug_assert_eq!(chars[open], '<');
+    let mut depth = 1i32;
+    let mut paren = 0i32;
+    let mut bracket = 0i32;
+    let mut args = Vec::new();
+    let mut buf = String::new();
+    let mut k = open + 1;
+    while k < chars.len() {
+        let c = chars[k];
+        match c {
+            '<' => {
+                depth += 1;
+                buf.push(c);
+            }
+            '>' => {
+                depth -= 1;
+                if depth == 0 {
+                    args.push(buf.trim().to_owned());
+                    return Some((args, k + 1));
+                }
+                buf.push(c);
+            }
+            '(' => {
+                paren += 1;
+                buf.push(c);
+            }
+            ')' => {
+                paren -= 1;
+                buf.push(c);
+            }
+            '[' => {
+                bracket += 1;
+                buf.push(c);
+            }
+            ']' => {
+                bracket -= 1;
+                buf.push(c);
+            }
+            ',' if depth == 1 && paren == 0 && bracket == 0 => {
+                args.push(buf.trim().to_owned());
+                buf.clear();
+            }
+            ';' if depth == 1 && paren == 0 && bracket == 0 => {
+                // `[u8; N]`-style const-generic separators inside a top-level array-length
+                // position would already be inside `[…]` (bracket > 0); a bare top-level `;`
+                // never occurs in a real `Result<…>` arg list, but bail defensively rather
+                // than mis-split.
+                buf.push(c);
+            }
+            _ => buf.push(c),
+        }
+        k += 1;
+    }
+    None
+}
+
+/// Scan one file's `detect` text (comments, string/char literals, and `#[cfg(test)]` bodies
+/// already blanked, exactly char-aligned with `orig_text` per
+/// [`blank_comments_strings_and_cfg_test_modules`]) for a `Result<…>` / `…::Result<…>` whose
+/// top-level SECOND generic argument is exactly `String`. Ok-position
+/// `String` (`Result<String, Diag>`'s first arg, or a single-argument crate `Result<T>` alias)
+/// is never flagged — only the top-level error (second) type parameter.
+fn scan_result_string_error_type(
+    rel: &str,
+    orig_text: &str,
+    detect: &str,
+    report: &mut RepoStaticReport,
+) {
+    let chars: Vec<char> = detect.chars().collect();
+    let orig_lines: Vec<&str> = orig_text.lines().collect();
+    let mut i = 0usize;
+    while i < chars.len() {
+        if result_word_at(&chars, i) {
+            let mut j = i + 6;
+            while j < chars.len() && chars[j].is_whitespace() {
+                j += 1;
+            }
+            if j < chars.len()
+                && chars[j] == '<'
+                && let Some((args, end)) = parse_top_level_generic_args(&chars, j)
+            {
+                if args.len() >= 2 && args[1] == "String" {
+                    let line_no = chars[..i].iter().filter(|&&c| c == '\n').count();
+                    let snippet = orig_lines.get(line_no).map(|l| l.trim()).unwrap_or("");
+                    report.error(format!(
+                        "{rel}:{}: Result<_, String> uses String as the error type — \
+                         gmeow_errors::Diag is the sole first-party error type (Phase-6 \
+                         Diag-substrate honest invariant); a String in Ok position \
+                         (Result<String, …> or a single-argument Result<String> alias) is \
+                         fine, only String as the error (second) type parameter is banned: \
+                         {snippet}",
+                        line_no + 1
+                    ));
+                }
+                i = end;
+                continue;
+            }
+        }
+        i += 1;
+    }
+}
+
+/// Honest invariant #2 (Phase-6 Diag-substrate epic): no first-party Rust source may use a
+/// two-argument `Result<T, String>` / `std::result::Result<T, String>` where `String` is the
+/// error type — in return-type position (`-> Result<_, String>`) or anywhere else the
+/// `Result<…>` generic is spelled out (a local `let x: Result<_, String> = …map_err(|_| …)…`
+/// binding included, since the scanner matches the syntactic `Result<…>` occurrence, not just
+/// function signatures). `gmeow_errors::Diag` (or a structured domain error convertible to it)
+/// is the sole first-party error type. Scans every `.rs` file under `crates/` (comments,
+/// string/char literals, and `#[cfg(test)]` bodies excluded, reusing
+/// [`blank_comments_strings_and_cfg_test_modules`] / [`collect_rust_files`] — the same
+/// `#[cfg(test)]`-blanking and file-collection machinery the generated/-read ban uses, but
+/// with string/char literal contents ALSO blanked so a `Result<_, String>` mention inside a
+/// diagnostic message string is never mistaken for a type occurrence).
+fn check_no_string_result_error_type(root: &Path, report: &mut RepoStaticReport) {
+    let crates_dir = root.join("crates");
+    if !crates_dir.is_dir() {
+        return;
+    }
+    let mut files = Vec::new();
+    collect_rust_files(&crates_dir, report, &mut files);
+    files.sort();
+    for path in &files {
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(path));
+        let text = match fs::read_to_string(path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{rel}: cannot read: {err}"));
+                continue;
+            }
+        };
+        let detect = blank_comments_strings_and_cfg_test_modules(&text);
+        scan_result_string_error_type(&rel, &text, &detect, report);
+    }
 }
 
 /// Recursively collect `.rs` files under `dir`.
@@ -1347,225 +1299,6 @@ mod tests {
         write(
             &root.join("Makefile"),
             "check:\n\t$(MAKE) lint\nlint:\n\ttrue\n",
-        );
-    }
-
-    #[test]
-    fn python_scanner_ignores_comments_and_strings() {
-        let code = strip_python_non_code(
-            "import os\n# import rdflib\nTEXT = \"import purrdf\"\n'''load_merged_graph'''\n",
-        );
-        let imports = python_imported_top_modules(&code);
-        assert!(imports.contains("os"));
-        assert!(!imports.contains("rdflib"));
-    }
-
-    #[test]
-    fn docker_lane_python_guard_flags_reintroduction_and_passes_clean() {
-        let temp = tempfile::tempdir().unwrap();
-        let root = temp.path();
-
-        // Clean tree: a gmeow_tools module with no Docker-lane symbol → passes.
-        write(&root.join("src/gmeow_tools/ok.py"), "import os\nX = 1\n");
-        let mut clean = RepoStaticReport::default();
-        check_no_docker_lane_python(root, &mut clean);
-        assert!(
-            clean.errors.is_empty(),
-            "clean tree must pass; got {:?}",
-            clean.errors
-        );
-
-        // Re-introducing a retired Docker-lane import in conftest.py must fail.
-        write(
-            &root.join("conftest.py"),
-            "from gmeow_tools.runner import image_available\n",
-        );
-        let mut dirty = RepoStaticReport::default();
-        check_no_docker_lane_python(root, &mut dirty);
-        assert!(
-            dirty
-                .errors
-                .iter()
-                .any(|e| e.contains("Docker-reasoning-lane") && e.contains("conftest.py")),
-            "a re-introduced gmeow_tools.runner import must be flagged; got {:?}",
-            dirty.errors
-        );
-
-        // A retired symbol appearing only in a comment/string must NOT trip the guard.
-        std::fs::remove_file(root.join("conftest.py")).unwrap();
-        write(
-            &root.join("src/gmeow_tools/ok.py"),
-            "# image_available was removed\nDOC = \"ROBOT_IMAGE\"\n",
-        );
-        let mut commented = RepoStaticReport::default();
-        check_no_docker_lane_python(root, &mut commented);
-        assert!(
-            commented.errors.is_empty(),
-            "symbols in comments/strings must not trip the guard; got {:?}",
-            commented.errors
-        );
-
-        // NEGATIVE: live identifiers that merely CONTAIN a retired symbol as a substring
-        // (`is_image_available`, `ROBOT_IMAGE_PATH`, `JENA_IMAGE_PATH`, and a plain `runner` that is
-        // NOT `gmeow_tools.runner`) must NOT trip the word-boundary guard.
-        std::fs::remove_file(root.join("conftest.py")).ok();
-        write(
-            &root.join("src/gmeow_tools/ok.py"),
-            "def is_image_available():\n    ROBOT_IMAGE_PATH = \"x\"\n    JENA_IMAGE_PATH = \"y\"\n    runner = object()\n    return runner\n",
-        );
-        let mut substrings = RepoStaticReport::default();
-        check_no_docker_lane_python(root, &mut substrings);
-        assert!(
-            substrings.errors.is_empty(),
-            "live identifiers that merely contain a retired symbol as a substring must not trip the guard; got {:?}",
-            substrings.errors
-        );
-
-        // POSITIVE: each bare retired symbol on a word boundary MUST still trip the guard.
-        write(
-            &root.join("src/gmeow_tools/ok.py"),
-            "from gmeow_tools.runner import image_available\nA = ROBOT_IMAGE\nB = JENA_IMAGE\n",
-        );
-        let mut bare = RepoStaticReport::default();
-        check_no_docker_lane_python(root, &mut bare);
-        let bare_msg = bare
-            .errors
-            .iter()
-            .find(|e| e.contains("Docker-reasoning-lane") && e.contains("ok.py"));
-        let bare_msg = bare_msg.unwrap_or_else(|| {
-            panic!(
-                "bare retired symbols must trip the guard; got {:?}",
-                bare.errors
-            )
-        });
-        for sym in [
-            "gmeow_tools.runner",
-            "image_available",
-            "ROBOT_IMAGE",
-            "JENA_IMAGE",
-        ] {
-            assert!(
-                bare_msg.contains(sym),
-                "guard message must list `{sym}`; got {bare_msg:?}"
-            );
-        }
-    }
-
-    #[test]
-    fn run_shacl_seam_guard_flags_reintroduction_and_passes_clean() {
-        let temp = tempfile::tempdir().unwrap();
-        let root = temp.path();
-
-        // Clean tree: gmeow_tools with no run_shacl def, no tests/_graph_nt.py → passes.
-        write(
-            &root.join("src/gmeow_tools/validate.py"),
-            "import os\nX = 1\n",
-        );
-        let mut clean = RepoStaticReport::default();
-        check_no_run_shacl_seam(root, &mut clean);
-        assert!(
-            clean.errors.is_empty(),
-            "clean tree must pass; got {:?}",
-            clean.errors
-        );
-
-        // A `def run_shacl` re-added to first-party Python must fail.
-        write(
-            &root.join("src/gmeow_tools/validate.py"),
-            "def run_shacl(data_nt):\n    return None\n",
-        );
-        let mut def = RepoStaticReport::default();
-        check_no_run_shacl_seam(root, &mut def);
-        assert!(
-            def.errors
-                .iter()
-                .any(|e| e.contains("black-box SHACL test seam") && e.contains("validate.py")),
-            "a re-introduced `def run_shacl` must be flagged; got {:?}",
-            def.errors
-        );
-
-        // Re-creating tests/_graph_nt.py must fail.
-        write(&root.join("src/gmeow_tools/validate.py"), "X = 1\n");
-        write(
-            &root.join("tests/_graph_nt.py"),
-            "def run_shacl(g):\n    return None\n",
-        );
-        let mut seam = RepoStaticReport::default();
-        check_no_run_shacl_seam(root, &mut seam);
-        assert!(
-            seam.errors
-                .iter()
-                .any(|e| e.contains("tests/_graph_nt.py has been retired")),
-            "a re-created tests/_graph_nt.py must be flagged; got {:?}",
-            seam.errors
-        );
-
-        // Importing the retired seam must fail.
-        std::fs::remove_file(root.join("tests/_graph_nt.py")).unwrap();
-        write(
-            &root.join("tests/test_thing.py"),
-            "from tests._graph_nt import run_shacl\n",
-        );
-        let mut imp = RepoStaticReport::default();
-        check_no_run_shacl_seam(root, &mut imp);
-        assert!(
-            imp.errors
-                .iter()
-                .any(|e| e.contains("tests._graph_nt") && e.contains("test_thing.py")),
-            "an import of the retired seam must be flagged; got {:?}",
-            imp.errors
-        );
-
-        // The `from tests import _graph_nt` shape (no dotted `tests._graph_nt`) must also be
-        // flagged — the narrow dotted-only matcher used to miss it.
-        std::fs::remove_file(root.join("tests/test_thing.py")).unwrap();
-        write(
-            &root.join("tests/test_from_pkg.py"),
-            "from tests import _graph_nt\n",
-        );
-        let mut from_pkg = RepoStaticReport::default();
-        check_no_run_shacl_seam(root, &mut from_pkg);
-        assert!(
-            from_pkg
-                .errors
-                .iter()
-                .any(|e| e.contains("tests._graph_nt") && e.contains("test_from_pkg.py")),
-            "`from tests import _graph_nt` must be flagged; got {:?}",
-            from_pkg.errors
-        );
-
-        // The relative-import shape `from . import _graph_nt` must also be flagged.
-        std::fs::remove_file(root.join("tests/test_from_pkg.py")).unwrap();
-        write(
-            &root.join("tests/test_relative.py"),
-            "from . import _graph_nt\n",
-        );
-        let mut relative = RepoStaticReport::default();
-        check_no_run_shacl_seam(root, &mut relative);
-        assert!(
-            relative
-                .errors
-                .iter()
-                .any(|e| e.contains("tests._graph_nt") && e.contains("test_relative.py")),
-            "`from . import _graph_nt` must be flagged; got {:?}",
-            relative.errors
-        );
-
-        // `run_shacl` / `tests._graph_nt` mentioned only in a comment or string must NOT trip it,
-        // and the unrelated private `_graph_nt` helper (both its `def` and its call sites) in
-        // language_tags.py is fine — the import matcher requires a `from ... import` context.
-        std::fs::remove_file(root.join("tests/test_relative.py")).unwrap();
-        write(
-            &root.join("src/gmeow_tools/language_tags.py"),
-            "# run_shacl was retired; tests._graph_nt is gone\nDOC = \"def run_shacl\"\ndef _graph_nt(graph):\n    return _graph_nt(graph)\n",
-        );
-        let mut commented = RepoStaticReport::default();
-        check_no_run_shacl_seam(root, &mut commented);
-        assert!(
-            commented.errors.is_empty(),
-            "run_shacl/tests._graph_nt in comments/strings and the unrelated private _graph_nt \
-             helper must not trip the guard; got {:?}",
-            commented.errors
         );
     }
 
@@ -1735,23 +1468,6 @@ mod tests {
         write_minimal_repo(temp.path());
         let report = check_repo_static(temp.path());
         assert!(report.ok(), "{:?}", report.errors);
-    }
-
-    #[test]
-    fn rdflib_runtime_offender_fails() {
-        let temp = tempfile::tempdir().unwrap();
-        write_minimal_repo(temp.path());
-        write(
-            &temp.path().join("src/gmeow_tools/bad.py"),
-            "import rdflib\n",
-        );
-        let report = check_repo_static(temp.path());
-        assert!(
-            report
-                .errors
-                .iter()
-                .any(|e| e.contains("bad.py") && e.contains("upstream rdflib"))
-        );
     }
 
     #[test]
@@ -2168,5 +1884,191 @@ mod tests {
         let errs = ban_errors(temp.path());
         assert_eq!(errs.len(), 1, "{errs:?}");
         assert!(errs[0].contains("stale-disk-fold"), "{errs:?}");
+    }
+
+    // ── honest-invariant #1: no first-party thiserror/anyhow dependency ──
+
+    fn crate_manifest(root: &Path, crate_name: &str, extra: &str) {
+        write(
+            &root.join(format!("crates/{crate_name}/Cargo.toml")),
+            &format!(
+                "[package]\nname = \"{crate_name}\"\nversion = \"0.1.0\"\nedition = \"2021\"\n\n{extra}\n"
+            ),
+        );
+        write(
+            &root.join(format!("crates/{crate_name}/src/lib.rs")),
+            "// empty\n",
+        );
+    }
+
+    #[test]
+    fn minimal_repo_with_a_clean_crate_passes_error_crate_dep_check() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        write_minimal_repo(root);
+        crate_manifest(
+            root,
+            "gmeow-foo",
+            "[dependencies]\nserde = \"1\"\n\n[dev-dependencies]\ntempfile = \"3\"\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_no_first_party_error_crate_deps(root, &mut report);
+        assert!(report.ok(), "{:?}", report.errors);
+    }
+
+    #[test]
+    fn thiserror_dependency_string_form_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_manifest(root, "gmeow-foo", "[dependencies]\nthiserror = \"1\"\n");
+        let mut report = RepoStaticReport::default();
+        check_no_first_party_error_crate_deps(root, &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("gmeow-foo") && e.contains("thiserror")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn anyhow_workspace_dependency_form_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_manifest(
+            root,
+            "gmeow-bar",
+            "[dev-dependencies]\nanyhow = { workspace = true }\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_no_first_party_error_crate_deps(root, &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("gmeow-bar") && e.contains("anyhow")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn thiserror_in_target_cfg_dependencies_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_manifest(
+            root,
+            "gmeow-baz",
+            "[target.'cfg(not(target_arch = \"wasm32\"))'.dependencies]\nthiserror = \"1\"\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_no_first_party_error_crate_deps(root, &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("gmeow-baz") && e.contains("thiserror")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    // ── honest-invariant #2: String is never a Result error type ─────────
+
+    fn crate_src(root: &Path, crate_name: &str, file: &str, body: &str) {
+        write(&root.join(format!("crates/{crate_name}/src/{file}")), body);
+    }
+
+    fn string_result_errors(root: &Path) -> Vec<String> {
+        let mut report = RepoStaticReport::default();
+        check_no_string_result_error_type(root, &mut report);
+        report.errors
+    }
+
+    #[test]
+    fn result_unit_string_return_type_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "fn f() -> Result<(), String> {\n    Ok(())\n}\n",
+        );
+        let errs = string_result_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+        assert!(errs[0].contains("Result<_, String>"), "{errs:?}");
+    }
+
+    #[test]
+    fn result_u8_string_return_type_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "fn g() -> Result<u8, String> {\n    Ok(0)\n}\n",
+        );
+        let errs = string_result_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+    }
+
+    #[test]
+    fn std_result_fully_qualified_string_error_fails() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "fn h() -> std::result::Result<u8, String> {\n    Ok(0)\n}\n",
+        );
+        let errs = string_result_errors(root);
+        assert_eq!(errs.len(), 1, "{errs:?}");
+    }
+
+    #[test]
+    fn ok_position_and_single_arg_and_nested_string_do_not_false_positive() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "use std::collections::BTreeMap;\n\
+             fn a() -> Result<String> { Ok(String::new()) }\n\
+             fn b() -> Result<BTreeMap<String, String>, Diag> { Ok(BTreeMap::new()) }\n\
+             fn c() -> io::Result<String> { Ok(String::new()) }\n\
+             fn d() -> Result<T, MyErr<String>> { unimplemented!() }\n",
+        );
+        let errs = string_result_errors(root);
+        assert!(errs.is_empty(), "{errs:?}");
+    }
+
+    #[test]
+    fn string_result_in_comment_and_cfg_test_module_is_ignored() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        crate_src(
+            root,
+            "gmeow-foo",
+            "lib.rs",
+            "// fn old() -> Result<(), String> { unimplemented!() }\n\
+             fn real() -> Result<(), Diag> { Ok(()) }\n\
+             #[cfg(test)]\nmod tests {\n    fn t() -> Result<(), String> { Ok(()) }\n}\n",
+        );
+        let errs = string_result_errors(root);
+        assert!(errs.is_empty(), "{errs:?}");
+    }
+
+    #[test]
+    fn parse_top_level_generic_args_splits_only_top_level_commas() {
+        let text: Vec<char> = "<BTreeMap<String, String>, Diag>".chars().collect();
+        let (args, end) = parse_top_level_generic_args(&text, 0).expect("balanced");
+        assert_eq!(args, vec!["BTreeMap<String, String>", "Diag"]);
+        assert_eq!(end, text.len());
     }
 }

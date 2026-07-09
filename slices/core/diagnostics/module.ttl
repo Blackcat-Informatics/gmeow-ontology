@@ -326,7 +326,7 @@ gmeow:BlockingDisposition
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Blocking Disposition"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The gating PROJECTION of a finding's logic:FindingCategory — the two-element value space Coherent ⊑ Blocking (individuals gmeow:blockingCoherent, gmeow:blockingBlocking) that says whether a KIND of finding is a real failure or is surfaced but never gate-failing. Exactly the three failure kinds (logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, logic:FindingContradictionWitness) project to gmeow:blockingBlocking; the other five — including the load-bearing logic:FindingPermittedEpistemicConflict — project to gmeow:blockingCoherent. Each category's projection is wired by gmeow:categoryBlocking, so the gate never inspects the category directly, only its Blocking image. Members are individuals, never subclasses (Principle 9). Mirrors the Rust gmeow_errors::grade::Blocking lattice and FindingCategory::blocking()."@x-gmeow-english ;
+    skos:definition "The gating PROJECTION of a finding's logic:FindingCategory — the two-element value space Coherent ⊑ Blocking (individuals gmeow:blockingCoherent, gmeow:blockingBlocking) that says whether a KIND of finding is a real failure or is surfaced but never gate-failing. Exactly the three failure kinds (logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, logic:FindingContradictionWitness) project to gmeow:blockingBlocking; the other seven — including the load-bearing logic:FindingPermittedEpistemicConflict, the non-blocking logic:FindingCorroboration, and the logic:FindingTransientChatter chatter kind — project to gmeow:blockingCoherent. Each category's projection is wired by gmeow:categoryBlocking, so the gate never inspects the category directly, only its Blocking image. Members are individuals, never subclasses (Principle 9). Mirrors the Rust gmeow_errors::grade::Blocking lattice and FindingCategory::blocking()."@x-gmeow-english ;
     skos:example "logic:FindingContradictionWitness gmeow:categoryBlocking gmeow:blockingBlocking ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating it with gmeow:findingSeverity (a Blocking category can still be a warning) or with the gate verdict (that is gmeow:GateVerdict, the meet of all three axes); the Blocking disposition is only the category's gating contribution, one of three axes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -366,7 +366,7 @@ gmeow:categoryBlocking
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "category blocking"@x-gmeow-english ;
     rdfs:range gmeow:BlockingDisposition ;
-    skos:definition "Wires a logic:FindingCategory to its gmeow:BlockingDisposition — the standing, asserted gating projection of the KIND. The three failure kinds map to gmeow:blockingBlocking, the other five to gmeow:blockingCoherent, matching Rust FindingCategory::blocking(). The gate reads only this image, never the category directly, so the projection is the single point where 'which kinds are failures' is stated once and consumed by both the reasoner and every projection."@x-gmeow-english ;
+    skos:definition "Wires a logic:FindingCategory to its gmeow:BlockingDisposition — the standing, asserted gating projection of the KIND. The three failure kinds map to gmeow:blockingBlocking, the other seven to gmeow:blockingCoherent, matching Rust FindingCategory::blocking(). The gate reads only this image, never the category directly, so the projection is the single point where 'which kinds are failures' is stated once and consumed by both the reasoner and every projection."@x-gmeow-english ;
     skos:example "logic:FindingPermittedEpistemicConflict gmeow:categoryBlocking gmeow:blockingCoherent ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting more than one gmeow:BlockingDisposition per category (the projection is functional) and avoid using it for the finding's severity or standpoint; categoryBlocking projects only the KIND's gating contribution."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -455,7 +455,7 @@ gmeow:standpointPerspectival
     gmeow:graphBoxRole gmeow:boxABox .
 
 # ── The gating projection of each logic:FindingCategory (FindingCategory::blocking()).
-# The three failure kinds project to gmeow:blockingBlocking; the other five to
+# The three failure kinds project to gmeow:blockingBlocking; the other six to
 # gmeow:blockingCoherent. This is the single asserted source the gate rule reads.
 logic:FindingDataShapeViolation gmeow:categoryBlocking gmeow:blockingBlocking .
 logic:FindingModelingDisciplineViolation gmeow:categoryBlocking gmeow:blockingBlocking .
@@ -465,6 +465,8 @@ logic:FindingUnsupportedSemanticFeature gmeow:categoryBlocking gmeow:blockingCoh
 logic:FindingIncompleteCheck gmeow:categoryBlocking gmeow:blockingCoherent .
 logic:FindingProjectionLoss gmeow:categoryBlocking gmeow:blockingCoherent .
 logic:FindingPolicyWarning gmeow:categoryBlocking gmeow:blockingCoherent .
+logic:FindingCorroboration gmeow:categoryBlocking gmeow:blockingCoherent .
+logic:FindingTransientChatter gmeow:categoryBlocking gmeow:blockingCoherent .
 
 # ── The MATH grounding of the truth-order chains (Principle 19): a monotone
 # order-embedding of each ⊑-chain into (ℤ, ≤). The integer rank EMBEDS the poset
@@ -643,7 +645,7 @@ gmeow:categoryPolarity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "category polarity"@x-gmeow-english ;
     rdfs:range logic:InformationState ;
-    skos:definition "Wires a logic:FindingCategory to the Belnap coherence POLARITY its KIND asserts — a value of the EXISTING logic:InformationState Belnap value class, reused rather than re-minted. The three failure kinds (logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, logic:FindingContradictionWitness) map to logic:InfoSupported (evidence a defect is present); logic:FindingPermittedEpistemicConflict maps to logic:InfoOpposed (evidence the apparent contradiction is coherent); the other four (logic:FindingUnsupportedSemanticFeature, logic:FindingIncompleteCheck, logic:FindingProjectionLoss, logic:FindingPolicyWarning) map to logic:InfoNeither (no coherence stance). It mirrors the Rust FindingCategory::polarity(); a cross-node-glut rule reads this projection to detect two findings at one anchor whose polarities OPPOSE. Distinct axis from gmeow:categoryBlocking (the gating projection): polarity is the coherence stance, blocking is the gate contribution."@x-gmeow-english ;
+    skos:definition "Wires a logic:FindingCategory to the Belnap coherence POLARITY its KIND asserts — a value of the EXISTING logic:InformationState Belnap value class, reused rather than re-minted. The three failure kinds (logic:FindingDataShapeViolation, logic:FindingModelingDisciplineViolation, logic:FindingContradictionWitness) map to logic:InfoSupported (evidence a defect is present); logic:FindingPermittedEpistemicConflict maps to logic:InfoOpposed (evidence the apparent contradiction is coherent); the other six (logic:FindingUnsupportedSemanticFeature, logic:FindingIncompleteCheck, logic:FindingProjectionLoss, logic:FindingPolicyWarning, logic:FindingCorroboration, logic:FindingTransientChatter) map to logic:InfoNeither (no coherence stance). It mirrors the Rust FindingCategory::polarity(); a cross-node-glut rule reads this projection to detect two findings at one anchor whose polarities OPPOSE. Distinct axis from gmeow:categoryBlocking (the gating projection): polarity is the coherence stance, blocking is the gate contribution."@x-gmeow-english ;
     skos:example "logic:FindingContradictionWitness gmeow:categoryPolarity logic:InfoSupported ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a parallel gmeow: polarity vocabulary (reuse the logic:InformationState Belnap values) and avoid conflating it with gmeow:categoryBlocking (the gating axis) or gmeow:findingSeverity (the grade); categoryPolarity is the coherence stance a kind of finding asserts."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -652,7 +654,7 @@ gmeow:categoryPolarity
 
 # ── The Belnap coherence POLARITY of each logic:FindingCategory (FindingCategory::polarity()).
 # The three failure kinds project to logic:InfoSupported; the permitted-conflict kind to
-# logic:InfoOpposed; the other four to logic:InfoNeither. This is the single asserted source
+# logic:InfoOpposed; the other five to logic:InfoNeither. This is the single asserted source
 # a cross-node-glut rule reads to detect opposing-polarity findings at one anchor.
 logic:FindingDataShapeViolation gmeow:categoryPolarity logic:InfoSupported .
 logic:FindingModelingDisciplineViolation gmeow:categoryPolarity logic:InfoSupported .
@@ -662,6 +664,8 @@ logic:FindingUnsupportedSemanticFeature gmeow:categoryPolarity logic:InfoNeither
 logic:FindingIncompleteCheck gmeow:categoryPolarity logic:InfoNeither .
 logic:FindingProjectionLoss gmeow:categoryPolarity logic:InfoNeither .
 logic:FindingPolicyWarning gmeow:categoryPolarity logic:InfoNeither .
+logic:FindingCorroboration gmeow:categoryPolarity logic:InfoNeither .
+logic:FindingTransientChatter gmeow:categoryPolarity logic:InfoNeither .
 
 # ════════════════════════════════════════════════════════════════════════════
 # The reasoner-derived meta-findings.
@@ -832,6 +836,143 @@ gmeow:RootFinding
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Read it off the reasoned graph to list the root causes directly; the meta-rule derives it from the object position of gmeow:findingRootCause."@x-gmeow-english ;
     gmeow:useWhen "Use as the derived one-place marker of a witnessed root antecedent, the queryable head of the root-cause grouping."@x-gmeow-english .
+
+# ════════════════════════════════════════════════════════════════════════════
+# Reified conformance comparisons and per-corpus agreement tallies — the
+# benchmark/finding-adjacent surface of the external-corpus grading fold. Each
+# gmeow:ConformanceComparison reifies one native↔published verdict comparison
+# and each gmeow:CorpusAgreementTally its per-corpus aggregate, riding in the
+# graph/conformance named graph beside the divergence gmeow:Finding graph. The
+# verdict values (logic:ConfConsistent/logic:ConfInconsistent/logic:ConfIncomplete)
+# and the raw token stay in the logic: reasoning vocabulary; a gmeow:→logic:
+# cross-slice reference is fine.
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:VerdictLatticeRelation
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Verdict Lattice Relation"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The closed value class of how a native conformance verdict stands to a published one within the logic:ConformanceVerdict lattice — the reified qualitative outcome of one native↔published comparison. Its three named individuals are gmeow:VerdictEquivalent (the two verdicts coincide — an agreement), gmeow:VerdictWeaker (the native verdict is strictly less informative — the native-incomplete case, where logic:ConfIncomplete is the ⊤ join above the decided published verdict), and gmeow:VerdictIncomparable (two DISTINCT decided verdicts that share only the ⊤ join — a genuine disagreement). It is the RDF image of the DivergenceKind a conformance comparison receives: gmeow:VerdictEquivalent ↔ Agree, gmeow:VerdictWeaker ↔ DlGap (native `incomplete`), gmeow:VerdictIncomparable ↔ CorpusOnly. The set is closed, so a misspelt relation names no declared value and is rejected."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:VerdictEquivalent
+    a owl:NamedIndividual ,
+        gmeow:VerdictLatticeRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Verdict Equivalent"@x-gmeow-english ;
+    skos:definition "The gmeow:VerdictLatticeRelation for a native verdict that coincides with the published one: native ≡ published in the logic:ConformanceVerdict lattice. The reified image of the Agree DivergenceKind — the qualitative outcome a corroborating conformance comparison carries, folded as a non-blocking logic:FindingCorroboration rather than dropped."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:VerdictWeaker
+    a owl:NamedIndividual ,
+        gmeow:VerdictLatticeRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Verdict Weaker"@x-gmeow-english ;
+    skos:definition "The gmeow:VerdictLatticeRelation for a native verdict that is strictly LESS informative than the published one: the native path returned logic:ConfIncomplete — the least-informative join (⊤) — where the community source decided a verdict. The reified image of the DlGap DivergenceKind (native `incomplete`): an honest native coverage gap, kept strictly distinct from a disagreement between two decided verdicts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:VerdictIncomparable
+    a owl:NamedIndividual ,
+        gmeow:VerdictLatticeRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Verdict Incomparable"@x-gmeow-english ;
+    skos:definition "The gmeow:VerdictLatticeRelation for two DISTINCT decided verdicts that share only the least-informative join: the native path decided one informative meet-element (logic:ConfConsistent or logic:ConfInconsistent) and the community source decided the other. The reified image of the CorpusOnly DivergenceKind — a genuine native↔published disagreement, folded as a BLOCKING logic:FindingContradictionWitness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:ConformanceComparison
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Conformance Comparison"@x-gmeow-english ;
+    skos:definition "A reified native↔published verdict comparison for a single external-corpus case in a single world — the folded, content-addressed individual that records one row of the conformance grading in the reasoned bundle, so EVERY comparison (agreement, coverage gap, or disagreement) is retained as first-class ontological data rather than only the divergent rows surviving as findings. It carries the case coordinates (gmeow:comparisonCorpus, gmeow:comparisonCase, gmeow:comparisonWorld), the two graded verdicts (gmeow:comparisonNativeVerdict and gmeow:comparisonPublishedVerdict, each a logic:ConformanceVerdict), the verbatim published token (logic:rawStatusToken) as provenance, and the derived gmeow:comparisonLatticeRelation classifying how the native verdict stands to the published one. Rides in the graph/conformance named graph beside the divergence gmeow:Finding graph it is the aggregate-preserving twin of."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:CorpusAgreementTally
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "Corpus Agreement Tally"@x-gmeow-english ;
+    skos:definition "One external corpus's aggregate native↔published tally — the folded, content-addressed individual that records a corpus's partition of graded comparisons into agree / corpus-only / dl-gap counts, so the reasoned bundle carries the per-corpus pass rate as first-class ontological data rather than only in the projected markdown dashboard. It carries gmeow:tallyCorpus (the corpus name), gmeow:tallyCases (the total graded), and the three partition counts gmeow:tallyAgree, gmeow:tallyCorpusOnly and gmeow:tallyDlGap, whose sum equals gmeow:tallyCases by construction. The aggregate twin of the per-case gmeow:ConformanceComparison individuals, riding in the same graph/conformance named graph."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:comparisonCorpus
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "comparison corpus"@x-gmeow-english ;
+    skos:definition "The external-corpus name a gmeow:ConformanceComparison belongs to — the cases/external/<corpus>/ directory whose native↔published grading this comparison reifies. Domain gmeow:ConformanceComparison, range xsd:string (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:comparisonCase
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "comparison case"@x-gmeow-english ;
+    skos:definition "The case id a gmeow:ConformanceComparison grades — the <case> subdirectory within its corpus, unique per corpus. Domain gmeow:ConformanceComparison, range xsd:string (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:comparisonWorld
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "comparison world"@x-gmeow-english ;
+    skos:definition "The scoped world IRI a gmeow:ConformanceComparison's verdicts were decided in — the single world a committed external case scopes its premises to. Domain gmeow:ConformanceComparison, range xsd:string (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:comparisonNativeVerdict
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "comparison native verdict"@x-gmeow-english ;
+    skos:definition "The logic:ConformanceVerdict the native reasoner decided for a gmeow:ConformanceComparison's case/world. Domain gmeow:ConformanceComparison, range logic:ConformanceVerdict (stated in prose) — the RDF image of the native runner's verdict-status token."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:comparisonPublishedVerdict
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "comparison published verdict"@x-gmeow-english ;
+    skos:definition "The logic:ConformanceVerdict the community source published as the ground truth for a gmeow:ConformanceComparison's case/world. Domain gmeow:ConformanceComparison, range logic:ConformanceVerdict (stated in prose) — the coarse projection of the verbatim published token preserved alongside on logic:rawStatusToken."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:comparisonLatticeRelation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "comparison lattice relation"@x-gmeow-english ;
+    skos:definition "The gmeow:VerdictLatticeRelation classifying how a gmeow:ConformanceComparison's native verdict stands to its published one, DERIVED from the two verdicts: coincident → gmeow:VerdictEquivalent, native logic:ConfIncomplete → gmeow:VerdictWeaker, two distinct decided verdicts → gmeow:VerdictIncomparable. Domain gmeow:ConformanceComparison, range gmeow:VerdictLatticeRelation (stated in prose) — the reified image of the comparison's DivergenceKind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:tallyCorpus
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "tally corpus"@x-gmeow-english ;
+    skos:definition "The external-corpus name a gmeow:CorpusAgreementTally aggregates — the cases/external/<corpus>/ directory whose graded comparisons it partitions. Domain gmeow:CorpusAgreementTally, range xsd:string (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:tallyCases
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "tally cases"@x-gmeow-english ;
+    skos:definition "The total graded native↔published comparisons in a gmeow:CorpusAgreementTally's corpus — the count gmeow:tallyAgree, gmeow:tallyCorpusOnly and gmeow:tallyDlGap partition. Domain gmeow:CorpusAgreementTally, range xsd:integer (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:tallyAgree
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "tally agree"@x-gmeow-english ;
+    skos:definition "The number of comparisons in a gmeow:CorpusAgreementTally's corpus where the native verdict matched the published expected — the agreeing (gmeow:VerdictEquivalent) partition, folded as non-blocking corroboration. Domain gmeow:CorpusAgreementTally, range xsd:integer (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:tallyCorpusOnly
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "tally corpus-only"@x-gmeow-english ;
+    skos:definition "The number of comparisons in a gmeow:CorpusAgreementTally's corpus the native path DECIDED but disagreed with the published expected — the disagreeing (gmeow:VerdictIncomparable) partition. Domain gmeow:CorpusAgreementTally, range xsd:integer (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:tallyDlGap
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "tally dl-gap"@x-gmeow-english ;
+    skos:definition "The number of comparisons in a gmeow:CorpusAgreementTally's corpus the native path could not decide (native logic:ConfIncomplete) — the coverage-gap (gmeow:VerdictWeaker) partition, an honest native capability gap. Domain gmeow:CorpusAgreementTally, range xsd:integer (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/diagnostics>
     a owl:Ontology ;

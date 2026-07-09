@@ -18,12 +18,12 @@
 # logic:QualityValue, logic:Situation). These cells mirror the module's CURRENT
 # logic: shape, not a normalized form.
 #
-# TWO tests stay in tests/test_awareness.py (genuinely unreachable by this
-# module-scoped harness):
-#   * test_level_ranks_are_zero_through_five — closed numeric SET-EQUALITY over
+# TWO invariants are unreachable by this module-scoped ASK harness and live as
+# native Rust conformance twins in crates/validate/tests/conformance_awareness.rs:
+#   * level_ranks_are_exactly_zero_through_five — closed numeric SET-EQUALITY over
 #     the six gmeow:levelRank values ({0,1,2,3,4,5}); a SPARQL ASK can assert each
 #     rank EXISTS but not that the set is EXACTLY those six and no others.
-#   * test_manifest_depends_only_on_kernel_and_temporal — set-equality over
+#   * slice_depends_on_is_exactly_kernel_and_temporal — set-equality over
 #     manifest.ttl, which run_structural_cell never loads (module.ttl + examples/
 #     only).
 #
@@ -43,7 +43,6 @@
 #     `make validate` — the SHACL guardian.
 # That pytest function is therefore deleted rather than migrated.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/awareness/tests/> .

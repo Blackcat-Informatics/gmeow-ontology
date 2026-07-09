@@ -14991,6 +14991,49 @@
         ],
         "type": "object"
       },
+      "Mark": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:markText": {
+            "anyOf": [
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "MeasuredValue": {
         "properties": {
           "@annotation": {
@@ -22307,6 +22350,31 @@
             },
             "then": {
               "$ref": "#/$defs/Manifestation"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Mark"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Mark"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/Mark"
             }
           },
           {

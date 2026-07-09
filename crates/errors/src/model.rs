@@ -27,7 +27,7 @@ pub enum Severity {
 
 impl Severity {
     /// Parse a user/tool supplied severity label.
-    pub fn parse(value: &str) -> Result<Self, String> {
+    pub fn parse(value: &str) -> crate::Result<Self> {
         let trimmed = value.trim();
         if trimmed.eq_ignore_ascii_case("error")
             || trimmed.eq_ignore_ascii_case("failure")
@@ -44,8 +44,10 @@ impl Severity {
         {
             Ok(Self::Info)
         } else {
-            Err(format!(
-                "unknown diagnostic severity `{trimmed}`; expected error, warning, note, or info"
+            Err(crate::diag::Diag::of_kind(
+                crate::error::UnknownSeverityLabel {
+                    value: trimmed.to_owned(),
+                },
             ))
         }
     }
@@ -57,6 +59,22 @@ impl Severity {
             Self::Warning => "warning",
             Self::Note => "note",
             Self::Info => "info",
+        }
+    }
+
+    /// The inverse of the RDF projection's severity-individual local name — the
+    /// right-inverse (section) of `render::severity_individual`, which maps
+    /// `Error → "severityError"`, etc. Reads back the `gmeow:findingSeverity`
+    /// object's local name from the `graph/diagnostics` projection. `None` for an
+    /// unknown token so a corrupt projection is a caller-surfaced hard fail, never a
+    /// silent default.
+    pub fn from_individual_local(local: &str) -> Option<Self> {
+        match local {
+            "severityError" => Some(Self::Error),
+            "severityWarning" => Some(Self::Warning),
+            "severityNote" => Some(Self::Note),
+            "severityInfo" => Some(Self::Info),
+            _ => None,
         }
     }
 
@@ -131,11 +149,22 @@ pub enum FindingCategory {
     ProjectionLoss,
     /// A trust / governance advisory (untrusted signer, soft policy note).
     PolicyWarning,
+    /// A native↔published AGREEMENT — the native reasoner's verdict matched the
+    /// community-decided ground truth. NOT a failure: it is positive corroborating
+    /// evidence surfaced for the benchmark surface, coherent, and never blocks a
+    /// coherence certificate (the opposite of an incomplete check).
+    Corroboration,
+    /// The closed CHATTER kind for general-purpose logging witnesses — the
+    /// ordinary note/info stream a run emits to narrate its own progress. NOT a
+    /// failure and takes no coherence stance: transient bookkeeping that never
+    /// gates and carries no evidential weight.
+    #[serde(rename = "transient-chatter")]
+    Transient,
 }
 
 impl FindingCategory {
     /// Parse a kebab-case category label.
-    pub fn parse(value: &str) -> Result<Self, String> {
+    pub fn parse(value: &str) -> crate::Result<Self> {
         let trimmed = value.trim();
         if trimmed.eq_ignore_ascii_case("data-shape-violation") {
             Ok(Self::DataShapeViolation)
@@ -153,10 +182,15 @@ impl FindingCategory {
             Ok(Self::ProjectionLoss)
         } else if trimmed.eq_ignore_ascii_case("policy-warning") {
             Ok(Self::PolicyWarning)
+        } else if trimmed.eq_ignore_ascii_case("corroboration") {
+            Ok(Self::Corroboration)
+        } else if trimmed.eq_ignore_ascii_case("transient-chatter") {
+            Ok(Self::Transient)
         } else {
-            Err(format!(
-                "unknown finding category `{trimmed}`; expected one of the eight \
-                 logic:FindingCategory wire values"
+            Err(crate::diag::Diag::of_kind(
+                crate::error::UnknownFindingCategory {
+                    value: trimmed.to_owned(),
+                },
             ))
         }
     }
@@ -172,6 +206,28 @@ impl FindingCategory {
             Self::IncompleteCheck => "incomplete-check",
             Self::ProjectionLoss => "projection-loss",
             Self::PolicyWarning => "policy-warning",
+            Self::Corroboration => "corroboration",
+            Self::Transient => "transient-chatter",
+        }
+    }
+
+    /// The inverse of [`iri_local`](FindingCategory::iri_local) — read the
+    /// `logic:Finding*` individual's local name (`gmeow:findingCategory` object)
+    /// back into the category. The section of the RDF projection's category leg.
+    /// `None` for an unknown local name (hard fail, never a silent default).
+    pub fn from_iri_local(local: &str) -> Option<Self> {
+        match local {
+            "FindingDataShapeViolation" => Some(Self::DataShapeViolation),
+            "FindingModelingDisciplineViolation" => Some(Self::ModelingDisciplineViolation),
+            "FindingContradictionWitness" => Some(Self::ContradictionWitness),
+            "FindingPermittedEpistemicConflict" => Some(Self::PermittedEpistemicConflict),
+            "FindingUnsupportedSemanticFeature" => Some(Self::UnsupportedSemanticFeature),
+            "FindingIncompleteCheck" => Some(Self::IncompleteCheck),
+            "FindingProjectionLoss" => Some(Self::ProjectionLoss),
+            "FindingPolicyWarning" => Some(Self::PolicyWarning),
+            "FindingCorroboration" => Some(Self::Corroboration),
+            "FindingTransientChatter" => Some(Self::Transient),
+            _ => None,
         }
     }
 
@@ -187,6 +243,8 @@ impl FindingCategory {
             Self::IncompleteCheck => "FindingIncompleteCheck",
             Self::ProjectionLoss => "FindingProjectionLoss",
             Self::PolicyWarning => "FindingPolicyWarning",
+            Self::Corroboration => "FindingCorroboration",
+            Self::Transient => "FindingTransientChatter",
         }
     }
 }
@@ -391,6 +449,22 @@ pub struct DiagnosticAttribution {
     pub evidence: Option<String>,
 }
 
+/// A secondary, TEXT-bearing labelled span projected from a witness node's
+/// [`Label`](crate::diag::Label) — the human MESSAGE plus the [`Location`] it
+/// anchors to (Rust-compiler-style "defined here" / SHACL result-path / offending
+/// value).
+///
+/// Distinct from [`related_locations`](Finding::related_locations): that field
+/// carries the *bare* antecedent-IRI provenance edges (a location with no message);
+/// a related label additionally carries the label prose the LSP renders as a
+/// `DiagnosticRelatedInformation` entry. The two are kept separate so a labelled
+/// secondary span never loses its message when it rides through the flat model.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RelatedLabel {
+    pub location: Location,
+    pub message: String,
+}
+
 /// One normalized diagnostic emitted by any GMEOW tool.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Finding {
@@ -403,6 +477,15 @@ pub struct Finding {
     pub locations: Vec<Location>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub related_locations: Vec<Location>,
+    /// Secondary TEXT-bearing labelled spans — the faithful projection of the
+    /// witness node's [`Label`](crate::diag::Label)s that keeps each secondary
+    /// span's MESSAGE beside its location (the flat
+    /// [`related_locations`](Finding::related_locations) twin carries the bare
+    /// span with no message). Empty for findings that carry no labelled spans;
+    /// `skip_serializing_if` keeps them out of the wire form so existing
+    /// JSON/SARIF/RDF goldens are byte-unchanged when absent.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub related_labels: Vec<RelatedLabel>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub suggestions: Vec<String>,
     /// Structured, standpoint-bearing advice — the faithful projection of the
@@ -491,6 +574,7 @@ impl Finding {
             tool: None,
             locations: Vec::new(),
             related_locations: Vec::new(),
+            related_labels: Vec::new(),
             suggestions: Vec::new(),
             advice: Vec::new(),
             remediation: Vec::new(),
@@ -533,6 +617,15 @@ impl Finding {
         }
     }
 
+    /// Attach a secondary TEXT-bearing labelled span. A label with neither a
+    /// message nor a locating span carries nothing, so it is dropped (mirrors the
+    /// empty-guard on [`add_location`](Finding::add_location)).
+    pub fn add_related_label(&mut self, label: RelatedLabel) {
+        if !label.message.is_empty() || !label.location.is_empty() {
+            self.related_labels.push(label);
+        }
+    }
+
     pub fn primary_location(&self) -> Option<&Location> {
         self.locations.first()
     }
@@ -555,6 +648,12 @@ impl Finding {
         self.suggestions.dedup();
         self.locations.sort_by_key(Location::display);
         self.related_locations.sort_by_key(Location::display);
+        // Deterministic order for the text-bearing secondary spans, keyed on the
+        // rendered location then the message so a multi-label finding projects the
+        // same byte sequence regardless of attach order.
+        self.related_labels.sort_by(|a, b| {
+            (a.location.display(), &a.message).cmp(&(b.location.display(), &b.message))
+        });
         // The provenance-DAG edges and cross-node glut edges are content-addressed
         // IRIs; sort+dedup them so the projected graph is deterministic regardless
         // of the ledger's antecedent-union order.
@@ -751,20 +850,13 @@ mod tests {
 
     #[test]
     fn finding_category_wire_values_round_trip() {
-        for category in [
-            FindingCategory::DataShapeViolation,
-            FindingCategory::ModelingDisciplineViolation,
-            FindingCategory::ContradictionWitness,
-            FindingCategory::PermittedEpistemicConflict,
-            FindingCategory::UnsupportedSemanticFeature,
-            FindingCategory::IncompleteCheck,
-            FindingCategory::ProjectionLoss,
-            FindingCategory::PolicyWarning,
-        ] {
+        // Iterate the closed `ALL` set so a newly-minted category cannot escape the
+        // serde-rename == as_str == parse() round-trip invariant.
+        for category in FindingCategory::ALL {
             // serde rename == as_str == the kebab wire value parse() accepts.
             let json = serde_json::to_string(&category).expect("serialize");
             assert_eq!(json, format!("\"{}\"", category.as_str()));
-            assert_eq!(FindingCategory::parse(category.as_str()), Ok(category));
+            assert_eq!(FindingCategory::parse(category.as_str()).unwrap(), category);
             let round: FindingCategory = serde_json::from_str(&json).expect("deserialize");
             assert_eq!(round, category);
         }

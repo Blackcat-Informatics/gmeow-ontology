@@ -18,7 +18,6 @@ This bibliography is generated from `metadata/references.ttl`.
 | ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl | [link](http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#) | 1 |
 | en.wiktionary.org/wiki/stenography | [link](http://en.wiktionary.org/wiki/stenography) | 1 |
 | gedcomx.org | [link](http://gedcomx.org/) | 1 |
-| gedcomx.org/BiologicalParent | [link](http://gedcomx.org/BiologicalParent) | 1 |
 | gedcomx.org/v1 | [link](http://gedcomx.org/v1/) | 1 |
 | graphml.graphdrawing.org/xmlns | [link](http://graphml.graphdrawing.org/xmlns) | 1 |
 | hl7.org/fhir | [link](http://hl7.org/fhir/) | 1 |
@@ -33,8 +32,6 @@ This bibliography is generated from `metadata/references.ttl`.
 | hl7.org/fhir/sid/icf | [link](http://hl7.org/fhir/sid/icf#e5) | 1 |
 | id.loc.gov/datatypes/edtf | [link](http://id.loc.gov/datatypes/edtf/) | 1 |
 | id.loc.gov/ontologies/bibframe | [link](http://id.loc.gov/ontologies/bibframe/) | 1 |
-| id.loc.gov/ontologies/bibframe/Doi | [link](http://id.loc.gov/ontologies/bibframe/Doi) | 1 |
-| id.loc.gov/ontologies/bibframe/Identifier | [link](http://id.loc.gov/ontologies/bibframe/Identifier) | 1 |
 | iflastandards.info/ns/lrm/lrmoo | [link](http://iflastandards.info/ns/lrm/lrmoo/) | 1 |
 | iiif.io/api/presentation/3 | [link](http://iiif.io/api/presentation/3#) | 1 |
 | inspire.ec.europa.eu/ont/cp | [link](http://inspire.ec.europa.eu/ont/cp#) | 1 |
@@ -69,8 +66,6 @@ This bibliography is generated from `metadata/references.ttl`.
 | pleiades.stoa.org/places/vocab | [link](http://pleiades.stoa.org/places/vocab#) | 1 |
 | purl.obolibrary.org/obo | [link](http://purl.obolibrary.org/obo/) | 1 |
 | purl.obolibrary.org/obo/BFO_ | [link](http://purl.obolibrary.org/obo/BFO_) | 1 |
-| purl.obolibrary.org/obo/BFO_0000050 | [link](http://purl.obolibrary.org/obo/BFO_0000050) | 1 |
-| purl.obolibrary.org/obo/BFO_0000051 | [link](http://purl.obolibrary.org/obo/BFO_0000051) | 1 |
 | purl.obolibrary.org/obo/GSSO_ | [link](http://purl.obolibrary.org/obo/GSSO_) | 1 |
 | purl.obolibrary.org/obo/IAO_ | [link](http://purl.obolibrary.org/obo/IAO_) | 1 |
 | purl.obolibrary.org/obo/MFOEM_ | [link](http://purl.obolibrary.org/obo/MFOEM_) | 1 |
@@ -84,26 +79,14 @@ This bibliography is generated from `metadata/references.ttl`.
 | DCMI Metadata Terms | [link](http://purl.org/dc/terms/) | 1 |
 | purl.org/dc/terms/created | [link](http://purl.org/dc/terms/created) | 1 |
 | purl.org/dc/terms/creator | [link](http://purl.org/dc/terms/creator) | 1 |
-| purl.org/dc/terms/hasPart | [link](http://purl.org/dc/terms/hasPart) | 1 |
-| purl.org/dc/terms/isPartOf | [link](http://purl.org/dc/terms/isPartOf) | 1 |
-| purl.org/dc/terms/isVersionOf | [link](http://purl.org/dc/terms/isVersionOf) | 1 |
 | purl.org/dc/terms/method | [link](http://purl.org/dc/terms/method) | 1 |
-| purl.org/dc/terms/modified | [link](http://purl.org/dc/terms/modified) | 1 |
-| purl.org/dc/terms/title | [link](http://purl.org/dc/terms/title) | 1 |
 | purl.org/ieee1872-owl/cora | [link](http://purl.org/ieee1872-owl/cora#) | 1 |
 | purl.org/ieee1872-owl/pos | [link](http://purl.org/ieee1872-owl/pos#) | 1 |
 | purl.org/linked-data/cube | [link](http://purl.org/linked-data/cube#) | 1 |
-| purl.org/linked-data/cube | [link](http://purl.org/linked-data/cube#DataSet) | 1 |
-| purl.org/linked-data/cube | [link](http://purl.org/linked-data/cube#MeasureProperty) | 1 |
-| purl.org/linked-data/cube | [link](http://purl.org/linked-data/cube#Observation) | 1 |
 | purl.org/nanopub/x | [link](http://purl.org/nanopub/x/) | 1 |
 | gUFO | [link](http://purl.org/nemo/gufo#) | 1 |
-| purl.org/nemo/gufo | [link](http://purl.org/nemo/gufo#AbstractIndividualType) | 1 |
 | purl.org/nemo/gufo | [link](http://purl.org/nemo/gufo#Kind) | 1 |
-| purl.org/nemo/gufo | [link](http://purl.org/nemo/gufo#QualityValue) | 1 |
 | purl.org/nemo/gufo | [link](http://purl.org/nemo/gufo#Relator) | 1 |
-| purl.org/nemo/gufo | [link](http://purl.org/nemo/gufo#TemporaryParthoodSituation) | 1 |
-| purl.org/nemo/gufo | [link](http://purl.org/nemo/gufo#isComponentOf) | 1 |
 | purl.org/net/p-plan | [link](http://purl.org/net/p-plan) | 1 |
 | purl.org/net/p-plan | [link](http://purl.org/net/p-plan#) | 1 |
 | Bibliographic Ontology | [link](http://purl.org/ontology/bibo/) | 1 |
@@ -112,16 +95,10 @@ This bibliography is generated from `metadata/references.ttl`.
 | purl.org/spar/cito | [link](http://purl.org/spar/cito/) | 1 |
 | purl.org/spar/fabio | [link](http://purl.org/spar/fabio/) | 1 |
 | purl.org/vocab/bio/0.1 | [link](http://purl.org/vocab/bio/0.1/) | 1 |
-| purl.org/vocab/bio/0.1/Birth | [link](http://purl.org/vocab/bio/0.1/Birth) | 1 |
 | purl.org/vocab/frbr/core | [link](http://purl.org/vocab/frbr/core#) | 1 |
 | purl.org/vocab/relationship | [link](http://purl.org/vocab/relationship/) | 1 |
-| purl.org/vocab/relationship/childOf | [link](http://purl.org/vocab/relationship/childOf) | 1 |
-| purl.org/vocab/relationship/hasMet | [link](http://purl.org/vocab/relationship/hasMet) | 1 |
 | purl.org/vocab/vann | [link](http://purl.org/vocab/vann/) | 1 |
 | qudt.org/schema/qudt | [link](http://qudt.org/schema/qudt/) | 2 |
-| qudt.org/schema/qudt/QuantityValue | [link](http://qudt.org/schema/qudt/QuantityValue) | 1 |
-| qudt.org/schema/qudt/quantityValue | [link](http://qudt.org/schema/qudt/quantityValue) | 1 |
-| qudt.org/schema/qudt/standardUncertainty | [link](http://qudt.org/schema/qudt/standardUncertainty) | 1 |
 | qudt.org/vocab/unit | [link](http://qudt.org/vocab/unit) | 1 |
 | qudt.org/vocab/unit | [link](http://qudt.org/vocab/unit/) | 1 |
 | qudt.org/vocab/unit/BYTE | [link](http://qudt.org/vocab/unit/BYTE) | 1 |
@@ -135,7 +112,6 @@ This bibliography is generated from `metadata/references.ttl`.
 | qudt.org/vocab/unit/YR | [link](http://qudt.org/vocab/unit/YR) | 1 |
 | rdfs.org/ns/void | [link](http://rdfs.org/ns/void#) | 1 |
 | rdfs.org/sioc/ns | [link](http://rdfs.org/sioc/ns#) | 1 |
-| rdfs.org/sioc/ns | [link](http://rdfs.org/sioc/ns#container_of) | 1 |
 | resource.geosciml.org/ontology/timescale/gts | [link](http://resource.geosciml.org/ontology/timescale/gts#) | 1 |
 | robot.obolibrary.org | [link](http://robot.obolibrary.org/) | 1 |
 | semanticweb.cs.vu.nl/2009/11/sem | [link](http://semanticweb.cs.vu.nl/2009/11/sem/) | 1 |
@@ -150,8 +126,6 @@ This bibliography is generated from `metadata/references.ttl`.
 | umbel.org/umbel | [link](http://umbel.org/umbel#) | 1 |
 | umbel.org/umbel/rc | [link](http://umbel.org/umbel/rc/) | 1 |
 | DOAP | [link](http://usefulinc.com/ns/doap#) | 1 |
-| usefulinc.com/ns/doap | [link](http://usefulinc.com/ns/doap#Project) | 1 |
-| usefulinc.com/ns/doap | [link](http://usefulinc.com/ns/doap#license) | 1 |
 | vocab.getty.edu/ontology | [link](http://vocab.getty.edu/ontology#) | 1 |
 | vocab.getty.edu/tgn | [link](http://vocab.getty.edu/tgn/) | 1 |
 | vocab.gtfs.org/terms | [link](http://vocab.gtfs.org/terms#) | 1 |
@@ -163,20 +137,16 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.buildingsmart-tech.org/ifcOWL/IFC4 | [link](http://www.buildingsmart-tech.org/ifcOWL/IFC4#) | 1 |
 | www.cidoc-crm.org/cidoc-crm | [link](http://www.cidoc-crm.org/cidoc-crm/) | 1 |
 | www.cidoc-crm.org/cidoc-crm/CRMsci | [link](http://www.cidoc-crm.org/cidoc-crm/CRMsci/) | 1 |
-| www.cidoc-crm.org/cidoc-crm/P46_is_composed_of | [link](http://www.cidoc-crm.org/cidoc-crm/P46_is_composed_of) | 1 |
-| www.cidoc-crm.org/cidoc-crm/P46i_forms_part_of | [link](http://www.cidoc-crm.org/cidoc-crm/P46i_forms_part_of) | 1 |
 | www.cidoc-crm.org/crmarchaeo | [link](http://www.cidoc-crm.org/crmarchaeo/) | 1 |
 | www.cidoc-crm.org/crmsci | [link](http://www.cidoc-crm.org/crmsci/) | 1 |
 | www.cidoc-crm.org/extensions/crmsci | [link](http://www.cidoc-crm.org/extensions/crmsci/) | 1 |
 | www.cidoc-crm.org/lrmoo | [link](http://www.cidoc-crm.org/lrmoo/) | 1 |
-| www.crossref.org/schema/5.4.0 | [link](http://www.crossref.org/schema/5.4.0) | 1 |
 | www.ease-crc.org/ont/SOMA.owl | [link](http://www.ease-crc.org/ont/SOMA.owl#) | 1 |
 | www.geonames.org/ontology | [link](http://www.geonames.org/ontology#) | 1 |
 | www.holygoat.co.uk/owl/redwood/0.1/tags | [link](http://www.holygoat.co.uk/owl/redwood/0.1/tags/) | 1 |
 | www.ics.forth.gr/isl/CRMdig | [link](http://www.ics.forth.gr/isl/CRMdig/) | 1 |
 | www.ics.forth.gr/isl/CRMgeo | [link](http://www.ics.forth.gr/isl/CRMgeo/) | 1 |
 | www.ics.forth.gr/isl/CRMinf | [link](http://www.ics.forth.gr/isl/CRMinf/) | 1 |
-| www.ics.forth.gr/isl/CRMinf/I6_Belief_Value | [link](http://www.ics.forth.gr/isl/CRMinf/I6_Belief_Value) | 1 |
 | www.iptc.org/std/NewsML-G2/2.4/specification/NewsML-G2_2.4-spec-PCL.pdf | [link](http://www.iptc.org/std/NewsML-G2/2.4/specification/NewsML-G2_2.4-spec-PCL.pdf) | 1 |
 | www.isotc211.org/iso19156 | [link](http://www.isotc211.org/iso19156/) | 1 |
 | www.ivoa.net/rdf | [link](http://www.ivoa.net/rdf/) | 1 |
@@ -207,21 +177,12 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.omg.org/spec/BPMN/20100524/MODEL | [link](http://www.omg.org/spec/BPMN/20100524/MODEL#) | 1 |
 | www.ontodm.com/OntoDM-core | [link](http://www.ontodm.com/OntoDM-core) | 1 |
 | www.ontologydesignpatterns.org/ont/dul/DUL.owl | [link](http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#) | 1 |
-| www.openarchives.org/OAI/2.0/oai_dc.xsd | [link](http://www.openarchives.org/OAI/2.0/oai_dc.xsd) | 1 |
-| www.openarchives.org/OAI/2.0/oai_dc | [link](http://www.openarchives.org/OAI/2.0/oai_dc/) | 1 |
 | www.opengis.net/def/ont/sensorthings/1.1 | [link](http://www.opengis.net/def/ont/sensorthings/1.1/) | 1 |
 | GeoSPARQL | [link](http://www.opengis.net/ont/geosparql#) | 1 |
-| www.opengis.net/ont/geosparql | [link](http://www.opengis.net/ont/geosparql#Geometry) | 1 |
-| www.opengis.net/ont/geosparql | [link](http://www.opengis.net/ont/geosparql#asWKT) | 1 |
-| www.opengis.net/ont/geosparql | [link](http://www.opengis.net/ont/geosparql#geoJSONLiteral) | 1 |
-| www.opengis.net/ont/geosparql | [link](http://www.opengis.net/ont/geosparql#sfContains) | 1 |
-| www.opengis.net/ont/geosparql | [link](http://www.opengis.net/ont/geosparql#sfWithin) | 1 |
-| www.opengis.net/ont/geosparql | [link](http://www.opengis.net/ont/geosparql#wktLiteral) | 1 |
 | www.opengis.net/ont/ladm | [link](http://www.opengis.net/ont/ladm#) | 1 |
 | www.opengis.net/ont/movingfeatures | [link](http://www.opengis.net/ont/movingfeatures#) | 1 |
 | www.opengis.net/ont/sf | [link](http://www.opengis.net/ont/sf#) | 1 |
 | www.semanticdesktop.org/ontologies/2007/03/22/nmo | [link](http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#) | 1 |
-| www.tei-c.org/ns/1.0 | [link](http://www.tei-c.org/ns/1.0) | 1 |
 | www.w3.org/1999/02/22-rdf-syntax-ns | [link](http://www.w3.org/1999/02/22-rdf-syntax-ns#) | 1 |
 | www.w3.org/1999/02/22-rdf-syntax-ns | [link](http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement) | 1 |
 | www.w3.org/1999/02/22-rdf-syntax-ns | [link](http://www.w3.org/1999/02/22-rdf-syntax-ns#langString) | 1 |
@@ -232,27 +193,19 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.w3.org/2000-01/rdf-schema | [link](http://www.w3.org/2000-01/rdf-schema#) | 1 |
 | www.w3.org/2000/01/rdf-schema | [link](http://www.w3.org/2000/01/rdf-schema#) | 1 |
 | www.w3.org/2000/01/rdf-schema | [link](http://www.w3.org/2000/01/rdf-schema#Datatype) | 1 |
-| www.w3.org/2000/01/rdf-schema | [link](http://www.w3.org/2000/01/rdf-schema#Literal) | 1 |
-| www.w3.org/2000/01/rdf-schema | [link](http://www.w3.org/2000/01/rdf-schema#comment) | 1 |
 | www.w3.org/2000/01/rdf-schema | [link](http://www.w3.org/2000/01/rdf-schema#domain) | 1 |
-| www.w3.org/2000/01/rdf-schema | [link](http://www.w3.org/2000/01/rdf-schema#isDefinedBy) | 1 |
 | www.w3.org/2000/01/rdf-schema | [link](http://www.w3.org/2000/01/rdf-schema#label) | 1 |
 | www.w3.org/2000/01/rdf-schema | [link](http://www.w3.org/2000/01/rdf-schema#range) | 1 |
 | www.w3.org/2000/01/rdf-schema | [link](http://www.w3.org/2000/01/rdf-schema#subClassOf) | 1 |
 | www.w3.org/2000/01/rdf-schema | [link](http://www.w3.org/2000/01/rdf-schema#subPropertyOf) | 1 |
 | www.w3.org/2000/10/swap/pim/gedcom | [link](http://www.w3.org/2000/10/swap/pim/gedcom#) | 1 |
-| www.w3.org/2000/10/swap/pim/gedcom | [link](http://www.w3.org/2000/10/swap/pim/gedcom#Individual) | 1 |
-| www.w3.org/2000/10/swap/pim/gedcom | [link](http://www.w3.org/2000/10/swap/pim/gedcom#spouseIn) | 1 |
 | www.w3.org/2000/rdf-schema | [link](http://www.w3.org/2000/rdf-schema#) | 1 |
-| www.w3.org/2000/svg | [link](http://www.w3.org/2000/svg) | 1 |
 | www.w3.org/2001/XMLSchema | [link](http://www.w3.org/2001/XMLSchema#) | 1 |
-| www.w3.org/2001/XMLSchema | [link](http://www.w3.org/2001/XMLSchema#boolean) | 1 |
 | www.w3.org/2001/XMLSchema | [link](http://www.w3.org/2001/XMLSchema#dateTime) | 1 |
 | www.w3.org/2001/XMLSchema | [link](http://www.w3.org/2001/XMLSchema#decimal) | 1 |
 | www.w3.org/2001/XMLSchema | [link](http://www.w3.org/2001/XMLSchema#integer) | 1 |
 | www.w3.org/2001/XMLSchema | [link](http://www.w3.org/2001/XMLSchema#language) | 1 |
 | www.w3.org/2001/XMLSchema | [link](http://www.w3.org/2001/XMLSchema#string) | 1 |
-| www.w3.org/2001/XMLSchema-instance | [link](http://www.w3.org/2001/XMLSchema-instance) | 1 |
 | www.w3.org/2002/07/owl | [link](http://www.w3.org/2002/07/owl#) | 1 |
 | www.w3.org/2002/07/owl | [link](http://www.w3.org/2002/07/owl#AnnotationProperty) | 1 |
 | www.w3.org/2002/07/owl | [link](http://www.w3.org/2002/07/owl#Axiom) | 1 |
@@ -274,32 +227,17 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.w3.org/2002/07/owl | [link](http://www.w3.org/2002/07/owl#onClass) | 1 |
 | www.w3.org/2002/07/owl | [link](http://www.w3.org/2002/07/owl#onProperty) | 1 |
 | www.w3.org/2002/07/owl | [link](http://www.w3.org/2002/07/owl#propertyChainAxiom) | 1 |
-| www.w3.org/2002/07/owl | [link](http://www.w3.org/2002/07/owl#sameAs) | 1 |
 | www.w3.org/2002/07/owl | [link](http://www.w3.org/2002/07/owl#someValuesFrom) | 1 |
 | www.w3.org/2002/07/owl | [link](http://www.w3.org/2002/07/owl#versionInfo) | 1 |
 | www.w3.org/2002/07/rdf-schema | [link](http://www.w3.org/2002/07/rdf-schema#) | 1 |
 | iCalendar RDF vocabulary | [link](http://www.w3.org/2002/12/cal/icaltzd#) | 1 |
 | www.w3.org/2003/01/geo/wgs84_pos | [link](http://www.w3.org/2003/01/geo/wgs84_pos#) | 1 |
-| www.w3.org/2003/01/geo/wgs84_pos | [link](http://www.w3.org/2003/01/geo/wgs84_pos#lat) | 1 |
 | www.w3.org/2003/12/exif/ns | [link](http://www.w3.org/2003/12/exif/ns#) | 1 |
 | SKOS | [link](http://www.w3.org/2004/02/skos/core#) | 1 |
 | www.w3.org/2004/02/skos/core | [link](http://www.w3.org/2004/02/skos/core#closeMatch) | 1 |
-| www.w3.org/2004/02/skos/core | [link](http://www.w3.org/2004/02/skos/core#definition) | 1 |
 | www.w3.org/2004/02/skos/core | [link](http://www.w3.org/2004/02/skos/core#exactMatch) | 1 |
 | OWL-Time | [link](http://www.w3.org/2006/time#) | 1 |
-| www.w3.org/2006/time | [link](http://www.w3.org/2006/time#inXSDDateTime) | 1 |
 | vCard RDF vocabulary | [link](http://www.w3.org/2006/vcard/ns#) | 1 |
-| www.w3.org/2006/vcard/ns | [link](http://www.w3.org/2006/vcard/ns#Geo) | 1 |
-| www.w3.org/2006/vcard/ns | [link](http://www.w3.org/2006/vcard/ns#Name) | 1 |
-| www.w3.org/2006/vcard/ns | [link](http://www.w3.org/2006/vcard/ns#hasAddress) | 1 |
-| www.w3.org/2006/vcard/ns | [link](http://www.w3.org/2006/vcard/ns#hasGeo) | 1 |
-| www.w3.org/2006/vcard/ns | [link](http://www.w3.org/2006/vcard/ns#hasName) | 1 |
-| www.w3.org/2006/vcard/ns | [link](http://www.w3.org/2006/vcard/ns#label) | 1 |
-| www.w3.org/2006/vcard/ns | [link](http://www.w3.org/2006/vcard/ns#latitude) | 1 |
-| www.w3.org/2006/vcard/ns | [link](http://www.w3.org/2006/vcard/ns#longitude) | 1 |
-| www.w3.org/2006/vcard/ns | [link](http://www.w3.org/2006/vcard/ns#tz) | 1 |
-| www.w3.org/ns/anno.jsonld | [link](http://www.w3.org/ns/anno.jsonld) | 1 |
-| www.w3.org/ns/csvw | [link](http://www.w3.org/ns/csvw) | 1 |
 | www.w3.org/ns/dcat | [link](http://www.w3.org/ns/dcat#) | 1 |
 | www.w3.org/ns/dqv | [link](http://www.w3.org/ns/dqv#) | 1 |
 | www.w3.org/ns/dqv | [link](http://www.w3.org/ns/dqv#QualityAssessment) | 1 |
@@ -309,12 +247,7 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.w3.org/ns/formats/RDF_XML | [link](http://www.w3.org/ns/formats/RDF_XML) | 1 |
 | www.w3.org/ns/formats/Turtle | [link](http://www.w3.org/ns/formats/Turtle) | 1 |
 | www.w3.org/ns/lemon/lime | [link](http://www.w3.org/ns/lemon/lime#) | 1 |
-| www.w3.org/ns/lemon/lime | [link](http://www.w3.org/ns/lemon/lime#language) | 1 |
 | www.w3.org/ns/lemon/ontolex | [link](http://www.w3.org/ns/lemon/ontolex#) | 1 |
-| www.w3.org/ns/lemon/ontolex | [link](http://www.w3.org/ns/lemon/ontolex#Form) | 1 |
-| www.w3.org/ns/lemon/ontolex | [link](http://www.w3.org/ns/lemon/ontolex#LexicalEntry) | 1 |
-| www.w3.org/ns/lemon/ontolex | [link](http://www.w3.org/ns/lemon/ontolex#lexicalForm) | 1 |
-| www.w3.org/ns/lemon/ontolex | [link](http://www.w3.org/ns/lemon/ontolex#writtenRep) | 1 |
 | www.w3.org/ns/lemon/synsem | [link](http://www.w3.org/ns/lemon/synsem#) | 1 |
 | www.w3.org/ns/ma-ont | [link](http://www.w3.org/ns/ma-ont#) | 1 |
 | www.w3.org/ns/mls | [link](http://www.w3.org/ns/mls#) | 1 |
@@ -324,18 +257,13 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.w3.org/ns/odrl/2/profile | [link](http://www.w3.org/ns/odrl/2/profile) | 1 |
 | www.w3.org/ns/org | [link](http://www.w3.org/ns/org#) | 1 |
 | PROV-O | [link](http://www.w3.org/ns/prov#) | 1 |
-| www.w3.org/ns/prov | [link](http://www.w3.org/ns/prov#Activity) | 1 |
 | www.w3.org/ns/prov | [link](http://www.w3.org/ns/prov#endedAtTime) | 1 |
-| www.w3.org/ns/prov | [link](http://www.w3.org/ns/prov#generatedAtTime) | 1 |
 | www.w3.org/ns/shacl | [link](http://www.w3.org/ns/shacl#) | 1 |
 | www.w3.org/ns/sosa | [link](http://www.w3.org/ns/sosa/) | 1 |
 | www.w3.org/ns/ssn | [link](http://www.w3.org/ns/ssn/) | 1 |
 | www.wikidata.org/entity | [link](http://www.wikidata.org/entity/) | 1 |
-| www.wikidata.org/entity/P275 | [link](http://www.wikidata.org/entity/P275) | 1 |
-| www.wikidata.org/entity/Q0 | [link](http://www.wikidata.org/entity/Q0) | 1 |
 | Wikidata Q12770764 (mastery) | [link](http://www.wikidata.org/entity/Q12770764) | 1 |
 | www.wikidata.org/entity/Q150 | [link](http://www.wikidata.org/entity/Q150) | 1 |
-| www.wikidata.org/entity/Q170028 | [link](http://www.wikidata.org/entity/Q170028) | 1 |
 | Wikidata Q1774565 (Bloom taxonomy) | [link](http://www.wikidata.org/entity/Q1774565) | 1 |
 | www.wikidata.org/entity/Q1860 | [link](http://www.wikidata.org/entity/Q1860) | 1 |
 | Wikidata Q366791 (curiosity) | [link](http://www.wikidata.org/entity/Q366791) | 1 |
@@ -349,23 +277,14 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.wikidata.org/entity/statement | [link](http://www.wikidata.org/entity/statement/) | 1 |
 | www.wikidata.org/prop | [link](http://www.wikidata.org/prop/) | 1 |
 | www.wikidata.org/prop/direct | [link](http://www.wikidata.org/prop/direct/) | 1 |
-| www.wikidata.org/prop/direct/P131 | [link](http://www.wikidata.org/prop/direct/P131) | 1 |
-| www.wikidata.org/prop/direct/P31 | [link](http://www.wikidata.org/prop/direct/P31) | 1 |
-| www.wikidata.org/prop/direct/Q42 | [link](http://www.wikidata.org/prop/direct/Q42) | 1 |
 | www.wikidata.org/prop/statement | [link](http://www.wikidata.org/prop/statement/) | 1 |
 | www.wurvoc.org/vocabularies/om-1.8 | [link](http://www.wurvoc.org/vocabularies/om-1.8/) | 1 |
 | FOAF | [link](http://xmlns.com/foaf/0.1/) | 1 |
-| xmlns.com/foaf/0.1/Person | [link](http://xmlns.com/foaf/0.1/Person) | 1 |
 | foaf:focus | [link](http://xmlns.com/foaf/0.1/focus) | 1 |
-| xmlns.com/foaf/0.1/homepage | [link](http://xmlns.com/foaf/0.1/homepage) | 1 |
 | foaf:interest | [link](http://xmlns.com/foaf/0.1/interest) | 1 |
 | xmlns.com/foaf/spec | [link](http://xmlns.com/foaf/spec/#term_Organization) | 1 |
-| xmlns.com/foaf/spec/index.rdf | [link](http://xmlns.com/foaf/spec/index.rdf) | 1 |
 | xmlns.com/wot/0.1 | [link](http://xmlns.com/wot/0.1/) | 1 |
 | xmlns.com/wot/0.1/Endorsement | [link](http://xmlns.com/wot/0.1/Endorsement) | 1 |
-| xmlns.com/wot/0.1/PubKey | [link](http://xmlns.com/wot/0.1/PubKey) | 1 |
-| xmlns.com/wot/0.1/fingerprint | [link](http://xmlns.com/wot/0.1/fingerprint) | 1 |
-| allenai.org/data/atomic | [link](https://allenai.org/data/atomic) | 1 |
 | arxiv.org/abs/2210.05781 | [link](https://arxiv.org/abs/2210.05781) | 1 |
 | arxiv.org/abs/2404.16130 | [link](https://arxiv.org/abs/2404.16130) | 1 |
 | asistdl.onlinelibrary.wiley.com/doi/10.1002/asi.24744 | [link](https://asistdl.onlinelibrary.wiley.com/doi/10.1002/asi.24744) | 1 |
@@ -374,14 +293,12 @@ This bibliography is generated from `metadata/references.ttl`.
 | blackcatinformatics.ca | [link](https://blackcatinformatics.ca) | 2 |
 | blackcatinformatics.ca | [link](https://blackcatinformatics.ca/) | 1 |
 | blackcatinformatics.ca | [link](https://blackcatinformatics.ca/#bii) | 1 |
-| Diallo, A. (2026). Grounded Retrieval. | [link](https://blackcatinformatics.ca/gmeow/references/work/diallo-a-2026-grounded-retrieval-68bdcb49) | 1 |
 | Diallo, A. (2026). Grounded Retrieval over Content-Addressed Corpora. | [link](https://blackcatinformatics.ca/gmeow/references/work/diallo-a-2026-grounded-retrieval-over-content-addressed-corpora-291b4a4c) | 1 |
 | blackcatinformatics.ca/index.ttl | [link](https://blackcatinformatics.ca/index.ttl) | 1 |
 | blackcatinformatics.ca/logic | [link](https://blackcatinformatics.ca/logic/) | 1 |
 | blackcatinformatics.ca/vcard-ext | [link](https://blackcatinformatics.ca/vcard-ext/) | 1 |
 | books.google.com/books/about/On_Bullshit.html | [link](https://books.google.com/books/about/On_Bullshit.html?id=bFpzNItiO7oC) | 1 |
 | brickschema.org/schema/Brick | [link](https://brickschema.org/schema/Brick#) | 1 |
-| cdn.simplecss.org | [link](https://cdn.simplecss.org) | 1 |
 | cidoc-crm.org | [link](https://cidoc-crm.org/) | 1 |
 | cidoc-crm.org/Issue/ID-188-scope-note-of-e11 | [link](https://cidoc-crm.org/Issue/ID-188-scope-note-of-e11) | 1 |
 | cidoc-crm.org/Issue/ID-360-lrmoo | [link](https://cidoc-crm.org/Issue/ID-360-lrmoo) | 1 |
@@ -417,7 +334,6 @@ This bibliography is generated from `metadata/references.ttl`.
 | codeql.github.com/codeql-query-help/actions/actions-cache-poisoning-direct-cache | [link](https://codeql.github.com/codeql-query-help/actions/actions-cache-poisoning-direct-cache/) | 1 |
 | codeql.github.com/codeql-query-help/actions/actions-cache-poisoning-poisonable-step | [link](https://codeql.github.com/codeql-query-help/actions/actions-cache-poisoning-poisonable-step/) | 1 |
 | commons.wikimedia.org/wiki/Category:Bullshit | [link](https://commons.wikimedia.org/wiki/Category:Bullshit) | 1 |
-| conceptnet.io | [link](https://conceptnet.io/) | 1 |
 | conceptualspaces.org | [link](https://conceptualspaces.org/) | 1 |
 | confluence.ihtsdotools.org/display/DOCSTART/5.+SNOMED+CT+Logical+Model | [link](https://confluence.ihtsdotools.org/display/DOCSTART/5.+SNOMED+CT+Logical+Model) | 1 |
 | context7.com/edmcouncil/fibo/llms.txt | [link](https://context7.com/edmcouncil/fibo/llms.txt) | 1 |
@@ -503,9 +419,7 @@ This bibliography is generated from `metadata/references.ttl`.
 | DOI 10.1186/s13326-016-0067-z | [link](https://doi.org/10.1186/s13326-016-0067-z) | 1 |
 | DOI 10.1186/s13326-016-0067-z.pdf | [link](https://doi.org/10.1186/s13326-016-0067-z.pdf) | 1 |
 | DOI 10.1186/s13326-018-0190-0 | [link](https://doi.org/10.1186/s13326-018-0190-0) | 1 |
-| DOI 10.1234/example | [link](https://doi.org/10.1234/example) | 1 |
 | DOI 10.1234/meowgraph | [link](https://doi.org/10.1234/meowgraph) | 1 |
-| DOI 10.1234/x | [link](https://doi.org/10.1234/x) | 1 |
 | DOI 10.1371/journal.pcbi.1009041 | [link](https://doi.org/10.1371/journal.pcbi.1009041) | 1 |
 | DOI 10.2307/3680941 | [link](https://doi.org/10.2307/3680941) | 1 |
 | DOI 10.25490/a97f-egyk | [link](https://doi.org/10.25490/a97f-egyk) | 1 |
@@ -525,9 +439,6 @@ This bibliography is generated from `metadata/references.ttl`.
 | en.wikipedia.org/wiki/paltering | [link](https://en.wikipedia.org/wiki/paltering) | 1 |
 | en.wikipedia.org/wiki/stenography | [link](https://en.wikipedia.org/wiki/stenography) | 1 |
 | esco.ec.europa.eu | [link](https://esco.ec.europa.eu/) | 1 |
-| ex/a | [link](https://ex/a) | 1 |
-| ex/p | [link](https://ex/p) | 1 |
-| ex/s | [link](https://ex/s) | 1 |
 | example.com | [link](https://example.com/) | 1 |
 | example.com/webinar/42 | [link](https://example.com/webinar/42) | 1 |
 | example.zoom.us/j/123456 | [link](https://example.zoom.us/j/123456) | 1 |
@@ -599,12 +510,10 @@ This bibliography is generated from `metadata/references.ttl`.
 | microsoft.github.io/graphrag | [link](https://microsoft.github.io/graphrag/) | 1 |
 | moex.gitlabpages.inria.fr/alignapi/edoal.html | [link](https://moex.gitlabpages.inria.fr/alignapi/edoal.html) | 1 |
 | motools.sourceforge.net/doc/musicontology.html | [link](https://motools.sourceforge.net/doc/musicontology.html) | 1 |
-| mycorp.example/slices/languages | [link](https://mycorp.example/slices/languages) | 1 |
 | nanopub.net | [link](https://nanopub.net/) | 1 |
 | nemo-ufes.github.io/gufo | [link](https://nemo-ufes.github.io/gufo/) | 1 |
 | neo4j.com/labs/neosemantics | [link](https://neo4j.com/labs/neosemantics/) | 1 |
 | nodejs.org/dist/index.json | [link](https://nodejs.org/dist/index.json) | 1 |
-| nope.example | [link](https://nope.example/) | 1 |
 | old.example.com/profile | [link](https://old.example.com/profile) | 1 |
 | ontobee.org/ontology/BFO | [link](https://ontobee.org/ontology/BFO) | 1 |
 | ontologi.atlas.vegvesen.no/bridge/v441/core/doc/v441-owl-doc/foaf_phone.html | [link](https://ontologi.atlas.vegvesen.no/bridge/v441/core/doc/v441-owl-doc/foaf_phone.html) | 1 |
@@ -614,10 +523,8 @@ This bibliography is generated from `metadata/references.ttl`.
 | ontome.net/namespace/16 | [link](https://ontome.net/namespace/16) | 1 |
 | ontouml.readthedocs.io | [link](https://ontouml.readthedocs.io/) | 1 |
 | ontouml.readthedocs.io/en/latest/anti-patterns | [link](https://ontouml.readthedocs.io/en/latest/anti-patterns/) | 1 |
-| oops.linkeddata.es/rest | [link](https://oops.linkeddata.es/rest) | 1 |
 | opencitations.net/ontology | [link](https://opencitations.net/ontology) | 1 |
 | opencypher.org | [link](https://opencypher.org/) | 1 |
-| opengeospatial.github.io/ogc-geosparql/geosparql11/geo.ttl | [link](https://opengeospatial.github.io/ogc-geosparql/geosparql11/geo.ttl) | 1 |
 | openwdl.org | [link](https://openwdl.org/) | 1 |
 | orcid.org | [link](https://orcid.org/) | 1 |
 | orcid.org/0000-0002-1825-0097 | [link](https://orcid.org/0000-0002-1825-0097) | 1 |
@@ -680,42 +587,14 @@ This bibliography is generated from `metadata/references.ttl`.
 | schema.datacite.org/meta/kernel-4.5/metadata.xsd | [link](https://schema.datacite.org/meta/kernel-4.5/metadata.xsd) | 1 |
 | schema.org | [link](https://schema.org) | 1 |
 | Schema.org | [link](https://schema.org/) | 1 |
-| schema.org/Brand | [link](https://schema.org/Brand) | 1 |
 | schema.org/Claim | [link](https://schema.org/Claim) | 1 |
-| schema.org/ClaimReview | [link](https://schema.org/ClaimReview) | 1 |
-| schema.org/CommunicateAction | [link](https://schema.org/CommunicateAction) | 1 |
-| schema.org/CreativeWork | [link](https://schema.org/CreativeWork) | 1 |
-| schema.org/DataDownload | [link](https://schema.org/DataDownload) | 1 |
-| schema.org/DataFeedItem | [link](https://schema.org/DataFeedItem) | 1 |
 | schema.org/EducationalOccupationalCredential | [link](https://schema.org/EducationalOccupationalCredential) | 1 |
-| schema.org/EmailMessage | [link](https://schema.org/EmailMessage) | 1 |
 | schema.org/HowTo | [link](https://schema.org/HowTo) | 1 |
 | schema.org/NoteDigitalDocument | [link](https://schema.org/NoteDigitalDocument) | 1 |
-| schema.org/Organization | [link](https://schema.org/Organization) | 1 |
-| schema.org/Person | [link](https://schema.org/Person) | 1 |
-| schema.org/Place | [link](https://schema.org/Place) | 1 |
-| schema.org/Quotation | [link](https://schema.org/Quotation) | 1 |
-| schema.org/Rating | [link](https://schema.org/Rating) | 1 |
 | schema.org/Schedule | [link](https://schema.org/Schedule) | 1 |
-| schema.org/VirtualLocation | [link](https://schema.org/VirtualLocation) | 1 |
-| schema.org/addressLocality | [link](https://schema.org/addressLocality) | 1 |
 | schema.org/citation | [link](https://schema.org/citation) | 1 |
-| schema.org/dataFeedElement | [link](https://schema.org/dataFeedElement) | 1 |
-| schema.org/description | [link](https://schema.org/description) | 1 |
 | schema.org/docs/financial.html | [link](https://schema.org/docs/financial.html) | 1 |
-| schema.org/hasPart | [link](https://schema.org/hasPart) | 1 |
-| schema.org/isPartOf | [link](https://schema.org/isPartOf) | 1 |
-| schema.org/mainEntityOfPage | [link](https://schema.org/mainEntityOfPage) | 1 |
-| schema.org/potentialAction | [link](https://schema.org/potentialAction) | 1 |
-| schema.org/reviewRating | [link](https://schema.org/reviewRating) | 1 |
-| schema.org/sameAs | [link](https://schema.org/sameAs) | 1 |
-| schema.org/sender | [link](https://schema.org/sender) | 1 |
-| schema.org/streetAddress | [link](https://schema.org/streetAddress) | 1 |
-| schema.org/target | [link](https://schema.org/target) | 1 |
-| schema.org/toRecipient | [link](https://schema.org/toRecipient) | 1 |
-| schema.org/url | [link](https://schema.org/url) | 1 |
 | schema.org/validThrough | [link](https://schema.org/validThrough) | 1 |
-| schema.org/version/latest/schemaorg-current-https.ttl | [link](https://schema.org/version/latest/schemaorg-current-https.ttl) | 1 |
 | scholar.harvard.edu/files/todd_rogers/files/paltering.pdf | [link](https://scholar.harvard.edu/files/todd_rogers/files/paltering.pdf) | 1 |
 | securitylab.github.com/resources/github-actions-new-patterns-and-mitigations | [link](https://securitylab.github.com/resources/github-actions-new-patterns-and-mitigations/) | 1 |
 | signposting.org/FAIR | [link](https://signposting.org/FAIR/) | 1 |
@@ -776,15 +655,12 @@ This bibliography is generated from `metadata/references.ttl`.
 | w3id.org | [link](https://w3id.org/) | 1 |
 | w3id.org/bot | [link](https://w3id.org/bot) | 1 |
 | w3id.org/bot | [link](https://w3id.org/bot#) | 1 |
-| w3id.org/bot/bot.ttl | [link](https://w3id.org/bot/bot.ttl) | 1 |
 | w3id.org/dpv | [link](https://w3id.org/dpv#) | 1 |
-| w3id.org/foops/assessOntology | [link](https://w3id.org/foops/assessOntology) | 1 |
 | w3id.org/function/ontology | [link](https://w3id.org/function/ontology#) | 1 |
 | w3id.org/function/vocabulary/mapping | [link](https://w3id.org/function/vocabulary/mapping#) | 1 |
 | w3id.org/gts/files | [link](https://w3id.org/gts/files#) | 1 |
 | w3id.org/gts/files | [link](https://w3id.org/gts/files#FileEntry) | 1 |
 | w3id.org/gts/files | [link](https://w3id.org/gts/files#digest) | 1 |
-| w3id.org/gts/files | [link](https://w3id.org/gts/files#graph) | 1 |
 | w3id.org/gts/files | [link](https://w3id.org/gts/files#mediaType) | 1 |
 | w3id.org/gts/files | [link](https://w3id.org/gts/files#mode) | 1 |
 | w3id.org/gts/files | [link](https://w3id.org/gts/files#modified) | 1 |
@@ -805,7 +681,6 @@ This bibliography is generated from `metadata/references.ttl`.
 | w3id.org/gts/stream | [link](https://w3id.org/gts/stream#sourceFrame) | 1 |
 | w3id.org/gts/stream | [link](https://w3id.org/gts/stream#sourceHead) | 1 |
 | w3id.org/gts/stream | [link](https://w3id.org/gts/stream#timestamp) | 1 |
-| w3id.org/linkml | [link](https://w3id.org/linkml/) | 1 |
 | w3id.org/phishing-process-ontology | [link](https://w3id.org/phishing-process-ontology) | 1 |
 | w3id.org/phishing-process-ontology | [link](https://w3id.org/phishing-process-ontology/) | 1 |
 | w3id.org/phishing-process-ontology/PhishingAttack | [link](https://w3id.org/phishing-process-ontology/PhishingAttack) | 1 |
@@ -826,13 +701,11 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.ashrae.org/technical-resources/bookstore/standard-55 | [link](https://www.ashrae.org/technical-resources/bookstore/standard-55) | 1 |
 | www.coderabbit.ai/issue-planner | [link](https://www.coderabbit.ai/issue-planner) | 1 |
 | www.cognitiveatlas.org | [link](https://www.cognitiveatlas.org/) | 1 |
-| www.commoncoreontologies.org | [link](https://www.commoncoreontologies.org/) | 1 |
 | www.commonwl.org | [link](https://www.commonwl.org/) | 1 |
 | www.conventionalcommits.org | [link](https://www.conventionalcommits.org/) | 1 |
 | www.crossref.org/documentation/schema-library/markup-guide-metadata-segments/relationships | [link](https://www.crossref.org/documentation/schema-library/markup-guide-metadata-segments/relationships/) | 1 |
 | www.crossref.org/documentation/schema-library/markup-guide-record-types/components | [link](https://www.crossref.org/documentation/schema-library/markup-guide-record-types/components/) | 1 |
 | www.crossref.org/documentation/schema-library/metadata-deposit-schema | [link](https://www.crossref.org/documentation/schema-library/metadata-deposit-schema/) | 1 |
-| www.crossref.org/schemas/crossref5.4.0.xsd | [link](https://www.crossref.org/schemas/crossref5.4.0.xsd) | 1 |
 | www.doi.org | [link](https://www.doi.org/) | 1 |
 | www.dublincore.org/specifications/bibo/bibo | [link](https://www.dublincore.org/specifications/bibo/bibo/) | 1 |
 | www.dublincore.org/specifications/dctap | [link](https://www.dublincore.org/specifications/dctap/) | 1 |
@@ -860,7 +733,6 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.omg.org/spec/EDMC-FIBO/FBC/1.0/PDF | [link](https://www.omg.org/spec/EDMC-FIBO/FBC/1.0/PDF) | 1 |
 | O*NET Resource Center | [link](https://www.onetcenter.org/) | 1 |
 | www.onetonline.org | [link](https://www.onetonline.org/) | 1 |
-| www.ontologyportal.org/SUMO.owl | [link](https://www.ontologyportal.org/SUMO.owl) | 1 |
 | SUMO knows | [link](https://www.ontologyportal.org/SUMO.owl#knows) | 1 |
 | www.openarchives.org/OAI/2.0/openarchivesprotocol.htm | [link](https://www.openarchives.org/OAI/2.0/openarchivesprotocol.htm) | 1 |
 | www.openarchives.org/OAI/openarchivesprotocol.htm | [link](https://www.openarchives.org/OAI/openarchivesprotocol.htm) | 1 |
@@ -888,8 +760,6 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.w3.org/2000/10/swap/doc/cwm.html | [link](https://www.w3.org/2000/10/swap/doc/cwm.html) | 1 |
 | www.w3.org/2001/sw/BestPractices/MM/image_annotation.html | [link](https://www.w3.org/2001/sw/BestPractices/MM/image_annotation.html) | 1 |
 | www.w3.org/2003/12/exif | [link](https://www.w3.org/2003/12/exif/) | 1 |
-| www.w3.org/2006/time.ttl | [link](https://www.w3.org/2006/time.ttl) | 1 |
-| www.w3.org/2006/vcard/ns.ttl | [link](https://www.w3.org/2006/vcard/ns.ttl) | 1 |
 | www.w3.org/2007/OWL/refcardA4 | [link](https://www.w3.org/2007/OWL/refcardA4) | 1 |
 | www.w3.org/2009/pdf/REC-owl2-mapping-to-rdf-20091027.pdf | [link](https://www.w3.org/2009/pdf/REC-owl2-mapping-to-rdf-20091027.pdf) | 1 |
 | www.w3.org/2009/sparql/wiki/Design_SubSelect.html | [link](https://www.w3.org/2009/sparql/wiki/Design_SubSelect.html) | 1 |
@@ -939,22 +809,15 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.w3.org/community/openannotation/wiki/Textual_Bodies | [link](https://www.w3.org/community/openannotation/wiki/Textual_Bodies) | 1 |
 | www.w3.org/ns/activitystreams | [link](https://www.w3.org/ns/activitystreams#) | 1 |
 | www.w3.org/ns/did | [link](https://www.w3.org/ns/did#) | 1 |
-| www.w3.org/ns/lemon/lime.owl | [link](https://www.w3.org/ns/lemon/lime.owl) | 1 |
-| www.w3.org/ns/lemon/ontolex.owl | [link](https://www.w3.org/ns/lemon/ontolex.owl) | 1 |
-| www.w3.org/ns/org.ttl | [link](https://www.w3.org/ns/org.ttl) | 1 |
-| www.w3.org/ns/prov-o.ttl | [link](https://www.w3.org/ns/prov-o.ttl) | 1 |
 | www.w3.org/submissions/SWRL | [link](https://www.w3.org/submissions/SWRL/) | 1 |
 | www.w3.org/submissions/sioc-spec | [link](https://www.w3.org/submissions/sioc-spec/) | 1 |
-| www.wikidata.org/entity | [link](https://www.wikidata.org/entity/) | 1 |
 | www.wikidata.org/entity/Q1049625 | [link](https://www.wikidata.org/entity/Q1049625) | 1 |
 | www.wikidata.org/entity/Q42 | [link](https://www.wikidata.org/entity/Q42) | 1 |
 | www.wikidata.org/entity/Q623715 | [link](https://www.wikidata.org/entity/Q623715) | 1 |
 | www.wikidata.org/entity/Q7553 | [link](https://www.wikidata.org/entity/Q7553) | 1 |
-| www.wikidata.org/w/api.php | [link](https://www.wikidata.org/w/api.php) | 1 |
 | www.wikidata.org/wiki/Help:Data_access | [link](https://www.wikidata.org/wiki/Help:Data_access) | 1 |
 | www.wikidata.org/wiki/Help:Description | [link](https://www.wikidata.org/wiki/Help:Description) | 1 |
 | www.wikidata.org/wiki/Help:Label | [link](https://www.wikidata.org/wiki/Help:Label) | 1 |
-| www.wikidata.org/wiki/Property:P6553 | [link](https://www.wikidata.org/wiki/Property:P6553) | 1 |
 | www.wikidata.org/wiki/Q1044830 | [link](https://www.wikidata.org/wiki/Q1044830) | 1 |
 | www.wikidata.org/wiki/Q104863335 | [link](https://www.wikidata.org/wiki/Q104863335) | 1 |
 | www.wikidata.org/wiki/Q109274999 | [link](https://www.wikidata.org/wiki/Q109274999) | 1 |
@@ -970,12 +833,10 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.wikidata.org/wiki/Q18034736 | [link](https://www.wikidata.org/wiki/Q18034736) | 1 |
 | www.wikidata.org/wiki/Q18050621 | [link](https://www.wikidata.org/wiki/Q18050621) | 1 |
 | www.wikidata.org/wiki/Q187947 | [link](https://www.wikidata.org/wiki/Q187947) | 1 |
-| www.wikidata.org/wiki/Q191067 | [link](https://www.wikidata.org/wiki/Q191067) | 1 |
 | www.wikidata.org/wiki/Q2063516 | [link](https://www.wikidata.org/wiki/Q2063516) | 1 |
 | www.wikidata.org/wiki/Q30439 | [link](https://www.wikidata.org/wiki/Q30439) | 1 |
 | www.wikidata.org/wiki/Q33512 | [link](https://www.wikidata.org/wiki/Q33512) | 1 |
 | www.wikidata.org/wiki/Q3470998 | [link](https://www.wikidata.org/wiki/Q3470998) | 1 |
-| www.wikidata.org/wiki/Q4503831 | [link](https://www.wikidata.org/wiki/Q4503831) | 1 |
 | www.wikidata.org/wiki/Q4925193 | [link](https://www.wikidata.org/wiki/Q4925193) | 1 |
 | www.wikidata.org/wiki/Q604950 | [link](https://www.wikidata.org/wiki/Q604950) | 1 |
 | www.wikidata.org/wiki/Q6639330 | [link](https://www.wikidata.org/wiki/Q6639330) | 1 |

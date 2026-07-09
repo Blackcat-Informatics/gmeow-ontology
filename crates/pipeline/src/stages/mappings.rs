@@ -8,7 +8,7 @@
 //!     `gmeow-logic-compile` correspondence lowerings, driven by
 //!     [`correspondence_lower::lower_all`]. EDOAL + SPARQL lower from one shared get-leg
 //!     model, so the `spec-drift` invariant is gone by construction. SSSOM/EDOAL are
-//!     byte-identical to the historical emitter; SPARQL/FnO use a deterministic cell
+//!     content-equivalent to the historical emitter; SPARQL/FnO use a deterministic cell
 //!     order (content-equal to the historical hash order). Outputs:
 //!     `generated/mappings/*.sssom.tsv`, `generated/projections/functions.fno.ttl`,
 //!     `generated/projections/*.edoal.ttl`, `generated/queries/*.rq`.
@@ -21,7 +21,8 @@
 //!     drift-gated counts summary (equivalences / functions / mapping_sets /
 //!     projections / cells_by_set) → `generated/mappings/dsl-stats.json`.
 //!
-//! Every output is byte-identical to the historical Python driver.
+//! Every output is owned by the registered Rust generator and drift-gated from canonical
+//! mapping sources.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -68,6 +69,9 @@ pub const CORE_PREFIXES_PATH: &str = "generated/projections/core-prefixes.ttl";
 pub const JSONLD_CONTEXT_PATH: &str = "generated/context.jsonld";
 /// Committed logical path of the first-class RDF list functions (§5).
 pub const LIST_FUNCTIONS_PATH: &str = "generated/projections/list-functions.fno.ttl";
+
+const LEGACY_MAPPING_SOURCE_BANNER: &str = "from mapping-dsl/";
+const CANONICAL_MAPPING_SOURCE_BANNER: &str = "from canonical mapping sources";
 
 /// The mapping artifacts plus the per-correspondence loss ledger the SSSOM/FnO/EDOAL/
 /// SPARQL lowerings produced (the residue set the projection report serializes).
@@ -301,8 +305,17 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     loss.union(&docs_rendering_corpus.loss);
     let lang_docs_rendering_corpus = docs_rendering_corpus.ntriples;
 
-    // Standpoint projections — the seven fixed `standpoint-*.rq` queries (byte-identical
-    // to the Python template-coded emitters; no DSL input).
+    // Docs-format grounding loss (A9/F2): fold the four documentation output formats'
+    // (site / mdbook / print PDF / snippets) dropped-capability rows into the single loss
+    // ledger, mirroring the lang: corpora. Blob-free — a pure function of
+    // `gmeow_docs::formats`, the SAME table the print PDF's loss appendix reads, so the
+    // appendix ↔ ledger join holds by construction. The RDF grounding graph (which
+    // additionally content-addresses the packed docs blobs) rides in the carrier stage,
+    // the only point those blob digests exist.
+    crate::stages::docs_format_rendering::fold_docs_format_loss(&mut ledger, &mut loss);
+
+    // Standpoint projections — the seven fixed `standpoint-*.rq` queries (template-coded;
+    // no DSL input).
     let standpoint = emit_standpoint_sets(root, &vocab).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-mappings".to_string(),
@@ -310,7 +323,10 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
         })
     })?;
     for (filename, rq) in standpoint {
-        artifacts.insert(format!("{QUERIES_DIR}/{filename}"), rq.into_bytes());
+        artifacts.insert(
+            format!("{QUERIES_DIR}/{filename}"),
+            normalize_mapping_source_banner(rq).into_bytes(),
+        );
     }
 
     // Observation union view — the internal gmeow→gmeow `observation-claim-view.rq`
@@ -318,7 +334,7 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     // surface from the canonical ClaimToken layer (no DSL input).
     artifacts.insert(
         format!("{QUERIES_DIR}/{CLAIM_VIEW_FILE}"),
-        emit_claim_view(&vocab).into_bytes(),
+        normalize_mapping_source_banner(emit_claim_view(&vocab)).into_bytes(),
     );
 
     // DSL surface-count summary — the committed, drift-gated counts JSON.
@@ -363,6 +379,13 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
         lang_docs_rendering_corpus,
         correspondence_laws_corpus,
     })
+}
+
+fn normalize_mapping_source_banner(query: String) -> String {
+    query.replace(
+        LEGACY_MAPPING_SOURCE_BANNER,
+        CANONICAL_MAPPING_SOURCE_BANNER,
+    )
 }
 
 /// Discharge each authored correspondence's lens law by EXECUTION and project the
@@ -436,6 +459,8 @@ fn discharge_correspondence_laws(
             corr.weight,
             corr.probability,
             corr.according_to.clone(),
+            // Rebuild: carry the authored per-correspondence preservation judgment forward.
+            corr.preservation,
         )
         .map_err(|e| stage_err(format!("law-bearing correspondence <{}>: {e}", corr.iri)))?;
         rebuilt.push(law_bearing);
@@ -1439,6 +1464,9 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             "/target/lang-docs-rendering:",
             "/target/lang-docs-translation:",
             "/target/lang-docs-execgap:",
+            // The docs-format grounding rows: the four documentation output formats' derived
+            // preservation + dropped-capability residue (folded from `docs_format_rendering`).
+            "/target/docs-format:",
         ];
         // A Turtle subject block is a blank-line-separated group. Drop any block that
         // MENTIONS a non-logic target IRI anywhere: the non-logic target blocks themselves

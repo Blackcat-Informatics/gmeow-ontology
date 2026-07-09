@@ -456,6 +456,23 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Axis
     title: Axis
     is_a: Entity
+  AxisContextScope:
+    class_uri: https://blackcatinformatics.ca/gmeow/AxisContextScope
+    title: Axis Context Scope
+  AxisExemption:
+    class_uri: https://blackcatinformatics.ca/gmeow/AxisExemption
+    title: Axis Exemption
+    slots:
+    - exemptionDate
+    - exemptionProducer
+    - exemptionReason
+    - exemptsAxis
+  AxisThreshold:
+    class_uri: https://blackcatinformatics.ca/gmeow/AxisThreshold
+    title: Axis Threshold
+    slots:
+    - thresholdFloor
+    - thresholdTier
   BiologicalParentChild:
     class_uri: https://blackcatinformatics.ca/gmeow/BiologicalParentChild
     title: Biological Parent-Child
@@ -808,6 +825,9 @@ classes:
   ConflictStrategy:
     class_uri: https://blackcatinformatics.ca/gmeow/ConflictStrategy
     title: Conflict Strategy
+  ConformanceComparison:
+    class_uri: https://blackcatinformatics.ca/gmeow/ConformanceComparison
+    title: Conformance Comparison
   Connection:
     class_uri: https://blackcatinformatics.ca/gmeow/Connection
     title: Connection
@@ -961,6 +981,9 @@ classes:
     is_a: InformationObject
     slots:
     - corpusMember
+  CorpusAgreementTally:
+    class_uri: https://blackcatinformatics.ca/gmeow/CorpusAgreementTally
+    title: Corpus Agreement Tally
   Correspondence:
     class_uri: https://blackcatinformatics.ca/gmeow/Correspondence
     title: Correspondence
@@ -3560,9 +3583,24 @@ classes:
     slots:
     - assessedEntity
     - qualityDimension
+  QualityAxis:
+    class_uri: https://blackcatinformatics.ca/gmeow/QualityAxis
+    title: Quality Axis
+    slots:
+    - axisAdviceTemplate
+    - axisContextScope
+    - axisDimension
+    - axisProducer
+    - axisThreshold
+    - axisWeight
   QualityDimension:
     class_uri: https://blackcatinformatics.ca/gmeow/QualityDimension
     title: Quality Dimension
+  QualityTier:
+    class_uri: https://blackcatinformatics.ca/gmeow/QualityTier
+    title: Quality Tier
+    slots:
+    - tierRank
   Quantity:
     class_uri: https://blackcatinformatics.ca/gmeow/Quantity
     title: Quantity
@@ -4534,6 +4572,9 @@ classes:
     - indexAlgorithm
     - indexParameters
     - indexesCorpus
+  VerdictLatticeRelation:
+    class_uri: https://blackcatinformatics.ca/gmeow/VerdictLatticeRelation
+    title: Verdict Lattice Relation
   VerificationActivity:
     class_uri: https://blackcatinformatics.ca/gmeow/VerificationActivity
     title: Verification Activity
@@ -5511,6 +5552,40 @@ slots:
     range: Agent
     domain: AwarenessTenure
     multivalued: false
+  axisAdviceTemplate:
+    slot_uri: https://blackcatinformatics.ca/gmeow/axisAdviceTemplate
+    title: axis advice template
+    range: string
+    domain: QualityAxis
+  axisContextScope:
+    slot_uri: https://blackcatinformatics.ca/gmeow/axisContextScope
+    title: axis context scope
+    range: AxisContextScope
+    domain: QualityAxis
+    multivalued: false
+  axisDimension:
+    slot_uri: https://blackcatinformatics.ca/gmeow/axisDimension
+    title: axis dimension
+    range: QualityDimension
+    domain: QualityAxis
+    multivalued: true
+  axisProducer:
+    slot_uri: https://blackcatinformatics.ca/gmeow/axisProducer
+    title: axis producer
+    range: string
+    domain: QualityAxis
+  axisThreshold:
+    slot_uri: https://blackcatinformatics.ca/gmeow/axisThreshold
+    title: axis threshold
+    range: AxisThreshold
+    domain: QualityAxis
+    multivalued: true
+  axisWeight:
+    slot_uri: https://blackcatinformatics.ca/gmeow/axisWeight
+    title: axis weight
+    range: decimal
+    domain: QualityAxis
+    multivalued: false
   basesBeliefOn:
     slot_uri: https://blackcatinformatics.ca/gmeow/basesBeliefOn
     title: bases belief on
@@ -6108,6 +6183,36 @@ slots:
     title: community member
     range: ExtractedEntity
     domain: Community
+    multivalued: true
+  comparisonCase:
+    slot_uri: https://blackcatinformatics.ca/gmeow/comparisonCase
+    title: comparison case
+    range: string
+    multivalued: true
+  comparisonCorpus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/comparisonCorpus
+    title: comparison corpus
+    range: string
+    multivalued: true
+  comparisonLatticeRelation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/comparisonLatticeRelation
+    title: comparison lattice relation
+    range: uriorcurie
+    multivalued: true
+  comparisonNativeVerdict:
+    slot_uri: https://blackcatinformatics.ca/gmeow/comparisonNativeVerdict
+    title: comparison native verdict
+    range: uriorcurie
+    multivalued: true
+  comparisonPublishedVerdict:
+    slot_uri: https://blackcatinformatics.ca/gmeow/comparisonPublishedVerdict
+    title: comparison published verdict
+    range: uriorcurie
+    multivalued: true
+  comparisonWorld:
+    slot_uri: https://blackcatinformatics.ca/gmeow/comparisonWorld
+    title: comparison world
+    range: string
     multivalued: true
   competesWith:
     slot_uri: https://blackcatinformatics.ca/gmeow/competesWith
@@ -7601,6 +7706,28 @@ slots:
     title: exemplifies
     range: Manifestation
     domain: Item
+    multivalued: true
+  exemptionDate:
+    slot_uri: https://blackcatinformatics.ca/gmeow/exemptionDate
+    title: exemption date
+    range: date
+    domain: AxisExemption
+    multivalued: false
+  exemptionProducer:
+    slot_uri: https://blackcatinformatics.ca/gmeow/exemptionProducer
+    title: exemption producer
+    range: string
+    domain: AxisExemption
+  exemptionReason:
+    slot_uri: https://blackcatinformatics.ca/gmeow/exemptionReason
+    title: exemption reason
+    range: string
+    domain: AxisExemption
+  exemptsAxis:
+    slot_uri: https://blackcatinformatics.ca/gmeow/exemptsAxis
+    title: exempts axis
+    range: QualityAxis
+    domain: AxisExemption
     multivalued: true
   exifTagId:
     slot_uri: https://blackcatinformatics.ca/gmeow/exifTagId
@@ -13215,6 +13342,10 @@ slots:
     range: ProficiencyScale
     domain: SkillProficiency
     multivalued: false
+  sliceQualityTier:
+    slot_uri: https://blackcatinformatics.ca/gmeow/sliceQualityTier
+    title: slice quality tier
+    range: QualityTier
   slogan:
     slot_uri: https://blackcatinformatics.ca/gmeow/slogan
     title: slogan
@@ -13774,6 +13905,31 @@ slots:
     range: uriorcurie
     domain: Agent
     multivalued: true
+  tallyAgree:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tallyAgree
+    title: tally agree
+    range: string
+    multivalued: true
+  tallyCases:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tallyCases
+    title: tally cases
+    range: string
+    multivalued: true
+  tallyCorpus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tallyCorpus
+    title: tally corpus
+    range: string
+    multivalued: true
+  tallyCorpusOnly:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tallyCorpusOnly
+    title: tally corpus-only
+    range: string
+    multivalued: true
+  tallyDlGap:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tallyDlGap
+    title: tally dl-gap
+    range: string
+    multivalued: true
   taskDueDate:
     slot_uri: https://blackcatinformatics.ca/gmeow/taskDueDate
     title: task due date
@@ -13970,6 +14126,24 @@ slots:
     range: decimal
     domain: AffectClassifierOutput
     multivalued: true
+  thresholdFloor:
+    slot_uri: https://blackcatinformatics.ca/gmeow/thresholdFloor
+    title: threshold floor
+    range: decimal
+    domain: AxisThreshold
+    multivalued: false
+  thresholdTier:
+    slot_uri: https://blackcatinformatics.ca/gmeow/thresholdTier
+    title: threshold tier
+    range: QualityTier
+    domain: AxisThreshold
+    multivalued: false
+  tierRank:
+    slot_uri: https://blackcatinformatics.ca/gmeow/tierRank
+    title: tier rank
+    range: integer
+    domain: QualityTier
+    multivalued: false
   timbreObservationResult:
     slot_uri: https://blackcatinformatics.ca/gmeow/timbreObservationResult
     title: timbre observation result
@@ -15133,6 +15307,9 @@ enums:
       attestationTypeDSSE:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeDSSE
         title: DSSE envelope
+      attestationTypeDocumentationArtifact:
+        meaning: https://blackcatinformatics.ca/gmeow/attestationTypeDocumentationArtifact
+        title: documentation artifact
       attestationTypeEAT:
         meaning: https://blackcatinformatics.ca/gmeow/attestationTypeEAT
         title: EAT token
@@ -15271,6 +15448,18 @@ enums:
       modeWaking:
         meaning: https://blackcatinformatics.ca/gmeow/modeWaking
         title: waking
+  AxisContextScopeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AxisContextScope
+    permissible_values:
+      scopeDepsClosure:
+        meaning: https://blackcatinformatics.ca/gmeow/scopeDepsClosure
+        title: dependency-closure scope
+      scopeMergedClosure:
+        meaning: https://blackcatinformatics.ca/gmeow/scopeMergedClosure
+        title: merged-closure scope
+      scopeSliceLocal:
+        meaning: https://blackcatinformatics.ca/gmeow/scopeSliceLocal
+        title: slice-local scope
   AxisEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Axis
     permissible_values:
@@ -15580,6 +15769,141 @@ enums:
       axisZ:
         meaning: https://blackcatinformatics.ca/gmeow/axisZ
         title: Z axis
+  AxisExemptionEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AxisExemption
+    permissible_values:
+      exemptionDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/exemptionDocMaturity
+        title: Documentation-Maturity exemption
+      exemptionDocsPanels:
+        meaning: https://blackcatinformatics.ca/gmeow/exemptionDocsPanels
+        title: Docs-panels exemption
+      exemptionGmnProjection:
+        meaning: https://blackcatinformatics.ca/gmeow/exemptionGmnProjection
+        title: GMN-projection exemption
+  AxisThresholdEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AxisThreshold
+    permissible_values:
+      thrDocumentationExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrDocumentationExemplified
+        title: documentation floor — Exemplified
+      thrDocumentationGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrDocumentationGrounded
+        title: documentation floor — Grounded
+      thrDocumentationLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrDocumentationLinked
+        title: documentation floor — Linked
+      thrDocumentationMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrDocumentationMaximal
+        title: documentation floor — Maximal
+      thrGroundingExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrGroundingExemplified
+        title: grounding floor — Exemplified
+      thrGroundingGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrGroundingGrounded
+        title: grounding floor — Grounded
+      thrGroundingLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrGroundingLinked
+        title: grounding floor — Linked
+      thrGroundingMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrGroundingMaximal
+        title: grounding floor — Maximal
+      thrInformationExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrInformationExemplified
+        title: information floor — Exemplified
+      thrInformationGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrInformationGrounded
+        title: information floor — Grounded
+      thrInformationLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrInformationLinked
+        title: information floor — Linked
+      thrInformationMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrInformationMaximal
+        title: information floor — Maximal
+      thrLinkageExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrLinkageExemplified
+        title: linkage floor — Exemplified
+      thrLinkageGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrLinkageGrounded
+        title: linkage floor — Grounded
+      thrLinkageLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrLinkageLinked
+        title: linkage floor — Linked
+      thrLinkageMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrLinkageMaximal
+        title: linkage floor — Maximal
+      thrProjectionExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrProjectionExemplified
+        title: projection floor — Exemplified
+      thrProjectionGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrProjectionGrounded
+        title: projection floor — Grounded
+      thrProjectionLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrProjectionLinked
+        title: projection floor — Linked
+      thrProjectionMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrProjectionMaximal
+        title: projection floor — Maximal
+      thrProseExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrProseExemplified
+        title: prose floor — Exemplified
+      thrProseGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrProseGrounded
+        title: prose floor — Grounded
+      thrProseLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrProseLinked
+        title: prose floor — Linked
+      thrProseMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrProseMaximal
+        title: prose floor — Maximal
+      thrProvenanceExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrProvenanceExemplified
+        title: provenance-honesty floor — Exemplified
+      thrProvenanceGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrProvenanceGrounded
+        title: provenance-honesty floor — Grounded
+      thrProvenanceLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrProvenanceLinked
+        title: provenance-honesty floor — Linked
+      thrProvenanceMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrProvenanceMaximal
+        title: provenance-honesty floor — Maximal
+      thrReasonerExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrReasonerExemplified
+        title: reasoner floor — Exemplified
+      thrReasonerGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrReasonerGrounded
+        title: reasoner floor — Grounded
+      thrReasonerLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrReasonerLinked
+        title: reasoner floor — Linked
+      thrReasonerMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrReasonerMaximal
+        title: reasoner floor — Maximal
+      thrTestingExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrTestingExemplified
+        title: testing floor — Exemplified
+      thrTestingGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrTestingGrounded
+        title: testing floor — Grounded
+      thrTestingLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrTestingLinked
+        title: testing floor — Linked
+      thrTestingMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrTestingMaximal
+        title: testing floor — Maximal
+      thrTranslationExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrTranslationExemplified
+        title: translation floor — Exemplified
+      thrTranslationGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrTranslationGrounded
+        title: translation floor — Grounded
+      thrTranslationLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrTranslationLinked
+        title: translation floor — Linked
+      thrTranslationMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrTranslationMaximal
+        title: translation floor — Maximal
   BlockingDispositionEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/BlockingDisposition
     permissible_values:
@@ -20740,6 +21064,9 @@ enums:
       profileTemporalProvenance:
         meaning: https://blackcatinformatics.ca/gmeow/profileTemporalProvenance
         title: Temporal Provenance Profile (four clocks)
+      sliceQualityRubric:
+        meaning: https://blackcatinformatics.ca/gmeow/sliceQualityRubric
+        title: Slice-Quality Rubric
   ProjectionContextEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ProjectionContext
     permissible_values:
@@ -20902,30 +21229,108 @@ enums:
       pronounZheZher:
         meaning: https://blackcatinformatics.ca/gmeow/pronounZheZher
         title: zhe/zher
+  QualityAxisEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/QualityAxis
+    permissible_values:
+      axisDocumentation:
+        meaning: https://blackcatinformatics.ca/gmeow/axisDocumentation
+        title: Documentation
+      axisMaximalGrounding:
+        meaning: https://blackcatinformatics.ca/gmeow/axisMaximalGrounding
+        title: Maximal Grounding
+      axisMaximalInformation:
+        meaning: https://blackcatinformatics.ca/gmeow/axisMaximalInformation
+        title: Maximal Information
+      axisMaximalLinkage:
+        meaning: https://blackcatinformatics.ca/gmeow/axisMaximalLinkage
+        title: Maximal Linkage
+      axisMaximalProjection:
+        meaning: https://blackcatinformatics.ca/gmeow/axisMaximalProjection
+        title: Maximal Projection
+      axisOptimalTesting:
+        meaning: https://blackcatinformatics.ca/gmeow/axisOptimalTesting
+        title: Optimal Testing
+      axisProseQuality:
+        meaning: https://blackcatinformatics.ca/gmeow/axisProseQuality
+        title: Prose Quality
+      axisProvenanceHonesty:
+        meaning: https://blackcatinformatics.ca/gmeow/axisProvenanceHonesty
+        title: Provenance Honesty
+      axisReasonerDerived:
+        meaning: https://blackcatinformatics.ca/gmeow/axisReasonerDerived
+        title: Reasoner-Derived
+      axisTranslationCoverage:
+        meaning: https://blackcatinformatics.ca/gmeow/axisTranslationCoverage
+        title: Translation Coverage
   QualityDimensionEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/QualityDimension
     permissible_values:
       qualityDimensionCompleteness:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionCompleteness
         title: completeness
+      qualityDimensionDocumentation:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionDocumentation
+        title: documentation
+      qualityDimensionGrounding:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionGrounding
+        title: grounding
+      qualityDimensionInferentialDensity:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionInferentialDensity
+        title: inferential density
       qualityDimensionLineage:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionLineage
         title: lineage
+      qualityDimensionLinkage:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionLinkage
+        title: linkage
       qualityDimensionLogicalConsistency:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionLogicalConsistency
         title: logical consistency
       qualityDimensionPositionalAccuracy:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionPositionalAccuracy
         title: positional accuracy
+      qualityDimensionProjection:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionProjection
+        title: projection
+      qualityDimensionProseQuality:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionProseQuality
+        title: prose quality
+      qualityDimensionProvenanceHonesty:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionProvenanceHonesty
+        title: provenance honesty
       qualityDimensionTemporalAccuracy:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionTemporalAccuracy
         title: temporal accuracy
+      qualityDimensionTesting:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionTesting
+        title: testing
       qualityDimensionThematicAccuracy:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionThematicAccuracy
         title: thematic accuracy
       qualityDimensionTopologicalConsistency:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionTopologicalConsistency
         title: topological consistency
+      qualityDimensionTranslationCoverage:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionTranslationCoverage
+        title: translation coverage
+  QualityTierEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/QualityTier
+    permissible_values:
+      tierExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/tierExemplified
+        title: Exemplified
+      tierGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/tierGrounded
+        title: Grounded
+      tierLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/tierLinked
+        title: Linked
+      tierMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/tierMaximal
+        title: Maximal
+      tierRegistered:
+        meaning: https://blackcatinformatics.ca/gmeow/tierRegistered
+        title: Registered
   QuestionTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/QuestionType
     permissible_values:
@@ -22624,6 +23029,18 @@ enums:
       tuningSystemKindWellTemperament:
         meaning: https://blackcatinformatics.ca/gmeow/tuningSystemKindWellTemperament
         title: well temperament
+  VerdictLatticeRelationEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/VerdictLatticeRelation
+    permissible_values:
+      VerdictEquivalent:
+        meaning: https://blackcatinformatics.ca/gmeow/VerdictEquivalent
+        title: Verdict Equivalent
+      VerdictIncomparable:
+        meaning: https://blackcatinformatics.ca/gmeow/VerdictIncomparable
+        title: Verdict Incomparable
+      VerdictWeaker:
+        meaning: https://blackcatinformatics.ca/gmeow/VerdictWeaker
+        title: Verdict Weaker
   VerificationStatusEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/VerificationStatus
     permissible_values:

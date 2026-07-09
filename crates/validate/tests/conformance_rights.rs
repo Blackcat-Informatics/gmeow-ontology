@@ -110,7 +110,7 @@ fn odrl_projection_emits_a_policy_with_rules() {
     assert!(out.has(
         Some(&ex("perm-reproduce")),
         Some(&odrl("action")),
-        Some(&gm("actionReproduce"))
+        Some(&odrl("reproduce"))
     ));
     assert!(out.has(
         Some(&ex("perm-reproduce")),
@@ -170,12 +170,12 @@ fn odrl_projection_emits_constraint_and_conflict_logic() {
     assert!(out.has(
         Some(&ex("until-2036")),
         Some(&odrl("leftOperand")),
-        Some(&gm("leftOpDateTime"))
+        Some(&odrl("dateTime"))
     ));
     assert!(out.has(
         Some(&ex("until-2036")),
         Some(&odrl("operator")),
-        Some(&gm("operatorLteq"))
+        Some(&odrl("lteq"))
     ));
     assert!(
         !out.objects_lex(&ex("until-2036"), &odrl("rightOperand"))
@@ -186,7 +186,7 @@ fn odrl_projection_emits_constraint_and_conflict_logic() {
     assert!(out.has(
         Some(&ex("photo-rights")),
         Some(&odrl("conflict")),
-        Some(&gm("conflictProhibit"))
+        Some(&odrl("prohibit"))
     ));
     assert!(out.has(
         Some(&ex("proh-commercial")),

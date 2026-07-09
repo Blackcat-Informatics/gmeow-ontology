@@ -3,7 +3,7 @@
 
 [package]
 name = "gmeow-errors"
-description = "GMEOW errors and diagnostics substrate: first-class model and renderers, exposed to Python via PyO3"
+description = "GMEOW errors and diagnostics substrate: first-class model and renderers (rlib)"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
@@ -12,18 +12,13 @@ readme = "README.md"
 keywords = ["diagnostics", "sarif", "validation", "reporting", "gmeow"]
 
 [lib]
-# rlib-only: this crate no longer ships a standalone PyO3 extension. Its bindings
-# are linked into the single `gmeow_native` cdylib (crates/native).
+# rlib-only: a pure-Rust engine crate consumed by the workspace.
 crate-type = ["rlib"]
 path = "src/lib.rs"
-
-[features]
-python = ["dep:pyo3"]
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }
 purrdf = "0.4"
 blake3 = "1"
 

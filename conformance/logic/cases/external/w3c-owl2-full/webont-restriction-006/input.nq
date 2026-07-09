@@ -1,0 +1,2 @@
+<http://www.w3.org/2002/03owlt/Restriction/premises006#p> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/webont-restriction-006/w> .
+<http://www.w3.org/2002/03owlt/Restriction/premises006#x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/webont-restriction-006/w> .

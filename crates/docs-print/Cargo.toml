@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "docs-print"
+description = "Deterministic Typst-source renderer and byte-reproducible in-memory PDF compiler for the GMEOW print documentation projection"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["documentation", "ontology", "typst", "pdf", "gmeow"]
+
+[lib]
+# rlib-only: a pure-Rust engine crate consumed by the workspace.
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+gmeow-docs = { path = "../docs" }
+gmeow-errors = { path = "../errors" }
+# The embedded Typst stack, pinned EXACTLY. typst / typst-pdf / typst-assets are
+# published in lockstep on one version line, so the identical `=0.13.1` pin on
+# all three is a mutually-compatible set by construction (typst-pdf and
+# typst-assets both depend on `typst =0.13.1` internally). Pinning exactly keeps
+# the PDF byte-reproducible: a patch bump to any of the three could perturb the
+# rendered bytes or the embedded-font set.
+#
+# The 0.13 line is chosen deliberately over the newer 0.15: its bibliography
+# stack (hayagriva 0.8 / biblatex 0.10) uses `strum 0.26`, which is a distinct
+# major from the `strum 0.27` the pinned `nemo` reasoner dependency uses, so the
+# two never share a resolved strum. The 0.15 line's biblatex 0.12 pulls
+# `strum 0.27` WITH its `derive` feature, and cargo feature-unification would then
+# turn that feature on for nemo's strum too — which makes nemo fail to compile (a
+# duplicate `VariantArray` macro import). Staying on 0.13 keeps the whole
+# workspace building.
+typst = "=0.13.1"
+typst-pdf = "=0.13.1"
+typst-assets = { version = "=0.13.1", features = ["fonts"] }
+# BLAKE3 for the embedded-font-set digest (pinned in a test).
+blake3 = "=1.5.4"
+
+[dev-dependencies]
+insta = "1.48"

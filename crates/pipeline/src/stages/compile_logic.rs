@@ -1362,6 +1362,7 @@ mod tests {
             None,
             None,
             None,
+            None,
         )
         .expect("well-formed bridge correspondence");
         let red =

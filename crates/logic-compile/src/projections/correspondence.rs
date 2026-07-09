@@ -40,6 +40,8 @@ use crate::ir::{
     PreservationKind, TransactionProgramIr,
 };
 
+use gmeow_errors::Diag;
+
 use super::OverclaimError;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -68,6 +70,12 @@ fn p_has_correspondence() -> String {
 }
 fn p_has_preservation() -> String {
     format!("{LOGIC_NAMESPACE}hasPreservation")
+}
+/// The PER-CORRESPONDENCE preservation judgment predicate (`logic:preservationKind`) —
+/// DISTINCT from the program-level `logic:hasPreservation` (the whole-lane polarity). A
+/// correspondence declaring this carries its own Principle-17 loss residue.
+fn p_preservation_kind() -> String {
+    format!("{LOGIC_NAMESPACE}preservationKind")
 }
 fn p_relation() -> String {
     format!("{LOGIC_NAMESPACE}correspondenceRelation")
@@ -284,8 +292,14 @@ impl CorrespondenceProgram {
                     c.evidence_strength.map(decimal_lexical).unwrap_or_default();
                 let weight = c.weight.map(decimal_lexical).unwrap_or_default();
                 let probability = c.probability.map(decimal_lexical).unwrap_or_default();
+                // Append-only: a preservation-free correspondence appends nothing, so its
+                // key is byte-identical to before per-correspondence preservation existed.
+                let preservation = c
+                    .preservation
+                    .map(|p| format!("|pres={}", p.as_str()))
+                    .unwrap_or_default();
                 format!(
-                    "{}|{}|{}|{}|{}|{}|{}|{}",
+                    "{}|{}|{}|{}|{}|{}|{}|{}{preservation}",
                     c.iri,
                     c.relation.as_str(),
                     c.morphism_class.as_str(),
@@ -491,6 +505,12 @@ pub fn project_correspondence(program: &CorrespondenceProgram) -> String {
         if let Some(at) = &c.according_to {
             lines.push(triple_iri(&c.iri, &p_according_to(), at));
         }
+        // The per-correspondence preservation judgment (`logic:preservationKind`): the
+        // Principle-17 loss residue this cell carries. Emitted only when authored, so a
+        // preservation-free correspondence round-trips byte-identically (append-only).
+        if let Some(pres) = c.preservation {
+            lines.push(triple_iri(&c.iri, &p_preservation_kind(), &pres.iri()));
+        }
         // The relation-sound SSSOM alignment surface (the load-bearing decision): the
         // legs co-project onto a shared apex, so the alignment links the two legs to the
         // apex via the relation-sound predicate (relatedMatch for an overlap, NEVER
@@ -639,19 +659,31 @@ fn strip_logic(iri: &str) -> String {
 /// Read ONE [`Correspondence`] node by its IRI from the shared index. The single reader
 /// behind both the cache re-derivation and the frontend extractor; returns a hard error
 /// (the caller decides whether to propagate it or downgrade it to a diagnostic).
-fn read_correspondence(idx: &SpIndex, corr_iri: &str) -> Result<Correspondence, String> {
+fn read_correspondence(idx: &SpIndex, corr_iri: &str) -> gmeow_errors::Result<Correspondence> {
     let relation = idx
         .iri_obj(corr_iri, &p_relation())
         .and_then(|i| CorrespondenceRelation::from_local(&strip_logic(&i)))
-        .ok_or_else(|| format!("correspondence <{corr_iri}> has no/unknown relation"))?;
+        .ok_or_else(|| {
+            Diag::of_kind(crate::error::Correspondence {
+                detail: format!("correspondence <{corr_iri}> has no/unknown relation"),
+            })
+        })?;
     let morphism_class = idx
         .iri_obj(corr_iri, &p_morphism_class())
         .and_then(|i| crate::ir::MorphismClass::from_local(&strip_logic(&i)))
-        .ok_or_else(|| format!("correspondence <{corr_iri}> has no/unknown morphismClass"))?;
+        .ok_or_else(|| {
+            Diag::of_kind(crate::error::Correspondence {
+                detail: format!("correspondence <{corr_iri}> has no/unknown morphismClass"),
+            })
+        })?;
     let morphism_kind = idx
         .iri_obj(corr_iri, &p_morphism_kind())
         .and_then(|i| MorphismKind::from_local(&strip_logic(&i)))
-        .ok_or_else(|| format!("correspondence <{corr_iri}> has no/unknown morphismKind"))?;
+        .ok_or_else(|| {
+            Diag::of_kind(crate::error::Correspondence {
+                detail: format!("correspondence <{corr_iri}> has no/unknown morphismKind"),
+            })
+        })?;
     let mnemomorphic = idx
         .lit_obj(corr_iri, &p_mnemomorphic())
         .map(|v| v == "true")
@@ -662,6 +694,11 @@ fn read_correspondence(idx: &SpIndex, corr_iri: &str) -> Result<Correspondence, 
     let get_leg = idx.iri_obj(corr_iri, &p_get_leg());
     let put_leg = idx.iri_obj(corr_iri, &p_put_leg());
     let according_to = idx.iri_obj(corr_iri, &p_according_to());
+    // The per-correspondence preservation judgment (`logic:preservationKind`), DISTINCT
+    // from the program-level `hasPreservation`. Absent ⇒ the cell authors no rung (None).
+    let preservation = idx
+        .iri_obj(corr_iri, &p_preservation_kind())
+        .and_then(|i| preservation_from_iri(&i));
 
     // Law claims (re-read by their per-correspondence node IRIs; `iri_objs` already returns
     // them sorted + deduped, so re-derivation is order-stable; the ctor re-canonicalizes).
@@ -671,11 +708,19 @@ fn read_correspondence(idx: &SpIndex, corr_iri: &str) -> Result<Correspondence, 
         let law = idx
             .iri_obj(&claim_iri, &p_law_claimed())
             .and_then(|i| crate::ir::CorrespondenceLaw::from_local(&strip_logic(&i)))
-            .ok_or_else(|| format!("law-claim <{claim_iri}> has no/unknown lawClaimed"))?;
+            .ok_or_else(|| {
+                Diag::of_kind(crate::error::Correspondence {
+                    detail: format!("law-claim <{claim_iri}> has no/unknown lawClaimed"),
+                })
+            })?;
         let verdict = idx
             .iri_obj(&claim_iri, &p_law_verdict())
             .and_then(|i| crate::ir::DischargeVerdict::from_local(&strip_logic(&i)))
-            .ok_or_else(|| format!("law-claim <{claim_iri}> has no/unknown verdict"))?;
+            .ok_or_else(|| {
+                Diag::of_kind(crate::error::Correspondence {
+                    detail: format!("law-claim <{claim_iri}> has no/unknown verdict"),
+                })
+            })?;
         let condition = idx
             .iri_obj(&claim_iri, &p_law_condition())
             .and_then(|i| crate::ir::DischargeCondition::from_local(&strip_logic(&i)));
@@ -701,20 +746,23 @@ fn read_correspondence(idx: &SpIndex, corr_iri: &str) -> Result<Correspondence, 
         idx.decimal_obj(corr_iri, &p_weight()),
         idx.decimal_obj(corr_iri, &p_probability()),
         according_to,
+        preservation,
     )
 }
 
 /// Read the caveats attached to one correspondence. Each `hasCaveat` object carries an
 /// `rdfs:comment`; HARD-fail if the text is absent (a caveat without text is corrupt,
 /// never a silently-empty comment — no-optionality).
-fn read_caveats(idx: &SpIndex, corr_iri: &str) -> Result<Vec<CorrespondenceCaveat>, String> {
+fn read_caveats(idx: &SpIndex, corr_iri: &str) -> gmeow_errors::Result<Vec<CorrespondenceCaveat>> {
     let mut caveats = Vec::new();
     for caveat_iri in idx.iri_objs(corr_iri, &p_has_caveat()) {
         let text = idx.lit_obj(&caveat_iri, RDFS_COMMENT).ok_or_else(|| {
-            format!(
-                "caveat <{caveat_iri}> on correspondence <{corr_iri}> has no rdfs:comment text; \
-                 a corrupt graph must not silently produce an empty caveat"
-            )
+            Diag::of_kind(crate::error::Correspondence {
+                detail: format!(
+                    "caveat <{caveat_iri}> on correspondence <{corr_iri}> has no rdfs:comment text; \
+                     a corrupt graph must not silently produce an empty caveat"
+                ),
+            })
         })?;
         caveats.push(CorrespondenceCaveat {
             iri: caveat_iri,
@@ -729,14 +777,23 @@ fn read_caveats(idx: &SpIndex, corr_iri: &str) -> Result<Vec<CorrespondenceCavea
 ///
 /// HARD-fails on a malformed graph (no-optionality): a backing graph that no longer
 /// re-derives is a corrupt cache, never a silently-dropped handle.
-pub fn parse_correspondence(dataset: &purrdf::RdfDataset) -> Result<CorrespondenceProgram, String> {
+pub fn parse_correspondence(
+    dataset: &purrdf::RdfDataset,
+) -> gmeow_errors::Result<CorrespondenceProgram> {
     let idx = SpIndex::from_dataset(dataset);
 
     let prog = program_iri();
     let preservation = match idx.iri_obj(&prog, &p_has_preservation()) {
-        Some(iri) => preservation_from_iri(&iri)
-            .ok_or_else(|| format!("unknown preservation kind <{iri}>"))?,
-        None => return Err("graph/correspondence carries no hasPreservation".to_owned()),
+        Some(iri) => preservation_from_iri(&iri).ok_or_else(|| {
+            Diag::of_kind(crate::error::Correspondence {
+                detail: format!("unknown preservation kind <{iri}>"),
+            })
+        })?,
+        None => {
+            return Err(Diag::of_kind(crate::error::Correspondence {
+                detail: "graph/correspondence carries no hasPreservation".to_owned(),
+            }));
+        }
     };
 
     // Each hasCorrespondence object is a Correspondence subject.
@@ -775,7 +832,7 @@ pub fn extract_correspondences(
     for corr_iri in idx.subjects_of_type(&class_correspondence()) {
         match read_correspondence(&idx, &corr_iri) {
             Ok(c) => ok.push(c),
-            Err(msg) => errors.push((corr_iri, msg)),
+            Err(msg) => errors.push((corr_iri, msg.message().to_owned())),
         }
     }
     (ok, errors)
@@ -934,6 +991,9 @@ pub fn affine_triangle_worked_example() -> CorrespondenceProgram {
         None,
         None,
         None,
+        None,
+        // The lane-level preservation polarity lives on the CorrespondenceProgram; this
+        // worked-example cell authors no per-correspondence rung.
         None,
     )
     .expect("the §14 affine-triangle correspondence is well-formed");

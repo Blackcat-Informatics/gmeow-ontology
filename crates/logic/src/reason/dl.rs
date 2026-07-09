@@ -25,6 +25,13 @@ use crate::reason::InferredAxiom;
 use crate::reason::el::EL_RULES;
 use purrdf::{RdfDataset, RdfLiteral, RdfLoss, RdfQuad, RdfTerm};
 
+/// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+#[allow(dead_code)]
+fn reason_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Reason { detail })
+}
+
 // ── OWL/RDF IRI constants ──────────────────────────────────────────────────────
 
 const OWL_NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
@@ -984,7 +991,7 @@ fn existential_obligations(restriction: &Restriction) -> Vec<(usize, Option<&str
 pub(crate) fn augment_inferred_with_dl(
     inferred: &mut Vec<InferredAxiom>,
     edb: &RdfDataset,
-) -> Result<(), String> {
+) -> gmeow_errors::Result<()> {
     let restrictions = read_restrictions(edb);
     let lists = read_lists(edb);
 
@@ -2667,7 +2674,7 @@ fn key_values_agree(
 ///
 /// Returns `Err(String)` if the source store cannot be loaded or the Nemo
 /// chase/post-pass fails to parse/validate/evaluate/decode.
-pub fn dl_consistency(edb: &RdfDataset) -> Result<DlVerdict, String> {
+pub fn dl_consistency(edb: &RdfDataset) -> gmeow_errors::Result<DlVerdict> {
     // This is the verdict-only entry point. The single-chase pipeline
     // (run_reasoning → augment_inferred_with_dl → sort → verdict_from_inferred)
     // lives in [`crate::reason::reason_closure`]; we run it and keep only the
@@ -2698,7 +2705,7 @@ pub fn dl_consistency(edb: &RdfDataset) -> Result<DlVerdict, String> {
 pub(crate) fn verdict_from_inferred(
     inferred: &[InferredAxiom],
     edb: &RdfDataset,
-) -> Result<DlVerdict, String> {
+) -> gmeow_errors::Result<DlVerdict> {
     let mut inconsistencies: Vec<InconsistencyWitness> = Vec::new();
     for ax in inferred {
         let object_iri = unwrap_iri(&ax.object);
@@ -2796,8 +2803,8 @@ where
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if a quad cannot be read from the source store.
-pub fn scan_coverage(edb: &RdfDataset) -> Result<DlCoverage, String> {
+/// Returns `Err` if a quad cannot be read from the source store.
+pub fn scan_coverage(edb: &RdfDataset) -> gmeow_errors::Result<DlCoverage> {
     // Materialize the predicate IRIs and object IRIs once; a quad-read error is
     // a hard failure (no-optionality doctrine — silently dropping a quad could
     // miss a construct that must be counted).

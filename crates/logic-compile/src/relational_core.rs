@@ -45,6 +45,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use gmeow_errors::Diag;
 use purrdf::{RdfDataset, RdfLiteral, RdfTerm};
 
 use crate::ir::{
@@ -486,7 +487,7 @@ pub fn lower_program(program: &LogicProgram) -> RelationalCoreProgram {
         match lower_axiom(axiom) {
             Ok(atom) => facts.push(atom),
             Err(reason) => {
-                residue.insert(reason);
+                residue.insert(reason.message().to_owned());
             }
         }
     }
@@ -494,7 +495,7 @@ pub fn lower_program(program: &LogicProgram) -> RelationalCoreProgram {
         match lower_rule(rule) {
             Ok(rc) => rules.push(rc),
             Err(reason) => {
-                residue.insert(reason);
+                residue.insert(reason.message().to_owned());
             }
         }
     }
@@ -545,7 +546,7 @@ fn finalize(
 /// Lower one axiom to a ground binary fact, or flag it as residue when it is not a
 /// ground binary atom (the relational core is binary; an axiom whose subject or object
 /// is itself a variable-free non-IRI/non-literal would be unsupported).
-fn lower_axiom(axiom: &LogicAxiom) -> Result<RcAtom, String> {
+fn lower_axiom(axiom: &LogicAxiom) -> gmeow_errors::Result<RcAtom> {
     let subject = RcTerm::from_value(&axiom.subject, false);
     let object = RcTerm::from_value(&axiom.obj, axiom.obj_is_literal);
     Ok(RcAtom {
@@ -560,25 +561,27 @@ fn lower_axiom(axiom: &LogicAxiom) -> Result<RcAtom, String> {
 /// binary atoms, so this is a faithful, total lowering. The Result-returning shape is
 /// the legalization seam: a future non-Horn rule (a disjunctive head, a non-binary
 /// atom) would return `Err(reason)` to be carried as residue rather than mis-lowered.
-fn lower_rule(rule: &LogicRule) -> Result<RcRule, String> {
+fn lower_rule(rule: &LogicRule) -> gmeow_errors::Result<RcRule> {
     // A stratified aggregation (reduce) rule is outside the binary-Horn fragment the relational
     // core models: it is carried as flagged residue (never silently dropped, never mis-lowered to
     // a plain Horn rule), and the projections that can express it (Nemo, SHACL-AF) emit it from
     // the LogicProgram directly.
     if let Some(agg) = &rule.aggregation {
-        return Err(format!(
-            "rule deriving <{}> uses aggregation ({} of {} over {}), outside the binary-Horn \
+        return Err(Diag::of_kind(crate::error::RelationalCore {
+            detail: format!(
+                "rule deriving <{}> uses aggregation ({} of {} over {}), outside the binary-Horn \
              relational core; carried in the logic: canon and projected to the aggregating Nemo / \
              SHACL-AF surfaces",
-            rule.head.predicate,
-            agg.function,
-            agg.aggregate_var,
-            if agg.group_keys.is_empty() {
-                "the whole relation".to_owned()
-            } else {
-                agg.group_keys.join(", ")
-            }
-        ));
+                rule.head.predicate,
+                agg.function,
+                agg.aggregate_var,
+                if agg.group_keys.is_empty() {
+                    "the whole relation".to_owned()
+                } else {
+                    agg.group_keys.join(", ")
+                }
+            ),
+        }));
     }
     let head = lower_body_atom(&rule.head);
     let body: Vec<RcAtom> = rule.body.iter().map(lower_body_atom).collect();
@@ -1405,7 +1408,7 @@ pub fn project_relational_core(program: &RelationalCoreProgram) -> String {
 /// Returns `Err` when the graph is structurally malformed (a missing required edge of a
 /// fact/atom/rule node) — a corrupt projection HARD-fails, never re-derives a partial
 /// program (no-optionality).
-pub fn parse_relational_core(dataset: &RdfDataset) -> Result<RelationalCoreProgram, String> {
+pub fn parse_relational_core(dataset: &RdfDataset) -> gmeow_errors::Result<RelationalCoreProgram> {
     // Index every (subject, predicate) once so reverse parsing is linear in graph
     // size, not repeated scans over the full quad list for every atom/rule edge.
     let mut by_sp: BTreeMap<(String, String), Vec<RdfTerm>> = BTreeMap::new();
@@ -1449,15 +1452,27 @@ pub fn parse_relational_core(dataset: &RdfDataset) -> Result<RelationalCoreProgr
     }
 
     // Re-parse an atom node into an RcAtom.
-    let parse_atom = |iri: &str| -> Result<RcAtom, String> {
+    let parse_atom = |iri: &str| -> gmeow_errors::Result<RcAtom> {
         let subject = obj_of(iri, &p_rc_subject())
-            .ok_or_else(|| format!("relational-core atom <{iri}> missing rcSubject"))
+            .ok_or_else(|| {
+                Diag::of_kind(crate::error::RelationalCore {
+                    detail: format!("relational-core atom <{iri}> missing rcSubject"),
+                })
+            })
             .and_then(|t| term_from_rdf(&t))?;
         let predicate = obj_of(iri, &p_rc_predicate())
             .and_then(|t| iri_obj(&t))
-            .ok_or_else(|| format!("relational-core atom <{iri}> missing rcPredicate"))?;
+            .ok_or_else(|| {
+                Diag::of_kind(crate::error::RelationalCore {
+                    detail: format!("relational-core atom <{iri}> missing rcPredicate"),
+                })
+            })?;
         let object = obj_of(iri, &p_rc_object())
-            .ok_or_else(|| format!("relational-core atom <{iri}> missing rcObject"))
+            .ok_or_else(|| {
+                Diag::of_kind(crate::error::RelationalCore {
+                    detail: format!("relational-core atom <{iri}> missing rcObject"),
+                })
+            })
             .and_then(|t| term_from_rdf(&t))?;
         let negated = bool_obj(obj_of(iri, &p_rc_negated()));
         Ok(RcAtom {
@@ -1484,7 +1499,11 @@ pub fn parse_relational_core(dataset: &RdfDataset) -> Result<RelationalCoreProgr
         };
         let head_iri = obj_of(&r_iri, &p_rc_head())
             .and_then(|t| iri_obj(&t))
-            .ok_or_else(|| format!("relational-core rule <{r_iri}> missing rcHead"))?;
+            .ok_or_else(|| {
+                Diag::of_kind(crate::error::RelationalCore {
+                    detail: format!("relational-core rule <{r_iri}> missing rcHead"),
+                })
+            })?;
         let head = parse_atom(&head_iri)?;
 
         // Head conjuncts (the reified n-ary tail), ordered by their stored index. Empty for
@@ -1496,7 +1515,11 @@ pub fn parse_relational_core(dataset: &RdfDataset) -> Result<RelationalCoreProgr
             };
             let atom = parse_atom(&hc_iri)?;
             let index = int_obj(obj_of(&hc_iri, &p_rc_index())).ok_or_else(|| {
-                format!("relational-core head-conjunct atom <{hc_iri}> missing rcIndex")
+                Diag::of_kind(crate::error::RelationalCore {
+                    detail: format!(
+                        "relational-core head-conjunct atom <{hc_iri}> missing rcIndex"
+                    ),
+                })
             })?;
             hc_indexed.push((index, atom));
         }
@@ -1508,12 +1531,14 @@ pub fn parse_relational_core(dataset: &RdfDataset) -> Result<RelationalCoreProgr
         // downstream (no-optionality).
         for (position, (i, _)) in hc_indexed.iter().enumerate() {
             if *i != position {
-                return Err(format!(
-                    "relational-core rule <{r_iri}> has non-contiguous or duplicate head-conjunct \
+                return Err(Diag::of_kind(crate::error::RelationalCore {
+                    detail: format!(
+                        "relational-core rule <{r_iri}> has non-contiguous or duplicate head-conjunct \
                      rcIndex values {:?} (expected 0..{})",
-                    hc_indexed.iter().map(|(i, _)| *i).collect::<Vec<_>>(),
-                    hc_indexed.len()
-                ));
+                        hc_indexed.iter().map(|(i, _)| *i).collect::<Vec<_>>(),
+                        hc_indexed.len()
+                    ),
+                }));
             }
         }
         let head_conjuncts: Vec<RcAtom> = hc_indexed.into_iter().map(|(_, a)| a).collect();
@@ -1525,8 +1550,11 @@ pub fn parse_relational_core(dataset: &RdfDataset) -> Result<RelationalCoreProgr
                 continue;
             };
             let atom = parse_atom(&b_iri)?;
-            let index = int_obj(obj_of(&b_iri, &p_rc_index()))
-                .ok_or_else(|| format!("relational-core body atom <{b_iri}> missing rcIndex"))?;
+            let index = int_obj(obj_of(&b_iri, &p_rc_index())).ok_or_else(|| {
+                Diag::of_kind(crate::error::RelationalCore {
+                    detail: format!("relational-core body atom <{b_iri}> missing rcIndex"),
+                })
+            })?;
             indexed.push((index, atom));
         }
         indexed.sort_by_key(|(i, _)| *i);
@@ -1538,10 +1566,16 @@ pub fn parse_relational_core(dataset: &RdfDataset) -> Result<RelationalCoreProgr
             let Some(d_iri) = iri_obj(&d_node) else {
                 continue;
             };
-            let left = str_obj(obj_of(&d_iri, &p_rc_distinct_left()))
-                .ok_or_else(|| format!("relational-core distinct <{d_iri}> missing left"))?;
-            let right = str_obj(obj_of(&d_iri, &p_rc_distinct_right()))
-                .ok_or_else(|| format!("relational-core distinct <{d_iri}> missing right"))?;
+            let left = str_obj(obj_of(&d_iri, &p_rc_distinct_left())).ok_or_else(|| {
+                Diag::of_kind(crate::error::RelationalCore {
+                    detail: format!("relational-core distinct <{d_iri}> missing left"),
+                })
+            })?;
+            let right = str_obj(obj_of(&d_iri, &p_rc_distinct_right())).ok_or_else(|| {
+                Diag::of_kind(crate::error::RelationalCore {
+                    detail: format!("relational-core distinct <{d_iri}> missing right"),
+                })
+            })?;
             distinct_pairs.push((left, right));
         }
         distinct_pairs.sort();
@@ -1557,7 +1591,7 @@ pub fn parse_relational_core(dataset: &RdfDataset) -> Result<RelationalCoreProgr
     Ok(finalize(facts, rules, residue_set, source_iri))
 }
 
-fn term_from_rdf(term: &RdfTerm) -> Result<RcTerm, String> {
+fn term_from_rdf(term: &RdfTerm) -> gmeow_errors::Result<RcTerm> {
     match term {
         RdfTerm::Iri(iri) => Ok(RcTerm::Iri(iri.clone())),
         RdfTerm::BlankNode(label) => Ok(RcTerm::Blank(label.trim_start_matches("_:").to_owned())),
@@ -1568,9 +1602,11 @@ fn term_from_rdf(term: &RdfTerm) -> Result<RcTerm, String> {
                 Ok(RcTerm::Literal(lit.lexical_form.clone()))
             }
         }
-        other => Err(format!(
-            "relational-core term is not an IRI, blank node, or literal: {other:?}"
-        )),
+        other => Err(Diag::of_kind(crate::error::RelationalCore {
+            detail: format!(
+                "relational-core term is not an IRI, blank node, or literal: {other:?}"
+            ),
+        })),
     }
 }
 
@@ -1796,7 +1832,7 @@ mod tests {
         let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
             .expect("parse malformed");
         let err = parse_relational_core(ds.as_ref()).expect_err("malformed graph must hard-fail");
-        assert!(err.contains("missing rcSubject"), "got: {err}");
+        assert!(err.message().contains("missing rcSubject"), "got: {err}");
     }
 
     // ── Full-FOL formula lowering: the seam wiring the clausifier into the lane ──
@@ -2203,7 +2239,8 @@ mod tests {
         let err =
             parse_relational_core(ds.as_ref()).expect_err("duplicate rcIndex must be rejected");
         assert!(
-            err.contains("non-contiguous or duplicate head-conjunct"),
+            err.message()
+                .contains("non-contiguous or duplicate head-conjunct"),
             "the error names the malformed head-conjunct indices: {err}"
         );
     }

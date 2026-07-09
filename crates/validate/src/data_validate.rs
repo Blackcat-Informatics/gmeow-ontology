@@ -104,12 +104,15 @@ pub fn run_tier1(
     gts_bytes: &[u8],
     namespace: &str,
     origin: &str,
-) -> Result<Report, String> {
+) -> gmeow_errors::Result<Report> {
     let shapes_ttl = data_graph_shapes_from_gts(gts_bytes)?;
     let dataset = data_dataset_flat(data_bytes, data_format)?;
 
-    let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl)
-        .map_err(|e| format!("bundled SHACL shapes failed to parse: {e}"))?;
+    let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("bundled SHACL shapes failed to parse: {e}"),
+        })
+    })?;
     let shacl_report = store::shacl_validate_dataset(&dataset, &shapes);
     let shacl_findings = shacl_findings_from_report(&shacl_report, Some(origin));
 
@@ -134,6 +137,61 @@ pub fn run_tier1(
     Ok(report)
 }
 
+/// Validate `data_bytes` (an RDF graph in `data_format`) against the bundle's
+/// data-graph SHACL shapes, routing every [`ValidationResult`](purrdf::shapes::report::ValidationResult)
+/// THROUGH a [`DiagLedger`](gmeow_errors::DiagLedger) so the projected [`Report`]'s
+/// findings carry `related_labels` — the SHACL result-path / offending-value secondary
+/// spans a multi-label consumer (the LSP's `DiagnosticRelatedInformation`) renders.
+///
+/// This is the SHACL-only twin of [`run_tier1`]: [`run_tier1`] hand-builds each
+/// finding through [`finding_from_shacl`](crate::findings::finding_from_shacl) (which
+/// carries the secondary spans only as bare `related_locations`, with no label text),
+/// whereas this routes each result through [`diag_from_shacl`](crate::findings::diag_from_shacl)
+/// and the ledger, so `to_finding` populates the text-bearing `related_labels` twin.
+/// It runs no gUFO disciplines — the secondary-label surface is a SHACL property, and
+/// the disciplines carry no result-path/value spans.
+///
+/// The shapes are the SAME bundle-carried data-graph shape union [`run_tier1`] uses
+/// (`shapes-archive` minus the DSL/manifest lint shapes), the data is validated in
+/// isolation (no ontology merge — every data-graph shape is self-contained), and named
+/// graphs are flattened to the default graph. The projected report's tool is `tool`.
+///
+/// # Errors
+///
+/// Returns `Err` for the same reasons as [`run_tier1`]: the bundle carries no
+/// `shapes-archive` blob, the archive is malformed, the shapes fail to parse, or the
+/// data graph fails to parse.
+pub fn shacl_report_via_ledger(
+    data_bytes: &[u8],
+    data_format: &str,
+    gts_bytes: &[u8],
+    tool: &str,
+) -> gmeow_errors::Result<Report> {
+    use gmeow_errors::{DiagLedger, StageId};
+
+    use crate::findings::diag_from_shacl;
+
+    let shapes_ttl = data_graph_shapes_from_gts(gts_bytes)?;
+    let dataset = data_dataset_flat(data_bytes, data_format)?;
+
+    let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("bundled SHACL shapes failed to parse: {e}"),
+        })
+    })?;
+    let shacl_report = store::shacl_validate_dataset(&dataset, &shapes);
+
+    // The single carrier: every SHACL result interns onto ONE hash-consed ledger via
+    // the ledger-native `diag_from_shacl` (which carries the result-path / offending
+    // value as text-bearing `Label`s), and the projected report is its projection —
+    // so each finding gains the `related_labels` the bare `finding_from_shacl` lacks.
+    let mut ledger = DiagLedger::new();
+    for result in &shacl_report.results {
+        ledger.attach(diag_from_shacl(result), StageId::new("validate.data.shacl"));
+    }
+    Ok(ledger.project_report(tool))
+}
+
 /// Run Tier-1 conformance and return the [`Report`] as a JSON string — the
 /// deep-less, Python-free entry for the wasm/CLI boundary.
 ///
@@ -154,9 +212,13 @@ pub fn validate_json(
     gts_bytes: &[u8],
     namespace: &str,
     origin: &str,
-) -> Result<String, String> {
+) -> gmeow_errors::Result<String> {
     let report = run_tier1(data_bytes, data_format, gts_bytes, namespace, origin)?;
-    serde_json::to_string(&report).map_err(|e| format!("report JSON serialization failed: {e}"))
+    serde_json::to_string(&report).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Serialize {
+            detail: format!("report JSON serialization failed: {e}"),
+        })
+    })
 }
 
 /// Run Tier-1 conformance and, when `deep` is set, the opt-in native **Tier-2**
@@ -182,7 +244,7 @@ pub fn run(
     namespace: &str,
     origin: &str,
     deep: bool,
-) -> Result<Report, String> {
+) -> gmeow_errors::Result<Report> {
     let mut report = run_tier1(data_bytes, data_format, gts_bytes, namespace, origin)?;
 
     // Tier-2 (`--deep`): opt-in native semantic pass over user data + bundle axioms.
@@ -294,7 +356,8 @@ fn deep_consistency_findings(
 ) -> Result<(), DeepPassError> {
     let bundle = purrdf::import_gts_events(gts_bytes)
         .map_err(|e| DeepPassError::Unavailable(format!("GTS read error: {e}")))?;
-    let user = data_dataset(data_bytes, data_format).map_err(DeepPassError::Unavailable)?;
+    let user = data_dataset(data_bytes, data_format)
+        .map_err(|d| DeepPassError::Unavailable(d.message().to_string()))?;
     let result = gmeow_logic::reason::reason_all_with_data(bundle.dataset.as_ref(), user.as_ref())
         .map_err(|e| DeepPassError::Unavailable(format!("native reasoning failed: {e}")))?;
     // The governing contradiction policy is READ from the bundle's declared
@@ -320,17 +383,23 @@ fn deep_consistency_findings(
 /// way [`data_store`] does for SHACL). Handles every supported format, routing
 /// JSON-LD through the gmeow-gts codec exactly as [`data_store`] does.
 #[cfg(not(target_arch = "wasm32"))]
-fn data_dataset(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfDataset>, String> {
+fn data_dataset(data_bytes: &[u8], data_format: &str) -> gmeow_errors::Result<Arc<RdfDataset>> {
     if is_json_ld(data_format) {
         // JSON-LD has no native-codec media type; route it through the FIRST-PARTY
         // native JSON-LD-star codec, which folds the RDF 1.2 statement layer and
         // PRESERVES named graphs — the graph-preserving shape this Tier-2 path needs
         // (no longer the external gmeow-gts JSON-LD codec).
-        return purrdf::native_codecs::jsonld::parse_jsonld(data_bytes)
-            .map_err(|e| format!("JSON-LD parse error: {e}"));
+        return purrdf::native_codecs::jsonld::parse_jsonld(data_bytes).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!("JSON-LD parse error: {e}"),
+            })
+        });
     }
-    purrdf::parse_dataset(data_bytes, data_format, None)
-        .map_err(|e| located_parse_error("data graph parse error", &e))
+    purrdf::parse_dataset(data_bytes, data_format, None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: located_parse_error("data graph parse error", &e),
+        })
+    })
 }
 
 /// Render a parse [`purrdf::RdfDiagnostic`] as a hard-fail message that surfaces the
@@ -353,36 +422,47 @@ fn located_parse_error(context: &str, diagnostic: &purrdf::RdfDiagnostic) -> Str
 /// named graphs into the default graph so the shapes and discipline checks see the
 /// whole graph. (Tier-1 SHACL; the Tier-2 reasoner uses the graph-preserving
 /// [`data_dataset`] above.)
-fn data_dataset_flat(data_bytes: &[u8], data_format: &str) -> Result<Arc<RdfDataset>, String> {
+fn data_dataset_flat(
+    data_bytes: &[u8],
+    data_format: &str,
+) -> gmeow_errors::Result<Arc<RdfDataset>> {
     if is_json_ld(data_format) {
         // JSON-LD has no native-codec media type; route it through the FIRST-PARTY
         // native JSON-LD-star codec, then re-home every named graph to the default graph
         // (the Tier-1 SHACL path needs the whole graph flat). This matches the prior
         // gmeow-gts → `dataset_from_gts` flattening behavior.
-        let dataset = purrdf::native_codecs::jsonld::parse_jsonld(data_bytes)
-            .map_err(|e| format!("JSON-LD parse error: {e}"))?;
+        let dataset = purrdf::native_codecs::jsonld::parse_jsonld(data_bytes).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!("JSON-LD parse error: {e}"),
+            })
+        })?;
         return flatten_to_default_graph(&dataset);
     }
 
     // Parse to the native IR, then re-home every named graph to the default graph so
     // the flattened graph matches the old `FlattenToDefaultGraph` store.
-    let dataset = purrdf::parse_dataset(data_bytes, data_format, None)
-        .map_err(|e| located_parse_error("data graph parse error", &e))?;
+    let dataset = purrdf::parse_dataset(data_bytes, data_format, None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: located_parse_error("data graph parse error", &e),
+        })
+    })?;
     flatten_to_default_graph(&dataset)
 }
 
 /// Re-home every quad of `dataset` to the default graph (the native twin of
 /// `GraphPolicy::FlattenToDefaultGraph`), returning a fresh frozen dataset.
-fn flatten_to_default_graph(dataset: &RdfDataset) -> Result<Arc<RdfDataset>, String> {
+fn flatten_to_default_graph(dataset: &RdfDataset) -> gmeow_errors::Result<Arc<RdfDataset>> {
     use purrdf::RdfDatasetBuilder;
     let mut builder = RdfDatasetBuilder::new();
     for mut quad in dataset.owned_quads() {
         quad.graph_name = None;
         builder.push_owned_quad(&quad);
     }
-    builder
-        .freeze()
-        .map_err(|e| format!("flatten data graph to default graph: {e}"))
+    builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Dataset {
+            detail: format!("flatten data graph to default graph: {e}"),
+        })
+    })
 }
 
 /// True for the JSON-LD format ids (handled outside the native-codec router).
@@ -396,7 +476,7 @@ fn is_json_ld(format: &str) -> bool {
 
 /// Extract and assemble the data-graph SHACL shape union (one Turtle document)
 /// from the bundle's `shapes-archive` blob.
-fn data_graph_shapes_from_gts(gts_bytes: &[u8]) -> Result<String, String> {
+fn data_graph_shapes_from_gts(gts_bytes: &[u8]) -> gmeow_errors::Result<String> {
     let mut graph = store::read_gts_graph(gts_bytes)?;
 
     // Resolve the digest of the blob declared with rep == "shapes-archive".
@@ -408,7 +488,11 @@ fn data_graph_shapes_from_gts(gts_bytes: &[u8]) -> Result<String, String> {
         .find(|(_, meta)| cbor_text_field(meta, "rep") == Some(REP_SHAPES))
         .map(|(d, _)| d.clone())
         .ok_or_else(|| {
-            format!("bundle carries no `{REP_SHAPES}` blob — cannot validate repo-free")
+            gmeow_errors::Diag::of_kind(crate::error::Dataset {
+                detail: format!(
+                    "bundle carries no `{REP_SHAPES}` blob — cannot validate repo-free"
+                ),
+            })
         })?;
 
     // Decode the blob bytes (forcing a lazy entry if the fold deferred it).
@@ -417,13 +501,22 @@ fn data_graph_shapes_from_gts(gts_bytes: &[u8]) -> Result<String, String> {
         .iter_mut()
         .find(|(d, _)| *d == digest)
         .map(|(_, e)| e)
-        .ok_or_else(|| format!("`{REP_SHAPES}` blob metadata present but bytes missing"))?;
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Dataset {
+                detail: format!("`{REP_SHAPES}` blob metadata present but bytes missing"),
+            })
+        })?;
     let tar = entry
         .decode()
-        .map_err(|e| format!("`{REP_SHAPES}` blob decode error: {e}"))?
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Dataset {
+                detail: format!("`{REP_SHAPES}` blob decode error: {e}"),
+            })
+        })?
         .to_vec();
 
-    let mut members = purrdf::ustar::read_archive(&tar)?;
+    let mut members = purrdf::ustar::read_archive(&tar)
+        .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Dataset { detail: e }))?;
     // Deterministic concatenation order regardless of archive member order.
     members.sort_by(|a, b| a.0.cmp(&b.0));
 
@@ -437,17 +530,22 @@ fn data_graph_shapes_from_gts(gts_bytes: &[u8]) -> Result<String, String> {
         if EXCLUDED.contains(&base) {
             continue;
         }
-        let text = std::str::from_utf8(bytes)
-            .map_err(|e| format!("shape `{name}` is not valid UTF-8: {e}"))?;
+        let text = std::str::from_utf8(bytes).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Dataset {
+                detail: format!("shape `{name}` is not valid UTF-8: {e}"),
+            })
+        })?;
         ttl.push_str(text);
         ttl.push('\n');
         included += 1;
     }
 
     if included == 0 {
-        return Err(format!(
-            "`{REP_SHAPES}` blob held no data-graph shapes — the bundle is incomplete"
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Dataset {
+            detail: format!(
+                "`{REP_SHAPES}` blob held no data-graph shapes — the bundle is incomplete"
+            ),
+        }));
     }
     Ok(ttl)
 }
@@ -662,9 +760,11 @@ logic:c rdf:type logic:ReasoningContract ;
             "fixture.nt",
         )
         .expect_err("a bundle without a shapes-archive must be an Err");
+        assert!(err.is::<crate::error::Dataset>());
         assert!(
-            err.contains("shapes-archive"),
-            "the error must name the missing bundle surface: {err}"
+            err.message().contains("shapes-archive"),
+            "the error must name the missing bundle surface: {}",
+            err.message()
         );
     }
 

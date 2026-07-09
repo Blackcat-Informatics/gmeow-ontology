@@ -3,7 +3,7 @@
 
 [package]
 name = "gmeow-validate"
-description = "GMEOW validation in Rust: the wasm-clean repo-free Tier-1 conformance core (SHACL + OntoUML disciplines over a gmeow.gts bundle) plus the native slice-authoring dev gate, exposed to Python via PyO3"
+description = "GMEOW validation in Rust: the wasm-clean repo-free Tier-1 conformance core (SHACL + OntoUML disciplines over a gmeow.gts bundle) plus the native slice-authoring dev gate (rlib)"
 version = "0.1.0"
 edition.workspace = true
 license.workspace = true
@@ -12,13 +12,9 @@ readme = "README.md"
 keywords = ["rdf", "validation", "lint", "knowledge-graph", "rdf-12"]
 
 [lib]
-# rlib-only: this crate no longer ships a standalone PyO3 extension. Its bindings
-# are linked into the single `gmeow_native` cdylib (crates/native, #630).
+# rlib-only: a pure-Rust engine crate consumed by the workspace.
 crate-type = ["rlib"]
 path = "src/lib.rs"
-
-[features]
-python = ["dep:pyo3", "gmeow-errors/python"]
 
 # Dependencies of the wasm-clean Tier-1 core (compiled on EVERY target, including
 # wasm32-unknown-unknown). Only what data_validate/store/gufo/findings/report_bridge
@@ -33,8 +29,7 @@ serde_json = "1"
 purrdf = "0.4"
 # Shared RDF 1.2 kernel: native GTS/text-codec ingress and diagnostics. The `gts`
 # feature is oxigraph-free and already cross-compiles to wasm32 (the purrdf engine).
-# Canonical Finding/Report model. Its default (non-`python`) surface is pure serde,
-# so it is wasm-clean; the `python` feature layers pyo3 on for the native extension.
+# Canonical Finding/Report model. Its surface is pure serde, so it is wasm-clean.
 gmeow-errors = { path = "../errors" }
 # GTS CONTAINER engine: the Tier-1 shape-archive read walks `Graph::blob_meta`/`blobs`.
 # CONTAINER symbols only (no codec feature) — the same wasm-clean surface gmeow-rdf's
@@ -87,10 +82,9 @@ gmeow-logic = { path = "../logic" }
 # type), and the math:Norm conformance gate computes a norm/distance THROUGH its
 # `InnerProductSpace`. Native-only: the lint module is `cfg(not(wasm32))`.
 gmeow-math = { path = "../math" }
-# pyo3 native-only: it physically cannot link into wasm. The engine core stays
-# PyO3-free; only the py modules import it, so the rlib links into a future Rust
-# compiler (and the wasm target) without Python.
-pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }
+# Structured, subscriber-controlled sink for the native cache's lenient
+# missing-input notice — telemetry with no reporter in scope, never a gate.
+tracing = "0.1"
 
 [dev-dependencies]
 # Native RDF 1.2 dataset used directly by integration tests that query generated Turtle.

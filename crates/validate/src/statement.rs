@@ -29,8 +29,7 @@
 //! reifier/axiom node is), so the reifier IRI is the natural identifier here. The
 //! failing CONDITION and the message TEXT are otherwise reproduced exactly.
 //!
-//! Engine-core separation: this module imports no pyo3. The [`crate::py`]
-//! bindings adapt it to Python.
+//! Engine-core separation: this module is pure Rust with no binding surface.
 
 use std::collections::HashSet;
 

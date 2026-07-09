@@ -23,6 +23,7 @@ use crate::ir::{
     ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShapeTarget, ShapeValue,
     ValidationShapeIr,
 };
+use gmeow_errors::Diag;
 
 /// The datatype every C_DV_QUANTITY magnitude bound carries in the projected shape.
 const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
@@ -155,7 +156,9 @@ pub enum OptConstraintKind {
 /// Every family lowers to one target class with one or two property shapes carrying the
 /// corresponding [`ConstraintComponent`]s. OPT-native cardinality is
 /// [`ConstraintProvenance::OptNative`] (closed-world by construction).
-pub fn lift_opt_to_validation_shape(c: &OptConstraintIr) -> Result<ValidationShapeIr, String> {
+pub fn lift_opt_to_validation_shape(
+    c: &OptConstraintIr,
+) -> gmeow_errors::Result<ValidationShapeIr> {
     let target = ShapeTarget::Class(c.target_class.clone());
     let properties = match &c.kind {
         OptConstraintKind::Quantity {
@@ -286,30 +289,33 @@ pub fn lift_opt_to_validation_shape(c: &OptConstraintIr) -> Result<ValidationSha
 /// is the structural inverse of [`lift_opt_to_validation_shape`] across every family: it
 /// detects the family from the discriminating component and reconstructs the OPT constraint.
 /// Hard-fails if the shape is not a well-formed lifted OPT constraint (no silent defaulting).
-pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> Result<OptConstraintIr, String> {
+pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> gmeow_errors::Result<OptConstraintIr> {
     let target_class = match &shape.target {
         ShapeTarget::Class(c) => c.clone(),
         ShapeTarget::ValueKeyed { .. } => {
-            return Err(
-                "recover_opt_from_shape: a value-keyed target is not an OPT constraint".into(),
-            );
+            return Err(Diag::of_kind(crate::error::OptLift {
+                detail: "recover_opt_from_shape: a value-keyed target is not an OPT constraint"
+                    .to_owned(),
+            }));
         }
         ShapeTarget::SubjectsOf(_) | ShapeTarget::ObjectsOf(_) => {
-            return Err(
-                "recover_opt_from_shape: a subjects-of/objects-of (domain/range) target is not an \
+            return Err(Diag::of_kind(crate::error::OptLift {
+                detail: "recover_opt_from_shape: a subjects-of/objects-of (domain/range) target is not an \
                  OPT constraint"
-                    .into(),
-            );
+                    .to_owned(),
+            }));
         }
         ShapeTarget::DirectClass(_) => {
-            return Err(
-                "recover_opt_from_shape: a direct-instance target is not an OPT constraint".into(),
-            );
+            return Err(Diag::of_kind(crate::error::OptLift {
+                detail: "recover_opt_from_shape: a direct-instance target is not an OPT constraint"
+                    .to_owned(),
+            }));
         }
         ShapeTarget::Sparql(_) => {
-            return Err(
-                "recover_opt_from_shape: a raw-sparql target is not an OPT constraint".into(),
-            );
+            return Err(Diag::of_kind(crate::error::OptLift {
+                detail: "recover_opt_from_shape: a raw-sparql target is not an OPT constraint"
+                    .to_owned(),
+            }));
         }
     };
     // Collect EVERY family's discriminating component — never return on the first match. A
@@ -423,18 +429,21 @@ pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> Result<OptConstraint
         }
     }
     match recovered.len() {
-        0 => {
-            Err("recover_opt_from_shape: shape is not a recognizable lifted OPT constraint".into())
-        }
+        0 => Err(Diag::of_kind(crate::error::OptLift {
+            detail: "recover_opt_from_shape: shape is not a recognizable lifted OPT constraint"
+                .to_owned(),
+        })),
         1 => Ok(mk(
             shape,
             target_class,
             recovered.into_iter().next().expect("len checked == 1"),
         )),
-        n => Err(format!(
-            "recover_opt_from_shape: ambiguous shape — {n} discriminating OPT families present; \
+        n => Err(Diag::of_kind(crate::error::OptLift {
+            detail: format!(
+                "recover_opt_from_shape: ambiguous shape — {n} discriminating OPT families present; \
              a lifted OPT constraint must carry exactly one (no silent first-wins recovery)"
-        )),
+            ),
+        })),
     }
 }
 
@@ -448,7 +457,7 @@ fn mk(shape: &ValidationShapeIr, target_class: String, kind: OptConstraintKind) 
 }
 
 /// Recover a quantity shape's `units_path`/`units` (the singleton `In`-of-literal property).
-fn recover_units(shape: &ValidationShapeIr) -> Result<(String, String), String> {
+fn recover_units(shape: &ValidationShapeIr) -> gmeow_errors::Result<(String, String)> {
     for p in &shape.properties {
         for comp in &p.components {
             if let ConstraintComponent::In(vs) = comp
@@ -458,7 +467,10 @@ fn recover_units(shape: &ValidationShapeIr) -> Result<(String, String), String> 
             }
         }
     }
-    Err("recover_opt_from_shape: quantity shape has no units (singleton sh:in literal)".into())
+    Err(Diag::of_kind(crate::error::OptLift {
+        detail: "recover_opt_from_shape: quantity shape has no units (singleton sh:in literal)"
+            .to_owned(),
+    }))
 }
 
 /// Recover a quantity shape's optional precision satellite — the property carrying the single
@@ -798,7 +810,7 @@ mod tests {
         .unwrap();
         let err = recover_opt_from_shape(&shape).unwrap_err();
         assert!(
-            err.contains("ambiguous"),
+            err.message().contains("ambiguous"),
             "expected an ambiguity hard-fail, got: {err}"
         );
     }

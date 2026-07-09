@@ -8,4 +8,4 @@ When suggesting code completions or generating templates in this repository, alw
    - Do not edit files under `mappings/` or `projections/` directly; edit files under `mapping-dsl/` instead.
    - Do not edit files under `statements/` directly; edit files under `statement-dsl/` instead.
 4. Ensure all ontology classes, properties, and instances use the correct camelCase or PascalCase formatting as established in existing Turtle (`.ttl`) files in `ontology/modules/`.
-5. Ensure Python code complies with the ruff auto-formatter rules and targets the dependencies defined in `pyproject.toml` using `uv`.
+5. Ensure Rust code is formatted with `cargo fmt` and passes `cargo clippy` (warnings-as-errors); crate dependencies are defined in the workspace `Cargo.toml`.

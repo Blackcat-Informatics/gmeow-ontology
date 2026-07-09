@@ -19,7 +19,6 @@
 # GraphStore::ontology(); the entity-existence + contested/coverage conform cases
 # with GraphStore ABox twins).
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lifecycle/tests/> .

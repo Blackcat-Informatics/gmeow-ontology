@@ -1,0 +1,2 @@
+<http://www.example.org#p1> <http://www.w3.org/2002/07/owl#equivalentProperty> <http://www.example.org#p2> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-eqprop-trans/w> .
+<http://www.example.org#p2> <http://www.w3.org/2002/07/owl#equivalentProperty> <http://www.example.org#p3> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-eqprop-trans/w> .

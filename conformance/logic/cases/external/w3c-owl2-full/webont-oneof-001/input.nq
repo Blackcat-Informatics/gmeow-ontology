@@ -1,0 +1,16 @@
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-oneof-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-oneof-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#equivalentClass> _:rdfxml_00000000000000000000000002 <https://gmeow.example/w3c-owl2-full/webont-oneof-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#oneOf> _:rdfxml_list_00000000000000000000000000 <https://gmeow.example/w3c-owl2-full/webont-oneof-001/w> .
+_:rdfxml_00000000000000000000000002 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-oneof-001/w> .
+_:rdfxml_00000000000000000000000002 <http://www.w3.org/2002/07/owl#oneOf> _:rdfxml_list_00000000000000000000000003 <https://gmeow.example/w3c-owl2-full/webont-oneof-001/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.w3.org/2002/03owlt/oneOf/consistent001#amy> <https://gmeow.example/w3c-owl2-full/webont-oneof-001/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_list_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/webont-oneof-001/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.w3.org/2002/03owlt/oneOf/consistent001#bob> <https://gmeow.example/w3c-owl2-full/webont-oneof-001/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_list_00000000000000000000000002 <https://gmeow.example/w3c-owl2-full/webont-oneof-001/w> .
+_:rdfxml_list_00000000000000000000000002 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.w3.org/2002/03owlt/oneOf/consistent001#caroline> <https://gmeow.example/w3c-owl2-full/webont-oneof-001/w> .
+_:rdfxml_list_00000000000000000000000002 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/webont-oneof-001/w> .
+_:rdfxml_list_00000000000000000000000003 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.w3.org/2002/03owlt/oneOf/consistent001#yolanda> <https://gmeow.example/w3c-owl2-full/webont-oneof-001/w> .
+_:rdfxml_list_00000000000000000000000003 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_list_00000000000000000000000004 <https://gmeow.example/w3c-owl2-full/webont-oneof-001/w> .
+_:rdfxml_list_00000000000000000000000004 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.w3.org/2002/03owlt/oneOf/consistent001#zebedee> <https://gmeow.example/w3c-owl2-full/webont-oneof-001/w> .
+_:rdfxml_list_00000000000000000000000004 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/webont-oneof-001/w> .

@@ -11,6 +11,8 @@
 //! - Rules: `head :- body1, body2, ... .` and facts `head.`
 //! - Goal: exactly one `?- goalatom1, goalatom2, ... .`
 //! - Atoms are binary predicates over RDF: `pred(Subject, Object)`.
+//! - Negation-as-failure: a body literal `\+ pred(S, O)` or `not pred(S, O)` is parsed
+//!   as a [`QBodyLit::Neg`] (stratified NAF, evaluated by the native binary core).
 //! - Cut: the body literal `!` is parsed as a [`QBodyLit::Cut`] marker.
 //!
 //! # Canonicalization
@@ -22,6 +24,24 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::seam::BudgetStatus;
+
+/// Wrap a query-program parse condition message as a typed diagnostic on the
+/// shared substrate, preserving the authored text verbatim.
+fn query_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Query { detail })
+}
+
+/// The reserved relation name of the arity-4 predicate-as-data encoding
+/// `triple(subject, predicate, object, world)` — the REAL n-ary shape the binary
+/// [`crate::store::RelationStore`] cannot represent (the property rides in a DATA
+/// position).  A goal or rule that names this bare, unqualified relation is routed to
+/// the arity-generic n-ary evaluator, whose generic-triple EDB
+/// ([`crate::physical::magic_generic`]) loads every world fact under this exact
+/// relation name.  It is DELIBERATELY the bare symbol `triple`, distinct from any
+/// prefixed predicate `ex:triple` (which resolves to a full IRI): only the
+/// unqualified name reaches the generic evaluator, so the parser must accept it
+/// verbatim (a bare word is otherwise unresolvable — no prefix, no angle brackets).
+pub(crate) const GENERIC_TRIPLE_RELATION: &str = "triple";
 
 // ── IR types ──────────────────────────────────────────────────────────────────
 
@@ -62,6 +82,16 @@ pub struct QAtom {
 pub enum QBodyLit {
     /// A normal predicate atom.
     Atom(QAtom),
+    /// A negated body atom (negation-as-failure), written `\+ pred(a, b)` or
+    /// `not pred(a, b)` on the query surface (the Prolog-ish backward mirror of the
+    /// forward rule-text `~pred` negation).
+    ///
+    /// Stratified NAF: the negated atom blocks the rule iff some grounding of it is
+    /// PRESENT in the accumulated least model of a strictly-lower stratum. It binds no
+    /// new variables (NAF is a test, not a generator), and every variable it carries
+    /// must be range-restricted by a positive body atom — an unbound variable under
+    /// negation flounders (an unsound NAF goal) and is a declared native gap.
+    Neg(QAtom),
     /// The Prolog cut `!`. Procedural — not supported by the declarative oracle.
     Cut,
     /// An arithmetic (`X is Y op Z`) or comparison (`L cmp R`) builtin.
@@ -384,13 +414,13 @@ pub struct Budget {
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` on any malformed input.  Exactly one `?-` goal is
+/// Returns `Err` on any malformed input.  Exactly one `?-` goal is
 /// required; zero or more than one is an error.
 ///
 /// # Panics
 ///
-/// Never panics — all errors are returned as `Err(String)`.
-pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
+/// Never panics — all errors are returned as a typed diagnostic.
+pub fn parse_query_program(src: &str) -> gmeow_errors::Result<QProgram> {
     let mut prefixes: BTreeMap<String, String> = BTreeMap::new();
     let mut rules: Vec<QRule> = Vec::new();
     let mut goal: Option<QGoal> = None;
@@ -441,10 +471,10 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
 
     // If there's a non-empty pending without a terminating dot, it's a parse error.
     if !pending.trim().is_empty() {
-        return Err(format!(
+        return Err(query_err(format!(
             "unterminated clause (missing '.'): {:?}",
             pending.trim()
-        ));
+        )));
     }
 
     // ── Phase 2: dispatch each clause ────────────────────────────────────────
@@ -461,23 +491,25 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
                 prefixes.insert(pfx.0, pfx.1);
             } else if body.starts_with("counterfactual(") {
                 if cf_worlds.is_some() {
-                    return Err(
-                        "program has more than one counterfactual(...) directive".to_owned()
-                    );
+                    return Err(query_err(
+                        "program has more than one counterfactual(...) directive".to_owned(),
+                    ));
                 }
                 cf_worlds = Some(parse_counterfactual_directive(body, &prefixes)?);
             } else if body.starts_with("assume(") {
                 cf_antecedent.push(parse_assume_directive(body, &prefixes)?);
             } else if body.starts_with("depth_budget(") {
                 if cf_depth_budget.is_some() {
-                    return Err("program has more than one depth_budget(...) directive".to_owned());
+                    return Err(query_err(
+                        "program has more than one depth_budget(...) directive".to_owned(),
+                    ));
                 }
                 cf_depth_budget = Some(parse_depth_budget_directive(body)?);
             } else if body.starts_with("probability_model(") {
                 if prob_model_kind.is_some() {
-                    return Err(
-                        "program has more than one probability_model(...) directive".to_owned()
-                    );
+                    return Err(query_err(
+                        "program has more than one probability_model(...) directive".to_owned(),
+                    ));
                 }
                 prob_model_kind = Some(parse_probability_model_directive(body)?);
             } else if body.starts_with("probability(") {
@@ -490,17 +522,17 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
                 // An unrecognized directive is an error, not a no-op: silently
                 // ignoring one means a typo (e.g. `:- depth_buget(...)`) would
                 // disable an intended guardrail without any signal.
-                return Err(format!("unrecognized directive: {body:?}"));
+                return Err(query_err(format!("unrecognized directive: {body:?}")));
             }
         } else if let Some(goal_body) = clause.strip_prefix("?-") {
             // Goal clause.
             if goal.is_some() {
-                return Err("program has more than one ?- goal".to_owned());
+                return Err(query_err("program has more than one ?- goal".to_owned()));
             }
             let goal_body = goal_body.trim();
             let atoms = parse_atom_list(goal_body, &prefixes)?;
             if atoms.is_empty() {
-                return Err("?- goal must have at least one atom".to_owned());
+                return Err(query_err("?- goal must have at least one atom".to_owned()));
             }
             goal = Some(QGoal { atoms });
         } else {
@@ -510,7 +542,7 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
         }
     }
 
-    let goal = goal.ok_or_else(|| "program has no ?- goal".to_owned())?;
+    let goal = goal.ok_or_else(|| query_err("program has no ?- goal".to_owned()))?;
 
     // ── Assemble the optional counterfactual declaration ─────────────────────
     let counterfactual = match cf_worlds {
@@ -519,19 +551,19 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
             // `A` is a no-op revision (it asserts nothing hypothetical), almost
             // always a malformed query (the `assume(...)` was forgotten or typo'd).
             if cf_antecedent.is_empty() {
-                return Err(
+                return Err(query_err(
                     "counterfactual(...) directive requires at least one assume(...) antecedent"
                         .to_owned(),
-                );
+                ));
             }
             // Antecedent atoms must be ground — `A` is a concrete hypothetical fact,
             // not a query pattern. Reject any variable to keep the revision deterministic.
             for atom in &cf_antecedent {
                 if atom.args.iter().any(|t| matches!(t, QTerm::Var(_))) {
-                    return Err(format!(
+                    return Err(query_err(format!(
                         "assume(...) antecedent atom must be ground (no variables): {:?}",
                         atom.pred
-                    ));
+                    )));
                 }
             }
             Some(QCounterfactual {
@@ -545,16 +577,16 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
             // `assume`/`depth_budget` without `counterfactual` is a malformed program:
             // they are meaningless outside a Stratum-C query.
             if !cf_antecedent.is_empty() {
-                return Err(
+                return Err(query_err(
                     "assume(...) directive present without a counterfactual(...) directive"
                         .to_owned(),
-                );
+                ));
             }
             if cf_depth_budget.is_some() {
-                return Err(
+                return Err(query_err(
                     "depth_budget(...) directive present without a counterfactual(...) directive"
                         .to_owned(),
-                );
+                ));
             }
             None
         }
@@ -566,11 +598,11 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
             // Joints are meaningless without a dependency model: a `joint(...)`
             // under full independence is a malformed declaration, not a no-op.
             if !prob_joints.is_empty() {
-                return Err(
+                return Err(query_err(
                     "joint(...) directive present under probability_model(full_independence); \
                      joint tables require probability_model(dependency)"
                         .to_owned(),
-                );
+                ));
             }
             Some(QProbModel::FullIndependence)
         }
@@ -578,20 +610,20 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
             // A dependency model must carry at least one joint outcome — an empty
             // joint table declares no distribution at all.
             if prob_joints.is_empty() {
-                return Err(
+                return Err(query_err(
                     "probability_model(dependency) requires at least one joint(...) outcome"
                         .to_owned(),
-                );
+                ));
             }
             Some(QProbModel::Dependency {
                 joints: prob_joints,
             })
         }
         Some(other) => {
-            return Err(format!(
+            return Err(query_err(format!(
                 "unknown probability_model kind {other:?} \
                  (expected 'full_independence' or 'dependency')"
-            ));
+            )));
         }
         None => {
             // A joint(...) without a declared dependency model is malformed: the
@@ -599,10 +631,10 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
             // model are allowed here — the evaluator turns that into the required
             // `unknown` refusal, the no-model guard.)
             if !prob_joints.is_empty() {
-                return Err(
+                return Err(query_err(
                     "joint(...) directive present without a probability_model(dependency) directive"
                         .to_owned(),
-                );
+                ));
             }
             None
         }
@@ -667,7 +699,7 @@ fn find_clause_end(s: &str) -> Option<usize> {
 /// Parse a `prefix(alias, 'iri')` body (the part after `:-`).
 ///
 /// Returns `Some((alias, iri))` on match, `None` if it's a different directive.
-fn parse_prefix_directive(body: &str) -> Result<Option<(String, String)>, String> {
+fn parse_prefix_directive(body: &str) -> gmeow_errors::Result<Option<(String, String)>> {
     // Expected form: `prefix(alias, 'https://...')`
     let body = body.trim();
     if !body.starts_with("prefix(") {
@@ -676,11 +708,11 @@ fn parse_prefix_directive(body: &str) -> Result<Option<(String, String)>, String
     let inner = body
         .strip_prefix("prefix(")
         .and_then(|s| s.strip_suffix(')'))
-        .ok_or_else(|| format!("malformed prefix directive: {body:?}"))?;
+        .ok_or_else(|| query_err(format!("malformed prefix directive: {body:?}")))?;
 
     let comma = inner
         .find(',')
-        .ok_or_else(|| format!("prefix directive missing comma: {body:?}"))?;
+        .ok_or_else(|| query_err(format!("prefix directive missing comma: {body:?}")))?;
     let alias = inner[..comma].trim().to_owned();
     let iri_part = inner[comma + 1..].trim();
 
@@ -688,15 +720,17 @@ fn parse_prefix_directive(body: &str) -> Result<Option<(String, String)>, String
     // satisfies both `starts_with`/`ends_with`, but `iri_part[1..len-1]` would be
     // `[1..0]` and panic on the out-of-bounds slice.
     if !iri_part.starts_with('\'') || !iri_part.ends_with('\'') || iri_part.len() < 2 {
-        return Err(format!("prefix IRI must be single-quoted in: {body:?}"));
+        return Err(query_err(format!(
+            "prefix IRI must be single-quoted in: {body:?}"
+        )));
     }
     let iri = iri_part[1..iri_part.len() - 1].to_owned();
 
     if alias.is_empty() {
-        return Err(format!("prefix alias is empty in: {body:?}"));
+        return Err(query_err(format!("prefix alias is empty in: {body:?}")));
     }
     if iri.is_empty() {
-        return Err(format!("prefix IRI is empty in: {body:?}"));
+        return Err(query_err(format!("prefix IRI is empty in: {body:?}")));
     }
 
     Ok(Some((alias, iri)))
@@ -713,26 +747,34 @@ fn parse_prefix_directive(body: &str) -> Result<Option<(String, String)>, String
 fn parse_counterfactual_directive(
     body: &str,
     prefixes: &BTreeMap<String, String>,
-) -> Result<(String, String), String> {
+) -> gmeow_errors::Result<(String, String)> {
     let inner = body
         .strip_prefix("counterfactual(")
         .and_then(|s| s.strip_suffix(')'))
-        .ok_or_else(|| format!("malformed counterfactual directive: {body:?}"))?;
+        .ok_or_else(|| query_err(format!("malformed counterfactual directive: {body:?}")))?;
     let args = split_comma_top(inner);
     if args.len() != 2 {
-        return Err(format!(
+        return Err(query_err(format!(
             "counterfactual(...) takes exactly 2 world IRIs (W_cf, W_base); got {} in {body:?}",
             args.len()
-        ));
+        )));
     }
-    let cf_world = resolve_iri(args[0].trim(), prefixes)
-        .ok_or_else(|| format!("cannot resolve W_cf IRI {:?} in {body:?}", args[0].trim()))?;
-    let base_world = resolve_iri(args[1].trim(), prefixes)
-        .ok_or_else(|| format!("cannot resolve W_base IRI {:?} in {body:?}", args[1].trim()))?;
+    let cf_world = resolve_iri(args[0].trim(), prefixes).ok_or_else(|| {
+        query_err(format!(
+            "cannot resolve W_cf IRI {:?} in {body:?}",
+            args[0].trim()
+        ))
+    })?;
+    let base_world = resolve_iri(args[1].trim(), prefixes).ok_or_else(|| {
+        query_err(format!(
+            "cannot resolve W_base IRI {:?} in {body:?}",
+            args[1].trim()
+        ))
+    })?;
     if cf_world == base_world {
-        return Err(format!(
+        return Err(query_err(format!(
             "counterfactual W_cf and W_base must differ (got both = {cf_world})"
-        ));
+        )));
     }
     Ok((cf_world, base_world))
 }
@@ -744,51 +786,52 @@ fn parse_counterfactual_directive(
 fn parse_assume_directive(
     body: &str,
     prefixes: &BTreeMap<String, String>,
-) -> Result<QAtom, String> {
+) -> gmeow_errors::Result<QAtom> {
     let inner = body
         .strip_prefix("assume(")
         .and_then(|s| s.strip_suffix(')'))
-        .ok_or_else(|| format!("malformed assume directive: {body:?}"))?;
+        .ok_or_else(|| query_err(format!("malformed assume directive: {body:?}")))?;
     parse_atom(inner.trim(), prefixes)
 }
 
 /// Parse a `depth_budget(N)` directive body (the part after `:-`).
 ///
 /// `N` is a non-negative integer — the hard cap on nested-counterfactual depth.
-fn parse_depth_budget_directive(body: &str) -> Result<u64, String> {
+fn parse_depth_budget_directive(body: &str) -> gmeow_errors::Result<u64> {
     let inner = body
         .strip_prefix("depth_budget(")
         .and_then(|s| s.strip_suffix(')'))
-        .ok_or_else(|| format!("malformed depth_budget directive: {body:?}"))?;
-    inner
-        .trim()
-        .parse::<u64>()
-        .map_err(|e| format!("depth_budget(...) must be a non-negative integer in {body:?}: {e}"))
+        .ok_or_else(|| query_err(format!("malformed depth_budget directive: {body:?}")))?;
+    inner.trim().parse::<u64>().map_err(|e| {
+        query_err(format!(
+            "depth_budget(...) must be a non-negative integer in {body:?}: {e}"
+        ))
+    })
 }
 
 // ── Probabilistic directive parsers ───────────────────────────────────
 
 /// Validate a probability/confidence decimal token: must parse as `f64` and lie
 /// in `[0, 1]`. Returns the trimmed token verbatim (the IR keeps the raw text).
-fn validate_unit_decimal(tok: &str, what: &str) -> Result<String, String> {
+fn validate_unit_decimal(tok: &str, what: &str) -> gmeow_errors::Result<String> {
     let t = tok.trim();
     let v: f64 = t
         .parse::<f64>()
-        .map_err(|e| format!("{what} value {t:?} is not a decimal: {e}"))?;
+        .map_err(|e| query_err(format!("{what} value {t:?} is not a decimal: {e}")))?;
     if !(0.0..=1.0).contains(&v) || v.is_nan() {
-        return Err(format!("{what} value {t:?} must be in [0, 1]"));
+        return Err(query_err(format!("{what} value {t:?} must be in [0, 1]")));
     }
     Ok(t.to_owned())
 }
 
 /// Require every term of `atom` to be a constant (no variables) — probabilistic
 /// facts, joint outcomes, and confidence annotations are over concrete facts.
-fn require_ground(atom: &QAtom, what: &str) -> Result<(), String> {
+fn require_ground(atom: &QAtom, what: &str) -> gmeow_errors::Result<()> {
     if atom.args.iter().any(|t| matches!(t, QTerm::Var(_))) {
-        return Err(format!(
+        return Err(query_err(format!(
             "{what} atom must be ground (no variables): {:?}",
             atom.pred
-        ));
+        )));
     }
     Ok(())
 }
@@ -796,14 +839,16 @@ fn require_ground(atom: &QAtom, what: &str) -> Result<(), String> {
 /// Parse a `probability_model(kind)` directive body (the part after `:-`).
 ///
 /// `kind` is a bare keyword: `full_independence` or `dependency`.
-fn parse_probability_model_directive(body: &str) -> Result<String, String> {
+fn parse_probability_model_directive(body: &str) -> gmeow_errors::Result<String> {
     let inner = body
         .strip_prefix("probability_model(")
         .and_then(|s| s.strip_suffix(')'))
-        .ok_or_else(|| format!("malformed probability_model directive: {body:?}"))?;
+        .ok_or_else(|| query_err(format!("malformed probability_model directive: {body:?}")))?;
     let kind = inner.trim();
     if kind.is_empty() {
-        return Err(format!("probability_model(...) kind is empty in: {body:?}"));
+        return Err(query_err(format!(
+            "probability_model(...) kind is empty in: {body:?}"
+        )));
     }
     Ok(kind.to_owned())
 }
@@ -812,17 +857,17 @@ fn parse_probability_model_directive(body: &str) -> Result<String, String> {
 fn parse_probability_directive(
     body: &str,
     prefixes: &BTreeMap<String, String>,
-) -> Result<QProbFact, String> {
+) -> gmeow_errors::Result<QProbFact> {
     let inner = body
         .strip_prefix("probability(")
         .and_then(|s| s.strip_suffix(')'))
-        .ok_or_else(|| format!("malformed probability directive: {body:?}"))?;
+        .ok_or_else(|| query_err(format!("malformed probability directive: {body:?}")))?;
     let parts = split_comma_top(inner);
     if parts.len() != 2 {
-        return Err(format!(
+        return Err(query_err(format!(
             "probability(...) takes exactly an atom and a probability; got {} parts in {body:?}",
             parts.len()
-        ));
+        )));
     }
     let atom = parse_atom(parts[0].trim(), prefixes)?;
     require_ground(&atom, "probability")?;
@@ -837,14 +882,16 @@ fn parse_probability_directive(
 fn parse_joint_directive(
     body: &str,
     prefixes: &BTreeMap<String, String>,
-) -> Result<QJointOutcome, String> {
+) -> gmeow_errors::Result<QJointOutcome> {
     let inner = body
         .strip_prefix("joint(")
         .and_then(|s| s.strip_suffix(')'))
-        .ok_or_else(|| format!("malformed joint directive: {body:?}"))?;
+        .ok_or_else(|| query_err(format!("malformed joint directive: {body:?}")))?;
     let parts = split_comma_top(inner);
     if parts.is_empty() {
-        return Err(format!("joint(...) requires a probability in {body:?}"));
+        return Err(query_err(format!(
+            "joint(...) requires a probability in {body:?}"
+        )));
     }
     let prob = validate_unit_decimal(parts[0], "joint")?;
     let mut true_atoms = Vec::new();
@@ -860,17 +907,17 @@ fn parse_joint_directive(
 fn parse_confidence_directive(
     body: &str,
     prefixes: &BTreeMap<String, String>,
-) -> Result<QConfidence, String> {
+) -> gmeow_errors::Result<QConfidence> {
     let inner = body
         .strip_prefix("confidence(")
         .and_then(|s| s.strip_suffix(')'))
-        .ok_or_else(|| format!("malformed confidence directive: {body:?}"))?;
+        .ok_or_else(|| query_err(format!("malformed confidence directive: {body:?}")))?;
     let parts = split_comma_top(inner);
     if parts.len() != 2 {
-        return Err(format!(
+        return Err(query_err(format!(
             "confidence(...) takes exactly an atom and a confidence; got {} parts in {body:?}",
             parts.len()
-        ));
+        )));
     }
     let atom = parse_atom(parts[0].trim(), prefixes)?;
     require_ground(&atom, "confidence")?;
@@ -881,7 +928,7 @@ fn parse_confidence_directive(
 // ── Rule parser ───────────────────────────────────────────────────────────────
 
 /// Parse a rule clause `head :- body1, body2, ... ` or a fact `head`.
-fn parse_rule(clause: &str, prefixes: &BTreeMap<String, String>) -> Result<QRule, String> {
+fn parse_rule(clause: &str, prefixes: &BTreeMap<String, String>) -> gmeow_errors::Result<QRule> {
     if let Some(idx) = find_neck(clause) {
         let head_str = clause[..idx].trim();
         let body_str = clause[idx + 2..].trim();
@@ -947,13 +994,18 @@ fn find_neck(s: &str) -> Option<usize> {
 fn parse_body_lit_list(
     s: &str,
     prefixes: &BTreeMap<String, String>,
-) -> Result<Vec<QBodyLit>, String> {
+) -> gmeow_errors::Result<Vec<QBodyLit>> {
     split_comma_top(s)
         .into_iter()
         .map(|tok| {
             let tok = tok.trim();
             if tok == "!" {
                 Ok(QBodyLit::Cut)
+            } else if let Some(inner) = strip_negation(tok) {
+                // A negated body literal `\+ pred(..)` / `not pred(..)`: the inner form
+                // is always an ordinary predicate atom (NAF over a builtin/cut is not a
+                // meaningful goal), so parse it as an atom and wrap it as `Neg`.
+                parse_atom(inner.trim(), prefixes).map(QBodyLit::Neg)
             } else if let Some(builtin) = try_parse_builtin(tok, prefixes)? {
                 Ok(QBodyLit::Builtin(builtin))
             } else {
@@ -963,6 +1015,25 @@ fn parse_body_lit_list(
         .collect()
 }
 
+/// Strip a leading negation-as-failure operator (`\+` or the `not` keyword) from a body
+/// literal token, returning the inner (still-unparsed) atom text.
+///
+/// Recognizes the two Prolog-ish query-surface forms: `\+ pred(..)` (with or without a
+/// space after `\+`) and `not pred(..)` (the keyword form, requiring a following space so
+/// a predicate whose local name merely starts with `not`, e.g. `notation(..)`, is NOT
+/// mistaken for a negation). Returns `None` when `tok` carries no negation operator.
+fn strip_negation(tok: &str) -> Option<&str> {
+    if let Some(rest) = tok.strip_prefix("\\+") {
+        return Some(rest);
+    }
+    if let Some(rest) = tok.strip_prefix("not")
+        && rest.starts_with(char::is_whitespace)
+    {
+        return Some(rest);
+    }
+    None
+}
+
 /// Attempt to parse `tok` as an arithmetic or comparison builtin.
 ///
 /// Returns `Ok(Some(_))` if `tok` is a builtin, `Ok(None)` if it is an ordinary
@@ -970,15 +1041,18 @@ fn parse_body_lit_list(
 fn try_parse_builtin(
     tok: &str,
     prefixes: &BTreeMap<String, String>,
-) -> Result<Option<QBuiltin>, String> {
+) -> gmeow_errors::Result<Option<QBuiltin>> {
     // `X is Y op Z` — the ` is ` infix (with surrounding spaces) is unambiguous.
     if let Some(is_pos) = find_infix_top(tok, " is ") {
         let target_str = tok[..is_pos].trim();
         let rhs_str = tok[is_pos + 4..].trim();
         let target = parse_term(target_str, prefixes)?;
         // Split RHS on the arithmetic operator (multi-char `//` checked first).
-        let (lhs_str, op, rhs_op_str) = split_arith(rhs_str)
-            .ok_or_else(|| format!("malformed arithmetic builtin RHS {rhs_str:?} in {tok:?}"))?;
+        let (lhs_str, op, rhs_op_str) = split_arith(rhs_str).ok_or_else(|| {
+            query_err(format!(
+                "malformed arithmetic builtin RHS {rhs_str:?} in {tok:?}"
+            ))
+        })?;
         let lhs = parse_term(lhs_str.trim(), prefixes)?;
         let rhs = parse_term(rhs_op_str.trim(), prefixes)?;
         return Ok(Some(QBuiltin::Is {
@@ -1090,7 +1164,10 @@ fn split_compare(s: &str) -> Option<(&str, CmpOp, &str)> {
 }
 
 /// Parse a comma-separated list of atoms (for `?-` goal).
-fn parse_atom_list(s: &str, prefixes: &BTreeMap<String, String>) -> Result<Vec<QAtom>, String> {
+fn parse_atom_list(
+    s: &str,
+    prefixes: &BTreeMap<String, String>,
+) -> gmeow_errors::Result<Vec<QAtom>> {
     split_comma_top(s)
         .into_iter()
         .map(|tok| parse_atom(tok.trim(), prefixes))
@@ -1147,26 +1224,37 @@ fn split_comma_top(s: &str) -> Vec<&str> {
 /// The predicate may be a prefixed name (`ex:foo`) or a single-quoted IRI
 /// (`'https://...'`). Args are one or more terms (binary EDB RDF atoms carry two;
 /// n-ary IDB predicates like `get/3` carry more — G2a).
-fn parse_atom(s: &str, prefixes: &BTreeMap<String, String>) -> Result<QAtom, String> {
+fn parse_atom(s: &str, prefixes: &BTreeMap<String, String>) -> gmeow_errors::Result<QAtom> {
     let s = s.trim();
     // Find the opening paren.
     let open = s
         .find('(')
-        .ok_or_else(|| format!("atom missing '(': {s:?}"))?;
+        .ok_or_else(|| query_err(format!("atom missing '(': {s:?}")))?;
     if !s.ends_with(')') {
-        return Err(format!("atom missing closing ')': {s:?}"));
+        return Err(query_err(format!("atom missing closing ')': {s:?}")));
     }
     let pred_str = s[..open].trim();
     let args_str = s[open + 1..s.len() - 1].trim();
 
-    let pred = resolve_iri(pred_str, prefixes)
-        .ok_or_else(|| format!("cannot resolve predicate IRI {pred_str:?}"))?;
-    // Predicate: bare IRI string (strip angle brackets if present).
-    let pred = strip_angle_brackets(&pred);
+    // Reserved generic relation: the bare, unqualified `triple` symbol names the
+    // arity-4 predicate-as-data encoding `triple(s, p, o, w)` and is carried VERBATIM
+    // (no IRI resolution — it is a program-local relation symbol, not an IRI), so the
+    // parsed predicate agrees exactly with the generic-triple EDB's
+    // `push_fact(GENERIC_TRIPLE_RELATION, …)`.  Everything else resolves as an IRI.
+    let pred = if pred_str == GENERIC_TRIPLE_RELATION {
+        GENERIC_TRIPLE_RELATION.to_owned()
+    } else {
+        let pred = resolve_iri(pred_str, prefixes)
+            .ok_or_else(|| query_err(format!("cannot resolve predicate IRI {pred_str:?}")))?;
+        // Predicate: bare IRI string (strip angle brackets if present).
+        strip_angle_brackets(&pred)
+    };
 
     let arg_tokens = split_comma_top(args_str);
     if arg_tokens.is_empty() {
-        return Err(format!("atom {s:?} has no args; expected at least 1"));
+        return Err(query_err(format!(
+            "atom {s:?} has no args; expected at least 1"
+        )));
     }
 
     let args: Vec<QTerm> = arg_tokens
@@ -1180,10 +1268,10 @@ fn parse_atom(s: &str, prefixes: &BTreeMap<String, String>) -> Result<QAtom, Str
 // ── Term parser ───────────────────────────────────────────────────────────────
 
 /// Parse a single term (variable or constant).
-fn parse_term(s: &str, prefixes: &BTreeMap<String, String>) -> Result<QTerm, String> {
+fn parse_term(s: &str, prefixes: &BTreeMap<String, String>) -> gmeow_errors::Result<QTerm> {
     let s = s.trim();
     if s.is_empty() {
-        return Err("empty term".to_owned());
+        return Err(query_err("empty term".to_owned()));
     }
 
     // Variable: starts with uppercase ASCII letter or `_`.
@@ -1201,7 +1289,7 @@ fn parse_term(s: &str, prefixes: &BTreeMap<String, String>) -> Result<QTerm, Str
     // Single-quoted full IRI: `'https://...'`
     if s.starts_with('\'') {
         if !s.ends_with('\'') || s.len() < 2 {
-            return Err(format!("unterminated single-quoted IRI: {s:?}"));
+            return Err(query_err(format!("unterminated single-quoted IRI: {s:?}")));
         }
         let iri = &s[1..s.len() - 1];
         return Ok(QTerm::Const(format!("<{}>", iri)));
@@ -1210,7 +1298,9 @@ fn parse_term(s: &str, prefixes: &BTreeMap<String, String>) -> Result<QTerm, Str
     // Double-quoted literal: `"foo"` — canonicalize as n3 string literal.
     if s.starts_with('"') {
         if !s.ends_with('"') || s.len() < 2 {
-            return Err(format!("unterminated double-quoted literal: {s:?}"));
+            return Err(query_err(format!(
+                "unterminated double-quoted literal: {s:?}"
+            )));
         }
         // Keep it verbatim in canonical n3 form.
         return Ok(QTerm::Const(s.to_owned()));
@@ -1221,9 +1311,9 @@ fn parse_term(s: &str, prefixes: &BTreeMap<String, String>) -> Result<QTerm, Str
         return Ok(QTerm::Const(iri));
     }
 
-    Err(format!(
+    Err(query_err(format!(
         "cannot parse term {s:?} (not a variable, single-quoted IRI, or prefixed name)"
-    ))
+    )))
 }
 
 // ── IRI resolution helpers ────────────────────────────────────────────────────
@@ -1274,7 +1364,7 @@ impl QBodyLit {
     pub fn into_atom(self) -> Option<QAtom> {
         match self {
             QBodyLit::Atom(a) => Some(a),
-            QBodyLit::Cut | QBodyLit::Builtin(_) => None,
+            QBodyLit::Neg(_) | QBodyLit::Cut | QBodyLit::Builtin(_) => None,
         }
     }
 }
@@ -1346,14 +1436,17 @@ mod tests {
         // A lone `'` satisfies both starts_with/ends_with; without the len guard
         // the `iri_part[1..len-1]` strip is `[1..0]` and panics. Must be a clean Err.
         let err = parse_prefix_directive("prefix(ex, ')").unwrap_err();
-        assert!(err.contains("single-quoted"), "unexpected error: {err}");
+        assert!(
+            err.message().contains("single-quoted"),
+            "unexpected error: {err}"
+        );
     }
 
     #[test]
     fn prefix_empty_quotes_errs() {
         // `''` strips to the empty IRI — caught by the empty-IRI check, also an Err.
         let err = parse_prefix_directive("prefix(ex, '')").unwrap_err();
-        assert!(err.contains("empty"), "unexpected error: {err}");
+        assert!(err.message().contains("empty"), "unexpected error: {err}");
     }
 
     // ── Prefix + 2 rules + goal parse ─────────────────────────────────────────
@@ -1416,6 +1509,45 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
         );
     }
 
+    // ── Negation-as-failure in body ───────────────────────────────────────────
+
+    #[test]
+    fn parse_backslash_plus_and_not_negation() {
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ex:p(X, Y) :- ex:q(X, Y), \\+ ex:r(X, Y), not ex:s(X, Y).\n\
+             ?- ex:p(X, Y).\n",
+        )
+        .unwrap();
+        let body = &prog.rules[0].body;
+        assert_eq!(body.len(), 3, "one positive + two negated literals");
+        assert!(matches!(body[0], QBodyLit::Atom(_)), "q is positive");
+        match &body[1] {
+            QBodyLit::Neg(a) => assert_eq!(a.pred, "https://example.org/r"),
+            other => panic!("expected Neg(r), got {other:?}"),
+        }
+        match &body[2] {
+            QBodyLit::Neg(a) => assert_eq!(a.pred, "https://example.org/s"),
+            other => panic!("expected Neg(s), got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parse_not_prefixed_predicate_is_not_mistaken_for_negation() {
+        // A predicate whose local name merely starts with `not` (here `notation`) must NOT
+        // be parsed as a negation operator — the `not` keyword requires a following space.
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ex:p(X, Y) :- ex:notation(X, Y).\n\
+             ?- ex:p(X, Y).\n",
+        )
+        .unwrap();
+        match &prog.rules[0].body[0] {
+            QBodyLit::Atom(a) => assert_eq!(a.pred, "https://example.org/notation"),
+            other => panic!("expected a positive notation atom, got {other:?}"),
+        }
+    }
+
     // ── Reject: no goal ───────────────────────────────────────────────────────
 
     #[test]
@@ -1425,7 +1557,7 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
              ex:p(ex:a, ex:b).\n",
         );
         assert!(result.is_err(), "must reject program with no goal");
-        assert!(result.unwrap_err().contains("no ?- goal"));
+        assert!(result.unwrap_err().message().contains("no ?- goal"));
     }
 
     // ── Reject: malformed clause ──────────────────────────────────────────────
@@ -1585,7 +1717,7 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
              ?- ex:p(ex:s, Y).\n",
         )
         .unwrap_err();
-        assert!(err.contains("ground"), "unexpected error: {err}");
+        assert!(err.message().contains("ground"), "unexpected error: {err}");
     }
 
     #[test]
@@ -1597,7 +1729,7 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
         )
         .unwrap_err();
         assert!(
-            err.contains("without a counterfactual"),
+            err.message().contains("without a counterfactual"),
             "unexpected error: {err}"
         );
     }
@@ -1611,7 +1743,7 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
         )
         .unwrap_err();
         assert!(
-            err.contains("without a counterfactual"),
+            err.message().contains("without a counterfactual"),
             "unexpected error: {err}"
         );
     }
@@ -1625,7 +1757,10 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
              ?- ex:p(ex:s, Y).\n",
         )
         .unwrap_err();
-        assert!(err.contains("more than one"), "unexpected error: {err}");
+        assert!(
+            err.message().contains("more than one"),
+            "unexpected error: {err}"
+        );
     }
 
     #[test]
@@ -1636,7 +1771,10 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
              ?- ex:p(ex:s, Y).\n",
         )
         .unwrap_err();
-        assert!(err.contains("must differ"), "unexpected error: {err}");
+        assert!(
+            err.message().contains("must differ"),
+            "unexpected error: {err}"
+        );
     }
 
     #[test]
@@ -1652,7 +1790,7 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
         )
         .unwrap_err();
         assert!(
-            err.contains("unrecognized directive"),
+            err.message().contains("unrecognized directive"),
             "unexpected error: {err}"
         );
     }
@@ -1668,7 +1806,7 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
         )
         .unwrap_err();
         assert!(
-            err.contains("at least one assume"),
+            err.message().contains("at least one assume"),
             "unexpected error: {err}"
         );
     }

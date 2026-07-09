@@ -1,0 +1,10 @@
+<http://example.org/a> <http://example.org/p> <http://example.org/b> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-bjp-003/w> .
+<http://example.org/b> <http://example.org/q> <http://example.org/c> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-bjp-003/w> .
+<http://example.org/p> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-bjp-003/w> .
+<http://example.org/p> <http://www.w3.org/2002/07/owl#propertyChainAxiom> _:rdfxml_list_00000000000000000000000000 <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-bjp-003/w> .
+<http://example.org/q> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-bjp-003/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-bjp-003/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://example.org/p> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-bjp-003/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_list_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-bjp-003/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://example.org/q> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-bjp-003/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-bjp-003/w> .

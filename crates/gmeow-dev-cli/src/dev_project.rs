@@ -1,13 +1,16 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Repo-anchored projection / description commands: `describe`, `extract-docs`,
-//! `temporal`, `import-foundation`, `crossref`, and `compliance-report`.
+//! Repo-anchored projection / description commands: `describe`, `export-docs`,
+//! `docs-on`, `temporal`, `import-foundation`, `crossref`, and `compliance-report`.
 
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use crate::dev_common::{fail, fail_code, project_root, snapshot_bytes};
+use gmeow_cli_core::write_docs_projection;
+
+use crate::dev_common::{emit_error, fail, fail_code, note, project_root, snapshot_bytes};
+use crate::error;
 
 /// `gmeow-dev describe TERM [--gts --lang]` — render one term card.
 pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
@@ -29,14 +32,16 @@ pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
     if code == 0 {
         println!("{text}");
     } else {
-        eprintln!("{text}");
+        emit_error("gmeow-dev.describe.error", text);
     }
     code
 }
 
-/// `gmeow-dev extract-docs [GTS] -d DIR [--force --lang]`.
-pub fn extract_docs(
+/// `gmeow-dev export-docs [GTS] --format F -d DIR [--force --lang]` — write one (or
+/// every) documentation projection from a GTS snapshot.
+pub fn export_docs(
     gts_file: Option<&Path>,
+    format: &crate::ExportFormat,
     directory: &Path,
     force: bool,
     lang: Option<&str>,
@@ -67,23 +72,93 @@ pub fn extract_docs(
             directory.display()
         ));
     }
-    let tree = match gmeow_pipeline::cli_ops::confirmations::extract_docs_site(&bytes, &internal) {
-        Ok(t) => t,
-        Err(e) => return fail(format!("cannot create docs tree: {e}")),
-    };
-    for (rel, data) in &tree {
-        let target = directory.join(rel);
-        if let Some(parent) = target.parent()
-            && let Err(e) = std::fs::create_dir_all(parent)
-        {
-            return fail(format!("cannot create {}: {e}", parent.display()));
+
+    use crate::ExportFormat;
+    use gmeow_pipeline::cli_ops::confirmations as conf;
+    match format {
+        ExportFormat::Site => {
+            write_docs_projection(directory, conf::export_docs_site(&bytes, &internal))
         }
-        if let Err(e) = std::fs::write(&target, data) {
-            return fail(format!("cannot write {}: {e}", target.display()));
+        ExportFormat::Mdbook => write_docs_projection(directory, conf::export_docs_book(&bytes)),
+        ExportFormat::Pdf => write_docs_projection(directory, conf::export_docs_print(&bytes)),
+        ExportFormat::Snippets => {
+            write_docs_projection(directory, conf::export_docs_snippets(&bytes, &internal))
+        }
+        ExportFormat::All => {
+            let plan = [
+                ("site", conf::export_docs_site(&bytes, &internal)),
+                ("mdbook", conf::export_docs_book(&bytes)),
+                ("pdf", conf::export_docs_print(&bytes)),
+                ("snippets", conf::export_docs_snippets(&bytes, &internal)),
+            ];
+            for (sub, tree) in plan {
+                let code = write_docs_projection(&directory.join(sub), tree);
+                if code != 0 {
+                    return code;
+                }
+            }
+            0
         }
     }
-    println!("docs tree -> {}", directory.display());
-    0
+}
+
+/// `gmeow-dev docs-on TERM [--card --gts --lang]` — print one term's documentation
+/// page (or its prompt-ready card) from a GTS snapshot's ontology-docs blob.
+pub fn docs_on(term: &str, card: bool, gts: Option<&Path>, lang: Option<&str>) -> i32 {
+    use gmeow_docs::describe::{DescribeGraph, resolve_term};
+
+    let root = project_root();
+    let bytes = match gts {
+        Some(path) => match std::fs::read(path) {
+            Ok(b) => b,
+            Err(e) => return fail(format!("cannot read {}: {e}", path.display())),
+        },
+        None => match snapshot_bytes(&root) {
+            Ok(b) => b,
+            Err(code) => return code,
+        },
+    };
+    let graph = match DescribeGraph::from_gts_bytes(&bytes) {
+        Ok(g) => g,
+        Err(e) => return fail(e),
+    };
+    let (resolved, candidates) = resolve_term(&graph, term);
+    let Some(iri) = resolved else {
+        if candidates.is_empty() {
+            return fail(format!("no GMEOW term matches '{term}'"));
+        }
+        let options = candidates
+            .iter()
+            .map(|c| format!("  gmeow:{c}"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        return fail(format!(
+            "ambiguous or unknown term '{term}' — candidates:\n{options}"
+        ));
+    };
+
+    let available = match gmeow_pipeline::cli_ops::confirmations::available_doc_languages(&bytes) {
+        Ok(langs) => langs,
+        Err(e) => return fail(format!("cannot read docs languages: {e}")),
+    };
+    let internal = pick_internal_lang(lang, &available);
+
+    let docs = match gmeow_pipeline::bundle_blobs::bundled_ontology_docs(&bytes) {
+        Ok(d) => d,
+        Err(e) => return fail(format!("snapshot carries no ontology-docs pages: {e}")),
+    };
+    let slug = gmeow_docs::render::slug_for_iri(&iri);
+    let leaf = if card { "card.md" } else { "index.md" };
+    let key = format!("{internal}/terms/{slug}/{leaf}");
+    match docs.get(&key) {
+        Some(data) => {
+            print!("{}", String::from_utf8_lossy(data));
+            0
+        }
+        None => fail(format!(
+            "snapshot has no {leaf} page for '{term}' (gmeow:{slug}) in {internal}"
+        )),
+    }
 }
 
 /// Choose the internal `x-gmeow-*` docs language: an exact requested internal tag,
@@ -122,9 +197,15 @@ pub fn temporal(
     let query_dir = root.join("slices/core/temporal/queries/tql");
     let queries = gmeow_pipeline::cli_ops::temporal::temporal_queries();
     if !queries.contains_key(query) {
-        eprintln!("unknown TQL query {query:?}. Available:");
+        note(
+            "gmeow-dev.temporal.available",
+            format!("unknown TQL query {query:?}. Available:"),
+        );
         for (name, q) in &queries {
-            eprintln!("  {name:<20} {}", q.summary);
+            note(
+                "gmeow-dev.temporal.available",
+                format!("  {name:<20} {}", q.summary),
+            );
         }
         return fail(format!("unknown TQL query {query:?}"));
     }
@@ -231,7 +312,7 @@ pub fn crossref() -> i32 {
         Ok(problems) if problems.is_empty() => {}
         Ok(problems) => {
             for p in &problems {
-                eprintln!("doi-lint {p}");
+                note("gmeow-dev.crossref.doi-lint", format!("doi-lint {p}"));
             }
             return fail(format!("{} doi-lint problem(s)", problems.len()));
         }
@@ -362,7 +443,7 @@ pub fn up_projection_audit(report_path: Option<&Path>, show_gaps: bool) -> i32 {
     println!("gaps {} distinct terms", ledger.gaps.len());
     if show_gaps {
         for term in &ledger.gaps {
-            eprintln!("gap {term}");
+            note("gmeow-dev.up-projection-audit.gap", format!("gap {term}"));
         }
     }
     0
@@ -446,7 +527,12 @@ pub fn refresh_target_axioms(target: &str) -> i32 {
     if selected.is_empty() {
         // A named target that is not IMPORT_OK is skipped with a clear note, never
         // vendored (reference-only targets are fetched live at lint time).
-        eprintln!("skip {target}: not an IMPORT_OK vendorable target (reference-only or unknown)");
+        note(
+            "gmeow-dev.refresh-target-axioms.skip",
+            format!(
+                "skip {target}: not an IMPORT_OK vendorable target (reference-only or unknown)"
+            ),
+        );
         return 0;
     }
     let mut written = 0usize;
@@ -464,7 +550,7 @@ pub fn refresh_target_axioms(target: &str) -> i32 {
 }
 
 /// Fetch, structurally filter, and write one target's axiom snapshot.
-fn refresh_one(source: &TargetSource, out_dir: &Path) -> Result<std::path::PathBuf, String> {
+fn refresh_one(source: &TargetSource, out_dir: &Path) -> gmeow_errors::Result<std::path::PathBuf> {
     // A network vendor step must fail fast rather than hang: cap the whole
     // request/response with a global timeout so an unreachable or stalled remote
     // surfaces as an error instead of blocking the CLI indefinitely.
@@ -473,17 +559,17 @@ fn refresh_one(source: &TargetSource, out_dir: &Path) -> Result<std::path::PathB
         .timeout_global(Some(std::time::Duration::from_secs(30)))
         .build()
         .call()
-        .map_err(|e| format!("HTTP {e}"))?
+        .map_err(|e| error::refresh(format!("HTTP {e}")))?
         .into_body()
         .read_to_string()
-        .map_err(|e| format!("read body: {e}"))?;
+        .map_err(|e| error::refresh(format!("read body: {e}")))?;
     let media = if source.media_type.contains("rdf+xml") {
         "application/rdf+xml"
     } else {
         "text/turtle"
     };
-    let dataset =
-        purrdf::parse_dataset(body.as_bytes(), media, None).map_err(|e| format!("parse: {e}"))?;
+    let dataset = purrdf::parse_dataset(body.as_bytes(), media, None)
+        .map_err(|e| error::refresh(format!("parse: {e}")))?;
 
     // Keep only the structural-axiom quads (domain / range / subPropertyOf /
     // inverseOf, plus property-type declarations) — a minimal, deterministic
@@ -503,11 +589,12 @@ fn refresh_one(source: &TargetSource, out_dir: &Path) -> Result<std::path::PathB
         }
     }
     let filtered = purrdf::flat_dataset_from_quads(&filtered_quads)
-        .map_err(|e| format!("flatten filtered: {e}"))?;
+        .map_err(|e| error::refresh(format!("flatten filtered: {e}")))?;
     let prefixes = vec![(source.prefix.to_owned(), namespace_for(source.prefix))];
     let ttl = purrdf::turtle_normalize::render(&filtered, &prefixes);
     let path = out_dir.join(format!("{}.ttl", source.prefix));
-    std::fs::write(&path, ttl).map_err(|e| format!("write {}: {e}", path.display()))?;
+    std::fs::write(&path, ttl)
+        .map_err(|e| error::refresh(format!("write {}: {e}", path.display())))?;
     Ok(path)
 }
 
