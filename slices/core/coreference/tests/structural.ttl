@@ -23,7 +23,6 @@
 #     load_merged_graph + project_graph and checks projected triples; generated-
 #     artifact / projection result check, not expressible as a module-scoped ASK.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/coreference/tests/> .
@@ -35,7 +34,7 @@ ex:saAuthorityLinkIsObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:authorityLink a owl:ObjectProperty . }""" ;
-    gmeow:saRationale "gmeow:authorityLink MUST be an owl:ObjectProperty -- the authority pointer is a named object relation, not a datatype assertion. Mirrors test_authority_link_is_universal_open_and_not_sameas (ObjectProperty part)." .
+    gmeow:saRationale "gmeow:authorityLink MUST be an owl:ObjectProperty -- the authority pointer is a named object relation, not a datatype assertion." .
 
 # --- 2. authorityLink has domain gmeow:Entity (MUST) -------------------------
 ex:saAuthorityLinkDomainEntity a gmeow:StructuralAssertion ;
@@ -44,7 +43,7 @@ ex:saAuthorityLinkDomainEntity a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:authorityLink rdfs:domain gmeow:Entity . }""" ;
-    gmeow:saRationale "gmeow:authorityLink MUST have rdfs:domain gmeow:Entity -- only GMEOW entities link to external authority records, not literals or blank nodes. Mirrors test_authority_link_is_universal_open_and_not_sameas (domain part)." .
+    gmeow:saRationale "gmeow:authorityLink MUST have rdfs:domain gmeow:Entity -- only GMEOW entities link to external authority records, not literals or blank nodes." .
 
 # --- 3. authorityLink has no rdfs:range (MUST-NOT) ---------------------------
 ex:saAuthorityLinkRangeOpen a gmeow:StructuralAssertion ;
@@ -53,7 +52,7 @@ ex:saAuthorityLinkRangeOpen a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:authorityLink rdfs:range ?r . }""" ;
-    gmeow:saRationale "gmeow:authorityLink MUST NOT carry any rdfs:range -- the range is intentionally open so it can point at any external authority IRI regardless of vocabulary. Mirrors test_authority_link_is_universal_open_and_not_sameas (no-range part)." .
+    gmeow:saRationale "gmeow:authorityLink MUST NOT carry any rdfs:range -- the range is intentionally open so it can point at any external authority IRI regardless of vocabulary." .
 
 # --- 4. authorityLink is NOT functional (MUST-NOT) ---------------------------
 ex:saAuthorityLinkNotFunctional a gmeow:StructuralAssertion ;
@@ -62,7 +61,7 @@ ex:saAuthorityLinkNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:authorityLink a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:authorityLink MUST NOT be owl:FunctionalProperty -- an entity may link to many external authorities (Wikidata, VIAF, GeoNames etc.) simultaneously. Mirrors test_authority_link_is_universal_open_and_not_sameas (not-functional part)." .
+    gmeow:saRationale "gmeow:authorityLink MUST NOT be owl:FunctionalProperty -- an entity may link to many external authorities (Wikidata, VIAF, GeoNames etc.) simultaneously." .
 
 # --- 5. authorityLink is NOT equivalentProperty of owl:sameAs (MUST-NOT) -----
 ex:saAuthorityLinkNotEquivSameAs a gmeow:StructuralAssertion ;
@@ -71,7 +70,7 @@ ex:saAuthorityLinkNotEquivSameAs a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:authorityLink owl:equivalentProperty owl:sameAs . }""" ;
-    gmeow:saRationale "gmeow:authorityLink MUST NOT be declared owl:equivalentProperty owl:sameAs -- authority links are see-also references, never identity merges. Mirrors test_authority_link_is_universal_open_and_not_sameas (not-equivSameAs part)." .
+    gmeow:saRationale "gmeow:authorityLink MUST NOT be declared owl:equivalentProperty owl:sameAs -- authority links are see-also references, never identity merges." .
 
 # --- 6. authorityLink is NOT subPropertyOf owl:sameAs (MUST-NOT) -------------
 ex:saAuthorityLinkNotSubpropertySameAs a gmeow:StructuralAssertion ;
@@ -81,7 +80,7 @@ ex:saAuthorityLinkNotSubpropertySameAs a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:authorityLink rdfs:subPropertyOf owl:sameAs . }""" ;
-    gmeow:saRationale "gmeow:authorityLink MUST NOT be rdfs:subPropertyOf owl:sameAs -- authority links are see-also references, never identity merges. Mirrors test_authority_link_is_universal_open_and_not_sameas (not-subproperty-sameAs part)." .
+    gmeow:saRationale "gmeow:authorityLink MUST NOT be rdfs:subPropertyOf owl:sameAs -- authority links are see-also references, never identity merges." .
 
 # --- 7. counterpartOf is an owl:ObjectProperty (MUST) ------------------------
 ex:saCounterpartOfIsObjectProperty a gmeow:StructuralAssertion ;
@@ -90,7 +89,7 @@ ex:saCounterpartOfIsObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:counterpartOf a owl:ObjectProperty . }""" ;
-    gmeow:saRationale "gmeow:counterpartOf MUST be an owl:ObjectProperty -- the cross-realm link is a named object relation. Mirrors test_counterpart_preserves_link_without_identity_merge (ObjectProperty part)." .
+    gmeow:saRationale "gmeow:counterpartOf MUST be an owl:ObjectProperty -- the cross-realm link is a named object relation." .
 
 # --- 8. counterpartOf is owl:SymmetricProperty (MUST) ------------------------
 ex:saCounterpartOfIsSymmetric a gmeow:StructuralAssertion ;
@@ -99,7 +98,7 @@ ex:saCounterpartOfIsSymmetric a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:counterpartOf a owl:SymmetricProperty . }""" ;
-    gmeow:saRationale "gmeow:counterpartOf MUST be owl:SymmetricProperty -- if A is a counterpart of B then B is a counterpart of A by definition. Mirrors test_counterpart_preserves_link_without_identity_merge (SymmetricProperty part)." .
+    gmeow:saRationale "gmeow:counterpartOf MUST be owl:SymmetricProperty -- if A is a counterpart of B then B is a counterpart of A by definition." .
 
 # --- 9. counterpartOf is NOT owl:TransitiveProperty (MUST-NOT) ---------------
 ex:saCounterpartOfNotTransitive a gmeow:StructuralAssertion ;
@@ -108,7 +107,7 @@ ex:saCounterpartOfNotTransitive a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:counterpartOf a owl:TransitiveProperty . }""" ;
-    gmeow:saRationale "gmeow:counterpartOf MUST NOT be owl:TransitiveProperty -- counterpart chains must not auto-collapse via transitivity; each pairing is an explicit assertion to keep contested or context-dependent claims standpoint-indexed. Mirrors test_counterpart_preserves_link_without_identity_merge (not-transitive part)." .
+    gmeow:saRationale "gmeow:counterpartOf MUST NOT be owl:TransitiveProperty -- counterpart chains must not auto-collapse via transitivity; each pairing is an explicit assertion to keep contested or context-dependent claims standpoint-indexed." .
 
 # --- 10. counterpartOf is NOT equivalentProperty of owl:sameAs (MUST-NOT) ---
 ex:saCounterpartOfNotEquivSameAs a gmeow:StructuralAssertion ;
@@ -117,7 +116,7 @@ ex:saCounterpartOfNotEquivSameAs a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:counterpartOf owl:equivalentProperty owl:sameAs . }""" ;
-    gmeow:saRationale "gmeow:counterpartOf MUST NOT be declared owl:equivalentProperty owl:sameAs -- counterpart links preserve cross-realm linkage without owl:sameAs merger. Mirrors test_counterpart_preserves_link_without_identity_merge (not-equivSameAs part)." .
+    gmeow:saRationale "gmeow:counterpartOf MUST NOT be declared owl:equivalentProperty owl:sameAs -- counterpart links preserve cross-realm linkage without owl:sameAs merger." .
 
 # --- 11. counterpartOf is NOT subPropertyOf owl:sameAs (MUST-NOT) ------------
 ex:saCounterpartOfNotSubpropertySameAs a gmeow:StructuralAssertion ;
@@ -127,7 +126,7 @@ ex:saCounterpartOfNotSubpropertySameAs a gmeow:StructuralAssertion ;
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:counterpartOf rdfs:subPropertyOf owl:sameAs . }""" ;
-    gmeow:saRationale "gmeow:counterpartOf MUST NOT be rdfs:subPropertyOf owl:sameAs -- counterpart links preserve cross-realm linkage without owl:sameAs merger. Mirrors test_counterpart_preserves_link_without_identity_merge (not-subproperty-sameAs part)." .
+    gmeow:saRationale "gmeow:counterpartOf MUST NOT be rdfs:subPropertyOf owl:sameAs -- counterpart links preserve cross-realm linkage without owl:sameAs merger." .
 
 # --- 12. versionOf, editionOf, supersedes are owl:ObjectProperty (MUST) ------
 ex:saLineageTermsAreObjectProperties a gmeow:StructuralAssertion ;
@@ -140,7 +139,7 @@ ASK {
     gmeow:editionOf   a owl:ObjectProperty .
     gmeow:supersedes  a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:versionOf, gmeow:editionOf, and gmeow:supersedes MUST all be owl:ObjectProperty -- lineage relations link entity nodes to entity nodes, never to literals. Mirrors test_universal_version_and_edition_lineage_terms (ObjectProperty part)." .
+    gmeow:saRationale "gmeow:versionOf, gmeow:editionOf, and gmeow:supersedes MUST all be owl:ObjectProperty -- lineage relations link entity nodes to entity nodes, never to literals." .
 
 # --- 13. versionOf is owl:FunctionalProperty (MUST) --------------------------
 ex:saVersionOfIsFunctional a gmeow:StructuralAssertion ;
@@ -149,7 +148,7 @@ ex:saVersionOfIsFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:versionOf a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:versionOf MUST be owl:FunctionalProperty -- a version belongs to exactly one lineage entity; the lineage may have many versions. Mirrors test_universal_version_and_edition_lineage_terms (versionOf-functional part)." .
+    gmeow:saRationale "gmeow:versionOf MUST be owl:FunctionalProperty -- a version belongs to exactly one lineage entity; the lineage may have many versions." .
 
 # --- 14. editionOf is owl:FunctionalProperty (MUST) --------------------------
 ex:saEditionOfIsFunctional a gmeow:StructuralAssertion ;
@@ -158,7 +157,7 @@ ex:saEditionOfIsFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:editionOf a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:editionOf MUST be owl:FunctionalProperty -- a concrete edition belongs to exactly one stable work. Mirrors test_universal_version_and_edition_lineage_terms (editionOf-functional part)." .
+    gmeow:saRationale "gmeow:editionOf MUST be owl:FunctionalProperty -- a concrete edition belongs to exactly one stable work." .
 
 # --- 15. supersedes is NOT owl:FunctionalProperty (MUST-NOT) -----------------
 ex:saSupersedesNotFunctional a gmeow:StructuralAssertion ;
@@ -167,7 +166,7 @@ ex:saSupersedesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:supersedes a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:supersedes MUST NOT be owl:FunctionalProperty -- one successor may consolidate several predecessors (non-functional by design). Mirrors test_universal_version_and_edition_lineage_terms (supersedes-not-functional part)." .
+    gmeow:saRationale "gmeow:supersedes MUST NOT be owl:FunctionalProperty -- one successor may consolidate several predecessors (non-functional by design)." .
 
 # --- 16. versionOf has domain gmeow:Entity (MUST) ----------------------------
 ex:saVersionOfDomainEntity a gmeow:StructuralAssertion ;
@@ -176,7 +175,7 @@ ex:saVersionOfDomainEntity a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:versionOf rdfs:domain gmeow:Entity . }""" ;
-    gmeow:saRationale "gmeow:versionOf MUST have rdfs:domain gmeow:Entity -- any GMEOW entity may be versioned, not only creative works. Mirrors test_universal_version_and_edition_lineage_terms (versionOf-domain part)." .
+    gmeow:saRationale "gmeow:versionOf MUST have rdfs:domain gmeow:Entity -- any GMEOW entity may be versioned, not only creative works." .
 
 # --- 17. corefDenotation is the lang:Denotation reference-resolution graft (MUST)
 #     Task-5 floor: the reference-resolution seam ("these forms denote the SAME

@@ -26,7 +26,7 @@ gmeow:WebPage	skos:closeMatch	dcmitype:InteractiveResource	semapv:ManualMappingC
 gmeow:abstract	skos:closeMatch	dcterms:abstract	semapv:ManualMappingCuration	0.9	DCTerms abstract — a summary of the content of a creative work
 gmeow:audience	skos:closeMatch	dcterms:audience	semapv:ManualMappingCuration	0.75	DCTerms audience — the intended audience of a creative work
 gmeow:bibliographicCitation	skos:closeMatch	dcterms:bibliographicCitation	semapv:ManualMappingCuration	0.9	DCTerms bibliographicCitation — a bibliographic reference for a creative work
-gmeow:conditionsOfAccess	skos:closeMatch	dcterms:accessRights	semapv:ManualMappingCuration	0.85	DCTerms accessRights — conditions under which the asset may be accessed
+gmeow:conditionsOfAccess	skos:closeMatch	dcterms:accessRights	semapv:ManualMappingCuration	0.85	
 gmeow:conformsTo	skos:closeMatch	dcterms:conformsTo	semapv:ManualMappingCuration	0.85	DCTerms conformsTo — an established standard to which the described resource conforms
 gmeow:dateAccepted	skos:closeMatch	dcterms:dateAccepted	semapv:ManualMappingCuration	0.9	DCTerms dateAccepted — the date a creative work was accepted
 gmeow:dateAvailable	skos:closeMatch	dcterms:available	semapv:ManualMappingCuration	0.9	DCTerms available — the date a creative work became or will become available

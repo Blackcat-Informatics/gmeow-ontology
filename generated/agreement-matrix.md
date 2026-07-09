@@ -23,7 +23,8 @@ re-asserts) is compared to the corpus's published expected verdict.
 | tptp-mini | a | 6 | 6 | 0 | 0 | 100.0% |
 | w3c-mini | a | 2 | 2 | 0 | 0 | 100.0% |
 | w3c-owl2-el | a | 19 | 19 | 0 | 0 | 100.0% |
-| **TOTAL** | — | 38 | 37 | 0 | 1 | **97.4%** |
+| w3c-owl2-full | a | 261 | 261 | 0 | 0 | 100.0% |
+| **TOTAL** | — | 299 | 298 | 0 | 1 | **99.7%** |
 
 ## Documented divergences (native EL intentionally differs — not defects)
 
@@ -34,5 +35,6 @@ both are documented, intended, and excluded from the headline agreement rate abo
 | corpus | cases | agree | corpus-only (documented) | dl-gap |
 |---|---|---|---|---|
 | w3c-owl2-el-divergence | 2 | 0 | 0 | 2 |
+| w3c-owl2-full-divergence | 154 | 0 | 0 | 154 |
 
-5 agreement-expected corpus(es), 1 documented-divergence corpus(es).
+6 agreement-expected corpus(es), 2 documented-divergence corpus(es).

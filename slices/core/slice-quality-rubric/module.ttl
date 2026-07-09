@@ -1,0 +1,767 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+#################################################################
+# Tier ladder — the bounded lattice of slice-quality grades
+#################################################################
+
+gmeow:QualityTier
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Quality Tier"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "An ordinal grade on the slice-quality ladder — the bounded lattice of maturity a slice can reach. An open value vocabulary of individuals (never subclasses): new tiers are minted as individuals with a fresh gmeow:tierRank. It is NOT a physical quality kind, NOT the coarse gmeow:sliceTier (core/grounding/extension placement), and NOT a per-axis dimension — it is the rung a slice occupies after its per-axis grades are combined by the lattice meet."@x-gmeow-english ;
+    skos:example "gmeow:tierGrounded a gmeow:QualityTier ; gmeow:tierRank 1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subclassing to add a tier (mint an individual with a gmeow:tierRank instead), avoid using it for architectural placement (that is gmeow:sliceTier), and avoid treating a roll-up tier as a per-axis score — the roll-up is the meet of the axis grades, not a value in its own right."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference the seeded tier individuals from an axis threshold or a slice's gmeow:sliceQualityTier declaration; extend the ladder by minting a fresh individual with the next gmeow:tierRank."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the slice-quality ladder — the rungs (Registered, Grounded, Linked, Exemplified, Maximal) a slice climbs, ordered by gmeow:tierRank and combined across axes by the lattice meet."@x-gmeow-english .
+
+gmeow:tierRank
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:QualityTier ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "tier rank"@x-gmeow-english ;
+    rdfs:range xsd:integer ;
+    skos:definition "The non-negative integer that totally orders the tier ladder — a lower rank is a weaker tier, and the lattice meet of a set of tiers is the one with the least rank. It is NOT a score (scores are decimals compared against gmeow:thresholdFloor) and NOT stable across ladders — it only orders tiers within this ladder."@x-gmeow-english ;
+    skos:example "gmeow:tierMaximal gmeow:tierRank 4 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reusing a rank across two tiers (the order must be total), and avoid reading it as a measured score — it ranks tiers, it does not grade a slice."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Assert one gmeow:tierRank per tier individual, contiguous from 0; tooling reads it to order the ladder and to compute the meet (minimum rank) of a slice's per-axis grades."@x-gmeow-english ;
+    gmeow:useWhen "Use to give each gmeow:QualityTier its position in the total order that makes the ladder a lattice."@x-gmeow-english .
+
+gmeow:tierRegistered
+    a gmeow:QualityTier ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Registered"@x-gmeow-english ;
+    skos:definition "The floor tier: the slice exists, is registered, and parses — but carries no measured grounding, linkage, or exemplification. The bottom of the lattice."@x-gmeow-english ;
+    gmeow:tierRank 0 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:tierGrounded
+    a gmeow:QualityTier ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Grounded"@x-gmeow-english ;
+    skos:definition "The slice's concepts are grounded on the triad (logic/math/lang) and carry their annotation coat — but are not yet richly linked, projected, or exemplified."@x-gmeow-english ;
+    gmeow:tierRank 1 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:tierLinked
+    a gmeow:QualityTier ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Linked"@x-gmeow-english ;
+    skos:definition "Grounded, and additionally linked and projected: mappings at honest rungs, authority links, and content surviving into the projection surfaces."@x-gmeow-english ;
+    gmeow:tierRank 2 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:tierExemplified
+    a gmeow:QualityTier ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Exemplified"@x-gmeow-english ;
+    skos:definition "Linked, and additionally exemplified and tested: worked examples including the epistemically hard case, counter-examples that clash, and competency cells that need reasoning."@x-gmeow-english ;
+    gmeow:tierRank 3 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:tierMaximal
+    a gmeow:QualityTier ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Maximal"@x-gmeow-english ;
+    skos:definition "The top of the lattice: every axis at its richest configuration — maximal grounding, linkage, projection, testing, documentation, prose quality, and full tri-language translation. The bar the grounding slices and this rubric slice itself must meet."@x-gmeow-english ;
+    gmeow:tierRank 4 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+#################################################################
+# Per-slice tier declaration (the ratchet truth)
+#################################################################
+
+gmeow:sliceQualityTier
+    a owl:AnnotationProperty ;
+    rdfs:domain gmeow:Slice ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "slice quality tier"@x-gmeow-english ;
+    rdfs:range gmeow:QualityTier ;
+    skos:definition "The slice-quality tier a slice has opted in to — the sole, ratcheting declaration of the maturity bar the slice's manifest promises to hold (Principle 16). Declared in the slice's manifest.ttl. It is NOT the measured roll-up (that is computed) and NOT gmeow:sliceTier (architectural placement): it is the floor the gate enforces. Undeclared means purely advisory; declared means enforced, and the declaration may only be raised."@x-gmeow-english ;
+    skos:example "<…/slices/slice-quality-rubric> gmeow:sliceQualityTier gmeow:tierMaximal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it anywhere but a slice manifest (the manifest is the sole tier truth), avoid confusing it with gmeow:sliceTier, and avoid lowering it — the declaration is a ratchet checked against a committed floor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Assert gmeow:sliceQualityTier from the slice IRI to one gmeow:QualityTier individual in the slice's manifest.ttl; the make-check gate then fails if the measured roll-up falls below it, and refuses a value below the committed ratchet floor."@x-gmeow-english ;
+    gmeow:useWhen "Use in a slice manifest to opt the slice in to enforced slice-quality — declaring the tier the slice guarantees to hold from now on."@x-gmeow-english .
+
+#################################################################
+# Quality axes — the open value vocabulary of what is measured
+#################################################################
+
+gmeow:QualityAxis
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Quality Axis"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "A single dimension along which slice quality is measured — grounding, reasoner-derived inference, information, linkage, projection, testing, documentation, prose, translation, and their sub-dimensions. An open value vocabulary of individuals (never subclasses): a new axis is a new individual binding a measurement primitive, not a code fork. It is NOT the Rust primitive itself (that is named by gmeow:axisProducer) and NOT the ISO quality dimension it emits under (that is gmeow:axisDimension)."@x-gmeow-english ;
+    skos:example "gmeow:axisMaximalGrounding a gmeow:QualityAxis ; gmeow:axisProducer \"grounding_axis\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subclassing to add an axis (mint an individual instead), avoid encoding thresholds or advice as new code (they are gmeow:axisThreshold and gmeow:axisAdviceTemplate data), and avoid pointing an axis at a producer that has no closed measurement primitive — an unknown producer is a hard fail, not a silent skip."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint the axis as an individual, bind its measurement primitive with gmeow:axisProducer, name its emitted dimension with gmeow:axisDimension, pin its per-tier floors with gmeow:axisThreshold, write its uplift advice with gmeow:axisAdviceTemplate, set its ranking weight with gmeow:axisWeight, and declare its read scope with gmeow:axisContextScope."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary the rubric Profile ranges over — each individual is one measured axis of slice quality, bound to a Rust primitive and a set of tier thresholds."@x-gmeow-english .
+
+gmeow:axisProducer
+    a owl:AnnotationProperty ;
+    rdfs:domain gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "axis producer"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The identifier of the closed Rust measurement primitive that computes this axis — both the enum key the kernel dispatches on and the symbol the axis-to-producer binding gate checks for existence. It is NOT free advice text and NOT a dimension IRI: it is the one name that binds data to code, so a renamed or removed primitive reds the binding gate rather than silently orphaning the axis (the constitution-gate integrity pattern)."@x-gmeow-english ;
+    skos:example "gmeow:axisProseQuality gmeow:axisProducer \"prose_axis\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming a primitive that does not exist in the kernel's closed set (an unknown producer is a hard fail), and avoid changing the string without updating the Rust symbol — the two are bound and drift is a gate failure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:axisProducer per axis holding the primitive's identifier; the kernel resolves it to a measurement primitive and the AST-binding gate proves the corresponding Rust symbol is defined and reached."@x-gmeow-english ;
+    gmeow:useWhen "Use on an axis to bind it to the Rust measurement primitive that scores it."@x-gmeow-english .
+
+gmeow:axisDimension
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "axis dimension"@x-gmeow-english ;
+    rdfs:range gmeow:QualityDimension ;
+    skos:definition "The ISO 19157 / DQV quality dimension under which this axis's score is emitted as a gmeow:QualityAssessment observation. It is NOT the axis itself and NOT the Rust primitive: it is the RDF vocabulary the report dogfoods so the assessment graph reuses the shared quality layer rather than a bespoke report schema."@x-gmeow-english ;
+    skos:example "gmeow:axisMaximalInformation gmeow:axisDimension gmeow:qualityDimensionCompleteness ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a per-axis dimension where an existing ISO 19157 dimension genuinely fits (reuse gmeow:qualityDimensionCompleteness and its siblings), and avoid pointing several unrelated axes at one dimension so the report loses resolution."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:axisDimension from the axis to the gmeow:QualityDimension individual its assessments carry; the RDF renderer emits each score as a QualityAssessment under that dimension with the slice IRI as assessedEntity."@x-gmeow-english ;
+    gmeow:useWhen "Use on an axis to name the quality dimension its score is published under in the assessment graph."@x-gmeow-english .
+
+gmeow:axisThreshold
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "axis threshold"@x-gmeow-english ;
+    rdfs:range gmeow:AxisThreshold ;
+    skos:definition "A per-tier score floor for this axis — the decimal grade the axis must reach to earn a given tier. Thresholds are DATA, not code: tuning a floor or adding a tier's floor is a slice edit and regenerate, never a Rust change. It is NOT the measured score (that is computed by the primitive) and NOT the tier ladder (that is gmeow:QualityTier)."@x-gmeow-english ;
+    skos:example "gmeow:axisProseQuality gmeow:axisThreshold gmeow:thrProseGrounded ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding a floor in Rust (it must stay data so a threshold change requires zero code edits) and avoid a non-monotonic set (a higher tier must demand at least as high a floor)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:axisThreshold per tier the axis gates, each pointing at a gmeow:AxisThreshold pairing a gmeow:thresholdTier with a gmeow:thresholdFloor; the scorer earns the highest tier whose floor the measured score meets."@x-gmeow-english ;
+    gmeow:useWhen "Use on an axis to pin, as data, the per-tier score floors that turn a measured decimal into a tier grade."@x-gmeow-english .
+
+gmeow:axisAdviceTemplate
+    a owl:AnnotationProperty ;
+    rdfs:domain gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "axis advice template"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The opinionated uplift advice the axis emits when a slice falls short — the next-best-action text, which MUST cite the SLICE_GUIDE section or Constitution principle it discharges and MUST NOT reference a development ticket or issue number (process linkage lives outside the repo). It is NOT the finding message alone: it is the doctrine-anchored remediation the advisor ranks and offers."@x-gmeow-english ;
+    skos:example "gmeow:axisMaximalGrounding gmeow:axisAdviceTemplate \"Ground each bare class on the triad — assign a foundation stereotype and a mediates relation (SLICE_GUIDE §4; Principle 19).\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid citing an issue or PR number (cite SLICE_GUIDE §/Principle instead), avoid duplicating doctrine prose verbatim (reference it), and avoid template text so generic it names no concrete action."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:axisAdviceTemplate on the axis with the remediation text and its SLICE_GUIDE §/Principle citation; the advisor instantiates it into a ranked, doctrine-anchored advice item when the axis grades below its target."@x-gmeow-english ;
+    gmeow:useWhen "Use on an axis to author the opinionated, doctrine-cited uplift advice the advisor offers when the axis is weak."@x-gmeow-english .
+
+gmeow:axisWeight
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "axis weight"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "The ranking weight of this axis — used ONLY to order advice (which weakest axis to fix first), NEVER to compute the roll-up tier. The roll-up is the UNWEIGHTED lattice meet of the axis grades (the weakest axis caps the slice); a weighted meet would be an ad-hoc average and would break the ratchet-is-lattice-order law. It is therefore not a score coefficient — it is an advice priority."@x-gmeow-english ;
+    skos:example "gmeow:axisMaximalGrounding gmeow:axisWeight 1.0 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid letting the weight enter the roll-up score (the meet is unweighted and honest), and avoid using it to hide a weak axis behind strong ones — the meet still caps the slice at its weakest axis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:axisWeight per axis; the advisor sorts remediation by weight (and a stable tie-break) so the highest-leverage weak axis is advised first, while the tier roll-up ignores the weight entirely."@x-gmeow-english ;
+    gmeow:useWhen "Use on an axis to set its priority in the ranked advice list — the headline maximums (grounding, reasoner, information) weigh highest."@x-gmeow-english .
+
+gmeow:axisContextScope
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "axis context scope"@x-gmeow-english ;
+    rdfs:range gmeow:AxisContextScope ;
+    skos:definition "The coeffect grade of the axis: how much graph the measurement primitive may READ — slice-local, the slice plus its dependency closure, or the whole merged closure. Advice output is ALWAYS constrained to the single target slice regardless of scope; the scope governs reads only, and a slice-local axis that touches the merged graph is a gated invariant violation. It is NOT a permission to advise cross-slice."@x-gmeow-english ;
+    skos:example "gmeow:axisReasonerDerived gmeow:axisContextScope gmeow:scopeMergedClosure ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid granting a broader scope than the primitive needs (the scope gate red-flags an over-broad read), and avoid confusing read scope with advice scope — advice is single-slice at every scope."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:axisContextScope per axis; the registry groups axes by scope for transform-once batching and gates that a slice-local axis reads no more than the slice."@x-gmeow-english ;
+    gmeow:useWhen "Use on an axis to declare, as data, the read breadth its primitive is allowed — making the read-cross-slice-advise-single-slice rule checkable."@x-gmeow-english .
+
+#################################################################
+# Threshold pairs
+#################################################################
+
+gmeow:AxisThreshold
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Axis Threshold"@x-gmeow-english ;
+    skos:definition "A reified pairing of a tier with the score floor an axis must reach to earn it — the data that turns a measured decimal into a tier grade. It is NOT the axis and NOT the tier: it is the (tier, floor) cell of the rubric's threshold table."@x-gmeow-english ;
+    skos:example "gmeow:thrProseGrounded a gmeow:AxisThreshold ; gmeow:thresholdTier gmeow:tierGrounded ; gmeow:thresholdFloor 0.6 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pairing one threshold individual with several tiers (each names exactly one tier and one floor) and avoid floors outside the 0.0–1.0 range."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one gmeow:AxisThreshold per (axis, tier) the rubric gates, giving it a gmeow:thresholdTier and a gmeow:thresholdFloor, and reference it from the axis with gmeow:axisThreshold."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare, as data, the score floor an axis needs for a particular tier."@x-gmeow-english .
+
+gmeow:thresholdTier
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AxisThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "threshold tier"@x-gmeow-english ;
+    rdfs:range gmeow:QualityTier ;
+    skos:definition "The tier a threshold pairing gates — the rung the axis earns when its measured score meets the paired floor. It is NOT the floor (that is gmeow:thresholdFloor)."@x-gmeow-english ;
+    skos:example "gmeow:thrProseGrounded gmeow:thresholdTier gmeow:tierGrounded ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid more than one tier per threshold individual (it is functional) and avoid a tier with no corresponding floor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:thresholdTier from the gmeow:AxisThreshold to the gmeow:QualityTier it gates."@x-gmeow-english ;
+    gmeow:useWhen "Use on a threshold pairing to name the tier its floor unlocks."@x-gmeow-english .
+
+gmeow:thresholdFloor
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AxisThreshold ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "threshold floor"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "The minimum measured score (a decimal in 0.0–1.0) the axis must reach to earn the paired tier. It is NOT a percentage-with-units and NOT the tier rank: it is the normalized floor the primitive's score is compared against."@x-gmeow-english ;
+    skos:example "gmeow:thrProseGrounded gmeow:thresholdFloor 0.6 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid values outside 0.0–1.0 and avoid a non-monotonic table where a higher tier's floor is below a lower tier's."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:thresholdFloor per gmeow:AxisThreshold; the scorer awards the highest tier whose floor the measured axis score meets."@x-gmeow-english ;
+    gmeow:useWhen "Use on a threshold pairing to set the normalized score floor its tier requires."@x-gmeow-english .
+
+#################################################################
+# Context-scope value vocabulary
+#################################################################
+
+gmeow:AxisContextScope
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Axis Context Scope"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The read-breadth coeffect an axis is granted — an open value vocabulary of individuals from slice-local through the whole merged closure. It bounds what the primitive may READ, never what it may advise (advice is single-slice at every scope). It is NOT a projection target and NOT an advice scope."@x-gmeow-english ;
+    skos:example "gmeow:scopeSliceLocal a gmeow:AxisContextScope ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subclassing to add a scope (mint an individual) and avoid reading it as an advice permission — every axis advises only on the target slice."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference one of the seeded scope individuals from an axis's gmeow:axisContextScope; the registry enforces that a narrower-scope axis reads no more graph than declared."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for an axis's read-breadth coeffect — the graph an axis may consult while still advising single-slice."@x-gmeow-english .
+
+gmeow:scopeSliceLocal
+    a gmeow:AxisContextScope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "slice-local scope"@x-gmeow-english ;
+    skos:definition "The axis reads only the target slice's own module, examples, and tests — no dependency or merged graph. The tightest coeffect."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scopeDepsClosure
+    a gmeow:AxisContextScope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "dependency-closure scope"@x-gmeow-english ;
+    skos:definition "The axis reads the target slice together with its declared dependency closure — enough to resolve inherited terms and cross-slice test placement, but not the whole ontology."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scopeMergedClosure
+    a gmeow:AxisContextScope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "merged-closure scope"@x-gmeow-english ;
+    skos:definition "The axis reads the whole merged, reasoned closure — required for inferential centrality and domain-twin detection — while still emitting advice about the target slice alone."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+#################################################################
+# Axis exemptions — dated, self-cleaning, gate-checked
+#################################################################
+
+gmeow:AxisExemption
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Axis Exemption"@x-gmeow-english ;
+    skos:definition "A dated record that an axis or sub-metric is not yet measurable because its owning producer is genuinely unlanded — a first-class, gate-checked, self-cleaning artifact, NOT a silent descope. Every exemption carries the reason, the date it was minted, and the Rust symbol whose appearance in the repo makes it STALE; the completeness gate requires an axis or an exemption for every projection target, and the staleness gate reds the moment the exempted producer resolves."@x-gmeow-english ;
+    skos:example "gmeow:exemptionDocMaturity a gmeow:AxisExemption ; gmeow:exemptsAxis gmeow:axisDocumentation ; gmeow:exemptionDate \"2026-07-07\"^^xsd:date ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an undated exemption (permanent optionality is forbidden), avoid one whose producer already resolves in-repo (that is stale — remove it and build the axis), and avoid using an exemption to escape a landed producer."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint a gmeow:AxisExemption naming the exempted axis, a reason, a gmeow:exemptionDate, and the gmeow:exemptionProducer symbol; the completeness gate accepts it in lieu of a measured axis and the staleness gate removes the escape once the symbol lands."@x-gmeow-english ;
+    gmeow:useWhen "Use to record, transparently and datedly, that a specific axis or sub-metric awaits an unlanded producer — so the gap is checked, not hidden."@x-gmeow-english .
+
+gmeow:exemptsAxis
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AxisExemption ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "exempts axis"@x-gmeow-english ;
+    rdfs:range gmeow:QualityAxis ;
+    skos:definition "The axis (or the axis a sub-metric belongs to) this exemption covers. It is NOT the producer symbol (that is gmeow:exemptionProducer)."@x-gmeow-english ;
+    skos:example "gmeow:exemptionGmnProjection gmeow:exemptsAxis gmeow:axisMaximalProjection ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid exempting an axis whose producer is already landed and avoid naming several unrelated axes on one exemption."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:exemptsAxis from the exemption to the axis it stands in for until the producer lands."@x-gmeow-english ;
+    gmeow:useWhen "Use on an exemption to name the axis it covers."@x-gmeow-english .
+
+gmeow:exemptionReason
+    a owl:AnnotationProperty ;
+    rdfs:domain gmeow:AxisExemption ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "exemption reason"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The prose justification for the exemption — why the producer is genuinely unlanded and why the axis's headline still functions without it. It must cite doctrine, never a ticket number."@x-gmeow-english ;
+    skos:example "gmeow:exemptionDocsPanels gmeow:exemptionReason \"Multi-format docs panels are measured for adoption as they land; their producer is not yet in-repo.\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an issue/PR number in the reason and avoid a reason that would equally justify skipping a landed producer."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:exemptionReason with the doctrine-anchored justification the completeness gate surfaces alongside the exemption."@x-gmeow-english ;
+    gmeow:useWhen "Use on an exemption to record why the axis is not yet measurable."@x-gmeow-english .
+
+gmeow:exemptionDate
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AxisExemption ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "exemption date"@x-gmeow-english ;
+    rdfs:range xsd:date ;
+    skos:definition "The date the exemption was minted — making every exemption dated so a stale escape is visible and auditable. It is NOT an expiry (the staleness gate, not a calendar, retires the exemption when the producer lands)."@x-gmeow-english ;
+    skos:example "gmeow:exemptionDocMaturity gmeow:exemptionDate \"2026-07-07\"^^xsd:date ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an undated exemption and avoid treating the date as an automatic expiry — resolution of the producer is what retires it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:exemptionDate per exemption; audits list exemptions by age so long-standing gaps are visible."@x-gmeow-english ;
+    gmeow:useWhen "Use on an exemption to stamp when the gap was declared."@x-gmeow-english .
+
+gmeow:exemptionProducer
+    a owl:AnnotationProperty ;
+    rdfs:domain gmeow:AxisExemption ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "exemption producer"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The Rust symbol whose appearance in the repo makes this exemption STALE — the trigger the staleness gate watches. Once the symbol resolves, the exemption must be removed and the axis built, so an exemption can never become permanent optionality."@x-gmeow-english ;
+    skos:example "gmeow:exemptionDocMaturity gmeow:exemptionProducer \"DocMaturity\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming a symbol that already resolves (the exemption would be born stale) and avoid a vague name the staleness gate cannot check."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:exemptionProducer with the symbol the staleness gate resolves against; when it is defined in-repo the gate reds until the exemption is retired."@x-gmeow-english ;
+    gmeow:useWhen "Use on an exemption to name the producer whose landing must retire it."@x-gmeow-english .
+
+#################################################################
+# Minted quality dimensions (extend the ISO 19157 open vocab)
+#################################################################
+
+gmeow:qualityDimensionGrounding
+    a gmeow:QualityDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "grounding"@x-gmeow-english ;
+    skos:definition "The data-quality dimension for maximal grounding on the triad — how thoroughly a slice's concepts are grounded in logic/math/lang rather than left as bare domain terms (Principle 19)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:qualityDimensionInferentialDensity
+    a gmeow:QualityDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "inferential density"@x-gmeow-english ;
+    skos:definition "The data-quality dimension for reasoner-derived inference — whether a slice's authored axioms are load-bearing under the reasoner (not re-derivable once left out) and its declared class-disjointness counter-examples actually clash, measured by the native reasoner rather than by text heuristics."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:qualityDimensionLinkage
+    a gmeow:QualityDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "linkage"@x-gmeow-english ;
+    skos:definition "The data-quality dimension for maximal linkage — mapping presence at honest rungs, authority links, and correspondence-calculus adoption over a slice's alignment surface."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:qualityDimensionProjection
+    a gmeow:QualityDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "projection"@x-gmeow-english ;
+    skos:definition "The data-quality dimension for maximal projection — whether a slice ships the projection-source surfaces its content requires (SHACL shapes for its structural constraints, a mappings file for its external links), the sources from which lossy projections and their loss-ledger entries derive (Principles 4/7/17)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:qualityDimensionTesting
+    a gmeow:QualityDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "testing"@x-gmeow-english ;
+    skos:definition "The data-quality dimension for optimal testing — per-term test reach: whether each of a slice's terms is exercised by at least one test cell or competency query (SLICE_GUIDE §9; SLICE_QA)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:qualityDimensionDocumentation
+    a gmeow:QualityDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "documentation"@x-gmeow-english ;
+    skos:definition "The data-quality dimension for documentation completeness — whether a slice carries a narrative docs.md thesis; the docs-pipeline coverage dimensions and the per-slice documentation-maturity standard remain exempt until their producers land."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:qualityDimensionProseQuality
+    a gmeow:QualityDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "prose quality"@x-gmeow-english ;
+    skos:definition "The data-quality dimension for the quality of human-facing prose — boundary-stating definitions and worked-triple examples on a slice's TBox terms (SLICE_GUIDE §6.2/§6.6)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:qualityDimensionProvenanceHonesty
+    a gmeow:QualityDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "provenance honesty"@x-gmeow-english ;
+    skos:definition "The data-quality dimension for rationale provenance honesty — whether a rationale states the ontological reason an axiom holds rather than naming a test artifact as its justification. A test is evidence that an axiom holds, never the reason why, so a test-naming rationale is a category error the advisor flags (SLICE_GUIDE §6.6)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:qualityDimensionTranslationCoverage
+    a gmeow:QualityDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "translation coverage"@x-gmeow-english ;
+    skos:definition "The data-quality dimension for translation coverage — the fraction of a slice's label and definition literals carrying audited translations, measured per language, with full coverage requiring English, French, and Mandarin."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+#################################################################
+# The nine quality axes (+ the provenance-honesty sub-dimension)
+#################################################################
+
+gmeow:axisMaximalGrounding
+    a gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Maximal Grounding"@x-gmeow-english ;
+    skos:definition "The headline axis: the fraction of a slice's owl:Class terms carrying a logic: foundation stereotype rather than standing as a bare domain term. It is NOT mere annotation presence (that is the information axis), and it does NOT yet score mediates relations, framed math quantities, lang forms, or domain-twin detection — it measures foundation-stereotype grounding of classes (Principle 19; SLICE_GUIDE §4)."@x-gmeow-english ;
+    skos:example "gmeow:axisMaximalGrounding gmeow:axisProducer \"grounding_axis\" ; gmeow:axisContextScope gmeow:scopeMergedClosure ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with the annotation-coat information axis or the reasoner-derived axis — this axis measures foundation-stereotype grounding of classes, not annotation presence, entailment output, or prose completeness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox ;
+    gmeow:howToUse "The advisor scores each owl:Class for a logic: foundation stereotype and ranks each bare class missing one as uplift advice."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure what fraction of a slice's classes carry a logic: foundation stereotype rather than standing as bare domain terms."@x-gmeow-english ;
+    gmeow:axisProducer "grounding_axis" ;
+    gmeow:axisDimension gmeow:qualityDimensionGrounding ;
+    gmeow:axisContextScope gmeow:scopeMergedClosure ;
+    gmeow:axisWeight 1.0 ;
+    gmeow:axisThreshold gmeow:thrGroundingGrounded ,
+        gmeow:thrGroundingLinked ,
+        gmeow:thrGroundingExemplified ,
+        gmeow:thrGroundingMaximal ;
+    gmeow:axisAdviceTemplate "Assign a logic: foundation stereotype (logic:Kind/Role/Relator/…) to each bare class so it grounds on the triad rather than standing as a bare domain term (SLICE_GUIDE §4; Principle 19)."@x-gmeow-english .
+
+gmeow:axisReasonerDerived
+    a gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Reasoner-Derived"@x-gmeow-english ;
+    skos:definition "The axis that dogfoods the native reasoner as the instrument: the fraction of met reasoner obligations over two directions — positive-space leave-one-out closure-redundancy (an authored TBox axiom the reasoner re-derives once it is left out is dead weight or an asserted derived fact) and negative-space counter-example clash verification (a fixture co-typing a SHACL-declared-disjoint class pair must force a DL clash). It is NOT a text heuristic, and it does NOT compute inferential centrality, competency-lane analysis, or conjecture-backed advice — every metric reads the reasoned closure (Principles 8/17/18)."@x-gmeow-english ;
+    skos:example "gmeow:axisReasonerDerived gmeow:axisProducer \"reasoner_axis\" ; gmeow:axisContextScope gmeow:scopeMergedClosure ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid approximating any of its metrics with string matching — the axis is defined by what the reasoner proves, and a text proxy would silently diverge."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox ;
+    gmeow:howToUse "The advisor runs the native chase over the slice's module, reports each closure-redundant authored triple found by leave-one-out proof, and reports each SHACL-declared-disjoint counter-example the reasoner fails to clash on as advice."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure whether a slice's authored axioms are load-bearing under the reasoner and its declared class-disjointness counter-examples actually clash, proven by the reasoner rather than asserted."@x-gmeow-english ;
+    gmeow:axisProducer "reasoner_axis" ;
+    gmeow:axisDimension gmeow:qualityDimensionInferentialDensity ;
+    gmeow:axisContextScope gmeow:scopeMergedClosure ;
+    gmeow:axisWeight 0.95 ;
+    gmeow:axisThreshold gmeow:thrReasonerGrounded ,
+        gmeow:thrReasonerLinked ,
+        gmeow:thrReasonerExemplified ,
+        gmeow:thrReasonerMaximal ;
+    gmeow:axisAdviceTemplate "Remove each closure-redundant authored triple (dead weight or an asserted derived fact), and back every SHACL-declared class-disjointness with the canonical owl:disjointWith so its counter-examples clash under the reasoner (Principle 12; Principles 8/17/18)."@x-gmeow-english .
+
+gmeow:axisMaximalInformation
+    a gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Maximal Information"@x-gmeow-english ;
+    skos:definition "The axis for information moved into the ontology: annotation-coat completeness on every term including A-Box individuals — the average fraction of each term's required coat predicates (label, definition, isDefinedBy, example, and on a TBox term the useWhen/avoidWhen/howToUse/graphBoxRole usage coat) that are present. It is NOT prose quality (that judges how well the strings read) — this axis measures whether the required annotation is present at all (SLICE_GUIDE §6)."@x-gmeow-english ;
+    skos:example "gmeow:axisMaximalInformation gmeow:axisProducer \"information_axis\" ; gmeow:axisContextScope gmeow:scopeSliceLocal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating presence with quality — a term can carry a definition (counted here) that restates its label (penalized by the prose axis)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox ;
+    gmeow:howToUse "The advisor checks each term for its full annotation coat and names the missing coat predicates as advice."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure how much of the required per-term information a slice actually carries."@x-gmeow-english ;
+    gmeow:axisProducer "information_axis" ;
+    gmeow:axisDimension gmeow:qualityDimensionCompleteness ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisWeight 0.9 ;
+    gmeow:axisThreshold gmeow:thrInformationGrounded ,
+        gmeow:thrInformationLinked ,
+        gmeow:thrInformationExemplified ,
+        gmeow:thrInformationMaximal ;
+    gmeow:axisAdviceTemplate "Complete the annotation coat on every term (label, definition, isDefinedBy, example, and useWhen/avoidWhen/howToUse/graphBoxRole on TBox terms) including A-Box individuals (SLICE_GUIDE §6)."@x-gmeow-english .
+
+gmeow:axisMaximalLinkage
+    a gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Maximal Linkage"@x-gmeow-english ;
+    skos:definition "The axis for correspondence-calculus adoption: of the identity-strength correspondences a slice authors (the only alignments a lens can carry lawfully — exactMatch / equivalentClass / equivalentProperty), the fraction routed through the correspondence calculus (logic:Correspondence lenses and mnemomorphic gmeow:ProjectionMapping cells) rather than hand-authored (identity-strength gmeow:TermEquivalence rows and dc: alignments the dcterms:→dc: dumb-down should derive). It is NOT projection (that measures output surfaces), and it does NOT check live authority links, SKOS lift, or an executed law discharge — it measures calculus adoption over the identity-strength alignment surface (Principle 17)."@x-gmeow-english ;
+    skos:example "gmeow:axisMaximalLinkage gmeow:axisProducer \"linkage_axis\" ; gmeow:axisContextScope gmeow:scopeMergedClosure ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating a mapping's mere existence with its calculus adoption, and avoid counting a lossy closeMatch-class alignment in the population — only identity-strength correspondences the lens can carry are in scope."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox ;
+    gmeow:howToUse "The advisor names each hand-authored identity-strength alignment record (a gmeow:TermEquivalence row or a hand-authored dc: alignment) as a migration target — lift it to a mnemomorphic gmeow:ProjectionMapping cell so the section-law discharge proves the rename lawful."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure how far a slice's identity-strength alignment surface has adopted the correspondence calculus."@x-gmeow-english ;
+    gmeow:axisProducer "linkage_axis" ;
+    gmeow:axisDimension gmeow:qualityDimensionLinkage ;
+    gmeow:axisContextScope gmeow:scopeMergedClosure ;
+    gmeow:axisWeight 0.85 ;
+    gmeow:axisThreshold gmeow:thrLinkageGrounded ,
+        gmeow:thrLinkageLinked ,
+        gmeow:thrLinkageExemplified ,
+        gmeow:thrLinkageMaximal ;
+    gmeow:axisAdviceTemplate "Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a gmeow:TermEquivalence to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17)."@x-gmeow-english .
+
+gmeow:axisMaximalProjection
+    a gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Maximal Projection"@x-gmeow-english ;
+    skos:definition "The axis for whether a slice ships the projection SOURCE surfaces its content requires: a shapes.ttl when it declares structural constraints (owl:Restriction / owl:disjointWith), and a mappings/equivalences.ttl when its own terms link to external vocabularies. It is NOT linkage (the source alignments), and it does NOT yet verify content survival across SSSOM/EDOAL/FnO or loss-ledger entries — it checks the presence of the required projection-source files (Principles 4/7/17)."@x-gmeow-english ;
+    skos:example "gmeow:axisMaximalProjection gmeow:axisProducer \"projection_axis\" ; gmeow:axisContextScope gmeow:scopeDepsClosure ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as content-survival verification (it checks source-file presence, not that every triple survives a projection) and avoid conflating a projection source with its source mappings."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox ;
+    gmeow:howToUse "The advisor checks that a slice declaring structural constraints ships shapes.ttl and a slice linking out ships mappings/equivalences.ttl, naming each missing projection-source file as advice."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure whether a slice ships the SHACL-shape and mapping projection sources its content requires."@x-gmeow-english ;
+    gmeow:axisProducer "projection_axis" ;
+    gmeow:axisDimension gmeow:qualityDimensionProjection ;
+    gmeow:axisContextScope gmeow:scopeDepsClosure ;
+    gmeow:axisWeight 0.75 ;
+    gmeow:axisThreshold gmeow:thrProjectionGrounded ,
+        gmeow:thrProjectionLinked ,
+        gmeow:thrProjectionExemplified ,
+        gmeow:thrProjectionMaximal ;
+    gmeow:axisAdviceTemplate "Ship a shapes.ttl when the slice declares structural constraints (owl:Restriction / owl:disjointWith) and a mappings/equivalences.ttl when its terms link to external vocabularies, so its content has a projection source (Principles 4/7/17)."@x-gmeow-english .
+
+gmeow:axisOptimalTesting
+    a gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Optimal Testing"@x-gmeow-english ;
+    skos:definition "The axis for test reach: the fraction of a slice's terms named (at a word boundary) by at least one test cell or competency query under tests/ or queries/. It is NOT the reasoner axis (which runs the cells), and it does NOT yet check competency-cell cardinality modes, counter-example pins, gate ownership, or sliceDependsOn — it measures whether each term is exercised by some cell (SLICE_GUIDE §9; SLICE_QA)."@x-gmeow-english ;
+    skos:example "gmeow:axisOptimalTesting gmeow:axisProducer \"testing_axis\" ; gmeow:axisContextScope gmeow:scopeDepsClosure ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as QA-mode or placement checking (it measures per-term reach only) and avoid crediting an incidental substring hit as reach — the match is word-boundary anchored."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox ;
+    gmeow:howToUse "The advisor computes per-term reach over the tests/ and queries/ corpus and names each term exercised by no test cell or competency query as advice (SLICE_QA)."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure whether every term in a slice is reached by at least one test cell or competency query."@x-gmeow-english ;
+    gmeow:axisProducer "testing_axis" ;
+    gmeow:axisDimension gmeow:qualityDimensionTesting ;
+    gmeow:axisContextScope gmeow:scopeDepsClosure ;
+    gmeow:axisWeight 0.8 ;
+    gmeow:axisThreshold gmeow:thrTestingGrounded ,
+        gmeow:thrTestingLinked ,
+        gmeow:thrTestingExemplified ,
+        gmeow:thrTestingMaximal ;
+    gmeow:axisAdviceTemplate "Add at least one test cell or competency query naming each currently-unreached term so every term in the slice is exercised (SLICE_GUIDE §9; SLICE_QA)."@x-gmeow-english .
+
+gmeow:axisDocumentation
+    a gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Documentation"@x-gmeow-english ;
+    skos:definition "The axis for documentation completeness: whether the slice ships a docs.md carrying a narrative thesis — substantive prose beyond its headings, not just a term listing. It is NOT prose quality (how well strings read) — this measures whether the documentation thesis exists. The docs-pipeline coverage dimensions, the documentation-maturity tier, and multi-format panels remain exempt until their producers land."@x-gmeow-english ;
+    skos:example "gmeow:axisDocumentation gmeow:axisProducer \"documentation_axis\" ; gmeow:axisContextScope gmeow:scopeSliceLocal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid redefining the documentation-maturity standard here (it is consumed as-is) and avoid conflating a present docs thesis with a well-written one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox ;
+    gmeow:howToUse "The advisor checks for a docs.md narrative thesis and names a missing or thin docs.md as advice."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure whether a slice carries a narrative documentation thesis in docs.md."@x-gmeow-english ;
+    gmeow:axisProducer "documentation_axis" ;
+    gmeow:axisDimension gmeow:qualityDimensionDocumentation ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisWeight 0.6 ;
+    gmeow:axisThreshold gmeow:thrDocumentationGrounded ,
+        gmeow:thrDocumentationLinked ,
+        gmeow:thrDocumentationExemplified ,
+        gmeow:thrDocumentationMaximal ;
+    gmeow:axisAdviceTemplate "Write a narrative docs.md thesis — substantive prose beyond the headings, not a term listing — for the slice (SLICE_GUIDE documentation doctrine)."@x-gmeow-english .
+
+gmeow:axisProseQuality
+    a gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Prose Quality"@x-gmeow-english ;
+    skos:definition "The axis for the quality of human-facing prose on a slice's TBox terms: the fraction of definitions that state a boundary (what the term is NOT) and skos:example literals that are worked triples (a CURIE plus turtle statement structure). It does NOT score usage-coat substance or rationale honesty (that is the separate provenance-honesty axis). It is NOT information presence (the information axis) — this judges how well the present strings read (SLICE_GUIDE §6.2/§6.6)."@x-gmeow-english ;
+    skos:example "gmeow:axisProseQuality gmeow:axisProducer \"prose_axis\" ; gmeow:axisContextScope gmeow:scopeSliceLocal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid rewarding a definition that restates the label or a boilerplate usage coat duplicated across terms — presence is the information axis; this axis judges substance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox ;
+    gmeow:howToUse "The advisor lints each TBox term's definition for a boundary statement and each skos:example for a worked triple, naming those that fall short as advice."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure how well a slice's TBox definitions and examples read — boundary-stating definitions and worked-triple examples."@x-gmeow-english ;
+    gmeow:axisProducer "prose_axis" ;
+    gmeow:axisDimension gmeow:qualityDimensionProseQuality ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisWeight 0.7 ;
+    gmeow:axisThreshold gmeow:thrProseGrounded ,
+        gmeow:thrProseLinked ,
+        gmeow:thrProseExemplified ,
+        gmeow:thrProseMaximal ;
+    gmeow:axisAdviceTemplate "Make each TBox definition state what the term is NOT and each skos:example a worked triple — a CURIE with turtle statement structure (SLICE_GUIDE §6.2/§6.6)."@x-gmeow-english .
+
+gmeow:axisProvenanceHonesty
+    a gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Provenance Honesty"@x-gmeow-english ;
+    skos:definition "The prose-quality sub-axis scoring the fraction of a slice's rationale literals (gmeow:saRationale, gmeow:cqRationale, and rdfs:comment) that name no test artifact; it flags any that names one (a test function, a .rs or .py path, or a 'Mirrors …' framing) as a category error — a test is evidence that an axiom holds, never the reason why. Advisory only. It is NOT a hard gate and NOT the general prose axis: it targets exactly the test-is-not-a-rationale anti-pattern and offers a strip-clause uplift (SLICE_GUIDE §6.6)."@x-gmeow-english ;
+    skos:example "gmeow:axisProvenanceHonesty gmeow:axisProducer \"provenance_honesty\" ; gmeow:axisDimension gmeow:qualityDimensionProvenanceHonesty ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid promoting it to a hard gate (it is opinionated advice) and avoid flagging a rationale that merely mentions testing in prose without naming a concrete test artifact."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox ;
+    gmeow:howToUse "The advisor matches each rationale against the test-artifact patterns and, on a hit, offers to strip the test-naming clause while keeping the substantive ontological reason."@x-gmeow-english ;
+    gmeow:useWhen "Use to detect and offer to uplift rationales that justify an axiom by naming a test instead of stating its ontological reason."@x-gmeow-english ;
+    gmeow:axisProducer "provenance_honesty" ;
+    gmeow:axisDimension gmeow:qualityDimensionProvenanceHonesty ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisWeight 0.65 ;
+    gmeow:axisThreshold gmeow:thrProvenanceGrounded ,
+        gmeow:thrProvenanceLinked ,
+        gmeow:thrProvenanceExemplified ,
+        gmeow:thrProvenanceMaximal ;
+    gmeow:axisAdviceTemplate "Rewrite each rationale to state why the axiom holds and strip any clause naming a test artifact ('Mirrors test_…', a .rs or .py reference) — a test is evidence, not a reason (SLICE_GUIDE §6.6)."@x-gmeow-english .
+
+gmeow:axisTranslationCoverage
+    a gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Translation Coverage"@x-gmeow-english ;
+    skos:definition "The axis for translation coverage: per-language coverage of the slice's rdfs:label and skos:definition literals, audited via the i18n/<lang>.po catalogs, averaged across English (authored, always full), French, and Mandarin. It does NOT yet cover examples, usage coats, rationales, or docs prose — only labels and definitions. It is NOT a single ratio: coverage is computed per language and then averaged."@x-gmeow-english ;
+    skos:example "gmeow:axisTranslationCoverage gmeow:axisProducer \"translation_axis\" ; gmeow:axisContextScope gmeow:scopeSliceLocal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading the averaged score as any single language's coverage (it averages English, French, and Mandarin) and avoid treating a label or definition with no .po catalog entry as covered."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox ;
+    gmeow:howToUse "The advisor reports per-language coverage of the slice's label and definition literals against the i18n/fr.po and i18n/zh.po catalogs and names each language short of full coverage; the top tier requires 100% English, French, and Mandarin."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure how completely a slice's label and definition literals are translated into French and Mandarin, audited via .po catalogs."@x-gmeow-english ;
+    gmeow:axisProducer "translation_axis" ;
+    gmeow:axisDimension gmeow:qualityDimensionTranslationCoverage ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisWeight 0.7 ;
+    gmeow:axisThreshold gmeow:thrTranslationGrounded ,
+        gmeow:thrTranslationLinked ,
+        gmeow:thrTranslationExemplified ,
+        gmeow:thrTranslationMaximal ;
+    gmeow:axisAdviceTemplate "Add audited French and Mandarin translations for every label and definition literal, recorded in the slice's i18n/fr.po and i18n/zh.po catalogs."@x-gmeow-english .
+
+#################################################################
+# The rubric Profile — one closed descriptor schema over Slice
+#################################################################
+
+gmeow:sliceQualityRubric
+    a gmeow:Profile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Slice-Quality Rubric"@x-gmeow-english ;
+    skos:definition "The single, ontology-resident rubric the slice-quality advisor binds to: a Profile over gmeow:Slice whose descriptor properties are the axis bindings and whose open value vocabularies are the axes, tiers, and context scopes. Tuning a threshold, minting a tier, or adding an axis is a slice edit and regenerate — never a code fork; Rust supplies only the closed measurement primitives the descriptors name. It is NOT the assessment output (that is gmeow:QualityAssessment) — it is the schema the scorer reads."@x-gmeow-english ;
+    skos:example "gmeow:sliceQualityRubric a gmeow:Profile ; gmeow:profileDescriptor gmeow:axisProducer ; gmeow:profileOpenValue gmeow:AxisContextScope ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding an axis, threshold, tier, or advice string in Rust (they are all descriptor data here) and avoid a second rubric Profile — there is one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox ;
+    gmeow:howToUse "The kernel loads gmeow:sliceQualityRubric, enumerates the gmeow:QualityAxis individuals it ranges over, and for each binds gmeow:axisProducer to a measurement primitive and scores the target slice against its thresholds."@x-gmeow-english ;
+    gmeow:useWhen "Use as the one rubric the advisor reads — the closed descriptor schema plus open axis/tier/scope vocabularies that make slice quality data-driven."@x-gmeow-english ;
+    gmeow:profileDescriptor gmeow:axisProducer ,
+        gmeow:axisDimension ,
+        gmeow:axisThreshold ,
+        gmeow:axisAdviceTemplate ,
+        gmeow:axisWeight ,
+        gmeow:axisContextScope ;
+    gmeow:profileOpenValue gmeow:QualityDimension ,
+        gmeow:AxisContextScope .
+
+#################################################################
+# Dated axis exemptions (self-cleaning, gate-checked)
+#################################################################
+
+gmeow:exemptionDocMaturity
+    a gmeow:AxisExemption ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Documentation-Maturity exemption"@x-gmeow-english ;
+    skos:definition "Exempts the documentation-maturity sub-metric of the documentation axis: the per-slice documentation-maturity tier is owned by the documentation standard and consumed as-is here, never redefined, and its producer is not yet in-repo."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:exemptsAxis gmeow:axisDocumentation ;
+    gmeow:exemptionReason "The per-slice documentation-maturity tier standard is owned by the documentation doctrine and consumed as-is, never redefined here; its producer is not yet in-repo. The documentation axis still measures the docs thesis and the landed coverage dimensions."@x-gmeow-english ;
+    gmeow:exemptionDate "2026-07-07"^^xsd:date ;
+    gmeow:exemptionProducer "DocMaturity" .
+
+gmeow:exemptionGmnProjection
+    a gmeow:AxisExemption ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "GMN-projection exemption"@x-gmeow-english ;
+    skos:definition "Exempts the GMN dialect-projection sub-target of the projection axis: the GMN projection surface is a separate program and is not yet a landed pipeline projection target. The projection axis still measures every landed projection surface."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:exemptsAxis gmeow:axisMaximalProjection ;
+    gmeow:exemptionReason "The GMN dialect projection surface is a separate program; its projection target is not yet a landed pipeline target. The projection axis measures all landed projection surfaces for real."@x-gmeow-english ;
+    gmeow:exemptionDate "2026-07-07"^^xsd:date ;
+    gmeow:exemptionProducer "GmnProjectionTarget" .
+
+gmeow:exemptionDocsPanels
+    a gmeow:AxisExemption ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Docs-panels exemption"@x-gmeow-english ;
+    skos:definition "Exempts the multi-format documentation max-info panels sub-metric of the documentation axis: the panels are measured for adoption as they land, and their producer is not yet in-repo."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:exemptsAxis gmeow:axisDocumentation ;
+    gmeow:exemptionReason "Multi-format docs max-info panels are measured for adoption as they land; their producer is not yet in-repo. The documentation axis measures the landed surfaces today."@x-gmeow-english ;
+    gmeow:exemptionDate "2026-07-07"^^xsd:date ;
+    gmeow:exemptionProducer "DocMaturityPanels" .
+
+#################################################################
+# Threshold individuals — per-axis, per-tier score floors (data)
+# Uniform monotonic scheme: Grounded 0.60, Linked 0.75,
+# Exemplified 0.85, Maximal 0.95. Tuning a floor is a data edit.
+#################################################################
+
+gmeow:thrGroundingGrounded a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "grounding floor — Grounded"@x-gmeow-english ; skos:definition "The grounding-axis score floor to earn the Grounded tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierGrounded ; gmeow:thresholdFloor 0.60 .
+gmeow:thrGroundingLinked a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "grounding floor — Linked"@x-gmeow-english ; skos:definition "The grounding-axis score floor to earn the Linked tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierLinked ; gmeow:thresholdFloor 0.75 .
+gmeow:thrGroundingExemplified a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "grounding floor — Exemplified"@x-gmeow-english ; skos:definition "The grounding-axis score floor to earn the Exemplified tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierExemplified ; gmeow:thresholdFloor 0.85 .
+gmeow:thrGroundingMaximal a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "grounding floor — Maximal"@x-gmeow-english ; skos:definition "The grounding-axis score floor to earn the Maximal tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierMaximal ; gmeow:thresholdFloor 0.95 .
+
+gmeow:thrReasonerGrounded a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "reasoner floor — Grounded"@x-gmeow-english ; skos:definition "The reasoner-derived-axis score floor to earn the Grounded tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierGrounded ; gmeow:thresholdFloor 0.60 .
+gmeow:thrReasonerLinked a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "reasoner floor — Linked"@x-gmeow-english ; skos:definition "The reasoner-derived-axis score floor to earn the Linked tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierLinked ; gmeow:thresholdFloor 0.75 .
+gmeow:thrReasonerExemplified a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "reasoner floor — Exemplified"@x-gmeow-english ; skos:definition "The reasoner-derived-axis score floor to earn the Exemplified tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierExemplified ; gmeow:thresholdFloor 0.85 .
+gmeow:thrReasonerMaximal a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "reasoner floor — Maximal"@x-gmeow-english ; skos:definition "The reasoner-derived-axis score floor to earn the Maximal tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierMaximal ; gmeow:thresholdFloor 0.95 .
+
+gmeow:thrInformationGrounded a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "information floor — Grounded"@x-gmeow-english ; skos:definition "The information-axis score floor to earn the Grounded tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierGrounded ; gmeow:thresholdFloor 0.60 .
+gmeow:thrInformationLinked a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "information floor — Linked"@x-gmeow-english ; skos:definition "The information-axis score floor to earn the Linked tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierLinked ; gmeow:thresholdFloor 0.75 .
+gmeow:thrInformationExemplified a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "information floor — Exemplified"@x-gmeow-english ; skos:definition "The information-axis score floor to earn the Exemplified tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierExemplified ; gmeow:thresholdFloor 0.85 .
+gmeow:thrInformationMaximal a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "information floor — Maximal"@x-gmeow-english ; skos:definition "The information-axis score floor to earn the Maximal tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierMaximal ; gmeow:thresholdFloor 0.95 .
+
+gmeow:thrLinkageGrounded a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "linkage floor — Grounded"@x-gmeow-english ; skos:definition "The linkage-axis score floor to earn the Grounded tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierGrounded ; gmeow:thresholdFloor 0.60 .
+gmeow:thrLinkageLinked a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "linkage floor — Linked"@x-gmeow-english ; skos:definition "The linkage-axis score floor to earn the Linked tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierLinked ; gmeow:thresholdFloor 0.75 .
+gmeow:thrLinkageExemplified a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "linkage floor — Exemplified"@x-gmeow-english ; skos:definition "The linkage-axis score floor to earn the Exemplified tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierExemplified ; gmeow:thresholdFloor 0.85 .
+gmeow:thrLinkageMaximal a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "linkage floor — Maximal"@x-gmeow-english ; skos:definition "The linkage-axis score floor to earn the Maximal tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierMaximal ; gmeow:thresholdFloor 0.95 .
+
+gmeow:thrProjectionGrounded a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "projection floor — Grounded"@x-gmeow-english ; skos:definition "The projection-axis score floor to earn the Grounded tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierGrounded ; gmeow:thresholdFloor 0.60 .
+gmeow:thrProjectionLinked a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "projection floor — Linked"@x-gmeow-english ; skos:definition "The projection-axis score floor to earn the Linked tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierLinked ; gmeow:thresholdFloor 0.75 .
+gmeow:thrProjectionExemplified a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "projection floor — Exemplified"@x-gmeow-english ; skos:definition "The projection-axis score floor to earn the Exemplified tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierExemplified ; gmeow:thresholdFloor 0.85 .
+gmeow:thrProjectionMaximal a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "projection floor — Maximal"@x-gmeow-english ; skos:definition "The projection-axis score floor to earn the Maximal tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierMaximal ; gmeow:thresholdFloor 0.95 .
+
+gmeow:thrTestingGrounded a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "testing floor — Grounded"@x-gmeow-english ; skos:definition "The testing-axis score floor to earn the Grounded tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierGrounded ; gmeow:thresholdFloor 0.60 .
+gmeow:thrTestingLinked a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "testing floor — Linked"@x-gmeow-english ; skos:definition "The testing-axis score floor to earn the Linked tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierLinked ; gmeow:thresholdFloor 0.75 .
+gmeow:thrTestingExemplified a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "testing floor — Exemplified"@x-gmeow-english ; skos:definition "The testing-axis score floor to earn the Exemplified tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierExemplified ; gmeow:thresholdFloor 0.85 .
+gmeow:thrTestingMaximal a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "testing floor — Maximal"@x-gmeow-english ; skos:definition "The testing-axis score floor to earn the Maximal tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierMaximal ; gmeow:thresholdFloor 0.95 .
+
+gmeow:thrDocumentationGrounded a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "documentation floor — Grounded"@x-gmeow-english ; skos:definition "The documentation-axis score floor to earn the Grounded tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierGrounded ; gmeow:thresholdFloor 0.60 .
+gmeow:thrDocumentationLinked a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "documentation floor — Linked"@x-gmeow-english ; skos:definition "The documentation-axis score floor to earn the Linked tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierLinked ; gmeow:thresholdFloor 0.75 .
+gmeow:thrDocumentationExemplified a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "documentation floor — Exemplified"@x-gmeow-english ; skos:definition "The documentation-axis score floor to earn the Exemplified tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierExemplified ; gmeow:thresholdFloor 0.85 .
+gmeow:thrDocumentationMaximal a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "documentation floor — Maximal"@x-gmeow-english ; skos:definition "The documentation-axis score floor to earn the Maximal tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierMaximal ; gmeow:thresholdFloor 0.95 .
+
+gmeow:thrProseGrounded a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "prose floor — Grounded"@x-gmeow-english ; skos:definition "The prose-quality-axis score floor to earn the Grounded tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierGrounded ; gmeow:thresholdFloor 0.60 .
+gmeow:thrProseLinked a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "prose floor — Linked"@x-gmeow-english ; skos:definition "The prose-quality-axis score floor to earn the Linked tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierLinked ; gmeow:thresholdFloor 0.75 .
+gmeow:thrProseExemplified a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "prose floor — Exemplified"@x-gmeow-english ; skos:definition "The prose-quality-axis score floor to earn the Exemplified tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierExemplified ; gmeow:thresholdFloor 0.85 .
+gmeow:thrProseMaximal a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "prose floor — Maximal"@x-gmeow-english ; skos:definition "The prose-quality-axis score floor to earn the Maximal tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierMaximal ; gmeow:thresholdFloor 0.95 .
+
+gmeow:thrProvenanceGrounded a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "provenance-honesty floor — Grounded"@x-gmeow-english ; skos:definition "The provenance-honesty-axis score floor to earn the Grounded tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierGrounded ; gmeow:thresholdFloor 0.60 .
+gmeow:thrProvenanceLinked a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "provenance-honesty floor — Linked"@x-gmeow-english ; skos:definition "The provenance-honesty-axis score floor to earn the Linked tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierLinked ; gmeow:thresholdFloor 0.75 .
+gmeow:thrProvenanceExemplified a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "provenance-honesty floor — Exemplified"@x-gmeow-english ; skos:definition "The provenance-honesty-axis score floor to earn the Exemplified tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierExemplified ; gmeow:thresholdFloor 0.85 .
+gmeow:thrProvenanceMaximal a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "provenance-honesty floor — Maximal"@x-gmeow-english ; skos:definition "The provenance-honesty-axis score floor to earn the Maximal tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierMaximal ; gmeow:thresholdFloor 0.95 .
+
+gmeow:thrTranslationGrounded a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "translation floor — Grounded"@x-gmeow-english ; skos:definition "The translation-coverage-axis score floor to earn the Grounded tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierGrounded ; gmeow:thresholdFloor 0.60 .
+gmeow:thrTranslationLinked a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "translation floor — Linked"@x-gmeow-english ; skos:definition "The translation-coverage-axis score floor to earn the Linked tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierLinked ; gmeow:thresholdFloor 0.75 .
+gmeow:thrTranslationExemplified a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "translation floor — Exemplified"@x-gmeow-english ; skos:definition "The translation-coverage-axis score floor to earn the Exemplified tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierExemplified ; gmeow:thresholdFloor 0.85 .
+gmeow:thrTranslationMaximal a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "translation floor — Maximal"@x-gmeow-english ; skos:definition "The translation-coverage-axis score floor to earn the Maximal tier."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierMaximal ; gmeow:thresholdFloor 0.95 .
+
+#################################################################
+# Ontology node
+#################################################################
+
+<https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric>
+    a owl:Ontology ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment """The slice-quality rubric module — the ontology-resident, data-driven rubric the gmeow-dev slice-quality advisor binds to. Quality axes, the lattice tier ladder, per-tier score thresholds, advice text, read-scope coeffects, and dated exemptions are all individuals here; Rust ships only a closed set of measurement primitives the axis descriptors name (the Profile rubric-as-data pattern). Grades form a bounded lattice grounded in logic:QualityValue: the roll-up tier is the UNWEIGHTED meet of the per-axis grades, the ratchet is the lattice order, and the scalar tier is a lossy projection of the full per-axis grade vector.
+
+This slice is its own self-application capstone: it must itself score Maximal on the rubric it defines, and its rationales name no test artifact — it is the exemplar of the provenance-honesty rule it introduces."""@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "GMEOW Slice-Quality Rubric Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Slice-Quality Rubric Module — classes, properties, and individuals of the GMEOW super-vocabulary that make per-slice quality a queryable, reasoned, data-driven rubric."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .

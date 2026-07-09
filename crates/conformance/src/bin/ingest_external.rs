@@ -66,10 +66,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use gmeow_conformance::error::{
-    CaseAnatomy, Cli, Io, ManifestInvalid, ManifestParse, ProfileInvalid, Serialize, SzsStatus,
-    Vendor,
-};
 use gmeow_conformance::external::lower::premise_ds_to_world_nquads;
 use gmeow_conformance::external::tptp::{TptpError, lower_and_decide, parse_tptp};
 use gmeow_conformance::external::{
@@ -82,31 +78,16 @@ use gmeow_conformance::run::RunnerQuad;
 use gmeow_conformance::serialize::{
     VerdictStatus, build_verdicts, count_worlds, materialized_to_nquads,
 };
-use gmeow_errors::Diag;
 use gmeow_license::{LicensePolicy, policy_for_license};
 use gmeow_logic::foundation::{AntiRigidityPolicy, FoundationQuad};
 use purrdf::TermRef;
-
-/// Route a Transient disclosure witness (never gating) through the shared console
-/// sink — human text on stderr, an NDJSON `finding` line for agents, dropped by a
-/// silent sink. The grading lanes print their runner verdict / N-Quads product on
-/// stdout, so these capability-gap and license disclosures default to the stderr
-/// surface (maximal information flow, never a silent pass).
-fn note(code: &str, message: impl Into<String>) {
-    let mode = gmeow_cli_core::ConsoleMode::resolve_stderr_default(
-        None,
-        std::env::var("GMEOW_CONSOLE").ok().as_deref(),
-        std::io::IsTerminal::is_terminal(&std::io::stderr()),
-    );
-    let reporter = gmeow_cli_core::reporter_for(mode);
-    gmeow_cli_core::note(reporter.as_ref(), "ingest-external", code, message);
-}
 
 const USAGE: &str = "\
 usage:
   ingest-external --szs <problem.p> [--world <iri> --quads <n>]
   ingest-external --manifest <manifest.ttl>
   ingest-external --vendor-el <input.rdf> <out-dir>
+  ingest-external --vendor-full <input.rdf> <out-dir>
   ingest-external --vendor-tptp <corpus-dir>
   ingest-external --vendor-ontouml <corpus-dir>
   ingest-external --grade-suite <input.rdf> <corpus-name> <out.nq>
@@ -114,31 +95,11 @@ usage:
   ingest-external --grade-tptp <problem-dir> <corpus-name> <out.nq>
   ingest-external --grade-ontouml <catalog-dir> <corpus-name> <out.nq>";
 
-/// Build an I/O diagnostic from a preserved message.
-fn io(detail: String) -> Diag {
-    Diag::of_kind(Io { detail })
-}
-/// Build a JSON-serialization diagnostic from a preserved message.
-fn ser(detail: String) -> Diag {
-    Diag::of_kind(Serialize { detail })
-}
-/// Build a vendor/grade-step diagnostic from a preserved message.
-fn vendor(detail: String) -> Diag {
-    Diag::of_kind(Vendor { detail })
-}
-/// Build a case-anatomy diagnostic from a preserved message.
-fn anatomy(detail: String) -> Diag {
-    Diag::of_kind(CaseAnatomy { detail })
-}
-/// Build an argument-surface diagnostic from a preserved message.
-fn cli(detail: String) -> Diag {
-    Diag::of_kind(Cli { detail })
-}
-
-fn main() -> gmeow_errors::Result<()> {
+fn main() -> Result<(), String> {
     let mut szs: Option<PathBuf> = None;
     let mut manifest: Option<PathBuf> = None;
     let mut vendor_el: Option<(PathBuf, PathBuf)> = None;
+    let mut vendor_full: Option<(PathBuf, PathBuf)> = None;
     let mut vendor_tptp: Option<PathBuf> = None;
     let mut vendor_ontouml: Option<PathBuf> = None;
     let mut grade_suite: Option<(PathBuf, String, PathBuf)> = None;
@@ -157,6 +118,11 @@ fn main() -> gmeow_errors::Result<()> {
                 let input = PathBuf::from(next(&mut args, "--vendor-el")?);
                 let out = PathBuf::from(next(&mut args, "--vendor-el <out-dir>")?);
                 vendor_el = Some((input, out));
+            }
+            "--vendor-full" => {
+                let input = PathBuf::from(next(&mut args, "--vendor-full")?);
+                let out = PathBuf::from(next(&mut args, "--vendor-full <out-dir>")?);
+                vendor_full = Some((input, out));
             }
             "--vendor-tptp" => {
                 vendor_tptp = Some(PathBuf::from(next(
@@ -199,20 +165,21 @@ fn main() -> gmeow_errors::Result<()> {
                 quads = Some(
                     next(&mut args, "--quads")?
                         .parse()
-                        .map_err(|e| cli(format!("--quads must be a non-negative integer: {e}")))?,
+                        .map_err(|e| format!("--quads must be a non-negative integer: {e}"))?,
                 )
             }
             "-h" | "--help" => {
                 println!("{USAGE}");
                 return Ok(());
             }
-            other => return Err(cli(format!("unknown argument: {other}\n{USAGE}"))),
+            other => return Err(format!("unknown argument: {other}\n{USAGE}")),
         }
     }
 
     let mode_count = szs.is_some() as u8
         + manifest.is_some() as u8
         + vendor_el.is_some() as u8
+        + vendor_full.is_some() as u8
         + vendor_tptp.is_some() as u8
         + vendor_ontouml.is_some() as u8
         + grade_suite.is_some() as u8
@@ -220,10 +187,18 @@ fn main() -> gmeow_errors::Result<()> {
         + grade_tptp.is_some() as u8
         + grade_ontouml.is_some() as u8;
     if mode_count > 1 {
-        return Err(cli(format!(
-            "--szs, --manifest, --vendor-el, --vendor-tptp, --vendor-ontouml, --grade-suite, \
-             --grade-ore, --grade-tptp, and --grade-ontouml are mutually exclusive\n{USAGE}"
-        )));
+        return Err(format!(
+            "--szs, --manifest, --vendor-el, --vendor-full, --vendor-tptp, --vendor-ontouml, \
+             --grade-suite, --grade-ore, --grade-tptp, and --grade-ontouml are mutually \
+             exclusive\n{USAGE}"
+        ));
+    }
+
+    // `--vendor-full` shares the Lane-A vendoring path with `--vendor-el` but binds
+    // the full W3C suite manifest; dispatched here so the tuple match below stays
+    // the pre-existing arity.
+    if let Some((input, out)) = vendor_full {
+        return vendor_full_corpus(&input, &out);
     }
 
     match (
@@ -245,9 +220,9 @@ fn main() -> gmeow_errors::Result<()> {
             // meaning for a manifest (one line per entry). Reject loudly rather than
             // parse-and-drop them (no-optionality / no silent misuse).
             if world.is_some() || quads.is_some() {
-                return Err(cli(format!(
+                return Err(format!(
                     "--world / --quads apply only to --szs, not --manifest\n{USAGE}"
-                )));
+                ));
             }
             ingest_manifest(&path)
         }
@@ -272,10 +247,10 @@ fn main() -> gmeow_errors::Result<()> {
         (None, None, None, None, None, None, None, None, Some((dir, corpus_name, out_nq))) => {
             grade_ontouml_corpus(&dir, &corpus_name, &out_nq)
         }
-        _ => Err(cli(format!(
+        _ => Err(format!(
             "one of --szs / --manifest / --vendor-el / --vendor-tptp / --vendor-ontouml / \
              --grade-suite / --grade-ore / --grade-tptp / --grade-ontouml is required\n{USAGE}"
-        ))),
+        )),
     }
 }
 
@@ -302,21 +277,16 @@ const ONTOUML_SPDX_HEADER: &str = "# SPDX-FileCopyrightText: 2026 Blackcat Infor
 /// cannot decide (parser/lowering capability gap) or decides in *disagreement*
 /// with its `% SZS status` belongs in the sibling `-divergence` corpus, not here —
 /// so it is a loud error, never silently vendored.
-fn vendor_tptp_corpus(corpus_dir: &Path) -> gmeow_errors::Result<()> {
+fn vendor_tptp_corpus(corpus_dir: &Path) -> Result<(), String> {
     let corpus_name = corpus_dir
         .file_name()
         .and_then(|s| s.to_str())
-        .ok_or_else(|| {
-            anatomy(format!(
-                "cannot derive corpus name from {}",
-                corpus_dir.display()
-            ))
-        })?;
+        .ok_or_else(|| format!("cannot derive corpus name from {}", corpus_dir.display()))?;
 
     let mut slugs: Vec<PathBuf> = std::fs::read_dir(corpus_dir)
-        .map_err(|e| io(format!("cannot read {}: {e}", corpus_dir.display())))?
-        .map(|e| e.map(|e| e.path()).map_err(|e| io(e.to_string())))
-        .collect::<gmeow_errors::Result<Vec<_>>>()?
+        .map_err(|e| format!("cannot read {}: {e}", corpus_dir.display()))?
+        .map(|e| e.map(|e| e.path()).map_err(|e| e.to_string()))
+        .collect::<Result<Vec<_>, _>>()?
         .into_iter()
         .filter(|p| p.is_dir())
         .collect();
@@ -327,54 +297,52 @@ fn vendor_tptp_corpus(corpus_dir: &Path) -> gmeow_errors::Result<()> {
         let slug = case_dir
             .file_name()
             .and_then(|s| s.to_str())
-            .ok_or_else(|| anatomy(format!("bad case dir {}", case_dir.display())))?
+            .ok_or_else(|| format!("bad case dir {}", case_dir.display()))?
             .to_string();
         let problem = case_dir.join("source").join("problem.p");
         if !problem.is_file() {
-            return Err(anatomy(format!(
+            return Err(format!(
                 "{}: TPTP case has no source/problem.p",
                 case_dir.display()
-            )));
+            ));
         }
         let text = std::fs::read_to_string(&problem)
-            .map_err(|e| io(format!("cannot read {}: {e}", problem.display())))?;
+            .map_err(|e| format!("cannot read {}: {e}", problem.display()))?;
 
         // The declared SZS ground truth: raw token (provenance) + 3-bucket outcome.
         let raw_token =
-            parse_szs_status(&text).map_err(|e| vendor(format!("{}: {e}", problem.display())))?;
+            parse_szs_status(&text).map_err(|e| format!("{}: {e}", problem.display()))?;
         let declared =
-            outcome_from_szs(&text).map_err(|e| vendor(format!("{}: {e}", problem.display())))?;
+            outcome_from_szs(&text).map_err(|e| format!("{}: {e}", problem.display()))?;
 
         // Parse + FOL-negation reduction + native decision.
-        let formulas = parse_tptp(&text).map_err(|e| {
-            vendor(match e {
-                TptpError::Syntax(m) => format!("{}: malformed TPTP: {m}", problem.display()),
-                TptpError::Unsupported(m) => format!(
-                    "{}: out-of-fragment construct ({m}) — this problem belongs in the \
-                     sibling -divergence corpus, not Lane-A",
-                    problem.display()
-                ),
-            })
+        let formulas = parse_tptp(&text).map_err(|e| match e {
+            TptpError::Syntax(m) => format!("{}: malformed TPTP: {m}", problem.display()),
+            TptpError::Unsupported(m) => format!(
+                "{}: out-of-fragment construct ({m}) — this problem belongs in the \
+                 sibling -divergence corpus, not Lane-A",
+                problem.display()
+            ),
         })?;
         let world_iri = format!("https://gmeow.example/{corpus_name}/{slug}/w");
         let (native, lowered) = lower_and_decide(&formulas, &world_iri).map_err(|g| {
-            vendor(format!(
+            format!(
                 "{}: native engine cannot decide this problem ({}) — it belongs in the \
                  sibling -divergence corpus (an honest DlGap), not Lane-A",
                 problem.display(),
                 g.reason
-            ))
+            )
         })?;
 
         // Lane-A is agreeing-by-construction: native MUST match the SZS ground truth.
         if native != declared {
-            return Err(vendor(format!(
+            return Err(format!(
                 "{}: native decided {:?} but the SZS status declares {:?} — a divergence \
                  belongs in the sibling -divergence corpus, never Lane-A",
                 problem.display(),
                 native.verdict_status().as_str(),
                 declared.verdict_status().as_str()
-            )));
+            ));
         }
 
         write_tptp_case(
@@ -393,10 +361,10 @@ fn vendor_tptp_corpus(corpus_dir: &Path) -> gmeow_errors::Result<()> {
     }
 
     if vendored == 0 {
-        return Err(anatomy(format!(
+        return Err(format!(
             "{}: no TPTP cases found (expected <slug>/source/problem.p dirs)",
             corpus_dir.display()
-        )));
+        ));
     }
     println!(
         "vendored {vendored} TPTP case(s) into {}",
@@ -416,10 +384,10 @@ fn write_tptp_case(
     quad_count: usize,
     outcome: ExternalOutcome,
     szs_status: &str,
-) -> gmeow_errors::Result<()> {
+) -> Result<(), String> {
     let expected_dir = case_dir.join("expected");
     std::fs::create_dir_all(&expected_dir)
-        .map_err(|e| io(format!("cannot create {}: {e}", expected_dir.display())))?;
+        .map_err(|e| format!("cannot create {}: {e}", expected_dir.display()))?;
 
     // profile.json — consistency mode, native engine, raw SZS token as provenance.
     let mut profile = BTreeMap::new();
@@ -427,10 +395,10 @@ fn write_tptp_case(
     profile.insert("mode", serde_json::json!("native"));
     profile.insert("szs_status", serde_json::json!(szs_status));
     let profile_json = serde_json::to_string_pretty(&profile)
-        .map_err(|e| ser(format!("serialize profile.json: {e}")))?
+        .map_err(|e| format!("serialize profile.json: {e}"))?
         + "\n";
     std::fs::write(case_dir.join("profile.json"), profile_json)
-        .map_err(|e| io(format!("cannot write profile.json: {e}")))?;
+        .map_err(|e| format!("cannot write profile.json: {e}"))?;
 
     // input.logic.ttl — stub required by the per-case anatomy (not compiled in
     // consistency mode; the native DL path reads input.nq only).
@@ -443,11 +411,11 @@ fn write_tptp_case(
          @prefix logic: <https://blackcatinformatics.ca/logic/> .\n"
     );
     std::fs::write(case_dir.join("input.logic.ttl"), stub_ttl)
-        .map_err(|e| io(format!("cannot write input.logic.ttl: {e}")))?;
+        .map_err(|e| format!("cannot write input.logic.ttl: {e}"))?;
 
     // input.nq — the generated, world-scoped, sorted+deduped EDB.
     std::fs::write(case_dir.join("input.nq"), input_nq)
-        .map_err(|e| io(format!("cannot write input.nq: {e}")))?;
+        .map_err(|e| format!("cannot write input.nq: {e}"))?;
 
     // expected/verdicts.json — the native verdict the harness re-asserts.
     let mut world_entry = BTreeMap::new();
@@ -459,10 +427,10 @@ fn write_tptp_case(
     let mut verdicts_obj = BTreeMap::new();
     verdicts_obj.insert(world_iri.to_owned(), world_entry);
     let verdicts_json = serde_json::to_string_pretty(&verdicts_obj)
-        .map_err(|e| ser(format!("serialize verdicts.json: {e}")))?
+        .map_err(|e| format!("serialize verdicts.json: {e}"))?
         + "\n";
     std::fs::write(expected_dir.join("verdicts.json"), &verdicts_json)
-        .map_err(|e| io(format!("cannot write expected/verdicts.json: {e}")))?;
+        .map_err(|e| format!("cannot write expected/verdicts.json: {e}"))?;
 
     Ok(())
 }
@@ -472,26 +440,21 @@ fn write_tptp_case(
 /// file is absent or the key is missing (a clean-control case); a present-but-non-
 /// string value is a hard error. The corpus author sets this label; this tool
 /// regenerates the rest of the anatomy and never invents it.
-fn read_documented_antipattern(profile_path: &Path) -> gmeow_errors::Result<Option<String>> {
+fn read_documented_antipattern(profile_path: &Path) -> Result<Option<String>, String> {
     if !profile_path.is_file() {
         return Ok(None);
     }
     let text = std::fs::read_to_string(profile_path)
-        .map_err(|e| io(format!("cannot read {}: {e}", profile_path.display())))?;
-    let value: serde_json::Value = serde_json::from_str(&text).map_err(|e| {
-        Diag::of_kind(ProfileInvalid {
-            detail: format!("cannot parse {}: {e}", profile_path.display()),
-        })
-    })?;
+        .map_err(|e| format!("cannot read {}: {e}", profile_path.display()))?;
+    let value: serde_json::Value = serde_json::from_str(&text)
+        .map_err(|e| format!("cannot parse {}: {e}", profile_path.display()))?;
     match value.get("documented_antipattern") {
         None | Some(serde_json::Value::Null) => Ok(None),
         Some(serde_json::Value::String(s)) => Ok(Some(s.clone())),
-        Some(other) => Err(Diag::of_kind(ProfileInvalid {
-            detail: format!(
-                "{}: documented_antipattern must be a string, got {other}",
-                profile_path.display()
-            ),
-        })),
+        Some(other) => Err(format!(
+            "{}: documented_antipattern must be a string, got {other}",
+            profile_path.display()
+        )),
     }
 }
 
@@ -509,21 +472,16 @@ fn read_documented_antipattern(profile_path: &Path) -> gmeow_errors::Result<Opti
 /// corpus (an honest gap), a clean control that fires anything (`EngineOnly`) is a
 /// soundness false positive, and a well-formed but out-of-fragment construct
 /// (`Unsupported`) belongs in `-divergence` too — each a loud error, never vendored.
-fn vendor_ontouml_corpus(corpus_dir: &Path) -> gmeow_errors::Result<()> {
+fn vendor_ontouml_corpus(corpus_dir: &Path) -> Result<(), String> {
     let corpus_name = corpus_dir
         .file_name()
         .and_then(|s| s.to_str())
-        .ok_or_else(|| {
-            anatomy(format!(
-                "cannot derive corpus name from {}",
-                corpus_dir.display()
-            ))
-        })?;
+        .ok_or_else(|| format!("cannot derive corpus name from {}", corpus_dir.display()))?;
 
     let mut slugs: Vec<PathBuf> = std::fs::read_dir(corpus_dir)
-        .map_err(|e| io(format!("cannot read {}: {e}", corpus_dir.display())))?
-        .map(|e| e.map(|e| e.path()).map_err(|e| io(e.to_string())))
-        .collect::<gmeow_errors::Result<Vec<_>>>()?
+        .map_err(|e| format!("cannot read {}: {e}", corpus_dir.display()))?
+        .map(|e| e.map(|e| e.path()).map_err(|e| e.to_string()))
+        .collect::<Result<Vec<_>, _>>()?
         .into_iter()
         .filter(|p| p.is_dir())
         .collect();
@@ -534,17 +492,17 @@ fn vendor_ontouml_corpus(corpus_dir: &Path) -> gmeow_errors::Result<()> {
         let slug = case_dir
             .file_name()
             .and_then(|s| s.to_str())
-            .ok_or_else(|| anatomy(format!("bad case dir {}", case_dir.display())))?
+            .ok_or_else(|| format!("bad case dir {}", case_dir.display()))?
             .to_string();
         let model_path = case_dir.join("source").join("model.ttl");
         if !model_path.is_file() {
-            return Err(anatomy(format!(
+            return Err(format!(
                 "{}: OntoUML case has no source/model.ttl",
                 case_dir.display()
-            )));
+            ));
         }
         let text = std::fs::read_to_string(&model_path)
-            .map_err(|e| io(format!("cannot read {}: {e}", model_path.display())))?;
+            .map_err(|e| format!("cannot read {}: {e}", model_path.display()))?;
 
         // The documented anti-pattern is authored provenance carried in the case's
         // profile.json (absent for a clean control); we regenerate the rest here.
@@ -552,36 +510,30 @@ fn vendor_ontouml_corpus(corpus_dir: &Path) -> gmeow_errors::Result<()> {
 
         // Build the base IRI from an ABSOLUTE path (mirrors `ingest_manifest`).
         let abs = std::path::absolute(&model_path)
-            .map_err(|e| io(format!("cannot resolve {}: {e}", model_path.display())))?;
+            .map_err(|e| format!("cannot resolve {}: {e}", model_path.display()))?;
         let base = format!("file://{}", abs.display());
-        let model = parse_ontouml_model(&text, Some(&base)).map_err(|e| {
-            vendor(match e {
-                OntoumlError::Syntax(m) => {
-                    format!("{}: malformed OntoUML: {m}", model_path.display())
-                }
-                OntoumlError::Unsupported(m) => format!(
-                    "{}: out-of-fragment construct ({m}) — this model belongs in the \
-                     sibling -divergence corpus, not Lane-A",
-                    model_path.display()
-                ),
-            })
+        let model = parse_ontouml_model(&text, Some(&base)).map_err(|e| match e {
+            OntoumlError::Syntax(m) => format!("{}: malformed OntoUML: {m}", model_path.display()),
+            OntoumlError::Unsupported(m) => format!(
+                "{}: out-of-fragment construct ({m}) — this model belongs in the \
+                 sibling -divergence corpus, not Lane-A",
+                model_path.display()
+            ),
         })?;
 
         let world_iri = format!("https://gmeow.example/{corpus_name}/{slug}/w");
         let (fq, input_nq, _count) =
             lower_and_evaluate(&model, &world_iri, AntiRigidityPolicy::WitnessObligation).map_err(
-                |e| {
-                    vendor(match e {
-                        OntoumlError::Syntax(m) => format!(
-                            "{}: OntoUML lowering/evaluation failed: {m}",
-                            model_path.display()
-                        ),
-                        OntoumlError::Unsupported(m) => format!(
-                            "{}: out-of-fragment construct ({m}) — this model belongs in the \
-                             sibling -divergence corpus (an honest gap), not Lane-A",
-                            model_path.display()
-                        ),
-                    })
+                |e| match e {
+                    OntoumlError::Syntax(m) => format!(
+                        "{}: OntoUML lowering/evaluation failed: {m}",
+                        model_path.display()
+                    ),
+                    OntoumlError::Unsupported(m) => format!(
+                        "{}: out-of-fragment construct ({m}) — this model belongs in the \
+                         sibling -divergence corpus (an honest gap), not Lane-A",
+                        model_path.display()
+                    ),
                 },
             )?;
 
@@ -592,27 +544,27 @@ fn vendor_ontouml_corpus(corpus_dir: &Path) -> gmeow_errors::Result<()> {
         match compare(documented.as_deref(), &fired) {
             DisciplineVerdict::Agree => {}
             DisciplineVerdict::CorpusOnly => {
-                return Err(vendor(format!(
+                return Err(format!(
                     "{}: documented anti-pattern {} was NOT reproduced by the native \
                      disciplines (fired: {fired:?}) — this model belongs in the sibling \
                      -divergence corpus (an honest gap), never Lane-A",
                     model_path.display(),
                     documented.as_deref().unwrap_or("<none>")
-                )));
+                ));
             }
             DisciplineVerdict::EngineOnly => {
-                return Err(vendor(format!(
+                return Err(format!(
                     "{}: clean-control case fired disciplines {fired:?} — a soundness FALSE \
                      POSITIVE; Lane-A clean controls must fire nothing",
                     model_path.display()
-                )));
+                ));
             }
             DisciplineVerdict::DlGap => {
-                return Err(vendor(format!(
+                return Err(format!(
                     "{}: discipline comparison yielded an unexpected DlGap — a lowering gap \
                      belongs in the sibling -divergence corpus, not Lane-A",
                     model_path.display()
-                )));
+                ));
             }
         }
 
@@ -622,10 +574,10 @@ fn vendor_ontouml_corpus(corpus_dir: &Path) -> gmeow_errors::Result<()> {
     }
 
     if vendored == 0 {
-        return Err(anatomy(format!(
+        return Err(format!(
             "{}: no OntoUML cases found (expected <slug>/source/model.ttl dirs)",
             corpus_dir.display()
-        )));
+        ));
     }
     println!(
         "vendored {vendored} OntoUML case(s) into {}",
@@ -644,10 +596,10 @@ fn write_ontouml_case(
     input_nq: &str,
     fq: &[FoundationQuad],
     documented: Option<&str>,
-) -> gmeow_errors::Result<()> {
+) -> Result<(), String> {
     let expected_dir = case_dir.join("expected");
     std::fs::create_dir_all(&expected_dir)
-        .map_err(|e| io(format!("cannot create {}: {e}", expected_dir.display())))?;
+        .map_err(|e| format!("cannot create {}: {e}", expected_dir.display()))?;
 
     // profile.json — native foundation-lowering materialization (not certified). The
     // documented anti-pattern label is carried ONLY when present (a clean control
@@ -664,10 +616,10 @@ fn write_ontouml_case(
         profile.insert("documented_antipattern", serde_json::json!(label));
     }
     let profile_json = serde_json::to_string_pretty(&profile)
-        .map_err(|e| ser(format!("serialize profile.json: {e}")))?
+        .map_err(|e| format!("serialize profile.json: {e}"))?
         + "\n";
     std::fs::write(case_dir.join("profile.json"), profile_json)
-        .map_err(|e| io(format!("cannot write profile.json: {e}")))?;
+        .map_err(|e| format!("cannot write profile.json: {e}"))?;
 
     // input.logic.ttl — the seed logic: stereotype ABox as a default-graph program
     // (the harness compiles this file, so it must carry the same seed facts input.nq
@@ -693,11 +645,11 @@ fn write_ontouml_case(
         program_lines.join("\n")
     );
     std::fs::write(case_dir.join("input.logic.ttl"), program_ttl)
-        .map_err(|e| io(format!("cannot write input.logic.ttl: {e}")))?;
+        .map_err(|e| format!("cannot write input.logic.ttl: {e}"))?;
 
     // input.nq — the generated, world-scoped, sorted+deduped stereotype ABox.
     std::fs::write(case_dir.join("input.nq"), input_nq)
-        .map_err(|e| io(format!("cannot write input.nq: {e}")))?;
+        .map_err(|e| format!("cannot write input.nq: {e}"))?;
 
     // Map FoundationQuads → RunnerQuads field-for-field (no filtering) — byte-
     // identical to what `materialize_foundation` produces in the harness.
@@ -721,17 +673,17 @@ fn write_ontouml_case(
         expected_dir.join("materialized.nq"),
         materialized_to_nquads(&runner_quads),
     )
-    .map_err(|e| io(format!("cannot write expected/materialized.nq: {e}")))?;
+    .map_err(|e| format!("cannot write expected/materialized.nq: {e}"))?;
 
     // expected/verdicts.json — foundation materialization is always consistent (a
     // discipline violation is a materialized diagnostic, not an inconsistency).
     let counts = count_worlds(&runner_quads);
     let verdicts = build_verdicts(&counts, |_| VerdictStatus::Consistent);
     let verdicts_json = serde_json::to_string_pretty(&verdicts)
-        .map_err(|e| ser(format!("serialize verdicts.json: {e}")))?
+        .map_err(|e| format!("serialize verdicts.json: {e}"))?
         + "\n";
     std::fs::write(expected_dir.join("verdicts.json"), &verdicts_json)
-        .map_err(|e| io(format!("cannot write expected/verdicts.json: {e}")))?;
+        .map_err(|e| format!("cannot write expected/verdicts.json: {e}"))?;
 
     Ok(())
 }
@@ -741,42 +693,40 @@ fn ingest_szs(
     path: &std::path::Path,
     world: Option<&str>,
     quads: Option<u64>,
-) -> gmeow_errors::Result<()> {
+) -> Result<(), String> {
     let text = std::fs::read_to_string(path)
-        .map_err(|e| io(format!("cannot read {}: {e}", path.display())))?;
-    let outcome = outcome_from_szs(&text)?;
+        .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
+    let outcome = outcome_from_szs(&text).map_err(|e| e.to_string())?;
     match (world, quads) {
         (Some(world), Some(quads)) => {
             let verdict = runner_verdict_json(world, quads, outcome);
             println!(
                 "{}",
                 serde_json::to_string_pretty(&verdict)
-                    .map_err(|e| ser(format!("serialize verdict: {e}")))?
+                    .map_err(|e| format!("serialize verdict: {e}"))?
             );
         }
         (None, None) => println!("{}", outcome.verdict_status().as_str()),
-        _ => return Err(cli("--world and --quads must be given together".to_string())),
+        _ => return Err("--world and --quads must be given together".to_string()),
     }
     Ok(())
 }
 
 /// Ingest a W3C entailment manifest → one `<name>\t<status>` line per entry.
-fn ingest_manifest(path: &std::path::Path) -> gmeow_errors::Result<()> {
+fn ingest_manifest(path: &std::path::Path) -> Result<(), String> {
     let text = std::fs::read_to_string(path)
-        .map_err(|e| io(format!("cannot read {}: {e}", path.display())))?;
+        .map_err(|e| format!("cannot read {}: {e}", path.display()))?;
     // Build the base IRI from an ABSOLUTE path so a relative `--manifest foo/x.ttl`
     // yields `file:///abs/foo/x.ttl` (empty authority) rather than the malformed
     // `file://foo/x.ttl` (where `foo` would be read as the authority). `absolute` is
     // lexical (no filesystem access) — enough for a Linux-only ingest path without
     // pulling in a `url` crate dependency edge.
-    let abs = std::path::absolute(path)
-        .map_err(|e| io(format!("cannot resolve {}: {e}", path.display())))?;
+    let abs =
+        std::path::absolute(path).map_err(|e| format!("cannot resolve {}: {e}", path.display()))?;
     let base = format!("file://{}", abs.display());
-    let entries = parse_test_manifest(&text, Some(&base))?;
+    let entries = parse_test_manifest(&text, Some(&base)).map_err(|e| e.to_string())?;
     if entries.is_empty() {
-        return Err(Diag::of_kind(ManifestInvalid {
-            detail: format!("no entailment entries in {}", path.display()),
-        }));
+        return Err(format!("no entailment entries in {}", path.display()));
     }
     for entry in entries {
         println!(
@@ -932,14 +882,14 @@ fn write_case(
     otest_type: &str,
     premise_xml: Option<&str>,
     verdicts: &CaseVerdicts<'_>,
-) -> gmeow_errors::Result<()> {
+) -> Result<(), String> {
     let case_dir = out_dir.join(slug);
     let source_dir = case_dir.join("source");
     let expected_dir = case_dir.join("expected");
     std::fs::create_dir_all(&source_dir)
-        .map_err(|e| io(format!("cannot create {}: {e}", source_dir.display())))?;
+        .map_err(|e| format!("cannot create {}: {e}", source_dir.display()))?;
     std::fs::create_dir_all(&expected_dir)
-        .map_err(|e| io(format!("cannot create {}: {e}", expected_dir.display())))?;
+        .map_err(|e| format!("cannot create {}: {e}", expected_dir.display()))?;
 
     // profile.json — consistency mode, native engine. For a divergence case the
     // native decision and the W3C published verdict are frozen here as provenance.
@@ -952,10 +902,10 @@ fn write_case(
         serde_json::json!(verdicts.published_status),
     );
     let profile_json = serde_json::to_string_pretty(&profile)
-        .map_err(|e| ser(format!("serialize profile.json for {slug}: {e}")))?
+        .map_err(|e| format!("serialize profile.json for {slug}: {e}"))?
         + "\n";
     std::fs::write(case_dir.join("profile.json"), profile_json)
-        .map_err(|e| io(format!("cannot write profile.json for {slug}: {e}")))?;
+        .map_err(|e| format!("cannot write profile.json for {slug}: {e}"))?;
 
     // input.logic.ttl — stub required by the per-case anatomy; not compiled in
     // consistency mode (the native DL consistency path reads input.nq only).
@@ -967,11 +917,11 @@ fn write_case(
          @prefix logic: <https://blackcatinformatics.ca/logic/> .\n"
     );
     std::fs::write(case_dir.join("input.logic.ttl"), stub_ttl)
-        .map_err(|e| io(format!("cannot write input.logic.ttl for {slug}: {e}")))?;
+        .map_err(|e| format!("cannot write input.logic.ttl for {slug}: {e}"))?;
 
     // input.nq — already sorted + deduped by the caller.
     std::fs::write(case_dir.join("input.nq"), input_nq)
-        .map_err(|e| io(format!("cannot write input.nq for {slug}: {e}")))?;
+        .map_err(|e| format!("cannot write input.nq for {slug}: {e}"))?;
 
     // expected/verdicts.json — the verdict the harness re-asserts.
     let mut world_entry = BTreeMap::new();
@@ -980,25 +930,22 @@ fn write_case(
     let mut verdicts_obj = BTreeMap::new();
     verdicts_obj.insert(world_iri.to_owned(), world_entry);
     let verdicts_json = serde_json::to_string_pretty(&verdicts_obj)
-        .map_err(|e| ser(format!("serialize verdicts.json for {slug}: {e}")))?
+        .map_err(|e| format!("serialize verdicts.json for {slug}: {e}"))?
         + "\n";
-    std::fs::write(expected_dir.join("verdicts.json"), &verdicts_json).map_err(|e| {
-        io(format!(
-            "cannot write expected/verdicts.json for {slug}: {e}"
-        ))
-    })?;
+    std::fs::write(expected_dir.join("verdicts.json"), &verdicts_json)
+        .map_err(|e| format!("cannot write expected/verdicts.json for {slug}: {e}"))?;
 
     // source/manifest.ttl — carries the W3C otest type and published verdict.
     let manifest_ttl = format!(
         "{W3C_SPDX_HEADER}@prefix otest: <http://www.w3.org/2007/OWL/testOntology#> .\n@prefix mf: <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#> .\n@prefix ex: <https://gmeow.example/{corpus_name}/{slug}/> .\n\nex:{slug} a otest:{otest_type} ;\n    otest:identifier \"{slug}\" ;\n    mf:action ex:premise.rdf .\n"
     );
     std::fs::write(source_dir.join("manifest.ttl"), &manifest_ttl)
-        .map_err(|e| io(format!("cannot write source/manifest.ttl for {slug}: {e}")))?;
+        .map_err(|e| format!("cannot write source/manifest.ttl for {slug}: {e}"))?;
 
     // source/premise.rdf — verbatim inline RDF/XML for provenance.
     if let Some(xml) = premise_xml {
         std::fs::write(source_dir.join("premise.rdf"), xml)
-            .map_err(|e| io(format!("cannot write source/premise.rdf for {slug}: {e}")))?;
+            .map_err(|e| format!("cannot write source/premise.rdf for {slug}: {e}"))?;
     }
 
     Ok(())
@@ -1106,19 +1053,22 @@ fn expand_xml_entities(src: &str) -> String {
 /// emit DlGap Findings for them rather than silently counting and discarding.
 fn parse_consistency_entries(
     input_rdf: &Path,
-) -> gmeow_errors::Result<(
-    Vec<gmeow_conformance::external::ManifestEntry>,
-    Vec<gmeow_conformance::external::ManifestEntry>,
-)> {
+) -> Result<
+    (
+        Vec<gmeow_conformance::external::ManifestEntry>,
+        Vec<gmeow_conformance::external::ManifestEntry>,
+    ),
+    String,
+> {
     let raw_src = std::fs::read_to_string(input_rdf)
-        .map_err(|e| io(format!("cannot read {}: {e}", input_rdf.display())))?;
+        .map_err(|e| format!("cannot read {}: {e}", input_rdf.display()))?;
     // Expand XML entities (the W3C EL suite uses a DOCTYPE internal subset with
     // entity references; expand them before handing to the parser).
     let src = expand_xml_entities(&raw_src);
     let abs = std::path::absolute(input_rdf)
-        .map_err(|e| io(format!("cannot resolve {}: {e}", input_rdf.display())))?;
+        .map_err(|e| format!("cannot resolve {}: {e}", input_rdf.display()))?;
     let base = format!("file://{}", abs.display());
-    let entries = parse_test_manifest_rdfxml(&src, Some(&base))?;
+    let entries = parse_test_manifest_rdfxml(&src, Some(&base)).map_err(|e| e.to_string())?;
 
     let mut entailment_entries = Vec::new();
     let mut consistency_entries = Vec::new();
@@ -1144,7 +1094,16 @@ fn parse_consistency_entries(
 /// Reads `<input_rdf>` (RDF/XML), keeps only ConsistencyTest / InconsistencyTest
 /// entries, runs the native DL consistency path on each, and emits the ones the
 /// native path decides AND agrees with the W3C declared outcome.
-fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> gmeow_errors::Result<()> {
+fn vendor_lane_a_from_manifest(
+    input_rdf: &Path,
+    out_dir: &Path,
+    corpus_name: &str,
+    source_url: &str,
+    refresh_command: &str,
+) -> Result<(), String> {
+    let divergence_name = format!("{corpus_name}-divergence");
+    let base_iri = format!("https://gmeow.example/{corpus_name}/");
+
     let (consistency_entries, entailment_entries_lane_b) = parse_consistency_entries(input_rdf)?;
     let entailment_skipped = entailment_entries_lane_b.len();
 
@@ -1163,18 +1122,18 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> gmeow_errors::Result<()
 
     // Ensure output directories exist.
     std::fs::create_dir_all(out_dir)
-        .map_err(|e| io(format!("cannot create out-dir {}: {e}", out_dir.display())))?;
+        .map_err(|e| format!("cannot create out-dir {}: {e}", out_dir.display()))?;
     std::fs::create_dir_all(&divergence_dir).map_err(|e| {
-        io(format!(
+        format!(
             "cannot create divergence dir {}: {e}",
             divergence_dir.display()
-        ))
+        )
     })?;
 
     // We need a stable slug→entry list for deterministic output; entries are
     // already sorted by IRI from the manifest parser. Collect slugs in order.
     for entry in &consistency_entries {
-        let lowered = match lower_entry(entry, "https://gmeow.example/w3c-owl2-el/") {
+        let lowered = match lower_entry(entry, &base_iri) {
             Some(l) => l,
             None => {
                 skipped_unparsable += 1;
@@ -1229,7 +1188,7 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> gmeow_errors::Result<()
         if !verdict.gaps.is_empty() {
             write_case(
                 &divergence_dir,
-                "w3c-owl2-el-divergence",
+                &divergence_name,
                 &slug,
                 &world_iri,
                 &input_nq,
@@ -1261,7 +1220,7 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> gmeow_errors::Result<()
         if native_status != declared_status {
             write_case(
                 &divergence_dir,
-                "w3c-owl2-el-divergence",
+                &divergence_name,
                 &slug,
                 &world_iri,
                 &input_nq,
@@ -1289,7 +1248,7 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> gmeow_errors::Result<()
         // full regardless of count.
         write_case(
             out_dir,
-            "w3c-owl2-el",
+            corpus_name,
             &slug,
             &world_iri,
             &input_nq,
@@ -1307,29 +1266,33 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> gmeow_errors::Result<()
     }
 
     // ── Write corpus.json for both buckets ────────────────────────────────────
-    let corpus_json = "{\n  \
-        \"name\": \"w3c-owl2-el\",\n  \
+    let corpus_json = format!(
+        "{{\n  \
+        \"name\": \"{corpus_name}\",\n  \
         \"spdx_license\": \"W3C\",\n  \
-        \"source_url\": \"https://www.w3.org/2009/11/owl-test/profile-EL.rdf\",\n  \
+        \"source_url\": \"{source_url}\",\n  \
         \"version_or_commit\": \"w3c-2009-11-archive\",\n  \
-        \"refresh_command\": \"curl -sSL https://www.w3.org/2009/11/owl-test/profile-EL.rdf -o .tmp/w3c-owl2/profile-EL.rdf && cargo run -p gmeow-conformance --bin ingest-external -- --vendor-el .tmp/w3c-owl2/profile-EL.rdf conformance/logic/cases/external/w3c-owl2-el\",\n  \
-        \"lane\": \"a\"\n}\n";
+        \"refresh_command\": \"{refresh_command}\",\n  \
+        \"lane\": \"a\"\n}}\n"
+    );
     std::fs::write(out_dir.join("corpus.json"), corpus_json)
-        .map_err(|e| io(format!("cannot write corpus.json: {e}")))?;
+        .map_err(|e| format!("cannot write corpus.json: {e}"))?;
 
     // The divergence bucket's lane is `divergence`: native and W3C disagree there
     // by construction (honest DlGap), so the soundness gate that asserts
     // committed==declared must EXCLUDE this lane; the dedicated divergence gate
     // pins it instead.
-    let divergence_corpus_json = "{\n  \
-        \"name\": \"w3c-owl2-el-divergence\",\n  \
+    let divergence_corpus_json = format!(
+        "{{\n  \
+        \"name\": \"{divergence_name}\",\n  \
         \"spdx_license\": \"W3C\",\n  \
-        \"source_url\": \"https://www.w3.org/2009/11/owl-test/profile-EL.rdf\",\n  \
+        \"source_url\": \"{source_url}\",\n  \
         \"version_or_commit\": \"w3c-2009-11-archive\",\n  \
-        \"refresh_command\": \"curl -sSL https://www.w3.org/2009/11/owl-test/profile-EL.rdf -o .tmp/w3c-owl2/profile-EL.rdf && cargo run -p gmeow-conformance --bin ingest-external -- --vendor-el .tmp/w3c-owl2/profile-EL.rdf conformance/logic/cases/external/w3c-owl2-el\",\n  \
-        \"lane\": \"divergence\"\n}\n";
+        \"refresh_command\": \"{refresh_command}\",\n  \
+        \"lane\": \"divergence\"\n}}\n"
+    );
     std::fs::write(divergence_dir.join("corpus.json"), divergence_corpus_json)
-        .map_err(|e| io(format!("cannot write divergence corpus.json: {e}")))?;
+        .map_err(|e| format!("cannot write divergence corpus.json: {e}"))?;
 
     // ── Print final summary ───────────────────────────────────────────────────
     println!(
@@ -1339,6 +1302,34 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> gmeow_errors::Result<()
     Ok(())
 }
 
+/// Vendor the W3C OWL 2 **EL** profile suite as a Lane-A corpus (plus its
+/// honest-DlGap divergence sibling).  A thin binding of
+/// [`vendor_lane_a_from_manifest`] to the EL profile manifest constants.
+fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
+    vendor_lane_a_from_manifest(
+        input_rdf,
+        out_dir,
+        "w3c-owl2-el",
+        "https://www.w3.org/2009/11/owl-test/profile-EL.rdf",
+        "curl -sSL https://www.w3.org/2009/11/owl-test/profile-EL.rdf -o .tmp/w3c-owl2/profile-EL.rdf && cargo run -p gmeow-conformance --bin ingest-external -- --vendor-el .tmp/w3c-owl2/profile-EL.rdf conformance/logic/cases/external/w3c-owl2-el",
+    )
+}
+
+/// Vendor the **full** W3C OWL 2 test suite (`all.rdf`, DL/Full) as a Lane-A
+/// corpus (plus its divergence sibling).  The native engine is EL/Horn, so the
+/// agreeing subset it can soundly decide becomes graded Lane-A cases and every
+/// DL/Full case it cannot decide (or that disagrees) is vendored to the
+/// `w3c-owl2-full-divergence` sibling as honest, queryable divergence data.
+fn vendor_full_corpus(input_rdf: &Path, out_dir: &Path) -> Result<(), String> {
+    vendor_lane_a_from_manifest(
+        input_rdf,
+        out_dir,
+        "w3c-owl2-full",
+        "https://www.w3.org/2009/11/owl-test/all.rdf",
+        "curl -sSL https://www.w3.org/2009/11/owl-test/all.rdf -o .tmp/w3c-owl2/all.rdf && cargo run -p gmeow-conformance --bin ingest-external -- --vendor-full .tmp/w3c-owl2/all.rdf conformance/logic/cases/external/w3c-owl2-full",
+    )
+}
+
 /// Read the quarantine baseline — the set of case slugs in the committed
 /// divergence corpus directory.  These are the accepted, honest DlGap cases
 /// (currently the two `webont-thing-00{4,5}` EL gaps) whose divergence is
@@ -1346,16 +1337,16 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> gmeow_errors::Result<()
 /// a directory is treated as one quarantined slug.
 ///
 /// Returns the slug set, or an error if the directory cannot be read.
-fn load_quarantine_slugs(quarantine_dir: &Path) -> gmeow_errors::Result<BTreeSet<String>> {
+fn load_quarantine_slugs(quarantine_dir: &Path) -> Result<BTreeSet<String>, String> {
     let mut slugs = BTreeSet::new();
     let rd = std::fs::read_dir(quarantine_dir).map_err(|e| {
-        io(format!(
+        format!(
             "cannot read quarantine baseline dir {}: {e}",
             quarantine_dir.display()
-        ))
+        )
     })?;
     for entry in rd {
-        let entry = entry.map_err(|e| io(format!("dir entry error in quarantine dir: {e}")))?;
+        let entry = entry.map_err(|e| format!("dir entry error in quarantine dir: {e}"))?;
         if entry.path().is_dir()
             && let Some(name) = entry.file_name().to_str()
         {
@@ -1469,7 +1460,7 @@ fn quarantine_dir_for(corpus_name: &str) -> PathBuf {
 /// The declared status token of a TPTP problem, tolerant of both the `% SZS status`
 /// result-comment form (used by the vendored corpora) and the real-distribution
 /// header field `% Status : <Token>`. Returns the raw SZS token.
-fn tptp_declared_status(text: &str) -> gmeow_errors::Result<String> {
+fn tptp_declared_status(text: &str) -> Result<String, String> {
     if let Ok(token) = parse_szs_status(text) {
         return Ok(token);
     }
@@ -1486,26 +1477,22 @@ fn tptp_declared_status(text: &str) -> gmeow_errors::Result<String> {
             return Ok(token.to_string());
         }
     }
-    Err(Diag::of_kind(SzsStatus {
-        detail: "no `% SZS status` or `% Status :` line found in the TPTP problem".to_string(),
-    }))
+    Err("no `% SZS status` or `% Status :` line found in the TPTP problem".to_string())
 }
 
 /// Recursively collect `*.p` TPTP problem files under `dir`, sorted.
-fn collect_tptp_problems(dir: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
+fn collect_tptp_problems(dir: &Path) -> Result<Vec<PathBuf>, String> {
     let mut out = Vec::new();
     let mut stack = vec![dir.to_path_buf()];
     while let Some(d) = stack.pop() {
-        for entry in
-            std::fs::read_dir(&d).map_err(|e| io(format!("read_dir {}: {e}", d.display())))?
-        {
-            let entry = entry.map_err(|e| io(e.to_string()))?;
+        for entry in std::fs::read_dir(&d).map_err(|e| format!("read_dir {}: {e}", d.display()))? {
+            let entry = entry.map_err(|e| e.to_string())?;
             // `file_type()` reuses the directory-walk's `stat` rather than issuing a
             // second one per entry, and does not traverse symlinks — so a circular
             // link cannot drive the walk into an infinite loop.
             let file_type = entry
                 .file_type()
-                .map_err(|e| io(format!("file_type {}: {e}", entry.path().display())))?;
+                .map_err(|e| format!("file_type {}: {e}", entry.path().display()))?;
             let path = entry.path();
             if file_type.is_dir() {
                 stack.push(path);
@@ -1533,27 +1520,24 @@ fn collect_tptp_problems(dir: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
 /// non-required, network/Docker-allowed lane
 /// (the real TPTP distribution has per-problem licenses and is never vendored); it is
 /// the documented path from the tiny Lane-A `tptp-mini` corpus to the full set.
-fn grade_tptp_corpus(
-    problem_dir: &Path,
-    corpus_name: &str,
-    out_nq: &Path,
-) -> gmeow_errors::Result<()> {
+fn grade_tptp_corpus(problem_dir: &Path, corpus_name: &str, out_nq: &Path) -> Result<(), String> {
     let problems = collect_tptp_problems(problem_dir)?;
     if problems.is_empty() {
-        return Err(anatomy(format!(
+        return Err(format!(
             "no *.p TPTP problems found under {}",
             problem_dir.display()
-        )));
+        ));
     }
 
     let mut comparisons: Vec<gmeow_logic::reason::ExternalComparison> = Vec::new();
     let mut capability_gaps = 0usize;
     for problem in &problems {
         let text = std::fs::read_to_string(problem)
-            .map_err(|e| io(format!("cannot read {}: {e}", problem.display())))?;
-        let raw_token = tptp_declared_status(&text)
-            .map_err(|e| vendor(format!("{}: {e}", problem.display())))?;
-        let published = gmeow_conformance::external::outcome_for_szs(&raw_token)?
+            .map_err(|e| format!("cannot read {}: {e}", problem.display()))?;
+        let raw_token =
+            tptp_declared_status(&text).map_err(|e| format!("{}: {e}", problem.display()))?;
+        let published = gmeow_conformance::external::outcome_for_szs(&raw_token)
+            .map_err(|e| e.to_string())?
             .verdict_status()
             .as_str()
             .to_string();
@@ -1577,27 +1561,18 @@ fn grade_tptp_corpus(
             Ok(formulas) => match lower_and_decide(&formulas, &world) {
                 Ok((outcome, _)) => outcome.verdict_status().as_str().to_string(),
                 Err(gap) => {
-                    note(
-                        "gmeow-conformance.ingest.capability-gap",
-                        format!("{}: capability gap: {}", problem.display(), gap.reason),
-                    );
+                    eprintln!("{}: capability gap: {}", problem.display(), gap.reason);
                     capability_gaps += 1;
                     "incomplete".to_string()
                 }
             },
             Err(TptpError::Syntax(m)) => {
-                return Err(vendor(format!(
-                    "{}: malformed TPTP: {m}",
-                    problem.display()
-                )));
+                return Err(format!("{}: malformed TPTP: {m}", problem.display()));
             }
             Err(TptpError::Unsupported(m)) => {
-                note(
-                    "gmeow-conformance.ingest.capability-gap",
-                    format!(
-                        "{}: capability gap (out of fragment): {m}",
-                        problem.display()
-                    ),
+                eprintln!(
+                    "{}: capability gap (out of fragment): {m}",
+                    problem.display()
                 );
                 capability_gaps += 1;
                 "incomplete".to_string()
@@ -1614,15 +1589,10 @@ fn grade_tptp_corpus(
 
     let nq = gmeow_conformance::divergence::emit_divergence_nq(corpus_name, &comparisons);
     if let Some(parent) = out_nq.parent() {
-        std::fs::create_dir_all(parent).map_err(|e| {
-            io(format!(
-                "cannot create output dir {}: {e}",
-                parent.display()
-            ))
-        })?;
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("cannot create output dir {}: {e}", parent.display()))?;
     }
-    std::fs::write(out_nq, &nq)
-        .map_err(|e| io(format!("cannot write {}: {e}", out_nq.display())))?;
+    std::fs::write(out_nq, &nq).map_err(|e| format!("cannot write {}: {e}", out_nq.display()))?;
 
     let rows = gmeow_logic::reason::compare_external_corpus(corpus_name, &comparisons);
     let ledger = gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
@@ -1642,7 +1612,7 @@ fn grade_tptp_corpus(
 /// Symlink-safe: `file_type()` reuses the directory-walk's `stat` and does not
 /// traverse symlinks, so a circular link cannot drive the walk into an infinite loop
 /// (mirrors `collect_tptp_problems`).
-fn collect_ontouml_models(dir: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
+fn collect_ontouml_models(dir: &Path) -> Result<Vec<PathBuf>, String> {
     let mut out = Vec::new();
     let mut stack = vec![dir.to_path_buf()];
     while let Some(d) = stack.pop() {
@@ -1652,13 +1622,13 @@ fn collect_ontouml_models(dir: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
         let read = match std::fs::read_dir(&d) {
             Ok(read) => read,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
-            Err(e) => return Err(io(format!("read_dir {}: {e}", d.display()))),
+            Err(e) => return Err(format!("read_dir {}: {e}", d.display())),
         };
         for entry in read {
-            let entry = entry.map_err(|e| io(e.to_string()))?;
+            let entry = entry.map_err(|e| e.to_string())?;
             let file_type = entry
                 .file_type()
-                .map_err(|e| io(format!("file_type {}: {e}", entry.path().display())))?;
+                .map_err(|e| format!("file_type {}: {e}", entry.path().display()))?;
             let path = entry.path();
             if file_type.is_dir() {
                 stack.push(path);
@@ -1679,7 +1649,7 @@ fn collect_ontouml_models(dir: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
 /// IRI or literal lexical form. Returns `None` when no metadata file or no license
 /// triple is found. This is a provenance disclosure (never a gate): Lane-B grades
 /// live and commits nothing.
-fn read_ontouml_license(model_path: &Path) -> gmeow_errors::Result<Option<String>> {
+fn read_ontouml_license(model_path: &Path) -> Result<Option<String>, String> {
     let Some(dir) = model_path.parent() else {
         return Ok(None);
     };
@@ -1688,18 +1658,15 @@ fn read_ontouml_license(model_path: &Path) -> gmeow_errors::Result<Option<String
         return Ok(None);
     }
     let text = std::fs::read_to_string(&metadata)
-        .map_err(|e| io(format!("cannot read {}: {e}", metadata.display())))?;
+        .map_err(|e| format!("cannot read {}: {e}", metadata.display()))?;
     // Resolve relative IRIs against the file's ABSOLUTE location (mirrors the vendor
     // path): a live catalog `metadata.ttl` commonly declares its license with a
     // document-relative IRI, which a `None` base would drop or mis-parse.
     let abs = std::path::absolute(&metadata)
-        .map_err(|e| io(format!("cannot resolve {}: {e}", metadata.display())))?;
+        .map_err(|e| format!("cannot resolve {}: {e}", metadata.display()))?;
     let base = format!("file://{}", abs.display());
-    let ds = purrdf::parse_dataset(text.as_bytes(), "text/turtle", Some(&base)).map_err(|e| {
-        Diag::of_kind(ManifestParse {
-            detail: format!("cannot parse {}: {e}", metadata.display()),
-        })
-    })?;
+    let ds = purrdf::parse_dataset(text.as_bytes(), "text/turtle", Some(&base))
+        .map_err(|e| format!("cannot parse {}: {e}", metadata.display()))?;
     const LICENSE_PREDS: [&str; 3] = [
         "http://purl.org/dc/terms/license",
         "http://www.w3.org/ns/dcat#license",
@@ -1740,14 +1707,14 @@ fn grade_ontouml_corpus(
     catalog_dir: &Path,
     corpus_name: &str,
     out_nq: &Path,
-) -> gmeow_errors::Result<()> {
+) -> Result<(), String> {
     let models = collect_ontouml_models(catalog_dir)?;
     if models.is_empty() {
-        return Err(anatomy(format!(
+        return Err(format!(
             "no ontology.ttl / model.ttl OntoUML models found under {} — populate the \
              directory (or set the catalog subset URL) before grading",
             catalog_dir.display()
-        )));
+        ));
     }
 
     let mut comparisons: Vec<gmeow_logic::reason::ExternalComparison> = Vec::new();
@@ -1761,19 +1728,13 @@ fn grade_ontouml_corpus(
                     LicensePolicy::ImportOk => "ImportOk",
                     LicensePolicy::ReferenceOnly => "ReferenceOnly",
                 };
-                note(
-                    "gmeow-conformance.ingest.license",
-                    format!("LICENSE {}: {license} → {policy}", model_path.display()),
-                );
+                eprintln!("LICENSE {}: {license} → {policy}", model_path.display());
             }
-            None => note(
-                "gmeow-conformance.ingest.license",
-                format!("LICENSE {}: unknown", model_path.display()),
-            ),
+            None => eprintln!("LICENSE {}: unknown", model_path.display()),
         }
 
         let text = std::fs::read_to_string(model_path)
-            .map_err(|e| io(format!("cannot read {}: {e}", model_path.display())))?;
+            .map_err(|e| format!("cannot read {}: {e}", model_path.display()))?;
 
         // Slug = a sanitized catalog-relative path (deterministic, collision-free).
         let rel = model_path.strip_prefix(catalog_dir).unwrap_or(model_path);
@@ -1784,7 +1745,7 @@ fn grade_ontouml_corpus(
         // vendor path): real FAIR-catalog Turtle commonly uses document-relative IRIs,
         // which a `None` base would mis-parse into the wrong subjects.
         let abs = std::path::absolute(model_path)
-            .map_err(|e| io(format!("cannot resolve {}: {e}", model_path.display())))?;
+            .map_err(|e| format!("cannot resolve {}: {e}", model_path.display()))?;
         let base = format!("file://{}", abs.display());
 
         // Gap-tolerant native discipline verdict. A well-formed but out-of-fragment
@@ -1795,18 +1756,12 @@ fn grade_ontouml_corpus(
         let model = match parse_ontouml_model(&text, Some(&base)) {
             Ok(m) => m,
             Err(OntoumlError::Syntax(m)) => {
-                return Err(vendor(format!(
-                    "{}: malformed OntoUML: {m}",
-                    model_path.display()
-                )));
+                return Err(format!("{}: malformed OntoUML: {m}", model_path.display()));
             }
             Err(OntoumlError::Unsupported(reason)) => {
-                note(
-                    "gmeow-conformance.ingest.capability-gap",
-                    format!(
-                        "{}: capability gap (out of fragment): {reason}",
-                        model_path.display()
-                    ),
+                eprintln!(
+                    "{}: capability gap (out of fragment): {reason}",
+                    model_path.display()
                 );
                 capability_gaps += 1;
                 comparisons.push(gmeow_logic::reason::ExternalComparison {
@@ -1826,16 +1781,13 @@ fn grade_ontouml_corpus(
                 native_verdict_string(None, &fired)
             }
             Err(OntoumlError::Syntax(m)) => {
-                return Err(vendor(format!(
+                return Err(format!(
                     "{}: OntoUML lowering/evaluation failed: {m}",
                     model_path.display()
-                )));
+                ));
             }
             Err(OntoumlError::Unsupported(reason)) => {
-                note(
-                    "gmeow-conformance.ingest.capability-gap",
-                    format!("{}: capability gap: {reason}", model_path.display()),
-                );
+                eprintln!("{}: capability gap: {reason}", model_path.display());
                 capability_gaps += 1;
                 "incomplete".to_string()
             }
@@ -1851,15 +1803,10 @@ fn grade_ontouml_corpus(
 
     let nq = gmeow_conformance::divergence::emit_divergence_nq(corpus_name, &comparisons);
     if let Some(parent) = out_nq.parent() {
-        std::fs::create_dir_all(parent).map_err(|e| {
-            io(format!(
-                "cannot create output dir {}: {e}",
-                parent.display()
-            ))
-        })?;
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("cannot create output dir {}: {e}", parent.display()))?;
     }
-    std::fs::write(out_nq, &nq)
-        .map_err(|e| io(format!("cannot write {}: {e}", out_nq.display())))?;
+    std::fs::write(out_nq, &nq).map_err(|e| format!("cannot write {}: {e}", out_nq.display()))?;
 
     let rows = gmeow_logic::reason::compare_external_corpus(corpus_name, &comparisons);
     let ledger = gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
@@ -1880,11 +1827,7 @@ fn grade_ontouml_corpus(
 /// Unlike `vendor_el_corpus` (Lane-A, strict agree-only), this mode records EVERY
 /// case outcome — including `DlGap` (native incomplete) and `CorpusOnly` (native
 /// disagrees with published) — as the divergence grading signal.
-fn grade_suite_corpus(
-    input_rdf: &Path,
-    corpus_name: &str,
-    out_nq: &Path,
-) -> gmeow_errors::Result<()> {
+fn grade_suite_corpus(input_rdf: &Path, corpus_name: &str, out_nq: &Path) -> Result<(), String> {
     let (consistency_entries, entailment_entries) = parse_consistency_entries(input_rdf)?;
     let entailment_skipped = entailment_entries.len();
 
@@ -2001,15 +1944,10 @@ fn grade_suite_corpus(
 
     // Write the output file (create parent dirs).
     if let Some(parent) = out_nq.parent() {
-        std::fs::create_dir_all(parent).map_err(|e| {
-            io(format!(
-                "cannot create output dir {}: {e}",
-                parent.display()
-            ))
-        })?;
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("cannot create output dir {}: {e}", parent.display()))?;
     }
-    std::fs::write(out_nq, &nq)
-        .map_err(|e| io(format!("cannot write {}: {e}", out_nq.display())))?;
+    std::fs::write(out_nq, &nq).map_err(|e| format!("cannot write {}: {e}", out_nq.display()))?;
 
     // Derive counts from the ledger so they match the emitted graph exactly.
     let rows = gmeow_logic::reason::compare_external_corpus(corpus_name, &comparisons);
@@ -2062,10 +2000,10 @@ fn grade_suite_corpus(
 
     soundness_gate(&ledger, &entailment_slugs, &quarantine_slugs).map_err(|offenders| {
         let list = offenders.join("\n  ");
-        vendor(format!(
+        format!(
             "soundness gate FAILED: {n} unexpected divergence(s):\n  {list}",
             n = offenders.len()
-        ))
+        )
     })
 }
 
@@ -2195,26 +2133,18 @@ fn grade_ore_ontology(
 /// the native path cannot parse (Functional Syntax) or decide is recorded as an honest
 /// DlGap Finding — never a silent skip. ORE is fetched-not-vendored for benchmarking
 /// use only (the corpus license forbids redistribution), so nothing here is committed.
-fn grade_ore_corpus(
-    ontology_dir: &Path,
-    corpus_name: &str,
-    out_nq: &Path,
-) -> gmeow_errors::Result<()> {
+fn grade_ore_corpus(ontology_dir: &Path, corpus_name: &str, out_nq: &Path) -> Result<(), String> {
     // Collect `*.owl` ontology files deterministically (sorted by file name).
     let mut owl_files: Vec<PathBuf> = Vec::new();
     let rd = std::fs::read_dir(ontology_dir).map_err(|e| {
-        io(format!(
+        format!(
             "cannot read ORE ontology dir {}: {e}",
             ontology_dir.display()
-        ))
+        )
     })?;
     for entry in rd {
-        let entry = entry.map_err(|e| {
-            io(format!(
-                "dir entry error in {}: {e}",
-                ontology_dir.display()
-            ))
-        })?;
+        let entry =
+            entry.map_err(|e| format!("dir entry error in {}: {e}", ontology_dir.display()))?;
         let path = entry.path();
         if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("owl") {
             owl_files.push(path);
@@ -2223,11 +2153,11 @@ fn grade_ore_corpus(
     owl_files.sort();
 
     if owl_files.is_empty() {
-        return Err(anatomy(format!(
+        return Err(format!(
             "no *.owl ontologies under {} — refusing a vacuous ORE grade (a broken extract \
              must hard-fail, not silently pass)",
             ontology_dir.display()
-        )));
+        ));
     }
 
     let world_iri_prefix = format!("https://gmeow.example/{corpus_name}/");
@@ -2246,7 +2176,7 @@ fn grade_ore_corpus(
         let stem = path
             .file_stem()
             .and_then(|s| s.to_str())
-            .ok_or_else(|| anatomy(format!("non-UTF-8 ontology file name: {}", path.display())))?;
+            .ok_or_else(|| format!("non-UTF-8 ontology file name: {}", path.display()))?;
         let slug = to_slug(stem);
         let world_iri = format!("{world_iri_prefix}{slug}/w");
 
@@ -2266,15 +2196,10 @@ fn grade_ore_corpus(
     // Build + write the divergence graph (DlGap + CorpusOnly rows become Findings).
     let nq = gmeow_conformance::divergence::emit_divergence_nq(corpus_name, &comparisons);
     if let Some(parent) = out_nq.parent() {
-        std::fs::create_dir_all(parent).map_err(|e| {
-            io(format!(
-                "cannot create output dir {}: {e}",
-                parent.display()
-            ))
-        })?;
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("cannot create output dir {}: {e}", parent.display()))?;
     }
-    std::fs::write(out_nq, &nq)
-        .map_err(|e| io(format!("cannot write {}: {e}", out_nq.display())))?;
+    std::fs::write(out_nq, &nq).map_err(|e| format!("cannot write {}: {e}", out_nq.display()))?;
 
     println!("graded={graded} agree={agree} corpus_only={corpus_only} dl_gap={dl_gap}");
 
@@ -2290,17 +2215,17 @@ fn grade_ore_corpus(
     let ledger = gmeow_logic::reason::build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
     soundness_gate(&ledger, &BTreeSet::new(), &dl_gap_slugs).map_err(|offenders| {
         let list = offenders.join("\n  ");
-        vendor(format!(
+        format!(
             "ORE soundness gate FAILED: {n} unexpected divergence(s):\n  {list}",
             n = offenders.len()
-        ))
+        )
     })
 }
 
 /// Read the value following a flag, or error with the flag name.
-fn next(args: &mut impl Iterator<Item = String>, flag: &str) -> gmeow_errors::Result<String> {
+fn next(args: &mut impl Iterator<Item = String>, flag: &str) -> Result<String, String> {
     args.next()
-        .ok_or_else(|| cli(format!("{flag} requires a value")))
+        .ok_or_else(|| format!("{flag} requires a value"))
 }
 
 #[cfg(test)]
@@ -2338,21 +2263,19 @@ mod tests {
     /// `premise_ds_to_world_nquads` is not `pub`, so we test the same logic via a
     /// local helper that mirrors the fixed conversion exactly.  This keeps the test
     /// small and fast (no RDF parser, no reasoner).
-    fn nt_lines_to_nquads(nt_text: &str, world_iri: &str) -> gmeow_errors::Result<Vec<String>> {
+    fn nt_lines_to_nquads(nt_text: &str, world_iri: &str) -> Result<Vec<String>, String> {
         nt_text
             .lines()
             .filter(|line| !line.trim().is_empty() && !line.trim_start().starts_with('#'))
             .map(|line| {
                 let trimmed = line.trim_end();
-                let without_dot = trimmed.strip_suffix('.').ok_or_else(|| {
-                    super::Diag::of_kind(gmeow_conformance::error::NquadsLowering {
-                        detail: format!("malformed N-Triples line (no trailing '.'): {line}"),
-                    })
-                })?;
+                let without_dot = trimmed
+                    .strip_suffix('.')
+                    .ok_or_else(|| format!("malformed N-Triples line (no trailing '.'): {line}"))?;
                 let body = without_dot.trim_end();
                 Ok(format!("{body} <{world_iri}> ."))
             })
-            .collect::<gmeow_errors::Result<Vec<String>>>()
+            .collect::<Result<Vec<String>, String>>()
     }
 
     const WORLD: &str = "https://gmeow.example/test/w";
@@ -2420,7 +2343,7 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
         assert!(result.is_err(), "expected Err for missing dot");
         let msg = result.unwrap_err();
         assert!(
-            msg.message().contains("malformed N-Triples line"),
+            msg.contains("malformed N-Triples line"),
             "error message should describe the problem: {msg:?}"
         );
     }
@@ -2483,11 +2406,11 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
         );
         let err_msg = result.unwrap_err();
         assert!(
-            err_msg.message().contains("soundness gate FAILED"),
+            err_msg.contains("soundness gate FAILED"),
             "error must name the soundness gate failure: {err_msg:?}"
         );
         assert!(
-            err_msg.message().contains("ref-premise"),
+            err_msg.contains("ref-premise"),
             "error must name the offending case: {err_msg:?}"
         );
 
@@ -2703,11 +2626,16 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             nq.contains("reason.divergence.dl-gap"),
             "format-gap ontology must surface as a dl-gap Finding: {nq:?}"
         );
-        // Exactly one Finding (the DlGap); the consistent ontology agrees → no row.
+        // Two Findings: the DlGap plus the consistent ontology's agreement, which now
+        // folds as a NON-blocking corroboration finding rather than being dropped.
         let finding_count = nq.lines().filter(|l| l.contains("/Finding>")).count();
         assert_eq!(
-            finding_count, 1,
-            "exactly one dl-gap Finding expected (consistent ontology emits none): {nq:?}"
+            finding_count, 2,
+            "expected a dl-gap Finding + the consistent ontology's corroboration Finding: {nq:?}"
+        );
+        assert!(
+            nq.contains("reason.divergence.agreement"),
+            "the consistent ontology folds as a corroboration Finding: {nq:?}"
         );
         assert!(
             !nq.contains("reason.divergence.corpus-only"),
@@ -2732,10 +2660,7 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             "an empty ORE extract must hard-fail, not vacuously pass"
         );
         assert!(
-            result
-                .unwrap_err()
-                .message()
-                .contains("no *.owl ontologies"),
+            result.unwrap_err().contains("no *.owl ontologies"),
             "error must name the empty-extract condition"
         );
 
@@ -2892,10 +2817,7 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             "an empty OntoUML catalog must hard-fail, not vacuously pass"
         );
         assert!(
-            result
-                .unwrap_err()
-                .message()
-                .contains("no ontology.ttl / model.ttl"),
+            result.unwrap_err().contains("no ontology.ttl / model.ttl"),
             "error must name the empty-catalog condition"
         );
 
@@ -2903,9 +2825,9 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
     }
 
     /// `grade_ontouml_corpus` over a synthetic catalog: one clean model (fires
-    /// nothing → `clean` → Agree, no Finding) and one FreeRole anti-pattern model
-    /// (fires `FreeRole` → native != published `"clean"` → CorpusOnly Finding). The
-    /// FreeRole divergence must surface as a `corpus-only` Finding.
+    /// nothing → `clean` → Agree → non-blocking corroboration Finding) and one FreeRole
+    /// anti-pattern model (fires `FreeRole` → native != published `"clean"` → CorpusOnly
+    /// Finding). The FreeRole divergence must surface as a `corpus-only` Finding.
     #[test]
     fn grade_ontouml_surfaces_fired_discipline_as_corpus_only() {
         let base = std::env::temp_dir().join(format!("gmeow-ontouml-grade-{}", std::process::id()));
@@ -2940,11 +2862,16 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
             nq.contains("reason.divergence.corpus-only"),
             "fired FreeRole must surface as a corpus-only Finding: {nq}"
         );
-        // Exactly one Finding (the clean model agrees → no row).
+        // Two Findings: the corpus-only FreeRole divergence plus the clean model's
+        // agreement, which now folds as a NON-blocking corroboration Finding.
         let finding_count = nq.lines().filter(|l| l.contains("/Finding>")).count();
         assert_eq!(
-            finding_count, 1,
-            "exactly one corpus-only Finding expected: {nq}"
+            finding_count, 2,
+            "expected a corpus-only Finding + the clean model's corroboration Finding: {nq}"
+        );
+        assert!(
+            nq.contains("reason.divergence.agreement"),
+            "the clean model folds as a corroboration Finding: {nq}"
         );
 
         let _ = std::fs::remove_dir_all(&base);

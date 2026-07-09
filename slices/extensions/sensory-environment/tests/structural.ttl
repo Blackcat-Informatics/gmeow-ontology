@@ -29,7 +29,6 @@
 #     the native reasoning test
 #     crates/logic/tests/ontology_entailments.rs::mental_reference_frame_hosted_instance_is_consistent.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/sensory-environment/tests/> .
@@ -46,7 +45,7 @@ ASK {
     gmeow:SensoryEnvironment a owl:Class , logic:Kind ;
         rdfs:subClassOf logic:Object .
 }""" ;
-    gmeow:saRationale "gmeow:SensoryEnvironment MUST be an owl:Class typed logic:Kind with rdfs:subClassOf logic:Object -- ambient-condition ensembles are independent continuants (Object). Mirrors test_sensory_environment_class_exists." .
+    gmeow:saRationale "gmeow:SensoryEnvironment MUST be an owl:Class typed logic:Kind with rdfs:subClassOf logic:Object -- ambient-condition ensembles are independent continuants (Object)." .
 
 # --- 2. CoordinateMatrix is a logic:Kind subclass of logic:Object (MUST) --------
 ex:saCoordinateMatrixIsKind a gmeow:StructuralAssertion ;
@@ -60,7 +59,7 @@ ASK {
     gmeow:CoordinateMatrix a owl:Class , logic:Kind ;
         rdfs:subClassOf logic:Object .
 }""" ;
-    gmeow:saRationale "gmeow:CoordinateMatrix MUST be an owl:Class typed logic:Kind with rdfs:subClassOf logic:Object -- multi-dimensional numeric values are independent continuants. Mirrors test_coordinate_matrix_class_exists." .
+    gmeow:saRationale "gmeow:CoordinateMatrix MUST be an owl:Class typed logic:Kind with rdfs:subClassOf logic:Object -- multi-dimensional numeric values are independent continuants." .
 
 # --- 3. MentalReferenceFrame is a logic:SubKind of ReferenceFrame (MUST) -------
 ex:saMentalReferenceFrameIsSubKind a gmeow:StructuralAssertion ;
@@ -74,7 +73,7 @@ ASK {
     gmeow:MentalReferenceFrame a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:ReferenceFrame .
 }""" ;
-    gmeow:saRationale "gmeow:MentalReferenceFrame MUST be an owl:Class typed logic:SubKind with rdfs:subClassOf gmeow:ReferenceFrame -- subjective frames specialise the reference-frame hierarchy. Mirrors test_mental_reference_frame_class_exists." .
+    gmeow:saRationale "gmeow:MentalReferenceFrame MUST be an owl:Class typed logic:SubKind with rdfs:subClassOf gmeow:ReferenceFrame -- subjective frames specialise the reference-frame hierarchy." .
 
 # --- 4. SensoryPerception is a logic:SubKind of StandpointClaim (MUST) ---------
 ex:saSensoryPerceptionIsSubKind a gmeow:StructuralAssertion ;
@@ -88,7 +87,7 @@ ASK {
     gmeow:SensoryPerception a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:StandpointClaim .
 }""" ;
-    gmeow:saRationale "gmeow:SensoryPerception MUST be an owl:Class typed logic:SubKind with rdfs:subClassOf gmeow:StandpointClaim -- perceptual claims are standpoint-indexed. Mirrors test_sensory_perception_class_exists." .
+    gmeow:saRationale "gmeow:SensoryPerception MUST be an owl:Class typed logic:SubKind with rdfs:subClassOf gmeow:StandpointClaim -- perceptual claims are standpoint-indexed." .
 
 # --- 5. SensoryModality value vocabulary class exists (MUST) ------------------
 ex:saSensoryModalityIsValueVocab a gmeow:StructuralAssertion ;
@@ -102,7 +101,7 @@ ASK {
     gmeow:SensoryModality a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:SensoryModality MUST be an owl:Class typed logic:AbstractIndividualType with rdfs:subClassOf logic:QualityValue -- sensory channels form an open value vocabulary of individuals (Principle 9). Mirrors test_sensory_modality_value_vocabulary_exists (class part)." .
+    gmeow:saRationale "gmeow:SensoryModality MUST be an owl:Class typed logic:AbstractIndividualType with rdfs:subClassOf logic:QualityValue -- sensory channels form an open value vocabulary of individuals (Principle 9)." .
 
 # --- 6. All seven SensoryModality seeds exist (MUST) --------------------------
 ex:saSensoryModalitySeeds a gmeow:StructuralAssertion ;
@@ -118,7 +117,7 @@ ASK {
     gmeow:sensoryModalityThermal    a gmeow:SensoryModality .
     gmeow:sensoryModalityAirQuality a gmeow:SensoryModality .
 }""" ;
-    gmeow:saRationale "All seven gmeow:SensoryModality seed individuals (visual, auditory, olfactory, gustatory, tactile, thermal, air-quality) MUST be present. Mirrors test_sensory_modality_value_vocabulary_exists (individuals part)." .
+    gmeow:saRationale "All seven gmeow:SensoryModality seed individuals (visual, auditory, olfactory, gustatory, tactile, thermal, air-quality) MUST be present." .
 
 # --- 7. SensoryEnvironment object properties exist (MUST) ---------------------
 ex:saSensoryEnvironmentObjectProperties a gmeow:StructuralAssertion ;
@@ -136,7 +135,7 @@ ASK {
     gmeow:perceptionEnvironment    a owl:ObjectProperty .
     gmeow:perceptionModality       a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "All eight sensory-environment owl:ObjectProperty terms MUST be declared as object properties. Mirrors test_sensory_environment_properties_exist." .
+    gmeow:saRationale "All eight sensory-environment owl:ObjectProperty terms MUST be declared as object properties." .
 
 # --- 8. CoordinateMatrix datatype and object properties exist (MUST) ----------
 ex:saCoordinateMatrixProperties a gmeow:StructuralAssertion ;
@@ -149,7 +148,7 @@ ASK {
     gmeow:matrixShape          a owl:DatatypeProperty .
     gmeow:coordinateMatrixFrame a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:matrixValue and matrixShape MUST be owl:DatatypeProperty; gmeow:coordinateMatrixFrame MUST be owl:ObjectProperty. Mirrors test_coordinate_matrix_properties_exist." .
+    gmeow:saRationale "gmeow:matrixValue and matrixShape MUST be owl:DatatypeProperty; gmeow:coordinateMatrixFrame MUST be owl:ObjectProperty." .
 
 # --- 9. perceptionEnvironment is a subPropertyOf observedFeature (MUST) -------
 ex:saPerceptionEnvironmentBridge a gmeow:StructuralAssertion ;
@@ -160,7 +159,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:perceptionEnvironment rdfs:subPropertyOf gmeow:observedFeature .
 }""" ;
-    gmeow:saRationale "gmeow:perceptionEnvironment MUST be rdfs:subPropertyOf gmeow:observedFeature so sensory perceptions join the universal 'observations about X' query path. Mirrors test_perception_environment_bridge." .
+    gmeow:saRationale "gmeow:perceptionEnvironment MUST be rdfs:subPropertyOf gmeow:observedFeature so sensory perceptions join the universal 'observations about X' query path." .
 
 # --- 10. coordinateMatrixFrame is a subPropertyOf hasReferenceFrame (MUST) ----
 ex:saCoordinateMatrixFrameIsSubProperty a gmeow:StructuralAssertion ;
@@ -171,7 +170,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:coordinateMatrixFrame rdfs:subPropertyOf gmeow:hasReferenceFrame .
 }""" ;
-    gmeow:saRationale "gmeow:coordinateMatrixFrame MUST be rdfs:subPropertyOf gmeow:hasReferenceFrame so the frame-inheritance property chain (isResultOf o hasReferenceFrame) applies automatically. Mirrors test_coordinate_matrix_frame_is_subproperty." .
+    gmeow:saRationale "gmeow:coordinateMatrixFrame MUST be rdfs:subPropertyOf gmeow:hasReferenceFrame so the frame-inheritance property chain (isResultOf o hasReferenceFrame) applies automatically." .
 
 # --- 11. Measurement reference frame seeds exist (MUST) -----------------------
 ex:saReferenceFrameSeeds a gmeow:StructuralAssertion ;
@@ -184,7 +183,7 @@ ASK {
     gmeow:referenceFrameAudioSpectrum a gmeow:ReferenceFrame .
     gmeow:referenceFrameThermalComfort a gmeow:MentalReferenceFrame .
 }""" ;
-    gmeow:saRationale "CIEXYZ, CIELAB, and AudioSpectrum MUST be gmeow:ReferenceFrame individuals; ThermalComfort MUST be a gmeow:MentalReferenceFrame individual. Mirrors test_reference_frame_seeds_exist." .
+    gmeow:saRationale "CIEXYZ, CIELAB, and AudioSpectrum MUST be gmeow:ReferenceFrame individuals; ThermalComfort MUST be a gmeow:MentalReferenceFrame individual." .
 
 # --- 12. referenceFrameThermalComfort is a MentalReferenceFrame (MUST) --------
 ex:saThermalComfortIsMentalFrame a gmeow:StructuralAssertion ;
@@ -195,7 +194,7 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 ASK {
     gmeow:referenceFrameThermalComfort a gmeow:MentalReferenceFrame .
 }""" ;
-    gmeow:saRationale "gmeow:referenceFrameThermalComfort MUST be typed gmeow:MentalReferenceFrame -- the ASHRAE thermal comfort scale is a perceptual/subjective frame. Mirrors test_thermal_comfort_is_mental_reference_frame (type part)." .
+    gmeow:saRationale "gmeow:referenceFrameThermalComfort MUST be typed gmeow:MentalReferenceFrame -- the ASHRAE thermal comfort scale is a perceptual/subjective frame." .
 
 # --- 13. referenceFrameThermalComfort requiresHost true (MUST) ----------------
 ex:saThermalComfortRequiresHost a gmeow:StructuralAssertion ;
@@ -206,7 +205,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 ASK {
     gmeow:referenceFrameThermalComfort gmeow:requiresHost true .
 }""" ;
-    gmeow:saRationale "gmeow:referenceFrameThermalComfort MUST carry gmeow:requiresHost true -- a thermal comfort frame requires a perceiver host. Mirrors test_thermal_comfort_is_mental_reference_frame (requiresHost part)." .
+    gmeow:saRationale "gmeow:referenceFrameThermalComfort MUST carry gmeow:requiresHost true -- a thermal comfort frame requires a perceiver host." .
 
 # --- 14. MentalReferenceFrame has someValuesFrom restriction on isHostedBy ---
 # (MUST) -- structural blank-node restriction check; consistency arm retained.
@@ -221,7 +220,7 @@ ASK {
     ?r owl:onProperty gmeow:isHostedBy ;
        owl:someValuesFrom gmeow:Entity .
 }""" ;
-    gmeow:saRationale "gmeow:MentalReferenceFrame MUST carry an rdfs:subClassOf restriction [owl:onProperty isHostedBy ; owl:someValuesFrom Entity] -- a mental frame must have a perceiver. Mirrors test_mental_reference_frame_requires_host (structural restriction-existence arm)." .
+    gmeow:saRationale "gmeow:MentalReferenceFrame MUST carry an rdfs:subClassOf restriction [owl:onProperty isHostedBy ; owl:someValuesFrom Entity] -- a mental frame must have a perceiver." .
 
 # --- 15. Psychological mental reference frame seeds exist (MUST) --------------
 ex:saPsychologicalFrameSeeds a gmeow:StructuralAssertion ;
@@ -235,4 +234,4 @@ ASK {
     gmeow:referenceFrameCognitiveMapAllocentric   a gmeow:MentalReferenceFrame .
     gmeow:referenceFrameImaginedSpace             a gmeow:MentalReferenceFrame .
 }""" ;
-    gmeow:saRationale "All five psychological mental reference frame seeds (affective circumplex, conceptual space, egocentric/allocentric cognitive maps, imagined space) MUST be typed gmeow:MentalReferenceFrame. Mirrors test_psychological_reference_frame_seeds_exist." .
+    gmeow:saRationale "All five psychological mental reference frame seeds (affective circumplex, conceptual space, egocentric/allocentric cognitive maps, imagined space) MUST be typed gmeow:MentalReferenceFrame." .

@@ -1,0 +1,2 @@
+<http://purl.org/dc/elements/1.0/creator> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#AnnotationProperty> <https://gmeow.example/w3c-owl2-full/webont-miscellaneous-303/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-miscellaneous-303/w> .

@@ -368,6 +368,101 @@ pub fn describe(
     }
 }
 
+// ── conjecture ─────────────────────────────────────────────────────────────────
+
+/// `gmeow conjecture test` — test a candidate `logic:` formula against a KB in an
+/// isolated, standpoint-scoped scenario world, print the engine verdict, and —
+/// unless `--dry-run` — APPEND it to the append-only conjecture library. Delegates
+/// to the SHARED [`gmeow_pipeline::mcp::run_conjecture_test`] core (the same path
+/// the MCP `conjecture_test` tool runs), so there is one implementation, not two.
+#[allow(clippy::too_many_arguments)]
+pub fn conjecture_test(
+    reporter: &dyn Reporter,
+    formula: &Path,
+    kb: &Path,
+    standpoint: &str,
+    math_conjecture: Option<&str>,
+    dry_run: bool,
+    max_steps: Option<u64>,
+    max_answers: Option<usize>,
+) -> i32 {
+    let formula_ttl = match std::fs::read_to_string(formula) {
+        Ok(text) => text,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.conjecture.read",
+                format!("cannot read {}: {e}", formula.display()),
+            );
+        }
+    };
+    let kb_ttl = match std::fs::read_to_string(kb) {
+        Ok(text) => text,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.conjecture.read",
+                format!("cannot read {}: {e}", kb.display()),
+            );
+        }
+    };
+
+    let out =
+        match gmeow_pipeline::mcp::run_conjecture_test(&gmeow_pipeline::mcp::ConjectureRunInput {
+            formula_ttl: &formula_ttl,
+            kb_ttl: &kb_ttl,
+            standpoint,
+            math_conjecture,
+            dry_run,
+            max_steps,
+            max_answers,
+        }) {
+            Ok(out) => out,
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.conjecture.failed",
+                    format!("conjecture test failed: {e}"),
+                );
+            }
+        };
+
+    // A precondition-unmet TR gate refused the write: report it and fail (exit 1),
+    // mirroring the MCP `ok:false` path — the verdict was computed but not persisted.
+    if let Some(reason) = &out.precondition_unmet {
+        println!("lifecycle {}", out.lifecycle);
+        println!("information {}", out.information);
+        return fail(
+            reporter,
+            "gmeow-cli.conjecture.precondition-unmet",
+            format!("persistConjecture precondition unmet: {reason}"),
+        );
+    }
+
+    // Product results → stdout with stable, greppable key prefixes.
+    println!("lifecycle {}", out.lifecycle);
+    println!("information {}", out.information);
+    println!("evaluation {}", out.evaluation);
+    println!("completeness {}", out.completeness);
+    println!("discharge {}", out.discharge);
+    println!("conjecture {}", out.node_iri);
+    if let Some(witness) = &out.witness {
+        println!("witness-individual {}", witness.individual);
+        println!("witness-world {}", witness.world);
+        for premise in &witness.premises {
+            println!("witness-premise {premise}");
+        }
+    }
+    if out.dry_run {
+        println!("persisted dry-run (nothing written)");
+    } else if out.committed {
+        println!("persisted committed");
+    } else {
+        println!("persisted no");
+    }
+    0
+}
+
 // ── validate ─────────────────────────────────────────────────────────────────
 
 /// The native RDF format id for a file suffix, mirroring

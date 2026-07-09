@@ -14,7 +14,6 @@
 # All subjects tested below are defined in slices/extensions/lexicon/module.ttl;
 # no cross-slice subjects are tested here.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lexicon/tests/> .
@@ -26,7 +25,7 @@ ex:saLexicalItemIsInformationObject a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:LexicalItem rdfs:subClassOf gmeow:InformationObject . }""" ;
-    gmeow:saRationale "gmeow:LexicalItem MUST be a subclass of gmeow:InformationObject — the abstract lexeme is a first-class information object. Mirrors test_lexical_item_is_information_object." .
+    gmeow:saRationale "gmeow:LexicalItem MUST be a subclass of gmeow:InformationObject — the abstract lexeme is a first-class information object." .
 
 # --- 2. LexicalForm is a subclass of InformationObject (MUST) -----------------
 ex:saLexicalFormIsInformationObject a gmeow:StructuralAssertion ;
@@ -35,7 +34,7 @@ ex:saLexicalFormIsInformationObject a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:LexicalForm rdfs:subClassOf gmeow:InformationObject . }""" ;
-    gmeow:saRationale "gmeow:LexicalForm MUST be a subclass of gmeow:InformationObject — a concrete lexical form is a first-class information object. Mirrors test_lexical_form_is_information_object." .
+    gmeow:saRationale "gmeow:LexicalForm MUST be a subclass of gmeow:InformationObject — a concrete lexical form is a first-class information object." .
 
 # --- 3a. hasLexicalForm is an ObjectProperty (MUST) ---------------------------
 ex:saHasLexicalFormIsObjectProperty a gmeow:StructuralAssertion ;
@@ -44,7 +43,7 @@ ex:saHasLexicalFormIsObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:hasLexicalForm a owl:ObjectProperty . }""" ;
-    gmeow:saRationale "gmeow:hasLexicalForm MUST be an owl:ObjectProperty — it links LexicalItem to its concrete LexicalForm instances. Mirrors test_has_lexical_form_is_non_functional (positive half)." .
+    gmeow:saRationale "gmeow:hasLexicalForm MUST be an owl:ObjectProperty — it links LexicalItem to its concrete LexicalForm instances." .
 
 # --- 3b. hasLexicalForm is NOT functional (MUST-NOT) -------------------------
 ex:saHasLexicalFormNotFunctional a gmeow:StructuralAssertion ;
@@ -53,7 +52,7 @@ ex:saHasLexicalFormNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:hasLexicalForm a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:hasLexicalForm MUST NOT be functional — a single lexical item may have many coexisting forms (written, spoken, reconstructed, etc.) (Principle 9). Mirrors test_has_lexical_form_is_non_functional (negative half)." .
+    gmeow:saRationale "gmeow:hasLexicalForm MUST NOT be functional — a single lexical item may have many coexisting forms (written, spoken, reconstructed, etc.) (Principle 9)." .
 
 # --- 4. lexicalItemLanguage is functional (MUST) ------------------------------
 ex:saLexicalItemLanguageFunctional a gmeow:StructuralAssertion ;
@@ -62,7 +61,7 @@ ex:saLexicalItemLanguageFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:lexicalItemLanguage a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:lexicalItemLanguage MUST be an owl:FunctionalProperty — one primary language per lexical item; polyglot items are separate items linked by derivation or translation. Mirrors test_lexical_item_language_is_functional." .
+    gmeow:saRationale "gmeow:lexicalItemLanguage MUST be an owl:FunctionalProperty — one primary language per lexical item; polyglot items are separate items linked by derivation or translation." .
 
 # --- 5. formRepresentation is functional (MUST) -------------------------------
 ex:saFormRepresentationFunctional a gmeow:StructuralAssertion ;
@@ -71,7 +70,7 @@ ex:saFormRepresentationFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:formRepresentation a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:formRepresentation MUST be an owl:FunctionalProperty — one surface string per form instance; a different representation is a different form. Mirrors test_form_representation_is_functional." .
+    gmeow:saRationale "gmeow:formRepresentation MUST be an owl:FunctionalProperty — one surface string per form instance; a different representation is a different form." .
 
 # --- 6a. formType is an ObjectProperty (MUST) ---------------------------------
 ex:saFormTypeIsObjectProperty a gmeow:StructuralAssertion ;
@@ -80,7 +79,7 @@ ex:saFormTypeIsObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:formType a owl:ObjectProperty . }""" ;
-    gmeow:saRationale "gmeow:formType MUST be an owl:ObjectProperty — it links a LexicalForm to its LexicalFormType value(s). Mirrors test_form_type_is_non_functional (positive half)." .
+    gmeow:saRationale "gmeow:formType MUST be an owl:ObjectProperty — it links a LexicalForm to its LexicalFormType value(s)." .
 
 # --- 6b. formType is NOT functional (MUST-NOT) --------------------------------
 ex:saFormTypeNotFunctional a gmeow:StructuralAssertion ;
@@ -89,7 +88,7 @@ ex:saFormTypeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:formType a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:formType MUST NOT be functional — a single form may be classified as both spoken and written under different standpoints (Principle 9). Mirrors test_form_type_is_non_functional (negative half)." .
+    gmeow:saRationale "gmeow:formType MUST NOT be functional — a single form may be classified as both spoken and written under different standpoints (Principle 9)." .
 
 # --- 7. UsageAttestation is an owl:Class, subclass of Observation and logic:Relator (MUST) ---
 ex:saUsageAttestationIsObservationRelator a gmeow:StructuralAssertion ;
@@ -104,7 +103,7 @@ ASK {
         rdfs:subClassOf gmeow:Observation ;
         rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:UsageAttestation MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of logic:Relator — attestations are evidence nodes that follow the Observation+Relator pattern (Principle 12). Mirrors test_usage_attestation_is_observation_relator." .
+    gmeow:saRationale "gmeow:UsageAttestation MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of logic:Relator — attestations are evidence nodes that follow the Observation+Relator pattern (Principle 12)." .
 
 # --- 8. attestedForm is functional (MUST) -------------------------------------
 ex:saAttestedFormFunctional a gmeow:StructuralAssertion ;
@@ -113,7 +112,7 @@ ex:saAttestedFormFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:attestedForm a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:attestedForm MUST be an owl:FunctionalProperty — one attested form per UsageAttestation relator; multiple forms require separate attestations. Mirrors test_attested_form_is_functional." .
+    gmeow:saRationale "gmeow:attestedForm MUST be an owl:FunctionalProperty — one attested form per UsageAttestation relator; multiple forms require separate attestations." .
 
 # --- 9. EtymologicalDerivation is an owl:Class, subclass of Observation and logic:Relator (MUST) ---
 ex:saEtymologicalDerivationIsObservationRelator a gmeow:StructuralAssertion ;
@@ -128,7 +127,7 @@ ASK {
         rdfs:subClassOf gmeow:Observation ;
         rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:EtymologicalDerivation MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of logic:Relator — etymology is modeled as a provenance-rich standpointed claim graph, not a flat property (Principle 9). Mirrors test_etymological_derivation_is_observation_relator." .
+    gmeow:saRationale "gmeow:EtymologicalDerivation MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of logic:Relator — etymology is modeled as a provenance-rich standpointed claim graph, not a flat property (Principle 9)." .
 
 # --- 10. etymonSource and derivationTarget are functional (MUST) --------------
 ex:saDerivationSourceTargetFunctional a gmeow:StructuralAssertion ;
@@ -140,7 +139,7 @@ ASK {
     gmeow:etymonSource a owl:FunctionalProperty .
     gmeow:derivationTarget a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "gmeow:etymonSource and gmeow:derivationTarget MUST each be owl:FunctionalProperty — one etymon source and one descendant target per EtymologicalDerivation relator; multi-etymon derivations are modeled as separate relators. Mirrors test_derivation_source_target_are_functional." .
+    gmeow:saRationale "gmeow:etymonSource and gmeow:derivationTarget MUST each be owl:FunctionalProperty — one etymon source and one descendant target per EtymologicalDerivation relator; multi-etymon derivations are modeled as separate relators." .
 
 # --- 11a. derivationKind is an ObjectProperty (MUST) -------------------------
 ex:saDerivationKindIsObjectProperty a gmeow:StructuralAssertion ;
@@ -149,7 +148,7 @@ ex:saDerivationKindIsObjectProperty a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:derivationKind a owl:ObjectProperty . }""" ;
-    gmeow:saRationale "gmeow:derivationKind MUST be an owl:ObjectProperty — it links an EtymologicalDerivation to its DerivationKind value(s). Mirrors test_derivation_kind_is_non_functional (positive half)." .
+    gmeow:saRationale "gmeow:derivationKind MUST be an owl:ObjectProperty — it links an EtymologicalDerivation to its DerivationKind value(s)." .
 
 # --- 11b. derivationKind is NOT functional (MUST-NOT) ------------------------
 ex:saDerivationKindNotFunctional a gmeow:StructuralAssertion ;
@@ -158,7 +157,7 @@ ex:saDerivationKindNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:derivationKind a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:derivationKind MUST NOT be functional — a single derivation may be classified under multiple kinds by different analytical standpoints (Principle 9). Mirrors test_derivation_kind_is_non_functional (negative half)." .
+    gmeow:saRationale "gmeow:derivationKind MUST NOT be functional — a single derivation may be classified under multiple kinds by different analytical standpoints (Principle 9)." .
 
 # --- 12a. LexicalFormType is a value-vocabulary subclass of logic:QualityValue (MUST) ---
 ex:saLexicalFormTypeIsValueVocab a gmeow:StructuralAssertion ;
@@ -168,7 +167,7 @@ ex:saLexicalFormTypeIsValueVocab a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:LexicalFormType rdfs:subClassOf logic:QualityValue . }""" ;
-    gmeow:saRationale "gmeow:LexicalFormType MUST be a subclass of logic:QualityValue — form types are an open individuals-based value vocabulary, never subclasses (Principle 9). Mirrors test_form_type_value_vocabulary (class half)." .
+    gmeow:saRationale "gmeow:LexicalFormType MUST be a subclass of logic:QualityValue — form types are an open individuals-based value vocabulary, never subclasses (Principle 9)." .
 
 # --- 12b. The four seeded LexicalFormType individuals exist (MUST) ------------
 ex:saLexicalFormTypeSeeds a gmeow:StructuralAssertion ;
@@ -181,7 +180,7 @@ ASK {
     gmeow:formReconstructed  a gmeow:LexicalFormType .
     gmeow:formTransliterated a gmeow:LexicalFormType .
 }""" ;
-    gmeow:saRationale "gmeow:formWritten, gmeow:formSpoken, gmeow:formReconstructed, and gmeow:formTransliterated MUST all exist as gmeow:LexicalFormType individuals — the four seed values tested by the original pytest. Mirrors test_form_type_value_vocabulary (individual-existence half)." .
+    gmeow:saRationale "gmeow:formWritten, gmeow:formSpoken, gmeow:formReconstructed, and gmeow:formTransliterated MUST all exist as gmeow:LexicalFormType individuals — the four canonical seed values of the original vocabulary." .
 
 # --- 13a. DerivationKind is a value-vocabulary subclass of logic:QualityValue (MUST) ---
 ex:saDerivationKindIsValueVocab a gmeow:StructuralAssertion ;
@@ -191,7 +190,7 @@ ex:saDerivationKindIsValueVocab a gmeow:StructuralAssertion ;
 PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:DerivationKind rdfs:subClassOf logic:QualityValue . }""" ;
-    gmeow:saRationale "gmeow:DerivationKind MUST be a subclass of logic:QualityValue — derivation kinds are an open individuals-based value vocabulary, never subclasses (Principle 9). Mirrors test_derivation_kind_value_vocabulary (class half)." .
+    gmeow:saRationale "gmeow:DerivationKind MUST be a subclass of logic:QualityValue — derivation kinds are an open individuals-based value vocabulary, never subclasses (Principle 9)." .
 
 # --- 13b. The four seeded DerivationKind individuals exist (MUST) -------------
 ex:saDerivationKindSeeds a gmeow:StructuralAssertion ;
@@ -204,4 +203,4 @@ ASK {
     gmeow:derivationCompounding   a gmeow:DerivationKind .
     gmeow:derivationUnknownOrigin a gmeow:DerivationKind .
 }""" ;
-    gmeow:saRationale "gmeow:derivationBorrowing, gmeow:derivationSemanticShift, gmeow:derivationCompounding, and gmeow:derivationUnknownOrigin MUST all exist as gmeow:DerivationKind individuals — the four seed values tested by the original pytest. Mirrors test_derivation_kind_value_vocabulary (individual-existence half)." .
+    gmeow:saRationale "gmeow:derivationBorrowing, gmeow:derivationSemanticShift, gmeow:derivationCompounding, and gmeow:derivationUnknownOrigin MUST all exist as gmeow:DerivationKind individuals — the four canonical seed values of the original vocabulary." .

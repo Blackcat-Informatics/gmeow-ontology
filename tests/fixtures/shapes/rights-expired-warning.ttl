@@ -8,7 +8,9 @@
 @prefix ex:    <https://example.org/shapes/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 
-ex:alice a gmeow:Person .
+gmeow:trademarkStatusExpired a gmeow:TrademarkStatus .
+
+ex:alice a gmeow:Person , gmeow:Agent .
 ex:mark a gmeow:Mark ; gmeow:markText "OLDBRAND" .
 
 ex:trademark a gmeow:Trademark ;

@@ -13,7 +13,7 @@
 # KinRelationship bridges (relationshipParent / relationshipChild / hasPartner
 # subPropertyOf observedFeature) are home-local here and are migrated in cells
 # 4-6 below; the observations structural.ttl cell 7 deferred them here
-# explicitly (see dsl/tests/MIGRATION-LEDGER.md).
+# explicitly.
 #
 # The whole-ontology negative sweeps and the SHACL fixture-conformance + ABox
 # checks now live natively in crates/validate/tests/conformance_genealogy.rs
@@ -37,7 +37,7 @@ ASK {
     gmeow:Family a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:Group .
 }""" ;
-    gmeow:saRationale "gmeow:Family MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:Group -- a Family is a SubKind of Group (kinship group of persons related by descent, marriage, or adoption). Mirrors test_genealogy_is_gufo_grounded (Family part)." .
+    gmeow:saRationale "gmeow:Family MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:Group -- a Family is a SubKind of Group (kinship group of persons related by descent, marriage, or adoption)." .
 
 # --- 2. KinRelationship is a logic:SubKind subclassing logic:Relator (MUST) ---
 ex:saKinRelationshipIsRelator a gmeow:StructuralAssertion ;
@@ -52,7 +52,7 @@ ASK {
         rdfs:subClassOf logic:Relator ;
         rdfs:subClassOf gmeow:Observation .
 }""" ;
-    gmeow:saRationale "gmeow:KinRelationship MUST be an owl:Class typed logic:SubKind with rdfs:subClassOf logic:Relator and gmeow:Observation -- the observation-spine bridge makes kinship a reified claim-from-a-vantage. Mirrors test_genealogy_is_gufo_grounded (KinRelationship part)." .
+    gmeow:saRationale "gmeow:KinRelationship MUST be an owl:Class typed logic:SubKind with rdfs:subClassOf logic:Relator and gmeow:Observation -- the observation-spine bridge makes kinship a reified claim-from-a-vantage." .
 
 # --- 3. ParentChildRelationship subclasses KinRelationship (MUST) ------------
 ex:saParentChildRelationshipIsKinRelationship a gmeow:StructuralAssertion ;
@@ -66,7 +66,7 @@ ASK {
     gmeow:ParentChildRelationship a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:KinRelationship .
 }""" ;
-    gmeow:saRationale "gmeow:ParentChildRelationship MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:KinRelationship -- the typed specialisation of a kin bond that carries a parent and a child role. Mirrors test_genealogy_is_gufo_grounded (ParentChildRelationship part)." .
+    gmeow:saRationale "gmeow:ParentChildRelationship MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:KinRelationship -- the typed specialisation of a kin bond that carries a parent and a child role." .
 
 # --- 4. relationshipParent subPropertyOf observedFeature, functional (MUST) --
 ex:saRelationshipParentBridge a gmeow:StructuralAssertion ;
@@ -81,7 +81,7 @@ ASK {
         rdfs:domain gmeow:ParentChildRelationship ;
         rdfs:range gmeow:Person .
 }""" ;
-    gmeow:saRationale "gmeow:relationshipParent MUST be a functional owl:ObjectProperty with rdfs:subPropertyOf gmeow:observedFeature, domain ParentChildRelationship, and range Person -- the parent role exposes the parent as an observation feature so the universal query path sees it; functional because each reified relationship has exactly one parent. Mirrors test_kin_relationship_bridges_fire (observations)." .
+    gmeow:saRationale "gmeow:relationshipParent MUST be a functional owl:ObjectProperty with rdfs:subPropertyOf gmeow:observedFeature, domain ParentChildRelationship, and range Person -- the parent role exposes the parent as an observation feature so the universal query path sees it; functional because each reified relationship has exactly one parent." .
 
 # --- 5. relationshipChild subPropertyOf observedFeature, functional (MUST) ---
 ex:saRelationshipChildBridge a gmeow:StructuralAssertion ;
@@ -96,7 +96,7 @@ ASK {
         rdfs:domain gmeow:ParentChildRelationship ;
         rdfs:range gmeow:Person .
 }""" ;
-    gmeow:saRationale "gmeow:relationshipChild MUST be a functional owl:ObjectProperty with rdfs:subPropertyOf gmeow:observedFeature, domain ParentChildRelationship, and range Person -- symmetrical to relationshipParent; exposes the child end as an observation feature; functional because a reified relationship has exactly one child slot. Mirrors test_kin_relationship_bridges_fire (observations)." .
+    gmeow:saRationale "gmeow:relationshipChild MUST be a functional owl:ObjectProperty with rdfs:subPropertyOf gmeow:observedFeature, domain ParentChildRelationship, and range Person -- symmetrical to relationshipParent; exposes the child end as an observation feature; functional because a reified relationship has exactly one child slot." .
 
 # --- 6. hasPartner subPropertyOf observedFeature (MUST) ----------------------
 ex:saHasPartnerBridge a gmeow:StructuralAssertion ;
@@ -111,7 +111,7 @@ ASK {
         rdfs:domain gmeow:CoupleRelationship ;
         rdfs:range gmeow:Person .
 }""" ;
-    gmeow:saRationale "gmeow:hasPartner MUST be an owl:ObjectProperty with rdfs:subPropertyOf gmeow:observedFeature, domain CoupleRelationship, and range Person -- partners are co-observed features of the couple observation so the universal query path sees them; non-functional because a couple has two partners. Mirrors test_kin_relationship_bridges_fire (observations) (observations structural.ttl cell 7 deferred this here)." .
+    gmeow:saRationale "gmeow:hasPartner MUST be an owl:ObjectProperty with rdfs:subPropertyOf gmeow:observedFeature, domain CoupleRelationship, and range Person -- partners are co-observed features of the couple observation so the universal query path sees them; non-functional because a couple has two partners." .
 
 # --- 7. Genealogy kinship properties are subproperties of connectsTo (MUST) ---
 ex:saGenealogySubpropertiesOfConnectsTo a gmeow:StructuralAssertion ;
@@ -125,4 +125,4 @@ ASK {
     gmeow:hasParent  rdfs:subPropertyOf gmeow:connectsTo .
     gmeow:hasChild   rdfs:subPropertyOf gmeow:connectsTo .
 }""" ;
-    gmeow:saRationale "gmeow:hasSpouse, hasSibling, hasParent, and hasChild MUST each be rdfs:subPropertyOf gmeow:connectsTo -- kinship links are specializations of the universal connectivity spine. Mirrors test_genealogy_subproperties_of_connects_to." .
+    gmeow:saRationale "gmeow:hasSpouse, hasSibling, hasParent, and hasChild MUST each be rdfs:subPropertyOf gmeow:connectsTo -- kinship links are specializations of the universal connectivity spine." .

@@ -421,6 +421,9 @@ mod tests {
             ingest_claim,
             ingest_residue: Vec::new(),
             mnemomorphic,
+            emit_sssom: false,
+            sssom_predicate: None,
+            sssom_file: None,
         };
         ProjectionCell {
             iri: "https://blackcatinformatics.ca/gmeow/example/mlModelCell".to_owned(),

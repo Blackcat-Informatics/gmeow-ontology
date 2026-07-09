@@ -220,9 +220,10 @@ impl BoundedLattice for Blocking {
 
 impl FindingCategory {
     /// The gating projection of a category. Exactly the three *failure* kinds are
-    /// Blocking; the other six — including [`PermittedEpistemicConflict`] and the
-    /// [`Transient`] chatter kind — are Coherent and can never contribute to gate
-    /// fatality.
+    /// Blocking; the other seven — including [`PermittedEpistemicConflict`], the
+    /// non-blocking [`Corroboration`](FindingCategory::Corroboration), and the
+    /// [`Transient`](FindingCategory::Transient) chatter kind — are Coherent and
+    /// can never contribute to gate fatality.
     ///
     /// [`PermittedEpistemicConflict`]: FindingCategory::PermittedEpistemicConflict
     /// [`Transient`]: FindingCategory::Transient
@@ -236,6 +237,7 @@ impl FindingCategory {
             | Self::IncompleteCheck
             | Self::ProjectionLoss
             | Self::PolicyWarning
+            | Self::Corroboration
             | Self::Transient => Blocking::Coherent,
         }
     }
@@ -254,6 +256,7 @@ impl FindingCategory {
             | Self::IncompleteCheck
             | Self::ProjectionLoss
             | Self::PolicyWarning
+            | Self::Corroboration
             | Self::Transient => Belnap::Neither,
         }
     }
@@ -274,11 +277,12 @@ impl FindingCategory {
             Self::IncompleteCheck => 5,
             Self::ProjectionLoss => 6,
             Self::PolicyWarning => 7,
-            Self::Transient => 8,
+            Self::Corroboration => 8,
+            Self::Transient => 9,
         }
     }
 
-    pub const ALL: [FindingCategory; 9] = [
+    pub const ALL: [FindingCategory; 10] = [
         FindingCategory::DataShapeViolation,
         FindingCategory::ModelingDisciplineViolation,
         FindingCategory::ContradictionWitness,
@@ -287,6 +291,7 @@ impl FindingCategory {
         FindingCategory::IncompleteCheck,
         FindingCategory::ProjectionLoss,
         FindingCategory::PolicyWarning,
+        FindingCategory::Corroboration,
         FindingCategory::Transient,
     ];
 }

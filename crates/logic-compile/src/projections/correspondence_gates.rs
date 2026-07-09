@@ -22,7 +22,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::ir::{Correspondence, DischargeVerdict, MorphismClass};
+use crate::ir::{Correspondence, DischargeVerdict, MorphismClass, PreservationKind};
 
 use super::OverclaimError;
 use super::correspondence::CorrespondenceProgram;
@@ -120,6 +120,8 @@ pub struct GateReport {
     pub round_trip: GateVerdict,
     /// The Mnemomorphism gate verdict.
     pub mnemomorphism: GateVerdict,
+    /// The Preservation-consistency gate verdict.
+    pub preservation: GateVerdict,
 }
 
 /// The Composition gate verdict for one declared composition `left ∘ right` (with an
@@ -286,6 +288,41 @@ fn mnemomorphism_gate(verdicts: &CorrespondenceVerdicts, c: &Correspondence) -> 
     }
 }
 
+/// The **Preservation-consistency gate**: a correspondence on a non-injective rung
+/// (`logic:LossyLens` / `logic:Prism` / `logic:AffineCorrespondence` — the SAME set the
+/// overclaim gate keys on) MUST NOT declare `logic:ExactPreservation`. A many-to-one,
+/// non-invertible `get` cannot be exactly preserving (the round-trip is undecidable in the
+/// lossy direction), so an `Exact` claim on such a rung overclaims its own preservation
+/// judgment — a build failure. An injective / bridge rung is unconstrained here
+/// (`NotApplicable`); a non-injective rung authoring no rung, or any non-`Exact` kind
+/// (e.g. `corrSzsToVerdict`'s `SoundUnderApproximation`), passes.
+fn preservation_gate(c: &Correspondence) -> GateVerdict {
+    let non_injective = matches!(
+        c.morphism_class,
+        MorphismClass::LossyLens | MorphismClass::Prism | MorphismClass::AffineCorrespondence
+    );
+    if !non_injective {
+        return GateVerdict::NotApplicable {
+            reason: format!(
+                "logic:{} is not a non-injective rung; ExactPreservation is not constrained \
+                 by the non-invertibility rule",
+                c.morphism_class.as_str()
+            ),
+        };
+    }
+    match c.preservation {
+        Some(PreservationKind::Exact) => GateVerdict::Red {
+            reason: format!(
+                "declares logic:ExactPreservation on the non-injective rung logic:{}; a \
+                 many-to-one non-invertible get cannot be exactly preserving — the sound \
+                 preservation is logic:SoundUnderApproximation",
+                c.morphism_class.as_str()
+            ),
+        },
+        _ => GateVerdict::Pass,
+    }
+}
+
 /// The **Composition gate** (take1 §8.1): a sequential composite may only *weaken* the
 /// rung. The lattice-join is the weaker of the two parts' rungs (the `Ord` is
 /// strongest-first, so the join is the MAX). A declared composite stronger than the join
@@ -418,6 +455,7 @@ pub fn evaluate_gates(
             overclaim: overclaim_gate(c),
             round_trip: round_trip_gate(verdicts, c),
             mnemomorphism: mnemomorphism_gate(verdicts, c),
+            preservation: preservation_gate(c),
         })
         .collect();
     per_correspondence.sort_by(|a, b| a.correspondence.cmp(&b.correspondence));
@@ -450,6 +488,7 @@ pub fn assert_gates(report: &CorrespondenceGateReport) -> Result<(), OverclaimEr
             ("Overclaim", &r.overclaim),
             ("Round-trip", &r.round_trip),
             ("Mnemomorphism", &r.mnemomorphism),
+            ("Preservation", &r.preservation),
         ] {
             if let GateVerdict::Red { reason } = verdict {
                 return Err(OverclaimError(format!(

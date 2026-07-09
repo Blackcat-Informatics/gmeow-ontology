@@ -21,6 +21,7 @@ mod dev_i18n;
 mod dev_logic;
 mod dev_project;
 mod dev_reason;
+mod dev_slice_quality;
 mod dev_targets;
 mod dev_transpile;
 mod dev_validate;
@@ -412,6 +413,44 @@ pub enum Commands {
         #[arg(long = "profile")]
         profile: Option<String>,
     },
+    /// Score a slice against the slice-quality rubric and emit ranked uplift advice.
+    #[command(name = "slice-quality")]
+    SliceQuality {
+        /// The slice directory to score (omit with --all).
+        #[arg(conflicts_with = "all")]
+        path: Option<PathBuf>,
+        /// Sweep every slice under slices/ instead of one path.
+        #[arg(long = "all")]
+        all: bool,
+        /// Output rendering: text (default), json, sarif, or rdf.
+        #[arg(long = "format")]
+        format: Option<String>,
+        /// Gate this run at an explicit tier: exit non-zero if the measured
+        /// roll-up is below TIER (a tier local name or label, e.g. Grounded,
+        /// Linked, Exemplified, Maximal, Registered). Unset = advisory (always
+        /// exit 0). With --all, fails if ANY swept slice is below TIER, naming
+        /// each. Render/emit still happen first; the gate only sets the exit code.
+        #[arg(long = "min-tier")]
+        min_tier: Option<String>,
+        /// Diagnostics console surface (flag > env > auto).
+        #[arg(long = "diagnostics-console")]
+        diagnostics_console: Option<String>,
+        /// Comma-separated diagnostics artifacts to write: json,sarif,html.
+        #[arg(long = "diagnostics-artifacts")]
+        diagnostics_artifacts: Option<String>,
+        /// Directory the diagnostics artifacts are written under.
+        #[arg(long = "diagnostics-dir")]
+        diagnostics_dir: Option<PathBuf>,
+        /// Filename stem for the written diagnostics artifacts.
+        #[arg(long = "diagnostics-stem")]
+        diagnostics_stem: Option<String>,
+        /// Diagnostics category stamped into the report metadata.
+        #[arg(long = "diagnostics-category")]
+        diagnostics_category: Option<String>,
+    },
+    /// Enforce the opt-in slice-quality tier ratchet (a `make check` gate).
+    #[command(name = "slice-quality-gate")]
+    SliceQualityGate,
     /// Propose manifest dependency edits as a reviewable unified diff.
     #[command(name = "slice-fix-deps")]
     SliceFixDeps {
@@ -793,6 +832,28 @@ pub fn run() -> i32 {
             input_path,
             profile,
         } => dev_reason::certify(&input_path, profile.as_deref()),
+        Commands::SliceQuality {
+            path,
+            all,
+            format,
+            min_tier,
+            diagnostics_console,
+            diagnostics_artifacts,
+            diagnostics_dir,
+            diagnostics_stem,
+            diagnostics_category,
+        } => dev_slice_quality::slice_quality(
+            path.as_deref(),
+            all,
+            format.as_deref(),
+            min_tier.as_deref(),
+            diagnostics_console.and_then(parse_console),
+            diagnostics_artifacts.as_deref(),
+            diagnostics_dir.as_deref(),
+            diagnostics_stem.as_deref(),
+            diagnostics_category.as_deref(),
+        ),
+        Commands::SliceQualityGate => dev_slice_quality::slice_quality_gate(),
         Commands::SliceFixDeps { apply, slices_dir } => {
             dev_feedback::slice_fix_deps(apply, slices_dir.as_deref())
         }

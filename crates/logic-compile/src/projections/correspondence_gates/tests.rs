@@ -64,6 +64,37 @@ fn corr(
         None,
         None,
         None,
+        None,
+    )
+    .expect("well-formed correspondence")
+}
+
+/// A correspondence carrying an explicit per-correspondence preservation judgment — for the
+/// preservation-consistency gate (the only gate that reads `logic:preservationKind`).
+#[allow(clippy::too_many_arguments)]
+fn corr_pres(
+    iri: &str,
+    relation: CorrespondenceRelation,
+    class: MorphismClass,
+    kind: MorphismKind,
+    preservation: PreservationKind,
+) -> Correspondence {
+    Correspondence::new(
+        iri.to_owned(),
+        relation,
+        class,
+        kind,
+        false,
+        None,
+        Some(format!("{iri}#get")),
+        None,
+        Vec::new(),
+        None,
+        None,
+        None,
+        None,
+        None,
+        Some(preservation),
     )
     .expect("well-formed correspondence")
 }
@@ -562,6 +593,52 @@ fn liftability_counts_only_recoverable_cells() {
             total: 2
         }
     );
+}
+
+#[test]
+fn exact_preservation_on_non_injective_rung_is_preservation_red() {
+    // A LossyLens (many-to-one, non-invertible get) declaring ExactPreservation overclaims
+    // its own preservation judgment: an exact round-trip is impossible in the lossy
+    // direction. The preservation-consistency gate REDs it, and assert_gates reds the build.
+    let c = corr_pres(
+        &format!("{GMEOW}ex/exactLossy"),
+        CorrespondenceRelation::Overlaps,
+        MorphismClass::LossyLens,
+        MorphismKind::InstitutionMorphism,
+        PreservationKind::Exact,
+    );
+    let prog = program(vec![c]);
+    let report = evaluate_gates(
+        &prog,
+        &[],
+        &verdicts_all(&prog, DischargeVerdict::ObligationUnknown),
+    );
+    let r = &report.per_correspondence[0];
+    assert!(r.preservation.is_red(), "{:?}", r.preservation);
+    let err = assert_gates(&report).unwrap_err();
+    assert!(err.0.contains("Preservation"), "{}", err.0);
+}
+
+#[test]
+fn sound_under_lossy_lens_passes_preservation_gate() {
+    // The corrSzsToVerdict shape: a LossyLens declaring SoundUnderApproximation is the
+    // HONEST preservation judgment for a non-injective get, so the gate passes.
+    let c = corr_pres(
+        &format!("{GMEOW}ex/szsToVerdict"),
+        CorrespondenceRelation::Subsumes,
+        MorphismClass::LossyLens,
+        MorphismKind::InstitutionMorphism,
+        PreservationKind::SoundUnder,
+    );
+    let prog = program(vec![c]);
+    let report = evaluate_gates(
+        &prog,
+        &[],
+        &verdicts_all(&prog, DischargeVerdict::ObligationUnknown),
+    );
+    let r = &report.per_correspondence[0];
+    assert_eq!(r.preservation, GateVerdict::Pass, "{:?}", r.preservation);
+    assert!(assert_gates(&report).is_ok());
 }
 
 /// Canonical JSON serialization is stable (golden-shape check).

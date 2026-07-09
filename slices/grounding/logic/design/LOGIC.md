@@ -6,7 +6,9 @@
 > The **manifesto** of the GMEOW Logic design set; it carries the vision, doctrine, and lineage.
 > The formal semantics, runtime, and conformance contract live in the sibling documents below.
 > Where this document states a thesis once, the siblings make it precise — repetition is replaced
-> by cross-reference on purpose.
+> by cross-reference on purpose. The cross-slice contract binding this slice to its co-foundational
+> peers (`lang:`, `math:`) — the seam registry, shared disciplines, and acceptance bar — is
+> [`docs/GROUNDING.md`](../../../../docs/GROUNDING.md).
 
 ## The document set
 

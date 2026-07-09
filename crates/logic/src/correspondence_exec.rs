@@ -299,6 +299,7 @@ mod tests {
             None,
             None,
             None,
+            None,
         )
         .expect("well-formed");
         let program = CorrespondenceProgram::new(vec![c], Vec::new(), PreservationKind::SoundUnder)
@@ -335,6 +336,7 @@ mod tests {
             Some("https://ex/bridgeGet".to_owned()),
             None,
             Vec::new(),
+            None,
             None,
             None,
             None,

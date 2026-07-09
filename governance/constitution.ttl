@@ -67,7 +67,7 @@ meta:gate-rdf12-codec a meta:Gate ;
 
 meta:gate-generator-registry a meta:Gate ;
     rdfs:label "pipeline DAG registry: single-pass regenerate / drift gates"@x-gmeow-english ;
-    meta:artifact "crates/pipeline/src/py.rs", "crates/pipeline/src/run.rs", "slices/core/pipeline/module.ttl" ;
+    meta:artifact "crates/pipeline/src/run.rs", "slices/core/pipeline/module.ttl" ;
     meta:symbol "run_full" ;
     meta:cliCommand "regenerate", "check-generated", "compile-gts" ;
     meta:makeTarget "check-generated", "regenerate" ;
@@ -80,14 +80,14 @@ meta:gate-generator-registry a meta:Gate ;
 meta:tests-narrow-waist a meta:Gate ;
     rdfs:label "narrow-waist seal (GTS is the only exit for data)"@x-gmeow-english ;
     meta:artifact "crates/validate/src/repo_static.rs", "docs/gts-narrow-waist.md" ;
-    meta:symbol "check_repo_static", "check_no_rdflib_in_runtime" ;
+    meta:symbol "check_repo_static" ;
     meta:cliCommand "crate-check" ;
     meta:makeTarget "crate-check" .
 
 meta:lint-sameas-ban a meta:Lint ;
     rdfs:label "owl:sameAs-to-external ban (validate ERROR + allowlist)"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/validate.py" ;
-    meta:symbol "check_sameas_ban" .
+    meta:artifact "crates/validate/src/validate_all.rs" ;
+    meta:symbol "check_sameas_ban_from_parsed" .
 
 meta:lint-equivalence-collapse a meta:Lint ;
     rdfs:label "equivalence-closure collapse gate over disjoint pairs"@x-gmeow-english ;
@@ -99,7 +99,7 @@ meta:tests-alignment a meta:TestSuite ;
     rdfs:label "alignment direction / bridging tests"@x-gmeow-english ;
     meta:artifact "crates/logic-compile/src/projections/correspondence_soundness.rs",
         "crates/pipeline/tests/correspondence_soundness_parity.rs",
-        "tests/test_coreference.py" .
+        "crates/validate/tests/conformance_coreference.rs" .
 
 meta:gate-crosscheck a meta:Gate ;
     rdfs:label "committed-query soundness crosscheck — every committed query answers on the native purrdf engine (rdflib retired)"@x-gmeow-english ;
@@ -140,8 +140,8 @@ meta:gate-suppression a meta:Gate ;
 meta:tests-suppression a meta:TestSuite ;
     rdfs:label "suppression and disclosure tests"@x-gmeow-english ;
     meta:artifact "crates/pipeline/tests/edoal_sparql_correspondence_parity.rs",
-        "crates/validate/tests/conformance_disclosure.rs", "tests/test_privacy.py",
-        "tests/test_suppression_conformance.py" .
+        "crates/validate/tests/conformance_disclosure.rs", "crates/validate/tests/conformance_privacy.rs",
+        "crates/validate/tests/conformance_suppression.rs" .
 
 meta:tests-reference-frames a meta:TestSuite ;
     rdfs:label "reference-frame relativity tests"@x-gmeow-english ;
@@ -172,10 +172,10 @@ meta:tests-products a meta:TestSuite ;
 
 meta:tests-claim-spine a meta:TestSuite ;
     rdfs:label "claim provenance, attestation, and trust tests"@x-gmeow-english ;
-    meta:artifact "tests/test_provenance.py",
+    meta:artifact "crates/validate/tests/conformance_provenance.rs",
         "slices/core/attestation/tests/structural.ttl",
         "crates/validate/tests/ontology_conformance.rs",
-        "tests/test_trust.py", "crates/validate/tests/conformance_evidence.rs" .
+        "crates/validate/tests/conformance_trust.rs", "crates/validate/tests/conformance_evidence.rs" .
 
 meta:practice-consumer-question a meta:Practice ;
     rdfs:label "issue templates ask who the consumer is"@x-gmeow-english ;
@@ -185,12 +185,12 @@ meta:practice-consumer-question a meta:Practice ;
 
 meta:gate-core-profile a meta:Gate ;
     rdfs:label "root ontology = CORE profile exactly; manifests are tier truth"@x-gmeow-english ;
-    meta:artifact "tests/test_vocabulary_surface.py", "slices/vocabulary.ttl" ;
-    meta:symbol "test_root_imports_are_exactly_the_core_profile" .
+    meta:artifact "crates/validate/tests/conformance_vocabulary_surface.rs", "slices/vocabulary.ttl" ;
+    meta:symbol "root_imports_are_exactly_the_core_profile" .
 
 meta:tests-slices a meta:TestSuite ;
     rdfs:label "slice anatomy and profile tests"@x-gmeow-english ;
-    meta:artifact "tests/test_slices.py", "crates/validate/tests/conformance_profiles.rs" .
+    meta:artifact "crates/validate/tests/conformance_profiles.rs" .
 
 meta:gate-crate-layering a meta:Gate ;
     rdfs:label "Rust crate layering: acyclic first-party crate DAG"@x-gmeow-english ;
@@ -211,8 +211,8 @@ meta:lint-coequal-facet a meta:Lint ;
 
 meta:lint-term-naming a meta:Lint ;
     rdfs:label "no selector tokens in term local names"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/validate.py" ;
-    meta:symbol "term_naming_lint" .
+    meta:artifact "crates/validate/src/lint.rs" ;
+    meta:symbol "term_naming_lint_dataset" .
 
 meta:gate-suppression-injection a meta:Gate ;
     rdfs:label "suppression guards injected into every projection CONSTRUCT"@x-gmeow-english ;
@@ -221,7 +221,7 @@ meta:gate-suppression-injection a meta:Gate ;
 
 meta:tests-leak-conformance a meta:TestSuite ;
     rdfs:label "generated per-profile leak-conformance suite"@x-gmeow-english ;
-    meta:artifact "tests/test_suppression_conformance.py" .
+    meta:artifact "crates/validate/tests/conformance_suppression.rs" .
 
 meta:shapes-frame-generated a meta:Shape ;
     rdfs:label "frame-relativity SHACL generated from gmeow:requiresFrame"@x-gmeow-english ;

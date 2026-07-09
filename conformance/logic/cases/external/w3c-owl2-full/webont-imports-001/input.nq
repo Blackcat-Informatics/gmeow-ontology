@@ -1,0 +1,2 @@
+<http://example.org/data#Socrates> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/03owlt/imports/support001-A#Man> <https://gmeow.example/w3c-owl2-full/webont-imports-001/w> .
+<http://www.w3.org/2002/03owlt/imports/premises001> <http://www.w3.org/2002/07/owl#imports> <http://www.w3.org/2002/03owlt/imports/support001-A> <https://gmeow.example/w3c-owl2-full/webont-imports-001/w> .

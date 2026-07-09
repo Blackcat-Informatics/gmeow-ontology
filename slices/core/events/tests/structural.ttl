@@ -54,7 +54,6 @@
 #     gmeow:roleAttendee are defined in this events module, so the cell now lives
 #     here as ex:saOrganizerAndAttendeeRolesExist.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/events/tests/> .
@@ -71,7 +70,7 @@ ASK {
     gmeow:Participation a owl:Class , logic:Kind ;
         rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:Participation MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- the reified participation is a relator binding event, participant, and role. Mirrors test_participation_is_a_gufo_relator." .
+    gmeow:saRationale "gmeow:Participation MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- the reified participation is a relator binding event, participant, and role." .
 
 # --- 2. eventType is an ObjectProperty ranging over EventType, non-functional ---
 ex:saEventTypePropertyShape a gmeow:StructuralAssertion ;
@@ -84,7 +83,7 @@ ASK {
     gmeow:eventType a owl:ObjectProperty ;
         rdfs:range gmeow:EventType .
 }""" ;
-    gmeow:saRationale "gmeow:eventType MUST be an owl:ObjectProperty with rdfs:range gmeow:EventType -- type is a value, never a subclass (Principle 9). Mirrors test_event_type_and_role_are_value_object_properties (positive half)." .
+    gmeow:saRationale "gmeow:eventType MUST be an owl:ObjectProperty with rdfs:range gmeow:EventType -- type is a value, never a subclass (Principle 9)." .
 
 # --- 3. eventType is NOT functional (MUST-NOT) ---------------------------------
 ex:saEventTypeNotFunctional a gmeow:StructuralAssertion ;
@@ -93,7 +92,7 @@ ex:saEventTypeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:eventType a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:eventType MUST NOT be owl:FunctionalProperty -- an occurrence may bear several types; competing standpoint-indexed type claims coexist (Principle 9). Mirrors test_event_type_and_role_are_value_object_properties (non-functional half)." .
+    gmeow:saRationale "gmeow:eventType MUST NOT be owl:FunctionalProperty -- an occurrence may bear several types; competing standpoint-indexed type claims coexist (Principle 9)." .
 
 # --- 4. participationRole is an ObjectProperty ranging over ParticipantRole ----
 ex:saParticipationRolePropertyShape a gmeow:StructuralAssertion ;
@@ -106,7 +105,7 @@ ASK {
     gmeow:participationRole a owl:ObjectProperty ;
         rdfs:range gmeow:ParticipantRole .
 }""" ;
-    gmeow:saRationale "gmeow:participationRole MUST be an owl:ObjectProperty with rdfs:range gmeow:ParticipantRole -- role is a value on a relator, never a subproperty (Principle 9). Mirrors test_event_type_and_role_are_value_object_properties (role half)." .
+    gmeow:saRationale "gmeow:participationRole MUST be an owl:ObjectProperty with rdfs:range gmeow:ParticipantRole -- role is a value on a relator, never a subproperty (Principle 9)." .
 
 # --- 5. Former role subproperties are not properties (MUST-NOT) ----------------
 ex:saFormerRoleSubpropertiesGone a gmeow:StructuralAssertion ;
@@ -119,7 +118,7 @@ ASK {
     VALUES ?t { owl:ObjectProperty owl:DatatypeProperty owl:AnnotationProperty }
     ?p a ?t .
 }""" ;
-    gmeow:saRationale "gmeow:hasPrincipal, gmeow:hasWitness, and gmeow:hasOfficiant MUST NOT exist as any property type -- the former genealogy subproperties were permanently refactored to ParticipantRole value individuals. Mirrors test_former_role_subproperties_are_gone_and_are_values_now (not-property part)." .
+    gmeow:saRationale "gmeow:hasPrincipal, gmeow:hasWitness, and gmeow:hasOfficiant MUST NOT exist as any property type -- the former genealogy subproperties were permanently refactored to ParticipantRole value individuals." .
 
 # --- 6. Former role subproperties are not subPropertyOf hasParticipant ----------
 ex:saFormerRolesNotSubproperties a gmeow:StructuralAssertion ;
@@ -131,7 +130,7 @@ ASK {
     VALUES ?p { gmeow:hasPrincipal gmeow:hasWitness gmeow:hasOfficiant }
     ?p rdfs:subPropertyOf gmeow:hasParticipant .
 }""" ;
-    gmeow:saRationale "gmeow:hasPrincipal, gmeow:hasWitness, and gmeow:hasOfficiant MUST NOT be subproperties of gmeow:hasParticipant -- the genealogy subproperty taxonomy is permanently gone (Principle 6). Mirrors test_former_role_subproperties_are_gone_and_are_values_now (not-subPropertyOf part)." .
+    gmeow:saRationale "gmeow:hasPrincipal, gmeow:hasWitness, and gmeow:hasOfficiant MUST NOT be subproperties of gmeow:hasParticipant -- the genealogy subproperty taxonomy is permanently gone (Principle 6)." .
 
 # --- 7. Role value individuals exist (MUST) ------------------------------------
 ex:saRoleValueIndividualsExist a gmeow:StructuralAssertion ;
@@ -143,7 +142,7 @@ ASK {
     gmeow:roleWitness              a gmeow:ParticipantRole .
     gmeow:roleOfficiant            a gmeow:ParticipantRole .
 }""" ;
-    gmeow:saRationale "The three former genealogy role subproperties MUST now exist as gmeow:ParticipantRole individuals. Mirrors test_former_role_subproperties_are_gone_and_are_values_now (value-individuals part)." .
+    gmeow:saRationale "The three former genealogy role subproperties MUST now exist as gmeow:ParticipantRole individuals." .
 
 # --- 8. Former flat properties eventDate and eventPlace are gone (MUST-NOT) ----
 ex:saFormerFlatPropertiesGone a gmeow:StructuralAssertion ;
@@ -156,7 +155,7 @@ ASK {
     VALUES ?t { owl:ObjectProperty owl:DatatypeProperty owl:AnnotationProperty }
     ?p a ?t .
 }""" ;
-    gmeow:saRationale "gmeow:eventDate and gmeow:eventPlace MUST NOT exist as any property type -- the free-text flat properties were replaced by structured gmeow:eventTime, gmeow:eventInterval, and gmeow:eventLocation. Mirrors test_free_text_event_date_and_place_are_gone (not-exist part)." .
+    gmeow:saRationale "gmeow:eventDate and gmeow:eventPlace MUST NOT exist as any property type -- the free-text flat properties were replaced by structured gmeow:eventTime, gmeow:eventInterval, and gmeow:eventLocation." .
 
 # --- 9. Structured temporal replacement eventTime exists (MUST) ----------------
 ex:saEventTimeIsDatatypeProperty a gmeow:StructuralAssertion ;
@@ -165,7 +164,7 @@ ex:saEventTimeIsDatatypeProperty a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:eventTime a owl:DatatypeProperty . }""" ;
-    gmeow:saRationale "gmeow:eventTime MUST be an owl:DatatypeProperty -- the DL-clean xsd:dateTime replacement for the retired free-text gmeow:eventDate. Mirrors test_free_text_event_date_and_place_are_gone (replacement-exists part)." .
+    gmeow:saRationale "gmeow:eventTime MUST be an owl:DatatypeProperty -- the DL-clean xsd:dateTime replacement for the retired free-text gmeow:eventDate." .
 
 # --- 10. eventLocation exists and ranges over Location (MUST) ------------------
 ex:saEventLocationPropertyShape a gmeow:StructuralAssertion ;
@@ -178,7 +177,7 @@ ASK {
     gmeow:eventLocation a owl:ObjectProperty ;
         rdfs:range gmeow:Location .
 }""" ;
-    gmeow:saRationale "gmeow:eventLocation MUST be an owl:ObjectProperty with rdfs:range gmeow:Location -- the structured replacement for the retired free-text gmeow:eventPlace. Mirrors test_free_text_event_date_and_place_are_gone (eventLocation-range part)." .
+    gmeow:saRationale "gmeow:eventLocation MUST be an owl:ObjectProperty with rdfs:range gmeow:Location -- the structured replacement for the retired free-text gmeow:eventPlace." .
 
 # --- 11. eventTrajectory shape and non-functional (MUST + MUST-NOT) ------------
 ex:saEventTrajectoryShape a gmeow:StructuralAssertion ;
@@ -192,7 +191,7 @@ ASK {
         rdfs:domain gmeow:Event ;
         rdfs:range gmeow:Trajectory .
 }""" ;
-    gmeow:saRationale "gmeow:eventTrajectory MUST be an owl:ObjectProperty with domain Event and range Trajectory -- competing trajectory claims coexist (Principle 9). Mirrors test_event_trajectory_exists_and_ranges_over_trajectory (positive part)." .
+    gmeow:saRationale "gmeow:eventTrajectory MUST be an owl:ObjectProperty with domain Event and range Trajectory -- competing trajectory claims coexist (Principle 9)." .
 
 # --- 12. eventTrajectory is NOT functional (MUST-NOT) --------------------------
 ex:saEventTrajectoryNotFunctional a gmeow:StructuralAssertion ;
@@ -201,7 +200,7 @@ ex:saEventTrajectoryNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:eventTrajectory a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:eventTrajectory MUST NOT be owl:FunctionalProperty -- competing trajectory claims from different sources coexist. Mirrors test_event_trajectory_exists_and_ranges_over_trajectory (non-functional part)." .
+    gmeow:saRationale "gmeow:eventTrajectory MUST NOT be owl:FunctionalProperty -- competing trajectory claims from different sources coexist." .
 
 # --- 13. eventSpacetime shape and non-functional (MUST + MUST-NOT) -------------
 ex:saEventSpacetimeShape a gmeow:StructuralAssertion ;
@@ -215,7 +214,7 @@ ASK {
         rdfs:domain gmeow:Event ;
         rdfs:range gmeow:LocationState .
 }""" ;
-    gmeow:saRationale "gmeow:eventSpacetime MUST be an owl:ObjectProperty with domain Event and range LocationState -- reuses the 4D location-state facility (trajectory design). Mirrors test_event_spacetime_exists_and_ranges_over_location_state (positive part)." .
+    gmeow:saRationale "gmeow:eventSpacetime MUST be an owl:ObjectProperty with domain Event and range LocationState -- reuses the 4D location-state facility (trajectory design)." .
 
 # --- 14. eventSpacetime is NOT functional (MUST-NOT) ---------------------------
 ex:saEventSpacetimeNotFunctional a gmeow:StructuralAssertion ;
@@ -224,7 +223,7 @@ ex:saEventSpacetimeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:eventSpacetime a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:eventSpacetime MUST NOT be owl:FunctionalProperty -- multiple spacetime slices may coexist for the same event. Mirrors test_event_spacetime_exists_and_ranges_over_location_state (non-functional part)." .
+    gmeow:saRationale "gmeow:eventSpacetime MUST NOT be owl:FunctionalProperty -- multiple spacetime slices may coexist for the same event." .
 
 # --- 15. Spacetime/trajectory axes are orthogonal -- no subPropertyOf (MUST-NOT)
 ex:saSpacetimeAxesOrthogonal a gmeow:StructuralAssertion ;
@@ -242,7 +241,7 @@ ASK {
     { ?a rdfs:subPropertyOf ?b } UNION
     { ?a owl:equivalentProperty ?b }
 }""" ;
-    gmeow:saRationale "No inferential bridge (subPropertyOf or equivalentProperty) MUST NOT exist between eventSpacetime, eventTrajectory, eventLocation, and eventInterval -- each is an independent assertion axis. Mirrors test_event_spacetime_and_trajectory_are_orthogonal." .
+    gmeow:saRationale "No inferential bridge (subPropertyOf or equivalentProperty) MUST NOT exist between eventSpacetime, eventTrajectory, eventLocation, and eventInterval -- each is an independent assertion axis." .
 
 # --- 16. eventType ranges over only EventType (MUST) --------------------------
 ex:saEventTypeRangeExact a gmeow:StructuralAssertion ;
@@ -251,7 +250,7 @@ ex:saEventTypeRangeExact a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:eventType rdfs:range gmeow:EventType . }""" ;
-    gmeow:saRationale "gmeow:eventType MUST have rdfs:range gmeow:EventType (and only that range). Mirrors test_axes_range_over_distinct_spaces (eventType sub-check)." .
+    gmeow:saRationale "gmeow:eventType MUST have rdfs:range gmeow:EventType (and only that range)." .
 
 # --- 17. participationRole ranges over only ParticipantRole (MUST) -------------
 ex:saParticipationRoleRangeExact a gmeow:StructuralAssertion ;
@@ -260,7 +259,7 @@ ex:saParticipationRoleRangeExact a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:participationRole rdfs:range gmeow:ParticipantRole . }""" ;
-    gmeow:saRationale "gmeow:participationRole MUST have rdfs:range gmeow:ParticipantRole. Mirrors test_axes_range_over_distinct_spaces (participationRole sub-check)." .
+    gmeow:saRationale "gmeow:participationRole MUST have rdfs:range gmeow:ParticipantRole." .
 
 # --- 18. eventTime ranges over xsd:dateTime (MUST) ----------------------------
 ex:saEventTimeRangeDateTime a gmeow:StructuralAssertion ;
@@ -270,7 +269,7 @@ ex:saEventTimeRangeDateTime a gmeow:StructuralAssertion ;
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:eventTime rdfs:range xsd:dateTime . }""" ;
-    gmeow:saRationale "gmeow:eventTime MUST have rdfs:range xsd:dateTime (DL-clean, never xsd:date). Mirrors test_axes_range_over_distinct_spaces (eventTime sub-check) and test_temporal_datatypes_are_datetime_not_date." .
+    gmeow:saRationale "gmeow:eventTime MUST have rdfs:range xsd:dateTime (DL-clean, never xsd:date)." .
 
 # --- 19. eventTime does NOT range over xsd:date (MUST-NOT) --------------------
 ex:saEventTimeNotRangeDate a gmeow:StructuralAssertion ;
@@ -280,7 +279,7 @@ ex:saEventTimeNotRangeDate a gmeow:StructuralAssertion ;
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:eventTime rdfs:range xsd:date . }""" ;
-    gmeow:saRationale "gmeow:eventTime MUST NOT range over xsd:date -- not in the OWL 2 datatype map (Principle 3). Mirrors test_temporal_datatypes_are_datetime_not_date (eventTime xsd:date part)." .
+    gmeow:saRationale "gmeow:eventTime MUST NOT range over xsd:date -- not in the OWL 2 datatype map (Principle 3)." .
 
 # --- 20. earliestStart ranges over xsd:dateTime (MUST) ------------------------
 ex:saEarliestStartRangeDateTime a gmeow:StructuralAssertion ;
@@ -290,7 +289,7 @@ ex:saEarliestStartRangeDateTime a gmeow:StructuralAssertion ;
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:earliestStart rdfs:range xsd:dateTime . }""" ;
-    gmeow:saRationale "gmeow:earliestStart MUST have rdfs:range xsd:dateTime (DL-clean). Mirrors test_temporal_datatypes_are_datetime_not_date (earliestStart part)." .
+    gmeow:saRationale "gmeow:earliestStart MUST have rdfs:range xsd:dateTime (DL-clean)." .
 
 # --- 21. earliestStart does NOT range over xsd:date (MUST-NOT) ----------------
 ex:saEarliestStartNotRangeDate a gmeow:StructuralAssertion ;
@@ -300,7 +299,7 @@ ex:saEarliestStartNotRangeDate a gmeow:StructuralAssertion ;
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:earliestStart rdfs:range xsd:date . }""" ;
-    gmeow:saRationale "gmeow:earliestStart MUST NOT range over xsd:date (Principle 3). Mirrors test_temporal_datatypes_are_datetime_not_date (earliestStart xsd:date part)." .
+    gmeow:saRationale "gmeow:earliestStart MUST NOT range over xsd:date (Principle 3)." .
 
 # --- 22. latestEnd ranges over xsd:dateTime (MUST) ----------------------------
 ex:saLatestEndRangeDateTime a gmeow:StructuralAssertion ;
@@ -310,7 +309,7 @@ ex:saLatestEndRangeDateTime a gmeow:StructuralAssertion ;
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:latestEnd rdfs:range xsd:dateTime . }""" ;
-    gmeow:saRationale "gmeow:latestEnd MUST have rdfs:range xsd:dateTime (DL-clean). Mirrors test_temporal_datatypes_are_datetime_not_date (latestEnd part)." .
+    gmeow:saRationale "gmeow:latestEnd MUST have rdfs:range xsd:dateTime (DL-clean)." .
 
 # --- 23. latestEnd does NOT range over xsd:date (MUST-NOT) --------------------
 ex:saLatestEndNotRangeDate a gmeow:StructuralAssertion ;
@@ -320,7 +319,7 @@ ex:saLatestEndNotRangeDate a gmeow:StructuralAssertion ;
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:latestEnd rdfs:range xsd:date . }""" ;
-    gmeow:saRationale "gmeow:latestEnd MUST NOT range over xsd:date (Principle 3). Mirrors test_temporal_datatypes_are_datetime_not_date (latestEnd xsd:date part)." .
+    gmeow:saRationale "gmeow:latestEnd MUST NOT range over xsd:date (Principle 3)." .
 
 # --- 24. eventLocation ranges over Location (MUST) ----------------------------
 ex:saEventLocationRangeLocation a gmeow:StructuralAssertion ;
@@ -329,7 +328,7 @@ ex:saEventLocationRangeLocation a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:eventLocation rdfs:range gmeow:Location . }""" ;
-    gmeow:saRationale "gmeow:eventLocation MUST have rdfs:range gmeow:Location. Mirrors test_axes_range_over_distinct_spaces (eventLocation sub-check)." .
+    gmeow:saRationale "gmeow:eventLocation MUST have rdfs:range gmeow:Location." .
 
 # --- 24b. The four axes range over EXACTLY their one space (MUST-NOT extra range) ---
 # (test_axes_range_over_distinct_spaces asserts set(g.objects(prop, rdfs:range)) == {one}
@@ -341,7 +340,7 @@ ex:saEventTypeRangeOnly a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:eventType rdfs:range ?r . FILTER(?r != gmeow:EventType) }""" ;
-    gmeow:saRationale "gmeow:eventType MUST NOT carry any rdfs:range other than gmeow:EventType (exact-range arm of test_axes_range_over_distinct_spaces)." .
+    gmeow:saRationale "gmeow:eventType MUST NOT carry any rdfs:range other than gmeow:EventType (the exact-range arm of the range-axis discipline)." .
 
 ex:saParticipationRoleRangeOnly a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
@@ -384,7 +383,7 @@ ASK {
     { ?a rdfs:subPropertyOf ?b } UNION
     { ?a owl:equivalentProperty ?b }
 }""" ;
-    gmeow:saRationale "No inferential bridge MUST NOT exist between eventType, participationRole, eventTime, and eventLocation -- four orthogonal independent axes. Mirrors test_no_axis_is_inferred_from_another." .
+    gmeow:saRationale "No inferential bridge MUST NOT exist between eventType, participationRole, eventTime, and eventLocation -- four orthogonal independent axes." .
 
 # --- 26. Participant role seed individuals exist (MUST) -----------------------
 ex:saParticipantRoleSeeds a gmeow:StructuralAssertion ;
@@ -402,7 +401,7 @@ ASK {
     gmeow:roleAgent                a gmeow:ParticipantRole .
     gmeow:roleBeneficiary          a gmeow:ParticipantRole .
 }""" ;
-    gmeow:saRationale "The nine core ParticipantRole seed individuals MUST be present as gmeow:ParticipantRole individuals (open vocabulary -- superset check). Mirrors test_participant_role_vocabulary_seeded." .
+    gmeow:saRationale "The nine core ParticipantRole seed individuals MUST be present as gmeow:ParticipantRole individuals (open vocabulary -- superset check)." .
 
 # --- 27. Temporal precision seed individuals exist (MUST) ---------------------
 ex:saTemporalPrecisionSeeds a gmeow:StructuralAssertion ;
@@ -416,7 +415,7 @@ ASK {
     gmeow:precisionDecade a gmeow:TemporalPrecision .
     gmeow:precisionCirca  a gmeow:TemporalPrecision .
 }""" ;
-    gmeow:saRationale "The five core TemporalPrecision seed individuals MUST be present (open vocabulary -- superset check). Mirrors test_temporal_precision_vocabulary_seeded." .
+    gmeow:saRationale "The five core TemporalPrecision seed individuals MUST be present (open vocabulary -- superset check)." .
 
 # --- 28. subEventOf and hasSubEvent are transitive (MUST) ---------------------
 ex:saSubEventMereologyTransitive a gmeow:StructuralAssertion ;
@@ -428,7 +427,7 @@ ASK {
     gmeow:subEventOf  a owl:TransitiveProperty .
     gmeow:hasSubEvent a owl:TransitiveProperty .
 }""" ;
-    gmeow:saRationale "gmeow:subEventOf and gmeow:hasSubEvent MUST be owl:TransitiveProperty -- mereological part-of is transitive; the closure enables whole-event queries across nested hierarchies. Mirrors test_subevent_mereology_is_transitive (transitive part)." .
+    gmeow:saRationale "gmeow:subEventOf and gmeow:hasSubEvent MUST be owl:TransitiveProperty -- mereological part-of is transitive; the closure enables whole-event queries across nested hierarchies." .
 
 # --- 29. subEventOf is NOT functional (MUST-NOT) ------------------------------
 ex:saSubEventOfNotFunctional a gmeow:StructuralAssertion ;
@@ -437,7 +436,7 @@ ex:saSubEventOfNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:subEventOf a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:subEventOf MUST NOT be owl:FunctionalProperty -- non-simple (transitive) properties are forbidden in OWL 2 DL cardinality/functional axioms (regularity). Mirrors test_subevent_mereology_is_transitive (non-functional part)." .
+    gmeow:saRationale "gmeow:subEventOf MUST NOT be owl:FunctionalProperty -- non-simple (transitive) properties are forbidden in OWL 2 DL cardinality/functional axioms (regularity)." .
 
 # --- 30. No primary/preferred event terms exist (MUST-NOT) --------------------
 ex:saNoPreferredPrimaryEventTerms a gmeow:StructuralAssertion ;
@@ -454,7 +453,7 @@ ASK {
     VALUES ?t { owl:ObjectProperty owl:DatatypeProperty owl:AnnotationProperty owl:Class }
     ?banned a ?t .
 }""" ;
-    gmeow:saRationale "No primary*/preferred* selector for event type, participant, claim, or rank MUST NOT exist as any property or class -- co-equality (Principle 9). Mirrors test_no_preferred_or_primary_event_term." .
+    gmeow:saRationale "No primary*/preferred* selector for event type, participant, claim, or rank MUST NOT exist as any property or class -- co-equality (Principle 9)." .
 
 # --- 31. All 13 Allen relations exist on Event (MUST) --------------------------
 ex:saAllenRelationsExist a gmeow:StructuralAssertion ;
@@ -478,7 +477,7 @@ ASK {
     gmeow:finishedBy    a owl:ObjectProperty ; rdfs:domain gmeow:Event ; rdfs:range gmeow:Event .
     gmeow:coincidesWith a owl:ObjectProperty ; rdfs:domain gmeow:Event ; rdfs:range gmeow:Event .
 }""" ;
-    gmeow:saRationale "All 13 Allen interval-algebra relations MUST be owl:ObjectProperty with domain and range gmeow:Event -- the full OWL-Time / TEO / ISO-TimeML interop surface. Mirrors test_allen_relations_exist_on_events." .
+    gmeow:saRationale "All 13 Allen interval-algebra relations MUST be owl:ObjectProperty with domain and range gmeow:Event -- the full OWL-Time / TEO / ISO-TimeML interop surface." .
 
 # --- 32. Transitive Allen relations are transitive (MUST) ---------------------
 ex:saAllenTransitiveRelations a gmeow:StructuralAssertion ;
@@ -493,7 +492,7 @@ ASK {
     gmeow:contains      a owl:TransitiveProperty .
     gmeow:coincidesWith a owl:TransitiveProperty .
 }""" ;
-    gmeow:saRationale "gmeow:before, after, during, contains, and coincidesWith MUST be owl:TransitiveProperty -- the Allen composition table rules. Mirrors test_allen_inverses_and_characters (transitive part)." .
+    gmeow:saRationale "gmeow:before, after, during, contains, and coincidesWith MUST be owl:TransitiveProperty -- the Allen composition table rules." .
 
 # --- 33. coincidesWith is symmetric (MUST) ------------------------------------
 ex:saCoincidesWith_Symmetric a gmeow:StructuralAssertion ;
@@ -502,7 +501,7 @@ ex:saCoincidesWith_Symmetric a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:coincidesWith a owl:SymmetricProperty . }""" ;
-    gmeow:saRationale "gmeow:coincidesWith MUST be owl:SymmetricProperty -- the Allen EQUALS relation is symmetric by definition (co-temporality). Mirrors test_allen_inverses_and_characters (symmetric part)." .
+    gmeow:saRationale "gmeow:coincidesWith MUST be owl:SymmetricProperty -- the Allen EQUALS relation is symmetric by definition (co-temporality)." .
 
 # --- 34. Allen inverse pairs are declared (MUST) ------------------------------
 ex:saAllenInversePairs a gmeow:StructuralAssertion ;
@@ -518,7 +517,7 @@ ASK {
     { { gmeow:during       owl:inverseOf gmeow:contains     } UNION { gmeow:contains     owl:inverseOf gmeow:during       } }
     { { gmeow:finishes     owl:inverseOf gmeow:finishedBy   } UNION { gmeow:finishedBy   owl:inverseOf gmeow:finishes     } }
 }""" ;
-    gmeow:saRationale "All six Allen inverse pairs (before/after, meets/metBy, overlaps/overlappedBy, starts/startedBy, during/contains, finishes/finishedBy) MUST be declared via owl:inverseOf (in either direction). Mirrors test_allen_inverses_and_characters (inverses part)." .
+    gmeow:saRationale "All six Allen inverse pairs (before/after, meets/metBy, overlaps/overlappedBy, starts/startedBy, during/contains, finishes/finishedBy) MUST be declared via owl:inverseOf (in either direction)." .
 
 # --- 35. No Allen relation is functional (MUST-NOT) ---------------------------
 ex:saAllenRelationsNotFunctional a gmeow:StructuralAssertion ;
@@ -535,7 +534,7 @@ ASK {
     }
     ?p a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "No Allen relation MUST NOT be owl:FunctionalProperty -- non-simple (transitive or symmetric) properties violate OWL 2 DL regularity in cardinality axioms. Mirrors test_allen_inverses_and_characters (non-functional part)." .
+    gmeow:saRationale "No Allen relation MUST NOT be owl:FunctionalProperty -- non-simple (transitive or symmetric) properties violate OWL 2 DL regularity in cardinality axioms." .
 
 # --- 36. Duration, durationValue, RecurrenceRule, hasRecurrenceRule (MUST) ----
 ex:saDurationAndRecurrenceTerms a gmeow:StructuralAssertion ;
@@ -551,7 +550,7 @@ ASK {
     gmeow:RecurrenceRule rdfs:subClassOf gmeow:InformationObject .
     gmeow:hasRecurrenceRule rdfs:domain gmeow:EventSeries .
 }""" ;
-    gmeow:saRationale "gmeow:Duration (class), gmeow:durationValue (xsd:duration range), gmeow:RecurrenceRule (subClassOf InformationObject), and gmeow:hasRecurrenceRule (domain EventSeries) MUST all be present. Mirrors test_duration_and_recurrence_terms." .
+    gmeow:saRationale "gmeow:Duration (class), gmeow:durationValue (xsd:duration range), gmeow:RecurrenceRule (subClassOf InformationObject), and gmeow:hasRecurrenceRule (domain EventSeries) MUST all be present." .
 
 # --- 37. GrammaticalTense seed individuals exist (MUST) -----------------------
 ex:saGrammaticalTenseSeeds a gmeow:StructuralAssertion ;
@@ -564,7 +563,7 @@ ASK {
     gmeow:tenseFuture  a gmeow:GrammaticalTense .
     gmeow:tenseNone    a gmeow:GrammaticalTense .
 }""" ;
-    gmeow:saRationale "The four GrammaticalTense seed individuals MUST exist (ISO-TimeML @tense vocabulary). Mirrors test_timeml_tense_and_aspect_value_vocabs (tense-seeds part)." .
+    gmeow:saRationale "The four GrammaticalTense seed individuals MUST exist (ISO-TimeML @tense vocabulary)." .
 
 # --- 38. GrammaticalAspect seed individuals exist (MUST) ----------------------
 ex:saGrammaticalAspectSeeds a gmeow:StructuralAssertion ;
@@ -576,7 +575,7 @@ ASK {
     gmeow:aspectProgressive a gmeow:GrammaticalAspect .
     gmeow:aspectNone        a gmeow:GrammaticalAspect .
 }""" ;
-    gmeow:saRationale "The three core GrammaticalAspect seed individuals MUST exist (ISO-TimeML @aspect vocabulary). Mirrors test_timeml_tense_and_aspect_value_vocabs (aspect-seeds part)." .
+    gmeow:saRationale "The three core GrammaticalAspect seed individuals MUST exist (ISO-TimeML @aspect vocabulary)." .
 
 # --- 39. eventTense not subPropertyOf eventTime (MUST-NOT) --------------------
 ex:saEventTenseNotSubpropertyEventTime a gmeow:StructuralAssertion ;
@@ -585,7 +584,7 @@ ex:saEventTenseNotSubpropertyEventTime a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:eventTense rdfs:subPropertyOf gmeow:eventTime . }""" ;
-    gmeow:saRationale "gmeow:eventTense MUST NOT be rdfs:subPropertyOf gmeow:eventTime -- tense is a linguistic-realization annotation axis, never inferred from temporal placement. Mirrors test_timeml_tense_and_aspect_value_vocabs (tense-not-bridged part)." .
+    gmeow:saRationale "gmeow:eventTense MUST NOT be rdfs:subPropertyOf gmeow:eventTime -- tense is a linguistic-realization annotation axis, never inferred from temporal placement." .
 
 # --- 40. eventAspect not subPropertyOf eventTime (MUST-NOT) -------------------
 ex:saEventAspectNotSubpropertyEventTime a gmeow:StructuralAssertion ;
@@ -594,7 +593,7 @@ ex:saEventAspectNotSubpropertyEventTime a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:eventAspect rdfs:subPropertyOf gmeow:eventTime . }""" ;
-    gmeow:saRationale "gmeow:eventAspect MUST NOT be rdfs:subPropertyOf gmeow:eventTime -- aspect is a linguistic-realization annotation axis, never inferred from temporal placement. Mirrors test_timeml_tense_and_aspect_value_vocabs (aspect-not-bridged part)." .
+    gmeow:saRationale "gmeow:eventAspect MUST NOT be rdfs:subPropertyOf gmeow:eventTime -- aspect is a linguistic-realization annotation axis, never inferred from temporal placement." .
 
 # --- 41. ObservationalActivity is NOT a subclass of Observation (MUST-NOT) ----
 ex:saObservationalActivityNotSubclassObservation a gmeow:StructuralAssertion ;
@@ -603,7 +602,7 @@ ex:saObservationalActivityNotSubclassObservation a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:ObservationalActivity rdfs:subClassOf gmeow:Observation . }""" ;
-    gmeow:saRationale "gmeow:ObservationalActivity MUST NOT be rdfs:subClassOf gmeow:Observation -- it is an Event/Activity, not an Observation (the taxonomic placement is the event stack, not the observation stack). Mirrors test_observational_activity_is_not_observation_subclass." .
+    gmeow:saRationale "gmeow:ObservationalActivity MUST NOT be rdfs:subClassOf gmeow:Observation -- it is an Event/Activity, not an Observation (the taxonomic placement is the event stack, not the observation stack)." .
 
 # --- 42. generatedObservation shape and DL-regularity (MUST + MUST-NOT) -------
 ex:saGeneratedObservationShape a gmeow:StructuralAssertion ;
@@ -617,7 +616,7 @@ ASK {
         rdfs:domain gmeow:ObservationalActivity ;
         rdfs:range gmeow:Observation .
 }""" ;
-    gmeow:saRationale "gmeow:generatedObservation MUST be an owl:ObjectProperty with domain ObservationalActivity and range Observation. Mirrors test_generated_observation_exists_and_is_dl_regular (positive part)." .
+    gmeow:saRationale "gmeow:generatedObservation MUST be an owl:ObjectProperty with domain ObservationalActivity and range Observation." .
 
 # --- 43. generatedObservation is not transitive (MUST-NOT) --------------------
 ex:saGeneratedObservationNotTransitive a gmeow:StructuralAssertion ;
@@ -626,7 +625,7 @@ ex:saGeneratedObservationNotTransitive a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:generatedObservation a owl:TransitiveProperty . }""" ;
-    gmeow:saRationale "gmeow:generatedObservation MUST NOT be owl:TransitiveProperty -- must be a simple property for OWL 2 DL regularity. Mirrors test_generated_observation_exists_and_is_dl_regular (not-transitive part)." .
+    gmeow:saRationale "gmeow:generatedObservation MUST NOT be owl:TransitiveProperty -- must be a simple property for OWL 2 DL regularity." .
 
 # --- 44. generatedObservation is not symmetric (MUST-NOT) ---------------------
 ex:saGeneratedObservationNotSymmetric a gmeow:StructuralAssertion ;
@@ -635,7 +634,7 @@ ex:saGeneratedObservationNotSymmetric a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:generatedObservation a owl:SymmetricProperty . }""" ;
-    gmeow:saRationale "gmeow:generatedObservation MUST NOT be owl:SymmetricProperty -- activities generate observations, not vice versa. Mirrors test_generated_observation_exists_and_is_dl_regular (not-symmetric part)." .
+    gmeow:saRationale "gmeow:generatedObservation MUST NOT be owl:SymmetricProperty -- activities generate observations, not vice versa." .
 
 # --- 45. generatedObservation is not functional (MUST-NOT) --------------------
 ex:saGeneratedObservationNotFunctional a gmeow:StructuralAssertion ;
@@ -644,7 +643,7 @@ ex:saGeneratedObservationNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:generatedObservation a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:generatedObservation MUST NOT be owl:FunctionalProperty -- an observational activity may produce many observations. Mirrors test_generated_observation_exists_and_is_dl_regular (not-functional part)." .
+    gmeow:saRationale "gmeow:generatedObservation MUST NOT be owl:FunctionalProperty -- an observational activity may produce many observations." .
 
 # --- 46. eventObservation shape and inverse of observationEvent (MUST) --------
 ex:saEventObservationShape a gmeow:StructuralAssertion ;
@@ -660,7 +659,7 @@ ASK {
     { gmeow:eventObservation owl:inverseOf gmeow:observationEvent } UNION
     { gmeow:observationEvent owl:inverseOf gmeow:eventObservation }
 }""" ;
-    gmeow:saRationale "gmeow:eventObservation MUST be an owl:ObjectProperty with domain Event, range Observation, and inverse of gmeow:observationEvent (in either direction). Mirrors test_event_observation_is_inverse_of_observation_event (positive part)." .
+    gmeow:saRationale "gmeow:eventObservation MUST be an owl:ObjectProperty with domain Event, range Observation, and inverse of gmeow:observationEvent (in either direction)." .
 
 # --- 47. eventObservation is not functional (MUST-NOT) ------------------------
 ex:saEventObservationNotFunctional a gmeow:StructuralAssertion ;
@@ -669,7 +668,7 @@ ex:saEventObservationNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:eventObservation a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:eventObservation MUST NOT be owl:FunctionalProperty -- an event may have many observations; competing standpoint-indexed observations coexist (Principle 9). Mirrors test_event_observation_is_inverse_of_observation_event (non-functional part)." .
+    gmeow:saRationale "gmeow:eventObservation MUST NOT be owl:FunctionalProperty -- an event may have many observations; competing standpoint-indexed observations coexist (Principle 9)." .
 
 # --- 48. Observational event type value individuals exist (MUST) ---------------
 ex:saObservationalEventTypeIndividuals a gmeow:StructuralAssertion ;
@@ -683,7 +682,7 @@ ASK {
     gmeow:eventTypeAudit          a gmeow:EventType .
     gmeow:eventTypeClinicalTrial  a gmeow:EventType .
 }""" ;
-    gmeow:saRationale "The five observational activity event type seed individuals MUST be present as gmeow:EventType values, not classes (Principle 9, anti-subclass guard). Mirrors test_observational_event_types_are_value_individuals (existence part)." .
+    gmeow:saRationale "The five observational activity event type seed individuals MUST be present as gmeow:EventType values, not classes (Principle 9, anti-subclass guard)." .
 
 # --- 49. Observational event types are NOT classes (MUST-NOT) -----------------
 ex:saObservationalEventTypesNotClasses a gmeow:StructuralAssertion ;
@@ -699,7 +698,7 @@ ASK {
     }
     ?et a owl:Class .
 }""" ;
-    gmeow:saRationale "The five observational event type individuals MUST NOT be typed owl:Class -- the anti-subclass guard for the observational types. Mirrors test_observational_event_types_are_value_individuals (not-class part)." .
+    gmeow:saRationale "The five observational event type individuals MUST NOT be typed owl:Class -- the anti-subclass guard for the observational types." .
 
 # --- 50. eventTypeCensus still exists (MUST) ----------------------------------
 ex:saEventTypeCensusExists a gmeow:StructuralAssertion ;
@@ -707,7 +706,7 @@ ex:saEventTypeCensusExists a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 ASK { gmeow:eventTypeCensus a gmeow:EventType . }""" ;
-    gmeow:saRationale "gmeow:eventTypeCensus (person-enumeration-in-a-census) MUST still be present — backward-existence guard against the distinct gmeow:eventTypeCensusActivity. Mirrors test_census_event_type_still_exists." .
+    gmeow:saRationale "gmeow:eventTypeCensus (person-enumeration-in-a-census) MUST still be present — backward-existence guard against the distinct gmeow:eventTypeCensusActivity." .
 
 # --- 51. No primary/preferred observation or activity terms (MUST-NOT) --------
 ex:saNoPreferredPrimaryObservationTerms a gmeow:StructuralAssertion ;
@@ -723,7 +722,7 @@ ASK {
     VALUES ?t { owl:ObjectProperty owl:DatatypeProperty owl:AnnotationProperty owl:Class }
     ?banned a ?t .
 }""" ;
-    gmeow:saRationale "No primary*/preferred* selector for observations or activities MUST NOT exist -- co-equality (Principle 9). Mirrors test_no_primary_preferred_observation_term." .
+    gmeow:saRationale "No primary*/preferred* selector for observations or activities MUST NOT exist -- co-equality (Principle 9)." .
 
 # --- 52. causalPartOf is transitive (MUST) ------------------------------------
 ex:saCausalPartOfTransitive a gmeow:StructuralAssertion ;
@@ -783,7 +782,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:subEventOf rdfs:subPropertyOf gmeow:partOf .
 }""" ;
-    gmeow:saRationale "gmeow:subEventOf MUST be rdfs:subPropertyOf gmeow:partOf -- event decomposition specializes the universal part-to-whole spine. Mirrors test_existing_part_like_relations_specialize_the_spine (events partOf side)." .
+    gmeow:saRationale "gmeow:subEventOf MUST be rdfs:subPropertyOf gmeow:partOf -- event decomposition specializes the universal part-to-whole spine." .
 
 # --- 58. hasSubEvent specializes the universal hasPart spine (MUST) ------------
 ex:saHasSubEventSpecializesHasPart a gmeow:StructuralAssertion ;
@@ -794,7 +793,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:hasSubEvent rdfs:subPropertyOf gmeow:hasPart .
 }""" ;
-    gmeow:saRationale "gmeow:hasSubEvent MUST be rdfs:subPropertyOf gmeow:hasPart -- whole-to-sub-event decomposition specializes the universal has-part spine. Mirrors test_existing_part_like_relations_specialize_the_spine (events hasPart side)." .
+    gmeow:saRationale "gmeow:hasSubEvent MUST be rdfs:subPropertyOf gmeow:hasPart -- whole-to-sub-event decomposition specializes the universal has-part spine." .
 
 # --- 57. Organizer and attendee roles exist as ParticipantRole values (MUST) -
 # Cross-slice: the calendar slice reuses these role individuals; they are
@@ -807,7 +806,7 @@ ASK {
     gmeow:roleOrganizer a gmeow:ParticipantRole .
     gmeow:roleAttendee  a gmeow:ParticipantRole .
 }""" ;
-    gmeow:saRationale "gmeow:roleOrganizer and gmeow:roleAttendee MUST exist as gmeow:ParticipantRole individuals — the calendar slice reuses these event-defined role values (iCal ATTENDEE / ORGANIZER). Mirrors test_organizer_and_attendee_roles_exist." .
+    gmeow:saRationale "gmeow:roleOrganizer and gmeow:roleAttendee MUST exist as gmeow:ParticipantRole individuals — the calendar slice reuses these event-defined role values (iCal ATTENDEE / ORGANIZER)." .
 
 # --- 57. Creation event type individuals exist (MUST) -------------------------
 # Migrated from tests/test_creative_works.py (cross-slice: subjects defined here).
@@ -820,7 +819,7 @@ ASK {
     gmeow:eventTypeExpressionCreation a gmeow:EventType .
     gmeow:eventTypeManifestationProduction a gmeow:EventType .
 }""" ;
-    gmeow:saRationale "gmeow:eventTypeWorkConception, gmeow:eventTypeExpressionCreation, and gmeow:eventTypeManifestationProduction MUST each be an individual of gmeow:EventType. These WEMI creation-event type values are defined in the events slice. Mirrors test_creation_event_types_exist." .
+    gmeow:saRationale "gmeow:eventTypeWorkConception, gmeow:eventTypeExpressionCreation, and gmeow:eventTypeManifestationProduction MUST each be an individual of gmeow:EventType. These WEMI creation-event type values are defined in the events slice." .
 
 # --- 58. ObservationalActivity is a subclass of Activity (MUST) ---------------
 # Migrated from tests/test_events.py (cross-slice: subject defined here; Activity
@@ -836,4 +835,4 @@ ASK {
     gmeow:ObservationalActivity a owl:Class , logic:Event ;
         rdfs:subClassOf gmeow:Activity .
 }""" ;
-    gmeow:saRationale "gmeow:ObservationalActivity MUST be an owl:Class typed logic:Event and a direct subclass of gmeow:Activity. The subject is defined in the events slice; gmeow:Activity itself is in the provenance slice, so this is a cross-slice structural assertion authored in the subject's owning slice. Mirrors test_observational_activity_is_subclass_of_activity_and_event." .
+    gmeow:saRationale "gmeow:ObservationalActivity MUST be an owl:Class typed logic:Event and a direct subclass of gmeow:Activity. The subject is defined in the events slice; gmeow:Activity itself is in the provenance slice, so this is a cross-slice structural assertion authored in the subject's owning slice." .

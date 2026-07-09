@@ -312,6 +312,9 @@ fn serialize_rule(rule: &crate::query_ir::QRule) -> String {
         .iter()
         .map(|lit| match lit {
             QBodyLit::Atom(a) => serialize_atom(a),
+            // Negation-as-failure: Prolog's `\+ Goal`, exactly what the Scryer oracle
+            // evaluates for a `\+`/`not` body literal the native core routed here.
+            QBodyLit::Neg(a) => format!("\\+ {}", serialize_atom(a)),
             QBodyLit::Cut => "!".to_owned(),
             QBodyLit::Builtin(b) => serialize_builtin(b),
         })

@@ -1,0 +1,21 @@
+[codespell]
+# Spell-check prose and identifiers across the Rust/Markdown/TTL surface; skip
+# generated/binary/lock artifacts, the vendored public-data fixtures (upstream
+# content, not ours to correct), the i18n translation catalogs (*.po — foreign
+# msgstr is not English prose; their English msgids are checked at the source),
+# and the vendored openEHR archetypes (upstream Apache-2.0, not ours to correct).
+# Patterns are fnmatch'd against repo-relative paths.
+skip = Cargo.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/coverage/external,tests/fixtures/coverage/external/*,ontology-docs,ontology-docs/*,validations/openehr-bloodpressure/Blutdruck.opt,validations/openehr-test-datatypes/TestAllDatatypes.opt,validations/common-logic-fol/clif2tptp/Cargo.lock
+# False positives: LOD (Linked Open Data), "derails" (valid word), domain tokens,
+# opNe (the not-equal expression operator in the mapping DSL algebra),
+# ser (Rust serde/ciborium module path `ciborium::ser`),
+# Beng (ISO 15924 script code for Bengali), fo (ISO 639-1 Faroese),
+# te (ISO 639-1 Telugu), intensional/intensionally/intension (the IDB / concept-
+# theory terms, opp. of extensional), Hendler / Pease (author surnames in the
+# logic references), vor (Crossref AccessIndicators = "version of record"),
+# notin (the VS Code `notIn` language-configuration key), fof (the TPTP
+# `fof(...)` first-order-formula keyword), lits (the `lits` = "literals" param),
+# ot (the object-term local in the CLIF writer triple codec), covert (the
+# linguistics term, opp. of overt), pres (the Leipzig-glossing Present-tense
+# abbreviation), falso (the Latin term in "ex falso quodlibet").
+ignore-words-list = lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intensionally,intension,hendler,pease,vor,ans,notin,fof,ehr,sme,ore,lits,ot,covert,pres,falso

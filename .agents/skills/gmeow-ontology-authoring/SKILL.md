@@ -7,7 +7,8 @@ description: >-
 
 # GMEOW Ontology Authoring & Verification
 
-This skill guides the agent in modifying, compiling, and validating GMEOW ontology resources.
+This skill guides agents in modifying, compiling, and validating GMEOW ontology
+resources in the current slices-first, Rust-native repository.
 
 ## Guidelines
 
@@ -15,59 +16,107 @@ This skill guides the agent in modifying, compiling, and validating GMEOW ontolo
    - Every design decision must align with [CONSTITUTION.md](../../../CONSTITUTION.md).
    - Cite Constitution Principles (e.g. "Principle 4") in your pull requests and commits.
 2. **One Canonical Source (Principle 4)**:
-   - **Mappings**: NEVER edit files under `mappings/` or `projections/` by hand. Edit files inside `mapping-dsl/` and run `make compile-mappings`.
-   - **Statements**: NEVER edit files under `statements/` by hand. Edit files inside `statement-dsl/` and run `make compile-statements`.
+   - **Slices**: Author ontology terms in `slices/<group>/<name>/module.ttl`.
+     Slice metadata lives in `manifest.ttl`; slice-local docs, tests, examples,
+     mappings, and translations live beside the module.
+   - **Mappings and correspondences**: Author pure term linkage in the owning
+     slice's `mappings/equivalences.ttl`. Author slice-owned projection cells
+     beside that slice, normally as `mappings/projections-<profile>.ttl`.
+     Shared or cross-slice projection enrichment may live in
+     `dsl/mappings/projections/*.ttl`; shared transform function declarations
+     live in `dsl/mappings/transforms.fno.ttl`.
+   - **Statements**: Author statement-level metadata in `dsl/statements/`.
+   - **References**: Author citations in `metadata/references.ttl`.
+   - **Generated artifacts**: NEVER hand-edit `generated/`, root
+     `ontology-docs/`, `dist/`, or generated mapping/projection/query outputs.
+     Regenerate them from canonical sources.
 3. **No-Drift Gate (Principle 7)**:
-   - Run `make compile-check` or `make statements-check` to verify that compiled output is synchronized with the DSLs.
+   - Run `make regenerate` after canonical source changes that affect generated
+     artifacts.
+   - Run `make check-generated` to verify generated output is synchronized.
+   - Run `make check` before proposing, committing, or submitting changes unless
+     the user explicitly narrows validation.
+4. **Logic projection doctrine (Principle 17)**:
+   - Treat `logic:` as the canonical formal layer. OWL, SHACL, ShEx, SSSOM,
+     EDOAL, FnO, SPARQL projection queries, and OWL alignment axioms are
+     generated projection dialects, not sources of truth.
+   - Existing hand-authored shape surfaces are transitional. Do not satisfy new
+     modeling or slice-quality findings by adding hand-authored SHACL or ShEx
+     unless the user explicitly scopes work to the legacy migration path.
+   - Cross-ontology linkage and projection should be represented as
+     correspondence work: use the current slice-local `gmeow:TermEquivalence`
+     and `gmeow:ProjectionMapping` frontend honestly so it can lower to
+     `logic:Correspondence` with the right relation, direction, loss, law, and
+     preservation claims.
 
 ## Actionable Instructions
 
-- **Edit Ontology Core**:
-  Ontology modules are located under `ontology/modules/`. Modify Turtle files directly there.
-  After making modifications, run syntax validation:
+- **Orient first**:
+  Read `.goals`, `.baseline`, `AGENTS.md`, the relevant slice docs, and the
+  relevant `slices/grounding/logic/design/` documents before editing ontology
+  semantics.
+
+- **Edit ontology terms**:
+  Modify the owning slice, normally `slices/<group>/<name>/module.ttl`.
+  Keep every GMEOW-namespaced term annotated with `rdfs:label`,
+  `skos:definition`, and `rdfs:isDefinedBy`.
 
   ```bash
   make validate
   ```
 
-- **Edit Mappings**:
-  1. Open and edit files in `mapping-dsl/`.
-  2. Compile the DSL to target artifacts:
+- **Edit cross-ontology linkage and projections**:
+  1. Put pure identity or match linkage in the slice that owns the
+     `gmeow:alignSubject`, usually `slices/<group>/<name>/mappings/equivalences.ttl`.
+  2. Put lossy projection legs, profile bindings, guards, transforms, and loss
+     notes in the owning slice's `mappings/projections-<profile>.ttl`; use
+     `dsl/mappings/projections/*.ttl` only for shared cross-slice enrichment.
+  3. Choose the honest relation. Do not force equivalence where the mapping is
+     an overlap, bridge view, lossy lens, or affine correspondence.
+  4. Regenerate and check generated mapping/projection artifacts:
 
      ```bash
-     make compile-mappings
+     make mappings
+     make check-generated
      ```
 
-  3. Validate Wikidata syntax and links:
+  5. Validate Wikidata syntax and links when QIDs/PIDs are touched:
 
      ```bash
      make wikidata
      ```
 
-- **Edit Statement Provenance**:
-  1. Open and edit files in `statement-dsl/`.
-  2. Compile statement-level metadata:
-
-     ```bash
-     make compile-statements
-     ```
-
-- **Run Ontology Reasoning**:
-  - Run the native reasoner:
-
-    ```bash
-    make reason
-    ```
-
-  - If reasoning fails, explain unsatisfiable classes:
-
-    ```bash
-    make explain
-    ```
-
-- **Run Negative Verification**:
-  Ensure logical constraints are met by running closed-world negative checks:
+- **Edit statement provenance**:
+  Open and edit files in `dsl/statements/`, then regenerate and check drift:
 
   ```bash
+  make regenerate
+  make check-generated
+  ```
+
+- **Assess slice quality**:
+  Use the slice-quality advisor at the start and end of slice uplift work:
+
+  ```bash
+  make slice-quality SLICE=slices/core/tags
+  make slice-quality
+  ```
+
+  Interpret projection and linkage findings through the `logic:` /
+  correspondence-calculus roadmap. For example, a missing shape surface points
+  toward canonical logic constraints and derived validation shapes, not a new
+  hand-authored `shapes.ttl`.
+
+- **Run ontology reasoning and verification**:
+
+  ```bash
+  make reason
   make verify
+  make reason-verify
+  ```
+
+- **Run full validation before handing off**:
+
+  ```bash
+  make check
   ```

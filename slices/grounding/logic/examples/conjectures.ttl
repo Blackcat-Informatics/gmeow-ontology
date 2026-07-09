@@ -1,0 +1,222 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — the conjecture / anti-conjecture library (design/LOGIC-FOUNDATION.md,
+# the conjecture-and-refutation section). It dogfoods the dynamic, testable
+# specialization of the formalization-governance spine: a set of logic:Conjectures,
+# each a logic:FormalizationCandidate carrying all EIGHT universal candidate carriers
+# PLUS the conjecture-specific carriers (formula identity, reified standpoint,
+# EPISTEMIC lifecycle state, engine-produced verdict provenance, conclusiveness
+# discharge verdict). It exercises every branch of the Belnap-to-lifecycle
+# projection: an OPEN conjecture (conclusive independence), a CORROBORATED conjecture
+# with its positive promotion leg, a REFUTED-IN-STANDPOINT conjecture with a concrete
+# logic:ContradictionWitness, its symmetric anti-conjecture promotion leg (a candidate
+# logic:NonEntailmentObligation), a Lakatos refinement successor, and a phi-entails-psi
+# propagation pair. These are POSITIONAL example individuals (ex:) — never loaded to
+# the base graph, so they do not enter the reasoned closure; they are here to be read
+# and to be SHACL-validated against logic:ConjectureShape / logic:ContradictionWitnessShape.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# ── §1 The reified standpoint the verdicts are scoped to ─────────────────────────
+# Standpoint scoping is REIFICATION, never a named graph (Principle 9): every verdict
+# below is 'refuted / corroborated FROM THIS standpoint', never a global claim.
+
+ex:standpointEndurantMereology
+    a gmeow:Standpoint ;
+    rdfs:label "the endurant strict-parthood standpoint (example)"@x-gmeow-english .
+
+# ── §2 An OPEN conjecture — conclusive independence ──────────────────────────────
+# The symmetric formula / negation test was inconclusive in BOTH directions within a
+# complete fragment: neither corroborated nor refuted. It stays open and carries
+# logic:ObligationDischarged (a conclusive independence, NOT a timeout).
+
+ex:conjNearnessTransitive
+    a logic:Conjecture ;
+    rdfs:label "nearness is transitive (open)"@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:9f21…nearness-transitive"^^xsd:string ;
+    logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"^^xsd:string ;
+    logic:candidateScope "transitivity of an example logic:near relation over the endurant spine"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateProposed ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:conjectureFormula "forall x y z . near(x,y) and near(y,z) -> near(x,z)"^^xsd:string ;
+    logic:conjectureStandpoint ex:standpointEndurantMereology ;
+    logic:conjectureLifecycleState logic:ConjectureOpen ;
+    logic:verdictProvenance logic:VerdictEngineProduced ;
+    logic:conjectureDischargeVerdict logic:ObligationDischarged ;
+    logic:conjectureVerdict ex:resultNearnessTransitive .
+
+ex:resultNearnessTransitive
+    a logic:ReasoningResult ;
+    rdfs:label "reasoning result for the nearness-transitivity conjecture test (example)"@x-gmeow-english .
+
+# ── §3 A CORROBORATED conjecture with its positive promotion leg ─────────────────
+# The formula was Supported (Belnap true) from the standpoint: found, with no
+# counterexample. Corroboration is provisional support, so the positive leg points to
+# a FormalizationCandidate proposing to promote it — still gated through review.
+
+ex:conjAdjacencySymmetric
+    a logic:Conjecture ;
+    rdfs:label "adjacency is symmetric (corroborated)"@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:4b7c…adjacency-symmetric"^^xsd:string ;
+    logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"^^xsd:string ;
+    logic:candidateScope "symmetry of an example logic:adjacent relation over the endurant spine"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateProposed ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:conjectureFormula "forall x y . adjacent(x,y) -> adjacent(y,x)"^^xsd:string ;
+    logic:conjectureStandpoint ex:standpointEndurantMereology ;
+    logic:conjectureLifecycleState logic:ConjectureCorroborated ;
+    logic:verdictProvenance logic:VerdictEngineProduced ;
+    logic:conjectureDischargeVerdict logic:ObligationDischarged ;
+    logic:conjectureVerdict ex:resultAdjacencySymmetric ;
+    logic:conjecturePromotionCandidate ex:candidatePromoteAdjacencySymmetry .
+
+ex:resultAdjacencySymmetric
+    a logic:ReasoningResult ;
+    rdfs:label "reasoning result for the adjacency-symmetry conjecture test (example)"@x-gmeow-english .
+
+# The positive promotion leg: the corroborated formula becomes a first-class
+# FormalizationCandidate (carrying all eight carriers) awaiting the reviewer gate.
+ex:candidatePromoteAdjacencySymmetry
+    a logic:FormalizationCandidate ;
+    rdfs:label "promote: adjacency is symmetric"@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:4b7c…adjacency-symmetric"^^xsd:string ;
+    logic:candidateExtractionProvenance "positive promotion leg of ex:conjAdjacencySymmetric (corroborated)"^^xsd:string ;
+    logic:candidateScope "symmetry of an example logic:adjacent relation over the endurant spine"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateProposed ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly .
+
+# ── §4 A REFUTED-IN-STANDPOINT conjecture with witness, anti-leg, and refinement ──
+# The formula was Opposed (Belnap false) from the standpoint: a concrete counterexample
+# forced an individual to owl:Nothing. It MUST name a logic:ContradictionWitness, and
+# it feeds the SYMMETRIC anti-conjecture leg — a candidate logic:NonEntailmentObligation
+# forbidding the formula. A Lakatos successor weakens it and survives the witness.
+
+ex:conjParthoodTotallyComparable
+    a logic:Conjecture ;
+    rdfs:label "parthood is a total order (refuted-in-standpoint)"@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:c0de…parthood-total"^^xsd:string ;
+    logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"^^xsd:string ;
+    logic:candidateScope "total comparability of logic:properPartOf over the endurant spine"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateProposed ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:conjectureFormula "forall x y . properPartOf(x,y) or properPartOf(y,x) or x = y"^^xsd:string ;
+    logic:conjectureStandpoint ex:standpointEndurantMereology ;
+    logic:conjectureLifecycleState logic:ConjectureRefutedInStandpoint ;
+    logic:verdictProvenance logic:VerdictEngineProduced ;
+    logic:conjectureDischargeVerdict logic:ObligationDischarged ;
+    logic:conjectureVerdict ex:resultParthoodTotallyComparable ;
+    logic:conjectureRefutationWitness ex:witnessParthoodIncomparablePair ;
+    logic:antiConjectureObligationCandidate ex:obligationForbidTotalParthood .
+
+ex:resultParthoodTotallyComparable
+    a logic:ReasoningResult ;
+    rdfs:label "reasoning result for the total-parthood conjecture test (example)"@x-gmeow-english .
+
+# The concrete runtime refutation witness: an incomparable pair forced the total-order
+# reading to owl:Nothing. It names the offending individual, the world, and the
+# jointly-inconsistent premises.
+ex:witnessParthoodIncomparablePair
+    a logic:ContradictionWitness ;
+    rdfs:label "incomparable parthood pair (refutation witness)"@x-gmeow-english ;
+    logic:witnessIndividual "https://blackcatinformatics.ca/gmeow/examples/logic/leftHand"^^xsd:string ;
+    logic:witnessWorld "https://blackcatinformatics.ca/gmeow/examples/logic/worldActual"^^xsd:string ;
+    logic:witnessPremise "<https://blackcatinformatics.ca/gmeow/examples/logic/leftHand> <https://blackcatinformatics.ca/logic/properPartOf> <https://blackcatinformatics.ca/gmeow/examples/logic/body>"^^xsd:string ,
+        "<https://blackcatinformatics.ca/gmeow/examples/logic/rightHand> <https://blackcatinformatics.ca/logic/properPartOf> <https://blackcatinformatics.ca/gmeow/examples/logic/body>"^^xsd:string ,
+        "<https://blackcatinformatics.ca/gmeow/examples/logic/leftHand> <http://www.w3.org/2002/07/owl#differentFrom> <https://blackcatinformatics.ca/gmeow/examples/logic/rightHand>"^^xsd:string .
+
+# The symmetric anti-conjecture promotion leg: the refuted formula becomes a candidate
+# NonEntailmentObligation the foundation must never draw.
+ex:obligationForbidTotalParthood
+    a logic:NonEntailmentObligation ;
+    rdfs:label "parthood must not be derived as a total order"@x-gmeow-english ;
+    logic:obligationForbiddenPredicate "https://blackcatinformatics.ca/gmeow/examples/logic/parthoodTotallyComparable"^^xsd:anyURI ;
+    logic:obligationDischargeCondition logic:DischargeBoundedCorpus ;
+    logic:obligationDischargeVerdict logic:ObligationUnknown .
+
+# The Lakatos refinement successor: a strictly weaker claim (parthood is a PARTIAL
+# order) that excludes the incomparable-pair witness. It links back through
+# logic:conjectureRefinedFrom and forward through logic:survivesCounterexample.
+ex:conjParthoodPartiallyOrdered
+    a logic:Conjecture ;
+    rdfs:label "parthood is a partial order (refined successor)"@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:d1ff…parthood-partial"^^xsd:string ;
+    logic:candidateExtractionProvenance "Lakatos refinement of ex:conjParthoodTotallyComparable after refutation"^^xsd:string ;
+    logic:candidateScope "antisymmetry + transitivity of logic:properPartOf over the endurant spine"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateProposed ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:conjectureFormula "forall x y z . properPartOf(x,y) and properPartOf(y,z) -> properPartOf(x,z)"^^xsd:string ;
+    logic:conjectureStandpoint ex:standpointEndurantMereology ;
+    logic:conjectureLifecycleState logic:ConjectureOpen ;
+    logic:verdictProvenance logic:VerdictEngineProduced ;
+    logic:conjectureDischargeVerdict logic:ObligationDischarged ;
+    logic:conjectureRefinedFrom ex:conjParthoodTotallyComparable ;
+    logic:survivesCounterexample ex:witnessParthoodIncomparablePair .
+
+# ── §5 A phi-entails-psi propagation pair ────────────────────────────────────────
+# ex:conjGeneralAdjacency entails ex:conjSpecialAdjacency; the special formula is
+# refuted, so the general one is on the contrapositive propagation frontier (consumed
+# by conjecture-entails-propagation.rq).
+
+ex:conjGeneralAdjacency
+    a logic:Conjecture ;
+    rdfs:label "every adjacent pair shares a boundary (general, on the frontier)"@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:aa11…general-adjacency"^^xsd:string ;
+    logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"^^xsd:string ;
+    logic:candidateScope "boundary-sharing of an example logic:adjacent relation"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateProposed ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:conjectureFormula "forall x y . adjacent(x,y) -> exists b . boundaryOf(b,x) and boundaryOf(b,y)"^^xsd:string ;
+    logic:conjectureStandpoint ex:standpointEndurantMereology ;
+    logic:conjectureLifecycleState logic:ConjectureOpen ;
+    logic:verdictProvenance logic:VerdictEngineProduced ;
+    logic:conjectureDischargeVerdict logic:ObligationUnknown ;
+    logic:conjectureEntails ex:conjSpecialAdjacency .
+
+ex:conjSpecialAdjacency
+    a logic:Conjecture ;
+    rdfs:label "every adjacent pair shares a UNIQUE boundary (special, refuted)"@x-gmeow-english ;
+    logic:candidateSourceHash "sha256:bb22…special-adjacency"^^xsd:string ;
+    logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"^^xsd:string ;
+    logic:candidateScope "unique-boundary-sharing of an example logic:adjacent relation"^^xsd:string ;
+    logic:candidateContract logic:StratifiedNAFProfile ;
+    logic:candidateCategory logic:CategoryDerivationRule ;
+    logic:candidateLifecycle logic:CandidateProposed ;
+    logic:candidateProjectionBehavior logic:SoundUnderApproximation ;
+    logic:candidateSemanticRisk logic:RiskProjectionOnly ;
+    logic:conjectureFormula "forall x y . adjacent(x,y) -> exists! b . boundaryOf(b,x) and boundaryOf(b,y)"^^xsd:string ;
+    logic:conjectureStandpoint ex:standpointEndurantMereology ;
+    logic:conjectureLifecycleState logic:ConjectureRefutedInStandpoint ;
+    logic:verdictProvenance logic:VerdictEngineProduced ;
+    logic:conjectureDischargeVerdict logic:ObligationDischarged ;
+    logic:conjectureRefutationWitness ex:witnessSharedBoundaryNonUnique .
+
+ex:witnessSharedBoundaryNonUnique
+    a logic:ContradictionWitness ;
+    rdfs:label "two shared boundaries for one adjacent pair (refutation witness)"@x-gmeow-english ;
+    logic:witnessIndividual "https://blackcatinformatics.ca/gmeow/examples/logic/regionA"^^xsd:string ;
+    logic:witnessWorld "https://blackcatinformatics.ca/gmeow/examples/logic/worldActual"^^xsd:string ;
+    logic:witnessPremise "<https://blackcatinformatics.ca/gmeow/examples/logic/boundaryOne> <https://blackcatinformatics.ca/gmeow/examples/logic/boundaryOf> <https://blackcatinformatics.ca/gmeow/examples/logic/regionA>"^^xsd:string ,
+        "<https://blackcatinformatics.ca/gmeow/examples/logic/boundaryTwo> <https://blackcatinformatics.ca/gmeow/examples/logic/boundaryOf> <https://blackcatinformatics.ca/gmeow/examples/logic/regionA>"^^xsd:string .

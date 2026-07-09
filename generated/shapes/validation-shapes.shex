@@ -7,6 +7,15 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/assertionPolarity> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/AffectDecision> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/AffectDecision-shape> {
+  <https://blackcatinformatics.ca/gmeow/vantage> . + ;
+  <https://blackcatinformatics.ca/gmeow/decidedLabel> . ;
+  <https://blackcatinformatics.ca/gmeow/observedFeature> . ;
+  <https://blackcatinformatics.ca/gmeow/derivedByFunction> . + ;
+  <https://blackcatinformatics.ca/gmeow/decisionCrossedThreshold> . ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/AffectiveExperience> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/AffectiveExperience-shape> {
   <https://blackcatinformatics.ca/gmeow/mentalProcessType> [<https://blackcatinformatics.ca/gmeow/processAffectiveExperience>] ;
@@ -1147,6 +1156,16 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/awarenessSubject> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/axisContextScope> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/axisContextScope-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/axisContextScope> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/axisWeight> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/axisWeight-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/axisWeight> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/bearer> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/bearer-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/bearer> . {0,1} ;
@@ -1820,6 +1839,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/exemplarPolarity> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/exemplarPolarity-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/exemplarPolarity> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/exemptionDate> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/exemptionDate-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/exemptionDate> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/exifTagId> (associate via ShapeMap)
@@ -4244,6 +4268,21 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/tenuredContactPoint> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/tenuredContactPoint-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/tenuredContactPoint> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/thresholdFloor> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/thresholdFloor-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/thresholdFloor> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/thresholdTier> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/thresholdTier-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/thresholdTier> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/tierRank> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/tierRank-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/tierRank> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/timbreObservationResult> (associate via ShapeMap)

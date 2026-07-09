@@ -35,16 +35,11 @@ pub mod ledger;
 pub mod lower;
 pub mod model;
 pub mod project;
-pub mod pyerr;
 pub mod rdf;
 pub mod render;
 
 /// The crate result alias: an error defaults to [`Diag`](diag::Diag).
 pub type Result<T, E = diag::Diag> = std::result::Result<T, E>;
-
-// PyO3 bindings — enabled only for the unified native extension.
-#[cfg(feature = "python")]
-pub mod py;
 
 pub use code::{Code, CodeRegistry, UnknownCode, intern_code, register_code, seed_codes};
 pub use dag::{DagError, DagNode, walk};
@@ -61,9 +56,4 @@ pub use ledger::{
 pub use model::{
     DiagnosticAttribution, Finding, FindingCategory, Location, RelatedLabel, Report, Rule, Severity,
 };
-pub use pyerr::{PyErrKind, pyerr_kind};
 pub use rdf::severity_from_rdf;
-// Re-export the module-registration entrypoint so the unified `gmeow_native`
-// cdylib can populate the `gmeow_native.diagnostics` submodule.
-#[cfg(feature = "python")]
-pub use py::register;

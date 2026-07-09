@@ -23,7 +23,6 @@
 # alongside the label shapes in the same file, so both are enforced together.
 # Both pytest functions are therefore deleted rather than migrated.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/diagnostics/tests/> .
@@ -40,7 +39,7 @@ ASK {
     gmeow:Finding a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:Observation .
 }""" ;
-    gmeow:saRationale "gmeow:Finding MUST be an owl:Class, a logic:SubKind (inheriting Observation's identity principle — the OntoUML MixIden rule forbids a Kind specializing a Kind), and rdfs:subClassOf gmeow:Observation (a diagnostic IS an observation, Principle 9). Mirrors test_finding_is_a_subkind_of_observation." .
+    gmeow:saRationale "gmeow:Finding MUST be an owl:Class, a logic:SubKind (inheriting Observation's identity principle — the OntoUML MixIden rule forbids a Kind specializing a Kind), and rdfs:subClassOf gmeow:Observation (a diagnostic IS an observation, Principle 9)." .
 
 # --- 1b. Finding is NOT a logic:Kind (MUST-NOT hold) --------------------------
 ex:saFindingNotKind a gmeow:StructuralAssertion ;
@@ -52,7 +51,7 @@ PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 ASK {
     gmeow:Finding rdf:type logic:Kind .
 }""" ;
-    gmeow:saRationale "gmeow:Finding MUST NOT be typed logic:Kind — gmeow:Observation already is a Kind; a Kind specializing a Kind is the OntoUML MixIden identity conflict. Finding inherits the identity principle via SubKind. Mirrors the negative logic:Kind clause of test_finding_is_a_subkind_of_observation." .
+    gmeow:saRationale "gmeow:Finding MUST NOT be typed logic:Kind — gmeow:Observation already is a Kind; a Kind specializing a Kind is the OntoUML MixIden identity conflict. Finding inherits the identity principle via SubKind." .
 
 # --- 2a. findingSeverity ⊑ observationResult and ranges DiagnosticSeverity ----
 ex:saFindingSeveritySubPropertyAndRange a gmeow:StructuralAssertion ;
@@ -64,7 +63,7 @@ ASK {
     gmeow:findingSeverity rdfs:subPropertyOf gmeow:observationResult ;
         rdfs:range gmeow:DiagnosticSeverity .
 }""" ;
-    gmeow:saRationale "gmeow:findingSeverity MUST be rdfs:subPropertyOf gmeow:observationResult and MUST carry rdfs:range gmeow:DiagnosticSeverity (the closed severity vocabulary). Mirrors test_severity_and_location_subproperty_observation_roles." .
+    gmeow:saRationale "gmeow:findingSeverity MUST be rdfs:subPropertyOf gmeow:observationResult and MUST carry rdfs:range gmeow:DiagnosticSeverity (the closed severity vocabulary)." .
 
 # --- 2b. findingLocation ⊑ observedFeature (MUST hold) -----------------------
 ex:saFindingLocationSubProperty a gmeow:StructuralAssertion ;
@@ -75,7 +74,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:findingLocation rdfs:subPropertyOf gmeow:observedFeature .
 }""" ;
-    gmeow:saRationale "gmeow:findingLocation MUST be rdfs:subPropertyOf gmeow:observedFeature — a finding's location IS what the observation is about, enabling generic 'observations about X' queries by inheritance. Mirrors the positive subPropertyOf clause of test_severity_and_location_subproperty_observation_roles." .
+    gmeow:saRationale "gmeow:findingLocation MUST be rdfs:subPropertyOf gmeow:observedFeature — a finding's location IS what the observation is about, enabling generic 'observations about X' queries by inheritance." .
 
 # --- 2c. findingLocation has open range: NO rdfs:range (MUST-NOT hold) --------
 ex:saFindingLocationOpenRange a gmeow:StructuralAssertion ;
@@ -84,7 +83,7 @@ ex:saFindingLocationOpenRange a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:findingLocation rdfs:range ?r . }""" ;
-    gmeow:saRationale "gmeow:findingLocation MUST NOT declare an rdfs:range — per-kind narrowing is SHACL's job; the location may point at any term (typically a reified RDF 1.2 statement node carrying GTS wire coordinates). Mirrors the open-range clause of test_severity_and_location_subproperty_observation_roles." .
+    gmeow:saRationale "gmeow:findingLocation MUST NOT declare an rdfs:range — per-kind narrowing is SHACL's job; the location may point at any term (typically a reified RDF 1.2 statement node carrying GTS wire coordinates)." .
 
 # --- 3a. DiagnosticSeverity is an owl:Class and a logic:AbstractIndividualType --
 ex:saDiagnosticSeverityIsValueVocab a gmeow:StructuralAssertion ;
@@ -98,7 +97,7 @@ ASK {
     gmeow:DiagnosticSeverity a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:DiagnosticSeverity MUST be an owl:Class, a logic:AbstractIndividualType, and rdfs:subClassOf logic:QualityValue — the value-vocabulary genus. Severity is a quality value, not a subclass hierarchy. Mirrors test_diagnostic_severity_is_a_value_vocabulary." .
+    gmeow:saRationale "gmeow:DiagnosticSeverity MUST be an owl:Class, a logic:AbstractIndividualType, and rdfs:subClassOf logic:QualityValue — the value-vocabulary genus. Severity is a quality value, not a subclass hierarchy." .
 
 # --- 3b. All four severity individuals are typed DiagnosticSeverity (MUST) ----
 ex:saSeverityIndividualsSeeded a gmeow:StructuralAssertion ;
@@ -111,7 +110,7 @@ ASK {
     gmeow:severityNote    a gmeow:DiagnosticSeverity .
     gmeow:severityInfo    a gmeow:DiagnosticSeverity .
 }""" ;
-    gmeow:saRationale "All four severity grade individuals (severityError, severityWarning, severityNote, severityInfo) MUST be typed gmeow:DiagnosticSeverity — the closed-by-convention value vocabulary (Principle 9). Mirrors the per-individual membership clause of test_diagnostic_severity_is_a_value_vocabulary." .
+    gmeow:saRationale "All four severity grade individuals (severityError, severityWarning, severityNote, severityInfo) MUST be typed gmeow:DiagnosticSeverity — the closed-by-convention value vocabulary (Principle 9)." .
 
 # --- 3c. Severity grade individuals are NOT owl:Class (MUST-NOT hold) --------
 ex:saSeverityIndividualsNotClasses a gmeow:StructuralAssertion ;
@@ -124,7 +123,7 @@ ASK {
     VALUES ?indiv { gmeow:severityError gmeow:severityWarning gmeow:severityNote gmeow:severityInfo }
     ?indiv rdf:type owl:Class .
 }""" ;
-    gmeow:saRationale "None of the four severity grade individuals may be typed owl:Class — grades are individuals, never subclasses (Principle 9). Mirrors the negative owl:Class clause of test_diagnostic_severity_is_a_value_vocabulary." .
+    gmeow:saRationale "None of the four severity grade individuals may be typed owl:Class — grades are individuals, never subclasses (Principle 9)." .
 
 # --- 4. Wire-coordinate datatype properties range over nonNegativeInteger -----
 ex:saWireCoordinatesAreDatatype a gmeow:StructuralAssertion ;
@@ -140,7 +139,7 @@ ASK {
     gmeow:gtsReifierId  a owl:DatatypeProperty ; rdfs:range xsd:nonNegativeInteger .
     gmeow:gtsFrameIndex a owl:DatatypeProperty ; rdfs:range xsd:nonNegativeInteger .
 }""" ;
-    gmeow:saRationale "All four diagnostics-owned GTS wire coordinate properties (gtsTermId, gtsQuadIndex, gtsReifierId, gtsFrameIndex) MUST be owl:DatatypeProperty and MUST range over xsd:nonNegativeInteger (wire indices are always non-negative). Mirrors test_wire_coordinates_are_datatype_properties." .
+    gmeow:saRationale "All four diagnostics-owned GTS wire coordinate properties (gtsTermId, gtsQuadIndex, gtsReifierId, gtsFrameIndex) MUST be owl:DatatypeProperty and MUST range over xsd:nonNegativeInteger (wire indices are always non-negative)." .
 
 # --- 5. No truth/resolution bits (MUST-NOT hold) -----------------------------
 ex:saNoTruthOrResolutionBits a gmeow:StructuralAssertion ;
@@ -153,4 +152,4 @@ ASK {
     UNION { ?s ?forbidden ?o . }
     UNION { ?s ?p ?forbidden . }
 }""" ;
-    gmeow:saRationale "The diagnostics slice is a projection of the Rust-owned canonical report and MUST NOT mint truth or resolution bits (isTrue, isFalse, isResolved, findingOutcome). None of the forbidden terms may appear in any subject, predicate, or object position. Mirrors test_no_truth_or_resolution_bits." .
+    gmeow:saRationale "The diagnostics slice is a projection of the Rust-owned canonical report and MUST NOT mint truth or resolution bits (isTrue, isFalse, isResolved, findingOutcome). None of the forbidden terms may appear in any subject, predicate, or object position." .

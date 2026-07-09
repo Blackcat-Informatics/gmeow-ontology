@@ -63,8 +63,6 @@ pub mod up_projection_gates;
 pub mod up_projection_report;
 
 pub mod mcp;
-#[cfg(feature = "python")]
-pub mod py;
 
 pub use bundle::{PipelineHandle, bundle_artifact, bundle_artifacts};
 pub use cache::PipelineCache;
@@ -81,9 +79,6 @@ pub use node::{
 pub use registry::{StageRegistry, default_registry};
 pub use run::{RunMode, RunReport, full_spec, run_full};
 pub use scheduler::{RunContext, RunResult, run};
-
-#[cfg(feature = "python")]
-pub use py::register;
 
 #[cfg(test)]
 mod tests;

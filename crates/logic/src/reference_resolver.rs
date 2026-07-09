@@ -207,6 +207,14 @@ impl<'a> ResolveState<'a> {
                  (use the Scryer engine)"
                     .to_owned(),
             )),
+            // Stratified negation-as-failure is decided by the native binary core (or the
+            // Scryer oracle for a non-stratifiable / n-ary program); this top-down SLD
+            // parity oracle covers only the positive corpus it is checked against.
+            QBodyLit::Neg(_) => Err(reference_err(
+                "negation-as-failure is not supported by the declarative SLD reference \
+                 oracle (decided by the native stratified core or the Scryer engine)"
+                    .to_owned(),
+            )),
             QBodyLit::Builtin(b) => self.resolve_builtin(b, rest, subst, seen),
             QBodyLit::Atom(atom) => {
                 // Apply the current substitution to the first atom.
@@ -579,6 +587,7 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
             .iter()
             .map(|b| match b {
                 QBodyLit::Atom(a) => QBodyLit::Atom(rename_atom(a, &suffix)),
+                QBodyLit::Neg(a) => QBodyLit::Neg(rename_atom(a, &suffix)),
                 QBodyLit::Cut => QBodyLit::Cut,
                 // Builtins are rejected before resolution; carry intact for renaming
                 // completeness (Num operands are rename-invariant).

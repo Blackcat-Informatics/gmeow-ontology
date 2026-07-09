@@ -1,0 +1,6 @@
+<http://example.org/Stewie> <http://example.org/hasFather> <http://example.org/Peter> <https://gmeow.example/w3c-owl2-full/new-feature-disjointobjectproperties-001/w> .
+<http://example.org/Stewie> <http://example.org/hasMother> <http://example.org/Lois> <https://gmeow.example/w3c-owl2-full/new-feature-disjointobjectproperties-001/w> .
+<http://example.org/hasFather> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/new-feature-disjointobjectproperties-001/w> .
+<http://example.org/hasFather> <http://www.w3.org/2002/07/owl#propertyDisjointWith> <http://example.org/hasMother> <https://gmeow.example/w3c-owl2-full/new-feature-disjointobjectproperties-001/w> .
+<http://example.org/hasMother> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/new-feature-disjointobjectproperties-001/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/new-feature-disjointobjectproperties-001/w> .

@@ -1,0 +1,2 @@
+<http://www.example.org/foo#object> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/webont-functionalproperty-005/w> .
+<http://www.example.org/foo#prop> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#FunctionalProperty> <https://gmeow.example/w3c-owl2-full/webont-functionalproperty-005/w> .

@@ -27,8 +27,8 @@
 //!
 //! # Engine core separation
 //!
-//! Only [`py`] and [`py_dsl`] import pyo3. The engine modules are PyO3-free so the
-//! rlib links into a future Rust compiler (and the wasm target) without Python.
+//! The engine modules are PyO3-free so the rlib links into the native Rust
+//! toolchain (and the wasm target) without Python.
 
 // Wasm-clean Tier-1 core: compiled on every target.
 pub mod codes;
@@ -37,6 +37,7 @@ pub mod error;
 pub mod findings;
 pub mod gufo;
 pub mod model;
+pub mod projection_profiles;
 pub mod report_bridge;
 pub mod store;
 
@@ -91,14 +92,3 @@ pub mod time_util;
 pub mod validate_all;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod wikidata_audit;
-
-// PyO3 bindings — enabled only for the unified native extension, never on wasm.
-#[cfg(all(feature = "python", not(target_arch = "wasm32")))]
-pub mod py;
-#[cfg(all(feature = "python", not(target_arch = "wasm32")))]
-pub mod py_dsl;
-
-// Re-export the module-registration entrypoint so the unified `gmeow_native`
-// cdylib can populate the `gmeow_native.validate` submodule.
-#[cfg(all(feature = "python", not(target_arch = "wasm32")))]
-pub use py::register;

@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:TheoremGroundingShape: a math:Theorem with a declared external
+# warrant (so the proof-or-warrant constraint is satisfied) but NO theory context — a bare
+# theorem asserted as a truth bit rather than a claim held under a named, versioned theory.
+# It fails the sh:minCount on math:roleInTheory, so validation MUST emit
+# shacl.MinCountConstraintComponent and NO other finding (math:UngroundedTheoremClaim).
+# Bound by ex:ecTheoremMissingTheory.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:untheorizedTheorem a math:Theorem ;
+    math:externalWarrant ex:citedPublishedProof .

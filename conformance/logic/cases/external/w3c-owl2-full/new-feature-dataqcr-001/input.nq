@@ -1,0 +1,4 @@
+<http://example.org/Meg> <http://example.org/hasName> "Meg Griffin" <https://gmeow.example/w3c-owl2-full/new-feature-dataqcr-001/w> .
+<http://example.org/Meg> <http://example.org/hasName> "Megan Griffin" <https://gmeow.example/w3c-owl2-full/new-feature-dataqcr-001/w> .
+<http://example.org/hasName> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> <https://gmeow.example/w3c-owl2-full/new-feature-dataqcr-001/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/new-feature-dataqcr-001/w> .

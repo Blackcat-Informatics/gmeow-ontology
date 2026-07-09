@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# QC: every gmeow:QualityAxis individual must bind a measurement primitive with
+# gmeow:axisProducer. An axis with no producer cannot be scored, so a non-empty
+# result is a failure — the competency cell pins the empty set.
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?axis WHERE {
+    ?axis a gmeow:QualityAxis .
+    FILTER NOT EXISTS { ?axis gmeow:axisProducer ?producer }
+}

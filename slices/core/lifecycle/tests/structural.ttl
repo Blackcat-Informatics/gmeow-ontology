@@ -19,7 +19,6 @@
 # GraphStore::ontology(); the entity-existence + contested/coverage conform cases
 # with GraphStore ABox twins).
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lifecycle/tests/> .
@@ -36,7 +35,7 @@ ASK {
     gmeow:EntityExistence a owl:Class , logic:Situation ;
         rdfs:subClassOf gmeow:TimeScopedRelation .
 }""" ;
-    gmeow:saRationale "gmeow:EntityExistence MUST be an owl:Class typed logic:Situation and a subclass of gmeow:TimeScopedRelation — the reified existence record is a situation bounded by a temporal scope, the universal contested-claim pattern. Mirrors test_entity_existence_is_a_gufo_situation." .
+    gmeow:saRationale "gmeow:EntityExistence MUST be an owl:Class typed logic:Situation and a subclass of gmeow:TimeScopedRelation — the reified existence record is a situation bounded by a temporal scope, the universal contested-claim pattern." .
 
 # --- 2. Flat lifecycle properties are owl:ObjectProperty with domain Entity (MUST) ---
 ex:saFlatLifecyclePropertiesAreObjectProperties a gmeow:StructuralAssertion ;
@@ -53,7 +52,7 @@ ASK {
     gmeow:existenceInterval a owl:ObjectProperty ;
         rdfs:domain gmeow:Entity .
 }""" ;
-    gmeow:saRationale "gmeow:hasCreationEvent, hasDestructionEvent, and existenceInterval MUST each be an owl:ObjectProperty with rdfs:domain gmeow:Entity — the flat-first pattern attaches lifecycle facts directly to any entity without reification. Mirrors test_creation_and_destruction_are_object_properties and test_flat_lifecycle_properties_exist." .
+    gmeow:saRationale "gmeow:hasCreationEvent, hasDestructionEvent, and existenceInterval MUST each be an owl:ObjectProperty with rdfs:domain gmeow:Entity — the flat-first pattern attaches lifecycle facts directly to any entity without reification." .
 
 # --- 3. Reified EntityExistence has its constituent object properties (MUST) ---
 ex:saReifiedEntityExistenceProperties a gmeow:StructuralAssertion ;
@@ -67,7 +66,7 @@ ASK {
     gmeow:existenceCreationEvent a owl:ObjectProperty .
     gmeow:existenceDestructionEvent a owl:ObjectProperty .
 }""" ;
-    gmeow:saRationale "gmeow:EntityExistence MUST be an owl:Class and gmeow:existenceEntity, existenceCreationEvent, existenceDestructionEvent MUST each be owl:ObjectProperty — together they form the reified situation slot set required by SHACL. Mirrors test_reified_entity_existence_exists." .
+    gmeow:saRationale "gmeow:EntityExistence MUST be an owl:Class and gmeow:existenceEntity, existenceCreationEvent, existenceDestructionEvent MUST each be owl:ObjectProperty — together they form the reified situation slot set required by SHACL." .
 
 # --- 4. EntityExistence carries a someValuesFrom mediation axiom on existenceEntity (MUST) ---
 ex:saEntityExistenceMediationAxiom a gmeow:StructuralAssertion ;
@@ -82,7 +81,7 @@ ASK {
         owl:someValuesFrom gmeow:Entity
     ] .
 }""" ;
-    gmeow:saRationale "gmeow:EntityExistence MUST carry an open-world EL someValuesFrom restriction on gmeow:existenceEntity to gmeow:Entity — the situation binds exactly one entity and the someValuesFrom axiom is the relator-mediation gate that makes it visible to reasoners and generators. Mirrors test_entity_existence_mediation_axiom_present." .
+    gmeow:saRationale "gmeow:EntityExistence MUST carry an open-world EL someValuesFrom restriction on gmeow:existenceEntity to gmeow:Entity — the situation binds exactly one entity and the someValuesFrom axiom is the relator-mediation gate that makes it visible to reasoners and generators." .
 
 # --- 5. supersededBy is a directed owl:ObjectProperty with domain+range Entity (MUST) ---
 ex:saSupersededByIsObjectProperty a gmeow:StructuralAssertion ;
@@ -97,4 +96,4 @@ ASK {
         rdfs:range gmeow:Entity ;
         owl:inverseOf gmeow:supersedes .
 }""" ;
-    gmeow:saRationale "gmeow:supersededBy MUST be an owl:ObjectProperty with domain and range gmeow:Entity and declare owl:inverseOf gmeow:supersedes — it is directional (predecessor→successor) and non-symmetric; the superseded entity is retained, never deleted (Principle 10). Mirrors the supersededBy half of test_supersession_properties_are_object_properties." .
+    gmeow:saRationale "gmeow:supersededBy MUST be an owl:ObjectProperty with domain and range gmeow:Entity and declare owl:inverseOf gmeow:supersedes — it is directional (predecessor→successor) and non-symmetric; the superseded entity is retained, never deleted (Principle 10)." .

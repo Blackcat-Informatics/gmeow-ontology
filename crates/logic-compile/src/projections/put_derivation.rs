@@ -308,6 +308,9 @@ impl CorrespondenceProgram {
                         c.weight,
                         c.probability,
                         c.according_to.clone(),
+                        // Preserve the authored per-correspondence preservation judgment so
+                        // the derived program the gates run over still sees the rung.
+                        c.preservation,
                     )?);
                 }
                 PutDerivation::Unsupported { .. } => {

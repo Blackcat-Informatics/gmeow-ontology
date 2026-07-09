@@ -278,6 +278,9 @@ pub fn transpile_correspondences_indexed(
             // Unindexed cells are scoped to the unspecified standpoint (unspecified, not
             // universal): `accordingTo` stays unset.
             None,
+            // The lane preservation polarity is program-level (SoundUnder below); a DSL cell
+            // authors no per-correspondence rung.
+            None,
         )?;
         correspondences.push(corr);
         by_key.insert(
@@ -367,6 +370,8 @@ fn correspondence_for_binding(
         None,
         None,
         None,
+        None,
+        // Program-level SoundUnder polarity covers the binding; no per-cell rung authored.
         None,
     )?;
     Ok((
