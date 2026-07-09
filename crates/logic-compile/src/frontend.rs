@@ -2351,6 +2351,21 @@ fn extract_constraints(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) ->
     constraints
 }
 
+/// Extract every authored `logic:Constraint` individual AND compact constraint-sugar record
+/// (P1–P7 + the aggregate satellite) from `store`, each expanded to a canonical [`ConstraintIr`],
+/// together with any `MALFORMED_CONSTRAINT` diagnostics. This is the whole-dataset entry point the
+/// pipeline uses to gather procedural constraints from the MERGED authored ontology (every slice
+/// `module.ttl`), not just the `logic:` terminal module — so a `logic:Constraint`/sugar record may
+/// be authored in the slice that owns the constrained class (the constraint peer of
+/// [`derive_validation_shapes`], which already reads the merged dataset). The returned vector is
+/// unsorted; [`LogicProgram::with_constraints`] canonicalizes it.
+pub fn extract_all_constraints(store: &RdfDataset) -> (Vec<ConstraintIr>, Vec<Diagnostic>) {
+    let mut diagnostics = Vec::new();
+    let mut constraints = extract_constraints(store, &mut diagnostics);
+    constraints.extend(extract_sugar_constraints(store, &mut diagnostics));
+    (constraints, diagnostics)
+}
+
 /// Reconstruct one [`ConstraintIr`] rooted at a `logic:Constraint` node, or return a
 /// human-readable reason the constraint is malformed (surfaced as one `MALFORMED_CONSTRAINT`
 /// warning by [`extract_constraints`]).
