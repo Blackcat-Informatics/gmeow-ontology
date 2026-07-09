@@ -39,8 +39,15 @@ use gmeow_validate::store::{dataset_from_paths, parse_file_dataset, shacl_valida
 use purrdf::shapes::engine::parse_shapes;
 use purrdf::{RdfDataset, RdfTerm};
 
-/// The `lang:` grounding namespace (byte-identical to every `lang:` producer).
+/// The `lang:` grounding namespace (byte-identical to every `lang:` producer). Used for the
+/// SCANNED failure classes (`lang:<Class>`), which stay slice-namespaced.
 const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+
+/// The shared `gmeow:` namespace. The flagship-manifest PREDICATES (the acceptance-bar
+/// wiring) are hoisted here, so the manifest reads and the shape→failure-class annotation
+/// reads resolve `gmeow:demonstratedBy*` / `gmeow:guardedByCounterExample` /
+/// `gmeow:enforcesFailureClass`, while the failure-class VALUES they point at stay `lang:`.
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
 /// The repo root: `crates/pipeline/..` twice up, mirroring the in-crate stage tests so the
 /// harness drives off the SAME slice tree the production path discovers.
@@ -115,11 +122,12 @@ fn parse_manifest() -> Vec<Flagship> {
     let mut class: HashMap<String, String> = HashMap::new();
     let mut producer: HashMap<String, String> = HashMap::new();
 
-    // The four predicate IRIs, built ONCE rather than reformatted per quad.
-    let pred_example = format!("{LANG_NS}demonstratedByExample");
-    let pred_counter = format!("{LANG_NS}guardedByCounterExample");
-    let pred_class = format!("{LANG_NS}enforcesFailureClass");
-    let pred_producer = format!("{LANG_NS}demonstratedByProducer");
+    // The four predicate IRIs, built ONCE rather than reformatted per quad. Hoisted to the
+    // shared gmeow: manifest vocabulary; only the enforcesFailureClass VALUE stays lang:.
+    let pred_example = format!("{GMEOW_NS}demonstratedByExample");
+    let pred_counter = format!("{GMEOW_NS}guardedByCounterExample");
+    let pred_class = format!("{GMEOW_NS}enforcesFailureClass");
+    let pred_producer = format!("{GMEOW_NS}demonstratedByProducer");
 
     for quad in ds.owned_quads() {
         let RdfTerm::Iri(subject) = &quad.subject else {
@@ -160,11 +168,11 @@ fn parse_manifest() -> Vec<Flagship> {
     let mut flagships: Vec<Flagship> = producer
         .keys()
         .map(|subject| {
-            let rel_example = example
-                .get(subject)
-                .unwrap_or_else(|| panic!("flagship {subject} missing lang:demonstratedByExample"));
+            let rel_example = example.get(subject).unwrap_or_else(|| {
+                panic!("flagship {subject} missing gmeow:demonstratedByExample")
+            });
             let rel_counter = counter.get(subject).unwrap_or_else(|| {
-                panic!("flagship {subject} missing lang:guardedByCounterExample")
+                panic!("flagship {subject} missing gmeow:guardedByCounterExample")
             });
             Flagship {
                 subject: subject.clone(),
@@ -173,7 +181,7 @@ fn parse_manifest() -> Vec<Flagship> {
                 failure_class: class
                     .get(subject)
                     .unwrap_or_else(|| {
-                        panic!("flagship {subject} missing lang:enforcesFailureClass")
+                        panic!("flagship {subject} missing gmeow:enforcesFailureClass")
                     })
                     .clone(),
                 producer: producer[subject].clone(),
@@ -184,7 +192,7 @@ fn parse_manifest() -> Vec<Flagship> {
     assert_eq!(
         flagships.len(),
         5,
-        "the acceptance manifest declares exactly five lang:FlagshipScenario producers"
+        "the acceptance manifest declares exactly five gmeow:FlagshipScenario producers"
     );
     flagships
 }
@@ -222,12 +230,14 @@ fn native_lang_failures(errors: &[String]) -> HashSet<String> {
 }
 
 /// Build the `<node-shape-IRI> -> failure-class-local-name` map from the lang shapes graph.
-/// Each `lang:` node shape carries `<shape> lang:enforcesFailureClass <class>`; the native
-/// SHACL engine stamps a violation's `source_shape` with its parent NODE shape IRI (property
-/// constraints inherit the node shape's id), so this IRI-keyed map resolves every violation.
+/// Each `lang:` node shape carries `<shape> gmeow:enforcesFailureClass <lang:class>` (the
+/// annotation predicate is hoisted to the shared gmeow: vocabulary; the failure-class value
+/// stays lang:); the native SHACL engine stamps a violation's `source_shape` with its parent
+/// NODE shape IRI (property constraints inherit the node shape's id), so this IRI-keyed map
+/// resolves every violation.
 fn shape_class_map(shapes_ds: &RdfDataset) -> HashMap<String, String> {
     let mut map = HashMap::new();
-    let pred_class = format!("{LANG_NS}enforcesFailureClass");
+    let pred_class = format!("{GMEOW_NS}enforcesFailureClass");
     for quad in shapes_ds.owned_quads() {
         if quad.predicate == pred_class
             && let (RdfTerm::Iri(shape), RdfTerm::Iri(class)) = (&quad.subject, &quad.object)
@@ -237,7 +247,7 @@ fn shape_class_map(shapes_ds: &RdfDataset) -> HashMap<String, String> {
     }
     assert!(
         !map.is_empty(),
-        "the lang shapes graph must carry lang:enforcesFailureClass annotations"
+        "the lang shapes graph must carry gmeow:enforcesFailureClass annotations"
     );
     map
 }
@@ -506,7 +516,7 @@ fn run_producer(flagship: &Flagship, catalog: &purrdf::slice::SliceCatalog) {
         }
 
         other => panic!(
-            "flagship {}: unknown lang:demonstratedByProducer identifier {other:?}",
+            "flagship {}: unknown gmeow:demonstratedByProducer identifier {other:?}",
             flagship.subject
         ),
     }

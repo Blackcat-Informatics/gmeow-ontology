@@ -5,23 +5,26 @@
 #
 # The mathematics grounding layer's depth is defined by five flagship acceptance
 # scenarios, not by adjectives. Each is realized by a worked example, pinned by a
-# competency question, and guarded by a counter-example that raises a named failure
-# class. This manifest reifies the acceptance bar ITSELF: five math:FlagshipScenario
-# individuals, each binding one scenario to the four artifacts that realize and enforce
-# it —
-#   math:demonstratedByExample     → the worked examples/*.ttl
-#   math:demonstratedByCompetency  → the gmeow:CompetencyQuestion that pins it
-#   math:guardedByCounterExample   → the minimal violation that proves the gate bites
-#   math:enforcesFailureClass      → the math:MathConformanceFailure subclass it raises
+# competency question, emitted by a named native producer, and guarded by a
+# counter-example that raises a named failure class. This manifest reifies the acceptance
+# bar ITSELF: five gmeow:FlagshipScenario individuals, each binding one scenario to the
+# artifacts that realize and enforce it —
+#   gmeow:demonstratedByExample     → the worked examples/*.ttl
+#   gmeow:demonstratedByCompetency  → the gmeow:CompetencyQuestion that pins it
+#   gmeow:demonstratedByProducer    → the native producer entrypoint
+#   gmeow:guardedByCounterExample   → the minimal violation that proves the gate bites
+#   gmeow:enforcesFailureClass      → the math:MathConformanceFailure subclass it raises
 #
-# The bindings are gated across three surfaces: SHACL (math:FlagshipScenarioShape) and
-# a structural ASK (ex:saFlagshipCoverage) check that the five are present and fully
+# The bindings are gated across three surfaces: the shared SHACL gmeow:FlagshipScenarioShape
+# (cardinalities) plus the slice's thin math:FlagshipScenarioShape (failure-range) and a
+# structural ASK (ex:saFlagshipCoverage) check that the five are present and fully
 # linked with a real failure class; the native flagship cross-check resolves each
-# math:demonstratedByCompetency into tests/competency.ttl and confirms it carries a
+# gmeow:demonstratedByCompetency into tests/competency.ttl and confirms it carries a
 # gmeow:cqExpectRow expectation and an existing query file. The competency-question
 # individuals live in the tests dataset, which SHACL never loads — hence the split.
 # Validates cleanly.
 
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -29,46 +32,51 @@
 @prefix cq:   <https://blackcatinformatics.ca/gmeow/examples/math/tests/> .
 
 # --- Flagship 1 — the symmetry groups of E8 -------------------------------- #
-exa:e8Symmetry a math:FlagshipScenario ;
+exa:e8Symmetry a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: the symmetry groups of E8"@x-gmeow-english ;
     skos:definition "Lie group and Lie algebra, root system (240 roots in rank 8), Weyl group modelled as the automorphism group preserving the root system, its numbers pinned by an exact-match competency gate."@x-gmeow-english ;
-    math:demonstratedByExample "examples/e8-symmetry.ttl" ;
-    math:demonstratedByCompetency cq:cqE8RootSystem ;
-    math:guardedByCounterExample "tests/counter-examples/e8-wrong-weyl-order.ttl" ;
-    math:enforcesFailureClass math:WrongE8WeylOrder .
+    gmeow:demonstratedByExample "examples/e8-symmetry.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqE8RootSystem ;
+    gmeow:demonstratedByProducer "math::producers::e8_weyl_order" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/e8-wrong-weyl-order.ttl" ;
+    gmeow:enforcesFailureClass math:WrongE8WeylOrder .
 
 # --- Flagship 2 — how homomorphic encryption works ------------------------- #
-exa:homomorphicEncryption a math:FlagshipScenario ;
+exa:homomorphicEncryption a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: how homomorphic encryption works"@x-gmeow-english ;
     skos:definition "A ring homomorphism whose homomorphic law (Dec(E(a) ⊗ E(b)) = a ⊕ b) is a logic: formula grounded in math: ring/lattice structure, framed by its noise model and security assumption."@x-gmeow-english ;
-    math:demonstratedByExample "examples/homomorphic-encryption.ttl" ;
-    math:demonstratedByCompetency cq:cqHeSchemeFrame ;
-    math:guardedByCounterExample "tests/counter-examples/he-scheme-missing-noise-model.ttl" ;
-    math:enforcesFailureClass math:UnderspecifiedEncryptionScheme .
+    gmeow:demonstratedByExample "examples/homomorphic-encryption.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqHeSchemeFrame ;
+    gmeow:demonstratedByProducer "math::producers::additive_he_demo" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/he-scheme-missing-noise-model.ttl" ;
+    gmeow:enforcesFailureClass math:UnderspecifiedEncryptionScheme .
 
 # --- Flagship 3 — complex proofs as process -------------------------------- #
-exa:proofAsProcess a math:FlagshipScenario ;
+exa:proofAsProcess a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: complex proofs as process"@x-gmeow-english ;
     skos:definition "A proof effort as a goal-decomposed process whose QED is a verification observation grounded in a vantage — the proof-dependency DAG lifted through the bridge, with an ungrounded verdict rejected."@x-gmeow-english ;
-    math:demonstratedByExample "examples/bridges.ttl" ;
-    math:demonstratedByCompetency cq:cqBridgeProof ;
-    math:guardedByCounterExample "tests/counter-examples/verification-result-ungrounded.ttl" ;
-    math:enforcesFailureClass math:UngroundedVerificationResult .
+    gmeow:demonstratedByExample "examples/bridges.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqBridgeProof ;
+    gmeow:demonstratedByProducer "math::producers::proof_ingest" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/verification-result-ungrounded.ttl" ;
+    gmeow:enforcesFailureClass math:UngroundedVerificationResult .
 
 # --- Flagship 4 — the universal R → math: bridge --------------------------- #
-exa:rBridge a math:FlagshipScenario ;
+exa:rBridge a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: R → math:, for any R script"@x-gmeow-english ;
     skos:definition "A universal lift where an R script's mathematical/statistical content lifts into math: as the put leg of a logic:Correspondence, hard-failing with a typed diagnostic on anything it cannot lift rather than dropping it silently."@x-gmeow-english ;
-    math:demonstratedByExample "examples/bridges.ttl" ;
-    math:demonstratedByCompetency cq:cqBridgeRFidelity ;
-    math:guardedByCounterExample "tests/counter-examples/ingest-run-unliftable.ttl" ;
-    math:enforcesFailureClass math:UnliftableIngest .
+    gmeow:demonstratedByExample "examples/bridges.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqBridgeRFidelity ;
+    gmeow:demonstratedByProducer "math::producers::r_bridge_lift" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/ingest-run-unliftable.ttl" ;
+    gmeow:enforcesFailureClass math:UnliftableIngest .
 
 # --- Flagship 5 — an AI describing its own structure ----------------------- #
-exa:aiSelfStructure a math:FlagshipScenario ;
+exa:aiSelfStructure a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: an AI describing its own structure"@x-gmeow-english ;
     skos:definition "A tensor computational graph as a math: object, weights as matrices in a parameter space, embeddings as latent-space geometry with residual meaning, and the AI's reflection carried at the logic: metalevel — the dogfooding apex."@x-gmeow-english ;
-    math:demonstratedByExample "examples/linear-algebra-and-learning.ttl" ;
-    math:demonstratedByCompetency cq:cqTensorGraph ;
-    math:guardedByCounterExample "tests/counter-examples/tensor-graph-no-node.ttl" ;
-    math:enforcesFailureClass math:MalformedTensorComputationGraph .
+    gmeow:demonstratedByExample "examples/linear-algebra-and-learning.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqTensorGraph ;
+    gmeow:demonstratedByProducer "math::producers::exact_pca_residual" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/tensor-graph-no-node.ttl" ;
+    gmeow:enforcesFailureClass math:MalformedTensorComputationGraph .
