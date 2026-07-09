@@ -140,6 +140,17 @@
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/copyrightHolder> ?v0 . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/CoreObservationMethodConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/StandpointClaim> ;
+    sh:target [ a sh:SPARQLTarget ; sh:select """SELECT ?this WHERE { ?this a/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* ?fam . FILTER ( ?fam IN (<https://blackcatinformatics.ca/gmeow/Measurement>, <https://blackcatinformatics.ca/gmeow/SensoryObservation>, <https://blackcatinformatics.ca/gmeow/StandpointClaim>, <https://blackcatinformatics.ca/gmeow/TemporalMeasurement>) ) }""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A core observation (measurement, sensory, standpoint claim, or temporal measurement) must record an observation method (gmeow:observationMethod or a sub-property)." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/gmeow/observationMethod> ?m1 . } UNION { $this <https://blackcatinformatics.ca/gmeow/measurementMethod> ?m2 . } UNION { $this <https://blackcatinformatics.ca/gmeow/assessmentCriterion> ?m3 . } UNION { $this <https://blackcatinformatics.ca/gmeow/assessmentRubric> ?m4 . } } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/CredentialAttestationConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Credential> ;
@@ -193,6 +204,45 @@
         sh:severity sh:Warning ;
         sh:message "An expired or cancelled trademark should set gmeow:displayable false — suppressed from display, never deleted." ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/trademarkStatus> ?st . FILTER ( ?st IN (<https://blackcatinformatics.ca/gmeow/trademarkStatusExpired>, <https://blackcatinformatics.ca/gmeow/trademarkStatusCancelled>) ) FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/displayable> 'false'^^<http://www.w3.org/2001/XMLSchema#boolean> . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/FrameAxisTypeConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A reference frame's coordinate axis (gmeow:hasAxis) must be a gmeow:Axis." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/hasAxis> ?v . FILTER NOT EXISTS { ?v a <https://blackcatinformatics.ca/gmeow/Axis> . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/FrameDimensionCountConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ReferenceFrame> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A reference frame's dimension count (gmeow:dimensionCount) must equal its number of coordinate axes (gmeow:hasAxis)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/hasAxis> ?value . $this <https://blackcatinformatics.ca/gmeow/dimensionCount> ?rhs . } GROUP BY $this ?rhs HAVING ( COUNT(DISTINCT ?value) != ?rhs )""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/GateFatalUpsetConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/logic/ruleGateFatalVerdict> ;
+    sh:target [ a sh:SPARQLTarget ; sh:select """SELECT ?this WHERE {
+    ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Finding> .
+    ?this <https://blackcatinformatics.ca/gmeow/findingSeverity> <https://blackcatinformatics.ca/gmeow/severityError> .
+    ?this <https://blackcatinformatics.ca/gmeow/findingStandpoint> <https://blackcatinformatics.ca/gmeow/standpointBinding> .
+    ?this <https://blackcatinformatics.ca/gmeow/findingCategory> ?cat .
+    ?cat <https://blackcatinformatics.ca/gmeow/categoryBlocking> <https://blackcatinformatics.ca/gmeow/blockingBlocking> .
+}""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A finding on the gate-fatal up-set (severity error, category projecting to blocking, standpoint binding) must carry gmeow:findingGateVerdict gmeow:gateFatal — the derived verdict of logic:ruleGateFatalVerdict is missing." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/findingGateVerdict> <https://blackcatinformatics.ca/gmeow/gateFatal> . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/GraftPermissionModalityConstraintProceduralConstraintShape>
@@ -437,6 +487,17 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/validUntil> ?u . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/displayable> 'false'^^<http://www.w3.org/2001/XMLSchema#boolean> . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/SupersededObservationSuppressionConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/SupersededObservationSuppressionShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Observation> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Warning ;
+        sh:message "A superseded observation (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/validUntil> ?u . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/displayable> 'false'^^<http://www.w3.org/2001/XMLSchema#boolean> . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/TeachingSelfTeachConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Teaching> ;
@@ -569,6 +630,17 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ?cp . $this <https://blackcatinformatics.ca/lang/inScript> ?s . ?g2 <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ?cp . ?g2 <https://blackcatinformatics.ca/lang/inScript> ?s . FILTER ( $this != ?g2 ) FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/gmnSigilScope> ?sc1 . ?g2 <https://blackcatinformatics.ca/gmeow/gmnSigilScope> ?sc2 . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/lang/GmnScriptGlyphCoverageConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/Grapheme> ;
+    sh:targetClass <https://blackcatinformatics.ca/lang/Grapheme> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A lang:Grapheme in the GMN script carries no gmeow:gmnGlyphTokenCost; the GMN glyph inventory is cost-covered by rule, so every admitted glyph carries its measured token-cost feed." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/inScript> <https://blackcatinformatics.ca/gmeow/gmnScript> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/gmnGlyphTokenCost> ?c0 . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/lang/GmnVersionOverclaimConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/GmnVersionOverclaimShape> ;
@@ -611,6 +683,50 @@
         sh:severity sh:Violation ;
         sh:message "A lang:slotForm value must be a resource (a blank node or IRI), never a literal." ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/slotForm> ?g . $this <https://blackcatinformatics.ca/lang/slotForm> ?v . FILTER ( !( isIRI(?v) || isBlank(?v) ) ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/lang/UnmarkedSourceOverclaimConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/UnmarkedSurfaceTranslationShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/lang/TranslationUnit> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A surface-only translation source realizes no analyzed form yet carries a stronger-than-weakest preservation judgment on its logic:Correspondence." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/translationSource> ?s . ?s a <https://blackcatinformatics.ca/lang/SurfaceForm> . $this <https://blackcatinformatics.ca/lang/translationCorrespondence> ?c . FILTER NOT EXISTS { ?s <https://blackcatinformatics.ca/lang/realizes> ?rf . } FILTER NOT EXISTS { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/Unsupported> . } FILTER NOT EXISTS { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/lang/UnmarkedSourceProseConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/UnmarkedSurfaceTranslationShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/lang/TranslationUnit> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A surface-only translation source realizes no analyzed form yet is not typed lang:UnanalyzedProse." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/translationSource> ?s . ?s a <https://blackcatinformatics.ca/lang/SurfaceForm> . FILTER NOT EXISTS { ?s <https://blackcatinformatics.ca/lang/realizes> ?rf . } FILTER NOT EXISTS { ?s a <https://blackcatinformatics.ca/lang/UnanalyzedProse> . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/lang/UnmarkedTargetOverclaimConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/UnmarkedSurfaceTranslationShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/lang/TranslationUnit> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A surface-only translation target realizes no analyzed form yet carries a stronger-than-weakest preservation judgment on its logic:Correspondence." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/translationTarget> ?t . ?t a <https://blackcatinformatics.ca/lang/SurfaceForm> . $this <https://blackcatinformatics.ca/lang/translationCorrespondence> ?c . FILTER NOT EXISTS { ?t <https://blackcatinformatics.ca/lang/realizes> ?rf . } FILTER NOT EXISTS { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/Unsupported> . } FILTER NOT EXISTS { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/lang/UnmarkedTargetProseConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/UnmarkedSurfaceTranslationShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/lang/TranslationUnit> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A surface-only translation target realizes no analyzed form yet is not typed lang:UnanalyzedProse." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/translationTarget> ?t . ?t a <https://blackcatinformatics.ca/lang/SurfaceForm> . FILTER NOT EXISTS { ?t <https://blackcatinformatics.ca/lang/realizes> ?rf . } FILTER NOT EXISTS { ?t a <https://blackcatinformatics.ca/lang/UnanalyzedProse> . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/logic/RationalValueNonZeroDenominatorConstraintProceduralConstraintShape>

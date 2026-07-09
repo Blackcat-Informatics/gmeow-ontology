@@ -104,11 +104,11 @@ const REP_CEILINGS: &[RepCeiling] = &[
         rep: REP_CELLS,
         ceiling: 2_000_000,
     },
-    // measured 1_180_671 → ×1.15 ≈ 1_357_772 → pinned 1_400_000
+    // measured 1_401_834 (after the procedural-constraint migration) → ×1.15 ≈ 1_612_109 → pinned 1_620_000
     RepCeiling {
         name: "REP_SHAPES",
         rep: REP_SHAPES,
-        ceiling: 1_400_000,
+        ceiling: 1_620_000,
     },
     // measured 501_179 → ×1.15 ≈ 576_356 → pinned 600_000
     RepCeiling {

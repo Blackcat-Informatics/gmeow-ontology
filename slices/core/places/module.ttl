@@ -5356,3 +5356,44 @@ gmeow:ProximityMeasurement rdfs:subClassOf
 <https://blackcatinformatics.ca/gmeow/ProximityMeasurement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observedFeature> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/ProximityMeasurement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/proximityTo> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/ProximityMeasurement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationResult> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+
+# =========================================================================== #
+# Reference-frame profile constraints (#1194): the procedural fragment of the   #
+# hand-authored gmeow:FrameProfileShape, migrated to compact logic: records     #
+# projected to sh:SPARQLConstraint keyed (via logic:formalizes) onto            #
+# gmeow:ReferenceFrame. The declarative cardinality/presence fragment is the     #
+# frame realm/kind/axis stack; these two carry the value-typing of hasAxis and   #
+# the dimension-count agreement the shape enforced procedurally.                 #
+# =========================================================================== #
+
+# Every gmeow:hasAxis value of a gmeow:ReferenceFrame is a gmeow:Axis — a
+# coordinate axis reference that is not a typed axis is ill-formed.
+gmeow:FrameAxisTypeConstraint
+    a logic:PathValueTypeConstraint ;
+    rdfs:label "Reference-frame axis type constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:hasAxis value of a gmeow:ReferenceFrame is a gmeow:Axis (a coordinate axis)."@x-gmeow-english ;
+    logic:onClass gmeow:ReferenceFrame ;
+    logic:valuePath gmeow:hasAxis ;
+    logic:valueClass gmeow:Axis ;
+    logic:formalizes gmeow:ReferenceFrame ;
+    logic:message "A reference frame's coordinate axis (gmeow:hasAxis) must be a gmeow:Axis." .
+
+# A reference frame's declared gmeow:dimensionCount must equal the number of
+# distinct coordinate axes it carries through gmeow:hasAxis (an aggregate
+# COUNT(DISTINCT) agreement).
+gmeow:FrameDimensionCountConstraint
+    a logic:AggregateConstraint ;
+    rdfs:label "Reference-frame dimension-count constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ReferenceFrame's gmeow:dimensionCount equals the number of distinct gmeow:hasAxis coordinate axes it carries."@x-gmeow-english ;
+    logic:onClass gmeow:ReferenceFrame ;
+    logic:aggFunction "COUNT" ;
+    logic:aggDistinct true ;
+    logic:aggPath gmeow:hasAxis ;
+    logic:aggComparator "=" ;
+    logic:aggCompareTo gmeow:dimensionCount ;
+    logic:formalizes gmeow:ReferenceFrame ;
+    logic:message "A reference frame's dimension count (gmeow:dimensionCount) must equal its number of coordinate axes (gmeow:hasAxis)." .

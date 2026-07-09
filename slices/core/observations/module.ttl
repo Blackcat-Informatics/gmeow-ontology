@@ -801,3 +801,88 @@ logic:obsFHas a logic:Formula ;
     logic:exists logic:obsFAtom .
 logic:obsFAtom a logic:Formula ; logic:relation gmeow:observedFeature ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] .
+
+# =========================================================================== #
+# Superseded-observation suppression (#1194): the Warning-severity sh:sparql of  #
+# gmeow:SupersededObservationSuppressionShape migrated to a raw logic:Formula    #
+# integrity tree projected to a sh:SPARQLConstraint keyed onto gmeow:Observation.#
+# Suppression, never erasure (Principle 10): a superseded observation (one with  #
+# gmeow:validUntil) should set gmeow:displayable false. The rdf:type guard        #
+# targets gmeow:Observation and its subclasses (the identity facets are          #
+# observations), matching the authored sh:targetClass.                          #
+# =========================================================================== #
+
+gmeow:SupersededObservationSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Superseded observation suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world suppression advisory (Principle 10): a gmeow:Observation carrying gmeow:validUntil (superseded or withdrawn) should set gmeow:displayable false — suppressed from display, never deleted."@x-gmeow-english ;
+    logic:formalizes gmeow:SupersededObservationSuppressionShape ;
+    logic:severity "Warning" ;
+    logic:message "A superseded observation (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
+    logic:integrity logic:obsSuppForall .
+logic:obsSuppForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "u" ] ;
+    logic:forall logic:obsSuppImpl .
+logic:obsSuppImpl a logic:Formula ; logic:antecedent logic:obsSuppGuard ; logic:consequent logic:obsSuppDisp .
+logic:obsSuppGuard a logic:Formula ; logic:and logic:obsSuppType , logic:obsSuppUntil .
+logic:obsSuppType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Observation ] .
+logic:obsSuppUntil a logic:Formula ; logic:relation gmeow:validUntil ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "u" ] .
+logic:obsSuppDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
+
+# =========================================================================== #
+# Core observation method presence (#1194): the StandpointClaim-keyed facet of  #
+# the multi-target gmeow:CoreObservationMethodShape (whose source-term resolves   #
+# to gmeow:StandpointClaim), migrated to a raw logic:Formula projected to a       #
+# sh:SPARQLConstraint over the observation-method family (Measurement,           #
+# SensoryObservation, StandpointClaim, TemporalMeasurement and their subclasses).#
+# The requiredness counts gmeow:observationMethod AND its rdfs:subProperties      #
+# (gmeow:measurementMethod, gmeow:assessmentCriterion, gmeow:assessmentRubric) —  #
+# a node carrying only a sub-property HAS a method under the RDFS entailment, so   #
+# this faithful closed-world image does not over-claim on it (the gmeow:dating1    #
+# residue: a gmeow:TemporalMeasurement carrying only gmeow:measurementMethod is    #
+# well-formed under measurementMethod ⊑ observationMethod, so it is not flagged).  #
+# =========================================================================== #
+
+gmeow:CoreObservationMethodConstraint
+    a logic:Constraint ;
+    rdfs:label "Core observation method constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a core observation (a gmeow:Measurement, gmeow:SensoryObservation, gmeow:StandpointClaim or gmeow:TemporalMeasurement, or a subclass) records an observation method through gmeow:observationMethod or one of its rdfs:subProperties (gmeow:measurementMethod, gmeow:assessmentCriterion, gmeow:assessmentRubric)."@x-gmeow-english ;
+    logic:formalizes gmeow:StandpointClaim ;
+    logic:severity "Violation" ;
+    logic:message "A core observation (measurement, sensory, standpoint claim, or temporal measurement) must record an observation method (gmeow:observationMethod or a sub-property)." ;
+    logic:integrity logic:comForall .
+logic:comForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:comImpl .
+logic:comImpl a logic:Formula ; logic:antecedent logic:comTarget ; logic:consequent logic:comPhi .
+logic:comTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral "SELECT ?this WHERE { ?this a/<http://www.w3.org/2000/01/rdf-schema#subClassOf>* ?fam . FILTER ( ?fam IN (<https://blackcatinformatics.ca/gmeow/Measurement>, <https://blackcatinformatics.ca/gmeow/SensoryObservation>, <https://blackcatinformatics.ca/gmeow/StandpointClaim>, <https://blackcatinformatics.ca/gmeow/TemporalMeasurement>) ) }" ] .
+logic:comPhi a logic:Formula ; logic:or logic:comObs , logic:comMeas , logic:comCrit , logic:comRub .
+logic:comObs a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m1" ] ;
+    logic:exists logic:comObsAtom .
+logic:comObsAtom a logic:Formula ; logic:relation gmeow:observationMethod ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "m1" ] .
+logic:comMeas a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m2" ] ;
+    logic:exists logic:comMeasAtom .
+logic:comMeasAtom a logic:Formula ; logic:relation gmeow:measurementMethod ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "m2" ] .
+logic:comCrit a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m3" ] ;
+    logic:exists logic:comCritAtom .
+logic:comCritAtom a logic:Formula ; logic:relation gmeow:assessmentCriterion ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "m3" ] .
+logic:comRub a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m4" ] ;
+    logic:exists logic:comRubAtom .
+logic:comRubAtom a logic:Formula ; logic:relation gmeow:assessmentRubric ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "m4" ] .
