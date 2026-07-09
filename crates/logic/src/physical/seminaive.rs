@@ -56,7 +56,7 @@
 #![allow(dead_code)]
 
 use std::borrow::Cow;
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap};
 
 use rayon::prelude::*;
 
@@ -65,9 +65,9 @@ use crate::physical::store::{Bound, RelationStore};
 use crate::provenance::mint_derivation_id;
 use crate::query_ir::QBuiltin;
 use crate::rule_ir::{
-    DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, Provenance, RuleRoundCandidate,
-    Solution, distinct_pairs_satisfied, echo_asserted, ground, ground_head, match_atom, sort_rows,
-    world_edb_facts,
+    DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactKeyMap, FactKeySet, FactStore, Provenance,
+    RuleRoundCandidate, Solution, distinct_pairs_satisfied, echo_asserted,
+    fact_key_set_with_capacity, ground, ground_head, match_atom, sort_rows, world_edb_facts,
 };
 use crate::seam::BudgetStatus;
 
@@ -309,7 +309,7 @@ fn atom_bound(rel: &RelationStore, subj: Option<&str>, obj: Option<&str>) -> Opt
 fn extend_solutions_indexed(
     atom: &EvalAtom,
     rel: &RelationStore,
-    delta: &HashSet<FactKey>,
+    delta: &FactKeySet,
     scan: Scan,
     solutions: &[Solution],
 ) -> Vec<Solution> {
@@ -375,7 +375,7 @@ fn join_body_indexed(
     rule: &EvalRule,
     rel: &RelationStore,
     accumulated: &RelationStore,
-    delta: &HashSet<FactKey>,
+    delta: &FactKeySet,
     gap: &mut bool,
 ) -> Vec<Solution> {
     let positive: Vec<&EvalAtom> = rule.body.iter().filter(|a| !a.negated).collect();
@@ -793,7 +793,7 @@ fn eval_world_stratified(
     // (world_edb_facts already sorted), so seeding matches the reference.
     let mut store = FactStore::new();
     let mut rel = RelationStore::new();
-    let mut depth: HashMap<FactKey, u32> = HashMap::new();
+    let mut depth: FactKeyMap<u32> = FactKeyMap::default();
 
     // A PURE-EDB predicate (never a rule head) is settled from the seed; a predicate that
     // is also a rule head is settled only when its stratum completes (below), so exclude
@@ -882,7 +882,7 @@ fn eval_world_stratified(
 struct FixpointState<'a> {
     store: &'a mut FactStore,
     rel: &'a mut RelationStore,
-    depth: &'a mut HashMap<FactKey, u32>,
+    depth: &'a mut FactKeyMap<u32>,
     derivations: &'a mut Vec<DerivedRow>,
     builtin_gap: &'a mut bool,
 }
@@ -914,10 +914,10 @@ fn eval_stratum_fixpoint(
     let builtin_gap = &mut *state.builtin_gap;
     // Seed delta with ALL currently-known keys so this stratum's rules fire against
     // the seed in round 1 (mirrors `least_model_of_reduct`'s `delta = key_set()`).
-    let mut delta: HashSet<FactKey> = store.key_set();
+    let mut delta: FactKeySet = store.key_set();
 
     loop {
-        let mut round: HashMap<FactKey, RuleRoundCandidate> = HashMap::new();
+        let mut round: FactKeyMap<RuleRoundCandidate> = FactKeyMap::default();
 
         for rule in rules {
             for sol in join_body_indexed(rule, rel, rel, &delta, builtin_gap) {
@@ -990,7 +990,7 @@ fn eval_stratum_fixpoint(
             break; // stratum fixpoint
         }
 
-        let mut new_delta: HashSet<FactKey> = HashSet::with_capacity(round.len());
+        let mut new_delta: FactKeySet = fact_key_set_with_capacity(round.len());
         // Commit winners in FactKey order, not raw `HashMap` order: store/index
         // insertion order must be deterministic (the columnar-store determinism
         // doctrine), matching `least_model_of_reduct`'s commit discipline.
@@ -1112,7 +1112,7 @@ pub(crate) fn evaluate(
     // Run the stratified fixpoint, accumulating into a shared FactStore/RelationStore.
     let mut store = FactStore::new();
     let mut rel = RelationStore::new();
-    let mut depth: HashMap<FactKey, u32> = HashMap::new();
+    let mut depth: FactKeyMap<u32> = FactKeyMap::default();
 
     // A PURE-EDB predicate (never a rule head) is settled from the seed; a self-recursive
     // or otherwise IDB-derived predicate becomes settled only when its stratum completes
