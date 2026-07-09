@@ -19,9 +19,9 @@
 //! * [`exit_code`] — the 0/1 process exit convention over a report.
 //! * [`init_tracing`] — the idempotent stderr `tracing` subscriber install.
 
-use std::collections::{BTreeSet, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 use std::time::Duration;
 
 use gmeow_errors::render;
@@ -276,6 +276,77 @@ impl DiagnosticsConfig {
     }
 }
 
+/// The documentation projection `export-docs` writes, shared by the consumer
+/// `gmeow` and repo-maintenance `gmeow-dev` binaries — one closed vocabulary,
+/// never two copies drifting apart.
+#[derive(Debug, Clone, clap::ValueEnum)]
+pub enum ExportFormat {
+    /// The browsable HTML ontology-docs site (one language subtree).
+    Site,
+    /// The mdbook source tree (`book.toml`, `SUMMARY.md`, `src/…`; English-only).
+    Mdbook,
+    /// The Typst print projection (`gmeow.pdf`, `gmeow.typ`; English-only).
+    Pdf,
+    /// The flattened prompt-ready per-term card snippets (`terms/<slug>.md`).
+    Snippets,
+    /// Every projection, each under its own subdirectory of the output directory.
+    All,
+}
+
+/// Write one docs projection tree into `dir`, reporting the confirmations error on
+/// a fold/selection failure and any I/O error on write. Returns the process exit
+/// code: `0` on success, `1` on a handled failure.
+///
+/// Every relative member path (`rel`) originates from a user-supplied `--gts`
+/// snapshot, so it is untrusted input: BEFORE joining it under `dir`, this
+/// rejects any member that is an absolute path or carries a `..`
+/// ([`Component::ParentDir`]) component. Either shape can escape `dir` via
+/// [`Path::join`] (an absolute `rel` replaces `dir` outright; a `..` component
+/// walks back out of it), so both are a hard failure — never a silent skip —
+/// naming the offending member.
+pub fn write_docs_projection(
+    dir: &Path,
+    tree: Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag>,
+) -> i32 {
+    let tree = match tree {
+        Ok(t) => t,
+        Err(e) => return fail(format!("cannot create docs tree: {e}")),
+    };
+    for (rel, data) in &tree {
+        let rel_path = Path::new(rel);
+        if rel_path.is_absolute()
+            || rel_path
+                .components()
+                .any(|c| matches!(c, Component::ParentDir))
+        {
+            return fail(format!(
+                "refusing to write docs member outside the export directory: {rel:?}"
+            ));
+        }
+        let target = dir.join(rel_path);
+        if let Some(parent) = target.parent()
+            && let Err(e) = std::fs::create_dir_all(parent)
+        {
+            return fail(format!("cannot create {}: {e}", parent.display()));
+        }
+        if let Err(e) = std::fs::write(&target, data) {
+            return fail(format!("cannot write {}: {e}", target.display()));
+        }
+    }
+    println!("docs -> {}", dir.display());
+    0
+}
+
+/// Print an error message to stderr and yield the failure exit code `1`.
+///
+/// This is the shared implementation the two bins' own `fail` helpers mirror;
+/// [`write_docs_projection`] uses it directly so it never needs to thread a
+/// caller-supplied error sink through.
+fn fail(message: impl AsRef<str>) -> i32 {
+    eprintln!("{}", message.as_ref());
+    1
+}
+
 /// How a CLI run surfaces its diagnostics, progress, and closing summary.
 ///
 /// Deliberately small and object-safe (`&dyn Reporter`) so the two bins can hold
@@ -523,5 +594,52 @@ mod tests {
         let mut failed = Report::new("t");
         failed.add_finding(Finding::new(gmeow_errors::Severity::Error, "x", "boom"));
         assert_eq!(exit_code(&failed), 1);
+    }
+
+    #[test]
+    fn write_docs_projection_writes_a_clean_tree() {
+        let tmp = tempdir();
+        let mut tree = BTreeMap::new();
+        tree.insert("a/b.md".to_owned(), b"hello".to_vec());
+        let code = write_docs_projection(&tmp, Ok(tree));
+        assert_eq!(code, 0);
+        assert_eq!(
+            std::fs::read(tmp.join("a/b.md")).unwrap(),
+            b"hello".to_vec()
+        );
+    }
+
+    #[test]
+    fn write_docs_projection_rejects_absolute_member_paths() {
+        let tmp = tempdir();
+        let mut tree = BTreeMap::new();
+        // An absolute member would replace `dir` outright under `Path::join`,
+        // escaping the export directory entirely.
+        tree.insert("/etc/passwd".to_owned(), b"pwned".to_vec());
+        let code = write_docs_projection(&tmp, Ok(tree));
+        assert_eq!(code, 1);
+        assert!(!Path::new("/etc/passwd_gmeow_test_marker").exists());
+    }
+
+    #[test]
+    fn write_docs_projection_rejects_parent_dir_traversal() {
+        let tmp = tempdir();
+        let mut tree = BTreeMap::new();
+        tree.insert("../escape.md".to_owned(), b"pwned".to_vec());
+        let code = write_docs_projection(&tmp, Ok(tree));
+        assert_eq!(code, 1);
+        assert!(!tmp.parent().unwrap().join("escape.md").exists());
+    }
+
+    /// A fresh, unique temp directory for a single test (no external crate
+    /// needed: a PID+counter-salted path under `std::env::temp_dir()`).
+    fn tempdir() -> PathBuf {
+        use std::sync::atomic::{AtomicU64, Ordering};
+        static COUNTER: AtomicU64 = AtomicU64::new(0);
+        let n = COUNTER.fetch_add(1, Ordering::Relaxed);
+        let dir =
+            std::env::temp_dir().join(format!("gmeow-cli-core-test-{}-{n}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
     }
 }

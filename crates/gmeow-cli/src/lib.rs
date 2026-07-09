@@ -24,6 +24,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 use gmeow_cli_core::ConsoleMode;
+pub use gmeow_cli_core::ExportFormat;
 
 /// The embedded canonical GMEOW snapshot: the whole ontology + transforms, folded
 /// into one GTS bundle, baked into the binary so `gmeow` needs no repository, no
@@ -234,21 +235,6 @@ pub enum Commands {
         #[command(subcommand)]
         command: ConjectureCommands,
     },
-}
-
-/// The documentation projection `gmeow export-docs` writes.
-#[derive(Debug, Clone, clap::ValueEnum)]
-pub enum ExportFormat {
-    /// The browsable HTML ontology-docs site (one language subtree).
-    Site,
-    /// The mdbook source tree (`book.toml`, `SUMMARY.md`, `src/…`; English-only).
-    Mdbook,
-    /// The Typst print projection (`gmeow.pdf`, `gmeow.typ`; English-only).
-    Pdf,
-    /// The flattened prompt-ready per-term card snippets (`terms/<slug>.md`).
-    Snippets,
-    /// Every projection, each under its own subdirectory of the output directory.
-    All,
 }
 
 /// The `gmeow conjecture` nested subcommands (native `gmeow_pipeline` engine).
