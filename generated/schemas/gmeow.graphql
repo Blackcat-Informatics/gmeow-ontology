@@ -382,6 +382,10 @@ enum AxisThresholdEnum {
   thrReasonerGrounded
   thrReasonerLinked
   thrReasonerMaximal
+  thrShapeMigrationExemplified
+  thrShapeMigrationGrounded
+  thrShapeMigrationLinked
+  thrShapeMigrationMaximal
   thrTestingExemplified
   thrTestingGrounded
   thrTestingLinked
@@ -2595,6 +2599,7 @@ enum QualityAxisEnum {
   axisProseQuality
   axisProvenanceHonesty
   axisReasonerDerived
+  axisShapeMigration
   axisTranslationCoverage
 }
 

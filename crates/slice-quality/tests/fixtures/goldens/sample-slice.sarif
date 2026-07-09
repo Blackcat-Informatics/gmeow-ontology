@@ -342,6 +342,29 @@
             }
           ],
           "message": {
+            "text": "axisShapeMigration: Maximal (score 1.00)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "e6d9acd7b2b588bf"
+          },
+          "ruleId": "slice-quality.grade"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
             "text": "axisTranslationCoverage: Registered (score 0.33)"
           },
           "partialFingerprints": {

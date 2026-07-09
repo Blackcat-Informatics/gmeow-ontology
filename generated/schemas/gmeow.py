@@ -406,6 +406,10 @@ class AxisThresholdEnum(str, Enum):
     thrReasonerGrounded = "thrReasonerGrounded"
     thrReasonerLinked = "thrReasonerLinked"
     thrReasonerMaximal = "thrReasonerMaximal"
+    thrShapeMigrationExemplified = "thrShapeMigrationExemplified"
+    thrShapeMigrationGrounded = "thrShapeMigrationGrounded"
+    thrShapeMigrationLinked = "thrShapeMigrationLinked"
+    thrShapeMigrationMaximal = "thrShapeMigrationMaximal"
     thrTestingExemplified = "thrTestingExemplified"
     thrTestingGrounded = "thrTestingGrounded"
     thrTestingLinked = "thrTestingLinked"
@@ -2619,6 +2623,7 @@ class QualityAxisEnum(str, Enum):
     axisProseQuality = "axisProseQuality"
     axisProvenanceHonesty = "axisProvenanceHonesty"
     axisReasonerDerived = "axisReasonerDerived"
+    axisShapeMigration = "axisShapeMigration"
     axisTranslationCoverage = "axisTranslationCoverage"
 
 

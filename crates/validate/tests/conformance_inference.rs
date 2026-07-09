@@ -379,11 +379,12 @@ fn malformed_commitment_is_flagged() {
     assert!(!ok(&report), "malformed commitment should be flagged");
     let blob = violations(&report).join(" ");
     for needle in [
-        // The premise≠conclusion check now projects from the logic: RelatumDistinctness constraint
-        // ("conclusion and gmeow:premise must be distinct"), replacing the legacy sh:sparql prose.
+        // The premise≠conclusion and no-self-attack checks now project from the logic:
+        // RelatumDistinctness constraints ("… must be distinct"), replacing the legacy sh:sparql
+        // "attack itself" prose; the argument-component self-attack rides the RoleCompositionExclusion
+        // family ("… as one of its own components").
         "must be distinct",
         "irreflexive",
-        "attack itself",
         "own component",
     ] {
         assert!(

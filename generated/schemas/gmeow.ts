@@ -382,6 +382,10 @@ export enum AxisThresholdEnum {
     thrReasonerGrounded = "thrReasonerGrounded",
     thrReasonerLinked = "thrReasonerLinked",
     thrReasonerMaximal = "thrReasonerMaximal",
+    thrShapeMigrationExemplified = "thrShapeMigrationExemplified",
+    thrShapeMigrationGrounded = "thrShapeMigrationGrounded",
+    thrShapeMigrationLinked = "thrShapeMigrationLinked",
+    thrShapeMigrationMaximal = "thrShapeMigrationMaximal",
     thrTestingExemplified = "thrTestingExemplified",
     thrTestingGrounded = "thrTestingGrounded",
     thrTestingLinked = "thrTestingLinked",
@@ -2595,6 +2599,7 @@ export enum QualityAxisEnum {
     axisProseQuality = "axisProseQuality",
     axisProvenanceHonesty = "axisProvenanceHonesty",
     axisReasonerDerived = "axisReasonerDerived",
+    axisShapeMigration = "axisShapeMigration",
     axisTranslationCoverage = "axisTranslationCoverage",
 }
 

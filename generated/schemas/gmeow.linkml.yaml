@@ -15877,6 +15877,18 @@ enums:
       thrReasonerMaximal:
         meaning: https://blackcatinformatics.ca/gmeow/thrReasonerMaximal
         title: reasoner floor — Maximal
+      thrShapeMigrationExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrShapeMigrationExemplified
+        title: shape-migration floor — Exemplified
+      thrShapeMigrationGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrShapeMigrationGrounded
+        title: shape-migration floor — Grounded
+      thrShapeMigrationLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrShapeMigrationLinked
+        title: shape-migration floor — Linked
+      thrShapeMigrationMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrShapeMigrationMaximal
+        title: shape-migration floor — Maximal
       thrTestingExemplified:
         meaning: https://blackcatinformatics.ca/gmeow/thrTestingExemplified
         title: testing floor — Exemplified
@@ -21256,6 +21268,9 @@ enums:
       axisReasonerDerived:
         meaning: https://blackcatinformatics.ca/gmeow/axisReasonerDerived
         title: Reasoner-Derived
+      axisShapeMigration:
+        meaning: https://blackcatinformatics.ca/gmeow/axisShapeMigration
+        title: Shape Migration
       axisTranslationCoverage:
         meaning: https://blackcatinformatics.ca/gmeow/axisTranslationCoverage
         title: Translation Coverage
