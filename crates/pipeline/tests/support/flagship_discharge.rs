@@ -1,0 +1,400 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! The SLICE-GENERIC flagship execution-discharge core.
+//!
+//! A grounding slice discharges its acceptance bar by EXECUTION: it declares a set of
+//! `gmeow:FlagshipScenario` individuals in an acceptance manifest, each binding one scenario
+//! to (a worked example, a counter-example, an enforcing failure class, a native producer).
+//! The generic runner [`run_flagship_discharge`]:
+//!
+//! 1. **Parses the manifest** ([`parse_manifest`]) over the shared `gmeow:` predicates
+//!    (`gmeow:demonstratedByExample`, `gmeow:guardedByCounterExample`,
+//!    `gmeow:enforcesFailureClass`, `gmeow:demonstratedByProducer`) into a deterministically
+//!    sorted `Vec<Flagship>` and asserts the declared count.
+//! 2. **Runs the guard** — loads each counter-example MERGED with the slice's `module.ttl`,
+//!    pushes it through BOTH the native structural lint ([`structural_lint_dataset`]) and the
+//!    native SHACL engine ([`shacl_validate_dataset`]), and asserts the UNION of triggered
+//!    failure classes IN THE SLICE'S NAMESPACE equals EXACTLY the one named by
+//!    `gmeow:enforcesFailureClass` (set equality, not membership).
+//! 3. **Checks the worked example** — the same two channels over the positive fixture, asserting
+//!    NO slice-namespace failure fires.
+//! 4. **Runs the producer** — invokes a per-slice `producer_assert` callback once per scenario,
+//!    so each slice keeps its own producer-output assertions while sharing the discharge spine.
+//!
+//! The failure-class scanner and SHACL shape→class resolution are parameterized by the slice's
+//! base IRI and short prefix, so `lang:`, `math:`, and `logic:` all drive the SAME core.
+
+#![allow(dead_code)]
+
+use std::collections::{BTreeSet, HashMap, HashSet};
+use std::path::{Path, PathBuf};
+
+use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
+use gmeow_validate::store::{dataset_from_paths, parse_file_dataset, shacl_validate_dataset};
+use purrdf::shapes::engine::parse_shapes;
+use purrdf::{RdfDataset, RdfTerm};
+
+/// The shared `gmeow:` namespace. The flagship-manifest PREDICATES (the acceptance-bar
+/// wiring) and the shape→failure-class annotation predicate live here; the failure-class
+/// VALUES they point at stay slice-namespaced (`lang:` / `math:` / `logic:`).
+pub const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// The identity of one grounding slice's discharge run.
+///
+/// A slice supplies its base IRI (the namespace its failure classes live in), its short
+/// prefix (the `<prefix>:<Class>:` token the native lint emits), its on-disk slice root, and
+/// the acceptance-manifest path relative to that root. `math:` and `logic:` construct their
+/// own `SliceSpec` and call [`run_flagship_discharge`] with it.
+pub struct SliceSpec {
+    /// The slice base IRI, e.g. `https://blackcatinformatics.ca/lang/`. SHACL failure classes
+    /// whose IRI starts with this are the slice-namespace failures the guard counts.
+    pub slice_ns: &'static str,
+    /// The slice short prefix, e.g. `lang`. The native lint emits a failure as the token
+    /// `<prefix>:<CamelCaseClass>:`, so the scanner keys off this.
+    pub slice_prefix: &'static str,
+    /// The slice root directory (absolute), e.g. `<repo>/slices/grounding/lang`. Relative
+    /// fixture paths in the manifest resolve against this, and its `module.ttl` / `shapes.ttl`
+    /// are loaded here.
+    pub slice_root: PathBuf,
+    /// The acceptance manifest path, RELATIVE to `slice_root`,
+    /// e.g. `examples/flagship-acceptance.ttl`.
+    pub manifest_rel: &'static str,
+}
+
+/// One flagship binding, read from the manifest.
+#[derive(Debug)]
+pub struct Flagship {
+    /// The flagship individual IRI (for diagnostics and per-scenario producer dispatch).
+    pub subject: String,
+    /// The absolute path to the `gmeow:demonstratedByExample` fixture.
+    pub example: PathBuf,
+    /// The absolute path to the `gmeow:guardedByCounterExample` fixture.
+    pub counter_example: PathBuf,
+    /// The local name of the `gmeow:enforcesFailureClass` the guard must raise.
+    pub failure_class: String,
+    /// The `gmeow:demonstratedByProducer` identifier string.
+    pub producer: String,
+}
+
+/// The per-scenario execution context handed to a slice's `producer_assert` callback: the
+/// real in-memory slice catalog (discovered ONCE, exactly as the mappings stage discovers it)
+/// and the repo root, so producers that ingest the source universe or read on-disk artifacts
+/// run against the same tree the production path drives.
+pub struct FlagshipCtx<'a> {
+    /// The shared in-memory source catalog.
+    pub catalog: &'a purrdf::slice::SliceCatalog,
+    /// The repo root (`crates/pipeline/../..`).
+    pub repo_root: PathBuf,
+}
+
+/// The repo root: `crates/pipeline/..` twice up, mirroring the in-crate stage tests so the
+/// harness drives off the SAME slice tree the production path discovers.
+pub fn repo_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("..")
+        .canonicalize()
+        .expect("repo root canonicalizes")
+}
+
+/// The shared shapes graph carrying `gmeow:FlagshipScenarioShape` (the cardinality gate whose
+/// `gmeow:enforcesFailureClass` is `gmeow:UnwiredFlagshipScenario`).
+pub fn shared_shapes_path() -> PathBuf {
+    repo_root().join("shapes").join("gmeow-shapes.ttl")
+}
+
+/// The shared in-memory source catalog, discovered ONCE exactly as the mappings stage
+/// discovers it, so producers ingest the real composed-source universe.
+pub fn repo_catalog() -> purrdf::slice::SliceCatalog {
+    purrdf::slice::SliceCatalog::discover(
+        &repo_root().join("slices"),
+        gmeow_pipeline::gmeow_slice_vocab(),
+    )
+    .expect("discover slice catalog")
+}
+
+/// The minimal lint config — the same shape [`gmeow_validate`]'s own integration tests build.
+/// It carries no selector tokens or core-slice grading; the slice's structural checks it runs
+/// are namespace-independent, so a bare config exercises them fully.
+pub fn minimal_lint_config() -> LintConfig {
+    LintConfig {
+        namespace: GMEOW_NS.into(),
+        ontology_iri: "https://blackcatinformatics.ca/gmeow".into(),
+        selector_tokens: BTreeSet::new(),
+        core_slice_iris: HashSet::new(),
+        annotation_predicates: HashSet::new(),
+    }
+}
+
+/// The local name of an IRI (`…/lang/UnhashableSurface` → `UnhashableSurface`).
+pub fn local_name(iri: &str) -> String {
+    iri.rsplit(['/', '#']).next().unwrap_or(iri).to_owned()
+}
+
+/// Parse the acceptance manifest into the flagship bindings, resolving each relative fixture
+/// path against `spec.slice_root`, sorted deterministically by subject, asserting exactly
+/// `expected_count` producers are declared.
+pub fn parse_manifest(spec: &SliceSpec, expected_count: usize) -> Vec<Flagship> {
+    let manifest = spec.slice_root.join(spec.manifest_rel);
+    let ds = parse_file_dataset(&manifest).expect("manifest parses");
+    let base = &spec.slice_root;
+
+    // Collect, per flagship subject, each bound value.
+    let mut example: HashMap<String, String> = HashMap::new();
+    let mut counter: HashMap<String, String> = HashMap::new();
+    let mut class: HashMap<String, String> = HashMap::new();
+    let mut producer: HashMap<String, String> = HashMap::new();
+
+    // The manifest predicate IRIs, built ONCE. Hoisted to the shared gmeow: vocabulary; only
+    // the enforcesFailureClass VALUE stays slice-namespaced.
+    let pred_example = format!("{GMEOW_NS}demonstratedByExample");
+    let pred_counter = format!("{GMEOW_NS}guardedByCounterExample");
+    let pred_class = format!("{GMEOW_NS}enforcesFailureClass");
+    let pred_producer = format!("{GMEOW_NS}demonstratedByProducer");
+
+    for quad in ds.owned_quads() {
+        let RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        let obj_literal = match &quad.object {
+            RdfTerm::Literal(lit) => Some(lit.lexical_form.clone()),
+            _ => None,
+        };
+        let obj_iri = match &quad.object {
+            RdfTerm::Iri(iri) => Some(iri.clone()),
+            _ => None,
+        };
+        let pred = quad.predicate.as_str();
+        if pred == pred_example {
+            example.insert(
+                subject.clone(),
+                obj_literal.expect("example is a literal path"),
+            );
+        } else if pred == pred_counter {
+            counter.insert(
+                subject.clone(),
+                obj_literal.expect("counter-example is a literal path"),
+            );
+        } else if pred == pred_class {
+            class.insert(
+                subject.clone(),
+                local_name(&obj_iri.expect("failure class is an IRI")),
+            );
+        } else if pred == pred_producer {
+            producer.insert(
+                subject.clone(),
+                obj_literal.expect("producer identifier is a literal"),
+            );
+        }
+    }
+
+    let mut flagships: Vec<Flagship> = producer
+        .keys()
+        .map(|subject| {
+            let rel_example = example.get(subject).unwrap_or_else(|| {
+                panic!("flagship {subject} missing gmeow:demonstratedByExample")
+            });
+            let rel_counter = counter.get(subject).unwrap_or_else(|| {
+                panic!("flagship {subject} missing gmeow:guardedByCounterExample")
+            });
+            Flagship {
+                subject: subject.clone(),
+                example: base.join(rel_example),
+                counter_example: base.join(rel_counter),
+                failure_class: class
+                    .get(subject)
+                    .unwrap_or_else(|| {
+                        panic!("flagship {subject} missing gmeow:enforcesFailureClass")
+                    })
+                    .clone(),
+                producer: producer[subject].clone(),
+            }
+        })
+        .collect();
+    flagships.sort_by(|a, b| a.subject.cmp(&b.subject));
+    assert_eq!(
+        flagships.len(),
+        expected_count,
+        "the acceptance manifest declares exactly {expected_count} gmeow:FlagshipScenario producers"
+    );
+    flagships
+}
+
+/// The set of slice failure-class local names a lint report raises. A slice failure is emitted
+/// as the substring token `<prefix>:<ClassLocalName>:` (a CamelCase class immediately followed
+/// by a colon, e.g. `lang:ExactPreservationViolated: …`). Non-class `<prefix>:` mentions in a
+/// message — a property CURIE, or a full `…/<prefix>/…` IRI — never match, because they are not
+/// `<prefix>:<Uppercase…>:`.
+///
+/// The scan is multibyte-safe: `match_indices` yields token STARTS, so a `<prefix>:<non-ascii>`
+/// token reads an empty ascii prefix and is skipped rather than sliced at a non-char boundary.
+pub fn native_failure_classes(errors: &[String], prefix: &str) -> HashSet<String> {
+    let token = format!("{prefix}:");
+    let mut out = HashSet::new();
+    for error in errors {
+        for (idx, _) in error.match_indices(&token) {
+            let after = &error[idx + token.len()..];
+            // The ascii-alphanumeric run is pure ASCII, so its byte length is a char boundary;
+            // the char immediately after it decides whether this is `<prefix>:<Class>:`.
+            let local: String = after
+                .chars()
+                .take_while(|c| c.is_ascii_alphanumeric())
+                .collect();
+            if local.starts_with(|c: char| c.is_ascii_uppercase())
+                && after[local.len()..].starts_with(':')
+            {
+                out.insert(local);
+            }
+        }
+    }
+    out
+}
+
+/// Build the `<node-shape-IRI> -> failure-class-FULL-IRI` map from the given shapes graphs.
+///
+/// Each node shape carries `<shape> gmeow:enforcesFailureClass <class>` (the annotation
+/// predicate is hoisted to the shared gmeow: vocabulary); the native SHACL engine stamps a
+/// violation's `source_shape` with its parent NODE shape IRI (property constraints inherit the
+/// node shape's id), so this IRI-keyed map resolves every violation. Building it from both a
+/// slice's `shapes.ttl` and the shared `gmeow-shapes.ttl` lets one map resolve slice failures
+/// (e.g. `lang:UnhashableSurface`) AND the shared `gmeow:UnwiredFlagshipScenario`.
+pub fn shape_class_map(shape_paths: &[PathBuf]) -> HashMap<String, String> {
+    let mut map = HashMap::new();
+    let pred_class = format!("{GMEOW_NS}enforcesFailureClass");
+    for path in shape_paths {
+        let ds = parse_file_dataset(path)
+            .unwrap_or_else(|e| panic!("shapes graph {} parses: {e}", path.display()));
+        for quad in ds.owned_quads() {
+            if quad.predicate == pred_class
+                && let (RdfTerm::Iri(shape), RdfTerm::Iri(class)) = (&quad.subject, &quad.object)
+            {
+                map.insert(shape.clone(), class.clone());
+            }
+        }
+    }
+    assert!(
+        !map.is_empty(),
+        "the shapes graphs must carry gmeow:enforcesFailureClass annotations"
+    );
+    map
+}
+
+/// The set of slice-namespace failure-class local names the native SHACL engine raises over
+/// `ds`, resolved from each violation's `source_shape` through the shape→class map and FILTERED
+/// to classes whose IRI starts with `slice_ns` — so a shared `gmeow:` class never counts as a
+/// slice failure.
+pub fn shacl_slice_failures(
+    ds: &RdfDataset,
+    shapes: &purrdf::shapes::shapes::Shapes,
+    shape_class: &HashMap<String, String>,
+    slice_ns: &str,
+) -> HashSet<String> {
+    let report = shacl_validate_dataset(ds, shapes);
+    let mut out = HashSet::new();
+    for result in &report.results {
+        let rendered = result.source_shape.to_string();
+        // Unwrap exactly one `<…>` pair (a rendered IRI term); leave a bare IRI untouched
+        // rather than greedily stripping repeated angle brackets.
+        let shape_iri = rendered
+            .strip_prefix('<')
+            .and_then(|s| s.strip_suffix('>'))
+            .unwrap_or(rendered.as_str());
+        if let Some(class_iri) = shape_class.get(shape_iri)
+            && class_iri.starts_with(slice_ns)
+        {
+            out.insert(local_name(class_iri));
+        }
+    }
+    out
+}
+
+/// Run BOTH channels over a fixture and return the union of triggered slice-namespace failure
+/// classes.
+///
+/// The fixture is validated MERGED with the slice's `module.ttl` — exactly the union the slice's
+/// own conformance harness validates. The module graph supplies the vocabulary typing and
+/// subclass axioms a counter-example legitimately relies on, so an `sh:class`/`sh:nodeKind`
+/// constraint is discharged by the vocabulary and NOT spuriously counted against a fixture that
+/// isolates a different violation.
+pub fn triggered_slice_failures(
+    spec: &SliceSpec,
+    fixture: &Path,
+    shapes: &purrdf::shapes::shapes::Shapes,
+    shape_class: &HashMap<String, String>,
+) -> HashSet<String> {
+    let module = spec.slice_root.join("module.ttl");
+    let ds = dataset_from_paths(&[module, fixture.to_path_buf()])
+        .unwrap_or_else(|e| panic!("fixture {} + module parse: {e}", fixture.display()));
+    let lint = structural_lint_dataset(&ds, &minimal_lint_config());
+    let mut union = native_failure_classes(&lint.errors(), spec.slice_prefix);
+    union.extend(shacl_slice_failures(
+        &ds,
+        shapes,
+        shape_class,
+        spec.slice_ns,
+    ));
+    union
+}
+
+/// Discharge a slice's flagship acceptance bar by EXECUTION.
+///
+/// For each of the `expected_count` `gmeow:FlagshipScenario` individuals in the slice manifest,
+/// this asserts (1) the counter-example raises EXACTLY the declared slice failure class over the
+/// union of the native lint and native SHACL channels, (2) the worked example raises NONE, then
+/// (3) invokes `producer_assert` so the slice discharges its own producer-output claims.
+///
+/// `producer_assert` receives the parsed [`Flagship`] and a shared [`FlagshipCtx`] (the real
+/// slice catalog and repo root, built once for the whole run).
+pub fn run_flagship_discharge(
+    spec: &SliceSpec,
+    expected_count: usize,
+    producer_assert: &dyn Fn(&Flagship, &FlagshipCtx<'_>),
+) {
+    let flagships = parse_manifest(spec, expected_count);
+
+    // The slice SHACL shapes, parsed once for the SHACL channel.
+    let shapes_path = spec.slice_root.join("shapes.ttl");
+    let shapes_text = std::fs::read_to_string(&shapes_path).expect("read slice shapes.ttl");
+    let shapes = parse_shapes(&shapes_text).expect("slice shapes parse");
+
+    // The shape→failure-class map, resolved from the slice shapes AND the shared gmeow-shapes,
+    // so both slice failures and the shared unwired class resolve through one map.
+    let shape_class = shape_class_map(&[shapes_path.clone(), shared_shapes_path()]);
+
+    // Producers ingest the real slice catalog and repo tree; discover them once.
+    let catalog = repo_catalog();
+    let ctx = FlagshipCtx {
+        catalog: &catalog,
+        repo_root: repo_root(),
+    };
+
+    for flagship in &flagships {
+        // ---- (1) Executed guard: the counter-example raises EXACTLY its failure class. ----
+        let triggered =
+            triggered_slice_failures(spec, &flagship.counter_example, &shapes, &shape_class);
+        let expected: HashSet<String> = std::iter::once(flagship.failure_class.clone()).collect();
+        assert_eq!(
+            triggered,
+            expected,
+            "flagship {}: the counter-example {} must raise EXACTLY {{{}}}, but raised {:?}",
+            flagship.subject,
+            flagship.counter_example.display(),
+            flagship.failure_class,
+            triggered
+        );
+
+        // ---- (2) Clean worked example: NO slice failure class fires. ----
+        let clean = triggered_slice_failures(spec, &flagship.example, &shapes, &shape_class);
+        assert!(
+            clean.is_empty(),
+            "flagship {}: the worked example {} must be clean, but raised {:?}",
+            flagship.subject,
+            flagship.example.display(),
+            clean
+        );
+
+        // ---- (3) Executed producer: the slice asserts its own output structure. ----
+        producer_assert(flagship, &ctx);
+    }
+}

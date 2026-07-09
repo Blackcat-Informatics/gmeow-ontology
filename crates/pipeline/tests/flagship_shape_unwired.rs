@@ -1,0 +1,121 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! The shared `gmeow:FlagshipScenarioShape` unwired-detection negative fixture.
+//!
+//! Task 1 hoisted the flagship cardinality wiring into the SHARED
+//! `gmeow:FlagshipScenarioShape` (`shapes/gmeow-shapes.ttl`) and deleted the per-slice
+//! `flagship-scenario-unwired.ttl` counter-examples (the now-thin per-slice shapes can no
+//! longer raise MinCount). A rule with no negative fixture is not enforced — so the shared
+//! shape MUST have a negative fixture proving its unwired-detection gate bites.
+//!
+//! This test constructs, in-memory, a `gmeow:FlagshipScenario` that wires every required link
+//! EXCEPT `gmeow:demonstratedByProducer`, validates it against the shared shapes graph, and
+//! asserts the shared shape raises a `sh:MinCountConstraintComponent` violation on the missing
+//! producer path — a violation whose `source_shape` maps, through the shape→failure-class
+//! annotation (`gmeow:FlagshipScenarioShape gmeow:enforcesFailureClass
+//! gmeow:UnwiredFlagshipScenario`), to `gmeow:UnwiredFlagshipScenario`. The shared unwired gate
+//! bites, deterministically.
+
+mod support;
+use support::flagship_discharge::{local_name, shape_class_map, shared_shapes_path};
+
+use gmeow_validate::store::shacl_validate_dataset;
+use purrdf::shapes::engine::parse_shapes;
+
+/// The `gmeow:` namespace (the manifest/annotation vocabulary and the unwired failure class).
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// A minimal `gmeow:FlagshipScenario` wiring EVERY shared-shape-required link except
+/// `gmeow:demonstratedByProducer`, so exactly the producer MinCount constraint bites. The
+/// datatypes/node-kinds match the shared shape's per-property constraints (string paths, IRI
+/// competency/failure-class) so no OTHER constraint fires spuriously.
+const UNWIRED_SCENARIO: &str = r#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix cq:    <https://blackcatinformatics.ca/gmeow/examples/lang/tests/> .
+
+<https://blackcatinformatics.ca/gmeow/examples/unwired/missingProducer>
+    a gmeow:FlagshipScenario ;
+    gmeow:demonstratedByExample "tests/conformance-fixtures/example.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqSome ;
+    gmeow:guardedByCounterExample "tests/counter-examples/counter.ttl" ;
+    gmeow:enforcesFailureClass lang:UnhashableSurface .
+"#;
+
+#[test]
+fn shared_flagship_shape_bites_on_a_missing_required_link() {
+    // The shared shapes graph carries gmeow:FlagshipScenarioShape (the cardinality gate) and
+    // its gmeow:enforcesFailureClass gmeow:UnwiredFlagshipScenario annotation.
+    let shapes_path = shared_shapes_path();
+    let shapes_text = std::fs::read_to_string(&shapes_path).expect("read shared gmeow-shapes.ttl");
+    let shapes = parse_shapes(&shapes_text).expect("shared shapes parse");
+
+    // The shape -> failure-class map, resolved from the shared shapes: the FlagshipScenarioShape
+    // resolves to gmeow:UnwiredFlagshipScenario.
+    let shape_class = shape_class_map(std::slice::from_ref(&shapes_path));
+
+    // The unwired scenario, parsed in-memory (deterministic — no fixture on disk, no ordering).
+    let data = purrdf::parse_dataset(UNWIRED_SCENARIO.as_bytes(), "text/turtle", None)
+        .expect("unwired scenario Turtle parses");
+
+    let report = shacl_validate_dataset(&data, &shapes);
+
+    // Find the MinCount violation on the missing gmeow:demonstratedByProducer link, sourced by
+    // gmeow:FlagshipScenarioShape and mapped to gmeow:UnwiredFlagshipScenario.
+    let unwired_class = format!("{GMEOW_NS}UnwiredFlagshipScenario");
+    let producer_path = format!("{GMEOW_NS}demonstratedByProducer");
+
+    let mincount_hits: Vec<_> = report
+        .results
+        .iter()
+        .filter(|r| {
+            local_name(r.source_constraint_component.as_str()) == "MinCountConstraintComponent"
+        })
+        .collect();
+    assert!(
+        !mincount_hits.is_empty(),
+        "the shared gmeow:FlagshipScenarioShape must raise a MinCountConstraintComponent for the \
+         missing required link, but raised {:?}",
+        report
+            .results
+            .iter()
+            .map(|r| r.source_constraint_component.as_str().to_owned())
+            .collect::<Vec<_>>()
+    );
+
+    // The missing-producer MinCount violation is present, path-scoped to demonstratedByProducer,
+    // and maps to gmeow:UnwiredFlagshipScenario via the shared shape.
+    let producer_hit = mincount_hits.iter().find(|r| {
+        r.result_path
+            .as_ref()
+            .map(|p| p.to_string().contains(&producer_path))
+            .unwrap_or(false)
+    });
+    let producer_hit = producer_hit.unwrap_or_else(|| {
+        panic!(
+            "the shared shape must raise MinCount on gmeow:demonstratedByProducer specifically; \
+             MinCount paths seen: {:?}",
+            mincount_hits
+                .iter()
+                .map(|r| r.result_path.as_ref().map(std::string::ToString::to_string))
+                .collect::<Vec<_>>()
+        )
+    });
+
+    let rendered = producer_hit.source_shape.to_string();
+    let shape_iri = rendered
+        .strip_prefix('<')
+        .and_then(|s| s.strip_suffix('>'))
+        .unwrap_or(rendered.as_str());
+    let mapped = shape_class.get(shape_iri).unwrap_or_else(|| {
+        panic!(
+            "the missing-producer violation's source shape {shape_iri} carries no \
+             gmeow:enforcesFailureClass annotation"
+        )
+    });
+    assert_eq!(
+        mapped, &unwired_class,
+        "the shared unwired gate must map to gmeow:UnwiredFlagshipScenario, mapped {mapped}"
+    );
+}
