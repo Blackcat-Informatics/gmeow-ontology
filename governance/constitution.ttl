@@ -77,6 +77,12 @@ meta:gate-generator-registry a meta:Gate ;
         "catalog", "profiles", "frame_shapes", "constraint_shapes", "result_shapes", "evals", "parquet",
         "research-objects", "references", "export", "okf", "bench", "conformance" .
 
+meta:gate-docs-export a meta:Gate ;
+    rdfs:label "documentation export surface: export-docs / docs-on projections from the bundle"@x-gmeow-english ;
+    meta:artifact "crates/gmeow-cli/src/commands.rs", "crates/pipeline/src/cli_ops/confirmations.rs" ;
+    meta:symbol "export_docs", "docs_on" ;
+    meta:cliCommand "export-docs", "docs-on" .
+
 meta:tests-narrow-waist a meta:Gate ;
     rdfs:label "narrow-waist seal (GTS is the only exit for data)"@x-gmeow-english ;
     meta:artifact "crates/validate/src/repo_static.rs", "docs/gts-narrow-waist.md" ;
@@ -434,7 +440,7 @@ meta:Principle12 a meta:Principle ;
 meta:Principle13 a meta:Principle ;
     meta:number 13 ;
     meta:title "The product is a tool; the ontology is its engine" ;
-    meta:enforcedBy meta:gate-products, meta:tests-products .
+    meta:enforcedBy meta:gate-products, meta:tests-products, meta:gate-docs-export .
 
 meta:Principle14 a meta:Principle ;
     meta:number 14 ;

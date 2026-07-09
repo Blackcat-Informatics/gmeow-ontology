@@ -173,10 +173,14 @@ pub enum Commands {
         #[arg(long = "base")]
         base: Option<String>,
     },
-    /// Extract the browsable docs tree from a GTS snapshot.
-    #[command(name = "extract-docs")]
-    ExtractDocs {
-        /// Output directory for the docs tree.
+    /// Export documentation projections (site, mdbook, PDF, snippets) from a GTS
+    /// snapshot.
+    #[command(name = "export-docs")]
+    ExportDocs {
+        /// Which documentation projection to export (default: all).
+        #[arg(long, default_value = "all")]
+        format: ExportFormat,
+        /// Output directory for the exported documentation.
         #[arg(long = "directory", short = 'd')]
         directory: PathBuf,
         /// GTS snapshot to document (default: bundled gmeow.gts).
@@ -184,6 +188,18 @@ pub enum Commands {
         /// Write into a non-empty output directory.
         #[arg(long = "force")]
         force: bool,
+    },
+    /// Print the documentation page for one GMEOW term from a GTS snapshot.
+    #[command(name = "docs-on")]
+    DocsOn {
+        /// A GMEOW term: `gmeow:X`, a local name, or a prefix.
+        term: String,
+        /// Print the prompt-ready term card instead of the full page.
+        #[arg(long)]
+        card: bool,
+        /// Read the page from this `.gts` package instead of the bundle.
+        #[arg(long = "gts")]
+        gts: Option<PathBuf>,
     },
     /// Generate CrossRef DOI deposit XML from bundled self-description data.
     Crossref {
@@ -218,6 +234,21 @@ pub enum Commands {
         #[command(subcommand)]
         command: ConjectureCommands,
     },
+}
+
+/// The documentation projection `gmeow export-docs` writes.
+#[derive(Debug, Clone, clap::ValueEnum)]
+pub enum ExportFormat {
+    /// The browsable HTML ontology-docs site (one language subtree).
+    Site,
+    /// The mdbook source tree (`book.toml`, `SUMMARY.md`, `src/…`; English-only).
+    Mdbook,
+    /// The Typst print projection (`gmeow.pdf`, `gmeow.typ`; English-only).
+    Pdf,
+    /// The flattened prompt-ready per-term card snippets (`terms/<slug>.md`).
+    Snippets,
+    /// Every projection, each under its own subdirectory of the output directory.
+    All,
 }
 
 /// The `gmeow conjecture` nested subcommands (native `gmeow_pipeline` engine).
@@ -383,11 +414,15 @@ pub fn run() -> i32 {
             loss_report.as_deref(),
             base.as_deref(),
         ),
-        Commands::ExtractDocs {
+        Commands::ExportDocs {
+            format,
             directory,
             file,
             force,
-        } => commands::extract_docs(&directory, file.as_deref(), force, lang.as_deref()),
+        } => commands::export_docs(&format, &directory, file.as_deref(), force, lang.as_deref()),
+        Commands::DocsOn { term, card, gts } => {
+            commands::docs_on(&term, card, gts.as_deref(), lang.as_deref())
+        }
         Commands::Crossref { out, gts } => commands::crossref(&out, gts.as_deref()),
         Commands::Mcp => commands::mcp(),
         Commands::Gts { args } => passthrough::gts(&args),

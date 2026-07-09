@@ -69,7 +69,7 @@ pub(crate) const QUALITY_ASSESSMENT_PATH: &str = "generated/quality/gmeow.qualit
 /// regenerate/check never treat it as a committed flat artifact; it exists only to let the
 /// terminal snapshot embed the report in the ontology-docs archive.
 pub(crate) const SLICE_QUALITY_REPORT_HTML_ARTIFACT: &str = "pipeline/slice-quality-report.html";
-/// Bundle-relative docs path exported by `gmeow extract-docs`.
+/// Bundle-relative docs path exported by `gmeow export-docs`.
 const SLICE_QUALITY_DOC_PATH: &str = "slice-quality/index.html";
 pub(crate) const GRAPH_DOCUMENTATION: &str =
     "https://blackcatinformatics.ca/gmeow/graph/documentation";
@@ -1061,7 +1061,7 @@ const REP_YAMLLD: &str = "yaml-ld-archive";
 const REP_OKF: &str = "okf-export";
 /// The full rendered ontology-docs static site. The rep MUST equal the
 /// string the runtime consumer (`create_docs._unpack_doc_archive`) looks up —
-/// `"ontology-docs"`, NOT an `-archive` variant — so `gmeow extract-docs` finds it.
+/// `"ontology-docs"`, NOT an `-archive` variant — so `gmeow export-docs` finds it.
 const REP_ONTOLOGY_DOCS: &str = "ontology-docs";
 /// tar of the FULL SHACL shape surface, member = repo-relative path:
 /// every `shapes/*.ttl` (incl. the 4 DSL/manifest lints the consumer's DSL phases
@@ -1761,7 +1761,7 @@ fn build_okf_blob_from_dataset(
 
 /// Render the full ontology-docs static site and pack it into the single
 /// `ontology-docs` archive blob — the producer half of repo-free
-/// `gmeow extract-docs`.
+/// `gmeow export-docs`.
 ///
 /// The rust doc generator (`gmeow_docs::render_site_lang`) emits a complete site
 /// (`index.md`/`index.html` per page, `assets/gmeow.css`, SVG diagrams,
