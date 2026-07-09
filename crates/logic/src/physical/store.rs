@@ -317,51 +317,87 @@ impl Relation {
         self.by_object.get(&o).map_or(&[][..], Vec::as_slice)
     }
 
+    /// Resolve a row index to its `(subject_id, object_id, row_id)` id row.
+    ///
+    /// The single row-materialization point every `select_*` kernel shares: all `Copy`
+    /// ids, so this copies — never clones a `TermValue`.
+    #[inline]
+    fn row_at(&self, i: usize) -> (TermId, TermId, RowId) {
+        let (s, o) = self.rows[i];
+        (s, o, self.row_ids[i])
+    }
+
     /// The `(subject_id, object_id, row_id)` id rows selected by `bound`, in insertion
     /// order.
     ///
     /// Returns interned [`TermId`] rows plus each row's store-global [`RowId`] (all
     /// `Copy`, so this copies — never clones a `TermValue`); a caller resolves term
     /// surfaces lazily via the store's interner only where it actually stringifies, and
-    /// tests delta membership on the `RowId` with a single word probe.  `Both` picks the
-    /// SMALLER of the two index buckets to scan, filtering against the other position —
-    /// the cheapest probe for the bound positions.
+    /// tests delta membership on the `RowId` with a single word probe.
+    ///
+    /// # Adornment dispatched ONCE per call, never per row (issue 1418, item 4)
+    ///
+    /// The [`Bound`] shape (the query-plan *adornment*) is resolved by a SINGLE `match`
+    /// here — once per `select` invocation — into a zero-branch specialized kernel
+    /// ([`select_any`](Self::select_any) / [`select_subject`](Self::select_subject) /
+    /// [`select_object`](Self::select_object) / [`select_both`](Self::select_both)).
+    /// The shape IS the kernel, so no residual adornment branch survives on the per-row
+    /// path; the previous single function with an internal per-shape `match` is deleted
+    /// (greenfield).  Dispatch is a plain enum `match`, never a trait object.
     fn select(&self, bound: Bound) -> Vec<(TermId, TermId, RowId)> {
-        let row_at = |i: usize| {
-            let (s, o) = self.rows[i];
-            (s, o, self.row_ids[i])
-        };
         match bound {
-            Bound::Any => (0..self.rows.len()).map(row_at).collect(),
-            Bound::Subject(s) => self
-                .rows_for_subject(s)
-                .iter()
-                .map(|&i| row_at(i))
-                .collect(),
-            Bound::Object(o) => self.rows_for_object(o).iter().map(|&i| row_at(i)).collect(),
-            Bound::Both(s, o) => {
-                let by_s = self.rows_for_subject(s);
-                let by_o = self.rows_for_object(o);
-                // Both buckets hold row indices in ascending (insertion) order, so the
-                // rows satisfying BOTH bounds are exactly their sorted intersection: a
-                // two-pointer merge, with no per-row term re-hashing. The result keeps
-                // insertion order, matching a full scan's relative order.
-                let mut out = Vec::new();
-                let (mut i, mut j) = (0usize, 0usize);
-                while i < by_s.len() && j < by_o.len() {
-                    match by_s[i].cmp(&by_o[j]) {
-                        Ordering::Less => i += 1,
-                        Ordering::Greater => j += 1,
-                        Ordering::Equal => {
-                            out.push(row_at(by_s[i]));
-                            i += 1;
-                            j += 1;
-                        }
-                    }
+            Bound::Any => self.select_any(),
+            Bound::Subject(s) => self.select_subject(s),
+            Bound::Object(o) => self.select_object(o),
+            Bound::Both(s, o) => self.select_both(s, o),
+        }
+    }
+
+    /// The `Bound::Any` kernel: every row in insertion order, no position bound.
+    fn select_any(&self) -> Vec<(TermId, TermId, RowId)> {
+        (0..self.rows.len()).map(|i| self.row_at(i)).collect()
+    }
+
+    /// The `Bound::Subject` kernel: rows whose subject is `s`, in insertion order.
+    fn select_subject(&self, s: TermId) -> Vec<(TermId, TermId, RowId)> {
+        self.rows_for_subject(s)
+            .iter()
+            .map(|&i| self.row_at(i))
+            .collect()
+    }
+
+    /// The `Bound::Object` kernel: rows whose object is `o`, in insertion order.
+    fn select_object(&self, o: TermId) -> Vec<(TermId, TermId, RowId)> {
+        self.rows_for_object(o)
+            .iter()
+            .map(|&i| self.row_at(i))
+            .collect()
+    }
+
+    /// The `Bound::Both` kernel: rows matching BOTH positions, in insertion order.
+    ///
+    /// Both buckets hold row indices in ascending (insertion) order, so the rows
+    /// satisfying both bounds are exactly their sorted intersection: a two-pointer
+    /// merge, with no per-row term re-hashing.  The result keeps insertion order,
+    /// matching a full scan's relative order.  (The inner `cmp` is the merge step, not
+    /// an adornment branch — the shape is already fixed by this being the `Both` kernel.)
+    fn select_both(&self, s: TermId, o: TermId) -> Vec<(TermId, TermId, RowId)> {
+        let by_s = self.rows_for_subject(s);
+        let by_o = self.rows_for_object(o);
+        let mut out = Vec::new();
+        let (mut i, mut j) = (0usize, 0usize);
+        while i < by_s.len() && j < by_o.len() {
+            match by_s[i].cmp(&by_o[j]) {
+                Ordering::Less => i += 1,
+                Ordering::Greater => j += 1,
+                Ordering::Equal => {
+                    out.push(self.row_at(by_s[i]));
+                    i += 1;
+                    j += 1;
                 }
-                out
             }
         }
+        out
     }
 }
 
