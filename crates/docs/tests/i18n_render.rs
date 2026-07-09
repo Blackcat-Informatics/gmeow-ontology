@@ -87,6 +87,7 @@ fn bilingual_model() -> DocsModel {
         shapes: Vec::new(),
         competencies: Vec::new(),
         grammars: Vec::new(),
+        loss_targets: Vec::new(),
         concerns: Vec::new(),
         external_terms: Vec::new(),
         recipes: Vec::new(),
