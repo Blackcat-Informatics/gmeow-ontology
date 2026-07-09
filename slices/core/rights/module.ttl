@@ -2186,3 +2186,39 @@ logic:cdcPhi a logic:Formula ;
     logic:exists logic:cdcHas .
 logic:cdcHas a logic:Formula ; logic:relation gmeow:hasDataController ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
+
+# =========================================================================== #
+# Procedural constraint (#1194): a permission's regulated action must be a      #
+# gmeow:RightsAction, projected to a sh:SPARQLConstraint keyed onto the         #
+# gmeow:Permission source-term. Every gmeow:ruleAction value of a               #
+# gmeow:Permission is a gmeow:RightsAction — the closed-world value-type check   #
+# the hand-authored RuleShape carried as sh:class on the gmeow:ruleAction path.  #
+# φ = ∀v. ruleAction(this,v) → RightsAction(v); the outer rdf:type(this,        #
+# Permission) guard fixes the focus class. Violation: a rule regulating a value  #
+# that is not a RightsAction is contradiction-in-data.                          #
+# =========================================================================== #
+
+gmeow:PermissionActionKindConstraint
+    a logic:Constraint ;
+    rdfs:label "Permission regulated-action kind constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:ruleAction value of a gmeow:Permission is a gmeow:RightsAction."@x-gmeow-english ;
+    logic:formalizes gmeow:Permission ;
+    logic:severity "Violation" ;
+    logic:message "A rights rule must name exactly one regulated gmeow:RightsAction via gmeow:ruleAction." ;
+    logic:integrity logic:pakForall .
+logic:pakForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:pakImpl .
+logic:pakImpl a logic:Formula ; logic:antecedent logic:pakType ; logic:consequent logic:pakInner .
+logic:pakType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Permission ] .
+logic:pakInner a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:forall logic:pakInnerImpl .
+logic:pakInnerImpl a logic:Formula ; logic:antecedent logic:pakAction ; logic:consequent logic:pakKind .
+logic:pakAction a logic:Formula ; logic:relation gmeow:ruleAction ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:pakKind a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri gmeow:RightsAction ] .
