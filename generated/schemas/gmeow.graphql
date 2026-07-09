@@ -354,6 +354,11 @@ enum AxisThresholdEnum {
   thrDocumentationGrounded
   thrDocumentationLinked
   thrDocumentationMaximal
+  thrFlagshipDepthExemplified
+  thrFlagshipDepthGrounded
+  thrFlagshipDepthLinked
+  thrFlagshipDepthMaximal
+  thrFlagshipDepthRegistered
   thrGroundingExemplified
   thrGroundingGrounded
   thrGroundingLinked
@@ -2588,6 +2593,7 @@ enum PronounSetEnum {
 
 enum QualityAxisEnum {
   axisDocumentation
+  axisFlagshipCounterExampleDepth
   axisMaximalGrounding
   axisMaximalInformation
   axisMaximalLinkage
@@ -2601,6 +2607,7 @@ enum QualityAxisEnum {
 
 enum QualityDimensionEnum {
   qualityDimensionCompleteness
+  qualityDimensionCounterExampleDepth
   qualityDimensionDocumentation
   qualityDimensionGrounding
   qualityDimensionInferentialDensity

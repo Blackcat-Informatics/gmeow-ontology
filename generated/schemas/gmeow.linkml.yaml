@@ -15793,6 +15793,21 @@ enums:
       thrDocumentationMaximal:
         meaning: https://blackcatinformatics.ca/gmeow/thrDocumentationMaximal
         title: documentation floor — Maximal
+      thrFlagshipDepthExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrFlagshipDepthExemplified
+        title: flagship-depth floor — Exemplified
+      thrFlagshipDepthGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrFlagshipDepthGrounded
+        title: flagship-depth floor — Grounded
+      thrFlagshipDepthLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrFlagshipDepthLinked
+        title: flagship-depth floor — Linked
+      thrFlagshipDepthMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrFlagshipDepthMaximal
+        title: flagship-depth floor — Maximal
+      thrFlagshipDepthRegistered:
+        meaning: https://blackcatinformatics.ca/gmeow/thrFlagshipDepthRegistered
+        title: flagship-depth floor — Registered
       thrGroundingExemplified:
         meaning: https://blackcatinformatics.ca/gmeow/thrGroundingExemplified
         title: grounding floor — Exemplified
@@ -21235,6 +21250,9 @@ enums:
       axisDocumentation:
         meaning: https://blackcatinformatics.ca/gmeow/axisDocumentation
         title: Documentation
+      axisFlagshipCounterExampleDepth:
+        meaning: https://blackcatinformatics.ca/gmeow/axisFlagshipCounterExampleDepth
+        title: Flagship Counter-Example Depth
       axisMaximalGrounding:
         meaning: https://blackcatinformatics.ca/gmeow/axisMaximalGrounding
         title: Maximal Grounding
@@ -21268,6 +21286,9 @@ enums:
       qualityDimensionCompleteness:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionCompleteness
         title: completeness
+      qualityDimensionCounterExampleDepth:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionCounterExampleDepth
+        title: counter-example depth
       qualityDimensionDocumentation:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionDocumentation
         title: documentation

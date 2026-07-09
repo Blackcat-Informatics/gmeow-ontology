@@ -41,6 +41,7 @@ pub fn resolve(producer: &str) -> Option<Primitive> {
         "documentation_axis" => Some(documentation_axis),
         "translation_axis" => Some(translation_axis),
         "reasoner_axis" => Some(crate::reasoner::reasoner_axis),
+        "flagship_counterexample_depth_axis" => Some(flagship_counterexample_depth_axis),
         _ => None,
     }
 }
@@ -58,6 +59,7 @@ pub const IMPLEMENTED: &[&str] = &[
     "documentation_axis",
     "translation_axis",
     "reasoner_axis",
+    "flagship_counterexample_depth_axis",
 ];
 
 // ── Axis 1: Maximal grounding ─────────────────────────────────────────────
@@ -940,6 +942,75 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
     }
     #[allow(clippy::cast_precision_loss)]
     let score = lang_cov.iter().sum::<f64>() / lang_cov.len() as f64;
+    AxisScore { score, findings }
+}
+
+// ── Axis 11: Flagship counter-example reasoner-depth ───────────────────────
+
+/// The `gmeow:counterExampleDischarge` marker local name and its reasoner-driven
+/// value local name — the honest per-scenario classification the axis reads.
+const COUNTEREXAMPLE_DISCHARGE: &str = "counterExampleDischarge";
+const REASONER_DRIVEN_DISCHARGE: &str = "reasonerDrivenDischarge";
+
+/// Flagship counter-example reasoner-depth: the fraction of the slice's own
+/// `gmeow:FlagshipScenario` individuals whose guarding counter-example is
+/// reasoner-driven (drives the native solver to observe the missing entailment at
+/// reasoning-runtime) rather than discharged by a structural/SHACL well-formedness
+/// proxy.
+///
+/// The signal is read from the honest `gmeow:counterExampleDischarge` marker each
+/// scenario carries (authored in `examples/flagship-acceptance.ttl`):
+/// `gmeow:reasonerDrivenDischarge` counts toward the numerator;
+/// `gmeow:structuralDischarge` — and any scenario with no marker — does not. The
+/// measure is an intrinsically bounded fraction (`1.0` = definitionally maximal:
+/// every flagship counter-example reasoner-driven), so there is nothing to
+/// calibrate; the structural proxy is the floor and the reasoner-driven
+/// counter-example is the depth target (see `LOGIC-CONFORMANCE.md`, Tests as
+/// ontology data; Principle 17/18).
+///
+/// Only the slice's OWN acceptance manifest is measured: `gmeow:`-namespaced
+/// `gmeow:FlagshipScenario` individuals (the manifest lives under
+/// `gmeow:examples/<slice>/acceptance/`). The `ex:`-namespaced FlagshipScenario
+/// FIXTURES under `tests/` exercise the wiring SHACL shape, not the acceptance bar,
+/// so they are excluded. A slice with no flagship scenarios scores vacuously `1.0`.
+fn flagship_counterexample_depth_axis(ctx: &ScoreContext) -> AxisScore {
+    let ds = ctx.graph;
+    let discharge_p = id(ds, &g(COUNTEREXAMPLE_DISCHARGE));
+    let reasoner_driven = id(ds, &g(REASONER_DRIVEN_DISCHARGE));
+
+    let scenarios: Vec<String> = instances_of(ds, &g("FlagshipScenario"))
+        .into_iter()
+        .filter(|iri| iri.starts_with(GMEOW_NS))
+        .collect();
+    if scenarios.is_empty() {
+        // No flagship acceptance manifest → no counter-examples to deepen; the axis
+        // is not applicable, so it takes the vacuous 1.0 (never silently "deep").
+        return AxisScore::clean(1.0);
+    }
+
+    let mut reasoner_backed = 0usize;
+    let mut findings = Vec::new();
+    for scenario in &scenarios {
+        let Some(sid) = id(ds, scenario) else {
+            continue;
+        };
+        let is_reasoner_driven = matches!(
+            (discharge_p, reasoner_driven),
+            (Some(p), Some(rd)) if graph::has(ds, sid, p, rd)
+        );
+        if is_reasoner_driven {
+            reasoner_backed += 1;
+        } else {
+            findings.push(advisory(
+                "slice-quality.flagship.counterexample-structural-only",
+                format!(
+                    "flagship scenario {scenario} discharges its guarding counter-example with a structural/SHACL well-formedness proxy, not a reasoner-driven counter-example — raise it so the native solver observes the missing entailment at reasoning-runtime, marking it gmeow:reasonerDrivenDischarge (LOGIC-CONFORMANCE.md, Tests as ontology data; Principle 17/18)."
+                ),
+            ));
+        }
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = reasoner_backed as f64 / scenarios.len() as f64;
     AxisScore { score, findings }
 }
 

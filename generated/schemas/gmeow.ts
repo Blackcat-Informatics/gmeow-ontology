@@ -354,6 +354,11 @@ export enum AxisThresholdEnum {
     thrDocumentationGrounded = "thrDocumentationGrounded",
     thrDocumentationLinked = "thrDocumentationLinked",
     thrDocumentationMaximal = "thrDocumentationMaximal",
+    thrFlagshipDepthExemplified = "thrFlagshipDepthExemplified",
+    thrFlagshipDepthGrounded = "thrFlagshipDepthGrounded",
+    thrFlagshipDepthLinked = "thrFlagshipDepthLinked",
+    thrFlagshipDepthMaximal = "thrFlagshipDepthMaximal",
+    thrFlagshipDepthRegistered = "thrFlagshipDepthRegistered",
     thrGroundingExemplified = "thrGroundingExemplified",
     thrGroundingGrounded = "thrGroundingGrounded",
     thrGroundingLinked = "thrGroundingLinked",
@@ -2588,6 +2593,7 @@ export enum PronounSetEnum {
 
 export enum QualityAxisEnum {
     axisDocumentation = "axisDocumentation",
+    axisFlagshipCounterExampleDepth = "axisFlagshipCounterExampleDepth",
     axisMaximalGrounding = "axisMaximalGrounding",
     axisMaximalInformation = "axisMaximalInformation",
     axisMaximalLinkage = "axisMaximalLinkage",
@@ -2601,6 +2607,7 @@ export enum QualityAxisEnum {
 
 export enum QualityDimensionEnum {
     qualityDimensionCompleteness = "qualityDimensionCompleteness",
+    qualityDimensionCounterExampleDepth = "qualityDimensionCounterExampleDepth",
     qualityDimensionDocumentation = "qualityDimensionDocumentation",
     qualityDimensionGrounding = "qualityDimensionGrounding",
     qualityDimensionInferentialDensity = "qualityDimensionInferentialDensity",

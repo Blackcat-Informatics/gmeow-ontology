@@ -41,7 +41,8 @@ exa:sentenceToFormula a gmeow:FlagshipScenario ;
     gmeow:demonstratedByCompetency cq:cqDenotationsToFormula ;
     gmeow:demonstratedByProducer "pipeline::stages::lang_lowering::build_corpus" ;
     gmeow:guardedByCounterExample "tests/counter-examples/meaning-underspecified-denotation.ttl" ;
-    gmeow:enforcesFailureClass lang:UnderspecifiedDenotation .
+    gmeow:enforcesFailureClass lang:UnderspecifiedDenotation ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 2 — GMEOW reading its own prose ------------------------------ #
 exa:proseSelfReading a gmeow:FlagshipScenario ;
@@ -51,7 +52,8 @@ exa:proseSelfReading a gmeow:FlagshipScenario ;
     gmeow:demonstratedByCompetency cq:cqProseLiftHashed ;
     gmeow:demonstratedByProducer "pipeline::stages::lang_form::build_corpus" ;
     gmeow:guardedByCounterExample "tests/counter-examples/surface-unhashable.ttl" ;
-    gmeow:enforcesFailureClass lang:UnhashableSurface .
+    gmeow:enforcesFailureClass lang:UnhashableSurface ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 3 — the multilingual docs trees as translation --------------- #
 exa:docsAsTranslation a gmeow:FlagshipScenario ;
@@ -61,7 +63,8 @@ exa:docsAsTranslation a gmeow:FlagshipScenario ;
     gmeow:demonstratedByCompetency cq:cqProjectionLossAgainstCanon ;
     gmeow:demonstratedByProducer "pipeline::stages::lang_translation::build_corpus" ;
     gmeow:guardedByCounterExample "tests/counter-examples/translation-unit-underspecified.ttl" ;
-    gmeow:enforcesFailureClass lang:UnderspecifiedTranslationUnit .
+    gmeow:enforcesFailureClass lang:UnderspecifiedTranslationUnit ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 4 — GMEOW's serializations as grammars ----------------------- #
 exa:serializationsAsGrammars a gmeow:FlagshipScenario ;
@@ -71,7 +74,8 @@ exa:serializationsAsGrammars a gmeow:FlagshipScenario ;
     gmeow:demonstratedByCompetency cq:cqGrammarRoundTrip ;
     gmeow:demonstratedByProducer "pipeline::stages::lang_projection::build_corpus" ;
     gmeow:guardedByCounterExample "tests/counter-examples/projection-exact-preservation-violated.ttl" ;
-    gmeow:enforcesFailureClass lang:ExactPreservationViolated .
+    gmeow:enforcesFailureClass lang:ExactPreservationViolated ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 5 — ambiguity held honestly ---------------------------------- #
 exa:ambiguityHeldHonestly a gmeow:FlagshipScenario ;
@@ -81,4 +85,5 @@ exa:ambiguityHeldHonestly a gmeow:FlagshipScenario ;
     gmeow:demonstratedByCompetency cq:cqCoresidentReadings ;
     gmeow:demonstratedByProducer "pipeline::stages::lang_projection::build_corpus" ;
     gmeow:guardedByCounterExample "tests/counter-examples/meaning-unrouted-ambiguous.ttl" ;
-    gmeow:enforcesFailureClass lang:UnroutedAmbiguousDenotation .
+    gmeow:enforcesFailureClass lang:UnroutedAmbiguousDenotation ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
