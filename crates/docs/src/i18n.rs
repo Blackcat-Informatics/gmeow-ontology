@@ -568,6 +568,8 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_frameworks", "Frameworks"),
     ("body_getting_started", "Getting started"),
     ("body_goal", "Goal"),
+    ("body_grammar_not_found", "Grammar not found."),
+    ("body_grammar_source", "Grammar source"),
     (
         "body_health_heatmap_legend",
         "Per-slice coverage of each documentation dimension — green ≥ 80%, amber ≥ 50%, \
@@ -615,6 +617,10 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
         "body_no_logic_stereotypes",
         "No logic stereotypes are declared yet.",
     ),
+    (
+        "body_no_notation_grammars",
+        "No notation grammars are declared in the lang slice.",
+    ),
     ("body_no_query_text", "No query text available."),
     (
         "body_no_recipes",
@@ -624,6 +630,7 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
         "body_no_verify_queries",
         "No verification queries are declared in any slice.",
     ),
+    ("body_notation_grammars", "Notation grammars"),
     ("body_other_equivalences", "Other equivalences"),
     ("body_part_of", "Part of"),
     ("body_preservation_loss_ledger", "Preservation loss ledger"),
@@ -958,9 +965,9 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 118 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 122 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 178);
+        assert_eq!(UI_TEMPLATES.len(), 182);
     }
 
     #[test]

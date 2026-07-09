@@ -286,6 +286,7 @@ mod tests {
             fixtures: Vec::new(),
             shapes: Vec::new(),
             competencies: Vec::new(),
+            grammars: Vec::new(),
             concerns: Vec::new(),
             external_terms: Vec::new(),
             recipes: Vec::new(),

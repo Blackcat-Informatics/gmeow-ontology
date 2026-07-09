@@ -43,6 +43,15 @@ const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
 const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
 const DCTERMS_TITLE: &str = "http://purl.org/dc/terms/title";
 
+/// The `lang:` grounding slice's IRI. Every term this slice owns cross-links
+/// to the notation-grammars index from its term page (see `md_term`'s
+/// "Notation grammars" section) — a whole-slice link rather than a per-field
+/// heuristic match against logic stereotypes/frameworks: every term owned by
+/// this slice genuinely belongs to the sign-system/notation vocabulary the
+/// grammars describe, so the whole-slice link is honest and always correct,
+/// never a fragile keyword guess.
+const GMEOW_LANG_SLICE_IRI: &str = "https://blackcatinformatics.ca/gmeow/slices/lang";
+
 /// The embedded minijinja HTML shell (doctype + head + nav + body + footer).
 const SHELL: &str = include_str!("../templates/shell.html");
 
@@ -117,6 +126,15 @@ pub enum Page {
     /// terms it exercises, the full copy-paste-runnable query, and its expected
     /// result rows/count.
     CompetencyIndex,
+    /// The notation-grammars index (`notation/index`) — every first-class
+    /// `lang:Grammar` rendering (GMN / GTS / Turtle) authored under
+    /// `slices/grounding/lang/grammars/*.ebnf` as plain W3C EBNF text, with its
+    /// title and license, linking to the full source on its own
+    /// [`Page::Grammar`] page.
+    NotationIndex,
+    /// A single notation-grammar detail page (`notation/<slug>/index`) — the
+    /// full W3C EBNF source for one grammar, plus its title and license.
+    Grammar(String),
     /// The concerns index (`concerns/index`).
     ConcernIndex,
     /// A single concern page (`concerns/<slug>/index`).
@@ -180,6 +198,8 @@ impl Page {
             Page::ExampleIndex => "examples".to_string(),
             Page::FixtureIndex => "fixtures".to_string(),
             Page::CompetencyIndex => "competency".to_string(),
+            Page::NotationIndex => "notation".to_string(),
+            Page::Grammar(slug) => format!("notation/{slug}"),
             Page::ConcernIndex => "concerns".to_string(),
             Page::Concern(slug) => format!("concerns/{slug}"),
             Page::ExternalIndex => "external-ontologies".to_string(),
@@ -235,6 +255,13 @@ impl Page {
             Page::ExampleIndex => "Examples".to_string(),
             Page::FixtureIndex => "Conformance fixtures".to_string(),
             Page::CompetencyIndex => "Competency questions".to_string(),
+            Page::NotationIndex => "Notation grammars".to_string(),
+            Page::Grammar(slug) => model
+                .grammars
+                .iter()
+                .find(|g| g.slug == *slug)
+                .map(|g| g.title.clone())
+                .unwrap_or_else(|| slug.clone()),
             Page::ConcernIndex => "Concerns".to_string(),
             Page::Concern(slug) => model
                 .concerns
@@ -494,6 +521,7 @@ fn pages(model: &DocsModel) -> Vec<Page> {
         Page::ExampleIndex,
         Page::FixtureIndex,
         Page::CompetencyIndex,
+        Page::NotationIndex,
         Page::ConcernIndex,
         Page::ExternalIndex,
         Page::IntegrityIndex,
@@ -516,6 +544,10 @@ fn pages(model: &DocsModel) -> Vec<Page> {
     }
     for path in &model.learning_paths {
         pages.push(Page::LearningPath(path.slug.clone()));
+    }
+    // Per-grammar detail pages (model.grammars is already sorted by slug).
+    for grammar in &model.grammars {
+        pages.push(Page::Grammar(grammar.slug.clone()));
     }
     // Category indexes only for categories that have at least one term, in a
     // fixed order.
@@ -587,6 +619,8 @@ fn to_markdown_base(model: &DocsModel, page: &Page) -> String {
         Page::ExampleIndex => md_example_index(model),
         Page::FixtureIndex => md_fixture_index(model),
         Page::CompetencyIndex => md_competency_index(model),
+        Page::NotationIndex => md_notation_index(model),
+        Page::Grammar(slug) => md_grammar(model, slug),
         Page::ConcernIndex => md_concern_index(model),
         Page::Concern(slug) => md_concern(model, slug),
         Page::ExternalIndex => md_external_index(model),
@@ -1712,6 +1746,20 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
         push_line(
             &mut out,
             &format!("- See the [conformance fixtures index]({fixture_index_href}index.md)."),
+        );
+        blank(&mut out);
+    }
+
+    // ── Notation grammars (whole-slice cross-link, see GMEOW_LANG_SLICE_IRI) ────
+    if term.owner_slice == GMEOW_LANG_SLICE_IRI && !model.grammars.is_empty() {
+        heading(&mut out, 2, model.ui("body_notation_grammars"));
+        let notation_index_href = rel(&from, &Page::NotationIndex.dir());
+        push_line(
+            &mut out,
+            &format!(
+                "- See the [notation grammars index]({notation_index_href}index.md) for the \
+                 GMN / GTS / Turtle W3C EBNF surface-syntax exhibits."
+            ),
         );
         blank(&mut out);
     }
@@ -2865,6 +2913,71 @@ fn md_competency_index(model: &DocsModel) -> String {
             }
         }
     }
+    out
+}
+
+/// The notation-grammars index — every first-class `lang:Grammar` rendering
+/// (GMN / GTS / Turtle) authored as plain W3C EBNF text under
+/// `slices/grounding/lang/grammars/*.ebnf`, listed with its title and
+/// license, each linking to the full source on its own [`Page::Grammar`] page.
+fn md_notation_index(model: &DocsModel) -> String {
+    let from = Page::NotationIndex.dir();
+    let mut out = String::new();
+    heading(&mut out, 1, model.ui("body_notation_grammars"));
+    line(
+        &mut out,
+        &format!(
+            "**{}** notation grammar(s) — first-class W3C EBNF renderings of the sign systems \
+             this project's own serialization notations use (the GMN compact record notation, \
+             the GTS textual surface, and the RDF 1.1 Turtle grammar the native codec \
+             interprets). Each is a RENDERING of the corresponding `lang:Grammar` object, never \
+             a second parser: the grammar object itself carries the normative claims.",
+            model.grammars.len()
+        ),
+    );
+    if model.grammars.is_empty() {
+        line(&mut out, model.ui("body_no_notation_grammars"));
+        return out;
+    }
+    push_line(&mut out, "| Grammar | License |");
+    push_line(&mut out, "| --- | --- |");
+    for grammar in &model.grammars {
+        let href = rel(&from, &Page::Grammar(grammar.slug.clone()).dir());
+        push_line(
+            &mut out,
+            &format!(
+                "| [{}]({}index.md) | `{}` |",
+                md_escape(&grammar.title),
+                href,
+                code_escape(&grammar.license),
+            ),
+        );
+    }
+    blank(&mut out);
+    out
+}
+
+/// A single notation-grammar detail page: title, slug, license, and the full
+/// W3C EBNF source in a fenced code block.
+fn md_grammar(model: &DocsModel, slug: &str) -> String {
+    let Some(grammar) = model.grammars.iter().find(|g| g.slug == slug) else {
+        let mut out = String::new();
+        heading(&mut out, 1, slug);
+        line(&mut out, model.ui("body_grammar_not_found"));
+        return out;
+    };
+    let mut out = String::new();
+    heading(&mut out, 1, &grammar.title);
+    line(
+        &mut out,
+        &format!(
+            "`{}` · notation grammar · License: `{}`",
+            code_escape(&grammar.slug),
+            code_escape(&grammar.license)
+        ),
+    );
+    heading(&mut out, 2, model.ui("body_grammar_source"));
+    fenced(&mut out, "ebnf", &grammar.source);
     out
 }
 
@@ -4839,6 +4952,7 @@ mod tests {
             fixtures: Vec::new(),
             shapes: Vec::new(),
             competencies: Vec::new(),
+            grammars: Vec::new(),
             concerns: Vec::new(),
             external_terms: Vec::new(),
             recipes: Vec::new(),

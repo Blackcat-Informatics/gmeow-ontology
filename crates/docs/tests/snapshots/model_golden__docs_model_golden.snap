@@ -5,7 +5,7 @@ expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
-  "version": "9",
+  "version": "10",
   "slice_count": 81,
   "term_count": 2517,
   "dependency_edge_count": 1006,
