@@ -1645,20 +1645,42 @@ fn grade_tptp_corpus(
 /// Recursively collect OntoUML model files (named `ontology.ttl` or `model.ttl`)
 /// under `dir`, sorted.
 ///
+/// `dir` itself is the REQUIRED root catalog: if it does not exist this is a hard
+/// failure (a missing required root must never silently degrade to "zero models"
+/// per the no-optionality rule), so its `read_dir` is issued up front and any
+/// `NotFound` propagates as an error. Subdirectories discovered during the
+/// recursive walk are a different matter — one vanishing between being listed and
+/// being read is a benign mid-walk race, so `NotFound` for those is tolerated as an
+/// empty listing. Every other IO error still propagates.
+///
 /// Symlink-safe: `file_type()` reuses the directory-walk's `stat` and does not
 /// traverse symlinks, so a circular link cannot drive the walk into an infinite loop
 /// (mirrors `collect_tptp_problems`).
 fn collect_ontouml_models(dir: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let mut out = Vec::new();
-    let mut stack = vec![dir.to_path_buf()];
-    while let Some(d) = stack.pop() {
-        // A missing directory (the top-level catalog not yet populated, or a subdir
-        // removed mid-walk) is an empty listing, not an error — the caller decides
-        // what an empty model set means. Every other IO error still propagates.
-        let read = match std::fs::read_dir(&d) {
-            Ok(read) => read,
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
-            Err(e) => return Err(ce(format!("read_dir {}: {e}", d.display()))),
+    // The root catalog is REQUIRED: read it eagerly so a missing root propagates as
+    // an error before the tolerant walk loop below ever gets a chance to swallow it.
+    let root_read = std::fs::read_dir(dir).map_err(|e| {
+        ce(format!(
+            "required OntoUML root catalog missing: read_dir {}: {e}",
+            dir.display()
+        ))
+    })?;
+    let mut root_reads = vec![root_read];
+    let mut stack: Vec<PathBuf> = Vec::new();
+    loop {
+        let read = if let Some(read) = root_reads.pop() {
+            read
+        } else if let Some(d) = stack.pop() {
+            // A subdirectory discovered mid-walk vanishing before it is read is a
+            // benign race (unlike a missing root), so treat `NotFound` as empty.
+            match std::fs::read_dir(&d) {
+                Ok(read) => read,
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
+                Err(e) => return Err(ce(format!("read_dir {}: {e}", d.display()))),
+            }
+        } else {
+            break;
         };
         for entry in read {
             let entry = entry.map_err(|e| ce(e.to_string()))?;
@@ -2893,6 +2915,103 @@ _:b <http://example.org/p> <http://example.org/o2> . \n\
                 .message()
                 .contains("no ontology.ttl / model.ttl"),
             "error must name the empty-catalog condition"
+        );
+
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    /// A missing ROOT catalog directory must hard-fail (Gap G3): it is a required
+    /// input, not a benign "nothing here yet" — unlike a subdirectory vanishing
+    /// mid-walk (a benign race), a missing root must never silently degrade to an
+    /// empty model set.
+    #[test]
+    fn collect_ontouml_models_hard_fails_on_missing_root() {
+        let base =
+            std::env::temp_dir().join(format!("gmeow-ontouml-missing-root-{}", std::process::id()));
+        // Ensure it genuinely does not exist.
+        let _ = std::fs::remove_dir_all(&base);
+
+        let result = super::collect_ontouml_models(&base);
+        assert!(
+            result.is_err(),
+            "a missing root OntoUML catalog must hard-fail, not vacuously return zero models"
+        );
+        assert!(
+            result
+                .unwrap_err()
+                .message()
+                .contains(&base.display().to_string()),
+            "error must name the missing root path"
+        );
+    }
+
+    /// A present root catalog containing one populated model dir and one entirely
+    /// blank (empty) subdir must still succeed and return only the models that were
+    /// actually found — the ROOT-only hard-fail added for Gap G3 must not make the
+    /// walk over-eager and start rejecting ordinary empty subdirectories too.
+    #[test]
+    fn collect_ontouml_models_tolerates_blank_subdir_but_finds_present_models() {
+        let base = std::env::temp_dir().join(format!("gmeow-ontouml-blank-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(base.join("present")).expect("create present model dir");
+        std::fs::write(base.join("present").join("model.ttl"), "").expect("write model.ttl");
+        // A subdir with no model files in it at all.
+        std::fs::create_dir_all(base.join("blank")).expect("create blank dir");
+
+        let result = super::collect_ontouml_models(&base);
+        let models = result.expect("a present root with a blank sibling subdir must still succeed");
+        assert_eq!(
+            models,
+            vec![base.join("present").join("model.ttl")],
+            "the present model must still be found despite the blank sibling subdir"
+        );
+
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    /// A subdirectory that is removed between being *listed* by its parent and being
+    /// individually `read_dir`-ed (a genuine mid-walk removal race, the scenario
+    /// `NotFound` tolerance exists for) must not fail the whole walk — the other,
+    /// still-present model must still be returned. This drives the walk itself
+    /// (not a synthetic call to `std::fs::read_dir`), so it exercises the exact
+    /// `Err(e) if e.kind() == NotFound => continue` arm for a non-root `d` in
+    /// `collect_ontouml_models`, proving that arm is reachable and does not abort.
+    #[test]
+    fn collect_ontouml_models_tolerates_subdir_removed_mid_walk() {
+        let base =
+            std::env::temp_dir().join(format!("gmeow-ontouml-midwalk-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(base.join("present")).expect("create present model dir");
+        std::fs::write(base.join("present").join("model.ttl"), "").expect("write model.ttl");
+
+        let vanishing = base.join("vanishing");
+        std::fs::create_dir_all(&vanishing).expect("create vanishing dir");
+
+        // Race a background thread against the walk: it repeatedly tries to remove
+        // `vanishing` for as long as the walk might still be running, so at least
+        // one removal attempt lands after the root listing has already staged
+        // `vanishing` onto the walk's stack but before the walk individually reads
+        // it. `remove_dir_all` on an already-gone path is a harmless no-op.
+        let vanishing_bg = vanishing.clone();
+        let stop = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let stop_bg = stop.clone();
+        let racer = std::thread::spawn(move || {
+            while !stop_bg.load(std::sync::atomic::Ordering::Relaxed) {
+                let _ = std::fs::remove_dir_all(&vanishing_bg);
+            }
+        });
+
+        let result = super::collect_ontouml_models(&base);
+        stop.store(true, std::sync::atomic::Ordering::Relaxed);
+        racer.join().expect("racer thread must not panic");
+
+        let models = result.expect(
+            "a subdir removed mid-walk must be tolerated as an empty listing, not fail the walk",
+        );
+        assert_eq!(
+            models,
+            vec![base.join("present").join("model.ttl")],
+            "the present model must still be found regardless of the vanished sibling subdir"
         );
 
         let _ = std::fs::remove_dir_all(&base);
