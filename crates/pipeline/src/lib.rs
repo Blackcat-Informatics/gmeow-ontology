@@ -34,6 +34,7 @@ pub mod cache;
 pub mod cli_ops;
 pub mod correspondence_law;
 pub mod diagnostics_reader;
+pub mod docs_loss_lattice;
 pub mod error;
 pub mod fanout;
 pub mod generator_registry;
