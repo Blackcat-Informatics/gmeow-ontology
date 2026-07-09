@@ -75,6 +75,7 @@ An agent's intrinsic believing mode toward a proposition — the reified, first\
 ## Tested by
 
 - GMEOW must answer 'what mental moments does an agent have?' as ONE family: the reparent puts gmeow:Emotion into the kernel gmeow:MentalMoment family, so a single query over gmeow:MentalMoment returns emotions ALONGSIDE knowings \(gmeow:CognitiveState\), beliefs \(gmeow:DoxasticState\), and intentions \(gmeow:IntentionalMode\) — the agent\-memory flagship capability\. The result contains more than these four witnesses; RowsContains asserts the union without pinning every descendant\. (`slices/core/affect/queries/competency/mental-life.rq`)
+- See the [competency questions index](../../competency/index.md).
 
 ## Examples using this term
 

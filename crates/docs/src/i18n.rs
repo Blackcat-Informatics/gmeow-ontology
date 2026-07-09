@@ -537,6 +537,7 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_changelog_added", "Added"),
     ("body_changelog_changed", "Changed"),
     ("body_citation", "Citation"),
+    ("body_competency_questions", "Competency questions"),
     ("body_compiler_diagnostics", "Compiler diagnostics"),
     ("body_compiler_products", "Compiler products"),
     (
@@ -560,6 +561,7 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_example_files", "Example files"),
     ("body_examples", "Examples"),
     ("body_examples_using_this_term", "Examples using this term"),
+    ("body_expected_rows", "Expected rows"),
     ("body_external_ontologies", "External ontologies"),
     ("body_formalized_by", "Formalized by"),
     ("body_framework_distribution", "Framework distribution"),
@@ -594,6 +596,10 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_logic_stereotypes", "Logic stereotypes"),
     ("body_neighborhood", "Neighborhood"),
     (
+        "body_no_competency_questions",
+        "No competency questions are declared in any slice.",
+    ),
+    (
         "body_no_conformance_fixtures",
         "No conformance fixtures are declared in any slice.",
     ),
@@ -609,6 +615,7 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
         "body_no_logic_stereotypes",
         "No logic stereotypes are declared yet.",
     ),
+    ("body_no_query_text", "No query text available."),
     (
         "body_no_recipes",
         "No recipes are declared in the guides slice.",
@@ -623,6 +630,7 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_profiles", "Profiles"),
     ("body_projection_surface", "Projection surface"),
     ("body_projects_toward", "Projects toward"),
+    ("body_query", "Query"),
     ("body_range", "Range"),
     ("body_read_next", "Read next"),
     ("body_reasoning", "Reasoning"),
@@ -950,9 +958,9 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 113 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 118 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 173);
+        assert_eq!(UI_TEMPLATES.len(), 178);
     }
 
     #[test]

@@ -2685,7 +2685,11 @@ impl Stage for SnapshotStage {
         // (`DocsModel::fixtures`, joined to each slice's `tests/example-conformance.ttl`
         // binding) — a new `Page::FixtureIndex` page and a per-term "Conformance examples"
         // section, so the rendered site bytes change shape for an unchanged model schema.
-        "snapshot.v23-conformance-fixture-do-dont-pairs"
+        // v24: `DocCompetency` grows the resolved `query_text` / `exact_rows` /
+        // `expected_row_count` / structured `expected_rows` surface (T2) — a new
+        // `Page::CompetencyIndex` page renders the full copy-paste-runnable SPARQL
+        // question set, so the rendered site bytes change shape again.
+        "snapshot.v24-competency-question-query-text-and-expected-rows"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -4600,6 +4604,7 @@ mod ustar_tests {
             query_file: Some("demo.rq".to_string()),
             exercises: vec!["https://blackcatinformatics.ca/gmeow/Foo".to_string()],
             owner_slice: slice_iri.clone(),
+            ..Default::default()
         };
         let linkage = DocLinkage {
             mapping_set: None,

@@ -112,6 +112,11 @@ pub enum Page {
     /// joined to their expected outcome / violation code / rationale when a
     /// slice authors an `example-conformance.ttl` binding.
     FixtureIndex,
+    /// The competency-questions index (`competency/index`) — every declarative
+    /// SPARQL competency question, grouped by slice, with its rationale, the
+    /// terms it exercises, the full copy-paste-runnable query, and its expected
+    /// result rows/count.
+    CompetencyIndex,
     /// The concerns index (`concerns/index`).
     ConcernIndex,
     /// A single concern page (`concerns/<slug>/index`).
@@ -174,6 +179,7 @@ impl Page {
             Page::LinkageIndex => "linkages".to_string(),
             Page::ExampleIndex => "examples".to_string(),
             Page::FixtureIndex => "fixtures".to_string(),
+            Page::CompetencyIndex => "competency".to_string(),
             Page::ConcernIndex => "concerns".to_string(),
             Page::Concern(slug) => format!("concerns/{slug}"),
             Page::ExternalIndex => "external-ontologies".to_string(),
@@ -228,6 +234,7 @@ impl Page {
             Page::LinkageIndex => "Linkages".to_string(),
             Page::ExampleIndex => "Examples".to_string(),
             Page::FixtureIndex => "Conformance fixtures".to_string(),
+            Page::CompetencyIndex => "Competency questions".to_string(),
             Page::ConcernIndex => "Concerns".to_string(),
             Page::Concern(slug) => model
                 .concerns
@@ -486,6 +493,7 @@ fn pages(model: &DocsModel) -> Vec<Page> {
         Page::LinkageIndex,
         Page::ExampleIndex,
         Page::FixtureIndex,
+        Page::CompetencyIndex,
         Page::ConcernIndex,
         Page::ExternalIndex,
         Page::IntegrityIndex,
@@ -578,6 +586,7 @@ fn to_markdown_base(model: &DocsModel, page: &Page) -> String {
         Page::LinkageIndex => md_linkage_index(model),
         Page::ExampleIndex => md_example_index(model),
         Page::FixtureIndex => md_fixture_index(model),
+        Page::CompetencyIndex => md_competency_index(model),
         Page::ConcernIndex => md_concern_index(model),
         Page::Concern(slug) => md_concern(model, slug),
         Page::ExternalIndex => md_external_index(model),
@@ -1625,6 +1634,11 @@ fn md_term(model: &DocsModel, slug: &str) -> String {
                 None => push_line(&mut out, &format!("- {}", md_escape(&rationale))),
             }
         }
+        let competency_index_href = rel(&from, &Page::CompetencyIndex.dir());
+        push_line(
+            &mut out,
+            &format!("- See the [competency questions index]({competency_index_href}index.md)."),
+        );
         blank(&mut out);
     }
 
@@ -2702,6 +2716,153 @@ fn md_fixture_index(model: &DocsModel) -> String {
             );
             push_fixture_binding_bullets(&mut out, model, &from, wf);
             blank(&mut out);
+        }
+    }
+    out
+}
+
+/// The competency-questions index, grouped by slice. Each question renders its
+/// rationale, the terms it exercises (linked), the full copy-paste-runnable
+/// SPARQL query, and its expected result — either an enumerated row table or a
+/// pinned row count.
+fn md_competency_index(model: &DocsModel) -> String {
+    let from = Page::CompetencyIndex.dir();
+    let mut out = String::new();
+    heading(&mut out, 1, model.ui("body_competency_questions"));
+    line(
+        &mut out,
+        &format!(
+            "**{}** competency question(s) — declarative SPARQL questions the ontology must \
+             answer, each pinning an expected result over the asserted merged ontology (or its \
+             RDFS/native-reasoned closure, when the question opts in).",
+            model.competencies.len(),
+        ),
+    );
+    if model.competencies.is_empty() {
+        line(&mut out, model.ui("body_no_competency_questions"));
+        return out;
+    }
+
+    let mut by_slice: BTreeMap<&str, Vec<&crate::model::DocCompetency>> = BTreeMap::new();
+    for cq in &model.competencies {
+        by_slice
+            .entry(cq.owner_slice.as_str())
+            .or_default()
+            .push(cq);
+    }
+
+    for (slice_iri, cqs) in by_slice {
+        heading(&mut out, 2, &slice_name(model, slice_iri));
+        for cq in cqs {
+            heading(&mut out, 3, local_name(&cq.iri));
+
+            if let Some(rationale) = &cq.rationale {
+                let text = md_escape(&one_line(rationale));
+                match &cq.query_file {
+                    Some(qf) => push_line(&mut out, &format!("- {text} (`{}`)", code_escape(qf))),
+                    None => push_line(&mut out, &format!("- {text}")),
+                }
+            }
+
+            if !cq.exercises.is_empty() {
+                let links: Vec<String> = cq
+                    .exercises
+                    .iter()
+                    .map(|t| term_link(model, &from, t))
+                    .collect();
+                push_line(
+                    &mut out,
+                    &format!(
+                        "- **{}:** {}",
+                        model.ui("body_terms_used"),
+                        links.join(", ")
+                    ),
+                );
+            }
+
+            match (cq.exact_rows, cq.expected_row_count) {
+                (Some(true), _) => push_line(
+                    &mut out,
+                    &format!(
+                        "- **{}:** exactly {} row(s) (closed set)",
+                        model.ui("body_expected_rows"),
+                        cq.expected_rows.len()
+                    ),
+                ),
+                (Some(false), _) => push_line(
+                    &mut out,
+                    &format!(
+                        "- **{}:** at least {} row(s) (subset)",
+                        model.ui("body_expected_rows"),
+                        cq.expected_rows.len()
+                    ),
+                ),
+                (None, Some(n)) => push_line(
+                    &mut out,
+                    &format!(
+                        "- **{}:** exactly {n} row(s)",
+                        model.ui("body_expected_rows")
+                    ),
+                ),
+                (None, None) if !cq.expected_rows.is_empty() => push_line(
+                    &mut out,
+                    &format!(
+                        "- **{}:** {} row(s)",
+                        model.ui("body_expected_rows"),
+                        cq.expected_rows.len()
+                    ),
+                ),
+                (None, None) => {}
+            }
+            blank(&mut out);
+
+            push_line(&mut out, &format!("**{}:**", model.ui("body_query")));
+            blank(&mut out);
+            match &cq.query_text {
+                Some(text) => fenced(&mut out, "sparql", text),
+                None => line(&mut out, model.ui("body_no_query_text")),
+            }
+
+            if !cq.expected_rows.is_empty() {
+                let mut vars: Vec<&str> = cq
+                    .expected_rows
+                    .iter()
+                    .flat_map(|row| row.cells.iter().filter_map(|c| c.var.as_deref()))
+                    .collect();
+                vars.sort();
+                vars.dedup();
+                if !vars.is_empty() {
+                    push_line(&mut out, &format!("| {} |", vars.join(" | ")));
+                    push_line(
+                        &mut out,
+                        &format!(
+                            "| {} |",
+                            vars.iter().map(|_| "---").collect::<Vec<_>>().join(" | ")
+                        ),
+                    );
+                    for row in &cq.expected_rows {
+                        let cells: Vec<String> = vars
+                            .iter()
+                            .map(|v| {
+                                let Some(cell) =
+                                    row.cells.iter().find(|c| c.var.as_deref() == Some(*v))
+                                else {
+                                    return String::new();
+                                };
+                                if let Some(iri) = &cell.value_iri {
+                                    term_link(model, &from, iri)
+                                } else if let Some(lit) = &cell.value_literal {
+                                    format!("`{}`", code_escape(lit))
+                                } else {
+                                    String::new()
+                                }
+                            })
+                            .collect();
+                        push_line(&mut out, &format!("| {} |", cells.join(" | ")));
+                    }
+                    blank(&mut out);
+                }
+            }
         }
     }
     out
