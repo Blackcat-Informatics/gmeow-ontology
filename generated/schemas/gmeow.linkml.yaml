@@ -6178,7 +6178,7 @@ slots:
     title: configuration embodiment
     range: EmbodimentAssignment
     domain: InhabitationConfiguration
-    multivalued: true
+    multivalued: false
   configurationFacet:
     slot_uri: https://blackcatinformatics.ca/gmeow/configurationFacet
     title: configuration facet

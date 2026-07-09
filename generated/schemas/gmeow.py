@@ -5902,7 +5902,7 @@ class InhabitationClaim(StandpointClaim):
 class InhabitationConfiguration(TimeScopedRelation):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InhabitationConfiguration"
     is_a: ClassVar[str] = "TimeScopedRelation"
-    configurationEmbodiment: list[EmbodimentAssignment] | None = Field(default=None)
+    configurationEmbodiment: EmbodimentAssignment | None = Field(default=None)
     configurationFacet: list[str] | None = Field(default=None)
     configurationOfTenure: list[InhabitationTenure] | None = Field(default=None)
 

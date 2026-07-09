@@ -4232,6 +4232,231 @@ logic:inferencePremiseConclusionDistinctness
     logic:distinctnessRole gmeow:premise , gmeow:conclusion ;
     logic:formalizes gmeow:premise .
 
+logic:attackSelfAttackExclusion
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a typed attack's source and target are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Attack's gmeow:attackSource and gmeow:attackTarget must be distinct: conflict is irreflexive — nothing attacks itself. The native coherence gate raises a violation when they coincide; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:Attack ;
+    logic:distinctnessRole gmeow:attackSource , gmeow:attackTarget ;
+    logic:formalizes gmeow:attackSource .
+
+logic:supportSelfSupportExclusion
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a support's source and target are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Support's gmeow:supportSource and gmeow:supportTarget must be distinct: support is irreflexive — a structure does not support itself. The native coherence gate raises a violation when they coincide; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:Support ;
+    logic:distinctnessRole gmeow:supportSource , gmeow:supportTarget ;
+    logic:formalizes gmeow:supportSource .
+
+# ── Conditional-range assertions (a discriminant value fixes a relatum's type) ────────
+# The canonical carrier for a value-conditioned range integrity condition on a relator: on
+# a target class, a discriminant property bound to a NAMED value forces the value bound by a
+# second property to be an instance of a required type. OWL cannot state a value-conditioned
+# range without nominals it deliberately keeps out of the DL profile; the native coherence
+# gate joins logic:conditionalRangeTarget + selector/value + required type to raise a
+# violation when the discriminant matches but the required type is absent, and the generated
+# SHACL constraint surface is its projection.
+
+logic:ConditionalRangeAssertion
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conditional range assertion"@x-gmeow-english ;
+    skos:definition "A central record asserting that, on a target class, a focus node whose gmeow:-selector property carries a NAMED value must bind — through a second value property — an instance of a required type. It names the class with logic:conditionalRangeTarget, the discriminant property with logic:conditionalRangeSelector and its triggering value with logic:conditionalRangeSelectorValue, the constrained property with logic:conditionalRangeValue, and the demanded type with logic:conditionalRangeRequiredType; the native coherence gate joins them to raise a violation when the selector matches yet the value is not of the required type. Carries a logic:formalizes back-reference to the domain property whose prose it encodes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:conditionalRangeTarget
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conditional range target"@x-gmeow-english ;
+    skos:definition "Relates a logic:ConditionalRangeAssertion to the class whose focus nodes it constrains. Domain logic:ConditionalRangeAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:conditionalRangeSelector
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conditional range selector"@x-gmeow-english ;
+    skos:definition "Relates a logic:ConditionalRangeAssertion to the discriminant property whose value triggers the condition. Read together with logic:conditionalRangeSelectorValue. Domain logic:ConditionalRangeAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:conditionalRangeSelectorValue
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conditional range selector value"@x-gmeow-english ;
+    skos:definition "Relates a logic:ConditionalRangeAssertion to the named value of the discriminant property that triggers the required-type condition. Domain logic:ConditionalRangeAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:conditionalRangeValue
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conditional range value"@x-gmeow-english ;
+    skos:definition "Relates a logic:ConditionalRangeAssertion to the property whose bound value must satisfy the required type when the selector matches. Domain logic:ConditionalRangeAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:conditionalRangeRequiredType
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conditional range required type"@x-gmeow-english ;
+    skos:definition "Relates a logic:ConditionalRangeAssertion to the class the constrained value must instantiate when the selector matches. Domain logic:ConditionalRangeAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:attackUndermineTargetsPremiseUse
+    a owl:NamedIndividual ,
+        logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an undermining attack targets a premise use"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Attack whose gmeow:attackKind is gmeow:attackUndermine must aim its gmeow:attackTarget at a gmeow:PremiseUse — undermining is premise-directed. The native coherence gate raises a violation when the kind is undermine but the target is not a premise use."@x-gmeow-english ;
+    logic:conditionalRangeTarget gmeow:Attack ;
+    logic:conditionalRangeSelector gmeow:attackKind ;
+    logic:conditionalRangeSelectorValue gmeow:attackUndermine ;
+    logic:conditionalRangeValue gmeow:attackTarget ;
+    logic:conditionalRangeRequiredType gmeow:PremiseUse ;
+    logic:formalizes gmeow:attackKind .
+
+logic:attackUndercutTargetsInferenceApplication
+    a owl:NamedIndividual ,
+        logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an undercutting attack targets an inference application"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Attack whose gmeow:attackKind is gmeow:attackUndercut must aim its gmeow:attackTarget at a gmeow:InferenceApplication — undercutting attacks the warrant / inferential link. The native coherence gate raises a violation when the kind is undercut but the target is not an inference application."@x-gmeow-english ;
+    logic:conditionalRangeTarget gmeow:Attack ;
+    logic:conditionalRangeSelector gmeow:attackKind ;
+    logic:conditionalRangeSelectorValue gmeow:attackUndercut ;
+    logic:conditionalRangeValue gmeow:attackTarget ;
+    logic:conditionalRangeRequiredType gmeow:InferenceApplication ;
+    logic:formalizes gmeow:attackKind .
+
+logic:attackRebutTargetsStandpointClaim
+    a owl:NamedIndividual ,
+        logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a rebutting attack targets a standpoint claim"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Attack whose gmeow:attackKind is gmeow:attackRebut must aim its gmeow:attackTarget at a conclusion gmeow:StandpointClaim — rebutting attacks the conclusion. The native coherence gate raises a violation when the kind is rebut but the target is not a standpoint claim."@x-gmeow-english ;
+    logic:conditionalRangeTarget gmeow:Attack ;
+    logic:conditionalRangeSelector gmeow:attackKind ;
+    logic:conditionalRangeSelectorValue gmeow:attackRebut ;
+    logic:conditionalRangeValue gmeow:attackTarget ;
+    logic:conditionalRangeRequiredType gmeow:StandpointClaim ;
+    logic:formalizes gmeow:attackKind .
+
+# ── Role-composition-exclusion assertions (a relator's two roles are not whole/part) ──
+# The canonical carrier for a compositional irreflexivity on a relator: on a target class,
+# the value bound by a WHOLE role must not stand as the value bound by a PART role reached
+# from it through any of a set of composition properties. It names the class with
+# logic:compositionExclusionTarget, the two roles with logic:compositionExclusionWhole /
+# logic:compositionExclusionPart, and the composition steps with logic:compositionExclusionVia;
+# the native coherence gate raises a violation when the part role coincides with a component of
+# the whole role, and the generated SHACL constraint surface is its projection.
+
+logic:RoleCompositionExclusionAssertion
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "role composition exclusion assertion"@x-gmeow-english ;
+    skos:definition "A central record asserting that, on a target class, the value bound by a whole role must not also be — via any of a set of composition properties — the value bound by a part role on the same focus node: a relator whose one relatum composes the other is ill-formed (an argument does not attack its own component). It names the class with logic:compositionExclusionTarget, the whole and part roles with logic:compositionExclusionWhole and logic:compositionExclusionPart, and the composition steps with logic:compositionExclusionVia; the native coherence gate joins them to raise a violation. Carries a logic:formalizes back-reference to the domain property whose prose it encodes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:compositionExclusionTarget
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RoleCompositionExclusionAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "composition exclusion target"@x-gmeow-english ;
+    skos:definition "Relates a logic:RoleCompositionExclusionAssertion to the class whose focus nodes it constrains. Domain logic:RoleCompositionExclusionAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:compositionExclusionWhole
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RoleCompositionExclusionAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "composition exclusion whole role"@x-gmeow-english ;
+    skos:definition "Relates a logic:RoleCompositionExclusionAssertion to the role binding the WHOLE whose components the part role must not coincide with. Domain logic:RoleCompositionExclusionAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:compositionExclusionPart
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RoleCompositionExclusionAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "composition exclusion part role"@x-gmeow-english ;
+    skos:definition "Relates a logic:RoleCompositionExclusionAssertion to the role whose bound value must not be a component of the whole role's value. Domain logic:RoleCompositionExclusionAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:compositionExclusionVia
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RoleCompositionExclusionAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "composition exclusion via"@x-gmeow-english ;
+    skos:definition "Relates a logic:RoleCompositionExclusionAssertion to a composition property linking the whole role's value to a component. Each asserted value is one step the exclusion ranges over; the native coherence gate raises a violation when the part role coincides with a component reached through any of them. Domain logic:RoleCompositionExclusionAssertion; multi-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:attackComponentSelfExclusion
+    a owl:NamedIndividual ,
+        logic:RoleCompositionExclusionAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an argument does not attack its own component"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Attack's gmeow:attackSource (a gmeow:Argument) must not aim its gmeow:attackTarget at one of its own components — its conclusion (gmeow:argumentConclusion), a premise use (gmeow:hasPremiseUse), or an inference application (gmeow:hasInferenceApplication): an argument does not attack a part of itself. The native coherence gate raises a violation when the target is a component of the source."@x-gmeow-english ;
+    logic:compositionExclusionTarget gmeow:Attack ;
+    logic:compositionExclusionWhole gmeow:attackSource ;
+    logic:compositionExclusionPart gmeow:attackTarget ;
+    logic:compositionExclusionVia gmeow:argumentConclusion , gmeow:hasPremiseUse , gmeow:hasInferenceApplication ;
+    logic:formalizes gmeow:attackSource .
+
+# ── Mediated-property-requirement assertions (a mediated value must carry a property) ──
+# The canonical carrier for a Principle-11-style requirement that the value a focus node
+# reaches through a mediating property must itself declare a required property. It names the
+# class with logic:mediatedRequirementTarget, the mediating property with
+# logic:mediatedRequirementVia, and the required property with logic:mediatedRequirementProperty;
+# the native coherence gate raises a violation when a mediated value lacks the required
+# property, and the generated SHACL constraint surface is its projection.
+
+logic:MediatedPropertyRequirementAssertion
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "mediated property requirement assertion"@x-gmeow-english ;
+    skos:definition "A central record asserting that, on a target class, every value a focus node reaches through a mediating property must itself declare at least one value of a required property — the interval that scopes a situation must carry its temporal frame (Principle 11). It names the class with logic:mediatedRequirementTarget, the mediating property with logic:mediatedRequirementVia, and the demanded property with logic:mediatedRequirementProperty; the native coherence gate joins them to raise a violation when a mediated value lacks the required property. Carries a logic:formalizes back-reference to the domain property whose prose it encodes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:mediatedRequirementTarget
+    a owl:ObjectProperty ;
+    rdfs:domain logic:MediatedPropertyRequirementAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "mediated requirement target"@x-gmeow-english ;
+    skos:definition "Relates a logic:MediatedPropertyRequirementAssertion to the class whose focus nodes it constrains. Domain logic:MediatedPropertyRequirementAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:mediatedRequirementVia
+    a owl:ObjectProperty ;
+    rdfs:domain logic:MediatedPropertyRequirementAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "mediated requirement via"@x-gmeow-english ;
+    skos:definition "Relates a logic:MediatedPropertyRequirementAssertion to the mediating property whose values must carry the required property. Domain logic:MediatedPropertyRequirementAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:mediatedRequirementProperty
+    a owl:ObjectProperty ;
+    rdfs:domain logic:MediatedPropertyRequirementAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "mediated requirement property"@x-gmeow-english ;
+    skos:definition "Relates a logic:MediatedPropertyRequirementAssertion to the property each mediated value must declare at least once. Domain logic:MediatedPropertyRequirementAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:inhabitationIntervalFrameRequirement
+    a owl:NamedIndividual ,
+        logic:MediatedPropertyRequirementAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an inhabitation tenure's interval carries its temporal frame"@x-gmeow-english ;
+    skos:definition "Asserts that every gmeow:TimeInterval a gmeow:InhabitationTenure scopes via gmeow:duringInterval must declare at least one gmeow:hasTemporalFrame — an interval asserted without its frame is ill-formed (Principle 11: the interval carries its frame). The native coherence gate raises a violation when a scoping interval lacks a frame."@x-gmeow-english ;
+    logic:mediatedRequirementTarget gmeow:InhabitationTenure ;
+    logic:mediatedRequirementVia gmeow:duringInterval ;
+    logic:mediatedRequirementProperty gmeow:hasTemporalFrame ;
+    logic:formalizes gmeow:hasTemporalFrame .
+
 # ── A NET-NEW harvested integrity constraint (prose → enforced axiom) ─────────────
 # The harvest mechanism run on a constraint that did NOT exist as an axiom before:
 # the three mereological individuation kinds (logic:Collection, logic:FunctionalComplex,

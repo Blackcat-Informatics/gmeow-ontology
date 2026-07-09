@@ -5599,7 +5599,7 @@ type InhabitationClaim {
 type InhabitationConfiguration {
   id: String
   iri: String
-  configurationEmbodiment: [EmbodimentAssignment!]
+  configurationEmbodiment: EmbodimentAssignment
   configurationFacet: [String!]
   configurationOfTenure: [InhabitationTenure!]
 }
