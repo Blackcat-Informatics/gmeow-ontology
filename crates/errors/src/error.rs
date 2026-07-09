@@ -32,7 +32,7 @@ crate::define_diag_kind! {
     pub struct UnknownFindingCategory { value: String }
     code = "errors.model.unknown-finding-category";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "unknown finding category `{}`; expected one of the nine logic:FindingCategory wire values", value;
+    message = "unknown finding category `{}`; expected one of the ten logic:FindingCategory wire values", value;
 }
 
 /// The complete `gmeow-errors` model diagnostic-code catalog, in registration

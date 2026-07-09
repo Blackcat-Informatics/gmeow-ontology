@@ -32,7 +32,7 @@ every decision below:
 
 1. **The reporting backbone was already Rust and canonical.** `crates/diagnostics`
    (`gmeow_diagnostics`) is a serde model that renders to JSON, SARIF, RDF, HTML, text,
-   and **NDJSON**, with an eight-way `FindingCategory` taxonomy, GTS wire-coordinate
+   and **NDJSON**, with a ten-way `FindingCategory` taxonomy, GTS wire-coordinate
    `Location`s, and slice attributions. The pipeline emits a structured `RunReport`
    (`crates/pipeline/src/run.rs`) with per-stage/per-level `TimingRecord` critical-path
    timings. The port moved the *presentation seam* from Python/Rich onto this existing
