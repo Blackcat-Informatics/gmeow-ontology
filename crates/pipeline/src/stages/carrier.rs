@@ -2681,7 +2681,11 @@ impl Stage for SnapshotStage {
         // for the bibliography.
         // v22 additionally consumes stage-math-producers and folds its five math flagship
         // producer graphs into gmeow.gts as bundle-internal named graphs (Design A).
-        "snapshot.v22-math-producer-graphs-and-docs-blobs"
+        // v23: the embedded ontology-docs site now carries conformance Do/Don't fixtures
+        // (`DocsModel::fixtures`, joined to each slice's `tests/example-conformance.ttl`
+        // binding) — a new `Page::FixtureIndex` page and a per-term "Conformance examples"
+        // section, so the rendered site bytes change shape for an unchanged model schema.
+        "snapshot.v23-conformance-fixture-do-dont-pairs"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from

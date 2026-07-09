@@ -125,12 +125,15 @@ fn walk_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), gmeow
 /// per-slice `docs.md` guides, slice `examples/*.ttl`, `docs/four-boxes.md`,
 /// per-slice `i18n/<lang>.po` gettext translation catalogs, per-slice
 /// `shapes.ttl` SHACL constraint files, per-slice `tests/competency.ttl`
-/// competency-question overlays, and root `shapes/*.ttl` aggregate node shapes.
-/// These are NOT reflected in the composed `stage-gts-compose` product (guide
-/// bodies ride the bundle only as blake3 digests), so any stage that derives an
-/// artifact from the docs model must declare them as `input_files` for cache
-/// soundness. Shared by `DocsRenderStage` (the documentation graph) and
-/// `SnapshotStage` (the embedded rendered site).
+/// competency-question overlays, per-slice `tests/conformance-fixtures/*.ttl` /
+/// `tests/counter-examples/*.ttl` Do/Don't fixtures + their
+/// `tests/example-conformance.ttl` binding overlay, and root `shapes/*.ttl`
+/// aggregate node shapes. These are NOT reflected in the composed
+/// `stage-gts-compose` product (guide bodies ride the bundle only as blake3
+/// digests), so any stage that derives an artifact from the docs model must
+/// declare them as `input_files` for cache soundness. Shared by
+/// `DocsRenderStage` (the documentation graph) and `SnapshotStage` (the
+/// embedded rendered site).
 pub(crate) fn docs_source_files(
     root: &Path,
 ) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
@@ -149,6 +152,23 @@ pub(crate) fn docs_source_files(
         let competency = dir.join("tests").join("competency.ttl");
         if competency.is_file() {
             files.push(competency);
+        }
+        // Conformance Do/Don't fixtures: the well-formed instances / counter-
+        // examples themselves plus the binding overlay that joins them to an
+        // expected outcome / violation code / rationale.
+        let example_conformance = dir.join("tests").join("example-conformance.ttl");
+        if example_conformance.is_file() {
+            files.push(example_conformance);
+        }
+        for fixture_dir in ["conformance-fixtures", "counter-examples"] {
+            if let Ok(entries) = std::fs::read_dir(dir.join("tests").join(fixture_dir)) {
+                for entry in entries.flatten() {
+                    let p = entry.path();
+                    if p.extension().is_some_and(|x| x == "ttl") {
+                        files.push(p);
+                    }
+                }
+            }
         }
         if let Ok(entries) = std::fs::read_dir(dir.join("examples")) {
             for entry in entries.flatten() {

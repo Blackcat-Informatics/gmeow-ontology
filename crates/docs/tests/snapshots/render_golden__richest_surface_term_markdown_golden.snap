@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 113
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # Doxastic State
@@ -82,6 +83,13 @@ An agent's intrinsic believing mode toward a proposition — the reified, first\
 - [Alice's standpoint](../../slices/epistemics/index.md) — `examples/claim-token-split.ttl`
 - [calendar evidence span for the meeting date](../../slices/epistemics/index.md) — `examples/flagship-epistemic-ledger.ttl`
 - [Ada](../../slices/epistemics/index.md) — `examples/justification-and-defeat.ttl`
+
+## Conformance examples
+
+- **Don't:** `tests/counter-examples/doxastic-state-missing-agent.ttl`
+  - **Violation code:** `shacl.MinCountConstraintComponent`
+  - The counter\-example declares a gmeow:DoxasticState with no gmeow:epistemicAgent\. gmeow:DoxasticStateShape requires sh:minCount 1 on gmeow:epistemicAgent, so validation MUST emit shacl\.MinCountConstraintComponent\.
+- See the [conformance fixtures index](../../fixtures/index.md).
 
 ## Stability
 

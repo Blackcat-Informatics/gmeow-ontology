@@ -42,8 +42,8 @@ pub use lint::lint;
 pub use llms::{GMEOW_SUMMARY, LLMS_NOTE_CAP};
 pub use model::{
     ConstraintRule, DocArtifact, DocCompetency, DocConcern, DocDependencyEdge, DocExample,
-    DocExternalTerm, DocLearningPath, DocLinkage, DocMappingSet, DocRecipe, DocShape, DocSlice,
-    DocTerm, DocTermCategory, DocsError, DocsModel,
+    DocExternalTerm, DocFixture, DocFixtureKind, DocLearningPath, DocLinkage, DocMappingSet,
+    DocRecipe, DocShape, DocSlice, DocTerm, DocTermCategory, DocsError, DocsModel,
 };
 pub use rdf::to_gmeow_rdf;
 pub use render::{

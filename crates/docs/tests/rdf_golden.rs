@@ -88,6 +88,7 @@ fn small_model() -> DocsModel {
         }],
         linkages: Vec::new(),
         examples: Vec::new(),
+        fixtures: Vec::new(),
         shapes: Vec::new(),
         competencies: Vec::new(),
         concerns: vec![DocConcern {
