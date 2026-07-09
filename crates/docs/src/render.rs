@@ -198,7 +198,7 @@ impl Page {
     }
 
     /// The human page title used in `<title>` and the shell brand line.
-    fn title(&self, model: &DocsModel) -> String {
+    pub fn title(&self, model: &DocsModel) -> String {
         match self {
             Page::Landing => model.title.clone(),
             Page::GettingStarted => "Getting started".to_string(),
@@ -453,6 +453,18 @@ pub fn write_site(
         written.push(path);
     }
     Ok(written)
+}
+
+/// The deterministically ordered set of pages that constitute the mdbook.
+///
+/// This is exactly the site's [`pages`] set (same order, same inclusion rules),
+/// exposed so the mdbook renderer in [`crate::mdbook`] can walk it without
+/// duplicating the ordering logic. It deliberately EXCLUDES
+/// [`Page::SparqlPlayground`] and every other exec-only interactive surface —
+/// those are never in [`pages`], so the book cannot accidentally reference a
+/// page it does not emit.
+pub fn book_pages(model: &DocsModel) -> Vec<Page> {
+    pages(model)
 }
 
 /// The full, deterministically ordered page set for the model.
@@ -3336,6 +3348,13 @@ fn localize_model(model: &DocsModel, lang: &str) -> DocsModel {
 /// `/` or `#`, lowercased and reduced to `[a-z0-9-]`.
 pub fn term_slug(term: &DocTerm) -> String {
     slugify(local_name(&term.iri))
+}
+
+/// A filesystem-safe slug from a term IRI's local name — the standalone twin of
+/// [`term_slug`] for callers holding an IRI (not a [`DocTerm`]), e.g. `docs-on`
+/// resolving a query to its `terms/<slug>/` page under the ontology-docs blob.
+pub fn slug_for_iri(iri: &str) -> String {
+    slugify(local_name(iri))
 }
 
 /// A filesystem-safe slug from a slice IRI's last path segment.

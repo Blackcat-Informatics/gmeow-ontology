@@ -227,6 +227,8 @@ pub fn full_spec() -> PipelineSpec {
                 // Fold THIS run's fresh JSON Schema/OpenAPI into the bundle.
                 "stage-export-json-schema",
                 "stage-export-profiles",
+                // references.bib feeds the docs-print PDF #bibliography.
+                "stage-export-references",
                 "stage-export-research-objects",
                 "stage-gts-compose",
                 // The FINAL projection-report loss ledger (logic ∪ correspondence rows).
