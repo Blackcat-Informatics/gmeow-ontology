@@ -628,22 +628,22 @@ ALIGNMENT (by reference — see mappings/equivalences.ttl). PROV-O (InferencePro
 # =========================================================================== #
 
 gmeow:InferenceCommitment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:conclusion ; owl:cardinality 1 ; owl:allValuesFrom gmeow:StandpointClaim ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:premise ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:inferenceModeOf ; owl:maxCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:conclusion ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:StandpointClaim ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:premise ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:inferenceModeOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:Analogy rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:analogicalSource ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:analogicalTarget ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:hasCorrespondence ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:analogicalSource ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:analogicalTarget ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:hasCorrespondence ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:Correspondence rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:correspondingSource ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:correspondingTarget ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:correspondingSource ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:correspondingTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:Argument rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:argumentConclusion ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:argumentInferenceStep ; owl:maxCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:argumentConclusion ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:argumentInferenceStep ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:hasPremiseUse ; owl:allValuesFrom gmeow:PremiseUse ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:hasInferenceApplication ; owl:allValuesFrom gmeow:InferenceApplication ] .
 
@@ -653,22 +653,22 @@ gmeow:Argument rdfs:subClassOf
 # classify; only the exact-one cardinality lowers here, the disjoint-range check
 # stays procedural .
 gmeow:Attack rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:attackTarget ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:attackKind ; owl:cardinality 1 ; owl:allValuesFrom gmeow:AttackKind ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:attackSource ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Argument ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:attackTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:attackKind ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:AttackKind ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:attackSource ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Argument ] .
 
 gmeow:Support rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:supportTarget ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Argument ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:supportSource ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:supportTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Argument ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:supportSource ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:ArgumentEvaluation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:evaluatesArgument ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Argument ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:underSemantics ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:acceptanceStatus ; owl:cardinality 1 ; owl:allValuesFrom gmeow:AcceptanceStatus ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:evaluatesArgument ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Argument ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:underSemantics ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:acceptanceStatus ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:AcceptanceStatus ] .
 
 gmeow:PremiseUse rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:premiseUsed ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:premiseUsed ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:InferenceApplication rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:appliedRule ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:appliedRule ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:appliedSubstitution ; owl:allValuesFrom xsd:string ] .

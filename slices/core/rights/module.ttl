@@ -2055,20 +2055,20 @@ _:b1
 # shapes for the rights relators (the OWL antecedent the validation-shape
 # projection reads; procedural range/suppression checks stay in the shape layer).
 gmeow:RightsStatement rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:statementAbout ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:statementAbout ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:Permission rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:Prohibition rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:Duty rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:ruleAction ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:License rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:licensor ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:licensor ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:Trademark rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:trademarkMark ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:trademarkHolder ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:trademarkMark ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:trademarkHolder ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .

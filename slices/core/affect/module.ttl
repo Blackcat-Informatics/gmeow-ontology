@@ -146,13 +146,13 @@ gmeow:AffectDecision
     rdfs:subClassOf gmeow:Observation ,
         [ a owl:Restriction ;
             owl:onProperty gmeow:decidedLabel ;
-            owl:cardinality "1"^^xsd:nonNegativeInteger ] ,
+            owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass owl:Thing ] ,
         [ a owl:Restriction ;
             owl:onProperty gmeow:decisionCrossedThreshold ;
-            owl:cardinality "1"^^xsd:nonNegativeInteger ] ,
+            owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass owl:Thing ] ,
         [ a owl:Restriction ;
             owl:onProperty gmeow:observedFeature ;
-            owl:cardinality "1"^^xsd:nonNegativeInteger ] ,
+            owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; owl:onClass owl:Thing ] ,
         [ a owl:Restriction ;
             owl:onProperty gmeow:vantage ;
             owl:minQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
@@ -565,7 +565,7 @@ gmeow:decidedLabel
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decided label"@x-gmeow-english ;
     rdfs:range gmeow:AffectClassifierLabel ;
-    skos:definition "The single gmeow:AffectClassifierLabel a gmeow:AffectDecision decides — the argmax (categorical mode) over a gmeow:decisionArgmax label set. Functional: a decision has exactly one decided label — the categorical winner-take-all exclusivity bound, authored in the reasoning layer as gmeow:AffectDecision owl:cardinality 1 on this property (with owl:FunctionalProperty) and projected to SHACL sh:minCount 1 / sh:maxCount 1 (Principle 17): a decision with no decided label is meaningless, and two labels is not a single-label decision."@x-gmeow-english ;
+    skos:definition "The single gmeow:AffectClassifierLabel a gmeow:AffectDecision decides — the argmax (categorical mode) over a gmeow:decisionArgmax label set. Functional: a decision has exactly one decided label — the categorical winner-take-all exclusivity bound, authored in the reasoning layer as gmeow:AffectDecision owl:maxQualifiedCardinality 1 (owl:onClass owl:Thing) on this property (with owl:FunctionalProperty) and projected to SHACL sh:minCount 1 / sh:maxCount 1 (Principle 17): a decision with no decided label is meaningless, and two labels is not a single-label decision."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:decisionCrossedThreshold
@@ -575,7 +575,7 @@ gmeow:decisionCrossedThreshold
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
     rdfs:label "decision crossed threshold"@x-gmeow-english ;
     rdfs:range xsd:boolean ;
-    skos:definition "Whether the decided label's score crossed its claim threshold (true) or the model decided but no claim was routed (false). Makes 'decided-but-below-threshold' a queryable fact distinct from a routed gmeow:AffectiveClaim — the argmax is recorded either way, only the claim is gated. Mandatory and single-valued: authored in the reasoning layer as gmeow:AffectDecision owl:cardinality 1 on this property (with owl:FunctionalProperty) and projected to SHACL sh:minCount 1 / sh:maxCount 1 (Principle 17). Exact owl:cardinality 1 is the in-fragment form the native reasoner DECIDES even for a datatype property — unlike owl:minCardinality / owl:maxCardinality or a count above one on a datatype property, which are withheld — so this single-valued datatype bound is a reasoning-layer fact, not a hand-authored SHACL constraint: a decision must record exactly one crossed-threshold verdict, its presence is never optional and two verdicts are incoherent."@x-gmeow-english ;
+    skos:definition "Whether the decided label's score crossed its claim threshold (true) or the model decided but no claim was routed (false). Makes 'decided-but-below-threshold' a queryable fact distinct from a routed gmeow:AffectiveClaim — the argmax is recorded either way, only the claim is gated. Mandatory and single-valued: authored in the reasoning layer as gmeow:AffectDecision owl:maxQualifiedCardinality 1 (owl:onClass owl:Thing) on this property (with owl:FunctionalProperty) and projected to SHACL sh:minCount 1 / sh:maxCount 1 (Principle 17). The qualified idiom owl:maxQualifiedCardinality 1 with owl:onClass owl:Thing is the in-fragment form the native reasoner DECIDES — degrading the qualified count to the same class-unrestricted single-valued bound the unqualified form intended — so this single-valued datatype bound is a reasoning-layer fact, not a hand-authored SHACL constraint: a decision must record exactly one crossed-threshold verdict, its presence is never optional and two verdicts are incoherent."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:decisionMargin
@@ -1746,12 +1746,12 @@ DOCTRINE.
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes.
 gmeow:Emotion rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:emotionBearer ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:emotionType ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:emotionBearer ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:emotionType ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:Appraisal rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:appraisalOf ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:appraisalDimension ; owl:maxCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:appraisalValue ; owl:maxCardinality 1 ; owl:allValuesFrom xsd:decimal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:appraisalScaleProfile ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:AffectScaleProfile ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:appraisalOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:appraisalDimension ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:appraisalValue ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:appraisalScaleProfile ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:AffectScaleProfile ] .

@@ -8,6 +8,28 @@
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 
+<https://blackcatinformatics.ca/gmeow/LogicLoweringDeclaredConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/LogicLoweringShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/math/compilesToLogicFormula> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An expression lowered to a logic:Formula through math:compilesToLogicFormula must declare its math:denotationKind and its math:logicLoweringPreservation; silent promotion to a logical assertion is forbidden (math:UndeclaredLogicLowering)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/compilesToLogicFormula> ?t . { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/denotationKind> ?c0 . } } UNION { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/logicLoweringPreservation> ?c1 . } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/NormPositiveDefiniteConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/Norm> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/Norm> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Norm's math:inducedByForm must be positive-definite (math:definiteness math:positiveDefinite); a norm resting on a non-positive-definite form is ill-formed (math:NonPositiveDefiniteNorm)." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/math/Norm> . $this <https://blackcatinformatics.ca/math/inducedByForm> ?v . FILTER NOT EXISTS { ?v <https://blackcatinformatics.ca/math/definiteness> <https://blackcatinformatics.ca/math/positiveDefinite> . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/RationalValueNonZeroDenominatorConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/math/RationalValue> ;
@@ -17,4 +39,15 @@
         sh:severity sh:Violation ;
         sh:message "A math:RationalValue must declare a non-zero math:denominator; a zero denominator is not a rational value (math:ZeroDenominator)." ;
         sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/math/RationalValue> . $this <https://blackcatinformatics.ca/math/denominator> '0'^^<http://www.w3.org/2001/XMLSchema#integer> . }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ReadingClaimVantageConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/ReadingClaimGroundedShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/lang/aboutReading> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A reading-correctness claim (a gmeow:Observation about a lang:Reading) must name its gmeow:vantage; an ungrounded reading claim is ill-formed (lang:UngroundedReadingClaim)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/aboutReading> ?t . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/vantage> ?c0 . } }""" ;
     ] .

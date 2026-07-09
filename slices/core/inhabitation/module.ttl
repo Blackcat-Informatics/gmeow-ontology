@@ -782,35 +782,35 @@ gmeow:transferredView
 # =========================================================================== #
 
 gmeow:InhabitationTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:inhabitationSubject ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:inhabitedHost ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Entity ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:inhabitationLocusKind ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:InhabitationLocusKind ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:inhabitationSubject ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:inhabitedHost ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Entity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:inhabitationLocusKind ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:InhabitationLocusKind ] .
 
 gmeow:EmbodimentAssignment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:assignmentSubject ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:assignmentCarrier ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:EmbodimentCarrierRole ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:assignmentSubject ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assignmentCarrier ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:EmbodimentCarrierRole ] .
 
 gmeow:InhabitationConfiguration rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:configurationOfTenure ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:InhabitationTenure ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:cardinality 1 ; owl:allValuesFrom gmeow:TimeInterval ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:configurationEmbodiment ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:EmbodimentAssignment ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:configurationOfTenure ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:InhabitationTenure ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:TimeInterval ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:configurationEmbodiment ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:EmbodimentAssignment ] .
 
 gmeow:ControlAssessment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:controlAgent ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:controlLevel ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:ControlLevel ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:controlInterval ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:TimeInterval ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:controlAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:controlLevel ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ControlLevel ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:controlInterval ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:TimeInterval ] .
 
 gmeow:IdentityContinuityAssessment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:assessmentFromStage ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:SubjectStage ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:assessmentToStage ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:SubjectStage ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:continuityVerdict ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:ContinuityVerdict ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:assessmentFromStage ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:SubjectStage ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assessmentToStage ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:SubjectStage ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:continuityVerdict ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ContinuityVerdict ] .
 
 gmeow:ContinuityDetermination rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:determiningAuthority ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:determinationForce ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:DeterminationForce ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:determinationValidity ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:TimeInterval ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:determiningAuthority ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:determinationForce ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:DeterminationForce ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:determinationValidity ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:TimeInterval ] .
 
 gmeow:DigitalSubjectTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:tenureSubjectAgent ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:tenureVantage ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureSubjectAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureVantage ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:tenureSupportedBy ; owl:allValuesFrom gmeow:Observation ] .

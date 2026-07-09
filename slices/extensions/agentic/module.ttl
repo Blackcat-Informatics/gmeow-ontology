@@ -80,8 +80,9 @@ DOCTRINE.
 # world cardinality / class / literal obligations the hand-authored
 # gmeow:ToolCallShape states, authored here once as OWL restriction axioms and
 # PROJECTED to generated/shapes/validation-shapes.ttl by derive_validation_shapes
-# (Principle 17). owl:maxCardinality -> sh:maxCount; owl:cardinality 1 ->
-# sh:minCount 1 + sh:maxCount 1; owl:allValuesFrom C -> sh:class C;
+# (Principle 17). owl:maxQualifiedCardinality (onClass owl:Thing) -> sh:maxCount;
+# owl:maxQualifiedCardinality 1 (onClass owl:Thing) -> sh:minCount 1 + sh:maxCount 1;
+# owl:allValuesFrom C -> sh:class C;
 # owl:allValuesFrom rdfs:Literal -> sh:nodeKind sh:Literal (the verbatim payload
 # facet). The `sh:nodeKind sh:IRI` facet on the object-valued paths has no
 # ordinary-OWL antecedent (owl:Thing lowers to sh:BlankNodeOrIRI, not sh:IRI) and
@@ -89,7 +90,7 @@ DOCTRINE.
 # =========================================================================== #
 
 gmeow:ToolCall rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:calledByInvocation ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:ModelInvocation ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:usedTool ; owl:cardinality 1 ; owl:allValuesFrom gmeow:SoftwareAgent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:toolArguments ; owl:maxCardinality 1 ; owl:allValuesFrom rdfs:Literal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:toolResult ; owl:maxCardinality 1 ; owl:allValuesFrom rdfs:Literal ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:calledByInvocation ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ModelInvocation ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:usedTool ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:SoftwareAgent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:toolArguments ; owl:maxQualifiedCardinality 1 ; owl:onClass rdfs:Literal ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:toolResult ; owl:maxQualifiedCardinality 1 ; owl:onClass rdfs:Literal ] .

@@ -628,12 +628,12 @@ gmeow:usedModel
 # =========================================================================== #
 
 gmeow:Contradiction rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:contradictsClaim ; owl:minCardinality 2 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:contradictsClaim ; owl:minQualifiedCardinality 2 ; owl:onClass owl:Thing ] .
 
 gmeow:Chunk rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:chunkOf ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:spanStart ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:spanEnd ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:chunkOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:spanStart ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:spanEnd ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:MemoryItem rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:memoryOf ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:memoryOf ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .

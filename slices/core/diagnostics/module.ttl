@@ -863,9 +863,9 @@ DOCTRINE.
 # =========================================================================== #
 
 gmeow:Finding rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:findingSeverity ; owl:cardinality 1 ; owl:allValuesFrom gmeow:DiagnosticSeverity ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:findingCode ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:findingMessage ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:findingSeverity ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:DiagnosticSeverity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:findingCode ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:findingMessage ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] .
 
 gmeow:CrossNodeGlutWitness rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:glutWitnessOf ; owl:cardinality 2 ; owl:allValuesFrom gmeow:Finding ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:glutWitnessOf ; owl:maxQualifiedCardinality 2 ; owl:onClass gmeow:Finding ] .

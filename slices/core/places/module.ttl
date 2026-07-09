@@ -5347,6 +5347,6 @@ _:b0
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes.
 gmeow:ProximityMeasurement rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:proximityTo ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:proximityTo ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .

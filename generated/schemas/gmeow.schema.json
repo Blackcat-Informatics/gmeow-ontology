@@ -175,10 +175,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "gmeow:adequacyUnderStandard",
-        "gmeow:meetsThreshold"
-      ],
       "type": "object"
     },
     "AffectClassifierLabel": {
@@ -502,10 +498,7 @@
         }
       },
       "required": [
-        "gmeow:decidedLabel",
-        "gmeow:decisionCrossedThreshold",
         "gmeow:derivedByFunction",
-        "gmeow:observedFeature",
         "gmeow:vantage"
       ],
       "type": "object"
@@ -1171,7 +1164,6 @@
         }
       },
       "required": [
-        "gmeow:appraisalOf",
         "gmeow:vantage"
       ],
       "type": "object"
@@ -1229,9 +1221,6 @@
         }
       },
       "required": [
-        "gmeow:samplePosition",
-        "gmeow:sampleState",
-        "gmeow:sampleSubject",
         "gmeow:vantage"
       ],
       "type": "object"
@@ -1456,9 +1445,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:argumentConclusion"
-      ],
       "type": "object"
     },
     "ArgumentEvaluation": {
@@ -1514,11 +1500,6 @@
         },
         "gmeow:underSemantics": {}
       },
-      "required": [
-        "gmeow:acceptanceStatus",
-        "gmeow:evaluatesArgument",
-        "gmeow:underSemantics"
-      ],
       "type": "object"
     },
     "Assessment": {
@@ -1604,8 +1585,6 @@
         }
       },
       "required": [
-        "gmeow:assessmentScoreValue",
-        "gmeow:assessmentTarget",
         "gmeow:vantage"
       ],
       "type": "object"
@@ -1773,11 +1752,6 @@
         },
         "gmeow:attackTarget": {}
       },
-      "required": [
-        "gmeow:attackKind",
-        "gmeow:attackSource",
-        "gmeow:attackTarget"
-      ],
       "type": "object"
     },
     "Attestation": {
@@ -3857,10 +3831,6 @@
         },
         "gmeow:cascadeSeverity": {}
       },
-      "required": [
-        "gmeow:cascadeFirstLink",
-        "gmeow:cascadeSeverity"
-      ],
       "type": "object"
     },
     "CausalLink": {
@@ -4115,11 +4085,6 @@
         "gmeow:spanEnd": {},
         "gmeow:spanStart": {}
       },
-      "required": [
-        "gmeow:chunkOf",
-        "gmeow:spanEnd",
-        "gmeow:spanStart"
-      ],
       "type": "object"
     },
     "CitationAct": {
@@ -4285,9 +4250,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "gmeow:evaluates"
-      ],
       "type": "object"
     },
     "Comment": {
@@ -4856,10 +4818,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:observationResult",
-        "gmeow:observedFeature"
-      ],
       "type": "object"
     },
     "ConceptTenure": {
@@ -4914,10 +4872,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:conceptHoldsFor",
-        "gmeow:duringInterval"
-      ],
       "type": "object"
     },
     "Condition": {
@@ -5001,8 +4955,6 @@
         }
       },
       "required": [
-        "gmeow:evaluatedCondition",
-        "gmeow:evaluationVerdict",
         "gmeow:vantage"
       ],
       "type": "object"
@@ -5076,8 +5028,7 @@
         "gmeow:groupOperator": {}
       },
       "required": [
-        "gmeow:groupMember",
-        "gmeow:groupOperator"
+        "gmeow:groupMember"
       ],
       "type": "object"
     },
@@ -5104,9 +5055,6 @@
         },
         "gmeow:parameterName": {}
       },
-      "required": [
-        "gmeow:parameterName"
-      ],
       "type": "object"
     },
     "ContactPoint": {
@@ -6138,10 +6086,6 @@
         "gmeow:correspondingSource": {},
         "gmeow:correspondingTarget": {}
       },
-      "required": [
-        "gmeow:correspondingSource",
-        "gmeow:correspondingTarget"
-      ],
       "type": "object"
     },
     "CreativeDerivation": {
@@ -6374,10 +6318,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "gmeow:penaltyPole",
-        "gmeow:rewardPole"
-      ],
       "type": "object"
     },
     "CrossNodeGlutWitness": {
@@ -6402,32 +6342,50 @@
           ]
         },
         "gmeow:glutWitnessOf": {
-          "items": {
-            "anyOf": [
-              {
-                "$ref": "#/$defs/Finding"
-              },
-              {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Finding"
                 },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              }
-            ]
-          },
-          "maxItems": 2,
-          "minItems": 2,
-          "type": "array"
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Finding"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "maxItems": 2,
+              "type": "array"
+            }
+          ]
         }
       },
-      "required": [
-        "gmeow:glutWitnessOf"
-      ],
       "type": "object"
     },
     "CryptoWallet": {
@@ -6800,10 +6758,6 @@
         },
         "gmeow:dofWork": {}
       },
-      "required": [
-        "gmeow:dofParameter",
-        "gmeow:dofStatus"
-      ],
       "type": "object"
     },
     "DepictionUsage": {
@@ -7048,10 +7002,6 @@
         "gmeow:intentBearer": {},
         "gmeow:intentionGoal": {}
       },
-      "required": [
-        "gmeow:intentBearer",
-        "gmeow:intentionGoal"
-      ],
       "type": "object"
     },
     "Diastolic": {
@@ -7940,11 +7890,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:doxasticClaim",
-        "gmeow:doxasticContent",
-        "gmeow:epistemicAgent"
-      ],
       "type": "object"
     },
     "DoxasticTenure": {
@@ -8005,10 +7950,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:duringInterval",
-        "gmeow:tenureOfDoxasticState"
-      ],
       "type": "object"
     },
     "DreamReport": {
@@ -8138,9 +8079,6 @@
         },
         "gmeow:ruleAction": {}
       },
-      "required": [
-        "gmeow:ruleAction"
-      ],
       "type": "object"
     },
     "Embedding": {
@@ -8207,11 +8145,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "gmeow:distanceMetric",
-        "gmeow:embeddingModel",
-        "gmeow:embeddingOf"
-      ],
       "type": "object"
     },
     "EmbodimentAssignment": {
@@ -8302,7 +8235,6 @@
         }
       },
       "required": [
-        "gmeow:emotionBearer",
         "gmeow:emotionType"
       ],
       "type": "object"
@@ -8514,10 +8446,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:duringInterval",
-        "gmeow:existenceEntity"
-      ],
       "type": "object"
     },
     "EtymologicalDerivation": {
@@ -8963,12 +8891,6 @@
         "gmeow:citingEntity": {},
         "gmeow:exemplarPolarity": {}
       },
-      "required": [
-        "gmeow:citationIntent",
-        "gmeow:citedEntity",
-        "gmeow:citingEntity",
-        "gmeow:exemplarPolarity"
-      ],
       "type": "object"
     },
     "Expression": {
@@ -9074,10 +8996,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "gmeow:relationshipSource",
-        "gmeow:relationshipTarget"
-      ],
       "type": "object"
     },
     "FeedPosting": {
@@ -9396,11 +9314,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "gmeow:findingCode",
-        "gmeow:findingMessage",
-        "gmeow:findingSeverity"
-      ],
       "type": "object"
     },
     "GTSDocument": {
@@ -9500,11 +9413,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:gtsHeadId",
-        "gmeow:gtsProfile",
-        "gmeow:gtsSegmentIndex"
-      ],
       "type": "object"
     },
     "Gender": {
@@ -10112,11 +10020,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:facetSubject",
-        "gmeow:facetVantage",
-        "gmeow:genderValue"
-      ],
       "type": "object"
     },
     "GenerativeProcess": {
@@ -10165,7 +10068,6 @@
         }
       },
       "required": [
-        "gmeow:processKind",
         "gmeow:processRuleText"
       ],
       "type": "object"
@@ -10486,11 +10388,6 @@
         },
         "gmeow:grooveKind": {}
       },
-      "required": [
-        "gmeow:appliesToTimeFrame",
-        "gmeow:grooveGridUnit",
-        "gmeow:grooveKind"
-      ],
       "type": "object"
     },
     "Hazard": {
@@ -10550,7 +10447,6 @@
         }
       },
       "required": [
-        "gmeow:hazardBearer",
         "gmeow:manifestedAsType"
       ],
       "type": "object"
@@ -11209,9 +11105,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:appliedRule"
-      ],
       "type": "object"
     },
     "InferenceCommitment": {
@@ -11266,7 +11159,6 @@
         }
       },
       "required": [
-        "gmeow:conclusion",
         "gmeow:premise"
       ],
       "type": "object"
@@ -11347,9 +11239,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:duringInterval"
-      ],
       "type": "object"
     },
     "InhabitationTenure": {
@@ -11982,10 +11871,6 @@
         "gmeow:tenureAgent": {},
         "gmeow:tenureIntention": {}
       },
-      "required": [
-        "gmeow:tenureAgent",
-        "gmeow:tenureIntention"
-      ],
       "type": "object"
     },
     "InterpersonalRelationship": {
@@ -12394,11 +12279,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:attributedKnower",
-        "gmeow:attributedProposition",
-        "gmeow:attributingAgent"
-      ],
       "type": "object"
     },
     "KnowledgeClaim": {
@@ -12477,12 +12357,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "gmeow:knowerAgent",
-        "gmeow:knownInWorld",
-        "gmeow:knownProposition",
-        "gmeow:underStandard"
-      ],
       "type": "object"
     },
     "KnowledgeProficiency": {
@@ -14150,8 +14024,7 @@
       },
       "required": [
         "gmeow:mergeBase",
-        "gmeow:mergeSource",
-        "gmeow:mergeTarget"
+        "gmeow:mergeSource"
       ],
       "type": "object"
     },
@@ -14348,11 +14221,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:assignedMeter",
-        "gmeow:assignmentSpan",
-        "gmeow:meterCarrier"
-      ],
       "type": "object"
     },
     "MetricGroup": {
@@ -14453,11 +14321,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:groupLengthDenominator",
-        "gmeow:groupLengthNumerator",
-        "gmeow:metricGroupOrder"
-      ],
       "type": "object"
     },
     "MetricModulation": {
@@ -14556,12 +14419,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:modulationFromFrame",
-        "gmeow:modulationToFrame",
-        "gmeow:pivotSourceValue",
-        "gmeow:pivotTargetValue"
-      ],
       "type": "object"
     },
     "MetricStructure": {
@@ -15153,13 +15010,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:analysisFrame",
-        "gmeow:analysisProperty",
-        "gmeow:analysisResult",
-        "gmeow:analysisTarget",
-        "gmeow:vantage"
-      ],
       "type": "object"
     },
     "MusicalSegment": {
@@ -15186,9 +15036,6 @@
         "gmeow:segmentKind": {},
         "gmeow:segmentSpan": {}
       },
-      "required": [
-        "gmeow:segmentKind"
-      ],
       "type": "object"
     },
     "MusicalTimeFrame": {
@@ -15262,13 +15109,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:dimensionCount",
-        "gmeow:frameKind",
-        "gmeow:frameRealm",
-        "gmeow:hasAxis",
-        "gmeow:requiresHost"
-      ],
       "type": "object"
     },
     "MusicalTimeSpan": {
@@ -15387,13 +15227,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:hasMusicalTimeFrame",
-        "gmeow:timeDurationDenominator",
-        "gmeow:timeDurationNumerator",
-        "gmeow:timeStartDenominator",
-        "gmeow:timeStartNumerator"
-      ],
       "type": "object"
     },
     "Myth": {
@@ -15878,9 +15711,7 @@
         "gmeow:narrationSubject": {}
       },
       "required": [
-        "gmeow:narrationMode",
-        "gmeow:narrationSegment",
-        "gmeow:narrationSubject"
+        "gmeow:narrationMode"
       ],
       "type": "object"
     },
@@ -16065,10 +15896,6 @@
         },
         "gmeow:narrativeTimeAxis": {}
       },
-      "required": [
-        "gmeow:frameRealm",
-        "gmeow:narrativeTimeAxis"
-      ],
       "type": "object"
     },
     "NetworkAddress": {
@@ -29563,7 +29390,6 @@
         }
       },
       "required": [
-        "gmeow:notationSystemOf",
         "gmeow:projectionFunction"
       ],
       "type": "object"
@@ -30069,10 +29895,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:opacityReason",
-        "gmeow:opaqueFrameIn"
-      ],
       "type": "object"
     },
     "Order": {
@@ -30899,9 +30721,6 @@
         },
         "gmeow:ornamentReferenceFrame": {}
       },
-      "required": [
-        "gmeow:ornamentProfileKind"
-      ],
       "type": "object"
     },
     "ParentChildRelationship": {
@@ -31116,11 +30935,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:decisionConstraint",
-        "gmeow:decisionPerformance",
-        "gmeow:decisionSequence"
-      ],
       "type": "object"
     },
     "PerformanceParticipation": {
@@ -31197,11 +31011,6 @@
         },
         "gmeow:participationTechnique": {}
       },
-      "required": [
-        "gmeow:participationEvent",
-        "gmeow:participationParticipant",
-        "gmeow:participationRole"
-      ],
       "type": "object"
     },
     "Permission": {
@@ -31511,7 +31320,6 @@
         }
       },
       "required": [
-        "gmeow:personaBearer",
         "gmeow:personaRegister"
       ],
       "type": "object"
@@ -31825,9 +31633,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:stageImpl"
-      ],
       "type": "object"
     },
     "PitchAnchor": {
@@ -31908,11 +31713,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:anchorDegree",
-        "gmeow:anchorFrequency",
-        "gmeow:pitchAnchorOf"
-      ],
       "type": "object"
     },
     "PitchCollection": {
@@ -31958,9 +31758,6 @@
         },
         "gmeow:derivedFromSpectrum": {}
       },
-      "required": [
-        "gmeow:collectionKind"
-      ],
       "type": "object"
     },
     "PitchCollectionMembership": {
@@ -32052,11 +31849,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "gmeow:membershipCollection",
-        "gmeow:membershipPitch",
-        "gmeow:membershipRole"
-      ],
       "type": "object"
     },
     "PitchExpression": {
@@ -32165,9 +31957,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:hasTuningFrame"
-      ],
       "type": "object"
     },
     "PitchSpelling": {
@@ -32241,11 +32030,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "gmeow:spelledName",
-        "gmeow:spellingPitch",
-        "gmeow:spellingSystem"
-      ],
       "type": "object"
     },
     "PitchTrajectory": {
@@ -32277,7 +32061,6 @@
         }
       },
       "required": [
-        "gmeow:interpolationKind",
         "gmeow:trajectoryControlPoint"
       ],
       "type": "object"
@@ -32398,14 +32181,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:controlPointOfTrajectory",
-        "gmeow:controlPointOrder",
-        "gmeow:controlPointPitch",
-        "gmeow:controlPointTimeFrame",
-        "gmeow:controlPointTimePositionDenominator",
-        "gmeow:controlPointTimePositionNumerator"
-      ],
       "type": "object"
     },
     "PitchValue": {
@@ -32476,9 +32251,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:hasTuningFrame"
-      ],
       "type": "object"
     },
     "Place": {
@@ -32892,9 +32664,6 @@
         },
         "gmeow:premiseUsed": {}
       },
-      "required": [
-        "gmeow:premiseUsed"
-      ],
       "type": "object"
     },
     "PrivacyNotice": {
@@ -33425,11 +33194,6 @@
         "gmeow:observedFeature": {},
         "gmeow:proximityTo": {}
       },
-      "required": [
-        "gmeow:observationResult",
-        "gmeow:observedFeature",
-        "gmeow:proximityTo"
-      ],
       "type": "object"
     },
     "Quality": {
@@ -34427,9 +34191,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "gmeow:againstIndex"
-      ],
       "type": "object"
     },
     "RightsStatement": {
@@ -34482,11 +34243,6 @@
         "gmeow:narrativeRoleScope": {},
         "gmeow:narrativeRoleValue": {}
       },
-      "required": [
-        "gmeow:narrativeRoleBearer",
-        "gmeow:narrativeRoleScope",
-        "gmeow:narrativeRoleValue"
-      ],
       "type": "object"
     },
     "RomanticOrientation": {
@@ -35042,9 +34798,7 @@
         }
       },
       "required": [
-        "gmeow:anchorMeaning",
-        "gmeow:anchorRangeMax",
-        "gmeow:anchorRangeMin"
+        "gmeow:anchorMeaning"
       ],
       "type": "object"
     },
@@ -35127,10 +34881,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:scaleMax",
-        "gmeow:scaleMin"
-      ],
       "type": "object"
     },
     "ScriptLanguageAttribution": {
@@ -35342,11 +35092,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:transformationSource",
-        "gmeow:transformationTarget",
-        "gmeow:transformationType"
-      ],
       "type": "object"
     },
     "SensoryEnvironment": {
@@ -36960,10 +36705,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "gmeow:standpointClaim",
-        "gmeow:tenureStandpoint"
-      ],
       "type": "object"
     },
     "Stream": {
@@ -37111,10 +36852,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:supportSource",
-        "gmeow:supportTarget"
-      ],
       "type": "object"
     },
     "SupportAssessment": {
@@ -37208,10 +36945,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "gmeow:supportGround",
-        "gmeow:supportUnderStandard"
-      ],
       "type": "object"
     },
     "Systolic": {
@@ -37470,8 +37203,7 @@
       },
       "required": [
         "gmeow:learner",
-        "gmeow:subjectTaught",
-        "gmeow:teacher"
+        "gmeow:subjectTaught"
       ],
       "type": "object"
     },
@@ -37591,13 +37323,6 @@
         "gmeow:segmentTempoMapKind": {},
         "gmeow:tempoMapSegmentOf": {}
       },
-      "required": [
-        "gmeow:segmentMapRatioDenominator",
-        "gmeow:segmentMapRatioNumerator",
-        "gmeow:segmentSpan",
-        "gmeow:segmentTempoMapKind",
-        "gmeow:tempoMapSegmentOf"
-      ],
       "type": "object"
     },
     "TemporalFrame": {
@@ -37658,11 +37383,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "gmeow:frameKind",
-        "gmeow:frameRealm",
-        "gmeow:frameTimeScale"
-      ],
       "type": "object"
     },
     "TemporalMeasurement": {
@@ -37831,11 +37551,6 @@
         "gmeow:mapsToFrame": {},
         "gmeow:timeMappingKind": {}
       },
-      "required": [
-        "gmeow:mapsFrame",
-        "gmeow:mapsToFrame",
-        "gmeow:timeMappingKind"
-      ],
       "type": "object"
     },
     "TimeZone": {
@@ -38022,9 +37737,6 @@
           ]
         }
       },
-      "required": [
-        "gmeow:usedTool"
-      ],
       "type": "object"
     },
     "Trademark": {
@@ -38273,7 +37985,6 @@
         }
       },
       "required": [
-        "gmeow:constraintAppliesTo",
         "gmeow:constraintText"
       ],
       "type": "object"
@@ -38600,12 +38311,6 @@
         },
         "gmeow:tuningKind": {}
       },
-      "required": [
-        "gmeow:frameKind",
-        "gmeow:frameRealm",
-        "gmeow:requiresHost",
-        "gmeow:tuningKind"
-      ],
       "type": "object"
     },
     "UsageAttestation": {
@@ -39118,12 +38823,6 @@
           ]
         }
       },
-      "required": [
-        "lang:demonstratedByCompetency",
-        "lang:demonstratedByExample",
-        "lang:enforcesFailureClass",
-        "lang:guardedByCounterExample"
-      ],
       "type": "object"
     },
     "lang:Form": {
@@ -39198,9 +38897,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "lang:inSignSystem"
-      ],
       "type": "object"
     },
     "lang:FormSlot": {
@@ -39392,7 +39088,6 @@
         }
       },
       "required": [
-        "lang:featureKey",
         "lang:featureValue"
       ],
       "type": "object"
@@ -39423,9 +39118,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "lang:paraphraseSamenessKind"
-      ],
       "type": "object"
     },
     "lang:ProjectionEmission": {
@@ -39535,7 +39227,6 @@
       "required": [
         "lang:renderedContent",
         "lang:renderingConvention",
-        "lang:renderingKind",
         "lang:renderingPreservation"
       ],
       "type": "object"
@@ -40105,12 +39796,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "logic:conjectureFormula",
-        "logic:conjectureLifecycleState",
-        "logic:conjectureStandpoint",
-        "logic:verdictProvenance"
-      ],
       "type": "object"
     },
     "logic:ContradictionWitness": {
@@ -40220,9 +39905,7 @@
         }
       },
       "required": [
-        "logic:witnessIndividual",
-        "logic:witnessPremise",
-        "logic:witnessWorld"
+        "logic:witnessPremise"
       ],
       "type": "object"
     },
@@ -40426,16 +40109,6 @@
           ]
         }
       },
-      "required": [
-        "logic:candidateCategory",
-        "logic:candidateContract",
-        "logic:candidateExtractionProvenance",
-        "logic:candidateLifecycle",
-        "logic:candidateProjectionBehavior",
-        "logic:candidateScope",
-        "logic:candidateSemanticRisk",
-        "logic:candidateSourceHash"
-      ],
       "type": "object"
     },
     "logic:FreshnessGuard": {
@@ -40520,9 +40193,6 @@
         },
         "logic:guardsPrecondition": {}
       },
-      "required": [
-        "logic:guardsPrecondition"
-      ],
       "type": "object"
     },
     "logic:FunctionalComplex": {
@@ -40659,11 +40329,7 @@
         "logic:utility": {}
       },
       "required": [
-        "logic:evaluatesGoal",
-        "logic:feasibilityStatus",
-        "logic:goalEvaluationStatus",
-        "logic:lifecycleStatus",
-        "logic:satisfactionStatus"
+        "logic:evaluatesGoal"
       ],
       "type": "object"
     },
@@ -40758,7 +40424,6 @@
                 "$comment": "external class https://blackcatinformatics.ca/logic/DischargeCondition",
                 "type": "string"
               },
-              "minItems": 1,
               "type": "array"
             }
           ]
@@ -40784,10 +40449,6 @@
           ]
         }
       },
-      "required": [
-        "logic:obligationDischargeCondition",
-        "logic:obligationForbiddenPredicate"
-      ],
       "type": "object"
     },
     "logic:NotificationWaitSchema": {
@@ -40871,10 +40532,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "logic:planGoal",
-        "logic:planSuccessMode"
-      ],
       "type": "object"
     },
     "math:AlgebraicStructure": {
@@ -40931,8 +40588,7 @@
       },
       "required": [
         "math:satisfiesAxiom",
-        "math:structureOperation",
-        "math:underlyingSet"
+        "math:structureOperation"
       ],
       "type": "object"
     },
@@ -40959,9 +40615,6 @@
         },
         "math:operator": {}
       },
-      "required": [
-        "math:operator"
-      ],
       "type": "object"
     },
     "math:ApproximateValue": {
@@ -41001,7 +40654,6 @@
         }
       },
       "required": [
-        "math:approximates",
         "math:approximationError"
       ],
       "type": "object"
@@ -41058,10 +40710,6 @@
           ]
         }
       },
-      "required": [
-        "math:slotExpression",
-        "math:slotIndex"
-      ],
       "type": "object"
     },
     "math:AutomorphismGroup": {
@@ -41155,8 +40803,7 @@
         "math:boundVariable": {}
       },
       "required": [
-        "math:argumentSlot",
-        "math:boundVariable"
+        "math:argumentSlot"
       ],
       "type": "object"
     },
@@ -41185,11 +40832,6 @@
         "math:coordinateMap": {},
         "math:targetCoordinateSpace": {}
       },
-      "required": [
-        "math:chartDomain",
-        "math:coordinateMap",
-        "math:targetCoordinateSpace"
-      ],
       "type": "object"
     },
     "math:CompactSpace": {
@@ -41233,9 +40875,6 @@
           ]
         }
       },
-      "required": [
-        "math:isCompact"
-      ],
       "type": "object"
     },
     "math:Complement": {
@@ -41265,10 +40904,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "math:ambientSpace",
-        "math:complementSemantics"
-      ],
       "type": "object"
     },
     "math:ConnectedSpace": {
@@ -41312,9 +40947,6 @@
           ]
         }
       },
-      "required": [
-        "math:isConnected"
-      ],
       "type": "object"
     },
     "math:ContinuousMap": {
@@ -41358,9 +40990,6 @@
           ]
         }
       },
-      "required": [
-        "math:isContinuous"
-      ],
       "type": "object"
     },
     "math:Convergence": {
@@ -41400,7 +41029,6 @@
         }
       },
       "required": [
-        "math:convergenceMode",
         "math:convergesTo"
       ],
       "type": "object"
@@ -41468,11 +41096,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "math:derivativeOf",
-        "math:derivativeOrder",
-        "math:withRespectToVariable"
-      ],
       "type": "object"
     },
     "math:DerivedDimension": {
@@ -41582,11 +41205,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "math:exponentDenominator",
-        "math:exponentNumerator",
-        "math:exponentOfDimension"
-      ],
       "type": "object"
     },
     "math:DimensionalExpression": {
@@ -41833,12 +41451,6 @@
           ]
         }
       },
-      "required": [
-        "math:demonstratedByCompetency",
-        "math:demonstratedByExample",
-        "math:enforcesFailureClass",
-        "math:guardedByCounterExample"
-      ],
       "type": "object"
     },
     "math:FormalVerificationResult": {
@@ -41919,10 +41531,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "math:codomain",
-        "math:domain"
-      ],
       "type": "object"
     },
     "math:GramMatrix": {
@@ -41955,10 +41563,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "math:inBasis",
-        "math:representsForm"
-      ],
       "type": "object"
     },
     "math:HomomorphicEncryptionScheme": {
@@ -42237,11 +41841,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "math:integrand",
-        "math:integrationDomain",
-        "math:withRespectTo"
-      ],
       "type": "object"
     },
     "math:LieGroup": {
@@ -42321,10 +41920,6 @@
         },
         "math:limitPoint": {}
       },
-      "required": [
-        "math:limitOf",
-        "math:limitPoint"
-      ],
       "type": "object"
     },
     "math:Manifold": {
@@ -42372,10 +41967,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "math:manifoldDimension",
-        "math:manifoldStructureKind"
-      ],
       "type": "object"
     },
     "math:MathematicalConstant": {
@@ -42458,10 +42049,6 @@
         },
         "math:totalMass": {}
       },
-      "required": [
-        "math:measureOn",
-        "math:totalMass"
-      ],
       "type": "object"
     },
     "math:MetricSignature": {
@@ -42533,6 +42120,7 @@
       "type": "object"
     },
     "math:Norm": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
         "@annotation": {
           "$ref": "#/$defs/Annotation"
@@ -42552,22 +42140,8 @@
               "type": "array"
             }
           ]
-        },
-        "math:inducedByForm": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
         }
       },
-      "required": [
-        "math:inducedByForm"
-      ],
       "type": "object"
     },
     "math:Number": {
@@ -42596,9 +42170,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "math:inNumberSystem"
-      ],
       "type": "object"
     },
     "math:OrthogonalComplement": {
@@ -42634,9 +42205,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "math:definedByInnerProduct"
-      ],
       "type": "object"
     },
     "math:PCAAnalysis": {
@@ -42775,14 +42343,12 @@
       },
       "required": [
         "math:analysisInput",
-        "math:centeringPolicy",
         "math:covarianceOperator",
         "math:eigensolver",
         "math:explainedVarianceRatio",
         "math:loadingVector",
         "math:principalComponent",
         "math:residualSubspace",
-        "math:scalingPolicy",
         "math:scoreVector"
       ],
       "type": "object"
@@ -42904,9 +42470,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "math:hasDimension"
-      ],
       "type": "object"
     },
     "math:RationalValue": {
@@ -43427,9 +42990,6 @@
           "type": "object"
         }
       },
-      "required": [
-        "math:declaredVariable"
-      ],
       "type": "object"
     },
     "math:WeightTensor": {
@@ -43458,9 +43018,6 @@
           "type": "string"
         }
       },
-      "required": [
-        "math:inParameterSpace"
-      ],
       "type": "object"
     },
     "test_all_datatypes.en.v1-at0000": {

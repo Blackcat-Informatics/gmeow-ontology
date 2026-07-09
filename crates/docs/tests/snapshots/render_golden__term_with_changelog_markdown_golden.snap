@@ -2,42 +2,38 @@
 source: crates/docs/tests/render_golden.rs
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# Affect Composite
+# Adequacy Assessment
 
-`gmeow:AffectComposite` · Class
+`gmeow:AdequacyAssessment` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:AffectComposite` |
-| IRI | `https://blackcatinformatics.ca/gmeow/AffectComposite` |
+| CURIE | `gmeow:AdequacyAssessment` |
+| IRI | `https://blackcatinformatics.ca/gmeow/AdequacyAssessment` |
 | Category | Class |
-| Slice | [GMEOW Affect Module](../../slices/affect/index.md) |
+| Slice | [GMEOW Epistemics Module](../../slices/epistemics/index.md) |
 
-![completeness: Docs 5/6](../../badges/completeness/5.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: SubKind](../../badges/stereotype/subkind.svg)
+![completeness: Docs 3/6](../../badges/completeness/3.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
 
 ## Definition
 
-A named emotion whose meaning is given by a DECLARED composition — a core\-affect vector bound by relations to its elicitor, target, agency attribution, norm, and, where relevant, other emotions — rather than left as an unanalyzed primitive\. GMEOW models up: schadenfreude and saudade are structure over the foundational axes and relations, not new primitive EmotionTypes\. A composite MUST carry its decomposition via gmeow:affectiveConstituent \(SHACL\); if a quality cannot be decomposed into the current axes, that is evidence the axis basis is incomplete \(add an axis\), never a licence for an opaque primitive\.
+A reified, solver\-set judgement that a justification's support MEETS \(or fails\) the threshold of a named epistemic standard — carrying the standard \(gmeow:adequacyUnderStandard \-\> gmeow:EpistemicStandard\) and the verdict \(gmeow:meetsThreshold \-\> gmeow:AdequacyVerdict\)\. Adequacy is the fourth of the five factored justification components \(available\-evidence, basing, support\-under\-a\-standard, adequacy, defeat\): whether the support meets the standard's bar\. COMPUTED, never asserted \(Principle 12\); the same basis may be adequate under one standard and inadequate under a stricter one, so several assessments coexist \(Principle 9\)\.
 
 ## Neighborhood
 
-![Term neighborhood](../../diagrams/terms/affectcomposite.svg)
+![Term neighborhood](../../diagrams/terms/adequacyassessment.svg)
 
 ## Super\-classes
 
-- [`gmeow:Emotion`](../emotion/index.md)
+- [https://blackcatinformatics\.ca/logic/Relator](https://blackcatinformatics\.ca/logic/Relator)
 
 ## Usage Advice
 
-- **Scope:** A named region/composite in the affect landscape \(⊑ gmeow:Emotion, so it inherits the mode/bearer/target/elicitor surface\)\. The composite layer stays analysable; the expressive power stays total\.
-- **Example:** ex:schadenfreude a gmeow:AffectComposite ; gmeow:emotionBearer ex:agent ; gmeow:affectiveConstituent ex:positiveCoreVector , ex:otherMisfortuneElicited \.
-- **Use when:** Use for a culturally salient named affect \(schadenfreude, saudade\) minted for developer utility and mapping ONLY when it carries its declared decomposition links\.
-- **Avoid when:** Avoid it for an unanalyzed primitive feeling \(mint no opaque emotionX — either decompose it here or add the missing axis\) and for the felt EPISODE \(that is gmeow:AffectiveExperience\)\.
-- **How to use:** Type the named compound gmeow:AffectComposite, bind its bearer, and declare its decomposition with gmeow:affectiveConstituent — a gmeow:AffectVectorObservation for the core\-affect signature plus the elicitor/target/agency/norm relations that differentiate it\.
+- **Scope:** Reached from a gmeow:JustificationSubject via gmeow:adequateUnder\. Formalises the 'adequacy — meets the standard's threshold' component of design/LOGIC\-FOUNDATION\.md \(Argumentation and epistemic standards\), by prose reference \(Principle 5\)\.
 
 ## Logic stereotypes
 
-`logic:SubKind` — see the [Logic & Reasoning](../../logic/index.md) index.
+`logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
 
 ## Box role
 
@@ -45,11 +41,12 @@ A named emotion whose meaning is given by a DECLARED composition — a core\-aff
 
 ## Constraints
 
-- An AffectComposite must declare at least one gmeow:affectiveConstituent — a named compound with no decomposition is a forbidden unanalyzed primitive \(model up from axes, or add the missing axis\)\.
+- An AdequacyAssessment must carry exactly one gmeow:AdequacyVerdict \(gmeow:meetsThreshold\)\.
+- An AdequacyAssessment must name exactly one gmeow:EpistemicStandard \(gmeow:adequacyUnderStandard\)\.
 
 ## Examples using this term
 
-- [PAD unit scale](../../slices/affect/index.md) — `examples/saudade.ttl`
+- [Ada](../../slices/epistemics/index.md) — `examples/justification-and-defeat.ttl`
 
 ## Stability
 
@@ -57,12 +54,12 @@ A named emotion whose meaning is given by a DECLARED composition — a core\-aff
 
 ## Documentation coverage
 
-- **5 of 6 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✓ Scope note · ✗ Alignment
+- **3 of 6 dimensions present.** ✓ Definition · ✓ Label · ✗ Usage advice · ✗ Example · ✓ Scope note · ✗ Alignment
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
 ## Profiles
 
-- `full` · `narrative`
+- `claims` · `full` · `memory`
 
 ## Changelog
 
@@ -71,6 +68,6 @@ A named emotion whose meaning is given by a DECLARED composition — a core\-aff
 
 ## Citation
 
-- **Permalink:** <https://blackcatinformatics.ca/gmeow/AffectComposite>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/AffectComposite@blake3:5f5ed61dcf7e41e5000b466787c4e4b459192300df61ac6bfdeb8965eae72285`
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/AdequacyAssessment>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/AdequacyAssessment@blake3:b90edc03cfe93ab203f1eec8d9e32f7f9e7d1e67883e02a5689be7acf5c264f0`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)

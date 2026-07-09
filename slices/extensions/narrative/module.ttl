@@ -838,26 +838,26 @@ DOCTRINE.
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes for the narrative relators.
 gmeow:NarrationUsage rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:narrationSegment ; owl:cardinality 1 ; owl:allValuesFrom gmeow:ContentSegment ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:narrationSubject ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:narrationMode ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:narrationSegment ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ContentSegment ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:narrationSubject ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:narrationMode ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:NarrativeTimeFrame rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:narrativeTimeAxis ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:frameRealm ; owl:cardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:narrativeTimeAxis ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:frameRealm ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:frameRealm ; owl:hasValue gmeow:frameRealmNarrative ] .
 
 gmeow:ArcSample rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:sampleSubject ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:samplePosition ; owl:cardinality 1 ; owl:allValuesFrom gmeow:NarrativePosition ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:sampleState ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:sampleSubject ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:samplePosition ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:NarrativePosition ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:sampleState ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:RoleInNarrative rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:narrativeRoleBearer ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:narrativeRoleScope ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:narrativeRoleValue ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:narrativeRoleBearer ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:narrativeRoleScope ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:narrativeRoleValue ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:Motif rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty rdfs:label ; owl:minCardinality 1 ] ,
+    [ a owl:Restriction ; owl:onProperty rdfs:label ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:motifOccursIn ; owl:allValuesFrom gmeow:ContentSegment ] .
