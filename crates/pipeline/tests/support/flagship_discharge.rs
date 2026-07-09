@@ -242,7 +242,9 @@ pub fn native_failure_classes(errors: &[String], prefix: &str) -> HashSet<String
                 .take_while(|c| c.is_ascii_alphanumeric())
                 .collect();
             if local.starts_with(|c: char| c.is_ascii_uppercase())
-                && after[local.len()..].starts_with(':')
+                && after
+                    .strip_prefix(local.as_str())
+                    .is_some_and(|rest| rest.starts_with(':'))
             {
                 out.insert(local);
             }
