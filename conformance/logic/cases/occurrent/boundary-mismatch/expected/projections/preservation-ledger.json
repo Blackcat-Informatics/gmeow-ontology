@@ -80,6 +80,17 @@
     ],
     "preservation": "SoundUnderApproximation"
   },
+  "procedural-constraint": {
+    "complexity": "closed-world SPARQL constraint (SHACL Core)",
+    "lossy_drops": [
+      "a sh:SPARQLConstraint has no ShEx form at all (logic:unsupported); every projected constraint is disclosed as a ShEx drop, carried in the canonical logic: layer",
+      "a sh:SPARQLConstraint surface validates but does not entail (ValidationOnly)",
+      "full-FOL, standpoint/world/time-indexed, and aggregate-comparison (COUNT/SUM threshold) integrity conditions exceed that fragment; there is no formula-level aggregate term, so an aggregate comparison cannot be expressed as a genuine GROUP BY sub-SELECT and is carried-and-flagged, not projected",
+      "the projectable fragment is a range-restricted, ∀-guarded integrity condition (guard(this) → φ(this)) whose per-focus condition φ is a Horn / NNF tree of binary atoms, existentials, disjunctions and (path-)universals: it lowers to a SELECT $this WHERE { guard ∧ ¬φ } via BGP + FILTER NOT EXISTS + UNION",
+      "the surface is emit-only: there is no parse-back from a sh:SPARQLConstraint into a logic:Constraint (the logic: canon is the authoring ground, Principle 4)"
+    ],
+    "preservation": "ValidationOnly"
+  },
   "shacl-af": {
     "complexity": "terminating/PTIME-data",
     "lossy_drops": [

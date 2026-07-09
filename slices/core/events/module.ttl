@@ -1561,5 +1561,5 @@ This module ABSORBS the former genealogy event hierarchy (Principle 6 — refact
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes.
 gmeow:Participation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:participationEvent ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:participationParticipant ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:participationEvent ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:participationParticipant ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .

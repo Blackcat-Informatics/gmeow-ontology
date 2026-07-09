@@ -1446,11 +1446,11 @@ gmeow:validUntil
 # =========================================================================== #
 
 gmeow:TemporalFrame rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:frameTimeScale ; owl:cardinality 1 ; owl:allValuesFrom gmeow:TimeScale ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:frameRealm ; owl:cardinality 1 ; owl:allValuesFrom gmeow:FrameRealm ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:frameKind ; owl:cardinality 1 ; owl:allValuesFrom gmeow:FrameKind ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:frameTimeScale ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:TimeScale ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:frameRealm ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:FrameRealm ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:frameKind ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:FrameKind ] .
 
 # Closed-world cardinality axiom backing the hand-authored core observation
 # method well-formedness shape (a temporal measurement records exactly one method).
 gmeow:TemporalMeasurement rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:cardinality 1 ; owl:allValuesFrom gmeow:ObservationMethod ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ObservationMethod ] .

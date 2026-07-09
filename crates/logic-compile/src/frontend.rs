@@ -265,8 +265,8 @@ fn is_constraint_structural_predicate(prop_local: &str) -> bool {
             | "trigger" | "triggerValue" | "requires"
             // P3 disjunctive requiredness.
             | "anyOf"
-            // P4 path-value type membership.
-            | "valuePath" | "valueClass"
+            // P4 path-value type / fixed-value membership.
+            | "valuePath" | "valueClass" | "valuePredicate" | "valueObject"
             // P5 cross-node co-occurrence / inequality.
             | "roleA" | "roleB" | "crossMode"
             // P7 forbidden-pattern.
@@ -2446,6 +2446,14 @@ fn sugar_target_class(store: &RdfDataset, node: &Subject) -> Result<String, Stri
         })
 }
 
+/// The OPTIONAL `logic:onClass` target of a sugar record — `None` when omitted, so a sugar that
+/// admits a predicate-presence range restriction (a guarded implication guarded by the mere
+/// presence of a trigger predicate rather than a class) can derive a `sh:targetSubjectsOf` target
+/// from its trigger atom instead of a `sh:targetClass`.
+fn sugar_optional_target_class(store: &RdfDataset, node: &Subject) -> Option<String> {
+    value(store, node, &nn(&logic_iri("onClass"))).map(|t| term_str(&t))
+}
+
 /// The `logic:severity` of a sugar record (absent ⇒ the SHACL default `Violation`).
 fn sugar_severity(store: &RdfDataset, node: &Subject) -> Result<ShaclSeverity, String> {
     match value(store, node, &nn(&logic_iri("severity"))) {
@@ -2546,11 +2554,16 @@ fn read_choice_group(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr,
     )
 }
 
-/// P2 — guarded implication: a target class + a trigger predicate (optionally pinned to a
-/// `logic:triggerValue`) + one or more required companion predicates. Expands to
-/// `∀ this . C(this) ∧ trigger(this, …) → ∃ companion`.
+/// P2 — guarded implication: a trigger predicate (optionally pinned to a `logic:triggerValue`)
+/// with one or more required companion predicates, optionally range-restricted to a target class.
+/// Expands to `∀ this . C(this) ∧ trigger(this, …) → ∃ companion` when a `logic:onClass` is
+/// authored, or to the **predicate-presence** form `∀ this . trigger(this, …) → ∃ companion`
+/// when it is omitted — the guard is then the trigger atom alone, from which
+/// [`ConstraintIr::new`] derives a `sh:targetSubjectsOf trigger` target (the "subjects of a
+/// predicate must carry a companion" pattern the grounding slices lean on, e.g. a claim
+/// carrying one field must declare the field that grounds it).
 fn read_guarded_implication(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
-    let class = sugar_target_class(store, node)?;
+    let class = sugar_optional_target_class(store, node);
     let trigger = value(store, node, &nn(&logic_iri("trigger")))
         .map(|t| term_str(&t))
         .ok_or_else(|| "logic:GuardedImplicationConstraint requires logic:trigger".to_owned())?;
@@ -2577,7 +2590,12 @@ fn read_guarded_implication(store: &RdfDataset, node: &Subject) -> Result<Constr
         }
         None => f_atom2(&trigger, t_var("this"), t_var("t"))?,
     };
-    let guard = Formula::And(vec![f_guard_class(&class)?, trigger_atom]);
+    // With a target class the guard conjoins the class-membership guard with the trigger; without
+    // one the trigger atom IS the guard (a predicate-presence range restriction → SubjectsOf).
+    let guard = match &class {
+        Some(c) => Formula::And(vec![f_guard_class(c)?, trigger_atom]),
+        None => trigger_atom,
+    };
     // The consequent: one required companion, or the conjunction of their existentials.
     let mut req: Vec<Formula> = Vec::with_capacity(companions.len());
     for (i, c) in companions.iter().enumerate() {
@@ -2621,21 +2639,65 @@ fn read_disjunctive_requiredness(
     )
 }
 
-/// P4 — path-value type membership: a target class + a path `P` + a required value class `D`.
-/// Expands to `∀ this . C(this) → ∀ v . P(this, v) → D(v)`.
+/// P4 — path-value membership: a target class + a path `P` + the membership every value on `P`
+/// must satisfy. Two variants, one required:
+///
+/// * `logic:valueClass D` (type membership) → `∀ this . C(this) → ∀ v . P(this, v) → D(v)`;
+/// * `logic:valuePredicate Q` + `logic:valueObject o` (a fixed predicate=value check, e.g. every
+///   inducing form must be `math:definiteness math:positiveDefinite`) →
+///   `∀ this . C(this) → ∀ v . P(this, v) → Q(v, o)`.
+///
+/// The fixed-value variant reuses the identical nested-`∀` lowering as the class variant (only the
+/// consequent atom differs), so the projector needs no new lowering — a value reached by a path
+/// must carry a given predicate=value, not only `rdf:type C`.
 fn read_path_value_type(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
     let class = sugar_target_class(store, node)?;
     let path = value(store, node, &nn(&logic_iri("valuePath")))
         .map(|t| term_str(&t))
         .ok_or_else(|| "logic:PathValueTypeConstraint requires logic:valuePath".to_owned())?;
-    let value_class = value(store, node, &nn(&logic_iri("valueClass")))
-        .map(|t| term_str(&t))
-        .ok_or_else(|| "logic:PathValueTypeConstraint requires logic:valueClass".to_owned())?;
+    // The membership atom over the bound value `v`: a class (`rdf:type(v, D)`) or a fixed
+    // predicate=value (`Q(v, o)`). Exactly one form must be authored.
+    let value_class = value(store, node, &nn(&logic_iri("valueClass"))).map(|t| term_str(&t));
+    let value_predicate =
+        value(store, node, &nn(&logic_iri("valuePredicate"))).map(|t| term_str(&t));
+    let membership = match (value_class, value_predicate) {
+        (Some(d), None) => f_atom2(RDF_TYPE, t_var("v"), Term::iri(&d)?)?,
+        (None, Some(q)) => {
+            let obj = match value(store, node, &nn(&logic_iri("valueObject"))) {
+                Some(Node::Iri(i)) => Term::iri(&i)?,
+                Some(Node::Lit {
+                    lexical, datatype, ..
+                }) => Term::literal(lexical, datatype)?,
+                _ => {
+                    return Err(
+                        "logic:PathValueTypeConstraint with logic:valuePredicate requires a \
+                         logic:valueObject (an IRI or a literal)"
+                            .to_owned(),
+                    );
+                }
+            };
+            f_atom2(&q, t_var("v"), obj)?
+        }
+        (Some(_), Some(_)) => {
+            return Err(
+                "logic:PathValueTypeConstraint takes EITHER logic:valueClass OR \
+                 logic:valuePredicate, not both"
+                    .to_owned(),
+            );
+        }
+        (None, None) => {
+            return Err(
+                "logic:PathValueTypeConstraint requires logic:valueClass (a class) or \
+                 logic:valuePredicate + logic:valueObject (a fixed predicate=value)"
+                    .to_owned(),
+            );
+        }
+    };
     let inner = Formula::Forall {
         vars: vec!["v".to_owned()],
         body: Box::new(Formula::Implies(
             Box::new(f_atom2(&path, t_var("this"), t_var("v"))?),
-            Box::new(f_atom2(RDF_TYPE, t_var("v"), Term::iri(&value_class)?)?),
+            Box::new(membership),
         )),
     };
     finalize_sugar(store, node, f_forall_this(f_guard_class(&class)?, inner))

@@ -274,9 +274,9 @@ _:b0
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes.
 gmeow:Desire rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:intentBearer ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:intentionGoal ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:intentBearer ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:intentionGoal ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:IntentionTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:tenureAgent ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:tenureIntention ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureIntention ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .

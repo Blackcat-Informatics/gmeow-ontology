@@ -2048,6 +2048,58 @@ mod procedural_tests {
     }
 
     #[test]
+    fn inverse_atom_places_the_focus_in_object_position() {
+        // An inverse occurrence `rel(?v, $this)` (the focus in ARGUMENT-1 / object position)
+        // lowers with `$this` as the triple object — the grounding "grounded BY a separate
+        // observation" pattern (`observationResult(?obs, $this)`) needs no property-path term,
+        // only the honest argument order.
+        let c = guarded(
+            "https://ex/cInv",
+            exists(
+                "obs",
+                atom("https://ex/observationResult", tvar("obs"), tvar("this")),
+            ),
+        );
+        assert!(
+            block(&c).contains("FILTER NOT EXISTS { ?obs <https://ex/observationResult> $this . }"),
+            "{}",
+            block(&c)
+        );
+    }
+
+    #[test]
+    fn term_distinct_with_a_literal_rhs_lowers_to_an_inequality_filter() {
+        // A forbidden existential whose body pins a bound var to differ from a fixed literal:
+        // φ = ¬∃q. (sigNeg(this,q) ∧ termDistinct(q, "0"^^integer));
+        // ¬φ = ∃q. sigNeg(this,q) ∧ FILTER(?q != 0) — the metric-signature "q = 0" invariant.
+        let xsd_int = "http://www.w3.org/2001/XMLSchema#integer";
+        let body = Formula::And(vec![
+            atom("https://ex/signatureNegative", tvar("this"), tvar("q")),
+            Formula::atom(
+                tiri(LOGIC_TERM_DISTINCT),
+                vec![
+                    tvar("q"),
+                    Term::Literal {
+                        lexical: "0".to_owned(),
+                        datatype: Some(xsd_int.to_owned()),
+                    },
+                ],
+            )
+            .unwrap(),
+        ]);
+        let c = guarded("https://ex/cLit", Formula::Not(Box::new(exists("q", body))));
+        let b = block(&c);
+        assert!(
+            b.contains("$this <https://ex/signatureNegative> ?q ."),
+            "{b}"
+        );
+        assert!(
+            b.contains(&format!("FILTER ( ?q != '0'^^<{xsd_int}> )")),
+            "{b}"
+        );
+    }
+
+    #[test]
     fn constraint_free_program_yields_a_byte_stable_header_only_doc() {
         let a = LogicProgram::new(vec![], vec![], vec![], None);
         let b = LogicProgram::new(vec![], vec![], vec![], None);
@@ -2273,6 +2325,29 @@ mod procedural_tests {
     }
 
     #[test]
+    fn predicate_presence_guarded_implication_targets_subjects_of_the_trigger() {
+        // With NO logic:onClass the trigger predicate IS the range restriction: the guard is the
+        // bare trigger atom, so the target derives as sh:targetSubjectsOf trigger (the grounding
+        // "subjects of a claim predicate must carry a grounding field" pattern).
+        let b = project_sugar(
+            "ex:pp a logic:GuardedImplicationConstraint ;\n\
+             logic:trigger ex:aboutReading ;\n\
+             logic:requires ex:vantage ;\n\
+             logic:formalizes ex:SomeShape .",
+        );
+        assert!(
+            b.contains("sh:targetSubjectsOf <https://ex/aboutReading>"),
+            "{b}"
+        );
+        assert!(b.contains("logic:formalizes <https://ex/SomeShape>"), "{b}");
+        assert!(b.contains("$this <https://ex/aboutReading> ?t ."), "{b}");
+        assert!(
+            b.contains("FILTER NOT EXISTS") && b.contains("<https://ex/vantage>"),
+            "{b}"
+        );
+    }
+
+    #[test]
     fn p3_disjunctive_requiredness_sugar_expands_and_projects() {
         let b = project_sugar(
             "ex:c3 a logic:DisjunctiveRequirednessConstraint ;\n\
@@ -2303,6 +2378,27 @@ mod procedural_tests {
         assert!(b.contains("<https://ex/part>"), "{b}");
         assert!(
             b.contains("FILTER NOT EXISTS") && b.contains("<https://ex/Part>"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p4_path_value_fixed_predicate_value_sugar_expands_and_projects() {
+        // The fixed predicate=value variant: every value on the path must carry Q = o.
+        // Violation: ∃v. inducedByForm(this,v) ∧ ¬ definiteness(v, positiveDefinite).
+        let b = project_sugar(
+            "ex:c4f a logic:PathValueTypeConstraint ;\n\
+             logic:onClass ex:Norm ;\n\
+             logic:valuePath ex:inducedByForm ;\n\
+             logic:valuePredicate ex:definiteness ;\n\
+             logic:valueObject ex:positiveDefinite ;\n\
+             logic:formalizes ex:Norm .",
+        );
+        assert!(b.contains("$this <https://ex/inducedByForm> ?v ."), "{b}");
+        assert!(
+            b.contains(
+                "FILTER NOT EXISTS { ?v <https://ex/definiteness> <https://ex/positiveDefinite> . }"
+            ),
             "{b}"
         );
     }

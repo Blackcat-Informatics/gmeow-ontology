@@ -794,9 +794,9 @@ gmeow:stage-gts-sink
 
 gmeow:PipelineStage rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:hasCapability ; owl:allValuesFrom gmeow:StageCapability ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:stageImpl ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:stageImpl ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:requiresResource ; owl:allValuesFrom gmeow:Resource ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:dataflowConsumes ; owl:allValuesFrom gmeow:PipelineStage ] .
 
 gmeow:Pipeline rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:hasStage ; owl:minCardinality 1 ; owl:allValuesFrom gmeow:PipelineStage ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:hasStage ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:PipelineStage ] .

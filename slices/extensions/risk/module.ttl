@@ -372,15 +372,15 @@ DOCTRINE.
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes.
 gmeow:Hazard rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:hazardBearer ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:manifestedAsType ; owl:minCardinality 1 ; owl:allValuesFrom gmeow:EventType ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:hazardSeverity ; owl:maxCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:hazardBearer ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:manifestedAsType ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:EventType ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:hazardSeverity ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:Cascade rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:cascadeFirstLink ; owl:cardinality 1 ; owl:allValuesFrom gmeow:CausalLink ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:cascadeSeverity ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:cascadeFirstLink ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:CausalLink ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:cascadeSeverity ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:Mitigation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:mitigationMeasure ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:mitigationCounters ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:mitigationStatus ; owl:maxCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:mitigationMeasure ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:mitigationCounters ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:mitigationStatus ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .

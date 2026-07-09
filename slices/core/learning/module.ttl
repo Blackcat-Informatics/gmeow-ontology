@@ -242,6 +242,6 @@ DOCTRINE.
 # =========================================================================== #
 
 gmeow:Teaching rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:teacher ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:learner ; owl:minCardinality 1 ; owl:allValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:subjectTaught ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:teacher ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:learner ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:subjectTaught ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .

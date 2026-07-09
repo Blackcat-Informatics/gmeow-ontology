@@ -481,10 +481,10 @@ REUSE (no parallel mechanisms — GTS transport design).
 # =========================================================================== #
 
 gmeow:OpaqueFrame rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:opacityReason ; owl:cardinality 1 ; owl:allValuesFrom gmeow:OpacityReason ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:opaqueFrameIn ; owl:cardinality 1 ; owl:allValuesFrom gmeow:GTSSegment ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:opacityReason ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:OpacityReason ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:opaqueFrameIn ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:GTSSegment ] .
 
 gmeow:GTSSegment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:gtsHeadId ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:gtsSegmentIndex ; owl:cardinality 1 ; owl:allValuesFrom xsd:nonNegativeInteger ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:gtsProfile ; owl:cardinality 1 ; owl:allValuesFrom gmeow:GTSProfile ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:gtsHeadId ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:gtsSegmentIndex ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:gtsProfile ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:GTSProfile ] .

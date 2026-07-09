@@ -358,21 +358,21 @@ gmeow:vectorRef
 # (gmeow:EmbeddingProvenanceShape, gmeow:RetrievalEventShape,
 # gmeow:ExtractedRelationshipEndsShape), authored here once as OWL restriction
 # axioms and PROJECTED to generated/shapes/validation-shapes.ttl by
-# derive_validation_shapes (Principle 17). exact-one -> owl:cardinality 1
-# (sh:minCount 1 + sh:maxCount 1). The gmeow:distanceMetric `sh:nodeKind sh:IRI`
+# derive_validation_shapes (Principle 17). exact-one -> owl:maxQualifiedCardinality 1
+# (onClass owl:Thing) -> sh:minCount 1 + sh:maxCount 1. The gmeow:distanceMetric `sh:nodeKind sh:IRI`
 # facet has no ordinary-OWL antecedent (owl:Thing lowers to sh:BlankNodeOrIRI,
 # not sh:IRI); it is a value-node-kind facet carried on the procedural residue
 # in the procedural constraint fragment, so only its cardinality migrates here.
 # =========================================================================== #
 
 gmeow:Embedding rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:embeddingOf ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:embeddingModel ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:distanceMetric ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:embeddingOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:embeddingModel ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:distanceMetric ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:RetrievalEvent rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:againstIndex ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:againstIndex ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:ExtractedRelationship rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:relationshipSource ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:relationshipTarget ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:relationshipSource ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:relationshipTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .

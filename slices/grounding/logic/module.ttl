@@ -8955,67 +8955,67 @@ logic:candidateNoOverTyping
 # =========================================================================== #
 
 logic:FormalizationCandidate rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:candidateSourceHash ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateExtractionProvenance ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateScope ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateContract ; owl:cardinality 1 ; owl:allValuesFrom logic:ReasoningContract ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateCategory ; owl:cardinality 1 ; owl:allValuesFrom logic:FormalizationCategory ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateLifecycle ; owl:cardinality 1 ; owl:allValuesFrom logic:CandidateLifecycleState ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateProjectionBehavior ; owl:cardinality 1 ; owl:allValuesFrom logic:PreservationKind ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateSemanticRisk ; owl:cardinality 1 ; owl:allValuesFrom logic:SemanticRiskClass ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateFormalizes ; owl:maxCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty logic:candidateSourceField ; owl:maxCardinality 1 ; owl:allValuesFrom logic:ProseField ] .
+    [ a owl:Restriction ; owl:onProperty logic:candidateSourceHash ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateExtractionProvenance ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateScope ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateContract ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:ReasoningContract ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateCategory ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:FormalizationCategory ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateLifecycle ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:CandidateLifecycleState ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateProjectionBehavior ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:PreservationKind ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateSemanticRisk ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:SemanticRiskClass ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateFormalizes ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateSourceField ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:ProseField ] .
 
 logic:Plan rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:planGoal ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Goal ] ,
-    [ a owl:Restriction ; owl:onProperty logic:planSuccessMode ; owl:cardinality 1 ; owl:allValuesFrom logic:PlanSuccessMode ] .
+    [ a owl:Restriction ; owl:onProperty logic:planGoal ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Goal ] ,
+    [ a owl:Restriction ; owl:onProperty logic:planSuccessMode ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:PlanSuccessMode ] .
 
 logic:GoalEvaluation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:satisfactionStatus ; owl:cardinality 1 ; owl:allValuesFrom logic:SatisfactionStatus ] ,
-    [ a owl:Restriction ; owl:onProperty logic:feasibilityStatus ; owl:cardinality 1 ; owl:allValuesFrom logic:FeasibilityStatus ] ,
-    [ a owl:Restriction ; owl:onProperty logic:lifecycleStatus ; owl:cardinality 1 ; owl:allValuesFrom logic:LifecycleStatus ] ,
-    [ a owl:Restriction ; owl:onProperty logic:goalEvaluationStatus ; owl:cardinality 1 ; owl:allValuesFrom logic:GoalEvaluationStatus ] ,
-    [ a owl:Restriction ; owl:onProperty logic:evaluatesGoal ; owl:minCardinality 1 ; owl:allValuesFrom gmeow:Goal ] ,
-    [ a owl:Restriction ; owl:onProperty logic:satisfactionDegree ; owl:maxCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty logic:objectiveValue ; owl:maxCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty logic:utility ; owl:maxCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty logic:satisfactionStatus ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:SatisfactionStatus ] ,
+    [ a owl:Restriction ; owl:onProperty logic:feasibilityStatus ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:FeasibilityStatus ] ,
+    [ a owl:Restriction ; owl:onProperty logic:lifecycleStatus ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:LifecycleStatus ] ,
+    [ a owl:Restriction ; owl:onProperty logic:goalEvaluationStatus ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:GoalEvaluationStatus ] ,
+    [ a owl:Restriction ; owl:onProperty logic:evaluatesGoal ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:Goal ] ,
+    [ a owl:Restriction ; owl:onProperty logic:satisfactionDegree ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:objectiveValue ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:utility ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 logic:ActionSchema rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:precondition ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty logic:capability ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty logic:effect ; owl:maxCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty logic:invariant ; owl:maxCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty logic:observation ; owl:maxCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty logic:actionResource ; owl:maxCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty logic:precondition ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:capability ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:effect ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:invariant ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:observation ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:actionResource ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 logic:McpActionSchema rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:capability ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty logic:precondition ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty logic:compensation ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty logic:capability ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:precondition ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:compensation ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 logic:NotificationWaitSchema rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:awaitsSignal ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty logic:awaitsSignal ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 logic:FreshnessGuard rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:guardsPrecondition ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty logic:freshnessHorizon ; owl:maxCardinality 1 ; owl:allValuesFrom xsd:duration ] ,
-    [ a owl:Restriction ; owl:onProperty logic:freshnessWindowStart ; owl:maxCardinality 1 ; owl:allValuesFrom xsd:dateTime ] ,
-    [ a owl:Restriction ; owl:onProperty logic:freshnessWindowEnd ; owl:maxCardinality 1 ; owl:allValuesFrom xsd:dateTime ] .
+    [ a owl:Restriction ; owl:onProperty logic:guardsPrecondition ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:freshnessHorizon ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:duration ] ,
+    [ a owl:Restriction ; owl:onProperty logic:freshnessWindowStart ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:dateTime ] ,
+    [ a owl:Restriction ; owl:onProperty logic:freshnessWindowEnd ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:dateTime ] .
 
 logic:NonEntailmentObligation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:obligationForbiddenPredicate ; owl:cardinality 1 ; owl:allValuesFrom xsd:anyURI ] ,
-    [ a owl:Restriction ; owl:onProperty logic:obligationDischargeCondition ; owl:minCardinality 1 ; owl:allValuesFrom logic:DischargeCondition ] .
+    [ a owl:Restriction ; owl:onProperty logic:obligationForbiddenPredicate ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:anyURI ] ,
+    [ a owl:Restriction ; owl:onProperty logic:obligationDischargeCondition ; owl:someValuesFrom logic:DischargeCondition ] .
 
 logic:Conjecture rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:conjectureFormula ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty logic:conjectureStandpoint ; owl:cardinality 1 ; owl:allValuesFrom owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty logic:conjectureLifecycleState ; owl:cardinality 1 ; owl:allValuesFrom logic:ConjectureLifecycleState ] ,
-    [ a owl:Restriction ; owl:onProperty logic:verdictProvenance ; owl:cardinality 1 ; owl:allValuesFrom logic:VerdictProvenanceKind ] .
+    [ a owl:Restriction ; owl:onProperty logic:conjectureFormula ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:conjectureStandpoint ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:conjectureLifecycleState ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:ConjectureLifecycleState ] ,
+    [ a owl:Restriction ; owl:onProperty logic:verdictProvenance ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:VerdictProvenanceKind ] .
 
 logic:ContradictionWitness rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:witnessIndividual ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty logic:witnessWorld ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty logic:witnessPremise ; owl:minCardinality 1 ; owl:allValuesFrom xsd:string ] .
+    [ a owl:Restriction ; owl:onProperty logic:witnessIndividual ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:witnessWorld ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:witnessPremise ; owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:string ] .
 
 # =========================================================================== #
 # Authored procedural-constraint records (grounding slices). Each compact
@@ -9040,3 +9040,17 @@ logic:RationalValueNonZeroDenominatorConstraint
     logic:forbiddenValue 0 ;
     logic:formalizes math:RationalValue ;
     logic:message "A math:RationalValue must declare a non-zero math:denominator; a zero denominator is not a rational value (math:ZeroDenominator)." .
+
+logic:valuePredicate
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "value predicate"@x-gmeow-english ;
+    skos:definition "The fixed check predicate of a logic:PathValueTypeConstraint's fixed-value variant: every value the focus carries on logic:valuePath must itself carry this predicate with object logic:valueObject (Q(v, o)), rather than being an instance of a logic:valueClass. Paired with logic:valueObject; mutually exclusive with logic:valueClass."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:valueObject
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "value object"@x-gmeow-english ;
+    skos:definition "The fixed object of a logic:PathValueTypeConstraint's fixed-value variant: the required object (an IRI or a literal) of logic:valuePredicate on every value reached by logic:valuePath."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .

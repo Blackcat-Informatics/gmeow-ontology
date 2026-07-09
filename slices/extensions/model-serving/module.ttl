@@ -268,8 +268,8 @@ gmeow:eventTypeAgentEpisode
 # state (gmeow:ModelDeploymentShape, gmeow:ModelCardServingSplitShape,
 # gmeow:AgentSessionShape), authored here once as OWL restriction axioms and
 # PROJECTED to generated/shapes/validation-shapes.ttl by
-# derive_validation_shapes (Principle 17). A restriction carrying owl:maxCardinality
-# lowers to sh:maxCount; owl:allValuesFrom C to sh:class C. The deployment /
+# derive_validation_shapes (Principle 17). A restriction carrying owl:maxQualifiedCardinality
+# (onClass owl:Thing) lowers to sh:maxCount; owl:allValuesFrom C to sh:class C. The deployment /
 # awareness-subject disjointness rides the existing owl:disjointWith gmeow:Agent
 # (a procedural sh:not twin has no ordinary-OWL antecedent — the disjointWith IS
 # the antecedent and already projects). No numeric-range / sh:sparql conditions
@@ -277,14 +277,14 @@ gmeow:eventTypeAgentEpisode
 # =========================================================================== #
 
 gmeow:ModelDeployment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:deploymentArtifact ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:ModelArtifact ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:deploymentService ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:SoftwareAgent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:deploymentHost ; owl:maxCardinality 1 ; owl:allValuesFrom gmeow:Entity ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:deploymentArtifact ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ModelArtifact ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:deploymentService ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:SoftwareAgent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:deploymentHost ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Entity ] .
 
 gmeow:ModelCard rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:describesModelArtifact ; owl:allValuesFrom gmeow:ModelArtifact ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:describesModelService ; owl:allValuesFrom gmeow:ModelDeployment ] .
 
 gmeow:AgentSession rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:sessionSubjectStage ; owl:maxCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:sessionConfiguration ; owl:maxCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:sessionSubjectStage ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:sessionConfiguration ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .

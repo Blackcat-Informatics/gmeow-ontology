@@ -177,10 +177,10 @@ DOCTRINE.
 # =========================================================================== #
 
 gmeow:ConceptCategorization rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Entity ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Concept ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Entity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Concept ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:typicality ; owl:allValuesFrom xsd:decimal ] .
 
 gmeow:ConceptTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:conceptHoldsFor ; owl:cardinality 1 ; owl:allValuesFrom gmeow:Concept ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:cardinality 1 ; owl:allValuesFrom gmeow:TimeInterval ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:conceptHoldsFor ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Concept ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:TimeInterval ] .

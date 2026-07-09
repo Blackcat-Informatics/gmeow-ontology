@@ -530,8 +530,8 @@ gmeow:writingSystemAsNotation
 # =========================================================================== #
 
 gmeow:NotationProjectionProfile rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:notationSystemOf ; owl:cardinality 1 ; owl:allValuesFrom gmeow:NotationSystem ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:projectionFunction ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:notationSystemOf ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:NotationSystem ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:projectionFunction ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:NotationSystem rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:smuflCodepoint ; owl:allValuesFrom xsd:string ] .

@@ -28,7 +28,7 @@ gmeow:Blob
         [
             a owl:Restriction ;
             owl:onProperty gmeow:contentDigest ;
-            owl:minCardinality 1 ;
+            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
         ] ;
     skos:definition "A content-addressed blob of raw file content — the leaf of a Merkle source tree, independent of filename or path. Aligned to git blob objects and Software Heritage Content by reference. A Blob is the bytes only; the name is carried by the TreeEntry that points to it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -111,7 +111,7 @@ gmeow:Commit
         [
             a owl:Restriction ;
             owl:onProperty gmeow:contentDigest ;
-            owl:minCardinality 1 ;
+            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
         ] ;
     skos:definition "A version-control commit — a content-addressed provenance event that records a change to a repository's history. The history facet of the five-facet model; distinct from the project, product, codebase, and repository. Carries author and committer attribution, timestamps, parentage, and a content digest. Aligned to Software Heritage Revision and git commit objects by reference."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -189,17 +189,17 @@ gmeow:Merge
         [
             a owl:Restriction ;
             owl:onProperty gmeow:mergeBase ;
-            owl:minCardinality 1 ;
+            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
         ] ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:mergeSource ;
-            owl:minCardinality 1 ;
+            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
         ] ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:mergeTarget ;
-            owl:cardinality 1 ;
+            owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
         ] ;
     skos:definition "The event of merging one branch of development into another — an activity with a merge-base commit, a source branch or ref, a target branch, and a resulting merge commit. The event type is gmeow:eventTypeMerge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -286,7 +286,7 @@ gmeow:Repository
         [
             a owl:Restriction ;
             owl:onProperty gmeow:repositoryType ;
-            owl:minCardinality 1 ;
+            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
         ] ;
     skos:definition "A version-control repository — the location/hosting facet of a software project. Holds source code history, branches, tags, and refs. Distinct from the project (endeavour), the product (work), the codebase (content), and the history (events). Aligned to Software Heritage Origin and ForgeFed Repository by reference."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .

@@ -130,5 +130,5 @@ gmeow:supersededBy
 # Closed-world cardinality/value axioms backing the hand-authored SHACL
 # well-formedness shapes.
 gmeow:EntityExistence rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:existenceEntity ; owl:cardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:cardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:existenceEntity ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .

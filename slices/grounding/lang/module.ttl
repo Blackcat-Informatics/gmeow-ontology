@@ -3817,81 +3817,101 @@ gmeow:gmnCodebookCurrent gmeow:references
 # =========================================================================== #
 
 lang:Form rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:inSignSystem ; owl:cardinality 1 ; owl:allValuesFrom lang:SignSystem ] .
+    [ a owl:Restriction ; owl:onProperty lang:inSignSystem ; owl:maxQualifiedCardinality 1 ; owl:onClass lang:SignSystem ] .
 
 lang:SurfaceForm rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:analysisLevel ; owl:cardinality 1 ; owl:allValuesFrom lang:AnalysisLevel ] ,
-    [ a owl:Restriction ; owl:onProperty lang:inScript ; owl:minCardinality 1 ; owl:allValuesFrom lang:Script ] ,
-    [ a owl:Restriction ; owl:onProperty lang:unicodeNormalization ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty lang:collationLocale ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty lang:analysisLevel ; owl:maxQualifiedCardinality 1 ; owl:onClass lang:AnalysisLevel ] ,
+    [ a owl:Restriction ; owl:onProperty lang:inScript ; owl:minQualifiedCardinality 1 ; owl:onClass lang:Script ] ,
+    [ a owl:Restriction ; owl:onProperty lang:unicodeNormalization ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty lang:collationLocale ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 lang:FormSlot rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:slotIndex ; owl:cardinality 1 ; owl:allValuesFrom xsd:integer ] .
+    [ a owl:Restriction ; owl:onProperty lang:slotIndex ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] .
 
 lang:MorphFeature rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:featureKey ; owl:cardinality 1 ; owl:allValuesFrom lang:FeatureKey ] ,
-    [ a owl:Restriction ; owl:onProperty lang:featureValue ; owl:minCardinality 1 ; owl:allValuesFrom lang:FeatureValue ] .
+    [ a owl:Restriction ; owl:onProperty lang:featureKey ; owl:maxQualifiedCardinality 1 ; owl:onClass lang:FeatureKey ] ,
+    [ a owl:Restriction ; owl:onProperty lang:featureValue ; owl:minQualifiedCardinality 1 ; owl:onClass lang:FeatureValue ] .
 
 lang:SurfaceAnchor rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:anchorSource ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty lang:anchorStart ; owl:minCardinality 1 ; owl:allValuesFrom xsd:integer ] ,
-    [ a owl:Restriction ; owl:onProperty lang:anchorEnd ; owl:minCardinality 1 ; owl:allValuesFrom xsd:integer ] ,
-    [ a owl:Restriction ; owl:onProperty lang:offsetSpace ; owl:minCardinality 1 ; owl:allValuesFrom lang:OffsetSpace ] .
+    [ a owl:Restriction ; owl:onProperty lang:anchorSource ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty lang:anchorStart ; owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ,
+    [ a owl:Restriction ; owl:onProperty lang:anchorEnd ; owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ,
+    [ a owl:Restriction ; owl:onProperty lang:offsetSpace ; owl:minQualifiedCardinality 1 ; owl:onClass lang:OffsetSpace ] .
 
 lang:Grapheme rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:inScript ; owl:cardinality 1 ; owl:allValuesFrom lang:Script ] .
+    [ a owl:Restriction ; owl:onProperty lang:inScript ; owl:maxQualifiedCardinality 1 ; owl:onClass lang:Script ] .
 
 lang:Denotation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:denotedForm ; owl:minCardinality 1 ; owl:allValuesFrom lang:Form ] ,
-    [ a owl:Restriction ; owl:onProperty lang:denotationKind ; owl:cardinality 1 ; owl:allValuesFrom lang:DenotationKind ] ,
-    [ a owl:Restriction ; owl:onProperty lang:denotationTarget ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty lang:denotationContext ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty lang:denotedForm ; owl:minQualifiedCardinality 1 ; owl:onClass lang:Form ] ,
+    [ a owl:Restriction ; owl:onProperty lang:denotationKind ; owl:maxQualifiedCardinality 1 ; owl:onClass lang:DenotationKind ] ,
+    [ a owl:Restriction ; owl:onProperty lang:denotationTarget ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty lang:denotationContext ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 lang:Paraphrase rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:paraphraseSamenessKind ; owl:cardinality 1 ; owl:allValuesFrom lang:ParaphraseSamenessKind ] .
+    [ a owl:Restriction ; owl:onProperty lang:paraphraseSamenessKind ; owl:maxQualifiedCardinality 1 ; owl:onClass lang:ParaphraseSamenessKind ] .
 
 lang:Rendering rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:renderedContent ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty lang:renderingConvention ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty lang:renderingPreservation ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty lang:renderingKind ; owl:cardinality 1 ; owl:allValuesFrom lang:RenderingKind ] .
+    [ a owl:Restriction ; owl:onProperty lang:renderedContent ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty lang:renderingConvention ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty lang:renderingPreservation ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty lang:renderingKind ; owl:maxQualifiedCardinality 1 ; owl:onClass lang:RenderingKind ] .
 
 lang:TranslationUnit rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:translationSource ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty lang:translationTarget ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty lang:translationCorrespondence ; owl:cardinality 1 ; owl:allValuesFrom logic:Correspondence ] ,
-    [ a owl:Restriction ; owl:onProperty lang:translationMethod ; owl:minCardinality 1 ; owl:allValuesFrom lang:TranslationMethod ] .
+    [ a owl:Restriction ; owl:onProperty lang:translationSource ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty lang:translationTarget ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty lang:translationCorrespondence ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:Correspondence ] ,
+    [ a owl:Restriction ; owl:onProperty lang:translationMethod ; owl:minQualifiedCardinality 1 ; owl:onClass lang:TranslationMethod ] .
 
 lang:TransliterationMap rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:transliterationSourceOrthography ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty lang:transliterationTargetOrthography ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty lang:transliterationScheme ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty lang:transliterationSourceOrthography ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty lang:transliterationTargetOrthography ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty lang:transliterationScheme ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 lang:ProjectionEmission rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty logic:preservationKind ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty lang:projectionTargetName ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty logic:preservationKind ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty lang:projectionTargetName ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 lang:GmnImportedPlane rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:cites ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty dcterms:hasVersion ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:cites ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty dcterms:hasVersion ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 gmeow:GmnEnvelope rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:gmnSchemaVersion ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:gmnDictionaryVersion ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:gmnGlyphTableVersion ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:gmnSecurityRing ; owl:minCardinality 1 ; owl:allValuesFrom gmeow:GmnSecurityRing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:accordingTo ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:wasGeneratedBy ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:contentDigest ; owl:minCardinality 1 ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:gmnEnvelopeCorrespondence ; owl:minCardinality 1 ; owl:allValuesFrom logic:Correspondence ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:gmnSchemaVersion ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:gmnDictionaryVersion ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:gmnGlyphTableVersion ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:gmnSecurityRing ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:GmnSecurityRing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:accordingTo ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:wasGeneratedBy ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:contentDigest ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:gmnEnvelopeCorrespondence ; owl:minQualifiedCardinality 1 ; owl:onClass logic:Correspondence ] .
 
 gmeow:GmnCompaction rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:gmnCompacts ; owl:minCardinality 1 ; owl:allValuesFrom owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minCardinality 1 ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:gmnCompacts ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 lang:FlagshipScenario rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty lang:demonstratedByExample ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty lang:demonstratedByCompetency ; owl:cardinality 1 ; owl:allValuesFrom owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty lang:demonstratedByProducer ; owl:maxCardinality 1 ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty lang:guardedByCounterExample ; owl:cardinality 1 ; owl:allValuesFrom xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty lang:enforcesFailureClass ; owl:cardinality 1 ; owl:allValuesFrom owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty lang:demonstratedByExample ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty lang:demonstratedByCompetency ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty lang:demonstratedByProducer ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty lang:guardedByCounterExample ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty lang:enforcesFailureClass ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+# =========================================================================== #
+# Procedural constraints — projected to sh:SPARQLConstraint (the validation    #
+# twin of the derivation surface). Each is a compact logic: constraint-sugar   #
+# record carrying logic:formalizes, expanded by the frontend to a canonical    #
+# logic:Constraint and lowered to a sh:SPARQLConstraint.                       #
+# =========================================================================== #
+
+# lang:ReadingClaimGroundedShape — a gmeow:Observation that is a claim about a
+# lang:Reading (through lang:aboutReading) names its gmeow:vantage: the claim
+# that a reading is correct is a vantage-held observation, never a groundless
+# assertion. A predicate-presence guarded implication (no target class — the
+# trigger predicate lang:aboutReading is the range restriction, so the shape
+# targets subjects of lang:aboutReading).
+lang:ReadingClaimVantageConstraint
+    a logic:GuardedImplicationConstraint ;
+    logic:trigger lang:aboutReading ;
+    logic:requires gmeow:vantage ;
+    logic:formalizes lang:ReadingClaimGroundedShape ;
+    logic:message "A reading-correctness claim (a gmeow:Observation about a lang:Reading) must name its gmeow:vantage; an ungrounded reading claim is ill-formed (lang:UngroundedReadingClaim)." .

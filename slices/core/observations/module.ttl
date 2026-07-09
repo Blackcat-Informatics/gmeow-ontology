@@ -738,7 +738,7 @@ Also home to the universal Quantity / MeasuredValue construct (ScalarQuantity al
 # Closed-world cardinality axioms backing the hand-authored core observation
 # method well-formedness shape (a core observation records exactly one method).
 gmeow:Measurement rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:cardinality 1 ; owl:allValuesFrom gmeow:ObservationMethod ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ObservationMethod ] .
 
 gmeow:SensoryObservation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:cardinality 1 ; owl:allValuesFrom gmeow:ObservationMethod ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ObservationMethod ] .
