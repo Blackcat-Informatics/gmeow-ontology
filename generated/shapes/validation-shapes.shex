@@ -919,6 +919,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/teacher> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/TemporalFrame> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/TemporalFrame-shape> {
+  <https://blackcatinformatics.ca/gmeow/frameKind> IRI ;
+  <https://blackcatinformatics.ca/gmeow/frameRealm> IRI ;
+  <https://blackcatinformatics.ca/gmeow/frameTimeScale> IRI ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/TemporalMeasurement> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/TemporalMeasurement-shape> {
   <https://blackcatinformatics.ca/gmeow/vantage> IRI ;

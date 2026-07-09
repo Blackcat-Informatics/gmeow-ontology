@@ -38808,47 +38808,99 @@
           ]
         },
         "gmeow:frameKind": {
-          "$comment": "gmeow:FrameKind has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
+          "anyOf": [
+            {
+              "$comment": "gmeow:FrameKind has no NodeShape; node reference only",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "gmeow:FrameKind has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "type": "array"
             }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          ]
         },
         "gmeow:frameRealm": {
-          "$comment": "gmeow:FrameRealm has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
+          "anyOf": [
+            {
+              "$comment": "gmeow:FrameRealm has no NodeShape; node reference only",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "gmeow:FrameRealm has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "type": "array"
             }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          ]
         },
         "gmeow:frameTimeScale": {
-          "$comment": "gmeow:TimeScale has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
+          "anyOf": [
+            {
+              "$comment": "gmeow:TimeScale has no NodeShape; node reference only",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "gmeow:TimeScale has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "type": "array"
             }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          ]
         }
       },
-      "required": [
-        "gmeow:frameKind",
-        "gmeow:frameRealm",
-        "gmeow:frameTimeScale"
-      ],
       "type": "object"
     },
     "TemporalMeasurement": {

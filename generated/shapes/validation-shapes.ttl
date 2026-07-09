@@ -923,6 +923,12 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/learner> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/teacher> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] .
 
+<https://blackcatinformatics.ca/gmeow/TemporalFrame-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/TemporalFrame> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/frameKind> ; sh:class <https://blackcatinformatics.ca/gmeow/FrameKind> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/frameRealm> ; sh:class <https://blackcatinformatics.ca/gmeow/FrameRealm> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/frameTimeScale> ; sh:class <https://blackcatinformatics.ca/gmeow/TimeScale> ] .
+
 <https://blackcatinformatics.ca/gmeow/TemporalMeasurement-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/TemporalMeasurement> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/vantage> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ;
