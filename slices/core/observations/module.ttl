@@ -439,7 +439,8 @@ gmeow:observationOf
     gmeow:useWhen "Use to attach a dated observation to the enduring quality it reads, so a vital sign or monitored property accumulates a queryable value-history instead of disconnected results."@x-gmeow-english .
 
 gmeow:observationResult
-    a owl:ObjectProperty ;
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observation result"@x-gmeow-english ;
@@ -550,7 +551,8 @@ gmeow:observedAt
     gmeow:useWhen "Use to date one observation in a persistent quality's value-history, so 'how did this value change over time?' resolves to an ordered series of dated results."@x-gmeow-english .
 
 gmeow:observedFeature
-    a owl:ObjectProperty ;
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
     rdfs:domain gmeow:Observation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "observed feature"@x-gmeow-english ;
