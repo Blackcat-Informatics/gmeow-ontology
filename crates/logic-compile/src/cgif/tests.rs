@@ -539,7 +539,7 @@ fn bare_slash_hard_fails_instead_of_looping() {
     // the cursor and loop indefinitely. This regression guards that the gate actually catches it.
     let err = super::parse_forms("(\"a\" / \"b\")").expect_err("a bare '/' must be rejected");
     assert!(
-        err.contains("unexpected '/'"),
+        err.message().contains("unexpected '/'"),
         "expected an 'unexpected /' error, got: {err}"
     );
     // Also at end-of-input and mid-symbol — every bare-`/` position must fail, not hang.

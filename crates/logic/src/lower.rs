@@ -36,7 +36,7 @@ use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, LogicAxiom, LogicProgram, LogicRu
 /// 1:1).  `?`-prefixed terms become variables, a literal object becomes a plain
 /// `xsd:string` `ConstLit` (matching `project_nemo`'s `"value"` encoding and the
 /// reparse), every other term an IRI constant.
-fn lower_atom(atom: &LogicAxiom, negated: bool) -> Result<EvalAtom, String> {
+fn lower_atom(atom: &LogicAxiom, negated: bool) -> gmeow_errors::Result<EvalAtom> {
     let predicate = atom.predicate.clone();
     let subject = lower_term(&atom.subject, false, "subject")?;
     let object = lower_term(&atom.obj, atom.obj_is_literal, "object")?;
@@ -48,16 +48,18 @@ fn lower_atom(atom: &LogicAxiom, negated: bool) -> Result<EvalAtom, String> {
     })
 }
 
-fn lower_term(value: &str, is_literal: bool, slot: &str) -> Result<EvalTerm, String> {
+fn lower_term(value: &str, is_literal: bool, slot: &str) -> gmeow_errors::Result<EvalTerm> {
     if value.starts_with('?') {
         return Ok(EvalTerm::Var(value.to_owned()));
     }
     if is_literal {
         if slot != "object" {
-            return Err(format!(
-                "compile::lower: literal in {slot} position {value:?} — only an object may be a \
-                 literal"
-            ));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Lower {
+                detail: format!(
+                    "compile::lower: literal in {slot} position {value:?} — only an object may be \
+                     a literal"
+                ),
+            }));
         }
         return Ok(EvalTerm::ConstLit(TermValue::simple_literal(value)));
     }
@@ -68,7 +70,7 @@ fn lower_term(value: &str, is_literal: bool, slot: &str) -> Result<EvalTerm, Str
 /// ordering the reparse yields (positive atoms first, then negated), the same
 /// `rule_iri` (`scope.provenance` or the synthesized anonymous IRI), and — unlike
 /// the reparse — the rule's `distinct_pairs` preserved.
-pub(crate) fn lower_rule(rule: &LogicRule) -> Result<EvalRule, String> {
+pub(crate) fn lower_rule(rule: &LogicRule) -> gmeow_errors::Result<EvalRule> {
     let head = lower_atom(&rule.head, false)?;
     let mut body: Vec<EvalAtom> = Vec::new();
     for atom in rule.body.iter().filter(|a| !a.negated) {
@@ -94,7 +96,7 @@ pub(crate) fn lower_rule(rule: &LogicRule) -> Result<EvalRule, String> {
 
 /// Lower every rule in a canonical [`LogicProgram`] to the evaluable IR — the
 /// canonical-AST-authoritative alternative to `rule_ir::parse_eval_rules`.
-pub(crate) fn lower_eval_rules(program: &LogicProgram) -> Result<Vec<EvalRule>, String> {
+pub(crate) fn lower_eval_rules(program: &LogicProgram) -> gmeow_errors::Result<Vec<EvalRule>> {
     program.rules.iter().map(lower_rule).collect()
 }
 

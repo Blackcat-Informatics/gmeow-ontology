@@ -20,16 +20,53 @@
 //!   GMEOW_TEST_BUDGET_SECS  override the 25.0 s budget (e.g. CI variance headroom).
 //!
 //! Rust-first (`.goals`): no Python, no XML crate — nextest's JUnit is small and
-//! regular, so a std-only attribute scan is sufficient and dependency-free.
+//! regular, so a std-only attribute scan is sufficient.
 
 use std::env::VarError;
+use std::io::IsTerminal;
 use std::process::ExitCode;
+
+use gmeow_cli_core::{ConsoleMode, Reporter, report_diag};
+use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint};
+
+mod error;
 
 /// The always-on per-test budget, in seconds.
 const DEFAULT_BUDGET_SECS: f64 = 25.0;
 
 /// The default JUnit location for the `ci` nextest profile.
 const DEFAULT_JUNIT: &str = "target/nextest/ci/junit.xml";
+
+/// The emitting tool name every diagnostic here is stamped with.
+const TOOL: &str = "test-budget";
+
+/// A boxed reporter for this bin. stdout carries the OK product line, so
+/// diagnostics default to the HUMAN stderr surface; an agent opts into the
+/// machine surface with `GMEOW_CONSOLE=jsonl`.
+fn reporter() -> Box<dyn Reporter> {
+    let mode = ConsoleMode::resolve_stderr_default(
+        None,
+        std::env::var("GMEOW_CONSOLE").ok().as_deref(),
+        std::io::stderr().is_terminal(),
+    );
+    gmeow_cli_core::reporter_for(mode)
+}
+
+/// Surface an Error-grade diagnostic (the gate's hard failure) on the console
+/// sink — the substrate replacement for a bare error stderr write. The `code` is
+/// interned once (idempotently); the message carries the specifics.
+fn emit_error(reporter: &dyn Reporter, code: &str, message: impl Into<String>) {
+    let diag = Diag::new(
+        gmeow_errors::code::register_code(code),
+        Grade::new(
+            Severity::Error,
+            FindingCategory::ModelingDisciplineViolation,
+            Standpoint::Binding,
+        ),
+        message,
+    );
+    reporter.report(&report_diag(diag, TOOL));
+}
 
 /// Resolve the test-budget from the environment variable result.
 ///
@@ -39,29 +76,35 @@ const DEFAULT_JUNIT: &str = "target/nextest/ci/junit.xml";
 /// - `Ok(s)` where `s` is unparsable, <= 0, or non-finite → hard error.
 ///
 /// Returns `Ok(budget)` on success, `Err(message)` on hard failure.
-fn resolve_budget(var: Result<String, VarError>) -> Result<f64, String> {
+fn resolve_budget(var: Result<String, VarError>) -> gmeow_errors::Result<f64> {
     match var {
         Err(VarError::NotPresent) => Ok(DEFAULT_BUDGET_SECS),
-        Err(VarError::NotUnicode(raw)) => Err(format!(
-            "GMEOW_TEST_BUDGET_SECS is set but contains non-UTF-8 bytes: {raw:?}"
-        )),
+        Err(VarError::NotUnicode(raw)) => Err(Diag::of_kind(error::InvalidBudgetVar {
+            reason: format!("GMEOW_TEST_BUDGET_SECS is set but contains non-UTF-8 bytes: {raw:?}"),
+        })),
         Ok(s) => {
             let v: f64 = s.parse().map_err(|_| {
-                format!(
-                    "GMEOW_TEST_BUDGET_SECS={s:?} is not a valid number — \
-                     expected a positive finite f64 (e.g. \"30.0\")"
-                )
+                Diag::of_kind(error::InvalidBudgetVar {
+                    reason: format!(
+                        "GMEOW_TEST_BUDGET_SECS={s:?} is not a valid number — \
+                         expected a positive finite f64 (e.g. \"30.0\")"
+                    ),
+                })
             })?;
             if !v.is_finite() {
-                return Err(format!(
-                    "GMEOW_TEST_BUDGET_SECS={s:?} is non-finite (NaN or infinity) — \
-                     expected a positive finite f64"
-                ));
+                return Err(Diag::of_kind(error::InvalidBudgetVar {
+                    reason: format!(
+                        "GMEOW_TEST_BUDGET_SECS={s:?} is non-finite (NaN or infinity) — \
+                         expected a positive finite f64"
+                    ),
+                }));
             }
             if v <= 0.0 {
-                return Err(format!(
-                    "GMEOW_TEST_BUDGET_SECS={s:?} is <= 0 — budget must be a positive number"
-                ));
+                return Err(Diag::of_kind(error::InvalidBudgetVar {
+                    reason: format!(
+                        "GMEOW_TEST_BUDGET_SECS={s:?} is <= 0 — budget must be a positive number"
+                    ),
+                }));
             }
             Ok(v)
         }
@@ -69,13 +112,16 @@ fn resolve_budget(var: Result<String, VarError>) -> Result<f64, String> {
 }
 
 fn main() -> ExitCode {
+    // Seed the diagnostic-code registry before any intern (idempotent).
+    error::register_all();
+    let reporter = reporter();
     let mut args = std::env::args().skip(1);
     let junit_path = args.next().unwrap_or_else(|| DEFAULT_JUNIT.to_owned());
 
     let budget = match resolve_budget(std::env::var("GMEOW_TEST_BUDGET_SECS")) {
         Ok(b) => b,
-        Err(msg) => {
-            eprintln!("test-budget: {msg}");
+        Err(diag) => {
+            reporter.report(&report_diag(diag, TOOL));
             return ExitCode::FAILURE;
         }
     };
@@ -84,9 +130,13 @@ fn main() -> ExitCode {
         Ok(s) => s,
         Err(e) => {
             // Hard fail (no-optionality): the gate cannot run without the report.
-            eprintln!(
-                "test-budget: cannot read JUnit report at {junit_path}: {e}\n\
-                 run `cargo nextest run --profile ci` (or maint-heavy) first to produce it."
+            emit_error(
+                reporter.as_ref(),
+                "gmeow-test-budget.read",
+                format!(
+                    "cannot read JUnit report at {junit_path}: {e}\n\
+                     run `cargo nextest run --profile ci` (or maint-heavy) first to produce it."
+                ),
             );
             return ExitCode::FAILURE;
         }
@@ -94,14 +144,18 @@ fn main() -> ExitCode {
 
     let cases = match parse_testcases(&xml) {
         Ok(c) => c,
-        Err(msg) => {
-            eprintln!("test-budget: {msg}");
+        Err(diag) => {
+            reporter.report(&report_diag(diag, TOOL));
             return ExitCode::FAILURE;
         }
     };
     if cases.is_empty() {
-        eprintln!(
-            "test-budget: no <testcase> elements found in {junit_path} — refusing to pass a vacuous gate."
+        emit_error(
+            reporter.as_ref(),
+            "gmeow-test-budget.vacuous",
+            format!(
+                "no <testcase> elements found in {junit_path} — refusing to pass a vacuous gate."
+            ),
         );
         return ExitCode::FAILURE;
     }
@@ -123,18 +177,19 @@ fn main() -> ExitCode {
         return ExitCode::SUCCESS;
     }
 
-    eprintln!(
-        "test-budget: FAIL — {} test(s) exceed the {budget:.0}s always-on budget [{junit_path}]:",
+    let mut message = format!(
+        "FAIL — {} test(s) exceed the {budget:.0}s always-on budget [{junit_path}]:",
         over.len()
     );
     for c in &over {
-        eprintln!("  {:7.1}s  {}::{}", c.time, c.classname, c.name);
+        message.push_str(&format!("\n  {:7.1}s  {}::{}", c.time, c.classname, c.name));
     }
-    eprintln!(
-        "\nEither make the test(s) faster, or — if irreducibly heavy — add them to the\n\
+    message.push_str(
+        "\n\nEither make the test(s) faster, or — if irreducibly heavy — add them to the\n\
          `default-filter` off-gate allowlist in .config/nextest.toml (and AGENTS.md) so\n\
-         they run on the `maint-heavy` profile instead of the per-commit gate."
+         they run on the `maint-heavy` profile instead of the per-commit gate.",
     );
+    emit_error(reporter.as_ref(), "gmeow-test-budget.over-budget", message);
     ExitCode::FAILURE
 }
 
@@ -152,7 +207,7 @@ struct TestCase {
 ///
 /// Returns `Err(message)` if any testcase element is missing a parseable `time`
 /// attribute (hard-fail: a silent drop would weaken the gate).
-fn parse_testcases(xml: &str) -> Result<Vec<TestCase>, String> {
+fn parse_testcases(xml: &str) -> gmeow_errors::Result<Vec<TestCase>> {
     let mut out = Vec::new();
     let mut rest = xml;
     while let Some(start) = rest.find("<testcase") {
@@ -181,10 +236,7 @@ fn parse_testcases(xml: &str) -> Result<Vec<TestCase>, String> {
                     });
                 }
                 None => {
-                    return Err(format!(
-                        "testcase {classname}::{name} has no parseable `time` attribute — \
-                         JUnit report is malformed or a new testcase shape is missing timing data"
-                    ));
+                    return Err(Diag::of_kind(error::MalformedTestcase { classname, name }));
                 }
             }
         }
@@ -290,10 +342,11 @@ mod tests {
 </testsuites>"#;
         let result = parse_testcases(xml);
         assert!(result.is_err(), "expected Err for missing time, got Ok");
-        let msg = result.unwrap_err();
+        let diag = result.unwrap_err();
         assert!(
-            msg.contains("no_time_test"),
-            "error message should name the offending testcase, got: {msg}"
+            diag.message().contains("no_time_test"),
+            "error message should name the offending testcase, got: {}",
+            diag.message()
         );
     }
 

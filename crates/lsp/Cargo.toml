@@ -25,6 +25,11 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 url = "2"
 gmeow-errors = { path = "../errors" }
+# The bin surfaces handled failures (sarif / server) and progress notes through
+# the shared console Reporter. stdout is the LSP JSON-RPC channel, so diagnostics
+# default to the stderr surface and never corrupt the protocol. Acyclic: cli-core
+# depends only on gmeow-errors.
+gmeow-cli-core = { path = "../cli-core" }
 gmeow-logic = { path = "../logic" }
 # The pure compiler surface (parse_logic_str) the LSP analyzer drives, split out of
 # gmeow-logic in #732; the runtime-side diagnostics_report still comes from gmeow-logic.
@@ -33,6 +38,12 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # feature pulls the native text codecs; `gmeow-rdf-core` carries the RdfDiagnostic
 # location type the analyzer reports positions from.
 purrdf = "0.4"
+# The substrate SHACL validator: the `.ttl` analyzer routes a parsed data graph
+# through `data_validate::shacl_report_via_ledger` (the repo-free Tier-1 consumer
+# path) so publishDiagnostics READS THE SUBSTRATE — a shape violation surfaces with
+# the SHACL result-path / offending-value secondary labels the ledger projection
+# carries. Default (non-`python`) features only: the LSP needs the PyO3-free core.
+gmeow-validate = { path = "../validate" }
 
 [dev-dependencies]
 insta = { version = "1.48", features = ["json"] }

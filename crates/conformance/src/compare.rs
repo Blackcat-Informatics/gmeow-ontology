@@ -29,8 +29,10 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
+use gmeow_errors::Diag;
 use purrdf::{RdfTerm, SerializeGraph};
 
+use crate::error::{Io, JsonRead, RdfCompare};
 use crate::run::CaseOutputs;
 
 /// IANA media type for Turtle (the projection comparison surface).
@@ -45,9 +47,12 @@ const NQUADS: &str = "application/n-quads";
 fn parse_native_dataset(
     text: &str,
     media_type: &str,
-) -> Result<std::sync::Arc<purrdf::RdfDataset>, String> {
-    purrdf::parse_dataset(text.as_bytes(), media_type, None)
-        .map_err(|e| format!("RDF parse error: {e}"))
+) -> gmeow_errors::Result<std::sync::Arc<purrdf::RdfDataset>> {
+    purrdf::parse_dataset(text.as_bytes(), media_type, None).map_err(|e| {
+        Diag::of_kind(RdfCompare {
+            detail: format!("RDF parse error: {e}"),
+        })
+    })
 }
 
 /// Canonicalize a serialized RDF document to a sorted list of canonical N-Quads
@@ -57,7 +62,7 @@ fn parse_native_dataset(
 /// returns the canonicalized quads as a sorted `Vec` of their N-Quads strings. Two
 /// RDF documents are graph-isomorphic iff their canonical quad lists are equal — the
 /// rdflib-free replacement for `rdflib.compare.isomorphic`.
-fn canonical_quads(text: &str, media_type: &str) -> Result<Vec<String>, String> {
+fn canonical_quads(text: &str, media_type: &str) -> gmeow_errors::Result<Vec<String>> {
     // Native text ingress: parse via the gmeow-gts codecs, not oxigraph::io.
     let dataset = parse_native_dataset(text, media_type)?;
     // Native flat RDFC-1.0: the oxigraph-free canonical N-Quads document. This
@@ -65,8 +70,11 @@ fn canonical_quads(text: &str, media_type: &str) -> Result<Vec<String>, String> 
     // `canonical_flat_nquads_byte_matches_oxigraph_path` gate in gmeow-rdf), so the
     // graph-isomorphism verdict is unchanged. Splitting into lines and sorting yields
     // the same canonical quad set the comparator compared before.
-    let canonical = purrdf::canonical_flat_nquads(&dataset)
-        .map_err(|e| format!("RDF canonicalization error: {e}"))?;
+    let canonical = purrdf::canonical_flat_nquads(&dataset).map_err(|e| {
+        Diag::of_kind(RdfCompare {
+            detail: format!("RDF canonicalization error: {e}"),
+        })
+    })?;
     let mut quads: Vec<String> = canonical
         .lines()
         .filter(|l| !l.trim().is_empty())
@@ -238,7 +246,7 @@ pub fn parse_explanation_reifier(text: &str) -> String {
 /// triples as an N-Triples string. Default-graph (and blank-node-graph) triples
 /// are dropped — the materialized-corpus comparison asserts only over named
 /// worlds.
-pub fn nquads_by_named_graph(nquads_text: &str) -> Result<BTreeMap<String, String>, String> {
+pub fn nquads_by_named_graph(nquads_text: &str) -> gmeow_errors::Result<BTreeMap<String, String>> {
     if nquads_text.trim().is_empty() {
         return Ok(BTreeMap::new());
     }
@@ -262,9 +270,16 @@ pub fn nquads_by_named_graph(nquads_text: &str) -> Result<BTreeMap<String, Strin
         // the graph's content suffices.
         let projected = dataset.project_named_graph(&iri);
         let bytes = purrdf::serialize_dataset(&projected, NTRIPLES, SerializeGraph::DefaultGraph)
-            .map_err(|e| format!("named graph <{iri}> N-Triples serialize error: {e}"))?;
-        let doc = String::from_utf8(bytes)
-            .map_err(|e| format!("named graph <{iri}> N-Triples not UTF-8: {e}"))?;
+            .map_err(|e| {
+            Diag::of_kind(RdfCompare {
+                detail: format!("named graph <{iri}> N-Triples serialize error: {e}"),
+            })
+        })?;
+        let doc = String::from_utf8(bytes).map_err(|e| {
+            Diag::of_kind(RdfCompare {
+                detail: format!("named graph <{iri}> N-Triples not UTF-8: {e}"),
+            })
+        })?;
         by_graph.insert(iri, doc);
     }
     Ok(by_graph)
@@ -806,14 +821,22 @@ pub(crate) fn budget_json(out: &CaseOutputs, profile_val: &serde_json::Value) ->
 }
 
 /// Read a UTF-8 text file, mapping I/O errors to a short diff string.
-fn read_text(path: &Path) -> Result<String, String> {
-    std::fs::read_to_string(path).map_err(|e| format!("cannot read {}: {e}", path.display()))
+fn read_text(path: &Path) -> gmeow_errors::Result<String> {
+    std::fs::read_to_string(path).map_err(|e| {
+        Diag::of_kind(Io {
+            detail: format!("cannot read {}: {e}", path.display()),
+        })
+    })
 }
 
 /// Read and parse a JSON file.
-fn read_json(path: &Path) -> Result<serde_json::Value, String> {
+fn read_json(path: &Path) -> gmeow_errors::Result<serde_json::Value> {
     let text = read_text(path)?;
-    serde_json::from_str(&text).map_err(|e| format!("{e}"))
+    serde_json::from_str(&text).map_err(|e| {
+        Diag::of_kind(JsonRead {
+            detail: format!("{e}"),
+        })
+    })
 }
 
 /// The files directly under `dir` with extension `ext`, sorted by path.

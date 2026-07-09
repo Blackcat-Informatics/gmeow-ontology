@@ -70,6 +70,12 @@ use crate::result::{
     ResultContext, ResultPayload, ResultProvenance,
 };
 
+/// Wrap a reasoning-result-projection condition message as a typed diagnostic on
+/// the shared substrate, preserving the authored text verbatim.
+fn result_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Result { detail })
+}
+
 /// The `graph/reasoning` named-graph IRI — the snapshot folds this projection here.
 pub const GRAPH_REASONING: &str = "https://blackcatinformatics.ca/gmeow/graph/reasoning";
 /// The content-addressed result-node IRI base (`+ sha256(body)`).
@@ -681,14 +687,16 @@ fn budget_limit_from_wire(wire: &str) -> Option<BudgetLimit> {
 /// # Errors
 /// Returns `Err` if the body is missing the result subject, an axis IRI is
 /// unrecognized, or a required scalar provenance field is absent (fail-closed).
-pub fn parse_reasoning_graph(nt_body: &str) -> Result<ReasoningResult, String> {
+pub fn parse_reasoning_graph(nt_body: &str) -> gmeow_errors::Result<ReasoningResult> {
     let triples = parse_nt(nt_body)?;
     // The single subject typed logic:ReasoningResult.
     let subject = triples
         .iter()
         .find(|t| t.predicate == RDF_TYPE && t.object_iri() == Some(logic("ReasoningResult")))
         .map(|t| t.subject.clone())
-        .ok_or_else(|| "graph/reasoning: no logic:ReasoningResult subject".to_owned())?;
+        .ok_or_else(|| {
+            result_err("graph/reasoning: no logic:ReasoningResult subject".to_owned())
+        })?;
 
     let one_iri = |local: &str| -> Option<String> {
         triples
@@ -704,22 +712,22 @@ pub fn parse_reasoning_graph(nt_body: &str) -> Result<ReasoningResult, String> {
     };
 
     let input = InputStatus::from_local(local_of(&req(one_iri("resultInput"), "resultInput")?)?)
-        .ok_or_else(|| "graph/reasoning: unrecognized resultInput".to_owned())?;
+        .ok_or_else(|| result_err("graph/reasoning: unrecognized resultInput".to_owned()))?;
     let evaluation = EvaluationStatus::from_local(local_of(&req(
         one_iri("resultEvaluation"),
         "resultEvaluation",
     )?)?)
-    .ok_or_else(|| "graph/reasoning: unrecognized resultEvaluation".to_owned())?;
+    .ok_or_else(|| result_err("graph/reasoning: unrecognized resultEvaluation".to_owned()))?;
     let completeness = CompletenessStatus::from_local(local_of(&req(
         one_iri("resultCompleteness"),
         "resultCompleteness",
     )?)?)
-    .ok_or_else(|| "graph/reasoning: unrecognized resultCompleteness".to_owned())?;
+    .ok_or_else(|| result_err("graph/reasoning: unrecognized resultCompleteness".to_owned()))?;
     let information = InformationState::from_local(local_of(&req(
         one_iri("resultInformation"),
         "resultInformation",
     )?)?)
-    .ok_or_else(|| "graph/reasoning: unrecognized resultInformation".to_owned())?;
+    .ok_or_else(|| result_err("graph/reasoning: unrecognized resultInformation".to_owned()))?;
 
     // preservation: the polarity set + unsupported constructs.
     let mut preservation = PreservationClaim::default();
@@ -765,7 +773,11 @@ pub fn parse_reasoning_graph(nt_body: &str) -> Result<ReasoningResult, String> {
     prov.consumed_budget = crate::result::BudgetUsage {
         consumed: req(one_str("resultBudgetConsumed"), "resultBudgetConsumed")?
             .parse::<u64>()
-            .map_err(|e| format!("graph/reasoning: resultBudgetConsumed not a u64: {e}"))?,
+            .map_err(|e| {
+                result_err(format!(
+                    "graph/reasoning: resultBudgetConsumed not a u64: {e}"
+                ))
+            })?,
         allowance: one_str("resultBudgetAllowance").and_then(|s| s.parse().ok()),
         limit: one_str("resultBudgetLimit").and_then(|s| budget_limit_from_wire(&s)),
     };
@@ -914,14 +926,17 @@ fn preservation_from_iri(iri: &str) -> Option<PreservationKind> {
 }
 
 /// The local name of a `logic:`-prefixed IRI.
-fn local_of(iri: &str) -> Result<&str, String> {
-    iri.strip_prefix(LOGIC_NAMESPACE)
-        .ok_or_else(|| format!("graph/reasoning: axis IRI not in logic namespace: {iri}"))
+fn local_of(iri: &str) -> gmeow_errors::Result<&str> {
+    iri.strip_prefix(LOGIC_NAMESPACE).ok_or_else(|| {
+        result_err(format!(
+            "graph/reasoning: axis IRI not in logic namespace: {iri}"
+        ))
+    })
 }
 
 /// Require a present value (fail-closed).
-fn req<T>(v: Option<T>, what: &str) -> Result<T, String> {
-    v.ok_or_else(|| format!("graph/reasoning: missing required field {what}"))
+fn req<T>(v: Option<T>, what: &str) -> gmeow_errors::Result<T> {
+    v.ok_or_else(|| result_err(format!("graph/reasoning: missing required field {what}")))
 }
 
 // ── A minimal N-Triples reader (IRI / blank / typed-literal objects) ─────────────
@@ -962,31 +977,41 @@ impl ParsedTriple {
 
 /// Parse the projection's own N-Triples body (the closed subset this module emits:
 /// `<iri>`/`_:b` subjects, `<iri>` predicates, `<iri>`/`_:b`/`"lex"^^<dt>` objects).
-fn parse_nt(body: &str) -> Result<Vec<ParsedTriple>, String> {
+fn parse_nt(body: &str) -> gmeow_errors::Result<Vec<ParsedTriple>> {
     let mut out = Vec::new();
     for (lineno, raw) in body.lines().enumerate() {
         let line = raw.trim();
         if line.is_empty() {
             continue;
         }
-        let line = line
-            .strip_suffix(" .")
-            .ok_or_else(|| format!("graph/reasoning: line {} missing ' .'", lineno + 1))?;
-        let (subject, rest) = take_term(line)
-            .ok_or_else(|| format!("graph/reasoning: line {} bad subject", lineno + 1))?;
-        let (predicate, rest) = take_term(rest.trim_start())
-            .ok_or_else(|| format!("graph/reasoning: line {} bad predicate", lineno + 1))?;
-        let (object, _rest) = take_term(rest.trim_start())
-            .ok_or_else(|| format!("graph/reasoning: line {} bad object", lineno + 1))?;
-        let subject = node_name(&subject)
-            .ok_or_else(|| format!("graph/reasoning: line {} non-node subject", lineno + 1))?;
+        let line = line.strip_suffix(" .").ok_or_else(|| {
+            result_err(format!("graph/reasoning: line {} missing ' .'", lineno + 1))
+        })?;
+        let (subject, rest) = take_term(line).ok_or_else(|| {
+            result_err(format!("graph/reasoning: line {} bad subject", lineno + 1))
+        })?;
+        let (predicate, rest) = take_term(rest.trim_start()).ok_or_else(|| {
+            result_err(format!(
+                "graph/reasoning: line {} bad predicate",
+                lineno + 1
+            ))
+        })?;
+        let (object, _rest) = take_term(rest.trim_start()).ok_or_else(|| {
+            result_err(format!("graph/reasoning: line {} bad object", lineno + 1))
+        })?;
+        let subject = node_name(&subject).ok_or_else(|| {
+            result_err(format!(
+                "graph/reasoning: line {} non-node subject",
+                lineno + 1
+            ))
+        })?;
         let predicate = match predicate {
             TermLex::Iri(i) => i,
             _ => {
-                return Err(format!(
+                return Err(result_err(format!(
                     "graph/reasoning: line {} non-IRI predicate",
                     lineno + 1
-                ));
+                )));
             }
         };
         let object = match object {
@@ -1505,13 +1530,17 @@ pub struct ObligationCandidateRecord {
 /// Returns `Err` if the body is missing the `logic:Conjecture` subject, a required scalar
 /// (formula / standpoint / KB-world hash) is absent, a lifecycle / discharge IRI is
 /// unrecognized, or the embedded reasoning-result graph does not parse (fail-closed).
-pub fn parse_conjecture_verdict(nt_body: &str) -> Result<ConjectureVerdictRecord, String> {
+pub fn parse_conjecture_verdict(nt_body: &str) -> gmeow_errors::Result<ConjectureVerdictRecord> {
     let triples = parse_nt(nt_body)?;
     let subject = triples
         .iter()
         .find(|t| t.predicate == RDF_TYPE && t.object_iri() == Some(logic("Conjecture")))
         .map(|t| t.subject.clone())
-        .ok_or_else(|| "graph/conjecture: no logic:Conjecture subject".to_owned())?;
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Result {
+                detail: "graph/conjecture: no logic:Conjecture subject".to_owned(),
+            })
+        })?;
 
     let one_iri = |local: &str| -> Option<String> {
         triples
@@ -1533,12 +1562,20 @@ pub fn parse_conjecture_verdict(nt_body: &str) -> Result<ConjectureVerdictRecord
         one_iri("conjectureLifecycleState"),
         "conjectureLifecycleState",
     )?)?)
-    .ok_or_else(|| "graph/conjecture: unrecognized conjectureLifecycleState".to_owned())?;
+    .ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::Result {
+            detail: "graph/conjecture: unrecognized conjectureLifecycleState".to_owned(),
+        })
+    })?;
     let discharge = ConjectureDischarge::from_local(local_of(&req(
         one_iri("conjectureDischargeVerdict"),
         "conjectureDischargeVerdict",
     )?)?)
-    .ok_or_else(|| "graph/conjecture: unrecognized conjectureDischargeVerdict".to_owned())?;
+    .ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::Result {
+            detail: "graph/conjecture: unrecognized conjectureDischargeVerdict".to_owned(),
+        })
+    })?;
 
     // The embedded reasoning-result graph re-derives via the existing reader (it keys off
     // the logic:ReasoningResult subject, so the conjecture node's triples do not interfere).

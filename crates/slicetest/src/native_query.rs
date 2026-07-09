@@ -24,10 +24,13 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use gmeow_errors::{Diag, Result};
 use purrdf::ir::RdfDatasetBuilder;
 use purrdf::parse_dataset;
 use purrdf::sparql::NativeSparqlEngine;
 use purrdf::{RdfDataset, SparqlEngine, SparqlRequest, SparqlResult, TermValue};
+
+use crate::error::{DatasetRead, SparqlEval, UnexpectedResultForm};
 
 /// One SELECT result: the projected variable names and the rows of optional terms,
 /// the dataset-independent egress shape the native engine materializes.
@@ -50,15 +53,22 @@ static PARSE_CACHE: std::sync::LazyLock<
 /// Results are memoized by path (see [`PARSE_CACHE`]).
 ///
 /// # Errors
-/// Returns `Err(String)` if the file cannot be read or parsed.
-pub fn dataset_from_file(path: &std::path::Path) -> Result<Arc<RdfDataset>, String> {
+/// Hard-fails if the file cannot be read or parsed.
+pub fn dataset_from_file(path: &std::path::Path) -> Result<Arc<RdfDataset>> {
     let key = path.to_path_buf();
     if let Some(ds) = PARSE_CACHE.lock().expect("parse cache mutex").get(&key) {
         return Ok(Arc::clone(ds));
     }
-    let bytes = std::fs::read(path).map_err(|e| format!("read {}: {e}", path.display()))?;
-    let ds = parse_dataset(&bytes, "text/turtle", None)
-        .map_err(|e| format!("parse {}: {e}", path.display()))?;
+    let bytes = std::fs::read(path).map_err(|e| {
+        Diag::of_kind(DatasetRead {
+            detail: format!("read {}: {e}", path.display()),
+        })
+    })?;
+    let ds = parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+        Diag::of_kind(DatasetRead {
+            detail: format!("parse {}: {e}", path.display()),
+        })
+    })?;
     PARSE_CACHE
         .lock()
         .expect("parse cache mutex")
@@ -70,12 +80,12 @@ pub fn dataset_from_file(path: &std::path::Path) -> Result<Arc<RdfDataset>, Stri
 /// them — the IR-native twin of `gmeow_validate::store::build_store`.
 ///
 /// # Errors
-/// Returns `Err(String)` if any file fails to read or parse.
-pub fn dataset_from_files(paths: &[PathBuf]) -> Result<Arc<RdfDataset>, String> {
+/// Hard-fails if any file fails to read or parse.
+pub fn dataset_from_files(paths: &[PathBuf]) -> Result<Arc<RdfDataset>> {
     let parsed: Vec<Arc<RdfDataset>> = paths
         .iter()
         .map(|p| dataset_from_file(p))
-        .collect::<Result<_, _>>()?;
+        .collect::<Result<_>>()?;
     Ok(union(&parsed))
 }
 
@@ -119,16 +129,20 @@ pub fn merge_preserving_blanks(datasets: &[Arc<RdfDataset>]) -> Arc<RdfDataset> 
 /// Parse inline Turtle into a frozen dataset (the native codec).
 ///
 /// # Errors
-/// Returns `Err(String)` if the Turtle fails to parse.
-pub fn dataset_from_turtle(ttl: &str) -> Result<Arc<RdfDataset>, String> {
-    parse_dataset(ttl.as_bytes(), "text/turtle", None).map_err(|e| format!("parse turtle: {e}"))
+/// Hard-fails if the Turtle fails to parse.
+pub fn dataset_from_turtle(ttl: &str) -> Result<Arc<RdfDataset>> {
+    parse_dataset(ttl.as_bytes(), "text/turtle", None).map_err(|e| {
+        Diag::of_kind(DatasetRead {
+            detail: format!("parse turtle: {e}"),
+        })
+    })
 }
 
 /// Run a SPARQL query over `dataset`, returning the native result.
 ///
 /// # Errors
-/// Returns `Err(String)` on a parse or evaluation error (the diagnostic message).
-pub fn query(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<SparqlResult, String> {
+/// Hard-fails on a parse or evaluation error (carrying the diagnostic message).
+pub fn query(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<SparqlResult> {
     let engine = NativeSparqlEngine::new();
     engine
         .query(
@@ -139,20 +153,26 @@ pub fn query(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<SparqlResult, St
                 substitutions: &[],
             },
         )
-        .map_err(|e| e.to_string())
+        .map_err(|e| {
+            Diag::of_kind(SparqlEval {
+                detail: e.to_string(),
+            })
+        })
 }
 
 /// Run a SELECT query, hard-failing if it is not a SELECT.
 ///
 /// # Errors
-/// Returns `Err(String)` on a parse/eval error or if the form is not SELECT.
-pub fn select(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<Solutions, String> {
+/// Hard-fails on a parse/eval error or if the form is not SELECT.
+pub fn select(dataset: &Arc<RdfDataset>, sparql: &str) -> Result<Solutions> {
     match query(dataset, sparql)? {
         SparqlResult::Solutions {
             variables, rows, ..
         } => Ok(Solutions { variables, rows }),
         SparqlResult::Boolean(_) | SparqlResult::Graph(_) => {
-            Err("query must be a SELECT".to_owned())
+            Err(Diag::of_kind(UnexpectedResultForm {
+                detail: "query must be a SELECT".to_owned(),
+            }))
         }
     }
 }

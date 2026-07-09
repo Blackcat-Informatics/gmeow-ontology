@@ -559,16 +559,16 @@ fn cross_world_rigidity_clean_single_world() {
 fn unknown_policy_is_err() {
     assert!(AntiRigidityPolicy::from_str("definitely-not-a-policy").is_err());
     assert_eq!(
-        AntiRigidityPolicy::from_str("witness-obligation"),
-        Ok(AntiRigidityPolicy::WitnessObligation)
+        AntiRigidityPolicy::from_str("witness-obligation").unwrap(),
+        AntiRigidityPolicy::WitnessObligation
     );
     assert_eq!(
-        AntiRigidityPolicy::from_str("schema-only"),
-        Ok(AntiRigidityPolicy::SchemaOnly)
+        AntiRigidityPolicy::from_str("schema-only").unwrap(),
+        AntiRigidityPolicy::SchemaOnly
     );
     assert_eq!(
-        AntiRigidityPolicy::from_str("witness-required"),
-        Ok(AntiRigidityPolicy::WitnessRequired)
+        AntiRigidityPolicy::from_str("witness-required").unwrap(),
+        AntiRigidityPolicy::WitnessRequired
     );
 }
 
@@ -1915,7 +1915,7 @@ fn relatum_distinctness_malformed_role_count_hard_fails() {
     let err = evaluate(&store_from(&nq), AntiRigidityPolicy::WitnessObligation)
         .expect_err("a one-role distinctness assertion must hard-fail, not be skipped");
     assert!(
-        err.contains("exactly two") && err.contains(&rec),
+        err.message().contains("exactly two") && err.message().contains(&rec),
         "error must name the malformed record and the two-role requirement, got: {err}"
     );
 }

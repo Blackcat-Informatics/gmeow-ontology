@@ -152,21 +152,21 @@ fn frame_shapes(dataset: &Dataset) -> Result<Vec<ValidationShapeIr>, gmeow_error
             Some(ConstraintProvenance::OwlRestriction),
             vec![ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri)],
         )
-        .map_err(invalid)?
+        .map_err(|e| invalid(e.to_string()))?
         .with_severity(map_severity(severity)?)
         .with_message(format!(
             "A {carrier} must carry {count} reference frame (gmeow:{prop}) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
         ))
-        .map_err(invalid)?;
+        .map_err(|e| invalid(e.to_string()))?;
         let shape = ValidationShapeIr::new(
             format!("{NS}{carrier}FrameRequirementShape"),
             ShapeTarget::Class(format!("{NS}{carrier}")),
             vec![property],
             None,
         )
-        .map_err(invalid)?
+        .map_err(|e| invalid(e.to_string()))?
         .with_label(format!("{carrier} frame-relativity shape (generated)"))
-        .map_err(invalid)?;
+        .map_err(|e| invalid(e.to_string()))?;
         shapes.push(shape);
     }
     Ok(shapes)

@@ -12,6 +12,8 @@
 //! document is parsed by a real XML parser (`roxmltree`, never a hand-rolled scanner) so
 //! well-formedness is enforced, but the IR is never reconstructed from the sentences.
 
+use gmeow_errors::Diag;
+
 use crate::frontend::{Diagnostic, LogicParseError, Severity, parse_logic_dataset};
 use crate::ir::LogicProgram;
 
@@ -90,7 +92,7 @@ pub fn parse_xcl_str(
             diagnostics.push(Diagnostic {
                 severity: Severity::Warning,
                 code: "XCL_MALFORMED_SENTENCE".to_owned(),
-                message: msg,
+                message: msg.message().to_owned(),
                 subject: None,
             });
         }
@@ -129,15 +131,17 @@ const KNOWN_SENTENCE_TAGS: [&str; 8] = [
 /// Validate that a top-level sentence-channel element is a recognizable XCL2 sentence shape.
 /// `Ok(())` = well-formed; `Err(msg)` = an `XCL_MALFORMED_SENTENCE` diagnostic. The sentences are
 /// a view only — the meta carrier is the round-trip authority.
-fn validate_sentence(node: &roxmltree::Node<'_, '_>) -> Result<(), String> {
+fn validate_sentence(node: &roxmltree::Node<'_, '_>) -> gmeow_errors::Result<()> {
     let tag = node.tag_name().name();
     // `exists` is a valid top-level sentence too; accept it alongside the writer's set.
     if KNOWN_SENTENCE_TAGS.contains(&tag) || tag == "exists" {
         Ok(())
     } else {
-        Err(format!(
-            "unexpected XCL sentence element <{tag}> (expected an atom / rule / connective / \
-             quantifier)"
-        ))
+        Err(Diag::of_kind(crate::error::Xcl {
+            detail: format!(
+                "unexpected XCL sentence element <{tag}> (expected an atom / rule / connective / \
+                 quantifier)"
+            ),
+        }))
     }
 }

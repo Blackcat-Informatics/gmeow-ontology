@@ -26,12 +26,14 @@ use std::sync::Arc;
 
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
+use gmeow_errors::{Diag, Result};
 use gmeow_validate::language_tags::{
     LangSelector, LitDesc, filter_literals, load_tag_map, marked, resolve_lang_input,
     select_literal,
 };
 
 use crate::card::{Card, render_card};
+use crate::error::GtsRead;
 
 /// The GMEOW namespace prefix for term IRIs.
 const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -94,11 +96,17 @@ impl DescribeGraph {
     /// Load a GTS bundle's bytes into a describe-ready graph. Folds every segment
     /// and preserves each base quad's graph component (so default-graph reads are
     /// exact). Errors carry the reader diagnostic text.
-    pub fn from_gts_bytes(bytes: &[u8]) -> Result<Self, String> {
-        let graph = purrdf::gts::read_all_segments(bytes)
-            .map_err(|e| format!("cannot read GTS bundle: {e}"))?;
-        let ds = purrdf::gts::dataset_from_gts_graph(&graph)
-            .map_err(|e| format!("cannot fold GTS bundle: {e}"))?;
+    pub fn from_gts_bytes(bytes: &[u8]) -> Result<Self> {
+        let graph = purrdf::gts::read_all_segments(bytes).map_err(|e| {
+            Diag::of_kind(GtsRead {
+                detail: format!("cannot read GTS bundle: {e}"),
+            })
+        })?;
+        let ds = purrdf::gts::dataset_from_gts_graph(&graph).map_err(|e| {
+            Diag::of_kind(GtsRead {
+                detail: format!("cannot fold GTS bundle: {e}"),
+            })
+        })?;
         Ok(Self { ds })
     }
 
@@ -468,7 +476,7 @@ fn category_for(types: &[String]) -> String {
 pub fn describe(query: &str, gts_bytes: &[u8], lang: Option<&str>) -> (String, i32) {
     let graph = match DescribeGraph::from_gts_bytes(gts_bytes) {
         Ok(graph) => graph,
-        Err(e) => return (e, 1),
+        Err(e) => return (e.to_string(), 1),
     };
 
     let (term, candidates) = resolve_term(&graph, query);

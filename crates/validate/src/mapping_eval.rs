@@ -397,7 +397,7 @@ pub fn check_syntax_iri(iri: &str, in_object_position: bool) -> Vec<Misuse> {
     Vec::new()
 }
 
-pub fn wikidata_mapping_syntax(mappings_dir: &Path) -> Result<SyntaxReport, String> {
+pub fn wikidata_mapping_syntax(mappings_dir: &Path) -> gmeow_errors::Result<SyntaxReport> {
     let rows = load_mapping_rows(mappings_dir)?;
     let mut report = check_syntax(&collect_wikidata_ids_from_rows(&rows));
     for row in rows {
@@ -408,7 +408,7 @@ pub fn wikidata_mapping_syntax(mappings_dir: &Path) -> Result<SyntaxReport, Stri
     Ok(report)
 }
 
-pub fn wikidata_diagnostics(mappings_dir: &Path) -> Result<Report, String> {
+pub fn wikidata_diagnostics(mappings_dir: &Path) -> gmeow_errors::Result<Report> {
     let syntax = wikidata_mapping_syntax(mappings_dir)?;
     let mut report = Report::new("wikidata");
     for identifier in syntax.invalid {
@@ -437,7 +437,7 @@ pub fn wikidata_coverage(
     root: &Path,
     mappings_dir: &Path,
     threshold: f64,
-) -> Result<WikidataCoverageReport, String> {
+) -> gmeow_errors::Result<WikidataCoverageReport> {
     let rows = load_mapping_rows(mappings_dir)?;
     let wd_rows: Vec<_> = rows
         .into_iter()
@@ -496,7 +496,7 @@ pub fn wikidata_coverage(
     Ok(report)
 }
 
-pub fn dc_coverage(mappings_dir: &Path, threshold: f64) -> Result<DcCoverageReport, String> {
+pub fn dc_coverage(mappings_dir: &Path, threshold: f64) -> gmeow_errors::Result<DcCoverageReport> {
     let rows = load_mapping_rows(mappings_dir)?;
     let expected_dcterms = expected_set(DCTERMS_NS, EXPECTED_DCTERMS);
     let expected_dc = expected_set(DC_NS, EXPECTED_DC);
@@ -750,11 +750,11 @@ pub fn check_existence(
     timeout: Duration,
     chunk_size: usize,
     delay: Duration,
-) -> Result<BTreeMap<String, ExistenceStatus>, String> {
+) -> gmeow_errors::Result<BTreeMap<String, ExistenceStatus>> {
     if !(1..=WIKIDATA_MAX_IDS_PER_REQUEST).contains(&chunk_size) {
-        return Err(format!(
-            "chunk_size must be between 1 and {WIKIDATA_MAX_IDS_PER_REQUEST}"
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mapping {
+            detail: format!("chunk_size must be between 1 and {WIKIDATA_MAX_IDS_PER_REQUEST}"),
+        }));
     }
     let mut statuses = BTreeMap::new();
     let mut queryable = Vec::new();
@@ -793,7 +793,7 @@ fn fetch_entities(
     chunk: &[String],
     project_root: &Path,
     timeout: Duration,
-) -> Result<Value, String> {
+) -> gmeow_errors::Result<Value> {
     let key = cache_key(chunk);
     if let Some(cached) = load_cached(project_root, &key)? {
         return Ok(cached);
@@ -808,20 +808,29 @@ fn fetch_entities(
         .timeout_global(Some(timeout))
         .build()
         .call()
-        .map_err(|e| format!("Wikidata request failed: {e}"))?;
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mapping {
+                detail: format!("Wikidata request failed: {e}"),
+            })
+        })?;
     let mut reader = response.into_body().into_reader();
     let mut body = String::new();
-    reader
-        .read_to_string(&mut body)
-        .map_err(|e| format!("Wikidata response read failed: {e}"))?;
-    let payload: Value =
-        serde_json::from_str(&body).map_err(|e| format!("Wikidata JSON parse failed: {e}"))?;
+    reader.read_to_string(&mut body).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Mapping {
+            detail: format!("Wikidata response read failed: {e}"),
+        })
+    })?;
+    let payload: Value = serde_json::from_str(&body).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("Wikidata JSON parse failed: {e}"),
+        })
+    })?;
     wikidata_entities(&payload)?;
     save_cached(project_root, &key, &payload)?;
     Ok(payload)
 }
 
-fn wikidata_entities(payload: &Value) -> Result<&serde_json::Map<String, Value>, String> {
+fn wikidata_entities(payload: &Value) -> gmeow_errors::Result<&serde_json::Map<String, Value>> {
     if let Some(error) = payload.get("error") {
         let code = error
             .get("code")
@@ -831,15 +840,23 @@ fn wikidata_entities(payload: &Value) -> Result<&serde_json::Map<String, Value>,
             .get("info")
             .and_then(Value::as_str)
             .unwrap_or("no details");
-        return Err(format!("Wikidata API error {code}: {info}"));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mapping {
+            detail: format!("Wikidata API error {code}: {info}"),
+        }));
     }
     if payload.get("success").and_then(Value::as_i64) != Some(1) {
-        return Err("Wikidata response missing success=1".to_owned());
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mapping {
+            detail: "Wikidata response missing success=1".to_owned(),
+        }));
     }
     payload
         .get("entities")
         .and_then(Value::as_object)
-        .ok_or_else(|| "Wikidata response missing entities object".to_owned())
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Mapping {
+                detail: "Wikidata response missing entities object".to_owned(),
+            })
+        })
 }
 
 fn cache_key(identifiers: &[String]) -> String {
@@ -858,16 +875,21 @@ fn cache_path(project_root: &Path, key: &str) -> PathBuf {
         .join(format!("{key}.json"))
 }
 
-fn load_cached(project_root: &Path, key: &str) -> Result<Option<Value>, String> {
+fn load_cached(project_root: &Path, key: &str) -> gmeow_errors::Result<Option<Value>> {
     let path = cache_path(project_root, key);
     if !path.exists() {
         return Ok(None);
     }
-    let metadata = fs::metadata(&path)
-        .map_err(|e| format!("failed to read cache metadata {}: {e}", path.display()))?;
-    let modified = metadata
-        .modified()
-        .map_err(|e| format!("failed to read cache mtime {}: {e}", path.display()))?;
+    let metadata = fs::metadata(&path).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("failed to read cache metadata {}: {e}", path.display()),
+        })
+    })?;
+    let modified = metadata.modified().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("failed to read cache mtime {}: {e}", path.display()),
+        })
+    })?;
     if SystemTime::now()
         .duration_since(modified)
         .unwrap_or(DEFAULT_CACHE_TTL + Duration::from_secs(1))
@@ -875,37 +897,59 @@ fn load_cached(project_root: &Path, key: &str) -> Result<Option<Value>, String> 
     {
         return Ok(None);
     }
-    let text = fs::read_to_string(&path)
-        .map_err(|e| format!("failed to read cache {}: {e}", path.display()))?;
+    let text = fs::read_to_string(&path).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("failed to read cache {}: {e}", path.display()),
+        })
+    })?;
     match serde_json::from_str(&text) {
         Ok(value) => Ok(Some(value)),
         Err(_) => Ok(None),
     }
 }
 
-fn save_cached(project_root: &Path, key: &str, payload: &Value) -> Result<(), String> {
+fn save_cached(project_root: &Path, key: &str, payload: &Value) -> gmeow_errors::Result<()> {
     let path = cache_path(project_root, key);
     if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent)
-            .map_err(|e| format!("failed to create cache dir {}: {e}", parent.display()))?;
+        fs::create_dir_all(parent).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Io {
+                detail: format!("failed to create cache dir {}: {e}", parent.display()),
+            })
+        })?;
     }
-    let text = serde_json::to_string(payload).map_err(|e| format!("cache JSON failed: {e}"))?;
-    let mut file = fs::File::create(&path)
-        .map_err(|e| format!("failed to write cache {}: {e}", path.display()))?;
-    file.write_all(text.as_bytes())
-        .map_err(|e| format!("failed to write cache {}: {e}", path.display()))
+    let text = serde_json::to_string(payload).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Serialize {
+            detail: format!("cache JSON failed: {e}"),
+        })
+    })?;
+    let mut file = fs::File::create(&path).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("failed to write cache {}: {e}", path.display()),
+        })
+    })?;
+    file.write_all(text.as_bytes()).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("failed to write cache {}: {e}", path.display()),
+        })
+    })
 }
 
-pub(crate) fn load_mapping_rows(mappings_dir: &Path) -> Result<Vec<MappingRow>, String> {
+pub(crate) fn load_mapping_rows(mappings_dir: &Path) -> gmeow_errors::Result<Vec<MappingRow>> {
     let mut paths = Vec::new();
     for entry in fs::read_dir(mappings_dir).map_err(|e| {
-        format!(
-            "failed to read mappings dir {}: {e}",
-            mappings_dir.display()
-        )
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!(
+                "failed to read mappings dir {}: {e}",
+                mappings_dir.display()
+            ),
+        })
     })? {
         let path = entry
-            .map_err(|e| format!("failed to read mappings dir entry: {e}"))?
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Io {
+                    detail: format!("failed to read mappings dir entry: {e}"),
+                })
+            })?
             .path();
         if path
             .file_name()
@@ -919,14 +963,24 @@ pub(crate) fn load_mapping_rows(mappings_dir: &Path) -> Result<Vec<MappingRow>, 
 
     let mut rows = Vec::new();
     for path in paths {
-        let text = fs::read_to_string(&path)
-            .map_err(|e| format!("failed to read {}: {e}", path.display()))?;
-        let set = purrdf::sssom::parse_tsv(&text)
-            .map_err(|e| format!("failed to parse {}: {}", path.display(), e.message))?;
+        let text = fs::read_to_string(&path).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Io {
+                detail: format!("failed to read {}: {e}", path.display()),
+            })
+        })?;
+        let set = purrdf::sssom::parse_tsv(&text).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                detail: format!("failed to parse {}: {}", path.display(), e.message),
+            })
+        })?;
         let source_stem = path
             .file_stem()
             .and_then(|stem| stem.to_str())
-            .ok_or_else(|| format!("mapping path has no UTF-8 stem: {}", path.display()))?
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::Mapping {
+                    detail: format!("mapping path has no UTF-8 stem: {}", path.display()),
+                })
+            })?
             .to_owned();
         for mapping in set.mappings {
             let subject_iri = expand_entity(&mapping.subject_id, &set.meta.curie_map)?;
@@ -946,7 +1000,10 @@ pub(crate) fn load_mapping_rows(mappings_dir: &Path) -> Result<Vec<MappingRow>, 
     Ok(rows)
 }
 
-fn expand_entity(entity: &str, prefixes: &BTreeMap<String, String>) -> Result<String, String> {
+fn expand_entity(
+    entity: &str,
+    prefixes: &BTreeMap<String, String>,
+) -> gmeow_errors::Result<String> {
     if entity.starts_with('<') && entity.ends_with('>') {
         return Ok(entity[1..entity.len() - 1].to_owned());
     }
@@ -958,11 +1015,15 @@ fn expand_entity(entity: &str, prefixes: &BTreeMap<String, String>) -> Result<St
         return Ok(entity.to_owned());
     }
     let Some((prefix, local)) = entity.split_once(':') else {
-        return Err(format!("not a CURIE: {entity:?}"));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mapping {
+            detail: format!("not a CURIE: {entity:?}"),
+        }));
     };
-    let namespace = prefixes
-        .get(prefix)
-        .ok_or_else(|| format!("unknown prefix {prefix:?} in {entity:?}"))?;
+    let namespace = prefixes.get(prefix).ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::Mapping {
+            detail: format!("unknown prefix {prefix:?} in {entity:?}"),
+        })
+    })?;
     Ok(format!("{namespace}{local}"))
 }
 
@@ -979,7 +1040,7 @@ fn collect_wikidata_ids_from_rows(rows: &[MappingRow]) -> Vec<String> {
     ids
 }
 
-pub fn collect_wikidata_ids(mappings_dir: &Path) -> Result<Vec<String>, String> {
+pub fn collect_wikidata_ids(mappings_dir: &Path) -> gmeow_errors::Result<Vec<String>> {
     let rows = load_mapping_rows(mappings_dir)?;
     Ok(collect_wikidata_ids_from_rows(&rows))
 }
@@ -994,9 +1055,8 @@ pub fn collect_wikidata_ids(mappings_dir: &Path) -> Result<Vec<String>, String> 
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if the mappings dir cannot be read or a TSV fails to
-/// parse.
-pub(crate) fn aligned_iris(mappings_dir: &Path) -> Result<BTreeSet<String>, String> {
+/// Fails if the mappings dir cannot be read or a TSV fails to parse.
+pub(crate) fn aligned_iris(mappings_dir: &Path) -> gmeow_errors::Result<BTreeSet<String>> {
     let rows = load_mapping_rows(mappings_dir)?;
     let mut iris: BTreeSet<String> = BTreeSet::new();
     for row in rows {
@@ -1006,7 +1066,7 @@ pub(crate) fn aligned_iris(mappings_dir: &Path) -> Result<BTreeSet<String>, Stri
     Ok(iris)
 }
 
-fn collect_ontology_terms(root: &Path) -> Result<OntologyTerms, String> {
+fn collect_ontology_terms(root: &Path) -> gmeow_errors::Result<OntologyTerms> {
     let paths = slice_module_files(root)?;
     let ds = store::dataset_from_paths(&paths)?;
     let mut terms = OntologyTerms::default();
@@ -1040,23 +1100,35 @@ fn collect_ontology_terms(root: &Path) -> Result<OntologyTerms, String> {
     Ok(terms)
 }
 
-fn slice_module_files(root: &Path) -> Result<Vec<PathBuf>, String> {
+fn slice_module_files(root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let slices = root.join("slices");
     let mut paths = Vec::new();
-    for group in fs::read_dir(&slices)
-        .map_err(|e| format!("failed to read slices dir {}: {e}", slices.display()))?
-    {
+    for group in fs::read_dir(&slices).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("failed to read slices dir {}: {e}", slices.display()),
+        })
+    })? {
         let group_path = group
-            .map_err(|e| format!("failed to read slices group: {e}"))?
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Io {
+                    detail: format!("failed to read slices group: {e}"),
+                })
+            })?
             .path();
         if !group_path.is_dir() {
             continue;
         }
-        for slice in fs::read_dir(&group_path)
-            .map_err(|e| format!("failed to read slice group {}: {e}", group_path.display()))?
-        {
+        for slice in fs::read_dir(&group_path).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Io {
+                detail: format!("failed to read slice group {}: {e}", group_path.display()),
+            })
+        })? {
             let module = slice
-                .map_err(|e| format!("failed to read slice dir: {e}"))?
+                .map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Io {
+                        detail: format!("failed to read slice dir: {e}"),
+                    })
+                })?
                 .path()
                 .join("module.ttl");
             if module.exists() {
@@ -1066,10 +1138,9 @@ fn slice_module_files(root: &Path) -> Result<Vec<PathBuf>, String> {
     }
     paths.sort();
     if paths.is_empty() {
-        return Err(format!(
-            "no slice module files found in {}",
-            slices.display()
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("no slice module files found in {}", slices.display()),
+        }));
     }
     Ok(paths)
 }
@@ -1360,9 +1431,11 @@ mod tests {
                 "info": "bad ids"
             }
         });
+        let error_diag = wikidata_entities(&error).unwrap_err();
+        assert!(error_diag.is::<crate::error::Mapping>());
         assert!(
-            wikidata_entities(&error)
-                .unwrap_err()
+            error_diag
+                .message()
                 .contains("Wikidata API error bad-request")
         );
 
@@ -1372,6 +1445,7 @@ mod tests {
         assert!(
             wikidata_entities(&missing_success)
                 .unwrap_err()
+                .message()
                 .contains("success=1")
         );
 
@@ -1381,6 +1455,7 @@ mod tests {
         assert!(
             wikidata_entities(&missing_entities)
                 .unwrap_err()
+                .message()
                 .contains("entities object")
         );
 
@@ -1401,9 +1476,10 @@ mod tests {
         let delay = Duration::ZERO;
 
         let zero = check_existence(&identifiers, root.path(), timeout, 0, delay).unwrap_err();
-        assert!(zero.contains("between 1 and 50"));
+        assert!(zero.is::<crate::error::Mapping>());
+        assert!(zero.message().contains("between 1 and 50"));
         let too_large = check_existence(&identifiers, root.path(), timeout, 51, delay).unwrap_err();
-        assert!(too_large.contains("between 1 and 50"));
+        assert!(too_large.message().contains("between 1 and 50"));
     }
 
     #[test]
@@ -1423,6 +1499,7 @@ mod tests {
         let root = tempfile::tempdir().unwrap();
         std::fs::create_dir(root.path().join("slices")).unwrap();
         let err = slice_module_files(root.path()).unwrap_err();
-        assert!(err.contains("no slice module files found"));
+        assert!(err.is::<crate::error::Io>());
+        assert!(err.message().contains("no slice module files found"));
     }
 }

@@ -3737,11 +3737,12 @@ mod ustar_tests {
         // Member names CAN exceed the 100-byte USTAR field (LongLink-covered).
         // Today's longest stays under it, so LongLink is a defensive net rather
         // than currently-triggered — `long_member_name_round_trips_via_longlink`
-        // is the dedicated proof. Logged so a future overflow is visible.
+        // is the dedicated proof. The longest member name must stay a valid tar
+        // member (non-empty archive), asserted rather than merely logged.
         let max_len = members.iter().map(|(n, _)| n.len()).max().unwrap_or(0);
-        eprintln!(
-            "ontology-docs: {} members, longest name {max_len}B",
-            members.len()
+        assert!(
+            max_len > 0,
+            "the docs archive must carry at least one named member"
         );
     }
 
