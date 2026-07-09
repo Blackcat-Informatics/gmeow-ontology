@@ -2370,6 +2370,7 @@ dependencies = [
  "blake3",
  "bytes",
  "ciborium",
+ "docs-print",
  "ed25519-dalek",
  "gmeow-affect",
  "gmeow-cli-core",

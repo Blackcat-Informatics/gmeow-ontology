@@ -75,6 +75,10 @@ gmeow-conformance = { path = "../conformance" }
 # The `docs_render` stage wires the typed documentation model + RDF projection
 # (gmeow_docs::DocsModel::discover / to_gmeow_rdf / render_site) — no port (#853).
 gmeow-docs = { path = "../docs" }
+# The `docs-print` crate renders the deterministic Typst source and compiles the
+# byte-reproducible print PDF, folded into the `docs-print` bundle blob alongside
+# the mdbook `docs-book` tree.
+docs-print = { path = "../docs-print" }
 # The slice-quality advisor kernel, exposed as an MCP tool so agents can
 # measure → act → re-measure a slice's quality in one loop.
 gmeow-slice-quality = { path = "../slice-quality" }
