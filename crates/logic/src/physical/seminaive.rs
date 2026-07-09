@@ -64,6 +64,7 @@ use crate::physical::arena::{RowArena, RowTuple};
 use crate::physical::bitset::DenseBitset;
 use crate::physical::builtin_eval::{BuiltinOutcome, emit_integer_surface, eval as eval_builtin};
 use crate::physical::id::{RowId, TermRef};
+use crate::physical::plan::{Executable, RulePlan};
 use crate::physical::store::{Bound, RelationStore};
 use crate::provenance::{mint_derivation_id, term_display};
 use crate::query_ir::QBuiltin;
@@ -185,24 +186,6 @@ impl<T> Budgeted<T> {
             consumed_steps: self.consumed_steps,
         }
     }
-}
-
-/// The set of predicates that appear as a rule HEAD (i.e. are IDB-derivable).
-///
-/// A predicate in this set is NOT settled merely by seeding its EDB facts: its full
-/// least-model extension also includes whatever its stratum derives, so it becomes
-/// settled only when that stratum reaches its natural fixpoint.  Only a *pure-EDB*
-/// predicate — one that is never a rule head — is final from the seed alone.  This
-/// distinction matters for a **self-recursive** predicate (both an EDB fact set and a
-/// recursive head, e.g. `subClassOf(X,Z) :- subClassOf(X,Y), subClassOf(Y,Z)`): seeding
-/// it as saturated would OVER-claim a settled extension while its closure is still being
-/// (or was never) derived.  The frontier under-claims rather than over-claims.
-fn head_predicates(rules_by_stratum: &[Vec<&EvalRule>]) -> BTreeSet<String> {
-    rules_by_stratum
-        .iter()
-        .flatten()
-        .map(|r| r.head.predicate.as_str().to_owned())
-        .collect()
 }
 
 /// Whether a stratum's semi-naive fixpoint reached its natural end or was budget-cut.
@@ -383,13 +366,18 @@ enum Scan {
 /// which is exactly the stratified-negation reference.
 fn join_body_indexed(
     rule: &EvalRule,
+    plan: &RulePlan,
     rel: &RelationStore,
     accumulated: &RelationStore,
     delta: &DenseBitset,
     gap: &mut bool,
 ) -> Vec<Solution> {
-    let positive: Vec<&EvalAtom> = rule.body.iter().filter(|a| !a.negated).collect();
-    let negated: Vec<&EvalAtom> = rule.body.iter().filter(|a| a.negated).collect();
+    // The positive (join) / negated (NAF) body-atom partition was precomputed ONCE at
+    // plan time ([`RulePlan`]); the per-round `filter(..).collect()` allocation is gone.
+    // Both slices are body-order indices into `rule.body`, so the produced solution
+    // sequence is byte-identical to the previous per-round partition.
+    let positive = plan.positive();
+    let negated = plan.negated();
 
     let empty = Solution {
         bindings: Vec::new(),
@@ -405,7 +393,8 @@ fn join_body_indexed(
         let mut all: Vec<Solution> = Vec::new();
         for p in 0..k {
             let mut partial: Vec<Solution> = vec![empty.clone()];
-            for (j, atom) in positive.iter().enumerate() {
+            for (j, &atom_idx) in positive.iter().enumerate() {
+                let atom = &rule.body[atom_idx];
                 let scan = if j < p {
                     Scan::Full
                 } else if j == p {
@@ -436,7 +425,7 @@ fn join_body_indexed(
         solutions.retain(|sol| {
             !negated
                 .iter()
-                .any(|neg| negated_atom_satisfied(neg, sol, accumulated))
+                .any(|&i| negated_atom_satisfied(&rule.body[i], sol, accumulated))
         });
     }
 
@@ -534,7 +523,7 @@ fn negated_atom_satisfied(atom: &EvalAtom, sol: &Solution, accumulated: &Relatio
 ///
 /// Predicates appearing only as constants in EDB but never as a head still get a
 /// stratum (0) so a negated reference to a base predicate is decided in stratum 0.
-fn stratify(rules: &[EvalRule]) -> Option<HashMap<String, usize>> {
+pub(super) fn stratify(rules: &[EvalRule]) -> Option<HashMap<String, usize>> {
     // Collect every predicate (heads and body atoms).
     let mut preds: BTreeSet<String> = BTreeSet::new();
     for rule in rules {
@@ -599,37 +588,22 @@ fn stratify(rules: &[EvalRule]) -> Option<HashMap<String, usize>> {
 /// provenance-recipe failure (propagated from the shared `rule_ir` helpers).
 pub(crate) fn materialize_native(
     store: &crate::store::WorldStore,
-    rules: &[EvalRule],
+    exe: &Executable<'_>,
     max_steps: Option<u64>,
 ) -> gmeow_errors::Result<NativeOutcome<Budgeted<Vec<DerivedRow>>>> {
-    // Stratification is a property of the rules alone; decide it once.
-    let Some(stratum_of) = stratify(rules) else {
-        return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
-    };
-
-    // Order the rules into strata.  A rule belongs to the stratum of its HEAD
-    // predicate; within a stratum the original program order is preserved (rules
-    // fire in parse order, matching the reference engine).
-    let max_stratum = rules
-        .iter()
-        .map(|r| stratum_of[r.head.predicate.as_str()])
-        .max()
-        .unwrap_or(0);
-    let mut rules_by_stratum: Vec<Vec<&EvalRule>> = vec![Vec::new(); max_stratum + 1];
-    for rule in rules {
-        let s = stratum_of[rule.head.predicate.as_str()];
-        rules_by_stratum[s].push(rule);
-    }
-
+    // Stratification and per-rule join planning are properties of the rules alone; the
+    // caller computed them ONCE through the `Parsed → Stratified → Planned → Executable`
+    // pipeline (a non-stratifiable program never reaches here — it is the pipeline's
+    // `stratify()` → `None` declared gap).  This forward leg only executes the plan.
     let mut worlds = store.worlds();
     worlds.sort();
 
-    let total = rules_by_stratum.len();
+    let total = exe.stratum_count();
 
     // UNBOUNDED path (foundation's `materialize_native(store, &rules, None)`): with no
     // step budget the `StepGovernor` never cuts, so every world runs to full fixpoint,
     // `status` is always `Ok`, no world is left untouched, and the worlds are fully
-    // independent (each reads only the shared `store` + `rules_by_stratum`, both `&`-
+    // independent (each reads only the shared `store` + `exe`, both `&`-
     // shared/read-only).  That independence is what makes per-world rayon parallelism
     // deterministic and byte-identical to the sequential fold.  A SHARED step budget,
     // by contrast, is inherently order-serial and cannot be parallelized deterministically
@@ -640,7 +614,8 @@ pub(crate) fn materialize_native(
         // per sorted world FIRST.  The read is pure and order-independent, so this seed
         // pass changes no observable output; only the OWNED `(world, edb)` pairs cross
         // into the thread pool.  The per-world chase below reads only these owned facts
-        // and the `&`-shared read-only `rules_by_stratum` (a `Sync` slice of `&EvalRule`).
+        // and the `&`-shared read-only `exe` (an `Executable` — its `&[EvalRule]` +
+        // owned strata/plans are all `Sync`).
         let edb_by_world: Vec<(String, Vec<Fact>)> = worlds
             .iter()
             .map(|world| Ok((world.clone(), world_edb_facts(store, world)?)))
@@ -660,7 +635,7 @@ pub(crate) fn materialize_native(
                     let mut governor = StepGovernor::new(None);
                     let budgeted = eval_world_stratified(
                         &edb_facts,
-                        &rules_by_stratum,
+                        exe,
                         &mut governor,
                         ProvenanceMode::Record,
                     )?;
@@ -731,12 +706,8 @@ pub(crate) fn materialize_native(
         // Asserted-EDB echo (identical to wellfounded::materialize).
         out.extend(echo_asserted(world, &edb_facts)?);
 
-        let budgeted = eval_world_stratified(
-            &edb_facts,
-            &rules_by_stratum,
-            &mut governor,
-            ProvenanceMode::Record,
-        )?;
+        let budgeted =
+            eval_world_stratified(&edb_facts, exe, &mut governor, ProvenanceMode::Record)?;
         for mut row in budgeted.rows {
             row.graph = world.clone();
             out.push(row);
@@ -795,7 +766,7 @@ pub(crate) fn materialize_native(
 /// strictly-lower strata fully materialized and frozen.
 fn eval_world_stratified(
     edb_facts: &[Fact],
-    rules_by_stratum: &[Vec<&EvalRule>],
+    exe: &Executable<'_>,
     governor: &mut StepGovernor,
     mode: ProvenanceMode,
 ) -> gmeow_errors::Result<Budgeted<Vec<DerivedRow>>> {
@@ -808,8 +779,8 @@ fn eval_world_stratified(
     // A PURE-EDB predicate (never a rule head) is settled from the seed; a predicate that
     // is also a rule head is settled only when its stratum completes (below), so exclude
     // it here — otherwise a self-recursive predicate would over-claim while its closure is
-    // still unbuilt.
-    let head_preds = head_predicates(rules_by_stratum);
+    // still unbuilt.  The head-predicate set is memoized on the `Executable`.
+    let head_preds = exe.head_predicates();
     let mut saturated_preds: BTreeSet<String> = edb_facts
         .iter()
         .map(|f| f.predicate.clone())
@@ -828,19 +799,20 @@ fn eval_world_stratified(
 
     let mut derivations: Vec<DerivedRow> = Vec::new();
 
-    let total = rules_by_stratum.len();
+    let total = exe.stratum_count();
     let mut completed = 0usize;
     let mut status = BudgetStatus::Ok;
     // The forward `.rls` materialization carries no arithmetic builtins (the ontology
     // corpus has none), so this stays false; assert that invariant below.
     let mut builtin_gap = false;
-    for stratum_rules in rules_by_stratum {
-        if stratum_rules.is_empty() {
+    for k in 0..total {
+        if exe.stratum_is_empty(k) {
             completed += 1; // an empty stratum is trivially saturated
             continue;
         }
         match eval_stratum_fixpoint(
-            stratum_rules,
+            exe,
+            k,
             &mut FixpointState {
                 store: &mut store,
                 rel: &mut rel,
@@ -854,8 +826,8 @@ fn eval_world_stratified(
             FixpointStatus::Complete => {
                 // This stratum reached its natural fixpoint: its head predicates are now
                 // final and join the settled frontier.
-                for rule in stratum_rules {
-                    saturated_preds.insert(rule.head.predicate.as_str().to_owned());
+                for pred in exe.stratum_head_predicates(k) {
+                    saturated_preds.insert(pred.to_owned());
                 }
                 completed += 1;
             }
@@ -908,8 +880,18 @@ struct FixpointState<'a> {
 /// `mode` selects whether the loop mints and records provenance ([`ProvenanceMode::Record`],
 /// the forward leg) or commits facts only ([`ProvenanceMode::Skip`], the backward leg) — the
 /// committed fact set, insertion order, and step budget are identical either way.
+///
+/// # The type-state executor gate (issue 1418, item 7)
+///
+/// This is the semi-naive executor entry point, and it is **unrepresentable without an
+/// [`Executable`]**: the rules of stratum `stratum` are read from `exe`, whose only
+/// constructor chain is `Parsed::new(..).stratify()?.plan().into_executable()` (see
+/// [`super::plan`]).  There is no overload taking `&[EvalRule]`, a `Parsed`, a
+/// `Stratified`, or a `Planned`; the compiler — not a doc comment — rejects any attempt
+/// to execute a program that has not been stratified AND join-planned.
 fn eval_stratum_fixpoint(
-    rules: &[&EvalRule],
+    exe: &Executable<'_>,
+    stratum: usize,
     state: &mut FixpointState<'_>,
     governor: &mut StepGovernor,
     mode: ProvenanceMode,
@@ -940,8 +922,8 @@ fn eval_stratum_fixpoint(
     loop {
         let mut round: FactKeyMap<RuleRoundCandidate> = FactKeyMap::default();
 
-        for rule in rules {
-            for sol in join_body_indexed(rule, rel, rel, &delta, builtin_gap) {
+        for (rule, plan) in exe.stratum_entries(stratum) {
+            for sol in join_body_indexed(rule, plan, rel, rel, &delta, builtin_gap) {
                 if !distinct_pairs_satisfied(&rule.distinct_pairs, &sol)? {
                     continue;
                 }
@@ -1142,28 +1124,15 @@ fn eval_stratum_fixpoint(
 /// # Errors
 ///
 /// Returns `Err` for an unbound head/guard variable or a provenance-recipe failure
-/// (propagated from the shared `rule_ir` helpers); `Ok(Unsupported(NonStratifiable))` if
-/// the (transformed) rules carry a negative edge inside a cycle.
+/// (propagated from the shared `rule_ir` helpers).  A non-stratifiable program never
+/// reaches here — it is the pipeline's `stratify()` → `None` declared gap, decided by the
+/// caller (`magic::eval_with_base_fallback`) before an [`Executable`] exists; the only
+/// `Unsupported` this leg raises is [`UnsupportedKind::Arithmetic`] (a builtin gap).
 pub(crate) fn evaluate(
     edb: RelationStore,
-    rules: &[EvalRule],
+    exe: &Executable<'_>,
     max_steps: Option<u64>,
 ) -> gmeow_errors::Result<NativeOutcome<Budgeted<Vec<Fact>>>> {
-    let Some(stratum_of) = stratify(rules) else {
-        return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
-    };
-
-    let max_stratum = rules
-        .iter()
-        .map(|r| stratum_of[r.head.predicate.as_str()])
-        .max()
-        .unwrap_or(0);
-    let mut rules_by_stratum: Vec<Vec<&EvalRule>> = vec![Vec::new(); max_stratum + 1];
-    for rule in rules {
-        let s = stratum_of[rule.head.predicate.as_str()];
-        rules_by_stratum[s].push(rule);
-    }
-
     // Lower the columnar EDB into the ternary `Fact` seed in sorted-key order so the
     // semi-naive seed order is deterministic (mirrors `world_edb_facts`).
     let mut edb_facts: Vec<Fact> = Vec::new();
@@ -1191,8 +1160,9 @@ pub(crate) fn evaluate(
 
     // A PURE-EDB predicate (never a rule head) is settled from the seed; a self-recursive
     // or otherwise IDB-derived predicate becomes settled only when its stratum completes
-    // (below), so exclude the head predicates here to avoid over-claiming.
-    let head_preds = head_predicates(&rules_by_stratum);
+    // (below), so exclude the head predicates here to avoid over-claiming.  The
+    // head-predicate set is memoized on the `Executable`.
+    let head_preds = exe.head_predicates();
     let mut saturated_preds: BTreeSet<String> = edb_facts
         .iter()
         .map(|f| f.predicate.clone())
@@ -1213,7 +1183,7 @@ pub(crate) fn evaluate(
     // The step governor is honoured identically to the forward path (single EDB, so the
     // frontier is exact — no cross-world under-claim).
     let mut governor = StepGovernor::new(max_steps);
-    let total = rules_by_stratum.len();
+    let total = exe.stratum_count();
     let mut completed = 0usize;
     let mut status = BudgetStatus::Ok;
     let mut derivations: Vec<DerivedRow> = Vec::new();
@@ -1222,13 +1192,14 @@ pub(crate) fn evaluate(
     // gap: the whole query re-demotes to the oracle rather than present an
     // incomplete answer set — never a wrong answer.
     let mut builtin_gap = false;
-    for stratum_rules in &rules_by_stratum {
-        if stratum_rules.is_empty() {
+    for k in 0..total {
+        if exe.stratum_is_empty(k) {
             completed += 1;
             continue;
         }
         match eval_stratum_fixpoint(
-            stratum_rules,
+            exe,
+            k,
             &mut FixpointState {
                 store: &mut store,
                 rel: &mut rel,
@@ -1240,8 +1211,8 @@ pub(crate) fn evaluate(
             ProvenanceMode::Skip,
         )? {
             FixpointStatus::Complete => {
-                for rule in stratum_rules {
-                    saturated_preds.insert(rule.head.predicate.as_str().to_owned());
+                for pred in exe.stratum_head_predicates(k) {
+                    saturated_preds.insert(pred.to_owned());
                 }
                 completed += 1;
             }
@@ -1290,6 +1261,36 @@ mod tests {
     use purrdf::TermValue;
 
     const NS: &str = "https://example.org/p3/";
+
+    use crate::physical::plan::Parsed;
+
+    /// Drive the type-state plan pipeline for a stratifiable test program: the only path
+    /// to the `Executable` the forward/backward executors accept.  A non-stratifiable
+    /// program has no place in these tests (it is a caller-side declared gap), so `expect`.
+    fn exe(rules: &[EvalRule]) -> Executable<'_> {
+        Parsed::new(rules)
+            .stratify()
+            .expect("stratifiable test program")
+            .plan()
+            .into_executable()
+    }
+
+    /// Compile-time proof that the semi-naive executor entry `eval_stratum_fixpoint` — the
+    /// truly-private stratum runner, not just the `pub(crate)` `materialize_native`/
+    /// `evaluate` wrappers — accepts ONLY an `Executable` as its rule source.  If its first
+    /// parameter were reverted to `&[&EvalRule]` (the pre-pipeline ad-hoc signature) or any
+    /// non-`Executable` stage, this `fn`-pointer coercion would fail to compile.  The gate
+    /// is enforced by the type system here, not by a doc comment.
+    #[test]
+    fn executor_entry_accepts_only_executable() {
+        let _executor_gate: fn(
+            &Executable<'_>,
+            usize,
+            &mut FixpointState<'_>,
+            &mut StepGovernor,
+            ProvenanceMode,
+        ) -> gmeow_errors::Result<FixpointStatus> = eval_stratum_fixpoint;
+    }
 
     fn nn(local: &str) -> String {
         format!("{NS}{local}")
@@ -1408,7 +1409,7 @@ mod tests {
 
         // Native path via a WorldStore.
         let store = tc_store();
-        let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
+        let outcome = materialize_native(&store, &exe(&rules), None).expect("materialize_native");
         let NativeOutcome::Decided(Budgeted { rows, .. }) = outcome else {
             panic!("expected Decided for a stratifiable positive program");
         };
@@ -1430,7 +1431,7 @@ mod tests {
     fn physical_transitive_closure_reaches_all_pairs() {
         let rules = tc_rules();
         let store = tc_store();
-        let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
+        let outcome = materialize_native(&store, &exe(&rules), None).expect("materialize_native");
         let NativeOutcome::Decided(Budgeted { rows, .. }) = outcome else {
             panic!("expected Decided");
         };
@@ -1507,7 +1508,7 @@ mod tests {
             &format!("{NS}b"),
         );
 
-        let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
+        let outcome = materialize_native(&store, &exe(&rules), None).expect("materialize_native");
         let NativeOutcome::Decided(Budgeted { rows, .. }) = outcome else {
             panic!("expected Decided for a stratifiable program");
         };
@@ -1583,7 +1584,7 @@ mod tests {
         // r(m, n) with m ≠ n: the sole base fact for the repeated-unbound-var probe.
         store.insert_quad(WORLD, &nn("m"), &nn("r"), &nn("n"));
 
-        let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
+        let outcome = materialize_native(&store, &exe(&rules), None).expect("materialize_native");
         let NativeOutcome::Decided(Budgeted { rows, .. }) = outcome else {
             panic!("expected Decided for a stratifiable existential-NAF program");
         };
@@ -1623,7 +1624,10 @@ mod tests {
         );
     }
 
-    /// A non-stratifiable program (negative edge in a cycle) is a declared gap.
+    /// A non-stratifiable program (negative edge in a cycle) is a declared gap surfaced by
+    /// the plan pipeline BEFORE an `Executable` exists: `stratify()` → `None`.  This is
+    /// where the old in-evaluator `Unsupported(NonStratifiable)` moved — the executor can no
+    /// longer even be reached for such a program (it has no `Executable` to run).
     #[test]
     fn physical_non_stratifiable_is_unsupported() {
         // p(?X) :- ~q(?X). q(?X) :- ~p(?X).  (self-loop encoding for the unary preds.)
@@ -1635,21 +1639,9 @@ mod tests {
         );
         let rules = parse_eval_rules(&rls).expect("parse cyclic-negation rules");
 
-        let store = WorldStore::new();
-        store.insert_quad(
-            WORLD,
-            &format!("{NS}a"),
-            &format!("{NS}dom"),
-            &format!("{NS}a"),
-        );
-
-        let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
         assert!(
-            matches!(
-                outcome,
-                NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable)
-            ),
-            "p↔q via mutual negation must be reported non-stratifiable"
+            Parsed::new(&rules).stratify().is_none(),
+            "p↔q via mutual negation must be reported non-stratifiable (no Executable)"
         );
     }
 
@@ -1681,7 +1673,7 @@ mod tests {
         rules: &[EvalRule],
         max_steps: Option<u64>,
     ) -> Budgeted<Vec<DerivedRow>> {
-        match materialize_native(store, rules, max_steps).expect("materialize_native") {
+        match materialize_native(store, &exe(rules), max_steps).expect("materialize_native") {
             NativeOutcome::Decided(b) => b,
             other => panic!("expected Decided, got {other:?}"),
         }
@@ -1994,7 +1986,8 @@ mod tests {
         // w3 deliberately has no edges.
 
         let run = || {
-            let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
+            let outcome =
+                materialize_native(&store, &exe(&rules), None).expect("materialize_native");
             let NativeOutcome::Decided(Budgeted { rows, .. }) = outcome else {
                 panic!("expected Decided for a stratifiable multi-world program");
             };
@@ -2132,7 +2125,7 @@ mod tests {
             distinct_pairs: vec![],
             builtins: vec![is_builtin("?D", "?N", ArithOp::Add, QBuiltinRhs::Num(10))],
         };
-        let out = evaluate(val_edb(&[("a", 2)]), &[rule], None).expect("evaluate");
+        let out = evaluate(val_edb(&[("a", 2)]), &exe(&[rule]), None).expect("evaluate");
         let NativeOutcome::Decided(budgeted) = out else {
             panic!("expected Decided, got a gap");
         };
@@ -2163,7 +2156,7 @@ mod tests {
                 rhs: QTerm::Num(5),
             }],
         };
-        let out = evaluate(val_edb(&[("a", 2), ("b", 9)]), &[rule], None).expect("evaluate");
+        let out = evaluate(val_edb(&[("a", 2), ("b", 9)]), &exe(&[rule]), None).expect("evaluate");
         let NativeOutcome::Decided(budgeted) = out else {
             panic!("expected Decided, got a gap");
         };
@@ -2226,7 +2219,7 @@ mod tests {
         edb.insert(&nn("edge"), term("a"), term("b"));
         edb.insert(&nn("edge"), term("b"), term("c"));
 
-        let out = evaluate(edb, &[seed_rule, step_rule], None).expect("evaluate");
+        let out = evaluate(edb, &exe(&[seed_rule, step_rule]), None).expect("evaluate");
         let NativeOutcome::Decided(budgeted) = out else {
             panic!("expected Decided, got a gap");
         };
@@ -2261,7 +2254,7 @@ mod tests {
                 QBuiltinRhs::Num(i64::MAX),
             )],
         };
-        let out = evaluate(val_edb(&[("a", 1)]), &[rule], None).expect("evaluate");
+        let out = evaluate(val_edb(&[("a", 1)]), &exe(&[rule]), None).expect("evaluate");
         assert!(
             matches!(out, NativeOutcome::Unsupported(UnsupportedKind::Arithmetic)),
             "overflow must be a declared Arithmetic gap, never a wrong answer"
@@ -2335,7 +2328,8 @@ mod tests {
         max_steps: Option<u64>,
     ) -> (std::collections::BTreeSet<FactKey>, u64) {
         let store = world_store_from(triples);
-        match materialize_native(&store, rules, max_steps).expect("record materialize_native") {
+        match materialize_native(&store, &exe(rules), max_steps).expect("record materialize_native")
+        {
             NativeOutcome::Decided(b) => {
                 let set = b
                     .rows
@@ -2361,7 +2355,7 @@ mod tests {
         rules: &[EvalRule],
         max_steps: Option<u64>,
     ) -> (std::collections::BTreeSet<FactKey>, u64) {
-        match evaluate(rel_store_from(triples), rules, max_steps).expect("skip evaluate") {
+        match evaluate(rel_store_from(triples), &exe(rules), max_steps).expect("skip evaluate") {
             NativeOutcome::Decided(b) => (fact_keys(&b.rows), b.consumed_steps),
             NativeOutcome::Unsupported(k) => panic!("skip lane unsupported: {k:?}"),
         }
@@ -2474,8 +2468,10 @@ mod tests {
         );
     }
 
-    /// A non-stratifiable program is refused identically on the Skip lane (the outcome variant,
-    /// not just the fact set, is provenance-independent).
+    /// A non-stratifiable program is refused identically for the Skip lane: the refusal is
+    /// surfaced by the SHARED plan pipeline (`stratify()` → `None`) BEFORE an `Executable`
+    /// exists, so neither lane can even reach the executor for such a program — the gap is
+    /// provenance-independent by construction, not by two parallel in-evaluator checks.
     #[test]
     fn skip_reports_nonstratifiable_like_record() {
         // p(?X,?Y) :- q(?X,?Y) .   q(?X,?Y) :- e(?X,?Y), NOT p(?X,?Y) .  → negation in a cycle.
@@ -2495,13 +2491,9 @@ mod tests {
                 builtins: vec![],
             },
         ];
-        let out = evaluate(rel_store_from(&[("a", "e", "b")]), &rules, None).expect("evaluate");
         assert!(
-            matches!(
-                out,
-                NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable)
-            ),
-            "the Skip lane must refuse a non-stratifiable program exactly as the forward lane does"
+            Parsed::new(&rules).stratify().is_none(),
+            "the pipeline must refuse a non-stratifiable program before either lane runs"
         );
     }
 
@@ -2542,7 +2534,8 @@ mod tests {
         // Skip lane: the same program returns the derived answer, minting no reifier.
         let mut rel = RelationStore::new();
         rel.insert(&nn("src"), quoted.clone(), term("z"));
-        let NativeOutcome::Decided(b) = evaluate(rel, &rules, None).expect("skip evaluate") else {
+        let NativeOutcome::Decided(b) = evaluate(rel, &exe(&rules), None).expect("skip evaluate")
+        else {
             panic!("expected Decided from the Skip lane");
         };
         let keys = fact_keys(&b.rows);
@@ -2562,7 +2555,7 @@ mod tests {
         let store = tc_store();
         let rules = tc_rules();
         let NativeOutcome::Decided(Budgeted { rows, .. }) =
-            materialize_native(&store, &rules, None).expect("materialize_native")
+            materialize_native(&store, &exe(&rules), None).expect("materialize_native")
         else {
             panic!("expected Decided");
         };
@@ -2614,7 +2607,7 @@ mod tests {
         // the trace-recording engine pays.
         let store = world_store_from(edb);
         let NativeOutcome::Decided(rec) =
-            materialize_native(&store, &rules, None).expect("record materialize_native")
+            materialize_native(&store, &exe(&rules), None).expect("record materialize_native")
         else {
             panic!("record lane unsupported");
         };
