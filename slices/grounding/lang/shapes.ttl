@@ -859,8 +859,9 @@ lang:GmnEnvelopeContractShape
     sh:property [
         sh:path gmeow:gmnDictionaryVersion ;
         sh:minCount 1 ;
+        sh:maxCount 1 ;
         sh:severity sh:Violation ;
-        sh:message "A gmeow:GmnEnvelope must pin its gmeow:gmnDictionaryVersion." ;
+        sh:message "A gmeow:GmnEnvelope must pin exactly one gmeow:gmnDictionaryVersion — versions are pinned and non-interchangeable, never plural." ;
     ] ;
     sh:property [
         sh:path gmeow:gmnGlyphTableVersion ;
@@ -902,6 +903,40 @@ lang:GmnEnvelopeContractShape
         sh:class logic:Correspondence ;
         sh:severity sh:Violation ;
         sh:message "A gmeow:GmnEnvelope must point gmeow:gmnEnvelopeCorrespondence at the logic:Correspondence judging its crossing." ;
+    ] .
+
+# =========================================================================== #
+# GMN dictionary alias-injectivity gate (Item 1 / R5 of #1475). The section-
+# retraction witness gmeow:gmnCorrNormalToGmn now claims rests on the alias
+# table being a genuine BIJECTION over its covered term set. Two entries of one
+# gmeow:GmnDictionary aliasing two DIFFERENT terms with the SAME alias string
+# would corrupt read-back silently (the reader cannot tell which term the
+# alias names), so injectivity is a gated structural property, never merely
+# asserted prose.
+# =========================================================================== #
+
+lang:GmnDictionaryAliasInjectivityShape
+    a sh:NodeShape ;
+    rdfs:label "GMN dictionary alias injectivity shape"@x-gmeow-english ;
+    skos:definition "No two gmeow:GmnDictionaryEntry members of one gmeow:GmnDictionary bind two different gmeow:gmnDictionaryEntryTerm values to the same gmeow:gmnDictionaryEntryAlias string — the alias table is a bijection over its covered term set, per dictionary version."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:enforcesFailureClass lang:GmnDictionaryAliasCollision ;
+    sh:targetClass gmeow:GmnDictionary ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "Two entries of one GMN dictionary alias two different terms with the same alias string; the alias table is not injective." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntry> ?e1 .
+                $this <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntry> ?e2 .
+                ?e1 <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias> ?alias .
+                ?e2 <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias> ?alias .
+                ?e1 <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryTerm> ?t1 .
+                ?e2 <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryTerm> ?t2 .
+                FILTER(?e1 != ?e2)
+                FILTER(?t1 != ?t2)
+            }
+        """ ;
     ] .
 
 # =========================================================================== #

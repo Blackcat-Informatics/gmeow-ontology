@@ -174,7 +174,7 @@ ex:rowLossDog a gmeow:ExpectedRow ;
 ex:cqGmnLevelCorrespondences a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/lang/queries/competency/gmn-level-correspondences.rq" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "Which preservation judgment does each GMN level crossing carry? Every crossing between dialect levels is a lang:TranslationUnit carrying its law-spine on exactly one logic:Correspondence, never asserted flat; the answer is exactly the four module crossings — the two GMN-0 encodings (GTS, N-Quads) as ExactPreservation with a retained mnemomorphic witness, GMN-0 → GMN-1 as SoundUnderApproximation with none, and GMN-1 → GMN-2 as ValidationOnly with none." ;
+    gmeow:cqRationale "Which preservation judgment does each GMN level crossing carry? Every crossing between dialect levels is a lang:TranslationUnit carrying its law-spine on exactly one logic:Correspondence, never asserted flat; the answer is exactly the four module crossings — the three GMN-0 encodings (GTS, N-Quads, and now GMN-1) as ExactPreservation with a retained mnemomorphic witness (GTS/N-Quads at the top Isomorphism rung; GMN-1 one rung below at SectionRetraction, since it need not recover the exact GMN-0 byte serialization, only the underlying model), and GMN-1 → GMN-2 as ValidationOnly with none." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqGmnLevelShape ;
     gmeow:cqExpectRow ex:rowGmnCrossGmnToCompacted , ex:rowGmnCrossNormalToGmn ,
@@ -197,8 +197,8 @@ ex:rowGmnCrossGmnToCompacted a gmeow:ExpectedRow ;
 ex:rowGmnCrossNormalToGmn a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri gmeow:gmnUnitNormalToGmn ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corr" ; gmeow:cellValueIri gmeow:gmnCorrNormalToGmn ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mnemomorphic" ; gmeow:cellValueLiteral "false" ] .
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:ExactPreservation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mnemomorphic" ; gmeow:cellValueLiteral "true" ] .
 
 ex:rowGmnCrossNormalToGts a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri gmeow:gmnUnitNormalToGts ] ;
