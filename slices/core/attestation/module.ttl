@@ -405,6 +405,14 @@ gmeow:attestationTypeCrossCheckAgreement
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxCBox .
 
+gmeow:attestationTypeDocumentationArtifact
+    a gmeow:AttestationType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
+    rdfs:label "documentation artifact"@x-gmeow-english ;
+    skos:definition "An attestation vouching for the byte identity of a packed documentation artifact carried by the release bundle — the mdbook docs-book archive or the print-PDF docs-print archive — binding it to its blake3 gmeow:contentDigest so a consumer can confirm the shipped documentation matches the bytes the release fold packed. Distinct from a conformance verdict in that it certifies artifact identity, not adherence to an external test corpus."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox .
+
 gmeow:attestationTypeDSSE
     a gmeow:AttestationType ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;

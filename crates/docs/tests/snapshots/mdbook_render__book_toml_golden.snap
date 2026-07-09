@@ -1,0 +1,16 @@
+---
+source: crates/docs/tests/mdbook_render.rs
+expression: toml
+---
+[book]
+title = "GMEOW Ontology Documentation"
+language = "en"
+multilingual = false
+
+[build]
+create-missing = false
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "navy"
+no-section-label = false

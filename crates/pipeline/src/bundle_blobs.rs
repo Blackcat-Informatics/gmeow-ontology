@@ -73,6 +73,18 @@ pub const REP_DIAG_NODES: &str = "diagnostics:nodes";
 /// as [`crate::stages::carrier::REP_SPAN_TABLE`], so no drift is possible (a drifted
 /// label would silently read empty).
 pub const REP_SPAN_TABLE: &str = "spans:source-table";
+/// tar of the mdbook `src/` source tree (`book.toml` + `SUMMARY.md` + `src/<page>/index.md`
+/// chapters), every member prefixed with the English internal tag (`x-gmeow-english/…`).
+/// This is the SINGLE definition of the label; the producer side re-exports it as
+/// [`crate::stages::carrier::REP_DOCS_BOOK`], so no drift is possible (a drifted label would
+/// silently read back an empty archive).
+pub const REP_DOCS_BOOK: &str = "docs-book";
+/// tar of the print documentation projection: the byte-reproducible `gmeow.pdf` and its
+/// deterministic `gmeow.typ` Typst source, both prefixed with the English internal tag
+/// (`x-gmeow-english/gmeow.pdf`, `x-gmeow-english/gmeow.typ`). This is the SINGLE definition
+/// of the label; the producer side re-exports it as [`crate::stages::carrier::REP_DOCS_PRINT`],
+/// so no drift is possible (a drifted label would silently read back an empty archive).
+pub const REP_DOCS_PRINT: &str = "docs-print";
 
 /// The saturation refusal set: one `(subject, predicate, object)` ERROR row per
 /// denied alignment cell, as recovered from the [`REP_DENIED`] JSON payload.
@@ -137,7 +149,7 @@ pub fn repo_sources_present(ontology_file: &Path) -> bool {
 
 /// A parsed `gmeow.gts` snapshot, the parse-once handle behind every accessor.
 ///
-/// Folding a 28 MB snapshot is not free, so a consumer that reads several
+/// Folding the committed ~40 MB `gmeow.gts` snapshot is not free, so a consumer that reads several
 /// archives should parse ONCE with [`Bundle::from_snapshot`] and call the methods;
 /// the free `bundled_*` functions parse per call for the one-shot case.
 pub struct Bundle {
@@ -240,9 +252,23 @@ impl Bundle {
 
     /// The full ontology-docs site as `{member-path: bytes}` ([`REP_ONTOLOGY_DOCS`]).
     /// Member paths are prefixed with the internal language tag
-    /// (`x-gmeow-english/index.html`, …); `gmeow extract-docs` selects one language.
+    /// (`x-gmeow-english/index.html`, …); `gmeow export-docs --format site` selects one language.
     pub fn ontology_docs(&self) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
         self.archive(REP_ONTOLOGY_DOCS)
+    }
+
+    /// The mdbook `src/` source tree as `{member-path: bytes}` ([`REP_DOCS_BOOK`]).
+    /// Member paths are prefixed with the English internal language tag
+    /// (`x-gmeow-english/book.toml`, `x-gmeow-english/src/SUMMARY.md`, …).
+    pub fn docs_book(&self) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+        self.archive(REP_DOCS_BOOK)
+    }
+
+    /// The print documentation projection as `{member-path: bytes}` ([`REP_DOCS_PRINT`]):
+    /// the byte-reproducible `x-gmeow-english/gmeow.pdf` and its deterministic
+    /// `x-gmeow-english/gmeow.typ` Typst source.
+    pub fn docs_print(&self) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+        self.archive(REP_DOCS_PRINT)
     }
 
     /// Every folded SHACL shape as `{repo-relative-path: ttl-bytes}` ([`REP_SHAPES`]):
@@ -434,6 +460,18 @@ pub fn bundled_ontology_docs(
     Bundle::from_snapshot(snapshot)?.ontology_docs()
 }
 
+/// The mdbook `src/` source tree (one-shot; see [`Bundle::docs_book`]).
+pub fn bundled_docs_book(snapshot: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+    Bundle::from_snapshot(snapshot)?.docs_book()
+}
+
+/// The print documentation projection (one-shot; see [`Bundle::docs_print`]).
+pub fn bundled_docs_print(
+    snapshot: &[u8],
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+    Bundle::from_snapshot(snapshot)?.docs_print()
+}
+
 /// Every folded SHACL shape (one-shot; see [`Bundle::shapes`]).
 pub fn bundled_shapes(snapshot: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     Bundle::from_snapshot(snapshot)?.shapes()
@@ -546,6 +584,43 @@ mod tests {
     // (`crate::stages::carrier`), so producer and reader are one constant and the label
     // cannot drift structurally — a runtime assert_eq of a const against itself guards
     // nothing.)
+
+    /// The two documentation-projection blobs (`docs-book`, `docs-print`) resolve
+    /// NON-EMPTY off the committed bundle and carry their signature members. This
+    /// pins Rust↔producer rep-string agreement for the print/book surfaces: a
+    /// drifted `REP_DOCS_BOOK` / `REP_DOCS_PRINT` label would silently resolve to
+    /// `{}` and ship the bundle without the print PDF or the mdbook source tree.
+    #[test]
+    fn docs_book_and_docs_print_resolve_non_empty() {
+        let snapshot = committed_snapshot();
+        let bundle = Bundle::from_snapshot(&snapshot).expect("fold committed gmeow.gts");
+
+        let book = bundle.docs_book().unwrap();
+        assert!(!book.is_empty(), "docs-book blob missing from gmeow.gts");
+        assert!(
+            book.contains_key("x-gmeow-english/book.toml"),
+            "docs-book carries the mdbook manifest (x-gmeow-english/book.toml)"
+        );
+        assert!(
+            book.contains_key("x-gmeow-english/src/SUMMARY.md"),
+            "docs-book carries the mdbook table of contents (x-gmeow-english/src/SUMMARY.md)"
+        );
+
+        let print = bundle.docs_print().unwrap();
+        assert!(!print.is_empty(), "docs-print blob missing from gmeow.gts");
+        let pdf = print
+            .get("x-gmeow-english/gmeow.pdf")
+            .expect("docs-print carries the print PDF (x-gmeow-english/gmeow.pdf)");
+        assert!(
+            pdf.starts_with(b"%PDF"),
+            "docs-print gmeow.pdf begins with the %PDF magic (got {:?})",
+            &pdf[..pdf.len().min(8)]
+        );
+        assert!(
+            print.contains_key("x-gmeow-english/gmeow.typ"),
+            "docs-print carries the deterministic Typst source (x-gmeow-english/gmeow.typ)"
+        );
+    }
 
     #[test]
     fn ontology_docs_and_schemas_resolve_non_empty() {

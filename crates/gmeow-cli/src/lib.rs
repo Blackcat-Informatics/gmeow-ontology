@@ -25,6 +25,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 use gmeow_cli_core::ConsoleMode;
+pub use gmeow_cli_core::ExportFormat;
 
 /// The embedded canonical GMEOW snapshot: the whole ontology + transforms, folded
 /// into one GTS bundle, baked into the binary so `gmeow` needs no repository, no
@@ -174,10 +175,14 @@ pub enum Commands {
         #[arg(long = "base")]
         base: Option<String>,
     },
-    /// Extract the browsable docs tree from a GTS snapshot.
-    #[command(name = "extract-docs")]
-    ExtractDocs {
-        /// Output directory for the docs tree.
+    /// Export documentation projections (site, mdbook, PDF, snippets) from a GTS
+    /// snapshot.
+    #[command(name = "export-docs")]
+    ExportDocs {
+        /// Which documentation projection to export (default: all).
+        #[arg(long, default_value = "all")]
+        format: ExportFormat,
+        /// Output directory for the exported documentation.
         #[arg(long = "directory", short = 'd')]
         directory: PathBuf,
         /// GTS snapshot to document (default: bundled gmeow.gts).
@@ -185,6 +190,18 @@ pub enum Commands {
         /// Write into a non-empty output directory.
         #[arg(long = "force")]
         force: bool,
+    },
+    /// Print the documentation page for one GMEOW term from a GTS snapshot.
+    #[command(name = "docs-on")]
+    DocsOn {
+        /// A GMEOW term: `gmeow:X`, a local name, or a prefix.
+        term: String,
+        /// Print the prompt-ready term card instead of the full page.
+        #[arg(long)]
+        card: bool,
+        /// Read the page from this `.gts` package instead of the bundle.
+        #[arg(long = "gts")]
+        gts: Option<PathBuf>,
     },
     /// Generate CrossRef DOI deposit XML from bundled self-description data.
     Crossref {
@@ -424,17 +441,22 @@ pub fn run() -> i32 {
             loss_report.as_deref(),
             base.as_deref(),
         ),
-        Commands::ExtractDocs {
+        Commands::ExportDocs {
+            format,
             directory,
             file,
             force,
-        } => commands::extract_docs(
+        } => commands::export_docs(
             reporter,
+            &format,
             &directory,
             file.as_deref(),
             force,
             lang.as_deref(),
         ),
+        Commands::DocsOn { term, card, gts } => {
+            commands::docs_on(reporter, &term, card, gts.as_deref(), lang.as_deref())
+        }
         Commands::Crossref { out, gts } => commands::crossref(reporter, &out, gts.as_deref()),
         Commands::Explain { target_iri, file } => commands::explain(reporter, target_iri, file),
         Commands::Mcp => commands::mcp(reporter),

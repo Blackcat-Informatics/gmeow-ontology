@@ -1,11 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Repo-anchored projection / description commands: `describe`, `extract-docs`,
-//! `temporal`, `import-foundation`, `crossref`, and `compliance-report`.
+//! Repo-anchored projection / description commands: `describe`, `export-docs`,
+//! `docs-on`, `temporal`, `import-foundation`, `crossref`, and `compliance-report`.
 
 use std::collections::BTreeMap;
 use std::path::Path;
+
+use gmeow_cli_core::write_docs_projection;
 
 use crate::dev_common::{emit_error, fail, fail_code, note, project_root, snapshot_bytes};
 use crate::error;
@@ -35,9 +37,11 @@ pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
     code
 }
 
-/// `gmeow-dev extract-docs [GTS] -d DIR [--force --lang]`.
-pub fn extract_docs(
+/// `gmeow-dev export-docs [GTS] --format F -d DIR [--force --lang]` — write one (or
+/// every) documentation projection from a GTS snapshot.
+pub fn export_docs(
     gts_file: Option<&Path>,
+    format: &crate::ExportFormat,
     directory: &Path,
     force: bool,
     lang: Option<&str>,
@@ -68,23 +72,93 @@ pub fn extract_docs(
             directory.display()
         ));
     }
-    let tree = match gmeow_pipeline::cli_ops::confirmations::extract_docs_site(&bytes, &internal) {
-        Ok(t) => t,
-        Err(e) => return fail(format!("cannot create docs tree: {e}")),
-    };
-    for (rel, data) in &tree {
-        let target = directory.join(rel);
-        if let Some(parent) = target.parent()
-            && let Err(e) = std::fs::create_dir_all(parent)
-        {
-            return fail(format!("cannot create {}: {e}", parent.display()));
+
+    use crate::ExportFormat;
+    use gmeow_pipeline::cli_ops::confirmations as conf;
+    match format {
+        ExportFormat::Site => {
+            write_docs_projection(directory, conf::export_docs_site(&bytes, &internal))
         }
-        if let Err(e) = std::fs::write(&target, data) {
-            return fail(format!("cannot write {}: {e}", target.display()));
+        ExportFormat::Mdbook => write_docs_projection(directory, conf::export_docs_book(&bytes)),
+        ExportFormat::Pdf => write_docs_projection(directory, conf::export_docs_print(&bytes)),
+        ExportFormat::Snippets => {
+            write_docs_projection(directory, conf::export_docs_snippets(&bytes, &internal))
+        }
+        ExportFormat::All => {
+            let plan = [
+                ("site", conf::export_docs_site(&bytes, &internal)),
+                ("mdbook", conf::export_docs_book(&bytes)),
+                ("pdf", conf::export_docs_print(&bytes)),
+                ("snippets", conf::export_docs_snippets(&bytes, &internal)),
+            ];
+            for (sub, tree) in plan {
+                let code = write_docs_projection(&directory.join(sub), tree);
+                if code != 0 {
+                    return code;
+                }
+            }
+            0
         }
     }
-    println!("docs tree -> {}", directory.display());
-    0
+}
+
+/// `gmeow-dev docs-on TERM [--card --gts --lang]` — print one term's documentation
+/// page (or its prompt-ready card) from a GTS snapshot's ontology-docs blob.
+pub fn docs_on(term: &str, card: bool, gts: Option<&Path>, lang: Option<&str>) -> i32 {
+    use gmeow_docs::describe::{DescribeGraph, resolve_term};
+
+    let root = project_root();
+    let bytes = match gts {
+        Some(path) => match std::fs::read(path) {
+            Ok(b) => b,
+            Err(e) => return fail(format!("cannot read {}: {e}", path.display())),
+        },
+        None => match snapshot_bytes(&root) {
+            Ok(b) => b,
+            Err(code) => return code,
+        },
+    };
+    let graph = match DescribeGraph::from_gts_bytes(&bytes) {
+        Ok(g) => g,
+        Err(e) => return fail(e),
+    };
+    let (resolved, candidates) = resolve_term(&graph, term);
+    let Some(iri) = resolved else {
+        if candidates.is_empty() {
+            return fail(format!("no GMEOW term matches '{term}'"));
+        }
+        let options = candidates
+            .iter()
+            .map(|c| format!("  gmeow:{c}"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        return fail(format!(
+            "ambiguous or unknown term '{term}' — candidates:\n{options}"
+        ));
+    };
+
+    let available = match gmeow_pipeline::cli_ops::confirmations::available_doc_languages(&bytes) {
+        Ok(langs) => langs,
+        Err(e) => return fail(format!("cannot read docs languages: {e}")),
+    };
+    let internal = pick_internal_lang(lang, &available);
+
+    let docs = match gmeow_pipeline::bundle_blobs::bundled_ontology_docs(&bytes) {
+        Ok(d) => d,
+        Err(e) => return fail(format!("snapshot carries no ontology-docs pages: {e}")),
+    };
+    let slug = gmeow_docs::render::slug_for_iri(&iri);
+    let leaf = if card { "card.md" } else { "index.md" };
+    let key = format!("{internal}/terms/{slug}/{leaf}");
+    match docs.get(&key) {
+        Some(data) => {
+            print!("{}", String::from_utf8_lossy(data));
+            0
+        }
+        None => fail(format!(
+            "snapshot has no {leaf} page for '{term}' (gmeow:{slug}) in {internal}"
+        )),
+    }
 }
 
 /// Choose the internal `x-gmeow-*` docs language: an exact requested internal tag,

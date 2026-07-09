@@ -195,8 +195,8 @@ commit: regenerate ## Regenerate artifacts, stage generator-owned outputs, and c
 	fi
 	@git diff --quiet || echo "Warning: unstaged changes remain. Stage them separately if needed."
 
-docs: regenerate ## Regenerate gmeow.gts docs and extract ontology-docs/.
-	$(GMEOW_DEV) extract-docs --directory ontology-docs --force generated/dist/gmeow.gts
+docs: regenerate ## Regenerate gmeow.gts docs and export ontology-docs/.
+	$(GMEOW_DEV) export-docs --format site --directory ontology-docs --force generated/dist/gmeow.gts
 
 normalize: ## Rewrite authored ontology sources into canonical serialization.
 	$(GMEOW_DEV) normalize
