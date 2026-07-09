@@ -24,22 +24,7 @@ gmeow:Analogy
     logic:mediates gmeow:analogicalSource ,
         gmeow:analogicalTarget ,
         gmeow:hasCorrespondence ;
-    rdfs:subClassOf logic:Relator ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:analogicalSource ;
-            owl:minCardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:analogicalTarget ;
-            owl:minCardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:hasCorrespondence ;
-            owl:minCardinality "1"^^xsd:nonNegativeInteger ;
-        ] ;
+    rdfs:subClassOf logic:Relator ;
     skos:definition "A reified analogical mapping — the source-to-target structure-mapping (Gentner) that warrants an analogical inference: it mediates a source domain (gmeow:analogicalSource), a target domain (gmeow:analogicalTarget), and the element-pair correspondences (gmeow:hasCorrespondence) holding between them, scored by structural consistency (gmeow:systematicity, solver-layer). The warrant of an analogical gmeow:InferenceCommitment points at an Analogy. Rival mappings compete; best-analogy selection is solver-layer like IBE, never an asserted isBest bit."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -53,16 +38,6 @@ gmeow:Argument
         gmeow:hasInferenceApplication ;
     logic:instantiatesFramework logic:EpistemicFramework ;
     rdfs:subClassOf logic:Relator ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:argumentConclusion ;
-            owl:cardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:argumentInferenceStep ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:hasPremiseUse ;
@@ -87,22 +62,7 @@ gmeow:ArgumentEvaluation
         [
             a owl:Restriction ;
             owl:onProperty gmeow:evaluatesArgument ;
-            owl:cardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:evaluatesArgument ;
             owl:allValuesFrom gmeow:Argument ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:underSemantics ;
-            owl:cardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:acceptanceStatus ;
-            owl:cardinality "1"^^xsd:nonNegativeInteger ;
         ] ,
         [
             a owl:Restriction ;
@@ -120,7 +80,25 @@ gmeow:Attack
     rdfs:label "Attack"@x-gmeow-english ;
     logic:mediates gmeow:attackSource ,
         gmeow:attackTarget ;
-    rdfs:subClassOf logic:Relator ;
+    rdfs:subClassOf logic:Relator ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:attackKind ;
+            owl:allValuesFrom gmeow:AttackKind ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:attackSource ;
+            owl:allValuesFrom gmeow:Argument ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:attackTarget ;
+            owl:allValuesFrom [
+                a owl:Class ;
+                owl:unionOf ( gmeow:PremiseUse gmeow:InferenceApplication gmeow:StandpointClaim ) ;
+            ] ;
+        ] ;
     skos:definition "A reified, TYPED attack between arguments — a structural conflict that names WHAT it attacks and HOW. It relates an attacking structure (gmeow:attackSource) to a target (gmeow:attackTarget, a gmeow:AttackTarget) under a kind (gmeow:attackKind, a gmeow:AttackKind): gmeow:attackUndermine attacks a gmeow:PremiseUse, gmeow:attackUndercut attacks a gmeow:InferenceApplication (the warrant), gmeow:attackRebut attacks the conclusion gmeow:StandpointClaim. The attack is the structural relation, never the adjudicated outcome — which argument survives is the solver-layer gmeow:ArgumentEvaluation. Self-attack is forbidden by SHACL, not OWL (the gmeow:competesWith discipline — doctrine in SHACL, keeping the DL profile clean)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -153,17 +131,7 @@ gmeow:Correspondence
     rdfs:label "Correspondence"@x-gmeow-english ;
     logic:mediates gmeow:correspondingSource ,
         gmeow:correspondingTarget ;
-    rdfs:subClassOf logic:Relator ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:correspondingSource ;
-            owl:cardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:correspondingTarget ;
-            owl:cardinality "1"^^xsd:nonNegativeInteger ;
-        ] ;
+    rdfs:subClassOf logic:Relator ;
     skos:definition "A single mapped element-pair within an gmeow:Analogy — the reified relation that one source element (gmeow:correspondingSource) plays the same structural role as one target element (gmeow:correspondingTarget). Reached from its analogy via gmeow:hasCorrespondence. The atom of structure-mapping: an analogy's systematicity is the structural consistency of its set of Correspondences."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -175,11 +143,6 @@ gmeow:InferenceApplication
     logic:mediates gmeow:appliedRule ,
         gmeow:appliedSubstitution ;
     rdfs:subClassOf logic:Relator ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:appliedRule ;
-            owl:cardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:appliedSubstitution ;
@@ -201,22 +164,7 @@ gmeow:InferenceCommitment
         [
             a owl:Restriction ;
             owl:onProperty gmeow:conclusion ;
-            owl:cardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:conclusion ;
             owl:allValuesFrom gmeow:StandpointClaim ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:premise ;
-            owl:minCardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:inferenceModeOf ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
         ] ;
     skos:definition "The endurant, structured argument relation an inference instantiates — the reified Toulmin/Peircean commitment mediating its premises (gmeow:premise), its single conclusion (gmeow:conclusion, a gmeow:StandpointClaim), its warrant (gmeow:warrant), and its mode (gmeow:inferenceModeOf). The argumentation layer wraps it in a gmeow:Argument (gmeow:argumentInferenceStep) to bear the typed gmeow:Attack and accruing gmeow:Support relations. A relator, not a process (the gmeow:Commitment idiom): the occurrent reasoning episode that bears it is the gmeow:InferenceProcess reached by gmeow:hasInferenceCommitment. Reifying is the on-demand tier; the flat 80% case hangs gmeow:inferredFrom + gmeow:inferenceMode directly on the conclusion-claim. Retained as audit when its conclusion is suppressed (belief revision), never erased (Principle 10)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -256,12 +204,7 @@ gmeow:PremiseUse
     rdfs:label "Premise Use"@x-gmeow-english ;
     logic:mediates gmeow:premiseUsed ,
         gmeow:hasPremiseUse ;
-    rdfs:subClassOf logic:Relator ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:premiseUsed ;
-            owl:cardinality "1"^^xsd:nonNegativeInteger ;
-        ] ;
+    rdfs:subClassOf logic:Relator ;
     skos:definition "A reified USE of a premise within a gmeow:Argument — the basing fact that this argument actually rests on this premise (gmeow:premiseUsed), distinct from the merely AVAILABLE premises of the underlying gmeow:InferenceCommitment (available != used). The target of an undermining gmeow:Attack, which denies the used premise. Reached from its argument via gmeow:hasPremiseUse."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -272,7 +215,20 @@ gmeow:Support
     rdfs:label "Support"@x-gmeow-english ;
     logic:mediates gmeow:supportSource ,
         gmeow:supportTarget ;
-    rdfs:subClassOf logic:Relator ;
+    rdfs:subClassOf logic:Relator ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:supportTarget ;
+            owl:allValuesFrom gmeow:Argument ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:supportSource ;
+            owl:allValuesFrom [
+                a owl:Class ;
+                owl:unionOf ( gmeow:Argument gmeow:StandpointClaim ) ;
+            ] ;
+        ] ;
     skos:definition "A reified, ACCRUING support relation in bipolar argumentation — an instance relating a supporting structure (gmeow:supportSource) to the gmeow:Argument it supports (gmeow:supportTarget). Each independent support is its own Support instance, so support ACCRUES: several independent supports for one conclusion combine rather than counting once (Principle 9; design/LOGIC-FOUNDATION.md). The support pole of bipolar argumentation; the attack pole is gmeow:Attack."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -595,6 +551,31 @@ gmeow:modeAbduction
     rdfs:label "abduction"@x-gmeow-english ;
     skos:definition "Abductive inference — inference to the best explanation: construct candidate hypotheses (gmeow:candidateHypothesis) for an explanandum, back-check them (gmeow:explains), and rank by gmeow:explanatoryScore. Not truth-preserving; defeasible; default axes (suspend, possible, credencePossible, assume, truth-aimed, neither) — the legacy gmeow:conceivable projection — promoted for the winner to (affirm, actual, credenceLikely, conjecture, truth-aimed, supported) = gmeow:probable; rivals genuinely compete (gmeow:competesWith)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# The mode-scoped well-formedness of an abductive gmeow:InferenceCommitment: the four
+# Peircean modes ride ONE class discriminated by a gmeow:inferenceModeOf VALUE (Principle 9,
+# no overtyping), so the obligation is a general class axiom keyed on that value — every
+# commitment with gmeow:inferenceModeOf gmeow:modeAbduction must name the fact it explains
+# (gmeow:explanandum) and at least one candidate explanation (gmeow:candidateHypothesis).
+[
+    a owl:Restriction ;
+    owl:onProperty gmeow:inferenceModeOf ;
+    owl:hasValue gmeow:modeAbduction ;
+] rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty gmeow:explanandum ;
+    owl:someValuesFrom owl:Thing ;
+] .
+
+[
+    a owl:Restriction ;
+    owl:onProperty gmeow:inferenceModeOf ;
+    owl:hasValue gmeow:modeAbduction ;
+] rdfs:subClassOf [
+    a owl:Restriction ;
+    owl:onProperty gmeow:candidateHypothesis ;
+    owl:someValuesFrom gmeow:StandpointClaim ;
+] .
 
 gmeow:modeAnalogical
     a gmeow:InferenceMode ;

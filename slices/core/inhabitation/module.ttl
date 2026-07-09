@@ -49,27 +49,12 @@ gmeow:ContinuityDetermination
         [
             a owl:Restriction ;
             owl:onProperty gmeow:determiningAuthority ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:determiningAuthority ;
             owl:allValuesFrom gmeow:Agent ;
         ] ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:determinationForce ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:determinationForce ;
             owl:allValuesFrom gmeow:DeterminationForce ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:determinationValidity ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
         ] ,
         [
             a owl:Restriction ;
@@ -107,27 +92,12 @@ gmeow:ControlAssessment
         [
             a owl:Restriction ;
             owl:onProperty gmeow:controlAgent ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:controlAgent ;
             owl:allValuesFrom gmeow:Agent ;
         ] ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:controlLevel ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:controlLevel ;
             owl:allValuesFrom gmeow:ControlLevel ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:controlInterval ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
         ] ,
         [
             a owl:Restriction ;
@@ -193,17 +163,7 @@ gmeow:DigitalSubjectTenure
         [
             a owl:Restriction ;
             owl:onProperty gmeow:tenureSubjectAgent ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:tenureSubjectAgent ;
             owl:allValuesFrom gmeow:Agent ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:tenureVantage ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
         ] ,
         [
             a owl:Restriction ;
@@ -232,17 +192,7 @@ gmeow:EmbodimentAssignment
         [
             a owl:Restriction ;
             owl:onProperty gmeow:assignmentSubject ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:assignmentSubject ;
             owl:allValuesFrom gmeow:Agent ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:assignmentCarrier ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
         ] ,
         [
             a owl:Restriction ;
@@ -280,27 +230,12 @@ gmeow:IdentityContinuityAssessment
         [
             a owl:Restriction ;
             owl:onProperty gmeow:assessmentFromStage ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:assessmentFromStage ;
             owl:allValuesFrom gmeow:SubjectStage ;
         ] ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:assessmentToStage ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:assessmentToStage ;
             owl:allValuesFrom gmeow:SubjectStage ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:continuityVerdict ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
         ] ,
         [
             a owl:Restriction ;
@@ -352,27 +287,12 @@ gmeow:InhabitationConfiguration
         [
             a owl:Restriction ;
             owl:onProperty gmeow:configurationOfTenure ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:configurationOfTenure ;
             owl:allValuesFrom gmeow:InhabitationTenure ;
         ] ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:duringInterval ;
-            owl:cardinality "1"^^xsd:nonNegativeInteger ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:duringInterval ;
             owl:allValuesFrom gmeow:TimeInterval ;
-        ] ,
-        [
-            a owl:Restriction ;
-            owl:onProperty gmeow:configurationEmbodiment ;
-            owl:maxCardinality "1"^^xsd:nonNegativeInteger ;
         ] ,
         [
             a owl:Restriction ;
@@ -420,7 +340,22 @@ gmeow:InhabitationTenure
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Inhabitation Tenure"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:inhabitationSubject ;
+            owl:allValuesFrom gmeow:Agent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:inhabitedHost ;
+            owl:allValuesFrom gmeow:Entity ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:inhabitationLocusKind ;
+            owl:allValuesFrom gmeow:InhabitationLocusKind ;
+        ] ;
     skos:definition "The reified, time-scoped fact that a subject stood in an inhabitation relationship with a host over an interval — that S inhabited H during T. A gmeow:TimeScopedRelation (a logic:Situation), carrying its interval via gmeow:duringInterval (Principle 11), with per-branch role-filler edges to the subject and host. It records the relationship's existence over T; the configuration that held within T (persona, embodiment, deployment, memory view) is carried by gmeow:InhabitationConfiguration, because those facets may change while the tenure persists. A logic:Situation, disjoint from a logic:Relator — the earlier draft typing it as both was unsatisfiable in the foundational projection."@x-gmeow-english ;
     skos:example "ex:tenure-1 a gmeow:InhabitationTenure ; gmeow:inhabitationSubject ex:lillithBot ; gmeow:inhabitedHost ex:serverH ; gmeow:duringInterval ex:jan2026 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid typing it as a logic:Relator (a Situation is disjoint from a Relator — the two-typing is unsatisfiable) and avoid closing it with gmeow:hasDestructionEvent (its domain is gmeow:Entity, an endurant) — end its gmeow:duringInterval instead, optionally recording the cause with gmeow:tenureEndedBy."@x-gmeow-english ;
@@ -550,7 +485,8 @@ gmeow:bearsDigitalSubject
         gmeow:boxRBox .
 
 gmeow:configurationEmbodiment
-    a owl:ObjectProperty ;
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
     rdfs:domain gmeow:InhabitationConfiguration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "configuration embodiment"@x-gmeow-english ;

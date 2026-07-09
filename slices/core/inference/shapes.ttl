@@ -1,186 +1,30 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Residual, not-yet-migratable closed-world shapes of the inference slice.
+# The inference slice carries NO hand-authored closed-world shapes.
 #
-# Under equivalence-before-deletion (design/LOGIC-VALIDATION.md), the closed-world
-# well-formedness that the projector CAN reproduce has been lifted into the canon:
-# the cardinality / class / datatype obligations of InferenceCommitment, Correspondence,
-# Analogy, Argument, ArgumentEvaluation, PremiseUse and InferenceApplication are now
-# authored as OWL restrictions in module.ttl (projected to
-# generated/shapes/validation-shapes.ttl); the premise != conclusion cross-node check
-# and competesWith irreflexivity are authored as logic: FOL constraints in the logic
-# module (projected to generated/shapes/constraint-shapes.ttl). Their former hand-authored
-# blocks were deleted only once `gmeow-dev shape-equivalence` proved the projection is
-# enforcement-equivalent on the covered fragment and the residue is grounded in the canon.
+# Under equivalence-before-deletion (design/LOGIC-VALIDATION.md), every closed-world
+# well-formedness obligation of this slice is now authored in the canon and reproduced by the
+# projector (generated/shapes/validation-shapes.ttl and generated/shapes/constraint-shapes.ttl):
 #
-# The three blocks BELOW remain hand-authored because their conditions have NO faithful
-# projection with the current machinery (they are carried in the loss ledger / canon):
-#   * AttackShape — the sh:or type-disjunction on gmeow:attackTarget and the two conditional
-#     cross-node checks (kind<->target agreement; no argument-component self-attack) have no
-#     OWL/RDFS or FOL-axiom-signature antecedent the derive can lower.
-#   * SupportShape — the sh:or type-disjunction on gmeow:supportSource (Argument | StandpointClaim)
-#     has no shape-projectable antecedent (the derive emits no sh:or).
-#   * AbductionCommitmentShape — a value-keyed sh:SPARQLTarget (mode = modeAbduction) that the
-#     dataset-derive never produces.
-
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix sh:    <http://www.w3.org/ns/shacl#> .
-@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
-@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-
-# --------------------------------------------------------------------------- #
-# Abductive commitments (mode = modeAbduction): an explanandum + candidates.
-# --------------------------------------------------------------------------- #
-
-gmeow:AbductionCommitmentShape
-    a sh:NodeShape ;
-    rdfs:label "Abduction commitment shape"@x-gmeow-english ;
-    skos:definition "Mode-scoped well-formedness of an abductive gmeow:InferenceCommitment (inferenceModeOf gmeow:modeAbduction): it must name the fact to be explained (gmeow:explanandum) and at least one candidate explanation (gmeow:candidateHypothesis). Scoped by value, not subclass — the four modes ride one class."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
-    sh:target [
-        a sh:SPARQLTarget ;
-        sh:select """
-            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-            SELECT ?this WHERE {
-                ?this a gmeow:InferenceCommitment ;
-                      gmeow:inferenceModeOf gmeow:modeAbduction .
-            }
-        """ ;
-    ] ;
-    sh:property [
-        sh:path gmeow:explanandum ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An abductive InferenceCommitment must name the fact it explains (gmeow:explanandum)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:candidateHypothesis ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An abductive InferenceCommitment must offer at least one candidate explanation (gmeow:candidateHypothesis) to select among." ;
-    ] .
-
-# --------------------------------------------------------------------------- #
-# The argumentation layer (Dung / ASPIC+): a typed Attack names exactly one target
-# and one kind and never attacks itself or an argument-component; Support accrues and
-# never supports itself. The sh:or target-typing and the conditional cross-node checks
-# have no faithful projection yet, so these two blocks remain hand-authored.
-# --------------------------------------------------------------------------- #
-
-gmeow:AttackShape
-    a sh:NodeShape ;
-    rdfs:label "Attack shape"@x-gmeow-english ;
-    skos:definition "Well-formedness of a typed gmeow:Attack: exactly one target (gmeow:attackTarget) typed as PremiseUse/InferenceApplication/StandpointClaim, exactly one kind (gmeow:attackKind), exactly one source gmeow:Argument (gmeow:attackSource), kind/target agreement (undermine→PremiseUse, undercut→InferenceApplication, rebut→StandpointClaim), and no self-attack or argument-component attack — irreflexivity in SHACL, keeping the DL profile clean."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
-    sh:targetClass gmeow:Attack ;
-    sh:property [
-        sh:path gmeow:attackTarget ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:or (
-            [ sh:class gmeow:PremiseUse ]
-            [ sh:class gmeow:InferenceApplication ]
-            [ sh:class gmeow:StandpointClaim ]
-        ) ;
-        sh:severity sh:Violation ;
-        sh:message "An Attack must name exactly one target (gmeow:attackTarget) — a gmeow:PremiseUse, gmeow:InferenceApplication, or conclusion gmeow:StandpointClaim." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:attackKind ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:class gmeow:AttackKind ;
-        sh:severity sh:Violation ;
-        sh:message "An Attack must carry exactly one kind (gmeow:attackKind) — gmeow:attackUndermine, gmeow:attackUndercut, or gmeow:attackRebut." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:attackSource ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:class gmeow:Argument ;
-        sh:severity sh:Violation ;
-        sh:message "An Attack must have exactly one attacking gmeow:Argument (gmeow:attackSource) — independent conflicts are separate Attack instances." ;
-    ] ;
-    sh:sparql [
-        a sh:SPARQLConstraint ;
-        sh:severity sh:Violation ;
-        sh:message "An Attack kind must agree with its target: undermine -> PremiseUse, undercut -> InferenceApplication, rebut -> StandpointClaim." ;
-        sh:select """
-            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-            SELECT $this WHERE {
-                $this gmeow:attackKind ?kind ;
-                      gmeow:attackTarget ?target .
-                FILTER (
-                    ?kind IN (gmeow:attackUndermine, gmeow:attackUndercut, gmeow:attackRebut)
-                )
-                OPTIONAL { ?target a gmeow:PremiseUse . BIND(true AS ?isPU) }
-                OPTIONAL { ?target a gmeow:InferenceApplication . BIND(true AS ?isIA) }
-                OPTIONAL { ?target a gmeow:StandpointClaim . BIND(true AS ?isSC) }
-                FILTER (
-                    (?kind = gmeow:attackUndermine && !BOUND(?isPU)) ||
-                    (?kind = gmeow:attackUndercut && !BOUND(?isIA)) ||
-                    (?kind = gmeow:attackRebut && !BOUND(?isSC))
-                )
-            }
-        """ ;
-    ] ;
-    sh:sparql [
-        a sh:SPARQLConstraint ;
-        sh:severity sh:Violation ;
-        sh:message "An Attack must not attack itself (gmeow:attackSource = gmeow:attackTarget) — conflict is irreflexive." ;
-        sh:select """
-            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-            SELECT $this WHERE {
-                $this gmeow:attackSource ?x ; gmeow:attackTarget ?x .
-            }
-        """ ;
-    ] ;
-    sh:sparql [
-        a sh:SPARQLConstraint ;
-        sh:severity sh:Violation ;
-        sh:message "An Argument must not attack its own component (conclusion, premise-use, or inference-application) — conflict is irreflexive." ;
-        sh:select """
-            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-            SELECT $this WHERE {
-                $this gmeow:attackSource ?source ;
-                      gmeow:attackTarget ?target .
-                ?source a gmeow:Argument .
-                { ?source gmeow:argumentConclusion ?target . }
-                UNION { ?source gmeow:hasPremiseUse ?target . }
-                UNION { ?source gmeow:hasInferenceApplication ?target . }
-            }
-        """ ;
-    ] .
-
-gmeow:SupportShape
-    a sh:NodeShape ;
-    rdfs:label "Support shape"@x-gmeow-english ;
-    skos:definition "Well-formedness of a gmeow:Support: exactly one supported argument (gmeow:supportTarget), at least one source (gmeow:supportSource), and no self-support (source != target). Independent supports are separate Support instances, so support accrues."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
-    sh:targetClass gmeow:Support ;
-    sh:property [
-        sh:path gmeow:supportTarget ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:class gmeow:Argument ;
-        sh:severity sh:Violation ;
-        sh:message "A Support must support exactly one gmeow:Argument (gmeow:supportTarget)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:supportSource ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:or (
-            [ sh:class gmeow:Argument ]
-            [ sh:class gmeow:StandpointClaim ]
-        ) ;
-        sh:severity sh:Violation ;
-        sh:message "A Support must have exactly one supporting structure (gmeow:supportSource) — independent sources are separate Support instances." ;
-    ] ;
-    sh:sparql [
-        a sh:SPARQLConstraint ;
-        sh:severity sh:Violation ;
-        sh:message "A Support must not support itself (gmeow:supportSource = gmeow:supportTarget) — support is irreflexive." ;
-        sh:select """
-            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-            SELECT $this WHERE {
-                $this gmeow:supportSource ?x ; gmeow:supportTarget ?x .
-            }
-        """ ;
-    ] .
+#   * InferenceCommitment, Correspondence, Analogy, Argument, ArgumentEvaluation, PremiseUse and
+#     InferenceApplication — cardinality / class / datatype obligations authored as OWL restrictions
+#     in module.ttl.
+#   * Attack and Support — the role-filler cardinalities and the range disjunctions
+#     (gmeow:attackTarget over PremiseUse/InferenceApplication/StandpointClaim, gmeow:supportSource
+#     over Argument/StandpointClaim) authored as OWL restrictions (owl:cardinality + owl:allValuesFrom
+#     over owl:unionOf → sh:or in validation-shapes.ttl).
+#   * The abductive gmeow:InferenceCommitment obligations (mode = modeAbduction: an explanandum and a
+#     candidate hypothesis) authored as a value-keyed general class axiom
+#     ([ owl:onProperty gmeow:inferenceModeOf ; owl:hasValue gmeow:modeAbduction ] ⊑ …) → a value-keyed
+#     sh:SPARQLTarget shape.
+#   * The cross-node conflict discipline — premise ≠ conclusion, competesWith irreflexivity, no
+#     self-attack / self-support, kind ↔ target agreement (undermine→PremiseUse, undercut→
+#     InferenceApplication, rebut→StandpointClaim), and no argument-component self-attack — authored as
+#     logic: FOL axioms (RelatumDistinctnessAssertion, PropertyCharacteristicAssertion,
+#     ConditionalRangeAssertion, RoleCompositionExclusionAssertion) in slices/grounding/logic/module.ttl
+#     → sh:SPARQLConstraint node shapes in constraint-shapes.ttl, each carrying logic:formalizes.
+#
+# Their former hand-authored blocks were deleted once `gmeow-dev shape-equivalence --path
+# slices/core/inference` proved the projection reproduces every covered fragment and the residue is
+# grounded in the canon.

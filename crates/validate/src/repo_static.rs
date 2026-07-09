@@ -2156,7 +2156,7 @@ mod tests {
             "the blanket declarative-shape gate must red on the live legacy corpus"
         );
         for legacy in [
-            "slices/core/inference/shapes.ttl",
+            "slices/core/inhabitation/shapes.ttl",
             "shapes/gmeow-shapes.ttl",
         ] {
             assert!(
