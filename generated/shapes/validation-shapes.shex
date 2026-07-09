@@ -5779,6 +5779,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/math/MathematicalConstant> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/MathematicalConstant-shape> {
+  <https://blackcatinformatics.ca/math/isExact> ["true"^^<http://www.w3.org/2001/XMLSchema#boolean>] ;
   <https://blackcatinformatics.ca/math/quantityValue> . {0,0} ;
 }
 
@@ -5827,6 +5828,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/math/covarianceOperator> . + ;
   <https://blackcatinformatics.ca/math/principalComponent> . + ;
   <https://blackcatinformatics.ca/math/explainedVarianceRatio> . + ;
+}
+
+# targetClass <https://blackcatinformatics.ca/math/ProbabilityMeasure> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/ProbabilityMeasure-shape> {
+  <https://blackcatinformatics.ca/math/totalMass> ["1"^^<http://www.w3.org/2001/XMLSchema#integer>] ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/ProofCheckActivity> (associate via ShapeMap)

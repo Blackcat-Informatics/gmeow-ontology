@@ -34,6 +34,35 @@
     {
       "severity": "note",
       "code": "preservation.rung.actual",
+      "message": "logic:Constraint <https://blackcatinformatics.ca/logic/RationalValueNonZeroDenominatorConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/ec253717c2fddc86900f256f043fe3b3"
+        }
+      ],
+      "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/72baf2ac683b70303f7474e057c0b1ef",
+      "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/8903d3922d8fe9df9bdd7117c8de44d5",
+      "anchor_non_trivial": true,
+      "antecedents": [
+        "https://blackcatinformatics.ca/gmeow/diagnostics/finding/ec253717c2fddc86900f256f043fe3b3"
+      ],
+      "root_cause": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/ec253717c2fddc86900f256f043fe3b3",
+      "cluster": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/ec253717c2fddc86900f256f043fe3b3",
+      "tags": [
+        "preservation:ValidationOnly"
+      ],
+      "category": "projection-loss",
+      "standpoint": "perspectival"
+    },
+    {
+      "severity": "note",
+      "code": "preservation.rung.actual",
       "message": "logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
       "tool": "logic-compile",
       "locations": [

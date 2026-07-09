@@ -42,6 +42,33 @@
           "level": "note",
           "locations": [
             {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/ec253717c2fddc86900f256f043fe3b3"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "logic:Constraint <https://blackcatinformatics.ca/logic/RationalValueNonZeroDenominatorConstraint> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical logic: layer"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "804fbf654f562407"
+          },
+          "properties": {
+            "gmeow.category": "projection-loss"
+          },
+          "ruleId": "preservation.rung.actual"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
               "physicalLocation": {
                 "artifactLocation": {
                   "uri": "slices/grounding/logic/module.ttl"

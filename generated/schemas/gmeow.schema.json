@@ -42399,6 +42399,25 @@
             }
           ]
         },
+        "math:isExact": {
+          "anyOf": [
+            {
+              "const": {
+                "@type": "xsd:boolean",
+                "@value": "true"
+              }
+            },
+            {
+              "items": {
+                "const": {
+                  "@type": "xsd:boolean",
+                  "@value": "true"
+                }
+              },
+              "type": "array"
+            }
+          ]
+        },
         "math:quantityValue": {
           "anyOf": [
             {},
@@ -42790,10 +42809,23 @@
           ]
         },
         "math:totalMass": {
-          "const": {
-            "@type": "xsd:integer",
-            "@value": "1"
-          }
+          "anyOf": [
+            {
+              "const": {
+                "@type": "xsd:integer",
+                "@value": "1"
+              }
+            },
+            {
+              "items": {
+                "const": {
+                  "@type": "xsd:integer",
+                  "@value": "1"
+                }
+              },
+              "type": "array"
+            }
+          ]
         }
       },
       "type": "object"
@@ -42878,6 +42910,7 @@
       "type": "object"
     },
     "math:RationalValue": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
         "@annotation": {
           "$ref": "#/$defs/Annotation"
@@ -42897,50 +42930,8 @@
               "type": "array"
             }
           ]
-        },
-        "math:denominator": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "properties": {
-                "@type": {
-                  "type": "string"
-                },
-                "@value": {}
-              },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
-            }
-          ]
-        },
-        "math:numerator": {
-          "anyOf": [
-            {
-              "type": "integer"
-            },
-            {
-              "properties": {
-                "@type": {
-                  "type": "string"
-                },
-                "@value": {}
-              },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
-            }
-          ]
         }
       },
-      "required": [
-        "math:denominator",
-        "math:numerator"
-      ],
       "type": "object"
     },
     "math:ResidualInterpretationClaim": {

@@ -4936,6 +4936,7 @@
 
 <https://blackcatinformatics.ca/math/MathematicalConstant-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/MathematicalConstant> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/isExact> ; sh:hasValue "true"^^<http://www.w3.org/2001/XMLSchema#boolean> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/quantityValue> ; sh:maxCount 0 ] .
 
 <https://blackcatinformatics.ca/math/Measure-shape> a sh:NodeShape ;
@@ -4979,6 +4980,10 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/math/covarianceOperator> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/principalComponent> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/explainedVarianceRatio> ; sh:minCount 1 ] .
+
+<https://blackcatinformatics.ca/math/ProbabilityMeasure-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/math/ProbabilityMeasure> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/totalMass> ; sh:hasValue "1"^^<http://www.w3.org/2001/XMLSchema#integer> ] .
 
 <https://blackcatinformatics.ca/math/ProofCheckActivity-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/ProofCheckActivity> ;

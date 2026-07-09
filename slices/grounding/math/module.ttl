@@ -4901,15 +4901,14 @@ math:ApproximateValue rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:approximates ; owl:cardinality 1 ; owl:allValuesFrom math:Number ] ,
     [ a owl:Restriction ; owl:onProperty math:approximationError ; owl:minCardinality 1 ] .
 
-# math:isExact must be true, and math:totalMass must be 1 (math:ProbabilityMeasure),
-# are VALUE-EQUALITY constraints. owl:hasValue is the right antecedent, but the frontend
-# term model (graphutil::Node::Lit) is lexical-only and drops the literal datatype, so a
-# projected sh:hasValue would carry an untyped "true"/"1" that never equals the typed
-# value — over-claiming on every well-formed individual. Until the frontend carries typed
-# literals these value-equality obligations stay as the native / procedural check; the
-# derivable presence obligation (math:quantityValue maxCardinality 0, which catches the
-# constant-as-decimal counter-example) is authored here.
+# math:isExact must be true, and math:totalMass must be 1 (math:ProbabilityMeasure), are
+# VALUE-EQUALITY constraints authored with owl:hasValue: the frontend term model now carries
+# the literal datatype, so a typed owl:hasValue true / owl:hasValue 1 derives a typed
+# sh:hasValue that equals the typed value on every well-formed individual and rejects the
+# counter-example. The presence obligation math:quantityValue maxCardinality 0 (which also
+# catches the constant-as-decimal counter-example) is authored alongside.
 math:MathematicalConstant rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:isExact ; owl:hasValue true ] ,
     [ a owl:Restriction ; owl:onProperty math:quantityValue ; owl:maxCardinality 0 ] .
 
 math:SetBuilderExpression rdfs:subClassOf
@@ -4954,6 +4953,11 @@ math:Ring rdfs:subClassOf
 math:Measure rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:measureOn ; owl:cardinality 1 ; owl:allValuesFrom math:MeasurableSpace ] ,
     [ a owl:Restriction ; owl:onProperty math:totalMass ; owl:cardinality 1 ] .
+
+# A probability measure is exactly a measure of total mass one — a typed value-equality
+# obligation on the inherited math:totalMass, derived to sh:hasValue 1.
+math:ProbabilityMeasure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:totalMass ; owl:hasValue 1 ] .
 
 math:Integral rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:integrand ; owl:cardinality 1 ; owl:allValuesFrom math:MeasurableFunction ] ,
