@@ -339,6 +339,8 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/Finding> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Finding-shape> {
+  <https://blackcatinformatics.ca/gmeow/findingCode> <http://www.w3.org/2001/XMLSchema#string> ;
+  <https://blackcatinformatics.ca/gmeow/findingMessage> <http://www.w3.org/2001/XMLSchema#string> ;
   <https://blackcatinformatics.ca/gmeow/findingSeverity> IRI ;
 }
 
@@ -2027,6 +2029,21 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/findContextTarget> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/findContextTarget-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/findContextTarget> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/findingCode> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/findingCode-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/findingCode> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/findingMessage> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/findingMessage-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/findingMessage> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/findingSeverity> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/findingSeverity-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/findingSeverity> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/formRepresentation> (associate via ShapeMap)

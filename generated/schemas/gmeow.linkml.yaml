@@ -7816,7 +7816,7 @@ slots:
     title: finding code
     range: string
     domain: Finding
-    multivalued: true
+    multivalued: false
   findingGateVerdict:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingGateVerdict
     title: finding gate verdict
@@ -7846,7 +7846,7 @@ slots:
     title: finding message
     range: string
     domain: Finding
-    multivalued: true
+    multivalued: false
   findingRemediation:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingRemediation
     title: finding remediation
@@ -7864,7 +7864,7 @@ slots:
     title: finding severity
     range: DiagnosticSeverity
     domain: Finding
-    multivalued: true
+    multivalued: false
   findingStandpoint:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingStandpoint
     title: finding standpoint

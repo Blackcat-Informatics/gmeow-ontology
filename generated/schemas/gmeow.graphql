@@ -5211,15 +5211,15 @@ type Finding {
   findingAntecedent: [Finding!]
   findingCategory: [String!]
   findingCluster: [FindingCluster!]
-  findingCode: [String!]
+  findingCode: String
   findingGateVerdict: [GateVerdict!]
   findingHasAntecedent: [Finding!]
   findingHelpUri: [String!]
   findingLocation: [String!]
-  findingMessage: [String!]
+  findingMessage: String
   findingRemediation: [String!]
   findingRootCause: [Finding!]
-  findingSeverity: [DiagnosticSeverity!]
+  findingSeverity: DiagnosticSeverity
   findingStandpoint: [DiagnosticStandpoint!]
   findingSuggestion: [String!]
   findingTool: [String!]

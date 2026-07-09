@@ -9863,6 +9863,96 @@
             }
           ]
         },
+        "gmeow:findingCode": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:findingMessage": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "type": "array"
+            }
+          ]
+        },
         "gmeow:findingSeverity": {
           "anyOf": [
             {
