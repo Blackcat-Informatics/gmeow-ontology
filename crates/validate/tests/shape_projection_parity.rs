@@ -404,6 +404,97 @@ fn load_data(path: &Path) -> Arc<RdfDataset> {
     flat_dataset_from_quads(&quads).expect("flattened fixture dataset must freeze")
 }
 
+// ── Merged-ontology validation context ───────────────────────────────────────
+//
+// The live `make validate` validates the merged authored bundle — the root
+// ontology + every slice module + the imports — so ontology-provided types,
+// subclass edges, and shared individuals are in scope when a `sh:sparql` body
+// dereferences them. A fixture validated ALONE lacks that context: a constraint
+// whose firing depends on ontology-provided typing (e.g. the affect-decision
+// single-label-set constraints, which need the GoEmotions label typing) produces
+// ZERO findings under BOTH unions, so a constraint genuinely NOT reproduced by the
+// projection is silently miscounted as reproduced. The convergence gate therefore
+// validates each fixture in the SAME context: `fixture ⊎ authored-ontology`.
+
+/// Every `slices/<group>/<name>/module.ttl`, sorted — the slice fragment of the
+/// authored bundle (mirrors `source_load::module_files`).
+fn module_files(slices_dir: &Path) -> Vec<PathBuf> {
+    let mut out = Vec::new();
+    let Ok(groups) = std::fs::read_dir(slices_dir) else {
+        return out;
+    };
+    for group in groups.flatten() {
+        if !group.path().is_dir() {
+            continue;
+        }
+        let Ok(slices) = std::fs::read_dir(group.path()) else {
+            continue;
+        };
+        for slice in slices.flatten() {
+            let module = slice.path().join("module.ttl");
+            if module.is_file() {
+                out.push(module);
+            }
+        }
+    }
+    out.sort();
+    out
+}
+
+/// The merged authored ontology dataset: `ontology/gmeow.ttl` + every
+/// `slices/**/module.ttl` + `imports/*.ttl` — the same source set
+/// `source_load::load_authored_dataset` composes and the live validator runs
+/// against. Each file is parsed standalone and merged via `RdfDataset::union`,
+/// which standardizes blank scopes apart so no two files' anonymous blanks collide.
+fn authored_ontology(root: &Path) -> Arc<RdfDataset> {
+    let mut files: Vec<PathBuf> = Vec::new();
+    let onto = root.join("ontology").join("gmeow.ttl");
+    if onto.is_file() {
+        files.push(onto);
+    }
+    files.extend(module_files(&root.join("slices")));
+    files.extend(ttl_files(&root.join("imports")));
+    files.sort();
+    assert!(!files.is_empty(), "authored ontology must be non-empty");
+    let parsed: Vec<Arc<RdfDataset>> = files
+        .iter()
+        .map(|p| {
+            let bytes = std::fs::read(p).unwrap_or_else(|e| panic!("read {}: {e}", p.display()));
+            parse_dataset(&bytes, "text/turtle", None)
+                .unwrap_or_else(|e| panic!("ontology file {} must parse: {e}", p.display()))
+        })
+        .collect();
+    let refs: Vec<&RdfDataset> = parsed.iter().map(|d| d.as_ref()).collect();
+    Arc::new(RdfDataset::union(&refs))
+}
+
+/// The data graph the gate validates: `fixture ⊎ authored-ontology`, flattened to
+/// the default graph (matching [`load_data`]). `RdfDataset::union` re-scopes the
+/// two inputs' blanks apart, so the ontology's anonymous nodes cannot fuse with the
+/// fixture's.
+fn merge_with_ontology(fixture: &RdfDataset, ontology: &RdfDataset) -> Arc<RdfDataset> {
+    let union = RdfDataset::union(&[fixture, ontology]);
+    let mut quads = flat_rdf_quads_from_dataset(&union);
+    for quad in &mut quads {
+        quad.graph_name = None;
+    }
+    flat_dataset_from_quads(&quads).expect("merged data graph must freeze")
+}
+
+/// The IRI subjects declared IN the fixture. Findings are scoped to this set so the
+/// merged ontology's own TBox / individual nodes — which are subjects in the
+/// ontology files but never in the fixture — cannot introduce new focus nodes that
+/// pollute the finding sets; only nodes the fixture is genuinely about are compared.
+fn fixture_subjects(fixture: &RdfDataset) -> BTreeSet<String> {
+    let mut subs = BTreeSet::new();
+    for q in fixture.quads_for_pattern(None, None, None, GraphMatch::Any) {
+        if let TermRef::Iri(s) = fixture.resolve(q.s) {
+            subs.insert(s.to_string());
+        }
+    }
+    subs
+}
+
 // ── Loaded unions ───────────────────────────────────────────────────────────
 
 /// A parsed shape union plus the index that resolves its findings' source terms.
@@ -427,13 +518,19 @@ impl Union {
         }
     }
 
-    /// Validate one fixture and normalize every result to a [`Key`].
-    fn findings(&self, data: &RdfDataset) -> BTreeSet<Key> {
+    /// Validate a data graph and normalize every result whose focus node is one of
+    /// `subjects` (the fixture's own IRI subjects) to a [`Key`]. Scoping to the
+    /// fixture's subjects keeps merged-ontology TBox nodes out of the finding sets.
+    fn findings_scoped(&self, data: &RdfDataset, subjects: &BTreeSet<String>) -> BTreeSet<Key> {
         let report =
             validate_dataset(data, &self.shapes).expect("native SHACL validation must succeed");
         report
             .results
             .iter()
+            .filter(|r| match &r.focus_node {
+                Term::NamedNode(n) => subjects.contains(n.as_str()),
+                _ => false,
+            })
             .map(|r| Key {
                 focus: term_string(&r.focus_node),
                 severity: severity_iri(&r.severity),
@@ -459,6 +556,7 @@ fn tally() -> Corpus {
     let root = repo_root();
     let authored_union = Union::load(&authored_shape_files(&root));
     let projected_union = Union::load(&projected_shape_files(&root));
+    let ontology = authored_ontology(&root);
 
     let mut authored = BTreeSet::new();
     let mut projected = BTreeSet::new();
@@ -466,8 +564,12 @@ fn tally() -> Corpus {
 
     for fixture in corpus(&root) {
         let data = load_data(&fixture.path);
-        let a = authored_union.findings(&data);
-        let p = projected_union.findings(&data);
+        let subjects = fixture_subjects(&data);
+        // Validate in the SAME context the live validator uses: the fixture merged
+        // with the authored ontology, scoped back to the fixture's own subjects.
+        let merged = merge_with_ontology(&data, &ontology);
+        let a = authored_union.findings_scoped(&merged, &subjects);
+        let p = projected_union.findings_scoped(&merged, &subjects);
         authored.extend(a.iter().cloned());
         projected.extend(p.iter().cloned());
         per_fixture.push((fixture.label, fixture.intent, a, p));
