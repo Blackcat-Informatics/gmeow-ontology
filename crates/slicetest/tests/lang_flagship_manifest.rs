@@ -12,9 +12,6 @@
 use gmeow_slicetest::flagship::assert_flagship_manifest;
 use gmeow_slicetest::paths::slices_root;
 
-/// The lang layer namespace the manifest's scenarios and properties live under.
-const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
-
 /// The five canonical flagship-scenario IRIs the epic's depth bar requires.
 const CANONICAL: [&str; 5] = [
     "https://blackcatinformatics.ca/gmeow/examples/lang/acceptance/sentenceToFormula",
@@ -27,5 +24,5 @@ const CANONICAL: [&str; 5] = [
 #[test]
 fn every_flagship_scenario_is_wired_to_a_green_competency_and_real_artifacts() {
     let slice = slices_root().join("grounding").join("lang");
-    assert_flagship_manifest(&slice, LANG_NS, &CANONICAL);
+    assert_flagship_manifest(&slice, &CANONICAL);
 }

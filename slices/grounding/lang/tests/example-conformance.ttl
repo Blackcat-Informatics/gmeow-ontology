@@ -522,21 +522,24 @@ ex:ecGmnUncostedScriptGlyph a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example admits a lang:Grapheme to gmeow:gmnScript with a canonical codepoint but no gmeow:gmnGlyphTokenCost (the sh:sparql of lang:GmnScriptGlyphCoverageShape), so validation MUST emit shacl.SPARQLConstraintComponent (lang:GmnUncostedScriptGlyph); the glyph is grounded and canonically spelled, so no other shape fires." .
 
-# === Flagship acceptance manifest: the wiring shape bites ==================== #
+# === Flagship acceptance manifest: the failure-range shape bites ============= #
+#
+# The shared cardinality wiring (an example, competency, producer, counter-example, and
+# enforcing class, each exactly once) is now the shared gmeow:FlagshipScenarioShape's job
+# (shapes/gmeow-shapes.ttl), gated positively over examples/flagship-acceptance.ttl by
+# `make validate` and by the native flagship cross-check (a missing required link drops the
+# scenario from the coverage set). This slice's thin lang:FlagshipScenarioShape carries
+# ONLY the failure-range sh:sparql, so the per-slice conformance cells exercise exactly
+# that: a well-formed scenario conforms, and one whose enforcing class is not a
+# lang:LangConformanceFailure subclass raises shacl.SPARQLConstraintComponent.
 
 ex:ecFlagshipCanonical a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/flagship-scenario-canonical.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A lang:FlagshipScenario binding all realizing artifacts (lang:demonstratedByExample, lang:demonstratedByCompetency, lang:demonstratedByProducer, lang:guardedByCounterExample) and naming an enforcing failure class that IS a lang:LangConformanceFailure subclass (lang:UnderspecifiedDenotation) satisfies lang:FlagshipScenarioShape's cardinalities and its sh:sparql subclass check, and validates with no findings." .
-
-ex:ecFlagshipUnwired a gmeow:ExampleConformance ;
-    gmeow:exampleFile "tests/counter-examples/flagship-scenario-unwired.ttl" ;
-    gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example is a lang:FlagshipScenario that binds its example, competency, and counter-example but omits lang:enforcesFailureClass (sh:minCount 1 on lang:FlagshipScenarioShape); the other three links are present so only the missing-enforcing-class violation fires, and validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:UnwiredFlagshipScenario)." .
+    gmeow:conformanceRationale "A gmeow:FlagshipScenario binding all realizing artifacts (gmeow:demonstratedByExample, gmeow:demonstratedByCompetency, gmeow:demonstratedByProducer, gmeow:guardedByCounterExample) and naming an enforcing failure class that IS a lang:LangConformanceFailure subclass (lang:UnderspecifiedDenotation) passes the slice's thin lang:FlagshipScenarioShape failure-range sh:sparql, and validates with no findings." .
 
 ex:ecFlagshipNonFailureClass a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/flagship-scenario-nonfailure-class.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example is a lang:FlagshipScenario binding all links (lang:demonstratedByExample, lang:demonstratedByCompetency, lang:guardedByCounterExample, and lang:enforcesFailureClass), so every sh:minCount branch is satisfied, but lang:enforcesFailureClass names lang:Grammar — a real class that is NOT a lang:LangConformanceFailure subclass (the sh:sparql subclass check of lang:FlagshipScenarioShape). Only the sh:sparql constraint fires, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:UnwiredFlagshipScenario) — the enforcing failure class is checked by value." .
+    gmeow:conformanceRationale "The counter-example is a gmeow:FlagshipScenario whose gmeow:enforcesFailureClass names lang:Grammar — a real class that is NOT a lang:LangConformanceFailure subclass (the failure-range sh:sparql of the slice's thin lang:FlagshipScenarioShape). That constraint fires, so validation MUST emit shacl.SPARQLConstraintComponent (lang:UnwiredFlagshipScenario) — the enforcing failure class is checked by value." .
