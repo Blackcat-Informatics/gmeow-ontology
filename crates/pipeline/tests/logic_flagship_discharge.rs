@@ -32,14 +32,15 @@ use gmeow_errors::Severity;
 use gmeow_logic::conjecture::conjecture_test;
 use gmeow_logic::correspondence_exec::leg_pair_verdict;
 use gmeow_logic::counterfactual::construct_and_resolve;
-use gmeow_logic::explain::{Row, assert_faithful, explain_one, reifier_from_row};
+use gmeow_logic::explain::{Row, assert_faithful, explain_one};
 use gmeow_logic::materialize::{ChaseAdmission, materialize_routed};
-use gmeow_logic::provenance::ASSERT_RULE_IRI;
+use gmeow_logic::provenance::{ASSERT_RULE_IRI, term_display};
 use gmeow_logic::query_ir::{Budget, parse_query_program};
 use gmeow_logic::reason::reason_all;
+use gmeow_logic::seam::DerivedQuad;
 use gmeow_logic::store::WorldStore;
 use gmeow_logic_compile::ir::{DischargeVerdict, Formula, LegPath, Term};
-use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
 
 mod support;
 use support::flagship_discharge::{
@@ -291,62 +292,48 @@ fn run_chase() {
         "FS5: the surfaced gmeow:Finding must be non-empty (it carries the proof evidence)"
     );
 
-    // The derivation carries a faithful explanation trace whose cited witness IRIs are all
-    // present in the trace set — assert_faithful rejects any fabricated witness.
-    assert_chase_derivation_is_faithfully_explained();
-}
-
-/// Build a small faithful derivation (two asserted facts + one derived quad citing their
-/// reifiers) and assert that `explain_one` reconstructs it and `assert_faithful` accepts it
-/// with a non-empty set of cited witness IRIs — the explain-trace half of the FS5 datum.
-fn assert_chase_derivation_is_faithfully_explained() {
-    let graph = "https://ex/world".to_owned();
-    let subof = "https://ex/subOf".to_owned();
-    let (a, b, c) = ("https://ex/A", "https://ex/B", "https://ex/C");
-
-    // Two asserted facts. Their source_quad_ids are their own reifiers (the asserted-leaf
-    // convention); the reifier depends only on subject/predicate/obj, so compute it first.
-    let mut ab = Row {
-        graph: graph.clone(),
-        subject: a.to_owned(),
-        predicate: subof.clone(),
-        obj: format!("<{b}>"),
-        derivation_id: "d-ab".to_owned(),
-        rule_iri: ASSERT_RULE_IRI.to_owned(),
-        source_quad_ids: vec![],
-    };
-    let r_ab = reifier_from_row(&ab);
-    ab.source_quad_ids = vec![r_ab.clone()];
-
-    let mut bc = Row {
-        graph: graph.clone(),
-        subject: b.to_owned(),
-        predicate: subof.clone(),
-        obj: format!("<{c}>"),
-        derivation_id: "d-bc".to_owned(),
-        rule_iri: ASSERT_RULE_IRI.to_owned(),
-        source_quad_ids: vec![],
-    };
-    let r_bc = reifier_from_row(&bc);
-    bc.source_quad_ids = vec![r_bc.clone()];
-
-    // The derived transitive quad cites the two asserted reifiers as its antecedents.
-    let ac = Row {
-        graph: graph.clone(),
-        subject: a.to_owned(),
-        predicate: subof.clone(),
-        obj: format!("<{c}>"),
-        derivation_id: "d-ac".to_owned(),
-        rule_iri: "https://ex/ruleTransitiveSubOf".to_owned(),
-        source_quad_ids: vec![r_ab, r_bc],
-    };
-
-    let rows = vec![ab, bc, ac];
-    let expl = explain_one(&rows, 2).expect("FS5: the derived quad's explanation reconstructs");
+    // The derivation carries a faithful explanation trace over `materialize_routed`'s OWN
+    // output — never a fabricated stand-in trace. Convert the chase's real derived quads to
+    // the explain surface's `Row`s (reproducing, not re-deriving, the SAME reifier
+    // `materialize_routed` already minted into `source_quad_ids`), locate the invented
+    // `hasAncestor` quad the chase actually derived, and assert its explanation is non-empty
+    // and faithful — assert_faithful rejects any fabricated witness.
+    let rows: Vec<Row> = m.quads.iter().map(quad_to_row).collect();
+    let target = rows
+        .iter()
+        .position(|row| row.rule_iri != ASSERT_RULE_IRI)
+        .expect("FS5: the chase must have derived at least one non-asserted (IDB) quad");
+    let expl = explain_one(&rows, target)
+        .expect("FS5: the real chase-derived quad's explanation must reconstruct");
     assert!(
         !expl.cited_iris.is_empty(),
-        "FS5: the explanation must cite witness IRIs"
+        "FS5: the explanation over the real chase output must cite witness IRIs"
     );
-    assert_faithful(&expl, &rows)
-        .expect("FS5: every cited witness IRI must be present in the derivation trace");
+    assert_faithful(&expl, &rows).expect(
+        "FS5: every witness IRI cited in the real chase's explanation must be present in the \
+         derivation trace",
+    );
+}
+
+/// Convert a chase-materialized [`DerivedQuad`] into the `explain` surface's [`Row`]: the bare
+/// subject/predicate IRIs plus the `term_display`-rendered object N3 form reproduce, byte for
+/// byte, the SAME `mint_reifier` recipe `materialize_routed` already used to mint this quad's
+/// entries in `source_quad_ids` — this is a second READER of that one provenance scheme, not a
+/// second scheme.
+fn quad_to_row(dq: &DerivedQuad) -> Row {
+    let subject = match &dq.subject {
+        TermValue::Iri(iri) => iri.clone(),
+        other => panic!(
+            "FS5: a world-scoped chase quad's subject must be an IRI (or Skolem IRI); got {other:?}"
+        ),
+    };
+    Row {
+        graph: dq.graph.clone(),
+        subject,
+        predicate: dq.predicate.clone(),
+        obj: term_display(&dq.object),
+        derivation_id: dq.derivation_id.as_str().to_owned(),
+        rule_iri: dq.rule_iri.clone(),
+        source_quad_ids: dq.source_quad_ids.clone(),
+    }
 }
