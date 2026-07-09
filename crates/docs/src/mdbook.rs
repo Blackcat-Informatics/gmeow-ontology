@@ -62,8 +62,10 @@ pub fn render_book(model: &DocsModel, exec: &ExecutableDocsData) -> Site {
 
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     files.insert("book.toml".to_string(), book_toml(model).into_bytes());
+    // mdbook resolves the table of contents at `<src>/SUMMARY.md` (src defaults to
+    // `src`), so the summary rides inside the source tree, not at the book root.
     files.insert(
-        "SUMMARY.md".to_string(),
+        "src/SUMMARY.md".to_string(),
         summary_md(model, &pages).into_bytes(),
     );
 
@@ -168,7 +170,15 @@ fn summary_md(model: &DocsModel, pages: &[Page]) -> String {
     // Terms bucketed by category (the category-index ordering is fixed below).
     let mut terms_by_category: BTreeMap<DocTermCategory, Vec<&Page>> = BTreeMap::new();
 
+    // Distinct term IRIs can slugify to the same chapter path (the site archive
+    // collapses them to one page via its BTreeMap; the last writer wins). mdbook
+    // rejects a SUMMARY.md that lists the same chapter file twice, so the table of
+    // contents must list each chapter path exactly once — dedup on the chapter dir.
+    let mut seen: BTreeSet<String> = BTreeSet::new();
     for page in pages {
+        if !seen.insert(page.dir()) {
+            continue;
+        }
         match page {
             Page::Slice(_) => slices.push(page),
             Page::Concern(_) => concerns.push(page),

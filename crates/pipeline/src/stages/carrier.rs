@@ -4607,7 +4607,7 @@ mod ustar_tests {
         assert!(
             members
                 .iter()
-                .any(|(n, _)| n == "x-gmeow-english/SUMMARY.md"),
+                .any(|(n, _)| n == "x-gmeow-english/src/SUMMARY.md"),
             "the mdbook SUMMARY.md must be present"
         );
 
@@ -4693,7 +4693,7 @@ mod ustar_tests {
         let book = bundle.docs_book().expect("docs_book resolves");
         assert!(
             book.contains_key("x-gmeow-english/book.toml")
-                && book.contains_key("x-gmeow-english/SUMMARY.md"),
+                && book.contains_key("x-gmeow-english/src/SUMMARY.md"),
             "docs_book() must resolve the mdbook anchor members; got {:?}",
             book.keys().take(4).collect::<Vec<_>>()
         );
