@@ -2422,9 +2422,9 @@ fn extract_constraints(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) ->
     for subj in subjects_with(store, &nn(RDF_TYPE), &constraint_ty) {
         match read_constraint(store, &subj) {
             Ok(c) => constraints.push(c),
-            Err(message) => diagnostics.push(Diagnostic::warning(
+            Err(err) => diagnostics.push(Diagnostic::warning(
                 "MALFORMED_CONSTRAINT",
-                message,
+                err.message().to_owned(),
                 Some(subject_str(&subj)),
             )),
         }
@@ -2447,37 +2447,35 @@ pub fn extract_all_constraints(store: &RdfDataset) -> (Vec<ConstraintIr>, Vec<Di
     (constraints, diagnostics)
 }
 
-/// The constraint-sugar readers surface a fail-soft `String` reason (rendered as one
-/// `MALFORMED_CONSTRAINT` warning), whereas the shared `logic` IR constructors return a
-/// structured [`Diag`]. These thin adapters flatten a constructor `Diag` back to the reader
-/// surface's `String`, so a malformed record degrades to a warning rather than aborting the parse.
-fn iri_term(iri: impl Into<String>) -> Result<Term, String> {
-    Term::iri(iri).map_err(|e| e.message().to_owned())
-}
-fn lit_term(lexical: impl Into<String>, datatype: Option<String>) -> Result<Term, String> {
-    Term::literal(lexical, datatype).map_err(|e| e.message().to_owned())
-}
-fn atom_form(relation: Term, args: Vec<Term>) -> Result<Formula, String> {
-    Formula::atom(relation, args).map_err(|e| e.message().to_owned())
+/// Build a `MALFORMED_CONSTRAINT`-grade frontend [`Diag`] from a message. The constraint-sugar
+/// readers surface a fail-soft reason (rendered as one warning) as the structured [`Diag`] that is
+/// the sole first-party error type (the Phase-6 Diag substrate); a malformed record degrades to a
+/// warning rather than aborting the parse.
+fn sugar_err(detail: impl Into<String>) -> Diag {
+    Diag::of_kind(crate::error::Frontend {
+        detail: detail.into(),
+    })
 }
 
 /// Reconstruct one [`ConstraintIr`] rooted at a `logic:Constraint` node, or return a
 /// human-readable reason the constraint is malformed (surfaced as one `MALFORMED_CONSTRAINT`
 /// warning by [`extract_constraints`]).
-fn read_constraint(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+fn read_constraint(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<ConstraintIr> {
     let iri = subject_str(node);
     let integrity_node = child_subject(store, node, "integrity").ok_or_else(|| {
-        "logic:Constraint has no logic:integrity formula (or it is not a resource)".to_owned()
+        sugar_err("logic:Constraint has no logic:integrity formula (or it is not a resource)")
     })?;
     let integrity = parse_formula(store, &integrity_node).ok_or_else(|| {
-        "logic:Constraint integrity formula could not be reconstructed".to_owned()
+        sugar_err("logic:Constraint integrity formula could not be reconstructed")
     })?;
     // Absent severity ⇒ the SHACL default `Violation`; an unrecognized token is a hard error.
     let severity = match value(store, node, &nn(&logic_iri("severity"))) {
         Some(t) => {
             let token = term_str(&t);
             ShaclSeverity::from_local(&token).ok_or_else(|| {
-                format!("logic:severity '{token}' is not one of Violation/Warning/Info")
+                sugar_err(format!(
+                    "logic:severity '{token}' is not one of Violation/Warning/Info"
+                ))
             })?
         }
         None => ShaclSeverity::Violation,
@@ -2506,12 +2504,12 @@ fn t_var(n: &str) -> Term {
 }
 
 /// A binary atom `rel(a, b)` (relation is always an IRI).
-fn f_atom2(rel: &str, a: Term, b: Term) -> Result<Formula, String> {
-    atom_form(iri_term(rel)?, vec![a, b])
+fn f_atom2(rel: &str, a: Term, b: Term) -> gmeow_errors::Result<Formula> {
+    Formula::atom(Term::iri(rel)?, vec![a, b])
 }
 
 /// An existential `∃ var . pred(this, var)` — "the focus has some value on `pred`".
-fn f_pred_exists(pred: &str, var: &str) -> Result<Formula, String> {
+fn f_pred_exists(pred: &str, var: &str) -> gmeow_errors::Result<Formula> {
     Ok(Formula::Exists {
         vars: vec![var.to_owned()],
         body: Box::new(f_atom2(pred, t_var("this"), t_var(var))?),
@@ -2519,8 +2517,8 @@ fn f_pred_exists(pred: &str, var: &str) -> Result<Formula, String> {
 }
 
 /// A class-membership guard atom `rdf:type(this, class)`.
-fn f_guard_class(class: &str) -> Result<Formula, String> {
-    f_atom2(RDF_TYPE, t_var("this"), iri_term(class)?)
+fn f_guard_class(class: &str) -> gmeow_errors::Result<Formula> {
+    f_atom2(RDF_TYPE, t_var("this"), Term::iri(class)?)
 }
 
 /// Wrap `consequent` in the canonical range-restricted guarded universal
@@ -2533,11 +2531,11 @@ fn f_forall_this(guard: Formula, consequent: Formula) -> Formula {
 }
 
 /// The required `logic:onClass` target of a sugar record.
-fn sugar_target_class(store: &RdfDataset, node: &Subject) -> Result<String, String> {
+fn sugar_target_class(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<String> {
     value(store, node, &nn(&logic_iri("onClass")))
         .map(|t| term_str(&t))
         .ok_or_else(|| {
-            "constraint-sugar record requires logic:onClass (the target class)".to_owned()
+            sugar_err("constraint-sugar record requires logic:onClass (the target class)")
         })
 }
 
@@ -2550,12 +2548,14 @@ fn sugar_optional_target_class(store: &RdfDataset, node: &Subject) -> Option<Str
 }
 
 /// The `logic:severity` of a sugar record (absent ⇒ the SHACL default `Violation`).
-fn sugar_severity(store: &RdfDataset, node: &Subject) -> Result<ShaclSeverity, String> {
+fn sugar_severity(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<ShaclSeverity> {
     match value(store, node, &nn(&logic_iri("severity"))) {
         Some(t) => {
             let token = term_str(&t);
             ShaclSeverity::from_local(&token).ok_or_else(|| {
-                format!("logic:severity '{token}' is not one of Violation/Warning/Info")
+                sugar_err(format!(
+                    "logic:severity '{token}' is not one of Violation/Warning/Info"
+                ))
             })
         }
         None => Ok(ShaclSeverity::Violation),
@@ -2580,14 +2580,15 @@ fn finalize_sugar(
     store: &RdfDataset,
     node: &Subject,
     integrity: Formula,
-) -> Result<ConstraintIr, String> {
+) -> gmeow_errors::Result<ConstraintIr> {
     let severity = sugar_severity(store, node)?;
     let message = value(store, node, &nn(&logic_iri("message"))).map(|t| term_str(&t));
     let formalizes = value(store, node, &nn(&logic_iri("formalizes")))
         .map(|t| term_str(&t))
         .ok_or_else(|| {
-            "constraint-sugar record requires logic:formalizes (the gmeow term it formalizes)"
-                .to_owned()
+            sugar_err(
+                "constraint-sugar record requires logic:formalizes (the gmeow term it formalizes)",
+            )
         })?;
     ConstraintIr::new(subject_str(node), integrity, severity, message)?.with_formalizes(formalizes)
 }
@@ -2595,17 +2596,17 @@ fn finalize_sugar(
 /// P1 — choice-group cardinality: a target class + a set of predicates + a mode
 /// (`exactly-one` / `at-most-one`; `exactly-one-of-N` is an alias of `exactly-one`). Expands to
 /// the XOR / at-most formula over `∃`-requiredness of each predicate.
-fn read_choice_group(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+fn read_choice_group(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_target_class(store, node)?;
     let preds = sugar_iri_list(store, node, "choicePredicate");
     if preds.len() < 2 {
-        return Err(
-            "logic:ChoiceGroupConstraint needs at least two logic:choicePredicate".to_owned(),
-        );
+        return Err(sugar_err(
+            "logic:ChoiceGroupConstraint needs at least two logic:choicePredicate",
+        ));
     }
     let mode = value(store, node, &nn(&logic_iri("choiceMode")))
         .map(|t| term_str(&t).trim().to_ascii_lowercase())
-        .ok_or_else(|| "logic:ChoiceGroupConstraint requires logic:choiceMode".to_owned())?;
+        .ok_or_else(|| sugar_err("logic:ChoiceGroupConstraint requires logic:choiceMode"))?;
     let ex = |i: usize| f_pred_exists(&preds[i], &format!("v{i}"));
     let consequent = match mode.as_str() {
         "exactly-one" | "exactly-one-of-n" => {
@@ -2637,9 +2638,9 @@ fn read_choice_group(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr,
             }
         }
         other => {
-            return Err(format!(
+            return Err(sugar_err(format!(
                 "logic:choiceMode '{other}' must be exactly-one / at-most-one / exactly-one-of-N"
-            ));
+            )));
         }
     };
     finalize_sugar(
@@ -2657,29 +2658,31 @@ fn read_choice_group(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr,
 /// [`ConstraintIr::new`] derives a `sh:targetSubjectsOf trigger` target (the "subjects of a
 /// predicate must carry a companion" pattern the grounding slices lean on, e.g. a claim
 /// carrying one field must declare the field that grounds it).
-fn read_guarded_implication(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+fn read_guarded_implication(
+    store: &RdfDataset,
+    node: &Subject,
+) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_optional_target_class(store, node);
     let trigger = value(store, node, &nn(&logic_iri("trigger")))
         .map(|t| term_str(&t))
-        .ok_or_else(|| "logic:GuardedImplicationConstraint requires logic:trigger".to_owned())?;
+        .ok_or_else(|| sugar_err("logic:GuardedImplicationConstraint requires logic:trigger"))?;
     let companions = sugar_iri_list(store, node, "requires");
     if companions.is_empty() {
-        return Err(
+        return Err(sugar_err(
             "logic:GuardedImplicationConstraint requires at least one logic:requires companion \
-             predicate"
-                .to_owned(),
-        );
+             predicate",
+        ));
     }
     // The trigger atom: pinned to a fixed object value when `logic:triggerValue` is present, else
     // an existential occurrence `trigger(this, ?t)` (the mere presence of the trigger predicate).
     let trigger_atom = match value(store, node, &nn(&logic_iri("triggerValue"))) {
         Some(v) => {
             let obj = match &v {
-                Node::Iri(i) => iri_term(i)?,
+                Node::Iri(i) => Term::iri(i)?,
                 Node::Lit {
                     lexical, datatype, ..
-                } => lit_term(lexical.clone(), datatype.clone())?,
-                _ => return Err("logic:triggerValue must be an IRI or a literal".to_owned()),
+                } => Term::literal(lexical.clone(), datatype.clone())?,
+                _ => return Err(sugar_err("logic:triggerValue must be an IRI or a literal")),
             };
             f_atom2(&trigger, t_var("this"), obj)?
         }
@@ -2709,14 +2712,13 @@ fn read_guarded_implication(store: &RdfDataset, node: &Subject) -> Result<Constr
 fn read_disjunctive_requiredness(
     store: &RdfDataset,
     node: &Subject,
-) -> Result<ConstraintIr, String> {
+) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_target_class(store, node)?;
     let preds = sugar_iri_list(store, node, "anyOf");
     if preds.is_empty() {
-        return Err(
-            "logic:DisjunctiveRequirednessConstraint requires at least one logic:anyOf predicate"
-                .to_owned(),
-        );
+        return Err(sugar_err(
+            "logic:DisjunctiveRequirednessConstraint requires at least one logic:anyOf predicate",
+        ));
     }
     let mut disj: Vec<Formula> = Vec::with_capacity(preds.len());
     for (i, p) in preds.iter().enumerate() {
@@ -2745,47 +2747,44 @@ fn read_disjunctive_requiredness(
 /// The fixed-value variant reuses the identical nested-`∀` lowering as the class variant (only the
 /// consequent atom differs), so the projector needs no new lowering — a value reached by a path
 /// must carry a given predicate=value, not only `rdf:type C`.
-fn read_path_value_type(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+fn read_path_value_type(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_target_class(store, node)?;
     let path = value(store, node, &nn(&logic_iri("valuePath")))
         .map(|t| term_str(&t))
-        .ok_or_else(|| "logic:PathValueTypeConstraint requires logic:valuePath".to_owned())?;
+        .ok_or_else(|| sugar_err("logic:PathValueTypeConstraint requires logic:valuePath"))?;
     // The membership atom over the bound value `v`: a class (`rdf:type(v, D)`) or a fixed
     // predicate=value (`Q(v, o)`). Exactly one form must be authored.
     let value_class = value(store, node, &nn(&logic_iri("valueClass"))).map(|t| term_str(&t));
     let value_predicate =
         value(store, node, &nn(&logic_iri("valuePredicate"))).map(|t| term_str(&t));
     let membership = match (value_class, value_predicate) {
-        (Some(d), None) => f_atom2(RDF_TYPE, t_var("v"), iri_term(&d)?)?,
+        (Some(d), None) => f_atom2(RDF_TYPE, t_var("v"), Term::iri(&d)?)?,
         (None, Some(q)) => {
             let obj = match value(store, node, &nn(&logic_iri("valueObject"))) {
-                Some(Node::Iri(i)) => iri_term(&i)?,
+                Some(Node::Iri(i)) => Term::iri(&i)?,
                 Some(Node::Lit {
                     lexical, datatype, ..
-                }) => lit_term(lexical, datatype)?,
+                }) => Term::literal(lexical, datatype)?,
                 _ => {
-                    return Err(
+                    return Err(sugar_err(
                         "logic:PathValueTypeConstraint with logic:valuePredicate requires a \
-                         logic:valueObject (an IRI or a literal)"
-                            .to_owned(),
-                    );
+                         logic:valueObject (an IRI or a literal)",
+                    ));
                 }
             };
             f_atom2(&q, t_var("v"), obj)?
         }
         (Some(_), Some(_)) => {
-            return Err(
+            return Err(sugar_err(
                 "logic:PathValueTypeConstraint takes EITHER logic:valueClass OR \
-                 logic:valuePredicate, not both"
-                    .to_owned(),
-            );
+                 logic:valuePredicate, not both",
+            ));
         }
         (None, None) => {
-            return Err(
+            return Err(sugar_err(
                 "logic:PathValueTypeConstraint requires logic:valueClass (a class) or \
-                 logic:valuePredicate + logic:valueObject (a fixed predicate=value)"
-                    .to_owned(),
-            );
+                 logic:valuePredicate + logic:valueObject (a fixed predicate=value)",
+            ));
         }
     };
     let inner = Formula::Forall {
@@ -2801,17 +2800,17 @@ fn read_path_value_type(store: &RdfDataset, node: &Subject) -> Result<Constraint
 /// P5 — cross-node co-occurrence / inequality: a target class + two roles that must
 /// **co-occur** (present together) or **differ** (never bind the same value). Expands to the
 /// join + inequality (`logic:termDistinct` / `logic:termEqual` filter) or bi-implication form.
-fn read_cross_node(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+fn read_cross_node(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_target_class(store, node)?;
     let role_a = value(store, node, &nn(&logic_iri("roleA")))
         .map(|t| term_str(&t))
-        .ok_or_else(|| "logic:CrossNodeConstraint requires logic:roleA".to_owned())?;
+        .ok_or_else(|| sugar_err("logic:CrossNodeConstraint requires logic:roleA"))?;
     let role_b = value(store, node, &nn(&logic_iri("roleB")))
         .map(|t| term_str(&t))
-        .ok_or_else(|| "logic:CrossNodeConstraint requires logic:roleB".to_owned())?;
+        .ok_or_else(|| sugar_err("logic:CrossNodeConstraint requires logic:roleB"))?;
     let mode = value(store, node, &nn(&logic_iri("crossMode")))
         .map(|t| term_str(&t).trim().to_ascii_lowercase())
-        .ok_or_else(|| "logic:CrossNodeConstraint requires logic:crossMode".to_owned())?;
+        .ok_or_else(|| sugar_err("logic:CrossNodeConstraint requires logic:crossMode"))?;
     let consequent = match mode.as_str() {
         // Co-occur: role A present iff role B present (each implies the other).
         "co-occur" | "cooccur" => {
@@ -2832,9 +2831,9 @@ fn read_cross_node(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, S
             ])),
         })),
         other => {
-            return Err(format!(
+            return Err(sugar_err(format!(
                 "logic:crossMode '{other}' must be co-occur or differ"
-            ));
+            )));
         }
     };
     finalize_sugar(
@@ -2847,21 +2846,28 @@ fn read_cross_node(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, S
 /// P7 — forbidden pattern: a target class + a forbidden predicate (optionally pinned to a
 /// forbidden value). Expands to `∀ this . C(this) → ¬∃ b . forbidden(this, b)` (or the
 /// pinned-value form `¬ forbidden(this, value)`).
-fn read_forbidden_pattern(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+fn read_forbidden_pattern(
+    store: &RdfDataset,
+    node: &Subject,
+) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_target_class(store, node)?;
     let forbidden = value(store, node, &nn(&logic_iri("forbiddenPredicate")))
         .map(|t| term_str(&t))
         .ok_or_else(|| {
-            "logic:ForbiddenPatternConstraint requires logic:forbiddenPredicate".to_owned()
+            sugar_err("logic:ForbiddenPatternConstraint requires logic:forbiddenPredicate")
         })?;
     let consequent = match value(store, node, &nn(&logic_iri("forbiddenValue"))) {
         Some(v) => {
             let obj = match &v {
-                Node::Iri(i) => iri_term(i)?,
+                Node::Iri(i) => Term::iri(i)?,
                 Node::Lit {
                     lexical, datatype, ..
-                } => lit_term(lexical.clone(), datatype.clone())?,
-                _ => return Err("logic:forbiddenValue must be an IRI or a literal".to_owned()),
+                } => Term::literal(lexical.clone(), datatype.clone())?,
+                _ => {
+                    return Err(sugar_err(
+                        "logic:forbiddenValue must be an IRI or a literal",
+                    ));
+                }
             };
             Formula::Not(Box::new(f_atom2(&forbidden, t_var("this"), obj)?))
         }
@@ -2879,16 +2885,16 @@ fn read_forbidden_pattern(store: &RdfDataset, node: &Subject) -> Result<Constrai
 /// literal). Expands to a [`ConstraintIr`] carrying BOTH the honest reified FOL integrity (so the
 /// Convert an authored object [`Node`] (IRI or literal) to a FOL [`Term`], preserving the
 /// distinction so a set member / string pattern round-trips as the right SPARQL token.
-fn node_to_term(n: &Node) -> Result<Term, String> {
+fn node_to_term(n: &Node) -> gmeow_errors::Result<Term> {
     match n {
-        Node::Iri(i) => iri_term(i),
+        Node::Iri(i) => Term::iri(i),
         Node::Lit {
             lexical, datatype, ..
-        } => lit_term(lexical.clone(), datatype.clone()),
-        other => Err(format!(
+        } => Term::literal(lexical.clone(), datatype.clone()),
+        other => Err(sugar_err(format!(
             "a set member must be an IRI or literal, not {}",
             term_str(other)
-        )),
+        ))),
     }
 }
 
@@ -2898,11 +2904,14 @@ fn node_to_term(n: &Node) -> Result<Term, String> {
 /// value-path presence is the range restriction (→ `sh:targetSubjectsOf P`). Integrity:
 /// required  `∀this. guard → ∀v. P(this,v) → termIn(v, {v…})`;
 /// forbidden `∀this. guard → ¬∃v. P(this,v) ∧ termIn(v, {v…})`.
-fn read_value_set_membership(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+fn read_value_set_membership(
+    store: &RdfDataset,
+    node: &Subject,
+) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_optional_target_class(store, node);
     let path = value(store, node, &nn(&logic_iri("valuePath")))
         .map(|t| term_str(&t))
-        .ok_or_else(|| "logic:ValueSetMembershipConstraint requires logic:valuePath".to_owned())?;
+        .ok_or_else(|| sugar_err("logic:ValueSetMembershipConstraint requires logic:valuePath"))?;
     let members: Vec<Term> = {
         let mut nodes = objects(store, node, &nn(&logic_iri("memberValue")));
         // Deterministic, source-order-independent expansion.
@@ -2911,16 +2920,16 @@ fn read_value_set_membership(store: &RdfDataset, node: &Subject) -> Result<Const
         nodes.iter().map(node_to_term).collect::<Result<_, _>>()?
     };
     if members.is_empty() {
-        return Err(
-            "logic:ValueSetMembershipConstraint requires at least one logic:memberValue".to_owned(),
-        );
+        return Err(sugar_err(
+            "logic:ValueSetMembershipConstraint requires at least one logic:memberValue",
+        ));
     }
     let mode = value(store, node, &nn(&logic_iri("membershipMode")))
         .map(|t| term_str(&t))
         .unwrap_or_else(|| "required".to_owned());
     let mut in_args = vec![t_var("v")];
     in_args.extend(members);
-    let in_atom = atom_form(iri_term(logic_iri("termIn"))?, in_args)?;
+    let in_atom = Formula::atom(Term::iri(logic_iri("termIn"))?, in_args)?;
     let inner = match mode.trim() {
         "required" => Formula::Forall {
             vars: vec!["v".to_owned()],
@@ -2937,9 +2946,9 @@ fn read_value_set_membership(store: &RdfDataset, node: &Subject) -> Result<Const
             ])),
         })),
         other => {
-            return Err(format!(
+            return Err(sugar_err(format!(
                 "logic:membershipMode '{other}' is not one of required/forbidden"
-            ));
+            )));
         }
     };
     let guard = match &class {
@@ -2954,25 +2963,26 @@ fn read_value_set_membership(store: &RdfDataset, node: &Subject) -> Result<Const
 /// `logic:stringOp` test (`regex…` → `REGEX`, `prefix…` → `STRSTARTS`). Integrity:
 /// required  `∀this. guard → ∀v. P(this,v) → rel(v, pattern)`;
 /// forbidden `∀this. guard → ¬∃v. P(this,v) ∧ rel(v, pattern)`.
-fn read_string_pattern(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+fn read_string_pattern(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_optional_target_class(store, node);
     let path = value(store, node, &nn(&logic_iri("valuePath")))
         .map(|t| term_str(&t))
-        .ok_or_else(|| "logic:StringPatternConstraint requires logic:valuePath".to_owned())?;
+        .ok_or_else(|| sugar_err("logic:StringPatternConstraint requires logic:valuePath"))?;
     let pattern = match value(store, node, &nn(&logic_iri("stringPattern"))) {
         Some(Node::Lit { lexical, .. }) => lexical,
         _ => {
-            return Err(
-                "logic:StringPatternConstraint requires a literal logic:stringPattern".to_owned(),
-            );
+            return Err(sugar_err(
+                "logic:StringPatternConstraint requires a literal logic:stringPattern",
+            ));
         }
     };
     let op = value(store, node, &nn(&logic_iri("stringOp")))
         .map(|t| term_str(&t))
         .ok_or_else(|| {
-            "logic:StringPatternConstraint requires logic:stringOp \
-             (regexRequired/regexForbidden/prefixRequired/prefixForbidden)"
-                .to_owned()
+            sugar_err(
+                "logic:StringPatternConstraint requires logic:stringOp \
+                 (regexRequired/regexForbidden/prefixRequired/prefixForbidden)",
+            )
         })?;
     let (relation, forbidden) = match op.trim() {
         "regexRequired" => ("termRegex", false),
@@ -2980,15 +2990,15 @@ fn read_string_pattern(store: &RdfDataset, node: &Subject) -> Result<ConstraintI
         "prefixRequired" => ("termStrStarts", false),
         "prefixForbidden" => ("termStrStarts", true),
         other => {
-            return Err(format!(
+            return Err(sugar_err(format!(
                 "logic:stringOp '{other}' is not one of \
                  regexRequired/regexForbidden/prefixRequired/prefixForbidden"
-            ));
+            )));
         }
     };
-    let test_atom = atom_form(
-        iri_term(logic_iri(relation))?,
-        vec![t_var("v"), lit_term(pattern, None)?],
+    let test_atom = Formula::atom(
+        Term::iri(logic_iri(relation))?,
+        vec![t_var("v"), Term::literal(pattern, None)?],
     )?;
     let inner = if forbidden {
         Formula::Not(Box::new(Formula::Exists {
@@ -3016,19 +3026,22 @@ fn read_string_pattern(store: &RdfDataset, node: &Subject) -> Result<ConstraintI
 
 /// FOL canon is complete + the target derives) AND the structured [`AggregateComparison`] satellite
 /// (which drives the real `GROUP BY`/`HAVING` SPARQL projection).
-fn read_aggregate_constraint(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+fn read_aggregate_constraint(
+    store: &RdfDataset,
+    node: &Subject,
+) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_target_class(store, node)?;
     let function = value(store, node, &nn(&logic_iri("aggFunction")))
         .map(|t| term_str(&t))
-        .ok_or_else(|| "logic:AggregateConstraint requires logic:aggFunction".to_owned())?;
+        .ok_or_else(|| sugar_err("logic:AggregateConstraint requires logic:aggFunction"))?;
     let path = value(store, node, &nn(&logic_iri("aggPath")))
         .map(|t| term_str(&t))
-        .ok_or_else(|| "logic:AggregateConstraint requires logic:aggPath".to_owned())?;
+        .ok_or_else(|| sugar_err("logic:AggregateConstraint requires logic:aggPath"))?;
     let comparator = value(store, node, &nn(&logic_iri("aggComparator")))
         .map(|t| term_str(&t))
         .and_then(|s| AggregateComparator::from_symbol(&s))
         .ok_or_else(|| {
-            "logic:AggregateConstraint requires a logic:aggComparator in =/!=/</<=/>/>=".to_owned()
+            sugar_err("logic:AggregateConstraint requires a logic:aggComparator in =/!=/</<=/>/>=")
         })?;
     let distinct = value(store, node, &nn(&logic_iri("aggDistinct")))
         .map(|t| term_str(&t).trim().eq_ignore_ascii_case("true"))
@@ -3041,10 +3054,9 @@ fn read_aggregate_constraint(store: &RdfDataset, node: &Subject) -> Result<Const
             lexical, datatype, ..
         }) => AggregateRhs::Literal { lexical, datatype },
         _ => {
-            return Err(
-                "logic:AggregateConstraint requires logic:aggCompareTo (a property IRI or a literal)"
-                    .to_owned(),
-            );
+            return Err(sugar_err(
+                "logic:AggregateConstraint requires logic:aggCompareTo (a property IRI or a literal)",
+            ));
         }
     };
     let agg = AggregateComparison::new(function, distinct, path, comparator, compare_to)?;
@@ -3054,17 +3066,19 @@ fn read_aggregate_constraint(store: &RdfDataset, node: &Subject) -> Result<Const
     // DISTINCT flag, the path, the comparator, and the right-hand side, so the FOL canon is
     // complete (the SPARQL projection uses the satellite for a real GROUP BY/HAVING instead).
     let rhs_term = match &agg.compare_to {
-        AggregateRhs::Property(p) => iri_term(p)?,
-        AggregateRhs::Literal { lexical, datatype } => lit_term(lexical.clone(), datatype.clone())?,
+        AggregateRhs::Property(p) => Term::iri(p)?,
+        AggregateRhs::Literal { lexical, datatype } => {
+            Term::literal(lexical.clone(), datatype.clone())?
+        }
     };
-    let reified = atom_form(
-        iri_term(logic_iri("aggregateComparison"))?,
+    let reified = Formula::atom(
+        Term::iri(logic_iri("aggregateComparison"))?,
         vec![
             t_var("this"),
-            lit_term(agg.function.clone(), None)?,
-            lit_term(agg.distinct.to_string(), None)?,
-            iri_term(&agg.path)?,
-            lit_term(agg.comparator.as_sparql(), None)?,
+            Term::literal(agg.function.clone(), None)?,
+            Term::literal(agg.distinct.to_string(), None)?,
+            Term::iri(&agg.path)?,
+            Term::literal(agg.comparator.as_sparql(), None)?,
             rhs_term,
         ],
     )?;
@@ -3101,19 +3115,19 @@ fn node_kind_relation(kind: &str) -> Option<&'static str> {
 /// `logic:rightPath Q` + `logic:compareOp OP` where OP is the FORBIDDEN relation, so the violation
 /// is `∃ l, r . P(this, l) ∧ Q(this, r) ∧ OP(l, r)` — e.g. a `gmeow:ScoreScale` whose
 /// `gmeow:scaleMin >= gmeow:scaleMax`. Integrity: `∀ this . C(this) → ¬∃ l, r . (…)`.
-fn read_comparison(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+fn read_comparison(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_target_class(store, node)?;
     let left = value(store, node, &nn(&logic_iri("leftPath")))
         .map(|t| term_str(&t))
-        .ok_or_else(|| "logic:ComparisonConstraint requires logic:leftPath".to_owned())?;
+        .ok_or_else(|| sugar_err("logic:ComparisonConstraint requires logic:leftPath"))?;
     let right = value(store, node, &nn(&logic_iri("rightPath")))
         .map(|t| term_str(&t))
-        .ok_or_else(|| "logic:ComparisonConstraint requires logic:rightPath".to_owned())?;
+        .ok_or_else(|| sugar_err("logic:ComparisonConstraint requires logic:rightPath"))?;
     let op = value(store, node, &nn(&logic_iri("compareOp")))
         .map(|t| term_str(&t))
         .and_then(|s| compare_op_relation(&s))
         .ok_or_else(|| {
-            "logic:ComparisonConstraint requires a logic:compareOp in =/!=/</<=/>/>=".to_owned()
+            sugar_err("logic:ComparisonConstraint requires a logic:compareOp in =/!=/</<=/>/>=")
         })?;
     let forbidden = Formula::Not(Box::new(Formula::Exists {
         vars: vec!["l".to_owned(), "r".to_owned()],
@@ -3135,19 +3149,18 @@ fn read_comparison(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, S
 /// `∀ this . guard → ∀ v . P(this, v) → kind(v)`. With `logic:onClass` the guard is class
 /// membership; without it the trigger predicate `P` is the range restriction (→ `sh:targetSubjectsOf
 /// P`, the "subjects of a predicate — its value must be an IRI" pattern).
-fn read_path_node_kind(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+fn read_path_node_kind(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_optional_target_class(store, node);
     let path = value(store, node, &nn(&logic_iri("valuePath")))
         .map(|t| term_str(&t))
-        .ok_or_else(|| "logic:PathNodeKindConstraint requires logic:valuePath".to_owned())?;
+        .ok_or_else(|| sugar_err("logic:PathNodeKindConstraint requires logic:valuePath"))?;
     let kind = value(store, node, &nn(&logic_iri("nodeKind")))
         .map(|t| term_str(&t))
         .and_then(|s| node_kind_relation(&s))
         .ok_or_else(|| {
-            "logic:PathNodeKindConstraint requires a logic:nodeKind in IRI/BlankNodeOrIRI/Literal"
-                .to_owned()
+            sugar_err("logic:PathNodeKindConstraint requires a logic:nodeKind in IRI/BlankNodeOrIRI/Literal")
         })?;
-    let kind_atom = atom_form(iri_term(logic_iri(kind))?, vec![t_var("v")])?;
+    let kind_atom = Formula::atom(Term::iri(logic_iri(kind))?, vec![t_var("v")])?;
     let inner = Formula::Forall {
         vars: vec!["v".to_owned()],
         body: Box::new(Formula::Implies(
@@ -3170,17 +3183,20 @@ fn read_path_node_kind(store: &RdfDataset, node: &Subject) -> Result<ConstraintI
 /// argument slots with the same slot index. Integrity: `∀ this . guard → ¬∃ (…)`. With
 /// `logic:onClass` the guard is class membership; without it `P` is the range restriction (→
 /// `sh:targetSubjectsOf P`).
-fn read_self_join_uniqueness(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+fn read_self_join_uniqueness(
+    store: &RdfDataset,
+    node: &Subject,
+) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_optional_target_class(store, node);
     let sibling = value(store, node, &nn(&logic_iri("siblingPredicate")))
         .map(|t| term_str(&t))
         .ok_or_else(|| {
-            "logic:SelfJoinUniquenessConstraint requires logic:siblingPredicate".to_owned()
+            sugar_err("logic:SelfJoinUniquenessConstraint requires logic:siblingPredicate")
         })?;
     let shared = value(store, node, &nn(&logic_iri("sharedPredicate")))
         .map(|t| term_str(&t))
         .ok_or_else(|| {
-            "logic:SelfJoinUniquenessConstraint requires logic:sharedPredicate".to_owned()
+            sugar_err("logic:SelfJoinUniquenessConstraint requires logic:sharedPredicate")
         })?;
     let forbidden = Formula::Not(Box::new(Formula::Exists {
         vars: vec!["s1".to_owned(), "s2".to_owned(), "i".to_owned()],
@@ -3203,17 +3219,20 @@ fn read_self_join_uniqueness(store: &RdfDataset, node: &Subject) -> Result<Const
 /// `logic:inversePredicate P` from some subject, optionally typed `logic:subjectClass T`.
 /// Integrity: `∀ this . C(this) → ∃ s . ([T(s) ∧] P(s, this))` — e.g. a `lang:FeatureValue` must
 /// be the `lang:denotationTarget` of some `lang:Denotation`.
-fn read_inverse_existence(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+fn read_inverse_existence(
+    store: &RdfDataset,
+    node: &Subject,
+) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_target_class(store, node)?;
     let inverse = value(store, node, &nn(&logic_iri("inversePredicate")))
         .map(|t| term_str(&t))
         .ok_or_else(|| {
-            "logic:InverseExistenceConstraint requires logic:inversePredicate".to_owned()
+            sugar_err("logic:InverseExistenceConstraint requires logic:inversePredicate")
         })?;
     let subject_class = value(store, node, &nn(&logic_iri("subjectClass"))).map(|t| term_str(&t));
     let mut conj = Vec::new();
     if let Some(t) = &subject_class {
-        conj.push(f_atom2(RDF_TYPE, t_var("s"), iri_term(t)?)?);
+        conj.push(f_atom2(RDF_TYPE, t_var("s"), Term::iri(t)?)?);
     }
     conj.push(f_atom2(&inverse, t_var("s"), t_var("this"))?);
     let existence = Formula::Exists {
@@ -3233,10 +3252,10 @@ fn read_inverse_existence(store: &RdfDataset, node: &Subject) -> Result<Constrai
 
 /// The `logic:` transitive-reachability relation the projector lowers to a `subject <Q>+ target`
 /// property path.
-fn f_transitive_reach(subject: Term, path: &str, target: Term) -> Result<Formula, String> {
-    atom_form(
-        iri_term(logic_iri("transitiveReach"))?,
-        vec![subject, iri_term(path)?, target],
+fn f_transitive_reach(subject: Term, path: &str, target: Term) -> gmeow_errors::Result<Formula> {
+    Formula::atom(
+        Term::iri(logic_iri("transitiveReach"))?,
+        vec![subject, Term::iri(path)?, target],
     )
 }
 
@@ -3247,28 +3266,28 @@ fn f_transitive_reach(subject: Term, path: &str, target: Term) -> Result<Formula
 fn read_transitive_reachability(
     store: &RdfDataset,
     node: &Subject,
-) -> Result<ConstraintIr, String> {
+) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_target_class(store, node)?;
     let via = value(store, node, &nn(&logic_iri("viaPredicate")))
         .map(|t| term_str(&t))
         .ok_or_else(|| {
-            "logic:TransitiveReachabilityConstraint requires logic:viaPredicate".to_owned()
+            sugar_err("logic:TransitiveReachabilityConstraint requires logic:viaPredicate")
         })?;
     let path = value(store, node, &nn(&logic_iri("pathPredicate")))
         .map(|t| term_str(&t))
         .ok_or_else(|| {
-            "logic:TransitiveReachabilityConstraint requires logic:pathPredicate".to_owned()
+            sugar_err("logic:TransitiveReachabilityConstraint requires logic:pathPredicate")
         })?;
     let target = value(store, node, &nn(&logic_iri("reachTarget")))
         .map(|t| term_str(&t))
         .ok_or_else(|| {
-            "logic:TransitiveReachabilityConstraint requires logic:reachTarget".to_owned()
+            sugar_err("logic:TransitiveReachabilityConstraint requires logic:reachTarget")
         })?;
     let inner = Formula::Forall {
         vars: vec!["v".to_owned()],
         body: Box::new(Formula::Implies(
             Box::new(f_atom2(&via, t_var("this"), t_var("v"))?),
-            Box::new(f_transitive_reach(t_var("v"), &path, iri_term(&target)?)?),
+            Box::new(f_transitive_reach(t_var("v"), &path, Term::iri(&target)?)?),
         )),
     };
     finalize_sugar(store, node, f_forall_this(f_guard_class(&class)?, inner))
@@ -3277,11 +3296,11 @@ fn read_transitive_reachability(
 /// An acyclicity constraint: no `logic:onClass C` may reach itself along a one-or-more
 /// `logic:pathPredicate Q` walk. Integrity: `∀ this . C(this) → ¬ (this Q+ this)` — e.g. a form
 /// slot may not depend (transitively) on itself.
-fn read_acyclic(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+fn read_acyclic(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_target_class(store, node)?;
     let path = value(store, node, &nn(&logic_iri("pathPredicate")))
         .map(|t| term_str(&t))
-        .ok_or_else(|| "logic:AcyclicConstraint requires logic:pathPredicate".to_owned())?;
+        .ok_or_else(|| sugar_err("logic:AcyclicConstraint requires logic:pathPredicate"))?;
     let forbidden = Formula::Not(Box::new(f_transitive_reach(
         t_var("this"),
         &path,
@@ -3302,7 +3321,7 @@ fn extract_sugar_constraints(
     store: &RdfDataset,
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Vec<ConstraintIr> {
-    type Reader = fn(&RdfDataset, &Subject) -> Result<ConstraintIr, String>;
+    type Reader = fn(&RdfDataset, &Subject) -> gmeow_errors::Result<ConstraintIr>;
     let readers: [(&str, Reader); 15] = [
         ("ChoiceGroupConstraint", read_choice_group),
         ("GuardedImplicationConstraint", read_guarded_implication),
@@ -3332,9 +3351,9 @@ fn extract_sugar_constraints(
         for subj in subjects_with(store, &nn(RDF_TYPE), &class_ty) {
             match reader(store, &subj) {
                 Ok(c) => out.push(c),
-                Err(message) => diagnostics.push(Diagnostic::warning(
+                Err(err) => diagnostics.push(Diagnostic::warning(
                     "MALFORMED_CONSTRAINT",
-                    message,
+                    err.message().to_owned(),
                     Some(subject_str(&subj)),
                 )),
             }
