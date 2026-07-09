@@ -72,6 +72,12 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     check_lane_purity(root, &mut report);
     check_projection_compute_purity(root, &mut report);
     check_projection_shape_purity(root, &mut report);
+    // The BLANKET declarative-shape peer (`check_declarative_shape_purity`) is deliberately NOT
+    // wired here yet: it is activated at the terminal migration increment once the legacy shape
+    // corpus is deleted; until then it would red on the ~245 coexisting legacy shapes by design.
+    // Its production semantics are proven now over the live tree by
+    // `declarative_gate_flags_the_live_legacy_corpus`.
+    check_authored_shex_purity(root, &mut report);
     check_no_generated_read_in_pipeline_stages(root, &mut report);
     check_no_first_party_error_crate_deps(root, &mut report);
     check_no_string_result_error_type(root, &mut report);
@@ -374,6 +380,126 @@ fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
     }
 }
 
+/// The BLANKET declarative-shape fragment of the projection-purity seal — the declarative
+/// `sh:NodeShape` / `sh:PropertyShape` peer of the procedural `sh:sparql` fragment
+/// ([`check_projection_shape_purity`]). Every validation shape is authored in the `logic:` canon
+/// and PROJECTED to `generated/shapes/*.ttl` (Principle 17, `design/LOGIC-VALIDATION.md`), never
+/// hand-authored as a second source of truth. So ANY authored `sh:NodeShape` or `sh:PropertyShape`
+/// construct (a typed shape subject, or an inline shape reached through `sh:property`) that lacks a
+/// `logic:formalizes` back-reference — on itself or on its owning node shape (the upward walk) — is
+/// a violation. No peer/projected-surface condition, no allowlist: the rule is blanket.
+///
+/// NOT wired into [`check_repo_static`] yet. Activated at the terminal migration increment once the
+/// legacy shape corpus is deleted; until then it would (correctly, by design) red on the ~245
+/// coexisting legacy shapes that have not yet migrated. Its production semantics are proven now
+/// over the live tree by `declarative_gate_flags_the_live_legacy_corpus`.
+// Not yet reachable from a non-test build (activation is deferred to the terminal migration
+// increment); its live-tree production semantics are exercised by the gate test below.
+#[allow(dead_code)]
+fn check_declarative_shape_purity(root: &Path, report: &mut RepoStaticReport) {
+    let mut ttl_files = Vec::new();
+    for sub in ["slices", "shapes", "dsl"] {
+        let dir = root.join(sub);
+        if dir.is_dir() {
+            collect_ttl_files(&dir, report, &mut ttl_files);
+        }
+    }
+    ttl_files.sort();
+    for path in ttl_files {
+        let text = match fs::read_to_string(&path) {
+            Ok(text) => text,
+            Err(err) => {
+                report.error(format!("{}: cannot read: {err}", path.display()));
+                continue;
+            }
+        };
+        if !text.contains(SHACL_NS) {
+            continue;
+        }
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
+        let ds = match purrdf::parse_dataset(text.as_bytes(), "text/turtle", None) {
+            Ok(ds) => ds,
+            Err(err) => {
+                report.error(format!("{rel}: does not parse as Turtle: {err}"));
+                continue;
+            }
+        };
+
+        // Construct subjects: any subject typed `sh:NodeShape` / `sh:PropertyShape`, plus any
+        // object of an `sh:property` triple (an inline property shape). Resolve the class /
+        // property IRIs (not source tokens), so an alternate prefix or a full IRI cannot bypass.
+        let mut construct_subjects: BTreeSet<TermId> = BTreeSet::new();
+        if let Some(type_id) = iri_id_static(&ds, rdf::TYPE) {
+            for local in ["NodeShape", "PropertyShape"] {
+                let Some(cid) = iri_id_static(&ds, &format!("{SHACL_NS}{local}")) else {
+                    continue;
+                };
+                for q in ds.quads_for_pattern(None, Some(type_id), Some(cid), GraphMatch::Any) {
+                    construct_subjects.insert(q.s);
+                }
+            }
+        }
+
+        // Parents: an `sh:property` object → its owning node shape, so a `logic:formalizes` on the
+        // node shape legalizes the inline property shape (the upward walk).
+        let mut parents: BTreeMap<TermId, BTreeSet<TermId>> = BTreeMap::new();
+        if let Some(pid) = iri_id_static(&ds, &format!("{SHACL_NS}property")) {
+            for q in ds.quads_for_pattern(None, Some(pid), None, GraphMatch::Any) {
+                construct_subjects.insert(q.o);
+                parents.entry(q.o).or_default().insert(q.s);
+            }
+        }
+        if construct_subjects.is_empty() {
+            continue;
+        }
+
+        let mut directly_backed: BTreeSet<TermId> = BTreeSet::new();
+        if let Some(fid) = iri_id_static(&ds, PROJECTION_FORMALIZES_IRI) {
+            for q in ds.quads_for_pattern(None, Some(fid), None, GraphMatch::Any) {
+                directly_backed.insert(q.s);
+            }
+        }
+
+        for subj in &construct_subjects {
+            if formalizes_backed(*subj, &directly_backed, &parents) {
+                continue;
+            }
+            report.error(format!(
+                "{rel}: {} is a hand-authored declarative validation shape \
+                 (sh:NodeShape/sh:PropertyShape) without a `logic:formalizes` back-reference on it \
+                 or its owning shape: validation shapes are authored in the logic: canon and \
+                 PROJECTED to generated/shapes/*.ttl (Principle 17), never hand-authored as a \
+                 second source of truth (design/LOGIC-VALIDATION.md)",
+                node_label(&ds, *subj)
+            ));
+        }
+    }
+}
+
+/// ShEx is an emit-only projection of the `logic:` canon (Principle 17): the pipeline PROJECTS
+/// `.shex` under `generated/`, and no `.shex` is ever hand-authored. So ANY authored `.shex` file
+/// under the source dirs (`slices/`, `shapes/`, `dsl/`) is a forbidden second source of truth.
+/// There are ZERO authored `.shex` files today, so this gate is armed-and-empty on the live tree —
+/// it enforces the invariant going forward.
+fn check_authored_shex_purity(root: &Path, report: &mut RepoStaticReport) {
+    let mut shex_files = Vec::new();
+    for sub in ["slices", "shapes", "dsl"] {
+        let dir = root.join(sub);
+        if dir.is_dir() {
+            collect_shex_files(&dir, report, &mut shex_files);
+        }
+    }
+    shex_files.sort();
+    for path in shex_files {
+        let rel = slash_path(path.strip_prefix(root).unwrap_or(&path));
+        report.error(format!(
+            "{rel}: authored ShEx surface is forbidden — ShEx is an emit-only projection of the \
+             logic: canon, PROJECTED to generated/ (Principle 17), never hand-authored \
+             (design/LOGIC-VALIDATION.md)"
+        ));
+    }
+}
+
 /// Resolve an IRI to its interned [`TermId`] in `ds`, if present.
 fn iri_id_static(ds: &RdfDataset, iri: &str) -> Option<TermId> {
     ds.term_id_by_value(&TermValue::iri(iri))
@@ -404,6 +530,36 @@ fn collect_ttl_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<Pa
         if path.is_dir() && !path.is_symlink() {
             collect_ttl_files(&path, report, out);
         } else if !path.is_symlink() && path.extension().is_some_and(|ext| ext == "ttl") {
+            out.push(path);
+        }
+    }
+}
+
+/// Recursively collect `.shex` files under `dir` (symlink-safe, mirroring [`collect_ttl_files`]).
+fn collect_shex_files(dir: &Path, report: &mut RepoStaticReport, out: &mut Vec<PathBuf>) {
+    let entries = match fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(err) => {
+            report.error(format!("{}: cannot read directory: {err}", dir.display()));
+            return;
+        }
+    };
+    for entry in entries {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(err) => {
+                report.error(format!(
+                    "{}: cannot read directory entry: {err}",
+                    dir.display()
+                ));
+                continue;
+            }
+        };
+        let path = entry.path();
+        // Recurse into real subdirectories only — a symlinked directory could form a cycle.
+        if path.is_dir() && !path.is_symlink() {
+            collect_shex_files(&path, report, out);
+        } else if !path.is_symlink() && path.extension().is_some_and(|ext| ext == "shex") {
             out.push(path);
         }
     }
@@ -1691,12 +1847,194 @@ mod tests {
 
     #[test]
     fn live_repo_static_passes() {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        let report = check_repo_static(live_repo_root());
+        assert!(report.ok(), "{:?}", report.errors);
+    }
+
+    /// The workspace root: `crates/validate` → `crates` → repo root.
+    fn live_repo_root() -> &'static Path {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .and_then(Path::parent)
-            .expect("validate crate should live under crates/");
-        let report = check_repo_static(root);
-        assert!(report.ok(), "{:?}", report.errors);
+            .expect("validate crate should live under crates/")
+    }
+
+    #[test]
+    fn declarative_gate_flags_the_live_legacy_corpus() {
+        // The BLANKET declarative-shape gate is not yet wired into `check_repo_static` (it
+        // activates at the terminal migration increment). This test proves its PRODUCTION
+        // semantics NOW: run it over the real corpus and confirm it reds on the coexisting legacy
+        // shapes that carry no `logic:formalizes` back-reference.
+        let mut report = RepoStaticReport::default();
+        check_declarative_shape_purity(live_repo_root(), &mut report);
+        assert!(
+            !report.errors.is_empty(),
+            "the blanket declarative-shape gate must red on the live legacy corpus"
+        );
+        for legacy in [
+            "slices/core/inhabitation/shapes.ttl",
+            "shapes/gmeow-shapes.ttl",
+        ] {
+            assert!(
+                report.errors.iter().any(|e| e.contains(legacy)),
+                "the gate must flag the known-legacy unbacked shapes in {legacy}; got {} errors",
+                report.errors.len()
+            );
+        }
+    }
+
+    #[test]
+    fn declarative_gate_flags_unbacked_node_shape_and_passes_backed() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        let module = root.join("slices/x/module.ttl");
+
+        // An unbacked sh:NodeShape → flagged.
+        write(
+            &module,
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:S a sh:NodeShape ; sh:targetClass ex:Thing .\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_declarative_shape_purity(root, &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("module.ttl") && e.contains("declarative validation shape")),
+            "an unbacked sh:NodeShape must be flagged; got {:?}",
+            report.errors
+        );
+
+        // The SAME shape carrying logic:formalizes → legal.
+        write(
+            &module,
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             ex:S a sh:NodeShape ; logic:formalizes ex:someConstraint ; sh:targetClass ex:Thing .\n",
+        );
+        let mut backed = RepoStaticReport::default();
+        check_declarative_shape_purity(root, &mut backed);
+        assert!(
+            backed.errors.is_empty(),
+            "a logic:formalizes-backed node shape must pass; got {:?}",
+            backed.errors
+        );
+    }
+
+    #[test]
+    fn declarative_gate_walks_inline_property_shape_up_to_its_node_shape() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        let module = root.join("slices/y/module.ttl");
+
+        // An inline sh:property whose owning node shape is UNBACKED → both flagged.
+        write(
+            &module,
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:S a sh:NodeShape ;\n    \
+                 sh:property [ sh:path ex:p ; sh:minCount 1 ] .\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_declarative_shape_purity(root, &mut report);
+        assert!(
+            report.errors.iter().any(|e| e.contains("module.ttl")),
+            "an inline property shape under an unbacked node shape must be flagged; got {:?}",
+            report.errors
+        );
+
+        // With logic:formalizes on the OWNING node shape → the upward walk legalizes the inline
+        // property shape too, so nothing is flagged.
+        write(
+            &module,
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+             ex:S a sh:NodeShape ; logic:formalizes ex:someConstraint ;\n    \
+                 sh:property [ sh:path ex:p ; sh:minCount 1 ] .\n",
+        );
+        let mut backed = RepoStaticReport::default();
+        check_declarative_shape_purity(root, &mut backed);
+        assert!(
+            backed.errors.is_empty(),
+            "a backed node shape must legalize its inline property shape (upward walk); got {:?}",
+            backed.errors
+        );
+    }
+
+    #[test]
+    fn declarative_gate_catches_alternate_prefix_and_full_iri_bypass() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+
+        // Alternate prefix bound to the SHACL namespace — a substring scan for "sh:NodeShape"
+        // misses it.
+        write(
+            &root.join("slices/altprefix/module.ttl"),
+            "@prefix af: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix ex: <https://example.org/> .\n\
+             ex:S a af:NodeShape ; af:targetClass ex:Thing .\n",
+        );
+        // Full-IRI form — no SHACL prefix at all.
+        write(
+            &root.join("slices/fulliri/module.ttl"),
+            "@prefix ex: <https://example.org/> .\n\
+             ex:T a <http://www.w3.org/ns/shacl#PropertyShape> ;\n    \
+                 <http://www.w3.org/ns/shacl#path> ex:p .\n",
+        );
+        let mut report = RepoStaticReport::default();
+        check_declarative_shape_purity(root, &mut report);
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("altprefix/module.ttl")),
+            "an alternate-prefix declarative shape must be flagged; got {:?}",
+            report.errors
+        );
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("fulliri/module.ttl")),
+            "a full-IRI declarative shape must be flagged; got {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn authored_shex_gate_flags_a_shex_file_and_passes_when_absent() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+
+        // No .shex present → passes.
+        write(
+            &root.join("shapes/gmeow-shapes.ttl"),
+            "@prefix ex: <https://example.org/> .\nex:a ex:b ex:c .\n",
+        );
+        let mut clean = RepoStaticReport::default();
+        check_authored_shex_purity(root, &mut clean);
+        assert!(
+            clean.errors.is_empty(),
+            "no authored .shex → gate passes; got {:?}",
+            clean.errors
+        );
+
+        // A hand-authored .shex under shapes/ → flagged.
+        write(&root.join("shapes/gmeow-shapes.shex"), "<S> { ex:p . }\n");
+        let mut dirty = RepoStaticReport::default();
+        check_authored_shex_purity(root, &mut dirty);
+        assert!(
+            dirty
+                .errors
+                .iter()
+                .any(|e| e.contains("gmeow-shapes.shex") && e.contains("emit-only projection")),
+            "an authored .shex surface must be flagged; got {:?}",
+            dirty.errors
+        );
     }
 
     // ── generated/-read ban ─────────────────────────────────────────────

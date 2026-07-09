@@ -33,7 +33,12 @@ gmeow:Pipeline
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Pipeline"@x-gmeow-english ;
     rdfs:subClassOf logic:Plan ,
-        gmeow:SocialObject ;
+        gmeow:SocialObject ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:hasStage ;
+            owl:someValuesFrom gmeow:PipelineStage ;
+        ] ;
     skos:definition "A directed acyclic graph of build stages — the project's own build, authored as data. A Pipeline IS a logic:Plan: the canonical process model of the build, whose steps (gmeow:PipelineStage members, gathered through gmeow:hasStage) invoke typed units of work and whose success criterion is the shippable bundle. It is the dogfooded consumer of the DAG-workflow profile (logic:DagWorkflowContract) — its gmeow:dataflowConsumes edges specialize the canonical logic:dataflowConsumes, and their acyclic closure is certified under logic:DagWorkflowResource, so the build is statically schedulable and complete-for-fragment. The gmeow-pipeline executor reads it back, validates the graph (acyclic, complete, exactly one stage holding gmeow:sinkCapability), and runs every stage single-pass over an in-memory RDF dataset. logic:Plan grounds in prose as a gmeow:SocialObject, so the Pipeline also asserts that sort directly: it exists by the project's own convention, a description, not a physical thing."@x-gmeow-english ;
     skos:example "gmeow:pipeline-build a gmeow:Pipeline ; gmeow:hasStage gmeow:stage-source-load ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -44,7 +49,27 @@ gmeow:PipelineStage
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Pipeline Stage"@x-gmeow-english ;
     rdfs:subClassOf logic:ActionSchema ,
-        gmeow:SocialObject ;
+        gmeow:SocialObject ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:hasCapability ;
+            owl:allValuesFrom gmeow:StageCapability ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:requiresResource ;
+            owl:allValuesFrom gmeow:Resource ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:dataflowConsumes ;
+            owl:allValuesFrom gmeow:PipelineStage ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:stageImpl ;
+            owl:someValuesFrom xsd:string ;
+        ] ;
     skos:definition "One node in a gmeow:Pipeline build graph: a logic:ActionSchema — a typed unit of work that consumes the products of the stages it gmeow:dataflowConsumes and produces one product, passed in memory to its consumers rather than re-parsed from disk. Its gmeow:stageImpl binds it to a Rust Stage implementation, and the scheduler reads its declarations rather than a kind enum: each gmeow:requiresResource it declares is a shared resource it must hold exclusively while running (the scheduler serializes stages that compete for the same resource), and each gmeow:hasCapability it holds names a role the executor acts on — gmeow:sinkCapability (the single serialization exit) or gmeow:sourceOrigin (the authored-source loader). Its typed dataflow rides reified gmeow:BuildDataFlow edges."@x-gmeow-english ;
     skos:example "gmeow:stage-reason a gmeow:PipelineStage ; gmeow:stageImpl \"reason\" ; gmeow:requiresResource gmeow:engineResource ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -138,7 +163,8 @@ gmeow:hasCapability
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:stageImpl
-    a owl:DatatypeProperty ;
+    a owl:FunctionalProperty ,
+        owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "stage impl"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;

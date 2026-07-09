@@ -617,3 +617,8 @@ gmeow:usedModel
     skos:definition "The AI claim layer (GraphRAG provenance design), built the constitutional way: GMEOW already IS a claim model. The unified observation stance (CONSTITUTION P9) makes gmeow:Observation the universal claim construct — an LLM output is a StandpointClaim whose vantage is the model agent, its epistemics (confidence, accordingTo, the clocks) ride RDF 1.2 statement annotations, its verdicts ride the standpoint modalities (including gmeow:bullshit) and the deception slice's veridicality, and its evaluation is the norms extension's judge-as-vantage Assessment. This module therefore mints ONLY what is genuinely absent: the retrieval segment (Chunk) and its evidence seam, the prompt artifact, the model-invocation activity, the model card, the surfaced Contradiction, and the memory role. Everything else is doctrine over existing terms — see docs.md, the slice's real deliverable."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/chunkOf> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spanEnd> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spanStart> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .

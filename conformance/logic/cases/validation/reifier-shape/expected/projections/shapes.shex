@@ -1,0 +1,11 @@
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+# targetClass <https://blackcatinformatics.ca/gmeow/provenance/Endorsement> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/provenance/Endorsement-shape> {
+  <https://blackcatinformatics.ca/gmeow/provenance/endorsedBy> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/gmeow/provenance/Record> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/provenance/Record-shape> {
+  <https://blackcatinformatics.ca/gmeow/provenance/asserts> . ;
+}

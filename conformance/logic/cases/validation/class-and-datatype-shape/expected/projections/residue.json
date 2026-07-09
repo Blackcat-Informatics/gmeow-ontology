@@ -1,0 +1,6 @@
+{
+  "shacl-core": [],
+  "shex": [
+    "sh:class https://blackcatinformatics.ca/gmeow/bibliography/Document on https://blackcatinformatics.ca/gmeow/bibliography/cites has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+  ]
+}

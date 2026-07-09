@@ -70,6 +70,14 @@ impl ShapeTarget {
             }
         }
     }
+
+    /// The enforcement-key fragment for a target — identical to [`Self::content_key`] (a
+    /// target's identity IS its enforcement content: it fully determines the focus-node
+    /// selection). Exposed to the crate so the shape-subsumption projection can fold the
+    /// target into its enforcement key without re-deriving the tagging.
+    pub(crate) fn enforcement_key(&self) -> String {
+        self.content_key()
+    }
 }
 
 /// The `sh:nodeKind` vocabulary (verbatim SHACL local names).
@@ -293,6 +301,14 @@ pub enum ConstraintComponent {
     /// (`sh:not [ sh:class D ]`), `owl:complementOf`, and each pair of a named
     /// `owl:AllDisjointClasses`. The inner component is what a focus node must NOT satisfy.
     Not(Box<ConstraintComponent>),
+    /// A disjunction (`sh:or ( [ … ] [ … ] )`): the closed-world reading of an `owl:unionOf`
+    /// class expression — a focus value must satisfy AT LEAST ONE branch. Each element is one
+    /// branch (rendered as its own `[ … ]` shape block); branches sorted at construction.
+    Or(Vec<ConstraintComponent>),
+    /// An exclusive disjunction (`sh:xone ( [ … ] [ … ] )`): the closed-world reading of an
+    /// `owl:disjointUnionOf` class expression — a focus value must satisfy EXACTLY ONE branch.
+    /// Each element is one branch; branches sorted at construction.
+    Xone(Vec<ConstraintComponent>),
 }
 
 impl ConstraintComponent {
@@ -310,6 +326,10 @@ impl ConstraintComponent {
                 shape.iter().any(ConstraintComponent::is_lossy)
             }
             ConstraintComponent::Not(inner) => inner.is_lossy(),
+            // A disjunction is lossy iff some branch is (the wrappers are faithful in SHACL Core).
+            ConstraintComponent::Or(branches) | ConstraintComponent::Xone(branches) => {
+                branches.iter().any(ConstraintComponent::is_lossy)
+            }
             _ => false,
         }
     }
@@ -366,6 +386,12 @@ impl ConstraintComponent {
                 shape.sort_by_cached_key(ConstraintComponent::content_key);
             }
             ConstraintComponent::Not(inner) => inner.normalize()?,
+            ConstraintComponent::Or(branches) | ConstraintComponent::Xone(branches) => {
+                for b in branches.iter_mut() {
+                    b.normalize()?;
+                }
+                branches.sort_by_cached_key(ConstraintComponent::content_key);
+            }
             _ => {}
         }
         Ok(())
@@ -452,7 +478,27 @@ impl ConstraintComponent {
             ConstraintComponent::Not(inner) => {
                 format!("not={}", key_field(&inner.content_key()))
             }
+            ConstraintComponent::Or(branches) => {
+                format!(
+                    "or={}",
+                    key_list(branches.iter().map(ConstraintComponent::content_key))
+                )
+            }
+            ConstraintComponent::Xone(branches) => {
+                format!(
+                    "xone={}",
+                    key_list(branches.iter().map(ConstraintComponent::content_key))
+                )
+            }
         }
+    }
+
+    /// The enforcement-key fragment for a component — identical to [`Self::content_key`]: a
+    /// value-level component carries no presentation/provenance tail, so its identity IS its
+    /// enforcement content (it fully determines which values a validator flags). Exposed to
+    /// the crate so the shape-subsumption projection folds it without re-deriving the tagging.
+    pub(crate) fn enforcement_key(&self) -> String {
+        self.content_key()
     }
 }
 
@@ -645,6 +691,33 @@ impl PropertyConstraintIr {
         }
         if let Some(msg) = &self.message {
             key.push_str(&format!("{SEP}msg={}", key_field(msg)));
+        }
+        key
+    }
+
+    /// The enforcement key for a property shape — the subset of [`Self::content_key`] that
+    /// determines which focus nodes a validator flags. It carries `path`, `min_count`,
+    /// `max_count`, the value-level `components`, and the `inverse` / `reifier_shape` /
+    /// `reification_required` enforcement flags, and it OMITS the presentation/provenance tail
+    /// (`cardinality_provenance`, `severity`, `message`) — those change the ledger polarity and
+    /// the rendered surface, never the findings. Two property shapes with equal enforcement keys
+    /// flag exactly the same values on the same path over every graph.
+    pub(crate) fn enforcement_key(&self) -> String {
+        let comps = key_list(self.components.iter().map(ConstraintComponent::content_key));
+        let mut key = format!(
+            "path={}{SEP}min={}{SEP}max={}{SEP}comps={comps}",
+            key_field(&self.path),
+            self.min_count.map(|n| n.to_string()).unwrap_or_default(),
+            self.max_count.map(|n| n.to_string()).unwrap_or_default(),
+        );
+        if self.inverse {
+            key.push_str(&format!("{SEP}inverse=true"));
+        }
+        if let Some(rs) = &self.reifier_shape {
+            key.push_str(&format!("{SEP}reifier={}", key_field(rs)));
+        }
+        if self.reification_required {
+            key.push_str(&format!("{SEP}reifreq=true"));
         }
         key
     }
@@ -1073,6 +1146,41 @@ mod tests {
                 None,
             )
             .is_err()
+        );
+    }
+
+    #[test]
+    fn or_and_xone_branches_are_order_independent_and_lossy_transparent() {
+        // Branch supply order must not affect identity, and a lossy branch makes the whole
+        // disjunction lossy (recursion through Or/Xone).
+        let mk = |a: &str, b: &str| {
+            PropertyConstraintIr::new(
+                "https://ex/p",
+                None,
+                None,
+                None,
+                vec![ConstraintComponent::Or(vec![
+                    ConstraintComponent::Class(a.into()),
+                    ConstraintComponent::Class(b.into()),
+                ])],
+            )
+            .unwrap()
+        };
+        assert_eq!(
+            mk("https://ex/A", "https://ex/B").content_key(),
+            mk("https://ex/B", "https://ex/A").content_key(),
+            "Or branch order must not affect identity"
+        );
+        let clean =
+            ConstraintComponent::Xone(vec![ConstraintComponent::Class("https://ex/A".into())]);
+        assert!(!clean.is_lossy());
+        let lossy = ConstraintComponent::Or(vec![ConstraintComponent::Pattern {
+            regex: "^a".into(),
+            flags: None,
+        }]);
+        assert!(
+            lossy.is_lossy(),
+            "a Pattern branch makes the disjunction lossy"
         );
     }
 
