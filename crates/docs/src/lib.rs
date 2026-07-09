@@ -22,6 +22,7 @@ pub mod coverage;
 pub mod describe;
 pub mod exec;
 pub mod fixture;
+pub mod formats;
 pub mod i18n;
 pub mod i18n_compile;
 pub mod lint;
