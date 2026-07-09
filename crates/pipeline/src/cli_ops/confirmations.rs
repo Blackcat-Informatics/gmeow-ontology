@@ -299,6 +299,10 @@ mod tests {
         let english = "x-gmeow-english";
         let tree = extract_docs_site(&snapshot, english).expect("english subtree");
         assert!(!tree.is_empty(), "english docs subtree is non-empty");
+        assert!(
+            tree.contains_key("slice-quality/index.html"),
+            "extract-docs must expose the bundled slice-quality HTML report"
+        );
         // The language prefix is stripped from every member path.
         assert!(
             tree.keys().all(|k| !k.starts_with("x-gmeow-")),

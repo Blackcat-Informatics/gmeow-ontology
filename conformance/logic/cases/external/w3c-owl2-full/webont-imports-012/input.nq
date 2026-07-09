@@ -1,0 +1,3 @@
+<http://example.org/> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-imports-012/w> .
+<http://example.org/> <http://www.w3.org/2002/07/owl#imports> <http://www.w3.org/2002/03owlt/imports/consistent012> <https://gmeow.example/w3c-owl2-full/webont-imports-012/w> .
+<http://www.w3.org/2002/03owlt/imports/consistent012> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-imports-012/w> .

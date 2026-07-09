@@ -31,8 +31,7 @@
 //! per-class (driven by the sorted [`gmeow_classes`]) or a counted aggregate, so
 //! the dataset's quad order never leaks into a diagnostic.
 //!
-//! Engine-core separation: this module imports no pyo3. The [`crate::py`]
-//! bindings adapt [`reasoning_invariants`] to Python.
+//! Engine-core separation: this module is pure Rust with no binding surface.
 
 use std::collections::{BTreeSet, HashSet, VecDeque};
 

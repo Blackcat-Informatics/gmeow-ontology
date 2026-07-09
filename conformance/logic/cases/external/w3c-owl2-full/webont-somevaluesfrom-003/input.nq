@@ -1,0 +1,8 @@
+<http://www.w3.org/2002/03owlt/someValuesFrom/premises003#fred> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/03owlt/someValuesFrom/premises003#person> <https://gmeow.example/w3c-owl2-full/webont-somevaluesfrom-003/w> .
+<http://www.w3.org/2002/03owlt/someValuesFrom/premises003#parent> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/webont-somevaluesfrom-003/w> .
+<http://www.w3.org/2002/03owlt/someValuesFrom/premises003#person> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-somevaluesfrom-003/w> .
+<http://www.w3.org/2002/03owlt/someValuesFrom/premises003#person> <http://www.w3.org/2002/07/owl#equivalentClass> _:rdfxml_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/webont-somevaluesfrom-003/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-somevaluesfrom-003/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> <https://gmeow.example/w3c-owl2-full/webont-somevaluesfrom-003/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#onProperty> <http://www.w3.org/2002/03owlt/someValuesFrom/premises003#parent> <https://gmeow.example/w3c-owl2-full/webont-somevaluesfrom-003/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#someValuesFrom> <http://www.w3.org/2002/03owlt/someValuesFrom/premises003#person> <https://gmeow.example/w3c-owl2-full/webont-somevaluesfrom-003/w> .

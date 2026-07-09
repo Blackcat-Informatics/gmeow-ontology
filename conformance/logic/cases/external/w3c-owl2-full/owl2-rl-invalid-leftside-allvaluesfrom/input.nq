@@ -1,0 +1,8 @@
+<http://owl2.test/rules#C1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-leftside-allvaluesfrom/w> .
+<http://owl2.test/rules#C> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-leftside-allvaluesfrom/w> .
+<http://owl2.test/rules#op> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-leftside-allvaluesfrom/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-leftside-allvaluesfrom/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-leftside-allvaluesfrom/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://owl2.test/rules#C> <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-leftside-allvaluesfrom/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#allValuesFrom> <http://owl2.test/rules#C1> <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-leftside-allvaluesfrom/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#onProperty> <http://owl2.test/rules#op> <https://gmeow.example/w3c-owl2-full/owl2-rl-invalid-leftside-allvaluesfrom/w> .

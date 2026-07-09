@@ -1,0 +1,10 @@
+<http://www.example.org#w> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.example.org#c1> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-ndis-alldisjointclasses-fw/w> .
+<http://www.example.org#w> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.example.org#c2> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-ndis-alldisjointclasses-fw/w> .
+<http://www.example.org#z> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#AllDisjointClasses> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-ndis-alldisjointclasses-fw/w> .
+<http://www.example.org#z> <http://www.w3.org/2002/07/owl#members> _:rdfxml_list_00000000000000000000000000 <https://gmeow.example/w3c-owl2-full/rdfbased-sem-ndis-alldisjointclasses-fw/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.example.org#c1> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-ndis-alldisjointclasses-fw/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_list_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/rdfbased-sem-ndis-alldisjointclasses-fw/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.example.org#c2> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-ndis-alldisjointclasses-fw/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_list_00000000000000000000000002 <https://gmeow.example/w3c-owl2-full/rdfbased-sem-ndis-alldisjointclasses-fw/w> .
+_:rdfxml_list_00000000000000000000000002 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://www.example.org#c3> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-ndis-alldisjointclasses-fw/w> .
+_:rdfxml_list_00000000000000000000000002 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-ndis-alldisjointclasses-fw/w> .

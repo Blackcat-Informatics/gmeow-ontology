@@ -1,0 +1,2 @@
+<http://www.example.org#p1> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://www.example.org#p2> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-eqprop-subprop-2/w> .
+<http://www.example.org#p2> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://www.example.org#p1> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-eqprop-subprop-2/w> .

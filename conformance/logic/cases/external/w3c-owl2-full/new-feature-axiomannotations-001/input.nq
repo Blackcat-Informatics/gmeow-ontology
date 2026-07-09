@@ -1,0 +1,9 @@
+<http://example.org/Child> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/new-feature-axiomannotations-001/w> .
+<http://example.org/Child> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/Person> <https://gmeow.example/w3c-owl2-full/new-feature-axiomannotations-001/w> .
+<http://example.org/Person> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/new-feature-axiomannotations-001/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/new-feature-axiomannotations-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Axiom> <https://gmeow.example/w3c-owl2-full/new-feature-axiomannotations-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2000/01/rdf-schema#comment> "Children are people." <https://gmeow.example/w3c-owl2-full/new-feature-axiomannotations-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#annotatedProperty> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://gmeow.example/w3c-owl2-full/new-feature-axiomannotations-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#annotatedSource> <http://example.org/Child> <https://gmeow.example/w3c-owl2-full/new-feature-axiomannotations-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#annotatedTarget> <http://example.org/Person> <https://gmeow.example/w3c-owl2-full/new-feature-axiomannotations-001/w> .

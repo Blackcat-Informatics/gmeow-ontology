@@ -219,6 +219,11 @@ pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
         // so the discharged `logic:SectionLaw` claims land in `generated/` too, not only in
         // the bundle graph.
         || path == "generated/logic/gmeow.correspondence-laws.nt"
+        // The quality-assessment projection: the on-disk fold of the bundle's
+        // `graph/quality-assessment` named graph (every slice scored against the rubric as
+        // `gmeow:QualityAssessment` observations). RDF travels as RDF, so the assessment
+        // triples land in `generated/` too, not only in the bundle graph.
+        || path == "generated/quality/gmeow.quality-assessment.nt"
         || path == "generated/diagnostics/shacl.nq"
         || path == "generated/diagnostics/logic-compile.nq"
         // The generated constraint catalog: its committed `.nq` carries the fanout
@@ -674,6 +679,21 @@ mod tests {
                 },
             )
             .is_none()
+        );
+    }
+
+    #[test]
+    fn quality_assessment_nt_folds_as_ntriples_via_its_own_fanout_graph() {
+        // The G2 quality-assessment `.nt` is a registered RDF-fanout class that folds as
+        // plain N-Triples (default graph, no label) — the form the fanout writer emits and
+        // the superset gate reconstructs, so `file == fold` holds by construction.
+        const PATH: &str = "generated/quality/gmeow.quality-assessment.nt";
+        assert!(is_rdf_fanout_class(PATH));
+        let rep = graph_rep_for_path(PATH).expect("quality-assessment path resolves a graph rep");
+        assert_eq!(rep.form, GraphForm::NTriples);
+        assert_eq!(
+            rep.iri,
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/quality/gmeow.quality-assessment.nt"
         );
     }
 

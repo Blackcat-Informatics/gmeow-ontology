@@ -3,11 +3,7 @@
 
 //! Extract-tree coverage (R4).
 //!
-//! The on-disk writer `DocSet::write_artifacts` is a private GIL-bound PyO3
-//! method (and pyo3's `extension-module` feature precludes a standalone GIL test
-//! under `cargo test`), and the bundle→tree unpack proper lives in the *Python*
-//! `create_docs` (out of the Rust-harness scope, by the same-code-under-test
-//! doctrine). What IS pure-Rust and load-bearing are the render-tree properties
+//! What IS pure-Rust and load-bearing are the render-tree properties
 //! that writer relies on: a language-independent path graph, the English-carrier
 //! identity, and the archive-prefix selection. Those are tested here. The disk
 //! write itself is trivial sorted-BTreeMap I/O over these guaranteed trees.

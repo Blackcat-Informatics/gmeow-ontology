@@ -23,7 +23,6 @@
 #     load_merged_graph + project_graph and checks projected triples; generated-
 #     artifact / projection result check, not expressible as a module-scoped ASK.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/coreference/tests/> .

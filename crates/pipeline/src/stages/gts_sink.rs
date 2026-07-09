@@ -165,11 +165,16 @@ mod tests {
         // A minimal source-load product: the executable-docs "try it" EDB reads the
         // authored / imports / alignments graphs off it (empty here — this unit test
         // pins the sink's fail-closed wiring, not a real reasoned closure).
+        let mut source_load_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        source_load_artifacts.insert(
+            crate::stages::carrier::SLICE_QUALITY_REPORT_HTML_ARTIFACT.to_string(),
+            b"<!doctype html><title>slice-quality</title>\n".to_vec(),
+        );
         let source_load = StageProduct::from_artifacts_over(
             "stage-source-load",
             purrdf::parse_dataset(b"", "application/n-quads", None)
                 .expect("empty source-load dataset"),
-            BTreeMap::new(),
+            source_load_artifacts,
         );
 
         let mut compile_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();

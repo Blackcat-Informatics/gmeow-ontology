@@ -83,6 +83,7 @@ fn category_iri(c: FindingCategory) -> String {
         FindingCategory::IncompleteCheck => "FindingIncompleteCheck",
         FindingCategory::ProjectionLoss => "FindingProjectionLoss",
         FindingCategory::PolicyWarning => "FindingPolicyWarning",
+        FindingCategory::Corroboration => "FindingCorroboration",
     };
     format!("{LOGIC_NS}{local}")
 }

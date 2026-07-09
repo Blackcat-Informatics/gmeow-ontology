@@ -1,0 +1,6 @@
+<http://www.w3.org/2002/03owlt/sameAs/premises001#annotate> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#AnnotationProperty> <https://gmeow.example/w3c-owl2-full/webont-sameas-001/w> .
+<http://www.w3.org/2002/03owlt/sameAs/premises001#c1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-sameas-001/w> .
+<http://www.w3.org/2002/03owlt/sameAs/premises001#c1> <http://www.w3.org/2002/03owlt/sameAs/premises001#annotate> "description of c1" <https://gmeow.example/w3c-owl2-full/webont-sameas-001/w> .
+<http://www.w3.org/2002/03owlt/sameAs/premises001#c1> <http://www.w3.org/2002/07/owl#sameAs> <http://www.w3.org/2002/03owlt/sameAs/premises001#c2> <https://gmeow.example/w3c-owl2-full/webont-sameas-001/w> .
+<http://www.w3.org/2002/03owlt/sameAs/premises001#c2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-sameas-001/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-sameas-001/w> .

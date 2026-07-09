@@ -9,8 +9,6 @@
 <p align="center">
   <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Blackcat-Informatics/gmeow-ontology/actions/workflows/ci.yml/badge.svg?branch=main"></a>
   <a href="https://github.com/Blackcat-Informatics/gmeow-ontology/actions/workflows/codeql.yml"><img alt="CodeQL" src="https://github.com/Blackcat-Informatics/gmeow-ontology/actions/workflows/codeql.yml/badge.svg?branch=main"></a>
-  <a href="https://pypi.org/project/gmeow/"><img alt="PyPI package: gmeow" src="https://img.shields.io/pypi/v/gmeow?label=gmeow&logo=pypi&logoColor=white"></a>
-  <a href="https://pypi.org/project/gmeow/"><img alt="Python versions supported by gmeow" src="https://img.shields.io/pypi/pyversions/gmeow?logo=python&logoColor=white"></a>
   <a href="./LICENSE"><img alt="Tooling license: AGPL-3.0-only" src="https://img.shields.io/badge/tooling-AGPL--3.0--only-blue"></a>
   <a href="./LICENSE-ontology"><img alt="Ontology license: CC BY 4.0" src="https://img.shields.io/badge/ontology-CC%20BY%204.0-blue"></a>
   <a href="https://doi.org/10.67342/26w4o"><img alt="DOI: 10.67342/26w4o" src="https://img.shields.io/badge/DOI-10.67342%2F26w4o-blue"></a>
@@ -56,16 +54,16 @@ disagreement as coexisting standpoints instead of overwriting the loser.
 
 | Product | What it is | Status |
 |---|---|---|
-| **`gmeow` (PyPI)** | The five-minute client and repo-free consumer CLI: inspect the bundled ontology, describe terms, verify bundles, transpile RDF, project profiles, export docs, and run the MCP server | shipped |
+| **`gmeow` (native Rust CLI)** | The five-minute client and repo-free consumer CLI: inspect the bundled ontology, describe terms, verify bundles, transpile RDF, project profiles, export docs, and run the MCP server. Built from source (`make cli-build` → `dist/bin/gmeow`) or obtained as a GitHub release binary | shipped |
 | **Grounded-memory MCP server** | `store_claim` / `recall` / `revise_belief` tool-calls for agents, backed by the claim, standpoint, evidence, and suppression model | shipped |
 | **GTS `ai-package`** | A content-addressed, append-only, signable **single-file agent memory** — belief revision as suppression frames; portable across sessions, models, and vendors ([spec](https://github.com/Blackcat-Informatics/gmeow-gts/blob/main/docs/GTS-SPEC.md)) | shipped with Python, Rust, Go, and TypeScript engines plus signing/verification |
 
-**Verifiable PyPI builds.** Wheels and sdists for `gmeow` and `gmeow-gts` are built in
-GitHub Actions and signed with GitHub artifact attestations. After downloading a package
-from PyPI, verify it with:
+**Verifiable release builds.** The `gmeow` CLI binary and the `gmeow.gts` artifact are
+built in GitHub Actions and signed with GitHub artifact attestations. After downloading a
+release artifact, verify it with:
 
 ```bash
-gh attestation verify <path-to-wheel-or-sdist> --repo Blackcat-Informatics/gmeow-ontology
+gh attestation verify <path-to-artifact> --repo Blackcat-Informatics/gmeow-ontology
 ```
 
 SPDX SBOMs are also generated for each release and attached as workflow artifacts.
@@ -185,26 +183,28 @@ slice's model *and* how it aligns/projects.
 **Using GMEOW** (no source checkout required):
 
 ```bash
-pip install gmeow gmeow-gts
+# Build the CLI from source (or download the release binary from GitHub):
+make cli-build       # produces dist/bin/gmeow
 
-gmeow info
-gmeow describe gmeow:StandpointClaim
-gmeow transpile source.ttl --profiles all -o out/
-gmeow docs --directory docs-tree
-gmeow mcp
+dist/bin/gmeow info
+dist/bin/gmeow describe gmeow:StandpointClaim
+dist/bin/gmeow transpile source.ttl --profiles all -o out/
+dist/bin/gmeow docs --directory docs-tree
+dist/bin/gmeow mcp
 ```
 
-The public `gmeow` CLI is backed by the bundled `generated/dist/gmeow.gts` snapshot,
-so description, verification, docs, transpile, projection, export, CrossRef metadata,
-and GTS conversion run from the wheel. Repository maintenance stays on `gmeow-dev`:
+The public `gmeow` CLI is a native Rust binary backed by the bundled
+`generated/dist/gmeow.gts` snapshot, so description, verification, docs, transpile,
+projection, export, CrossRef metadata, and GTS conversion run from the binary alone.
+Repository maintenance stays on `gmeow-dev`:
 if a command needs `dsl/`, `slices/`, `generated/`, Docker, or dev fixtures, it is a
 developer command.
 
 **Working on the engine** (the ontology, compilers, and gates):
 
 ```bash
-make install         # sync the uv environment
-make check           # fast local gate: lint, validate, native EL/DL reason + verify, subsumption cross-check, mappings, fast tests
+make install         # build the Rust CLIs and configure repo-local Git merge drivers
+make check           # fast local gate: lint, validate, native EL/DL reason + verify, subsumption cross-check, mappings, Rust tests
 make reason-verify   # native reasoning + reasoned-graph verify (consistency), one closure (Docker-free)
 make reason-crosscheck  # on-gate purrdf-entail subsumption cross-check oracle (native ⊇ oracle, Docker-free)
 ```
@@ -236,7 +236,7 @@ conformance corpus gates its four reader implementations:
 | Go | [pkg.go.dev `go.blackcatinformatics.ca/gts`](https://pkg.go.dev/go.blackcatinformatics.ca/gts) | `go install go.blackcatinformatics.ca/gts/cmd/gts@latest` |
 
 The committed [`generated/dist/gmeow.gts`](./generated/dist/gmeow.gts) artifact is the
-repo-free GMEOW distribution snapshot. It is the file bundled into the wheel and used by
+repo-free GMEOW distribution snapshot. It is the file embedded in the `gmeow` binary and used by
 `gmeow info`, `describe`, `docs`, `verify`, `transpile`, `project`, and the GTS export
 paths when no source checkout is present. The current dist snapshot folds as one
 `dist`-profile segment with 18,207 terms, 33,142 quads, 116 RDF 1.2 reifiers, 324
@@ -291,8 +291,8 @@ hash, text labels, randomart, and valid/invalid/unverified signature counts. See
 | `make maint-quality` | OOPS! pitfall scan (network, best-effort) |
 | `make release` | Regenerate + native reasoning closure + build + compliance report + CrossRef deposit |
 
-The remaining Java tools (ROBOT `extract`, WIDOCO) run as **pinned Docker images** (see
-`src/gmeow_tools/config.py`). Containers run as the invoking user, so generated files are never
+Any remaining Java tools (ROBOT `extract`, WIDOCO) run as **pinned Docker images** from the
+`gmeow-dev` maintainer lanes. Containers run as the invoking user, so generated files are never
 owned by root. The reasoning cross-check needs none of them — it runs in-process over
 `purrdf::entail`.
 
@@ -321,8 +321,8 @@ crates/                   The Rust core: logic/ + logic-compile/ (the native log
                           engine + typed IR), rdf/ + rdf-core/ (RDF 1.2 kernel),
                           pipeline/ (the in-memory carrier spine → one gmeow.gts
                           terminal), shacl/, validate/, docs/, conformance/, …
-src/gmeow_tools/          A thin, shrinking Python surface (progressively ported to
-                          Rust — core work is Rust, Principle: Rust-first)
+crates/gmeow-cli/         The native Rust `gmeow` consumer CLI; gmeow-dev-cli/ is
+                          the repository-maintenance CLI (`gmeow-dev`)
 
 generated/                EVERY committed generated artifact — one root, every
                           path owned by a registered generator (drift-, orphan-,
@@ -374,8 +374,8 @@ in `dsl/mappings/`), from which SSSOM + EDOAL + FnO + SPARQL are generated lower
 `skos:exactMatch`, …) to any external term is always permitted — it copies nothing.
 **Copying** axioms in (via `owl:imports` / ROBOT `extract`) is license-gated: a
 reference-only source (NC/ND/share-alike/copyleft/proprietary) is **refused**
-(`gmeow-dev extract --target …`). The policy is classified by license family in
-`config.py`, so new targets are classified correctly by default.
+(`gmeow-dev extract --target …`). The policy is classified by license family by the
+native Rust classifier in [crates/license](./crates/license), so new targets are classified correctly by default.
 
 ### The correspondence calculus — alignment as a first-class logical construct
 
@@ -731,7 +731,8 @@ parallel metadata file.
    and `generated/apache/gmeow.conf` are registered generated artifacts. The Apache config
    negotiates Turtle / RDF-XML / JSON-LD / HTML, handles profile and slice IRIs, and keeps
    release snapshots immutable ([Principle 6](./CONSTITUTION.md)).
-3. **Verifiable packages and bundles.** PyPI wheels, npm/Cargo/Go release surfaces, signed
+3. **Verifiable packages and bundles.** The `gmeow` release binary and `gmeow.gts` bundle, the
+   `gmeow-gts` PyPI/npm/Cargo/Go release surfaces, signed
    GTS bundles, SBOMs, GitHub attestations, emoji verification fingerprints, and rsyncable GTS
    payloads are part of the publication contract.
 
@@ -739,7 +740,7 @@ parallel metadata file.
 
 The issue backlog is represented here as current capability:
 
-- **Products.** The PyPI `gmeow`/`gmeow-gts` surface, grounded-memory MCP triad, claim spine,
+- **Products.** The native `gmeow` CLI and the `gmeow-gts` package surface, grounded-memory MCP triad, claim spine,
   hallucination-resistant extraction pattern, eval leaderboard, GTS `ai-package`, signed
   verification, and multi-language GTS engines are the public adoption path.
 - **Compliance-by-construction.** The generator registry, single `generated/` root, slice
@@ -811,8 +812,8 @@ trademark notice are in [`NOTICE`](./NOTICE).
 
 ## Conventions
 
-`uv` for deps, `ruff` (format + lint) and `mypy --strict`, Google-style docstrings,
-`pathlib.Path` everywhere, the Makefile as the canonical task runner. Missing required tools
+Cargo for deps, `cargo fmt` (rustfmt) and `cargo clippy` (warnings as errors) for
+format + lint, the pre-commit hygiene suite, and the Makefile as the canonical task runner. Missing required tools
 fail loudly; the license guard and Wikidata validator error rather than silently degrade.
 
 **AI and Agentic Development.** This ontology and its toolchain are developed and maintained with the assistance of AI coding agents (such as Google Antigravity and Claude Code). Workspace-specific rules and skills ([`AGENTS.md`](./AGENTS.md)) are defined to ensure agents strictly adhere to GMEOW's Constitution and compile pipelines.

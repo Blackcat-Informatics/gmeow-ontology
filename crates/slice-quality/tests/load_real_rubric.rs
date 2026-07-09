@@ -1,0 +1,90 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! Load the real, committed slice-quality rubric and assert its structure.
+//!
+//! This is the executable proof that the rubric is data-driven: the loader reads
+//! the axes, tiers, thresholds, and exemptions out of
+//! `slices/core/slice-quality-rubric/module.ttl` with no hardcoded rubric in Rust.
+//! Editing a threshold in the ontology changes what this loader returns with no
+//! recompilation of the primitives.
+
+use std::path::PathBuf;
+
+fn repo_root() -> PathBuf {
+    // crates/slice-quality → repo root.
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .expect("repo root resolves")
+}
+
+#[test]
+fn loads_the_real_rubric_structure() {
+    let rubric = gmeow_slice_quality::load_repo_rubric(&repo_root())
+        .expect("the committed rubric slice must load");
+
+    // Five-rung tier ladder, contiguous ranks 0..=4.
+    assert_eq!(rubric.tiers.len(), 5, "five tier rungs");
+    let ranks: Vec<i64> = rubric.tiers.iter().map(|t| t.rank).collect();
+    assert_eq!(ranks, vec![0, 1, 2, 3, 4], "contiguous ranks, ascending");
+    assert_eq!(
+        rubric.bottom_tier().unwrap().rank,
+        0,
+        "Registered is the floor"
+    );
+
+    // Ten quality axes, each with a producer, a dimension, a scope, and floors.
+    assert_eq!(rubric.axes.len(), 10, "ten quality axes");
+    for axis in &rubric.axes {
+        assert!(!axis.producer.is_empty(), "{} binds a producer", axis.iri);
+        assert!(
+            !axis.dimension_iri.is_empty(),
+            "{} names a dimension",
+            axis.iri
+        );
+        assert!(!axis.thresholds.is_empty(), "{} pins thresholds", axis.iri);
+        // Every threshold names a real tier (loader would have errored otherwise).
+        for t in &axis.thresholds {
+            assert!(
+                rubric.tier(&t.tier_iri).is_some(),
+                "{} threshold tier {} resolves",
+                axis.iri,
+                t.tier_iri
+            );
+        }
+    }
+
+    // The provenance-honesty axis is present and slice-local.
+    let prov = rubric
+        .axes
+        .iter()
+        .find(|a| a.iri.ends_with("axisProvenanceHonesty"))
+        .expect("provenance-honesty axis present");
+    assert!(matches!(
+        prov.scope,
+        gmeow_slice_quality::ContextScope::SliceLocal
+    ));
+    assert_eq!(prov.producer, "provenance_honesty");
+
+    // Three dated, self-cleaning exemptions, each naming a producer symbol.
+    assert_eq!(rubric.exemptions.len(), 3, "three dated exemptions");
+    for ex in &rubric.exemptions {
+        assert!(
+            !ex.producer.is_empty(),
+            "{} names a producer symbol",
+            ex.iri
+        );
+        assert!(!ex.date.is_empty(), "{} is dated", ex.iri);
+    }
+}
+
+#[test]
+fn every_axis_producer_is_unique() {
+    let rubric = gmeow_slice_quality::load_repo_rubric(&repo_root()).unwrap();
+    let mut producers: Vec<&str> = rubric.axes.iter().map(|a| a.producer.as_str()).collect();
+    producers.sort_unstable();
+    let before = producers.len();
+    producers.dedup();
+    assert_eq!(before, producers.len(), "axis producers are distinct");
+}

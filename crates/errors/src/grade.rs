@@ -206,7 +206,8 @@ impl BoundedLattice for Blocking {
 
 impl FindingCategory {
     /// The gating projection of a category. Exactly the three *failure* kinds are
-    /// Blocking; the other five — including [`PermittedEpistemicConflict`] — are
+    /// Blocking; the other six — including [`PermittedEpistemicConflict`] and the
+    /// non-blocking [`Corroboration`](FindingCategory::Corroboration) — are
     /// Coherent and can never contribute to gate fatality.
     ///
     /// [`PermittedEpistemicConflict`]: FindingCategory::PermittedEpistemicConflict
@@ -219,7 +220,8 @@ impl FindingCategory {
             | Self::UnsupportedSemanticFeature
             | Self::IncompleteCheck
             | Self::ProjectionLoss
-            | Self::PolicyWarning => Blocking::Coherent,
+            | Self::PolicyWarning
+            | Self::Corroboration => Blocking::Coherent,
         }
     }
 
@@ -236,7 +238,8 @@ impl FindingCategory {
             Self::UnsupportedSemanticFeature
             | Self::IncompleteCheck
             | Self::ProjectionLoss
-            | Self::PolicyWarning => Belnap::Neither,
+            | Self::PolicyWarning
+            | Self::Corroboration => Belnap::Neither,
         }
     }
 
@@ -252,10 +255,11 @@ impl FindingCategory {
             Self::IncompleteCheck => 5,
             Self::ProjectionLoss => 6,
             Self::PolicyWarning => 7,
+            Self::Corroboration => 8,
         }
     }
 
-    pub const ALL: [FindingCategory; 8] = [
+    pub const ALL: [FindingCategory; 9] = [
         FindingCategory::DataShapeViolation,
         FindingCategory::ModelingDisciplineViolation,
         FindingCategory::ContradictionWitness,
@@ -264,6 +268,7 @@ impl FindingCategory {
         FindingCategory::IncompleteCheck,
         FindingCategory::ProjectionLoss,
         FindingCategory::PolicyWarning,
+        FindingCategory::Corroboration,
     ];
 }
 

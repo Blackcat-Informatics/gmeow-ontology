@@ -1,0 +1,15 @@
+<http://example.org/ontology/a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> _:rdfxml_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/datatype-float-discrete-001/w> .
+<http://example.org/ontology/dp> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#DatatypeProperty> <https://gmeow.example/w3c-owl2-full/datatype-float-discrete-001/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/datatype-float-discrete-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> <https://gmeow.example/w3c-owl2-full/datatype-float-discrete-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#onProperty> <http://example.org/ontology/dp> <https://gmeow.example/w3c-owl2-full/datatype-float-discrete-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#someValuesFrom> _:rdfxml_00000000000000000000000002 <https://gmeow.example/w3c-owl2-full/datatype-float-discrete-001/w> .
+_:rdfxml_00000000000000000000000002 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Datatype> <https://gmeow.example/w3c-owl2-full/datatype-float-discrete-001/w> .
+_:rdfxml_00000000000000000000000002 <http://www.w3.org/2002/07/owl#onDatatype> <http://www.w3.org/2001/XMLSchema#float> <https://gmeow.example/w3c-owl2-full/datatype-float-discrete-001/w> .
+_:rdfxml_00000000000000000000000002 <http://www.w3.org/2002/07/owl#withRestrictions> _:rdfxml_list_00000000000000000000000000 <https://gmeow.example/w3c-owl2-full/datatype-float-discrete-001/w> .
+_:rdfxml_00000000000000000000000003 <http://www.w3.org/2001/XMLSchema#minExclusive> "0.0"^^<http://www.w3.org/2001/XMLSchema#float> <https://gmeow.example/w3c-owl2-full/datatype-float-discrete-001/w> .
+_:rdfxml_00000000000000000000000004 <http://www.w3.org/2001/XMLSchema#maxExclusive> "1.401298464324817e-45"^^<http://www.w3.org/2001/XMLSchema#float> <https://gmeow.example/w3c-owl2-full/datatype-float-discrete-001/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> _:rdfxml_00000000000000000000000003 <https://gmeow.example/w3c-owl2-full/datatype-float-discrete-001/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_list_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/datatype-float-discrete-001/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> _:rdfxml_00000000000000000000000004 <https://gmeow.example/w3c-owl2-full/datatype-float-discrete-001/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/datatype-float-discrete-001/w> .

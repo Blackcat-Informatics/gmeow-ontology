@@ -12,7 +12,6 @@ readme = "README.md"
 keywords = ["license", "policy", "spdx", "vendoring", "gmeow"]
 
 [lib]
-# Pure, dependency-free rlib. The PyO3 shim that surfaces this to Python lives in
-# gmeow-validate (linked into the single gmeow_native cdylib, #630).
+# Pure, dependency-free rlib consumed natively by gmeow-validate.
 crate-type = ["rlib"]
 path = "src/lib.rs"
