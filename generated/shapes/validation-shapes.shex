@@ -925,6 +925,14 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/observedFeature> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/ToolCall> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/ToolCall-shape> {
+  <https://blackcatinformatics.ca/gmeow/usedTool> IRI ;
+  <https://blackcatinformatics.ca/gmeow/toolResult> LITERAL ;
+  <https://blackcatinformatics.ca/gmeow/toolArguments> LITERAL ;
+  <https://blackcatinformatics.ca/gmeow/calledByInvocation> IRI ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/Trademark> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/Trademark-shape> {
   <https://blackcatinformatics.ca/gmeow/trademarkMark> IRI ;

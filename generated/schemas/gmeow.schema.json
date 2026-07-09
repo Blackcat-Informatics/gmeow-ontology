@@ -39654,78 +39654,156 @@
               "type": "object"
             },
             {
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
+              "items": {
+                "$comment": "gmeow:ModelInvocation has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "type": "array"
             }
           ]
         },
         "gmeow:toolArguments": {
           "anyOf": [
             {
-              "properties": {
-                "@type": {
-                  "type": "string"
+              "anyOf": [
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
                 },
-                "@value": {}
-              },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
+                {
+                  "type": "string"
+                }
+              ]
             },
             {
-              "type": "string"
+              "items": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "type": "array"
             }
           ]
         },
         "gmeow:toolResult": {
           "anyOf": [
             {
-              "properties": {
-                "@type": {
-                  "type": "string"
+              "anyOf": [
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
                 },
-                "@value": {}
-              },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
+                {
+                  "type": "string"
+                }
+              ]
             },
             {
-              "type": "string"
+              "items": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "type": "array"
             }
           ]
         },
         "gmeow:usedTool": {
           "anyOf": [
             {
-              "$ref": "#/$defs/SoftwareAgent"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SoftwareAgent"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                }
+              ]
             },
             {
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/SoftwareAgent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "type": "array"
             }
           ]
         }
       },
-      "required": [
-        "gmeow:usedTool"
-      ],
       "type": "object"
     },
     "Trademark": {

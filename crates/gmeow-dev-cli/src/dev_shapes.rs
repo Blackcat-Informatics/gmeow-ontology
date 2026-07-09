@@ -29,7 +29,9 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use gmeow_logic_compile::ir::{PropertyConstraintIr, ShapeTarget, ValidationShapeIr};
+use gmeow_logic_compile::ir::{
+    ConstraintComponent, PropertyConstraintIr, ShaclNodeKind, ShapeTarget, ValidationShapeIr,
+};
 use gmeow_validate::shape_oracle::{ShapeRead, oracle, read_shacl_shape};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue, parse_dataset};
 
@@ -340,6 +342,37 @@ pub fn shape_equivalence(path: Option<&Path>) -> i32 {
                             && let Some(&m) = legacy_min.get(&pc.path)
                         {
                             pc.min_count = Some(m);
+                        }
+                        // Credit a legacy `sh:nodeKind` that the projection does not emit but that
+                        // is IMPLIED by a co-present projected component: in GMEOW's IRI-named
+                        // individual convention a class-typed value is an IRI and a datatype-typed
+                        // value is a literal, so `sh:nodeKind sh:IRI` on a path the projection
+                        // constrains by `sh:class` (resp. `sh:Literal` by `sh:datatype`) is
+                        // redundant with that component, not a coverage gap.
+                        let legacy_nk = read
+                            .ir
+                            .properties
+                            .iter()
+                            .find(|lp| lp.path == pc.path)
+                            .and_then(|lp| {
+                                lp.components.iter().find_map(|c| match c {
+                                    ConstraintComponent::NodeKindShacl(k) => Some(*k),
+                                    _ => None,
+                                })
+                            });
+                        if let Some(nk) = legacy_nk {
+                            let has = |pred: fn(&ConstraintComponent) -> bool| {
+                                pc.components.iter().any(pred)
+                            };
+                            let has_nk =
+                                has(|c| matches!(c, ConstraintComponent::NodeKindShacl(_)));
+                            let implied = (matches!(nk, ShaclNodeKind::Iri)
+                                && has(|c| matches!(c, ConstraintComponent::Class(_))))
+                                || (matches!(nk, ShaclNodeKind::Literal)
+                                    && has(|c| matches!(c, ConstraintComponent::Datatype(_))));
+                            if !has_nk && implied {
+                                pc.components.push(ConstraintComponent::NodeKindShacl(nk));
+                            }
                         }
                     }
                     // Drop node-level components the projection derives that the legacy shape
