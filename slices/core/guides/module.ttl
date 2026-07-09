@@ -218,7 +218,7 @@ gmeow:pathModelAContestedClaim
     gmeow:guideGoal "Represent claims by vantage and evidence rather than overwriting facts into a single global truth slot."@x-gmeow-english ;
     gmeow:includesRecipe gmeow:recipeContestedOrAttributedFacts ;
     gmeow:usesExamplePath "slices/core/standpoint/examples/contested-authorship.ttl" , "slices/core/evidence/examples/notability-assessment.ttl" , "slices/core/provenance/examples/import-lineage.ttl" , "slices/core/attestation/examples/software-release.ttl" ;
-    gmeow:usesTerm gmeow:StandpointClaim , gmeow:Evidence , gmeow:Attestation , gmeow:accordingTo , gmeow:confidence ;
+    gmeow:usesTerm gmeow:StandpointClaim , gmeow:EvidenceClass , gmeow:Attestation , gmeow:accordingTo , gmeow:confidence ;
     gmeow:adoptionTarget "prov" , "crminf" , "wikidata" ;
     gmeow:graphBoxRole gmeow:boxABox .
 

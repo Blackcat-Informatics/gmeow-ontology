@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 174
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # assessed entity
@@ -18,6 +19,13 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 ## Definition
 
 The entity whose data quality is being assessed — the feature of interest of the quality observation\. Sub\-property of gmeow:observedFeature so generic consumers can query 'all observations about Alice' without knowing whether the claim is a name, a coordinate, or a quality assessment\.
+
+## Quickstart
+
+```turtle
+<subject> a gmeow:QualityAssessment ;
+    gmeow:assessedEntity <...> .  # gmeow:Entity
+```
 
 ## Neighborhood
 
