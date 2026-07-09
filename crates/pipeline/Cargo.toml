@@ -171,3 +171,6 @@ gmeow-logic-compile = { path = "../logic-compile" }
 #   * purrdf — the frozen RdfDataset carrier (DatasetView), the parsed SHACL Shapes, the
 #     ValidationReport terms, and the SliceCatalog the FS2/FS4/FS5 producers ingest.
 purrdf = "0.4"
+#   * gmeow-math — the five native math producers (gmeow_math::producers) the math
+#     execution-discharge harness (tests/math_flagship_discharge.rs) RUNS and pins.
+gmeow-math = { path = "../math" }
