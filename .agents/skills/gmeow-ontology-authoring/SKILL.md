@@ -107,6 +107,33 @@ resources in the current slices-first, Rust-native repository.
   toward canonical logic constraints and derived validation shapes, not a new
   hand-authored `shapes.ttl`.
 
+- **Migrate the slice's hand-authored shapes (do this whenever you touch a slice)**:
+  The **Shape Migration** slice-quality axis lists every hand-authored `sh:NodeShape`
+  in the slice's `shapes.ttl` that carries no `logic:formalizes`
+  (`slice-quality.projection.ungrounded-shape`). Each is a second source of truth to
+  migrate into the canon. Prove and clear them:
+
+  ```bash
+  gmeow-dev slice-quality slices/<g>/<s>      # lists the ungrounded shapes
+  gmeow-dev shape-equivalence --path slices/<g>/<s>   # EQUIV ⇒ the projector reproduces it
+  ```
+
+  Author each obligation in `module.ttl` with a **reasoner-safe** antecedent so the
+  projector reproduces the shape, then delete the block — **never** `owl:cardinality` /
+  `owl:minCardinality` / `owl:maxCardinality` (out of the EL fragment; they red
+  `make reason-verify` and block `make check`):
+  - at-most-one → `a owl:FunctionalProperty` (→ `sh:maxCount 1`);
+  - existence → `owl:someValuesFrom <Class>` (→ `sh:class`; the dropped `sh:minCount` is a
+    design-sanctioned ValidationOnly under-approximation);
+  - class/datatype → `owl:allValuesFrom`; disjunction → `owl:unionOf`; faceted range →
+    `owl:onDatatype` + `owl:withRestrictions`; cross-node check → a `logic:` FOL assertion in
+    `crates/pipeline/src/stages/constraint_shapes.rs`.
+
+  A genuine residue the fragment cannot express (exactly-N cardinality, node-level `sh:or`,
+  bespoke cross-node `sh:sparql`) instead **keeps its block but adds `logic:formalizes`**
+  naming its canonical `logic:` source — the form the blanket projection-purity gate
+  legalizes. `docs/SLICE_GUIDE.md` §9 is the reference.
+
 - **Run ontology reasoning and verification**:
 
   ```bash
