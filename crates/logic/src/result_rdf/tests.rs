@@ -216,7 +216,10 @@ fn round_trip_for_an_invalid_request() {
 fn parse_rejects_a_body_without_the_result_subject() {
     let err = parse_reasoning_graph("<http://ex/s> <http://ex/p> <http://ex/o> .\n")
         .expect_err("a body without a ReasoningResult subject must fail");
-    assert!(err.contains("no logic:ReasoningResult subject"), "{err}");
+    assert!(
+        err.message().contains("no logic:ReasoningResult subject"),
+        "{err}"
+    );
 }
 
 // ── Finding 1: witness-order determinism ─────────────────────────────────────
@@ -297,7 +300,7 @@ fn parse_fails_closed_on_missing_result_query() {
         .collect();
     let err = parse_reasoning_graph(&stripped).expect_err("missing resultQuery must return Err");
     assert!(
-        err.contains("resultQuery"),
+        err.message().contains("resultQuery"),
         "error must name the missing field: {err}"
     );
 }
@@ -314,7 +317,7 @@ fn parse_fails_closed_on_missing_result_conclusion() {
     let err =
         parse_reasoning_graph(&stripped).expect_err("missing resultConclusion must return Err");
     assert!(
-        err.contains("resultConclusion"),
+        err.message().contains("resultConclusion"),
         "error must name the missing field: {err}"
     );
 }
@@ -331,7 +334,7 @@ fn parse_fails_closed_on_missing_result_budget_consumed() {
     let err =
         parse_reasoning_graph(&stripped).expect_err("missing resultBudgetConsumed must return Err");
     assert!(
-        err.contains("resultBudgetConsumed"),
+        err.message().contains("resultBudgetConsumed"),
         "error must name the missing field: {err}"
     );
 }

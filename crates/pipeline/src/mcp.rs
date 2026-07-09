@@ -1572,8 +1572,11 @@ fn execute_memory_txn(
     } else {
         CommitMode::Committed
     };
-    execute_transaction(&nq, TXN_WORLD, TXN_ROOT, mode)
-        .map_err(|e| gmeow_errors::Diag::of_kind(crate::error::Mcp { message: e }))
+    execute_transaction(&nq, TXN_WORLD, TXN_ROOT, mode).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: e.message().to_owned(),
+        })
+    })
 }
 
 /// The TR outcome rendered for the tool response.

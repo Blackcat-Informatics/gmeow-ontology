@@ -75,6 +75,12 @@ use crate::facts::{SKOLEM_PREFIX, TypedFactSet, skolem_iri};
 use crate::oracle::{ForwardBudget, ForwardOracle, forward_oracle};
 use purrdf::{RdfDataset, RdfTerm, TermValue};
 
+/// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn reason_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Reason { detail })
+}
+
 /// IRI scheme prefix for an interned-literal surrogate (see [`encode_generic_edb`]).
 const LIT_SURROGATE_PREFIX: &str = "urn:gmeow-rl-lit:";
 
@@ -524,13 +530,13 @@ fn encode_generic_edb(store: &RdfDataset, interner: &mut Interner) -> TypedFactS
 /// Every subject/predicate/object position of the `triple/4` encoding carries
 /// an IRI term (literals were interned to surrogate IRIs before the chase), so
 /// any other shape is a hard error.
-fn rl_iri(term: &TermValue, position: &str) -> Result<String, String> {
+fn rl_iri(term: &TermValue, position: &str) -> gmeow_errors::Result<String> {
     match term {
         TermValue::Iri(iri) => Ok(iri.clone()),
-        other => Err(format!(
+        other => Err(reason_err(format!(
             "RL closure row {position} must be an IRI term \
              (literals are interned to surrogate IRIs), got {other:?}"
-        )),
+        ))),
     }
 }
 
@@ -547,15 +553,13 @@ fn rl_iri(term: &TermValue, position: &str) -> Result<String, String> {
 /// Returns `Err(String)` if the chase fails to parse/validate/evaluate/decode
 /// or if a materialized row is not one of the two relations [`RL_RULES`]
 /// declares (`triple/4`, `list_member/3`).
-pub fn rl_closure(edb: &RdfDataset) -> Result<RlClosure, String> {
+pub fn rl_closure(edb: &RdfDataset) -> gmeow_errors::Result<RlClosure> {
     let mut interner = Interner::default();
     let edb_facts = encode_generic_edb(edb, &mut interner);
     if edb_facts.is_empty() {
         return Ok(RlClosure { triples: vec![] });
     }
-    let chase = forward_oracle()
-        .materialize(&edb_facts, RL_RULES, &ForwardBudget::UNBOUNDED)
-        .map_err(|e| e.message().to_owned())?;
+    let chase = forward_oracle().materialize(&edb_facts, RL_RULES, &ForwardBudget::UNBOUNDED)?;
 
     let mut triples: Vec<RlTriple> = Vec::new();
     for (row, prov) in &chase.rows {
@@ -570,11 +574,11 @@ pub fn rl_closure(edb: &RdfDataset) -> Result<RlClosure, String> {
             (TRIPLE_RELATION, 4) => {}
             (LIST_MEMBER_RELATION, 3) => continue,
             (pred, arity) => {
-                return Err(format!(
+                return Err(reason_err(format!(
                     "RL chase produced an unexpected row {pred:?} (arity {arity}): \
                      the fixed RL rule text declares only triple/4 and \
                      list_member/3, so this is a rule-text bug"
-                ));
+                )));
             }
         }
         let subject = rl_iri(&row.args[0], "subject")?;
@@ -601,9 +605,9 @@ pub fn rl_closure(edb: &RdfDataset) -> Result<RlClosure, String> {
                 ..
             } if datatype == "http://www.w3.org/2001/XMLSchema#string" => lexical_form.clone(),
             other => {
-                return Err(format!(
+                return Err(reason_err(format!(
                     "RL closure row world must be a plain string literal, got {other:?}"
-                ));
+                )));
             }
         };
 

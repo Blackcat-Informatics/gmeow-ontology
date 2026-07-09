@@ -89,9 +89,9 @@ pub(crate) fn reason_closure(
     edb: &RdfDataset,
 ) -> gmeow_errors::Result<(Vec<InferredAxiom>, dl::DlVerdict)> {
     let mut inferred = run_reasoning(edb, &dl::dl_rules())?;
-    dl::augment_inferred_with_dl(&mut inferred, edb).map_err(reason_err)?;
+    dl::augment_inferred_with_dl(&mut inferred, edb)?;
     inferred.sort();
-    let verdict = dl::verdict_from_inferred(&inferred, edb).map_err(reason_err)?;
+    let verdict = dl::verdict_from_inferred(&inferred, edb)?;
     Ok((inferred, verdict))
 }
 
@@ -177,9 +177,9 @@ pub fn reason_program(
         inferred.extend(run_nary_head_chase(&nary_head_rls, edb)?);
     }
 
-    dl::augment_inferred_with_dl(&mut inferred, edb).map_err(reason_err)?;
+    dl::augment_inferred_with_dl(&mut inferred, edb)?;
     inferred.sort();
-    let verdict = dl::verdict_from_inferred(&inferred, edb).map_err(reason_err)?;
+    let verdict = dl::verdict_from_inferred(&inferred, edb)?;
 
     // 4. Fold into the shared result, unioning the formula-lowering residue into the
     //    preservation claim.
@@ -312,7 +312,7 @@ fn run_nary_head_chase(
 ) -> gmeow_errors::Result<Vec<InferredAxiom>> {
     let rules = crate::physical::parse_existential_rules(nary_head_rls)?;
     let store = WorldStore::new();
-    store.load_dataset(edb).map_err(reason_err)?;
+    store.load_dataset(edb)?;
     let (_admission, outcome) = crate::physical::chase_materialize(&store, &rules, None)?;
     let budgeted = match outcome {
         crate::physical::NativeOutcome::Decided(budgeted) => budgeted,
@@ -486,7 +486,7 @@ pub(crate) fn run_reasoning_with(
 ) -> gmeow_errors::Result<Vec<InferredAxiom>> {
     // 1. Load the source into a fresh world-indexed store.
     let store = WorldStore::new();
-    store.load_dataset(edb).map_err(reason_err)?;
+    store.load_dataset(edb)?;
 
     // 2. Push every IRI-object quad of every world into the typed EDB.
     //    The IRI-object filter is a SEMANTIC EL/DL restriction: the fixed

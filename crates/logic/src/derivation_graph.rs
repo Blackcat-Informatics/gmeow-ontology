@@ -51,6 +51,12 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::provenance::mint_derivation_id;
 
+/// Wrap a provenance-derivation condition message as a typed diagnostic on the
+/// shared substrate, preserving the authored text verbatim.
+fn provenance_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Provenance { detail })
+}
+
 // ── Fact key ────────────────────────────────────────────────────────────────
 
 /// The content-addressed identity of a fact: its reifier IRI.
@@ -215,16 +221,20 @@ impl DerivationGraph {
     /// analysis fact must never become an input to its own computation). Mutual
     /// support across *distinct* facts is allowed (and correctly handled by
     /// [`DerivationGraph::survives`]).
-    pub fn add_derivation(&mut self, fact: FactKey, app: RuleApplication) -> Result<(), String> {
+    pub fn add_derivation(
+        &mut self,
+        fact: FactKey,
+        app: RuleApplication,
+    ) -> gmeow_errors::Result<()> {
         // `premises` is sorted (RuleApplication::new), so a binary search is the
         // correct membership test for the self-attestation guard.
         if app.premises.binary_search(&fact).is_ok() {
-            return Err(format!(
+            return Err(provenance_err(format!(
                 "self-attestation: fact <{}> cannot be a premise of its own \
                  derivation (rule <{}>)",
                 fact.as_str(),
                 app.rule_iri
-            ));
+            )));
         }
         self.justifications
             .entry(fact)
@@ -249,16 +259,16 @@ impl DerivationGraph {
         &mut self,
         fact: &FactKey,
         apps: impl IntoIterator<Item = RuleApplication>,
-    ) -> Result<(), String> {
+    ) -> gmeow_errors::Result<()> {
         let apps: Vec<RuleApplication> = apps.into_iter().collect();
         for app in &apps {
             if app.premises.binary_search(fact).is_ok() {
-                return Err(format!(
+                return Err(provenance_err(format!(
                     "self-attestation: fact <{}> cannot be a premise of its own \
                      derivation (rule <{}>)",
                     fact.as_str(),
                     app.rule_iri
-                ));
+                )));
             }
         }
         let set = self.justifications.entry(fact.clone()).or_default();
@@ -435,12 +445,12 @@ impl DerivationGraph {
 /// quad's reifier cannot be recomputed.
 pub fn from_foundation_quads(
     quads: &[crate::foundation::FoundationQuad],
-) -> Result<DerivationGraph, String> {
+) -> gmeow_errors::Result<DerivationGraph> {
     use crate::foundation::ASSERT_RULE_IRI;
 
     let mut graph = DerivationGraph::new();
     for q in quads {
-        let fact = FactKey(crate::foundation::quad_reifier(q).map_err(|e| e.message().to_owned())?);
+        let fact = FactKey(crate::foundation::quad_reifier(q)?);
         if q.rule_iri == ASSERT_RULE_IRI {
             // Asserted: the world IRI is the assertion unit in the v1 oracle.
             graph.add_assertion(fact, UnitKey(q.graph.clone()));

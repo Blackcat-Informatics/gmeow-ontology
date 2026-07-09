@@ -307,7 +307,7 @@ proptest! {
         }
         let err = Entrenchment::read_from_world(&store, WORLD)
             .expect_err("a cyclic ordering must be rejected");
-        prop_assert!(err.contains("cycle"), "unexpected error: {}", err);
+        prop_assert!(err.message().contains("cycle"), "unexpected error: {}", err);
     }
 
     /// `compat::check` is total and deterministic over ARBITRARY facet strings: it

@@ -657,7 +657,7 @@ impl BackwardOracle for ReferenceBackwardOracle {
         _tabling: &[String],
         budget: &Budget,
     ) -> gmeow_errors::Result<AnswerSet> {
-        crate::reference_resolver::resolve(foreign, world, program, budget).map_err(oracle_err)
+        crate::reference_resolver::resolve(foreign, world, program, budget)
     }
 }
 

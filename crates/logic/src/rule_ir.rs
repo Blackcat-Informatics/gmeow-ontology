@@ -145,7 +145,7 @@ impl Fact {
 
     /// The reifier IRI for this fact, via the golden-pinned recipe.
     pub(crate) fn reifier(&self) -> gmeow_errors::Result<String> {
-        mint_reifier(&self.subject, &self.predicate, &self.object).map_err(ir_err)
+        mint_reifier(&self.subject, &self.predicate, &self.object)
     }
 }
 

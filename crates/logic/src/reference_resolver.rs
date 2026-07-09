@@ -47,6 +47,12 @@ use crate::provenance::term_n3;
 use crate::query_ir::{AnswerSet, Binding, Budget, QAtom, QBodyLit, QGoal, QProgram, QTerm};
 use crate::seam::{BudgetStatus, ScryerForeign};
 
+/// Wrap a reference-oracle condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn reference_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Reference { detail })
+}
+
 // ── Public entry point ────────────────────────────────────────────────────────
 
 /// Resolve `program` against `world` using the declarative SLD oracle.
@@ -73,7 +79,7 @@ pub fn resolve(
     world: &str,
     program: &QProgram,
     budget: &Budget,
-) -> Result<AnswerSet, String> {
+) -> gmeow_errors::Result<AnswerSet> {
     // Build the IDB set: predicate IRIs that appear as rule heads.
     let idb: BTreeSet<String> = program.rules.iter().map(|r| r.head.pred.clone()).collect();
 
@@ -153,7 +159,7 @@ impl<'a> ResolveState<'a> {
         lits: &[QBodyLit],
         subst: &Binding,
         seen: &mut BTreeSet<(String, String, String)>,
-    ) -> Result<(), String> {
+    ) -> gmeow_errors::Result<()> {
         if self.budget_exceeded() {
             self.status = if self.budget.max_answers.is_some()
                 && self.answers.len() >= self.budget.max_answers.unwrap()
@@ -196,11 +202,11 @@ impl<'a> ResolveState<'a> {
         let (first, rest) = lits.split_first().unwrap();
 
         match first {
-            QBodyLit::Cut => Err(
+            QBodyLit::Cut => Err(reference_err(
                 "cut is procedural; not supported by the declarative reference oracle \
                  (use the Scryer engine)"
                     .to_owned(),
-            ),
+            )),
             QBodyLit::Builtin(b) => self.resolve_builtin(b, rest, subst, seen),
             QBodyLit::Atom(atom) => {
                 // Apply the current substitution to the first atom.
@@ -230,7 +236,7 @@ impl<'a> ResolveState<'a> {
         rest: &[QBodyLit],
         subst: &Binding,
         seen: &mut BTreeSet<(String, String, String)>,
-    ) -> Result<(), String> {
+    ) -> gmeow_errors::Result<()> {
         let lookup = |name: &str| match chase_var(name, subst, 0) {
             QTerm::Const(c) => Some(std::borrow::Cow::Owned(c)),
             QTerm::Var(_) | QTerm::Num(_) => None,
@@ -253,11 +259,11 @@ impl<'a> ResolveState<'a> {
                 self.resolve_conjunct(rest, &new_subst, seen)
             }
             crate::physical::BuiltinOutcome::Unbound
-            | crate::physical::BuiltinOutcome::Error(_) => Err(
+            | crate::physical::BuiltinOutcome::Error(_) => Err(reference_err(
                 "arithmetic/comparison builtin has an unbound operand or domain error in \
                  the declarative reference oracle (use the Scryer engine)"
                     .to_owned(),
-            ),
+            )),
         }
     }
 
@@ -268,7 +274,7 @@ impl<'a> ResolveState<'a> {
         rest: &[QBodyLit],
         subst: &Binding,
         seen: &mut BTreeSet<(String, String, String)>,
-    ) -> Result<(), String> {
+    ) -> gmeow_errors::Result<()> {
         // Memo key: (pred, arg0_canonical, arg1_canonical) — Consts are already canonical;
         // unbound Vars are represented as the empty string (wildcard).
         let key = (
@@ -309,11 +315,11 @@ impl<'a> ResolveState<'a> {
 
             // Detect cut in the rule body — reject immediately.
             if rule.body.iter().any(|b| matches!(b, QBodyLit::Cut)) {
-                return Err(
+                return Err(reference_err(
                     "cut is procedural; not supported by the declarative reference oracle \
                      (use the Scryer engine)"
                         .to_owned(),
-                );
+                ));
             }
 
             // Arithmetic/comparison builtins are no longer rejected — they are
@@ -345,7 +351,7 @@ impl<'a> ResolveState<'a> {
         rest: &[QBodyLit],
         subst: &Binding,
         seen: &mut BTreeSet<(String, String, String)>,
-    ) -> Result<(), String> {
+    ) -> gmeow_errors::Result<()> {
         self.steps += 1;
         if let Some(max_s) = self.budget.max_steps
             && self.steps > max_s
@@ -386,10 +392,10 @@ impl<'a> ResolveState<'a> {
             }
 
             // Convert DerivedQuad subject/object to canonical strings.
-            let subj_canon =
-                term_n3(&dq_subj).map_err(|e| format!("term_n3 failed on EDB subject: {e}"))?;
-            let obj_canon =
-                term_n3(&dq_obj).map_err(|e| format!("term_n3 failed on EDB object: {e}"))?;
+            let subj_canon = term_n3(&dq_subj)
+                .map_err(|e| reference_err(format!("term_n3 failed on EDB subject: {e}")))?;
+            let obj_canon = term_n3(&dq_obj)
+                .map_err(|e| reference_err(format!("term_n3 failed on EDB object: {e}")))?;
 
             // Extend substitution with any new variable bindings from this match.
             let mut new_subst = subst.clone();
@@ -595,15 +601,15 @@ fn term_canonical_or_wildcard(t: &QTerm) -> String {
 }
 
 /// Convert a canonical constant string (`<iri>` or `"lit"...`) to a native `TermValue`.
-fn canonical_to_term(canonical: &str) -> Result<TermValue, String> {
+fn canonical_to_term(canonical: &str) -> gmeow_errors::Result<TermValue> {
     if canonical.starts_with('<') && canonical.ends_with('>') {
         let iri = &canonical[1..canonical.len() - 1];
         Ok(TermValue::iri(iri))
     } else {
-        Err(format!(
+        Err(reference_err(format!(
             "canonical_to_term: unsupported canonical form {canonical:?} \
              (only <iri> IRI constants are supported in this oracle)"
-        ))
+        )))
     }
 }
 
@@ -849,7 +855,7 @@ mod tests {
         assert!(result.is_err(), "cut must return Err");
         let err = result.unwrap_err();
         assert!(
-            err.contains("cut is procedural"),
+            err.message().contains("cut is procedural"),
             "error must mention 'cut is procedural': {err:?}"
         );
     }

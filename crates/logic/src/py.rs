@@ -46,7 +46,7 @@ fn world_store_from_nquads(input: &str) -> PyResult<WorldStore> {
     let store = WorldStore::new();
     store
         .load_nquads(input)
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     Ok(store)
 }
 
@@ -329,7 +329,9 @@ fn query(
 
     // 1. Load the materialized EDB into a world-indexed store.
     let store = WorldStore::new();
-    store.load_nquads(world_nquads).map_err(value_err)?;
+    store
+        .load_nquads(world_nquads)
+        .map_err(|e| value_err(e.message().to_owned()))?;
 
     // 2. Resolve the target world (explicit, or the single named graph).
     let world = match world_iri {
@@ -358,7 +360,7 @@ fn query(
     //     never enter the marginal — the confidence≠probability guard is structural.
     if crate::profile_gate::is_probabilistic_profile(profile) {
         let answer = crate::probabilistic::evaluate(&store, &world, &program, profile, None)
-            .map_err(value_err)?;
+            .map_err(|e| value_err(e.message().to_owned()))?;
         let bindings = PyList::empty(py);
         for binding in &answer.bindings {
             let row = PyDict::new(py);
@@ -379,7 +381,8 @@ fn query(
     }
 
     // 4. Build the read-only EDB accessor for this world.
-    let foreign = WorldStoreForeign::from_world(&store, &world, profile).map_err(value_err)?;
+    let foreign = WorldStoreForeign::from_world(&store, &world, profile)
+        .map_err(|e| value_err(e.message().to_owned()))?;
 
     // 5. Dispatch. A Stratum-C counterfactual program routes through
     //    transient world construction; a plain v4 backward goal runs against the
@@ -406,13 +409,13 @@ fn query(
         let mut cf = crate::counterfactual::construct_and_resolve(
             &store, &program, profile, &budget, depth, None,
         )
-        .map_err(value_err)?;
+        .map_err(|e| value_err(e.message().to_owned()))?;
         let status = cf.status_str().to_owned();
         let preservation = cf.result.preservation.clone();
         (std::mem::take(&mut cf.bindings), status, preservation)
     } else {
         let answer = dispatch_query(&foreign, &store, &world, &program, profile, &budget)
-            .map_err(value_err)?;
+            .map_err(|e| value_err(e.message().to_owned()))?;
         let preservation = answer.preservation.clone();
         (
             answer.bindings,
@@ -492,7 +495,7 @@ fn foundation(
     let store = WorldStore::new();
     store
         .load_nquads(input)
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
 
     let quads = evaluate(&store, policy).map_err(|e| {
         pyo3::exceptions::PyRuntimeError::new_err(format!("foundation evaluation failed: {e}"))
@@ -851,7 +854,7 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
     // instead of a clean ValueError); computing the verdicts here keeps the boundary honest. A
     // correspondence-free source yields an empty map (the gates never run).
     let verdicts = crate::correspondence_exec::logic_program_verdicts(&program)
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
     let arts = compile_program(&program, &verdicts)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
 
@@ -1001,8 +1004,9 @@ fn native_reason_payload_with_artifacts(
     let merge_store = if merge { Some(dataset) } else { None };
     let artifacts = NativeReasonArtifacts {
         closure: build_inferred_closure_ttl(&typed, merge_store)
-            .map_err(NativeReasonPyError::Reason)?,
-        explanations: build_explanations_ttl(&typed).map_err(NativeReasonPyError::Reason)?,
+            .map_err(|e| NativeReasonPyError::Reason(e.message().to_owned()))?,
+        explanations: build_explanations_ttl(&typed)
+            .map_err(|e| NativeReasonPyError::Reason(e.message().to_owned()))?,
         ledger: build_dl_el_ledger_ttl(&typed),
         result: build_reasoning_result_ttl(&typed),
     };
@@ -1036,13 +1040,14 @@ fn native_reason_verify_payload_with_artifacts(
     let merge_store = if merge { Some(dataset) } else { None };
     let artifacts = NativeReasonArtifacts {
         closure: build_inferred_closure_ttl(&typed, merge_store)
-            .map_err(NativeReasonPyError::Reason)?,
-        explanations: build_explanations_ttl(&typed).map_err(NativeReasonPyError::Reason)?,
+            .map_err(|e| NativeReasonPyError::Reason(e.message().to_owned()))?,
+        explanations: build_explanations_ttl(&typed)
+            .map_err(|e| NativeReasonPyError::Reason(e.message().to_owned()))?,
         ledger: build_dl_el_ledger_ttl(&typed),
         result: build_reasoning_result_ttl(&typed),
     };
     let verify_report = crate::verify::verify_with_reasoning_result(dataset, &typed, &queries)
-        .map_err(NativeReasonPyError::Verify)?;
+        .map_err(|e| NativeReasonPyError::Verify(e.message().to_owned()))?;
     Ok((
         NativeReasonPayload { typed, verdict },
         artifacts,
@@ -1303,9 +1308,10 @@ fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyR
             .map_err(|e| ArtifactsError::Reason(e.message().to_owned()))?;
 
         let merge_store = if merge { Some(dataset) } else { None };
-        let closure =
-            build_inferred_closure_ttl(&result, merge_store).map_err(ArtifactsError::Reason)?;
-        let explanations = build_explanations_ttl(&result).map_err(ArtifactsError::Reason)?;
+        let closure = build_inferred_closure_ttl(&result, merge_store)
+            .map_err(|e| ArtifactsError::Reason(e.message().to_owned()))?;
+        let explanations = build_explanations_ttl(&result)
+            .map_err(|e| ArtifactsError::Reason(e.message().to_owned()))?;
         let ledger = build_dl_el_ledger_ttl(&result);
         // The typed reasoning-result + proof-certificate artifact, emitted
         // unconditionally (single-path; the `merge` flag governs only the closure).
@@ -1371,7 +1377,7 @@ fn compute_rl_closure(py: Python<'_>, input: &str) -> PyResult<crate::reason::rl
     let closure: Result<crate::reason::rl::RlClosure, (bool, String)> = py.detach(move || {
         let dataset = purrdf::dataset_from_bytes(&bytes, purrdf::NativeRdfFormat::NQuads)
             .map_err(|e| (true, format!("N-Quads parse error: {e}")))?;
-        crate::reason::rl::rl_closure(dataset.as_ref()).map_err(|e| (false, e))
+        crate::reason::rl::rl_closure(dataset.as_ref()).map_err(|e| (false, e.message().to_owned()))
     });
     closure.map_err(|(is_parse, msg)| {
         if is_parse {
@@ -1443,7 +1449,8 @@ fn verify_native(
     let verify_result: Result<gmeow_errors::Report, VerifyNativeError> = py.detach(move || {
         let bundle = purrdf::import_gts_events(&bytes)
             .map_err(|e| VerifyNativeError::GtsRead(format!("GTS read error: {e}")))?;
-        crate::verify::verify(bundle.dataset.as_ref(), &queries).map_err(VerifyNativeError::Verify)
+        crate::verify::verify(bundle.dataset.as_ref(), &queries)
+            .map_err(|e| VerifyNativeError::Verify(e.message().to_owned()))
     });
     let report = verify_result.map_err(|e| match e {
         VerifyNativeError::GtsRead(m) => pyo3::exceptions::PyValueError::new_err(m),
@@ -1513,7 +1520,7 @@ fn extract_module(
     let src = source_iri.to_owned();
     let result = py
         .detach(move || crate::slme::extract_module(&ttl, &terms, &method_owned, &ns, &src))
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        .map_err(|d| gmeow_errors::py::diag_to_pyerr(&d))?;
 
     let warnings = PyList::empty(py);
     for finding in &result.findings {

@@ -76,13 +76,13 @@ impl TransitionFact {
         Ok(TransitionFactKey {
             subject_n3: subject_n3(&self.subject),
             predicate_iri: self.predicate.clone(),
-            object_n3: term_n3(&self.object).map_err(transition_err)?,
+            object_n3: term_n3(&self.object)?,
         })
     }
 
     /// Content-addressed support/reifier IRI for this fact.
     pub fn reifier(&self) -> gmeow_errors::Result<String> {
-        mint_reifier(&self.subject, &self.predicate, &self.object).map_err(transition_err)
+        mint_reifier(&self.subject, &self.predicate, &self.object)
     }
 }
 
@@ -190,8 +190,7 @@ pub fn apply_elementary_transition(
         )));
     }
 
-    let entrenchment =
-        Entrenchment::read_from_world(store, entrenchment_state).map_err(transition_err)?;
+    let entrenchment = Entrenchment::read_from_world(store, entrenchment_state)?;
     let effective = resolve_updates(updates, &entrenchment)?;
 
     let base_quads = sorted_world_quads(store, base_state)?;
@@ -224,14 +223,12 @@ pub fn apply_elementary_transition(
             retired_supports.push(fact.reifier()?);
             continue;
         }
-        store
-            .insert_quad_terms(
-                successor_state,
-                quad.s.clone(),
-                quad.p.clone(),
-                quad.o.clone(),
-            )
-            .map_err(transition_err)?;
+        store.insert_quad_terms(
+            successor_state,
+            quad.s.clone(),
+            quad.p.clone(),
+            quad.o.clone(),
+        )?;
         carried_supports += 1;
     }
 
@@ -242,23 +239,19 @@ pub fn apply_elementary_transition(
         .collect();
     inserts.sort_by_key(|u| u.sort_key().expect("validated transition fact"));
     for update in inserts {
-        store
-            .insert_quad_terms(
-                successor_state,
-                update.fact.subject.clone(),
-                TermValue::iri(update.fact.predicate.clone()),
-                update.fact.object.clone(),
-            )
-            .map_err(transition_err)?;
+        store.insert_quad_terms(
+            successor_state,
+            update.fact.subject.clone(),
+            TermValue::iri(update.fact.predicate.clone()),
+            update.fact.object.clone(),
+        )?;
         let support = update.fact.reifier()?;
-        store
-            .insert_quad_terms(
-                successor_state,
-                TermValue::iri(support.clone()),
-                TermValue::iri(predicates.active_in_state.clone()),
-                TermValue::iri(successor_state),
-            )
-            .map_err(transition_err)?;
+        store.insert_quad_terms(
+            successor_state,
+            TermValue::iri(support.clone()),
+            TermValue::iri(predicates.active_in_state.clone()),
+            TermValue::iri(successor_state),
+        )?;
         inserted_supports.push(support);
     }
 
@@ -268,38 +261,30 @@ pub fn apply_elementary_transition(
         let support = update.fact.reifier()?;
         let support_subject = TermValue::iri(support);
 
-        store
-            .insert_quad_terms(
-                successor_state,
-                support_subject.clone(),
-                TermValue::iri(predicates.active_in_state.clone()),
-                TermValue::iri(base_state),
-            )
-            .map_err(transition_err)?;
-        store
-            .insert_quad_terms(
-                successor_state,
-                support_subject.clone(),
-                TermValue::iri(predicates.valid_until_state.clone()),
-                TermValue::iri(successor_state),
-            )
-            .map_err(transition_err)?;
-        store
-            .insert_quad_terms(
-                successor_state,
-                support_subject.clone(),
-                TermValue::iri(predicates.superseded_by.clone()),
-                TermValue::iri(update.update_iri.clone()),
-            )
-            .map_err(transition_err)?;
-        store
-            .insert_quad_terms(
-                successor_state,
-                support_subject,
-                TermValue::iri(predicates.retired_by_transaction.clone()),
-                TermValue::iri(update.transaction_iri.clone()),
-            )
-            .map_err(transition_err)?;
+        store.insert_quad_terms(
+            successor_state,
+            support_subject.clone(),
+            TermValue::iri(predicates.active_in_state.clone()),
+            TermValue::iri(base_state),
+        )?;
+        store.insert_quad_terms(
+            successor_state,
+            support_subject.clone(),
+            TermValue::iri(predicates.valid_until_state.clone()),
+            TermValue::iri(successor_state),
+        )?;
+        store.insert_quad_terms(
+            successor_state,
+            support_subject.clone(),
+            TermValue::iri(predicates.superseded_by.clone()),
+            TermValue::iri(update.update_iri.clone()),
+        )?;
+        store.insert_quad_terms(
+            successor_state,
+            support_subject,
+            TermValue::iri(predicates.retired_by_transaction.clone()),
+            TermValue::iri(update.transaction_iri.clone()),
+        )?;
     }
 
     inserted_supports.sort();

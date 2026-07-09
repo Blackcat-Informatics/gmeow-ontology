@@ -96,7 +96,7 @@ pub fn evaluate_path_lowered(
     path: &PropertyPathExpression,
     subject: &PathEnd,
     object: &PathEnd,
-) -> Result<BTreeSet<(String, String)>, String> {
+) -> gmeow_errors::Result<BTreeSet<(String, String)>> {
     let mut low = Lowering::new();
     let (result_pred, reflexive) = low.lower(path)?;
 
@@ -124,21 +124,21 @@ pub fn evaluate_path_lowered(
     }
     let foreign = WorldStoreForeign::from_world(&store, LOWER_WORLD, LOWER_PROFILE)?;
 
-    let ans = backward_oracle()
-        .solve(
-            &foreign,
-            LOWER_WORLD,
-            &program,
-            &low.table_preds,
-            &Budget::default(),
-        )
-        .map_err(|e| e.message().to_owned())?;
+    let ans = backward_oracle().solve(
+        &foreign,
+        LOWER_WORLD,
+        &program,
+        &low.table_preds,
+        &Budget::default(),
+    )?;
     if ans.status != BudgetStatus::Ok {
-        return Err(format!(
-            "lowered path resolution did not complete (status = {:?}); a partial answer set \
-             cannot be compared against the complete in-engine evaluator",
-            ans.status
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Lower {
+            detail: format!(
+                "lowered path resolution did not complete (status = {:?}); a partial answer set \
+                 cannot be compared against the complete in-engine evaluator",
+                ans.status
+            ),
+        }));
     }
 
     let mut pairs = answer_to_pairs(&ans, subject, object);
@@ -290,7 +290,7 @@ impl Lowering {
     /// Lower a sub-path to `(predicate, reflexive)`: the predicate names the path's
     /// **positive** (one-or-more, non-zero-length) binary relation; `reflexive` is
     /// whether the path admits the zero-length identity.
-    fn lower(&mut self, path: &PropertyPathExpression) -> Result<(String, bool), String> {
+    fn lower(&mut self, path: &PropertyPathExpression) -> gmeow_errors::Result<(String, bool)> {
         use PropertyPathExpression as P;
         match path {
             // The EDB predicate is the relation directly; not reflexive.
@@ -345,12 +345,14 @@ impl Lowering {
                 Ok((tc, rp))
             }
             P::Range { inner, min, max } => self.lower_range(inner, *min, *max),
-            P::NegatedPropertySet(_) | P::Wildcard { .. } => Err(
-                "negated-property-set and wildcard paths use a variable predicate position and \
-                 cannot be lowered to the fixed-predicate Datalog engine; evaluate them with the \
-                 in-engine path evaluator instead"
-                    .to_owned(),
-            ),
+            P::NegatedPropertySet(_) | P::Wildcard { .. } => {
+                Err(gmeow_errors::Diag::of_kind(crate::error::Lower {
+                    detail: "negated-property-set and wildcard paths use a variable predicate \
+                             position and cannot be lowered to the fixed-predicate Datalog \
+                             engine; evaluate them with the in-engine path evaluator instead"
+                        .to_owned(),
+                }))
+            }
         }
     }
 
@@ -394,14 +396,14 @@ impl Lowering {
         inner: &PropertyPathExpression,
         min: u32,
         max: Option<u32>,
-    ) -> Result<(String, bool), String> {
+    ) -> gmeow_errors::Result<(String, bool)> {
         match max {
             // {0,0} is the zero-length-only identity — no positive relation to query.
-            Some(0) => Err(
-                "zero-length-only range path {0,0} has no positive relation to lower; evaluate it \
-                 with the in-engine evaluator"
+            Some(0) => Err(gmeow_errors::Diag::of_kind(crate::error::Lower {
+                detail: "zero-length-only range path {0,0} has no positive relation to lower; \
+                         evaluate it with the in-engine evaluator"
                     .to_owned(),
-            ),
+            })),
             Some(m) => {
                 // Lower inner once to its positive predicate.
                 let (pp, refl) = self.lower(inner)?;
