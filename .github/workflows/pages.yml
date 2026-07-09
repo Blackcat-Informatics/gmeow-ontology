@@ -1,0 +1,78 @@
+name: Pages
+
+# Publish the ontology documentation site to GitHub Pages. The site is the
+# self-contained static HTML tree rendered by the Rust `extract-docs` renderer
+# directly from the committed, drift-gated `generated/dist/gmeow.gts` bundle —
+# so the published site is always a faithful projection of the shipped bundle,
+# never a separately-maintained copy. `ontology-docs/` is gitignored on purpose
+# (never committed, per AGENTS.md); it is rebuilt fresh on every deploy.
+
+on:
+  push:
+    branches: [main]
+    # Only re-publish when something that can change the rendered site moves:
+    # the bundle the site is projected from, the renderer/CLI, or this workflow.
+    paths:
+      - generated/dist/gmeow.gts
+      - crates/docs/**
+      - crates/gmeow-dev-cli/**
+      - crates/pipeline/**
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+# Least privilege: the build job needs only read; the deploy job needs the Pages
+# OIDC token. Set per-job below so the build job cannot touch Pages.
+permissions:
+  contents: read
+
+# Never cancel an in-progress Pages deploy (a half-applied deploy is worse than a
+# queued one); let a newer run wait for the current publish to finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install Rust (nightly)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      # Render the static site from the committed bundle. `extract-docs` reads
+      # `generated/dist/gmeow.gts` and writes the self-contained tree (index.html,
+      # assets/, search-index.json, offline SPARQL playground) into ontology-docs/.
+      # No full `make regenerate` is needed: the bundle is the drift-gated source
+      # of truth, so the site is byte-faithful to what CI already validated.
+      - name: Render ontology docs
+        run: cargo run -q -p gmeow-dev-cli -- extract-docs --directory ontology-docs --force generated/dist/gmeow.gts
+
+      - name: Configure Pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        with:
+          path: ontology-docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write # deploy to the Pages site
+      id-token: write # verify the deploy originates from this workflow (OIDC)
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
