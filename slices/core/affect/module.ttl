@@ -1763,3 +1763,66 @@ gmeow:Appraisal rdfs:subClassOf
 <https://blackcatinformatics.ca/gmeow/AffectDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/decidedLabel> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/AffectDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/decisionCrossedThreshold> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/AffectDecision> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observedFeature> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+
+# =========================================================================== #
+# Procedural constraints authored as raw logic:Formula integrity trees —        #
+# projected to sh:SPARQLConstraint, keyed onto gmeow:Appraisal.                 #
+# =========================================================================== #
+
+# A dimensional appraisal reading is framed: gmeow:appraisalValue requires a
+# gmeow:appraisalScaleProfile (an unframed magnitude is ill-formed, Principle 6/11).
+gmeow:AppraisalFramedValueConstraint
+    a logic:Constraint ;
+    rdfs:label "Appraisal framed-value constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Appraisal carrying a gmeow:appraisalValue declares a gmeow:appraisalScaleProfile."@x-gmeow-english ;
+    logic:formalizes gmeow:Appraisal ;
+    logic:message "A dimensional appraisal reading is unframed: gmeow:appraisalValue requires a gmeow:appraisalScaleProfile (the greenfield reshape removed the bare-decimal floor — an unframed magnitude is ill-formed, Principle 6/11)." ;
+    logic:integrity logic:afvForall .
+logic:afvForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall logic:afvImpl .
+logic:afvImpl a logic:Formula ; logic:antecedent logic:afvGuard ; logic:consequent logic:afvProfile .
+logic:afvGuard a logic:Formula ; logic:and logic:afvType , logic:afvValue .
+logic:afvType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Appraisal ] .
+logic:afvValue a logic:Formula ; logic:relation gmeow:appraisalValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:afvProfile a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ;
+    logic:exists logic:afvProfileAtom .
+logic:afvProfileAtom a logic:Formula ; logic:relation gmeow:appraisalScaleProfile ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+
+# An Appraisal must read SOMETHING: a dimensional value (dimension + value) or at
+# least one aesthetic quality.
+gmeow:AppraisalReadsSomethingConstraint
+    a logic:Constraint ;
+    rdfs:label "Appraisal reads-something constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Appraisal reads at least one gmeow:appraisalQuality, or a gmeow:appraisalDimension together with a gmeow:appraisalValue."@x-gmeow-english ;
+    logic:formalizes gmeow:Appraisal ;
+    logic:message "An Appraisal must read SOMETHING: a dimensional value (dimension + value) or at least one aesthetic quality." ;
+    logic:integrity logic:arsForall .
+logic:arsForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:arsImpl .
+logic:arsImpl a logic:Formula ; logic:antecedent logic:arsGuard ; logic:consequent logic:arsOr .
+logic:arsGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Appraisal ] .
+logic:arsOr a logic:Formula ; logic:or logic:arsQual , logic:arsDimVal .
+logic:arsQual a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "q" ] ;
+    logic:exists logic:arsQualAtom .
+logic:arsQualAtom a logic:Formula ; logic:relation gmeow:appraisalQuality ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] .
+logic:arsDimVal a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] , [ logic:termIndex 1 ; logic:termVariable "vv" ] ;
+    logic:exists logic:arsDimValBody .
+logic:arsDimValBody a logic:Formula ; logic:and logic:arsDim , logic:arsVal .
+logic:arsDim a logic:Formula ; logic:relation gmeow:appraisalDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+logic:arsVal a logic:Formula ; logic:relation gmeow:appraisalValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vv" ] .

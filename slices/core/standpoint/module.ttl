@@ -815,3 +815,116 @@ gmeow:StandpointTenure rdfs:subClassOf
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/StandpointTenure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/tenureStandpoint> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/StandpointTenure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/standpointClaim> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/StandpointClaim> ] .
+
+# =========================================================================== #
+# Procedural constraints authored as raw logic:Formula integrity trees. Each   #
+# carries logic:formalizes so its projected sh:SPARQLConstraint twin keys onto  #
+# the same source-term as the hand-authored SHACL it replaces. The [0,1] range  #
+# is split into a lower- and an upper-bound constraint so each lowers to a      #
+# single bound-value FILTER (a disjunction of pure filters would produce UNION  #
+# arms that re-bind nothing).                                                   #
+# =========================================================================== #
+
+# gmeow:claimCredence must be an xsd:decimal >= 0.0 (lower bound of the unit
+# interval); a value below 0 is malformed.
+gmeow:ClaimCredenceLowerBoundConstraint
+    a logic:Constraint ;
+    rdfs:label "Claim credence lower-bound constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: gmeow:claimCredence must be an xsd:decimal at or above 0.0."@x-gmeow-english ;
+    logic:formalizes gmeow:ClaimCredenceRangeShape ;
+    logic:message "gmeow:claimCredence must be an xsd:decimal in [0.0, 1.0] — a credence value outside this range is malformed." ;
+    logic:integrity logic:cclForall .
+logic:cclForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall logic:cclImpl .
+logic:cclImpl a logic:Formula ; logic:antecedent logic:cclGuard ; logic:consequent logic:cclLow .
+logic:cclGuard a logic:Formula ; logic:relation gmeow:claimCredence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:cclLow a logic:Formula ; logic:relation logic:termGreaterEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "0.0" ; logic:termLiteralDatatype xsd:decimal ] .
+
+# gmeow:claimCredence must be an xsd:decimal <= 1.0 (upper bound of the unit
+# interval); a value above 1 is malformed.
+gmeow:ClaimCredenceUpperBoundConstraint
+    a logic:Constraint ;
+    rdfs:label "Claim credence upper-bound constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: gmeow:claimCredence must be an xsd:decimal at or below 1.0."@x-gmeow-english ;
+    logic:formalizes gmeow:ClaimCredenceRangeShape ;
+    logic:message "gmeow:claimCredence must be an xsd:decimal in [0.0, 1.0] — a credence value outside this range is malformed." ;
+    logic:integrity logic:ccuForall .
+logic:ccuForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall logic:ccuImpl .
+logic:ccuImpl a logic:Formula ; logic:antecedent logic:ccuGuard ; logic:consequent logic:ccuHigh .
+logic:ccuGuard a logic:Formula ; logic:relation gmeow:claimCredence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:ccuHigh a logic:Formula ; logic:relation logic:termLessEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "1.0" ; logic:termLiteralDatatype xsd:decimal ] .
+
+# gmeow:standpointCredence must be an xsd:decimal >= 0.0.
+gmeow:StandpointCredenceLowerBoundConstraint
+    a logic:Constraint ;
+    rdfs:label "Standpoint credence lower-bound constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: gmeow:standpointCredence must be an xsd:decimal at or above 0.0."@x-gmeow-english ;
+    logic:formalizes gmeow:StandpointCredenceRangeShape ;
+    logic:message "gmeow:standpointCredence must be an xsd:decimal in [0.0, 1.0] — a credence value outside this range is malformed." ;
+    logic:integrity logic:sclForall .
+logic:sclForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall logic:sclImpl .
+logic:sclImpl a logic:Formula ; logic:antecedent logic:sclGuard ; logic:consequent logic:sclLow .
+logic:sclGuard a logic:Formula ; logic:relation gmeow:standpointCredence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:sclLow a logic:Formula ; logic:relation logic:termGreaterEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "0.0" ; logic:termLiteralDatatype xsd:decimal ] .
+
+# gmeow:standpointCredence must be an xsd:decimal <= 1.0.
+gmeow:StandpointCredenceUpperBoundConstraint
+    a logic:Constraint ;
+    rdfs:label "Standpoint credence upper-bound constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: gmeow:standpointCredence must be an xsd:decimal at or below 1.0."@x-gmeow-english ;
+    logic:formalizes gmeow:StandpointCredenceRangeShape ;
+    logic:message "gmeow:standpointCredence must be an xsd:decimal in [0.0, 1.0] — a credence value outside this range is malformed." ;
+    logic:integrity logic:scuForall .
+logic:scuForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall logic:scuImpl .
+logic:scuImpl a logic:Formula ; logic:antecedent logic:scuGuard ; logic:consequent logic:scuHigh .
+logic:scuGuard a logic:Formula ; logic:relation gmeow:standpointCredence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:scuHigh a logic:Formula ; logic:relation logic:termLessEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "1.0" ; logic:termLiteralDatatype xsd:decimal ] .
+
+# A withdrawn standpoint (a gmeow:StandpointTenure whose interval has ended)
+# should set gmeow:displayable false — suppressed from display, never deleted. Warning.
+gmeow:WithdrawnStandpointSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Withdrawn standpoint suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:StandpointTenure whose interval has ended sets gmeow:displayable false."@x-gmeow-english ;
+    logic:formalizes gmeow:StandpointTenure ;
+    logic:severity "Warning" ;
+    logic:message "A withdrawn standpoint (a StandpointTenure whose interval has ended) should set gmeow:displayable false — suppressed from display, never deleted." ;
+    logic:integrity logic:wssForall .
+logic:wssForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "iv" ] , [ logic:termIndex 2 ; logic:termVariable "end" ] ;
+    logic:forall logic:wssImpl .
+logic:wssImpl a logic:Formula ; logic:antecedent logic:wssGuard ; logic:consequent logic:wssDisp .
+logic:wssGuard a logic:Formula ; logic:and logic:wssType , logic:wssDuring , logic:wssEnded .
+logic:wssType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:StandpointTenure ] .
+logic:wssDuring a logic:Formula ; logic:relation gmeow:duringInterval ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "iv" ] .
+logic:wssEnded a logic:Formula ; logic:relation gmeow:endedAtTime ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "iv" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] .
+logic:wssDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype <http://www.w3.org/2001/XMLSchema#boolean> ] .

@@ -2080,3 +2080,35 @@ gmeow:Trademark rdfs:subClassOf
 <https://blackcatinformatics.ca/gmeow/Prohibition> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/ruleAction> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/Duty> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/ruleAction> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/Trademark> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/trademarkMark> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+
+# =========================================================================== #
+# Procedural constraint authored as a raw logic:Formula integrity tree —        #
+# projected to a sh:SPARQLConstraint keyed (via logic:formalizes) onto the same #
+# source-term as the hand-authored SHACL it replaces.                          #
+# =========================================================================== #
+
+# An expired or cancelled trademark should set gmeow:displayable false —
+# suppressed from display, never deleted (Principle 10). Warning: a source may lag.
+gmeow:ExpiredTrademarkSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Expired trademark suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: an expired or cancelled gmeow:Trademark sets gmeow:displayable false."@x-gmeow-english ;
+    logic:formalizes gmeow:Trademark ;
+    logic:severity "Warning" ;
+    logic:message "An expired or cancelled trademark should set gmeow:displayable false — suppressed from display, never deleted." ;
+    logic:integrity logic:tmForall .
+logic:tmForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "st" ] ;
+    logic:forall logic:tmImpl .
+logic:tmImpl a logic:Formula ; logic:antecedent logic:tmGuard ; logic:consequent logic:tmDisp .
+logic:tmGuard a logic:Formula ; logic:and logic:tmType , logic:tmStatus , logic:tmIn .
+logic:tmType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Trademark ] .
+logic:tmStatus a logic:Formula ; logic:relation gmeow:trademarkStatus ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "st" ] .
+logic:tmIn a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "st" ] , [ logic:termIndex 1 ; logic:termIri gmeow:trademarkStatusExpired ] , [ logic:termIndex 2 ; logic:termIri gmeow:trademarkStatusCancelled ] .
+logic:tmDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype <http://www.w3.org/2001/XMLSchema#boolean> ] .

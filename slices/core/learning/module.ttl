@@ -264,3 +264,36 @@ gmeow:TeachingSelfTeachConstraint
     logic:crossMode "differ" ;
     logic:formalizes gmeow:Teaching ;
     logic:message "A gmeow:Teaching relation's gmeow:teacher and gmeow:learner must differ; a self-teaching relation is ill-formed." .
+
+# =========================================================================== #
+# Procedural constraint authored as a raw logic:Formula integrity tree —        #
+# projected to a sh:SPARQLConstraint keyed onto gmeow:SkillProficiency.         #
+# =========================================================================== #
+
+# The gmeow:skillProficiencyLevel's gmeow:levelScale should match the relator's
+# gmeow:skillProficiencyScale. Warning.
+gmeow:SkillProficiencyScaleMatchConstraint
+    a logic:Constraint ;
+    rdfs:label "Skill proficiency scale-match constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:SkillProficiency's level scale matches its gmeow:skillProficiencyScale."@x-gmeow-english ;
+    logic:formalizes gmeow:SkillProficiency ;
+    logic:severity "Warning" ;
+    logic:message "The skillProficiencyLevel's levelScale should match the relator's skillProficiencyScale." ;
+    logic:integrity logic:spsForall .
+logic:spsForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "level" ] , [ logic:termIndex 2 ; logic:termVariable "expected" ] , [ logic:termIndex 3 ; logic:termVariable "scale" ] ;
+    logic:forall logic:spsImpl .
+logic:spsImpl a logic:Formula ; logic:antecedent logic:spsGuard ; logic:consequent logic:spsEq .
+logic:spsGuard a logic:Formula ; logic:and logic:spsType , logic:spsLevel , logic:spsLevelScale , logic:spsScale .
+logic:spsType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SkillProficiency ] .
+logic:spsLevel a logic:Formula ; logic:relation gmeow:skillProficiencyLevel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "level" ] .
+logic:spsLevelScale a logic:Formula ; logic:relation gmeow:levelScale ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "level" ] , [ logic:termIndex 1 ; logic:termVariable "expected" ] .
+logic:spsScale a logic:Formula ; logic:relation gmeow:skillProficiencyScale ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "scale" ] .
+logic:spsEq a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "scale" ] , [ logic:termIndex 1 ; logic:termVariable "expected" ] .

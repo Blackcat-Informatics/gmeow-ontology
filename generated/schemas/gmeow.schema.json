@@ -17344,6 +17344,7 @@
       "type": "object"
     },
     "NarrativeTimeFrame": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
         "@annotation": {
           "$ref": "#/$defs/Annotation"
@@ -17363,18 +17364,8 @@
               "type": "array"
             }
           ]
-        },
-        "gmeow:frameRealm": {
-          "const": {
-            "@id": "gmeow:frameRealmNarrative"
-          }
-        },
-        "gmeow:narrativeTimeAxis": {}
+        }
       },
-      "required": [
-        "gmeow:frameRealm",
-        "gmeow:narrativeTimeAxis"
-      ],
       "type": "object"
     },
     "NetworkAddress": {

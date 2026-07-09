@@ -283,3 +283,38 @@ DOCTRINE.
     skos:definition "The GMEOW Expertise Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Procedural constraint authored as a raw logic:Formula integrity tree —        #
+# projected to a sh:SPARQLConstraint keyed onto gmeow:Credential.               #
+# =========================================================================== #
+
+# A Credential intended to be verifiable should reference a gmeow:Attestation
+# (via gmeow:attestedSubject or gmeow:hasAttestation). Warning.
+gmeow:CredentialAttestationConstraint
+    a logic:Constraint ;
+    rdfs:label "Credential attestation constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Credential references a gmeow:Attestation through gmeow:attestedSubject or gmeow:hasAttestation."@x-gmeow-english ;
+    logic:formalizes gmeow:Credential ;
+    logic:severity "Warning" ;
+    logic:message "A Credential intended to be verifiable should reference a gmeow:Attestation (via attestedSubject / hasAttestation)." ;
+    logic:integrity logic:caForall .
+logic:caForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:caImpl .
+logic:caImpl a logic:Formula ; logic:antecedent logic:caGuard ; logic:consequent logic:caExists .
+logic:caGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Credential ] .
+logic:caExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "att" ] ;
+    logic:exists logic:caBody .
+logic:caBody a logic:Formula ; logic:and logic:caType , logic:caLink .
+logic:caType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "att" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Attestation ] .
+logic:caLink a logic:Formula ; logic:or logic:caSubj , logic:caHas .
+logic:caSubj a logic:Formula ; logic:relation gmeow:attestedSubject ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "att" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:caHas a logic:Formula ; logic:relation gmeow:hasAttestation ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "att" ] .

@@ -19,6 +19,28 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/hasAboutness> ?g . $this <https://blackcatinformatics.ca/gmeow/hasAboutness> ?v . FILTER ( !isIRI(?v) ) }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/AppraisalFramedValueConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/Appraisal> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Appraisal> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A dimensional appraisal reading is unframed: gmeow:appraisalValue requires a gmeow:appraisalScaleProfile (the greenfield reshape removed the bare-decimal floor — an unframed magnitude is ill-formed, Principle 6/11)." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Appraisal> . $this <https://blackcatinformatics.ca/gmeow/appraisalValue> ?v . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/appraisalScaleProfile> ?p . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/AppraisalReadsSomethingConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/Appraisal> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Appraisal> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An Appraisal must read SOMETHING: a dimensional value (dimension + value) or at least one aesthetic quality." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Appraisal> . FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/gmeow/appraisalQuality> ?q . } UNION { $this <https://blackcatinformatics.ca/gmeow/appraisalDimension> ?d . $this <https://blackcatinformatics.ca/gmeow/appraisalValue> ?vv . } } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/AssessmentMethodConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Assessment> ;
@@ -28,6 +50,28 @@
         sh:severity sh:Violation ;
         sh:message "A gmeow:Assessment must name at least one of gmeow:assessmentCriterion or gmeow:assessmentRubric; a methodless score is ill-formed." ;
         sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Assessment> . FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/gmeow/assessmentCriterion> ?v0 . } UNION { $this <https://blackcatinformatics.ca/gmeow/assessmentRubric> ?v1 . } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ClaimCredenceLowerBoundConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ClaimCredenceRangeShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/claimCredence> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:claimCredence must be an xsd:decimal in [0.0, 1.0] — a credence value outside this range is malformed." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/claimCredence> ?v . FILTER ( ?v < '0.0'^^<http://www.w3.org/2001/XMLSchema#decimal> ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ClaimCredenceUpperBoundConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ClaimCredenceRangeShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/claimCredence> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:claimCredence must be an xsd:decimal in [0.0, 1.0] — a credence value outside this range is malformed." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/claimCredence> ?v . FILTER ( ?v > '1.0'^^<http://www.w3.org/2001/XMLSchema#decimal> ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/ConditionParameterMutexConstraintProceduralConstraintShape>
@@ -41,6 +85,72 @@
         sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/ConditionParameter> . FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/gmeow/parameterEntity> ?v0 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/parameterValue> ?v1 . } } UNION { $this <https://blackcatinformatics.ca/gmeow/parameterValue> ?v1 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/parameterEntity> ?v0 . } } } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/ConditionalDisclosureWarningConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ConditionalDisclosureWarningShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/hasDisclosurePolicy> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Warning ;
+        sh:message "A fact marked gmeow:policyPublicOnlyWithIndependentSource should be supported by a citation with gmeow:sourceIndependence gmeow:sourceIndependenceIndependent." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/hasDisclosurePolicy> <https://blackcatinformatics.ca/gmeow/policyPublicOnlyWithIndependentSource> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/hasCitation> ?citation . ?citation <https://blackcatinformatics.ca/gmeow/sourceIndependence> <https://blackcatinformatics.ca/gmeow/sourceIndependenceIndependent> . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/CredentialAttestationConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/Credential> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Credential> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Warning ;
+        sh:message "A Credential intended to be verifiable should reference a gmeow:Attestation (via attestedSubject / hasAttestation)." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Credential> . FILTER NOT EXISTS { ?att a <https://blackcatinformatics.ca/gmeow/Attestation> . { ?att <https://blackcatinformatics.ca/gmeow/attestedSubject> $this . } UNION { $this <https://blackcatinformatics.ca/gmeow/hasAttestation> ?att . } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/DisclosureLeakConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/DisclosureLeakShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/hasDisclosurePolicy> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A fact marked gmeow:policyNeverPublic or gmeow:policyInternalOnly must not be eligible for any public consumer (e.g. consumerPublicSite, consumerWikidata, consumerWikipedia, consumerSchemaOrgJsonLd, consumerFoafExport). Principle 10: suppression, never erasure — withhold at projection time." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/hasDisclosurePolicy> ?policy . FILTER ( ?policy IN (<https://blackcatinformatics.ca/gmeow/policyNeverPublic>, <https://blackcatinformatics.ca/gmeow/policyInternalOnly>) ) $this <https://blackcatinformatics.ca/gmeow/eligibleForConsumer> ?consumer . FILTER ( ?consumer IN (<https://blackcatinformatics.ca/gmeow/consumerPublicSite>, <https://blackcatinformatics.ca/gmeow/consumerWikidata>, <https://blackcatinformatics.ca/gmeow/consumerWikipedia>, <https://blackcatinformatics.ca/gmeow/consumerSchemaOrgJsonLd>, <https://blackcatinformatics.ca/gmeow/consumerFoafExport>) ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ExemplarEvidenceConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/Exemplar> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Exemplar> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An Exemplar must pin its evidence: at least one of gmeow:viaSelector (a span) or gmeow:exemplarSubject (an entity whose pattern is the example)." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Exemplar> . FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/gmeow/viaSelector> ?sel . } UNION { $this <https://blackcatinformatics.ca/gmeow/exemplarSubject> ?subj . } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ExemplarRedirectConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/Exemplar> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Exemplar> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A cautionary redirect must point AWAY: an exemplar may not redirect to the criterion that anchors it." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Exemplar> . $this <https://blackcatinformatics.ca/gmeow/exemplarRedirect> ?criterion . ?criterion <https://blackcatinformatics.ca/gmeow/hasScoreAnchor> ?anchor . ?anchor <https://blackcatinformatics.ca/gmeow/anchorExemplar> $this . }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ExpiredTrademarkSuppressionConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/Trademark> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Trademark> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Warning ;
+        sh:message "An expired or cancelled trademark should set gmeow:displayable false — suppressed from display, never deleted." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Trademark> . $this <https://blackcatinformatics.ca/gmeow/trademarkStatus> ?st . FILTER ( ?st IN (<https://blackcatinformatics.ca/gmeow/trademarkStatusExpired>, <https://blackcatinformatics.ca/gmeow/trademarkStatusCancelled>) ) FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/displayable> 'false'^^<http://www.w3.org/2001/XMLSchema#boolean> . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/GraftPermissionModalityConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Permission> ;
@@ -50,6 +160,28 @@
         sh:severity sh:Violation ;
         sh:message "A gmeow:Permission's gmeow:deonticModality must be gmeow:deonticPermission; a permission carrying an obligation or prohibition modality is ill-formed." ;
         sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Permission> . $this <https://blackcatinformatics.ca/gmeow/deonticModality> ?v . FILTER ( ?v NOT IN (<https://blackcatinformatics.ca/gmeow/deonticPermission>) ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/NarrativeDiscourseAnchorConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A discourse-time frame anchors via gmeow:discourseTimeOf and a story-time frame via gmeow:storyTimeOf — never the other anchor." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> . $this <https://blackcatinformatics.ca/gmeow/narrativeTimeAxis> <https://blackcatinformatics.ca/gmeow/axisDiscourseTime> . $this <https://blackcatinformatics.ca/gmeow/storyTimeOf> ?x . }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/NarrativeStoryAnchorConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A discourse-time frame anchors via gmeow:discourseTimeOf and a story-time frame via gmeow:storyTimeOf — never the other anchor." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> . $this <https://blackcatinformatics.ca/gmeow/narrativeTimeAxis> <https://blackcatinformatics.ca/gmeow/axisStoryTime> . $this <https://blackcatinformatics.ca/gmeow/discourseTimeOf> ?x . }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/NormIssuerPresenceConstraintProceduralConstraintShape>
@@ -85,6 +217,61 @@
         sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/ScoreScale> . $this <https://blackcatinformatics.ca/gmeow/scaleMin> ?l . $this <https://blackcatinformatics.ca/gmeow/scaleMax> ?r . FILTER ( ?l >= ?r ) }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/SensitiveValueConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/SensitiveValueShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/hasSensitivity> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Warning ;
+        sh:message "A value marked gmeow:sensitivitySensitivePersonal should also carry gmeow:coarsenTo or gmeow:displayable false — the trigger for projection-time redaction (Principle 10). A source may legitimately publish the precise value under explicit consent." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/hasSensitivity> <https://blackcatinformatics.ca/gmeow/sensitivitySensitivePersonal> . FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/gmeow/coarsenTo> ?lvl . } UNION { $this <https://blackcatinformatics.ca/gmeow/displayable> 'false'^^<http://www.w3.org/2001/XMLSchema#boolean> . } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/SkillProficiencyScaleMatchConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/SkillProficiency> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/SkillProficiency> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Warning ;
+        sh:message "The skillProficiencyLevel's levelScale should match the relator's skillProficiencyScale." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/SkillProficiency> . $this <https://blackcatinformatics.ca/gmeow/skillProficiencyLevel> ?level . ?level <https://blackcatinformatics.ca/gmeow/levelScale> ?expected . $this <https://blackcatinformatics.ca/gmeow/skillProficiencyScale> ?scale . FILTER ( ?scale != ?expected ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/StandpointCredenceLowerBoundConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/StandpointCredenceRangeShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/standpointCredence> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:standpointCredence must be an xsd:decimal in [0.0, 1.0] — a credence value outside this range is malformed." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/standpointCredence> ?v . FILTER ( ?v < '0.0'^^<http://www.w3.org/2001/XMLSchema#decimal> ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/StandpointCredenceUpperBoundConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/StandpointCredenceRangeShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/standpointCredence> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:standpointCredence must be an xsd:decimal in [0.0, 1.0] — a credence value outside this range is malformed." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/standpointCredence> ?v . FILTER ( ?v > '1.0'^^<http://www.w3.org/2001/XMLSchema#decimal> ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/StyleGuideVoiceDigestConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/StyleGuide> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/StyleGuide> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "Every gmeow:voiceExemplifiedBy document must carry a gmeow:contentDigest (byte-perfect voice doctrine)." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/StyleGuide> . $this <https://blackcatinformatics.ca/gmeow/voiceExemplifiedBy> ?doc . FILTER NOT EXISTS { ?doc <https://blackcatinformatics.ca/gmeow/contentDigest> ?dig . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/TeachingSelfTeachConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Teaching> ;
@@ -94,6 +281,39 @@
         sh:severity sh:Violation ;
         sh:message "A gmeow:Teaching relation's gmeow:teacher and gmeow:learner must differ; a self-teaching relation is ill-formed." ;
         sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Teaching> . $this <https://blackcatinformatics.ca/gmeow/teacher> ?a . $this <https://blackcatinformatics.ca/gmeow/learner> ?b . FILTER ( ?a = ?b ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/UsesScaleFunctionalConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/UsesScaleTargetShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/usesScale> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A holder binds at most one gmeow:usesScale, a ScoreScale — two scales make anchor containment and score interpretation ambiguous (closed-world functional)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/usesScale> ?a . $this <https://blackcatinformatics.ca/gmeow/usesScale> ?b . FILTER ( ?a != ?b ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/WithdrawnStandpointSuppressionConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/StandpointTenure> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/StandpointTenure> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Warning ;
+        sh:message "A withdrawn standpoint (a StandpointTenure whose interval has ended) should set gmeow:displayable false — suppressed from display, never deleted." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/StandpointTenure> . $this <https://blackcatinformatics.ca/gmeow/duringInterval> ?iv . ?iv <https://blackcatinformatics.ca/gmeow/endedAtTime> ?end . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/displayable> 'false'^^<http://www.w3.org/2001/XMLSchema#boolean> . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/lang/ConfidenceModelConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/ConfidenceNotProbabilityShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/lang/aboutReading> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A reading claim carries a logic:probability with no declared logic:probabilityModel." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/aboutReading> ?r . $this <https://blackcatinformatics.ca/logic/probability> ?p . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/probabilityModel> ?m . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/lang/FeatureValueDispositionConstraintProceduralConstraintShape>
@@ -151,6 +371,39 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ?g . $this <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ?v . FILTER ( !REGEX(STR(?v), '^U\\\\+[0-9A-F]{4,6}( U\\\\+[0-9A-F]{4,6})*$') ) }""" ;
     ] .
 
+<https://blackcatinformatics.ca/lang/GmnConfusableGlyphConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/GmnConfusableGlyphShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gmnConfusableWith> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "Two distinct graphemes of the GMN script are a declared gmeow:gmnConfusableWith pair; the orthography's confusables blocklist forbids co-resident confusables." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/gmnConfusableWith> ?g2 . $this <https://blackcatinformatics.ca/lang/inScript> <https://blackcatinformatics.ca/gmeow/gmnScript> . ?g2 <https://blackcatinformatics.ca/lang/inScript> <https://blackcatinformatics.ca/gmeow/gmnScript> . FILTER ( $this != ?g2 ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/lang/GmnGlyphCollisionConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/GmnGlyphCollisionShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "Two distinct graphemes of one script share an identical gmeow:gmnCodepoints value without both carrying a gmeow:gmnSigilScope; unscoped glyph collisions are forbidden." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ?cp . $this <https://blackcatinformatics.ca/lang/inScript> ?s . ?g2 <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ?cp . ?g2 <https://blackcatinformatics.ca/lang/inScript> ?s . FILTER ( $this != ?g2 ) FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/gmnSigilScope> ?sc1 . ?g2 <https://blackcatinformatics.ca/gmeow/gmnSigilScope> ?sc2 . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/lang/GraphemeRepertoireConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/Grapheme> ;
+    sh:targetClass <https://blackcatinformatics.ca/lang/Grapheme> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A grapheme is not in the repertoire of the script it declares." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/lang/Grapheme> . $this <https://blackcatinformatics.ca/lang/inScript> ?s . FILTER NOT EXISTS { ?s <https://blackcatinformatics.ca/lang/hasGrapheme> $this . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/lang/ReadingClaimVantageConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/ReadingClaimGroundedShape> ;
@@ -184,6 +437,17 @@
         sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/math/RationalValue> . $this <https://blackcatinformatics.ca/math/denominator> '0'^^<http://www.w3.org/2001/XMLSchema#integer> . }""" ;
     ] .
 
+<https://blackcatinformatics.ca/logic/SatisfiedByBackedByEvaluationConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/Goal> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Goal> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A conclusive gmeow:satisfiedBy edge must be backed by a vantage-scoped logic:GoalEvaluation (evaluatesGoal = this goal, evaluatedAgainst = the situation, satisfactionStatus = logic:Satisfied, goalEvaluationStatus = logic:GoalEvaluationCompleted). No backing evaluation under any vantage was found." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Goal> . $this <https://blackcatinformatics.ca/gmeow/satisfiedBy> ?situation . FILTER NOT EXISTS { ?eval <https://blackcatinformatics.ca/logic/evaluatesGoal> $this . ?eval <https://blackcatinformatics.ca/logic/evaluatedAgainst> ?situation . ?eval <https://blackcatinformatics.ca/logic/satisfactionStatus> <https://blackcatinformatics.ca/logic/Satisfied> . ?eval <https://blackcatinformatics.ca/logic/goalEvaluationStatus> <https://blackcatinformatics.ca/logic/GoalEvaluationCompleted> . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/math/ArgumentSlotIndexUniquenessConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/math/SlotIndexUniquenessShape> ;
@@ -193,6 +457,28 @@
         sh:severity sh:Violation ;
         sh:message "No two distinct math:argumentSlot cells of the same parent may share the same math:slotIndex; a duplicate index makes operand order ambiguous." ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/argumentSlot> ?g . $this <https://blackcatinformatics.ca/math/argumentSlot> ?s1 . $this <https://blackcatinformatics.ca/math/argumentSlot> ?s2 . ?s1 <https://blackcatinformatics.ca/math/slotIndex> ?i . ?s2 <https://blackcatinformatics.ca/math/slotIndex> ?i . FILTER ( ?s1 != ?s2 ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/ChartDimensionMatchConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/Chart> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/Chart> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Chart's target coordinate space dimension does not equal its manifold's dimension (math:DimensionMismatch)." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/math/Chart> . ?m <https://blackcatinformatics.ca/math/hasChart> $this . ?m <https://blackcatinformatics.ca/math/manifoldDimension> ?md . $this <https://blackcatinformatics.ca/math/targetCoordinateSpace> ?t . ?t <https://blackcatinformatics.ca/math/spaceDimension> ?sd . FILTER ( ?md != ?sd ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/E8WeylOrderConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/RootSystem> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/RootSystem> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:RootSystem with the E8 fingerprint (math:rootCount 240, math:rootSystemRank 8) must declare a math:weylGroup of math:groupOrder 696729600 — the order of W(E8); a different order corrupts the flagship invariant and is rejected." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/math/RootSystem> . $this <https://blackcatinformatics.ca/math/rootCount> '240'^^<http://www.w3.org/2001/XMLSchema#integer> . $this <https://blackcatinformatics.ca/math/rootSystemRank> '8'^^<http://www.w3.org/2001/XMLSchema#integer> . $this <https://blackcatinformatics.ca/math/weylGroup> ?w . ?w <https://blackcatinformatics.ca/math/groupOrder> ?o . FILTER ( ?o != '696729600'^^<http://www.w3.org/2001/XMLSchema#integer> ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/math/FlagshipScenarioFailureClassConstraintProceduralConstraintShape>
@@ -215,6 +501,17 @@
         sh:severity sh:Violation ;
         sh:message "A math:FormalVerificationResult must be the gmeow:observationResult of some observation; an ungrounded verification result is ill-formed." ;
         sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/math/FormalVerificationResult> . FILTER NOT EXISTS { ?s <https://blackcatinformatics.ca/gmeow/observationResult> $this . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/GramMatrixSymmetryConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/GramMatrix> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/GramMatrix> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:GramMatrix must be symmetric: every math:MatrixEntry at (row, column) needs a transpose entry at (column, row) with the same math:entryValue; a missing or mismatched transpose entry is ill-formed (math:AsymmetricGramMatrix)." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/math/GramMatrix> . $this <https://blackcatinformatics.ca/math/hasEntry> ?entry . ?entry <https://blackcatinformatics.ca/math/atRow> ?row . ?entry <https://blackcatinformatics.ca/math/atColumn> ?col . ?entry <https://blackcatinformatics.ca/math/entryValue> ?val . ?val <https://blackcatinformatics.ca/math/numerator> ?vnum . ?val <https://blackcatinformatics.ca/math/denominator> ?vden . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/hasEntry> ?mate . ?mate <https://blackcatinformatics.ca/math/atRow> ?col . ?mate <https://blackcatinformatics.ca/math/atColumn> ?row . ?mate <https://blackcatinformatics.ca/math/entryValue> ?mval . ?mval <https://blackcatinformatics.ca/math/numerator> ?vnum . ?mval <https://blackcatinformatics.ca/math/denominator> ?vden . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/math/LogicLoweringDeclaredConstraintProceduralConstraintShape>
@@ -248,4 +545,15 @@
         sh:severity sh:Violation ;
         sh:message "A math:SetBuilderExpression must name its math:memberCondition as a resource denoting a logic: formula (a blank node or IRI), not an opaque literal string." ;
         sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/math/SetBuilderExpression> . $this <https://blackcatinformatics.ca/math/memberCondition> ?v . FILTER ( !( isIRI(?v) || isBlank(?v) ) ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/TheoremWarrantConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/Theorem> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/Theorem> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Theorem must be warranted by either an in-graph math:Proof (some resource math:provesStatement it) or a declared math:externalWarrant; a theorem asserted with neither is an unwarranted truth-bit claim (math:UngroundedTheoremClaim)." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/math/Theorem> . FILTER NOT EXISTS { { ?p <https://blackcatinformatics.ca/math/provesStatement> $this . } UNION { $this <https://blackcatinformatics.ca/math/externalWarrant> ?w . } } }""" ;
     ] .
