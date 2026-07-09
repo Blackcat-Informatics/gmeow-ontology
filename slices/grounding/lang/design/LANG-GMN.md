@@ -359,6 +359,6 @@ sibling's. This charter is the contract they all implement against.
 
 Every hard rule above is a row of the [`LANG-CONFORMANCE.md`](LANG-CONFORMANCE.md) gate matrix
 ("GMN dialect rules") with a named `lang:Gmn*` failure class — seven enforced by the SHACL gates
-in `shapes.ttl` (each naming its class through `lang:enforcesFailureClass`), five by the GMN
+in `shapes.ttl` (each naming its class through `gmeow:enforcesFailureClass`), five by the GMN
 parser/writer's validator tier against the normative example blocks of this charter. A violation
 is a typed, queryable object, not a log line.

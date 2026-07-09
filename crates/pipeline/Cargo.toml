@@ -156,7 +156,7 @@ ahash = "0.8"
 # Issue #699 / PR #978: validate sample @annotation fragments against the
 # SHACL-derived JSON Schema from #700.
 jsonschema = { version = "0.46", default-features = false }
-# The lang:FlagshipScenario execution-discharge harness (tests/lang_flagship_discharge.rs)
+# The gmeow:FlagshipScenario execution-discharge harness (tests/lang_flagship_discharge.rs)
 # drives BOTH validation channels over each flagship's counter-example and worked example,
 # and RUNS each named native producer. Integration-test crates do NOT inherit the normal
 # dependency table, so the crates the harness touches are redeclared here.
