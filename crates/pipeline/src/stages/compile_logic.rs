@@ -292,7 +292,7 @@ impl Stage for CompileLogicStage {
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let source = std::fs::read_to_string(input.root.join(SOURCE_PATH))
             .map_err(|e| stage_err(format!("read {SOURCE_PATH}: {e}")))?;
-        let (program, diagnostics) = parse_logic_str(&source, Some(SOURCE_PATH.to_string()))
+        let (program, mut diagnostics) = parse_logic_str(&source, Some(SOURCE_PATH.to_string()))
             .map_err(|e| stage_err(format!("parse {SOURCE_PATH}: {}", e.0)))?;
         // Constraints axis: lift the vendored openEHR OPTs' constraints to logic:ValidationShapes
         // and attach them, so the SHACL Core + ShEx shape surfaces flow into gmeow.gts as
@@ -330,7 +330,18 @@ impl Stage for CompileLogicStage {
             gmeow_logic_compile::frontend::derive_validation_shapes(ontology.as_ref())
                 .map_err(|e| stage_err(format!("derive validation shapes: {e}")))?,
         );
-        let program = program.with_validation_shapes(validation_shapes);
+        // Procedural constraints (`logic:Constraint` + the P1–P7 / aggregate sugar) are gathered
+        // from the WHOLE merged authored dataset — not only the `logic:` terminal module parsed
+        // above — so a constraint may be authored in the slice that OWNS the constrained class (the
+        // constraint peer of `derive_validation_shapes`, which already reads the merged ontology).
+        // This REPLACES the logic-module-only constraint set the parse above produced (the merged
+        // set is a superset, canonicalized by `with_constraints`).
+        let (all_constraints, constraint_diags) =
+            gmeow_logic_compile::frontend::extract_all_constraints(ontology.as_ref());
+        diagnostics.extend(constraint_diags);
+        let program = program
+            .with_validation_shapes(validation_shapes)
+            .with_constraints(all_constraints);
         // The overclaim / rule-safety gate runs inside `compile_program`; a violation
         // is a hard error (fail-closed), never a silently dropped product.
         // Discharge every authored correspondence's lens law by EXECUTION so the five
