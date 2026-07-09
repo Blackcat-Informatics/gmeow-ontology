@@ -366,7 +366,7 @@ gmeow:categoryBlocking
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "category blocking"@x-gmeow-english ;
     rdfs:range gmeow:BlockingDisposition ;
-    skos:definition "Wires a logic:FindingCategory to its gmeow:BlockingDisposition — the standing, asserted gating projection of the KIND. The three failure kinds map to gmeow:blockingBlocking, the other six to gmeow:blockingCoherent, matching Rust FindingCategory::blocking(). The gate reads only this image, never the category directly, so the projection is the single point where 'which kinds are failures' is stated once and consumed by both the reasoner and every projection."@x-gmeow-english ;
+    skos:definition "Wires a logic:FindingCategory to its gmeow:BlockingDisposition — the standing, asserted gating projection of the KIND. The three failure kinds map to gmeow:blockingBlocking, the other seven to gmeow:blockingCoherent, matching Rust FindingCategory::blocking(). The gate reads only this image, never the category directly, so the projection is the single point where 'which kinds are failures' is stated once and consumed by both the reasoner and every projection."@x-gmeow-english ;
     skos:example "logic:FindingPermittedEpistemicConflict gmeow:categoryBlocking gmeow:blockingCoherent ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting more than one gmeow:BlockingDisposition per category (the projection is functional) and avoid using it for the finding's severity or standpoint; categoryBlocking projects only the KIND's gating contribution."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
