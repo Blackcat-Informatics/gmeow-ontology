@@ -1,9 +1,0 @@
-Source: tests/test_evidence.py
-run_shacl() call-sites (real): 4 (all on tests/fixtures/evidence/cogneto-cases.ttl; one on a mutated copy)
-def test_ functions: 4 (fixture-based; the 5 inline-graph cases were migrated in a prior batch)
-  test_infoworld_citation_passes -> conformance_evidence.rs::infoworld_citation_passes
-  test_orgbook_citation_passes -> conformance_evidence.rs::orgbook_citation_passes
-  test_private_contract_triggers_self_private_warning -> conformance_evidence.rs::private_contract_triggers_self_private_warning
-  test_orgbook_notability_mutation_triggers_violation -> conformance_evidence.rs::orgbook_notability_mutation_triggers_violation
-Node-scoped assertions ported via focus_node (has_message_for_node), incl. the NT-level supportsNotability false->true mutation.
-constitution.ttl meta:tests-claim-spine artifact "tests/test_evidence.py" redirected to "crates/validate/tests/conformance_evidence.rs".

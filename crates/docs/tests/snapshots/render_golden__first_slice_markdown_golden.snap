@@ -48,7 +48,7 @@ expression: "to_markdown(&model, &Page::Slice(slug))"
 
 | Path | Media type | Digest |
 | --- | --- | --- |
-| `tests/structural.ttl` | `text/turtle` | `72fb3561987c` |
+| `tests/structural.ttl` | `text/turtle` | `6b4491bb3bb1` |
 
 ## Terms \(9\)
 

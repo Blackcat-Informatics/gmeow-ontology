@@ -11,7 +11,7 @@
 //!
 //! # Engine core separation
 //!
-//! This module is PyO3-free (only [`crate::py`] imports pyo3). The remote-$ref
+//! This module is pure Rust with no binding surface. The remote-$ref
 //! resolvers of the `jsonschema` crate are disabled (`default-features = false`)
 //! because the GMEOW schema is fully self-contained — every `$ref` is a local
 //! `#/$defs/...` pointer, so validation never touches the network or filesystem.

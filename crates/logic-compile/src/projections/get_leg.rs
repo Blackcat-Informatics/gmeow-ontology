@@ -138,6 +138,9 @@ const GM_EDOAL_TARGET: &str = "https://blackcatinformatics.ca/gmeow/edoalTarget"
 const GM_EDOAL_TARGET_KIND: &str = "https://blackcatinformatics.ca/gmeow/edoalTargetKind";
 const GM_MORPHISM_CLASS: &str = "https://blackcatinformatics.ca/gmeow/morphismClass";
 const GM_MNEMOMORPHIC: &str = "https://blackcatinformatics.ca/gmeow/mnemomorphic";
+const GM_EMIT_SSSOM: &str = "https://blackcatinformatics.ca/gmeow/emitSssom";
+const GM_SSSOM_PREDICATE: &str = "https://blackcatinformatics.ca/gmeow/sssomPredicate";
+const GM_SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
 const GM_INGEST_CLAIM: &str = "https://blackcatinformatics.ca/gmeow/ingestClaim";
 const GM_INGEST_LAW: &str = "https://blackcatinformatics.ca/gmeow/ingestLaw";
 const GM_INGEST_VERDICT: &str = "https://blackcatinformatics.ca/gmeow/ingestVerdict";
@@ -268,6 +271,16 @@ pub struct ProfileBinding {
     /// Whether the lens is authored memory-preserving (`gmeow:mnemomorphic`); default
     /// `false`. Read directly by the `put` emitter to decide the up-lift polarity.
     pub mnemomorphic: bool,
+    /// Whether this one-to-one binding also emits an SSSOM row. The SSSOM lowerer consumes
+    /// the parsed binding model so SSSOM is a derived correspondence dialect, not a second
+    /// hand-authored ledger.
+    pub emit_sssom: bool,
+    /// The mapping predicate to use for the derived SSSOM row when [`emit_sssom`](Self::emit_sssom)
+    /// is true.
+    pub sssom_predicate: Option<String>,
+    /// The generated `generated/mappings/*.sssom.tsv` basename this binding's derived row
+    /// is routed to when [`emit_sssom`](Self::emit_sssom) is true.
+    pub sssom_file: Option<String>,
 }
 
 impl ProfileBinding {
@@ -613,6 +626,29 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Profile
             t == "true" || t == "1"
         })
         .unwrap_or(false);
+    let emit_sssom = view
+        .object_literal_of_term(node, GM_EMIT_SSSOM)
+        .map(|text| {
+            let t = text.trim().to_ascii_lowercase();
+            t == "true" || t == "1"
+        })
+        .unwrap_or(false);
+    let sssom_predicate = view.object_iri_of_term(node, GM_SSSOM_PREDICATE);
+    let sssom_file = view.object_literal_of_term(node, GM_SSSOM_FILE);
+    if emit_sssom {
+        if sssom_predicate.is_none() {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::GetLeg {
+                detail: "profile binding with gmeow:emitSssom true missing gmeow:sssomPredicate"
+                    .to_owned(),
+            }));
+        }
+        if sssom_file.is_none() {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::GetLeg {
+                detail: "profile binding with gmeow:emitSssom true missing gmeow:sssomFile"
+                    .to_owned(),
+            }));
+        }
+    }
     // An optional co-authored put-with-claim (`gmeow:ingestClaim`) on a nested node bearing
     // the ingest law + verdict (IRIs whose local names feed the value enums) and any residue
     // string literals. Absent in the committed corpus; when present an unknown law/verdict is
@@ -678,6 +714,9 @@ fn parse_binding(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Profile
         ingest_claim,
         ingest_residue,
         mnemomorphic,
+        emit_sssom,
+        sssom_predicate,
+        sssom_file,
     })
 }
 

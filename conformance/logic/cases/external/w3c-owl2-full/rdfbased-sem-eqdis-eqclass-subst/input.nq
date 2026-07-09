@@ -1,0 +1,3 @@
+<http://www.example.org#c1> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.example.org#c2> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-eqclass-subst/w> .
+<http://www.example.org#c1> <http://www.w3.org/2002/07/owl#equivalentClass> <http://www.example.org#d1> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-eqclass-subst/w> .
+<http://www.example.org#c2> <http://www.w3.org/2002/07/owl#equivalentClass> <http://www.example.org#d2> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-eqclass-subst/w> .

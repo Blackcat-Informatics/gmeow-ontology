@@ -13,6 +13,9 @@
 //! for the unified native extension.
 
 pub mod certificate;
+/// Conjecture-and-refutation runtime: [`conjecture::conjecture_test`] tests a candidate
+/// first-order formula against a KB in an isolated, standpoint-scoped scenario world.
+pub mod conjecture;
 /// Executed lens-law discharge for a `logic:Correspondence`'s realized `LegPath` legs —
 /// the per-correspondence section-law verdict the (execution-free) correspondence gates read.
 pub mod correspondence_exec;
@@ -75,7 +78,6 @@ pub mod rule_ir;
 pub mod scryer_engine;
 pub mod seam;
 pub mod slme;
-pub mod sparql_path_lower;
 pub mod stablemodel;
 pub mod store;
 pub mod teleology;
@@ -88,15 +90,6 @@ pub mod wellfounded;
 // runtime twin the dogfood parity gate checks the authored
 // `logic:wellFoundedMaterializerPlan` against (Principle 12).
 pub use wellfounded::{WELL_FOUNDED_ITERATED_PHASE, WELL_FOUNDED_PHASES};
-
-// PyO3 Python bindings.
-#[cfg(feature = "python")]
-pub mod py;
-
-// Re-export the module-registration entrypoint so the unified `gmeow_native`
-// cdylib can populate the `gmeow_native.logic` submodule.
-#[cfg(feature = "python")]
-pub use py::register;
 
 // Nemo reasoner bridge.
 pub(crate) mod nemo_engine;

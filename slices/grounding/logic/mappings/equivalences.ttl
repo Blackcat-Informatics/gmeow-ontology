@@ -134,3 +134,55 @@ gmeow:eqOntoUml009 a gmeow:TermEquivalence ;
     gmeow:objectLabel "relator" ;
     gmeow:comment "The OntoUML «relator» stereotype: a mediating truth-maker of a material relation — the counterpart of logic:Relator." ;
     gmeow:sssomFile "gmeow-ontouml.sssom.tsv" .
+
+# External correctness-corpus verdict alignment: the community-decided ground-truth
+# vocabularies the external corpora carry are subsumed by reference (Principle 5 — real
+# W3C IRIs in full form, no fabricated CURIE) onto the logic:ConformanceVerdict lattice.
+# The W3C test-manifest entailment kinds (…/test-manifest#) and the OWL test ontology
+# (…/testOntology#) each name a TEST whose ground-truth outcome IS the aligned verdict,
+# so skos:closeMatch — a kind classifies a test, a verdict values it (closely related,
+# not identical). The TPTP SZS status tokens publish no RDF namespace and are subsumed
+# as first-class logic:SzsStatus individuals (carrying logic:rawStatusToken) with the
+# SZS→verdict collapse authored as the FnO gmeow:fnSzsToVerdict; the set-level SZS
+# refusal and licence note are recorded on gmeow:mapsetConformanceCorpus in
+# dsl/mappings/mapping-sets.ttl.
+
+gmeow:eqConfCorpus001 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:ConfInconsistent ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#PositiveEntailment> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "PositiveEntailment" ;
+    gmeow:comment "The W3C «PositiveEntailment» test kind: the conclusion IS entailed by the premises. Its community-decided ground-truth outcome is logic:ConfInconsistent (the negated-conclusion reduction is unsatisfiable). closeMatch — a test classification, not a verdict value." ;
+    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" .
+
+gmeow:eqConfCorpus002 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:ConfConsistent ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.w3.org/2001/sw/DataAccess/tests/test-manifest#NegativeEntailment> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "NegativeEntailment" ;
+    gmeow:comment "The W3C «NegativeEntailment» test kind: the conclusion is NOT entailed. Its ground-truth outcome is logic:ConfConsistent (a counter-model exists). closeMatch — a test classification, not a verdict value." ;
+    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" .
+
+gmeow:eqConfCorpus003 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:ConfInconsistent ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.w3.org/2007/OWL/testOntology#InconsistencyTest> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "InconsistencyTest" ;
+    gmeow:comment "The OWL «InconsistencyTest» test kind: the ontology is expected to be inconsistent. Its ground-truth outcome is logic:ConfInconsistent. closeMatch — a test classification, not a verdict value." ;
+    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" .
+
+gmeow:eqConfCorpus004 a gmeow:TermEquivalence ;
+    gmeow:alignSubject logic:ConfConsistent ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <http://www.w3.org/2007/OWL/testOntology#ConsistencyTest> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "ConsistencyTest" ;
+    gmeow:comment "The OWL «ConsistencyTest» test kind: the ontology is expected to be consistent. Its ground-truth outcome is logic:ConfConsistent. closeMatch — a test classification, not a verdict value." ;
+    gmeow:sssomFile "gmeow-conformance-corpus.sssom.tsv" .

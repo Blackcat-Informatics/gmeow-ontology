@@ -1,0 +1,4 @@
+<http://www.w3.org/2002/03owlt/miscellaneous/premises302#a> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/webont-miscellaneous-302-direct/w> .
+<http://www.w3.org/2002/03owlt/miscellaneous/premises302#a> <http://www.w3.org/2002/03owlt/miscellaneous/premises302#prop> "foo" <https://gmeow.example/w3c-owl2-full/webont-miscellaneous-302-direct/w> .
+<http://www.w3.org/2002/03owlt/miscellaneous/premises302#prop> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#AnnotationProperty> <https://gmeow.example/w3c-owl2-full/webont-miscellaneous-302-direct/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-miscellaneous-302-direct/w> .

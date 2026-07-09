@@ -1,0 +1,11 @@
+<http://example.org/Lois> <http://example.org/hasSister> <http://example.org/Carol> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-001/w> .
+<http://example.org/Stewie> <http://example.org/hasMother> <http://example.org/Lois> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-001/w> .
+<http://example.org/hasAunt> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-001/w> .
+<http://example.org/hasAunt> <http://www.w3.org/2002/07/owl#propertyChainAxiom> _:rdfxml_list_00000000000000000000000000 <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-001/w> .
+<http://example.org/hasMother> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-001/w> .
+<http://example.org/hasSister> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-001/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-001/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://example.org/hasMother> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-001/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:rdfxml_list_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-001/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://example.org/hasSister> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-001/w> .
+_:rdfxml_list_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/new-feature-objectpropertychain-001/w> .

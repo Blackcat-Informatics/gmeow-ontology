@@ -18,12 +18,12 @@
 # logic:QualityValue, logic:Situation). These cells mirror the module's CURRENT
 # logic: shape, not a normalized form.
 #
-# TWO tests stay in tests/test_awareness.py (genuinely unreachable by this
-# module-scoped harness):
-#   * test_level_ranks_are_zero_through_five — closed numeric SET-EQUALITY over
+# TWO invariants are unreachable by this module-scoped ASK harness and live as
+# native Rust conformance twins in crates/validate/tests/conformance_awareness.rs:
+#   * level_ranks_are_exactly_zero_through_five — closed numeric SET-EQUALITY over
 #     the six gmeow:levelRank values ({0,1,2,3,4,5}); a SPARQL ASK can assert each
 #     rank EXISTS but not that the set is EXACTLY those six and no others.
-#   * test_manifest_depends_only_on_kernel_and_temporal — set-equality over
+#   * slice_depends_on_is_exactly_kernel_and_temporal — set-equality over
 #     manifest.ttl, which run_structural_cell never loads (module.ttl + examples/
 #     only).
 #
@@ -43,7 +43,6 @@
 #     `make validate` — the SHACL guardian.
 # That pytest function is therefore deleted rather than migrated.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/awareness/tests/> .
@@ -62,7 +61,7 @@ ASK {
     gmeow:AwarenessLevel a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:AwarenessMode and gmeow:AwarenessLevel MUST each be an owl:Class, a logic:AbstractIndividualType, and a subClassOf logic:QualityValue — the value-vocabulary genus shared with gmeow:ContentOrigin (Principle 9, no overtyping). Mirrors test_vocab_classes_are_abstract_individual_types." .
+    gmeow:saRationale "gmeow:AwarenessMode and gmeow:AwarenessLevel MUST each be an owl:Class, a logic:AbstractIndividualType, and a subClassOf logic:QualityValue — the value-vocabulary genus shared with gmeow:ContentOrigin (Principle 9, no overtyping)." .
 
 # --- 2. All 17 awareness-mode individuals are seeded (MUST) -------------------
 ex:saModeIndividualsAreSeeded a gmeow:StructuralAssertion ;
@@ -88,7 +87,7 @@ ASK {
     gmeow:modeSampling       a gmeow:AwarenessMode .
     gmeow:modeDormant        a gmeow:AwarenessMode .
 }""" ;
-    gmeow:saRationale "All 17 awareness modes (12 human + 5 machine) MUST be individuals of gmeow:AwarenessMode — one open vocabulary holding the human and machine modes as siblings (Principle 5). Mirrors test_mode_individuals_are_seeded." .
+    gmeow:saRationale "All 17 awareness modes (12 human + 5 machine) MUST be individuals of gmeow:AwarenessMode — one open vocabulary holding the human and machine modes as siblings (Principle 5)." .
 
 # --- 3. All 6 awareness-level individuals are seeded (MUST) -------------------
 ex:saLevelIndividualsAreSeeded a gmeow:StructuralAssertion ;
@@ -103,7 +102,7 @@ ASK {
     gmeow:levelObtunded     a gmeow:AwarenessLevel .
     gmeow:levelUnresponsive a gmeow:AwarenessLevel .
 }""" ;
-    gmeow:saRationale "All 6 awareness levels MUST be individuals of gmeow:AwarenessLevel. Mirrors test_level_individuals_are_seeded." .
+    gmeow:saRationale "All 6 awareness levels MUST be individuals of gmeow:AwarenessLevel." .
 
 # --- 4a. No mode/level individual is an owl:Class (MUST-NOT) ------------------
 ex:saVocabIndividualsNotClasses a gmeow:StructuralAssertion ;
@@ -123,7 +122,7 @@ ASK {
     }
     ?i a owl:Class .
 }""" ;
-    gmeow:saRationale "Value-vocab discipline (Principle 9, no overtyping): NO mode or level individual MUST be typed an owl:Class — each is an individual, not a class. Mirrors the owl:Class clause of test_vocab_individuals_are_not_subclasses." .
+    gmeow:saRationale "Value-vocab discipline (Principle 9, no overtyping): NO mode or level individual MUST be typed an owl:Class — each is an individual, not a class." .
 
 # --- 4b. No mode/level individual is a subClassOf its vocab class (MUST-NOT) --
 ex:saVocabIndividualsNotSubclasses a gmeow:StructuralAssertion ;
@@ -151,7 +150,7 @@ ASK {
         ?i rdfs:subClassOf gmeow:AwarenessLevel .
     }
 }""" ;
-    gmeow:saRationale "Value-vocab discipline (Principle 9): NO mode is a subClassOf gmeow:AwarenessMode and NO level a subClassOf gmeow:AwarenessLevel — the machine modes too are siblings, not a subclass hierarchy. Mirrors the rdfs:subClassOf clause of test_vocab_individuals_are_not_subclasses." .
+    gmeow:saRationale "Value-vocab discipline (Principle 9): NO mode is a subClassOf gmeow:AwarenessMode and NO level a subClassOf gmeow:AwarenessLevel — the machine modes too are siblings, not a subclass hierarchy." .
 
 # --- 5. Property types and ranges (MUST) -------------------------------------
 ex:saPropertyTypesAndRanges a gmeow:StructuralAssertion ;
@@ -170,7 +169,7 @@ ASK {
         rdfs:range xsd:integer ;
         rdfs:domain gmeow:AwarenessLevel .
 }""" ;
-    gmeow:saRationale "awarenessMode / awarenessLevel / awarenessSubject MUST be owl:ObjectProperty (mode/level ranging over their value class); awarenessScalar an owl:DatatypeProperty over xsd:decimal; levelRank an owl:DatatypeProperty over xsd:integer with domain gmeow:AwarenessLevel. Mirrors test_property_types_and_ranges." .
+    gmeow:saRationale "awarenessMode / awarenessLevel / awarenessSubject MUST be owl:ObjectProperty (mode/level ranging over their value class); awarenessScalar an owl:DatatypeProperty over xsd:decimal; levelRank an owl:DatatypeProperty over xsd:integer with domain gmeow:AwarenessLevel." .
 
 # --- 6. awareness edges keep an OPEN domain and are non-functional (MUST-NOT) -
 ex:saAwarenessEdgesOpenDomain a gmeow:StructuralAssertion ;
@@ -185,7 +184,7 @@ ASK {
     UNION
     { ?p a owl:FunctionalProperty . }
 }""" ;
-    gmeow:saRationale "OPEN-DOMAIN (Principle 13): gmeow:awarenessMode / gmeow:awarenessLevel / gmeow:awarenessScalar MUST assert NO rdfs:domain (the edge applies to a tenure OR directly to a process / agent) and MUST NOT be functional (vantage-indexed). Mirrors test_awareness_edges_open_domain." .
+    gmeow:saRationale "OPEN-DOMAIN (Principle 13): gmeow:awarenessMode / gmeow:awarenessLevel / gmeow:awarenessScalar MUST assert NO rdfs:domain (the edge applies to a tenure OR directly to a process / agent) and MUST NOT be functional (vantage-indexed)." .
 
 # --- 7. awarenessSubject is the per-branch bearer edge (MUST) -----------------
 ex:saAwarenessSubjectBearerEdge a gmeow:StructuralAssertion ;
@@ -199,7 +198,7 @@ ASK {
         rdfs:domain gmeow:AwarenessTenure ;
         rdfs:range gmeow:Agent .
 }""" ;
-    gmeow:saRationale "gmeow:awarenessSubject MUST be the per-branch bearer edge (Principle 4): an owl:ObjectProperty AND owl:FunctionalProperty with domain gmeow:AwarenessTenure and range gmeow:Agent — the tenure carries its subject explicitly, never through gufo:inheresIn. Mirrors test_awareness_subject_bearer_edge." .
+    gmeow:saRationale "gmeow:awarenessSubject MUST be the per-branch bearer edge (Principle 4): an owl:ObjectProperty AND owl:FunctionalProperty with domain gmeow:AwarenessTenure and range gmeow:Agent — the tenure carries its subject explicitly, never through gufo:inheresIn." .
 
 # --- 8. AwarenessTenure is a time-scoped situation (MUST) ---------------------
 ex:saAwarenessTenureTimeScopedSituation a gmeow:StructuralAssertion ;
@@ -213,7 +212,7 @@ ASK {
     gmeow:AwarenessTenure a owl:Class , logic:Situation ;
         rdfs:subClassOf gmeow:TimeScopedRelation .
 }""" ;
-    gmeow:saRationale "gmeow:AwarenessTenure MUST be an owl:Class, a logic:Situation, and an rdfs:subClassOf gmeow:TimeScopedRelation — the temporal reification seam. Mirrors test_awareness_tenure_is_a_time_scoped_situation." .
+    gmeow:saRationale "gmeow:AwarenessTenure MUST be an owl:Class, a logic:Situation, and an rdfs:subClassOf gmeow:TimeScopedRelation — the temporal reification seam." .
 
 # --- 9. No reality or truth bit (MUST-NOT) -----------------------------------
 ex:saNoRealityOrTruthBit a gmeow:StructuralAssertion ;
@@ -227,7 +226,7 @@ ASK {
     }
     { ?t ?p ?o . } UNION { ?s ?t ?o . } UNION { ?s ?p ?t . }
 }""" ;
-    gmeow:saRationale "No reality or truth bit (Principle 9): awareness is a state of the experiencer, not a verdict on the content — none of isReal / isTrue / isFake / isDream / isImaginary / isFalse MUST appear in ANY triple position. Mirrors test_no_reality_or_truth_bit." .
+    gmeow:saRationale "No reality or truth bit (Principle 9): awareness is a state of the experiencer, not a verdict on the content — none of isReal / isTrue / isFake / isDream / isImaginary / isFalse MUST appear in ANY triple position." .
 
 # --- 10. By-reference: no inherence triple (MUST-NOT) ------------------------
 ex:saByReferenceNoInherenceTriple a gmeow:StructuralAssertion ;
@@ -239,4 +238,4 @@ ASK {
     VALUES ?t { gufo:inheresIn gmeow:inheresIn }
     { ?t ?p ?o . } UNION { ?s ?t ?o . } UNION { ?s ?p ?t . }
 }""" ;
-    gmeow:saRationale "By-reference discipline (Principle 4 / Principle 5): the subject is carried by gmeow:awarenessSubject, so the module MUST assert NO gufo:inheresIn and NO gmeow:inheresIn triple in any position (the gUFO inherence alignment target is left untouched). Mirrors test_by_reference_no_inherence_triple." .
+    gmeow:saRationale "By-reference discipline (Principle 4 / Principle 5): the subject is carried by gmeow:awarenessSubject, so the module MUST assert NO gufo:inheresIn and NO gmeow:inheresIn triple in any position (the gUFO inherence alignment target is left untouched)." .

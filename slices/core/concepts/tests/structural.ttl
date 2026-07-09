@@ -21,7 +21,6 @@
 # and gmeow:typicality's rdfs:label (a PROPERTY) each reddened `make validate`,
 # then reverted. That pytest function is therefore deleted rather than migrated.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/concepts/tests/> .
@@ -38,7 +37,7 @@ ASK {
     gmeow:Concept a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:SocialObject .
 }""" ;
-    gmeow:saRationale "gmeow:Concept is a socially sustained representational category: it MUST be an owl:Class, a logic:Kind, and a subClassOf gmeow:SocialObject — explicitly NOT the gUFO universal. Mirrors test_concept_is_social_object_kind." .
+    gmeow:saRationale "gmeow:Concept is a socially sustained representational category: it MUST be an owl:Class, a logic:Kind, and a subClassOf gmeow:SocialObject — explicitly NOT the gUFO universal." .
 
 # --- 2. ConceptCategorization is a SubKind of StandpointClaim (MUST) ----------
 ex:saConceptCategorizationSubkindOfStandpointClaim a gmeow:StructuralAssertion ;
@@ -52,7 +51,7 @@ ASK {
     gmeow:ConceptCategorization a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:StandpointClaim .
 }""" ;
-    gmeow:saRationale "gmeow:ConceptCategorization is the reified, standpoint-indexed promotion of the instanceOfConcept shortcut: it MUST be an owl:Class, a logic:SubKind, and a subClassOf gmeow:StandpointClaim. Mirrors test_concept_categorization_subkind_of_standpoint_claim." .
+    gmeow:saRationale "gmeow:ConceptCategorization is the reified, standpoint-indexed promotion of the instanceOfConcept shortcut: it MUST be an owl:Class, a logic:SubKind, and a subClassOf gmeow:StandpointClaim." .
 
 # --- 3a. instanceOfConcept is an Entity→Concept ObjectProperty (MUST) ---------
 ex:saInstanceOfConceptProperty a gmeow:StructuralAssertion ;
@@ -66,7 +65,7 @@ ASK {
         rdfs:domain gmeow:Entity ;
         rdfs:range gmeow:Concept .
 }""" ;
-    gmeow:saRationale "gmeow:instanceOfConcept is the flat shortcut from any gmeow:Entity to a gmeow:Concept: it MUST be an owl:ObjectProperty with domain gmeow:Entity and range gmeow:Concept. Mirrors the positive clauses of test_instance_of_concept_property." .
+    gmeow:saRationale "gmeow:instanceOfConcept is the flat shortcut from any gmeow:Entity to a gmeow:Concept: it MUST be an owl:ObjectProperty with domain gmeow:Entity and range gmeow:Concept." .
 
 # --- 3b. instanceOfConcept is NOT functional (MUST-NOT) -----------------------
 ex:saInstanceOfConceptNotFunctional a gmeow:StructuralAssertion ;
@@ -75,7 +74,7 @@ ex:saInstanceOfConceptNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:instanceOfConcept a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:instanceOfConcept MUST NOT be functional — an entity may instantiate many concepts, and competing categorizations coexist (Principle 9). Mirrors the non-functional clause of test_instance_of_concept_property." .
+    gmeow:saRationale "gmeow:instanceOfConcept MUST NOT be functional — an entity may instantiate many concepts, and competing categorizations coexist (Principle 9)." .
 
 # --- 4a. typicality is a decimal DatatypeProperty on ConceptCategorization (MUST)
 ex:saTypicalityProperty a gmeow:StructuralAssertion ;
@@ -90,7 +89,7 @@ ASK {
         rdfs:domain gmeow:ConceptCategorization ;
         rdfs:range xsd:decimal .
 }""" ;
-    gmeow:saRationale "gmeow:typicality is the graded degree of membership: it MUST be an owl:DatatypeProperty on gmeow:ConceptCategorization with range xsd:decimal. Mirrors the positive clauses of test_typicality_property." .
+    gmeow:saRationale "gmeow:typicality is the graded degree of membership: it MUST be an owl:DatatypeProperty on gmeow:ConceptCategorization with range xsd:decimal." .
 
 # --- 4b. typicality is NOT functional (MUST-NOT) ------------------------------
 ex:saTypicalityNotFunctional a gmeow:StructuralAssertion ;
@@ -99,7 +98,7 @@ ex:saTypicalityNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:typicality a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:typicality MUST NOT be functional — multiple sources may report typicality, and those reports coexist (Principle 9). Mirrors the non-functional clause of test_typicality_property." .
+    gmeow:saRationale "gmeow:typicality MUST NOT be functional — multiple sources may report typicality, and those reports coexist (Principle 9)." .
 
 # --- 5a. subsumes / composedOf are Concept→Concept ObjectProperties (MUST) -----
 ex:saConceptStructureProperties a gmeow:StructuralAssertion ;
@@ -116,7 +115,7 @@ ASK {
         rdfs:domain gmeow:Concept ;
         rdfs:range gmeow:Concept .
 }""" ;
-    gmeow:saRationale "gmeow:subsumes and gmeow:composedOf structure concepts: each MUST be an owl:ObjectProperty with domain and range gmeow:Concept. Mirrors the positive clauses of test_concept_structure_properties." .
+    gmeow:saRationale "gmeow:subsumes and gmeow:composedOf structure concepts: each MUST be an owl:ObjectProperty with domain and range gmeow:Concept." .
 
 # --- 5b. subsumes / composedOf are NOT functional and NOT transitive (MUST-NOT)
 ex:saConceptStructurePropertiesNotFunctionalNotTransitive a gmeow:StructuralAssertion ;
@@ -130,7 +129,7 @@ ASK {
     UNION
     { ?p a owl:TransitiveProperty . }
 }""" ;
-    gmeow:saRationale "Neither gmeow:subsumes nor gmeow:composedOf MUST be functional, and neither MUST be declared owl:TransitiveProperty — transitive closure is solver work, not a core axiom (Principle 12). Mirrors the non-functional / non-transitive clauses of test_concept_structure_properties." .
+    gmeow:saRationale "Neither gmeow:subsumes nor gmeow:composedOf MUST be functional, and neither MUST be declared owl:TransitiveProperty — transitive closure is solver work, not a core axiom (Principle 12)." .
 
 # --- 6. ConceptTenure is time-scoped; conceptHoldsFor is functional (MUST) -----
 ex:saConceptTenureIsTimeScoped a gmeow:StructuralAssertion ;
@@ -147,4 +146,4 @@ ASK {
         rdfs:domain gmeow:ConceptTenure ;
         rdfs:range gmeow:Concept .
 }""" ;
-    gmeow:saRationale "gmeow:ConceptTenure records a concept's applicability over an interval: it MUST be an owl:Class, a logic:Situation, and a subClassOf gmeow:TimeScopedRelation; gmeow:conceptHoldsFor MUST be a FUNCTIONAL owl:ObjectProperty from gmeow:ConceptTenure to gmeow:Concept. Mirrors test_concept_tenure_is_time_scoped." .
+    gmeow:saRationale "gmeow:ConceptTenure records a concept's applicability over an interval: it MUST be an owl:Class, a logic:Situation, and a subClassOf gmeow:TimeScopedRelation; gmeow:conceptHoldsFor MUST be a FUNCTIONAL owl:ObjectProperty from gmeow:ConceptTenure to gmeow:Concept." .

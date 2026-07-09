@@ -11,6 +11,8 @@
 //! - Rules: `head :- body1, body2, ... .` and facts `head.`
 //! - Goal: exactly one `?- goalatom1, goalatom2, ... .`
 //! - Atoms are binary predicates over RDF: `pred(Subject, Object)`.
+//! - Negation-as-failure: a body literal `\+ pred(S, O)` or `not pred(S, O)` is parsed
+//!   as a [`QBodyLit::Neg`] (stratified NAF, evaluated by the native binary core).
 //! - Cut: the body literal `!` is parsed as a [`QBodyLit::Cut`] marker.
 //!
 //! # Canonicalization
@@ -28,6 +30,18 @@ use crate::seam::BudgetStatus;
 fn query_err(detail: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Query { detail })
 }
+
+/// The reserved relation name of the arity-4 predicate-as-data encoding
+/// `triple(subject, predicate, object, world)` — the REAL n-ary shape the binary
+/// [`crate::store::RelationStore`] cannot represent (the property rides in a DATA
+/// position).  A goal or rule that names this bare, unqualified relation is routed to
+/// the arity-generic n-ary evaluator, whose generic-triple EDB
+/// ([`crate::physical::magic_generic`]) loads every world fact under this exact
+/// relation name.  It is DELIBERATELY the bare symbol `triple`, distinct from any
+/// prefixed predicate `ex:triple` (which resolves to a full IRI): only the
+/// unqualified name reaches the generic evaluator, so the parser must accept it
+/// verbatim (a bare word is otherwise unresolvable — no prefix, no angle brackets).
+pub(crate) const GENERIC_TRIPLE_RELATION: &str = "triple";
 
 // ── IR types ──────────────────────────────────────────────────────────────────
 
@@ -68,6 +82,16 @@ pub struct QAtom {
 pub enum QBodyLit {
     /// A normal predicate atom.
     Atom(QAtom),
+    /// A negated body atom (negation-as-failure), written `\+ pred(a, b)` or
+    /// `not pred(a, b)` on the query surface (the Prolog-ish backward mirror of the
+    /// forward rule-text `~pred` negation).
+    ///
+    /// Stratified NAF: the negated atom blocks the rule iff some grounding of it is
+    /// PRESENT in the accumulated least model of a strictly-lower stratum. It binds no
+    /// new variables (NAF is a test, not a generator), and every variable it carries
+    /// must be range-restricted by a positive body atom — an unbound variable under
+    /// negation flounders (an unsound NAF goal) and is a declared native gap.
+    Neg(QAtom),
     /// The Prolog cut `!`. Procedural — not supported by the declarative oracle.
     Cut,
     /// An arithmetic (`X is Y op Z`) or comparison (`L cmp R`) builtin.
@@ -977,6 +1001,11 @@ fn parse_body_lit_list(
             let tok = tok.trim();
             if tok == "!" {
                 Ok(QBodyLit::Cut)
+            } else if let Some(inner) = strip_negation(tok) {
+                // A negated body literal `\+ pred(..)` / `not pred(..)`: the inner form
+                // is always an ordinary predicate atom (NAF over a builtin/cut is not a
+                // meaningful goal), so parse it as an atom and wrap it as `Neg`.
+                parse_atom(inner.trim(), prefixes).map(QBodyLit::Neg)
             } else if let Some(builtin) = try_parse_builtin(tok, prefixes)? {
                 Ok(QBodyLit::Builtin(builtin))
             } else {
@@ -984,6 +1013,25 @@ fn parse_body_lit_list(
             }
         })
         .collect()
+}
+
+/// Strip a leading negation-as-failure operator (`\+` or the `not` keyword) from a body
+/// literal token, returning the inner (still-unparsed) atom text.
+///
+/// Recognizes the two Prolog-ish query-surface forms: `\+ pred(..)` (with or without a
+/// space after `\+`) and `not pred(..)` (the keyword form, requiring a following space so
+/// a predicate whose local name merely starts with `not`, e.g. `notation(..)`, is NOT
+/// mistaken for a negation). Returns `None` when `tok` carries no negation operator.
+fn strip_negation(tok: &str) -> Option<&str> {
+    if let Some(rest) = tok.strip_prefix("\\+") {
+        return Some(rest);
+    }
+    if let Some(rest) = tok.strip_prefix("not")
+        && rest.starts_with(char::is_whitespace)
+    {
+        return Some(rest);
+    }
+    None
 }
 
 /// Attempt to parse `tok` as an arithmetic or comparison builtin.
@@ -1188,10 +1236,19 @@ fn parse_atom(s: &str, prefixes: &BTreeMap<String, String>) -> gmeow_errors::Res
     let pred_str = s[..open].trim();
     let args_str = s[open + 1..s.len() - 1].trim();
 
-    let pred = resolve_iri(pred_str, prefixes)
-        .ok_or_else(|| query_err(format!("cannot resolve predicate IRI {pred_str:?}")))?;
-    // Predicate: bare IRI string (strip angle brackets if present).
-    let pred = strip_angle_brackets(&pred);
+    // Reserved generic relation: the bare, unqualified `triple` symbol names the
+    // arity-4 predicate-as-data encoding `triple(s, p, o, w)` and is carried VERBATIM
+    // (no IRI resolution — it is a program-local relation symbol, not an IRI), so the
+    // parsed predicate agrees exactly with the generic-triple EDB's
+    // `push_fact(GENERIC_TRIPLE_RELATION, …)`.  Everything else resolves as an IRI.
+    let pred = if pred_str == GENERIC_TRIPLE_RELATION {
+        GENERIC_TRIPLE_RELATION.to_owned()
+    } else {
+        let pred = resolve_iri(pred_str, prefixes)
+            .ok_or_else(|| query_err(format!("cannot resolve predicate IRI {pred_str:?}")))?;
+        // Predicate: bare IRI string (strip angle brackets if present).
+        strip_angle_brackets(&pred)
+    };
 
     let arg_tokens = split_comma_top(args_str);
     if arg_tokens.is_empty() {
@@ -1307,7 +1364,7 @@ impl QBodyLit {
     pub fn into_atom(self) -> Option<QAtom> {
         match self {
             QBodyLit::Atom(a) => Some(a),
-            QBodyLit::Cut | QBodyLit::Builtin(_) => None,
+            QBodyLit::Neg(_) | QBodyLit::Cut | QBodyLit::Builtin(_) => None,
         }
     }
 }
@@ -1450,6 +1507,45 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
             rule.body[2],
             QBodyLit::Atom(rule.body[2].clone().into_atom().unwrap())
         );
+    }
+
+    // ── Negation-as-failure in body ───────────────────────────────────────────
+
+    #[test]
+    fn parse_backslash_plus_and_not_negation() {
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ex:p(X, Y) :- ex:q(X, Y), \\+ ex:r(X, Y), not ex:s(X, Y).\n\
+             ?- ex:p(X, Y).\n",
+        )
+        .unwrap();
+        let body = &prog.rules[0].body;
+        assert_eq!(body.len(), 3, "one positive + two negated literals");
+        assert!(matches!(body[0], QBodyLit::Atom(_)), "q is positive");
+        match &body[1] {
+            QBodyLit::Neg(a) => assert_eq!(a.pred, "https://example.org/r"),
+            other => panic!("expected Neg(r), got {other:?}"),
+        }
+        match &body[2] {
+            QBodyLit::Neg(a) => assert_eq!(a.pred, "https://example.org/s"),
+            other => panic!("expected Neg(s), got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn parse_not_prefixed_predicate_is_not_mistaken_for_negation() {
+        // A predicate whose local name merely starts with `not` (here `notation`) must NOT
+        // be parsed as a negation operator — the `not` keyword requires a following space.
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ex:p(X, Y) :- ex:notation(X, Y).\n\
+             ?- ex:p(X, Y).\n",
+        )
+        .unwrap();
+        match &prog.rules[0].body[0] {
+            QBodyLit::Atom(a) => assert_eq!(a.pred, "https://example.org/notation"),
+            other => panic!("expected a positive notation atom, got {other:?}"),
+        }
     }
 
     // ── Reject: no goal ───────────────────────────────────────────────────────

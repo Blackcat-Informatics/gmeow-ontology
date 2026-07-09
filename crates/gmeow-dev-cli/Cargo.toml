@@ -27,6 +27,7 @@ gmeow-logic = { path = "../logic" }
 gmeow-logic-compile = { path = "../logic-compile" }
 gmeow-validate = { path = "../validate" }
 gmeow-docs = { path = "../docs" }
+gmeow-slice-quality = { path = "../slice-quality" }
 gmeow-music = { path = "../music" }
 gmeow-foundation-corpus = { path = "../foundation-corpus" }
 # The RDF-1.2 umbrella: GTS read/fold, the slice ownership/fix-deps analyzer, and

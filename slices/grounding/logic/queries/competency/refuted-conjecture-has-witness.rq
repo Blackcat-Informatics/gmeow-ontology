@@ -1,0 +1,18 @@
+# Competency: every refuted-in-standpoint conjecture must expose a REPLAYABLE
+# refutation — the concrete logic:ContradictionWitness naming the individual forced
+# to owl:Nothing, the world it was found in, and each jointly-inconsistent premise.
+# This joins a refuted conjecture through logic:conjectureRefutationWitness to its
+# witness and unpacks the witness carriers, one row per premise. A well-formed
+# corpus answers "show me, for each refuted conjecture, the counterexample that
+# killed it."
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?conj ?ind ?world ?premise WHERE {
+    ?conj a logic:Conjecture ;
+          logic:conjectureLifecycleState logic:ConjectureRefutedInStandpoint ;
+          logic:conjectureRefutationWitness ?witness .
+    ?witness logic:witnessIndividual ?ind ;
+             logic:witnessWorld ?world ;
+             logic:witnessPremise ?premise .
+}
+ORDER BY ?conj ?premise

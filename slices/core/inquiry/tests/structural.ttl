@@ -20,7 +20,6 @@
 # rdfs:label." and exit non-zero. That pytest function is therefore deleted
 # rather than migrated.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/inquiry/tests/> .
@@ -37,7 +36,7 @@ ASK {
     gmeow:Question a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:SocialObject .
 }""" ;
-    gmeow:saRationale "gmeow:Question MUST be an owl:Class, a logic:Kind, and a subClassOf gmeow:SocialObject — the third content-mode sibling sharing the SocialObject genus. Mirrors test_question_is_a_social_object_kind." .
+    gmeow:saRationale "gmeow:Question MUST be an owl:Class, a logic:Kind, and a subClassOf gmeow:SocialObject — the third content-mode sibling sharing the SocialObject genus." .
 
 # --- 2. Content-mode siblings have no subsumption (MUST-NOT hold) -------------
 ex:saContentModeSiblingsNoSubsumption a gmeow:StructuralAssertion ;
@@ -54,7 +53,7 @@ ASK {
     }
     ?sub rdfs:subClassOf ?sup .
 }""" ;
-    gmeow:saRationale "Question / Proposition / Goal are content-mode siblings (documentation only): no rdfs:subClassOf bridge may exist between them in either direction — subsumption would erase the content-mode distinction. Mirrors test_content_mode_siblings_have_no_subsumption." .
+    gmeow:saRationale "Question / Proposition / Goal are content-mode siblings (documentation only): no rdfs:subClassOf bridge may exist between them in either direction — subsumption would erase the content-mode distinction." .
 
 # --- 3a. Inquiry spine: object properties with Agent domain (MUST hold) -------
 ex:saSpineObjectPropertiesWithAgentDomain a gmeow:StructuralAssertion ;
@@ -69,7 +68,7 @@ ASK {
     gmeow:inquiresInto    a owl:ObjectProperty ; rdfs:domain gmeow:Agent .
     gmeow:seeksToKnow     a owl:ObjectProperty ; rdfs:domain gmeow:Agent .
 }""" ;
-    gmeow:saRationale "Every inquiry spine verb (asks, wondersWhether, inquiresInto, seeksToKnow) MUST be an owl:ObjectProperty with rdfs:domain gmeow:Agent. Mirrors the positive clauses of test_spine_are_object_properties_with_agent_domain_open_range." .
+    gmeow:saRationale "Every inquiry spine verb (asks, wondersWhether, inquiresInto, seeksToKnow) MUST be an owl:ObjectProperty with rdfs:domain gmeow:Agent." .
 
 # --- 3b. Inquiry spine is open-range: NO rdfs:range (MUST-NOT hold) ----------
 ex:saSpineOpenRange a gmeow:StructuralAssertion ;
@@ -81,7 +80,7 @@ ASK {
     VALUES ?p { gmeow:asks gmeow:wondersWhether gmeow:inquiresInto gmeow:seeksToKnow }
     ?p rdfs:range ?r .
 }""" ;
-    gmeow:saRationale "The inquiry spine is OPEN-RANGE (Principle 13): no spine verb may declare an rdfs:range. Mirrors the open-range clause of test_spine_are_object_properties_with_agent_domain_open_range." .
+    gmeow:saRationale "The inquiry spine is OPEN-RANGE (Principle 13): no spine verb may declare an rdfs:range." .
 
 # --- 3c. Inquiry spine is non-functional (MUST-NOT hold) ---------------------
 ex:saSpineNotFunctional a gmeow:StructuralAssertion ;
@@ -93,7 +92,7 @@ ASK {
     VALUES ?p { gmeow:asks gmeow:wondersWhether gmeow:inquiresInto gmeow:seeksToKnow }
     ?p a owl:FunctionalProperty .
 }""" ;
-    gmeow:saRationale "No inquiry spine verb may be owl:FunctionalProperty — an agent holds many open questions simultaneously. Mirrors the non-functional clause of test_spine_are_object_properties_with_agent_domain_open_range." .
+    gmeow:saRationale "No inquiry spine verb may be owl:FunctionalProperty — an agent holds many open questions simultaneously." .
 
 # --- 4. Inquiry spine is flat: no rdfs:subPropertyOf (MUST-NOT hold) ---------
 ex:saSpineIsFlat a gmeow:StructuralAssertion ;
@@ -105,7 +104,7 @@ ASK {
     VALUES ?p { gmeow:asks gmeow:wondersWhether gmeow:inquiresInto gmeow:seeksToKnow }
     ?p rdfs:subPropertyOf ?anything .
 }""" ;
-    gmeow:saRationale "The inquiry spine is FLAT (Principle 4): no spine verb may declare an rdfs:subPropertyOf — four distinct attitudes, not a hierarchy (contrast the doxastic keystone knowsThat ⊑ believes). Mirrors test_spine_is_flat." .
+    gmeow:saRationale "The inquiry spine is FLAT (Principle 4): no spine verb may declare an rdfs:subPropertyOf — four distinct attitudes, not a hierarchy (contrast the doxastic keystone knowsThat ⊑ believes)." .
 
 # --- 5. QuestionType is an AbstractIndividualType (MUST hold) -----------------
 ex:saQuestionTypeIsAbstractIndividualType a gmeow:StructuralAssertion ;
@@ -119,7 +118,7 @@ ASK {
     gmeow:QuestionType a owl:Class , logic:AbstractIndividualType ;
         rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:QuestionType MUST be an owl:Class AND logic:AbstractIndividualType AND a subClassOf logic:QualityValue — the value-vocabulary genus. Mirrors test_question_type_is_an_abstract_individual_type." .
+    gmeow:saRationale "gmeow:QuestionType MUST be an owl:Class AND logic:AbstractIndividualType AND a subClassOf logic:QualityValue — the value-vocabulary genus." .
 
 # --- 6. All five question-type seed individuals are typed QuestionType (MUST) -
 ex:saQuestionTypeIndividualsSeeded a gmeow:StructuralAssertion ;
@@ -133,7 +132,7 @@ ASK {
     gmeow:typeWhy         a gmeow:QuestionType .
     gmeow:typeHow         a gmeow:QuestionType .
 }""" ;
-    gmeow:saRationale "All five question-type seed individuals (typePolar, typeAlternative, typeWh, typeWhy, typeHow) MUST be explicitly typed gmeow:QuestionType (closed value vocabulary, members never subclasses). Mirrors test_question_type_individuals_are_seeded." .
+    gmeow:saRationale "All five question-type seed individuals (typePolar, typeAlternative, typeWh, typeWhy, typeHow) MUST be explicitly typed gmeow:QuestionType (closed value vocabulary, members never subclasses)." .
 
 # --- 7a. questionType is an ObjectProperty with correct domain/range (MUST) ---
 ex:saQuestionTypeProperty a gmeow:StructuralAssertion ;
@@ -147,7 +146,7 @@ ASK {
         rdfs:domain gmeow:Question ;
         rdfs:range gmeow:QuestionType .
 }""" ;
-    gmeow:saRationale "gmeow:questionType MUST be an owl:ObjectProperty with domain gmeow:Question and range gmeow:QuestionType. Mirrors the positive clauses of test_question_type_property." .
+    gmeow:saRationale "gmeow:questionType MUST be an owl:ObjectProperty with domain gmeow:Question and range gmeow:QuestionType." .
 
 # --- 7b. questionType is non-functional (MUST-NOT hold) -----------------------
 ex:saQuestionTypeNotFunctional a gmeow:StructuralAssertion ;
@@ -156,7 +155,7 @@ ex:saQuestionTypeNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:questionType a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:questionType MUST NOT be functional — typeWhy and typeHow may co-apply to a single question. Mirrors the non-functional clause of test_question_type_property." .
+    gmeow:saRationale "gmeow:questionType MUST NOT be functional — typeWhy and typeHow may co-apply to a single question." .
 
 # --- 8a. presupposes is an ObjectProperty with domain/range (MUST hold) -------
 ex:saPresupposesProperty a gmeow:StructuralAssertion ;
@@ -170,7 +169,7 @@ ASK {
         rdfs:domain gmeow:Question ;
         rdfs:range gmeow:Proposition .
 }""" ;
-    gmeow:saRationale "gmeow:presupposes MUST be an owl:ObjectProperty with domain gmeow:Question and range gmeow:Proposition. Mirrors the positive clauses of test_presupposes_property." .
+    gmeow:saRationale "gmeow:presupposes MUST be an owl:ObjectProperty with domain gmeow:Question and range gmeow:Proposition." .
 
 # --- 8b. presupposes is non-functional (MUST-NOT hold) ------------------------
 ex:saPresupposesNotFunctional a gmeow:StructuralAssertion ;
@@ -179,7 +178,7 @@ ex:saPresupposesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:presupposes a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:presupposes MUST NOT be functional — a question may presuppose several propositions. Mirrors the non-functional clause of test_presupposes_property." .
+    gmeow:saRationale "gmeow:presupposes MUST NOT be functional — a question may presuppose several propositions." .
 
 # --- 9a. answers is an ObjectProperty with range (MUST hold) ------------------
 ex:saAnswersProperty a gmeow:StructuralAssertion ;
@@ -192,7 +191,7 @@ ASK {
     gmeow:answers a owl:ObjectProperty ;
         rdfs:range gmeow:Question .
 }""" ;
-    gmeow:saRationale "gmeow:answers MUST be an owl:ObjectProperty ranging over gmeow:Question. Mirrors the positive clauses of test_answers_has_open_domain." .
+    gmeow:saRationale "gmeow:answers MUST be an owl:ObjectProperty ranging over gmeow:Question." .
 
 # --- 9b. answers has open domain: NO rdfs:domain (MUST-NOT hold) -------------
 ex:saAnswersOpenDomain a gmeow:StructuralAssertion ;
@@ -201,7 +200,7 @@ ex:saAnswersOpenDomain a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:answers rdfs:domain ?d . }""" ;
-    gmeow:saRationale "gmeow:answers MUST NOT declare an rdfs:domain — the answer surface must never be prematurely closed (Principle 13). Mirrors the open-domain clause of test_answers_has_open_domain." .
+    gmeow:saRationale "gmeow:answers MUST NOT declare an rdfs:domain — the answer surface must never be prematurely closed (Principle 13)." .
 
 # --- 9c. answers is non-functional (MUST-NOT hold) ---------------------------
 ex:saAnswersNotFunctional a gmeow:StructuralAssertion ;
@@ -210,7 +209,7 @@ ex:saAnswersNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:answers a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:answers MUST NOT be functional — answers are vantage-indexed and coexist (Principle 9). Mirrors the non-functional clause of test_answers_has_open_domain." .
+    gmeow:saRationale "gmeow:answers MUST NOT be functional — answers are vantage-indexed and coexist (Principle 9)." .
 
 # --- 10a. evokes is an ObjectProperty with range (MUST hold) ------------------
 ex:saEvokesProperty a gmeow:StructuralAssertion ;
@@ -223,7 +222,7 @@ ASK {
     gmeow:evokes a owl:ObjectProperty ;
         rdfs:range gmeow:Question .
 }""" ;
-    gmeow:saRationale "gmeow:evokes MUST be an owl:ObjectProperty ranging over gmeow:Question. Mirrors the positive clauses of test_evokes_has_open_domain." .
+    gmeow:saRationale "gmeow:evokes MUST be an owl:ObjectProperty ranging over gmeow:Question." .
 
 # --- 10b. evokes has open domain: NO rdfs:domain (MUST-NOT hold) -------------
 ex:saEvokesOpenDomain a gmeow:StructuralAssertion ;
@@ -232,7 +231,7 @@ ex:saEvokesOpenDomain a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:evokes rdfs:domain ?d . }""" ;
-    gmeow:saRationale "gmeow:evokes MUST NOT declare an rdfs:domain — a Proposition or a Question may evoke a question, so the domain stays open (Principle 13). Mirrors the open-domain clause of test_evokes_has_open_domain." .
+    gmeow:saRationale "gmeow:evokes MUST NOT declare an rdfs:domain — a Proposition or a Question may evoke a question, so the domain stays open (Principle 13)." .
 
 # --- 10c. evokes is non-functional (MUST-NOT hold) ---------------------------
 ex:saEvokesNotFunctional a gmeow:StructuralAssertion ;
@@ -241,7 +240,7 @@ ex:saEvokesNotFunctional a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:evokes a owl:FunctionalProperty . }""" ;
-    gmeow:saRationale "gmeow:evokes MUST NOT be functional — one premise may evoke many questions (Wiśniewski erotetic implication). Mirrors the non-functional clause of test_evokes_has_open_domain." .
+    gmeow:saRationale "gmeow:evokes MUST NOT be functional — one premise may evoke many questions (Wiśniewski erotetic implication)." .
 
 # --- 11a. InquiryTenure is a SituationType / TimeScopedRelation (MUST hold) ---
 ex:saInquiryTenureClass a gmeow:StructuralAssertion ;
@@ -255,7 +254,7 @@ ASK {
     gmeow:InquiryTenure a owl:Class , logic:Situation ;
         rdfs:subClassOf gmeow:TimeScopedRelation .
 }""" ;
-    gmeow:saRationale "gmeow:InquiryTenure MUST be an owl:Class AND logic:Situation AND a subClassOf gmeow:TimeScopedRelation (not a bare relator). Mirrors the class-level clauses of test_inquiry_tenure_is_a_mediating_situation." .
+    gmeow:saRationale "gmeow:InquiryTenure MUST be an owl:Class AND logic:Situation AND a subClassOf gmeow:TimeScopedRelation (not a bare relator)." .
 
 # --- 11b. InquiryTenure tenure roles are functional ObjectProperties (MUST) ---
 ex:saInquiryTenureRoles a gmeow:StructuralAssertion ;
@@ -272,7 +271,7 @@ ASK {
         rdfs:domain gmeow:InquiryTenure ;
         rdfs:range gmeow:Question .
 }""" ;
-    gmeow:saRationale "Both tenure roles MUST be owl:ObjectProperty AND owl:FunctionalProperty: tenureInquirer domain InquiryTenure range Agent; tenureQuestion domain InquiryTenure range Question. Mirrors the role clauses of test_inquiry_tenure_is_a_mediating_situation." .
+    gmeow:saRationale "Both tenure roles MUST be owl:ObjectProperty AND owl:FunctionalProperty: tenureInquirer domain InquiryTenure range Agent; tenureQuestion domain InquiryTenure range Question." .
 
 # --- 11c. EL someValuesFrom mediation restriction on tenureQuestion (MUST) ---
 ex:saInquiryTenureELRestriction a gmeow:StructuralAssertion ;
@@ -287,7 +286,7 @@ ASK {
        owl:onProperty gmeow:tenureQuestion ;
        owl:someValuesFrom gmeow:Question .
 }""" ;
-    gmeow:saRationale "The EL relator-mediation restriction MUST exist: some blank node is a someValuesFrom gmeow:Question restriction on gmeow:tenureQuestion, asserted as a superclass of gmeow:InquiryTenure. Mirrors the EL restriction clause of test_inquiry_tenure_is_a_mediating_situation." .
+    gmeow:saRationale "The EL relator-mediation restriction MUST exist: some blank node is a someValuesFrom gmeow:Question restriction on gmeow:tenureQuestion, asserted as a superclass of gmeow:InquiryTenure." .
 
 # --- 12. No truth or resolved bit in any triple position (MUST-NOT hold) ------
 ex:saNoTruthOrResolvedBit a gmeow:StructuralAssertion ;
@@ -302,4 +301,4 @@ ASK {
     UNION { ?s ?forbidden ?o . }
     UNION { ?s ?p ?forbidden . }
 }""" ;
-    gmeow:saRationale "None of isResolved / isAnswered / answerValue / isTrue / isFalse may appear in any subject, predicate, or object position — a question is resolved by reusing the epistemics spine over an answers-claim (Principle 6), never by a resolution bit. Mirrors test_no_truth_or_resolved_bit." .
+    gmeow:saRationale "None of isResolved / isAnswered / answerValue / isTrue / isFalse may appear in any subject, predicate, or object position — a question is resolved by reusing the epistemics spine over an answers-claim (Principle 6), never by a resolution bit." .

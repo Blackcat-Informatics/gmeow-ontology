@@ -21,7 +21,6 @@
 #     gmeow:assertedAt, and gmeow:recordedNoLaterThan are all defined in the temporal
 #     and sources slices, not provenance.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/provenance/tests/> .
@@ -38,7 +37,7 @@ ASK {
     gmeow:ImportActivity a owl:Class , logic:Event ;
         rdfs:subClassOf gmeow:Activity .
 }""" ;
-    gmeow:saRationale "gmeow:ImportActivity MUST be an owl:Class typed logic:Event and a subclass of gmeow:Activity — an import is an occurrent event in the provenance chain. Mirrors test_import_activity_is_an_activity." .
+    gmeow:saRationale "gmeow:ImportActivity MUST be an owl:Class typed logic:Event and a subclass of gmeow:Activity — an import is an occurrent event in the provenance chain." .
 
 # --- 2. wasAssociatedWith has Activity domain and Agent range (MUST) ---------
 ex:saWasAssociatedWithShape a gmeow:StructuralAssertion ;
@@ -52,7 +51,7 @@ ASK {
         rdfs:domain gmeow:Activity ;
         rdfs:range gmeow:Agent .
 }""" ;
-    gmeow:saRationale "gmeow:wasAssociatedWith MUST be an owl:ObjectProperty with domain gmeow:Activity and range gmeow:Agent — the activity-side agent link is event-safe (Activity, not Entity), avoiding gUFO endurant/event disjointness clash. Mirrors test_activity_agent_link_is_event_safe." .
+    gmeow:saRationale "gmeow:wasAssociatedWith MUST be an owl:ObjectProperty with domain gmeow:Activity and range gmeow:Agent — the activity-side agent link is event-safe (Activity, not Entity), avoiding gUFO endurant/event disjointness clash." .
 
 # --- 3. Activity is a subclass of Event (MUST) -------------------------------
 # Migrated from tests/test_events.py (cross-slice: subject defined here; the
@@ -68,4 +67,4 @@ ASK {
     gmeow:Activity a owl:Class , logic:Event ;
         rdfs:subClassOf gmeow:Event .
 }""" ;
-    gmeow:saRationale "gmeow:Activity MUST be an owl:Class typed logic:Event and a direct subclass of gmeow:Event. The subject is defined in the provenance slice; gmeow:Event itself is in the events slice, so this is a cross-slice structural assertion authored in the subject's owning slice. Mirrors the Activity ⊑ Event part of test_event_is_grounded_in_gufo_event and test_observational_activity_is_subclass_of_activity_and_event." .
+    gmeow:saRationale "gmeow:Activity MUST be an owl:Class typed logic:Event and a direct subclass of gmeow:Event. The subject is defined in the provenance slice; gmeow:Event itself is in the events slice, so this is a cross-slice structural assertion authored in the subject's owning slice." .

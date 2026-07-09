@@ -495,6 +495,7 @@ fn lossy_grammar_correspondence(source_key: &str) -> Correspondence {
         None,
         None,
         None,
+        None,
     )
     .expect("lossy grammar correspondence is well-formed by construction")
 }

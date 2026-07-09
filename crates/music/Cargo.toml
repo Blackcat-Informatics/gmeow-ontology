@@ -17,14 +17,8 @@ path = "src/lib.rs"
 
 [features]
 default = []
-# The PyO3 surface routes every error through the shared `gmeow_errors` Diag →
-# PyErr bridge; the substrate itself is a non-optional dependency (every error
-# path is a `Diag`), so the `python` surface only turns on the substrate's own
-# `python` feature for the Diag → PyErr bridge.
-python = ["dep:pyo3", "gmeow-errors/python"]
 
 [dependencies]
 gmeow-errors = { path = "../errors" }
 purrdf = "0.4"
-pyo3 = { version = "0.29", features = ["abi3-py313"], optional = true }
 roxmltree = "0.20"

@@ -6,9 +6,6 @@
 //! This crate is the authority for GMEOW music-package model conversion,
 //! GTS package I/O, notation renderers, MusicXML import, and loss manifests.
 
-#[cfg(feature = "python")]
-pub mod py;
-
 pub mod error;
 
 use std::cmp::Ordering;

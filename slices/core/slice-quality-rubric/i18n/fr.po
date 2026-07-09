@@ -1,0 +1,746 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: slice-quality-rubric, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityTier|rdfs:label"
+msgid "Quality Tier"
+msgstr "Palier de qualité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityTier|skos:definition"
+msgid "An ordinal grade on the slice-quality ladder — the bounded lattice of maturity a slice can reach. An open value vocabulary of individuals (never subclasses): new tiers are minted as individuals with a fresh gmeow:tierRank. It is NOT a physical quality kind, NOT the coarse gmeow:sliceTier (core/grounding/extension placement), and NOT a per-axis dimension — it is the rung a slice occupies after its per-axis grades are combined by the lattice meet."
+msgstr "Un grade ordinal sur l'échelle de qualité des slices — le treillis borné de maturité qu'une slice peut atteindre. Un vocabulaire de valeurs ouvert d'individus (jamais des sous-classes) : les nouveaux paliers sont frappés comme des individus dotés d'un gmeow:tierRank inédit. Ce n'est PAS un genre de qualité physique, PAS le gmeow:sliceTier grossier (placement core/grounding/extension) et PAS une dimension par axe — c'est le barreau qu'occupe une slice une fois ses grades par axe combinés par la borne inférieure du treillis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierRank|rdfs:label"
+msgid "tier rank"
+msgstr "rang de palier"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierRank|skos:definition"
+msgid "The non-negative integer that totally orders the tier ladder — a lower rank is a weaker tier, and the lattice meet of a set of tiers is the one with the least rank. It is NOT a score (scores are decimals compared against gmeow:thresholdFloor) and NOT stable across ladders — it only orders tiers within this ladder."
+msgstr "L'entier non négatif qui ordonne totalement l'échelle des paliers — un rang plus bas désigne un palier plus faible, et la borne inférieure d'un ensemble de paliers est celui de rang minimal. Ce n'est PAS un score (les scores sont des décimaux comparés à gmeow:thresholdFloor) et ce n'est PAS stable d'une échelle à l'autre — il n'ordonne les paliers qu'au sein de cette échelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierRegistered|rdfs:label"
+msgid "Registered"
+msgstr "Enregistré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierRegistered|skos:definition"
+msgid "The floor tier: the slice exists, is registered, and parses — but carries no measured grounding, linkage, or exemplification. The bottom of the lattice."
+msgstr "Le palier plancher : la slice existe, est enregistrée et s'analyse — mais ne porte aucun ancrage, aucune liaison ni aucune exemplification mesurés. Le bas du treillis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierGrounded|rdfs:label"
+msgid "Grounded"
+msgstr "Ancré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierGrounded|skos:definition"
+msgid "The slice's concepts are grounded on the triad (logic/math/lang) and carry their annotation coat — but are not yet richly linked, projected, or exemplified."
+msgstr "Les concepts de la slice sont ancrés sur la triade (logic/math/lang) et portent leur habit d'annotations — mais ne sont pas encore richement liés, projetés ou exemplifiés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierLinked|rdfs:label"
+msgid "Linked"
+msgstr "Lié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierLinked|skos:definition"
+msgid "Grounded, and additionally linked and projected: mappings at honest rungs, authority links, and content surviving into the projection surfaces."
+msgstr "Ancré, et en plus lié et projeté : des correspondances à des échelons honnêtes, des liens d'autorité, et un contenu qui survit jusque dans les surfaces de projection."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierExemplified|rdfs:label"
+msgid "Exemplified"
+msgstr "Exemplifié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierExemplified|skos:definition"
+msgid "Linked, and additionally exemplified and tested: worked examples including the epistemically hard case, counter-examples that clash, and competency cells that need reasoning."
+msgstr "Lié, et en plus exemplifié et testé : des exemples travaillés incluant le cas épistémiquement difficile, des contre-exemples qui entrent en conflit, et des cellules de compétence qui exigent un raisonnement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierMaximal|rdfs:label"
+msgid "Maximal"
+msgstr "Maximal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tierMaximal|skos:definition"
+msgid "The top of the lattice: every axis at its richest configuration — maximal grounding, linkage, projection, testing, documentation, prose quality, and full tri-language translation. The bar the grounding slices and this rubric slice itself must meet."
+msgstr "Le sommet du treillis : chaque axe dans sa configuration la plus riche — ancrage, liaison, projection, test, documentation, qualité de la prose maximaux, et traduction trilingue complète. La barre que les slices de grounding et cette slice de rubrique elle-même doivent atteindre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sliceQualityTier|rdfs:label"
+msgid "slice quality tier"
+msgstr "palier de qualité de slice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sliceQualityTier|skos:definition"
+msgid "The slice-quality tier a slice has opted in to — the sole, ratcheting declaration of the maturity bar the slice's manifest promises to hold (Principle 16). Declared in the slice's manifest.ttl. It is NOT the measured roll-up (that is computed) and NOT gmeow:sliceTier (architectural placement): it is the floor the gate enforces. Undeclared means purely advisory; declared means enforced, and the declaration may only be raised."
+msgstr "Le palier de qualité auquel une slice a adhéré — l'unique déclaration à cliquet de la barre de maturité que le manifest de la slice promet de tenir (Principe 16). Déclaré dans le manifest.ttl de la slice. Ce n'est PAS l'agrégat mesuré (celui-ci est calculé) et PAS gmeow:sliceTier (placement architectural) : c'est le plancher que la barrière impose. Non déclaré signifie purement consultatif ; déclaré signifie imposé, et la déclaration ne peut être que relevée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityAxis|rdfs:label"
+msgid "Quality Axis"
+msgstr "Axe de qualité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QualityAxis|skos:definition"
+msgid "A single dimension along which slice quality is measured — grounding, reasoner-derived inference, information, linkage, projection, testing, documentation, prose, translation, and their sub-dimensions. An open value vocabulary of individuals (never subclasses): a new axis is a new individual binding a measurement primitive, not a code fork. It is NOT the Rust primitive itself (that is named by gmeow:axisProducer) and NOT the ISO quality dimension it emits under (that is gmeow:axisDimension)."
+msgstr "Une dimension unique le long de laquelle la qualité d'une slice est mesurée — ancrage, inférence dérivée par le raisonneur, information, liaison, projection, test, documentation, prose, traduction et leurs sous-dimensions. Un vocabulaire de valeurs ouvert d'individus (jamais des sous-classes) : un nouvel axe est un nouvel individu liant une primitive de mesure, non une bifurcation de code. Ce n'est PAS la primitive Rust elle-même (celle-ci est nommée par gmeow:axisProducer) et PAS la dimension de qualité ISO sous laquelle il émet (celle-ci est gmeow:axisDimension)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisProducer|rdfs:label"
+msgid "axis producer"
+msgstr "producteur d'axe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisProducer|skos:definition"
+msgid "The identifier of the closed Rust measurement primitive that computes this axis — both the enum key the kernel dispatches on and the symbol the axis-to-producer binding gate checks for existence. It is NOT free advice text and NOT a dimension IRI: it is the one name that binds data to code, so a renamed or removed primitive reds the binding gate rather than silently orphaning the axis (the constitution-gate integrity pattern)."
+msgstr "L'identifiant de la primitive de mesure Rust fermée qui calcule cet axe — à la fois la clé d'énumération sur laquelle le noyau aiguille et le symbole dont la barrière de liaison axe-vers-producteur vérifie l'existence. Ce n'est PAS du texte de conseil libre ni un IRI de dimension : c'est l'unique nom qui lie les données au code, si bien qu'une primitive renommée ou supprimée fait passer la barrière de liaison au rouge plutôt que d'orpheliner l'axe en silence (le motif d'intégrité des barrières de constitution)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisDimension|rdfs:label"
+msgid "axis dimension"
+msgstr "dimension d'axe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisDimension|skos:definition"
+msgid "The ISO 19157 / DQV quality dimension under which this axis's score is emitted as a gmeow:QualityAssessment observation. It is NOT the axis itself and NOT the Rust primitive: it is the RDF vocabulary the report dogfoods so the assessment graph reuses the shared quality layer rather than a bespoke report schema."
+msgstr "La dimension de qualité ISO 19157 / DQV sous laquelle le score de cet axe est émis en tant qu'observation gmeow:QualityAssessment. Ce n'est PAS l'axe lui-même ni la primitive Rust : c'est le vocabulaire RDF que le rapport « mange sa propre nourriture » afin que le graphe d'évaluation réutilise la couche de qualité partagée plutôt qu'un schéma de rapport sur mesure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisThreshold|rdfs:label"
+msgid "axis threshold"
+msgstr "seuil d'axe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisThreshold|skos:definition"
+msgid "A per-tier score floor for this axis — the decimal grade the axis must reach to earn a given tier. Thresholds are DATA, not code: tuning a floor or adding a tier's floor is a slice edit and regenerate, never a Rust change. It is NOT the measured score (that is computed by the primitive) and NOT the tier ladder (that is gmeow:QualityTier)."
+msgstr "Un plancher de score par palier pour cet axe — le grade décimal que l'axe doit atteindre pour mériter un palier donné. Les seuils sont des DONNÉES, non du code : ajuster un plancher ou ajouter le plancher d'un palier est une édition de slice suivie d'une régénération, jamais une modification de Rust. Ce n'est PAS le score mesuré (celui-ci est calculé par la primitive) ni l'échelle des paliers (celle-ci est gmeow:QualityTier)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisAdviceTemplate|rdfs:label"
+msgid "axis advice template"
+msgstr "modèle de conseil d'axe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisAdviceTemplate|skos:definition"
+msgid "The opinionated uplift advice the axis emits when a slice falls short — the next-best-action text, which MUST cite the SLICE_GUIDE section or Constitution principle it discharges and MUST NOT reference a development ticket or issue number (process linkage lives outside the repo). It is NOT the finding message alone: it is the doctrine-anchored remediation the advisor ranks and offers."
+msgstr "Le conseil d'amélioration affirmé que l'axe émet lorsqu'une slice est en deçà — le texte de la meilleure action suivante, qui DOIT citer la section du SLICE_GUIDE ou le principe de la Constitution qu'il acquitte et NE DOIT PAS renvoyer à un ticket de développement ou un numéro d'issue (le lien de processus vit hors du dépôt). Ce n'est PAS le message de constat seul : c'est la remédiation ancrée dans la doctrine que le conseiller classe et propose."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisWeight|rdfs:label"
+msgid "axis weight"
+msgstr "poids d'axe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisWeight|skos:definition"
+msgid "The ranking weight of this axis — used ONLY to order advice (which weakest axis to fix first), NEVER to compute the roll-up tier. The roll-up is the UNWEIGHTED lattice meet of the axis grades (the weakest axis caps the slice); a weighted meet would be an ad-hoc average and would break the ratchet-is-lattice-order law. It is therefore not a score coefficient — it is an advice priority."
+msgstr "Le poids de classement de cet axe — utilisé UNIQUEMENT pour ordonner les conseils (quel axe le plus faible corriger en premier), JAMAIS pour calculer le palier agrégé. L'agrégat est la borne inférieure NON PONDÉRÉE des grades des axes (l'axe le plus faible plafonne la slice) ; une borne inférieure pondérée serait une moyenne ad hoc et briserait la loi selon laquelle le cliquet est l'ordre du treillis. Ce n'est donc pas un coefficient de score — c'est une priorité de conseil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScope|rdfs:label"
+msgid "axis context scope"
+msgstr "portée de contexte d'axe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisContextScope|skos:definition"
+msgid "The coeffect grade of the axis: how much graph the measurement primitive may READ — slice-local, the slice plus its dependency closure, or the whole merged closure. Advice output is ALWAYS constrained to the single target slice regardless of scope; the scope governs reads only, and a slice-local axis that touches the merged graph is a gated invariant violation. It is NOT a permission to advise cross-slice."
+msgstr "Le grade de coeffet de l'axe : quelle part de graphe la primitive de mesure peut LIRE — locale à la slice, la slice plus sa clôture de dépendances, ou la clôture fusionnée entière. La sortie de conseil est TOUJOURS restreinte à l'unique slice cible quelle que soit la portée ; la portée ne régit que les lectures, et un axe local à la slice qui touche le graphe fusionné constitue une violation d'invariant sous barrière. Ce n'est PAS une permission de conseiller entre slices."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AxisThreshold|rdfs:label"
+msgid "Axis Threshold"
+msgstr "Seuil d'axe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AxisThreshold|skos:definition"
+msgid "A reified pairing of a tier with the score floor an axis must reach to earn it — the data that turns a measured decimal into a tier grade. It is NOT the axis and NOT the tier: it is the (tier, floor) cell of the rubric's threshold table."
+msgstr "Un appariement réifié d'un palier avec le plancher de score qu'un axe doit atteindre pour le mériter — la donnée qui transforme un décimal mesuré en grade de palier. Ce n'est PAS l'axe ni le palier : c'est la cellule (palier, plancher) de la table des seuils de la rubrique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTier|rdfs:label"
+msgid "threshold tier"
+msgstr "palier de seuil"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdTier|skos:definition"
+msgid "The tier a threshold pairing gates — the rung the axis earns when its measured score meets the paired floor. It is NOT the floor (that is gmeow:thresholdFloor)."
+msgstr "Le palier que verrouille un appariement de seuil — le barreau que l'axe mérite lorsque son score mesuré atteint le plancher apparié. Ce n'est PAS le plancher (celui-ci est gmeow:thresholdFloor)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloor|rdfs:label"
+msgid "threshold floor"
+msgstr "plancher de seuil"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdFloor|skos:definition"
+msgid "The minimum measured score (a decimal in 0.0–1.0) the axis must reach to earn the paired tier. It is NOT a percentage-with-units and NOT the tier rank: it is the normalized floor the primitive's score is compared against."
+msgstr "Le score mesuré minimal (un décimal dans 0.0–1.0) que l'axe doit atteindre pour mériter le palier apparié. Ce n'est PAS un pourcentage avec unités ni le rang de palier : c'est le plancher normalisé auquel le score de la primitive est comparé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AxisContextScope|rdfs:label"
+msgid "Axis Context Scope"
+msgstr "Portée de contexte d'axe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AxisContextScope|skos:definition"
+msgid "The read-breadth coeffect an axis is granted — an open value vocabulary of individuals from slice-local through the whole merged closure. It bounds what the primitive may READ, never what it may advise (advice is single-slice at every scope). It is NOT a projection target and NOT an advice scope."
+msgstr "Le coeffet d'ampleur de lecture accordé à un axe — un vocabulaire de valeurs ouvert d'individus allant de la portée locale à la slice jusqu'à la clôture fusionnée entière. Il borne ce que la primitive peut LIRE, jamais ce qu'elle peut conseiller (le conseil porte sur une seule slice à toute portée). Ce n'est PAS une cible de projection ni une portée de conseil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeSliceLocal|rdfs:label"
+msgid "slice-local scope"
+msgstr "portée locale à la slice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeSliceLocal|skos:definition"
+msgid "The axis reads only the target slice's own module, examples, and tests — no dependency or merged graph. The tightest coeffect."
+msgstr "L'axe ne lit que le module, les exemples et les tests propres à la slice cible — aucun graphe de dépendances ni fusionné. Le coeffet le plus étroit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeDepsClosure|rdfs:label"
+msgid "dependency-closure scope"
+msgstr "portée de clôture de dépendances"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeDepsClosure|skos:definition"
+msgid "The axis reads the target slice together with its declared dependency closure — enough to resolve inherited terms and cross-slice test placement, but not the whole ontology."
+msgstr "L'axe lit la slice cible avec sa clôture de dépendances déclarée — assez pour résoudre les termes hérités et le placement de tests entre slices, mais pas l'ontologie entière."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeMergedClosure|rdfs:label"
+msgid "merged-closure scope"
+msgstr "portée de clôture fusionnée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeMergedClosure|skos:definition"
+msgid "The axis reads the whole merged, reasoned closure — required for inferential centrality and domain-twin detection — while still emitting advice about the target slice alone."
+msgstr "L'axe lit la clôture fusionnée et raisonnée entière — nécessaire pour la centralité inférentielle et la détection de jumeaux de domaine — tout en n'émettant de conseil qu'au sujet de la seule slice cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AxisExemption|rdfs:label"
+msgid "Axis Exemption"
+msgstr "Exemption d'axe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AxisExemption|skos:definition"
+msgid "A dated record that an axis or sub-metric is not yet measurable because its owning producer is genuinely unlanded — a first-class, gate-checked, self-cleaning artifact, NOT a silent descope. Every exemption carries the reason, the date it was minted, and the Rust symbol whose appearance in the repo makes it STALE; the completeness gate requires an axis or an exemption for every projection target, and the staleness gate reds the moment the exempted producer resolves."
+msgstr "Un enregistrement daté attestant qu'un axe ou une sous-métrique n'est pas encore mesurable parce que le producteur qui le porte n'a véritablement pas encore atterri — un artefact de première classe, vérifié par barrière et auto-nettoyant, PAS une réduction de portée silencieuse. Chaque exemption porte la raison, la date à laquelle elle a été frappée, et le symbole Rust dont l'apparition dans le dépôt la rend PÉRIMÉE ; la barrière de complétude exige un axe ou une exemption pour chaque cible de projection, et la barrière de péremption passe au rouge dès que le producteur exempté se résout."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptsAxis|rdfs:label"
+msgid "exempts axis"
+msgstr "exempte l'axe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptsAxis|skos:definition"
+msgid "The axis (or the axis a sub-metric belongs to) this exemption covers. It is NOT the producer symbol (that is gmeow:exemptionProducer)."
+msgstr "L'axe (ou l'axe auquel appartient une sous-métrique) que couvre cette exemption. Ce n'est PAS le symbole du producteur (celui-ci est gmeow:exemptionProducer)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionReason|rdfs:label"
+msgid "exemption reason"
+msgstr "raison d'exemption"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionReason|skos:definition"
+msgid "The prose justification for the exemption — why the producer is genuinely unlanded and why the axis's headline still functions without it. It must cite doctrine, never a ticket number."
+msgstr "La justification en prose de l'exemption — pourquoi le producteur n'a véritablement pas encore atterri et pourquoi la mesure phare de l'axe fonctionne malgré tout sans lui. Elle doit citer la doctrine, jamais un numéro de ticket."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDate|rdfs:label"
+msgid "exemption date"
+msgstr "date d'exemption"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDate|skos:definition"
+msgid "The date the exemption was minted — making every exemption dated so a stale escape is visible and auditable. It is NOT an expiry (the staleness gate, not a calendar, retires the exemption when the producer lands)."
+msgstr "La date à laquelle l'exemption a été frappée — rendant chaque exemption datée afin qu'une échappatoire périmée soit visible et auditable. Ce n'est PAS une expiration (c'est la barrière de péremption, non un calendrier, qui retire l'exemption lorsque le producteur atterrit)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionProducer|rdfs:label"
+msgid "exemption producer"
+msgstr "producteur d'exemption"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionProducer|skos:definition"
+msgid "The Rust symbol whose appearance in the repo makes this exemption STALE — the trigger the staleness gate watches. Once the symbol resolves, the exemption must be removed and the axis built, so an exemption can never become permanent optionality."
+msgstr "Le symbole Rust dont l'apparition dans le dépôt rend cette exemption PÉRIMÉE — le déclencheur que surveille la barrière de péremption. Une fois le symbole résolu, l'exemption doit être retirée et l'axe construit, de sorte qu'une exemption ne puisse jamais devenir une optionalité permanente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionGrounding|rdfs:label"
+msgid "grounding"
+msgstr "ancrage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionGrounding|skos:definition"
+msgid "The data-quality dimension for maximal grounding on the triad — how thoroughly a slice's concepts are grounded in logic/math/lang rather than left as bare domain terms (Principle 19)."
+msgstr "La dimension de qualité des données pour l'ancrage maximal sur la triade — à quel point les concepts d'une slice sont ancrés dans logic/math/lang plutôt que laissés comme de simples termes de domaine (Principe 19)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionInferentialDensity|rdfs:label"
+msgid "inferential density"
+msgstr "densité inférentielle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionInferentialDensity|skos:definition"
+msgid "The data-quality dimension for reasoner-derived inference — how much non-trivial entailment a slice's axioms contribute to the closure, measured by the native reasoner rather than by text heuristics."
+msgstr "La dimension de qualité des données pour l'inférence dérivée par le raisonneur — combien d'implication non triviale les axiomes d'une slice apportent à la clôture, mesurée par le raisonneur natif plutôt que par des heuristiques textuelles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionLinkage|rdfs:label"
+msgid "linkage"
+msgstr "liaison"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionLinkage|skos:definition"
+msgid "The data-quality dimension for maximal linkage — mapping presence at honest rungs, authority links, and correspondence-calculus adoption over a slice's alignment surface."
+msgstr "La dimension de qualité des données pour la liaison maximale — présence de correspondances à des échelons honnêtes, liens d'autorité, et adoption du calcul de correspondance sur la surface d'alignement d'une slice."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionProjection|rdfs:label"
+msgid "projection"
+msgstr "projection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionProjection|skos:definition"
+msgid "The data-quality dimension for maximal projection — whether a slice's content survives into every projection surface in its best configuration, with loss-ledger entries wherever a projection is lossy (Principles 4/7/17)."
+msgstr "La dimension de qualité des données pour la projection maximale — si le contenu d'une slice survit dans chaque surface de projection dans sa meilleure configuration, avec des entrées au registre de pertes partout où une projection est avec perte (Principes 4/7/17)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionTesting|rdfs:label"
+msgid "testing"
+msgstr "test"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionTesting|skos:definition"
+msgid "The data-quality dimension for optimal testing — per-term test reach, correct competency-cell modes, pinned counter-examples, and QA bits placed in their cheapest owning layer (SLICE_GUIDE §9; SLICE_QA)."
+msgstr "La dimension de qualité des données pour le test optimal — portée de test par terme, modes de cellule de compétence corrects, contre-exemples épinglés, et bribes d'AQ placées dans leur couche propriétaire la moins coûteuse (SLICE_GUIDE §9 ; SLICE_QA)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionDocumentation|rdfs:label"
+msgid "documentation"
+msgstr "documentation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionDocumentation|skos:definition"
+msgid "The data-quality dimension for documentation completeness — a narrative docs thesis plus the docs-pipeline coverage dimensions, consuming the per-slice documentation-maturity standard as-is rather than redefining it."
+msgstr "La dimension de qualité des données pour la complétude de la documentation — une thèse documentaire narrative plus les dimensions de couverture du pipeline documentaire, consommant le standard de maturité documentaire par slice tel quel plutôt que de le redéfinir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionProseQuality|rdfs:label"
+msgid "prose quality"
+msgstr "qualité de la prose"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionProseQuality|skos:definition"
+msgid "The data-quality dimension for the quality of human-facing prose — boundary-stating definitions, worked examples, substantive non-template usage advice, and rationales that state the reason (SLICE_GUIDE §6.2/§6.6/§6.7)."
+msgstr "La dimension de qualité des données pour la qualité de la prose destinée aux humains — définitions qui énoncent des frontières, exemples travaillés, conseils d'usage substantiels et non stéréotypés, et justifications qui énoncent la raison (SLICE_GUIDE §6.2/§6.6/§6.7)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionProvenanceHonesty|rdfs:label"
+msgid "provenance honesty"
+msgstr "honnêteté de provenance"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionProvenanceHonesty|skos:definition"
+msgid "The data-quality dimension for rationale provenance honesty — whether a rationale states the ontological reason an axiom holds rather than naming a test artifact as its justification. A test is evidence that an axiom holds, never the reason why, so a test-naming rationale is a category error the advisor flags (SLICE_GUIDE §6.6)."
+msgstr "La dimension de qualité des données pour l'honnêteté de provenance des justifications — si une justification énonce la raison ontologique pour laquelle un axiome tient plutôt que de nommer un artefact de test comme justification. Un test est la preuve qu'un axiome tient, jamais la raison pour laquelle, de sorte qu'une justification nommant un test est une erreur de catégorie que le conseiller signale (SLICE_GUIDE §6.6)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionTranslationCoverage|rdfs:label"
+msgid "translation coverage"
+msgstr "couverture de traduction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionTranslationCoverage|skos:definition"
+msgid "The data-quality dimension for translation coverage — the fraction of a slice's localizable literals carrying audited translations, measured per-language by per-literal-class, with full coverage requiring English, French, and Mandarin."
+msgstr "La dimension de qualité des données pour la couverture de traduction — la fraction des littéraux localisables d'une slice portant des traductions auditées, mesurée par langue et par classe de littéral, la couverture complète exigeant l'anglais, le français et le mandarin."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalGrounding|rdfs:label"
+msgid "Maximal Grounding"
+msgstr "Ancrage maximal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalGrounding|skos:definition"
+msgid "The headline axis: per-layer, per-concept grounding on the triad — foundation stereotypes, mediates relations, OWL characteristics as logic axioms, framed quantities on math, reified denotation and lang forms on lang, and detection of domain twins of triad terms. It is NOT mere annotation presence (that is the information axis) — it measures whether concepts are thin domain layers over thick grounding references (Principle 19; SLICE_GUIDE §4)."
+msgstr "L'axe phare : ancrage par couche et par concept sur la triade — stéréotypes de fondation, relations mediates, caractéristiques OWL en tant qu'axiomes logic, quantités encadrées sur math, dénotation réifiée et formes lang sur lang, et détection de jumeaux de domaine des termes de la triade. Ce n'est PAS la simple présence d'annotations (cela relève de l'axe d'information) — il mesure si les concepts sont de minces couches de domaine posées sur d'épaisses références d'ancrage (Principe 19 ; SLICE_GUIDE §4)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisReasonerDerived|rdfs:label"
+msgid "Reasoner-Derived"
+msgstr "Dérivé par le raisonneur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisReasonerDerived|skos:definition"
+msgid "The axis that dogfoods the native reasoner as the instrument: inferential density, closure-redundancy and asserted-derived-fact detection by proof, inferential centrality, competency-lane analysis, negative-space verification, and conjecture-backed advice. It is NOT a text heuristic — every metric reads the materialized closure and derivation graph (Principles 8/17/18)."
+msgstr "L'axe qui « mange sa propre nourriture » en prenant le raisonneur natif pour instrument : densité inférentielle, redondance de clôture et détection par preuve de faits dérivés asserted, centralité inférentielle, analyse des voies de compétence, vérification de l'espace négatif, et conseil appuyé sur des conjectures. Ce n'est PAS une heuristique textuelle — chaque métrique lit la clôture matérialisée et le graphe de dérivation (Principes 8/17/18)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalInformation|rdfs:label"
+msgid "Maximal Information"
+msgstr "Information maximale"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalInformation|skos:definition"
+msgid "The axis for information moved into the ontology: annotation-coat completeness on every term including A-Box individuals, epistemic-shape coverage (contested/suppressed/ambiguous/time-scoped cases), and prose-to-axiom harvest coverage. It is NOT prose quality (that judges how well the strings read) — this axis measures whether the required information is present at all (SLICE_GUIDE §6)."
+msgstr "L'axe pour l'information déplacée dans l'ontologie : complétude de l'habit d'annotations sur chaque terme y compris les individus de la A-Box, couverture des formes épistémiques (cas contestés/supprimés/ambigus/bornés dans le temps), et couverture de récolte prose-vers-axiome. Ce n'est PAS la qualité de la prose (qui juge à quel point les chaînes se lisent bien) — cet axe mesure si l'information requise est présente tout court (SLICE_GUIDE §6)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalLinkage|rdfs:label"
+msgid "Maximal Linkage"
+msgstr "Liaison maximale"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalLinkage|skos:definition"
+msgid "The axis for maximal linkage with explicit correspondence-calculus adoption: mapping presence and rung honesty (exactMatch vs closeMatch, the five axes kept apart), live authority links, SKOS lift, and the fraction of the alignment surface routed through the correspondence calculus with an executed law discharge and a loss-ledger judgment. It is NOT projection (that measures output surfaces) — this measures the honesty and calculus-adoption of the links themselves (Principle 17)."
+msgstr "L'axe pour la liaison maximale avec adoption explicite du calcul de correspondance : présence de correspondances et honnêteté des échelons (exactMatch vs closeMatch, les cinq axes tenus distincts), liens d'autorité vivants, remontée SKOS, et la fraction de la surface d'alignement acheminée par le calcul de correspondance avec un acquittement de loi exécuté et un jugement au registre de pertes. Ce n'est PAS la projection (qui mesure les surfaces de sortie) — il mesure l'honnêteté et l'adoption du calcul des liens eux-mêmes (Principe 17)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalProjection|rdfs:label"
+msgid "Maximal Projection"
+msgstr "Projection maximale"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalProjection|skos:definition"
+msgid "The axis for whether a slice's content survives into every projection surface in its best configuration — SHACL/ShEx from logic sources, SSSOM/EDOAL/FnO, docs pages — with a loss-ledger entry wherever the projection is lossy. It is NOT linkage (the source alignments) — this measures the derived output surfaces (Principles 4/7/17)."
+msgstr "L'axe pour savoir si le contenu d'une slice survit dans chaque surface de projection dans sa meilleure configuration — SHACL/ShEx depuis des sources logic, SSSOM/EDOAL/FnO, pages de documentation — avec une entrée au registre de pertes partout où la projection est avec perte. Ce n'est PAS la liaison (les alignements sources) — il mesure les surfaces de sortie dérivées (Principes 4/7/17)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisOptimalTesting|rdfs:label"
+msgid "Optimal Testing"
+msgstr "Test optimal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisOptimalTesting|skos:definition"
+msgid "The axis for QA depth, placement, and manifest honesty: per-term test reach, correct competency-cell cardinality modes, counter-examples pinning their (fixture, code), each hard rule mapped to exactly one cheapest owning gate, and sliceDependsOn equal to the computed ownership set. It is NOT the reasoner axis (which runs the cells) — this measures whether the cells exist and sit in the right layer (SLICE_GUIDE §9; SLICE_QA)."
+msgstr "L'axe pour la profondeur d'AQ, le placement et l'honnêteté du manifest : portée de test par terme, modes de cardinalité de cellule de compétence corrects, contre-exemples épinglant leur (fixture, code), chaque règle stricte associée à exactement une barrière propriétaire la moins coûteuse, et sliceDependsOn égal à l'ensemble de propriété calculé. Ce n'est PAS l'axe du raisonneur (qui exécute les cellules) — il mesure si les cellules existent et se trouvent dans la bonne couche (SLICE_GUIDE §9 ; SLICE_QA)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisDocumentation|rdfs:label"
+msgid "Documentation"
+msgstr "Documentation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisDocumentation|skos:definition"
+msgid "The axis for documentation completeness: a narrative docs thesis and the docs-pipeline coverage dimensions, consuming the per-slice documentation-maturity standard as-is. It is NOT prose quality (how well strings read) — this measures whether the documentation surfaces exist. The documentation-maturity tier and multi-format panels remain exempt until their producers land."
+msgstr "L'axe pour la complétude de la documentation : une thèse documentaire narrative et les dimensions de couverture du pipeline documentaire, consommant le standard de maturité documentaire par slice tel quel. Ce n'est PAS la qualité de la prose (à quel point les chaînes se lisent bien) — il mesure si les surfaces de documentation existent. Le palier de maturité documentaire et les panneaux multi-format restent exemptés jusqu'à ce que leurs producteurs atterrissent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisProseQuality|rdfs:label"
+msgid "Prose Quality"
+msgstr "Qualité de la prose"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisProseQuality|skos:definition"
+msgid "The axis for the quality of human-facing prose: definitions that state boundaries (the three-NOTs bar), examples that are worked triples, substantive non-template usage advice, and rationales that explain why. It carries the provenance-honesty sub-dimension. It is NOT information presence (the information axis) — this judges how well the present strings read (SLICE_GUIDE §6.2/§6.6/§6.7)."
+msgstr "L'axe pour la qualité de la prose destinée aux humains : définitions qui énoncent des frontières (la barre des trois NON), exemples qui sont des triplets travaillés, conseils d'usage substantiels et non stéréotypés, et justifications qui expliquent pourquoi. Il porte la sous-dimension d'honnêteté de provenance. Ce n'est PAS la présence de l'information (l'axe d'information) — il juge à quel point les chaînes présentes se lisent bien (SLICE_GUIDE §6.2/§6.6/§6.7)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisProvenanceHonesty|rdfs:label"
+msgid "Provenance Honesty"
+msgstr "Honnêteté de provenance"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisProvenanceHonesty|skos:definition"
+msgid "The prose-quality sub-axis that flags any saRationale or comment-class rationale literal naming a test artifact (a test function, a .rs or .py path, or a 'Mirrors …' framing) as a category error — a test is evidence that an axiom holds, never the reason why. Advisory only. It is NOT a hard gate and NOT the general prose axis: it targets exactly the test-is-not-a-rationale anti-pattern and offers a strip-clause uplift (SLICE_GUIDE §6.6)."
+msgstr "Le sous-axe de qualité de la prose qui signale tout littéral de justification de classe saRationale ou commentaire nommant un artefact de test (une fonction de test, un chemin .rs ou .py, ou une tournure 'Mirrors …') comme une erreur de catégorie — un test est la preuve qu'un axiome tient, jamais la raison pour laquelle. Consultatif uniquement. Ce n'est PAS une barrière stricte ni l'axe général de prose : il cible précisément l'anti-motif « un test n'est pas une justification » et propose une amélioration par retrait de clause (SLICE_GUIDE §6.6)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisTranslationCoverage|rdfs:label"
+msgid "Translation Coverage"
+msgstr "Couverture de traduction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisTranslationCoverage|skos:definition"
+msgid "The axis for translation coverage measured per-language by per-literal-class over every localizable literal — labels, definitions, examples, usage coats, rationales, and docs prose — with full coverage requiring English, French, and Mandarin routed through the audited-translation machinery. It is NOT a single ratio: a bare parallel literal with no translation record grades below an audited one."
+msgstr "L'axe pour la couverture de traduction mesurée par langue et par classe de littéral sur chaque littéral localisable — étiquettes, définitions, exemples, habits d'usage, justifications et prose documentaire — la couverture complète exigeant l'anglais, le français et le mandarin acheminés par la machinerie de traduction auditée. Ce n'est PAS un simple ratio : un littéral parallèle brut sans enregistrement de traduction est noté en dessous d'un littéral audité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDocMaturity|rdfs:label"
+msgid "Documentation-Maturity exemption"
+msgstr "Exemption de maturité documentaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDocMaturity|skos:definition"
+msgid "Exempts the documentation-maturity sub-metric of the documentation axis: the per-slice documentation-maturity tier is owned by the documentation standard and consumed as-is here, never redefined, and its producer is not yet in-repo."
+msgstr "Exempte la sous-métrique de maturité documentaire de l'axe de documentation : le palier de maturité documentaire par slice appartient au standard de documentation et est consommé tel quel ici, jamais redéfini, et son producteur n'est pas encore dans le dépôt."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionGmnProjection|rdfs:label"
+msgid "GMN-projection exemption"
+msgstr "Exemption de projection GMN"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionGmnProjection|skos:definition"
+msgid "Exempts the GMN dialect-projection sub-target of the projection axis: the GMN projection surface is a separate program and is not yet a landed pipeline projection target. The projection axis still measures every landed projection surface."
+msgstr "Exempte la sous-cible de projection du dialecte GMN de l'axe de projection : la surface de projection GMN est un programme distinct et n'est pas encore une cible de projection du pipeline atterrie. L'axe de projection mesure malgré tout chaque surface de projection atterrie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDocsPanels|rdfs:label"
+msgid "Docs-panels exemption"
+msgstr "Exemption de panneaux documentaires"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDocsPanels|skos:definition"
+msgid "Exempts the multi-format documentation max-info panels sub-metric of the documentation axis: the panels are measured for adoption as they land, and their producer is not yet in-repo."
+msgstr "Exempte la sous-métrique des panneaux d'information maximale de documentation multi-format de l'axe de documentation : les panneaux sont mesurés pour leur adoption à mesure qu'ils atterrissent, et leur producteur n'est pas encore dans le dépôt."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sliceQualityRubric|rdfs:label"
+msgid "Slice-Quality Rubric"
+msgstr "Rubrique de qualité des slices"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sliceQualityRubric|skos:definition"
+msgid "The single, ontology-resident rubric the slice-quality advisor binds to: a Profile over gmeow:Slice whose descriptor properties are the axis bindings and whose open value vocabularies are the axes, tiers, and context scopes. Tuning a threshold, minting a tier, or adding an axis is a slice edit and regenerate — never a code fork; Rust supplies only the closed measurement primitives the descriptors name. It is NOT the assessment output (that is gmeow:QualityAssessment) — it is the schema the scorer reads."
+msgstr "L'unique rubrique résidant dans l'ontologie à laquelle se lie le conseiller de qualité des slices : un Profile sur gmeow:Slice dont les propriétés descriptrices sont les liaisons d'axes et dont les vocabulaires de valeurs ouverts sont les axes, les paliers et les portées de contexte. Ajuster un seuil, frapper un palier ou ajouter un axe est une édition de slice suivie d'une régénération — jamais une bifurcation de code ; Rust ne fournit que les primitives de mesure fermées que les descripteurs nomment. Ce n'est PAS la sortie d'évaluation (celle-ci est gmeow:QualityAssessment) — c'est le schéma que lit le noteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrGroundingGrounded|rdfs:label"
+msgid "grounding floor — Grounded"
+msgstr "plancher d'ancrage — Ancré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrGroundingGrounded|skos:definition"
+msgid "The grounding-axis score floor to earn the Grounded tier."
+msgstr "Le plancher de score de l'axe d'ancrage requis pour mériter le palier Ancré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrGroundingLinked|rdfs:label"
+msgid "grounding floor — Linked"
+msgstr "plancher d'ancrage — Lié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrGroundingLinked|skos:definition"
+msgid "The grounding-axis score floor to earn the Linked tier."
+msgstr "Le plancher de score de l'axe d'ancrage requis pour mériter le palier Lié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrGroundingExemplified|rdfs:label"
+msgid "grounding floor — Exemplified"
+msgstr "plancher d'ancrage — Exemplifié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrGroundingExemplified|skos:definition"
+msgid "The grounding-axis score floor to earn the Exemplified tier."
+msgstr "Le plancher de score de l'axe d'ancrage requis pour mériter le palier Exemplifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrGroundingMaximal|rdfs:label"
+msgid "grounding floor — Maximal"
+msgstr "plancher d'ancrage — Maximal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrGroundingMaximal|skos:definition"
+msgid "The grounding-axis score floor to earn the Maximal tier."
+msgstr "Le plancher de score de l'axe d'ancrage requis pour mériter le palier Maximal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrReasonerGrounded|rdfs:label"
+msgid "reasoner floor — Grounded"
+msgstr "plancher du raisonneur — Ancré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrReasonerGrounded|skos:definition"
+msgid "The reasoner-derived-axis score floor to earn the Grounded tier."
+msgstr "Le plancher de score de l'axe dérivé par le raisonneur requis pour mériter le palier Ancré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrReasonerLinked|rdfs:label"
+msgid "reasoner floor — Linked"
+msgstr "plancher du raisonneur — Lié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrReasonerLinked|skos:definition"
+msgid "The reasoner-derived-axis score floor to earn the Linked tier."
+msgstr "Le plancher de score de l'axe dérivé par le raisonneur requis pour mériter le palier Lié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrReasonerExemplified|rdfs:label"
+msgid "reasoner floor — Exemplified"
+msgstr "plancher du raisonneur — Exemplifié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrReasonerExemplified|skos:definition"
+msgid "The reasoner-derived-axis score floor to earn the Exemplified tier."
+msgstr "Le plancher de score de l'axe dérivé par le raisonneur requis pour mériter le palier Exemplifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrReasonerMaximal|rdfs:label"
+msgid "reasoner floor — Maximal"
+msgstr "plancher du raisonneur — Maximal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrReasonerMaximal|skos:definition"
+msgid "The reasoner-derived-axis score floor to earn the Maximal tier."
+msgstr "Le plancher de score de l'axe dérivé par le raisonneur requis pour mériter le palier Maximal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrInformationGrounded|rdfs:label"
+msgid "information floor — Grounded"
+msgstr "plancher d'information — Ancré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrInformationGrounded|skos:definition"
+msgid "The information-axis score floor to earn the Grounded tier."
+msgstr "Le plancher de score de l'axe d'information requis pour mériter le palier Ancré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrInformationLinked|rdfs:label"
+msgid "information floor — Linked"
+msgstr "plancher d'information — Lié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrInformationLinked|skos:definition"
+msgid "The information-axis score floor to earn the Linked tier."
+msgstr "Le plancher de score de l'axe d'information requis pour mériter le palier Lié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrInformationExemplified|rdfs:label"
+msgid "information floor — Exemplified"
+msgstr "plancher d'information — Exemplifié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrInformationExemplified|skos:definition"
+msgid "The information-axis score floor to earn the Exemplified tier."
+msgstr "Le plancher de score de l'axe d'information requis pour mériter le palier Exemplifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrInformationMaximal|rdfs:label"
+msgid "information floor — Maximal"
+msgstr "plancher d'information — Maximal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrInformationMaximal|skos:definition"
+msgid "The information-axis score floor to earn the Maximal tier."
+msgstr "Le plancher de score de l'axe d'information requis pour mériter le palier Maximal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrLinkageGrounded|rdfs:label"
+msgid "linkage floor — Grounded"
+msgstr "plancher de liaison — Ancré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrLinkageGrounded|skos:definition"
+msgid "The linkage-axis score floor to earn the Grounded tier."
+msgstr "Le plancher de score de l'axe de liaison requis pour mériter le palier Ancré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrLinkageLinked|rdfs:label"
+msgid "linkage floor — Linked"
+msgstr "plancher de liaison — Lié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrLinkageLinked|skos:definition"
+msgid "The linkage-axis score floor to earn the Linked tier."
+msgstr "Le plancher de score de l'axe de liaison requis pour mériter le palier Lié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrLinkageExemplified|rdfs:label"
+msgid "linkage floor — Exemplified"
+msgstr "plancher de liaison — Exemplifié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrLinkageExemplified|skos:definition"
+msgid "The linkage-axis score floor to earn the Exemplified tier."
+msgstr "Le plancher de score de l'axe de liaison requis pour mériter le palier Exemplifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrLinkageMaximal|rdfs:label"
+msgid "linkage floor — Maximal"
+msgstr "plancher de liaison — Maximal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrLinkageMaximal|skos:definition"
+msgid "The linkage-axis score floor to earn the Maximal tier."
+msgstr "Le plancher de score de l'axe de liaison requis pour mériter le palier Maximal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProjectionGrounded|rdfs:label"
+msgid "projection floor — Grounded"
+msgstr "plancher de projection — Ancré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProjectionGrounded|skos:definition"
+msgid "The projection-axis score floor to earn the Grounded tier."
+msgstr "Le plancher de score de l'axe de projection requis pour mériter le palier Ancré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProjectionLinked|rdfs:label"
+msgid "projection floor — Linked"
+msgstr "plancher de projection — Lié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProjectionLinked|skos:definition"
+msgid "The projection-axis score floor to earn the Linked tier."
+msgstr "Le plancher de score de l'axe de projection requis pour mériter le palier Lié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProjectionExemplified|rdfs:label"
+msgid "projection floor — Exemplified"
+msgstr "plancher de projection — Exemplifié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProjectionExemplified|skos:definition"
+msgid "The projection-axis score floor to earn the Exemplified tier."
+msgstr "Le plancher de score de l'axe de projection requis pour mériter le palier Exemplifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProjectionMaximal|rdfs:label"
+msgid "projection floor — Maximal"
+msgstr "plancher de projection — Maximal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProjectionMaximal|skos:definition"
+msgid "The projection-axis score floor to earn the Maximal tier."
+msgstr "Le plancher de score de l'axe de projection requis pour mériter le palier Maximal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrTestingGrounded|rdfs:label"
+msgid "testing floor — Grounded"
+msgstr "plancher de test — Ancré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrTestingGrounded|skos:definition"
+msgid "The testing-axis score floor to earn the Grounded tier."
+msgstr "Le plancher de score de l'axe de test requis pour mériter le palier Ancré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrTestingLinked|rdfs:label"
+msgid "testing floor — Linked"
+msgstr "plancher de test — Lié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrTestingLinked|skos:definition"
+msgid "The testing-axis score floor to earn the Linked tier."
+msgstr "Le plancher de score de l'axe de test requis pour mériter le palier Lié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrTestingExemplified|rdfs:label"
+msgid "testing floor — Exemplified"
+msgstr "plancher de test — Exemplifié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrTestingExemplified|skos:definition"
+msgid "The testing-axis score floor to earn the Exemplified tier."
+msgstr "Le plancher de score de l'axe de test requis pour mériter le palier Exemplifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrTestingMaximal|rdfs:label"
+msgid "testing floor — Maximal"
+msgstr "plancher de test — Maximal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrTestingMaximal|skos:definition"
+msgid "The testing-axis score floor to earn the Maximal tier."
+msgstr "Le plancher de score de l'axe de test requis pour mériter le palier Maximal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrDocumentationGrounded|rdfs:label"
+msgid "documentation floor — Grounded"
+msgstr "plancher de documentation — Ancré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrDocumentationGrounded|skos:definition"
+msgid "The documentation-axis score floor to earn the Grounded tier."
+msgstr "Le plancher de score de l'axe de documentation requis pour mériter le palier Ancré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrDocumentationLinked|rdfs:label"
+msgid "documentation floor — Linked"
+msgstr "plancher de documentation — Lié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrDocumentationLinked|skos:definition"
+msgid "The documentation-axis score floor to earn the Linked tier."
+msgstr "Le plancher de score de l'axe de documentation requis pour mériter le palier Lié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrDocumentationExemplified|rdfs:label"
+msgid "documentation floor — Exemplified"
+msgstr "plancher de documentation — Exemplifié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrDocumentationExemplified|skos:definition"
+msgid "The documentation-axis score floor to earn the Exemplified tier."
+msgstr "Le plancher de score de l'axe de documentation requis pour mériter le palier Exemplifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrDocumentationMaximal|rdfs:label"
+msgid "documentation floor — Maximal"
+msgstr "plancher de documentation — Maximal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrDocumentationMaximal|skos:definition"
+msgid "The documentation-axis score floor to earn the Maximal tier."
+msgstr "Le plancher de score de l'axe de documentation requis pour mériter le palier Maximal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProseGrounded|rdfs:label"
+msgid "prose floor — Grounded"
+msgstr "plancher de prose — Ancré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProseGrounded|skos:definition"
+msgid "The prose-quality-axis score floor to earn the Grounded tier."
+msgstr "Le plancher de score de l'axe de qualité de la prose requis pour mériter le palier Ancré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProseLinked|rdfs:label"
+msgid "prose floor — Linked"
+msgstr "plancher de prose — Lié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProseLinked|skos:definition"
+msgid "The prose-quality-axis score floor to earn the Linked tier."
+msgstr "Le plancher de score de l'axe de qualité de la prose requis pour mériter le palier Lié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProseExemplified|rdfs:label"
+msgid "prose floor — Exemplified"
+msgstr "plancher de prose — Exemplifié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProseExemplified|skos:definition"
+msgid "The prose-quality-axis score floor to earn the Exemplified tier."
+msgstr "Le plancher de score de l'axe de qualité de la prose requis pour mériter le palier Exemplifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProseMaximal|rdfs:label"
+msgid "prose floor — Maximal"
+msgstr "plancher de prose — Maximal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProseMaximal|skos:definition"
+msgid "The prose-quality-axis score floor to earn the Maximal tier."
+msgstr "Le plancher de score de l'axe de qualité de la prose requis pour mériter le palier Maximal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProvenanceGrounded|rdfs:label"
+msgid "provenance-honesty floor — Grounded"
+msgstr "plancher d'honnêteté de provenance — Ancré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProvenanceGrounded|skos:definition"
+msgid "The provenance-honesty-axis score floor to earn the Grounded tier."
+msgstr "Le plancher de score de l'axe d'honnêteté de provenance requis pour mériter le palier Ancré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProvenanceLinked|rdfs:label"
+msgid "provenance-honesty floor — Linked"
+msgstr "plancher d'honnêteté de provenance — Lié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProvenanceLinked|skos:definition"
+msgid "The provenance-honesty-axis score floor to earn the Linked tier."
+msgstr "Le plancher de score de l'axe d'honnêteté de provenance requis pour mériter le palier Lié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProvenanceExemplified|rdfs:label"
+msgid "provenance-honesty floor — Exemplified"
+msgstr "plancher d'honnêteté de provenance — Exemplifié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProvenanceExemplified|skos:definition"
+msgid "The provenance-honesty-axis score floor to earn the Exemplified tier."
+msgstr "Le plancher de score de l'axe d'honnêteté de provenance requis pour mériter le palier Exemplifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProvenanceMaximal|rdfs:label"
+msgid "provenance-honesty floor — Maximal"
+msgstr "plancher d'honnêteté de provenance — Maximal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrProvenanceMaximal|skos:definition"
+msgid "The provenance-honesty-axis score floor to earn the Maximal tier."
+msgstr "Le plancher de score de l'axe d'honnêteté de provenance requis pour mériter le palier Maximal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrTranslationGrounded|rdfs:label"
+msgid "translation floor — Grounded"
+msgstr "plancher de traduction — Ancré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrTranslationGrounded|skos:definition"
+msgid "The translation-coverage-axis score floor to earn the Grounded tier."
+msgstr "Le plancher de score de l'axe de couverture de traduction requis pour mériter le palier Ancré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrTranslationLinked|rdfs:label"
+msgid "translation floor — Linked"
+msgstr "plancher de traduction — Lié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrTranslationLinked|skos:definition"
+msgid "The translation-coverage-axis score floor to earn the Linked tier."
+msgstr "Le plancher de score de l'axe de couverture de traduction requis pour mériter le palier Lié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrTranslationExemplified|rdfs:label"
+msgid "translation floor — Exemplified"
+msgstr "plancher de traduction — Exemplifié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrTranslationExemplified|skos:definition"
+msgid "The translation-coverage-axis score floor to earn the Exemplified tier."
+msgstr "Le plancher de score de l'axe de couverture de traduction requis pour mériter le palier Exemplifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrTranslationMaximal|rdfs:label"
+msgid "translation floor — Maximal"
+msgstr "plancher de traduction — Maximal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thrTranslationMaximal|skos:definition"
+msgid "The translation-coverage-axis score floor to earn the Maximal tier."
+msgstr "Le plancher de score de l'axe de couverture de traduction requis pour mériter le palier Maximal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric|rdfs:label"
+msgid "GMEOW Slice-Quality Rubric Module"
+msgstr "Module de rubrique de qualité des slices GMEOW"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric|skos:definition"
+msgid "The GMEOW Slice-Quality Rubric Module — classes, properties, and individuals of the GMEOW super-vocabulary that make per-slice quality a queryable, reasoned, data-driven rubric."
+msgstr "Le module de rubrique de qualité des slices GMEOW — classes, propriétés et individus du super-vocabulaire GMEOW qui font de la qualité par slice une rubrique interrogeable, raisonnée et pilotée par les données."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric|rdfs:comment"
+msgid "The slice-quality rubric module — the ontology-resident, data-driven rubric the gmeow-dev slice-quality advisor binds to. Quality axes, the lattice tier ladder, per-tier score thresholds, advice text, read-scope coeffects, and dated exemptions are all individuals here; Rust ships only a closed set of measurement primitives the axis descriptors name (the Profile rubric-as-data pattern). Grades form a bounded lattice grounded in logic:QualityValue: the roll-up tier is the UNWEIGHTED meet of the per-axis grades, the ratchet is the lattice order, and the scalar tier is a lossy projection of the full per-axis grade vector.\n\nThis slice is its own self-application capstone: it must itself score Maximal on the rubric it defines, and its rationales name no test artifact — it is the exemplar of the provenance-honesty rule it introduces."
+msgstr "Le module de rubrique de qualité des slices — la rubrique résidant dans l'ontologie et pilotée par les données à laquelle se lie le conseiller de qualité des slices gmeow-dev. Les axes de qualité, l'échelle de paliers en treillis, les seuils de score par palier, le texte de conseil, les coeffets de portée de lecture et les exemptions datées sont tous des individus ici ; Rust ne livre qu'un ensemble fermé de primitives de mesure que les descripteurs d'axes nomment (le motif Profile « rubrique en tant que données »). Les grades forment un treillis borné ancré dans logic:QualityValue : le palier agrégé est la borne inférieure NON PONDÉRÉE des grades par axe, le cliquet est l'ordre du treillis, et le palier scalaire est une projection avec perte du vecteur complet des grades par axe.\n\nCette slice est son propre point d'orgue d'auto-application : elle doit elle-même obtenir Maximal sur la rubrique qu'elle définit, et ses justifications ne nomment aucun artefact de test — elle est l'exemplaire de la règle d'honnêteté de provenance qu'elle introduit."

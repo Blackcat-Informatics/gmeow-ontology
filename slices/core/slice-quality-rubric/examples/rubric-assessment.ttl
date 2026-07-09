@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a slice-quality report IS a bundle of quality observations.
+# Each per-axis grade is a gmeow:QualityAssessment (a gmeow:Observation subclass)
+# whose assessedEntity is the target slice, whose qualityDimension is the axis's
+# emitted dimension, and whose observationResult is a gmeow:ScalarQuantity grade —
+# the same measurement bundle (method, vantage, unit-carrying result) as any other
+# GMEOW observation, never a bare number. This scene includes the epistemically
+# hard case: the translation-coverage grade is genuinely CONTESTED (a bare parallel
+# French literal exists but carries no audited translation record), carried honestly
+# as a low grade rather than smoothed over.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/slice-quality-rubric/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The target under assessment: an example slice being scored. ---------------
+ex:targetSlice a gmeow:Dataset ;
+    gmeow:title "Example domain slice under a slice-quality pass"@x-gmeow-english .
+
+ex:advisor a gmeow:Organization ;
+    gmeow:name "The gmeow-dev slice-quality advisor"@x-gmeow-english .
+
+# --- A per-axis grade: grounding measured Maximal, unit-bundled. ----------------
+ex:groundingGrade a gmeow:QualityAssessment ;
+    gmeow:assessedEntity    ex:targetSlice ;
+    gmeow:qualityDimension  gmeow:qualityDimensionGrounding ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:vantage           ex:advisor ;
+    gmeow:observationResult ex:groundingScore .
+
+ex:groundingScore a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "97.0"^^xsd:decimal ;
+    gmeow:unit <http://qudt.org/vocab/unit/PERCENT> .
+
+# --- The epistemically hard case: translation coverage is CONTESTED and low. ----
+# A bare parallel French literal exists but carries no audited translation record,
+# so the slice's French "coverage" is genuinely contested — the report records the
+# honest low grade rather than pretending completeness.
+ex:translationGrade a gmeow:QualityAssessment ;
+    gmeow:assessedEntity    ex:targetSlice ;
+    gmeow:qualityDimension  gmeow:qualityDimensionTranslationCoverage ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:vantage           ex:advisor ;
+    gmeow:observationResult ex:translationScore .
+
+ex:translationScore a gmeow:ScalarQuantity ;
+    gmeow:quantityValue "42.0"^^xsd:decimal ;
+    gmeow:unit <http://qudt.org/vocab/unit/PERCENT> .

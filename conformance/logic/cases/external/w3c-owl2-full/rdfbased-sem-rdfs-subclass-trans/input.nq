@@ -1,0 +1,2 @@
+<http://www.example.org#c1> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.example.org#c2> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-rdfs-subclass-trans/w> .
+<http://www.example.org#c2> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.example.org#c3> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-rdfs-subclass-trans/w> .

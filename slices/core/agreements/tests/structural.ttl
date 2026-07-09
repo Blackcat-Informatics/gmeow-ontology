@@ -33,4 +33,4 @@ ASK {
         rdfs:domain logic:Relator ;
         rdfs:range gmeow:Agreement .
 }""" ;
-    gmeow:saRationale "gmeow:foundedOn MUST link any logic:Relator to the gmeow:Agreement that grounds it. Replaces the stale pytest check that still expected gufo:Relator." .
+    gmeow:saRationale "gmeow:foundedOn MUST link any logic:Relator to the gmeow:Agreement that grounds it. Replaces the stale check that still expected gufo:Relator." .

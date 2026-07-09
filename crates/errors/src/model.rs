@@ -149,6 +149,11 @@ pub enum FindingCategory {
     ProjectionLoss,
     /// A trust / governance advisory (untrusted signer, soft policy note).
     PolicyWarning,
+    /// A native↔published AGREEMENT — the native reasoner's verdict matched the
+    /// community-decided ground truth. NOT a failure: it is positive corroborating
+    /// evidence surfaced for the benchmark surface, coherent, and never blocks a
+    /// coherence certificate (the opposite of an incomplete check).
+    Corroboration,
     /// The closed CHATTER kind for general-purpose logging witnesses — the
     /// ordinary note/info stream a run emits to narrate its own progress. NOT a
     /// failure and takes no coherence stance: transient bookkeeping that never
@@ -177,6 +182,8 @@ impl FindingCategory {
             Ok(Self::ProjectionLoss)
         } else if trimmed.eq_ignore_ascii_case("policy-warning") {
             Ok(Self::PolicyWarning)
+        } else if trimmed.eq_ignore_ascii_case("corroboration") {
+            Ok(Self::Corroboration)
         } else if trimmed.eq_ignore_ascii_case("transient-chatter") {
             Ok(Self::Transient)
         } else {
@@ -199,6 +206,7 @@ impl FindingCategory {
             Self::IncompleteCheck => "incomplete-check",
             Self::ProjectionLoss => "projection-loss",
             Self::PolicyWarning => "policy-warning",
+            Self::Corroboration => "corroboration",
             Self::Transient => "transient-chatter",
         }
     }
@@ -217,6 +225,7 @@ impl FindingCategory {
             "FindingIncompleteCheck" => Some(Self::IncompleteCheck),
             "FindingProjectionLoss" => Some(Self::ProjectionLoss),
             "FindingPolicyWarning" => Some(Self::PolicyWarning),
+            "FindingCorroboration" => Some(Self::Corroboration),
             "FindingTransientChatter" => Some(Self::Transient),
             _ => None,
         }
@@ -234,6 +243,7 @@ impl FindingCategory {
             Self::IncompleteCheck => "FindingIncompleteCheck",
             Self::ProjectionLoss => "FindingProjectionLoss",
             Self::PolicyWarning => "FindingPolicyWarning",
+            Self::Corroboration => "FindingCorroboration",
             Self::Transient => "FindingTransientChatter",
         }
     }
