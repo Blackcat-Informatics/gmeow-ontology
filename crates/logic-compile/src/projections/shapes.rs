@@ -41,6 +41,19 @@ const LOGIC_TERM_GREATER_EQUAL: &str = "https://blackcatinformatics.ca/logic/ter
 const LOGIC_TERM_IS_IRI: &str = "https://blackcatinformatics.ca/logic/termIsIri";
 const LOGIC_TERM_IS_LITERAL: &str = "https://blackcatinformatics.ca/logic/termIsLiteral";
 const LOGIC_TERM_IS_BLANK_OR_IRI: &str = "https://blackcatinformatics.ca/logic/termIsBlankOrIri";
+/// The `logic:` value-set membership relation `termIn(x, m1, m2, …)`, lowered to a SPARQL
+/// `FILTER ( x IN (m1, m2, …) )` (negated: `NOT IN`). The first argument is the tested term; every
+/// remaining argument is a set member (an IRI or a data literal). It lets a `logic:Constraint`
+/// express a `sh:in`-style enumerated-value restriction the flat triple fragment cannot.
+const LOGIC_TERM_IN: &str = "https://blackcatinformatics.ca/logic/termIn";
+/// The `logic:` string-prefix relation `termStrStarts(x, "prefix")`, lowered to a SPARQL
+/// `FILTER ( STRSTARTS(STR(x), 'prefix') )` (negated: `!STRSTARTS(…)`). The second argument is the
+/// literal prefix. It expresses a `STRSTARTS`/`sh:pattern`-anchored string test over a bound term.
+const LOGIC_TERM_STR_STARTS: &str = "https://blackcatinformatics.ca/logic/termStrStarts";
+/// The `logic:` regular-expression relation `termRegex(x, "pattern")`, lowered to a SPARQL
+/// `FILTER ( REGEX(STR(x), 'pattern') )` (negated: `!REGEX(…)`). The second argument is the literal
+/// regex. It expresses a `sh:pattern`-style lexical match over a bound term.
+const LOGIC_TERM_REGEX: &str = "https://blackcatinformatics.ca/logic/termRegex";
 /// The `logic:` transitive-reachability relation `transitiveReach(subject, pathPredicate, target)`,
 /// lowered to a SPARQL one-or-more property path `subject <pathPredicate>+ target .`. The middle
 /// argument is the path predicate IRI (not a bound term); the outer two are subject / object terms.
@@ -786,10 +799,24 @@ fn pascal(iri: &str) -> String {
     }
 }
 
-/// The deterministic `gmeow:` shape IRI a constraint projects to (`{Name}ProceduralConstraintShape`).
+/// The namespace prefix of an IRI: everything up to and including the last `/` or `#`.
+/// `.../math/FlagshipScenarioFailureClassConstraint` → `.../math/`.
+fn namespace_of(iri: &str) -> &str {
+    match iri.rfind(['/', '#']) {
+        Some(idx) => &iri[..=idx],
+        None => "",
+    }
+}
+
+/// The deterministic shape IRI a constraint projects to (`{Name}ProceduralConstraintShape`),
+/// minted in the constraint's OWN namespace so two constraints that share a local name across
+/// namespaces (e.g. `lang:` and `math:` both declaring `FlagshipScenarioFailureClassConstraint`)
+/// do not collide onto one RDF node — a collision would merge their `sh:targetClass`/`sh:sparql`
+/// and mis-key one twin's findings.
 fn procedural_shape_iri(c: &ConstraintIr) -> String {
     format!(
-        "https://blackcatinformatics.ca/gmeow/{}ProceduralConstraintShape",
+        "{}{}ProceduralConstraintShape",
+        namespace_of(&c.iri),
         pascal(&c.iri)
     )
 }
@@ -828,6 +855,16 @@ fn binary_comparison_ops(pred: &str) -> Option<(&'static str, &'static str)> {
         LOGIC_TERM_LESS_EQUAL => Some(("<=", ">")),
         LOGIC_TERM_GREATER => Some((">", "<=")),
         LOGIC_TERM_GREATER_EQUAL => Some((">=", "<")),
+        _ => None,
+    }
+}
+
+/// The SPARQL string-function name a two-argument string relation lowers to (`STRSTARTS` /
+/// `REGEX`). `None` for a relation that is not a string test.
+fn string_test_func(pred: &str) -> Option<&'static str> {
+    match pred {
+        LOGIC_TERM_STR_STARTS => Some("STRSTARTS"),
+        LOGIC_TERM_REGEX => Some("REGEX"),
         _ => None,
     }
 }
@@ -873,6 +910,50 @@ fn try_filter_atom(f: &Formula, focus: &str, negate: bool) -> Option<Result<Stri
             Err(e) => return Some(Err(e)),
         };
         return Some(Ok(format!("FILTER ( {s} {op} {o} )")));
+    }
+    // Value-set membership `termIn(x, m1, m2, …)` → `FILTER ( x IN (m1, …) )` (negated: `NOT IN`).
+    if pred == LOGIC_TERM_IN {
+        if args.len() < 2 {
+            return Some(Err(format!(
+                "termIn has arity {}, it needs a tested term and at least one set member",
+                args.len()
+            )));
+        }
+        let x = match constraint_term(&args[0], focus) {
+            Ok(x) => x,
+            Err(e) => return Some(Err(e)),
+        };
+        let mut members = Vec::with_capacity(args.len() - 1);
+        for m in &args[1..] {
+            match constraint_term(m, focus) {
+                Ok(m) => members.push(m),
+                Err(e) => return Some(Err(e)),
+            }
+        }
+        let kw = if negate { "NOT IN" } else { "IN" };
+        return Some(Ok(format!("FILTER ( {x} {kw} ({}) )", members.join(", "))));
+    }
+    // String tests `termStrStarts(x, "p")` / `termRegex(x, "p")` → `FILTER ( [!]STRSTARTS|REGEX(STR(x), 'p') )`.
+    if let Some(func) = string_test_func(pred) {
+        if args.len() != 2 {
+            return Some(Err(format!(
+                "string relation <{pred}> has arity {}, it needs a tested term and a literal pattern",
+                args.len()
+            )));
+        }
+        let x = match constraint_term(&args[0], focus) {
+            Ok(x) => x,
+            Err(e) => return Some(Err(e)),
+        };
+        let Term::Literal { lexical, .. } = &args[1] else {
+            return Some(Err(format!(
+                "string relation <{pred}> argument 1 must be a literal pattern"
+            )));
+        };
+        let pat = sparql_literal(lexical);
+        let expr = format!("{func}(STR({x}), {pat})");
+        let expr = if negate { format!("!{expr}") } else { expr };
+        return Some(Ok(format!("FILTER ( {expr} )")));
     }
     if args.len() == 1 {
         let x = match constraint_term(&args[0], focus) {
@@ -2201,6 +2282,79 @@ mod procedural_tests {
     }
 
     #[test]
+    fn term_in_forbidden_membership_lowers_to_an_in_filter() {
+        // φ = ¬∃v. (leak(this,v) ∧ termIn(v, {ex:a, ex:b})); ¬φ = ∃v. leak(this,v) ∧ ?v IN (…).
+        let body = Formula::And(vec![
+            atom("https://ex/leak", tvar("this"), tvar("v")),
+            Formula::atom(
+                tiri(LOGIC_TERM_IN),
+                vec![tvar("v"), tiri("https://ex/a"), tiri("https://ex/b")],
+            )
+            .unwrap(),
+        ]);
+        let c = guarded("https://ex/cIn", Formula::Not(Box::new(exists("v", body))));
+        let b = block(&c);
+        assert!(b.contains("$this <https://ex/leak> ?v ."), "{b}");
+        assert!(
+            b.contains("FILTER ( ?v IN (<https://ex/a>, <https://ex/b>) )"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn term_in_required_membership_lowers_to_a_not_in_filter() {
+        // φ = ∀v. tag(this,v) → termIn(v, {ex:a}); a value outside the set violates → ?v NOT IN (…).
+        let inner = forall(
+            "v",
+            Formula::Implies(
+                Box::new(atom("https://ex/tag", tvar("this"), tvar("v"))),
+                Box::new(
+                    Formula::atom(tiri(LOGIC_TERM_IN), vec![tvar("v"), tiri("https://ex/a")])
+                        .unwrap(),
+                ),
+            ),
+        );
+        let c = guarded("https://ex/cReq", inner);
+        let b = block(&c);
+        assert!(b.contains("$this <https://ex/tag> ?v ."), "{b}");
+        assert!(b.contains("FILTER ( ?v NOT IN (<https://ex/a>) )"), "{b}");
+    }
+
+    #[test]
+    fn term_str_starts_and_regex_lower_to_string_filters() {
+        let lit = |s: &str| Term::Literal {
+            lexical: s.to_owned(),
+            datatype: None,
+        };
+        // Forbidden prefix: ¬∃v. code(this,v) ∧ termStrStarts(v,"gmn:") → FILTER STRSTARTS.
+        let body = Formula::And(vec![
+            atom("https://ex/code", tvar("this"), tvar("v")),
+            Formula::atom(tiri(LOGIC_TERM_STR_STARTS), vec![tvar("v"), lit("gmn:")]).unwrap(),
+        ]);
+        let c = guarded(
+            "https://ex/cPrefix",
+            Formula::Not(Box::new(exists("v", body))),
+        );
+        let b = block(&c);
+        assert!(b.contains("FILTER ( STRSTARTS(STR(?v), 'gmn:') )"), "{b}");
+
+        // Required regex: ∀v. code(this,v) → termRegex(v,"^[a-z]+$") → violation !REGEX.
+        let inner = forall(
+            "v",
+            Formula::Implies(
+                Box::new(atom("https://ex/code", tvar("this"), tvar("v"))),
+                Box::new(
+                    Formula::atom(tiri(LOGIC_TERM_REGEX), vec![tvar("v"), lit("^[a-z]+$")])
+                        .unwrap(),
+                ),
+            ),
+        );
+        let c = guarded("https://ex/cRegex", inner);
+        let b = block(&c);
+        assert!(b.contains("FILTER ( !REGEX(STR(?v), '^[a-z]+$') )"), "{b}");
+    }
+
+    #[test]
     fn constraint_free_program_yields_a_byte_stable_header_only_doc() {
         let a = LogicProgram::new(vec![], vec![], vec![], None);
         let b = LogicProgram::new(vec![], vec![], vec![], None);
@@ -2355,6 +2509,65 @@ mod procedural_tests {
             "the sugar constraint must project a block"
         );
         block
+    }
+
+    #[test]
+    fn value_set_membership_required_sugar_projects_a_not_in_filter() {
+        let b = project_sugar(
+            "ex:vsr a logic:ValueSetMembershipConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:valuePath ex:register ;\n\
+             logic:memberValue ex:alpha , ex:beta ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        assert!(b.contains("sh:targetClass <https://ex/Widget>"), "{b}");
+        assert!(b.contains("$this <https://ex/register> ?v ."), "{b}");
+        assert!(
+            b.contains("FILTER ( ?v NOT IN (<https://ex/alpha>, <https://ex/beta>) )"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn value_set_membership_forbidden_sugar_projects_an_in_filter() {
+        let b = project_sugar(
+            "ex:vsf a logic:ValueSetMembershipConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:valuePath ex:leaks ;\n\
+             logic:membershipMode \"forbidden\" ;\n\
+             logic:memberValue ex:secret ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        assert!(b.contains("$this <https://ex/leaks> ?v ."), "{b}");
+        assert!(b.contains("FILTER ( ?v IN (<https://ex/secret>) )"), "{b}");
+    }
+
+    #[test]
+    fn string_pattern_sugar_projects_regex_and_prefix_filters() {
+        let req = project_sugar(
+            "ex:spr a logic:StringPatternConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:valuePath ex:code ;\n\
+             logic:stringOp \"regexRequired\" ;\n\
+             logic:stringPattern \"^[A-Z]+$\" ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        assert!(
+            req.contains("FILTER ( !REGEX(STR(?v), '^[A-Z]+$') )"),
+            "{req}"
+        );
+        let forb = project_sugar(
+            "ex:spf a logic:StringPatternConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:valuePath ex:label ;\n\
+             logic:stringOp \"prefixForbidden\" ;\n\
+             logic:stringPattern \"tmp:\" ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        assert!(
+            forb.contains("FILTER ( STRSTARTS(STR(?v), 'tmp:') )"),
+            "{forb}"
+        );
     }
 
     #[test]

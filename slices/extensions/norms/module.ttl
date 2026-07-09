@@ -1462,6 +1462,21 @@ gmeow:NormIssuerPresenceConstraint
     logic:formalizes gmeow:Norm ;
     logic:message "A gmeow:Norm that carries a gmeow:deonticModality must name its gmeow:normIssuer; an anonymous ought is ill-formed." .
 
+# A gmeow:Permission's gmeow:deonticModality must be gmeow:deonticPermission — a permission
+# whose modality is an obligation or prohibition is grafted incoherently (a value-set membership:
+# the modality value must belong to the singleton {gmeow:deonticPermission}).
+gmeow:GraftPermissionModalityConstraint
+    a logic:ValueSetMembershipConstraint ;
+    rdfs:label "Permission modality coherence constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A procedural integrity constraint: a gmeow:Permission's gmeow:deonticModality must be gmeow:deonticPermission."@x-gmeow-english ;
+    logic:onClass gmeow:Permission ;
+    logic:valuePath gmeow:deonticModality ;
+    logic:memberValue gmeow:deonticPermission ;
+    logic:formalizes gmeow:Permission ;
+    logic:message "A gmeow:Permission's gmeow:deonticModality must be gmeow:deonticPermission; a permission carrying an obligation or prohibition modality is ill-formed." .
+
 # A gmeow:Assessment must name at least one appraisal method — a
 # gmeow:assessmentCriterion or a gmeow:assessmentRubric (disjunctive requiredness).
 gmeow:AssessmentMethodConstraint

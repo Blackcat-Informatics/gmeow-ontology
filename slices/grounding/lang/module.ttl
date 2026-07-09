@@ -3961,6 +3961,16 @@ lang:FeatureValueDispositionConstraint
     logic:formalizes lang:FeatureValue ;
     logic:message "A lang:FeatureValue must be the lang:denotationTarget of some lang:Denotation; an undispositioned feature value is ill-formed." .
 
+# A gmeow:gmnCodepoints value must be canonical: space-separated U+XXXX groups of 4-6 uppercase
+# hex digits (a string-pattern constraint — every value on the path must match the regex).
+lang:GmnCodepointCanonicalConstraint
+    a logic:StringPatternConstraint ;
+    logic:valuePath gmeow:gmnCodepoints ;
+    logic:stringOp "regexRequired" ;
+    logic:stringPattern "^U\\+[0-9A-F]{4,6}( U\\+[0-9A-F]{4,6})*$" ;
+    logic:formalizes lang:GmnCodepointCanonicalShape ;
+    logic:message "A gmeow:gmnCodepoints value must be canonical: space-separated U+XXXX groups of 4-6 uppercase hex digits." .
+
 # A lang:FlagshipScenario's lang:enforcesFailureClass must transitively rdfs:subClassOf the
 # conformance-failure root (a transitive reachability constraint).
 lang:FlagshipScenarioFailureClassConstraint
