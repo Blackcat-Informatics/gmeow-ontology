@@ -6986,6 +6986,236 @@ logic:message
     skos:definition "The advisory human-readable message a logic:Constraint violation attaches (projected to sh:message). Presentation-only and load-bearing-false: it carries no identity, so two constraints differing only in their message are the same constraint. Absent means no message."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --------------------------------------------------------------------------- #
+# Compact constraint-sugar records + the aggregate-comparison satellite.
+#
+# A few authoring shortcuts the compiler EXPANDS into a canonical logic:Constraint
+# + integrity logic:Formula, so an author never hand-writes a formula tree for the
+# common closed-world patterns. Sugar is frontend-only: each record expands to
+# exactly one logic:Constraint (carrying an honest reified FOL integrity + a
+# required logic:formalizes), so there is one canonical home per authored
+# constraint. The aggregate satellite carries a reduce-style comparison the
+# realized FOL formula core has no node for, lowered to a GROUP BY/HAVING
+# sh:SPARQLConstraint (design/LOGIC-VALIDATION.md).
+# --------------------------------------------------------------------------- #
+
+logic:ChoiceGroupConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Choice Group Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a choice-group cardinality constraint (P1): a logic:onClass target, a set of logic:choicePredicate predicates, and a logic:choiceMode ('exactly-one', 'at-most-one', or the 'exactly-one-of-N' alias of 'exactly-one'). The compiler expands it into a canonical logic:Constraint whose integrity is the XOR / at-most formula over the ∃-requiredness of each predicate. Frontend-only: it is not a new node kind, only an authoring shortcut."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:GuardedImplicationConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Guarded Implication Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a guarded-implication constraint (P2): a logic:onClass target, a logic:trigger predicate (optionally pinned to a logic:triggerValue), and one or more logic:requires companion predicates. Expands to a canonical logic:Constraint ∀this. C(this) ∧ trigger(this, …) → ∃ companion. Frontend-only authoring shortcut."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DisjunctiveRequirednessConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Disjunctive Requiredness Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a disjunctive-requiredness constraint (P3): a logic:onClass target and a set of logic:anyOf predicates, at least one of which is required. Expands to a canonical logic:Constraint ∀this. C(this) → (∃p1 ∨ … ∨ ∃pn). Frontend-only authoring shortcut."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:PathValueTypeConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Path Value Type Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a path-value type-membership constraint (P4): a logic:onClass target, a logic:valuePath predicate, and a required logic:valueClass. Expands to a canonical logic:Constraint ∀this. C(this) → ∀v. P(this,v) → D(v). Frontend-only authoring shortcut."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:CrossNodeConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Cross Node Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a cross-node co-occurrence / inequality constraint (P5): a logic:onClass target and two roles (logic:roleA, logic:roleB) that must, per logic:crossMode, either 'co-occur' (be present together) or 'differ' (never bind the same value). Expands to a canonical logic:Constraint whose integrity is the bi-implication (co-occur) or the join + inequality (differ, via the logic:termEqual filter relation). Frontend-only authoring shortcut."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ForbiddenPatternConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Forbidden Pattern Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a forbidden-pattern constraint (P7): a logic:onClass target and a logic:forbiddenPredicate (optionally pinned to a logic:forbiddenValue). Expands to a canonical logic:Constraint ∀this. C(this) → ¬∃b. forbidden(this,b) (or the pinned-value form ¬ forbidden(this, value)). Frontend-only authoring shortcut."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:AggregateConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Aggregate Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for an aggregate-comparison constraint (P6): a logic:onClass target, an aggregate over a path (logic:aggFunction, optional logic:aggDistinct, logic:aggPath), a logic:aggComparator, and a logic:aggCompareTo right-hand side (a compared property IRI, or a literal). Expands to a canonical logic:Constraint carrying both the honest reified FOL integrity and a structured aggregate satellite, lowered to a SELECT $this … GROUP BY $this HAVING(…) sh:SPARQLConstraint. Frontend-only authoring shortcut."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:onClass
+    a owl:ObjectProperty ;
+    rdfs:range owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "on class"@x-gmeow-english ;
+    skos:definition "The target class of a compact constraint-sugar record: the focus nodes the expanded logic:Constraint ranges over (rdf:type(this, C) becomes the range-restricting ∀ guard, from which the shape target is derived)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:choicePredicate
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "choice predicate"@x-gmeow-english ;
+    skos:definition "A member predicate of a logic:ChoiceGroupConstraint's choice group. Multi-valued (at least two); the ∃-requiredness of each is combined per logic:choiceMode."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:choiceMode
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "choice mode"@x-gmeow-english ;
+    skos:definition "The cardinality mode of a logic:ChoiceGroupConstraint: 'exactly-one', 'at-most-one', or 'exactly-one-of-N' (an alias of 'exactly-one')."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:trigger
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "trigger"@x-gmeow-english ;
+    skos:definition "The trigger predicate of a logic:GuardedImplicationConstraint: the antecedent condition (optionally pinned to a logic:triggerValue) that, together with the target class, guards the required companion."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:triggerValue
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "trigger value"@x-gmeow-english ;
+    skos:definition "An optional fixed object value that pins a logic:GuardedImplicationConstraint's trigger to trigger(this, value) rather than the mere presence of the trigger predicate. An IRI or a literal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:requires
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "requires"@x-gmeow-english ;
+    skos:definition "A required companion predicate of a logic:GuardedImplicationConstraint: when the guard holds, ∃ a value on this predicate is required. Multi-valued (a conjunction of existentials)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:anyOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "any of"@x-gmeow-english ;
+    skos:definition "A member predicate of a logic:DisjunctiveRequirednessConstraint: at least one of the logic:anyOf predicates must have a value on the focus (a disjunction of existentials)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:valuePath
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "value path"@x-gmeow-english ;
+    skos:definition "The path predicate of a logic:PathValueTypeConstraint: every value the focus carries on this predicate must be an instance of logic:valueClass."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:valueClass
+    a owl:ObjectProperty ;
+    rdfs:range owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "value class"@x-gmeow-english ;
+    skos:definition "The required value class of a logic:PathValueTypeConstraint: the class every value on logic:valuePath must belong to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:roleA
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "role A"@x-gmeow-english ;
+    skos:definition "The first role predicate of a logic:CrossNodeConstraint (paired with logic:roleB under logic:crossMode)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:roleB
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "role B"@x-gmeow-english ;
+    skos:definition "The second role predicate of a logic:CrossNodeConstraint (paired with logic:roleA under logic:crossMode)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:crossMode
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "cross mode"@x-gmeow-english ;
+    skos:definition "The mode of a logic:CrossNodeConstraint: 'co-occur' (the two roles must be present together) or 'differ' (the two roles must never bind the same value)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:forbiddenPredicate
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "forbidden predicate"@x-gmeow-english ;
+    skos:definition "The forbidden predicate of a logic:ForbiddenPatternConstraint: the focus must carry no value on this predicate (or, when logic:forbiddenValue is present, not that specific value)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:forbiddenValue
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "forbidden value"@x-gmeow-english ;
+    skos:definition "An optional fixed object value that narrows a logic:ForbiddenPatternConstraint to forbid only forbiddenPredicate(this, value) rather than any value on the predicate. An IRI or a literal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:aggFunction
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate (constraint) function"@x-gmeow-english ;
+    skos:definition "The aggregate function of a logic:AggregateConstraint (COUNT, SUM, MIN, MAX) applied over logic:aggPath. Distinct from logic:aggregateFunction, which carries a reduce RULE's head aggregation; this drives a constraint's GROUP BY/HAVING violation SELECT."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:aggDistinct
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate distinct"@x-gmeow-english ;
+    skos:definition "Whether a logic:AggregateConstraint aggregates over DISTINCT values (COUNT(DISTINCT ?x)). Absent means false."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:aggPath
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate path"@x-gmeow-english ;
+    skos:definition "The predicate a logic:AggregateConstraint aggregates over the focus: the objects of $this <aggPath> ?x are the values logic:aggFunction is applied to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:aggComparator
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate comparator"@x-gmeow-english ;
+    skos:definition "The relational comparator of a logic:AggregateConstraint's invariant (=, !=, <, <=, >, >=; the Unicode ≠/≤/≥ are accepted). The projected sh:SPARQLConstraint HAVING uses the negation of this operator, because a sh:select returns the VIOLATING focus nodes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:aggCompareTo
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate compare to"@x-gmeow-english ;
+    skos:definition "The right-hand side a logic:AggregateConstraint's aggregate is compared to: an IRI object is a compared PROPERTY of the focus ($this <prop> ?rhs), and a literal is a fixed comparison value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:termEqual
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "term equal"@x-gmeow-english ;
+    skos:definition "A comparison relation the procedural-constraint SPARQL fragment lowers to a FILTER ( ?a = ?b ) over two already-bound terms (rather than a triple pattern). Used by the cross-node inequality expansion; it binds nothing, only tests equality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:termDistinct
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "term distinct"@x-gmeow-english ;
+    skos:definition "A comparison relation the procedural-constraint SPARQL fragment lowers to a FILTER ( ?a != ?b ) over two already-bound terms (rather than a triple pattern). The inequality peer of logic:termEqual; it binds nothing, only tests inequality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:aggregateComparison
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate comparison"@x-gmeow-english ;
+    skos:definition "The reified relation an expanded logic:AggregateConstraint carries as its honest FOL integrity: aggregateComparison(this, function, distinct, path, comparator, rhs). The realized FOL formula core has no aggregate node, so this predication makes the aggregate meaning complete in the FOL canon while the structured satellite drives the real GROUP BY/HAVING SPARQL projection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:forall
     a owl:ObjectProperty ;
     rdfs:domain logic:Formula ;

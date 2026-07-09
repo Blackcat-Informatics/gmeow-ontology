@@ -27,6 +27,173 @@ use super::{Formula, SEP, Term};
 /// The `rdf:type` IRI — the relation of a class-membership guard atom `rdf:type(this, C)`.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
+/// The relational comparator of an [`AggregateComparison`] — the SPARQL `HAVING` operator the
+/// aggregate value is tested against. Named the FOL way (equality / inequality / ordering), with
+/// both the SPARQL rendering and its logical [`Self::negated`] (used to select the VIOLATING rows
+/// of a `sh:SPARQLConstraint`, whose `sh:select` returns focus nodes that FAIL the invariant).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AggregateComparator {
+    /// `=` — the aggregate equals the right-hand side.
+    Eq,
+    /// `!=` — the aggregate differs from the right-hand side.
+    Ne,
+    /// `<` — the aggregate is strictly below the right-hand side.
+    Lt,
+    /// `<=` — the aggregate is at most the right-hand side.
+    Le,
+    /// `>` — the aggregate is strictly above the right-hand side.
+    Gt,
+    /// `>=` — the aggregate is at least the right-hand side.
+    Ge,
+}
+
+impl AggregateComparator {
+    /// The SPARQL relational operator token.
+    pub fn as_sparql(&self) -> &'static str {
+        match self {
+            AggregateComparator::Eq => "=",
+            AggregateComparator::Ne => "!=",
+            AggregateComparator::Lt => "<",
+            AggregateComparator::Le => "<=",
+            AggregateComparator::Gt => ">",
+            AggregateComparator::Ge => ">=",
+        }
+    }
+
+    /// The logical negation — the operator that selects the rows VIOLATING the authored invariant
+    /// (`=` ↦ `!=`, `<` ↦ `>=`, …). The `sh:SPARQLConstraint` `sh:select` returns violations, so
+    /// the projected `HAVING` uses the negated operator.
+    pub fn negated(&self) -> AggregateComparator {
+        match self {
+            AggregateComparator::Eq => AggregateComparator::Ne,
+            AggregateComparator::Ne => AggregateComparator::Eq,
+            AggregateComparator::Lt => AggregateComparator::Ge,
+            AggregateComparator::Le => AggregateComparator::Gt,
+            AggregateComparator::Gt => AggregateComparator::Le,
+            AggregateComparator::Ge => AggregateComparator::Lt,
+        }
+    }
+
+    /// Parse an authored comparator symbol (ASCII or the Unicode `≠`/`≤`/`≥`), or `None`.
+    pub fn from_symbol(s: &str) -> Option<AggregateComparator> {
+        match s.trim() {
+            "=" | "==" => Some(AggregateComparator::Eq),
+            "!=" | "≠" | "<>" => Some(AggregateComparator::Ne),
+            "<" => Some(AggregateComparator::Lt),
+            "<=" | "≤" => Some(AggregateComparator::Le),
+            ">" => Some(AggregateComparator::Gt),
+            ">=" | "≥" => Some(AggregateComparator::Ge),
+            _ => None,
+        }
+    }
+
+    /// The byte-stable content-key token (the ASCII SPARQL operator).
+    fn as_key(&self) -> &'static str {
+        self.as_sparql()
+    }
+}
+
+/// The right-hand side an [`AggregateComparison`] tests the aggregate against: a compared
+/// property of the focus node, or a fixed literal.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AggregateRhs {
+    /// The value of this predicate on the focus (`$this <predicate> ?rhs`); the aggregate is
+    /// compared to `?rhs`.
+    Property(String),
+    /// A fixed literal value (lexical form plus optional datatype IRI).
+    Literal {
+        /// The literal's lexical form.
+        lexical: String,
+        /// The datatype IRI, or `None` for a plain literal.
+        datatype: Option<String>,
+    },
+}
+
+impl AggregateRhs {
+    /// The byte-stable content-key fragment (variant-tagged so a property IRI never collides with a
+    /// literal of the same text).
+    fn content_key(&self) -> String {
+        match self {
+            AggregateRhs::Property(p) => format!("prop={}", key_field(p)),
+            AggregateRhs::Literal { lexical, datatype } => format!(
+                "lit={}{SEP}{}",
+                key_field(lexical),
+                key_field(datatype.as_deref().unwrap_or(""))
+            ),
+        }
+    }
+}
+
+/// An aggregate-comparison satellite on a [`ConstraintIr`]: the closed-world integrity condition
+/// "`function([DISTINCT] path)` over the focus `comparator` `compare_to`". The realized FOL
+/// [`Formula`] core has no aggregate node (an aggregate is a reduce, not a first-order predication;
+/// mirrors [`super::AggregateSpec`], the `LogicRule` reduce spec, which is likewise a satellite and
+/// not a `Formula` construct), so an aggregate integrity is carried HERE as a structured satellite
+/// and lowered to a `SELECT $this … GROUP BY $this HAVING(…)` `sh:SPARQLConstraint` — reusing the
+/// SHACL-AF `GROUP BY` machinery rather than a bespoke aggregate formula lowering.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AggregateComparison {
+    /// The aggregate function, an upper-case SPARQL name (`COUNT`, `SUM`, `MIN`, `MAX`).
+    pub function: String,
+    /// Whether the aggregate is over `DISTINCT` values (`COUNT(DISTINCT ?x)`).
+    pub distinct: bool,
+    /// The predicate IRI whose objects over the focus are aggregated (`$this <path> ?x`).
+    pub path: String,
+    /// The comparator the aggregate is tested against (the authored invariant operator).
+    pub comparator: AggregateComparator,
+    /// The right-hand side the aggregate is compared to.
+    pub compare_to: AggregateRhs,
+}
+
+impl AggregateComparison {
+    /// Construct, validating the function is one of the supported aggregates and the path is a
+    /// non-empty IRI. A `Property` right-hand side must likewise be a non-empty IRI.
+    pub fn new(
+        function: impl Into<String>,
+        distinct: bool,
+        path: impl Into<String>,
+        comparator: AggregateComparator,
+        compare_to: AggregateRhs,
+    ) -> Result<Self, String> {
+        let function = function.into().to_ascii_uppercase();
+        if !matches!(function.as_str(), "COUNT" | "SUM" | "MIN" | "MAX") {
+            return Err(format!(
+                "AggregateComparison.function '{function}' must be one of COUNT/SUM/MIN/MAX"
+            ));
+        }
+        let path = path.into();
+        if path.trim().is_empty() {
+            return Err("AggregateComparison.path must be a non-empty predicate IRI".to_owned());
+        }
+        if let AggregateRhs::Property(p) = &compare_to
+            && p.trim().is_empty()
+        {
+            return Err(
+                "AggregateComparison.compare_to property must be a non-empty IRI".to_owned(),
+            );
+        }
+        Ok(Self {
+            function,
+            distinct,
+            path,
+            comparator,
+            compare_to,
+        })
+    }
+
+    /// The append-only content-key segment for this satellite.
+    fn content_key(&self) -> String {
+        format!(
+            "fn={}{SEP}distinct={}{SEP}path={}{SEP}cmp={}{SEP}{}",
+            self.function,
+            self.distinct,
+            key_field(&self.path),
+            self.comparator.as_key(),
+            self.compare_to.content_key(),
+        )
+    }
+}
+
 /// Length-prefix a free-form fragment so field boundaries can never collide when fragments
 /// are concatenated into a content key (mirrors the `validation` module's helper verbatim).
 fn key_field(s: &str) -> String {
@@ -61,6 +228,12 @@ pub struct ConstraintIr {
     /// annotation property, which carries no DL/EL profile weight), so excluded from the
     /// content key.
     pub formalizes: Option<String>,
+    /// The aggregate-comparison satellite (`None` ⇒ an ordinary formula constraint). The realized
+    /// FOL [`Formula`] core has no aggregate node, so an aggregate integrity is carried here as a
+    /// structured [`AggregateComparison`] and lowered to a `GROUP BY`/`HAVING`
+    /// `sh:SPARQLConstraint`. Folded into [`Self::content_key`] only when present (append-only:
+    /// absent ⇒ the byte-identical historical key).
+    pub aggregate: Option<AggregateComparison>,
 }
 
 impl ConstraintIr {
@@ -98,7 +271,17 @@ impl ConstraintIr {
             severity,
             message,
             formalizes: None,
+            aggregate: None,
         })
+    }
+
+    /// Attach the aggregate-comparison satellite (the structured `GROUP BY`/`HAVING` form the
+    /// SPARQL projection lowers). Chainable; folded into the content key. The integrity formula
+    /// still carries the honest reified FOL rendering of the same condition (so the FOL canon is
+    /// complete), while this satellite drives the real SPARQL-aggregate projection.
+    pub fn with_aggregate(mut self, aggregate: AggregateComparison) -> Self {
+        self.aggregate = Some(aggregate);
+        self
     }
 
     /// Attach the `logic:formalizes` back-reference (the gmeow-domain term the constraint
@@ -128,13 +311,18 @@ impl ConstraintIr {
     /// `severity`. The advisory `message` and the annotation-level `formalizes` are
     /// **excluded** by design.
     pub(crate) fn content_key(&self) -> String {
-        format!(
+        let base = format!(
             "iri={}{SEP}{}{SEP}integrity={}{SEP}sev={}",
             key_field(&self.iri),
             self.target.content_key(),
             key_field(&self.integrity.content_key()),
             self.severity.as_str(),
-        )
+        );
+        // Append-only: an aggregate-free constraint keeps the byte-identical historical key.
+        match &self.aggregate {
+            Some(agg) => format!("{base}{SEP}agg={}", key_field(&agg.content_key())),
+            None => base,
+        }
     }
 }
 
@@ -555,6 +743,81 @@ ex:c7_atom a logic:Formula ;
         let err = ConstraintIr::new("https://ex/c", unguarded, ShaclSeverity::Violation, None)
             .unwrap_err();
         assert!(err.contains("guarded implication"), "got: {err}");
+    }
+
+    #[test]
+    fn aggregate_satellite_participates_in_the_content_key() {
+        // Two constraints identical but for their aggregate satellite must have distinct identities,
+        // and an aggregate-free peer must keep the byte-identical historical key (append-only).
+        let this = Term::Var("this".into());
+        let integrity = Formula::Forall {
+            vars: vec!["this".into()],
+            body: Box::new(Formula::Implies(
+                Box::new(
+                    Formula::atom(
+                        Term::Iri(RDF_TYPE.into()),
+                        vec![this.clone(), Term::Iri("https://ex/W".into())],
+                    )
+                    .unwrap(),
+                ),
+                Box::new(Formula::atom(Term::Iri("https://ex/ok".into()), vec![this]).unwrap()),
+            )),
+        };
+        let base =
+            ConstraintIr::new("https://ex/c", integrity, ShaclSeverity::Violation, None).unwrap();
+        let eq = base.clone().with_aggregate(
+            AggregateComparison::new(
+                "COUNT",
+                true,
+                "https://ex/hasAxis",
+                AggregateComparator::Eq,
+                AggregateRhs::Property("https://ex/dimensionCount".into()),
+            )
+            .unwrap(),
+        );
+        // A different comparator ⇒ a different identity.
+        let ne = base.clone().with_aggregate(
+            AggregateComparison::new(
+                "COUNT",
+                true,
+                "https://ex/hasAxis",
+                AggregateComparator::Ne,
+                AggregateRhs::Property("https://ex/dimensionCount".into()),
+            )
+            .unwrap(),
+        );
+        assert_ne!(base.content_key(), eq.content_key());
+        assert_ne!(eq.content_key(), ne.content_key());
+        assert!(eq.content_key().contains("agg="));
+        assert!(!base.content_key().contains("agg="));
+    }
+
+    #[test]
+    fn aggregate_comparator_negation_and_symbol_parsing() {
+        assert_eq!(AggregateComparator::Eq.negated(), AggregateComparator::Ne);
+        assert_eq!(AggregateComparator::Lt.negated(), AggregateComparator::Ge);
+        assert_eq!(
+            AggregateComparator::from_symbol("≥"),
+            Some(AggregateComparator::Ge)
+        );
+        assert_eq!(
+            AggregateComparator::from_symbol("!="),
+            Some(AggregateComparator::Ne)
+        );
+        assert_eq!(AggregateComparator::from_symbol("~"), None);
+        assert!(
+            AggregateComparison::new(
+                "MEAN",
+                false,
+                "https://ex/p",
+                AggregateComparator::Eq,
+                AggregateRhs::Literal {
+                    lexical: "1".into(),
+                    datatype: None
+                },
+            )
+            .is_err()
+        );
     }
 
     #[test]
