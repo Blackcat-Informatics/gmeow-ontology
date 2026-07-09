@@ -274,7 +274,7 @@ a registered, green (`cqExpectRow`) question with an existing query file; and th
 harness (`crates/pipeline/tests/math_flagship_discharge.rs`) RUNS each counter-example (asserting it
 raises exactly its declared failure class), each worked example (asserting nothing fires), and each
 native producer (asserting its pinned output). A scenario that is not fully wired is the typed failure
-`math:UnwiredFlagshipScenario` — the epic's depth bar cannot silently regress.
+`math:UnwiredFlagshipScenario` — the depth bar cannot silently regress.
 
 | Rule | Gate | Failure class |
 | --- | --- | --- |

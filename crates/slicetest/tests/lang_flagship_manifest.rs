@@ -12,7 +12,7 @@
 use gmeow_slicetest::flagship::assert_flagship_manifest;
 use gmeow_slicetest::paths::slices_root;
 
-/// The five canonical flagship-scenario IRIs the epic's depth bar requires.
+/// The five canonical flagship-scenario IRIs the depth bar requires.
 const CANONICAL: [&str; 5] = [
     "https://blackcatinformatics.ca/gmeow/examples/lang/acceptance/sentenceToFormula",
     "https://blackcatinformatics.ca/gmeow/examples/lang/acceptance/proseSelfReading",

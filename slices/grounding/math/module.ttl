@@ -4824,7 +4824,7 @@ math:UngroundedResultClaim
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # =========================================================================== #
-# Flagship acceptance manifest — the epic's depth bar as a typed contract
+# Flagship acceptance manifest — the mathematics grounding layer's depth bar as a typed contract
 #
 # The mathematics grounding layer's depth is defined by five flagship acceptance
 # scenarios (E8 symmetry, homomorphic encryption, proofs-as-process, the universal
@@ -4843,5 +4843,5 @@ math:UnwiredFlagshipScenario
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unwired Flagship Scenario"@x-gmeow-english ;
-    skos:definition "The failure raised when a gmeow:FlagshipScenario in the mathematics grounding layer is not fully wired: it is missing its worked example (gmeow:demonstratedByExample), its competency question (gmeow:demonstratedByCompetency), its producer (gmeow:demonstratedByProducer), its counter-example (gmeow:guardedByCounterExample), or its enforcing failure class (gmeow:enforcesFailureClass); or the class it names as enforcing is not a math:MathConformanceFailure subclass. The epic's depth bar is a contract, not a suggestion: an acceptance scenario that does not bind all realizing/enforcing artifacts cannot claim the scenario is met, and the gate rejects it. This layer's concrete realization of the shared gmeow:UnwiredFlagshipScenario marker (enforced uniformly by the shared gmeow:FlagshipScenarioShape), and a subclass of math:MathConformanceFailure, so it is a typed, queryable object in this layer's own failure lattice."@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:FlagshipScenario in the mathematics grounding layer is not fully wired: it is missing its worked example (gmeow:demonstratedByExample), its competency question (gmeow:demonstratedByCompetency), its producer (gmeow:demonstratedByProducer), its counter-example (gmeow:guardedByCounterExample), or its enforcing failure class (gmeow:enforcesFailureClass); or the class it names as enforcing is not a math:MathConformanceFailure subclass. The depth bar is a contract, not a suggestion: an acceptance scenario that does not bind all realizing/enforcing artifacts cannot claim the scenario is met, and the gate rejects it. This layer's concrete realization of the shared gmeow:UnwiredFlagshipScenario marker (enforced uniformly by the shared gmeow:FlagshipScenarioShape), and a subclass of math:MathConformanceFailure, so it is a typed, queryable object in this layer's own failure lattice."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
