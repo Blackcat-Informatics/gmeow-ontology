@@ -75,7 +75,6 @@ pub mod rule_ir;
 pub mod scryer_engine;
 pub mod seam;
 pub mod slme;
-pub mod sparql_path_lower;
 pub mod stablemodel;
 pub mod store;
 pub mod teleology;

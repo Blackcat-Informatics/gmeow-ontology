@@ -87,11 +87,28 @@ pub(crate) enum UnsupportedKind {
     Arithmetic,
     /// A non-binary atom (arity ≠ 2 after the world slot is dropped).
     NonBinaryAtom,
+    /// A negation-as-failure body atom whose variables are not range-restricted by a
+    /// positive body atom — i.e. a variable is still unbound when the NAF goal is
+    /// evaluated.  NAF over an unbound goal is unsound (it would test a single partial
+    /// grounding rather than the intended universally-quantified absence), so the native
+    /// core refuses it as a declared gap rather than return a wrong or empty `Decided`.
+    /// The router sends it to the oracle.
+    Floundering,
     /// An existential-rule program whose termination the acyclicity certifier could
     /// not establish (outside the certified-terminating chase fragment).  The router
     /// refuses it to the oracle, or runs it budgeted-partial — never a wrong or
     /// non-terminating native result.
     NonTerminatingExistential,
+    /// A backward program whose only path to divergence is arithmetic self-drive: an
+    /// IDB predicate in a dependency cycle carries a value-generating `is` builtin whose
+    /// result feeds the cyclic head, and the recursive rule has NO finite (EDB or
+    /// strictly-lower-stratum) driver bounding the recursion.  Over the finite triple
+    /// EDB every other backward Datalog program terminates; only such a value-generator
+    /// can invent an unbounded stream of fresh Herbrand terms.  With no `max_steps`
+    /// budget that is an unbounded hang, so the native core refuses it to the oracle
+    /// (incomplete-never-wrong); with a step budget the [`StepGovernor`] cuts it, so it
+    /// is evaluated normally.
+    NonTerminatingArithmetic,
 }
 
 /// The result of a native-execution attempt: a decided value or a declared gap.
