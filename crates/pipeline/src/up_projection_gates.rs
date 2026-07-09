@@ -389,9 +389,11 @@ pub(crate) fn ledger_from_audit(
         .with_leg_programs(legs);
     // No-op for supplied-put (proved-candidate) cells; the claimed/asserted cells carry no get
     // leg, so nothing is fabricated. `evaluate_gates` (NOT `assert_gates`) records REDs.
-    let (gated, _outcomes) = program
-        .with_derived_puts()
-        .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::UpProjection { message }))?;
+    let (gated, _outcomes) = program.with_derived_puts().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::UpProjection {
+            message: e.to_string(),
+        })
+    })?;
     let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
     let report = evaluate_gates(&gated, &[], &verdicts);
 
@@ -622,9 +624,7 @@ pub fn gate_verified_lift_program(
     // produced for the same term (a discharged section is strictly stronger than an asserted
     // close-match). `mapSiocTopic` is `=` but NOT mnemomorphic (no discharged SectionLaw), so it is
     // never promoted — the honest floor stays a reified claim.
-    for promo in discharged_renames(projection_ttls, discharged_section_cells)
-        .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::UpProjection { message }))?
-    {
+    for promo in discharged_renames(projection_ttls, discharged_section_cells)? {
         rules.insert(
             promo.ext,
             LiftRule {
@@ -670,15 +670,17 @@ struct DischargedRename {
 fn discharged_renames(
     projection_ttls: &[String],
     discharged: &BTreeSet<String>,
-) -> Result<Vec<DischargedRename>, String> {
+) -> gmeow_errors::Result<Vec<DischargedRename>> {
     // Keyed by external target so two discharged cells cannot silently promote conflicting renames
     // for the SAME `ext` (a later `rules.insert(ext, …)` would otherwise last-wins overwrite the
     // earlier one — a nondeterministic, soundness-losing drop).
     let mut out: BTreeMap<String, DischargedRename> = BTreeMap::new();
     for ttl in projection_ttls {
-        // `Graph::parse` is on the Diag substrate; this fn keeps its internal errors String-typed
-        // (surfaced as a Diag at the single call site via `UpProjection`), so flatten at the edge.
-        let graph = Graph::parse(ttl.as_bytes(), "text/turtle").map_err(|e| e.to_string())?;
+        let graph = Graph::parse(ttl.as_bytes(), "text/turtle").map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::UpProjection {
+                message: e.to_string(),
+            })
+        })?;
         let q = &graph.quads;
         for cell in subjects(q, RDF_TYPE, GM_PROJECTION_MAPPING) {
             let RdfTerm::Iri(cell_iri) = &cell else {
@@ -699,12 +701,14 @@ fn discharged_renames(
                 }
                 // A→B authorization: a mnemomorphic `=` cell MUST have discharged its section law.
                 if !discharged.contains(cell_iri.as_str()) {
-                    return Err(format!(
-                        "up-projection lift program: mnemomorphic `=` cell <{cell_iri}> has no \
-                         discharged logic:SectionLaw verdict — the executed correspondence-law \
-                         discharge (Deliverable A) did not authorize its lawful lift; refusing to \
-                         build the lift program (no optional fallback)"
-                    ));
+                    return Err(gmeow_errors::Diag::of_kind(crate::error::UpProjection {
+                        message: format!(
+                            "up-projection lift program: mnemomorphic `=` cell <{cell_iri}> has no \
+                             discharged logic:SectionLaw verdict — the executed correspondence-law \
+                             discharge (Deliverable A) did not authorize its lawful lift; refusing \
+                             to build the lift program (no optional fallback)"
+                        ),
+                    }));
                 }
                 let Some((ext, orientation)) = resolve_rename(q, &pattern, &binding, &gmeow_src)?
                 else {
@@ -728,20 +732,23 @@ fn discharged_renames(
                         if existing.gmeow != promo.gmeow
                             || existing.orientation != promo.orientation
                         {
-                            return Err(format!(
-                                "up-projection lift program: external term <{ext}> is claimed by TWO \
-                                 discharged mnemomorphic `=` cells with conflicting lawful renames — \
-                                 <{first_cell}> lifts it to <{first_gmeow}> ({first_orient:?}) but \
-                                 <{second_cell}> lifts it to <{second_gmeow}> ({second_orient:?}); \
-                                 the promoted rename is ambiguous. Refusing to silently overwrite one \
-                                 lawful rename with the other (no optional fallback, no last-wins).",
-                                first_cell = existing.cell,
-                                first_gmeow = existing.gmeow,
-                                first_orient = existing.orientation,
-                                second_cell = promo.cell,
-                                second_gmeow = promo.gmeow,
-                                second_orient = promo.orientation,
-                            ));
+                            return Err(gmeow_errors::Diag::of_kind(crate::error::UpProjection {
+                                message: format!(
+                                    "up-projection lift program: external term <{ext}> is claimed \
+                                     by TWO discharged mnemomorphic `=` cells with conflicting \
+                                     lawful renames — <{first_cell}> lifts it to <{first_gmeow}> \
+                                     ({first_orient:?}) but <{second_cell}> lifts it to \
+                                     <{second_gmeow}> ({second_orient:?}); the promoted rename is \
+                                     ambiguous. Refusing to silently overwrite one lawful rename \
+                                     with the other (no optional fallback, no last-wins).",
+                                    first_cell = existing.cell,
+                                    first_gmeow = existing.gmeow,
+                                    first_orient = existing.orientation,
+                                    second_cell = promo.cell,
+                                    second_gmeow = promo.gmeow,
+                                    second_orient = promo.orientation,
+                                ),
+                            }));
                         }
                         // Identical resulting rule: an idempotent no-op, keep the first.
                         continue;
@@ -764,7 +771,7 @@ fn resolve_rename(
     pattern: &RdfTerm,
     binding: &RdfTerm,
     gmeow_src: &str,
-) -> Result<Option<(String, Orientation)>, String> {
+) -> gmeow_errors::Result<Option<(String, Orientation)>> {
     if let Some(cls) = value_named(q, binding, GM_TO_CLASS) {
         return Ok(Some((cls, Orientation::Direct)));
     }
@@ -772,9 +779,11 @@ fn resolve_rename(
         return Ok(None);
     };
     let Some(anchor) = value(q, pattern, GM_ANCHOR) else {
-        return Err(format!(
-            "discharged `=` cell binding for target <{pred}> has no mapping-pattern anchor"
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::UpProjection {
+            message: format!(
+                "discharged `=` cell binding for target <{pred}> has no mapping-pattern anchor"
+            ),
+        }));
     };
     for atom in rdf_list(q, value(q, pattern, GM_ATOM).as_ref()) {
         if value_named(q, &atom, GM_PREDICATE).as_deref() != Some(gmeow_src) {
@@ -787,10 +796,12 @@ fn resolve_rename(
             return Ok(Some((pred, Orientation::Inverse)));
         }
     }
-    Err(format!(
-        "discharged `=` cell binding for target <{pred}>: no source atom on <{gmeow_src}> anchors \
-         the rename — cannot orient the lawful lift"
-    ))
+    Err(gmeow_errors::Diag::of_kind(crate::error::UpProjection {
+        message: format!(
+            "discharged `=` cell binding for target <{pred}>: no source atom on <{gmeow_src}> \
+             anchors the rename — cannot orient the lawful lift"
+        ),
+    }))
 }
 
 /// The set of `gmeow:ProjectionMapping` cell IRIs whose EXECUTED lens-law discharge carried a
@@ -840,11 +851,12 @@ pub fn discharged_section_cells_from_triples(
 /// IRI, so the term value strings are compared directly.
 pub fn discharged_section_cells_from_corpus(
     corr_laws_nt: &str,
-) -> Result<BTreeSet<String>, String> {
-    // `Graph::parse` is on the Diag substrate; this corpus-path fn stays String-typed (its one
-    // caller Display-wraps it into a `StageFailed` Diag), so flatten the Diag at the edge.
-    let graph = Graph::parse(corr_laws_nt.as_bytes(), "application/n-triples")
-        .map_err(|e| e.to_string())?;
+) -> gmeow_errors::Result<BTreeSet<String>> {
+    let graph = Graph::parse(corr_laws_nt.as_bytes(), "application/n-triples").map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::UpProjection {
+            message: e.to_string(),
+        })
+    })?;
     let triples: Vec<(String, String, String)> = graph
         .quads
         .iter()
@@ -927,9 +939,11 @@ fn gate_tier_for(term: &str, shape: &TermShape) -> gmeow_errors::Result<Tier> {
         PreservationKind::SoundUnder,
     )
     .with_leg_programs(legs);
-    let (gated, _outcomes) = program
-        .with_derived_puts()
-        .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::UpProjection { message }))?;
+    let (gated, _outcomes) = program.with_derived_puts().map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::UpProjection {
+            message: e.to_string(),
+        })
+    })?;
     let verdicts = gmeow_logic::correspondence_exec::program_verdicts(&gated);
     let report = evaluate_gates(&gated, &[], &verdicts);
     let r = report.per_correspondence.first().ok_or_else(|| {

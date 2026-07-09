@@ -133,11 +133,13 @@ fn magic_guard_atom(atom: &GenericAtom, pattern: BindingPattern) -> Option<Gener
 
 /// Convert a ground [`EvalTerm`] into a [`TermValue`] for seed insertion. The seed's
 /// terms are goal constants, so this never hits an unbound variable.
-fn ground_eval_term(t: &EvalTerm) -> Result<TermValue, String> {
+fn ground_eval_term(t: &EvalTerm) -> gmeow_errors::Result<TermValue> {
     match t {
         EvalTerm::ConstNamed(iri) => Ok(TermValue::iri(iri.clone())),
         EvalTerm::ConstLit(lit) => Ok(lit.clone()),
-        EvalTerm::Var(v) => Err(format!("generic magic seed term {v:?} is not ground")),
+        EvalTerm::Var(v) => Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
+            detail: format!("generic magic seed term {v:?} is not ground"),
+        })),
     }
 }
 
@@ -170,7 +172,7 @@ fn magic_transform_generic(
     rules: &[GenericRule],
     goal: &GenericAtom,
     goal_pattern: BindingPattern,
-) -> Result<GenericMagicProgram, String> {
+) -> gmeow_errors::Result<GenericMagicProgram> {
     let idb: BTreeSet<String> = rules.iter().map(|r| r.head.relation.clone()).collect();
 
     let mut out: Vec<GenericRule> = Vec::new();
@@ -178,7 +180,7 @@ fn magic_transform_generic(
     // (1) Seed: the goal's ground magic fact (none for an all-free goal).
     let seed = match magic_guard_atom(goal, goal_pattern) {
         Some(g) => {
-            let args: Result<Vec<TermValue>, String> =
+            let args: gmeow_errors::Result<Vec<TermValue>> =
                 g.args.iter().map(ground_eval_term).collect();
             Some((g.relation, args?))
         }
@@ -406,7 +408,7 @@ pub(super) fn resolve_native_generic(
     world: &str,
     program: &QProgram,
     budget: &Budget,
-) -> Result<NativeOutcome<AnswerSet>, String> {
+) -> gmeow_errors::Result<NativeOutcome<AnswerSet>> {
     let goal = &program.goal.atoms[0];
 
     // (1) Lower rules to arity-generic IR, rejecting cut / arithmetic builtins.

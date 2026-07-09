@@ -365,7 +365,7 @@ impl ValidationRun {
         statement_dsl_dir: &str,
         lint_config: &LintConfig,
         options: &ValidateOptions,
-    ) -> Result<Self, String> {
+    ) -> gmeow_errors::Result<Self> {
         let mut timings: Vec<Timing> = Vec::new();
         // The SINGLE run-level carrier: every producer — the cheap string phases,
         // the SHACL/ownership/signature findings, the lint sub-ledgers, and the
@@ -375,10 +375,11 @@ impl ValidationRun {
         let mut run_ledger = DiagLedger::new();
 
         if source_paths.is_empty() && options.gts_bytes.is_none() {
-            return Err(
-                "ValidationRun::run: source_paths must not be empty unless gts_bytes is provided"
-                    .to_owned(),
-            );
+            return Err(Diag::of_kind(crate::error::Argument {
+                detail:
+                    "ValidationRun::run: source_paths must not be empty unless gts_bytes is provided"
+                        .to_owned(),
+            }));
         }
 
         // Read the GTS segment-heads graph once (for the cache key) outside the timed
@@ -396,7 +397,7 @@ impl ValidationRun {
         //   • Phase 2: sameAs ban (scan Ok entries).
         // This eliminates the ~3× redundant parse that existed when each phase parsed
         // the file independently.
-        let parsed_sources: Vec<(PathBuf, Result<Arc<RdfDataset>, String>)> =
+        let parsed_sources: Vec<(PathBuf, gmeow_errors::Result<Arc<RdfDataset>>)> =
             if options.gts_bytes.is_none() {
                 source_paths
                     .iter()
@@ -423,6 +424,7 @@ impl ValidationRun {
         // Parse the normal SHACL shapes once.
         let shapes = timed(&mut timings, "parse-shapes", options, None, || {
             purrdf::shapes::engine::parse_shapes(shapes_ttl)
+                .map_err(|e| Diag::of_kind(crate::error::Parse { detail: e }))
         })?;
 
         // Signature/trust verification pre-gate.
@@ -658,7 +660,7 @@ impl ValidationRun {
         // builds its own `Timing`; results are folded — and timings pushed — in fixed
         // (mapping, statement, test) order AFTER the join, so the shared `timings`
         // vec is never touched concurrently and the output stays deterministic.
-        type DslPhaseResult = Result<Option<(Vec<Finding>, Timing)>, String>;
+        type DslPhaseResult = gmeow_errors::Result<Option<(Vec<Finding>, Timing)>>;
 
         let dsl_mapping = || -> DslPhaseResult {
             if mapping_dsl_dir.is_empty() {
@@ -845,19 +847,29 @@ impl ValidationRun {
 ///
 /// # Errors
 /// Returns `Err` if the GTS bundle cannot be read or the reasoning run fails.
-fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> Result<(), String> {
-    let bundle = purrdf::import_gts_events(gts_bytes)
-        .map_err(|e| format!("validate --deep: GTS read error: {e}"))?;
-    let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref())
-        .map_err(|e| format!("validate --deep: native reasoning failed: {e}"))?;
+fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors::Result<()> {
+    let bundle = purrdf::import_gts_events(gts_bytes).map_err(|e| {
+        Diag::of_kind(crate::error::Dataset {
+            detail: format!("validate --deep: GTS read error: {e}"),
+        })
+    })?;
+    let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref()).map_err(|e| {
+        Diag::of_kind(crate::error::Engine {
+            detail: format!("validate --deep: native reasoning failed: {e}"),
+        })
+    })?;
     // The governing contradiction policy is READ from the bundle's declared
     // `logic:ReasoningContract` (`logic:admissibleValuation` facet), not pinned. The
     // resolution rule (see `ContradictionPolicy::resolve_from_dataset`): no contract
     // / no valuation ⇒ conservative classical DEFAULT (a glut IS owl:Nothing, a
     // forbidden violation); multiple conflicting valuations ⇒ the MOST CONSERVATIVE
     // governs. A garbled valuation HARD-FAILS rather than silently relaxing the gate.
-    let policy = ContradictionPolicy::resolve_from_dataset(bundle.dataset.as_ref())
-        .map_err(|e| format!("validate --deep: contract resolution failed: {e}"))?;
+    let policy =
+        ContradictionPolicy::resolve_from_dataset(bundle.dataset.as_ref()).map_err(|e| {
+            Diag::of_kind(crate::error::Engine {
+                detail: format!("validate --deep: contract resolution failed: {e}"),
+            })
+        })?;
     fold_reasoning_result(&result, policy, report);
 
     // Build the scoped coherence certificate from the SAME reasoning result, under
@@ -889,7 +901,11 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> Result<(), S
         DETERMINISTIC_ISSUED_AT,
         projection_loss_codes,
     )
-    .map_err(|e| format!("validate --deep: coherence certificate build failed: {e}"))?;
+    .map_err(|e| {
+        Diag::of_kind(crate::error::Engine {
+            detail: format!("validate --deep: coherence certificate build failed: {e}"),
+        })
+    })?;
     attach_coherence_certificate(report, &outcome);
     Ok(())
 }
@@ -1106,9 +1122,9 @@ fn run_cached<F>(
     kind: &str,
     key: &str,
     compute: F,
-) -> Result<(Vec<Finding>, Option<String>), String>
+) -> gmeow_errors::Result<(Vec<Finding>, Option<String>)>
 where
-    F: FnOnce() -> Result<Vec<Finding>, String>,
+    F: FnOnce() -> gmeow_errors::Result<Vec<Finding>>,
 {
     if let Some(cache) = cache {
         if let Some(cached) = cache.read_cached_result(kind, key) {
@@ -1146,35 +1162,41 @@ fn merged_shacl_toolchain() -> ToolchainContext {
 /// N-Triples) module/shapes/manifest digests, so it is path-independent and
 /// comment-insensitive. Hard-fails (no silent degraded path) if the catalog or
 /// edges cannot be built.
-pub fn merged_shacl_source_key(slices_dir: &str) -> Result<String, String> {
+pub fn merged_shacl_source_key(slices_dir: &str) -> gmeow_errors::Result<String> {
     merged_shacl_merkle_root(slices_dir)
 }
 
-fn merged_shacl_merkle_root(slices_dir: &str) -> Result<String, String> {
+fn merged_shacl_merkle_root(slices_dir: &str) -> gmeow_errors::Result<String> {
     let (catalog, ownership) = slice_catalog_and_ownership(slices_dir)?;
     merged_shacl_merkle_root_from_parts(&catalog, &ownership.edges)
 }
 
 fn slice_catalog_and_ownership(
     slices_dir: &str,
-) -> Result<(SliceCatalog, OwnershipReport), String> {
+) -> gmeow_errors::Result<(SliceCatalog, OwnershipReport)> {
     let catalog = SliceCatalog::discover(
         Path::new(slices_dir),
         purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
     )
-    .map_err(|e| format!("merged-SHACL Merkle key: slice catalog discovery failed: {e}"))?;
+    .map_err(|e| {
+        Diag::of_kind(crate::error::Catalog {
+            detail: format!("merged-SHACL Merkle key: slice catalog discovery failed: {e}"),
+        })
+    })?;
     // S4 dependency edges (the same edges the ownership/dependency analyzer
     // produces) drive the Merkle dependency composition.
-    let ownership = OwnershipAnalyzer::new(&catalog)
-        .analyze()
-        .map_err(|e| format!("merged-SHACL Merkle key: ownership analysis failed: {e}"))?;
+    let ownership = OwnershipAnalyzer::new(&catalog).analyze().map_err(|e| {
+        Diag::of_kind(crate::error::Catalog {
+            detail: format!("merged-SHACL Merkle key: ownership analysis failed: {e}"),
+        })
+    })?;
     Ok((catalog, ownership))
 }
 
 fn merged_shacl_merkle_root_from_parts(
     catalog: &SliceCatalog,
     edges: &[DependencyEdge],
-) -> Result<String, String> {
+) -> gmeow_errors::Result<String> {
     let toolchain = merged_shacl_toolchain();
     // Seeds = every slice IRI; the product closes over deps but the union of all
     // slices already covers the whole composition.
@@ -1184,30 +1206,38 @@ fn merged_shacl_merkle_root_from_parts(
         .map(|r| r.manifest.slice_iri.clone())
         .collect();
     let product = purrdf::slice::product_unit(catalog, edges, &seeds);
-    let key = product_unit_key(Phase::Shacl, catalog, edges, &product, &toolchain)
-        .map_err(|e| format!("merged-SHACL Merkle key: product key computation failed: {e}"))?;
+    let key =
+        product_unit_key(Phase::Shacl, catalog, edges, &product, &toolchain).map_err(|e| {
+            Diag::of_kind(crate::error::Catalog {
+                detail: format!("merged-SHACL Merkle key: product key computation failed: {e}"),
+            })
+        })?;
     Ok(key.root)
 }
 
 /// The per-file parse result: each source file parsed once into a frozen native
 /// dataset (or its parse error), in `source_paths` order.
-type ParsedSource = (PathBuf, Result<Arc<RdfDataset>, String>);
+type ParsedSource = (PathBuf, gmeow_errors::Result<Arc<RdfDataset>>);
 
 /// Merge every successfully-parsed per-file dataset into ONE frozen shared dataset,
 /// each under a fresh blank scope (C0.2), matching [`store::dataset_from_paths`]. A
 /// parse failure propagates with the same `"syntax error in {path}: {msg}"` format the
 /// per-file parse produced, preserving the `build-store` error contract.
-fn merge_parsed_sources(parsed: &[ParsedSource]) -> Result<Arc<RdfDataset>, String> {
+fn merge_parsed_sources(parsed: &[ParsedSource]) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let mut builder = RdfDatasetBuilder::new();
     for (path, result) in parsed {
-        let ds = result
-            .as_ref()
-            .map_err(|e| format!("syntax error in {}: {e}", path.display()))?;
+        let ds = result.as_ref().map_err(|e| {
+            Diag::of_kind(crate::error::Parse {
+                detail: format!("syntax error in {}: {}", path.display(), e.message()),
+            })
+        })?;
         builder.push_dataset(ds);
     }
-    builder
-        .freeze()
-        .map_err(|e| format!("dataset freeze failed: {e}"))
+    builder.freeze().map_err(|e| {
+        Diag::of_kind(crate::error::Serialize {
+            detail: format!("dataset freeze failed: {e}"),
+        })
+    })
 }
 
 /// Phase 1: report syntax errors from the already-parsed per-file results.
@@ -1218,13 +1248,15 @@ fn merge_parsed_sources(parsed: &[ParsedSource]) -> Result<Arc<RdfDataset>, Stri
 /// only runs when all files parsed successfully and always returns an empty error
 /// list. It is kept as a separate timed phase so the phase label and timing structure
 /// remain identical to the original.
-fn check_syntax_from_parsed(parsed: &[ParsedSource]) -> Result<PhaseResult, String> {
+fn check_syntax_from_parsed(parsed: &[ParsedSource]) -> gmeow_errors::Result<PhaseResult> {
     let mut result = PhaseResult::default();
     for (path, parse_result) in parsed {
         if let Err(exc) = parse_result {
-            result
-                .errors
-                .push(format!("syntax error in {}: {exc}", path.display()));
+            result.errors.push(format!(
+                "syntax error in {}: {}",
+                path.display(),
+                exc.message()
+            ));
         }
     }
     Ok(result)
@@ -1238,15 +1270,17 @@ fn check_sameas_ban_from_parsed(
     parsed: &[ParsedSource],
     namespace: &str,
     allowlist: &[(String, String)],
-) -> Result<PhaseResult, String> {
+) -> gmeow_errors::Result<PhaseResult> {
     let mut result = PhaseResult::default();
     for (path, parse_result) in parsed {
         let ds = match parse_result {
             Ok(ds) => ds,
             Err(exc) => {
-                result
-                    .errors
-                    .push(format!("failed to parse {}: {exc}", path.display()));
+                result.errors.push(format!(
+                    "failed to parse {}: {}",
+                    path.display(),
+                    exc.message()
+                ));
                 continue;
             }
         };
@@ -1263,20 +1297,30 @@ fn check_sameas_ban_from_parsed(
 }
 
 /// Phase 9: every slice must ship at least one `examples/*.ttl` file.
-fn check_example_coverage(slices_dir: &str) -> Result<PhaseResult, String> {
+fn check_example_coverage(slices_dir: &str) -> gmeow_errors::Result<PhaseResult> {
     let mut result = PhaseResult::default();
     for manifest in find_slice_manifests(slices_dir)? {
-        let slice_dir = manifest
-            .parent()
-            .ok_or_else(|| format!("manifest has no parent: {}", manifest.display()))?;
+        let slice_dir = manifest.parent().ok_or_else(|| {
+            Diag::of_kind(crate::error::Io {
+                detail: format!("manifest has no parent: {}", manifest.display()),
+            })
+        })?;
         let slice_name = slice_dir
             .file_name()
-            .ok_or_else(|| format!("slice dir has no name: {}", slice_dir.display()))?
+            .ok_or_else(|| {
+                Diag::of_kind(crate::error::Io {
+                    detail: format!("slice dir has no name: {}", slice_dir.display()),
+                })
+            })?
             .to_string_lossy();
         let examples_dir = slice_dir.join("examples");
         let has_example = examples_dir.is_dir()
             && std::fs::read_dir(&examples_dir)
-                .map_err(|e| format!("read_dir {}: {e}", examples_dir.display()))?
+                .map_err(|e| {
+                    Diag::of_kind(crate::error::Io {
+                        detail: format!("read_dir {}: {e}", examples_dir.display()),
+                    })
+                })?
                 .filter_map(|e| e.ok())
                 .any(|e| {
                     let p = e.path();
@@ -1295,7 +1339,7 @@ fn check_example_coverage(slices_dir: &str) -> Result<PhaseResult, String> {
 /// One cached SHACL phase outcome: the structured findings plus a cache-status tag
 /// (`"cache-hit"` / `"cache-miss"` / `"cache-disabled"`), or a hard error. Matches
 /// the return shape of [`run_cached`].
-type CachedPhaseResult = Result<(Vec<Finding>, Option<String>), String>;
+type CachedPhaseResult = gmeow_errors::Result<(Vec<Finding>, Option<String>)>;
 
 /// Phase 10: validate every slice example against the ontology, in parallel, over a
 /// fresh `base ∪ example` native dataset per example.
@@ -1305,7 +1349,7 @@ fn check_examples(
     slices_dir: &str,
     cache: Option<&ValidationCache>,
     base_key: &str,
-) -> Result<(Vec<Finding>, Option<String>), String> {
+) -> gmeow_errors::Result<(Vec<Finding>, Option<String>)> {
     // `find_example_files` returns a name-sorted list (see its `sort_by`). Each
     // example is an independent whole-ontology SHACL pass — the dominant cost of
     // `validate` — so validate them in parallel.
@@ -1337,8 +1381,11 @@ fn check_examples(
         }
     }
 
-    let base_projected = purrdf::shapes::engine::project_dataset(dataset)
-        .map_err(|e| format!("example base SHACL projection failed: {e}"))?;
+    let base_projected = purrdf::shapes::engine::project_dataset(dataset).map_err(|e| {
+        Diag::of_kind(crate::error::Engine {
+            detail: format!("example base SHACL projection failed: {e}"),
+        })
+    })?;
 
     let results: Vec<CachedPhaseResult> = examples
         .par_iter()
@@ -1392,7 +1439,7 @@ fn example_shacl_key(
     cache: &ValidationCache,
     base_key: &str,
     path: &Path,
-) -> Result<String, String> {
+) -> gmeow_errors::Result<String> {
     let file_key = cache.files_cache_key(std::slice::from_ref(&path.to_path_buf()))?;
     Ok(ValidationCache::cache_key(&[
         base_key.as_bytes(),
@@ -1452,7 +1499,7 @@ fn example_shacl_key(
 /// `rdf:type` quads. All derived quads are `(IRI, rdf:type, IRI)`; blank-node and
 /// literal subjects/types are ignored (they cannot participate in a `sh:class`
 /// class check).
-fn materialize_subclass_type_closure(data: &RdfDataset) -> Result<Arc<RdfDataset>, String> {
+fn materialize_subclass_type_closure(data: &RdfDataset) -> gmeow_errors::Result<Arc<RdfDataset>> {
     use std::collections::{BTreeMap, BTreeSet};
 
     const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -1526,7 +1573,11 @@ fn materialize_subclass_type_closure(data: &RdfDataset) -> Result<Arc<RdfDataset
         }
     }
 
-    builder.freeze().map_err(|e| e.to_string())
+    builder.freeze().map_err(|e| {
+        Diag::of_kind(crate::error::Serialize {
+            detail: e.to_string(),
+        })
+    })
 }
 
 /// The example file is parsed under its own blank scope, projected into the SHACL
@@ -1537,7 +1588,7 @@ fn run_example_shacl(
     shapes: &purrdf::shapes::shapes::Shapes,
     path: &Path,
     name: &str,
-) -> Result<Vec<Finding>, String> {
+) -> gmeow_errors::Result<Vec<Finding>> {
     let example_ds = match store::parse_file_dataset(path) {
         Ok(ds) => ds,
         Err(e) => {
@@ -1545,26 +1596,42 @@ fn run_example_shacl(
                 Finding::new(
                     Severity::Error,
                     crate::codes::EXAMPLE_PARSE,
-                    format!("example {name}: failed to parse {}: {e}", path.display()),
+                    format!(
+                        "example {name}: failed to parse {}: {}",
+                        path.display(),
+                        e.message()
+                    ),
                 )
                 .with_tool("validate"),
             ]);
         }
     };
-    let example_projected = purrdf::shapes::engine::project_dataset(example_ds.as_ref())
-        .map_err(|e| format!("example {name}: SHACL projection failed: {e}"))?;
+    let example_projected =
+        purrdf::shapes::engine::project_dataset(example_ds.as_ref()).map_err(|e| {
+            Diag::of_kind(crate::error::Engine {
+                detail: format!("example {name}: SHACL projection failed: {e}"),
+            })
+        })?;
     let mut builder = RdfDatasetBuilder::new();
     builder.push_dataset(base_projected);
     builder.push_dataset(&example_projected);
-    let merged = builder
-        .freeze()
-        .map_err(|e| format!("example {name}: projected base ∪ example freeze failed: {e}"))?;
+    let merged = builder.freeze().map_err(|e| {
+        Diag::of_kind(crate::error::Serialize {
+            detail: format!("example {name}: projected base ∪ example freeze failed: {e}"),
+        })
+    })?;
     // Materialize the subClassOf→rdf:type closure so `sh:class` resolves against
     // the example instances' full type set (the base graph carries the class
     // hierarchy; the example asserts only the most-specific type). See
     // [`materialize_subclass_type_closure`] for the full rationale.
-    let merged = materialize_subclass_type_closure(&merged)
-        .map_err(|e| format!("example {name}: class-membership materialization failed: {e}"))?;
+    let merged = materialize_subclass_type_closure(&merged).map_err(|e| {
+        Diag::of_kind(crate::error::Engine {
+            detail: format!(
+                "example {name}: class-membership materialization failed: {}",
+                e.message()
+            ),
+        })
+    })?;
     let report = if example_allows_focus_pruning(example_ds.as_ref()) {
         let affected = affected_focus_terms(example_projected.as_ref());
         // ABox-only examples cannot alter the ontology's target/class/property
@@ -1579,7 +1646,11 @@ fn run_example_shacl(
     } else {
         purrdf::shapes::engine::validate_projected_dataset(merged, shapes)
     }
-    .map_err(|e| format!("example {name}: SHACL validation failed: {e}"))?;
+    .map_err(|e| {
+        Diag::of_kind(crate::error::Engine {
+            detail: format!("example {name}: SHACL validation failed: {e}"),
+        })
+    })?;
     Ok(shacl_findings_from_report(&report, Some(name)))
 }
 
@@ -1678,7 +1749,7 @@ fn check_dsl(
     shapes_ttl: &str,
     label: &str,
     cache: Option<&ValidationCache>,
-) -> Result<(Vec<Finding>, Option<String>), String> {
+) -> gmeow_errors::Result<(Vec<Finding>, Option<String>)> {
     if paths.is_empty() {
         return Ok((Vec::new(), Some("no-inputs".to_owned())));
     }
@@ -1703,7 +1774,7 @@ fn check_dsl(
 }
 
 /// Recursively collect all `.ttl` files under `dir`, sorted deterministically.
-fn collect_ttl_paths(dir: &str) -> Result<Vec<PathBuf>, String> {
+fn collect_ttl_paths(dir: &str) -> gmeow_errors::Result<Vec<PathBuf>> {
     let root = PathBuf::from(dir);
     let mut paths: Vec<PathBuf> = Vec::new();
     collect_ttl_paths_recursive(&root, &mut paths)?;
@@ -1711,9 +1782,17 @@ fn collect_ttl_paths(dir: &str) -> Result<Vec<PathBuf>, String> {
     Ok(paths)
 }
 
-fn collect_ttl_paths_recursive(dir: &Path, paths: &mut Vec<PathBuf>) -> Result<(), String> {
-    for entry in std::fs::read_dir(dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))? {
-        let entry = entry.map_err(|e| format!("dir entry in {}: {e}", dir.display()))?;
+fn collect_ttl_paths_recursive(dir: &Path, paths: &mut Vec<PathBuf>) -> gmeow_errors::Result<()> {
+    for entry in std::fs::read_dir(dir).map_err(|e| {
+        Diag::of_kind(crate::error::Io {
+            detail: format!("read_dir {}: {e}", dir.display()),
+        })
+    })? {
+        let entry = entry.map_err(|e| {
+            Diag::of_kind(crate::error::Io {
+                detail: format!("dir entry in {}: {e}", dir.display()),
+            })
+        })?;
         let path = entry.path();
         if path.is_dir() && !path.is_symlink() {
             collect_ttl_paths_recursive(&path, paths)?;
@@ -1726,20 +1805,28 @@ fn collect_ttl_paths_recursive(dir: &Path, paths: &mut Vec<PathBuf>) -> Result<(
 
 /// Collect every slice-resident test-DSL fixture (`slices/*/*/tests/*.ttl`),
 /// non-recursive within each slice's `tests/` directory.
-fn collect_slice_test_files(slices_dir: &str) -> Result<Vec<PathBuf>, String> {
+fn collect_slice_test_files(slices_dir: &str) -> gmeow_errors::Result<Vec<PathBuf>> {
     let mut paths: Vec<PathBuf> = Vec::new();
     for manifest in find_slice_manifests(slices_dir)? {
-        let slice_dir = manifest
-            .parent()
-            .ok_or_else(|| format!("manifest has no parent: {}", manifest.display()))?;
+        let slice_dir = manifest.parent().ok_or_else(|| {
+            Diag::of_kind(crate::error::Io {
+                detail: format!("manifest has no parent: {}", manifest.display()),
+            })
+        })?;
         let tests_dir = slice_dir.join("tests");
         if !tests_dir.is_dir() {
             continue;
         }
-        for entry in std::fs::read_dir(&tests_dir)
-            .map_err(|e| format!("read_dir {}: {e}", tests_dir.display()))?
-        {
-            let entry = entry.map_err(|e| format!("dir entry in {}: {e}", tests_dir.display()))?;
+        for entry in std::fs::read_dir(&tests_dir).map_err(|e| {
+            Diag::of_kind(crate::error::Io {
+                detail: format!("read_dir {}: {e}", tests_dir.display()),
+            })
+        })? {
+            let entry = entry.map_err(|e| {
+                Diag::of_kind(crate::error::Io {
+                    detail: format!("dir entry in {}: {e}", tests_dir.display()),
+                })
+            })?;
             let path = entry.path();
             if path.is_file() && path.extension().and_then(|s| s.to_str()) == Some("ttl") {
                 paths.push(path);
@@ -1751,23 +1838,35 @@ fn collect_slice_test_files(slices_dir: &str) -> Result<Vec<PathBuf>, String> {
 }
 
 /// Find every `slices/*/*/manifest.ttl` file under `slices_dir`, sorted.
-fn find_slice_manifests(slices_dir: &str) -> Result<Vec<PathBuf>, String> {
+fn find_slice_manifests(slices_dir: &str) -> gmeow_errors::Result<Vec<PathBuf>> {
     let root = PathBuf::from(slices_dir);
     let mut manifests: Vec<PathBuf> = Vec::new();
-    for group in
-        std::fs::read_dir(&root).map_err(|e| format!("read_dir {}: {e}", root.display()))?
-    {
+    for group in std::fs::read_dir(&root).map_err(|e| {
+        Diag::of_kind(crate::error::Io {
+            detail: format!("read_dir {}: {e}", root.display()),
+        })
+    })? {
         let group = group
-            .map_err(|e| format!("dir entry in {}: {e}", root.display()))?
+            .map_err(|e| {
+                Diag::of_kind(crate::error::Io {
+                    detail: format!("dir entry in {}: {e}", root.display()),
+                })
+            })?
             .path();
         if !group.is_dir() {
             continue;
         }
-        for slice in
-            std::fs::read_dir(&group).map_err(|e| format!("read_dir {}: {e}", group.display()))?
-        {
+        for slice in std::fs::read_dir(&group).map_err(|e| {
+            Diag::of_kind(crate::error::Io {
+                detail: format!("read_dir {}: {e}", group.display()),
+            })
+        })? {
             let slice = slice
-                .map_err(|e| format!("dir entry in {}: {e}", group.display()))?
+                .map_err(|e| {
+                    Diag::of_kind(crate::error::Io {
+                        detail: format!("dir entry in {}: {e}", group.display()),
+                    })
+                })?
                 .path();
             if !slice.is_dir() {
                 continue;
@@ -1783,7 +1882,7 @@ fn find_slice_manifests(slices_dir: &str) -> Result<Vec<PathBuf>, String> {
 }
 
 /// Find every `slices/*/*/examples/*.ttl` file, returning `(relative_posix_name, path)`.
-fn find_example_files(slices_dir: &str) -> Result<Vec<(String, PathBuf)>, String> {
+fn find_example_files(slices_dir: &str) -> gmeow_errors::Result<Vec<(String, PathBuf)>> {
     let root = PathBuf::from(slices_dir);
     let mut examples: Vec<(String, PathBuf)> = Vec::new();
     for manifest in find_slice_manifests(slices_dir)? {
@@ -1792,11 +1891,17 @@ fn find_example_files(slices_dir: &str) -> Result<Vec<(String, PathBuf)>, String
         if !examples_dir.is_dir() {
             continue;
         }
-        for entry in std::fs::read_dir(&examples_dir)
-            .map_err(|e| format!("read_dir {}: {e}", examples_dir.display()))?
-        {
+        for entry in std::fs::read_dir(&examples_dir).map_err(|e| {
+            Diag::of_kind(crate::error::Io {
+                detail: format!("read_dir {}: {e}", examples_dir.display()),
+            })
+        })? {
             let entry = entry
-                .map_err(|e| format!("dir entry in {}: {e}", examples_dir.display()))?
+                .map_err(|e| {
+                    Diag::of_kind(crate::error::Io {
+                        detail: format!("dir entry in {}: {e}", examples_dir.display()),
+                    })
+                })?
                 .path();
             if !entry.is_file() || entry.extension().and_then(|s| s.to_str()) != Some("ttl") {
                 continue;
@@ -1804,11 +1909,13 @@ fn find_example_files(slices_dir: &str) -> Result<Vec<(String, PathBuf)>, String
             let name = entry
                 .strip_prefix(&root)
                 .map_err(|e| {
-                    format!(
-                        "strip prefix {} from {}: {e}",
-                        root.display(),
-                        entry.display()
-                    )
+                    Diag::of_kind(crate::error::Io {
+                        detail: format!(
+                            "strip prefix {} from {}: {e}",
+                            root.display(),
+                            entry.display()
+                        ),
+                    })
                 })?
                 .components()
                 .map(|c| c.as_os_str().to_string_lossy().into_owned())

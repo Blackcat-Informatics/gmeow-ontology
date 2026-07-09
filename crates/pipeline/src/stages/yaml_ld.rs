@@ -1266,7 +1266,8 @@ mod tests {
     fn dist_jsonld_roundtrips_through_carrier() {
         let path = repo_root().join("dist/gmeow.jsonld");
         if !path.exists() {
-            eprintln!("dist/gmeow.jsonld not present; run `make build` to exercise this test");
+            // Skipped silently in a source-only checkout: `make build` must have
+            // produced dist/gmeow.jsonld for this full-graph round-trip to run.
             return;
         }
 

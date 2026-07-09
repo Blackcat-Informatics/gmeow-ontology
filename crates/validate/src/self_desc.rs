@@ -168,9 +168,17 @@ fn opt_lit(ds: &RdfDataset, subject: TermId, predicate: &str) -> Option<String> 
 }
 
 /// The required first literal object of `subject predicate` (else an error).
-fn lit(ds: &RdfDataset, subject: TermId, predicate: &str, label: &str) -> Result<String, String> {
-    opt_lit(ds, subject, predicate)
-        .ok_or_else(|| format!("No literal found for {label} <{predicate}>"))
+fn lit(
+    ds: &RdfDataset,
+    subject: TermId,
+    predicate: &str,
+    label: &str,
+) -> gmeow_errors::Result<String> {
+    opt_lit(ds, subject, predicate).ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+            detail: format!("No literal found for {label} <{predicate}>"),
+        })
+    })
 }
 
 /// The first IRI object of `subject predicate`, if any.
@@ -350,12 +358,19 @@ pub fn default_self_desc_path(root: &Path) -> PathBuf {
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if the file cannot be read, the Turtle fails to parse,
-/// or required metadata is missing / malformed.
-pub fn load_self_description(path: &Path) -> Result<SelfDescription, String> {
-    let bytes = std::fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
-    let ds = purrdf::parse_dataset(&bytes, "text/turtle", None)
-        .map_err(|e| format!("{}: does not parse: {e}", path.display()))?;
+/// Fails if the file cannot be read, the Turtle fails to parse, or required
+/// metadata is missing / malformed.
+pub fn load_self_description(path: &Path) -> gmeow_errors::Result<SelfDescription> {
+    let bytes = std::fs::read(path).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Io {
+            detail: format!("{}: {e}", path.display()),
+        })
+    })?;
+    let ds = purrdf::parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("{}: does not parse: {e}", path.display()),
+        })
+    })?;
     load_self_description_from_dataset(&ds)
 }
 
@@ -363,10 +378,15 @@ pub fn load_self_description(path: &Path) -> Result<SelfDescription, String> {
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if required metadata is missing or malformed.
-pub fn load_self_description_from_dataset(ds: &RdfDataset) -> Result<SelfDescription, String> {
-    let work = iri_id(ds, WORK_IRI)
-        .ok_or_else(|| format!("No work subject <{WORK_IRI}> found in self-description"))?;
+/// Fails if required metadata is missing or malformed.
+pub fn load_self_description_from_dataset(
+    ds: &RdfDataset,
+) -> gmeow_errors::Result<SelfDescription> {
+    let work = iri_id(ds, WORK_IRI).ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+            detail: format!("No work subject <{WORK_IRI}> found in self-description"),
+        })
+    })?;
 
     // The Manifestation is discovered dynamically as any URI subject carrying
     // gmeow:versionFingerprint (never the Work URI).
@@ -374,10 +394,15 @@ pub fn load_self_description_from_dataset(ds: &RdfDataset) -> Result<SelfDescrip
         .into_iter()
         .find(|s| matches!(ds.resolve(*s), TermRef::Iri(_)))
         .ok_or_else(|| {
-            "No manifestation with gmeow:versionFingerprint found in self-description".to_string()
+            gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+                detail: "No manifestation with gmeow:versionFingerprint found in self-description"
+                    .to_string(),
+            })
         })?;
     let TermRef::Iri(manifestation_iri) = ds.resolve(manifestation) else {
-        return Err("manifestation is not an IRI".to_string());
+        return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+            detail: "manifestation is not an IRI".to_string(),
+        }));
     };
     let version_iri = manifestation_iri.to_string();
 
@@ -400,34 +425,40 @@ pub fn load_self_description_from_dataset(ds: &RdfDataset) -> Result<SelfDescrip
     let homepage = opt_iri(ds, work, &foaf("homepage")).unwrap_or_default();
 
     if !doi_re().is_match(&concept_doi) {
-        return Err(format!(
-            "Invalid concept DOI format in self-description: {concept_doi:?}"
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+            detail: format!("Invalid concept DOI format in self-description: {concept_doi:?}"),
+        }));
     }
     if let Some(vd) = &version_doi {
         if !doi_re().is_match(vd) {
-            return Err(format!(
-                "Invalid version DOI format in self-description: {vd:?}"
-            ));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+                detail: format!("Invalid version DOI format in self-description: {vd:?}"),
+            }));
         }
         if vd == &concept_doi {
-            return Err(format!(
-                "Version DOI must differ from the concept DOI (both are {concept_doi:?}); \
+            return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+                detail: format!(
+                    "Version DOI must differ from the concept DOI (both are {concept_doi:?}); \
                  they resolve to distinct resources."
-            ));
+                ),
+            }));
         }
     }
     if !is_iso_date(&release_date) {
-        return Err(format!(
-            "Invalid release_date format in self-description (expected YYYY-MM-DD): {release_date:?}"
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+            detail: format!(
+                "Invalid release_date format in self-description (expected YYYY-MM-DD): {release_date:?}"
+            ),
+        }));
     }
 
     let publisher = opt_iri_term(ds, manifestation, &dcterms("publisher")).ok_or_else(|| {
-        format!(
-            "No dcterms:publisher found for manifestation <{version_iri}>; \
+        gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+            detail: format!(
+                "No dcterms:publisher found for manifestation <{version_iri}>; \
              publisher metadata is required for CrossRef deposits and other outputs."
-        )
+            ),
+        })
     })?;
 
     let depositor_name = opt_lit(ds, publisher, &foaf("name")).unwrap_or_default();
@@ -453,10 +484,12 @@ pub fn load_self_description_from_dataset(ds: &RdfDataset) -> Result<SelfDescrip
         let TermRef::Iri(pub_iri) = ds.resolve(publisher) else {
             unreachable!("publisher resolved as IRI above")
         };
-        return Err(format!(
-            "Publisher <{pub_iri}> has multiple Wikidata authority links: {wikidata_links:?}. \
+        return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+            detail: format!(
+                "Publisher <{pub_iri}> has multiple Wikidata authority links: {wikidata_links:?}. \
              Expected exactly one."
-        ));
+            ),
+        }));
     }
     let registrant_wikidata = wikidata_links.into_iter().next();
 
@@ -464,15 +497,19 @@ pub fn load_self_description_from_dataset(ds: &RdfDataset) -> Result<SelfDescrip
         let TermRef::Iri(pub_iri) = ds.resolve(publisher) else {
             unreachable!("publisher resolved as IRI above")
         };
-        return Err(format!(
-            "Publisher <{pub_iri}> must have foaf:name and foaf:mbox; \
+        return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+            detail: format!(
+                "Publisher <{pub_iri}> must have foaf:name and foaf:mbox; \
              depositor metadata is required for CrossRef deposits."
-        ));
+            ),
+        }));
     }
     if !email_re().is_match(&depositor_email) {
-        return Err(format!(
-            "Invalid depositor_email format in self-description: {depositor_email:?}"
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+            detail: format!(
+                "Invalid depositor_email format in self-description: {depositor_email:?}"
+            ),
+        }));
     }
 
     let description = opt_lit(ds, work, SKOS_DEFINITION).unwrap_or_default();
@@ -491,11 +528,11 @@ pub fn load_self_description_from_dataset(ds: &RdfDataset) -> Result<SelfDescrip
 
     let contributors = load_contributors(ds, work);
     if contributors.is_empty() {
-        return Err(
-            "No author Contribution found targeting the work; at least one contributor is \
+        return Err(gmeow_errors::Diag::of_kind(crate::error::SelfDescription {
+            detail: "No author Contribution found targeting the work; at least one contributor is \
              required for CrossRef deposits."
                 .to_string(),
-        );
+        }));
     }
 
     Ok(SelfDescription {
@@ -532,7 +569,7 @@ fn opt_iri_term(ds: &RdfDataset, subject: TermId, predicate: &str) -> Option<Ter
 /// # Errors
 ///
 /// Propagates any [`load_self_description`] failure.
-pub fn full_doi(path: &Path) -> Result<String, String> {
+pub fn full_doi(path: &Path) -> gmeow_errors::Result<String> {
     Ok(load_self_description(path)?.doi().to_string())
 }
 
@@ -1013,10 +1050,13 @@ pub fn deposit_input(description: &SelfDescription) -> DepositInput {
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if JSON serialisation fails (never expected for the
-/// plain-data inputs).
-pub fn deposit_input_json(description: &SelfDescription) -> Result<String, String> {
-    serde_json::to_string(&deposit_input(description)).map_err(|e| e.to_string())
+/// Fails if JSON serialisation fails (never expected for the plain-data inputs).
+pub fn deposit_input_json(description: &SelfDescription) -> gmeow_errors::Result<String> {
+    serde_json::to_string(&deposit_input(description)).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Serialize {
+            detail: e.to_string(),
+        })
+    })
 }
 
 /// Assemble the [`LintInput`] the native CrossRef linter consumes.
@@ -1043,14 +1083,17 @@ pub fn lint_input(
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if JSON serialisation fails.
+/// Fails if JSON serialisation fails.
 pub fn lint_input_json(
     description: &SelfDescription,
     citation_cff: Option<String>,
     ontology_ttl: Option<String>,
-) -> Result<String, String> {
-    serde_json::to_string(&lint_input(description, citation_cff, ontology_ttl))
-        .map_err(|e| e.to_string())
+) -> gmeow_errors::Result<String> {
+    serde_json::to_string(&lint_input(description, citation_cff, ontology_ttl)).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Serialize {
+            detail: e.to_string(),
+        })
+    })
 }
 
 /// A `(timestamp, batch_id)` pair for a fresh CrossRef submission.

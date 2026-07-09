@@ -35,15 +35,15 @@ pub const META_SNAPSHOT_ID: &str = "snapshotContentId";
 /// The snapshot content id is stamped into the report metadata before the
 /// JSON/SARIF projections are rendered, so the embedded report attests to the
 /// bundle it lives in.
-pub fn build_feedback_bundle(report: &Report) -> Result<Vec<u8>, String> {
+pub fn build_feedback_bundle(report: &Report) -> gmeow_errors::Result<Vec<u8>> {
     let mut builder = SnapshotBuilder::new();
     let nquads = render::to_gmeow_rdf(report);
     if !nquads.trim().is_empty() {
         let dataset = parse_dataset(nquads.as_bytes(), "application/n-quads", None)
-            .map_err(|e| format!("parse findings RDF: {e}"))?;
+            .map_err(|e| crate::error::feedback(format!("parse findings RDF: {e}")))?;
         builder
             .add_dataset(&dataset)
-            .map_err(|e| format!("add findings dataset: {e}"))?;
+            .map_err(|e| crate::error::feedback(format!("add findings dataset: {e}")))?;
     }
 
     let snapshot_id = builder.snapshot_content_id();
@@ -53,8 +53,10 @@ pub fn build_feedback_bundle(report: &Report) -> Result<Vec<u8>, String> {
         .metadata
         .insert(META_SNAPSHOT_ID.to_owned(), Value::String(snapshot_id));
 
-    let sarif = render::to_sarif(&stamped).map_err(|e| format!("sarif render: {e}"))?;
-    let flat = render::to_json(&stamped).map_err(|e| format!("json render: {e}"))?;
+    let sarif = render::to_sarif(&stamped)
+        .map_err(|e| crate::error::feedback(format!("sarif render: {e}")))?;
+    let flat = render::to_json(&stamped)
+        .map_err(|e| crate::error::feedback(format!("json render: {e}")))?;
 
     emit_gts(
         &builder,
@@ -78,15 +80,16 @@ pub fn build_feedback_bundle(report: &Report) -> Result<Vec<u8>, String> {
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
     )
+    .map_err(|e| crate::error::feedback(format!("emit feedback bundle: {e}")))
 }
 
 /// Map each embedded report blob's `rep` to its decoded payload.
 pub fn read_report_blobs(
     graph: &mut purrdf::gts::model::Graph,
-) -> Result<BTreeMap<String, Vec<u8>>, String> {
+) -> gmeow_errors::Result<BTreeMap<String, Vec<u8>>> {
     let decoded = graph
         .decoded_blobs()
-        .map_err(|e| format!("decode blobs: {e}"))?;
+        .map_err(|e| crate::error::feedback(format!("decode blobs: {e}")))?;
     let by_digest: BTreeMap<&str, &[u8]> = decoded
         .iter()
         .map(|(digest, bytes)| (digest.as_str(), bytes.as_slice()))

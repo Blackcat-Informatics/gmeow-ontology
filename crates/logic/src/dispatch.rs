@@ -202,13 +202,13 @@ pub fn classify_goal(program: &QProgram) -> Dispatch {
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if `store.select` fails (SPARQL error or `term_n3` failure).
+/// Returns `Err` if `store.select` fails (SPARQL error or `term_n3` failure).
 pub fn fast_path(
     store: &WorldStore,
     world: &str,
     program: &QProgram,
     budget: &Budget,
-) -> Result<AnswerSet, String> {
+) -> gmeow_errors::Result<AnswerSet> {
     // Collect the distinct variable names that appear in the goal atoms (left-to-right,
     // first-seen order) for the SELECT clause.
     let mut goal_vars: Vec<String> = Vec::new();
@@ -228,12 +228,14 @@ pub fn fast_path(
     // routes those to Scryer), but fail with a clear error rather than panic-index if it
     // somehow does.
     if let Some(bad) = program.goal.atoms.iter().find(|a| a.args.len() != 2) {
-        return Err(format!(
-            "fast_path requires binary goal atoms; {:?} has arity {} \
-             (non-binary atoms must route to Scryer)",
-            bad.pred,
-            bad.args.len()
-        ));
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+            detail: format!(
+                "fast_path requires binary goal atoms; {:?} has arity {} \
+                 (non-binary atoms must route to Scryer)",
+                bad.pred,
+                bad.args.len()
+            ),
+        }));
     }
 
     // Build triple patterns.
@@ -343,7 +345,7 @@ fn term_to_sparql(t: &QTerm) -> String {
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` from the profile gate or the chosen engine.
+/// Returns `Err` from the profile gate or the chosen engine.
 pub fn dispatch_query(
     foreign: &dyn ScryerForeign,
     store: &WorldStore,
@@ -351,7 +353,7 @@ pub fn dispatch_query(
     program: &QProgram,
     profile: &str,
     budget: &Budget,
-) -> Result<AnswerSet, String> {
+) -> gmeow_errors::Result<AnswerSet> {
     // (1) Profile gate — cut + arithmetic-builtin confinement.
     profile_gate::check_cut_profile(program, profile)?;
     profile_gate::check_builtin_profile(program, profile)?;
@@ -1008,7 +1010,7 @@ mod tests {
         );
         let msg = result.unwrap_err();
         assert!(
-            msg.contains("builtin") && msg.contains(HORN_PROFILE),
+            msg.message().contains("builtin") && msg.message().contains(HORN_PROFILE),
             "error must name the offending profile: {msg:?}"
         );
     }

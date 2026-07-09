@@ -90,6 +90,12 @@ use std::sync::{LazyLock, Mutex};
 /// and in production (Python threads calling materialise via PyO3).
 static CHASE_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
+/// Wrap a Nemo-bridge condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn engine_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Engine { detail })
+}
+
 // ── Thread-local tokio runtime ────────────────────────────────────────────────
 
 thread_local! {
@@ -193,20 +199,20 @@ fn render_predicate(name: &str) -> String {
 // Nemo trace/chase machinery: off the primary path after the native flip
 // (reached only by the cfg(test) parity gates + Task-7 cross-check lane).
 #[allow(dead_code)]
-fn typed_row_from_chase_row(row: &ChaseRow) -> Result<TypedRow, String> {
+fn typed_row_from_chase_row(row: &ChaseRow) -> gmeow_errors::Result<TypedRow> {
     let args = row
         .values
         .iter()
         .map(|value| {
             codec::decode_nemo_term(value).map_err(|e| {
-                format!(
+                engine_err(format!(
                     "nemo typed-decode error: row {}({}) has undecodable term {value:?}: {e}",
                     row.predicate,
                     row.values.join(", ")
-                )
+                ))
             })
         })
-        .collect::<Result<Vec<TermValue>, String>>()?;
+        .collect::<gmeow_errors::Result<Vec<TermValue>>>()?;
     Ok(TypedRow {
         predicate: row.predicate.clone(),
         args,
@@ -234,7 +240,7 @@ fn typed_row_from_chase_row(row: &ChaseRow) -> Result<TypedRow, String> {
 pub(crate) fn run_chase_typed(
     edb: &crate::facts::TypedFactSet,
     rules: &str,
-) -> Result<TypedChaseResult, String> {
+) -> gmeow_errors::Result<TypedChaseResult> {
     // ── 1. Render the EDB + rules — the last-moment, sole stringification site ─
     let program = render_typed_program(edb, rules)?;
 
@@ -250,7 +256,7 @@ pub(crate) fn run_chase_typed(
             .antecedent_rows
             .iter()
             .map(typed_row_from_chase_row)
-            .collect::<Result<Vec<TypedRow>, String>>()?;
+            .collect::<gmeow_errors::Result<Vec<TypedRow>>>()?;
         rows.push((
             row,
             TypedProvenance {
@@ -269,7 +275,10 @@ pub(crate) fn run_chase_typed(
 /// sole stringification site shared by [`run_chase_typed`] and
 /// [`run_chase_typed_facts_only`]. A term with no Nemo encoding (e.g. an RDF-star triple
 /// term) is a hard error, never silently dropped.
-fn render_typed_program(edb: &crate::facts::TypedFactSet, rules: &str) -> Result<String, String> {
+fn render_typed_program(
+    edb: &crate::facts::TypedFactSet,
+    rules: &str,
+) -> gmeow_errors::Result<String> {
     let mut program = String::new();
     let interner = edb.interner();
     for fact in edb.facts() {
@@ -278,12 +287,12 @@ fn render_typed_program(edb: &crate::facts::TypedFactSet, rules: &str) -> Result
             let term = interner.resolve(id);
             let rendered = codec::encode_term(term);
             if rendered.is_empty() {
-                return Err(format!(
+                return Err(engine_err(format!(
                     "nemo typed-encode error: fact {}/{} carries a term with no \
                      Nemo encoding (RDF-star triple terms are unsupported): {term:?}",
                     fact.predicate,
                     fact.args.len()
-                ));
+                )));
             }
             rendered_args.push(rendered);
         }
@@ -300,16 +309,18 @@ fn render_typed_program(edb: &crate::facts::TypedFactSet, rules: &str) -> Result
 /// load→reason→collect core of [`run_chase`] and [`run_chase_rows`]. Returns the live
 /// engine alongside the rows so a caller needing provenance can `trace` on it; a
 /// caller that only wants facts drops the engine.
-async fn load_reason_collect(rls: String) -> Result<(nemo::api::Engine, Vec<ChaseRow>), String> {
+async fn load_reason_collect(
+    rls: String,
+) -> gmeow_errors::Result<(nemo::api::Engine, Vec<ChaseRow>)> {
     // ── 1. Parse and initialise the engine ───────────────────────────────────
     let mut engine = load_string(rls)
         .await
-        .map_err(|e| format!("nemo load error: {e:?}"))?;
+        .map_err(|e| engine_err(format!("nemo load error: {e:?}")))?;
 
     // ── 2. Run the chase ─────────────────────────────────────────────────────
     reason(&mut engine)
         .await
-        .map_err(|e| format!("nemo reason error: {e:?}"))?;
+        .map_err(|e| engine_err(format!("nemo reason error: {e:?}")))?;
 
     // ── 3. Collect all derived facts ─────────────────────────────────────────
     // `engine.program()` is the logical `Program` (implements `ProgramRead`) so
@@ -320,7 +331,7 @@ async fn load_reason_collect(rls: String) -> Result<(nemo::api::Engine, Vec<Chas
         if let Some(iter) = engine
             .predicate_rows(&tag)
             .await
-            .map_err(|e| format!("nemo predicate_rows error: {e:?}"))?
+            .map_err(|e| engine_err(format!("nemo predicate_rows error: {e:?}")))?
         {
             for row_vals in iter {
                 let values: Vec<String> = row_vals
@@ -524,7 +535,9 @@ fn rule_conclusion_string(rule_application: &TraceTreeRuleApplication) -> String
 // Nemo trace/chase machinery: off the primary path after the native flip
 // (reached only by the cfg(test) parity gates + Task-7 cross-check lane).
 #[allow(dead_code)]
-fn extract_provenance_from_tree(tree: &ExecutionTraceTree) -> Result<ChaseProvenance, String> {
+fn extract_provenance_from_tree(
+    tree: &ExecutionTraceTree,
+) -> gmeow_errors::Result<ChaseProvenance> {
     match tree {
         ExecutionTraceTree::Fact(_ground_atom) => {
             // EDB (asserted) fact — no rule fired, no antecedents.
@@ -553,10 +566,12 @@ fn extract_provenance_from_tree(tree: &ExecutionTraceTree) -> Result<ChaseProven
                         }
                     };
                     extract_row_from_fact_string(&fact_str).ok_or_else(|| {
-                        format!("nemo trace error: could not decode antecedent fact {fact_str:?}")
+                        engine_err(format!(
+                            "nemo trace error: could not decode antecedent fact {fact_str:?}"
+                        ))
                     })
                 })
-                .collect::<Result<Vec<ChaseRow>, String>>()?;
+                .collect::<gmeow_errors::Result<Vec<ChaseRow>>>()?;
 
             Ok(ChaseProvenance {
                 is_edb: false,
@@ -609,7 +624,7 @@ fn extract_provenance_from_tree(tree: &ExecutionTraceTree) -> Result<ChaseProven
 // Nemo trace/chase machinery: off the primary path after the native flip
 // (reached only by the cfg(test) parity gates + Task-7 cross-check lane).
 #[allow(dead_code)]
-pub(crate) fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, String> {
+pub(crate) fn run_chase(rls: String) -> gmeow_errors::Result<Vec<ChaseRowWithProvenance>> {
     // Serialise access to Nemo's process-global TimedCode singleton.
     // A poisoned lock means a previous chase panicked; recover the guard so
     // subsequent calls are not permanently wedged.
@@ -633,10 +648,10 @@ pub(crate) fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, Stri
             for (idx, row) in rows.iter().enumerate() {
                 let fact_str = chase_row_to_fact_string(row);
                 let fact = Fact::parse(&fact_str).map_err(|e| {
-                    format!(
+                    engine_err(format!(
                         "nemo provenance error: failed to re-parse derived fact \
                          at index {idx} ({fact_str:?}): {e:?}"
-                    )
+                    ))
                 })?;
                 parseable_facts.push((idx, fact));
             }
@@ -662,16 +677,16 @@ pub(crate) fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, Stri
                 let (trace, handles) = engine
                     .trace(trace_facts)
                     .await
-                    .map_err(|e| format!("nemo trace error: {e:?}"))?;
+                    .map_err(|e| engine_err(format!("nemo trace error: {e:?}")))?;
 
                 for ((row_idx, _), handle) in parseable_facts.iter().zip(handles.iter()) {
                     match trace.tree(*handle) { Some(tree) => {
                         provenance_map[*row_idx] = extract_provenance_from_tree(&tree)?;
                     } _ => {
-                        return Err(format!(
+                        return Err(engine_err(format!(
                             "nemo trace error: no trace tree for derived fact at index {row_idx} ({})",
                             rows[*row_idx]
-                        ));
+                        )));
                     }}
                 }
             }
@@ -699,7 +714,7 @@ pub(crate) fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, Stri
 /// The facts-only chase primitive underneath [`run_chase_typed_facts_only`], whose
 /// consumers — the existential-chase parity gate and `materialize_routed`'s
 /// uncertified-existential demotion — compare/emit facts only, never the trace.
-pub(crate) fn run_chase_rows(rls: String) -> Result<Vec<ChaseRow>, String> {
+pub(crate) fn run_chase_rows(rls: String) -> gmeow_errors::Result<Vec<ChaseRow>> {
     let _guard = CHASE_LOCK
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner());
@@ -718,7 +733,7 @@ pub(crate) fn run_chase_rows(rls: String) -> Result<Vec<ChaseRow>, String> {
 pub(crate) fn run_chase_typed_facts_only(
     edb: &crate::facts::TypedFactSet,
     rules: &str,
-) -> Result<Vec<TypedRow>, String> {
+) -> gmeow_errors::Result<Vec<TypedRow>> {
     let program = render_typed_program(edb, rules)?;
     let raw_rows = run_chase_rows(program)?;
     raw_rows
@@ -734,7 +749,7 @@ pub(crate) fn run_chase_typed_facts_only(
 /// value-invented facts carry labeled nulls.  Here each `_:label` becomes a stable,
 /// null-recognizable IRI so the fact survives to the null-blind parity gate; every other
 /// term decodes normally.
-fn typed_row_from_chase_row_nullable(row: &ChaseRow) -> Result<TypedRow, String> {
+fn typed_row_from_chase_row_nullable(row: &ChaseRow) -> gmeow_errors::Result<TypedRow> {
     let args = row
         .values
         .iter()
@@ -743,15 +758,15 @@ fn typed_row_from_chase_row_nullable(row: &ChaseRow) -> Result<TypedRow, String>
                 Ok(TermValue::iri(format!("urn:gmeow:nemo-null:{label}")))
             } else {
                 codec::decode_nemo_term(value).map_err(|e| {
-                    format!(
+                    engine_err(format!(
                         "nemo typed-decode error: row {}({}) has undecodable term {value:?}: {e}",
                         row.predicate,
                         row.values.join(", ")
-                    )
+                    ))
                 })
             }
         })
-        .collect::<Result<Vec<TermValue>, String>>()?;
+        .collect::<gmeow_errors::Result<Vec<TermValue>>>()?;
     Ok(TypedRow {
         predicate: row.predicate.clone(),
         args,
@@ -792,14 +807,14 @@ impl NemoParsedRules {
     /// # Errors
     ///
     /// Returns a string error if Nemo cannot lex/parse the program text.
-    pub fn parse_unvalidated(rules: &str) -> Result<Self, String> {
+    pub fn parse_unvalidated(rules: &str) -> gmeow_errors::Result<Self> {
         use nemo::rule_file::RuleFile;
         use nemo::rule_model::programs::ProgramWrite;
         use nemo::rule_model::programs::handle::ProgramHandle;
 
         let file = RuleFile::new(rules.to_owned(), "<gmeow-logic-certify>".to_owned());
         let warned = ProgramHandle::from_file(&file)
-            .map_err(|report| format!("nemo parse error: {report:?}"))?;
+            .map_err(|report| engine_err(format!("nemo parse error: {report:?}")))?;
         let handle = warned.into_object();
 
         // Materialize a `Program` from the translated statements (no validation).

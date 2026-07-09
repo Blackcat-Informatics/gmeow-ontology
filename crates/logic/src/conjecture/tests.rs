@@ -333,7 +333,7 @@ fn already_inconsistent_kb_is_hard_error() {
     let err =
         conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &Budget::default()).unwrap_err();
     assert!(
-        err.contains("ALREADY") && err.contains("inconsistent"),
+        err.message().contains("ALREADY") && err.message().contains("inconsistent"),
         "the hard foreign-inconsistency surface must be reported: {err}"
     );
 }
@@ -359,7 +359,7 @@ fn empty_standpoint_is_rejected() {
     let store = kb(&[(IND_A, TYPE, A_CLS)]);
     let candidate = binary_atom(TYPE, IND_A, C_CLS);
     let err = conjecture_test(&store, SCN, &candidate, "", &[], &Budget::default()).unwrap_err();
-    assert!(err.contains("standpoint"), "got: {err}");
+    assert!(err.message().contains("standpoint"), "got: {err}");
 }
 
 // ── assume_context is layered into the scenario EDB ──────────────────────────

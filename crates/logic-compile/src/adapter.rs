@@ -509,7 +509,11 @@ pub fn adapt_legacy_dataset(
                     axioms.push(ax);
                 }
             }
-            Err(exc) => diagnostics.push(warn("MALFORMED_ADAPTED_AXIOM", exc, Some(m.subject))),
+            Err(exc) => diagnostics.push(warn(
+                "MALFORMED_ADAPTED_AXIOM",
+                exc.message().to_owned(),
+                Some(m.subject),
+            )),
         }
     }
 

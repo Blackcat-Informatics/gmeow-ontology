@@ -651,7 +651,7 @@ ASK {
 
 # === Semantics-aware validator findings + scoped coherence certificate ========
 # The slice carries its own correctness claims for the coherence-certificate vocabulary as ontology
-# data: the 8-way finding taxonomy, the two completeness-gated coherence artifacts,
+# data: the 10-way finding taxonomy, the two completeness-gated coherence artifacts,
 # and the payload that scopes them. The runtime gate (conclusive->Certificate,
 # bounded->Attestation, forbidden glut->refused) is authored canonically in Rust
 # (crates/logic/src/certificate.rs); these assertions pin the vocabulary surface it
@@ -694,7 +694,7 @@ ASK {
 #     completeness-gated artifacts, the permitted/=/forbidden distinctness, the four policy
 #     valuations) — they do not, and honestly cannot, re-prove the classification behaviorally.
 
-# --- 35. FindingCategory is a closed eight-member value set (MUST) ------------
+# --- 35. FindingCategory is a closed ten-member value set (MUST) ------------
 ex:saFindingCategoryClosedValueSet a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -711,8 +711,10 @@ ASK {
     logic:FindingIncompleteCheck            a logic:FindingCategory .
     logic:FindingProjectionLoss             a logic:FindingCategory .
     logic:FindingPolicyWarning              a logic:FindingCategory .
+    logic:FindingCorroboration              a logic:FindingCategory .
+    logic:FindingTransientChatter           a logic:FindingCategory .
 }""" ;
-    gmeow:saRationale "logic:FindingCategory MUST be a closed value class with exactly its eight named individuals -- the orthogonal-to-severity KIND axis that makes 'not all findings are failures' machine-checkable. The Rust gmeow_diagnostics::FindingCategory enum mirrors this set one-to-one." .
+    gmeow:saRationale "logic:FindingCategory MUST be a closed value class with exactly its ten named individuals -- the orthogonal-to-severity KIND axis that makes 'not all findings are failures' machine-checkable. The Rust gmeow_diagnostics::FindingCategory enum mirrors this set one-to-one." .
 
 # --- 36. The two completeness-gated coherence artifacts exist (MUST) ----------
 ex:saCoherenceArtifactsExist a gmeow:StructuralAssertion ;
