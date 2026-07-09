@@ -3454,7 +3454,7 @@ class Activity(Event):
 
 class TimeScopedRelation(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/TimeScopedRelation"
-    duringInterval: list[TimeInterval] | None = Field(default=None)
+    duringInterval: TimeInterval | None = Field(default=None)
     tenureEndedBy: list[Event] | None = Field(default=None)
 
 
@@ -5904,7 +5904,7 @@ class InhabitationConfiguration(TimeScopedRelation):
     is_a: ClassVar[str] = "TimeScopedRelation"
     configurationEmbodiment: EmbodimentAssignment | None = Field(default=None)
     configurationFacet: list[str] | None = Field(default=None)
-    configurationOfTenure: list[InhabitationTenure] | None = Field(default=None)
+    configurationOfTenure: InhabitationTenure | None = Field(default=None)
 
 
 class Proposition(SocialObject):

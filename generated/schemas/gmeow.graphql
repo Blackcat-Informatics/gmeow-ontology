@@ -5601,7 +5601,7 @@ type InhabitationConfiguration {
   iri: String
   configurationEmbodiment: EmbodimentAssignment
   configurationFacet: [String!]
-  configurationOfTenure: [InhabitationTenure!]
+  configurationOfTenure: InhabitationTenure
 }
 
 type InhabitationDescription {
@@ -8319,7 +8319,7 @@ type TimeScale {
 type TimeScopedRelation {
   id: String
   iri: String
-  duringInterval: [TimeInterval!]
+  duringInterval: TimeInterval
   tenureEndedBy: [Event!]
 }
 

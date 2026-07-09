@@ -4975,7 +4975,7 @@ export interface InhabitationClaim extends StandpointClaim {
 export interface InhabitationConfiguration extends TimeScopedRelation {
     configurationEmbodiment?: EmbodimentAssignment,
     configurationFacet?: string[],
-    configurationOfTenure?: InhabitationTenure[],
+    configurationOfTenure?: InhabitationTenure,
 }
 
 export interface InhabitationDescription extends Proposition {
@@ -6919,7 +6919,7 @@ export interface TimeScale extends Entity {
 }
 
 export interface TimeScopedRelation {
-    duringInterval?: TimeInterval[],
+    duringInterval?: TimeInterval,
     tenureEndedBy?: Event[],
 }
 

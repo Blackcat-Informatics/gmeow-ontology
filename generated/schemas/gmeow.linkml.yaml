@@ -6214,7 +6214,7 @@ slots:
     title: configuration of tenure
     range: InhabitationTenure
     domain: InhabitationConfiguration
-    multivalued: true
+    multivalued: false
   configurationTuningFrame:
     slot_uri: https://blackcatinformatics.ca/gmeow/configurationTuningFrame
     title: configuration tuning frame
@@ -7208,7 +7208,7 @@ slots:
     title: during interval
     range: TimeInterval
     domain: TimeScopedRelation
-    multivalued: true
+    multivalued: false
   earliestStart:
     slot_uri: https://blackcatinformatics.ca/gmeow/earliestStart
     title: earliest start

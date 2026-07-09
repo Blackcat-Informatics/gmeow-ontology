@@ -1461,6 +1461,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/configurationOf> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/configurationOfTenure> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/configurationOfTenure-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/configurationOfTenure> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/configurationTuningFrame> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/configurationTuningFrame-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/configurationTuningFrame> . {0,1} ;
@@ -1789,6 +1794,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/durationValue> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/durationValue-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/durationValue> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/duringInterval> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/duringInterval-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/duringInterval> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/editionOf> (associate via ShapeMap)

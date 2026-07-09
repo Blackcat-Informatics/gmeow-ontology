@@ -1357,6 +1357,10 @@
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/configurationOf> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/configurationOf> ; sh:maxCount 1 ] .
 
+<https://blackcatinformatics.ca/gmeow/configurationOfTenure-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/configurationOfTenure> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/configurationOfTenure> ; sh:maxCount 1 ] .
+
 <https://blackcatinformatics.ca/gmeow/configurationTuningFrame-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/configurationTuningFrame> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/configurationTuningFrame> ; sh:maxCount 1 ] .
@@ -1620,6 +1624,10 @@
 <https://blackcatinformatics.ca/gmeow/durationValue-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/durationValue> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/durationValue> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/duringInterval-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/duringInterval> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/duringInterval> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/gmeow/editionOf-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/editionOf> ;
