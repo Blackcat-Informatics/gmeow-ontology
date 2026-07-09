@@ -1,0 +1,2 @@
+<http://www.w3.org/2002/03owlt/SymmetricProperty/premises001#Ghent> <http://www.w3.org/2002/03owlt/SymmetricProperty/premises001#path> <http://www.w3.org/2002/03owlt/SymmetricProperty/premises001#Antwerp> <https://gmeow.example/w3c-owl2-full/webont-symmetricproperty-001/w> .
+<http://www.w3.org/2002/03owlt/SymmetricProperty/premises001#path> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#SymmetricProperty> <https://gmeow.example/w3c-owl2-full/webont-symmetricproperty-001/w> .

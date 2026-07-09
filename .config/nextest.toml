@@ -129,6 +129,18 @@
 #     reject/parity coverage on-gate in the same binaries, the serializations are
 #     drift-gated via `make check-generated`, and all three stay on-gate on
 #     `maint-heavy`.
+#   - gmeow-pipeline quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate:
+#     86.2 s. It builds the full self-description carrier, which scores every one of
+#     the ~81 slices via `slice_quality::score_slice` to attach the
+#     `graph/quality-assessment` named graph — irreducibly O(slice count), the same
+#     whole-repo class as `end_to_end`/`fold_parity`. Coverage stays: the
+#     attach↔fanout-path bijection and the N-Triples fold form are proven on-gate by
+#     the fast sibling units
+#     `stages::carrier::quality_assessment_tests::quality_assessment_fanout_path_is_registered_and_folds_as_ntriples`
+#     and `stages::superset::tests::quality_assessment_nt_folds_as_ntriples_via_its_own_fanout_graph`,
+#     the folded `generated/quality/gmeow.quality-assessment.nt` is drift-gated on every
+#     `make check` via `make check-generated`, and the exhaustive real-carrier proof
+#     stays on-gate on `maint-heavy`.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -145,6 +157,7 @@ default-filter = '''
     | (package(gmeow-dev-cli) & binary(cli_parity) & (test(build_writes_serializations) | test(project_view_over_the_snapshot)))
     | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter) | test(project_unknown_view_fails) | test(describe_env_language_rejected_if_unknown)))
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(rendered_tree_is_disk_faithful))
+    | (package(gmeow-pipeline) & test(/quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate/))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
@@ -191,16 +204,14 @@ mapping-stage = { max-threads = 1 }
 # via nemo's run_chase) plus EVERY gmeow-logic test that drives Nemo or Scryer:
 # - Nemo (run_chase / run_reasoning): nemo_engine, materialize, reason, verify, certify
 # - Scryer (run_scryer, directly or via dispatch_query): scryer_engine, dispatch,
-#   profile_gate, counterfactual, sparql_path_lower (the lowered property-path
-#   evaluator) — so the scryer nightly alloc-abort insurance above actually covers all
-#   scryer execution, not just the scryer_engine module. The sparql_path_parity binary
-#   drives run_scryer per fixture and is serialized for the same reason.
+#   profile_gate, counterfactual — so the scryer nightly alloc-abort insurance above
+#   actually covers all scryer execution, not just the scryer_engine module.
 # - The oracle boundary: `oracle` (the Nemo/Scryer adapter tests drive a real chase or
 #   run_scryer) and `physical::parity` (the divergence harness runs an engine oracle
 #   against the native core per fragment). Matched by module so membership is by design,
 #   not by a test name happening to contain another module's substring.
 # foundation/stablemodel unit tests use the NATIVE rust chase (no engine) and stay parallel.
-filter = 'package(gmeow-conformance) | (package(gmeow-logic) & (binary(sparql_path_parity) | test(/nemo_engine|scryer_engine|materialize|reason|verify|certify|dispatch|profile_gate|counterfactual|sparql_path_lower|oracle|parity/)))'
+filter = 'package(gmeow-conformance) | (package(gmeow-logic) & test(/nemo_engine|scryer_engine|materialize|reason|verify|certify|dispatch|profile_gate|counterfactual|oracle|parity/))'
 test-group = 'engine'
 
 [[profile.default.overrides]]

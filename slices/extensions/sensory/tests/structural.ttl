@@ -29,7 +29,6 @@
 #   test_sensory_afo_mappings_exist -- reads SENSORY_EQ_FILE (external
 #     generated equivalences.ttl artifact); not a module-scoped TBox check.
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/sensory/tests/> .

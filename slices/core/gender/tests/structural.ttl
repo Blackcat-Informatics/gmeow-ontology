@@ -16,7 +16,6 @@
 #   test_competency_gender_values_query — reads COMPETENCY_DIR external file
 #     and runs a dynamic query requiring len >= 11 (numeric/count sweep).
 #
-# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/gender/tests/> .

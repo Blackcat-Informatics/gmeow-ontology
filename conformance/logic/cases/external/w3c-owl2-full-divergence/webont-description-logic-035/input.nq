@@ -1,0 +1,26 @@
+<http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+<http://oiled.man.example.net/test#Unsatisfiable> <http://www.w3.org/2000/01/rdf-schema#subClassOf> _:rdfxml_00000000000000000000000000 <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+<http://oiled.man.example.net/test#invP> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+<http://oiled.man.example.net/test#p> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+<http://oiled.man.example.net/test#p> <http://www.w3.org/2002/07/owl#inverseOf> <http://oiled.man.example.net/test#invP> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+<http://oiled.man.example.net/test#r> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+<http://oiled.man.example.net/test#spy> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+<http://oiled.man.example.net/test#spy> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> _:rdfxml_00000000000000000000000003 <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+<http://www.w3.org/2002/03owlt/description-logic/inconsistent035> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+<http://www.w3.org/2002/03owlt/description-logic/inconsistent035> <http://www.w3.org/2000/01/rdf-schema#comment> "An ontology illustrating the use of a spy point that\nlimits the cardinality of the interpretation domain to having only two\nobjects." <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+<http://www.w3.org/2002/07/owl#Thing> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+<http://www.w3.org/2002/07/owl#Thing> <http://www.w3.org/2000/01/rdf-schema#subClassOf> _:rdfxml_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/2002/07/owl#minCardinality> "3"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/2002/07/owl#onProperty> <http://oiled.man.example.net/test#r> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#onProperty> <http://oiled.man.example.net/test#p> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#someValuesFrom> _:rdfxml_00000000000000000000000002 <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+_:rdfxml_00000000000000000000000002 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+_:rdfxml_00000000000000000000000002 <http://www.w3.org/2002/07/owl#oneOf> _:rdfxml_list_00000000000000000000000000 <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+_:rdfxml_00000000000000000000000003 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+_:rdfxml_00000000000000000000000003 <http://www.w3.org/2002/07/owl#maxCardinality> "2"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+_:rdfxml_00000000000000000000000003 <http://www.w3.org/2002/07/owl#onProperty> <http://oiled.man.example.net/test#invP> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+_:rdfxml_00000000000000000000000004 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://oiled.man.example.net/test#Unsatisfiable> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <http://oiled.man.example.net/test#spy> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .
+_:rdfxml_list_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> <https://gmeow.example/w3c-owl2-full/webont-description-logic-035/w> .

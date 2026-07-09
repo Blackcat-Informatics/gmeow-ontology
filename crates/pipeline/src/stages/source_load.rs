@@ -427,7 +427,10 @@ impl Stage for SourceLoadStage {
         // v3: attach the authored subject→source-position SpanIndex as the digest-pinned
         // REP_SPAN_TABLE blob (the fixed span policy — RootOntology+Source, Import
         // suppressed) so the diagnostics consumers lift source coordinates onto findings.
-        "source_load.v3-source-span-table"
+        // v4: score slice quality once at the DAG root, emitting both the queryable
+        // quality-assessment graph and the internal HTML report artifact consumed by the
+        // terminal docs archive.
+        "source_load.v4-slice-quality-report"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The self-description graphs read authored sources beyond the base authored
@@ -449,13 +452,29 @@ impl Stage for SourceLoadStage {
         // dataset alone, so neither changes as the self-description graphs are added.
         let base = load_authored_dataset(input.root)?;
         let nq = dataset_to_sorted_nquads(&base)?;
+        // Score slice quality ONCE at the DAG root: the RDF graph rides in the
+        // self-description carrier and the rendered diagnostics HTML rides as an internal
+        // pipeline artifact for the terminal docs archive.
+        let quality = gmeow_slice_quality::assessment_artifacts(input.root).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id().to_string(),
+                message: format!("quality-assessment sweep: {e}"),
+            })
+        })?;
         // Attach the self-description named graphs alongside the base default graph — the
         // load + canonicalize the presenter used to do on the serial snapshot node, done
         // ONCE here at the parallel DAG root.
-        let self_desc = crate::stages::carrier::build_self_description_dataset(input.root)?;
+        let self_desc = crate::stages::carrier::build_self_description_dataset_with_quality(
+            input.root,
+            &quality.nquads,
+        )?;
         let dataset = Arc::new(RdfDataset::union(&[base.as_ref(), self_desc.as_ref()]));
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(BASE_GRAPH_PATH.to_string(), nq);
+        artifacts.insert(
+            crate::stages::carrier::SLICE_QUALITY_REPORT_HTML_ARTIFACT.to_string(),
+            gmeow_errors::render::to_html(&quality.report).into_bytes(),
+        );
         // Build the authored subject→source-position span index (fixed policy: RootOntology
         // + Source, Import suppressed) and attach it as the digest-pinned REP_SPAN_TABLE
         // raw-JSON blob — the SINGLE source of the source spans the diagnostics consumers

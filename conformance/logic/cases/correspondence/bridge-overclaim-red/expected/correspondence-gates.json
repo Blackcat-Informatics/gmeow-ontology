@@ -14,6 +14,10 @@
         "reason": "Overclaim in lowering 'correspondence': a BridgeView / CommitmentShiftingBridge (a by-reference bridge) emitted the equivalence predicate 'http://www.w3.org/2004/02/skos/core#exactMatch'. A bridge view may never assert equivalence (Constitution Principle 5 — bridge by reference, never a sameAs collapse).",
         "status": "red"
       },
+      "preservation": {
+        "reason": "logic:BridgeView is not a non-injective rung; ExactPreservation is not constrained by the non-invertibility rule",
+        "status": "not_applicable"
+      },
       "round_trip": {
         "reason": "logic:BridgeView makes no full round-trip claim",
         "status": "not_applicable"

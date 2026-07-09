@@ -31,8 +31,8 @@ Before opening an issue:
 - Capture a minimal reproduction
 
 When filing a bug, include a clear title, exact reproduction steps, expected and
-actual behaviour, relevant command output, and environment details (OS, Python
-version, `uv` version, and whether Docker/ROBOT was involved).
+actual behaviour, relevant command output, and environment details (OS, Rust
+toolchain version, and whether Docker/ROBOT was involved).
 
 ### Suggest enhancements
 
@@ -50,7 +50,7 @@ OWL 2 DL conformance, gUFO grounding, and (for alignments) license compatibility
 ### Submit pull requests
 
 1. Fork the repository and create a branch from `main`.
-2. Install dependencies with `make install` (`uv sync`).
+2. Install dependencies with `make install`.
 3. Make the smallest coherent change that solves the problem.
 4. Add or update tests when behaviour changes.
 5. Update docs when outputs, flags, terms, or workflow change.
@@ -105,11 +105,10 @@ management.
 ### Prerequisites
 
 - Git
-- Python 3.13+
-- `uv`
+- A recent stable Rust toolchain (`cargo`)
 - Docker (for the ROBOT `extract` / WIDOCO documentation tooling; native
-  reasoning, the on-gate `purrdf::entail` cross-check, and the pure-Python steps
-  all run without it)
+  reasoning, the on-gate `purrdf::entail` cross-check, and the native pipeline
+  steps all run without it)
 
 ### Local setup
 
@@ -145,9 +144,8 @@ make help
 
 ## Coding style
 
-- Python follows [PEP 8](https://peps.python.org/pep-0008/) and the stricter
-  project rules enforced by Ruff and mypy (strict). Use Google-style docstrings
-  and `pathlib.Path` (never bare path strings).
+- Rust follows the standard formatting and lint rules enforced by `cargo fmt`
+  and `cargo clippy` (warnings-as-errors).
 - Shell scripts must pass ShellCheck and start with `set -euo pipefail`.
 - Turtle/OWL follows the conventions in the existing modules; run
   `make normalize` for canonical serialization when diffs get noisy.
@@ -158,13 +156,13 @@ The canonical verification command is `make check`.
 
 Before requesting review, make sure you:
 
-- [ ] ran `make lint` (ruff + mypy)
+- [ ] ran `make lint`
 - [ ] ran `make validate` (syntax, term annotations, SHACL)
 - [ ] ran `make reason` after any ontology change (native EL/DL profile)
 - [ ] ran `make regenerate` after any `mapping-dsl/` change, then
       `make mappings` and `make wikidata`
 - [ ] ran `make regenerate` after any `dsl/statements/` change
-- [ ] ran `uv run pytest`
+- [ ] ran `make rust-test`
 - [ ] ran `make check` for the full repository gate
 - [ ] updated tests for any behavioural change
 - [ ] updated `README.md` if usage, flags, terms, or outputs changed

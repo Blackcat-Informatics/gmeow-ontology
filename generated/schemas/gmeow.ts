@@ -232,6 +232,12 @@ export enum AwarenessModeEnum {
     modeWaking = "modeWaking",
 }
 
+export enum AxisContextScopeEnum {
+    scopeDepsClosure = "scopeDepsClosure",
+    scopeMergedClosure = "scopeMergedClosure",
+    scopeSliceLocal = "scopeSliceLocal",
+}
+
 export enum AxisEnum {
     axisAddressLocality = "axisAddressLocality",
     axisAddressRegion = "axisAddressRegion",
@@ -335,6 +341,55 @@ export enum AxisEnum {
     axisYear = "axisYear",
     axisYellow = "axisYellow",
     axisZ = "axisZ",
+}
+
+export enum AxisExemptionEnum {
+    exemptionDocMaturity = "exemptionDocMaturity",
+    exemptionDocsPanels = "exemptionDocsPanels",
+    exemptionGmnProjection = "exemptionGmnProjection",
+}
+
+export enum AxisThresholdEnum {
+    thrDocumentationExemplified = "thrDocumentationExemplified",
+    thrDocumentationGrounded = "thrDocumentationGrounded",
+    thrDocumentationLinked = "thrDocumentationLinked",
+    thrDocumentationMaximal = "thrDocumentationMaximal",
+    thrGroundingExemplified = "thrGroundingExemplified",
+    thrGroundingGrounded = "thrGroundingGrounded",
+    thrGroundingLinked = "thrGroundingLinked",
+    thrGroundingMaximal = "thrGroundingMaximal",
+    thrInformationExemplified = "thrInformationExemplified",
+    thrInformationGrounded = "thrInformationGrounded",
+    thrInformationLinked = "thrInformationLinked",
+    thrInformationMaximal = "thrInformationMaximal",
+    thrLinkageExemplified = "thrLinkageExemplified",
+    thrLinkageGrounded = "thrLinkageGrounded",
+    thrLinkageLinked = "thrLinkageLinked",
+    thrLinkageMaximal = "thrLinkageMaximal",
+    thrProjectionExemplified = "thrProjectionExemplified",
+    thrProjectionGrounded = "thrProjectionGrounded",
+    thrProjectionLinked = "thrProjectionLinked",
+    thrProjectionMaximal = "thrProjectionMaximal",
+    thrProseExemplified = "thrProseExemplified",
+    thrProseGrounded = "thrProseGrounded",
+    thrProseLinked = "thrProseLinked",
+    thrProseMaximal = "thrProseMaximal",
+    thrProvenanceExemplified = "thrProvenanceExemplified",
+    thrProvenanceGrounded = "thrProvenanceGrounded",
+    thrProvenanceLinked = "thrProvenanceLinked",
+    thrProvenanceMaximal = "thrProvenanceMaximal",
+    thrReasonerExemplified = "thrReasonerExemplified",
+    thrReasonerGrounded = "thrReasonerGrounded",
+    thrReasonerLinked = "thrReasonerLinked",
+    thrReasonerMaximal = "thrReasonerMaximal",
+    thrTestingExemplified = "thrTestingExemplified",
+    thrTestingGrounded = "thrTestingGrounded",
+    thrTestingLinked = "thrTestingLinked",
+    thrTestingMaximal = "thrTestingMaximal",
+    thrTranslationExemplified = "thrTranslationExemplified",
+    thrTranslationGrounded = "thrTranslationGrounded",
+    thrTranslationLinked = "thrTranslationLinked",
+    thrTranslationMaximal = "thrTranslationMaximal",
 }
 
 export enum BlockingDispositionEnum {
@@ -2465,6 +2520,7 @@ export enum ProfileEnum {
     profileReferenceFrame = "profileReferenceFrame",
     profileTemporalFrame = "profileTemporalFrame",
     profileTemporalProvenance = "profileTemporalProvenance",
+    sliceQualityRubric = "sliceQualityRubric",
 }
 
 export enum ProjectionContextEnum {
@@ -2529,14 +2585,44 @@ export enum PronounSetEnum {
     pronounZheZher = "pronounZheZher",
 }
 
+export enum QualityAxisEnum {
+    axisDocumentation = "axisDocumentation",
+    axisMaximalGrounding = "axisMaximalGrounding",
+    axisMaximalInformation = "axisMaximalInformation",
+    axisMaximalLinkage = "axisMaximalLinkage",
+    axisMaximalProjection = "axisMaximalProjection",
+    axisOptimalTesting = "axisOptimalTesting",
+    axisProseQuality = "axisProseQuality",
+    axisProvenanceHonesty = "axisProvenanceHonesty",
+    axisReasonerDerived = "axisReasonerDerived",
+    axisTranslationCoverage = "axisTranslationCoverage",
+}
+
 export enum QualityDimensionEnum {
     qualityDimensionCompleteness = "qualityDimensionCompleteness",
+    qualityDimensionDocumentation = "qualityDimensionDocumentation",
+    qualityDimensionGrounding = "qualityDimensionGrounding",
+    qualityDimensionInferentialDensity = "qualityDimensionInferentialDensity",
     qualityDimensionLineage = "qualityDimensionLineage",
+    qualityDimensionLinkage = "qualityDimensionLinkage",
     qualityDimensionLogicalConsistency = "qualityDimensionLogicalConsistency",
     qualityDimensionPositionalAccuracy = "qualityDimensionPositionalAccuracy",
+    qualityDimensionProjection = "qualityDimensionProjection",
+    qualityDimensionProseQuality = "qualityDimensionProseQuality",
+    qualityDimensionProvenanceHonesty = "qualityDimensionProvenanceHonesty",
     qualityDimensionTemporalAccuracy = "qualityDimensionTemporalAccuracy",
+    qualityDimensionTesting = "qualityDimensionTesting",
     qualityDimensionThematicAccuracy = "qualityDimensionThematicAccuracy",
     qualityDimensionTopologicalConsistency = "qualityDimensionTopologicalConsistency",
+    qualityDimensionTranslationCoverage = "qualityDimensionTranslationCoverage",
+}
+
+export enum QualityTierEnum {
+    tierExemplified = "tierExemplified",
+    tierGrounded = "tierGrounded",
+    tierLinked = "tierLinked",
+    tierMaximal = "tierMaximal",
+    tierRegistered = "tierRegistered",
 }
 
 export enum QuestionTypeEnum {
@@ -3245,6 +3331,12 @@ export enum TuningSystemKindEnum {
     tuningSystemKindWellTemperament = "tuningSystemKindWellTemperament",
 }
 
+export enum VerdictLatticeRelationEnum {
+    VerdictEquivalent = "VerdictEquivalent",
+    VerdictIncomparable = "VerdictIncomparable",
+    VerdictWeaker = "VerdictWeaker",
+}
+
 export enum VerificationStatusEnum {
     verificationStatusExpired = "verificationStatusExpired",
     verificationStatusFailed = "verificationStatusFailed",
@@ -3688,6 +3780,21 @@ export interface AwarenessTenure extends TimeScopedRelation {
 export interface Axis extends Entity {
 }
 
+export interface AxisContextScope {
+}
+
+export interface AxisExemption {
+    exemptionDate?: string,
+    exemptionProducer?: string,
+    exemptionReason?: string,
+    exemptsAxis?: QualityAxis[],
+}
+
+export interface AxisThreshold {
+    thresholdFloor?: number,
+    thresholdTier?: QualityTier,
+}
+
 export interface BiologicalParentChild extends ParentChildRelationship {
 }
 
@@ -3963,6 +4070,9 @@ export interface ConditionParameter extends InformationObject {
 export interface ConflictStrategy {
 }
 
+export interface ConformanceComparison {
+}
+
 export interface Connection {
     connectionSource?: string,
     connectionTarget?: string,
@@ -4090,6 +4200,9 @@ export interface CoreAffectDimension extends AppraisalDimension {
 
 export interface Corpus extends InformationObject {
     corpusMember?: InformationObject[],
+}
+
+export interface CorpusAgreementTally {
 }
 
 export interface Correspondence {
@@ -6250,7 +6363,20 @@ export interface QualityAssessment extends Observation {
     qualityDimension?: QualityDimension[],
 }
 
+export interface QualityAxis {
+    axisAdviceTemplate?: string,
+    axisContextScope?: AxisContextScope,
+    axisDimension?: QualityDimension[],
+    axisProducer?: string,
+    axisThreshold?: AxisThreshold[],
+    axisWeight?: number,
+}
+
 export interface QualityDimension {
+}
+
+export interface QualityTier {
+    tierRank?: number,
 }
 
 export interface Quantity extends Entity {
@@ -7044,6 +7170,9 @@ export interface VectorIndex extends InformationObject {
     indexAlgorithm?: IndexAlgorithm,
     indexParameters?: string[],
     indexesCorpus?: Corpus[],
+}
+
+export interface VerdictLatticeRelation {
 }
 
 export interface VerificationActivity extends Activity {

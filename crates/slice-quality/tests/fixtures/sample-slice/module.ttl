@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The TBox of the synthetic golden-fixture slice: two fully-coated, logic-grounded
+# classes joined by one load-bearing rdfs:subClassOf axiom. Authored so several
+# quality axes produce non-trivial, non-empty grades (grounding/information/prose
+# high; the reasoner axis has a real load-bearing axiom), while the file-shaped
+# axes with no fixture files (documentation/testing/translation) grade below the
+# top tier — giving the byte goldens real, meaningful content.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+
+gmeow:SampleArtifact
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sample-slice> ;
+    rdfs:label "Sample Artifact"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SampleObject ;
+    skos:definition "A worked-example artifact minted only for the golden fixture — a concrete crafted thing, not the abstract object category it specializes."@x-gmeow-english ;
+    skos:example "gmeow:sampleWidget a gmeow:SampleArtifact ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the general object category (use gmeow:SampleObject); the artifact is the crafted specialization, not the umbrella."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Type a crafted fixture individual as gmeow:SampleArtifact and let the subclass axiom carry it up to gmeow:SampleObject."@x-gmeow-english ;
+    gmeow:useWhen "Use for a crafted, concrete fixture thing that specializes the general sample object category."@x-gmeow-english .
+
+gmeow:SampleObject
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sample-slice> ;
+    rdfs:label "Sample Object"@x-gmeow-english ;
+    skos:definition "The general object category of the golden fixture — an umbrella kind, never itself a crafted artifact."@x-gmeow-english ;
+    skos:example "gmeow:sampleBase a gmeow:SampleObject ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a specific crafted artifact (use gmeow:SampleArtifact); the object is the general umbrella, not the specialization."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Type a general fixture individual as gmeow:SampleObject, or specialize it with gmeow:SampleArtifact."@x-gmeow-english ;
+    gmeow:useWhen "Use for the general umbrella object category the fixture's crafted artifacts specialize."@x-gmeow-english .

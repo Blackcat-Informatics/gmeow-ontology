@@ -302,6 +302,7 @@ fn correspondences_from_audit(
                 None,
                 None,
                 None,
+                None,
             )
             .expect("audit correspondence is well-formed by construction");
             cells.push(AuditedCell { corr_iri, vocab });
@@ -908,6 +909,7 @@ fn gate_tier_for(term: &str, shape: &TermShape) -> gmeow_errors::Result<Tier> {
         get_leg,
         put_leg,
         shape.laws.clone(),
+        None,
         None,
         None,
         None,

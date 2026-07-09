@@ -1,0 +1,2 @@
+<http://example.org/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> <https://gmeow.example/w3c-owl2-full/webont-i5-3-014/w> .
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#domain> <http://example.org/y> <https://gmeow.example/w3c-owl2-full/webont-i5-3-014/w> .

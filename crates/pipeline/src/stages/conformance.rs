@@ -14,11 +14,14 @@
 //!
 //! The grading reuses the same divergence machinery the `ingest-external`
 //! `--grade-suite` lane drives ([`gmeow_conformance::divergence::emit_divergence_nq`]
-//! → [`gmeow_logic::reason::compare_external_corpus`]): agreements are dropped, a
-//! native `incomplete` becomes a `DlGap` row, and a decided native verdict that
-//! differs from the published expected becomes a `CorpusOnly` row. The emitter sorts
-//! and content-addresses every finding, so the product is byte-deterministic and
-//! GTS-fold-stable.
+//! → [`gmeow_logic::reason::compare_external_corpus`]): an agreement folds as a
+//! NON-blocking `logic:FindingCorroboration` finding (positive evidence, never
+//! dropped), a native `incomplete` becomes a `DlGap` row, and a decided native verdict
+//! that differs from the published expected becomes a `CorpusOnly` row. Alongside the
+//! findings, every comparison is reified as a `gmeow:ConformanceComparison` individual
+//! and each corpus as a `gmeow:CorpusAgreementTally` individual. The emitter sorts and
+//! content-addresses every finding + individual, so the product is byte-deterministic
+//! and GTS-fold-stable.
 //!
 //! Grading off the FROZEN committed verdicts (rather than re-running the reasoner in
 //! this stage) is deterministic by construction and never couples the snapshot fold
@@ -30,7 +33,9 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use gmeow_conformance::divergence::{AgreementTally, agreement_tally, emit_divergence_nq};
+use gmeow_conformance::divergence::{
+    AgreementTally, agreement_tally, emit_agreement_tally_nq, emit_divergence_nq,
+};
 use gmeow_conformance::external::{outcome_from_szs, parse_test_manifest};
 use gmeow_logic::reason::ExternalComparison;
 use serde::{Deserialize, Serialize};
@@ -92,10 +97,10 @@ struct GradedCase {
 /// parse — or an `expected/verdicts.json` it cannot read — is a HARD failure (no
 /// silent skip): the corpus is a committed, drift-gated surface.
 ///
-/// Returns the per-corpus divergence N-Quads, concatenated in corpus order (each
-/// corpus's emitter output is itself sorted + content-addressed). An all-agree
-/// corpus contributes nothing; an empty result means the whole committed corpus
-/// agrees with every published expectation.
+/// Returns the per-corpus conformance N-Quads, concatenated in corpus order (each
+/// corpus's emitter output is itself sorted + content-addressed). Every comparison
+/// folds (corroboration findings + reified comparison + tally individuals), so an
+/// all-agree corpus now contributes a non-empty graph.
 pub fn build_conformance_divergence(root: &Path) -> Result<Vec<u8>, gmeow_errors::Diag> {
     Ok(divergence_nq_from_corpora(&grade_external_corpora(root)?))
 }
@@ -122,19 +127,31 @@ pub fn grade_external_corpora(
     Ok(by_corpus)
 }
 
-/// Project the graded corpora into the `graph/conformance` divergence N-Quads (the
-/// non-agreeing rows only), concatenated in corpus order. An all-agree corpus
-/// contributes nothing.
+/// Project the graded corpora into the `graph/conformance` N-Quads, concatenated in
+/// corpus order. EVERY comparison folds: the divergence `gmeow:Finding` graph (now
+/// including non-blocking corroboration findings for agreements), one reified
+/// `gmeow:ConformanceComparison` individual per comparison, and one aggregate
+/// `gmeow:CorpusAgreementTally` individual per corpus — so an all-agree corpus now
+/// contributes a non-empty graph rather than nothing.
 fn divergence_nq_from_corpora(by_corpus: &BTreeMap<String, Vec<ExternalComparison>>) -> Vec<u8> {
     let mut out = String::new();
-    for (corpus, comparisons) in by_corpus {
-        let nq = emit_divergence_nq(corpus, comparisons);
+    let push = |nq: &str, out: &mut String| {
         if !nq.is_empty() {
-            out.push_str(&nq);
+            out.push_str(nq);
             if !out.ends_with('\n') {
                 out.push('\n');
             }
         }
+    };
+    for (corpus, comparisons) in by_corpus {
+        // The per-case findings + reified comparison individuals.
+        push(&emit_divergence_nq(corpus, comparisons), &mut out);
+        // The aggregate per-corpus tally individual (computed via the same grading the
+        // dashboard tally JSON uses — a pure classification, not a second disk walk).
+        push(
+            &emit_agreement_tally_nq(&agreement_tally(corpus, comparisons)),
+            &mut out,
+        );
     }
     out.into_bytes()
 }
@@ -500,10 +517,11 @@ impl Stage for ConformanceStage {
         let by_corpus = grade_external_corpora(input.root)?;
         let nq = divergence_nq_from_corpora(&by_corpus);
         let tallies = agreement_tallies_json(input.root, &by_corpus)?;
-        // Attach the divergence-Finding graph as the carrier's `graph/conformance` named
-        // graph so the presenter reads it as a pure keyed fold (PIPELINE_SPINE §4), never
-        // re-parses the byte artifact. An all-agree corpus yields no quads; the presenter
-        // still guards the non-empty fold. The byte lane is kept for the byte readers.
+        // Attach the conformance graph (divergence findings + reified comparison and
+        // tally individuals) as the carrier's `graph/conformance` named graph so the
+        // presenter reads it as a pure keyed fold (PIPELINE_SPINE §4), never re-parses the
+        // byte artifact. Every graded comparison now folds, so the graph is non-empty
+        // whenever the committed corpus grades anything. The byte lane is kept for readers.
         let dataset = crate::stages::carrier::parse_into_graph(
             &nq,
             "application/n-quads",

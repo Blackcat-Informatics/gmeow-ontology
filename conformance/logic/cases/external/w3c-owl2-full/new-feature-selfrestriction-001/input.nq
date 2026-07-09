@@ -1,0 +1,6 @@
+<http://example.org/Peter> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> _:rdfxml_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/new-feature-selfrestriction-001/w> .
+<http://example.org/likes> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/new-feature-selfrestriction-001/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> <https://gmeow.example/w3c-owl2-full/new-feature-selfrestriction-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> <https://gmeow.example/w3c-owl2-full/new-feature-selfrestriction-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#hasSelf> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> <https://gmeow.example/w3c-owl2-full/new-feature-selfrestriction-001/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/2002/07/owl#onProperty> <http://example.org/likes> <https://gmeow.example/w3c-owl2-full/new-feature-selfrestriction-001/w> .

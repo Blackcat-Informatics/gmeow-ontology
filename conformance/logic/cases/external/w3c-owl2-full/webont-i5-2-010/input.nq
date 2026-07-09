@@ -1,0 +1,6 @@
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> <https://gmeow.example/w3c-owl2-full/webont-i5-2-010/w> .
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag> <http://www.w3.org/2000/01/rdf-schema#comment> "The class of unordered containers." <https://gmeow.example/w3c-owl2-full/webont-i5-2-010/w> .
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#_1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> <https://gmeow.example/w3c-owl2-full/webont-i5-2-010/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#_1> _:rdfxml_00000000000000000000000001 <https://gmeow.example/w3c-owl2-full/webont-i5-2-010/w> .
+_:rdfxml_00000000000000000000000000 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag> <https://gmeow.example/w3c-owl2-full/webont-i5-2-010/w> .
+_:rdfxml_00000000000000000000000001 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> <https://gmeow.example/w3c-owl2-full/webont-i5-2-010/w> .

@@ -131,6 +131,11 @@ pub enum FindingCategory {
     ProjectionLoss,
     /// A trust / governance advisory (untrusted signer, soft policy note).
     PolicyWarning,
+    /// A native↔published AGREEMENT — the native reasoner's verdict matched the
+    /// community-decided ground truth. NOT a failure: it is positive corroborating
+    /// evidence surfaced for the benchmark surface, coherent, and never blocks a
+    /// coherence certificate (the opposite of an incomplete check).
+    Corroboration,
 }
 
 impl FindingCategory {
@@ -153,9 +158,11 @@ impl FindingCategory {
             Ok(Self::ProjectionLoss)
         } else if trimmed.eq_ignore_ascii_case("policy-warning") {
             Ok(Self::PolicyWarning)
+        } else if trimmed.eq_ignore_ascii_case("corroboration") {
+            Ok(Self::Corroboration)
         } else {
             Err(format!(
-                "unknown finding category `{trimmed}`; expected one of the eight \
+                "unknown finding category `{trimmed}`; expected one of the nine \
                  logic:FindingCategory wire values"
             ))
         }
@@ -172,6 +179,7 @@ impl FindingCategory {
             Self::IncompleteCheck => "incomplete-check",
             Self::ProjectionLoss => "projection-loss",
             Self::PolicyWarning => "policy-warning",
+            Self::Corroboration => "corroboration",
         }
     }
 
@@ -187,6 +195,7 @@ impl FindingCategory {
             Self::IncompleteCheck => "FindingIncompleteCheck",
             Self::ProjectionLoss => "FindingProjectionLoss",
             Self::PolicyWarning => "FindingPolicyWarning",
+            Self::Corroboration => "FindingCorroboration",
         }
     }
 }
@@ -760,6 +769,7 @@ mod tests {
             FindingCategory::IncompleteCheck,
             FindingCategory::ProjectionLoss,
             FindingCategory::PolicyWarning,
+            FindingCategory::Corroboration,
         ] {
             // serde rename == as_str == the kebab wire value parse() accepts.
             let json = serde_json::to_string(&category).expect("serialize");

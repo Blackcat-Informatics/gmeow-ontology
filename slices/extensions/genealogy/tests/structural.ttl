@@ -13,7 +13,7 @@
 # KinRelationship bridges (relationshipParent / relationshipChild / hasPartner
 # subPropertyOf observedFeature) are home-local here and are migrated in cells
 # 4-6 below; the observations structural.ttl cell 7 deferred them here
-# explicitly (see dsl/tests/MIGRATION-LEDGER.md).
+# explicitly.
 #
 # The whole-ontology negative sweeps and the SHACL fixture-conformance + ABox
 # checks now live natively in crates/validate/tests/conformance_genealogy.rs

@@ -4,11 +4,10 @@
 //! Bridge from the structured RDF/SHACL diagnostics into the canonical
 //! [`gmeow_errors::Finding`] model.
 //!
-//! `gmeow-errors` links pyo3 unconditionally, so the PyO3-free
-//! `gmeow-rdf` kernel must not depend on it. `gmeow-validate` already links
-//! pyo3 and depends on both crates, so the conversion lives here. The Rust
-//! orphan rules forbid `impl From<RdfDiagnostic> for Finding` in this crate
-//! (it owns neither type), hence these are plain named functions.
+//! `gmeow-validate` depends on both `gmeow-errors` and the `gmeow-rdf` kernel,
+//! so the conversion lives here. The Rust orphan rules forbid
+//! `impl From<RdfDiagnostic> for Finding` in this crate (it owns neither type),
+//! hence these are plain named functions.
 //!
 //! The whole point is *carry-through*: the GTS wire coordinates that
 //! [`purrdf::RdfLocation`] records and the focus/path/shape structure that a

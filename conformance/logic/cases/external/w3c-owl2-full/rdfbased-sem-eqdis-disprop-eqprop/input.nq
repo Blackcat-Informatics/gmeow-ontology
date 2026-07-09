@@ -1,0 +1,4 @@
+<http://www.example.org#p1> <http://www.w3.org/2002/07/owl#equivalentProperty> <http://www.example.org#p2> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-disprop-eqprop/w> .
+<http://www.example.org#p1> <http://www.w3.org/2002/07/owl#propertyDisjointWith> <http://www.example.org#p2> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-disprop-eqprop/w> .
+<http://www.example.org#s1> <http://www.example.org#p1> <http://www.example.org#o1> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-disprop-eqprop/w> .
+<http://www.example.org#s2> <http://www.example.org#p2> <http://www.example.org#o2> <https://gmeow.example/w3c-owl2-full/rdfbased-sem-eqdis-disprop-eqprop/w> .
