@@ -1265,6 +1265,7 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
     let p_all = nn(&format!("{owl}allValuesFrom"));
     let p_hasvalue = nn(&format!("{owl}hasValue"));
     let p_onclass = nn(&format!("{owl}onClass"));
+    let p_ondatarange = nn(&format!("{owl}onDataRange"));
     let p_mincard = nn(&format!("{owl}minCardinality"));
     let p_maxcard = nn(&format!("{owl}maxCardinality"));
     let p_card = nn(&format!("{owl}cardinality"));
@@ -1610,12 +1611,46 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
                     qhi = Some(n);
                 }
                 match value(store, &restr_subj, &p_onclass) {
-                    // A qualified cardinality REQUIRES its qualifying class — absent → hard-fail.
-                    None => {
-                        return Err(format!(
-                            "qualified cardinality on {on} requires owl:onClass"
-                        ));
-                    }
+                    // A qualified cardinality qualifies over EITHER an object filler
+                    // (`owl:onClass <Class>`) or a datatype filler (`owl:onDataRange <Datatype>`).
+                    // With no `owl:onClass`, fall through to the datatype-qualified peer.
+                    None => match value(store, &restr_subj, &p_ondatarange) {
+                        // `owl:onDataRange <Datatype>` is the datatype-qualified peer of
+                        // `owl:onClass <Class>`. It reads as the datatype every counted value must
+                        // carry, degraded to a PLAIN `sh:datatype` + `sh:minCount`/`sh:maxCount`
+                        // (min→minCount, max→maxCount, exact→both — the same count the onClass arm
+                        // carries). A bare `sh:datatype` is what the JSON-Schema deriver reads; a
+                        // `sh:qualifiedValueShape [ sh:datatype … ]` it would ignore.
+                        Some(Node::Iri(dt)) => {
+                            // `classify` maps a concrete datatype → `sh:datatype`, `rdfs:Literal`
+                            // → the `sh:Literal` node-kind, and `rdfs:Resource` → no component
+                            // (the vacuous universal top) — the datatype analogue of the onClass
+                            // arm's class handling.
+                            let comps: Vec<_> = classify(&dt).into_iter().collect();
+                            let pc = PropertyConstraintIr::new(
+                                &on,
+                                qlo,
+                                qhi,
+                                Some(ConstraintProvenance::OwlRestriction),
+                                comps,
+                            )?;
+                            entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                                .2
+                                .push(pc);
+                        }
+                        // Neither `owl:onClass` nor `owl:onDataRange` — a qualified cardinality
+                        // REQUIRES a qualifying filler; absent → hard-fail. An anonymous
+                        // (blank / literal / quoted-triple) data range is carried in the canon,
+                        // never a bare blank shape — skip (do not emit).
+                        Some(Node::Blank { .. })
+                        | Some(Node::Lit { .. })
+                        | Some(Node::Triple(_)) => {}
+                        None => {
+                            return Err(format!(
+                                "qualified cardinality on {on} requires owl:onClass or owl:onDataRange"
+                            ));
+                        }
+                    },
                     // An anonymous qualifying class expression is carried in the canon, never a
                     // bare blank shape — skip (do not emit).
                     Some(Node::Blank { .. }) | Some(Node::Lit { .. }) | Some(Node::Triple(_)) => {}
@@ -1635,16 +1670,25 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
                             .push(pc);
                     }
                     Some(Node::Iri(q)) => {
+                        // Emit BOTH the faithful `sh:qualifiedValueShape` (which carries the count
+                        // on the values that satisfy the inner shape) AND a plain `sh:class`. The
+                        // JSON-Schema deriver and the purrdf-shapes external-object-class node-ref
+                        // path read a BARE `sh:class`; they IGNORE the class nested inside a
+                        // `sh:qualifiedValueShape`, so without the plain `sh:class` the object-class
+                        // filler is invisible downstream.
                         let pc = PropertyConstraintIr::new(
                             &on,
                             None,
                             None,
                             None,
-                            vec![ConstraintComponent::QualifiedValueShape {
-                                shape: vec![ConstraintComponent::Class(q)],
-                                min: qlo,
-                                max: qhi,
-                            }],
+                            vec![
+                                ConstraintComponent::Class(q.clone()),
+                                ConstraintComponent::QualifiedValueShape {
+                                    shape: vec![ConstraintComponent::Class(q)],
+                                    min: qlo,
+                                    max: qhi,
+                                },
+                            ],
                         )?;
                         entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                             .2

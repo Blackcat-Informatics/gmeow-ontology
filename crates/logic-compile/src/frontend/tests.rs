@@ -1546,6 +1546,87 @@ fn derive_qualified_cardinality_emits_qualified_value_shape() {
 }
 
 #[test]
+fn derive_qualified_cardinality_on_data_range_emits_plain_datatype_and_count() {
+    // `owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal` is the DATATYPE-qualified peer
+    // of `owl:onClass`. It must read as a PLAIN `sh:datatype xsd:decimal` + `sh:maxCount 1` (a bare
+    // datatype the JSON-Schema deriver can read), never a hard-fail for "requires owl:onClass".
+    let ds = shape_dataset(
+        "g:Measurement a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:appraisalValue ; \
+           owl:maxQualifiedCardinality \"1\"^^xsd:nonNegativeInteger ; \
+           owl:onDataRange xsd:decimal ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("onDataRange must derive, not fail");
+    let pc = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .find(|p| p.path.ends_with("appraisalValue"))
+        .expect("a property on appraisalValue");
+    assert_eq!(
+        pc.max_count,
+        Some(1),
+        "maxQualifiedCardinality 1 → sh:maxCount 1"
+    );
+    assert_eq!(pc.min_count, None, "no min on a max-qualified cardinality");
+    assert!(
+        pc.components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Datatype(d)
+                if d == "http://www.w3.org/2001/XMLSchema#decimal")),
+        "onDataRange xsd:decimal → sh:datatype xsd:decimal: {:?}",
+        pc.components
+    );
+    assert!(
+        !pc.components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::QualifiedValueShape { .. })),
+        "a datatype filler degrades to a plain datatype, not a qualified value shape: {:?}",
+        pc.components
+    );
+}
+
+#[test]
+fn derive_qualified_cardinality_on_class_emits_plain_class_for_json_schema() {
+    // `owl:maxQualifiedCardinality 1 ; owl:onClass g:C` must carry a PLAIN `sh:class g:C` (which the
+    // JSON-Schema deriver reads), in ADDITION to the faithful `sh:qualifiedValueShape` (which the
+    // deriver ignores). Without the plain class the object-class filler is invisible downstream.
+    let ds = shape_dataset(
+        "g:C a owl:Class . \
+         g:K a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:mediates ; \
+           owl:maxQualifiedCardinality \"1\"^^xsd:nonNegativeInteger ; owl:onClass g:C ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let pc = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .find(|p| p.path.ends_with("mediates"))
+        .expect("a property on mediates");
+    assert!(
+        pc.components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(d) if d.ends_with("/C"))),
+        "onClass filler must also emit a plain sh:class for the JSON-Schema deriver: {:?}",
+        pc.components
+    );
+    let qvs = pc
+        .components
+        .iter()
+        .find(|c| matches!(c, ConstraintComponent::QualifiedValueShape { .. }))
+        .expect("the faithful qualified value shape is still emitted");
+    match qvs {
+        ConstraintComponent::QualifiedValueShape { max, .. } => {
+            assert_eq!(
+                *max,
+                Some(1),
+                "the count stays on the qualified value shape"
+            );
+        }
+        _ => unreachable!(),
+    }
+}
+
+#[test]
 fn derive_single_property_has_key_emits_inverse_functional_shape() {
     // `K owl:hasKey ( P )` is the OWL 2 DL way to state a datatype/single-property key (an
     // owl:InverseFunctionalProperty on a datatype property would be OWL 2 Full). Its closed-world

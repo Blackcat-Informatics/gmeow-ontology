@@ -814,3 +814,7 @@ gmeow:DigitalSubjectTenure rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:tenureSubjectAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:tenureVantage ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:tenureSupportedBy ; owl:allValuesFrom gmeow:Observation ] .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+<https://blackcatinformatics.ca/gmeow/InhabitationConfiguration> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/duringInterval> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/TimeInterval> ] .
