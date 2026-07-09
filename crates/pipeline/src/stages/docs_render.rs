@@ -191,6 +191,18 @@ pub(crate) fn docs_source_files(
                 }
             }
         }
+        // Notation grammars: the first-class W3C EBNF renderings of the
+        // project's own serialization surface syntaxes (`gmeow_docs::model::
+        // DocGrammar`), authored under `slices/grounding/lang/grammars/*.ebnf`
+        // today, but discovered generically per-slice.
+        if let Ok(entries) = std::fs::read_dir(dir.join("grammars")) {
+            for entry in entries.flatten() {
+                let p = entry.path();
+                if p.extension().is_some_and(|x| x == "ebnf") {
+                    files.push(p);
+                }
+            }
+        }
         // A slice's own `queries/` tree (typically `queries/competency/*.rq`) — a
         // `gmeow:cqQueryFile` this slice's `competency.ttl` declares may resolve here.
         walk_files(&dir.join("queries"), &mut files)?;
@@ -344,6 +356,15 @@ mod tests {
         assert!(
             files.contains(&root_query),
             "docs_source_files must include the shared root queries/competency/*.rq tree"
+        );
+        // The notation-grammar exhibits (`gmeow_docs::model::DocGrammar`) — a
+        // `grammars/*.ebnf` edit must bust the docs cache.
+        let has_grammar = files
+            .iter()
+            .any(|p| p.ends_with("slices/grounding/lang/grammars/gmn.ebnf"));
+        assert!(
+            has_grammar,
+            "docs_source_files must include the lang slice's grammars/*.ebnf files"
         );
     }
 

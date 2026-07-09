@@ -695,6 +695,33 @@ pub struct DocExpectedCell {
     pub value_literal: Option<String>,
 }
 
+/// A first-class rendering of one of the project's `lang:Grammar` individuals:
+/// the GMN / GTS / Turtle surface-syntax productions authored in full, plain
+/// W3C EBNF text under `slices/grounding/lang/grammars/*.ebnf` (one file per
+/// notation), carried verbatim — never a second parser, just the notation
+/// exhibit the grammar object itself carries the normative claims for.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DocGrammar {
+    /// The filename stem (e.g. `"gmn"`, `"gts"`, `"turtle"`), used as the page
+    /// slug.
+    pub slug: String,
+    /// A human title. Derived from the file's leading `#`-commented header
+    /// description (its first sentence, once the wrapped comment lines are
+    /// joined) rather than a mechanically humanized filename: the header prose
+    /// (e.g. "The GMN-1 (GMEOW Model Notation) surface grammar in W3C EBNF, one
+    /// production per line") is materially more informative than a naive
+    /// `Gmn`/`Gts`/`Turtle` filename split would be, and joining a handful of
+    /// `#` lines is no harder to implement correctly than that split — see
+    /// [`extract_grammar`].
+    pub title: String,
+    /// The full W3C EBNF source, carried in full.
+    pub source: String,
+    /// The `SPDX-License-Identifier` header value (e.g. `"AGPL-3.0-only"` for
+    /// the authored GMN/GTS grammars, `"W3C-20150513"` for the Turtle
+    /// transcription).
+    pub license: String,
+}
+
 /// A documentation concern (`gmeow:DocumentationConcern`) and the terms that
 /// declare it via `gmeow:docsConcern`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -804,6 +831,11 @@ pub struct DocsModel {
     /// All competency questions reverse-mapped to the terms they exercise
     /// (sorted by IRI).
     pub competencies: Vec<DocCompetency>,
+    /// All notation grammars — first-class W3C EBNF renderings of the
+    /// project's own serialization surface syntaxes (GMN, GTS, Turtle),
+    /// discovered from every slice's `grammars/*.ebnf` artifacts (sorted by
+    /// slug).
+    pub grammars: Vec<DocGrammar>,
     /// All documentation concerns (sorted by IRI).
     pub concerns: Vec<DocConcern>,
     /// All external (non-GMEOW) terms referenced (sorted by IRI).
@@ -946,7 +978,7 @@ impl DocsModel {
     /// `cqQuery`), `exact_rows`, `expected_row_count`, and structured
     /// `expected_rows` (`DocExpectedRow`/`DocExpectedCell`) — the full
     /// copy-paste-runnable competency-question surface for `Page::CompetencyIndex`.
-    pub const VERSION: &'static str = "9";
+    pub const VERSION: &'static str = "10";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -1241,6 +1273,25 @@ impl DocsModel {
         competencies.sort_by(|a, b| a.iri.cmp(&b.iri));
         competencies.dedup_by(|a, b| a.iri == b.iri);
 
+        // ── Notation grammars (W3C EBNF renderings under grammars/*.ebnf) ───────
+        // `.ebnf` files under a slice's `grammars/` directory fall through
+        // `purrdf-slice`'s artifact classifier to the open `ArtifactRole::Other`
+        // variant (no dedicated role exists for them); matched here by the
+        // slice-relative path it carries rather than a bare unit-variant match.
+        let mut grammars: Vec<DocGrammar> = Vec::new();
+        for record in catalog.records() {
+            for artifact in &record.artifacts {
+                let ArtifactRole::Other(path) = &artifact.role else {
+                    continue;
+                };
+                if !(path.starts_with("grammars/") && path.ends_with(".ebnf")) {
+                    continue;
+                }
+                grammars.push(extract_grammar(artifact));
+            }
+        }
+        grammars.sort_by(|a, b| a.slug.cmp(&b.slug));
+
         // ── Concerns (collected from module graphs via gmeow:docsConcern) ──────
         let concerns = extract_concerns(catalog);
 
@@ -1266,6 +1317,7 @@ impl DocsModel {
             fixtures,
             shapes,
             competencies,
+            grammars,
             concerns,
             external_terms,
             recipes,
@@ -2254,6 +2306,81 @@ fn filename_title(logical_path: &str) -> String {
     } else {
         out
     }
+}
+
+/// Extract a single [`DocGrammar`] from a `grammars/*.ebnf` artifact: the slug
+/// is the filename stem, the title is the header comment's first sentence
+/// (see [`DocGrammar::title`]), and the license is the file's
+/// `SPDX-License-Identifier` header line. Every grammar file in this
+/// repository is required to carry both a descriptive header and an SPDX
+/// license line — their absence is a broken authoring invariant, not an
+/// optional input, so a malformed header is a hard fail rather than a silent
+/// placeholder.
+fn extract_grammar(artifact: &ArtifactRecord) -> DocGrammar {
+    let source = String::from_utf8_lossy(&artifact.content).into_owned();
+    let slug = artifact
+        .logical_path
+        .rsplit('/')
+        .next()
+        .unwrap_or(&artifact.logical_path)
+        .trim_end_matches(".ebnf")
+        .to_string();
+    let title = grammar_title(&source).unwrap_or_else(|| {
+        panic!(
+            "{}: missing a `#`-commented header description to derive a title from",
+            artifact.logical_path
+        )
+    });
+    let license = grammar_license(&source).unwrap_or_else(|| {
+        panic!(
+            "{}: missing an `SPDX-License-Identifier:` header line",
+            artifact.logical_path
+        )
+    });
+    DocGrammar {
+        slug,
+        title,
+        source,
+        license,
+    }
+}
+
+/// Join a grammar file's leading `#`-commented header lines (skipping the
+/// blank comment separators) into one string, then take the first sentence
+/// (up to the first `". "`, or the whole joined string when it contains no
+/// internal sentence break) as the title. Stops at the first line that is not
+/// a `#` comment (the header always precedes the first production line).
+/// `None` when the file carries no descriptive header comment at all.
+fn grammar_title(source: &str) -> Option<String> {
+    let mut body = String::new();
+    for raw_line in source.lines() {
+        let Some(rest) = raw_line.trim_start().strip_prefix('#') else {
+            break;
+        };
+        let content = rest.trim();
+        if content.is_empty() || content.starts_with("SPDX-") {
+            continue;
+        }
+        if !body.is_empty() {
+            body.push(' ');
+        }
+        body.push_str(content);
+    }
+    if body.is_empty() {
+        return None;
+    }
+    let sentence = body.split(". ").next().unwrap_or(&body);
+    Some(sentence.trim_end_matches('.').to_string())
+}
+
+/// Parse a grammar file's `SPDX-License-Identifier:` header comment line.
+fn grammar_license(source: &str) -> Option<String> {
+    source.lines().find_map(|raw_line| {
+        let content = raw_line.trim_start().trim_start_matches('#').trim();
+        content
+            .strip_prefix("SPDX-License-Identifier:")
+            .map(|v| v.trim().to_string())
+    })
 }
 
 /// Collect documentation concerns from every module graph: the concern

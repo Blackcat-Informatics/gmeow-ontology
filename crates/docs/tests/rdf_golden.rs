@@ -91,6 +91,7 @@ fn small_model() -> DocsModel {
         fixtures: Vec::new(),
         shapes: Vec::new(),
         competencies: Vec::new(),
+        grammars: Vec::new(),
         concerns: vec![DocConcern {
             iri: format!("{GMEOW}concern/animals"),
             curie: "gmeow:concern/animals".to_string(),
