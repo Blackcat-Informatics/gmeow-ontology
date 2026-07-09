@@ -48,14 +48,39 @@
 //! would have to be unwound next phase.
 #![allow(dead_code)]
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
+use foldhash::fast::FixedState;
+// hashbrown's `HashMap` (aliased) backs the predicate index off std SipHash.
+use hashbrown::HashMap as FastMap;
 use purrdf::TermValue;
 
 use crate::provenance::{
     ASSERT_RULE_IRI, LOGIC_NAMESPACE, mint_derivation_id, mint_reifier, term_display,
 };
 use crate::query_ir::QBuiltin;
+
+/// A fixed-seed hash set over [`FactKey`]s — the fixpoint's delta / store-key
+/// membership form.
+///
+/// The seed is fixed (`FixedState`, never random) and NEVER persisted: this set is
+/// a pure membership probe, never an emission-order source.  Every emitted order in
+/// the engine derives from the sorted round commit, not from this set's iteration.
+/// (Interim form — a later dense `RowId` bitset replaces the delta; until
+/// then it must not remain std SipHash.)
+pub(crate) type FactKeySet = std::collections::HashSet<FactKey, FixedState>;
+
+/// A fixed-seed hash map keyed by [`FactKey`] (same determinism contract as
+/// [`FactKeySet`]).
+pub(crate) type FactKeyMap<V> = std::collections::HashMap<FactKey, V, FixedState>;
+
+/// A [`FactKeySet`] preallocated for `n` keys with the fixed seed.
+///
+/// `HashSet::with_capacity` is unavailable for a non-default hasher, so this is the
+/// capacity-reserving constructor the round-commit path uses.
+pub(crate) fn fact_key_set_with_capacity(n: usize) -> FactKeySet {
+    FactKeySet::with_capacity_and_hasher(n, FixedState::default())
+}
 
 /// Wrap a runtime-IR condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
@@ -153,13 +178,16 @@ impl Fact {
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FactStore {
     facts: Vec<Fact>,
-    keys: HashSet<FactKey>,
+    keys: FactKeySet,
     /// Predicate surface (`predicate.as_str()`, the same component `Fact::key`
     /// uses) → row indices into `facts`, in insertion order.  Maintained in
     /// lockstep with `facts` so each bucket's order equals insertion order; this
     /// lets the join scan only the rows for a constant-predicate atom while
     /// returning exactly the subsequence (same relative order) a full scan would.
-    predicate_index: HashMap<String, Vec<usize>>,
+    ///
+    /// Fixed-seed `FastMap` (off std SipHash); insertion clones the predicate key
+    /// only on first occurrence.
+    predicate_index: FastMap<String, Vec<usize>, FixedState>,
 }
 
 impl FactStore {
@@ -167,8 +195,8 @@ impl FactStore {
     pub(crate) fn new() -> Self {
         Self {
             facts: Vec::new(),
-            keys: HashSet::new(),
-            predicate_index: HashMap::new(),
+            keys: FactKeySet::default(),
+            predicate_index: FastMap::default(),
         }
     }
 
@@ -200,7 +228,7 @@ impl FactStore {
     }
 
     /// The set of all fact keys (for fixpoint comparison).
-    pub(crate) fn key_set(&self) -> HashSet<FactKey> {
+    pub(crate) fn key_set(&self) -> FactKeySet {
         self.keys.clone()
     }
 
@@ -578,7 +606,7 @@ enum Scan {
 fn extend_solutions(
     atom: &EvalAtom,
     store: &FactStore,
-    delta: &HashSet<FactKey>,
+    delta: &FactKeySet,
     scan: &Scan,
     solutions: &[Solution],
 ) -> Vec<Solution> {
@@ -618,7 +646,7 @@ fn join_body(
     rule: &EvalRule,
     store: &FactStore,
     reference: &FactStore,
-    delta: &HashSet<FactKey>,
+    delta: &FactKeySet,
 ) -> Vec<Solution> {
     let positive: Vec<&EvalAtom> = rule.body.iter().filter(|a| !a.negated).collect();
     let negated: Vec<&EvalAtom> = rule.body.iter().filter(|a| a.negated).collect();
@@ -764,11 +792,11 @@ pub(crate) fn least_model_of_reduct(
     reference: &FactStore,
 ) -> gmeow_errors::Result<ReductResult> {
     let mut store = FactStore::new();
-    let edb_keys: HashSet<FactKey> = edb.key_set();
+    let edb_keys: FactKeySet = edb.key_set();
 
     // Per-fact derivation-depth map: depth 0 for every EDB (asserted) fact;
     // derived facts get depth = 1 + max(source depths) when committed at round end.
-    let mut depth: HashMap<FactKey, u32> = HashMap::new();
+    let mut depth: FactKeyMap<u32> = FactKeyMap::default();
 
     for f in edb.facts() {
         let key = f.key();
@@ -779,12 +807,12 @@ pub(crate) fn least_model_of_reduct(
     let mut derivations: Vec<DerivedRow> = Vec::new();
 
     // Seed delta with all EDB keys so rules fire against the seed in round 1.
-    let mut delta: HashSet<FactKey> = store.key_set();
+    let mut delta: FactKeySet = store.key_set();
     loop {
         // Per-round canonical-winner map: keyed by head key, holds the candidate
         // chosen by a quality-ordered total-order tiebreak (see struct doc above).
         // This makes provenance selection independent of firing-enumeration order.
-        let mut round: HashMap<FactKey, RuleRoundCandidate> = HashMap::new();
+        let mut round: FactKeyMap<RuleRoundCandidate> = FactKeyMap::default();
 
         for rule in rules {
             for sol in join_body(rule, &store, reference, &delta) {
@@ -848,7 +876,7 @@ pub(crate) fn least_model_of_reduct(
 
         // Commit all winners from this round in FactKey order, not raw `HashMap`
         // order, so store/index insertion order is deterministic.
-        let mut new_delta: HashSet<FactKey> = HashSet::with_capacity(round.len());
+        let mut new_delta: FactKeySet = fact_key_set_with_capacity(round.len());
         let mut winners: Vec<_> = round.into_iter().collect();
         winners.sort_by(|(a, _), (b, _)| a.cmp(b));
         for (_key, winner) in winners {

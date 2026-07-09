@@ -41,6 +41,11 @@
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
+use foldhash::fast::FixedState;
+// hashbrown's `HashMap` (aliased) gives the `entry_ref` borrowed-key insertion the
+// predicate-keyed relation table needs — so `insert` allocates the owned predicate
+// `String` only on a genuine first-seen miss, never per probe.
+use hashbrown::HashMap as FastMap;
 use purrdf::TermValue;
 
 use crate::facts::{TermId, TermInterner, skolem_iri};
@@ -247,11 +252,14 @@ struct Relation {
     /// `(subject, object)` tuples in insertion order.
     rows: Vec<(TermValue, TermValue)>,
     /// Dedup keys `(subject_id, object_id)` for O(1) membership.
-    keys: HashSet<(TermId, TermId)>,
+    ///
+    /// Fixed-seed hashed (`FixedState`) — off std's SipHash; the id keys are `Copy`
+    /// so a probe never clones. Determinism never comes from this set's order.
+    keys: HashSet<(TermId, TermId), FixedState>,
     /// Subject term id → row indices into `rows`, in insertion order.
-    by_subject: HashMap<TermId, Vec<usize>>,
+    by_subject: HashMap<TermId, Vec<usize>, FixedState>,
     /// Object term id → row indices into `rows`, in insertion order.
-    by_object: HashMap<TermId, Vec<usize>>,
+    by_object: HashMap<TermId, Vec<usize>, FixedState>,
 }
 
 impl Relation {
@@ -345,7 +353,11 @@ pub(crate) struct RelationStore {
     /// The store's term dictionary, shared by every relation.
     interner: TermInterner,
     /// Predicate IRI surface → its binary relation.
-    relations: HashMap<String, Relation>,
+    ///
+    /// A fixed-seed `FastMap` (hashbrown, off std SipHash) whose `entry_ref` lets
+    /// [`insert`](Self::insert) probe by borrowed `&str` — the owned predicate
+    /// `String` is allocated only when a new predicate is first seen.
+    relations: FastMap<String, Relation, FixedState>,
 }
 
 impl RelationStore {
@@ -353,7 +365,7 @@ impl RelationStore {
     pub(crate) fn new() -> Self {
         Self {
             interner: TermInterner::new(),
-            relations: HashMap::new(),
+            relations: FastMap::default(),
         }
     }
 
@@ -368,7 +380,7 @@ impl RelationStore {
         object: TermValue,
     ) -> bool {
         self.relations
-            .entry(predicate.to_owned())
+            .entry_ref(predicate)
             .or_default()
             .insert(&mut self.interner, subject, object)
     }
@@ -570,6 +582,27 @@ mod tests {
         assert_eq!(
             s.select("http://ex/likes", Bound::Subject(a)),
             vec![(term("http://ex/a"), term("http://ex/c"))],
+        );
+    }
+
+    /// Emission-order guard: the `relations` table is now a
+    /// FIXED-seed `FastMap`, so its raw iteration order is unspecified.  The ONLY
+    /// consumer-facing enumeration — [`RelationStore::predicates`] — MUST still be
+    /// lexical, sorted through the `BTreeSet` sweep, NEVER leaking the map's hash
+    /// order.  Insert predicates in deliberately anti-lexical order and assert the
+    /// output is lexical regardless.
+    #[test]
+    fn physical_predicates_never_leak_hasher_order() {
+        let mut s = RelationStore::new();
+        // Insert in reverse-lexical order; a raw hash-map sweep would not be sorted.
+        for pred in ["http://ex/zeta", "http://ex/mu", "http://ex/alpha"] {
+            assert!(s.insert(pred, term("http://ex/x"), term("http://ex/y")));
+        }
+        let preds: Vec<&str> = s.predicates().collect();
+        assert_eq!(
+            preds,
+            vec!["http://ex/alpha", "http://ex/mu", "http://ex/zeta"],
+            "predicates() must be lexical — the FixedState map order must never leak"
         );
     }
 

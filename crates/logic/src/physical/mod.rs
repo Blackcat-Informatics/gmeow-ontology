@@ -20,6 +20,10 @@ mod binding_pattern;
 mod builtin_eval;
 mod chase;
 mod generic;
+// Branded niche IDs for every engine entity class (`TermId`/`PredId`/`RuleId`/
+// `RowId`). `pub(crate)` so `crate::facts` can re-express its `TermId` as this
+// module's `Id<Term>` alias (one definition, not two — greenfield).
+pub(crate) mod id;
 mod magic;
 mod magic_generic;
 mod parity;
