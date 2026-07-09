@@ -470,6 +470,11 @@ fn docs_artifact_evidence(graph: &Graph) -> gmeow_errors::Result<Vec<EvidenceInp
             })
         })?;
         let (media_type, _) = blob_meta_for(graph, digest)?;
+        if rep == REP_DOCS_PRINT {
+            // G3: the print archive vouches for the whole tar; separately bind the
+            // COMPILED PDF's own bytes under the exact media type a consumer expects.
+            rows.push(docs_print_pdf_evidence(&data)?);
+        }
         rows.push(EvidenceInput {
             data,
             media_type,
@@ -479,6 +484,43 @@ fn docs_artifact_evidence(graph: &Graph) -> gmeow_errors::Result<Vec<EvidenceInp
         });
     }
     Ok(rows)
+}
+
+/// Extract the byte-reproducible `gmeow.pdf` member from the decoded `docs-print`
+/// tar and mint it as its own `application/pdf` [`EvidenceInput`] (G3). The
+/// archive-level attestation binds the WHOLE print-docs tar (`application/x-tar`,
+/// PDF + Typst source together); this one binds the compiled PDF's OWN bytes to a
+/// blake3 `gmeow:contentDigest` under `application/pdf`, so
+/// [`verify_release_bundle`]'s evidence-presence leg can verify the compiled PDF
+/// end to end, independent of the archive framing. Since the extracted PDF bytes
+/// are (by construction) never byte-identical to the enclosing tar, this artifact
+/// is never deduped against the committed docs-print blob — `fold_release_bundle`
+/// folds it as its own report blob, exactly like any other minted evidence. Hard
+/// fails if the print-docs tar carries no `gmeow.pdf` member — a docs-print
+/// archive without its PDF is a corrupt build, never silently skipped.
+fn docs_print_pdf_evidence(tar_bytes: &[u8]) -> gmeow_errors::Result<EvidenceInput> {
+    use crate::bundle_blobs::REP_DOCS_PRINT;
+    let members = purrdf::ustar::read_archive(tar_bytes).map_err(|e| {
+        Diag::of_kind(Release {
+            message: format!("untarring docs-print for the PDF attestation: {e}"),
+        })
+    })?;
+    let Some((_, pdf_bytes)) = members
+        .into_iter()
+        .find(|(name, _)| name.ends_with("gmeow.pdf"))
+    else {
+        return Err(Diag::of_kind(Release {
+            message: "docs-print archive carries no gmeow.pdf member (corrupt docs-print build)"
+                .to_owned(),
+        }));
+    };
+    Ok(EvidenceInput {
+        data: pdf_bytes,
+        media_type: "application/pdf".to_owned(),
+        attestation_type_iri: format!("{GMEOW_NS}{DOCS_ATTESTATION_TYPE}"),
+        rep: format!("{REP_DOCS_PRINT}-pdf-attestation"),
+        subject_label: "Documentation PDF".to_owned(),
+    })
 }
 
 /// Decode every existing snapshot blob into a [`BlobRow`], preserving the
@@ -1443,12 +1485,32 @@ mod tests {
         );
     }
 
+    /// The raw `gmeow.pdf` bytes packed into the print-docs archive in
+    /// [`docs_snapshot`] — shared with the assertions in
+    /// `release_fold_attests_the_packed_docs_artifacts` so the test pins the exact
+    /// bytes the PDF attestation must bind.
+    const DOCS_PRINT_PDF_BYTES: &[u8] = b"%PDF-1.7 FAKE-BUT-REAL-MEMBER-BYTES";
+
     /// A `dist` snapshot carrying the two packed documentation archives (the
-    /// docs-book / docs-print blobs), under their canonical `rep`s.
+    /// docs-book / docs-print blobs), under their canonical `rep`s. The
+    /// docs-print blob is a REAL ustar tar (not a placeholder string) carrying a
+    /// `gmeow.pdf` member, exactly as the production `docs_print` carrier stage
+    /// packs it, so the G3 PDF-extraction path has real archive framing to walk.
     fn docs_snapshot() -> Vec<u8> {
         use crate::bundle_blobs::{REP_DOCS_BOOK, REP_DOCS_PRINT};
         let nq = "<https://e/s> <https://e/p> <https://e/o> .\n";
         let b = builder_from(nq, NativeRdfFormat::NTriples.media_type());
+        let print_tar = purrdf::ustar::write_archive(&[
+            (
+                "x-gmeow-english/gmeow.pdf".to_string(),
+                DOCS_PRINT_PDF_BYTES.to_vec(),
+            ),
+            (
+                "x-gmeow-english/gmeow.typ".to_string(),
+                b"#let title = \"gmeow\"".to_vec(),
+            ),
+        ])
+        .expect("build docs-print tar fixture");
         emit_gts(
             &b,
             "dist",
@@ -1460,7 +1522,7 @@ mod tests {
                     rep: REP_DOCS_BOOK.to_string(),
                 },
                 BlobRow {
-                    data: b"PRINT-ARCHIVE-BYTES-WITH-PDF".to_vec(),
+                    data: print_tar,
                     media_type: "application/x-tar".to_string(),
                     rep: REP_DOCS_PRINT.to_string(),
                 },
@@ -1478,6 +1540,11 @@ mod tests {
     /// archives auto-mints a documentation-artifact attestation per archive, binds it
     /// by blake3 `gmeow:contentDigest`, and the consumer verify accepts it with the
     /// docs artifacts counted among the verified evidence.
+    ///
+    /// G3: folding ALSO mints a separate `application/pdf` artifact bound to the
+    /// COMPILED `gmeow.pdf` member's own bytes (extracted from the docs-print tar),
+    /// distinct from the archive-level `application/x-tar` attestation, and
+    /// `verify_release_bundle` verifies it end to end.
     #[test]
     fn release_fold_attests_the_packed_docs_artifacts() {
         use crate::bundle_blobs::REP_DOCS_PRINT;
@@ -1493,6 +1560,7 @@ mod tests {
                 .expect("docs-print blob present");
             digest.clone()
         };
+        let pdf_digest = digest_string(DOCS_PRINT_PDF_BYTES);
 
         let bundle = fold(&snapshot, Vec::new(), "2026-06-25T00:00:00Z");
         let graph = read(&bundle, true, None);
@@ -1506,14 +1574,39 @@ mod tests {
             nquads.contains(&print_digest),
             "the docs-print archive must be bound by gmeow:contentDigest {print_digest}"
         );
+        assert!(
+            nquads.contains("\"application/pdf\""),
+            "the compiled gmeow.pdf must carry its own application/pdf attestation"
+        );
+        assert!(
+            nquads.contains(&pdf_digest),
+            "the compiled gmeow.pdf bytes must be bound by gmeow:contentDigest {pdf_digest} \
+             (distinct from the archive-level digest {print_digest})"
+        );
+        assert_ne!(
+            pdf_digest, print_digest,
+            "the PDF's own digest must differ from the enclosing tar's digest"
+        );
 
-        // The consumer verify accepts the bundle and counts the docs artifacts (2) among
-        // the verified evidence.
+        // The consumer verify accepts the bundle and counts the docs artifacts (book
+        // archive, print archive, AND the compiled PDF: 3) among the verified evidence.
         let report = verify_release_bundle(&bundle, None).expect("docs bundle must verify");
         assert!(
-            report.artifacts_verified >= 2,
-            "both packed docs archives must be verified evidence, saw {}",
+            report.artifacts_verified >= 3,
+            "both packed docs archives plus the compiled PDF must be verified evidence, saw {}",
             report.artifacts_verified
+        );
+
+        // The PDF blob the bundle actually ships must decode back to the EXACT bytes
+        // the attestation's digest claims — not merely "some blob exists".
+        let pdf_blob = graph
+            .blob_entry(&pdf_digest)
+            .expect("attested PDF digest must resolve to a shipped blob")
+            .decoded_vec()
+            .expect("shipped PDF blob must decode");
+        assert_eq!(
+            pdf_blob, DOCS_PRINT_PDF_BYTES,
+            "the shipped PDF blob bytes must equal the compiled gmeow.pdf member bytes"
         );
     }
 
