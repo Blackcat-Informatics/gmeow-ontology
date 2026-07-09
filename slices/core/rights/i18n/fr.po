@@ -1,0 +1,834 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: rights, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AtomicConstraint|rdfs:label"
+msgid "Atomic Constraint"
+msgstr "Contrainte atomique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConflictStrategy|rdfs:label"
+msgid "Conflict Strategy"
+msgstr "Stratégie de conflit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Constraint|rdfs:label"
+msgid "Constraint"
+msgstr "Contrainte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConstraintLogic|rdfs:label"
+msgid "Constraint Logic"
+msgstr "Logique de contrainte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConstraintOperator|rdfs:label"
+msgid "Constraint Operator"
+msgstr "Opérateur de contrainte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Copyright|rdfs:label"
+msgid "Copyright"
+msgstr "Droit d'auteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CopyrightStatus|rdfs:label"
+msgid "Copyright Status"
+msgstr "Statut du droit d'auteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Duty|rdfs:label"
+msgid "Duty"
+msgstr "Obligation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LeftOperand|rdfs:label"
+msgid "Left Operand"
+msgstr "Opérande gauche"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/License|rdfs:label"
+msgid "License"
+msgstr "Licence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LicenseFamily|rdfs:label"
+msgid "License Family"
+msgstr "Famille de licence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LogicalConstraint|rdfs:label"
+msgid "Logical Constraint"
+msgstr "Contrainte logique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mark|rdfs:label"
+msgid "Mark"
+msgstr "Marque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Permission|rdfs:label"
+msgid "Permission"
+msgstr "Permission"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PrivacyNotice|rdfs:label"
+msgid "Privacy Notice"
+msgstr "Avis de confidentialité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Prohibition|rdfs:label"
+msgid "Prohibition"
+msgstr "Interdiction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RightsAction|rdfs:label"
+msgid "Rights Action"
+msgstr "Action de droits"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RightsStatement|rdfs:label"
+msgid "Rights Statement"
+msgstr "Déclaration de droits"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RightsType|rdfs:label"
+msgid "Rights Type"
+msgstr "Type de droit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Rule|rdfs:label"
+msgid "Rule"
+msgstr "Règle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Trademark|rdfs:label"
+msgid "Trademark"
+msgstr "Marque déposée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TrademarkStatus|rdfs:label"
+msgid "Trademark Status"
+msgstr "Statut de marque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acquireLicensePage|rdfs:label"
+msgid "acquire license page"
+msgstr "page d'acquisition de licence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionAcceptTracking|rdfs:label"
+msgid "accept tracking"
+msgstr "accepter le suivi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionAggregate|rdfs:label"
+msgid "aggregate"
+msgstr "agréger"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionAnnotate|rdfs:label"
+msgid "annotate"
+msgstr "annoter"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionAnonymize|rdfs:label"
+msgid "anonymize"
+msgstr "anonymiser"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionArchive|rdfs:label"
+msgid "archive"
+msgstr "archiver"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionAttribute|rdfs:label"
+msgid "attribute"
+msgstr "attribuer"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionCommercialize|rdfs:label"
+msgid "commercialize"
+msgstr "commercialiser"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionCompensate|rdfs:label"
+msgid "compensate"
+msgstr "compenser"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionConcurrentUse|rdfs:label"
+msgid "concurrent use"
+msgstr "usage concurrent"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionDelete|rdfs:label"
+msgid "delete"
+msgstr "supprimer"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionDerive|rdfs:label"
+msgid "derive / modify"
+msgstr "dériver / modifier"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionDigitize|rdfs:label"
+msgid "digitize"
+msgstr "numériser"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionDisplay|rdfs:label"
+msgid "display"
+msgstr "afficher"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionDistribute|rdfs:label"
+msgid "distribute"
+msgstr "distribuer"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionEnsureExclusivity|rdfs:label"
+msgid "ensure exclusivity"
+msgstr "garantir l'exclusivité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionExecute|rdfs:label"
+msgid "execute"
+msgstr "exécuter"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionExtract|rdfs:label"
+msgid "extract"
+msgstr "extraire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionGive|rdfs:label"
+msgid "give"
+msgstr "donner"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionGrantUse|rdfs:label"
+msgid "grant use"
+msgstr "accorder l'usage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionInclude|rdfs:label"
+msgid "include"
+msgstr "inclure"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionIndex|rdfs:label"
+msgid "index"
+msgstr "indexer"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionInform|rdfs:label"
+msgid "inform"
+msgstr "informer"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionInstall|rdfs:label"
+msgid "install"
+msgstr "installer"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionLease|rdfs:label"
+msgid "lease"
+msgstr "louer"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionLend|rdfs:label"
+msgid "lend"
+msgstr "prêter"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionModify|rdfs:label"
+msgid "modify"
+msgstr "modifier"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionMove|rdfs:label"
+msgid "move"
+msgstr "déplacer"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionNextPolicy|rdfs:label"
+msgid "next policy"
+msgstr "politique suivante"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionObtainConsent|rdfs:label"
+msgid "obtain consent"
+msgstr "obtenir le consentement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionPlay|rdfs:label"
+msgid "play"
+msgstr "lire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionPresent|rdfs:label"
+msgid "present / display"
+msgstr "présenter / afficher"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionPrint|rdfs:label"
+msgid "print"
+msgstr "imprimer"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionProcessPersonalData|rdfs:label"
+msgid "process personal data"
+msgstr "traiter des données personnelles"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionRead|rdfs:label"
+msgid "read"
+msgstr "lire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionReproduce|rdfs:label"
+msgid "reproduce"
+msgstr "reproduire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionRetainNotice|rdfs:label"
+msgid "retain notice"
+msgstr "conserver l'avis"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionReviewPolicy|rdfs:label"
+msgid "review policy"
+msgstr "réviser la politique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionSell|rdfs:label"
+msgid "sell"
+msgstr "vendre"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionShareAlike|rdfs:label"
+msgid "share alike"
+msgstr "partager dans les mêmes conditions"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionStream|rdfs:label"
+msgid "stream"
+msgstr "diffuser en continu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionSynchronize|rdfs:label"
+msgid "synchronize"
+msgstr "synchroniser"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionTextToSpeech|rdfs:label"
+msgid "text to speech"
+msgstr "synthèse vocale"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionTransfer|rdfs:label"
+msgid "transfer"
+msgstr "transférer"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionTransform|rdfs:label"
+msgid "transform"
+msgstr "transformer"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionTranslate|rdfs:label"
+msgid "translate"
+msgstr "traduire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionUninstall|rdfs:label"
+msgid "uninstall"
+msgstr "désinstaller"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionUse|rdfs:label"
+msgid "use"
+msgstr "utiliser"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actionWatermark|rdfs:label"
+msgid "watermark"
+msgstr "filigraner"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attributionText|rdfs:label"
+msgid "attribution text"
+msgstr "texte d'attribution"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attributionUrl|rdfs:label"
+msgid "attribution url"
+msgstr "URL d'attribution"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionsOfAccess|rdfs:label"
+msgid "conditions of access"
+msgstr "conditions d'accès"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictInvalid|rdfs:label"
+msgid "policy void on conflict"
+msgstr "politique nulle en cas de conflit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictPerm|rdfs:label"
+msgid "permission wins"
+msgstr "la permission l'emporte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictProhibit|rdfs:label"
+msgid "prohibition wins"
+msgstr "l'interdiction l'emporte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conflictStrategy|rdfs:label"
+msgid "conflict strategy"
+msgstr "stratégie de conflit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintLogic|rdfs:label"
+msgid "constraint logic"
+msgstr "logique de contrainte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/constraintOperator|rdfs:label"
+msgid "constraint operator"
+msgstr "opérateur de contrainte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightHolder|rdfs:label"
+msgid "copyright holder"
+msgstr "titulaire du droit d'auteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightNotice|rdfs:label"
+msgid "copyright notice"
+msgstr "avis de droit d'auteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatus|rdfs:label"
+msgid "copyright status"
+msgstr "statut du droit d'auteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusInCopyright|rdfs:label"
+msgid "in copyright"
+msgstr "sous droit d'auteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusInCopyrightEducationalUse|rdfs:label"
+msgid "in copyright — educational use permitted"
+msgstr "sous droit d'auteur — usage éducatif autorisé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusInCopyrightEuOrphanWork|rdfs:label"
+msgid "in copyright — EU orphan work"
+msgstr "sous droit d'auteur — œuvre orpheline de l'UE"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusInCopyrightNonCommercialUse|rdfs:label"
+msgid "in copyright — non-commercial use permitted"
+msgstr "sous droit d'auteur — usage non commercial autorisé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusInCopyrightRightsholderUnlocatable|rdfs:label"
+msgid "in copyright — rights-holder unlocatable"
+msgstr "sous droit d'auteur — titulaire introuvable"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusNoCopyrightContractualRestrictions|rdfs:label"
+msgid "no copyright — contractual restrictions"
+msgstr "aucun droit d'auteur — restrictions contractuelles"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusNoCopyrightNonCommercialOnly|rdfs:label"
+msgid "no copyright — non-commercial use only"
+msgstr "aucun droit d'auteur — usage non commercial seulement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusNoCopyrightOtherLegalRestrictions|rdfs:label"
+msgid "no copyright — other known legal restrictions"
+msgstr "aucun droit d'auteur — autres restrictions juridiques connues"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusNoCopyrightUnitedStates|rdfs:label"
+msgid "no copyright — United States"
+msgstr "aucun droit d'auteur — États-Unis"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusNoKnownCopyright|rdfs:label"
+msgid "no known copyright"
+msgstr "aucun droit d'auteur connu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusNotEvaluated|rdfs:label"
+msgid "copyright not evaluated"
+msgstr "droit d'auteur non évalué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusPublicDomain|rdfs:label"
+msgid "public domain"
+msgstr "domaine public"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightStatusUndetermined|rdfs:label"
+msgid "copyright undetermined"
+msgstr "droit d'auteur indéterminé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightWork|rdfs:label"
+msgid "copyright work"
+msgstr "œuvre protégée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/copyrightYear|rdfs:label"
+msgid "copyright year"
+msgstr "année de droit d'auteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasCopyright|rdfs:label"
+msgid "has copyright"
+msgstr "a un droit d'auteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasDataController|rdfs:label"
+msgid "has data controller"
+msgstr "a un responsable du traitement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasDataSubject|rdfs:label"
+msgid "has data subject"
+msgstr "a une personne concernée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasDuty|rdfs:label"
+msgid "has duty"
+msgstr "a une obligation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasLicense|rdfs:label"
+msgid "has license"
+msgstr "a une licence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasPermission|rdfs:label"
+msgid "has permission"
+msgstr "a une permission"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasPrivacyNotice|rdfs:label"
+msgid "has privacy notice"
+msgstr "a un avis de confidentialité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasProhibition|rdfs:label"
+msgid "has prohibition"
+msgstr "a une interdiction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasRightsStatement|rdfs:label"
+msgid "has rights statement"
+msgstr "a une déclaration de droits"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasTrademark|rdfs:label"
+msgid "has trademark"
+msgstr "a une marque déposée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/isAccessibleForFree|rdfs:label"
+msgid "is accessible for free"
+msgstr "est accessible gratuitement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/isOsiApproved|rdfs:label"
+msgid "is OSI approved"
+msgstr "est approuvée par l'OSI"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpAbsolutePosition|rdfs:label"
+msgid "absolute position"
+msgstr "position absolue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpAbsoluteSize|rdfs:label"
+msgid "absolute size"
+msgstr "taille absolue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpAbsoluteSpatialPosition|rdfs:label"
+msgid "absolute spatial position"
+msgstr "position spatiale absolue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpAbsoluteTemporalPosition|rdfs:label"
+msgid "absolute temporal position"
+msgstr "position temporelle absolue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpCount|rdfs:label"
+msgid "use count"
+msgstr "nombre d'utilisations"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpDateTime|rdfs:label"
+msgid "date/time"
+msgstr "date/heure"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpDelayPeriod|rdfs:label"
+msgid "delay period"
+msgstr "période de délai"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpDeliveryChannel|rdfs:label"
+msgid "delivery channel"
+msgstr "canal de livraison"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpDevice|rdfs:label"
+msgid "device"
+msgstr "appareil"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpElapsedTime|rdfs:label"
+msgid "elapsed time"
+msgstr "temps écoulé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpEvent|rdfs:label"
+msgid "event"
+msgstr "événement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpFileFormat|rdfs:label"
+msgid "file format"
+msgstr "format de fichier"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpIndustry|rdfs:label"
+msgid "industry"
+msgstr "secteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpLanguage|rdfs:label"
+msgid "language"
+msgstr "langue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpMedia|rdfs:label"
+msgid "media context"
+msgstr "contexte média"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpMeteredTime|rdfs:label"
+msgid "metered time"
+msgstr "temps mesuré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpPayAmount|rdfs:label"
+msgid "pay amount"
+msgstr "montant à payer"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpPercentage|rdfs:label"
+msgid "percentage"
+msgstr "pourcentage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpProduct|rdfs:label"
+msgid "product context"
+msgstr "contexte produit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpPurpose|rdfs:label"
+msgid "purpose"
+msgstr "finalité"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpRecipient|rdfs:label"
+msgid "recipient"
+msgstr "destinataire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpRelativePosition|rdfs:label"
+msgid "relative position"
+msgstr "position relative"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpRelativeSize|rdfs:label"
+msgid "relative size"
+msgstr "taille relative"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpRelativeSpatialPosition|rdfs:label"
+msgid "relative spatial position"
+msgstr "position spatiale relative"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpRelativeTemporalPosition|rdfs:label"
+msgid "relative temporal position"
+msgstr "position temporelle relative"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpResolution|rdfs:label"
+msgid "rendition resolution"
+msgstr "résolution de rendu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpSpatial|rdfs:label"
+msgid "spatial region"
+msgstr "région spatiale"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpSpatialCoordinates|rdfs:label"
+msgid "spatial coordinates"
+msgstr "coordonnées spatiales"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpSystem|rdfs:label"
+msgid "system"
+msgstr "système"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpSystemDevice|rdfs:label"
+msgid "system device"
+msgstr "appareil système"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpTimeInterval|rdfs:label"
+msgid "recurring time interval"
+msgstr "intervalle temporel récurrent"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpUnitOfCount|rdfs:label"
+msgid "unit of count"
+msgstr "unité de comptage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpVersion|rdfs:label"
+msgid "asset version"
+msgstr "version de l'actif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOpVirtualLocation|rdfs:label"
+msgid "virtual location"
+msgstr "emplacement virtuel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/leftOperand|rdfs:label"
+msgid "left operand"
+msgstr "opérande gauche"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseFamily|rdfs:label"
+msgid "license family"
+msgstr "famille de licence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseFamilyCC|rdfs:label"
+msgid "Creative Commons"
+msgstr "Creative Commons"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseFamilyCopyleft|rdfs:label"
+msgid "copyleft"
+msgstr "copyleft"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseFamilyDual|rdfs:label"
+msgid "dual-licensed"
+msgstr "double licence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseFamilyPermissive|rdfs:label"
+msgid "permissive"
+msgstr "permissive"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseFamilyProprietary|rdfs:label"
+msgid "proprietary"
+msgstr "propriétaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseFamilyPublicDomain|rdfs:label"
+msgid "public domain"
+msgstr "domaine public"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licenseText|rdfs:label"
+msgid "license text"
+msgstr "texte de licence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licensedWork|rdfs:label"
+msgid "licensed work"
+msgstr "œuvre sous licence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licensee|rdfs:label"
+msgid "licensee"
+msgstr "licencié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/licensor|rdfs:label"
+msgid "licensor"
+msgstr "concédant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logicAnd|rdfs:label"
+msgid "and (all)"
+msgstr "et (tous)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logicAndSequence|rdfs:label"
+msgid "and (ordered)"
+msgstr "et (ordonné)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logicConstraintMember|rdfs:label"
+msgid "logic constraint member"
+msgstr "membre de contrainte logique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logicOr|rdfs:label"
+msgid "or (any)"
+msgstr "ou (n'importe lequel)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/logicXone|rdfs:label"
+msgid "exactly one"
+msgstr "exactement un"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/markText|rdfs:label"
+msgid "mark text"
+msgstr "texte de marque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operatorEq|rdfs:label"
+msgid "equal to"
+msgstr "égal à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operatorGt|rdfs:label"
+msgid "greater than"
+msgstr "supérieur à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operatorGteq|rdfs:label"
+msgid "greater than or equal to"
+msgstr "supérieur ou égal à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operatorHasPart|rdfs:label"
+msgid "has part"
+msgstr "a une partie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operatorIsA|rdfs:label"
+msgid "is a"
+msgstr "est un"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operatorIsAllOf|rdfs:label"
+msgid "is all of"
+msgstr "est tous les éléments de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operatorIsAnyOf|rdfs:label"
+msgid "is any of"
+msgstr "est l'un des éléments de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operatorIsNoneOf|rdfs:label"
+msgid "is none of"
+msgstr "n'est aucun des éléments de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operatorIsPartOf|rdfs:label"
+msgid "is part of"
+msgstr "fait partie de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operatorLt|rdfs:label"
+msgid "less than"
+msgstr "inférieur à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operatorLteq|rdfs:label"
+msgid "less than or equal to"
+msgstr "inférieur ou égal à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operatorNeq|rdfs:label"
+msgid "not equal to"
+msgstr "différent de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/registrationNumber|rdfs:label"
+msgid "registration number"
+msgstr "numéro d'enregistrement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightOperand|rdfs:label"
+msgid "right operand"
+msgstr "opérande droite"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightOperandReference|rdfs:label"
+msgid "right operand reference"
+msgstr "référence d'opérande droite"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightsType|rdfs:label"
+msgid "rights type"
+msgstr "type de droit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightsTypeCopyright|rdfs:label"
+msgid "copyright"
+msgstr "droit d'auteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightsTypeDatabaseRight|rdfs:label"
+msgid "database right"
+msgstr "droit de base de données"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightsTypeIndustrialDesign|rdfs:label"
+msgid "industrial design right"
+msgstr "droit de dessin ou modèle industriel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightsTypeMoralRights|rdfs:label"
+msgid "moral rights"
+msgstr "droits moraux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightsTypePatent|rdfs:label"
+msgid "patent"
+msgstr "brevet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightsTypePlantBreedersRights|rdfs:label"
+msgid "plant breeders' rights"
+msgstr "droits des obtenteurs végétaux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightsTypeRelatedRights|rdfs:label"
+msgid "related rights"
+msgstr "droits voisins"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightsTypeTradeSecret|rdfs:label"
+msgid "trade secret"
+msgstr "secret commercial"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rightsTypeTrademark|rdfs:label"
+msgid "trademark"
+msgstr "marque déposée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleAction|rdfs:label"
+msgid "rule action"
+msgstr "action de règle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleAssignee|rdfs:label"
+msgid "rule assignee"
+msgstr "bénéficiaire de règle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleConsequence|rdfs:label"
+msgid "rule consequence"
+msgstr "conséquence de règle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleConstraint|rdfs:label"
+msgid "rule constraint"
+msgstr "contrainte de règle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleTarget|rdfs:label"
+msgid "rule target"
+msgstr "cible de règle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/rights|rdfs:label"
+msgid "GMEOW Rights & IP Module"
+msgstr "Module GMEOW Droits et propriété intellectuelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spdxLicenseId|rdfs:label"
+msgid "SPDX license id"
+msgstr "identifiant de licence SPDX"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/spdxLicenseName|rdfs:label"
+msgid "SPDX license name"
+msgstr "nom de licence SPDX"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statementAbout|rdfs:label"
+msgid "statement about"
+msgstr "déclaration portant sur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkHolder|rdfs:label"
+msgid "trademark holder"
+msgstr "titulaire de marque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkMark|rdfs:label"
+msgid "trademark mark"
+msgstr "signe de marque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatus|rdfs:label"
+msgid "trademark status"
+msgstr "statut de marque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusCancelled|rdfs:label"
+msgid "cancelled"
+msgstr "annulée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusExpired|rdfs:label"
+msgid "expired"
+msgstr "expirée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusPending|rdfs:label"
+msgid "pending"
+msgstr "en attente"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusRegistered|rdfs:label"
+msgid "registered (®)"
+msgstr "enregistrée (®)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/trademarkStatusUnregistered|rdfs:label"
+msgid "unregistered (™)"
+msgstr "non enregistrée (™)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usageInfo|rdfs:label"
+msgid "usage info"
+msgstr "informations d'utilisation"
