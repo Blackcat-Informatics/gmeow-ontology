@@ -2024,6 +2024,56 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
         blank(&mut out);
     }
 
+    // ── Diagnostics you might hit (present only when a diagnostics digest is attached)
+    // Live counts + code list joined from `stage-validate` + `stage-compile-logic` (B1);
+    // a term with a genuine `by_term` entry lists each finding (deep-linked into the
+    // constraint catalog ONLY when a real `help_uri` resolved); an attached-but-empty
+    // digest renders the honest "no diagnostics" line rather than omitting the section —
+    // never conflated with the section being absent because no digest was attached at all.
+    if let Some(digest) = &model.diagnostics {
+        heading(&mut out, 2, model.ui("body_diagnostics_you_might_hit"));
+        match digest.by_term.get(&term.iri) {
+            Some(findings) if !findings.is_empty() => {
+                let mut by_severity: BTreeMap<&str, usize> = BTreeMap::new();
+                for finding in findings {
+                    *by_severity.entry(finding.severity.as_str()).or_default() += 1;
+                }
+                let counts = by_severity
+                    .iter()
+                    .map(|(severity, count)| format!("{count} {severity}"))
+                    .collect::<Vec<_>>()
+                    .join(" · ");
+                push_line(
+                    &mut out,
+                    &format!("- **{}:** {counts}", model.ui("body_label_severity")),
+                );
+                for finding in findings {
+                    let code_display = match &finding.help_uri {
+                        // The display text is md-escaped; the link *target* is the raw
+                        // URL (escaping a target corrupts the href).
+                        Some(uri) => format!("[`{}`]({uri})", code_escape(&finding.code)),
+                        None => format!("`{}`", code_escape(&finding.code)),
+                    };
+                    push_line(
+                        &mut out,
+                        &format!(
+                            "- {code_display} ({}): {}",
+                            md_escape(&finding.category),
+                            md_escape(&finding.message)
+                        ),
+                    );
+                }
+            }
+            _ => {
+                push_line(
+                    &mut out,
+                    &format!("- {}", model.ui("body_diagnostics_none")),
+                );
+            }
+        }
+        blank(&mut out);
+    }
+
     // ── Documentation coverage (always present) ──────────────────────────────────
     // The six richness dimensions this term carries, read from the shared coverage
     // source — exactly the predicates behind the `docs/missing-*` lint, so the page
@@ -5328,6 +5378,7 @@ mod tests {
             translations,
             ui_catalog: crate::i18n::UiCatalog::default(),
             reasoning: None,
+            diagnostics: None,
             lang: String::new(),
         }
     }

@@ -554,6 +554,14 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_definition", "Definition"),
     ("body_dependency_graph", "Dependency graph"),
     ("body_derivation_graph", "Derivation graph"),
+    (
+        "body_diagnostics_none",
+        "No diagnostics recorded against this term in the current build.",
+    ),
+    (
+        "body_diagnostics_you_might_hit",
+        "Diagnostics you might hit",
+    ),
     ("body_documentation_coverage", "Documentation coverage"),
     ("body_documentation_health", "Documentation health"),
     ("body_domain", "Domain"),
@@ -979,9 +987,9 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 127 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 129 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 187);
+        assert_eq!(UI_TEMPLATES.len(), 189);
     }
 
     #[test]

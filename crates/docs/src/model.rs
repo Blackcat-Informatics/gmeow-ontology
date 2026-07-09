@@ -1042,6 +1042,17 @@ pub struct DocsModel {
     /// `#[serde(skip)]` so the source-model JSON golden is unaffected.
     #[serde(skip)]
     pub reasoning: Option<ReasoningVerdict>,
+    /// The diagnostics→term join, attached AFTER source discovery by the production
+    /// build from the already-materialized `stage-validate` + `stage-compile-logic`
+    /// products (never a re-run of SHACL or the logic compiler — reason/validate-once).
+    /// `None` in source-only contexts (unit tests, a bare `discover`): the per-term
+    /// "Diagnostics you might hit" section and any `gmeow:doc*` diagnostics projection
+    /// render ONLY when a digest is attached, so an unevaluated model never fabricates a
+    /// "no diagnostics" claim. The production path attaches it (or hard-fails on a
+    /// missing declared upstream product), never silently skips it. `#[serde(skip)]` so
+    /// the source-model JSON golden is unaffected.
+    #[serde(skip)]
+    pub diagnostics: Option<DiagnosticsDigest>,
 }
 
 /// The native reasoner's consistency verdict, attached to a [`DocsModel`] by the
@@ -1096,12 +1107,69 @@ pub struct ConstraintRule {
     pub formalizes: Option<String>,
 }
 
+/// One diagnostic (`gmeow_errors::DiagNode`) projected for docs rendering: the
+/// display-ready severity/category, the first observation's human message (a
+/// `DiagNode` carries no dedicated `message` field — the message lives on its
+/// first [`Observation`](gmeow_errors::Observation)), the primary attribution's
+/// slice IRI when one is recorded, and a `help_uri` ONLY when the finding's
+/// `code` genuinely resolves against the constraint catalog
+/// (`DocsModel::constraint_rules`) — never a fabricated link.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DocDiagFinding {
+    /// The stable diagnostic code (`DiagNode::code`, e.g. `shacl.MinCountConstraintComponent`
+    /// or `logic-compile.UNKNOWN_PROFILE`).
+    pub code: String,
+    /// The display spelling of `DiagNode::grade.severity` (`Severity::as_str()`).
+    pub severity: String,
+    /// The display spelling of `DiagNode::grade.category` (`FindingCategory::as_str()`).
+    pub category: String,
+    /// The human message: the first observation's `message`, when the node carries
+    /// one, else the code itself (a `DiagNode` always carries at least one
+    /// observation in practice, but the fallback keeps this a total function).
+    pub message: String,
+    /// The primary (first) attribution's slice IRI, when the node carries one.
+    pub slice_iri: Option<String>,
+    /// The constraint-catalog rule's absolute help URI, resolved by exact `code`
+    /// match against `DocsModel::constraint_rules`. `None` when no rule shares this
+    /// exact code (an honest absence — never a fabricated deep link).
+    pub help_uri: Option<String>,
+}
+
+/// The diagnostics→term join folded from the `stage-validate` + `stage-compile-logic`
+/// products' `diagnostics:nodes` blobs — the carrier-lane digest attached to a
+/// [`DocsModel`] AFTER source discovery (never a re-run of SHACL or the logic
+/// compiler). Keys on the diagnostic's `source_ctx.location.logical` string (the
+/// SHACL focus-node bare IRI / the logic-compile diagnostic `subject`), matched by
+/// EXACT string equality against a known [`DocTerm::iri`] — a diagnostic whose
+/// location doesn't name a known term simply has no `by_term` entry (honest, not a
+/// bug). `by_slice` is keyed on every recorded [`DiagnosticAttribution::slice_iri`](
+/// gmeow_errors::DiagnosticAttribution) instead — a coarser, always-available join.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct DiagnosticsDigest {
+    /// Findings keyed by the exact term IRI their location names (sorted keys; each
+    /// finding list is in stable, deterministic node order).
+    pub by_term: BTreeMap<String, Vec<DocDiagFinding>>,
+    /// Findings keyed by every attributed slice IRI (sorted keys; each finding list
+    /// is in stable, deterministic node order).
+    pub by_slice: BTreeMap<String, Vec<DocDiagFinding>>,
+    /// The total number of diagnostic nodes folded from both upstream products
+    /// (before any term/slice join — the raw union count).
+    pub total: usize,
+}
+
 impl DocsModel {
     /// Attach the native reasoner's consistency verdict to this model (the
     /// production build's post-discovery step). Idempotent: overwrites any prior
     /// verdict.
     pub fn attach_reasoning(&mut self, verdict: ReasoningVerdict) {
         self.reasoning = Some(verdict);
+    }
+
+    /// Attach the diagnostics→term join digest to this model (the production
+    /// build's post-discovery step, mirroring [`attach_reasoning`](Self::attach_reasoning)).
+    /// Idempotent: overwrites any prior digest.
+    pub fn attach_diagnostics(&mut self, digest: DiagnosticsDigest) {
+        self.diagnostics = Some(digest);
     }
 
     /// Resolve a UI-chrome string for `key` in this model's target [`lang`], using
@@ -1510,6 +1578,7 @@ impl DocsModel {
             translations,
             ui_catalog: UiCatalog::default(),
             reasoning: None,
+            diagnostics: None,
             lang: String::new(),
         }
     }
