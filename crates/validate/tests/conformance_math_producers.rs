@@ -51,6 +51,16 @@ fn producer_violations(turtle: &str) -> Vec<String> {
         .collect()
 }
 
+// Each producer graph is validated against the LIVE whole-ontology-union SHACL corpus
+// (`validate_with_ontology` merges the full base ontology with `whole_shapes()`). That is
+// genuinely-irreducible whole-ontology conformance (~20 s each), so — exactly like the
+// `conformance_{finance,agentic,ai_claims,music_analysis}` domain conformance binaries —
+// this binary is carved out of the per-commit `default-filter` in `.config/nextest.toml`
+// and runs on the `maint-heavy` profile. The five producers' pinned falsifiable values
+// stay enforced ON the per-commit gate by `crates/pipeline/tests/math_flagship_discharge.rs`,
+// which RUNS every producer and asserts its output; this binary is the extra cross-crate
+// proof that the producer output also validates clean against the real shape corpus.
+
 #[test]
 fn e8_weyl_order_graph_validates_clean() {
     let v = producer_violations(&e8_weyl_order().turtle);
