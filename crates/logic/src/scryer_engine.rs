@@ -85,6 +85,12 @@ const INFERENCE_LIMIT_EXCEEDED: &str = "inference_limit_exceeded";
 /// computed list lengths/indices read back identically to a materialized literal.
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 
+/// Wrap a Scryer-engine condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn engine_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Engine { detail })
+}
+
 /// Serialises every Scryer machine's lifetime (`build` → `run_query` → `Drop`).
 ///
 /// Required because `scryer-prolog` maintains process-global mutable state (the atom
@@ -130,7 +136,7 @@ pub fn run_scryer(
     program: &QProgram,
     table_preds: &[String],
     budget: &Budget,
-) -> Result<AnswerSet, String> {
+) -> gmeow_errors::Result<AnswerSet> {
     // Serialise Scryer's process-global state for the full machine lifetime. Declared
     // first so it is dropped last — the guard is still held while `machine` is dropped
     // below (Scryer's `Drop` also touches the global atom table). A poisoned lock means
@@ -163,7 +169,7 @@ pub fn run_scryer(
             match query_state.next() {
                 None => break,
                 Some(Err(term)) => {
-                    return Err(format!("scryer resolution error: {term:?}"));
+                    return Err(engine_err(format!("scryer resolution error: {term:?}")));
                 }
                 Some(Ok(leaf)) => match leaf {
                     LeafAnswer::False => break,
@@ -172,7 +178,7 @@ pub fn run_scryer(
                         bindings.push(BTreeMap::new());
                     }
                     LeafAnswer::Exception(term) => {
-                        return Err(format!("scryer uncaught exception: {term:?}"));
+                        return Err(engine_err(format!("scryer uncaught exception: {term:?}")));
                     }
                     LeafAnswer::LeafAnswer { bindings: pl, .. } => {
                         // Inference-limit backstop: a solution whose result variable is
@@ -199,10 +205,10 @@ pub fn run_scryer(
                                     // Unbound goal variable — omit (matches the oracle).
                                 }
                                 Some(other) => {
-                                    return Err(format!(
+                                    return Err(engine_err(format!(
                                         "scryer answer binding for {v:?} has unexpected \
                                          shape {other:?} (expected a quoted-IRI atom)"
-                                    ));
+                                    )));
                                 }
                             }
                         }
@@ -244,7 +250,7 @@ fn build_module(
     world: &str,
     program: &QProgram,
     table_preds: &[String],
-) -> Result<String, String> {
+) -> gmeow_errors::Result<String> {
     let mut out = String::new();
     out.push_str(":- use_module(library(tabling)).\n");
     out.push_str(":- use_module(library(iso_ext)).\n");
@@ -366,9 +372,9 @@ fn serialize_builtin(b: &QBuiltin) -> String {
 
 /// Build the `run_query` string: the goal conjunction wrapped in
 /// `call_with_inference_limit/3` so the engine cannot hang.
-fn build_goal_query(goal: &QGoal, budget: &Budget) -> Result<String, String> {
+fn build_goal_query(goal: &QGoal, budget: &Budget) -> gmeow_errors::Result<String> {
     if goal.atoms.is_empty() {
-        return Err("query has an empty goal".to_owned());
+        return Err(engine_err("query has an empty goal".to_owned()));
     }
     let conj: Vec<String> = goal.atoms.iter().map(serialize_atom).collect();
     let limit = budget.max_steps.unwrap_or(DEFAULT_INFERENCE_LIMIT);
@@ -385,8 +391,8 @@ fn build_goal_query(goal: &QGoal, budget: &Budget) -> Result<String, String> {
 
 /// Canonical string for a native object/subject term, identical to the oracle's
 /// `Const` form: `<iri>` for IRIs, n3 form for literals.
-fn canonical(term: &TermValue) -> Result<String, String> {
-    term_n3(term).map_err(|e| format!("cannot canonicalize EDB term: {e}"))
+fn canonical(term: &TermValue) -> gmeow_errors::Result<String> {
+    term_n3(term).map_err(|e| engine_err(format!("cannot canonicalize EDB term: {e}")))
 }
 
 /// Wrap `s` as a Prolog single-quoted atom, escaping `\\` and `'`.

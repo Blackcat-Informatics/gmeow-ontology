@@ -22,9 +22,18 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
+use gmeow_errors::{Diag, Result};
 use purrdf::gts::model::{Graph, Term, TermKind};
 
 pub mod producers;
+
+mod error;
+use error::{
+    ArithmeticOverflow, BadCosine, DecimalParse, DegenerateScale, EmptySpace, GraphRead,
+    IndexOutOfRange, MissingProperty, NegativeSqrt, NoCells, NonSquareGram, NotPositiveDefinite,
+    RationalDomain, ZeroVector,
+};
+pub use error::{MATH_DIAG_CODES, register_all};
 
 const MATH: &str = "https://blackcatinformatics.ca/math/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -47,12 +56,18 @@ pub const MAX_BASIS_DIM: usize = 256;
 /// `usize::try_from` rejects negative indices, and the explicit bound rejects
 /// any index at or above [`MAX_BASIS_DIM`], so the dimension derived from these
 /// indices can never exceed the supported cap.
-pub fn bounded_index(value: i128, what: &str) -> Result<usize, String> {
-    let idx = usize::try_from(value).map_err(|_| format!("{what} index out of range: {value}"))?;
+pub fn bounded_index(value: i128, what: &str) -> Result<usize> {
+    let idx = usize::try_from(value).map_err(|_| {
+        Diag::of_kind(IndexOutOfRange {
+            detail: format!("{what} index out of range: {value}"),
+        })
+    })?;
     if idx >= MAX_BASIS_DIM {
-        return Err(format!(
-            "{what} index {idx} exceeds the maximum supported basis dimension {MAX_BASIS_DIM}"
-        ));
+        return Err(Diag::of_kind(IndexOutOfRange {
+            detail: format!(
+                "{what} index {idx} exceeds the maximum supported basis dimension {MAX_BASIS_DIM}"
+            ),
+        }));
     }
     Ok(idx)
 }
@@ -88,12 +103,16 @@ pub struct Rational {
 impl Rational {
     /// Construct a normalized rational. Denominator zero, or an `i128::MIN`
     /// component (whose `abs` would overflow), is a hard fail.
-    pub fn new(numerator: i128, denominator: i128) -> Result<Self, String> {
+    pub fn new(numerator: i128, denominator: i128) -> Result<Self> {
         if denominator == 0 {
-            return Err("rational denominator must not be zero".to_string());
+            return Err(Diag::of_kind(RationalDomain {
+                detail: "rational denominator must not be zero".to_string(),
+            }));
         }
         if numerator == i128::MIN || denominator == i128::MIN {
-            return Err("rational components must not be i128::MIN".to_string());
+            return Err(Diag::of_kind(RationalDomain {
+                detail: "rational components must not be i128::MIN".to_string(),
+            }));
         }
         let sign = if denominator < 0 { -1 } else { 1 };
         let g = gcd_i128(numerator, denominator);
@@ -104,7 +123,7 @@ impl Rational {
     }
 
     /// The rational `value / 1`.
-    pub fn from_i128(value: i128) -> Result<Self, String> {
+    pub fn from_i128(value: i128) -> Result<Self> {
         Self::new(value, 1)
     }
 
@@ -144,12 +163,16 @@ impl Rational {
         self.numerator <= 0
     }
 
-    fn checked(op: &str, value: Option<i128>) -> Result<i128, String> {
-        value.ok_or_else(|| format!("i128 overflow in rational {op}"))
+    fn checked(op: &str, value: Option<i128>) -> Result<i128> {
+        value.ok_or_else(|| {
+            Diag::of_kind(ArithmeticOverflow {
+                detail: format!("i128 overflow in rational {op}"),
+            })
+        })
     }
 
     /// Exact checked addition; hard-fails on overflow.
-    pub fn checked_add(self, other: Self) -> Result<Self, String> {
+    pub fn checked_add(self, other: Self) -> Result<Self> {
         let left = Self::checked("add", self.numerator.checked_mul(other.denominator))?;
         let right = Self::checked("add", other.numerator.checked_mul(self.denominator))?;
         let num = Self::checked("add", left.checked_add(right))?;
@@ -158,7 +181,7 @@ impl Rational {
     }
 
     /// Exact checked subtraction; hard-fails on overflow.
-    pub fn checked_sub(self, other: Self) -> Result<Self, String> {
+    pub fn checked_sub(self, other: Self) -> Result<Self> {
         let left = Self::checked("sub", self.numerator.checked_mul(other.denominator))?;
         let right = Self::checked("sub", other.numerator.checked_mul(self.denominator))?;
         let num = Self::checked("sub", left.checked_sub(right))?;
@@ -167,16 +190,18 @@ impl Rational {
     }
 
     /// Exact checked multiplication; hard-fails on overflow.
-    pub fn checked_mul(self, other: Self) -> Result<Self, String> {
+    pub fn checked_mul(self, other: Self) -> Result<Self> {
         let num = Self::checked("mul", self.numerator.checked_mul(other.numerator))?;
         let den = Self::checked("mul", self.denominator.checked_mul(other.denominator))?;
         Self::new(num, den)
     }
 
     /// Exact checked division; hard-fails on overflow or division by zero.
-    pub fn checked_div(self, other: Self) -> Result<Self, String> {
+    pub fn checked_div(self, other: Self) -> Result<Self> {
         if other.is_zero() {
-            return Err("rational division by zero".to_string());
+            return Err(Diag::of_kind(RationalDomain {
+                detail: "rational division by zero".to_string(),
+            }));
         }
         self.checked_mul(Self {
             numerator: other.denominator,
@@ -195,10 +220,12 @@ impl Rational {
 
     /// Parse an `xsd:decimal`/`xsd:integer` lexical form into an EXACT rational
     /// (decimals are exact rationals: `"0.7"` → `7/10`). No exponent form.
-    pub fn parse_decimal(text: &str) -> Result<Self, String> {
+    pub fn parse_decimal(text: &str) -> Result<Self> {
         let text = text.trim();
         if text.is_empty() {
-            return Err("empty decimal literal".to_string());
+            return Err(Diag::of_kind(DecimalParse {
+                detail: "empty decimal literal".to_string(),
+            }));
         }
         let (sign, body) = match text.strip_prefix('-') {
             Some(rest) => (-1_i128, rest),
@@ -212,12 +239,16 @@ impl Rational {
         if !int_part.bytes().all(|b| b.is_ascii_digit())
             || !frac_part.bytes().all(|b| b.is_ascii_digit())
         {
-            return Err(format!("not a decimal literal: {text:?}"));
+            return Err(Diag::of_kind(DecimalParse {
+                detail: format!("not a decimal literal: {text:?}"),
+            }));
         }
         let digits = format!("{int_part}{frac_part}");
-        let numerator: i128 = digits
-            .parse()
-            .map_err(|_| format!("decimal literal out of i128 range: {text:?}"))?;
+        let numerator: i128 = digits.parse().map_err(|_| {
+            Diag::of_kind(DecimalParse {
+                detail: format!("decimal literal out of i128 range: {text:?}"),
+            })
+        })?;
         let mut denominator: i128 = 1;
         for _ in 0..frac_part.len() {
             denominator = Self::checked("parse", denominator.checked_mul(10))?;
@@ -270,29 +301,32 @@ fn isqrt_u128(value: u128) -> u128 {
     }
 }
 
-fn pow10_i128(exp: u32) -> Result<i128, String> {
+fn pow10_i128(exp: u32) -> Result<i128> {
     let mut acc: i128 = 1;
     for _ in 0..exp {
-        acc = acc
-            .checked_mul(10)
-            .ok_or_else(|| "i128 overflow computing power of ten".to_string())?;
+        acc = acc.checked_mul(10).ok_or_else(|| {
+            Diag::of_kind(ArithmeticOverflow {
+                detail: "i128 overflow computing power of ten".to_string(),
+            })
+        })?;
     }
     Ok(acc)
 }
 
 /// Deterministic `√q` as a fixed-precision decimal string with [`SQRT_DECIMALS`]
 /// fractional digits (round-half-up at the seventh digit). `q` must be `>= 0`.
-pub fn sqrt_rational_decimal(q: Rational) -> Result<String, String> {
+pub fn sqrt_rational_decimal(q: Rational) -> Result<String> {
     if q.numerator < 0 {
-        return Err("cannot take the square root of a negative quadratic form".to_string());
+        return Err(Diag::of_kind(NegativeSqrt {}));
     }
     let k = SQRT_DECIMALS;
     // scaled = floor(q * 10^(2*(k+1))); isqrt(scaled) = floor(√q * 10^(k+1)).
     let scale = pow10_i128(2 * (k + 1))?;
-    let numerator = q
-        .numerator
-        .checked_mul(scale)
-        .ok_or_else(|| "i128 overflow scaling quadratic form for sqrt".to_string())?;
+    let numerator = q.numerator.checked_mul(scale).ok_or_else(|| {
+        Diag::of_kind(ArithmeticOverflow {
+            detail: "i128 overflow scaling quadratic form for sqrt".to_string(),
+        })
+    })?;
     let scaled = numerator / q.denominator; // floor; both operands >= 0
     let root = isqrt_u128(scaled as u128); // floor(√q * 10^(k+1))
     let rounded = (root + 5) / 10; // round-half-up to k digits
@@ -308,7 +342,7 @@ pub fn sqrt_rational_decimal(q: Rational) -> Result<String, String> {
 /// A rational as a trimmed decimal with up to [`SQRT_DECIMALS`] fractional
 /// digits (round-half-up), trailing zeros stripped — the shared normalization
 /// formatter.
-fn format_decimal(value: Rational) -> Result<String, String> {
+fn format_decimal(value: Rational) -> Result<String> {
     let k = SQRT_DECIMALS;
     let sign = if value.numerator < 0 { "-" } else { "" };
     let num = value.numerator.unsigned_abs();
@@ -322,9 +356,11 @@ fn format_decimal(value: Rational) -> Result<String, String> {
     // Produce k fractional digits plus one guard digit for round-half-up.
     let mut digits: Vec<u8> = Vec::with_capacity((k + 1) as usize);
     for _ in 0..=k {
-        rem = rem
-            .checked_mul(10)
-            .ok_or_else(|| "u128 overflow formatting decimal".to_string())?;
+        rem = rem.checked_mul(10).ok_or_else(|| {
+            Diag::of_kind(ArithmeticOverflow {
+                detail: "u128 overflow formatting decimal".to_string(),
+            })
+        })?;
         digits.push((rem / den) as u8);
         rem %= den;
     }
@@ -377,10 +413,10 @@ impl InnerProductSpace {
     /// Wrap a square Gram matrix. Non-square is a hard fail. (Symmetry and
     /// positive-definiteness are the caller's contract; positive-definiteness is
     /// certified on demand by [`InnerProductSpace::ldlt_pivots`].)
-    pub fn new(gram: Vec<Vec<Rational>>) -> Result<Self, String> {
+    pub fn new(gram: Vec<Vec<Rational>>) -> Result<Self> {
         let n = gram.len();
         if gram.iter().any(|row| row.len() != n) {
-            return Err("Gram matrix must be square".to_string());
+            return Err(Diag::of_kind(NonSquareGram {}));
         }
         Ok(Self { gram })
     }
@@ -399,7 +435,7 @@ impl InnerProductSpace {
     }
 
     /// `G·x`.
-    fn matvec(&self, x: &[Rational]) -> Result<Vec<Rational>, String> {
+    fn matvec(&self, x: &[Rational]) -> Result<Vec<Rational>> {
         let x = self.padded(x);
         let mut out = vec![Rational::zero(); self.dim()];
         for (i, row) in self.gram.iter().enumerate() {
@@ -413,7 +449,7 @@ impl InnerProductSpace {
     }
 
     /// The exact inner product `⟨x,y⟩ = xᵀGy`.
-    pub fn inner(&self, x: &[Rational], y: &[Rational]) -> Result<Rational, String> {
+    pub fn inner(&self, x: &[Rational], y: &[Rational]) -> Result<Rational> {
         let gy = self.matvec(y)?;
         let x = self.padded(x);
         let mut acc = Rational::zero();
@@ -424,34 +460,36 @@ impl InnerProductSpace {
     }
 
     /// The exact quadratic form `Q = xᵀGx = ⟨x,x⟩`.
-    pub fn quadratic_form(&self, x: &[Rational]) -> Result<Rational, String> {
+    pub fn quadratic_form(&self, x: &[Rational]) -> Result<Rational> {
         self.inner(x, x)
     }
 
     /// The norm `‖x‖_G = √(xᵀGx)`, as a fixed-precision decimal string.
-    pub fn norm(&self, x: &[Rational]) -> Result<String, String> {
+    pub fn norm(&self, x: &[Rational]) -> Result<String> {
         sqrt_rational_decimal(self.quadratic_form(x)?)
     }
 
     /// The distance `‖x − y‖_G`, as a fixed-precision decimal string.
-    pub fn distance(&self, x: &[Rational], y: &[Rational]) -> Result<String, String> {
+    pub fn distance(&self, x: &[Rational], y: &[Rational]) -> Result<String> {
         let x = self.padded(x);
         let y = self.padded(y);
         let diff = x
             .iter()
             .zip(y.iter())
             .map(|(xi, yi)| xi.checked_sub(*yi))
-            .collect::<Result<Vec<_>, _>>()?;
+            .collect::<Result<Vec<_>>>()?;
         self.norm(&diff)
     }
 
     /// The cosine of the angle `⟨x,y⟩ / (‖x‖·‖y‖)`, as a signed fixed-precision
     /// decimal string. A zero vector makes the angle undefined → hard fail.
-    pub fn cosine(&self, x: &[Rational], y: &[Rational]) -> Result<String, String> {
+    pub fn cosine(&self, x: &[Rational], y: &[Rational]) -> Result<String> {
         let qx = self.quadratic_form(x)?;
         let qy = self.quadratic_form(y)?;
         if qx.is_zero() || qy.is_zero() {
-            return Err("cosine is undefined for a zero vector".to_string());
+            return Err(Diag::of_kind(ZeroVector {
+                detail: "cosine is undefined for a zero vector".to_string(),
+            }));
         }
         let inner = self.inner(x, y)?;
         // cos = inner / √(qx·qy) = sign(inner) · √(inner² / (qx·qy)).
@@ -466,25 +504,27 @@ impl InnerProductSpace {
 
     /// The angle between `x` and `y` in radians. This is an output-edge float
     /// approximation (like the sqrt): `arccos` has no exact rational form.
-    pub fn angle(&self, x: &[Rational], y: &[Rational]) -> Result<f64, String> {
+    pub fn angle(&self, x: &[Rational], y: &[Rational]) -> Result<f64> {
         let cosine: f64 = self
             .cosine(x, y)?
             .parse()
-            .map_err(|_| "bad cosine".to_string())?;
+            .map_err(|_| Diag::of_kind(BadCosine {}))?;
         Ok(cosine.clamp(-1.0, 1.0).acos())
     }
 
     /// `true` iff `x ⟂ y` under `G` (`⟨x,y⟩` exactly zero).
-    pub fn is_orthogonal(&self, x: &[Rational], y: &[Rational]) -> Result<bool, String> {
+    pub fn is_orthogonal(&self, x: &[Rational], y: &[Rational]) -> Result<bool> {
         Ok(self.inner(x, y)?.is_zero())
     }
 
     /// The exact metric projection of `x` onto `onto`:
     /// `(⟨x,onto⟩ / ⟨onto,onto⟩) · onto`. A zero `onto` is a hard fail.
-    pub fn project(&self, x: &[Rational], onto: &[Rational]) -> Result<Vec<Rational>, String> {
+    pub fn project(&self, x: &[Rational], onto: &[Rational]) -> Result<Vec<Rational>> {
         let denom = self.quadratic_form(onto)?;
         if denom.is_zero() {
-            return Err("cannot project onto a zero vector".to_string());
+            return Err(Diag::of_kind(ZeroVector {
+                detail: "cannot project onto a zero vector".to_string(),
+            }));
         }
         let scale = self.inner(x, onto)?.checked_div(denom)?;
         self.padded(onto)
@@ -497,7 +537,7 @@ impl InnerProductSpace {
     /// Sylvester's criterion `G` is positive-definite iff every pivot is `> 0`.
     /// A non-positive pivot is a hard fail naming the offending index — the
     /// positive-definiteness certificate.
-    pub fn ldlt_pivots(&self) -> Result<Vec<Rational>, String> {
+    pub fn ldlt_pivots(&self) -> Result<Vec<Rational>> {
         let n = self.dim();
         let mut l = vec![vec![Rational::zero(); n]; n];
         let mut d = vec![Rational::zero(); n];
@@ -507,10 +547,12 @@ impl InnerProductSpace {
                 dj = dj.checked_sub(l[j][k].checked_mul(l[j][k])?.checked_mul(d[k])?)?;
             }
             if dj.is_non_positive() {
-                return Err(format!(
-                    "Gram matrix is not positive-definite: pivot {j} = {} is not > 0",
-                    dj.ratio_string()
-                ));
+                return Err(Diag::of_kind(NotPositiveDefinite {
+                    detail: format!(
+                        "Gram matrix is not positive-definite: pivot {j} = {} is not > 0",
+                        dj.ratio_string()
+                    ),
+                }));
             }
             d[j] = dj;
             l[j][j] = Rational::one();
@@ -528,9 +570,9 @@ impl InnerProductSpace {
     /// The metric-aware dominant axis: the index `i` maximizing its `G`-weighted
     /// contribution `xᵢ·(Gx)ᵢ` (NOT the raw largest component). Ties resolve to
     /// the lowest index. Requires a non-empty space.
-    pub fn dominant_axis(&self, x: &[Rational]) -> Result<usize, String> {
+    pub fn dominant_axis(&self, x: &[Rational]) -> Result<usize> {
         if self.dim() == 0 {
-            return Err("cannot pick a dominant axis of a zero-dimensional space".to_string());
+            return Err(Diag::of_kind(EmptySpace {}));
         }
         let x = self.padded(x);
         let gx = self.matvec(&x)?;
@@ -559,10 +601,10 @@ pub fn normalize_to_unit(
     value: &Rational,
     range_min: &Rational,
     range_max: &Rational,
-) -> Result<String, String> {
+) -> Result<String> {
     let span = range_max.checked_sub(*range_min)?;
     if span.is_zero() {
-        return Err("scale profile range is degenerate (min == max)".to_string());
+        return Err(Diag::of_kind(DegenerateScale {}));
     }
     format_decimal(value.checked_sub(*range_min)?.checked_div(span)?)
 }
@@ -633,16 +675,22 @@ pub fn index_graph(graph: &Graph) -> TripleIndex {
 /// read) so the resulting [`Graph`] is exactly the one the loaders walk when they
 /// read a shipped `.gts` bundle — the conformance consumers exercise the same
 /// read substrate as production, not a divergent parser.
-pub fn index_turtle(turtle: &[u8]) -> Result<TripleIndex, String> {
+pub fn index_turtle(turtle: &[u8]) -> Result<TripleIndex> {
     use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
     use purrdf::{NativeRdfFormat, parse_dataset};
 
-    let dataset = parse_dataset(turtle, NativeRdfFormat::Turtle.media_type(), None)
-        .map_err(|err| format!("cannot parse Turtle: {err}"))?;
+    let dataset =
+        parse_dataset(turtle, NativeRdfFormat::Turtle.media_type(), None).map_err(|err| {
+            Diag::of_kind(GraphRead {
+                detail: format!("cannot parse Turtle: {err}"),
+            })
+        })?;
     let mut builder = SnapshotBuilder::default();
-    builder
-        .add_dataset(&dataset)
-        .map_err(|err| format!("cannot snapshot dataset: {err}"))?;
+    builder.add_dataset(&dataset).map_err(|err| {
+        Diag::of_kind(GraphRead {
+            detail: format!("cannot snapshot dataset: {err}"),
+        })
+    })?;
     let gts = emit_gts(
         &builder,
         "dist",
@@ -654,7 +702,11 @@ pub fn index_turtle(turtle: &[u8]) -> Result<TripleIndex, String> {
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
     )
-    .map_err(|err| format!("cannot emit GTS: {err}"))?;
+    .map_err(|err| {
+        Diag::of_kind(GraphRead {
+            detail: format!("cannot emit GTS: {err}"),
+        })
+    })?;
     let graph = purrdf::gts::reader::read(&gts, false, None);
     Ok(index_graph(&graph))
 }
@@ -723,11 +775,17 @@ pub fn subjects(index: &TripleIndex) -> impl Iterator<Item = &String> {
 // Pure math: exact-rational graph loaders.
 // ---------------------------------------------------------------------------
 
-fn rational_value(index: &TripleIndex, value_iri: &str) -> Result<Rational, String> {
-    let num = first_i128(index, value_iri, &math("numerator"))
-        .ok_or_else(|| format!("rational value {value_iri} missing math:numerator"))?;
-    let den = first_i128(index, value_iri, &math("denominator"))
-        .ok_or_else(|| format!("rational value {value_iri} missing math:denominator"))?;
+fn rational_value(index: &TripleIndex, value_iri: &str) -> Result<Rational> {
+    let num = first_i128(index, value_iri, &math("numerator")).ok_or_else(|| {
+        Diag::of_kind(MissingProperty {
+            detail: format!("rational value {value_iri} missing math:numerator"),
+        })
+    })?;
+    let den = first_i128(index, value_iri, &math("denominator")).ok_or_else(|| {
+        Diag::of_kind(MissingProperty {
+            detail: format!("rational value {value_iri} missing math:denominator"),
+        })
+    })?;
     Rational::new(num, den)
 }
 
@@ -737,26 +795,32 @@ fn rational_value(index: &TripleIndex, value_iri: &str) -> Result<Rational, Stri
 /// (`math:numerator`/`math:denominator`). Returns `(row, col, value)` cells; the
 /// caller fills the (declared symmetric) dense matrix. Indices are bounded by
 /// [`bounded_index`], so a malformed index hard-fails before sizing a matrix.
-pub fn load_gram(
-    index: &TripleIndex,
-    gram_iri: &str,
-) -> Result<Vec<(usize, usize, Rational)>, String> {
+pub fn load_gram(index: &TripleIndex, gram_iri: &str) -> Result<Vec<(usize, usize, Rational)>> {
     let entries = all_iris(index, gram_iri, &math("hasEntry"));
     if entries.is_empty() {
-        return Err(format!(
-            "Gram matrix {gram_iri} declares no math:hasEntry cells"
-        ));
+        return Err(Diag::of_kind(NoCells {
+            detail: format!("Gram matrix {gram_iri} declares no math:hasEntry cells"),
+        }));
     }
     let mut cells = Vec::new();
     for entry in entries {
-        let row = first_i128(index, &entry, &math("atRow"))
-            .ok_or_else(|| format!("matrix entry {entry} missing math:atRow"))?;
-        let col = first_i128(index, &entry, &math("atColumn"))
-            .ok_or_else(|| format!("matrix entry {entry} missing math:atColumn"))?;
+        let row = first_i128(index, &entry, &math("atRow")).ok_or_else(|| {
+            Diag::of_kind(MissingProperty {
+                detail: format!("matrix entry {entry} missing math:atRow"),
+            })
+        })?;
+        let col = first_i128(index, &entry, &math("atColumn")).ok_or_else(|| {
+            Diag::of_kind(MissingProperty {
+                detail: format!("matrix entry {entry} missing math:atColumn"),
+            })
+        })?;
         let row = bounded_index(row, "matrix row")?;
         let col = bounded_index(col, "matrix column")?;
-        let value_iri = first_iri(index, &entry, &math("entryValue"))
-            .ok_or_else(|| format!("matrix entry {entry} missing math:entryValue"))?;
+        let value_iri = first_iri(index, &entry, &math("entryValue")).ok_or_else(|| {
+            Diag::of_kind(MissingProperty {
+                detail: format!("matrix entry {entry} missing math:entryValue"),
+            })
+        })?;
         cells.push((row, col, rational_value(index, &value_iri)?));
     }
     Ok(cells)
@@ -768,20 +832,26 @@ pub fn load_gram(
 /// (`math:numerator`/`math:denominator`). Returns a dense, zero-completed
 /// coordinate vector sized to the maximum declared index + 1. Indices are bounded
 /// by [`bounded_index`], so a malformed index hard-fails before sizing a vector.
-pub fn load_vector(index: &TripleIndex, vector_iri: &str) -> Result<Vec<Rational>, String> {
+pub fn load_vector(index: &TripleIndex, vector_iri: &str) -> Result<Vec<Rational>> {
     let components = all_iris(index, vector_iri, &math("hasComponent"));
     if components.is_empty() {
-        return Err(format!(
-            "vector {vector_iri} declares no math:hasComponent cells"
-        ));
+        return Err(Diag::of_kind(NoCells {
+            detail: format!("vector {vector_iri} declares no math:hasComponent cells"),
+        }));
     }
     let mut cells: Vec<(usize, Rational)> = Vec::new();
     for component in components {
-        let idx = first_i128(index, &component, &math("atIndex"))
-            .ok_or_else(|| format!("vector component {component} missing math:atIndex"))?;
+        let idx = first_i128(index, &component, &math("atIndex")).ok_or_else(|| {
+            Diag::of_kind(MissingProperty {
+                detail: format!("vector component {component} missing math:atIndex"),
+            })
+        })?;
         let idx = bounded_index(idx, "vector index")?;
-        let value_iri = first_iri(index, &component, &math("componentValue"))
-            .ok_or_else(|| format!("vector component {component} missing math:componentValue"))?;
+        let value_iri = first_iri(index, &component, &math("componentValue")).ok_or_else(|| {
+            Diag::of_kind(MissingProperty {
+                detail: format!("vector component {component} missing math:componentValue"),
+            })
+        })?;
         cells.push((idx, rational_value(index, &value_iri)?));
     }
     let dim = cells
@@ -789,7 +859,11 @@ pub fn load_vector(index: &TripleIndex, vector_iri: &str) -> Result<Vec<Rational
         .map(|(i, _)| *i)
         .max()
         .map(|m| m + 1)
-        .ok_or_else(|| format!("vector {vector_iri} has no components"))?;
+        .ok_or_else(|| {
+            Diag::of_kind(NoCells {
+                detail: format!("vector {vector_iri} has no components"),
+            })
+        })?;
     // Every index was bounded below MAX_BASIS_DIM, so the derived dimension is
     // bounded too; assert it before it sizes the vector.
     debug_assert!(dim <= MAX_BASIS_DIM, "derived dimension {dim} exceeds cap");
@@ -849,8 +923,8 @@ mod tests {
             InnerProductSpace::new(vec![vec![r(1, 1), r(2, 1)], vec![r(2, 1), r(1, 1)]]).unwrap();
         let err = indefinite.ldlt_pivots().unwrap_err();
         // Pivot 0 = 1 (> 0), pivot 1 = 1 − 4 = −3 (not > 0).
-        assert!(err.contains("pivot 1"), "{err}");
-        assert!(err.contains("-3"), "{err}");
+        assert!(err.message().contains("pivot 1"), "{err}");
+        assert!(err.message().contains("-3"), "{err}");
     }
 
     // Metric-aware dominant axis differs from the raw-max component.
@@ -904,11 +978,22 @@ mod tests {
 
         // Overflow: (i128::MAX/2) · 4 must hard-fail, never wrap.
         let big = r(i128::MAX / 2, 1);
-        assert!(big.checked_mul(r(4, 1)).unwrap_err().contains("overflow"));
+        assert!(
+            big.checked_mul(r(4, 1))
+                .unwrap_err()
+                .message()
+                .contains("overflow")
+        );
 
         // Zero-vector cosine is undefined → Err.
         let zero = [r(0, 1), r(0, 1)];
-        assert!(space.cosine(&x, &zero).unwrap_err().contains("zero vector"));
+        assert!(
+            space
+                .cosine(&x, &zero)
+                .unwrap_err()
+                .message()
+                .contains("zero vector")
+        );
     }
 
     // The Ord cross-multiply stays exact for the correlated-metric dominant-axis

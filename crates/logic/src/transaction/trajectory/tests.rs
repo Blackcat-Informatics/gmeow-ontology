@@ -202,7 +202,7 @@ fn unanchored_bound_toolcall_is_a_hard_fail() {
     nq += &q(&xe("effStore"), &le("ins"), &xe("sStored"));
 
     let err = emit_trajectory_audits(&facts_of(&nq), W).unwrap_err();
-    assert!(err.contains("no logic:properPartOf"), "{err}");
+    assert!(err.message().contains("no logic:properPartOf"), "{err}");
 }
 
 #[test]
@@ -226,7 +226,10 @@ fn anchor_without_transition_from_state_is_a_hard_fail() {
     // anchorNoState is referenced but has no logic:transitionFromState quad.
 
     let err = emit_trajectory_audits(&facts_of(&nq), W).unwrap_err();
-    assert!(err.contains("no logic:transitionFromState"), "{err}");
+    assert!(
+        err.message().contains("no logic:transitionFromState"),
+        "{err}"
+    );
 }
 
 /// A well-formed single-call trajectory with ONE extra copy of `pred → obj` on the call, so the
@@ -256,21 +259,24 @@ fn multi_valued_per_call_fields_are_hard_fails() {
     let frame = trajectory_with_extra_call_quad(&ge("eventTemporalFrame"), &ge("temporalFrameTAI"));
     let err = emit_trajectory_audits(&facts_of(&frame), W).unwrap_err();
     assert!(
-        err.contains("gmeow:eventTemporalFrame values (exactly one is required)"),
+        err.message()
+            .contains("gmeow:eventTemporalFrame values (exactly one is required)"),
         "{err}"
     );
 
     let at = trajectory_with_extra_call_quad(&ge("atTime"), &dt("2026-06-12T17:03:55Z"));
     let err = emit_trajectory_audits(&facts_of(&at), W).unwrap_err();
     assert!(
-        err.contains("gmeow:atTime values (exactly one is required)"),
+        err.message()
+            .contains("gmeow:atTime values (exactly one is required)"),
         "{err}"
     );
 
     let schema = trajectory_with_extra_call_quad(&le("instantiatesSchema"), &xe("schemaOther"));
     let err = emit_trajectory_audits(&facts_of(&schema), W).unwrap_err();
     assert!(
-        err.contains("logic:instantiatesSchema values (exactly one is required)"),
+        err.message()
+            .contains("logic:instantiatesSchema values (exactly one is required)"),
         "{err}"
     );
 }
@@ -281,7 +287,10 @@ fn mixed_temporal_frame_is_a_hard_fail() {
     // frames is incoherent, so the audit hard-fails rather than ordering silently.
     let nq = trajectory_world("sStored", "temporalFrameTAI");
     let err = emit_trajectory_audits(&facts_of(&nq), W).unwrap_err();
-    assert!(err.contains("mixes gmeow:eventTemporalFrame"), "{err}");
+    assert!(
+        err.message().contains("mixes gmeow:eventTemporalFrame"),
+        "{err}"
+    );
 }
 
 // ── Task 2 helpers: concurrency, goals, hypothetical replay ──────────────────────
@@ -453,7 +462,7 @@ fn plangoal_without_situation_is_a_hard_fail() {
     nq += &call_in("gtraj", "callDo", "schDo", "2026-06-12T17:00:00Z");
 
     let err = emit_trajectory_audits(&facts_of(&nq), W).unwrap_err();
-    assert!(err.contains("logic:planGoalSituation"), "{err}");
+    assert!(err.message().contains("logic:planGoalSituation"), "{err}");
 }
 
 #[test]
@@ -472,5 +481,5 @@ fn three_trajectories_sharing_a_start_is_a_hard_fail() {
     }
 
     let err = emit_trajectory_audits(&facts_of(&nq), W).unwrap_err();
-    assert!(err.contains("shared by 3 trajectories"), "{err}");
+    assert!(err.message().contains("shared by 3 trajectories"), "{err}");
 }

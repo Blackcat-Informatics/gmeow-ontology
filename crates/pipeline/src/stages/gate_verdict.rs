@@ -121,7 +121,7 @@ impl GateProgram {
         &self,
         finding_nq: &str,
         graph_iri: &str,
-    ) -> Result<String, String> {
+    ) -> gmeow_errors::Result<String> {
         let tuples = grade_tuples(finding_nq)?;
         if tuples.is_empty() {
             return Ok(String::new());
@@ -138,11 +138,16 @@ impl GateProgram {
             push_triple(&mut builder, f, &format!("{GMEOW_NS}findingCategory"), cat);
             push_triple(&mut builder, f, &format!("{GMEOW_NS}findingStandpoint"), sp);
         }
-        let edb = builder
-            .freeze()
-            .map_err(|e| format!("freeze gate-verdict EDB: {e}"))?;
-        let result = reason_program(&program, edb.as_ref())
-            .map_err(|e| format!("reason gate-verdict rule: {e}"))?;
+        let edb = builder.freeze().map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+                message: format!("freeze gate-verdict EDB: {e}"),
+            })
+        })?;
+        let result = reason_program(&program, edb.as_ref()).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+                message: format!("reason gate-verdict rule: {e}"),
+            })
+        })?;
 
         // A derived row's IRI object renders in N-Triples display form (`<IRI>`); the
         // subject is the bare IRI. Emit one canonical N-Quad line per derived verdict,
@@ -188,9 +193,10 @@ fn push_triple(builder: &mut RdfDatasetBuilder, s: &str, p: &str, o: &str) {
 /// Extract every `(finding, severity, category, standpoint)` grade tuple SPARQL sees in
 /// the projected diagnostics graph — the exact three coordinates the up-set rule reads.
 /// Findings ride a named graph (`graph/diagnostics`), so the pattern is world-scoped.
-fn grade_tuples(nq: &str) -> Result<Vec<(String, String, String, String)>, String> {
+fn grade_tuples(nq: &str) -> gmeow_errors::Result<Vec<(String, String, String, String)>> {
+    let sb = |message: String| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message });
     let dataset = dataset_from_bytes(nq.as_bytes(), NativeRdfFormat::NQuads)
-        .map_err(|e| format!("parse diagnostics N-Quads: {e}"))?;
+        .map_err(|e| sb(format!("parse diagnostics N-Quads: {e}")))?;
     let engine = NativeSparqlEngine::new();
     let q = format!(
         "SELECT ?f ?sev ?cat ?sp WHERE {{ GRAPH ?g {{ \
@@ -207,26 +213,27 @@ fn grade_tuples(nq: &str) -> Result<Vec<(String, String, String, String)>, Strin
                 substitutions: &[],
             },
         )
-        .map_err(|e| format!("grade-tuple query: {e}"))?;
+        .map_err(|e| sb(format!("grade-tuple query: {e}")))?;
     let (variables, rows) = match result {
         SparqlResult::Solutions {
             variables, rows, ..
         } => (variables, rows),
-        _ => return Err("grade-tuple query must be a SELECT".to_owned()),
+        _ => return Err(sb("grade-tuple query must be a SELECT".to_owned())),
     };
     let col = |n: &str| {
         variables
             .iter()
             .position(|v| v == n)
-            .ok_or_else(|| format!("grade-tuple query missing column {n}"))
+            .ok_or_else(|| sb(format!("grade-tuple query missing column {n}")))
     };
     let (fi, si, ci, pi) = (col("f")?, col("sev")?, col("cat")?, col("sp")?);
-    let bound_iri = |sol: &[Option<TermValue>], idx: usize, name: &str| -> Result<String, String> {
-        sol.get(idx)
-            .and_then(|t| t.as_ref())
-            .and_then(iri_of)
-            .ok_or_else(|| format!("grade term ?{name} must be a bound IRI"))
-    };
+    let bound_iri =
+        |sol: &[Option<TermValue>], idx: usize, name: &str| -> gmeow_errors::Result<String> {
+            sol.get(idx)
+                .and_then(|t| t.as_ref())
+                .and_then(iri_of)
+                .ok_or_else(|| sb(format!("grade term ?{name} must be a bound IRI")))
+        };
     let mut out = Vec::with_capacity(rows.len());
     for sol in &rows {
         out.push((

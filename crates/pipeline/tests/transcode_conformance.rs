@@ -24,9 +24,17 @@
 
 use std::path::{Path, PathBuf};
 
+use gmeow_errors::Diag;
+use gmeow_pipeline::error::Transform;
 use gmeow_pipeline::stages::yaml_ld::{parse_jsonld_star, yaml_ld_star_to_json};
 use gmeow_pipeline::transcode::{Codec, realized_loss_json, transcode};
 use purrdf::NativeRdfFormat;
+
+/// A canonicalization-comparison defect the corpus harness surfaces as a `Transform`
+/// diagnostic (the comparison message rides its typed value, joinable off the substrate).
+fn transform(message: String) -> Diag {
+    Diag::of_kind(Transform { message })
+}
 
 // ── Minimum corpus size guard ──────────────────────────────────────────────────
 
@@ -45,14 +53,14 @@ struct Profile {
 
 // ── RDF canonicalization (mirrors crates/conformance/src/compare.rs) ──────────
 
-fn canonical_quads(bytes: &[u8], fmt: NativeRdfFormat) -> Result<Vec<String>, String> {
+fn canonical_quads(bytes: &[u8], fmt: NativeRdfFormat) -> gmeow_errors::Result<Vec<String>> {
     // Native text ingress + native full RDFC-1.0: parse into the IR and
     // canonicalize via the flattened path (`canonical_flat_nquads`), byte-identical to
     // the prior oxigraph parse + `canonicalize_quads`.
     let dataset = purrdf::parse_dataset(bytes, fmt.media_type(), None)
-        .map_err(|e| format!("RDF parse error: {e}"))?;
+        .map_err(|e| transform(format!("RDF parse error: {e}")))?;
     let canonical = purrdf::canonical_flat_nquads(&dataset)
-        .map_err(|e| format!("RDF canonicalization error: {e}"))?;
+        .map_err(|e| transform(format!("RDF canonicalization error: {e}")))?;
     let mut strings: Vec<String> = canonical.lines().map(str::to_owned).collect();
     strings.sort();
     Ok(strings)
@@ -66,24 +74,29 @@ fn canonical_quads(bytes: &[u8], fmt: NativeRdfFormat) -> Result<Vec<String>, St
 /// `parse_jsonld_star` (which
 /// understands the `@annotation` idiom emitted by the GMEOW serializer) and
 /// then canonicalize via purrdf.
-fn canonical_quads_star(bytes: &[u8], to_codec: &str) -> Result<Vec<String>, String> {
+fn canonical_quads_star(bytes: &[u8], to_codec: &str) -> gmeow_errors::Result<Vec<String>> {
     let json_bytes = match to_codec {
         "jsonld" | "json-ld" => bytes.to_vec(),
         "jsonld-star" | "json-ld-star" => bytes.to_vec(),
         "yaml-ld-star" | "yamlld-star" => {
-            let json_str =
-                yaml_ld_star_to_json(bytes).map_err(|e| format!("yaml-ld-star to json: {e}"))?;
+            let json_str = yaml_ld_star_to_json(bytes)
+                .map_err(|e| transform(format!("yaml-ld-star to json: {e}")))?;
             json_str.into_bytes()
         }
-        other => return Err(format!("canonical_quads_star: unknown codec {other:?}")),
+        other => {
+            return Err(transform(format!(
+                "canonical_quads_star: unknown codec {other:?}"
+            )));
+        }
     };
     // `parse_jsonld_star` returns the frozen native carrier (RDF 1.2 statement layer
     // already folded). `canonical_flat_nquads` un-folds it back to flat `rdf:reifies`
     // / annotation rows before RDFC-1.0 canonicalizing — byte-identical to the prior
     // oxigraph-quad canonicalize path.
-    let dataset = parse_jsonld_star(&json_bytes).map_err(|e| format!("parse jsonld-star: {e}"))?;
+    let dataset =
+        parse_jsonld_star(&json_bytes).map_err(|e| transform(format!("parse jsonld-star: {e}")))?;
     let canonical = purrdf::canonical_flat_nquads(&dataset)
-        .map_err(|e| format!("RDF canonicalization error: {e}"))?;
+        .map_err(|e| transform(format!("RDF canonicalization error: {e}")))?;
     let mut strings: Vec<String> = canonical.lines().map(str::to_owned).collect();
     strings.sort();
     Ok(strings)
@@ -102,7 +115,7 @@ fn rdf_format_for_codec(codec: &str) -> Option<NativeRdfFormat> {
     }
 }
 
-fn canonical_quads_for_codec(bytes: &[u8], codec: &str) -> Result<Vec<String>, String> {
+fn canonical_quads_for_codec(bytes: &[u8], codec: &str) -> gmeow_errors::Result<Vec<String>> {
     if let Some(fmt) = rdf_format_for_codec(codec) {
         canonical_quads(bytes, fmt)
     } else {

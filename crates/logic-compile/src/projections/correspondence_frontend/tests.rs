@@ -387,15 +387,15 @@ fn bridge_cell_surfacing_equivalence_fails_end_to_end() {
         Err(e) => e,
         Ok(_) => panic!("a BridgeView surfacing `=` must hard-fail the EDOAL lowering"),
     };
-    assert!(edoal_err.contains("bridge"), "{edoal_err}");
-    assert!(edoal_err.contains("Principle 5"), "{edoal_err}");
+    assert!(edoal_err.message().contains("bridge"), "{edoal_err}");
+    assert!(edoal_err.message().contains("Principle 5"), "{edoal_err}");
 
     let sparql_err = match lower_sparql(&dsl_view, &onto_view, &lookup) {
         Err(e) => e,
         Ok(_) => panic!("a BridgeView surfacing `=` must hard-fail the SPARQL lowering"),
     };
-    assert!(sparql_err.contains("bridge"), "{sparql_err}");
-    assert!(sparql_err.contains("Principle 5"), "{sparql_err}");
+    assert!(sparql_err.message().contains("bridge"), "{sparql_err}");
+    assert!(sparql_err.message().contains("Principle 5"), "{sparql_err}");
 
     // ── The control: the SAME cell as a plain (non-bridge) equivalence binding passes the
     // gate. We assert through the EDOAL lowering — it emits an alignment for every profile

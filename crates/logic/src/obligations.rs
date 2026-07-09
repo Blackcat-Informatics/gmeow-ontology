@@ -52,6 +52,12 @@ use gmeow_errors::{Finding, Severity};
 
 use crate::foundation;
 
+/// Wrap a governance-obligation condition message as a typed diagnostic on the
+/// shared substrate, preserving the authored text verbatim.
+fn obligation_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Obligation { detail })
+}
+
 /// The `logic:` namespace prefix (every governance term is `logic:`-namespaced).
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 
@@ -90,7 +96,7 @@ fn logic_local(iri: &str) -> &str {
 fn select(
     store: &Arc<RdfDataset>,
     sparql: &str,
-) -> Result<Vec<BTreeMap<String, TermValue>>, String> {
+) -> gmeow_errors::Result<Vec<BTreeMap<String, TermValue>>> {
     let engine = NativeSparqlEngine::new();
     let result = engine
         .query(
@@ -101,13 +107,15 @@ fn select(
                 substitutions: &[],
             },
         )
-        .map_err(|e| format!("governance query evaluation error: {e}"))?;
+        .map_err(|e| obligation_err(format!("governance query evaluation error: {e}")))?;
     let (variables, result_rows) = match result {
         SparqlResult::Solutions {
             variables, rows, ..
         } => (variables, rows),
         SparqlResult::Boolean(_) | SparqlResult::Graph(_) => {
-            return Err("governance query must be a SPARQL SELECT".to_owned());
+            return Err(obligation_err(
+                "governance query must be a SPARQL SELECT".to_owned(),
+            ));
         }
     };
     let mut rows = Vec::new();
@@ -138,7 +146,7 @@ fn term_value(term: &TermValue) -> String {
 }
 
 /// Lift every `logic:NonEntailmentObligation` from the store.
-fn parse_obligations(store: &Arc<RdfDataset>) -> Result<Vec<Obligation>, String> {
+fn parse_obligations(store: &Arc<RdfDataset>) -> gmeow_errors::Result<Vec<Obligation>> {
     let rows = select(
         store,
         "PREFIX logic: <https://blackcatinformatics.ca/logic/>
@@ -214,7 +222,7 @@ fn attribute_to_candidates(
 /// attribution.
 fn candidates_by_obligation(
     store: &Arc<RdfDataset>,
-) -> Result<BTreeMap<String, BTreeSet<String>>, String> {
+) -> gmeow_errors::Result<BTreeMap<String, BTreeSet<String>>> {
     let rows = select(
         store,
         "PREFIX logic: <https://blackcatinformatics.ca/logic/>
@@ -352,7 +360,7 @@ fn check_discharge_conditions(obligation: &Obligation) -> Vec<Finding> {
 pub fn check_non_entailment_obligations(
     store: &Arc<RdfDataset>,
     derived_predicates: &BTreeSet<String>,
-) -> Result<Vec<Finding>, String> {
+) -> gmeow_errors::Result<Vec<Finding>> {
     let obligations = parse_obligations(store)?;
     let heads = foundation::head_predicate_iris();
     let candidates_by_obligation = candidates_by_obligation(store)?;
@@ -408,7 +416,7 @@ const LIFECYCLE_STATES: &[&str] = &[
 /// # Errors
 ///
 /// Returns `Err` if a governance query fails to parse or evaluate.
-pub fn formalization_coverage(store: &Arc<RdfDataset>) -> Result<Vec<Finding>, String> {
+pub fn formalization_coverage(store: &Arc<RdfDataset>) -> gmeow_errors::Result<Vec<Finding>> {
     let valid_categories: BTreeSet<&str> = CATEGORIES.iter().copied().collect();
     let rows = select(
         store,
@@ -588,7 +596,9 @@ struct HarvestHash {
 /// # Errors
 ///
 /// Returns `Err` if the governance query fails to parse or evaluate.
-pub fn check_candidate_source_hash_drift(store: &Arc<RdfDataset>) -> Result<Vec<Finding>, String> {
+pub fn check_candidate_source_hash_drift(
+    store: &Arc<RdfDataset>,
+) -> gmeow_errors::Result<Vec<Finding>> {
     let rows = select(
         store,
         "PREFIX logic: <https://blackcatinformatics.ca/logic/>

@@ -11,9 +11,14 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
+use gmeow_errors::{Diag, Result};
 use purrdf::slice::{ArtifactRole, SliceCatalog};
 use regex::Regex;
 use sha1::{Digest, Sha1};
+
+use crate::error::{
+    CatalogInconsistent, FileIo, PoParse, RdfFormat, RdfParse, TurtleUnescape, UnsupportedSource,
+};
 
 const ENGLISH_TAG: &str = "x-gmeow-english";
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -94,13 +99,15 @@ struct RdfLiteralRow {
 
 /// Map a format token (name OR media type) to the native RDF media type the
 /// gmeow-gts codecs accept. Mirrors the historical `parse_format` discrimination.
-fn media_type_for_format(format: &str) -> Result<&'static str, String> {
+fn media_type_for_format(format: &str) -> Result<&'static str> {
     match format.to_ascii_lowercase().as_str() {
         "turtle" | "ttl" | "text/turtle" => Ok("text/turtle"),
         "ntriples" | "n-triples" | "nt" | "application/n-triples" => Ok("application/n-triples"),
         "nquads" | "n-quads" | "nq" | "application/n-quads" => Ok("application/n-quads"),
         "trig" | "application/trig" => Ok("application/trig"),
-        other => Err(format!("unsupported RDF format: {other}")),
+        other => Err(Diag::of_kind(RdfFormat {
+            detail: format!("unsupported RDF format: {other}"),
+        })),
     }
 }
 
@@ -108,12 +115,15 @@ fn media_type_for_format(format: &str) -> Result<&'static str, String> {
 /// predicate, literal lexical, language)` row — the oxigraph-free twin of the old
 /// `parse_rdf_literals`. Only literal objects on named subjects are surfaced (the
 /// i18n family keys translations on those exactly).
-fn parse_rdf_literals(bytes: &[u8], format: &str) -> Result<Vec<RdfLiteralRow>, String> {
+fn parse_rdf_literals(bytes: &[u8], format: &str) -> Result<Vec<RdfLiteralRow>> {
     use purrdf::{DatasetView, GraphMatch, TermRef};
 
     let media_type = media_type_for_format(format)?;
-    let dataset = purrdf::parse_dataset(bytes, media_type, None)
-        .map_err(|e| format!("RDF parse error: {e}"))?;
+    let dataset = purrdf::parse_dataset(bytes, media_type, None).map_err(|e| {
+        Diag::of_kind(RdfParse {
+            detail: format!("RDF parse error: {e}"),
+        })
+    })?;
     let mut rows = Vec::new();
     for quad in dataset.quads_for_pattern(None, None, None, GraphMatch::Any) {
         let TermRef::Iri(subject) = dataset.resolve(quad.s) else {
@@ -211,14 +221,16 @@ fn po_unescape(value: &str) -> String {
     out
 }
 
-fn po_string_body(token: &str) -> Result<String, String> {
+fn po_string_body(token: &str) -> Result<String> {
     if token.starts_with("\"\"\"") && token.ends_with("\"\"\"") && token.len() >= 6 {
         return Ok(po_unescape(&token[3..token.len() - 3]));
     }
     if token.starts_with('"') && token.ends_with('"') && token.len() >= 2 {
         return Ok(po_unescape(&token[1..token.len() - 1]));
     }
-    Err(format!("invalid PO string token: {token:?}"))
+    Err(Diag::of_kind(PoParse {
+        detail: format!("invalid PO string token: {token:?}"),
+    }))
 }
 
 fn parse_field_line(line: &str) -> Option<(&str, &str)> {
@@ -232,7 +244,7 @@ fn parse_field_line(line: &str) -> Option<(&str, &str)> {
     None
 }
 
-pub fn parse_po(text: &str, require_msgctxt: bool) -> Result<Vec<PoEntry>, String> {
+pub fn parse_po(text: &str, require_msgctxt: bool) -> Result<Vec<PoEntry>> {
     static CONTINUATION_RE: OnceLock<Regex> = OnceLock::new();
     let continuation =
         CONTINUATION_RE.get_or_init(|| Regex::new(r#"^"(?:[^"\\]|\\.)*"$"#).expect("valid regex"));
@@ -248,7 +260,7 @@ pub fn parse_po(text: &str, require_msgctxt: bool) -> Result<Vec<PoEntry>, Strin
         current_key: &mut Option<String>,
         entry_fuzzy: &mut bool,
         require_msgctxt: bool,
-    ) -> Result<(), String> {
+    ) -> Result<()> {
         if fields.is_empty() {
             *current_key = None;
             *entry_fuzzy = false;
@@ -256,10 +268,14 @@ pub fn parse_po(text: &str, require_msgctxt: bool) -> Result<Vec<PoEntry>, Strin
         }
         let msgid = fields
             .get("msgid")
-            .ok_or_else(|| "PO entry missing msgid".to_owned())?
+            .ok_or_else(|| {
+                Diag::of_kind(PoParse {
+                    detail: "PO entry missing msgid".to_owned(),
+                })
+            })?
             .iter()
             .map(|s| po_string_body(s))
-            .collect::<Result<Vec<_>, _>>()?
+            .collect::<Result<Vec<_>>>()?
             .join("");
         let msgctxt = fields
             .get("msgctxt")
@@ -267,7 +283,7 @@ pub fn parse_po(text: &str, require_msgctxt: bool) -> Result<Vec<PoEntry>, Strin
                 parts
                     .iter()
                     .map(|s| po_string_body(s))
-                    .collect::<Result<Vec<_>, _>>()
+                    .collect::<Result<Vec<_>>>()
                     .map(|v| v.join(""))
             })
             .transpose()?
@@ -278,7 +294,7 @@ pub fn parse_po(text: &str, require_msgctxt: bool) -> Result<Vec<PoEntry>, Strin
                 parts
                     .iter()
                     .map(|s| po_string_body(s))
-                    .collect::<Result<Vec<_>, _>>()
+                    .collect::<Result<Vec<_>>>()
                     .map(|v| v.join(""))
             })
             .transpose()?
@@ -344,7 +360,9 @@ pub fn parse_po(text: &str, require_msgctxt: bool) -> Result<Vec<PoEntry>, Strin
         }
         if continuation.is_match(line) {
             let Some(key) = current_key.as_ref() else {
-                return Err(format!("PO continuation line without a field: {line:?}"));
+                return Err(Diag::of_kind(PoParse {
+                    detail: format!("PO continuation line without a field: {line:?}"),
+                }));
             };
             fields.entry(key.clone()).or_default().push(line.to_owned());
             continue;
@@ -368,7 +386,7 @@ pub fn parse_po(text: &str, require_msgctxt: bool) -> Result<Vec<PoEntry>, Strin
     Ok(entries)
 }
 
-pub fn language_from_po(text: &str) -> Result<Option<String>, String> {
+pub fn language_from_po(text: &str) -> Result<Option<String>> {
     for entry in parse_po(text, false)? {
         if entry.msgid.is_empty() {
             for line in entry.msgstr.split('\n') {
@@ -513,7 +531,7 @@ pub fn extract_markdown_text(text: &str, rel_path: &str) -> Vec<PoEntry> {
         .collect()
 }
 
-pub fn merge_markdown_text(source: &str, po_text: &str) -> Result<String, String> {
+pub fn merge_markdown_text(source: &str, po_text: &str) -> Result<String> {
     let mut catalog = BTreeMap::new();
     for entry in parse_po(po_text, true)? {
         if let Some((_, hash)) = entry.msgctxt.rsplit_once('|') {
@@ -764,12 +782,11 @@ fn slice_group_name(root: &Path, slice_dir: &Path) -> (String, String) {
     rel.unwrap_or_else(|| ("_core".to_owned(), "_".to_owned()))
 }
 
-fn collect_slice_terms(root: &Path) -> Result<BTreeMap<String, Vec<TranslationKey>>, String> {
+fn collect_slice_terms(root: &Path) -> Result<BTreeMap<String, Vec<TranslationKey>>> {
     let catalog = SliceCatalog::discover(
         &root.join("slices"),
         purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
-    )
-    .map_err(|e| e.to_string())?;
+    )?;
     let localizable: HashSet<&str> = LOCALIZABLE_PREDICATES.iter().copied().collect();
     let mut groups: BTreeMap<String, BTreeMap<(String, String), TranslationKey>> = BTreeMap::new();
     let mut english_seen: BTreeMap<(String, String, String), BTreeSet<String>> = BTreeMap::new();
@@ -797,10 +814,12 @@ fn collect_slice_terms(root: &Path) -> Result<BTreeMap<String, Vec<TranslationKe
                         .or_default()
                         .insert(row.lexical.clone());
                     if english_seen.get(&key).is_some_and(|s| s.len() > 1) {
-                        return Err(format!(
-                            "multiple distinct @x-gmeow-english values for {} {} in {}",
-                            row.subject, row.predicate, slice_iri
-                        ));
+                        return Err(Diag::of_kind(CatalogInconsistent {
+                            detail: format!(
+                                "multiple distinct @x-gmeow-english values for {} {} in {}",
+                                row.subject, row.predicate, slice_iri
+                            ),
+                        }));
                     }
                     groups.entry(slice_iri.clone()).or_default().insert(
                         (row.subject.clone(), row.predicate.clone()),
@@ -838,12 +857,11 @@ pub fn extract_catalog(
     output_dir: &Path,
     lang: Option<&str>,
     terms_only: bool,
-) -> Result<ExtractReport, String> {
+) -> Result<ExtractReport> {
     let catalog = SliceCatalog::discover(
         &root.join("slices"),
         purrdf::SliceVocab::for_namespace("https://blackcatinformatics.ca/gmeow/"),
-    )
-    .map_err(|e| e.to_string())?;
+    )?;
     let by_iri: BTreeMap<String, (String, String)> = catalog
         .records()
         .iter()
@@ -885,22 +903,26 @@ pub fn extract_catalog(
             })
             .collect();
         if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            fs::create_dir_all(parent)?;
         }
         let text = lang
             .map(|l| write_po_text(&entries, l))
             .unwrap_or_else(|| write_pot_text(&entries));
-        fs::write(&path, text).map_err(|e| format!("{}: {e}", path.display()))?;
+        fs::write(&path, text).map_err(|e| {
+            Diag::of_kind(FileIo {
+                detail: format!("{}: {e}", path.display()),
+            })
+        })?;
     }
 
     if !terms_only {
         let docs_output = output_dir.join("docs");
-        fs::create_dir_all(&docs_output).map_err(|e| e.to_string())?;
+        fs::create_dir_all(&docs_output)?;
         let mut md_sources = Vec::new();
         collect_markdown_sources(root, &mut md_sources);
         for source in md_sources {
             let rel = source.strip_prefix(root).unwrap_or(&source);
-            let text = fs::read_to_string(&source).map_err(|e| e.to_string())?;
+            let text = fs::read_to_string(&source)?;
             let entries = extract_markdown_text(&text, &rel.to_string_lossy());
             let path = if let Some(lang) = lang {
                 docs_output.join(format!("{}.{}.po", rel.display(), lang))
@@ -908,12 +930,16 @@ pub fn extract_catalog(
                 docs_output.join(format!("{}.pot", rel.display()))
             };
             if let Some(parent) = path.parent() {
-                fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+                fs::create_dir_all(parent)?;
             }
             let body = lang
                 .map(|l| write_po_text(&entries, l))
                 .unwrap_or_else(|| write_pot_text(&entries));
-            fs::write(&path, body).map_err(|e| format!("{}: {e}", path.display()))?;
+            fs::write(&path, body).map_err(|e| {
+                Diag::of_kind(FileIo {
+                    detail: format!("{}: {e}", path.display()),
+                })
+            })?;
         }
 
         let template_entries: Vec<PoEntry> = crate::i18n::UI_TEMPLATES
@@ -933,7 +959,11 @@ pub fn extract_catalog(
         let body = lang
             .map(|l| write_po_text(&template_entries, l))
             .unwrap_or_else(|| write_pot_text(&template_entries));
-        fs::write(&template_path, body).map_err(|e| format!("{}: {e}", template_path.display()))?;
+        fs::write(&template_path, body).map_err(|e| {
+            Diag::of_kind(FileIo {
+                detail: format!("{}: {e}", template_path.display()),
+            })
+        })?;
     }
 
     Ok(ExtractReport {
@@ -982,13 +1012,13 @@ pub struct CatalogExportEntry {
     pub fuzzy: bool,
 }
 
-pub fn iter_po_catalogs(root: &Path) -> Result<Vec<CatalogExportEntry>, String> {
+pub fn iter_po_catalogs(root: &Path) -> Result<Vec<CatalogExportEntry>> {
     let mut out = Vec::new();
     for path in collect_po_paths(root)
         .into_iter()
         .filter(|p| p.starts_with(root.join("slices")))
     {
-        let text = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+        let text = fs::read_to_string(&path)?;
         let language = language_from_po(&text)?.unwrap_or_default();
         let slice_dir = path.parent().and_then(Path::parent);
         let slice = path
@@ -1029,7 +1059,7 @@ fn csv_escape(value: &str) -> String {
     }
 }
 
-pub fn export_csv(root: &Path, output: Option<&Path>) -> Result<String, String> {
+pub fn export_csv(root: &Path, output: Option<&Path>) -> Result<String> {
     let mut text = String::from("slice,term_iri,predicate,language,msgid,msgstr,fuzzy\n");
     for row in iter_po_catalogs(root)? {
         text.push_str(&format!(
@@ -1045,9 +1075,9 @@ pub fn export_csv(root: &Path, output: Option<&Path>) -> Result<String, String> 
     }
     if let Some(path) = output {
         if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            fs::create_dir_all(parent)?;
         }
-        fs::write(path, &text).map_err(|e| e.to_string())?;
+        fs::write(path, &text)?;
     }
     Ok(text)
 }
@@ -1061,7 +1091,7 @@ fn xml_escape(value: &str) -> String {
         .replace('\'', "&apos;")
 }
 
-pub fn export_xliff(root: &Path, output: Option<&Path>) -> Result<String, String> {
+pub fn export_xliff(root: &Path, output: Option<&Path>) -> Result<String> {
     let rows = iter_po_catalogs(root)?;
     let mut by_file: BTreeMap<(String, String), Vec<CatalogExportEntry>> = BTreeMap::new();
     for row in rows {
@@ -1095,9 +1125,9 @@ pub fn export_xliff(root: &Path, output: Option<&Path>) -> Result<String, String
     text.push_str("</xliff>\n");
     if let Some(path) = output {
         if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            fs::create_dir_all(parent)?;
         }
-        fs::write(path, &text).map_err(|e| e.to_string())?;
+        fs::write(path, &text)?;
     }
     Ok(text)
 }
@@ -1106,11 +1136,7 @@ fn nt_literal(value: &str, lang: &str) -> String {
     format!("\"{}\"@{}", po_escape(value), lang)
 }
 
-pub fn merge_terms(
-    root: &Path,
-    output: Option<&Path>,
-    lang: Option<&str>,
-) -> Result<MergeReport, String> {
+pub fn merge_terms(root: &Path, output: Option<&Path>, lang: Option<&str>) -> Result<MergeReport> {
     let tag_map = bcp47_to_internal_map(root);
     let base_values = current_english_values(root);
     let mut added = 0usize;
@@ -1120,7 +1146,7 @@ pub fn merge_terms(
         .into_iter()
         .filter(|p| p.starts_with(root.join("slices")))
     {
-        let po_text = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+        let po_text = fs::read_to_string(&path)?;
         let language = language_from_po(&po_text)?
             .unwrap_or_default()
             .to_ascii_lowercase();
@@ -1128,10 +1154,12 @@ pub fn merge_terms(
             continue;
         }
         let Some(internal) = tag_map.get(&language) else {
-            return Err(format!(
-                "{}: no internal language tag for {language}",
-                path.display()
-            ));
+            return Err(Diag::of_kind(CatalogInconsistent {
+                detail: format!(
+                    "{}: no internal language tag for {language}",
+                    path.display()
+                ),
+            }));
         };
         po_count += 1;
         for entry in parse_po(&po_text, true)? {
@@ -1139,20 +1167,20 @@ pub fn merge_terms(
                 continue;
             }
             let Some((term, predicate)) = entry.msgctxt.split_once('|') else {
-                return Err(format!(
-                    "{}: invalid msgctxt {:?}",
-                    path.display(),
-                    entry.msgctxt
-                ));
+                return Err(Diag::of_kind(CatalogInconsistent {
+                    detail: format!("{}: invalid msgctxt {:?}", path.display(), entry.msgctxt),
+                }));
             };
             let predicate = expand_predicate(predicate);
             if !base_values.contains_key(&(term.to_owned(), predicate.clone())) {
-                return Err(format!(
-                    "{}: unknown term/predicate {} {}",
-                    path.display(),
-                    term,
-                    predicate
-                ));
+                return Err(Diag::of_kind(CatalogInconsistent {
+                    detail: format!(
+                        "{}: unknown term/predicate {} {}",
+                        path.display(),
+                        term,
+                        predicate
+                    ),
+                }));
             }
             text.push_str(&format!(
                 "<{}> <{}> {} .\n",
@@ -1165,9 +1193,9 @@ pub fn merge_terms(
     }
     let output_note = if let Some(path) = output {
         if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            fs::create_dir_all(parent)?;
         }
-        fs::write(path, &text).map_err(|e| e.to_string())?;
+        fs::write(path, &text)?;
         path.display().to_string()
     } else {
         "stdout".to_owned()
@@ -1180,13 +1208,9 @@ pub fn merge_terms(
     })
 }
 
-pub fn sync_english_file(
-    po_path: &Path,
-    source_path: &Path,
-    dry_run: bool,
-) -> Result<SyncReport, String> {
-    let po_text = fs::read_to_string(po_path).map_err(|e| e.to_string())?;
-    let source_text = fs::read_to_string(source_path).map_err(|e| e.to_string())?;
+pub fn sync_english_file(po_path: &Path, source_path: &Path, dry_run: bool) -> Result<SyncReport> {
+    let po_text = fs::read_to_string(po_path)?;
+    let source_text = fs::read_to_string(source_path)?;
     if source_path.extension().and_then(|s| s.to_str()) == Some("md")
         || po_path
             .file_name()
@@ -1203,10 +1227,9 @@ pub fn sync_english_file(
     {
         return sync_turtle(po_path, source_path, &po_text, &source_text, dry_run);
     }
-    Err(format!(
-        "unsupported source file type: {}",
-        source_path.display()
-    ))
+    Err(Diag::of_kind(UnsupportedSource {
+        detail: format!("unsupported source file type: {}", source_path.display()),
+    }))
 }
 
 fn sync_markdown(
@@ -1215,7 +1238,7 @@ fn sync_markdown(
     po_text: &str,
     source_text: &str,
     dry_run: bool,
-) -> Result<SyncReport, String> {
+) -> Result<SyncReport> {
     let mut report = SyncReport::default();
     let mut text = source_text.to_owned();
     for entry in parse_po(po_text, false)? {
@@ -1258,13 +1281,13 @@ fn sync_markdown(
     if text != source_text {
         report.changed_files.push(source_path.to_path_buf());
         if !dry_run {
-            fs::write(source_path, text).map_err(|e| e.to_string())?;
+            fs::write(source_path, text)?;
         }
     }
     Ok(report)
 }
 
-fn turtle_unescape(value: &str) -> Result<String, String> {
+fn turtle_unescape(value: &str) -> Result<String> {
     let mut out = String::with_capacity(value.len());
     let mut chars = value.chars();
     while let Some(ch) = chars.next() {
@@ -1273,7 +1296,9 @@ fn turtle_unescape(value: &str) -> Result<String, String> {
             continue;
         }
         let Some(next) = chars.next() else {
-            return Err("invalid Turtle escape sequence".to_owned());
+            return Err(Diag::of_kind(TurtleUnescape {
+                detail: "invalid Turtle escape sequence".to_owned(),
+            }));
         };
         match next {
             'n' => out.push('\n'),
@@ -1284,26 +1309,46 @@ fn turtle_unescape(value: &str) -> Result<String, String> {
             'u' => {
                 let hex: String = chars.by_ref().take(4).collect();
                 if hex.len() != 4 {
-                    return Err("invalid Turtle escape sequence".to_owned());
+                    return Err(Diag::of_kind(TurtleUnescape {
+                        detail: "invalid Turtle escape sequence".to_owned(),
+                    }));
                 }
-                let code = u32::from_str_radix(&hex, 16)
-                    .map_err(|e| format!("invalid Turtle escape sequence: {e}"))?;
-                let scalar = char::from_u32(code)
-                    .ok_or_else(|| "invalid Turtle Unicode scalar".to_owned())?;
+                let code = u32::from_str_radix(&hex, 16).map_err(|e| {
+                    Diag::of_kind(TurtleUnescape {
+                        detail: format!("invalid Turtle escape sequence: {e}"),
+                    })
+                })?;
+                let scalar = char::from_u32(code).ok_or_else(|| {
+                    Diag::of_kind(TurtleUnescape {
+                        detail: "invalid Turtle Unicode scalar".to_owned(),
+                    })
+                })?;
                 out.push(scalar);
             }
             'U' => {
                 let hex: String = chars.by_ref().take(8).collect();
                 if hex.len() != 8 {
-                    return Err("invalid Turtle escape sequence".to_owned());
+                    return Err(Diag::of_kind(TurtleUnescape {
+                        detail: "invalid Turtle escape sequence".to_owned(),
+                    }));
                 }
-                let code = u32::from_str_radix(&hex, 16)
-                    .map_err(|e| format!("invalid Turtle escape sequence: {e}"))?;
-                let scalar = char::from_u32(code)
-                    .ok_or_else(|| "invalid Turtle Unicode scalar".to_owned())?;
+                let code = u32::from_str_radix(&hex, 16).map_err(|e| {
+                    Diag::of_kind(TurtleUnescape {
+                        detail: format!("invalid Turtle escape sequence: {e}"),
+                    })
+                })?;
+                let scalar = char::from_u32(code).ok_or_else(|| {
+                    Diag::of_kind(TurtleUnescape {
+                        detail: "invalid Turtle Unicode scalar".to_owned(),
+                    })
+                })?;
                 out.push(scalar);
             }
-            other => return Err(format!("invalid Turtle escape sequence: \\{other}")),
+            other => {
+                return Err(Diag::of_kind(TurtleUnescape {
+                    detail: format!("invalid Turtle escape sequence: \\{other}"),
+                }));
+            }
         }
     }
     Ok(out)
@@ -1716,7 +1761,7 @@ fn replace_literal_in_text(
     predicate: &str,
     old_value: &str,
     new_value: &str,
-) -> Result<String, String> {
+) -> Result<String> {
     let prefixes = extract_prefixes(text);
     let subject_forms = iri_text_forms(subject, &prefixes);
     let predicate_forms = iri_text_forms(predicate, &prefixes);
@@ -1735,22 +1780,26 @@ fn replace_literal_in_text(
         .collect();
 
     if scoped.is_empty() {
-        return Err(format!(
-            "no @x-gmeow-english literal for {subject}|{predicate}"
-        ));
+        return Err(Diag::of_kind(CatalogInconsistent {
+            detail: format!("no @x-gmeow-english literal for {subject}|{predicate}"),
+        }));
     }
     if scoped.len() > 1 {
-        return Err(format!(
-            "conflict: ambiguous literal for {subject} {predicate}: {} occurrences in source text",
-            scoped.len()
-        ));
+        return Err(Diag::of_kind(CatalogInconsistent {
+            detail: format!(
+                "conflict: ambiguous literal for {subject} {predicate}: {} occurrences in source text",
+                scoped.len()
+            ),
+        }));
     }
     let candidate = &scoped[0];
     if candidate.decoded != old_value {
-        return Err(format!(
-            "conflict: literal for {subject} {predicate} is {:?}, expected {:?}",
-            candidate.decoded, old_value
-        ));
+        return Err(Diag::of_kind(CatalogInconsistent {
+            detail: format!(
+                "conflict: literal for {subject} {predicate} is {:?}, expected {:?}",
+                candidate.decoded, old_value
+            ),
+        }));
     }
     if candidate.decoded == new_value {
         return Ok(text.to_owned());
@@ -1771,7 +1820,7 @@ fn replace_literal_in_text(
 
 fn current_english_values_from_text(
     text: &str,
-) -> Result<BTreeMap<(String, String), BTreeSet<String>>, String> {
+) -> Result<BTreeMap<(String, String), BTreeSet<String>>> {
     let rows = parse_rdf_literals(text.as_bytes(), "turtle")?;
     let mut values: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
     for row in rows {
@@ -1791,7 +1840,7 @@ fn sync_turtle(
     po_text: &str,
     source_text: &str,
     dry_run: bool,
-) -> Result<SyncReport, String> {
+) -> Result<SyncReport> {
     let mut report = SyncReport::default();
     let mut text = source_text.to_owned();
     let mut current = current_english_values_from_text(source_text)?;
@@ -1835,8 +1884,10 @@ fn sync_turtle(
                         })
                         .or_insert_with(|| BTreeSet::from([entry.msgstr.clone()]));
                 }
-                Err(reason) if reason.starts_with("conflict:") => report.conflicts.push(reason),
-                Err(reason) => report.skipped.push(reason),
+                Err(reason) if reason.message().starts_with("conflict:") => {
+                    report.conflicts.push(reason.to_string())
+                }
+                Err(reason) => report.skipped.push(reason.to_string()),
             }
         } else if entry.msgid != current_value && entry.msgid == entry.msgstr {
             report.skipped.push(format!(
@@ -1855,7 +1906,7 @@ fn sync_turtle(
     if text != source_text {
         report.changed_files.push(source_path.to_path_buf());
         if !dry_run {
-            fs::write(source_path, text).map_err(|e| e.to_string())?;
+            fs::write(source_path, text)?;
         }
     }
     Ok(report)

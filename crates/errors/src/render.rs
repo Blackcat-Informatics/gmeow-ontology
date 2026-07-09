@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 
 use serde_json::{Value, json};
 
-use crate::model::{Finding, Location, Report, Rule};
+use crate::model::{Finding, Location, RelatedLabel, Report, Rule};
 
 /// Render a report as stable pretty JSON.
 pub fn to_json(report: &Report) -> Result<String, serde_json::Error> {
@@ -521,6 +521,69 @@ pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
                 int_prop(&loc_node, "findingLocationColumn", u64::from(v), &mut lines);
             }
         }
+        // The text-bearing secondary labels: each rides as a gmeow:relatedLabel
+        // node carrying gmeow:labelMessage (the label prose the LSP reads back to
+        // emit DiagnosticRelatedInformation) plus its source-location coordinates,
+        // mirroring the findingLocation shape above. A finding with no labels emits
+        // no such node, so the projection stays byte-unchanged when absent.
+        for (label_index, label) in finding.related_labels.iter().enumerate() {
+            let label_node = format!("<{subject_iri}/relatedLabel/{label_index}>");
+            triple(
+                &subject,
+                &format!("{GMEOW}relatedLabel"),
+                &label_node,
+                &mut lines,
+            );
+            triple(
+                &label_node,
+                &format!("{GMEOW}labelMessage"),
+                &format!("\"{}\"", nq_escape(&label.message)),
+                &mut lines,
+            );
+            let int_prop = |node: &str, local: &str, value: u64, lines: &mut Vec<String>| {
+                triple(
+                    node,
+                    &format!("{GMEOW}{local}"),
+                    &format!("\"{value}\"^^<{XSD_NNI}>"),
+                    lines,
+                );
+            };
+            let loc = &label.location;
+            if let Some(v) = loc.gts_term_id {
+                int_prop(&label_node, "gtsTermId", v, &mut lines);
+            }
+            if let Some(v) = loc.gts_quad_index {
+                int_prop(&label_node, "gtsQuadIndex", v, &mut lines);
+            }
+            if let Some(v) = loc.gts_reifier_id {
+                int_prop(&label_node, "gtsReifierId", v, &mut lines);
+            }
+            if let Some(v) = loc.gts_frame_index {
+                int_prop(&label_node, "gtsFrameIndex", v, &mut lines);
+            }
+            if let Some(v) = loc.gts_segment_index {
+                int_prop(&label_node, "gtsSegmentIndex", v, &mut lines);
+            }
+            if let Some(path) = &loc.path {
+                triple(
+                    &label_node,
+                    &format!("{GMEOW}findingLocationPath"),
+                    &format!("\"{}\"", nq_escape(path)),
+                    &mut lines,
+                );
+            }
+            if let Some(v) = loc.line {
+                int_prop(&label_node, "findingLocationLine", u64::from(v), &mut lines);
+            }
+            if let Some(v) = loc.column {
+                int_prop(
+                    &label_node,
+                    "findingLocationColumn",
+                    u64::from(v),
+                    &mut lines,
+                );
+            }
+        }
     }
     let mut out = lines.join("\n");
     if !out.is_empty() {
@@ -550,6 +613,16 @@ fn finding_text_lines(finding: &Finding, rules: &BTreeMap<&str, &Rule>, out: &mu
         line.push(')');
     }
     out.push(line);
+    // Secondary TEXT-bearing labels (Rust-compiler-style "defined here" / SHACL
+    // result-path spans): one indented line each, rendering the label message
+    // beside its location so the prose survives to the human text surface too.
+    for label in &finding.related_labels {
+        out.push(format!(
+            "  ↳ note: {} ({})",
+            label.message,
+            label.location.display()
+        ));
+    }
     // Suggestions (already sorted+deduped by normalize): one indented line each.
     for suggestion in &finding.suggestions {
         out.push(format!("  ↳ suggestion: {suggestion}"));
@@ -1022,14 +1095,22 @@ fn sarif_result(finding: &Finding) -> Value {
 
     // Remaining physical locations ride as related locations (their logical
     // entries already folded onto the primary, so drop them to avoid duplication).
-    if !physical.is_empty() {
-        for related in &mut physical {
-            if let Some(obj) = related.as_object_mut() {
-                obj.remove("logicalLocations");
-                obj.remove("properties");
-            }
+    for related in &mut physical {
+        if let Some(obj) = related.as_object_mut() {
+            obj.remove("logicalLocations");
+            obj.remove("properties");
         }
-        result["relatedLocations"] = json!(physical);
+    }
+    let mut related_locations: Vec<Value> = physical;
+    // The text-bearing secondary labels: each rides as a related location carrying
+    // a `message.text` (SARIF `location.message` is a `{ "text": ... }` object), so
+    // the label prose survives into the SARIF byte artifact — the
+    // DiagnosticRelatedInformation payload a code-scanning/LSP consumer reads.
+    for label in &finding.related_labels {
+        related_locations.push(sarif_related_label(label));
+    }
+    if !related_locations.is_empty() {
+        result["relatedLocations"] = json!(related_locations);
     }
 
     // Emit result-level properties: detail text (if any) + structured
@@ -1122,6 +1203,23 @@ fn sarif_fix(remediation: &crate::diag::Remediation) -> Value {
         }
     }
     fix
+}
+
+/// Render one text-bearing [`RelatedLabel`] as a SARIF related `location`: the
+/// label's source location plus a `message.text` object carrying the label prose.
+/// GitHub code-scanning requires every related location to carry a
+/// `physicalLocation`, so a logical-only label location is backed by the same
+/// ontology-root fallback the primary location uses; the label's logical entries
+/// (a SHACL result-path / focus IRI) ride alongside, losslessly.
+fn sarif_related_label(label: &RelatedLabel) -> Value {
+    let mut out = sarif_location(&label.location);
+    if out.get("physicalLocation").is_none() {
+        out["physicalLocation"] = json!({
+            "artifactLocation": { "uri": FALLBACK_ARTIFACT_URI },
+        });
+    }
+    out["message"] = json!({ "text": label.message });
+    out
 }
 
 /// The SARIF `region` object for a mechanical edit — only the coordinates present

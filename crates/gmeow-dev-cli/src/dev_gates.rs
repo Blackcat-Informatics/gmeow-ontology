@@ -14,7 +14,10 @@ use std::time::Duration;
 
 use gmeow_errors::{Finding, Report, Severity, render};
 
-use crate::dev_common::{NAMESPACE, ONTOLOGY_IRI, fail, project_root, snapshot_bytes};
+use crate::dev_common::{
+    NAMESPACE, ONTOLOGY_IRI, emit_report, fail, note, project_root, snapshot_bytes,
+};
+use crate::error;
 
 /// The authored term sources the default repo-only audit covers: every slice
 /// `module.ttl` + `manifest.ttl` plus the shared slice `vocabulary.ttl`.
@@ -74,10 +77,16 @@ pub fn box_roles_audit(json_out: bool) -> i32 {
             println!("  {role}: {count}");
         }
         for finding in &audit.missing {
-            eprintln!("missing {}", finding.term);
+            note(
+                "gmeow-dev.box-roles.missing",
+                format!("missing {}", finding.term),
+            );
         }
         for finding in &audit.invalid {
-            eprintln!("invalid {}", finding.term);
+            note(
+                "gmeow-dev.box-roles.invalid",
+                format!("invalid {}", finding.term),
+            );
         }
     }
     if !audit.missing.is_empty() || !audit.invalid.is_empty() {
@@ -104,10 +113,7 @@ pub fn constitution_check() -> i32 {
     for f in findings {
         report.add_finding(f);
     }
-    let text = render::to_text(&report.normalized());
-    if !text.trim().is_empty() {
-        eprintln!("{text}");
-    }
+    emit_report(&report);
     if report.ok() {
         println!("constitution check passed");
         0
@@ -127,10 +133,7 @@ pub fn crate_check() -> i32 {
     for f in gmeow_validate::repo_static::to_diagnostics_report(&static_rep).findings {
         report.add_finding(f);
     }
-    let text = render::to_text(&report.normalized());
-    if !text.trim().is_empty() {
-        eprintln!("{text}");
-    }
+    emit_report(&report);
     if report.ok() {
         println!("crate/static guards OK");
         0
@@ -176,12 +179,15 @@ pub fn coverage(show_gaps: bool, min_class: Option<f64>, min_predicate: Option<f
         let mut classes: Vec<&String> = report.gap_classes.iter().collect();
         classes.sort();
         for iri in classes {
-            eprintln!("gap class {iri}");
+            note("gmeow-dev.coverage.gap-class", format!("gap class {iri}"));
         }
         let mut preds: Vec<&String> = report.gap_predicates.iter().collect();
         preds.sort();
         for iri in preds {
-            eprintln!("gap predicate {iri}");
+            note(
+                "gmeow-dev.coverage.gap-predicate",
+                format!("gap predicate {iri}"),
+            );
         }
     }
     if let Some(floor) = min_class
@@ -252,7 +258,7 @@ pub fn wikidata(existence: bool, fixtures: bool) -> i32 {
         let report = gmeow_validate::wikidata_audit::audit_files(&paths);
         let text = gmeow_validate::wikidata_audit::render_audit(&report);
         if !text.trim().is_empty() {
-            eprintln!("{text}");
+            note("gmeow-dev.wikidata.fixture-audit", text);
         }
         if report.ok() {
             println!("fixture audit passed");
@@ -268,7 +274,10 @@ pub fn wikidata(existence: bool, fixtures: bool) -> i32 {
     };
     println!("{} id(s) valid syntax", syntax.valid.len());
     if !syntax.invalid.is_empty() {
-        eprintln!("invalid ids: {:?}", syntax.invalid);
+        note(
+            "gmeow-dev.wikidata.invalid-ids",
+            format!("invalid ids: {:?}", syntax.invalid),
+        );
     }
     if !syntax.invalid.is_empty() || !syntax.misuses.is_empty() {
         return fail(format!(
@@ -292,7 +301,10 @@ pub fn wikidata(existence: bool, fixtures: bool) -> i32 {
             // A network failure is a visible, non-fatal skip (mirrors the Python
             // `existence check skipped` path), never a silent pass.
             Err(e) => {
-                eprintln!("existence check skipped: {e}");
+                note(
+                    "gmeow-dev.wikidata.existence-skipped",
+                    format!("existence check skipped: {e}"),
+                );
                 return 0;
             }
         };
@@ -305,7 +317,10 @@ pub fn wikidata(existence: bool, fixtures: bool) -> i32 {
         // stable, reproducible order (Principle 18) regardless of hash iteration.
         bad.sort_by(|a, b| a.0.cmp(b.0));
         for (id, status) in &bad {
-            eprintln!("{id}: {status}");
+            note(
+                "gmeow-dev.wikidata.existence-fail",
+                format!("{id}: {status}"),
+            );
         }
         if !bad.is_empty() {
             return fail(format!("{} id(s) failed existence check", bad.len()));
@@ -377,8 +392,11 @@ pub fn lint_alignment(network: bool, strict: bool) -> i32 {
             None => format!("[{}] {}", f.check, f.message),
         };
         match f.severity.as_str() {
-            "ERROR" => eprintln!("error {line}"),
-            "WARNING" => eprintln!("warning {line}"),
+            "ERROR" => note("gmeow-dev.lint-alignment.error", format!("error {line}")),
+            "WARNING" => note(
+                "gmeow-dev.lint-alignment.warning",
+                format!("warning {line}"),
+            ),
             _ => {}
         }
     }
@@ -437,15 +455,21 @@ pub fn acceptance(source: Option<&Path>, out: Option<&Path>, min_recall: Option<
             if let Err(e) = std::fs::write(path, &markdown) {
                 return fail(format!("cannot write {}: {e}", path.display()));
             }
-            eprintln!("wrote {}", path.display());
+            note(
+                "gmeow-dev.acceptance.wrote",
+                format!("wrote {}", path.display()),
+            );
         }
         None => println!("{markdown}"),
     }
     for fa in &results {
-        eprintln!(
-            "{} {}",
-            if fa.passed() { "PASS" } else { "FAIL" },
-            fa.source
+        note(
+            "gmeow-dev.acceptance.result",
+            format!(
+                "{} {}",
+                if fa.passed() { "PASS" } else { "FAIL" },
+                fa.source
+            ),
         );
     }
     let floor = min_recall.unwrap_or(gmeow_pipeline::scoreboards::ACCEPTANCE_MIN_RECALL_PCT);
@@ -457,7 +481,10 @@ pub fn acceptance(source: Option<&Path>, out: Option<&Path>, min_recall: Option<
             results.len()
         ));
     }
-    eprintln!("corpus-aggregate round-trip recall {aggregate:.2}% >= floor {floor:.2}%");
+    note(
+        "gmeow-dev.acceptance.recall",
+        format!("corpus-aggregate round-trip recall {aggregate:.2}% >= floor {floor:.2}%"),
+    );
     0
 }
 
@@ -511,7 +538,10 @@ pub fn quality(foops_url: &str, strict: bool) -> i32 {
             if strict {
                 return fail(format!("OOPS! failed: {e}"));
             }
-            eprintln!("OOPS! skipped: {e}");
+            note(
+                "gmeow-dev.quality.oops-skipped",
+                format!("OOPS! skipped: {e}"),
+            );
         }
     }
     if !foops_url.is_empty() {
@@ -524,7 +554,10 @@ pub fn quality(foops_url: &str, strict: bool) -> i32 {
                 if strict {
                     return fail(format!("FOOPS! failed: {e}"));
                 }
-                eprintln!("FOOPS! skipped: {e}");
+                note(
+                    "gmeow-dev.quality.foops-skipped",
+                    format!("FOOPS! skipped: {e}"),
+                );
             }
         }
     }
@@ -553,10 +586,13 @@ pub fn crosscheck_queries() -> i32 {
 
     let outcome = run_query_crosscheck(&dataset, &queries);
     for s in &outcome.skipped {
-        eprintln!("skip {s}");
+        note("gmeow-dev.crosscheck-queries.skip", format!("skip {s}"));
     }
     for d in &outcome.diverged {
-        eprintln!("diverge {d}");
+        note(
+            "gmeow-dev.crosscheck-queries.diverge",
+            format!("diverge {d}"),
+        );
     }
     if !outcome.diverged.is_empty() {
         return fail(format!(
@@ -579,12 +615,15 @@ pub fn crosscheck_queries() -> i32 {
 /// (mirroring [`crosscheck_queries`]); a query that parses but errors at evaluation
 /// is a divergence from the committed corpus and becomes an
 /// `engine-cross-check.diverge` error in the folded feedback report.
-pub fn crosscheck_queries_report(root: &Path) -> Result<Report, String> {
-    let dataset = merged_query_dataset(root)
-        .map_err(|code| format!("cannot build the query dataset (exit {code})"))?;
+pub fn crosscheck_queries_report(root: &Path) -> gmeow_errors::Result<Report> {
+    let dataset = merged_query_dataset(root).map_err(|code| {
+        error::crosscheck(format!("cannot build the query dataset (exit {code})"))
+    })?;
     let queries = committed_query_files(root);
     if queries.is_empty() {
-        return Err("no committed queries found under queries/".to_owned());
+        return Err(error::crosscheck(
+            "no committed queries found under queries/",
+        ));
     }
     let outcome = run_query_crosscheck(&dataset, &queries);
     let mut report = Report::new("engine-cross-check");

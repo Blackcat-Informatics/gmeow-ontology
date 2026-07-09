@@ -57,6 +57,12 @@ use crate::rule_ir::{
 };
 use crate::seam::BudgetStatus;
 
+/// Wrap a physical-chase condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn physical_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Physical { detail })
+}
+
 /// A chase attempt's outcome: a decided budgeted derivation, or a declared gap.
 pub(crate) type ChaseOutcome = NativeOutcome<Budgeted<Vec<DerivedRow>>>;
 
@@ -201,7 +207,7 @@ fn head_satisfied(
     rule: &ExistentialRule,
     sol: &Solution,
     rel: &RelationStore,
-) -> Result<bool, String> {
+) -> gmeow_errors::Result<bool> {
     for candidate in join_atoms(&rule.head, rel, sol) {
         if distinct_pairs_satisfied(&rule.distinct, &candidate)? {
             return Ok(true);
@@ -224,7 +230,7 @@ pub(crate) fn chase_world(
     edb_facts: &[Fact],
     rules: &[ExistentialRule],
     max_steps: Option<u64>,
-) -> Result<ChaseOutcome, String> {
+) -> gmeow_errors::Result<ChaseOutcome> {
     let (outcome, _registry) = chase_world_explained(world, edb_facts, rules, max_steps)?;
     Ok(outcome)
 }
@@ -243,7 +249,7 @@ pub(crate) fn chase_world_explained(
     edb_facts: &[Fact],
     rules: &[ExistentialRule],
     max_steps: Option<u64>,
-) -> Result<(ChaseOutcome, SkolemRegistry), String> {
+) -> gmeow_errors::Result<(ChaseOutcome, SkolemRegistry)> {
     let mut governor = StepGovernor::new(max_steps);
     let mut registry = SkolemRegistry::new();
     let mut out: Vec<DerivedRow> = Vec::new();
@@ -297,7 +303,7 @@ fn chase_world_into(
     governor: &mut StepGovernor,
     registry: &mut SkolemRegistry,
     out: &mut Vec<DerivedRow>,
-) -> Result<BudgetStatus, String> {
+) -> gmeow_errors::Result<BudgetStatus> {
     // Seed the columnar store from the EDB; echo the asserted facts as derived rows so
     // the native fact set is directly comparable to an oracle's closure (which includes
     // the EDB).
@@ -444,7 +450,7 @@ pub(crate) fn chase_materialize(
     store: &crate::store::WorldStore,
     rules: &[ExistentialRule],
     max_steps: Option<u64>,
-) -> Result<(ChaseAdmission, ChaseOutcome), String> {
+) -> gmeow_errors::Result<(ChaseAdmission, ChaseOutcome)> {
     let admission = ChaseAdmission::certify(rules);
     if !admits_or_budgeted(&admission, max_steps) {
         // Surface the certificate alongside the refusal rather than discarding it: the
@@ -533,7 +539,7 @@ pub(crate) fn chase_materialize(
 /// only it loses the guard.)
 ///
 /// [hard-fails]: reject_unrepresentable_distinctness
-pub(crate) fn parse_existential_rules(rules: &str) -> Result<Vec<ExistentialRule>, String> {
+pub(crate) fn parse_existential_rules(rules: &str) -> gmeow_errors::Result<Vec<ExistentialRule>> {
     use crate::nemo_engine::NemoParsedRules;
     use nemo::rule_model::programs::ProgramRead;
 
@@ -575,12 +581,12 @@ pub(crate) fn parse_existential_rules(rules: &str) -> Result<Vec<ExistentialRule
         // only probed for `is_existential`, never chased; the Datalog path re-parses it via
         // `parse_eval_rules`, which lowers the negated body faithfully.)
         if parsed.is_existential() && rule.body_negative().count() > 0 {
-            return Err(format!(
+            return Err(physical_err(format!(
                 "chase: value-inventing rule {} carries a negated body literal (~atom) the \
                  restricted existential chase cannot honor (it joins only positive body \
                  atoms); refusing rather than inventing witnesses the guard forbids",
                 parsed.rule_iri
-            ));
+            )));
         }
         reject_unrepresentable_distinctness(&parsed)?;
         out.push(parsed);
@@ -599,7 +605,7 @@ pub(crate) fn parse_existential_rules(rules: &str) -> Result<Vec<ExistentialRule
 /// variable can never share a predicate with a second one.  Existentials over DIFFERENT
 /// predicates are not interchangeable (distinct ordinals mint distinct witnesses by
 /// construction), so they parse fine.
-fn reject_unrepresentable_distinctness(rule: &ExistentialRule) -> Result<(), String> {
+fn reject_unrepresentable_distinctness(rule: &ExistentialRule) -> gmeow_errors::Result<()> {
     let existentials: BTreeSet<String> = rule.existentials().into_iter().collect();
     // Bucket existential head vars by the predicate whose subject/object slot they fill.
     let mut per_predicate: std::collections::BTreeMap<String, BTreeSet<String>> =
@@ -619,7 +625,7 @@ fn reject_unrepresentable_distinctness(rule: &ExistentialRule) -> Result<(), Str
     for (predicate, vars) in per_predicate {
         if vars.len() >= 2 {
             let names: Vec<&str> = vars.iter().map(String::as_str).collect();
-            return Err(format!(
+            return Err(physical_err(format!(
                 "chase: rule {} places {} distinct existential witnesses ({}) in predicate <{}> \
                  — the shape of a ≥n qualified restriction whose pairwise witness distinctness \
                  the Nemo .rls surface cannot express (an inequality guard is a body constraint \
@@ -629,7 +635,7 @@ fn reject_unrepresentable_distinctness(rule: &ExistentialRule) -> Result<(), Str
                 names.len(),
                 names.join(", "),
                 predicate,
-            ));
+            )));
         }
     }
     Ok(())
@@ -648,15 +654,17 @@ fn empty_solution() -> Solution {
 
 /// The `TermValue` a frontier variable is bound to under `sol` (a hard error if
 /// unbound — a frontier var is bound by the body by construction).
-fn bound_value(sol: &Solution, var: &str) -> Result<purrdf::TermValue, String> {
-    let surface = sol
-        .get(var)
-        .ok_or_else(|| format!("chase: frontier variable {var:?} unbound after body join"))?;
+fn bound_value(sol: &Solution, var: &str) -> gmeow_errors::Result<purrdf::TermValue> {
+    let surface = sol.get(var).ok_or_else(|| {
+        physical_err(format!(
+            "chase: frontier variable {var:?} unbound after body join"
+        ))
+    })?;
     crate::rule_ir::surface_to_value(surface)
 }
 
 /// The reifier IRIs of a solution's matched body facts, in body order.
-fn reifiers_of(sol: &Solution) -> Result<Vec<String>, String> {
+fn reifiers_of(sol: &Solution) -> gmeow_errors::Result<Vec<String>> {
     sol.source_facts.iter().map(Fact::reifier).collect()
 }
 
@@ -684,7 +692,7 @@ fn nary_arg_index(predicate: &str) -> Option<usize> {
 /// contiguous set `{0..n-1}` (a gap or duplicate `naryArg{i}` would mint a wrong reifier).
 fn reified_nary_head(
     rule: &ExistentialRule,
-) -> Result<Option<(String, String, Vec<EvalTerm>)>, String> {
+) -> gmeow_errors::Result<Option<(String, String, Vec<EvalTerm>)>> {
     let existentials = rule.existentials();
     // Exactly one existential — the shared tuple reifier `R`.
     let [reifier] = existentials.as_slice() else {
@@ -732,12 +740,12 @@ fn reified_nary_head(
     // malformed indices are a HARD ERROR — never a silent mis-addressing (no-optionality).
     for (position, (i, _)) in args.iter().enumerate() {
         if *i != position {
-            return Err(format!(
+            return Err(physical_err(format!(
                 "reified n-ary head for relation {rel:?} has non-contiguous or duplicate \
                  positional arguments (naryArg indices {:?}, expected 0..{})",
                 args.iter().map(|(i, _)| *i).collect::<Vec<_>>(),
                 args.len()
-            ));
+            )));
         }
     }
     let ordered: Vec<EvalTerm> = args.into_iter().map(|(_, t)| t).collect();
@@ -748,13 +756,15 @@ fn reified_nary_head(
 /// constant directly, or a variable's bound surface resolved back to a value (a hard error if
 /// the variable is unbound — a range-restricted head argument is bound by the body by
 /// construction).
-fn eval_term_value(term: &EvalTerm, sol: &Solution) -> Result<purrdf::TermValue, String> {
+fn eval_term_value(term: &EvalTerm, sol: &Solution) -> gmeow_errors::Result<purrdf::TermValue> {
     match term {
         EvalTerm::ConstNamed(iri) => Ok(purrdf::TermValue::iri(iri)),
         EvalTerm::ConstLit(value) => Ok(value.clone()),
         EvalTerm::Var(name) => {
             let surface = sol.get(name).ok_or_else(|| {
-                format!("chase: n-ary head argument variable {name:?} unbound after body join")
+                physical_err(format!(
+                    "chase: n-ary head argument variable {name:?} unbound after body join"
+                ))
             })?;
             crate::rule_ir::surface_to_value(surface)
         }
@@ -1087,7 +1097,7 @@ pub(crate) fn route_chase(
     edb_facts: &[Fact],
     rules: &[ExistentialRule],
     max_steps: Option<u64>,
-) -> Result<(ChaseAdmission, ChaseOutcome), String> {
+) -> gmeow_errors::Result<(ChaseAdmission, ChaseOutcome)> {
     let admission = ChaseAdmission::certify(rules);
     let outcome = if admits_or_budgeted(&admission, max_steps) {
         chase_world(world, edb_facts, rules, max_steps)?
@@ -1265,7 +1275,10 @@ mod tests {
             distinct: vec![],
         };
         let err = reified_nary_head(&rule).unwrap_err();
-        assert!(err.contains("non-contiguous or duplicate"), "{err}");
+        assert!(
+            err.message().contains("non-contiguous or duplicate"),
+            "{err}"
+        );
     }
 
     /// A duplicate positional index (two naryArg0) is a HARD ERROR for the same reason.
@@ -1288,7 +1301,10 @@ mod tests {
             distinct: vec![],
         };
         let err = reified_nary_head(&rule).unwrap_err();
-        assert!(err.contains("non-contiguous or duplicate"), "{err}");
+        assert!(
+            err.message().contains("non-contiguous or duplicate"),
+            "{err}"
+        );
     }
 
     #[test]
@@ -1445,12 +1461,13 @@ mod tests {
         let err = parse_existential_rules(&rls)
             .expect_err("a ≥n obligation the surface cannot carry must be refused");
         assert!(
-            err.contains("≥n") && err.contains("distinct existential witnesses"),
+            err.message().contains("≥n")
+                && err.message().contains("distinct existential witnesses"),
             "the refusal must name the ≥n distinctness gap it is protecting: {err}"
         );
         // No GitHub issue/PR/process refs leak into the message.
         assert!(
-            !err.contains('#'),
+            !err.message().contains('#'),
             "the refusal message must carry no process refs: {err}"
         );
     }
@@ -1468,10 +1485,13 @@ mod tests {
         let err = parse_existential_rules(&rls)
             .expect_err("an existential rule with a negated body guard must be refused");
         assert!(
-            err.contains("negated body literal"),
+            err.message().contains("negated body literal"),
             "the refusal must name the negation it protects against: {err}"
         );
-        assert!(!err.contains('#'), "no process refs in the message: {err}");
+        assert!(
+            !err.message().contains('#'),
+            "no process refs in the message: {err}"
+        );
     }
 
     #[test]

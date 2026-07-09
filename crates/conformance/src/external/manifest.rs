@@ -25,8 +25,10 @@
 //! job is solely to read the manifest and report the declared outcome (the external
 //! ground truth the soundness gate cross-checks the engine against).
 
+use gmeow_errors::Diag;
 use purrdf::{TermRef, parse_dataset};
 
+use crate::error::{ManifestInvalid, ManifestParse};
 use crate::external::status::ExternalOutcome;
 
 /// The W3C test-manifest (`mf:`) vocabulary namespace.
@@ -111,19 +113,27 @@ impl ManifestEntry {
 /// (no-optionality): a Turtle parse failure, a recognized test entry missing its
 /// required premise document, or an inline RDF/XML literal that is empty or
 /// whitespace-only are all errors.
-pub fn parse_test_manifest(source: &str, base: Option<&str>) -> Result<Vec<ManifestEntry>, String> {
-    let ds = parse_dataset(source.as_bytes(), "text/turtle", base)
-        .map_err(|e| format!("manifest Turtle parse failed: {e}"))?;
+pub fn parse_test_manifest(
+    source: &str,
+    base: Option<&str>,
+) -> gmeow_errors::Result<Vec<ManifestEntry>> {
+    let ds = parse_dataset(source.as_bytes(), "text/turtle", base).map_err(|e| {
+        Diag::of_kind(ManifestParse {
+            detail: format!("manifest Turtle parse failed: {e}"),
+        })
+    })?;
     let entries = manifest_entries(&ds)?;
     // Strict post-pass: every recognized entry MUST have a premise. The self-authored
     // seed corpora always satisfy this; a missing premise is a manifest authoring error.
     for e in &entries {
         if e.action.is_none() {
-            return Err(format!(
-                "manifest test entry {} has no premise document \
-                 (no mf:action IRI or otest:rdfXmlPremiseOntology literal)",
-                e.iri
-            ));
+            return Err(Diag::of_kind(ManifestInvalid {
+                detail: format!(
+                    "manifest test entry {} has no premise document \
+                     (no mf:action IRI or otest:rdfXmlPremiseOntology literal)",
+                    e.iri
+                ),
+            }));
         }
     }
     Ok(entries)
@@ -140,9 +150,12 @@ pub fn parse_test_manifest(source: &str, base: Option<&str>) -> Result<Vec<Manif
 pub fn parse_test_manifest_rdfxml(
     source: &str,
     base: Option<&str>,
-) -> Result<Vec<ManifestEntry>, String> {
-    let ds = parse_dataset(source.as_bytes(), "application/rdf+xml", base)
-        .map_err(|e| format!("manifest RDF/XML parse failed: {e}"))?;
+) -> gmeow_errors::Result<Vec<ManifestEntry>> {
+    let ds = parse_dataset(source.as_bytes(), "application/rdf+xml", base).map_err(|e| {
+        Diag::of_kind(ManifestParse {
+            detail: format!("manifest RDF/XML parse failed: {e}"),
+        })
+    })?;
     // Lenient: keep only entries with a recognized premise; drop the rest (the
     // caller — the vendor step — logs skipped cases itself).
     Ok(manifest_entries(&ds)?
@@ -163,7 +176,7 @@ pub fn parse_test_manifest_rdfxml(
 /// returned with `action = None`; the caller decides whether to hard-fail or skip
 /// them. [`parse_test_manifest`] hard-fails on such entries; [`parse_test_manifest_rdfxml`]
 /// silently drops them.
-pub fn manifest_entries(ds: &purrdf::RdfDataset) -> Result<Vec<ManifestEntry>, String> {
+pub fn manifest_entries(ds: &purrdf::RdfDataset) -> gmeow_errors::Result<Vec<ManifestEntry>> {
     #[derive(Default)]
     struct Row {
         kind: Option<ManifestTestKind>,
@@ -263,10 +276,12 @@ pub fn manifest_entries(ds: &purrdf::RdfDataset) -> Result<Vec<ManifestEntry>, S
         // decides whether to hard-fail or skip the entry.
         let action: Option<OntologyDoc> = if let Some(inline) = row.otest_premise {
             if inline.trim().is_empty() {
-                return Err(format!(
-                    "manifest entry {iri} has an empty otest:rdfXmlPremiseOntology literal \
-                     (vacuous pass not permitted)"
-                ));
+                return Err(Diag::of_kind(ManifestInvalid {
+                    detail: format!(
+                        "manifest entry {iri} has an empty otest:rdfXmlPremiseOntology literal \
+                         (vacuous pass not permitted)"
+                    ),
+                }));
             }
             Some(OntologyDoc::InlineRdfXml(inline))
         } else {
@@ -349,7 +364,7 @@ ex:syntax a mf:PositiveSyntax ; mf:action ex:a.ttl .\n";
 @prefix ex: <https://gmeow.example/ent/> .\n\
 ex:pos a mf:PositiveEntailment ; mf:name \"x\" .\n";
         let err = parse_test_manifest(src, None).unwrap_err();
-        assert!(err.contains("no premise document"), "{err}");
+        assert!(err.message().contains("no premise document"), "{err}");
     }
 
     #[test]
@@ -520,7 +535,10 @@ ex:t a otest:ConsistencyTest ;\n\
 ex:t a otest:ConsistencyTest ;\n\
     otest:rdfXmlPremiseOntology \"   \" .\n";
         let err = parse_test_manifest(src, None).unwrap_err();
-        assert!(err.contains("empty otest:rdfXmlPremiseOntology"), "{err}");
+        assert!(
+            err.message().contains("empty otest:rdfXmlPremiseOntology"),
+            "{err}"
+        );
     }
 
     #[test]
@@ -531,7 +549,7 @@ ex:t a otest:ConsistencyTest ;\n\
 ex:t a otest:ConsistencyTest ;\n\
     otest:identifier \"no-premise\" .\n";
         let err = parse_test_manifest(src, None).unwrap_err();
-        assert!(err.contains("no premise document"), "{err}");
+        assert!(err.message().contains("no premise document"), "{err}");
     }
 
     // -------------------------------------------------------------------------

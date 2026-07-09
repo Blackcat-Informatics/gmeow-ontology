@@ -37,6 +37,9 @@ pub mod entail_crosscheck;
 /// `reason::native_contract_hash` (it is not part of gmeow's own reasoning contract).
 pub mod entail_oracle;
 pub mod entrenchment;
+/// Reasoning-core diagnostic-kind catalog: the typed [`gmeow_errors::DiagKind`]
+/// set the core raises on the shared diagnostic substrate, one per subsystem.
+pub mod error;
 pub mod explain;
 // The typed-fact bridge: dictionary-interned facts (TermInterner / TypedFactSet)
 // exchanged between the store sweep and the reasoning adapters. Crate-internal.

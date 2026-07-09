@@ -301,20 +301,15 @@ fn example_corpus_validates_against_closed_world_schema() {
         }
     }
 
-    // Log a sweep summary (visible with --nocapture).
-    eprintln!(
-        "example sweep: {} total, {} passed, {} excluded (non-conformant), {} schema failures",
+    // Every swept example is EXACTLY one of passed / excluded / schema-failure —
+    // a partition invariant (replaces a bare sweep-summary log line).
+    assert_eq!(
+        passed_count + excluded_count + schema_failures.len(),
         examples.len(),
-        passed_count,
-        excluded_count,
-        schema_failures.len()
+        "sweep partition: {passed_count} passed + {excluded_count} excluded + {} schema-failures must total {} examples",
+        schema_failures.len(),
+        examples.len(),
     );
-    if !non_conformant.is_empty() {
-        eprintln!("excluded (SHACL-non-conformant, out of scope):");
-        for ex in NON_CONFORMANT {
-            eprintln!("  - {ex}");
-        }
-    }
 
     // Invariant 1: the allowlist must be EXACTLY the SHACL-failing set, so an
     // exclusion can never silently mask a JSON-schema soundness bug.
