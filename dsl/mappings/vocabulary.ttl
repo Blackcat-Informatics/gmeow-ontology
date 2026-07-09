@@ -17,7 +17,7 @@
 # applied to itself: the SAME mappings were hand-authored four ways (SSSOM rows,
 # EDOAL cells, FnO functions, SPARQL CONSTRUCT executors) and drifted. This
 # vocabulary is the recursion: author each mapping ONCE as a gmeow: cell, and
-# `gmeow compile-mappings` renders the four standard artifacts from it.
+# the registered mappings generator renders the standard artifacts from it.
 #
 # This file is a SPEC LAYER — grounded in the gmeow: namespace and annotated like
 # every GMEOW term, but NOT owl:imports-ed into the reasoned OWL 2 DL core
@@ -29,7 +29,7 @@
     a owl:Ontology ;
     rdfs:label "GMEOW mapping DSL vocabulary"@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
-    rdfs:comment "Authoring vocabulary for cross-ontology alignments and lossy projections; compiled to SSSOM / EDOAL / FnO / SPARQL by `gmeow compile-mappings`."@x-gmeow-english .
+    rdfs:comment "Authoring vocabulary for cross-ontology alignments and lossy projections; compiled to SSSOM / EDOAL / FnO / SPARQL by the registered mappings generator."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Cell types — the two authoring units
@@ -41,7 +41,7 @@ gmeow:TermEquivalence a owl:Class ;
 
 gmeow:ProjectionMapping a owl:Class ;
     rdfs:label "projection mapping"@x-gmeow-english ;
-    skos:definition "A directional, possibly lossy downcast from a GMEOW graph pattern to one or more target-vocabulary triples. Always compiles to a SPARQL CONSTRUCT branch; additionally to an EDOAL cell, an FnO function declaration (when it carries a transform), and an SSSOM row (when a profile binding is a 1:1 rename flagged emitSssom)."@x-gmeow-english .
+    skos:definition "A directional, possibly lossy downcast from a GMEOW graph pattern to one or more target-vocabulary triples. Always compiles to a SPARQL CONSTRUCT branch; additionally to an EDOAL cell, an FnO function declaration (when it carries a transform), and an SSSOM row (when a profile binding is a one-to-one term linkage flagged emitSssom)."@x-gmeow-english .
 
 gmeow:MappingPattern a owl:Class ;
     rdfs:label "mapping pattern"@x-gmeow-english ;
@@ -104,7 +104,7 @@ gmeow:setTrailer a owl:DatatypeProperty ;
     skos:definition "Optional trailing comment lines appended after the data rows (e.g. forward-looking, commented-out mappings)."@x-gmeow-english .
 gmeow:sssomPredicate a owl:ObjectProperty ;
     rdfs:label "SSSOM predicate"@x-gmeow-english ;
-    skos:definition "For a projection binding flagged emitSssom, the SSSOM mapping predicate of its 1:1 row (distinct from the EDOAL gmeow:relation axis)."@x-gmeow-english .
+    skos:definition "For a projection binding flagged emitSssom, the SSSOM mapping predicate of its one-to-one term row (distinct from the EDOAL gmeow:relation axis)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Pattern fields
@@ -240,7 +240,7 @@ gmeow:lossyDrop a owl:DatatypeProperty ;
     skos:definition "A note describing what GMEOW structure this profile drops; aggregated into the generated EDOAL/SPARQL header comments."@x-gmeow-english .
 gmeow:emitSssom a owl:DatatypeProperty ;
     rdfs:label "emit SSSOM row"@x-gmeow-english ;
-    skos:definition "When true, this 1:1 rename binding also emits an SSSOM row (subject = the source predicate, object = gmeow:toPredicate)."@x-gmeow-english .
+    skos:definition "When true, this one-to-one term binding also emits an SSSOM row from the binding's source term to its target term (typically gmeow:toPredicate or gmeow:toClass), using gmeow:sssomPredicate for the mapping strength."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
 # Property-path algebra (no raw SPARQL)
@@ -419,8 +419,8 @@ gmeow:fnPosePositionToWktPoint a gmeow:ProjectionFunction ;
 
 
 gmeow:fnCoarsenToGranularity a gmeow:ProjectionFunction ;
-    rdfs:label "coarsen coordinates to the enclosing region (generalization, P10)"@x-gmeow-english ;
-    skos:definition "Disclosure control by generalization (#72, CONSTITUTION P10): a place that carries gmeow:coarsenTo a target gmeow:GranularityLevel is projected with the coordinates of the enclosing ancestor at that level INSTEAD of its precise point — a coarser region rather than exact coordinates, never deletion. Aligns by reference to dpv:Generalisation. Ancestor SELECTION is performed declaratively in the SPARQL projection (the gmeow:containedInPlace+ path matching the ancestor whose gmeow:hasGranularity is the target level); this transform documents the resulting generalization, receiving the already-selected ancestor's coordinates (paramLatitude/paramLongitude) and re-emitting them as the place's location. Heavier geomasking / k-anonymity stays in the solver layer (P12)."@x-gmeow-english ;
+    rdfs:label "coarsen coordinates to the enclosing region (generalization, Principle 10)"@x-gmeow-english ;
+    skos:definition "Disclosure control by generalization (Principle 10): a place that carries gmeow:coarsenTo a target gmeow:GranularityLevel is projected with the coordinates of the enclosing ancestor at that level INSTEAD of its precise point — a coarser region rather than exact coordinates, never deletion. Aligns by reference to dpv:Generalisation. Ancestor SELECTION is performed declaratively in the SPARQL projection (the gmeow:containedInPlace+ path matching the ancestor whose gmeow:hasGranularity is the target level); this transform documents the resulting generalization, receiving the already-selected ancestor's coordinates (paramLatitude/paramLongitude) and re-emitting them as the place's location. Heavier geomasking / k-anonymity stays in the solver layer (Principle 12)."@x-gmeow-english ;
     gmeow:fnInput gmeow:coarsenTo , gmeow:latitude , gmeow:longitude ;
     gmeow:fnOutput geo:asWKT ; gmeow:fnOutputType geo:wktLiteral ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
@@ -443,8 +443,8 @@ gmeow:fnRetagGeoJson a gmeow:ProjectionFunction ;
 
 
 gmeow:fnCoarsenToGranularityGeoJson a gmeow:ProjectionFunction ;
-    rdfs:label "coarsen GeoJSON coordinates to the enclosing region (generalization, P10)"@x-gmeow-english ;
-    skos:definition "Disclosure control by generalization (#72, CONSTITUTION P10): a place that carries gmeow:coarsenTo a target gmeow:GranularityLevel is projected with the coordinates of the enclosing ancestor at that level INSTEAD of its precise GeoJSON — a coarser region rather than exact coordinates, never deletion. Receives the already-selected ancestor's GeoJSON and re-emitting it as the place's location. Heavier geomasking / k-anonymity stays in the solver layer (P12)."@x-gmeow-english ;
+    rdfs:label "coarsen GeoJSON coordinates to the enclosing region (generalization, Principle 10)"@x-gmeow-english ;
+    skos:definition "Disclosure control by generalization (Principle 10): a place that carries gmeow:coarsenTo a target gmeow:GranularityLevel is projected with the coordinates of the enclosing ancestor at that level INSTEAD of its precise GeoJSON — a coarser region rather than exact coordinates, never deletion. Receives the already-selected ancestor's GeoJSON and re-emitting it as the place's location. Heavier geomasking / k-anonymity stays in the solver layer (Principle 12)."@x-gmeow-english ;
     gmeow:fnInput gmeow:coarsenTo , gmeow:asGeoJSON ;
     gmeow:fnOutput geo:asGeoJSON ; gmeow:fnOutputType geo:geoJSONLiteral ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
@@ -699,7 +699,7 @@ gmeow:fnPostToOrganizationRole a gmeow:ProjectionFunction ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
 
-# Backfilled annotations for annotation-completeness gate (issue #221)
+# Backfilled annotations for the annotation-completeness gate.
 gmeow:AltPath rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
 gmeow:ExpressionOperator rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .

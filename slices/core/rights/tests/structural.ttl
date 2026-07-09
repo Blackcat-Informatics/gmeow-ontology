@@ -332,3 +332,222 @@ ASK {
     gmeow:Duty a owl:Class ; rdfs:subClassOf gmeow:Rule .
 }""" ;
     gmeow:saRationale "gmeow:Permission, gmeow:Prohibition, and gmeow:Duty MUST each remain an owl:Class and a subclass of gmeow:Rule so the rights graft preserves the core deontic trio classhood." .
+
+# --- 20. ODRL action vocabulary seeds are RightsAction individuals (MUST) ----
+ex:saRightsActionVocabularySeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:actionAcceptTracking            a gmeow:RightsAction .
+    gmeow:actionAggregate                 a gmeow:RightsAction .
+    gmeow:actionAnnotate                  a gmeow:RightsAction .
+    gmeow:actionAnonymize                 a gmeow:RightsAction .
+    gmeow:actionArchive                   a gmeow:RightsAction .
+    gmeow:actionAttribute                 a gmeow:RightsAction .
+    gmeow:actionCommercialize             a gmeow:RightsAction .
+    gmeow:actionCompensate                a gmeow:RightsAction .
+    gmeow:actionConcurrentUse             a gmeow:RightsAction .
+    gmeow:actionDelete                    a gmeow:RightsAction .
+    gmeow:actionDerive                    a gmeow:RightsAction .
+    gmeow:actionDigitize                  a gmeow:RightsAction .
+    gmeow:actionDisplay                   a gmeow:RightsAction .
+    gmeow:actionDistribute                a gmeow:RightsAction .
+    gmeow:actionEnsureExclusivity         a gmeow:RightsAction .
+    gmeow:actionExecute                   a gmeow:RightsAction .
+    gmeow:actionExtract                   a gmeow:RightsAction .
+    gmeow:actionGive                      a gmeow:RightsAction .
+    gmeow:actionGrantUse                  a gmeow:RightsAction .
+    gmeow:actionInclude                   a gmeow:RightsAction .
+    gmeow:actionIndex                     a gmeow:RightsAction .
+    gmeow:actionInform                    a gmeow:RightsAction .
+    gmeow:actionInstall                   a gmeow:RightsAction .
+    gmeow:actionLease                     a gmeow:RightsAction .
+    gmeow:actionLend                      a gmeow:RightsAction .
+    gmeow:actionModify                    a gmeow:RightsAction .
+    gmeow:actionMove                      a gmeow:RightsAction .
+    gmeow:actionNextPolicy                a gmeow:RightsAction .
+    gmeow:actionObtainConsent             a gmeow:RightsAction .
+    gmeow:actionPlay                      a gmeow:RightsAction .
+    gmeow:actionPresent                   a gmeow:RightsAction .
+    gmeow:actionPrint                     a gmeow:RightsAction .
+    gmeow:actionProcessPersonalData       a gmeow:RightsAction .
+    gmeow:actionRead                      a gmeow:RightsAction .
+    gmeow:actionReproduce                 a gmeow:RightsAction .
+    gmeow:actionRetainNotice              a gmeow:RightsAction .
+    gmeow:actionReviewPolicy              a gmeow:RightsAction .
+    gmeow:actionSell                      a gmeow:RightsAction .
+    gmeow:actionShareAlike                a gmeow:RightsAction .
+    gmeow:actionStream                    a gmeow:RightsAction .
+    gmeow:actionSynchronize               a gmeow:RightsAction .
+    gmeow:actionTextToSpeech              a gmeow:RightsAction .
+    gmeow:actionTransfer                  a gmeow:RightsAction .
+    gmeow:actionTransform                 a gmeow:RightsAction .
+    gmeow:actionTranslate                 a gmeow:RightsAction .
+    gmeow:actionUninstall                 a gmeow:RightsAction .
+    gmeow:actionUse                       a gmeow:RightsAction .
+    gmeow:actionWatermark                 a gmeow:RightsAction .
+}""" ;
+    gmeow:saRationale "Every seeded ODRL/CC action value MUST remain a gmeow:RightsAction individual. The rule layer regulates action values, not per-action subclasses." .
+
+# --- 21. Constraint and rights value vocabulary seeds exist (MUST) -----------
+ex:saRightsValueVocabularySeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:conflictInvalid                                    a gmeow:ConflictStrategy .
+    gmeow:conflictPerm                                       a gmeow:ConflictStrategy .
+    gmeow:conflictProhibit                                   a gmeow:ConflictStrategy .
+    gmeow:logicAnd                                           a gmeow:ConstraintLogic .
+    gmeow:logicAndSequence                                   a gmeow:ConstraintLogic .
+    gmeow:logicOr                                            a gmeow:ConstraintLogic .
+    gmeow:logicXone                                          a gmeow:ConstraintLogic .
+    gmeow:copyrightStatusInCopyright                         a gmeow:CopyrightStatus .
+    gmeow:copyrightStatusInCopyrightEducationalUse           a gmeow:CopyrightStatus .
+    gmeow:copyrightStatusInCopyrightEuOrphanWork             a gmeow:CopyrightStatus .
+    gmeow:copyrightStatusInCopyrightNonCommercialUse         a gmeow:CopyrightStatus .
+    gmeow:copyrightStatusInCopyrightRightsholderUnlocatable  a gmeow:CopyrightStatus .
+    gmeow:copyrightStatusNoCopyrightContractualRestrictions  a gmeow:CopyrightStatus .
+    gmeow:copyrightStatusNoCopyrightNonCommercialOnly        a gmeow:CopyrightStatus .
+    gmeow:copyrightStatusNoCopyrightOtherLegalRestrictions   a gmeow:CopyrightStatus .
+    gmeow:copyrightStatusNoCopyrightUnitedStates             a gmeow:CopyrightStatus .
+    gmeow:copyrightStatusNoKnownCopyright                    a gmeow:CopyrightStatus .
+    gmeow:copyrightStatusNotEvaluated                        a gmeow:CopyrightStatus .
+    gmeow:copyrightStatusPublicDomain                        a gmeow:CopyrightStatus .
+    gmeow:copyrightStatusUndetermined                        a gmeow:CopyrightStatus .
+    gmeow:licenseFamilyCC                                    a gmeow:LicenseFamily .
+    gmeow:licenseFamilyCopyleft                              a gmeow:LicenseFamily .
+    gmeow:licenseFamilyDual                                  a gmeow:LicenseFamily .
+    gmeow:licenseFamilyPermissive                            a gmeow:LicenseFamily .
+    gmeow:licenseFamilyProprietary                           a gmeow:LicenseFamily .
+    gmeow:licenseFamilyPublicDomain                          a gmeow:LicenseFamily .
+    gmeow:rightsTypeCopyright                                a gmeow:RightsType .
+    gmeow:rightsTypeDatabaseRight                            a gmeow:RightsType .
+    gmeow:rightsTypeIndustrialDesign                         a gmeow:RightsType .
+    gmeow:rightsTypeMoralRights                              a gmeow:RightsType .
+    gmeow:rightsTypePatent                                   a gmeow:RightsType .
+    gmeow:rightsTypePlantBreedersRights                      a gmeow:RightsType .
+    gmeow:rightsTypeRelatedRights                            a gmeow:RightsType .
+    gmeow:rightsTypeTradeSecret                              a gmeow:RightsType .
+    gmeow:rightsTypeTrademark                                a gmeow:RightsType .
+    gmeow:trademarkStatusCancelled                           a gmeow:TrademarkStatus .
+    gmeow:trademarkStatusExpired                             a gmeow:TrademarkStatus .
+    gmeow:trademarkStatusPending                             a gmeow:TrademarkStatus .
+    gmeow:trademarkStatusRegistered                          a gmeow:TrademarkStatus .
+    gmeow:trademarkStatusUnregistered                        a gmeow:TrademarkStatus .
+}""" ;
+    gmeow:saRationale "The rights status, conflict, logic, license-family, rights-type, and trademark-status vocabularies MUST remain seeded as individuals, preserving the individuals-first value-vocabulary doctrine." .
+
+# --- 22. ODRL constraint operand/operator seeds exist (MUST) -----------------
+ex:saConstraintVocabularySeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:leftOpAbsolutePosition                 a gmeow:LeftOperand .
+    gmeow:leftOpAbsoluteSize                     a gmeow:LeftOperand .
+    gmeow:leftOpAbsoluteSpatialPosition          a gmeow:LeftOperand .
+    gmeow:leftOpAbsoluteTemporalPosition         a gmeow:LeftOperand .
+    gmeow:leftOpCount                            a gmeow:LeftOperand .
+    gmeow:leftOpDateTime                         a gmeow:LeftOperand .
+    gmeow:leftOpDelayPeriod                      a gmeow:LeftOperand .
+    gmeow:leftOpDeliveryChannel                  a gmeow:LeftOperand .
+    gmeow:leftOpDevice                           a gmeow:LeftOperand .
+    gmeow:leftOpElapsedTime                      a gmeow:LeftOperand .
+    gmeow:leftOpEvent                            a gmeow:LeftOperand .
+    gmeow:leftOpFileFormat                       a gmeow:LeftOperand .
+    gmeow:leftOpIndustry                         a gmeow:LeftOperand .
+    gmeow:leftOpLanguage                         a gmeow:LeftOperand .
+    gmeow:leftOpMedia                            a gmeow:LeftOperand .
+    gmeow:leftOpMeteredTime                      a gmeow:LeftOperand .
+    gmeow:leftOpPayAmount                        a gmeow:LeftOperand .
+    gmeow:leftOpPercentage                       a gmeow:LeftOperand .
+    gmeow:leftOpProduct                          a gmeow:LeftOperand .
+    gmeow:leftOpPurpose                          a gmeow:LeftOperand .
+    gmeow:leftOpRecipient                        a gmeow:LeftOperand .
+    gmeow:leftOpRelativePosition                 a gmeow:LeftOperand .
+    gmeow:leftOpRelativeSize                     a gmeow:LeftOperand .
+    gmeow:leftOpRelativeSpatialPosition          a gmeow:LeftOperand .
+    gmeow:leftOpRelativeTemporalPosition         a gmeow:LeftOperand .
+    gmeow:leftOpResolution                       a gmeow:LeftOperand .
+    gmeow:leftOpSpatial                          a gmeow:LeftOperand .
+    gmeow:leftOpSpatialCoordinates               a gmeow:LeftOperand .
+    gmeow:leftOpSystem                           a gmeow:LeftOperand .
+    gmeow:leftOpSystemDevice                     a gmeow:LeftOperand .
+    gmeow:leftOpTimeInterval                     a gmeow:LeftOperand .
+    gmeow:leftOpUnitOfCount                      a gmeow:LeftOperand .
+    gmeow:leftOpVersion                          a gmeow:LeftOperand .
+    gmeow:leftOpVirtualLocation                  a gmeow:LeftOperand .
+    gmeow:operatorEq                             a gmeow:ConstraintOperator .
+    gmeow:operatorGt                             a gmeow:ConstraintOperator .
+    gmeow:operatorGteq                           a gmeow:ConstraintOperator .
+    gmeow:operatorHasPart                        a gmeow:ConstraintOperator .
+    gmeow:operatorIsA                            a gmeow:ConstraintOperator .
+    gmeow:operatorIsAllOf                        a gmeow:ConstraintOperator .
+    gmeow:operatorIsAnyOf                        a gmeow:ConstraintOperator .
+    gmeow:operatorIsNoneOf                       a gmeow:ConstraintOperator .
+    gmeow:operatorIsPartOf                       a gmeow:ConstraintOperator .
+    gmeow:operatorLt                             a gmeow:ConstraintOperator .
+    gmeow:operatorLteq                           a gmeow:ConstraintOperator .
+    gmeow:operatorNeq                            a gmeow:ConstraintOperator .
+}""" ;
+    gmeow:saRationale "The ODRL constraint left-operand and comparison-operator seeds MUST remain individuals in their respective value vocabularies, so constraints stay data-driven instead of subclass-driven." .
+
+# --- 23. Projection-facing rights properties retain their core typing (MUST) -
+ex:saProjectionFacingRightsPropertiesTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:acquireLicensePage   a owl:DatatypeProperty ; rdfs:domain gmeow:Entity ; rdfs:range xsd:anyURI .
+    gmeow:attributionText      a owl:DatatypeProperty ; rdfs:domain gmeow:Entity ; rdfs:range rdfs:Literal .
+    gmeow:attributionUrl       a owl:DatatypeProperty ; rdfs:domain gmeow:Entity ; rdfs:range xsd:anyURI .
+    gmeow:conditionsOfAccess   a owl:DatatypeProperty ; rdfs:domain gmeow:Entity ; rdfs:range rdfs:Literal .
+    gmeow:copyrightNotice      a owl:DatatypeProperty ; rdfs:domain gmeow:Copyright ; rdfs:range rdfs:Literal .
+    gmeow:copyrightYear        a owl:DatatypeProperty ; rdfs:domain gmeow:Copyright ; rdfs:range rdfs:Literal .
+    gmeow:isAccessibleForFree  a owl:DatatypeProperty ; rdfs:domain gmeow:Entity ; rdfs:range xsd:boolean .
+    gmeow:isOsiApproved        a owl:DatatypeProperty ; rdfs:domain gmeow:License ; rdfs:range xsd:boolean .
+    gmeow:licenseText          a owl:DatatypeProperty ; rdfs:domain gmeow:License ; rdfs:range rdfs:Literal .
+    gmeow:markText             a owl:DatatypeProperty ; rdfs:domain gmeow:Mark ; rdfs:range rdfs:Literal .
+    gmeow:registrationNumber   a owl:DatatypeProperty ; rdfs:domain gmeow:Trademark ; rdfs:range rdfs:Literal .
+    gmeow:rightOperand         a owl:DatatypeProperty ; rdfs:domain gmeow:AtomicConstraint ; rdfs:range rdfs:Literal .
+    gmeow:spdxLicenseId        a owl:DatatypeProperty ; rdfs:domain gmeow:License ; rdfs:range rdfs:Literal .
+    gmeow:spdxLicenseName      a owl:DatatypeProperty ; rdfs:domain gmeow:License ; rdfs:range rdfs:Literal .
+    gmeow:usageInfo            a owl:DatatypeProperty ; rdfs:domain gmeow:Entity ; rdfs:range rdfs:Literal .
+
+    gmeow:conflictStrategy       a owl:ObjectProperty ; rdfs:domain gmeow:RightsStatement ; rdfs:range gmeow:ConflictStrategy .
+    gmeow:constraintLogic        a owl:ObjectProperty ; rdfs:domain gmeow:LogicalConstraint ; rdfs:range gmeow:ConstraintLogic .
+    gmeow:constraintOperator     a owl:ObjectProperty ; rdfs:domain gmeow:AtomicConstraint ; rdfs:range gmeow:ConstraintOperator .
+    gmeow:copyrightHolder        a owl:ObjectProperty ; rdfs:domain gmeow:Copyright ; rdfs:range gmeow:Agent .
+    gmeow:copyrightStatus        a owl:ObjectProperty ; rdfs:domain gmeow:Copyright ; rdfs:range gmeow:CopyrightStatus .
+    gmeow:copyrightWork          a owl:ObjectProperty ; rdfs:domain gmeow:Copyright ; rdfs:range gmeow:InformationObject .
+    gmeow:hasCopyright          a owl:ObjectProperty ; rdfs:domain gmeow:Entity ; rdfs:range gmeow:Copyright .
+    gmeow:hasDuty               a owl:ObjectProperty ; rdfs:range gmeow:Duty .
+    gmeow:hasLicense            a owl:ObjectProperty ; rdfs:domain gmeow:Entity ; rdfs:range gmeow:License .
+    gmeow:hasPermission         a owl:ObjectProperty ; rdfs:domain gmeow:RightsStatement ; rdfs:range gmeow:Permission .
+    gmeow:hasProhibition        a owl:ObjectProperty ; rdfs:domain gmeow:RightsStatement ; rdfs:range gmeow:Prohibition .
+    gmeow:hasRightsStatement    a owl:ObjectProperty ; rdfs:domain gmeow:Entity ; rdfs:range gmeow:RightsStatement .
+    gmeow:hasTrademark          a owl:ObjectProperty ; rdfs:domain gmeow:Entity ; rdfs:range gmeow:Trademark .
+    gmeow:leftOperand           a owl:ObjectProperty ; rdfs:domain gmeow:AtomicConstraint ; rdfs:range gmeow:LeftOperand .
+    gmeow:licenseFamily         a owl:ObjectProperty ; rdfs:domain gmeow:License ; rdfs:range gmeow:LicenseFamily .
+    gmeow:licensedWork          a owl:ObjectProperty ; rdfs:domain gmeow:License ; rdfs:range gmeow:InformationObject .
+    gmeow:licensee              a owl:ObjectProperty ; rdfs:domain gmeow:License ; rdfs:range gmeow:Agent .
+    gmeow:licensor              a owl:ObjectProperty ; rdfs:domain gmeow:License ; rdfs:range gmeow:Agent .
+    gmeow:logicConstraintMember a owl:ObjectProperty ; rdfs:domain gmeow:LogicalConstraint ; rdfs:range gmeow:Constraint .
+    gmeow:rightOperandReference a owl:ObjectProperty ; rdfs:domain gmeow:AtomicConstraint ; rdfs:range gmeow:Entity .
+    gmeow:rightsType            a owl:ObjectProperty ; rdfs:domain gmeow:RightsStatement ; rdfs:range gmeow:RightsType .
+    gmeow:ruleAction            a owl:ObjectProperty ; rdfs:domain gmeow:Rule ; rdfs:range gmeow:RightsAction .
+    gmeow:ruleAssignee          a owl:ObjectProperty ; rdfs:domain gmeow:Rule ; rdfs:range gmeow:Agent .
+    gmeow:ruleConsequence       a owl:ObjectProperty ; rdfs:domain gmeow:Rule ; rdfs:range gmeow:Duty .
+    gmeow:ruleConstraint        a owl:ObjectProperty ; rdfs:domain gmeow:Rule ; rdfs:range gmeow:Constraint .
+    gmeow:ruleTarget            a owl:ObjectProperty ; rdfs:domain gmeow:Rule ; rdfs:range gmeow:Entity .
+    gmeow:statementAbout        a owl:ObjectProperty ; rdfs:domain gmeow:RightsStatement ; rdfs:range gmeow:Entity .
+    gmeow:trademarkHolder       a owl:ObjectProperty ; rdfs:domain gmeow:Trademark ; rdfs:range gmeow:Agent .
+    gmeow:trademarkMark         a owl:ObjectProperty ; rdfs:domain gmeow:Trademark ; rdfs:range gmeow:Mark .
+    gmeow:trademarkStatus       a owl:ObjectProperty ; rdfs:domain gmeow:Trademark ; rdfs:range gmeow:TrademarkStatus .
+}""" ;
+    gmeow:saRationale "The projection-facing rights property surface MUST retain its datatype/object property typing and its core domain/range anchors, because the CC, DC Terms, ODRL, schema.org, and SPDX projections rely on these contracts." .

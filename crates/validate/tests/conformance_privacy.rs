@@ -124,11 +124,11 @@ fn odrl_projection_emits_privacy_policy() {
     assert!(out.has(
         Some(&ex("purpose-delivery")),
         Some(&odrl("leftOperand")),
-        Some(&gm("leftOpPurpose"))
+        Some(&odrl("purpose"))
     ));
     assert!(out.has(
         Some(&ex("purpose-delivery")),
         Some(&odrl("operator")),
-        Some(&gm("operatorEq"))
+        Some(&odrl("eq"))
     ));
 }

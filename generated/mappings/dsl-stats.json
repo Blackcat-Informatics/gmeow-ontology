@@ -25,7 +25,7 @@
   "gmeow-diagnostics.sssom.tsv": 2,
   "gmeow-dlmf.sssom.tsv": 5,
   "gmeow-dsi.sssom.tsv": 7,
-  "gmeow-dublin-core.sssom.tsv": 43,
+  "gmeow-dublin-core.sssom.tsv": 42,
   "gmeow-email.sssom.tsv": 34,
   "gmeow-employment.sssom.tsv": 8,
   "gmeow-epistemics.sssom.tsv": 7,
@@ -71,7 +71,7 @@
   "gmeow-provenance.sssom.tsv": 12,
   "gmeow-quality.sssom.tsv": 10,
   "gmeow-qudt.sssom.tsv": 15,
-  "gmeow-rights.sssom.tsv": 201,
+  "gmeow-rights.sssom.tsv": 79,
   "gmeow-schema-org-finance.sssom.tsv": 12,
   "gmeow-sensory-environment.sssom.tsv": 9,
   "gmeow-sensory.sssom.tsv": 5,
@@ -85,8 +85,8 @@
   "gmeow-wikidata.sssom.tsv": 170,
   "gmeow-wordnet.sssom.tsv": 3
  },
- "equivalences": 1990,
+ "equivalences": 1867,
  "functions": 59,
  "mapping_sets": 80,
- "projections": 531
+ "projections": 626
 }
