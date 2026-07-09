@@ -1646,3 +1646,66 @@ logic:usfB a logic:Formula ; logic:relation gmeow:usesScale ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
 logic:usfEq a logic:Formula ; logic:relation logic:termEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+
+# =========================================================================== #
+# Procedural constraint (#1194): a gmeow:ScoreAnchor's range must lie within the  #
+# scale its criterion (or the criterion's owning rubric, when the criterion       #
+# declares none) advertises. Projected to a sh:SPARQLConstraint keyed onto the    #
+# gmeow:ScoreAnchor source-term. The scale-source disjunction is a UNION (each    #
+# arm binds ?scale); the out-of-range test is a pure filter disjunction, one      #
+# combined FILTER.                                                                #
+# =========================================================================== #
+
+gmeow:ScoreAnchorRangeWithinScaleConstraint
+    a logic:Constraint ;
+    rdfs:label "Score-anchor range within scale constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ScoreAnchor's [anchorRangeMin, anchorRangeMax] must lie within the [scaleMin, scaleMax] its anchoring criterion declares through gmeow:usesScale, or — when the criterion declares no scale — the scale its owning rubric declares."@x-gmeow-english ;
+    logic:formalizes gmeow:ScoreAnchor ;
+    logic:severity "Violation" ;
+    logic:message "A ScoreAnchor's range must lie within the scale its criterion (or owning rubric) declares." ;
+    logic:integrity logic:sarForall .
+logic:sarForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:sarImpl .
+logic:sarImpl a logic:Formula ; logic:antecedent logic:sarGuard ; logic:consequent logic:sarPhi .
+logic:sarGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ScoreAnchor ] .
+logic:sarPhi a logic:Formula ; logic:not logic:sarEx .
+logic:sarEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "criterion" ] , [ logic:termIndex 1 ; logic:termVariable "scale" ] , [ logic:termIndex 2 ; logic:termVariable "smin" ] , [ logic:termIndex 3 ; logic:termVariable "smax" ] , [ logic:termIndex 4 ; logic:termVariable "amin" ] , [ logic:termIndex 5 ; logic:termVariable "amax" ] ;
+    logic:exists logic:sarBody .
+logic:sarBody a logic:Formula ; logic:and logic:sarAnchored , logic:sarScaleSource , logic:sarSMin , logic:sarSMax , logic:sarAMin , logic:sarAMax , logic:sarOut .
+logic:sarAnchored a logic:Formula ; logic:relation gmeow:hasScoreAnchor ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "criterion" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:sarScaleSource a logic:Formula ; logic:or logic:sarOwnScale , logic:sarRubricScale .
+logic:sarOwnScale a logic:Formula ; logic:relation gmeow:usesScale ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "criterion" ] , [ logic:termIndex 1 ; logic:termVariable "scale" ] .
+logic:sarRubricScale a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "rubric" ] ;
+    logic:exists logic:sarRubricBody .
+logic:sarRubricBody a logic:Formula ; logic:and logic:sarRubHas , logic:sarRubScale , logic:sarNoOwn .
+logic:sarRubHas a logic:Formula ; logic:relation gmeow:hasCriterion ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "rubric" ] , [ logic:termIndex 1 ; logic:termVariable "criterion" ] .
+logic:sarRubScale a logic:Formula ; logic:relation gmeow:usesScale ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "rubric" ] , [ logic:termIndex 1 ; logic:termVariable "scale" ] .
+logic:sarNoOwn a logic:Formula ; logic:not logic:sarNoOwnEx .
+logic:sarNoOwnEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ownScale" ] ;
+    logic:exists logic:sarNoOwnAtom .
+logic:sarNoOwnAtom a logic:Formula ; logic:relation gmeow:usesScale ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "criterion" ] , [ logic:termIndex 1 ; logic:termVariable "ownScale" ] .
+logic:sarSMin a logic:Formula ; logic:relation gmeow:scaleMin ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "scale" ] , [ logic:termIndex 1 ; logic:termVariable "smin" ] .
+logic:sarSMax a logic:Formula ; logic:relation gmeow:scaleMax ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "scale" ] , [ logic:termIndex 1 ; logic:termVariable "smax" ] .
+logic:sarAMin a logic:Formula ; logic:relation gmeow:anchorRangeMin ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "amin" ] .
+logic:sarAMax a logic:Formula ; logic:relation gmeow:anchorRangeMax ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "amax" ] .
+logic:sarOut a logic:Formula ; logic:or logic:sarBelow , logic:sarAbove .
+logic:sarBelow a logic:Formula ; logic:relation logic:termLess ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "amin" ] , [ logic:termIndex 1 ; logic:termVariable "smin" ] .
+logic:sarAbove a logic:Formula ; logic:relation logic:termGreater ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "amax" ] , [ logic:termIndex 1 ; logic:termVariable "smax" ] .

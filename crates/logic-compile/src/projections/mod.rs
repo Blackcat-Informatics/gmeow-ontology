@@ -769,6 +769,15 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                 "a sh:SPARQLConstraint has no ShEx form at all (logic:unsupported); every \
                  projected constraint is disclosed as a ShEx drop, carried in the canonical \
                  logic: layer",
+                "a hand-authored CLOSED-WORLD lint whose finding is SUPERSEDED by RDFS/OWL \
+                 entailment is not projected as a logic:Constraint: e.g. gmeow:CoreObservationMethodShape \
+                 flags a gmeow:TemporalMeasurement carrying only gmeow:measurementMethod for a \
+                 missing gmeow:observationMethod, but gmeow:measurementMethod rdfs:subPropertyOf \
+                 gmeow:observationMethod entails the method, so the canonical logic: reasoning layer \
+                 proves the datum well-formed — a faithful closed-world projection cannot reproduce \
+                 that finding without contradicting the entailment (it would over-claim), so the \
+                 finding is a reasoning artifact carried in the canonical logic: layer and its \
+                 hand-authored shape is retained as a closed-world lint (#1194 dating1 residue)",
             ],
         ),
         "shex" => (

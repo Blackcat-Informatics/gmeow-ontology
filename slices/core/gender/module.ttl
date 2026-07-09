@@ -415,3 +415,38 @@ gmeow:GenderIdentity rdfs:subClassOf
 <https://blackcatinformatics.ca/gmeow/GenderIdentity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/genderValue> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/GenderIdentity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/facetSubject> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/GenderIdentity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/facetVantage> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+
+# =========================================================================== #
+# Procedural constraint (#1194) authored as a raw logic:Formula integrity tree, #
+# projected to a sh:SPARQLConstraint keyed (via logic:formalizes) onto the same  #
+# gmeow:GenderIdentity source-term the hand-authored SHACL enforced. A          #
+# superseded identity facet (one carrying gmeow:validUntil) that is not          #
+# suppressed (gmeow:displayable false) is a Warning — a source may lag the flag. #
+# =========================================================================== #
+
+gmeow:SupersededGenderIdentitySuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Superseded gender-identity facet suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a superseded gmeow:GenderIdentity facet (one carrying gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
+    logic:formalizes gmeow:GenderIdentity ;
+    logic:severity "Warning" ;
+    logic:message "A superseded identity facet (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
+    logic:integrity logic:supGiForall .
+logic:supGiForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:supGiImpl .
+logic:supGiImpl a logic:Formula ; logic:antecedent logic:supGiGuard ; logic:consequent logic:supGiPhi .
+logic:supGiGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:GenderIdentity ] .
+logic:supGiPhi a logic:Formula ; logic:not logic:supGiEx .
+logic:supGiEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "u" ] ;
+    logic:exists logic:supGiBody .
+logic:supGiBody a logic:Formula ; logic:and logic:supGiValid , logic:supGiNotSuppressed .
+logic:supGiValid a logic:Formula ; logic:relation gmeow:validUntil ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "u" ] .
+logic:supGiNotSuppressed a logic:Formula ; logic:not logic:supGiDisp .
+logic:supGiDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .

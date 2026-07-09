@@ -2112,3 +2112,77 @@ logic:tmIn a logic:Formula ; logic:relation logic:termIn ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "st" ] , [ logic:termIndex 1 ; logic:termIri gmeow:trademarkStatusExpired ] , [ logic:termIndex 2 ; logic:termIri gmeow:trademarkStatusCancelled ] .
 logic:tmDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype <http://www.w3.org/2001/XMLSchema#boolean> ] .
+
+# =========================================================================== #
+# Procedural constraints (#1194): the consent-metadata invariant, projected to  #
+# sh:SPARQLConstraint keyed onto the gmeow:RightsStatement source-term. A        #
+# consent-governing RightsStatement (one with a permission whose gmeow:ruleAction #
+# is gmeow:actionProcessPersonalData) must name EXACTLY ONE gmeow:hasDataSubject  #
+# and AT LEAST ONE gmeow:hasDataController. The compound invariant is split into  #
+# two single-condition peers (Warning; a source may lag the metadata). "Exactly  #
+# one" is the first-order nested-negation form ∃s.subj(s) ∧ ¬∃s2.(subj(s2)∧s2≠s). #
+# =========================================================================== #
+
+gmeow:ConsentDataSubjectConstraint
+    a logic:Constraint ;
+    rdfs:label "Consent data-subject cardinality constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a consent-governing gmeow:RightsStatement (a permission whose gmeow:ruleAction is gmeow:actionProcessPersonalData) names exactly one gmeow:hasDataSubject."@x-gmeow-english ;
+    logic:formalizes gmeow:RightsStatement ;
+    logic:severity "Warning" ;
+    logic:message "A consent-governing rights statement should name exactly one data subject (gmeow:hasDataSubject)." ;
+    logic:integrity logic:cdsForall .
+logic:cdsForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "perm" ] ;
+    logic:forall logic:cdsImpl .
+logic:cdsImpl a logic:Formula ; logic:antecedent logic:cdsGuard ; logic:consequent logic:cdsPhi .
+logic:cdsGuard a logic:Formula ; logic:and logic:cdsType , logic:cdsPerm , logic:cdsAction .
+logic:cdsType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:RightsStatement ] .
+logic:cdsPerm a logic:Formula ; logic:relation gmeow:hasPermission ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "perm" ] .
+logic:cdsAction a logic:Formula ; logic:relation gmeow:ruleAction ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "perm" ] , [ logic:termIndex 1 ; logic:termIri gmeow:actionProcessPersonalData ] .
+logic:cdsPhi a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] ;
+    logic:exists logic:cdsOne .
+logic:cdsOne a logic:Formula ; logic:and logic:cdsHas , logic:cdsUnique .
+logic:cdsHas a logic:Formula ; logic:relation gmeow:hasDataSubject ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+logic:cdsUnique a logic:Formula ; logic:not logic:cdsOther .
+logic:cdsOther a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s2" ] ;
+    logic:exists logic:cdsOtherBody .
+logic:cdsOtherBody a logic:Formula ; logic:and logic:cdsOtherHas , logic:cdsOtherDistinct .
+logic:cdsOtherHas a logic:Formula ; logic:relation gmeow:hasDataSubject ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s2" ] .
+logic:cdsOtherDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s2" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+
+gmeow:ConsentDataControllerConstraint
+    a logic:Constraint ;
+    rdfs:label "Consent data-controller presence constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a consent-governing gmeow:RightsStatement (a permission whose gmeow:ruleAction is gmeow:actionProcessPersonalData) names at least one gmeow:hasDataController."@x-gmeow-english ;
+    logic:formalizes gmeow:RightsStatement ;
+    logic:severity "Warning" ;
+    logic:message "A consent-governing rights statement should name at least one data controller (gmeow:hasDataController)." ;
+    logic:integrity logic:cdcForall .
+logic:cdcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "perm" ] ;
+    logic:forall logic:cdcImpl .
+logic:cdcImpl a logic:Formula ; logic:antecedent logic:cdcGuard ; logic:consequent logic:cdcPhi .
+logic:cdcGuard a logic:Formula ; logic:and logic:cdcType , logic:cdcPerm , logic:cdcAction .
+logic:cdcType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:RightsStatement ] .
+logic:cdcPerm a logic:Formula ; logic:relation gmeow:hasPermission ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "perm" ] .
+logic:cdcAction a logic:Formula ; logic:relation gmeow:ruleAction ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "perm" ] , [ logic:termIndex 1 ; logic:termIri gmeow:actionProcessPersonalData ] .
+logic:cdcPhi a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "c" ] ;
+    logic:exists logic:cdcHas .
+logic:cdcHas a logic:Formula ; logic:relation gmeow:hasDataController ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .

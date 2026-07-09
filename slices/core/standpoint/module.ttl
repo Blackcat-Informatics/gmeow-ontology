@@ -928,3 +928,105 @@ logic:wssEnded a logic:Formula ; logic:relation gmeow:endedAtTime ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "iv" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] .
 logic:wssDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype <http://www.w3.org/2001/XMLSchema#boolean> ] .
+
+# =========================================================================== #
+# Procedural constraint (#1194) authored as a raw logic:Formula integrity tree, #
+# projected to a sh:SPARQLConstraint keyed (via logic:formalizes) onto the same  #
+# gmeow:CredenceBandConsistencyShape source-term the hand-authored SHACL         #
+# enforced. When a claim carries BOTH a qualitative band and a numeric decimal,  #
+# the decimal must fall within the band's canonical threshold range. The band    #
+# check is a pure filter disjunction, lowered to one combined FILTER.            #
+# =========================================================================== #
+
+gmeow:ClaimCredenceBandConsistencyConstraint
+    a logic:Constraint ;
+    rdfs:label "Claim credence band consistency constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: when a claim asserts both a qualitative gmeow:claimCredenceLevel band and a numeric gmeow:claimCredence decimal, the decimal must fall within the band's canonical threshold range (credencePossible [0,0.5), credenceLikely [0.5,0.9), credenceCertain [0.9,1.0]); credenceUnspecified must carry no decimal."@x-gmeow-english ;
+    logic:formalizes gmeow:CredenceBandConsistencyShape ;
+    logic:severity "Violation" ;
+    logic:message "Credence band and decimal are inconsistent: the decimal must fall within the band's canonical range (credencePossible [0,0.5), credenceLikely [0.5,0.9), credenceCertain [0.9,1.0]) and credenceUnspecified must carry no decimal at all." ;
+    logic:integrity logic:ccbForall .
+logic:ccbForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:ccbImpl .
+logic:ccbImpl a logic:Formula ; logic:antecedent logic:ccbGuard ; logic:consequent logic:ccbPhi .
+logic:ccbGuard a logic:Formula ; logic:relation gmeow:claimCredenceLevel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "bg" ] .
+logic:ccbPhi a logic:Formula ; logic:not logic:ccbEx .
+logic:ccbEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "band" ] , [ logic:termIndex 1 ; logic:termVariable "dec" ] ;
+    logic:exists logic:ccbBody .
+logic:ccbBody a logic:Formula ; logic:and logic:ccbLevel , logic:ccbDec , logic:ccbBad .
+logic:ccbLevel a logic:Formula ; logic:relation gmeow:claimCredenceLevel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "band" ] .
+logic:ccbDec a logic:Formula ; logic:relation gmeow:claimCredence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "dec" ] .
+logic:ccbBad a logic:Formula ; logic:or logic:ccbCertain , logic:ccbLikely , logic:ccbPossible , logic:ccbUnspec .
+# credenceCertain [0.9, 1.0] — a decimal below 0.9 is inconsistent.
+logic:ccbCertain a logic:Formula ; logic:and logic:ccbIsCertain , logic:ccbCertainLo .
+logic:ccbIsCertain a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "band" ] , [ logic:termIndex 1 ; logic:termIri gmeow:credenceCertain ] .
+logic:ccbCertainLo a logic:Formula ; logic:relation logic:termLess ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "dec" ] , [ logic:termIndex 1 ; logic:termLiteral "0.9" ; logic:termLiteralDatatype xsd:decimal ] .
+# credenceLikely [0.5, 0.9) — a decimal below 0.5 or at/above 0.9 is inconsistent.
+logic:ccbLikely a logic:Formula ; logic:and logic:ccbIsLikely , logic:ccbLikelyRange .
+logic:ccbIsLikely a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "band" ] , [ logic:termIndex 1 ; logic:termIri gmeow:credenceLikely ] .
+logic:ccbLikelyRange a logic:Formula ; logic:or logic:ccbLikelyLo , logic:ccbLikelyHi .
+logic:ccbLikelyLo a logic:Formula ; logic:relation logic:termLess ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "dec" ] , [ logic:termIndex 1 ; logic:termLiteral "0.5" ; logic:termLiteralDatatype xsd:decimal ] .
+logic:ccbLikelyHi a logic:Formula ; logic:relation logic:termGreaterEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "dec" ] , [ logic:termIndex 1 ; logic:termLiteral "0.9" ; logic:termLiteralDatatype xsd:decimal ] .
+# credencePossible [0.0, 0.5) — a decimal below 0.0 or at/above 0.5 is inconsistent.
+logic:ccbPossible a logic:Formula ; logic:and logic:ccbIsPossible , logic:ccbPossibleRange .
+logic:ccbIsPossible a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "band" ] , [ logic:termIndex 1 ; logic:termIri gmeow:credencePossible ] .
+logic:ccbPossibleRange a logic:Formula ; logic:or logic:ccbPossibleLo , logic:ccbPossibleHi .
+logic:ccbPossibleLo a logic:Formula ; logic:relation logic:termLess ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "dec" ] , [ logic:termIndex 1 ; logic:termLiteral "0.0" ; logic:termLiteralDatatype xsd:decimal ] .
+logic:ccbPossibleHi a logic:Formula ; logic:relation logic:termGreaterEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "dec" ] , [ logic:termIndex 1 ; logic:termLiteral "0.5" ; logic:termLiteralDatatype xsd:decimal ] .
+# credenceUnspecified — any decimal at all is inconsistent (no graded belief present).
+logic:ccbUnspec a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "band" ] , [ logic:termIndex 1 ; logic:termIri gmeow:credenceUnspecified ] .
+
+# =========================================================================== #
+# Procedural constraint (#1194): no claim may be marked preferred/primary —      #
+# standpoint-indexed claims are co-equal, there is no single slot to win          #
+# (Principle 9). Any predicate under the gmeow:primary* or gmeow:preferred*        #
+# namespace is forbidden. Projected onto the gmeow:NoPreferredClaimShape          #
+# source-term. The focus has no class form, so it is selected by a raw            #
+# logic:sparqlTarget; the body forbids the variable-predicate witness via         #
+# logic:linkVia + a logic:termStrStarts prefix disjunction.                       #
+# =========================================================================== #
+
+gmeow:NoPreferredClaimConstraint
+    a logic:Constraint ;
+    rdfs:label "No preferred / primary claim constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: no node may carry a predicate under the gmeow:primary or gmeow:preferred namespace — standpoint-indexed claims are co-equal (Principle 9)."@x-gmeow-english ;
+    logic:formalizes gmeow:NoPreferredClaimShape ;
+    logic:severity "Violation" ;
+    logic:message "No claim may be marked preferred/primary; standpoint-indexed claims are co-equal — there is no single slot to win (Principle 9)." ;
+    logic:integrity logic:npcForall .
+logic:npcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:npcImpl .
+logic:npcImpl a logic:Formula ; logic:antecedent logic:npcGuard ; logic:consequent logic:npcPhi .
+logic:npcGuard a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "SELECT ?this WHERE { ?this ?p ?o . FILTER ( STRSTARTS(STR(?p), 'https://blackcatinformatics.ca/gmeow/primary') || STRSTARTS(STR(?p), 'https://blackcatinformatics.ca/gmeow/preferred') ) }" ] .
+logic:npcPhi a logic:Formula ; logic:not logic:npcEx .
+logic:npcEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] ;
+    logic:exists logic:npcBody .
+logic:npcBody a logic:Formula ; logic:and logic:npcLink , logic:npcPrefix .
+logic:npcLink a logic:Formula ; logic:relation logic:linkVia ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] , [ logic:termIndex 2 ; logic:termVariable "o" ] .
+logic:npcPrefix a logic:Formula ; logic:or logic:npcPrimary , logic:npcPreferred .
+logic:npcPrimary a logic:Formula ; logic:relation logic:termStrStarts ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termLiteral "https://blackcatinformatics.ca/gmeow/primary" ] .
+logic:npcPreferred a logic:Formula ; logic:relation logic:termStrStarts ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termLiteral "https://blackcatinformatics.ca/gmeow/preferred" ] .

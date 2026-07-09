@@ -747,3 +747,57 @@ gmeow:SensoryObservation rdfs:subClassOf
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/gmeow/SensoryObservation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationMethod> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
 <https://blackcatinformatics.ca/gmeow/Measurement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationMethod> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
+
+# =========================================================================== #
+# Procedural constraints (#1194) authored as raw logic:Formula integrity trees, #
+# projected to sh:SPARQLConstraint keyed (via logic:formalizes) onto the same    #
+# gmeow:ObservationShape source-term. The logic:directType guard restricts the   #
+# focus to DIRECT gmeow:Observation instances (a node also typed a more-specific #
+# subclass is validated by that subclass's own shape), reproducing the authored  #
+# subclass-excluding sh:SPARQLTarget. Split into two single-condition peers so    #
+# each violation body stays a guarded FILTER NOT EXISTS.                         #
+# =========================================================================== #
+
+gmeow:ObservationVantageConstraint
+    a logic:Constraint ;
+    rdfs:label "Observation vantage constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a direct gmeow:Observation instance records at least one gmeow:vantage."@x-gmeow-english ;
+    logic:formalizes gmeow:ObservationShape ;
+    logic:severity "Violation" ;
+    logic:message "An Observation must record at least one vantage (gmeow:vantage)." ;
+    logic:integrity logic:obsVForall .
+logic:obsVForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:obsVImpl .
+logic:obsVImpl a logic:Formula ; logic:antecedent logic:obsVGuard ; logic:consequent logic:obsVHas .
+logic:obsVGuard a logic:Formula ; logic:relation logic:directType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Observation ] .
+logic:obsVHas a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:obsVAtom .
+logic:obsVAtom a logic:Formula ; logic:relation gmeow:vantage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+gmeow:ObservationFeatureConstraint
+    a logic:Constraint ;
+    rdfs:label "Observation observed-feature constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a direct gmeow:Observation instance records at least one gmeow:observedFeature."@x-gmeow-english ;
+    logic:formalizes gmeow:ObservationShape ;
+    logic:severity "Violation" ;
+    logic:message "An Observation must record an observed feature (gmeow:observedFeature)." ;
+    logic:integrity logic:obsFForall .
+logic:obsFForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:obsFImpl .
+logic:obsFImpl a logic:Formula ; logic:antecedent logic:obsFGuard ; logic:consequent logic:obsFHas .
+logic:obsFGuard a logic:Formula ; logic:relation logic:directType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Observation ] .
+logic:obsFHas a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "f" ] ;
+    logic:exists logic:obsFAtom .
+logic:obsFAtom a logic:Formula ; logic:relation gmeow:observedFeature ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] .

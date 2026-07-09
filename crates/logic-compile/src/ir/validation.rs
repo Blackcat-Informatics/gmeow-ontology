@@ -55,6 +55,17 @@ pub enum ShapeTarget {
         /// The value IRI a focus node must carry on `predicate`.
         value: String,
     },
+    /// Focus nodes are DIRECT instances of a class — typed the class but NOT also typed a proper
+    /// subclass of it (projected to an `sh:SPARQLTarget` with a subclass-excluding
+    /// `FILTER NOT EXISTS`). This is the subclass-refining reading a bare `sh:targetClass` cannot
+    /// hold: a node typed both the class and a more-specific subclass is validated by the
+    /// subclass's own shape, not the base one.
+    DirectClass(String),
+    /// Focus nodes are selected by a raw `SELECT ?this WHERE { … }` query (projected verbatim to an
+    /// `sh:SPARQLTarget`). The catch-all target for a constraint whose focus set has no class /
+    /// domain / range form — e.g. "any node carrying a predicate under a forbidden namespace". The
+    /// string is the whole select body (binding `?this`).
+    Sparql(String),
 }
 
 impl ShapeTarget {
@@ -69,6 +80,8 @@ impl ShapeTarget {
             ShapeTarget::ValueKeyed { predicate, value } => {
                 format!("valuekeyed={}{}", key_field(predicate), key_field(value))
             }
+            ShapeTarget::DirectClass(c) => format!("directclass={}", key_field(c)),
+            ShapeTarget::Sparql(s) => format!("sparqltarget={}", key_field(s)),
         }
     }
 }
@@ -718,6 +731,16 @@ impl ValidationShapeIr {
                 return Err(
                     "ValidationShapeIr value-keyed target needs a non-empty predicate and value"
                         .to_owned(),
+                );
+            }
+            ShapeTarget::DirectClass(c) if c.trim().is_empty() => {
+                return Err(
+                    "ValidationShapeIr direct-instance target must be a non-empty IRI".to_owned(),
+                );
+            }
+            ShapeTarget::Sparql(s) if s.trim().is_empty() => {
+                return Err(
+                    "ValidationShapeIr sparql target must be a non-empty SELECT body".to_owned(),
                 );
             }
             _ => {}

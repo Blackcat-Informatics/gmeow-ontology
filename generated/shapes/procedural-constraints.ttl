@@ -52,6 +52,17 @@
         sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Assessment> . FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/gmeow/assessmentCriterion> ?v0 . } UNION { $this <https://blackcatinformatics.ca/gmeow/assessmentRubric> ?v1 . } } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/ClaimCredenceBandConsistencyConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/CredenceBandConsistencyShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/claimCredenceLevel> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "Credence band and decimal are inconsistent: the decimal must fall within the band's canonical range (credencePossible [0,0.5), credenceLikely [0.5,0.9), credenceCertain [0.9,1.0]) and credenceUnspecified must carry no decimal at all." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/claimCredenceLevel> ?bg . $this <https://blackcatinformatics.ca/gmeow/claimCredenceLevel> ?band . $this <https://blackcatinformatics.ca/gmeow/claimCredence> ?dec . FILTER ( ( ( ?band = <https://blackcatinformatics.ca/gmeow/credenceCertain> ) && ( ?dec < '0.9'^^<http://www.w3.org/2001/XMLSchema#decimal> ) ) || ( ( ?band = <https://blackcatinformatics.ca/gmeow/credenceLikely> ) && ( ( ?dec < '0.5'^^<http://www.w3.org/2001/XMLSchema#decimal> ) || ( ?dec >= '0.9'^^<http://www.w3.org/2001/XMLSchema#decimal> ) ) ) || ( ( ?band = <https://blackcatinformatics.ca/gmeow/credencePossible> ) && ( ( ?dec < '0.0'^^<http://www.w3.org/2001/XMLSchema#decimal> ) || ( ?dec >= '0.5'^^<http://www.w3.org/2001/XMLSchema#decimal> ) ) ) || ( ?band = <https://blackcatinformatics.ca/gmeow/credenceUnspecified> ) ) }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/ClaimCredenceLowerBoundConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/ClaimCredenceRangeShape> ;
@@ -94,6 +105,28 @@
         sh:severity sh:Warning ;
         sh:message "A fact marked gmeow:policyPublicOnlyWithIndependentSource should be supported by a citation with gmeow:sourceIndependence gmeow:sourceIndependenceIndependent." ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/hasDisclosurePolicy> <https://blackcatinformatics.ca/gmeow/policyPublicOnlyWithIndependentSource> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/hasCitation> ?citation . ?citation <https://blackcatinformatics.ca/gmeow/sourceIndependence> <https://blackcatinformatics.ca/gmeow/sourceIndependenceIndependent> . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ConsentDataControllerConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/RightsStatement> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/RightsStatement> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Warning ;
+        sh:message "A consent-governing rights statement should name at least one data controller (gmeow:hasDataController)." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/RightsStatement> . $this <https://blackcatinformatics.ca/gmeow/hasPermission> ?perm . ?perm <https://blackcatinformatics.ca/gmeow/ruleAction> <https://blackcatinformatics.ca/gmeow/actionProcessPersonalData> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/hasDataController> ?c . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ConsentDataSubjectConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/RightsStatement> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/RightsStatement> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Warning ;
+        sh:message "A consent-governing rights statement should name exactly one data subject (gmeow:hasDataSubject)." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/RightsStatement> . $this <https://blackcatinformatics.ca/gmeow/hasPermission> ?perm . ?perm <https://blackcatinformatics.ca/gmeow/ruleAction> <https://blackcatinformatics.ca/gmeow/actionProcessPersonalData> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/hasDataSubject> ?s . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/hasDataSubject> ?s2 . FILTER ( ?s2 != ?s ) } } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/CredentialAttestationConstraintProceduralConstraintShape>
@@ -184,6 +217,17 @@
         sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> . $this <https://blackcatinformatics.ca/gmeow/narrativeTimeAxis> <https://blackcatinformatics.ca/gmeow/axisStoryTime> . $this <https://blackcatinformatics.ca/gmeow/discourseTimeOf> ?x . }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/NoPreferredClaimConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/NoPreferredClaimShape> ;
+    sh:target [ a sh:SPARQLTarget ; sh:select """SELECT ?this WHERE { ?this ?p ?o . FILTER ( STRSTARTS(STR(?p), 'https://blackcatinformatics.ca/gmeow/primary') || STRSTARTS(STR(?p), 'https://blackcatinformatics.ca/gmeow/preferred') ) }""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "No claim may be marked preferred/primary; standpoint-indexed claims are co-equal — there is no single slot to win (Principle 9)." ;
+        sh:select """SELECT $this WHERE { $this ?p ?o . FILTER ( ( STRSTARTS(STR(?p), 'https://blackcatinformatics.ca/gmeow/primary') ) || ( STRSTARTS(STR(?p), 'https://blackcatinformatics.ca/gmeow/preferred') ) ) }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/NormIssuerPresenceConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Norm> ;
@@ -195,6 +239,28 @@
         sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Norm> . $this <https://blackcatinformatics.ca/gmeow/deonticModality> ?t . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/normIssuer> ?c0 . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/ObservationFeatureConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ObservationShape> ;
+    sh:target [ a sh:SPARQLTarget ; sh:select """SELECT ?this WHERE { ?this a <https://blackcatinformatics.ca/gmeow/Observation> . FILTER NOT EXISTS { ?this a ?sub . ?sub <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ <https://blackcatinformatics.ca/gmeow/Observation> . FILTER ( ?sub != <https://blackcatinformatics.ca/gmeow/Observation> ) } }""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An Observation must record an observed feature (gmeow:observedFeature)." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/observedFeature> ?f . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ObservationVantageConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ObservationShape> ;
+    sh:target [ a sh:SPARQLTarget ; sh:select """SELECT ?this WHERE { ?this a <https://blackcatinformatics.ca/gmeow/Observation> . FILTER NOT EXISTS { ?this a ?sub . ?sub <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ <https://blackcatinformatics.ca/gmeow/Observation> . FILTER ( ?sub != <https://blackcatinformatics.ca/gmeow/Observation> ) } }""" ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An Observation must record at least one vantage (gmeow:vantage)." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/vantage> ?v . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/PersonaRegisterNodeKindConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Persona> ;
@@ -204,6 +270,17 @@
         sh:severity sh:Violation ;
         sh:message "A gmeow:Persona's gmeow:personaRegister must name a register individual (an IRI), not a free literal." ;
         sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Persona> . $this <https://blackcatinformatics.ca/gmeow/personaRegister> ?v . FILTER ( !isIRI(?v) ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ScoreAnchorRangeWithinScaleConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ScoreAnchor> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ScoreAnchor> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A ScoreAnchor's range must lie within the scale its criterion (or owning rubric) declares." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/ScoreAnchor> . ?criterion <https://blackcatinformatics.ca/gmeow/hasScoreAnchor> $this . { ?criterion <https://blackcatinformatics.ca/gmeow/usesScale> ?scale . } UNION { ?rubric <https://blackcatinformatics.ca/gmeow/hasCriterion> ?criterion . ?rubric <https://blackcatinformatics.ca/gmeow/usesScale> ?scale . FILTER NOT EXISTS { ?criterion <https://blackcatinformatics.ca/gmeow/usesScale> ?ownScale . } } ?scale <https://blackcatinformatics.ca/gmeow/scaleMin> ?smin . ?scale <https://blackcatinformatics.ca/gmeow/scaleMax> ?smax . $this <https://blackcatinformatics.ca/gmeow/anchorRangeMin> ?amin . $this <https://blackcatinformatics.ca/gmeow/anchorRangeMax> ?amax . FILTER ( ( ?amin < ?smin ) || ( ?amax > ?smax ) ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/ScoreScaleOrderConstraintProceduralConstraintShape>
@@ -270,6 +347,17 @@
         sh:severity sh:Violation ;
         sh:message "Every gmeow:voiceExemplifiedBy document must carry a gmeow:contentDigest (byte-perfect voice doctrine)." ;
         sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/StyleGuide> . $this <https://blackcatinformatics.ca/gmeow/voiceExemplifiedBy> ?doc . FILTER NOT EXISTS { ?doc <https://blackcatinformatics.ca/gmeow/contentDigest> ?dig . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/SupersededGenderIdentitySuppressionConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/GenderIdentity> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/GenderIdentity> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Warning ;
+        sh:message "A superseded identity facet (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/GenderIdentity> . $this <https://blackcatinformatics.ca/gmeow/validUntil> ?u . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/displayable> 'false'^^<http://www.w3.org/2001/XMLSchema#boolean> . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/TeachingSelfTeachConstraintProceduralConstraintShape>
@@ -371,6 +459,17 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ?g . $this <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ?v . FILTER ( !REGEX(STR(?v), '^U\\\\+[0-9A-F]{4,6}( U\\\\+[0-9A-F]{4,6})*$') ) }""" ;
     ] .
 
+<https://blackcatinformatics.ca/lang/GmnCompactionOverclaimConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/GmnCompaction> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/GmnCompaction> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:GmnCompaction links a logic:Correspondence claiming mnemomorphic recoverability, exact preservation, or soundness under approximation; compaction is validation-only." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/GmnCompaction> . $this ?link ?c . ?c a <https://blackcatinformatics.ca/logic/Correspondence> . { ?c <https://blackcatinformatics.ca/logic/mnemomorphic> 'true'^^<http://www.w3.org/2001/XMLSchema#boolean> . } UNION { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> . } UNION { ?c <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/lang/GmnConfusableGlyphConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/GmnConfusableGlyphShape> ;
@@ -391,6 +490,17 @@
         sh:severity sh:Violation ;
         sh:message "Two distinct graphemes of one script share an identical gmeow:gmnCodepoints value without both carrying a gmeow:gmnSigilScope; unscoped glyph collisions are forbidden." ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ?cp . $this <https://blackcatinformatics.ca/lang/inScript> ?s . ?g2 <https://blackcatinformatics.ca/gmeow/gmnCodepoints> ?cp . ?g2 <https://blackcatinformatics.ca/lang/inScript> ?s . FILTER ( $this != ?g2 ) FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/gmnSigilScope> ?sc1 . ?g2 <https://blackcatinformatics.ca/gmeow/gmnSigilScope> ?sc2 . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/lang/GmnVersionOverclaimConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/GmnVersionOverclaimShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gmnMigratesTo> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A GMN migration claims logic:mnemomorphic true over a stronger-than-additive version bump; the version machinery never claims more than its lineage discharges." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/gmnMigratesTo> ?vg . $this <https://blackcatinformatics.ca/gmeow/gmnMigratesTo> ?v . $this <https://blackcatinformatics.ca/lang/translationCorrespondence> ?c . ?c <https://blackcatinformatics.ca/logic/mnemomorphic> 'true'^^<http://www.w3.org/2001/XMLSchema#boolean> . ?m <https://blackcatinformatics.ca/gmeow/versionMember> ?v . ?m <https://blackcatinformatics.ca/gmeow/versionScale> ?sc . FILTER ( ?sc != <https://blackcatinformatics.ca/gmeow/scaleMinor> ) FILTER ( ?sc != <https://blackcatinformatics.ca/gmeow/scaleTrivial> ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/lang/GraphemeRepertoireConstraintProceduralConstraintShape>
@@ -523,6 +633,17 @@
         sh:severity sh:Violation ;
         sh:message "An expression lowered to a logic:Formula through math:compilesToLogicFormula must declare its math:denotationKind and its math:logicLoweringPreservation; silent promotion to a logical assertion is forbidden (math:UndeclaredLogicLowering)." ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/compilesToLogicFormula> ?t . { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/denotationKind> ?c0 . } } UNION { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/logicLoweringPreservation> ?c1 . } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/MetricSignatureDimensionConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/MetricSignature> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/MetricSignature> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:MetricSignature's math:signaturePositive plus math:signatureNegative does not equal its manifold's math:manifoldDimension (math:DimensionMismatch)." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/math/MetricSignature> . ?mt <https://blackcatinformatics.ca/math/metricSignature> $this . ?m <https://blackcatinformatics.ca/math/metricTensor> ?mt . ?m <https://blackcatinformatics.ca/math/manifoldDimension> ?md . $this <https://blackcatinformatics.ca/math/signaturePositive> ?p . $this <https://blackcatinformatics.ca/math/signatureNegative> ?q . BIND ( ( ?p + ?q ) AS ?s ) FILTER ( ?s != ?md ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/math/NormPositiveDefiniteConstraintProceduralConstraintShape>

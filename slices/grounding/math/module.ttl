@@ -5393,3 +5393,46 @@ math:gmM5 a logic:Formula ; logic:relation math:numerator ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "mval" ] , [ logic:termIndex 1 ; logic:termVariable "vnum" ] .
 math:gmM6 a logic:Formula ; logic:relation math:denominator ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "mval" ] , [ logic:termIndex 1 ; logic:termVariable "vden" ] .
+
+# =========================================================================== #
+# Procedural constraint (#1194) authored as a raw logic:Formula integrity tree,
+# projected to a sh:SPARQLConstraint keyed (via logic:formalizes) onto the same
+# math:MetricSignature source-term the hand-authored SHACL enforced. The p + q
+# vs manifold-dimension count uses the logic:termSum arithmetic BIND.
+# =========================================================================== #
+
+math:MetricSignatureDimensionConstraint
+    a logic:Constraint ;
+    rdfs:label "Metric-signature dimension consistency constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a math:MetricSignature's math:signaturePositive p and math:signatureNegative q must sum to its manifold's math:manifoldDimension. A signature that miscounts the dimension is a silent-error class the charter forbids (math:DimensionMismatch)."@x-gmeow-english ;
+    logic:formalizes math:MetricSignature ;
+    logic:severity "Violation" ;
+    logic:message "A math:MetricSignature's math:signaturePositive plus math:signatureNegative does not equal its manifold's math:manifoldDimension (math:DimensionMismatch)." ;
+    logic:integrity math:msDimForall .
+math:msDimForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:msDimImpl .
+math:msDimImpl a logic:Formula ; logic:antecedent math:msDimGuard ; logic:consequent math:msDimPhi .
+math:msDimGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:MetricSignature ] .
+math:msDimPhi a logic:Formula ; logic:not math:msDimEx .
+math:msDimEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "mt" ] , [ logic:termIndex 1 ; logic:termVariable "m" ] , [ logic:termIndex 2 ; logic:termVariable "md" ] , [ logic:termIndex 3 ; logic:termVariable "p" ] , [ logic:termIndex 4 ; logic:termVariable "q" ] , [ logic:termIndex 5 ; logic:termVariable "s" ] ;
+    logic:exists math:msDimBody .
+math:msDimBody a logic:Formula ; logic:and math:msA1 , math:msA2 , math:msA3 , math:msA4 , math:msA5 , math:msA6 , math:msA7 .
+math:msA1 a logic:Formula ; logic:relation math:metricSignature ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mt" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+math:msA2 a logic:Formula ; logic:relation math:metricTensor ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "mt" ] .
+math:msA3 a logic:Formula ; logic:relation math:manifoldDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "md" ] .
+math:msA4 a logic:Formula ; logic:relation math:signaturePositive ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+math:msA5 a logic:Formula ; logic:relation math:signatureNegative ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] .
+math:msA6 a logic:Formula ; logic:relation logic:termSum ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] , [ logic:termIndex 2 ; logic:termVariable "q" ] .
+math:msA7 a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "md" ] .
