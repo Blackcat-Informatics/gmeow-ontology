@@ -48,13 +48,12 @@
 //! would have to be unwound next phase.
 #![allow(dead_code)]
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use foldhash::fast::FixedState;
-// hashbrown's `HashMap` (aliased) backs the predicate index off std SipHash.
-use hashbrown::HashMap as FastMap;
 use purrdf::TermValue;
 
+use crate::facts::{PredId, PredInterner};
 use crate::provenance::{
     ASSERT_RULE_IRI, LOGIC_NAMESPACE, mint_derivation_id, mint_reifier, term_display,
 };
@@ -179,15 +178,19 @@ impl Fact {
 pub(crate) struct FactStore {
     facts: Vec<Fact>,
     keys: FactKeySet,
-    /// Predicate surface (`predicate.as_str()`, the same component `Fact::key`
-    /// uses) → row indices into `facts`, in insertion order.  Maintained in
-    /// lockstep with `facts` so each bucket's order equals insertion order; this
-    /// lets the join scan only the rows for a constant-predicate atom while
-    /// returning exactly the subsequence (same relative order) a full scan would.
+    /// The store's predicate dictionary: predicate surface → dense [`PredId`].
+    predicates: PredInterner,
+    /// [`PredId`] (interned predicate surface) → row indices into `facts`, in
+    /// insertion order.  Maintained in lockstep with `facts` so each bucket's order
+    /// equals insertion order; this lets the join scan only the rows for a
+    /// constant-predicate atom while returning exactly the subsequence (same relative
+    /// order) a full scan would.
     ///
-    /// Fixed-seed `FastMap` (off std SipHash); insertion clones the predicate key
-    /// only on first occurrence.
-    predicate_index: FastMap<String, Vec<usize>, FixedState>,
+    /// Keyed by `PredId` (a `Copy` niche integer) instead of an owned predicate
+    /// `String` — the surface is interned once in `predicates`, never re-cloned per
+    /// bucket.  Fixed-seed (`FixedState`, off std SipHash); never an emission-order
+    /// source.
+    predicate_index: HashMap<PredId, Vec<usize>, FixedState>,
 }
 
 impl FactStore {
@@ -196,7 +199,8 @@ impl FactStore {
         Self {
             facts: Vec::new(),
             keys: FactKeySet::default(),
-            predicate_index: FastMap::default(),
+            predicates: PredInterner::new(),
+            predicate_index: HashMap::default(),
         }
     }
 
@@ -207,18 +211,13 @@ impl FactStore {
             return false;
         }
         self.keys.insert(key);
+        // Intern the predicate surface once to a dense `PredId` (borrowed-key probe —
+        // no owned-key clone per bucket), then push the new row index in lockstep with
+        // `facts`, preserving insertion order within the predicate bucket.
+        let pid = self.predicates.intern(&fact.predicate);
         let idx = self.facts.len();
         self.facts.push(fact);
-        // Push the new row index in lockstep with `facts`, preserving insertion
-        // order within the predicate bucket (only on a successful insert).
-        // Clone the predicate string only on first occurrence to avoid a heap
-        // allocation for repeat predicates.
-        let pred = self.facts[idx].predicate.as_str();
-        if let Some(bucket) = self.predicate_index.get_mut(pred) {
-            bucket.push(idx);
-        } else {
-            self.predicate_index.insert(pred.to_owned(), vec![idx]);
-        }
+        self.predicate_index.entry(pid).or_default().push(idx);
         true
     }
 
@@ -240,8 +239,9 @@ impl FactStore {
     /// Row indices (into [`facts`](Self::facts), insertion-ordered) of facts whose
     /// predicate surface (`predicate.as_str()`) equals `pred`; empty slice if none.
     pub(crate) fn facts_for_predicate(&self, pred: &str) -> &[usize] {
-        self.predicate_index
-            .get(pred)
+        self.predicates
+            .lookup(pred)
+            .and_then(|pid| self.predicate_index.get(&pid))
             .map_or(&[][..], Vec::as_slice)
     }
 }

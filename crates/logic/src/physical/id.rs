@@ -131,6 +131,43 @@ pub(crate) enum Row {}
 
 /// A dense per-interner term handle (was `facts::TermId`).
 pub(crate) type TermId = Id<Term>;
+
+/// The argument handle every arena'd row tuple uses.
+///
+/// It is ALWAYS an atomic interned [`TermId`] — a single wrapping variant, a plain
+/// newtype, NOT a two-variant enum.  It is the **seam** the structured-term DAG work
+/// (issue 1307) extends: when function-symbol / proof-object terms land, a second
+/// variant (a DAG-node offset into the persistent term arena) is *added here*, so the
+/// row-tuple substrate is additive to that future work rather than a rewrite.
+///
+/// The second variant has NO consumer in this crate, so it is not built — a one-armed
+/// enum with a dead arm is optionality this codebase forbids.  The seam is documented
+/// as a plain newtype, not pre-built as dead machinery.
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+pub(crate) struct TermRef(TermId);
+
+impl TermRef {
+    /// Wrap an atomic interned term as a row-tuple argument handle.
+    #[inline]
+    pub(crate) fn term(id: TermId) -> Self {
+        Self(id)
+    }
+
+    /// The interned [`TermId`] this handle addresses.
+    ///
+    /// Total today (the newtype has one variant); when issue 1307's DAG-offset
+    /// variant lands this becomes the atomic-term projection.
+    #[inline]
+    pub(crate) fn id(self) -> TermId {
+        self.0
+    }
+}
+
+impl fmt::Debug for TermRef {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "TermRef({})", self.0.index())
+    }
+}
 /// A dense per-store predicate-IRI handle.
 pub(crate) type PredId = Id<Pred>;
 /// A dense per-program rule handle.

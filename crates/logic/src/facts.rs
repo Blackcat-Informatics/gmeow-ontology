@@ -53,6 +53,16 @@ use crate::provenance::term_display;
 /// — there is no second, ad-hoc `TermId` here).
 pub(crate) use crate::physical::id::TermId;
 
+/// The engine's branded per-store predicate-IRI handle.
+///
+/// `PredId` is the [`Pred`](crate::physical::id::Pred)-branded
+/// [`Id`](crate::physical::id::Id) — the dense key a [`crate::physical::store::RelationStore`]
+/// / [`crate::rule_ir::FactStore`] addresses relations by instead of the owned predicate
+/// `String`.  Interned once at first insert; resolved back to its IRI surface only at
+/// emission / diagnostic edges (a sorted sweep resolves each `PredId` to its string and
+/// sorts LEXICALLY — never by `PredId` mint order).
+pub(crate) use crate::physical::id::PredId;
+
 /// Fixed-seed hash of a display surface, for the interner's borrowed-key probe.
 ///
 /// The seed is fixed (`FixedState::default()`) and never persisted — determinism
@@ -205,6 +215,68 @@ impl TermInterner {
     #[cfg(test)]
     pub(crate) fn len(&self) -> usize {
         self.terms.len()
+    }
+}
+
+// ── PredInterner ────────────────────────────────────────────────────────────────
+
+/// A per-store predicate-IRI dictionary: predicate surface → dense [`PredId`].
+///
+/// The columnar [`crate::physical::store::RelationStore`] and the ternary
+/// [`crate::rule_ir::FactStore`] key their relations / predicate buckets by `PredId`
+/// (a `Copy` niche integer) instead of an owned predicate `String`, so a lookup /
+/// insert never clones the IRI to probe.  IDs are assigned in first-seen insertion
+/// order; the surface is resolved back only at emission / diagnostic edges, where the
+/// resolved strings are sorted LEXICALLY (never by `PredId` mint order).
+///
+/// Mirrors [`TermInterner`]'s borrowed-key discipline: the surface bytes live once in
+/// `names` (the side arena), and a `&str` probe resolves a candidate id to its slice —
+/// the eq/hash closure never re-allocates.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct PredInterner {
+    /// Predicate surface → id, for O(1) intern/lookup (holds the `PredId` only).
+    by_name: HashTable<PredId>,
+    /// First-seen predicate IRI per id, in insertion order (slot = id index) — the
+    /// side arena the [`by_name`](Self::by_name) probe resolves against.
+    names: Vec<String>,
+}
+
+impl PredInterner {
+    /// A fresh, empty predicate interner.
+    pub(crate) fn new() -> Self {
+        Self::default()
+    }
+
+    /// Intern `name`, returning its id — minting a new insertion-ordered id if the
+    /// predicate surface is new, else the existing id.
+    pub(crate) fn intern(&mut self, name: &str) -> PredId {
+        let hash = display_hash(name);
+        let names = &self.names;
+        if let Some(&id) = self.by_name.find(hash, |&id| names[id.index()] == name) {
+            return id;
+        }
+        let id = PredId::from_index(self.names.len());
+        self.names.push(name.to_owned());
+        let names = &self.names;
+        self.by_name
+            .insert_unique(hash, id, |&id| display_hash(&names[id.index()]));
+        id
+    }
+
+    /// The id of the predicate with this surface, if already interned; never inserts.
+    pub(crate) fn lookup(&self, name: &str) -> Option<PredId> {
+        let hash = display_hash(name);
+        self.by_name
+            .find(hash, |&id| self.names[id.index()] == name)
+            .copied()
+    }
+
+    /// Every interned predicate surface, in mint order (slot order).
+    ///
+    /// Callers that need a deterministic sweep resolve + sort LEXICALLY; this returns
+    /// the raw mint-ordered names, never itself an emission-order source.
+    pub(crate) fn names(&self) -> &[String] {
+        &self.names
     }
 }
 
