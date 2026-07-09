@@ -61,15 +61,58 @@ fn book_summary_golden() {
     let site = render_book(&model, &ExecutableDocsData::default());
     let summary = String::from_utf8(
         site.files
-            .get("SUMMARY.md")
-            .expect("SUMMARY.md is emitted")
+            .get("src/SUMMARY.md")
+            .expect("src/SUMMARY.md is emitted")
             .clone(),
     )
-    .expect("SUMMARY.md is UTF-8");
+    .expect("src/SUMMARY.md is UTF-8");
     // The full tree is large; lock the header skeleton + the first chapters so
     // structure/nesting is pinned without a multi-thousand-line golden.
     let head: String = summary.lines().take(40).collect::<Vec<_>>().join("\n");
     insta::assert_snapshot!(head);
+}
+
+#[test]
+fn book_summary_lists_each_chapter_at_most_once() {
+    // mdbook rejects a SUMMARY.md that lists the same chapter file twice. Distinct
+    // term IRIs can slugify to one chapter path (the site archive collapses them),
+    // so the table of contents MUST dedup by chapter target. The real model carries
+    // such slug collisions, so this asserts `mdbook build` cannot choke on the
+    // committed book without needing the mdbook binary in the gate.
+    let model = common::cached_model();
+    let site = render_book(&model, &ExecutableDocsData::default());
+    let summary = String::from_utf8(
+        site.files
+            .get("src/SUMMARY.md")
+            .expect("src/SUMMARY.md is emitted")
+            .clone(),
+    )
+    .expect("src/SUMMARY.md is UTF-8");
+    // Every list entry is `[text](target)`; collect the link targets and assert
+    // each appears at most once.
+    let mut seen: BTreeSet<String> = BTreeSet::new();
+    for line in summary.lines() {
+        let Some(open) = line.find("](") else {
+            continue;
+        };
+        let rest = &line[open + 2..];
+        let Some(close) = rest.find(')') else {
+            continue;
+        };
+        let target = &rest[..close];
+        assert!(
+            seen.insert(target.to_string()),
+            "SUMMARY.md lists the chapter target {target:?} more than once — mdbook build would fail"
+        );
+    }
+    // Every chapter target the summary names must exist as an emitted src/ file.
+    for target in &seen {
+        let key = format!("src/{target}");
+        assert!(
+            site.files.contains_key(&key),
+            "SUMMARY.md names {target:?} but no {key} chapter was emitted"
+        );
+    }
 }
 
 #[test]
@@ -158,7 +201,7 @@ fn book_no_relative_link_to_dropped_page() {
     let model = common::cached_model();
     let site = render_book(&model, &exec_with_playground());
     for (path, bytes) in &site.files {
-        if !path.ends_with("index.md") || path == "SUMMARY.md" {
+        if !path.ends_with("index.md") || path == "src/SUMMARY.md" {
             continue;
         }
         let body = std::str::from_utf8(bytes).expect("chapter is UTF-8");

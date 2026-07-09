@@ -259,7 +259,7 @@ impl Bundle {
 
     /// The mdbook `src/` source tree as `{member-path: bytes}` ([`REP_DOCS_BOOK`]).
     /// Member paths are prefixed with the English internal language tag
-    /// (`x-gmeow-english/book.toml`, `x-gmeow-english/SUMMARY.md`, …).
+    /// (`x-gmeow-english/book.toml`, `x-gmeow-english/src/SUMMARY.md`, …).
     pub fn docs_book(&self) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
         self.archive(REP_DOCS_BOOK)
     }
@@ -584,6 +584,43 @@ mod tests {
     // (`crate::stages::carrier`), so producer and reader are one constant and the label
     // cannot drift structurally — a runtime assert_eq of a const against itself guards
     // nothing.)
+
+    /// The two documentation-projection blobs (`docs-book`, `docs-print`) resolve
+    /// NON-EMPTY off the committed bundle and carry their signature members. This
+    /// pins Rust↔producer rep-string agreement for the print/book surfaces: a
+    /// drifted `REP_DOCS_BOOK` / `REP_DOCS_PRINT` label would silently resolve to
+    /// `{}` and ship the bundle without the print PDF or the mdbook source tree.
+    #[test]
+    fn docs_book_and_docs_print_resolve_non_empty() {
+        let snapshot = committed_snapshot();
+        let bundle = Bundle::from_snapshot(&snapshot).expect("fold committed gmeow.gts");
+
+        let book = bundle.docs_book().unwrap();
+        assert!(!book.is_empty(), "docs-book blob missing from gmeow.gts");
+        assert!(
+            book.contains_key("x-gmeow-english/book.toml"),
+            "docs-book carries the mdbook manifest (x-gmeow-english/book.toml)"
+        );
+        assert!(
+            book.contains_key("x-gmeow-english/src/SUMMARY.md"),
+            "docs-book carries the mdbook table of contents (x-gmeow-english/src/SUMMARY.md)"
+        );
+
+        let print = bundle.docs_print().unwrap();
+        assert!(!print.is_empty(), "docs-print blob missing from gmeow.gts");
+        let pdf = print
+            .get("x-gmeow-english/gmeow.pdf")
+            .expect("docs-print carries the print PDF (x-gmeow-english/gmeow.pdf)");
+        assert!(
+            pdf.starts_with(b"%PDF"),
+            "docs-print gmeow.pdf begins with the %PDF magic (got {:?})",
+            &pdf[..pdf.len().min(8)]
+        );
+        assert!(
+            print.contains_key("x-gmeow-english/gmeow.typ"),
+            "docs-print carries the deterministic Typst source (x-gmeow-english/gmeow.typ)"
+        );
+    }
 
     #[test]
     fn ontology_docs_and_schemas_resolve_non_empty() {
