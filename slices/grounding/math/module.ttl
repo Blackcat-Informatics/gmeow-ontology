@@ -5202,6 +5202,16 @@ math:ArgumentSlotIndexUniquenessConstraint
     logic:formalizes math:SlotIndexUniquenessShape ;
     logic:message "No two distinct math:argumentSlot cells of the same parent may share the same math:slotIndex; a duplicate index makes operand order ambiguous." .
 
+# A math:FormalVerificationResult must be grounded in an observation that names it through
+# gmeow:observationResult — an ungrounded verification result is ill-formed (an inverse-existence
+# constraint: the result must be the gmeow:observationResult of some subject).
+math:FormalVerificationResultGroundingConstraint
+    a logic:InverseExistenceConstraint ;
+    logic:onClass math:FormalVerificationResult ;
+    logic:inversePredicate gmeow:observationResult ;
+    logic:formalizes math:FormalVerificationResult ;
+    logic:message "A math:FormalVerificationResult must be the gmeow:observationResult of some observation; an ungrounded verification result is ill-formed." .
+
 # A math:FlagshipScenario's math:enforcesFailureClass must name a class that transitively
 # rdfs:subClassOf the conformance-failure root — a transitive reachability constraint.
 math:FlagshipScenarioFailureClassConstraint

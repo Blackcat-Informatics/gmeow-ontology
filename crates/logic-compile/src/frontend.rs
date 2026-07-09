@@ -283,6 +283,10 @@ fn is_constraint_structural_predicate(prop_local: &str) -> bool {
             | "inversePredicate" | "subjectClass"
             // Transitive reachability / acyclicity (a one-or-more property-path walk).
             | "viaPredicate" | "pathPredicate" | "reachTarget"
+            // Value-set membership (sh:in-style enumerated-value restriction over a property).
+            | "memberValue" | "membershipMode"
+            // String pattern / prefix test over a property value.
+            | "stringPattern" | "stringOp"
     )
 }
 
@@ -306,6 +310,8 @@ fn is_constraint_sugar_class(local: &str) -> bool {
             | "InverseExistenceConstraint"
             | "TransitiveReachabilityConstraint"
             | "AcyclicConstraint"
+            | "ValueSetMembershipConstraint"
+            | "StringPatternConstraint"
     )
 }
 
@@ -2842,6 +2848,143 @@ fn read_forbidden_pattern(store: &RdfDataset, node: &Subject) -> Result<Constrai
 /// P6 / aggregate — an aggregate-comparison constraint: a target class + an aggregate function
 /// over a path + a comparator + a right-hand side (a compared property of the focus, or a
 /// literal). Expands to a [`ConstraintIr`] carrying BOTH the honest reified FOL integrity (so the
+/// Convert an authored object [`Node`] (IRI or literal) to a FOL [`Term`], preserving the
+/// distinction so a set member / string pattern round-trips as the right SPARQL token.
+fn node_to_term(n: &Node) -> Result<Term, String> {
+    match n {
+        Node::Iri(i) => Term::iri(i),
+        Node::Lit {
+            lexical, datatype, ..
+        } => Term::literal(lexical.clone(), datatype.clone()),
+        other => Err(format!(
+            "a set member must be an IRI or literal, not {}",
+            term_str(other)
+        )),
+    }
+}
+
+/// A value-set membership constraint (`sh:in`-style): every value on `logic:valuePath P` must be in
+/// (mode `required`, the default) — or must NOT be in (mode `forbidden`) — the enumerated set given
+/// by `logic:memberValue v…`. With `logic:onClass C` the guard is class membership; without one the
+/// value-path presence is the range restriction (→ `sh:targetSubjectsOf P`). Integrity:
+/// required  `∀this. guard → ∀v. P(this,v) → termIn(v, {v…})`;
+/// forbidden `∀this. guard → ¬∃v. P(this,v) ∧ termIn(v, {v…})`.
+fn read_value_set_membership(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+    let class = sugar_optional_target_class(store, node);
+    let path = value(store, node, &nn(&logic_iri("valuePath")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| "logic:ValueSetMembershipConstraint requires logic:valuePath".to_owned())?;
+    let members: Vec<Term> = {
+        let mut nodes = objects(store, node, &nn(&logic_iri("memberValue")));
+        // Deterministic, source-order-independent expansion.
+        nodes.sort_by_key(term_str);
+        nodes.dedup_by_key(|n| term_str(n));
+        nodes.iter().map(node_to_term).collect::<Result<_, _>>()?
+    };
+    if members.is_empty() {
+        return Err(
+            "logic:ValueSetMembershipConstraint requires at least one logic:memberValue".to_owned(),
+        );
+    }
+    let mode = value(store, node, &nn(&logic_iri("membershipMode")))
+        .map(|t| term_str(&t))
+        .unwrap_or_else(|| "required".to_owned());
+    let mut in_args = vec![t_var("v")];
+    in_args.extend(members);
+    let in_atom = Formula::atom(Term::iri(logic_iri("termIn"))?, in_args)?;
+    let inner = match mode.trim() {
+        "required" => Formula::Forall {
+            vars: vec!["v".to_owned()],
+            body: Box::new(Formula::Implies(
+                Box::new(f_atom2(&path, t_var("this"), t_var("v"))?),
+                Box::new(in_atom),
+            )),
+        },
+        "forbidden" => Formula::Not(Box::new(Formula::Exists {
+            vars: vec!["v".to_owned()],
+            body: Box::new(Formula::And(vec![
+                f_atom2(&path, t_var("this"), t_var("v"))?,
+                in_atom,
+            ])),
+        })),
+        other => {
+            return Err(format!(
+                "logic:membershipMode '{other}' is not one of required/forbidden"
+            ));
+        }
+    };
+    let guard = match &class {
+        Some(c) => f_guard_class(c)?,
+        None => f_atom2(&path, t_var("this"), t_var("g"))?,
+    };
+    finalize_sugar(store, node, f_forall_this(guard, inner))
+}
+
+/// A string pattern / prefix constraint: every value on `logic:valuePath P` must match (mode
+/// `…Required`) — or must NOT match (mode `…Forbidden`) — the `logic:stringPattern "…"` under the
+/// `logic:stringOp` test (`regex…` → `REGEX`, `prefix…` → `STRSTARTS`). Integrity:
+/// required  `∀this. guard → ∀v. P(this,v) → rel(v, pattern)`;
+/// forbidden `∀this. guard → ¬∃v. P(this,v) ∧ rel(v, pattern)`.
+fn read_string_pattern(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+    let class = sugar_optional_target_class(store, node);
+    let path = value(store, node, &nn(&logic_iri("valuePath")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| "logic:StringPatternConstraint requires logic:valuePath".to_owned())?;
+    let pattern = match value(store, node, &nn(&logic_iri("stringPattern"))) {
+        Some(Node::Lit { lexical, .. }) => lexical,
+        _ => {
+            return Err(
+                "logic:StringPatternConstraint requires a literal logic:stringPattern".to_owned(),
+            );
+        }
+    };
+    let op = value(store, node, &nn(&logic_iri("stringOp")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| {
+            "logic:StringPatternConstraint requires logic:stringOp \
+             (regexRequired/regexForbidden/prefixRequired/prefixForbidden)"
+                .to_owned()
+        })?;
+    let (relation, forbidden) = match op.trim() {
+        "regexRequired" => ("termRegex", false),
+        "regexForbidden" => ("termRegex", true),
+        "prefixRequired" => ("termStrStarts", false),
+        "prefixForbidden" => ("termStrStarts", true),
+        other => {
+            return Err(format!(
+                "logic:stringOp '{other}' is not one of \
+                 regexRequired/regexForbidden/prefixRequired/prefixForbidden"
+            ));
+        }
+    };
+    let test_atom = Formula::atom(
+        Term::iri(logic_iri(relation))?,
+        vec![t_var("v"), Term::literal(pattern, None)?],
+    )?;
+    let inner = if forbidden {
+        Formula::Not(Box::new(Formula::Exists {
+            vars: vec!["v".to_owned()],
+            body: Box::new(Formula::And(vec![
+                f_atom2(&path, t_var("this"), t_var("v"))?,
+                test_atom,
+            ])),
+        }))
+    } else {
+        Formula::Forall {
+            vars: vec!["v".to_owned()],
+            body: Box::new(Formula::Implies(
+                Box::new(f_atom2(&path, t_var("this"), t_var("v"))?),
+                Box::new(test_atom),
+            )),
+        }
+    };
+    let guard = match &class {
+        Some(c) => f_guard_class(c)?,
+        None => f_atom2(&path, t_var("this"), t_var("g"))?,
+    };
+    finalize_sugar(store, node, f_forall_this(guard, inner))
+}
+
 /// FOL canon is complete + the target derives) AND the structured [`AggregateComparison`] satellite
 /// (which drives the real `GROUP BY`/`HAVING` SPARQL projection).
 fn read_aggregate_constraint(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
@@ -3133,7 +3276,7 @@ fn extract_sugar_constraints(
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Vec<ConstraintIr> {
     type Reader = fn(&RdfDataset, &Subject) -> Result<ConstraintIr, String>;
-    let readers: [(&str, Reader); 13] = [
+    let readers: [(&str, Reader); 15] = [
         ("ChoiceGroupConstraint", read_choice_group),
         ("GuardedImplicationConstraint", read_guarded_implication),
         (
@@ -3153,6 +3296,8 @@ fn extract_sugar_constraints(
             read_transitive_reachability,
         ),
         ("AcyclicConstraint", read_acyclic),
+        ("ValueSetMembershipConstraint", read_value_set_membership),
+        ("StringPatternConstraint", read_string_pattern),
     ];
     let mut out: Vec<ConstraintIr> = Vec::new();
     for (class_local, reader) in readers {

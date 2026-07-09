@@ -40621,7 +40621,6 @@
       "type": "object"
     },
     "lang:FlagshipScenario": {
-      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
         "@annotation": {
           "$ref": "#/$defs/Annotation"
@@ -40641,8 +40640,73 @@
               "type": "array"
             }
           ]
+        },
+        "lang:demonstratedByCompetency": {},
+        "lang:demonstratedByExample": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "lang:demonstratedByProducer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "lang:enforcesFailureClass": {},
+        "lang:guardedByCounterExample": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
         }
       },
+      "required": [
+        "lang:demonstratedByCompetency",
+        "lang:demonstratedByExample",
+        "lang:enforcesFailureClass",
+        "lang:guardedByCounterExample"
+      ],
       "type": "object"
     },
     "lang:Form": {
@@ -43916,7 +43980,6 @@
       "type": "object"
     },
     "math:FlagshipScenario": {
-      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
         "@annotation": {
           "$ref": "#/$defs/Annotation"
@@ -43936,8 +43999,54 @@
               "type": "array"
             }
           ]
+        },
+        "math:demonstratedByCompetency": {},
+        "math:demonstratedByExample": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "math:enforcesFailureClass": {},
+        "math:guardedByCounterExample": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
         }
       },
+      "required": [
+        "math:demonstratedByCompetency",
+        "math:demonstratedByExample",
+        "math:enforcesFailureClass",
+        "math:guardedByCounterExample"
+      ],
       "type": "object"
     },
     "math:FormalVerificationResult": {
@@ -44886,7 +44995,6 @@
       "type": "object"
     },
     "math:Norm": {
-      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
         "@annotation": {
           "$ref": "#/$defs/Annotation"
@@ -44906,8 +45014,12 @@
               "type": "array"
             }
           ]
-        }
+        },
+        "math:inducedByForm": {}
       },
+      "required": [
+        "math:inducedByForm"
+      ],
       "type": "object"
     },
     "math:Number": {
@@ -45634,7 +45746,6 @@
       "type": "object"
     },
     "math:SetBuilderExpression": {
-      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
         "@annotation": {
           "$ref": "#/$defs/Annotation"
@@ -45654,8 +45765,22 @@
               "type": "array"
             }
           ]
+        },
+        "math:memberCondition": {
+          "properties": {
+            "@id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "@id"
+          ],
+          "type": "object"
         }
       },
+      "required": [
+        "math:memberCondition"
+      ],
       "type": "object"
     },
     "math:TangentSpace": {
