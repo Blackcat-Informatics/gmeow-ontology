@@ -121,7 +121,7 @@ with the categorical subobject notion):
 | **Lossy lens** | lens, non-injective `get` | one direction faithful; inverse needs witness/claim/defaults | most schema.org/FOAF downcasts |
 | **Prism** | partial map `S → V + S` on a sum/optional | match/build on the in-focus variant only | applies on one variant, passes through otherwise |
 | **Affine correspondence** | co-projection onto a shared component | laws on the shared component only | "similar but not quite"; vague-determinacy targets |
-| **Bridge view** | commitment-shifting comorphism | *no* satisfaction-preservation claim | BFO / DOLCE / SUMO / YAMATO |
+| **Bridge view** | commitment-shifting comorphism | *no* satisfaction-preservation claim | BFO / DOLCE / SUMO / YAMATO / Cyc (CycL) |
 
 The two partial-alignment rungs are distinct: a **prism** focuses an optional/sum variant (match-or-pass-through), an **affine correspondence** focuses a sub-structure source and view share. Both sit below the lossy lens and above the bridge view.
 
@@ -136,6 +136,20 @@ Two cross-cutting qualifiers:
 - **`mnemomorphic? ∈ {yes, no}`** — whether the forward leg retains a source witness. Orthogonal to
   the rung; it is the property that lets a correspondence *climb* the spine, because a retained witness
   is what discharges `put∘get = id`.
+
+**Cyc as a bridge-view stress test.** Importing CycL microtheory content is a textbook **bridge
+view**: `logic:morphismKind logic:CommitmentShiftingBridge`, no satisfaction-preservation claim, and
+— per the refusal already stated above — the loss ledger refuses to emit `owl:equivalentClass` for
+it. Cyc is a good calculus stress test because its microtheories (`Mt`s) are not a flat bag of
+contexts: CycL's `genlMt` relation orders microtheories by generality, so the set of microtheories
+forms a **lattice** under `genlMt`, not merely a partition. The bridge from CycL microtheories into
+`logic:` standpoint/context indexing is therefore sharper than a plain commitment-shifting
+comorphism between two structureless context sets — it is a **monotone lattice comorphism**: the
+map from CycL `Mt`s into `logic:` standpoints preserves the `genlMt` order (more general Mt ↦ more
+general standpoint), but it is still *not* an institution morphism, because Cyc's own semantics does
+not guarantee satisfaction-preservation across that order (a specialization can locally contradict
+the generalization it specializes, which is exactly the "mutually-inconsistent assertions across
+contexts" Cyc is prior art for — see [`LOGIC.md`](LOGIC.md) § Lineage and Supersession).
 
 Composition can only weaken the rung, never strengthen it (§ Composition).
 
@@ -203,6 +217,44 @@ without collapsing distinct, possibly contested, contexts. A pushout that would 
 collapse of standpoint-indexed claims is ill-formed (Principles 5/9): the merge is a colimit in a
 category whose objects carry standpoint indices, so contested claims coexist. This axis is **declared,
 not yet fully specified** — an open axis for design (it is left open in `take1.md` §8.2).
+
+## A unifying lattice-graded reading
+
+*Design note only — names a vocabulary and a direction; builds nothing here.* Three structures
+already present in the calculus, and one from a sibling slice, are coordinates of a single
+**lattice-graded correspondence** shape, not three unrelated mechanisms:
+
+- the ordered preservation **law-spine** above (§ The ordered law-spine) — a poset a correspondence's
+  claimable laws sit on, weakened monotonically by composition;
+- the **confidence** (and sibling quantitative) axis (§ The quantitative and contextual axes) —
+  computed in its own algebra under composition (t-norm/min/solver-additive, § Composition and
+  merge);
+- the `lang:` GMN dialect's **security-ring flow lattice** (`gmeow:GmnSecurityRing`, a separate
+  slice — named here by reference, not imported or restructured: see `slices/grounding/lang/`) —
+  a level×compartment product order the GMN serialization boundary respects.
+
+Each axis is already computed in its own algebra — a semiring, a t-norm, or a `min` — and each
+already weakens monotonically down a poset as correspondences compose (the law-spine itself is that
+poset for the class axis; § Composition and merge is the general mechanism). Denning's
+information-flow lattice `⟨SC, ⊑, ⊕, ⊗⟩` (security classes, dominance order, join, meet) is
+recognizable as the **serialization-boundary instance** of this same shape: a lattice-graded
+quantity, monotone under composition, attached to a crossing.
+
+**Forward direction (named, not built here).** The unifying reading suggests two future-work
+handles, both out of scope for this PR and intended to become their own future issue:
+
+1. a `logic:` **flow-label axis** on the correspondence, alongside `confidence`/`evidenceStrength`/
+   `weight`/`probability`/`Determinacy`, so a crossing's information-flow classification composes by
+   the same rules as its other quantitative axes;
+2. a **parametric round-trip harness** generalizing the calculus's existing byte-teeth gates — the
+   narrow-waist superset gate, the RDFC-1.0 round-trip, and the forthcoming GMN-1 round-trip gate
+   (built elsewhere in this same PR) are three instances of one round-trip-over-a-crossing shape, and
+   a single parametric harness could discharge all three from one implementation.
+
+Naming this direction is the entire scope of this note. The engine — the flow-label vocabulary, its
+RDF terms, and the parametric harness itself — is **not** implemented here: it is a pointer for a
+future, separately-scoped issue, kept out of this PR's build surface per the canonical-core-refactor
+boundary (`logic:` is canon; expanding it is not a side effect of a downstream-integration PR).
 
 ## Preservation is the lens-law framework (reuse, do not reinvent)
 

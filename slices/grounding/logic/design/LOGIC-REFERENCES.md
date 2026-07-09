@@ -66,6 +66,10 @@ unless they themselves cite an external work; they are cross-references within G
   persistent quality identity, generic-quality→role ladder, unit-independent true quantity,
   process≠event, action/event open-closed, causal-vs-temporal parts — see
   [`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md) and `docs/foundational-bridging.md`.)
+- Lenat, D. B. & Guha, R. V. (1990). *Building Large Knowledge-Based Systems: Representation and
+  Inference in the Cyc Project.* Addison-Wesley. (Bridge view source: CycL microtheories as prior
+  art for context/standpoint indexing, ordered by generality via `genlMt` — see
+  [`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md).)
 
 ## Foundational theory (`intentCitesAsDataSource`)
 
