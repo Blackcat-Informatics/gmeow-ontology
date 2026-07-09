@@ -63,6 +63,14 @@ pub(crate) const GRAPH_QUALITY_ASSESSMENT: &str =
 /// fanout copy serves the superset gate / fanout writer (the correspondence-laws corpus
 /// follows the same twin-graph pattern).
 pub(crate) const QUALITY_ASSESSMENT_PATH: &str = "generated/quality/gmeow.quality-assessment.nt";
+/// Internal byte-artifact lane member emitted by `stage-source-load`: the repo-wide
+/// slice-quality diagnostics report rendered as self-contained HTML from the SAME scoring
+/// pass that emits [`QUALITY_ASSESSMENT_PATH`]'s graph. It uses the `pipeline/` prefix so
+/// regenerate/check never treat it as a committed flat artifact; it exists only to let the
+/// terminal snapshot embed the report in the ontology-docs archive.
+pub(crate) const SLICE_QUALITY_REPORT_HTML_ARTIFACT: &str = "pipeline/slice-quality-report.html";
+/// Bundle-relative docs path exported by `gmeow extract-docs`.
+const SLICE_QUALITY_DOC_PATH: &str = "slice-quality/index.html";
 pub(crate) const GRAPH_DOCUMENTATION: &str =
     "https://blackcatinformatics.ca/gmeow/graph/documentation";
 pub(crate) const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
@@ -301,7 +309,13 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
     // archive and never fold into `graph/reasoning` or any graph `verify`/`reason` consume.
     assert_okf_docs_cover_documented_terms(carrier, docs_model)?;
     let docs_exec = build_executable_docs_data(upstream, carrier, docs_model)?;
-    blobs.push(build_docs_archive(root, docs_model, &docs_exec)?);
+    let slice_quality_html = slice_quality_report_html(upstream)?;
+    blobs.push(build_docs_archive(
+        root,
+        docs_model,
+        &docs_exec,
+        slice_quality_html,
+    )?);
     blobs.push(build_reasoning_blob(upstream)?);
     // The opaque-fanout archive: every non-RDF generated/ fanout output, recomputed
     // from THIS run's carrier (superset law — RDF rides as named graphs, not here).
@@ -458,8 +472,21 @@ pub(crate) fn self_description_source_files(
 /// product (via [`alignment_nquads_from_artifacts`]) and the presenter + reasoning EDB read
 /// it back through `producer_graph`. Building it here would re-read the stale committed
 /// `generated/mappings/*.sssom.tsv` off disk (the stale-disk-fold class).
+#[cfg(test)]
 pub(crate) fn build_self_description_dataset(
     root: &Path,
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+    let quality = gmeow_slice_quality::assessment_artifacts(root)
+        .map_err(|e| stage_err(&format!("quality-assessment sweep: {e}")))?;
+    build_self_description_dataset_with_quality(root, &quality.nquads)
+}
+
+/// Build the self-description named graphs with a caller-supplied slice-quality graph.
+/// `stage-source-load` uses this after scoring once so the same pass can also publish the
+/// diagnostics HTML; tests keep a wrapper that scores and calls this helper directly.
+pub(crate) fn build_self_description_dataset_with_quality(
+    root: &Path,
+    quality_assessment: &str,
 ) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
     let authored = load_authored_default(root)?;
     let authored_canon = canonicalize_nq(&authored, "base")?;
@@ -485,9 +512,6 @@ pub(crate) fn build_self_description_dataset(
     // and read back by the presenter via `source_load_graph`. The producer re-emits the
     // per-slice `graph/slice-quality` N-Quads; `parse_into_graph` re-roots them into the
     // carrier's `graph/quality-assessment` label.
-    let quality_assessment = gmeow_slice_quality::assessment_nquads(root)
-        .map_err(|e| stage_err(&format!("quality-assessment sweep: {e}")))?;
-
     let datasets: Vec<std::sync::Arc<purrdf::RdfDataset>> = vec![
         rooted_in_graph(&base, GRAPH_AUTHORED_DEFAULT)?,
         parse_into_graph(&imports, "application/n-quads", GRAPH_IMPORTS)?,
@@ -507,6 +531,25 @@ pub(crate) fn build_self_description_dataset(
     ];
     let refs: Vec<&purrdf::RdfDataset> = datasets.iter().map(|d| d.as_ref()).collect();
     Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&refs)))
+}
+
+fn slice_quality_report_html(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<&[u8], gmeow_errors::Diag> {
+    let bytes = upstream
+        .get("stage-source-load")
+        .and_then(|p| p.artifact(SLICE_QUALITY_REPORT_HTML_ARTIFACT))
+        .ok_or_else(|| {
+            stage_err(&format!(
+                "missing stage-source-load {SLICE_QUALITY_REPORT_HTML_ARTIFACT} artifact"
+            ))
+        })?;
+    if bytes.is_empty() {
+        return Err(stage_err(&format!(
+            "stage-source-load {SLICE_QUALITY_REPORT_HTML_ARTIFACT} artifact is empty"
+        )));
+    }
+    Ok(bytes)
 }
 
 /// The `stage-source-load` product's carrier dataset (the authored base default graph
@@ -1714,6 +1757,7 @@ fn build_docs_archive(
     root: &Path,
     model: &gmeow_docs::model::DocsModel,
     exec: &gmeow_docs::ExecutableDocsData,
+    slice_quality_html: &[u8],
 ) -> Result<BlobRow, gmeow_errors::Diag> {
     let catalog = purrdf::slice::SliceCatalog::discover(
         &root.join("slices"),
@@ -1738,6 +1782,16 @@ fn build_docs_archive(
                 .map(move |(path, bytes)| (format!("{prefix}/{path}"), bytes))
         })
         .collect();
+    for lang in &langs {
+        let prefix = translations.internal_tag(lang);
+        let member = format!("{prefix}/{SLICE_QUALITY_DOC_PATH}");
+        if members.iter().any(|(path, _)| path == &member) {
+            return Err(stage_err(&format!(
+                "ontology-docs renderer already emitted reserved slice-quality report path {member}"
+            )));
+        }
+        members.push((member, slice_quality_html.to_vec()));
+    }
     members.sort_by(|a, b| a.0.cmp(&b.0));
     archive_blob(REP_ONTOLOGY_DOCS, &members)
 }
@@ -2368,7 +2422,9 @@ impl Stage for SnapshotStage {
         // stale disk read, matching the validation-shapes.ttl freshness rule — a
         // new competency ResultShape now reaches the bundle (and the fanout) in one
         // regenerate.
-        "snapshot.v19-fresh-generated-shape-surfaces"
+        // v20 embeds the repo-wide slice-quality HTML report, produced by stage-source-load
+        // from the same sweep as graph/quality-assessment, into the ontology-docs archive.
+        "snapshot.v20-slice-quality-doc-report"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -3619,8 +3675,14 @@ mod ustar_tests {
         // covered by the regenerate gate, not this structural packing test.
         let root = repo_root();
         let model = gmeow_docs::model::DocsModel::discover(&root).expect("docs model");
-        let blob = build_docs_archive(&root, &model, &gmeow_docs::ExecutableDocsData::default())
-            .expect("docs archive");
+        let slice_quality_html = b"<!doctype html><title>slice-quality</title>\n";
+        let blob = build_docs_archive(
+            &root,
+            &model,
+            &gmeow_docs::ExecutableDocsData::default(),
+            slice_quality_html,
+        )
+        .expect("docs archive");
         assert_eq!(blob.rep, REP_ONTOLOGY_DOCS);
         assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
 
@@ -3640,6 +3702,15 @@ mod ustar_tests {
                 .iter()
                 .any(|(n, _)| n == "x-gmeow-english/index.html"),
             "the English landing page must be present"
+        );
+        let report = members
+            .iter()
+            .find(|(n, _)| n == "x-gmeow-english/slice-quality/index.html")
+            .expect("slice-quality HTML report must be embedded in English docs");
+        assert_eq!(
+            report.1.as_slice(),
+            slice_quality_html,
+            "slice-quality report bytes must ride unchanged in the docs archive"
         );
         // The site carries its structural assets (deterministic, language-keyed).
         for asset in [

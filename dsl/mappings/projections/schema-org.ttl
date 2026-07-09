@@ -5,9 +5,8 @@
 @prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
 @prefix schema: <https://schema.org/> .
 
-# Projection mappings: GMEOW → pure schema.org (the richest profile). Compiled to
-# projections/schema-org.edoal.ttl + queries/projections/schema-org.rq by
-# `gmeow compile-mappings`.
+# Projection mappings: GMEOW → pure schema.org (the richest profile). Consumed by
+# the registered mappings generator.
 
 gmeow:mapSchemaPlace a gmeow:ProjectionMapping ;
     rdfs:label "Place → schema:Place (+ containment)"@x-gmeow-english ;
@@ -23,7 +22,7 @@ gmeow:mapSchemaPlace a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "place" ; gmeow:tPred schema:containedInPlace ; gmeow:tObj "parent" ] ) ] .
 
 # Place coordinates → schema:geo. Split from mapSchemaPlace so coordinates can be
-# coarsened independently (#72, P10): the precise point is SUPPRESSED when the place
+# coarsened independently (Principle 10): the precise point is SUPPRESSED when the place
 # carries gmeow:coarsenTo, and mapSchemaPlaceCoordsCoarsened emits the enclosing
 # region's coordinates instead. For a place without the marker, output is unchanged.
 gmeow:mapSchemaPlaceCoords a gmeow:ProjectionMapping ;
@@ -404,7 +403,7 @@ gmeow:mapSchemaKnowsLanguageProficiency a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "CEFR/ILR/ACTFL level and skill modality dropped" ] .
 
 # NOTE: gmeow:mapSchemaDescription is intentionally superseded by
-# gmeow:mapSchemaDescriptionPublicOnly (#225) which gates schema:description
+# gmeow:mapSchemaDescriptionPublicOnly, which gates schema:description
 # projection to the public-site consumer. The old ungated mapping is removed
 # per Principle 6 (greenfield — get it right, not compatible).
 gmeow:mapSchemaUrl a gmeow:ProjectionMapping ;
@@ -541,101 +540,7 @@ gmeow:mapSchemaFuzzyStart a gmeow:ProjectionMapping ;
         gmeow:transform gmeow:fnFuzzyTimeToDate ; gmeow:confidence 0.7 ;
         gmeow:lossyDrop "the uncertainty band (gmeow:latestEnd) and the gmeow:temporalPrecision qualifier are dropped; only the earliest bound survives as a single schema:startDate" ] .
 
-# Rights / IP cluster (#21). The Copyright relator flattens to schema's flat
-# copyright* terms; hasLicense → schema:license; attributionText → schema:creditText;
-# Mark → schema:Brand; plus the access/licence-page/usage flags.
-
-gmeow:mapSchemaLicense a gmeow:ProjectionMapping ;
-    rdfs:label "hasLicense → schema:license"@x-gmeow-english ;
-    gmeow:hasMappingPattern [
-        gmeow:anchor "work" ; gmeow:value "lic" ;
-        gmeow:atom ( [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:hasLicense ; gmeow:objectVar "lic" ] ) ;
-        gmeow:edoalSource gmeow:hasLicense ] ;
-    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:license ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
-
-gmeow:mapSchemaCopyrightHolder a gmeow:ProjectionMapping ;
-    rdfs:label "Copyright relator holder → schema:copyrightHolder (flatten)"@x-gmeow-english ;
-    gmeow:hasMappingPattern [
-        gmeow:anchor "cw" ; gmeow:value "holder" ;
-        gmeow:atom (
-            [ gmeow:subjectVar "cw" ; gmeow:predicate gmeow:hasCopyright ; gmeow:objectVar "cr" ]
-            [ gmeow:subjectVar "cr" ; gmeow:predicate gmeow:copyrightHolder ; gmeow:objectVar "holder" ] ) ;
-        gmeow:edoalSource gmeow:copyrightHolder ] ;
-    gmeow:hasBinding [
-        gmeow:profile "schema-org" ; gmeow:toPredicate schema:copyrightHolder ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
-        gmeow:lossyDrop "the Copyright relator (year, notice, status) collapses to a flat schema:copyrightHolder edge" ] .
-
-gmeow:mapSchemaCopyrightYear a gmeow:ProjectionMapping ;
-    rdfs:label "Copyright relator year → schema:copyrightYear (flatten)"@x-gmeow-english ;
-    gmeow:hasMappingPattern [
-        gmeow:anchor "cw" ; gmeow:value "yr" ;
-        gmeow:atom (
-            [ gmeow:subjectVar "cw" ; gmeow:predicate gmeow:hasCopyright ; gmeow:objectVar "cr" ]
-            [ gmeow:subjectVar "cr" ; gmeow:predicate gmeow:copyrightYear ; gmeow:objectVar "yr" ] ) ;
-        gmeow:edoalSource gmeow:copyrightYear ] ;
-    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:copyrightYear ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
-        gmeow:lossyDrop "the Copyright relator (holder, notice, status) collapses to a flat schema:copyrightYear edge" ] .
-
-gmeow:mapSchemaCopyrightNotice a gmeow:ProjectionMapping ;
-    rdfs:label "Copyright relator notice → schema:copyrightNotice (flatten)"@x-gmeow-english ;
-    gmeow:hasMappingPattern [
-        gmeow:anchor "cw" ; gmeow:value "notice" ;
-        gmeow:atom (
-            [ gmeow:subjectVar "cw" ; gmeow:predicate gmeow:hasCopyright ; gmeow:objectVar "cr" ]
-            [ gmeow:subjectVar "cr" ; gmeow:predicate gmeow:copyrightNotice ; gmeow:objectVar "notice" ] ) ;
-        gmeow:edoalSource gmeow:copyrightNotice ] ;
-    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:copyrightNotice ; gmeow:relation "<=" ; gmeow:confidence 0.9 ;
-        gmeow:lossyDrop "the structured Copyright relator (holder, year, status) collapses to a flat schema:copyrightNotice edge" ] .
-
-gmeow:mapSchemaCreditText a gmeow:ProjectionMapping ;
-    rdfs:label "attributionText → schema:creditText"@x-gmeow-english ;
-    gmeow:hasMappingPattern [
-        gmeow:anchor "ent" ; gmeow:value "credit" ;
-        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:attributionText ; gmeow:objectVar "credit" ] ) ;
-        gmeow:edoalSource gmeow:attributionText ] ;
-    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:creditText ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
-
-gmeow:mapSchemaBrand a gmeow:ProjectionMapping ;
-    rdfs:label "Mark → schema:Brand"@x-gmeow-english ;
-    gmeow:hasMappingPattern [
-        gmeow:anchor "mark" ;
-        gmeow:atom ( [ gmeow:subjectVar "mark" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Mark ] ) ;
-        gmeow:edoalSource gmeow:Mark ; gmeow:edoalSourceKind "class" ] ;
-    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toClass schema:Brand ; gmeow:relation "<=" ; gmeow:confidence 0.8 ] .
-
-gmeow:mapSchemaIsAccessibleForFree a gmeow:ProjectionMapping ;
-    rdfs:label "isAccessibleForFree → schema:isAccessibleForFree"@x-gmeow-english ;
-    gmeow:hasMappingPattern [
-        gmeow:anchor "ent" ; gmeow:value "free" ;
-        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:isAccessibleForFree ; gmeow:objectVar "free" ] ) ;
-        gmeow:edoalSource gmeow:isAccessibleForFree ] ;
-    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:isAccessibleForFree ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
-
-gmeow:mapSchemaAcquireLicensePage a gmeow:ProjectionMapping ;
-    rdfs:label "acquireLicensePage → schema:acquireLicensePage"@x-gmeow-english ;
-    gmeow:hasMappingPattern [
-        gmeow:anchor "ent" ; gmeow:value "alp" ;
-        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:acquireLicensePage ; gmeow:objectVar "alp" ] ) ;
-        gmeow:edoalSource gmeow:acquireLicensePage ] ;
-    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:acquireLicensePage ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
-
-gmeow:mapSchemaUsageInfo a gmeow:ProjectionMapping ;
-    rdfs:label "usageInfo → schema:usageInfo"@x-gmeow-english ;
-    gmeow:hasMappingPattern [
-        gmeow:anchor "ent" ; gmeow:value "ui" ;
-        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:usageInfo ; gmeow:objectVar "ui" ] ) ;
-        gmeow:edoalSource gmeow:usageInfo ] ;
-    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:usageInfo ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
-
-gmeow:mapSchemaConditionsOfAccess a gmeow:ProjectionMapping ;
-    rdfs:label "conditionsOfAccess → schema:conditionsOfAccess"@x-gmeow-english ;
-    gmeow:hasMappingPattern [
-        gmeow:anchor "ent" ; gmeow:value "coa" ;
-        gmeow:atom ( [ gmeow:subjectVar "ent" ; gmeow:predicate gmeow:conditionsOfAccess ; gmeow:objectVar "coa" ] ) ;
-        gmeow:edoalSource gmeow:conditionsOfAccess ] ;
-    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:conditionsOfAccess ; gmeow:relation "=" ; gmeow:confidence 0.9 ] .
-
-# Connectivity / Routing projections (#80, CONN-GEN)
+# Connectivity / routing projections
 
 gmeow:mapSchemaRoute a gmeow:ProjectionMapping ;
     rdfs:label "Route → schema:Trip (lossy)"@x-gmeow-english ;
@@ -648,7 +553,7 @@ gmeow:mapSchemaRoute a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "GMEOW Route is domain-generic; schema:Trip is travel-specific. RouteKind, start, end, and via metadata are dropped." ] .
 
 # --------------------------------------------------------------------------- #
-# Lifecycle projections — issue #81. Flat hasCreationEvent / hasDestructionEvent
+# Lifecycle projections. Flat hasCreationEvent / hasDestructionEvent
 # downcasts to schema.org date fields. The full event richness (place, roles,
 # standpoint, confidence) is dropped — the flat date is lossy by design.
 # --------------------------------------------------------------------------- #
@@ -682,7 +587,7 @@ gmeow:mapSchemaDissolutionDate a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the destruction event's place, participants, and standpoint are dropped; only the instant survives as schema:dissolutionDate" ] .
 
 # --------------------------------------------------------------------------- #
-# Capacity / Occupancy projections — issue #100.
+# Capacity / occupancy projections.
 # Reified Measurement → flat schema.org integer. The provenance, unit, temporal
 # scope, and standpoint are dropped; only the scalar quantity value survives.
 # --------------------------------------------------------------------------- #
@@ -720,7 +625,7 @@ gmeow:mapSchemaOccupancy a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the Occupancy relator (provenance, unit, temporal scope, standpoint) collapses to a flat schema:occupancy integer; non-displayable/superseded occupancies are suppressed; restricted to gmeow:Place to avoid projecting byte occupancies from StorageLocation" ] .
 
 # --------------------------------------------------------------------------- #
-# Issue #98 — Schema.org location enrichments
+# Schema.org location enrichments
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaLocation a gmeow:ProjectionMapping ;
@@ -751,7 +656,7 @@ gmeow:mapSchemaPlaceAllNames a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "namePurpose (endonym/exonym/superseded) is ignored; every displayable name is emitted as schema:name. The consumer receives all co-equal claims without privileging." ] .
 
 # --------------------------------------------------------------------------- #
-# Issue #125 — CoordinateObservation projections to schema.org
+# CoordinateObservation projections to schema.org
 # --------------------------------------------------------------------------- #
 # These project the reified observation path to schema.org, complementing the
 # flat shortcut projections above. Both branches respect coarsenTo suppression
@@ -794,7 +699,7 @@ gmeow:mapSchemaCoordinateObservation a gmeow:ProjectionMapping ;
 # point coordinates (lat/lon) as schema:GeoCoordinates.
 
 # --------------------------------------------------------------------------- #
-# Per-consumer gating demonstration (#225).
+# Per-consumer gating demonstration.
 #
 # A description is projected to schema:description ONLY when the entity is
 # explicitly eligible for the public-site consumer. This uses the projectWhen
@@ -813,7 +718,7 @@ gmeow:mapSchemaDescriptionPublicOnly a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "description withheld when entity is not explicitly eligible for consumerPublicSite" ] .
 
 # --------------------------------------------------------------------------- #
-# Issue #258 — Organization module deepening
+# Organization module deepening
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaOrganizationType a gmeow:ProjectionMapping ;
@@ -901,7 +806,7 @@ gmeow:mapSchemaIndustryIsic a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "only ISIC-V4-scheme classifications are emitted; NAICS and other schemes are dropped" ] .
 
 # --------------------------------------------------------------------------- #
-# Commercial / business facet — full schema:Organization coverage (#449).
+# Commercial / business facet — full schema:Organization coverage.
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaSlogan a gmeow:ProjectionMapping ;
@@ -960,7 +865,7 @@ gmeow:mapSchemaTaxId a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "only tax-scheme identifiers are emitted; other schemes are carried by their own cells" ] .
 
 # --------------------------------------------------------------------------- #
-# Issue #263 — Expertise depth: SkillProficiency and Credential projections
+# Expertise depth: SkillProficiency and Credential projections
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaSkillProficiency a gmeow:ProjectionMapping ;
@@ -1010,7 +915,7 @@ gmeow:mapSchemaCredentialFor a gmeow:ProjectionMapping ;
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:competencyRequired ; gmeow:relation "<=" ; gmeow:confidence 0.8 ;
         gmeow:lossyDrop "the Skill/Occupation distinction in credentialFor collapses to schema:competencyRequired" ] .
 
-# --- #34 phases 2-3 backlog work-down: the audited gap-fills. ------------- #
+# --- Audited schema.org gap-fills ----------------------------------------- #
 
 gmeow:mapSchemaIdentifier a gmeow:ProjectionMapping ;
     rdfs:label "identifier → schema:identifier"@x-gmeow-english ;
@@ -1163,7 +1068,7 @@ gmeow:mapSchemaMaintainer a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "contribution period, provenance, confidence, degree drop" ] .
 
 # --------------------------------------------------------------------------- #
-# Movement events → schema:MoveAction (#412). The endpoint pair IS the movement
+# Movement events → schema:MoveAction. The endpoint pair IS the movement
 # signal: any event carrying a from- or to-location is movement-shaped, so the
 # MoveAction typing is structural — migration / immigration / emigration /
 # household moves all derive without enumerating event-type values (P9: the
@@ -1199,12 +1104,12 @@ gmeow:mapSchemaMoveActionTo a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "mvtEv" ; gmeow:tPred schema:toLocation ; gmeow:tObj "mvTo" ] ) ] .
 
 # --------------------------------------------------------------------------- #
-# External-identifier records → schema:PropertyValue (#409). The reified
+# External-identifier records → schema:PropertyValue. The reified
 # gmeow:Identifier node IS the property-value bundle, so it is REUSED as the
 # schema:PropertyValue (no mint): propertyID ← the scheme code, value ← the
 # scheme-local value, url ← the resolvable authority URL, name ← the human
 # label. Hung off the bearing entity by schema:identifier. This is the largest
-# #34 backlog cluster (the geni / ORCID / nip05 profile rows).
+# Long-tail external-identifier profile rows.
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaIdentifierRecord a gmeow:ProjectionMapping ;
@@ -1230,7 +1135,7 @@ gmeow:mapSchemaIdentifierRecord a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "idrRec" ; gmeow:tPred schema:name ; gmeow:tObj "idrName" ] ) ] .
 
 # --------------------------------------------------------------------------- #
-# Web presence (#410). WebSite typing; the page→site hierarchy as isPartOf (the
+# Web presence. WebSite typing; the page→site hierarchy as isPartOf (the
 # breadcrumb trail); a page's principal subject as schema:mainEntity (and its
 # inverse schema:mainEntityOfPage); ProfilePage derived STRUCTURALLY from a page
 # whose principal subject is an Agent (the defined-class logic, matched directly
@@ -1353,7 +1258,7 @@ gmeow:mapSchemaDataDownload a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "ddDoc" ; gmeow:tPred schema:encodingFormat ; gmeow:tObj "ddFmt" ] ) ] .
 
 # --------------------------------------------------------------------------- #
-# Syndicated content (#412): postings, quotations, shares, feeds. A FeedPosting
+# Syndicated content: postings, quotations, shares, feeds. A FeedPosting
 # projects to schema:SocialMediaPosting or schema:BlogPosting by its kind value;
 # quoted content becomes a schema:Quotation; shared content rides
 # schema:sharedContent; a DataFeed and its members become schema:DataFeed +
@@ -1452,7 +1357,7 @@ gmeow:mapSchemaDataFeed a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "dfItem" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:DataFeedItem ] ) ] .
 
 # --------------------------------------------------------------------------- #
-# People / org surface (#411), presence history (#417), long tail (#413).
+# People / org surface, presence history, long tail.
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSchemaContactType a gmeow:ProjectionMapping ;
@@ -1520,7 +1425,7 @@ gmeow:mapSchemaOwns a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:owns ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
 
 # --------------------------------------------------------------------------- #
-# Clean 1:1 wins (#449 triage): GMEOW terms with an identical schema.org
+# Clean 1:1 wins: GMEOW terms with an identical schema.org
 # counterpart that had no cell. Direct property/class projections.
 # --------------------------------------------------------------------------- #
 
@@ -1583,7 +1488,7 @@ gmeow:mapSchemaSubOrganization a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "the inverse reading: the parent gains schema:subOrganization pointing at each child" ] .
 
 # --------------------------------------------------------------------------- #
-# Genuine-gap clusters (#449 triage): person / media / identity facets that
+# Genuine-gap clusters: person / media / identity facets that
 # GMEOW now models — projected to their schema.org counterparts.
 # --------------------------------------------------------------------------- #
 
@@ -1640,7 +1545,7 @@ gmeow:mapSchemaServiceDissolution a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:serviceShutdownDate ] ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:dissolutionDate ; gmeow:relation "<=" ; gmeow:confidence 0.9 ] .
 
-# Commercial offerings (#413): the full Offer/Service surface.
+# Commercial offerings: the full Offer/Service surface.
 gmeow:mapSchemaOffer a gmeow:ProjectionMapping ;
     rdfs:label "makesOffer + Offering → schema:makesOffer / Offer / itemOffered"@x-gmeow-english ;
     gmeow:hasMappingPattern [
@@ -1786,7 +1691,7 @@ gmeow:mapSchemaContactPoint a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:ContactPoint ; gmeow:edoalSourceKind "class" ] ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toClass schema:ContactPoint ; gmeow:relation "<=" ; gmeow:confidence 0.9 ] .
 
-# EXIF tags → schema:exifData (#413, LOSSLESS). The reified gmeow:ExifTag node
+# EXIF tags → schema:exifData. The reified gmeow:ExifTag node
 # IS the schema:PropertyValue bundle, so it is REUSED (no mint): propertyID ←
 # exifTagId, value ← exifTagValue, name ← rdfs:label. Every tag round-trips.
 gmeow:mapSchemaExifData a gmeow:ProjectionMapping ;
@@ -1809,7 +1714,7 @@ gmeow:mapSchemaExifData a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "exTag" ; gmeow:tPred schema:value ; gmeow:tObj "exVal" ]
             [ gmeow:tSubj "exTag" ; gmeow:tPred schema:name ; gmeow:tObj "exName" ] ) ] .
 
-# Contact affordances (#412): that an agent CAN be reached via a contact point
+# Contact affordances: that an agent CAN be reached via a contact point
 # is a fact derivable from the point itself — a schema:CommunicateAction whose
 # target is the mailto:/tel: URI built from the contact value. The action's
 # editorial NAME ("Email general inquiries") is site UI copy, not derived
