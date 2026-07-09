@@ -227,14 +227,16 @@ fn field(out: &mut String, label: &str, values: &[String]) {
     if values.is_empty() {
         return;
     }
-    // Join the escaped string EXPRESSIONS with a literal separator so no value's
-    // metacharacters leak into markup.
+    // Escape each value individually, then join the escaped bodies with a plain
+    // "; " separator (no Typst metacharacters, so it needs no escaping itself)
+    // into a SINGLE string literal — one `#"…"` expression rather than a chain
+    // of string-concatenation.
     let joined = values
         .iter()
-        .map(|v| tstr(v))
+        .map(|v| escape_typ(v))
         .collect::<Vec<_>>()
-        .join(" + \"; \" + ");
-    out.push_str(&format!("*{label}:* #({joined})\n\n"));
+        .join("; ");
+    out.push_str(&format!("*{label}:* #\"{joined}\"\n\n"));
 }
 
 // ── Axiom chapter ──────────────────────────────────────────────────────────
