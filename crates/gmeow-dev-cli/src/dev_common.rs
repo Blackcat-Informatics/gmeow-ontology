@@ -84,16 +84,16 @@ pub fn emit_report(report: &gmeow_errors::Report) {
 
 /// Emit an Error-grade dev diagnostic on the console sink and yield the failure
 /// exit code `1` — the substrate replacement for the old stderr `fail`.
-pub fn fail(message: impl AsRef<str>) -> i32 {
-    emit_error("gmeow-dev.cli.fail", message.as_ref().to_owned());
+pub fn fail(message: impl std::fmt::Display) -> i32 {
+    emit_error("gmeow-dev.cli.fail", message.to_string());
     1
 }
 
 /// Emit an Error-grade dev diagnostic on the console sink and yield an explicit
 /// exit code (e.g. `2` for a tool-unavailable condition, mirroring the Python
 /// `_fail(code=2)` paths).
-pub fn fail_code(message: impl AsRef<str>, code: i32) -> i32 {
-    emit_error("gmeow-dev.cli.fail", message.as_ref().to_owned());
+pub fn fail_code(message: impl std::fmt::Display, code: i32) -> i32 {
+    emit_error("gmeow-dev.cli.fail", message.to_string());
     code
 }
 

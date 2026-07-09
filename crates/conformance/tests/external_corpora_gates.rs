@@ -616,10 +616,6 @@ fn non_empty_conformance_graph_per_graded_corpus() {
          missing or empty",
         root.display()
     );
-    // Surface the intentional skips (visible with `--nocapture`); never a silent drop.
-    if !skipped.is_empty() {
-        eprintln!("non_empty gate: skipped ungraded corpora (nothing to fold): {skipped:?}");
-    }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
