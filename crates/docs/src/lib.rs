@@ -26,6 +26,7 @@ pub mod i18n;
 pub mod i18n_compile;
 pub mod lint;
 pub mod llms;
+pub mod mdbook;
 pub mod model;
 pub mod rdf;
 pub mod render;
