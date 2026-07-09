@@ -183,6 +183,7 @@ ASK {
     lang:GmnConfusableGlyph            rdfs:subClassOf lang:LangConformanceFailure .
     lang:GmnGlyphCollision             rdfs:subClassOf lang:LangConformanceFailure .
     lang:GmnMissingEnvelopeField       rdfs:subClassOf lang:LangConformanceFailure .
+    lang:GmnDictionaryAliasCollision   rdfs:subClassOf lang:LangConformanceFailure .
     lang:GmnRingLatticeMalformed       rdfs:subClassOf lang:LangConformanceFailure .
     lang:GmnVersionOverclaim           rdfs:subClassOf lang:LangConformanceFailure .
     lang:GmnCompactionWithoutProvenance rdfs:subClassOf lang:LangConformanceFailure .
@@ -193,7 +194,7 @@ ASK {
     lang:GmnUndeclaredDialectVersion   rdfs:subClassOf lang:LangConformanceFailure .
     lang:GmnNonDecodableGrammar        rdfs:subClassOf lang:LangConformanceFailure .
 }""" ;
-    gmeow:saRationale "Each of the thirteen GMN dialect failures MUST be a subclass of lang:LangConformanceFailure — the eight SHACL-gated rules (codepoints, confusables, collisions, the envelope contract, the ring lattice, version overclaims, compaction provenance, compaction overclaims) and the five GMN parser/writer-tier rules (uncovered terms, canonical order, malformed numbers, undeclared dialect versions, grammar decodability) — so a GMN violation is a typed, queryable object like every other lang: failure." .
+    gmeow:saRationale "Each of the fourteen GMN dialect failures MUST be a subclass of lang:LangConformanceFailure — the nine SHACL-gated rules (codepoints, confusables, collisions, the envelope contract, dictionary alias injectivity, the ring lattice, version overclaims, compaction provenance, compaction overclaims) and the five GMN parser/writer-tier rules (uncovered terms, canonical order, malformed numbers, undeclared dialect versions, grammar decodability) — so a GMN violation is a typed, queryable object like every other lang: failure." .
 
 # --- 12. The unwired-flagship failure subclasses lang:LangConformanceFailure (MUST) - #
 ex:saFlagshipFailureTyped a gmeow:StructuralAssertion ;

@@ -1,14 +1,16 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
-# Counter-example: a gmeow:GmnEnvelope missing exactly ONE of its eight contract fields —
-# the boundary ring (gmeow:gmnSecurityRing) is absent (fires lang:GmnMissingEnvelopeField
-# via sh:minCount 1 on lang:GmnEnvelopeContractShape). The other seven fields are all
-# present and well-formed, so exactly the one MinCount finding is emitted.
+# Counter-example (Item 1 / R5 of #1475, version-pinning): a gmeow:GmnEnvelope declaring
+# TWO gmeow:gmnDictionaryVersion literals at once. An alias is meaningless without the
+# ONE dictionary version that minted it — declaring two simultaneously makes the pinning
+# ambiguous, exactly the "non-interchangeable" property lang:GmnMissingEnvelopeField's
+# sh:maxCount 1 on gmeow:gmnDictionaryVersion now enforces. Fires
+# shacl.MaxCountConstraintComponent and NO other finding — every other contract field is
+# present and well-formed.
 
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <http://example.org/lang/> .
 
 ex:archiveTeam a gmeow:Agent .
@@ -21,12 +23,13 @@ ex:corrEnvelope a logic:Correspondence ;
     logic:hasDeterminacy logic:Crisp ;
     logic:mnemomorphic true .
 
-# The ring is missing: an envelope whose payload was never admitted under a boundary ring.
-ex:envelopeNoRing a gmeow:GmnEnvelope ;
+# Two dictionary versions at once: not pinned to exactly one.
+ex:envelopeTwoDictVersions a gmeow:GmnEnvelope ;
     gmeow:gmnSchemaVersion "1" ;
-    gmeow:gmnDictionaryVersion "1" ;
+    gmeow:gmnDictionaryVersion "1" , "2" ;
     gmeow:gmnGlyphTableVersion "1" ;
+    gmeow:gmnSecurityRing gmeow:gmnRingTrusted ;
     gmeow:accordingTo ex:archiveTeam ;
     gmeow:wasGeneratedBy ex:gmnWriterRun ;
-    gmeow:contentDigest "blake3:0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e" ;
+    gmeow:contentDigest "blake3:1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrEnvelope .

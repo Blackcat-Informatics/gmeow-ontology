@@ -2723,13 +2723,86 @@ gmeow:gmnDictionaryVersion
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn dictionary version"@x-gmeow-english ;
-    skos:definition "The alias-table (dictionary) version an envelope or codebook was serialized against — the coordinate of the IRI-to-alias mapping GMN compresses names with. Domain gmeow:GmnEnvelope or gmeow:GmnCodebook, range a string literal (stated in prose). Alias resolution is version-pinned: an alias is meaningless without the dictionary version that minted it."@x-gmeow-english ;
+    skos:definition "The alias-table (dictionary) version an envelope, codebook, or gmeow:GmnDictionary was serialized against — the coordinate of the IRI-to-alias mapping GMN compresses names with. Domain gmeow:GmnEnvelope, gmeow:GmnCodebook, or gmeow:GmnDictionary, range a string literal (stated in prose). Alias resolution is version-pinned: an alias is meaningless without the dictionary version that minted it, and an envelope carries exactly one (sh:maxCount 1 on lang:GmnEnvelopeContractShape) — versions are never interchangeable."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid resolving aliases against any dictionary but the pinned version and avoid reusing a dictionary version after its alias table changes — a changed table is a new version."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Stamp the dictionary version on every envelope and on the codebook; treat an alias + version pair as the resolvable unit."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to pin which alias table a GMN payload's compressed names resolve through."@x-gmeow-english .
+
+gmeow:GmnDictionary
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Dictionary"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "One version of the GMN alias table: the codebook-witnessed bijection between full GMEOW IRIs and their compact GMN-1 aliases that gmeow:gmnCorrNormalToGmn's mnemomorphic claim rests on. A dictionary carries its own gmeow:gmnDictionaryVersion (exactly one) and zero or more gmeow:gmnDictionaryEntry members, each binding one term to one alias string. The dictionary is a BIJECTION over its covered term set: injectivity (no two entries of one dictionary share an alias) is gated by lang:GmnDictionaryAliasInjectivityShape (lang:GmnDictionaryAliasCollision), never merely asserted in prose."@x-gmeow-english ;
+    skos:example "gmeow:gmnDictV1 a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion \"1\" ; gmeow:gmnDictionaryEntry gmeow:gmnDictV1EntryEnvelope ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting a dictionary without a gmeow:gmnDictionaryVersion (an unversioned alias table cannot be resolved) and avoid letting two entries of one dictionary alias the same string — that is the injectivity gate's business, never a hand-checked invariant."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one gmeow:GmnDictionary per alias-table version, stamp its gmeow:gmnDictionaryVersion, and add one gmeow:gmnDictionaryEntry per aliased term; a codebook references its current dictionary through gmeow:references (the same flat-first linkage GmnCodebook already uses for the script and sigil roles)."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to make one version of the GMN dictionary/alias table a first-class, queryable object whose entries can be gated for injectivity — never a bare version string with no term-level structure behind it."@x-gmeow-english .
+
+gmeow:GmnDictionaryEntry
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Dictionary Entry"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "One binding of the GMN alias table: relates the aliased GMEOW term (gmeow:gmnDictionaryEntryTerm, functional) to the compact alias string GMN-1 writes in its place (gmeow:gmnDictionaryEntryAlias, functional). A gmeow:GmnDictionary holds zero or more entries through gmeow:gmnDictionaryEntry; the injectivity gate (lang:GmnDictionaryAliasInjectivityShape) requires that no two entries of one dictionary carry the same alias for two different terms."@x-gmeow-english ;
+    skos:example "gmeow:gmnDictV1EntryEnvelope a gmeow:GmnDictionaryEntry ; gmeow:gmnDictionaryEntryTerm gmeow:GmnEnvelope ; gmeow:gmnDictionaryEntryAlias \"genv\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid an entry with no gmeow:gmnDictionaryEntryTerm or no gmeow:gmnDictionaryEntryAlias — both are the functional payload of the binding — and avoid reusing one entry across two dictionaries; a changed alias table is a new gmeow:GmnDictionary with its own entries."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one entry per aliased term, set its gmeow:gmnDictionaryEntryTerm and gmeow:gmnDictionaryEntryAlias, and link it from its owning gmeow:GmnDictionary through gmeow:gmnDictionaryEntry."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the reified per-term binding of a GMN alias table, so alias uniqueness within one dictionary version is a gated graph property rather than an unchecked codec convention."@x-gmeow-english .
+
+gmeow:gmnDictionaryEntry
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GmnDictionary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn dictionary entry"@x-gmeow-english ;
+    rdfs:range gmeow:GmnDictionaryEntry ;
+    skos:definition "Relates a gmeow:GmnDictionary to one of its term↔alias bindings. Domain gmeow:GmnDictionary, range gmeow:GmnDictionaryEntry. Non-functional: a dictionary holds zero or more entries."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid pointing it at an entry owned by a different dictionary version — an entry belongs to exactly the one alias table it was minted for."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:gmnDictionaryEntry edge per aliased term a dictionary version covers."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the entry members of a GMN dictionary version."@x-gmeow-english .
+
+gmeow:gmnDictionaryEntryTerm
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn dictionary entry term"@x-gmeow-english ;
+    skos:definition "The full GMEOW term (a class, property, or individual IRI) one dictionary entry aliases. Functional: exactly one term per entry. Domain gmeow:GmnDictionaryEntry, range any GMEOW term (stated in prose, deliberately unconstrained — the dictionary aliases across the whole vocabulary, not one rdf:type)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid leaving it unset — an entry with no aliased term carries an alias for nothing — and avoid two entries of one dictionary naming the SAME term with two different aliases (that is a different failure, ambiguous emission, not the gated alias-collision case)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnDictionaryEntryTerm per entry, paired with exactly one gmeow:gmnDictionaryEntryAlias."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the GMEOW term a dictionary entry's alias stands for."@x-gmeow-english .
+
+gmeow:gmnDictionaryEntryAlias
+    a owl:FunctionalProperty ,
+        owl:DatatypeProperty ;
+    rdfs:domain gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn dictionary entry alias"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The compact alias string a dictionary entry mints for its aliased term — the token a conforming GMN-1 writer emits in place of the full IRI. Functional: exactly one alias per entry. Domain gmeow:GmnDictionaryEntry, range xsd:string. Injective within one dictionary: two entries of the same gmeow:GmnDictionary never share an alias for two different terms (lang:GmnDictionaryAliasInjectivityShape)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid reusing an alias string for a second, different term within one dictionary version — that is exactly the injectivity gate's failure case — and avoid an alias that is not identifier-shaped (a GMN-1 alias has the same lexical shape as any other GMN identifier)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnDictionaryEntryAlias string per entry, distinct from every other entry's alias in the same gmeow:GmnDictionary."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the compact alias token a dictionary entry binds its term to."@x-gmeow-english .
 
 gmeow:gmnGlyphTableVersion
     a owl:DatatypeProperty ;
@@ -3147,7 +3220,7 @@ gmeow:gmnModelNotation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN-1 model notation"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    skos:definition "GMN-1: the GMEOW Model Notation — the engineered, token-compact model surface, a first-class sign system of lang:formalLanguageKind in the written modality. Its records open with gmeow:GmnSigilRole sigils, its operators carry gmeow:gmnFixity and gmeow:gmnPrecedence, its glyphs live in gmeow:gmnScript under gmeow:gmnOrthography, and its grammar is gmeow:gmnGrammar. It is a lossy view of the GMN-0 normal form — the crossing is judged on gmeow:gmnCorrNormalToGmn, never asserted flat."@x-gmeow-english ;
+    skos:definition "GMN-1: the GMEOW Model Notation — the engineered, token-compact model surface, a first-class sign system of lang:formalLanguageKind in the written modality. Its records open with gmeow:GmnSigilRole sigils, its operators carry gmeow:gmnFixity and gmeow:gmnPrecedence, its glyphs live in gmeow:gmnScript under gmeow:gmnOrthography, and its grammar is gmeow:gmnGrammar. It is a codebook-witnessed, section-retracted view of the GMN-0 normal form — the crossing is judged on gmeow:gmnCorrNormalToGmn, never asserted flat."@x-gmeow-english ;
     lang:signSystemKind lang:formalLanguageKind ;
     lang:modality lang:writtenModality .
 
@@ -3214,10 +3287,46 @@ gmeow:gmnCodebookCurrent
         gmeow:gmnSigilModal ,
         gmeow:gmnSigilMath ,
         gmeow:gmnSigilLangAst ,
-        gmeow:gmnSigilLogic ;
+        gmeow:gmnSigilLogic ,
+        gmeow:gmnDictV1 ;
     gmeow:gmnDictionaryVersion "1" ;
     gmeow:gmnGlyphTableVersion "1" ;
     gmeow:gmnDeclaredRate gmeow:gmnRateTokensPerStatement .
+
+# --- GMN alias dictionary (version 1) ----------------------------------------- #
+# The codebook-witnessed bijection gmeow:gmnCorrNormalToGmn's mnemomorphic claim
+# rests on: a version-pinned gmeow:GmnDictionary whose gmeow:GmnDictionaryEntry
+# members each bind one full GMEOW term to one compact alias string. Injectivity
+# (no two entries sharing an alias) is gated structurally by
+# lang:GmnDictionaryAliasInjectivityShape, not merely asserted here.
+
+gmeow:gmnDictV1
+    a owl:NamedIndividual , gmeow:GmnDictionary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN dictionary (version 1)"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "Dictionary version 1 of the GMN alias table (the \"dict-v1\" referenced by the codebook and by every worked example of LANG-GMN.md's @gmn header): the current codebook's alias table, referenced by gmeow:gmnCodebookCurrent through gmeow:references and pinned by gmeow:gmnDictionaryVersion \"1\"."@x-gmeow-english ;
+    gmeow:gmnDictionaryVersion "1" ;
+    gmeow:gmnDictionaryEntry gmeow:gmnDictV1EntryEnvelope ,
+        gmeow:gmnDictV1EntryCodebook .
+
+gmeow:gmnDictV1EntryEnvelope
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:GmnEnvelope → genv"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for gmeow:GmnEnvelope: the compact token genv."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:GmnEnvelope ;
+    gmeow:gmnDictionaryEntryAlias "genv" .
+
+gmeow:gmnDictV1EntryCodebook
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:GmnCodebook → gcb"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for gmeow:GmnCodebook: the compact token gcb."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:GmnCodebook ;
+    gmeow:gmnDictionaryEntryAlias "gcb" .
 
 # --- GMN dialect crossings (four judged translation units) -------------------- #
 # Each crossing between dialect levels is a lang:TranslationUnit carrying its
@@ -3292,20 +3401,27 @@ gmeow:gmnCorrNormalToGmn
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN-0 → GMN-1 correspondence"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    skos:definition "The judged crossing from the GMN-0 normal form to the GMN-1 model notation: a lossy lens, sound under approximation, with NO recoverability witness (logic:mnemomorphic false) — the source subsumes the compact view. The drop list is categorical: full IRIs collapse to dictionary aliases, annotation baggage (per-term guidance prose, changelog and provenance annotations) is dropped, and numeric confidence values round to two fractional digits. Everything GMN-1 states is derivable from the normal form; the reverse does not hold."@x-gmeow-english ;
-    logic:preservationKind logic:SoundUnderApproximation ;
+    skos:definition "The judged crossing from the GMN-0 normal form to the GMN-1 model notation: a section/retraction with exact preservation and a retained mnemomorphic witness — put ∘ get = id_S on the normal form, NOT the top logic:Isomorphism rung, because GMN-1 need not recover the exact GMN-0 BYTE serialization, only the underlying model (get ∘ put is idempotent on the view plus its in-band complement, not required to reproduce byte-identical GMN-1 text). The drop list from the prior lossy-lens declaration is ELIMINATED, not merely reduced: full IRIs invert through the codebook's version-pinned alias bijection (gmeow:gmnDictionaryVersion witnesses which alias table an alias resolves through); confidence and every annotation (per-term guidance prose, changelog and provenance notes) ride BY REFERENCE — the record carries an alias or record identifier pointing at the canonical confidence- or annotation-bearing statement, never inlined digits or prose, so the crossing's losslessness never rests on the two-fractional-digit assertion policy (a canon-precision quantization alone would not make the crossing lossless: the product t-norm of two 2-digit confidences is 4-digit, and re-quantizing a derived confidence breaks associativity). The only non-image of the crossing is an uncovered term, typed lang:GmnUncoveredTerm — a HARD FAIL at emit time, never a silent drop. Domain of this mnemomorphic-true claim: the ENTIRE GMN-0 normal form, realized as a convergent coverage contract rather than a narrowed claim — the codec + round-trip gate (this same PR's Task 6, not yet built at this commit) are total over the grounding slices' GMN-0 (logic, lang, math) NOW, hard-failing on any uncovered grounding construct; full coverage of every other slice's GMN-0 vocabulary is tracked and gated by the GMN-1 coverage slice-quality axis (this same PR's Task 7, not yet built at this commit) at a committed floor with monotonic non-regression, never silently assumed complete — an uncovered non-grounding term is a MEASURED quality deficit, never a silent drop. This declaration's honesty is discharged only once Task 6's executed byte-teeth gate is green (the #1383 false-Section-Retraction trap: a LegPath *Step verdict alone is necessary but not sufficient), verified together at the full make check. The alias table itself is a BIJECTION over its covered term set: no two distinct terms of one dictionary/alias table share an alias (injectivity, gated structurally — see lang:GmnDictionaryAliasCollision), and an alias is version-pinned, resolving through exactly one gmeow:gmnDictionaryVersion, never interchangeable across versions."@x-gmeow-english ;
+    logic:preservationKind logic:ExactPreservation ;
     logic:correspondenceRelation logic:Subsumes ;
-    logic:morphismClass logic:LossyLens ;
+    logic:morphismClass logic:SectionRetraction ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:hasDeterminacy logic:Crisp ;
-    logic:mnemomorphic false .
+    logic:mnemomorphic true ;
+    logic:getLeg gmeow:gmnCorrNormalToGmnGet .
+
+# The crossing's authored get-leg witness (see gmeow:gmnCorrNormalToGtsGet): a
+# one-step forward relation whose derived put is discharged by execution in the
+# Task-6 GMN-1 round-trip gate, so the SectionRetraction rung is a
+# structurally-checked witness rather than an unchecked prose claim.
+gmeow:gmnCorrNormalToGmnGet gmeow:path gmeow:gmnCorrNormalToGmnStep .
 
 gmeow:gmnUnitNormalToGmn
     a lang:TranslationUnit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN-0 → GMN-1 crossing"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    skos:definition "The dialect crossing from the GMN-0 normal form to the GMN-1 model notation, a grammar-directed lossy conversion carrying its law-spine on gmeow:gmnCorrNormalToGmn."@x-gmeow-english ;
+    skos:definition "The dialect crossing from the GMN-0 normal form to the GMN-1 model notation, a grammar-directed, codebook-witnessed conversion carrying its law-spine on gmeow:gmnCorrNormalToGmn."@x-gmeow-english ;
     lang:translationSource gmeow:gmnNormalForm ;
     lang:translationTarget gmeow:gmnModelNotation ;
     lang:translationMethod lang:methodCompositional ;
@@ -3414,7 +3530,15 @@ lang:GmnMissingEnvelopeField
     rdfs:subClassOf lang:LangConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN Missing Envelope Field"@x-gmeow-english ;
-    skos:definition "The failure raised when a gmeow:GmnEnvelope omits any field of its eight-field contract: the three dialect coordinates (gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, gmeow:gmnGlyphTableVersion), its boundary ring (gmeow:gmnSecurityRing), its asserting standpoint (gmeow:accordingTo), its generating activity (gmeow:wasGeneratedBy), its byte-exact identity (gmeow:contentDigest), and its losslessness judgment (gmeow:gmnEnvelopeCorrespondence). An envelope is the attested carrier of a payload across a serialization boundary; a carrier missing any contract field cannot be admitted, migrated, or audited."@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:GmnEnvelope omits any field of its eight-field contract: the three dialect coordinates (gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, gmeow:gmnGlyphTableVersion), its boundary ring (gmeow:gmnSecurityRing), its asserting standpoint (gmeow:accordingTo), its generating activity (gmeow:wasGeneratedBy), its byte-exact identity (gmeow:contentDigest), and its losslessness judgment (gmeow:gmnEnvelopeCorrespondence). An envelope is the attested carrier of a payload across a serialization boundary; a carrier missing any contract field cannot be admitted, migrated, or audited. The same shape also fires this class when an envelope declares MORE than one gmeow:gmnDictionaryVersion or gmeow:gmnSecurityRing — a version-pinned coordinate that is not exactly one is as ill-formed as one that is absent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnDictionaryAliasCollision
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Dictionary Alias Collision"@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:GmnDictionary's alias table is not injective: two of its gmeow:GmnDictionaryEntry members bind two DIFFERENT gmeow:gmnDictionaryEntryTerm values to the SAME gmeow:gmnDictionaryEntryAlias string. gmeow:gmnCorrNormalToGmn's mnemomorphic claim rests on the dictionary being a genuine bijection over its covered term set; a shared alias makes read-back ambiguous — the reader cannot tell which of the two terms an occurrence of the alias names — silently corrupting the section/retraction witness. Distinct from lang:GmnUncoveredTerm (an alias the dictionary does not mint at all) and from lang:GmnUndeclaredDialectVersion (no pinned dictionary version to resolve against)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 lang:GmnRingLatticeMalformed

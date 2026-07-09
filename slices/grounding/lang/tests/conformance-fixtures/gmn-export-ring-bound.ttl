@@ -25,11 +25,11 @@ ex:exportRun a gmeow:MentalProcess , gmeow:Activity ;
     gmeow:mentalProcessType gmeow:processExport .
 
 ex:corrExportEnvelope a logic:Correspondence ;
-    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:preservationKind logic:ExactPreservation ;
     logic:correspondenceRelation logic:Subsumes ;
-    logic:morphismClass logic:LossyLens ;
+    logic:morphismClass logic:SectionRetraction ;
     logic:hasDeterminacy logic:Crisp ;
-    logic:mnemomorphic false .
+    logic:mnemomorphic true .
 
 ex:envelopeExportBound a gmeow:GmnEnvelope ;
     gmeow:gmnSchemaVersion "1" ;

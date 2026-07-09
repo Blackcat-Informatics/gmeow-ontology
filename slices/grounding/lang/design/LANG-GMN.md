@@ -38,11 +38,23 @@ ladder has three levels, and only the crossings between levels carry judgments:
   `gmeow:gmnCorrNormalToNQuads`) is an isomorphism with `logic:mnemomorphic true`, and the claim
   is discharged by the executed byte-reconstruction gates — the narrow-waist superset gate and the
   RDFC-1.0 canonicalization round-trip — not declared on faith.
-- **GMN-1** (`gmeow:gmnModelNotation`) is the token-compact model surface: a well-behaved lossy
-  lens over GMN-0 (`gmeow:gmnCorrNormalToGmn` — `logic:SoundUnderApproximation`,
-  `logic:LossyLens`, `logic:mnemomorphic false`) whose drop list is categorical and ledgered:
-  full IRIs collapse to dictionary aliases, annotation baggage drops, and numeric confidences
-  round. Everything GMN-1 states is derivable from the normal form; the reverse does not hold.
+- **GMN-1** (`gmeow:gmnModelNotation`) is the token-compact model surface: a **section/retraction**
+  over GMN-0 with exact preservation and a retained mnemomorphic witness
+  (`gmeow:gmnCorrNormalToGmn` — `logic:ExactPreservation`, `logic:SectionRetraction`,
+  `logic:mnemomorphic true`) — `put ∘ get = id_S` on the normal form, one rung below
+  `logic:Isomorphism` because GMN-1 need not recover the exact GMN-0 *byte* serialization, only
+  the underlying model. The prior drop list is **eliminated, not narrowed**: full IRIs invert
+  through the codebook's version-pinned alias bijection (`gmeow:GmnDictionary` /
+  `gmeow:gmnDictionaryVersion`, gated for injectivity); confidence and every annotation ride **by
+  reference** (an alias or record identifier, never inlined digits or prose — see the rate–fidelity
+  contract below); the only non-image is an uncovered term (`lang:GmnUncoveredTerm`), a hard fail,
+  never a silent drop. The declared domain is the ENTIRE GMN-0 normal form, realized as a
+  convergent coverage contract: the codec + round-trip gate are total over the grounding slices'
+  GMN-0 (logic, lang, math) now, and coverage of every other slice's GMN-0 is tracked by the
+  GMN-1-coverage slice-quality axis at a committed, monotonically non-regressing floor — an
+  uncovered non-grounding term is a measured quality deficit, never an assumed drop. The claim is
+  discharged by the executed GMN-1 round-trip gate, exactly as `gmeow:gmnCorrNormalToGts` is
+  discharged by the narrow-waist superset gate.
 - **GMN-2** (`gmeow:gmnCompacted`) is lossy cognitive compaction — a `lang:LanguageVariety` of
   GMN-1, not a third sign system. A compaction is a **new provenance-linked claim about older
   claims** (`gmeow:GmnCompaction`), and its crossing (`gmeow:gmnCorrGmnToCompacted`) is
@@ -56,8 +68,11 @@ specifies a code — codebook, rate, fidelity:
 
 - **Codebook** — `gmeow:GmnCodebook` (`gmeow:gmnCodebookCurrent`): the GMN script plus the ten
   sigil roles (linked through `gmeow:references`) plus the alias-table version
-  (`gmeow:gmnDictionaryVersion`) and glyph-table version (`gmeow:gmnGlyphTableVersion`). A reader
-  that holds the codebook holds everything needed to decode a conforming document.
+  (`gmeow:gmnDictionaryVersion`) and glyph-table version (`gmeow:gmnGlyphTableVersion`). The alias
+  table itself is a first-class `gmeow:GmnDictionary` (e.g. `gmeow:gmnDictV1`) whose
+  `gmeow:GmnDictionaryEntry` members each bind one full GMEOW term to one compact alias string — a
+  gated **bijection** over its covered term set (injectivity, `lang:GmnDictionaryAliasCollision`).
+  A reader that holds the codebook holds everything needed to decode a conforming document.
 - **Declared rate** — `gmeow:gmnDeclaredRate` points the codebook at
   `gmeow:gmnRateTokensPerStatement`, a dimensionless `math:Quantity` (16 tokens per statement).
   The declaration is the contract; the token metrics of the machine-compression sibling **measure**
@@ -66,9 +81,17 @@ specifies a code — codebook, rate, fidelity:
 - **Fidelity** — the preservation judgment on each dialect crossing, carried on exactly one
   `logic:Correspondence` per crossing and nowhere else.
 
-Number-policy rounding is enumerated as **distortion** in the GMN-0 → GMN-1 drop list: confidence
-values round to two fractional digits, and the loss is part of the crossing's ledgered claim, not
-an implementation detail.
+Confidence now rides **by reference** across the GMN-0 → GMN-1 crossing — a GMN-1 record carries an
+alias or record identifier pointing at the canonical confidence-bearing statement, never the digits
+themselves — so number-policy rounding is **no longer a ledgered crossing drop at all**. The
+two-fractional-digit rule the grammar's fraction production enforces (below, "Number policy") is
+the canonical **assertion/serialization** precision for *asserted* confidences — a policy about how
+a curator writes a confidence down, not a claim that the confidence *algebra* is 2-digit-closed:
+the product t-norm of two 2-digit confidences is 4-digit (0.95 × 0.95 = 0.9025), and re-quantizing
+a derived value breaks associativity, so resting `logic:ExactPreservation` on quantization alone
+would be unsound. Derived/computed confidences keep their full internal precision and ride by
+reference across the crossing like any other referenced value; only a freshly *asserted* confidence
+is written at two digits.
 
 ## The sigil table
 
@@ -421,7 +444,7 @@ sibling's. This charter is the contract they all implement against.
 ## Conformance
 
 Every hard rule above is a row of the [`LANG-CONFORMANCE.md`](LANG-CONFORMANCE.md) gate matrix
-("GMN dialect rules") with a named `lang:Gmn*` failure class — thirteen rules total, eight
+("GMN dialect rules") with a named `lang:Gmn*` failure class — fourteen rules total, nine
 enforced by the SHACL gates in `shapes.ttl` (each naming its class through
 `gmeow:enforcesFailureClass`), five by the GMN parser/writer's validator tier against the
 normative example blocks of this charter. A violation

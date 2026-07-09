@@ -77,11 +77,11 @@ ex:nightlyGmnWrite a gmeow:Activity .
 
 ex:corrNightlyEnvelope
     a logic:Correspondence ;
-    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:preservationKind logic:ExactPreservation ;
     logic:correspondenceRelation logic:Subsumes ;
-    logic:morphismClass logic:LossyLens ;
+    logic:morphismClass logic:SectionRetraction ;
     logic:hasDeterminacy logic:Crisp ;
-    logic:mnemomorphic false .
+    logic:mnemomorphic true .
 
 ex:nightlyEnvelope
     a gmeow:GmnEnvelope ;
@@ -106,11 +106,11 @@ ex:coalitionGmnWrite a gmeow:Activity .
 
 ex:corrCoalitionEnvelope
     a logic:Correspondence ;
-    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:preservationKind logic:ExactPreservation ;
     logic:correspondenceRelation logic:Subsumes ;
-    logic:morphismClass logic:LossyLens ;
+    logic:morphismClass logic:SectionRetraction ;
     logic:hasDeterminacy logic:Crisp ;
-    logic:mnemomorphic false .
+    logic:mnemomorphic true .
 
 ex:coalitionEnvelope
     a gmeow:GmnEnvelope ;
