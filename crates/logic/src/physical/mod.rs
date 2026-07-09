@@ -21,6 +21,10 @@
 // (`facts::TermInterner`). Consumed by the semi-naive fixpoint (`seminaive`).
 mod arena;
 mod binding_pattern;
+// The dense `u64`-word delta bitset (issue 1418, item 5): row-id membership over the
+// phase-scoped value column. It is the delta probe of the semi-naive fixpoint
+// (`seminaive`) — one word test per selected row, no hashing.
+mod bitset;
 mod builtin_eval;
 mod chase;
 mod generic;

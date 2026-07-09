@@ -56,14 +56,14 @@
 #![allow(dead_code)]
 
 use std::borrow::Cow;
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap};
 
-use foldhash::fast::FixedState;
 use rayon::prelude::*;
 
-use crate::physical::arena::RowArena;
+use crate::physical::arena::{RowArena, RowTuple};
+use crate::physical::bitset::DenseBitset;
 use crate::physical::builtin_eval::{BuiltinOutcome, emit_integer_surface, eval as eval_builtin};
-use crate::physical::id::{PredId, TermId, TermRef};
+use crate::physical::id::{RowId, TermRef};
 use crate::physical::store::{Bound, RelationStore};
 use crate::provenance::{mint_derivation_id, term_display};
 use crate::query_ir::QBuiltin;
@@ -73,33 +73,6 @@ use crate::rule_ir::{
     match_atom, sort_rows, world_edb_facts,
 };
 use crate::seam::BudgetStatus;
-
-/// The native fixpoint's DENSE fact key — the interned `(predicate, subject, object)`
-/// ids from the shared per-world [`RelationStore`].
-///
-/// It replaces the three-`String` [`FactKey`] for the semi-naive delta membership
-/// probe ONLY, so the hot `extend_solutions_indexed` inner loop tests delta membership
-/// on `Copy` niche integers instead of allocating three N3 surfaces per selected row.
-/// The keys are derived from the SAME per-world interners the store rows use, so a body
-/// fact and a committed head map to one key with no string round-trip.
-///
-/// Determinism is unaffected: mint order is meaningless here (the key only feeds a
-/// membership set), and every emission / commit / `governor.charge()` ordering still
-/// derives from the RESOLVED LEXICAL [`FactKey`] at the sorted round commit — NEVER
-/// from this dense key's mint order.
-type DenseKey = (PredId, TermId, TermId);
-
-/// A fixed-seed hash set of [`DenseKey`]s — the native delta / round-seed membership
-/// form (the id-space analogue of [`crate::rule_ir::FactKeySet`], off std SipHash).
-///
-/// (Interim: a later dense `RowId` bitset replaces this delta; until then it must not
-/// be std SipHash.)
-type DenseDelta = HashSet<DenseKey, FixedState>;
-
-/// A [`DenseDelta`] preallocated for `n` keys with the fixed seed.
-fn dense_delta_with_capacity(n: usize) -> DenseDelta {
-    DenseDelta::with_capacity_and_hasher(n, FixedState::default())
-}
 
 /// A native-execution combination the forward core cannot decide.
 ///
@@ -334,20 +307,16 @@ fn atom_bound(rel: &RelationStore, subj: Option<&str>, obj: Option<&str>) -> Opt
 /// order.  Each returned `(subject, object)` tuple is wrapped as a [`Fact`] and
 /// handed to [`match_atom`] exactly as `extend_solutions` does, so the produced
 /// solution sequence (and `source_facts` order) is identical to the full-scan
-/// engine.  The semi-naive [`Scan`] filter is applied on the [`FactKey`] of each
-/// wrapped fact, identical to `extend_solutions`'s `keep`.
+/// engine.  The semi-naive [`Scan`] filter tests each selected row's dense [`RowId`]
+/// against the round `delta` bitset — one word test, no hashing.
 fn extend_solutions_indexed(
     atom: &EvalAtom,
     rel: &RelationStore,
-    delta: &DenseDelta,
+    delta: &DenseBitset,
     scan: Scan,
     solutions: &[Solution],
 ) -> Vec<Solution> {
     let pred = atom.predicate.as_str();
-    // The predicate id is constant for this atom.  A selected row implies its relation
-    // (hence its `PredId`) exists, so `pred_id` is `Some` wherever the row loop runs;
-    // for `Scan::Full` it is never consulted.
-    let pred_id = rel.pred_id(pred);
     let interner = rel.interner();
     let mut next: Vec<Solution> = Vec::new();
     for sol in solutions {
@@ -359,19 +328,15 @@ fn extend_solutions_indexed(
         let Some(bound) = atom_bound(rel, subj_surface.as_deref(), obj_surface.as_deref()) else {
             continue;
         };
-        for (s_id, o_id) in rel.select(pred, bound) {
-            // Semi-naive position decomposition on the DENSE id key — the same
-            // delta×full split `extend_solutions` applies, but with NO three-`String`
-            // `Fact::key()` allocation per selected row (the hot-path probe issue 1418 kills).
+        for (s_id, o_id, row_id) in rel.select(pred, bound) {
+            // Semi-naive position decomposition on the selected row's dense RowId — the
+            // same delta×full split `extend_solutions` applies, but membership is one
+            // `u64`-word test on the delta bitset (issue 1418, item 5), with NO three-
+            // `String` `Fact::key()` allocation and NO hashing per selected row.
             let keep = match scan {
                 Scan::Full => true,
                 Scan::Delta | Scan::OldOnly => {
-                    let dense_key = (
-                        pred_id.expect("a selected row implies its predicate is interned"),
-                        s_id,
-                        o_id,
-                    );
-                    let in_delta = delta.contains(&dense_key);
+                    let in_delta = delta.contains(row_id);
                     matches!(scan, Scan::Delta) == in_delta
                 }
             };
@@ -420,7 +385,7 @@ fn join_body_indexed(
     rule: &EvalRule,
     rel: &RelationStore,
     accumulated: &RelationStore,
-    delta: &DenseDelta,
+    delta: &DenseBitset,
     gap: &mut bool,
 ) -> Vec<Solution> {
     let positive: Vec<&EvalAtom> = rule.body.iter().filter(|a| !a.negated).collect();
@@ -957,12 +922,12 @@ fn eval_stratum_fixpoint(
     let depth = &mut *state.depth;
     let derivations = &mut *state.derivations;
     let builtin_gap = &mut *state.builtin_gap;
-    // Seed delta with ALL currently-known keys so this stratum's rules fire against
-    // the seed in round 1 (mirrors `least_model_of_reduct`'s `delta = key_set()`), but
-    // as DENSE id keys read off the accumulated `rel` (which holds exactly the facts
-    // `store` does — they are filled in lockstep), so the delta probe never round-trips
-    // through strings.
-    let mut delta: DenseDelta = rel.dense_row_keys().into_iter().collect();
+    // Seed delta with EVERY accumulated row so this stratum's rules fire against the
+    // seed in round 1 (mirrors `least_model_of_reduct`'s `delta = key_set()`).  The
+    // `RelationStore` mints RowIds densely as `0..row_count` in insertion order, so the
+    // whole accumulated store is exactly the low `row_count` bits — one `all_set`, no
+    // per-key materialization and no hashing.
+    let mut delta = DenseBitset::all_set(rel.row_count());
 
     // The phase-scoped row/tuple arena for THIS stratum's rounds (issue 1418, item 3): a
     // genuinely resettable bump buffer the committed argument tuples are allocated into
@@ -1048,14 +1013,20 @@ fn eval_stratum_fixpoint(
 
         // Reset the phase-scoped arena for THIS round (truncate the real backing
         // buffer — a genuine reclaim, matching the allocate → commit → reset phases).
+        // This is the round boundary at which BOTH the value column (arena) and the
+        // delta bitset (built below) are reset in lockstep (issue 1418, item 5, step 4).
         arena.reset();
-        let mut new_delta: DenseDelta = dense_delta_with_capacity(round.len());
-        // Commit winners in RESOLVED LEXICAL FactKey order — NOT the dense-id/mint
-        // order — so store/index insertion order AND the per-winner `governor.charge()`
-        // sequence stay byte-deterministic (mint order ≠ lexical order; sorting the
-        // dense key would silently drift emitted bytes and the budget-charge prefix).
-        // This is the columnar-store determinism doctrine, matching
-        // `least_model_of_reduct`'s commit discipline.
+        // The round's committed rows, paired as (staged argument tuple, dense RowId), in
+        // the FactKey-sorted commit order.  The arena is the arrangement's contiguous
+        // value column; the delta bitset built after the loop is row-id membership over
+        // exactly this column.
+        let mut committed: Vec<(RowTuple, RowId)> = Vec::with_capacity(round.len());
+        // Commit winners in RESOLVED LEXICAL FactKey order — NOT any id/mint order — so
+        // store/index insertion order AND the per-winner `governor.charge()` sequence
+        // stay byte-deterministic.  RowId assignment is a purely ADDITIVE side effect of
+        // the lockstep `rel.insert` inside this sorted loop; it never orders the commit
+        // or the budget charge (mint order ≠ lexical order).  This is the columnar-store
+        // determinism doctrine, matching `least_model_of_reduct`'s commit discipline.
         let mut winners: Vec<(FactKey, RuleRoundCandidate)> = round.into_iter().collect();
         winners.sort_by(|(a, _), (b, _)| a.cmp(b));
         for (_key, winner) in winners {
@@ -1075,37 +1046,39 @@ fn eval_stratum_fixpoint(
                 let winner_depth = prov.max_src_depth.saturating_add(1);
                 depth.insert(winner.key.clone(), winner_depth);
             }
-            // Insert into both stores in lockstep so the columnar index order tracks
-            // the ternary store's insertion order exactly.  This — and the FactKey-sorted
-            // commit order, the `new_delta`, and the per-winner budget charge — are
-            // provenance-independent, so the committed fact set is byte-identical across modes.
-            if store.insert(winner.head.clone()) {
+            // Insert into both stores in lockstep so the columnar index order tracks the
+            // ternary store's insertion order exactly, capturing the store-global dense
+            // RowId the `RelationStore` stamps on the new row.  This — and the
+            // FactKey-sorted commit order, the delta, and the per-winner budget charge —
+            // are provenance-independent, so the committed fact set is byte-identical
+            // across modes.  A winner is always a genuinely-new fact (heads already
+            // present are skipped above via `store.contains_key`), so the lockstep insert
+            // returns `Some(row_id)`.
+            let row_id = if store.insert(winner.head.clone()) {
                 rel.insert(
                     &winner.head.predicate,
                     winner.head.subject.clone(),
                     winner.head.object.clone(),
-                );
+                )
+            } else {
+                None
+            };
+            // Stage the committed argument tuple into the phase-scoped value column
+            // (arena), paired with its RowId; the read-back below turns the column into
+            // the next round's delta bitset.  The term-id lookups resolve the just-interned
+            // head terms (never a fresh alloc).
+            if let Some(row_id) = row_id {
+                let s_id = rel
+                    .interner()
+                    .lookup(&term_display(&winner.head.subject))
+                    .expect("a just-committed head subject is interned");
+                let o_id = rel
+                    .interner()
+                    .lookup(&term_display(&winner.head.object))
+                    .expect("a just-committed head object is interned");
+                let tuple = arena.alloc(&[TermRef::term(s_id), TermRef::term(o_id)]);
+                committed.push((tuple, row_id));
             }
-            // A winner is always a genuinely-new fact (heads already present are skipped
-            // above via `store.contains_key`), so `rel.insert` just interned its
-            // predicate + terms.  Stage the committed argument tuple into the phase-scoped
-            // arena, then derive the next round's DENSE delta key from the arena-stored
-            // tuple (the arrangement's contiguous value column that Task 3's bitset and
-            // Task 6's cursor consume) — no three-`String` `FactKey` clone.
-            let pred_id = rel
-                .pred_id(&winner.head.predicate)
-                .expect("a just-committed head implies its predicate is interned");
-            let s_id = rel
-                .interner()
-                .lookup(&term_display(&winner.head.subject))
-                .expect("a just-committed head subject is interned");
-            let o_id = rel
-                .interner()
-                .lookup(&term_display(&winner.head.object))
-                .expect("a just-committed head object is interned");
-            let tuple = arena.alloc(&[TermRef::term(s_id), TermRef::term(o_id)]);
-            let args = arena.get(&tuple);
-            new_delta.insert((pred_id, args[0].id(), args[1].id()));
 
             // A winner is always a NEW key: heads already present (including every
             // EDB fact, seeded into `store` before the fixpoint) are skipped above via
@@ -1127,6 +1100,23 @@ fn eval_stratum_fixpoint(
             governor.charge();
         }
 
+        // Build the next round's delta as a dense `u64`-word bitset: row-id membership
+        // over the value column just staged (issue 1418, item 5).  Read each committed
+        // row back out of the phase-scoped arena and set its dense RowId's bit, so the
+        // next round tests delta membership with ONE word test per selected row and no
+        // hashing.  Sized to the store's current row count so every selectable row is
+        // addressable.  The `arena.get` read-back confirms the value column's binary
+        // (arity-2) shape — the native engine derives only binary facts.
+        let mut new_delta = DenseBitset::with_capacity(rel.row_count());
+        for (tuple, row_id) in &committed {
+            let args = arena.get(tuple);
+            assert_eq!(
+                args.len(),
+                2,
+                "the native engine stages arity-2 committed argument tuples"
+            );
+            new_delta.set(*row_id);
+        }
         delta = new_delta;
     }
 
@@ -1181,9 +1171,10 @@ pub(crate) fn evaluate(
     for pred in edb.predicates() {
         // `pred` is a predicate IRI surface already validated by the seam; carry it directly.
         let predicate = pred.to_owned();
-        for (s_id, o_id) in edb.select(pred, Bound::Any) {
-            // `select` returns interned id rows; resolve each to its `TermValue` surface
-            // here, at the point the `Fact` seed actually needs them.
+        for (s_id, o_id, _row) in edb.select(pred, Bound::Any) {
+            // `select` returns interned id rows (plus a delta-probe RowId unused when
+            // seeding); resolve each term id to its `TermValue` surface here, at the
+            // point the `Fact` seed actually needs them.
             edb_facts.push(Fact {
                 subject: interner.resolve(s_id).clone(),
                 predicate: predicate.clone(),
@@ -1882,25 +1873,29 @@ mod tests {
         );
     }
 
-    /// COMMIT-ORDER / GOVERNOR INVARIANT (the issue-1418, Task-2 blocking constraint).
+    /// COMMIT-ORDER / GOVERNOR INVARIANT (the issue-1418, Task-2 + Task-3 blocking constraint).
     ///
-    /// The dense-ID key migration replaced the three-`String` `FactKey` delta probe with
-    /// a `(PredId, TermId, TermId)` key.  `PredId`/`TermId` order is MINT (insertion)
-    /// order, NOT lexical order — so if the winner sort or the `governor.charge()`
-    /// prefix ever ordered by the dense key it would silently drift both the emitted
-    /// bytes and the budget-cut derivation, breaking determinism and budget semantics.
+    /// Task 3 stamps every committed row with a dense `RowId` (insertion order) and keys
+    /// the semi-naive delta on a `RowId` bitset.  `RowId` order is MINT (insertion) order,
+    /// NOT lexical order — so if the winner sort or the `governor.charge()` prefix ever
+    /// ordered by `RowId` it would silently drift both the emitted bytes and the
+    /// budget-cut derivation.  RowId assignment MUST be a purely ADDITIVE bookkeeping side
+    /// effect of the lockstep `rel.insert` inside the already-lexically-sorted commit
+    /// loop: it never influences WHICH derivation wins or WHEN the budget is charged.
     ///
     /// This constructs a scenario where mint order is the REVERSE of lexical order and
-    /// asserts the budget cut follows LEXICAL surface, not mint order:
+    /// asserts the whole `governor.consumed` sequence AND the committed prefix follow
+    /// LEXICAL surface, not mint/RowId order:
     ///
     /// * Two stratum-0 rules fire in ONE round from `trigger(a, a)`: `rZ` derives
     ///   `zzz(a, a)`, `rA` derives `aaa(a, a)`.
-    /// * The program lists `rZ` BEFORE `rA`, so ENUMERATION (mint) order derives `zzz`
-    ///   first.  A naive dense-`(PredId, …)` commit sort — `PredId` minted in
-    ///   enumeration order — would commit `zzz` first and, under a budget of 1, admit
-    ///   `zzz`.
+    /// * The program lists `rZ` BEFORE `rA`, so ENUMERATION (mint / RowId) order derives
+    ///   `zzz` first.  A commit sort keyed on the row's dense id would commit `zzz` first
+    ///   and, under a budget of 1, admit `zzz`.
     /// * The engine MUST instead commit in RESOLVED LEXICAL `FactKey` order
-    ///   (`aaa` < `zzz`), so a budget of 1 admits `aaa`, never `zzz`.
+    ///   (`aaa` < `zzz`), so budget 0 admits nothing, budget 1 admits `aaa` (never
+    ///   `zzz`), and budget 2 admits `aaa` then `zzz` — the `governor.consumed` sequence
+    ///   `0, 1, 2` is RowId-independent.
     #[test]
     fn physical_commit_order_is_lexical_surface_not_mint_order() {
         let rls = format!(
@@ -1925,28 +1920,41 @@ mod tests {
             "unbounded run derives BOTH aaa and zzz"
         );
 
-        // Budget 1: exactly ONE derivation, and it MUST be the lexically-first fact
-        // (aaa) — NOT the mint-first fact (zzz, enumerated earlier under the rZ-before-rA
-        // program order).  This is the property a dense-key commit sort would silently break.
-        let cut = materialize_budgeted(&store, &rules, Some(1));
+        // The unbounded run commits exactly two derivations — the full `governor.consumed`.
         assert_eq!(
-            cut.status,
-            BudgetStatus::Exhausted,
-            "budget 1 < 2 ⇒ Exhausted"
+            full.consumed_steps, 2,
+            "the unbounded run charges the budget once per committed derivation"
         );
-        assert_eq!(
-            cut.consumed_steps, 1,
-            "exactly one derivation committed at budget 1"
-        );
-        let cut_derived: Vec<String> = derived_only(&cut.rows)
-            .iter()
-            .map(|r| r.predicate.as_str().to_owned())
-            .collect();
-        assert_eq!(
-            cut_derived,
-            vec![nn("aaa")],
-            "the LEXICALLY-first fact (aaa) is committed, never the MINT-first fact (zzz)"
-        );
+
+        // Sweep every budget: the committed prefix and the `governor.consumed` count are
+        // the LEXICAL prefix (aaa before zzz), byte-for-byte independent of the RowId a
+        // row happens to be minted with.  Budget 0 ⇒ nothing; 1 ⇒ [aaa]; 2 ⇒ [aaa, zzz].
+        let derived_seq = |b: &Budgeted<Vec<DerivedRow>>| -> Vec<String> {
+            derived_only(&b.rows)
+                .iter()
+                .map(|r| r.predicate.as_str().to_owned())
+                .collect()
+        };
+        let expected: [(&[&str], u64, BudgetStatus); 3] = [
+            (&[], 0, BudgetStatus::Exhausted),
+            (&["aaa"], 1, BudgetStatus::Exhausted),
+            (&["aaa", "zzz"], 2, BudgetStatus::Ok),
+        ];
+        for (budget, (want_preds, want_consumed, want_status)) in expected.into_iter().enumerate() {
+            let b = materialize_budgeted(&store, &rules, Some(budget as u64));
+            assert_eq!(
+                b.consumed_steps, want_consumed,
+                "budget {budget}: governor.consumed follows the lexical commit count, not RowId"
+            );
+            assert_eq!(b.status, want_status, "budget {budget}: status");
+            let want: Vec<String> = want_preds.iter().map(|p| nn(p)).collect();
+            assert_eq!(
+                derived_seq(&b),
+                want,
+                "budget {budget}: the committed prefix is the LEXICAL prefix (aaa before zzz), \
+                 never the MINT/RowId order (zzz first) — RowId assignment is purely additive"
+            );
+        }
     }
 
     /// PER-WORLD PARALLELISM DETERMINISM GATE.
