@@ -1278,6 +1278,9 @@ fn lower_negative(f: &Formula, focus: &str) -> gmeow_errors::Result<Vec<String>>
     }
 }
 
+/// The `rdf:type` IRI — the relation of a class-membership guard atom `rdf:type(this, C)`.
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
 /// Is `f` a guard-only selection marker (`directType` / `sparqlTarget`) — a relation that selects
 /// the focus via the `sh:target` clause and has NO data-triple form (so it is stripped from the
 /// violation `WHERE` body)?
@@ -1286,14 +1289,40 @@ fn is_marker_atom(f: &Formula) -> bool {
         if p == LOGIC_DIRECT_TYPE || p == LOGIC_SPARQL_TARGET)
 }
 
-/// Strip the selection markers from a guard. `None` ⇒ the guard has no marker (lower it unchanged);
-/// `Some(None)` ⇒ the guard was ONLY markers (lower nothing); `Some(Some(rest))` ⇒ the non-marker
-/// guard atoms that remain (a conjunction, or a single atom).
-fn strip_direct_type_guard(guard: &Formula) -> Option<Option<Formula>> {
+/// Is `f` the class-membership guard atom `rdf:type(focus, C)` (`C` an IRI)? It derives a
+/// [`ShapeTarget::Class`] `sh:targetClass C`, which ALREADY selects the focus and — unlike a plain
+/// BGP triple — follows `rdfs:subClassOf`. Re-emitting `$this a C` in the violation `WHERE` would
+/// therefore wrongly exclude the subclass instances the `sh:targetClass` selects (e.g. a
+/// `GroupHomomorphism` under a `math:Homomorphism`-targeted constraint), so it is stripped like a
+/// selection marker.
+fn is_class_guard_atom(f: &Formula, focus: &str) -> bool {
+    matches!(f, Formula::Atom { relation: Term::Iri(p), args }
+        if p == RDF_TYPE
+            && args.len() == 2
+            && matches!(&args[0], Term::Var(v) if v == focus)
+            && matches!(&args[1], Term::Iri(_)))
+}
+
+/// Whether `f` is a guard atom that is realized by the `sh:target*` clause and so must NOT be
+/// re-lowered into the violation `WHERE`: a `directType`/`sparqlTarget` marker (no data form) or the
+/// `rdf:type(focus, C)` class-membership atom (subsumed by `sh:targetClass`, which follows
+/// `rdfs:subClassOf`).
+fn is_selector_atom(f: &Formula, focus: &str) -> bool {
+    is_marker_atom(f) || is_class_guard_atom(f, focus)
+}
+
+/// Strip the target-selector atoms from a guard. `None` ⇒ the guard has no selector atom (lower it
+/// unchanged); `Some(None)` ⇒ the guard was ONLY selector atoms (lower nothing); `Some(Some(rest))`
+/// ⇒ the non-selector guard atoms that remain (a conjunction, or a single atom).
+fn strip_direct_type_guard(guard: &Formula, focus: &str) -> Option<Option<Formula>> {
     match guard {
-        f if is_marker_atom(f) => Some(None),
-        Formula::And(fs) if fs.iter().any(is_marker_atom) => {
-            let rest: Vec<Formula> = fs.iter().filter(|f| !is_marker_atom(f)).cloned().collect();
+        f if is_selector_atom(f, focus) => Some(None),
+        Formula::And(fs) if fs.iter().any(|f| is_selector_atom(f, focus)) => {
+            let rest: Vec<Formula> = fs
+                .iter()
+                .filter(|f| !is_selector_atom(f, focus))
+                .cloned()
+                .collect();
             Some(match rest.len() {
                 0 => None,
                 1 => Some(rest.into_iter().next().expect("one")),
@@ -1324,7 +1353,7 @@ fn violation_where(constraint: &ConstraintIr) -> gmeow_errors::Result<String> {
     // A `directType(this, C)` guard is a selection marker realized by the `sh:SPARQLTarget`
     // (subclass-excluding), not a data triple — strip it so it never lowers to a triple that
     // matches nothing. The remaining guard atoms (if any) still lower positively.
-    let mut pats = match strip_direct_type_guard(guard) {
+    let mut pats = match strip_direct_type_guard(guard, focus) {
         Some(rest) => match rest {
             Some(g) => lower_positive(&g, focus)?,
             None => Vec::new(),
@@ -1547,6 +1576,54 @@ mod tests {
 
     fn shape(iri: &str, class: &str, props: Vec<PropertyConstraintIr>) -> ValidationShapeIr {
         ValidationShapeIr::new(iri, ShapeTarget::Class(class.to_owned()), props, None).unwrap()
+    }
+
+    #[test]
+    fn class_guarded_constraint_strips_the_type_atom_from_the_violation_where() {
+        // A `∀ this. C(this) → ∃v. P(this, v)` constraint targets `sh:targetClass C` (which follows
+        // rdfs:subClassOf). The violation WHERE must therefore NOT re-assert `$this a C` (a plain BGP
+        // triple would wrongly exclude the subclass instances `sh:targetClass` selects); it keeps only
+        // the negated condition.
+        let this = Term::Var("this".into());
+        let integrity = Formula::Forall {
+            vars: vec!["this".into()],
+            body: Box::new(Formula::Implies(
+                Box::new(
+                    Formula::atom(
+                        Term::Iri(RDF_TYPE.into()),
+                        vec![this.clone(), Term::Iri("https://ex/C".into())],
+                    )
+                    .unwrap(),
+                ),
+                Box::new(Formula::Exists {
+                    vars: vec!["v".into()],
+                    body: Box::new(
+                        Formula::atom(
+                            Term::Iri("https://ex/p".into()),
+                            vec![this, Term::Var("v".into())],
+                        )
+                        .unwrap(),
+                    ),
+                }),
+            )),
+        };
+        let c = ConstraintIr::new("https://ex/C1", integrity, ShaclSeverity::Violation, None)
+            .unwrap()
+            .with_formalizes("https://ex/C")
+            .unwrap();
+        let block = project_procedural_constraint(&c);
+        assert!(
+            block.contains("sh:targetClass <https://ex/C>"),
+            "targetClass must select the focus: {block}"
+        );
+        assert!(
+            !block.contains("$this a <https://ex/C>"),
+            "the redundant class-guard triple must be stripped from the WHERE: {block}"
+        );
+        assert!(
+            block.contains("FILTER NOT EXISTS { $this <https://ex/p> ?v"),
+            "the negated existential condition must remain: {block}"
+        );
     }
 
     #[test]

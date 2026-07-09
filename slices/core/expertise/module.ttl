@@ -318,3 +318,33 @@ logic:caSubj a logic:Formula ; logic:relation gmeow:attestedSubject ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "att" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
 logic:caHas a logic:Formula ; logic:relation gmeow:hasAttestation ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "att" ] .
+
+# =========================================================================== #
+# Relational-dependence cardinality (issue #1194): a gmeow:SkillProficiency    #
+# relator names its skill and its level. Migrated from the hand-authored       #
+# gmeow:SkillProficiencyShape min-count property constraints to compact logic: #
+# disjunctive-requiredness records (each a single-predicate ∃-requirement),    #
+# projected to sh:SPARQLConstraint keyed onto gmeow:SkillProficiency.          #
+# =========================================================================== #
+
+gmeow:SkillProficiencyOfRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "SkillProficiency skill requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:SkillProficiency relator must reference a gmeow:Skill through gmeow:skillProficiencyOf."@x-gmeow-english ;
+    logic:onClass gmeow:SkillProficiency ;
+    logic:anyOf gmeow:skillProficiencyOf ;
+    logic:formalizes gmeow:SkillProficiency ;
+    logic:message "A SkillProficiency must reference a Skill (gmeow:skillProficiencyOf)." .
+
+gmeow:SkillProficiencyLevelRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "SkillProficiency level requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:SkillProficiency relator must carry a gmeow:ProficiencyLevel through gmeow:skillProficiencyLevel."@x-gmeow-english ;
+    logic:onClass gmeow:SkillProficiency ;
+    logic:anyOf gmeow:skillProficiencyLevel ;
+    logic:formalizes gmeow:SkillProficiency ;
+    logic:message "A SkillProficiency must carry a ProficiencyLevel (gmeow:skillProficiencyLevel)." .
