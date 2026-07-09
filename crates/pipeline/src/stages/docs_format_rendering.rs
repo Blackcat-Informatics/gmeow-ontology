@@ -174,16 +174,15 @@ fn derived_preservation(fmt: DocFormat) -> PreservationKind {
         .unwrap_or(PreservationKind::ValidationOnly)
 }
 
-/// The `target_fmt` of a leg by key (drives [`leg_preservation`] in the join).
+/// The `target_fmt` of a leg by key (drives [`leg_preservation`] in the join). Looked up
+/// against [`legs`] — the SINGLE source of truth for the key->format mapping — rather than
+/// reconstructed in a parallel `match`, so the two can never drift apart. An unknown key
+/// (or the base `canonical->body-set` extraction) falls to the base-extraction `None`.
 fn leg_target_fmt(key: &str) -> Option<DocFormat> {
-    match key {
-        "body-set->site" => Some(DocFormat::Site),
-        "body-set->mdbook" => Some(DocFormat::Mdbook),
-        "body-set->pdf" => Some(DocFormat::Pdf),
-        "site->snippets" => Some(DocFormat::Snippets),
-        // "canonical->body-set" and any unknown key: the base extraction leg.
-        _ => None,
-    }
+    legs()
+        .into_iter()
+        .find(|leg| leg.key == key)
+        .and_then(|leg| leg.target_fmt)
 }
 
 /// The rendering-kind individual for a format.
@@ -612,6 +611,36 @@ mod tests {
                         &loss_node
                     )),
                     "{fmt:?} profile does not declare the loss for {cap:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn leg_target_fmt_matches_the_single_source_of_truth() {
+        // leg_target_fmt must agree with legs() — the single source of truth — for every
+        // leg it defines. This is guaranteed by construction now that leg_target_fmt looks
+        // legs() up rather than reconstructing the key->format map in a parallel `match`;
+        // this assertion pins that invariant so a future edit back to a parallel map (which
+        // would let the two silently drift) is caught here.
+        for leg in legs() {
+            assert_eq!(
+                leg_target_fmt(leg.key),
+                leg.target_fmt,
+                "leg_target_fmt({:?}) disagrees with legs() for the SAME key",
+                leg.key
+            );
+        }
+        // Every leg key any format composes THROUGH must be a real leg key, never an
+        // unknown key that would silently fall through to the base-extraction `None` and
+        // desync `derived_preservation` from the emitted correspondence spine.
+        let known_keys: std::collections::HashSet<&str> = legs().iter().map(|l| l.key).collect();
+        for fmt in DocFormat::ALL {
+            for key in composition_leg_keys(fmt) {
+                assert!(
+                    known_keys.contains(key),
+                    "composition leg key {key:?} for {fmt:?} is not a leg in legs() — \
+                     leg_target_fmt would silently fall to the base-extraction None"
                 );
             }
         }
