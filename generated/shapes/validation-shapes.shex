@@ -132,6 +132,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/gmeow/ConceptCategorization> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/ConceptCategorization-shape> {
+  <https://blackcatinformatics.ca/gmeow/typicality> <http://www.w3.org/2001/XMLSchema#decimal> MININCLUSIVE 0 MAXINCLUSIVE 1 ;
   <https://blackcatinformatics.ca/gmeow/observedFeature> IRI ;
   <https://blackcatinformatics.ca/gmeow/observationResult> IRI ;
 }
@@ -2728,9 +2729,19 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/observationMethod> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/observationResult> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/observationResult-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/observationResult> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/observedAt> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/observedAt-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/observedAt> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/observedFeature> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/observedFeature-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/observedFeature> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/occupancyOf> (associate via ShapeMap)

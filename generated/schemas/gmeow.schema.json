@@ -4928,6 +4928,55 @@
               "type": "array"
             }
           ]
+        },
+        "gmeow:typicality": {
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ],
+              "maximum": 1.0,
+              "minimum": 0.0
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ],
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              "type": "array"
+            }
+          ]
         }
       },
       "type": "object"

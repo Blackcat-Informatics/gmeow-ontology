@@ -11178,7 +11178,7 @@ slots:
     title: observation result
     range: Entity
     domain: Observation
-    multivalued: true
+    multivalued: false
   observationType:
     slot_uri: https://blackcatinformatics.ca/gmeow/observationType
     title: observation type
@@ -11196,7 +11196,7 @@ slots:
     title: observed feature
     range: uriorcurie
     domain: Observation
-    multivalued: true
+    multivalued: false
   occupancyOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/occupancyOf
     title: occupancy of

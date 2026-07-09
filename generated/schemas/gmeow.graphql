@@ -6703,10 +6703,10 @@ type Observation {
   observationEvent: [Event!]
   observationMethod: ObservationMethod
   observationOf: [Quality!]
-  observationResult: [Entity!]
+  observationResult: Entity
   observationType: [ObservationType!]
   observedAt: String
-  observedFeature: [String!]
+  observedFeature: String
   perceptionEnvironment: SensoryEnvironment
   timbreObservationResult: TimbreDescriptor
   vantage: [Entity!]
