@@ -102,6 +102,34 @@ const LOGIC_PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/pres
 /// authored-example loss row declares alongside its `logic:preservationKind`.
 const LOGIC_COMPLEXITY_CLASS: &str = "https://blackcatinformatics.ca/logic/complexityClass";
 
+// ── Math grounding: worked ℚ⁷ SI-dimension instances ─────────────────────────
+/// The math-grounding vocabulary namespace (`slices/grounding/math`).
+const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
+/// `math:hasDimension` — the predicate a worked instance's subject (a
+/// `Quantity`/`Integral`/`Measure`/measurable-function/…) declares its
+/// dimension object through. The SUBJECT-discovery predicate for
+/// [`extract_worked_instances`].
+const MATH_HAS_DIMENSION: &str = "https://blackcatinformatics.ca/math/hasDimension";
+/// `math:baseDimensionExponent` — a `math:DerivedDimension`'s edges to its
+/// `math:DimensionExponent` individuals (one per non-trivially-exercised SI
+/// base dimension). Absent (empty) for a dimensionless dimension object (e.g.
+/// `math:dimensionless`) — an honest zero-exponent case, not a hard fail.
+const MATH_BASE_DIMENSION_EXPONENT: &str =
+    "https://blackcatinformatics.ca/math/baseDimensionExponent";
+/// `math:exponentOfDimension` — a `math:DimensionExponent`'s edge to the SI
+/// base-dimension IRI it exercises (e.g. `math:massDimension`).
+const MATH_EXPONENT_OF_DIMENSION: &str = "https://blackcatinformatics.ca/math/exponentOfDimension";
+/// `math:exponentNumerator` — an `xsd:integer` literal (may be negative).
+const MATH_EXPONENT_NUMERATOR: &str = "https://blackcatinformatics.ca/math/exponentNumerator";
+/// `math:exponentDenominator` — an `xsd:integer` literal.
+const MATH_EXPONENT_DENOMINATOR: &str = "https://blackcatinformatics.ca/math/exponentDenominator";
+/// `gmeow:unit` — a worked instance's QUDT unit realization, if it is a
+/// `math:Quantity` (e.g. `<http://qudt.org/vocab/unit/J>`).
+const GMEOW_UNIT: &str = "https://blackcatinformatics.ca/gmeow/unit";
+/// `math:quantityValue` — a worked instance's `xsd:double` literal value, if it
+/// is a `math:Quantity`.
+const MATH_QUANTITY_VALUE: &str = "https://blackcatinformatics.ca/math/quantityValue";
+
 // ── Constraint catalog (gmeow:ValidationRule individuals) ───────────────────────
 /// The class every catalog subject is typed as in
 /// `generated/catalog/constraint-catalog.nq`.
@@ -760,6 +788,76 @@ pub struct DocLossTarget {
     pub slice: String,
 }
 
+/// One SI base-dimension exponent (`math:DimensionExponent`) within a
+/// `math:DerivedDimension`'s `math:baseDimensionExponent` set — one ℚ
+/// coordinate of the ℚ⁷ dimension vector (mass, length, time, electric
+/// current, temperature, amount of substance, luminous intensity), though only
+/// the base dimensions actually exercised by a given derived dimension are
+/// authored (a dimension with a zero exponent on an axis carries no
+/// [`DocDimExponent`] for it — sparse by construction, matching the source
+/// data).
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct DocDimExponent {
+    /// The local name of the SI base-dimension IRI this exponent is over
+    /// (e.g. `"massDimension"`, `"lengthDimension"`, `"timeDimension"`).
+    pub base_dimension: String,
+    /// `math:exponentNumerator` (may be negative, e.g. `-2`).
+    pub numerator: i64,
+    /// `math:exponentDenominator`.
+    pub denominator: i64,
+}
+
+/// One worked math instance: a subject (in any slice's `examples/*.ttl`)
+/// carrying `math:hasDimension`, with its dimension resolved down to the ℚ⁷
+/// SI base-dimension exponent vector when the dimension object is a
+/// `math:DerivedDimension` — or an honest empty exponent vector when it is a
+/// dimensionless object (e.g. `math:dimensionless`) that carries no
+/// `math:baseDimensionExponent` breakdown. Discovered generically, in the SAME
+/// `examples/*.ttl` scan [`extract_loss_targets`] uses — any example subject
+/// declaring `math:hasDimension` becomes a row, not just the individuals in
+/// `slices/grounding/math/examples/measure-and-dimension.ttl` (today's only
+/// author).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DocWorkedInstance {
+    /// The slice IRI that owns the example artifact this instance was parsed
+    /// from.
+    pub slice: String,
+    /// The logical path within the slice directory (e.g.
+    /// `examples/measure-and-dimension.ttl`).
+    pub logical_path: String,
+    /// The local name of the dimensioned subject (e.g. `"expectedEnergy"`).
+    pub subject: String,
+    /// The local names of the subject's `rdf:type` values (sorted, deduped) —
+    /// e.g. `["Integral"]` for `ex:expectedEnergy` (a `math:Integral`).
+    pub types: Vec<String>,
+    /// `rdfs:label`, when the subject carries one.
+    pub label: Option<String>,
+    /// `rdfs:label` of the resolved dimension object (the `math:hasDimension`
+    /// target), when it carries one. `None` for `math:dimensionless` in the
+    /// current data (it authors no local label in this file) — an honest
+    /// absence, not a fabricated string.
+    pub dimension_label: Option<String>,
+    /// The ℚ⁷ SI base-dimension exponent vector, sorted by
+    /// [`base_dimension`](DocDimExponent::base_dimension). Empty when the
+    /// dimension object carries no `math:baseDimensionExponent` (the
+    /// dimensionless case) — an honest zero-exponent case, not a hard fail.
+    pub dimension_exponents: Vec<DocDimExponent>,
+    /// `gmeow:unit` — the QUDT unit object IRI, when the subject is a
+    /// `math:Quantity` realizing one (e.g.
+    /// `<http://qudt.org/vocab/unit/J>`).
+    pub unit: Option<String>,
+    /// `math:quantityValue`'s literal lexical form, when the subject is a
+    /// `math:Quantity` carrying one (e.g. `"8.187e-14"`).
+    pub quantity_value: Option<String>,
+    /// A small, deterministic, copy-paste-runnable Turtle block reconstructed
+    /// from the extracted fields (never a byte-slice of the source file — see
+    /// [`render_worked_instance_turtle`] for why). Carries the subject's own
+    /// triples and, when the dimension resolves to a `math:DerivedDimension`,
+    /// that dimension's `math:baseDimensionExponent` breakdown as anonymous
+    /// blank-node objects.
+    pub turtle: String,
+}
+
 /// A documentation concern (`gmeow:DocumentationConcern`) and the terms that
 /// declare it via `gmeow:docsConcern`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -881,6 +979,11 @@ pub struct DocsModel {
     /// `gmeow_logic_compile::projections::projection_ledger_rows()`; this is
     /// the pedagogical, concrete-artifact companion table.
     pub loss_targets: Vec<DocLossTarget>,
+    /// All worked math instances — every example subject (in any slice)
+    /// carrying `math:hasDimension`, with its ℚ⁷ SI base-dimension exponent
+    /// vector when resolvable (sorted by slice then subject). See
+    /// [`DocWorkedInstance`].
+    pub worked_instances: Vec<DocWorkedInstance>,
     /// All documentation concerns (sorted by IRI).
     pub concerns: Vec<DocConcern>,
     /// All external (non-GMEOW) terms referenced (sorted by IRI).
@@ -1031,7 +1134,13 @@ impl DocsModel {
     /// projection-loss-ledger rows discovered generically from every example
     /// subject (in any slice) carrying both `logic:preservationKind` and
     /// `logic:complexityClass`.
-    pub const VERSION: &'static str = "11";
+    ///
+    /// v12: adds [`worked_instances`](DocsModel::worked_instances) — worked
+    /// math ℚ⁷ SI-dimension instances discovered generically from every
+    /// example subject (in any slice) carrying `math:hasDimension`, resolved
+    /// down to a labeled base-dimension exponent table plus a copy-paste
+    /// Turtle block.
+    pub const VERSION: &'static str = "12";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -1229,10 +1338,12 @@ impl DocsModel {
 
         // ── Examples (carried in full from each slice's Example artifacts) ──────
         // Each example artifact's Turtle is parsed exactly ONCE here and reused for
-        // both `DocExample` extraction and the generic authored projection-loss-
-        // ledger scan (`DocLossTarget`) — no artifact is re-parsed.
+        // `DocExample` extraction, the generic authored projection-loss-ledger scan
+        // (`DocLossTarget`), and the generic worked-math-instance scan
+        // (`DocWorkedInstance`) — no artifact is re-parsed.
         let mut examples: Vec<DocExample> = Vec::new();
         let mut loss_targets: Vec<DocLossTarget> = Vec::new();
+        let mut worked_instances: Vec<DocWorkedInstance> = Vec::new();
         for record in catalog.records() {
             let owner = &record.manifest.slice_iri;
             for artifact in &record.artifacts {
@@ -1243,6 +1354,7 @@ impl DocsModel {
                 examples.push(extract_example_from(artifact, owner, parsed.as_ref()));
                 if let Some(store) = &parsed {
                     loss_targets.extend(extract_loss_targets(store, owner));
+                    worked_instances.extend(extract_worked_instances(store, artifact, owner));
                 }
             }
         }
@@ -1252,6 +1364,11 @@ impl DocsModel {
                 .then_with(|| a.logical_path.cmp(&b.logical_path))
         });
         loss_targets.sort_by(|a, b| a.slice.cmp(&b.slice).then_with(|| a.target.cmp(&b.target)));
+        worked_instances.sort_by(|a, b| {
+            a.slice
+                .cmp(&b.slice)
+                .then_with(|| a.subject.cmp(&b.subject))
+        });
 
         // ── Conformance fixtures (Do/Don't pairs, joined to example-conformance.ttl) ─
         let mut fixtures: Vec<DocFixture> = Vec::new();
@@ -1381,6 +1498,7 @@ impl DocsModel {
             competencies,
             grammars,
             loss_targets,
+            worked_instances,
             concerns,
             external_terms,
             recipes,
@@ -2314,6 +2432,248 @@ fn extract_loss_targets(store: &Store, owner_slice: &str) -> Vec<DocLossTarget> 
     out
 }
 
+/// Extract every worked math instance from an already-parsed example `store`:
+/// ANY subject carrying `math:hasDimension`. Generic across every
+/// `examples/*.ttl` artifact in every slice — NOT special-cased to
+/// `measure-and-dimension.ttl` — so any future authored example declaring a
+/// dimensioned quantity the same way is picked up automatically. A dimension
+/// object with no `math:baseDimensionExponent` breakdown (e.g.
+/// `math:dimensionless`) yields an honest empty [`DocDimExponent`] vector, not
+/// a hard fail — a dimensionless quantity is a real, well-formed zero-exponent
+/// case, not a data error.
+fn extract_worked_instances(
+    store: &Store,
+    artifact: &ArtifactRecord,
+    owner_slice: &str,
+) -> Vec<DocWorkedInstance> {
+    let mut out = Vec::new();
+    for subject in subjects_with_predicate(store, MATH_HAS_DIMENSION) {
+        // Deterministic even if a subject somehow declared more than one
+        // `math:hasDimension` object: the lexically-lowest IRI wins.
+        let Some(dimension_iri) = named_objects(store, &subject, MATH_HAS_DIMENSION)
+            .into_iter()
+            .min()
+        else {
+            continue;
+        };
+
+        let mut type_iris = named_objects(store, &subject, RDF_TYPE);
+        type_iris.sort();
+        type_iris.dedup();
+        let types: Vec<String> = type_iris
+            .iter()
+            .map(|t| local_name(t).to_string())
+            .collect();
+
+        let label = first_literal(store, &subject, RDFS_LABEL);
+        let dimension_label = first_literal(store, &dimension_iri, RDFS_LABEL);
+
+        // The ℚ⁷ SI base-dimension exponent vector: empty when the dimension
+        // object carries no `math:baseDimensionExponent` breakdown (the
+        // dimensionless case) — an honest zero-exponent case, not a hard fail.
+        // Exponent individuals are always named in the authored data (never
+        // blank nodes), so the default-graph named-object walk is exhaustive.
+        let mut dimension_exponents: Vec<DocDimExponent> = Vec::new();
+        for exponent in named_objects(store, &dimension_iri, MATH_BASE_DIMENSION_EXPONENT) {
+            let Some(base_iri) = named_objects(store, &exponent, MATH_EXPONENT_OF_DIMENSION)
+                .into_iter()
+                .min()
+            else {
+                continue;
+            };
+            let Some(numerator) = first_literal(store, &exponent, MATH_EXPONENT_NUMERATOR)
+                .and_then(|v| v.parse::<i64>().ok())
+            else {
+                continue;
+            };
+            let Some(denominator) = first_literal(store, &exponent, MATH_EXPONENT_DENOMINATOR)
+                .and_then(|v| v.parse::<i64>().ok())
+            else {
+                continue;
+            };
+            dimension_exponents.push(DocDimExponent {
+                base_dimension: local_name(&base_iri).to_string(),
+                numerator,
+                denominator,
+            });
+        }
+        dimension_exponents.sort();
+        dimension_exponents.dedup();
+
+        let unit = named_objects(store, &subject, GMEOW_UNIT).into_iter().min();
+        let quantity_value = first_literal(store, &subject, MATH_QUANTITY_VALUE);
+
+        let turtle = render_worked_instance_turtle(
+            &subject,
+            &type_iris,
+            label.as_deref(),
+            &dimension_iri,
+            dimension_label.as_deref(),
+            &dimension_exponents,
+            unit.as_deref(),
+            quantity_value.as_deref(),
+        );
+
+        out.push(DocWorkedInstance {
+            slice: owner_slice.to_string(),
+            logical_path: artifact.logical_path.clone(),
+            subject: local_name(&subject).to_string(),
+            types,
+            label,
+            dimension_label,
+            dimension_exponents,
+            unit,
+            quantity_value,
+            turtle,
+        });
+    }
+    out
+}
+
+/// Render an IRI for the reconstructed worked-instance Turtle block: a CURIE
+/// for a handful of well-known vocabulary namespaces (`rdf:`, `rdfs:`,
+/// `math:`, `gmeow:`), a full `<...>` IRI otherwise. The example's own subject
+/// / dimension IRIs (an `ex:`-style namespace whose prefix binding is
+/// per-file, not carried by the extracted model) and any external IRI (a QUDT
+/// unit) fall through to the `<...>` form — always syntactically valid
+/// Turtle, regardless of which example file the instance was parsed from.
+fn turtle_iri(iri: &str) -> String {
+    const PREFIXES: &[(&str, &str)] = &[
+        ("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "rdf"),
+        ("http://www.w3.org/2000/01/rdf-schema#", "rdfs"),
+        (MATH_NS, "math"),
+        (GMEOW_NS, "gmeow"),
+    ];
+    for (ns, prefix) in PREFIXES {
+        if let Some(local) = iri.strip_prefix(ns)
+            // A Turtle PN_LOCAL cannot contain an unescaped `/` or `#` — an
+            // example's own subject namespace (e.g.
+            // `https://blackcatinformatics.ca/gmeow/examples/math/`) is
+            // itself nested UNDER `GMEOW_NS`, so a naive prefix strip would
+            // mint an invalid CURIE like `gmeow:examples/math/energyDensityFn`.
+            // Falling through to the full `<...>` form for any such nested
+            // namespace keeps every rendered CURIE syntactically valid.
+            && !local.is_empty()
+            && !local.contains(['/', '#'])
+        {
+            return format!("{prefix}:{local}");
+        }
+    }
+    format!("<{iri}>")
+}
+
+/// Render `value` as a Turtle short-form string literal (backslash/quote/
+/// control-character escaped).
+fn turtle_string_literal(value: &str) -> String {
+    let mut out = String::with_capacity(value.len() + 2);
+    out.push('"');
+    for ch in value.chars() {
+        match ch {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            _ => out.push(ch),
+        }
+    }
+    out.push('"');
+    out
+}
+
+/// Render a subject's predicate list (each entry already a complete
+/// `predicate object` clause, no trailing punctuation) as
+/// `    predicate object ;\n` … `    predicate object .\n` — the project's own
+/// 4-space-indent, trailing-`.` Turtle authoring convention.
+fn push_turtle_predicate_lines(out: &mut String, lines: &[String]) {
+    for (i, line) in lines.iter().enumerate() {
+        let terminator = if i + 1 == lines.len() { '.' } else { ';' };
+        out.push_str("    ");
+        out.push_str(line);
+        out.push(' ');
+        out.push(terminator);
+        out.push('\n');
+    }
+}
+
+/// Reconstruct a small, deterministic, copy-paste-runnable Turtle block for
+/// one worked instance FROM ITS EXTRACTED FIELDS — never a byte-slice of the
+/// source artifact. A byte-slice risks incompleteness (the source file may
+/// interleave unrelated subjects between the instance and its dimension) and
+/// non-determinism (comment/whitespace drift is not part of the model); hand
+/// -rendering from the same typed fields the model already carries is no
+/// harder to get right and stays exactly as informative as the model itself.
+/// Renders the subject's own triples, then — only when
+/// `dimension_exponents` is non-empty — a second stanza for the resolved
+/// `math:DerivedDimension`'s `math:baseDimensionExponent` breakdown (each
+/// exponent as an anonymous `[ … ]` blank-node object, matching the project's
+/// own authoring convention in `measure-and-dimension.ttl`). The dimensionless
+/// case (empty `dimension_exponents`) renders only the subject stanza — honest,
+/// not a fabricated breakdown.
+#[allow(clippy::too_many_arguments)]
+fn render_worked_instance_turtle(
+    subject_iri: &str,
+    type_iris: &[String],
+    label: Option<&str>,
+    dimension_iri: &str,
+    dimension_label: Option<&str>,
+    dimension_exponents: &[DocDimExponent],
+    unit: Option<&str>,
+    quantity_value: Option<&str>,
+) -> String {
+    let mut out = String::new();
+
+    // ── The dimensioned subject's own triples ──────────────────────────────
+    out.push_str(&turtle_iri(subject_iri));
+    out.push('\n');
+    let mut lines: Vec<String> = Vec::new();
+    for type_iri in type_iris {
+        lines.push(format!("a {}", turtle_iri(type_iri)));
+    }
+    if let Some(label) = label {
+        lines.push(format!("rdfs:label {}", turtle_string_literal(label)));
+    }
+    lines.push(format!("math:hasDimension {}", turtle_iri(dimension_iri)));
+    if let Some(unit) = unit {
+        lines.push(format!("gmeow:unit {}", turtle_iri(unit)));
+    }
+    if let Some(value) = quantity_value {
+        lines.push(format!(
+            "math:quantityValue {}^^xsd:double",
+            turtle_string_literal(value)
+        ));
+    }
+    push_turtle_predicate_lines(&mut out, &lines);
+
+    // ── The resolved dimension's own base-dimension-exponent breakdown ─────
+    if !dimension_exponents.is_empty() {
+        out.push('\n');
+        out.push_str(&turtle_iri(dimension_iri));
+        out.push('\n');
+        let mut dim_lines: Vec<String> = vec!["a math:DerivedDimension".to_string()];
+        if let Some(label) = dimension_label {
+            dim_lines.push(format!("rdfs:label {}", turtle_string_literal(label)));
+        }
+        let exponent_blanks: Vec<String> = dimension_exponents
+            .iter()
+            .map(|e| {
+                format!(
+                    "[ math:exponentOfDimension math:{} ; math:exponentNumerator {} ; \
+                     math:exponentDenominator {} ]",
+                    e.base_dimension, e.numerator, e.denominator
+                )
+            })
+            .collect();
+        dim_lines.push(format!(
+            "math:baseDimensionExponent {}",
+            exponent_blanks.join(" ,\n        ")
+        ));
+        push_turtle_predicate_lines(&mut out, &dim_lines);
+    }
+
+    out
+}
+
 /// One `gmeow:ExampleConformance` binding read from a slice's
 /// `tests/example-conformance.ttl`: the expected outcome / violation code /
 /// rationale it asserts for the fixture path its `gmeow:exampleFile` pins.
@@ -3050,5 +3410,120 @@ ex:elProjectionReport a gmeow:InformationObject ;
         assert_eq!(row.preservation_kind, "SoundUnderApproximation");
         assert_eq!(row.complexity_class, "EL -> PTIME");
         assert_eq!(row.slice, "https://example.org/slice/demo");
+    }
+
+    /// Build a bare in-memory [`ArtifactRecord`] for a Turtle example, mirroring
+    /// the shape [`extract_worked_instances`] reads (`logical_path` is the only
+    /// field it consults; the rest are filler).
+    fn example_artifact(logical_path: &str, ttl: &str) -> ArtifactRecord {
+        ArtifactRecord {
+            role: ArtifactRole::Example,
+            logical_path: logical_path.to_string(),
+            media_type: "text/turtle".to_string(),
+            raw_digest: String::new(),
+            semantic_digest: None,
+            content: ttl.as_bytes().to_vec(),
+        }
+    }
+
+    /// [`extract_worked_instances`] is generic: it finds every subject carrying
+    /// `math:hasDimension` — not just the individuals in the real
+    /// `measure-and-dimension.ttl` — resolves a `math:DerivedDimension`'s ℚ⁷
+    /// SI base-dimension exponent vector (sorted, negative numerators handled),
+    /// and honestly emits an EMPTY exponent vector (not a hard fail) for a
+    /// dimensionless subject whose dimension object carries no
+    /// `math:baseDimensionExponent` breakdown.
+    #[test]
+    fn extract_worked_instances_resolves_exponents_and_honest_dimensionless() {
+        let ttl = r#"
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/demo/> .
+
+ex:restEnergy a math:Quantity ;
+    rdfs:label "rest energy"@x-gmeow-english ;
+    math:hasDimension ex:energyDimension ;
+    gmeow:unit <http://qudt.org/vocab/unit/J> ;
+    math:quantityValue "8.187e-14"^^xsd:double .
+
+ex:energyDimension a math:DerivedDimension ;
+    rdfs:label "energy dimension (M*L^2*T^-2)"@x-gmeow-english ;
+    math:baseDimensionExponent ex:eMass1 , ex:eTimeMinus2 .
+
+ex:eMass1 a math:DimensionExponent ;
+    math:exponentOfDimension math:massDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+ex:eTimeMinus2 a math:DimensionExponent ;
+    math:exponentOfDimension math:timeDimension ;
+    math:exponentNumerator -2 ; math:exponentDenominator 1 .
+
+ex:uniformProbability a math:ProbabilityMeasure ;
+    rdfs:label "uniform probability measure"@x-gmeow-english ;
+    math:hasDimension math:dimensionless .
+"#;
+        let store = store_from(ttl);
+        let artifact = example_artifact("examples/demo.ttl", ttl);
+        let mut rows =
+            extract_worked_instances(&store, &artifact, "https://example.org/slice/demo");
+        rows.sort_by(|a, b| a.subject.cmp(&b.subject));
+        assert_eq!(rows.len(), 2, "both dimensioned subjects are picked up");
+
+        let rest_energy = &rows[0];
+        assert_eq!(rest_energy.subject, "restEnergy");
+        assert_eq!(rest_energy.logical_path, "examples/demo.ttl");
+        assert_eq!(rest_energy.slice, "https://example.org/slice/demo");
+        assert_eq!(rest_energy.types, vec!["Quantity".to_string()]);
+        assert_eq!(rest_energy.label.as_deref(), Some("rest energy"));
+        assert_eq!(
+            rest_energy.dimension_label.as_deref(),
+            Some("energy dimension (M*L^2*T^-2)")
+        );
+        assert_eq!(
+            rest_energy.unit.as_deref(),
+            Some("http://qudt.org/vocab/unit/J")
+        );
+        assert_eq!(rest_energy.quantity_value.as_deref(), Some("8.187e-14"));
+        assert_eq!(
+            rest_energy.dimension_exponents,
+            vec![
+                DocDimExponent {
+                    base_dimension: "massDimension".to_string(),
+                    numerator: 1,
+                    denominator: 1,
+                },
+                DocDimExponent {
+                    base_dimension: "timeDimension".to_string(),
+                    numerator: -2,
+                    denominator: 1,
+                },
+            ],
+            "sorted by base_dimension local name; negative numerator preserved"
+        );
+        assert!(rest_energy.turtle.contains("math:exponentNumerator -2"));
+        assert!(
+            rest_energy
+                .turtle
+                .contains("gmeow:unit <http://qudt.org/vocab/unit/J>")
+        );
+
+        let uniform = &rows[1];
+        assert_eq!(uniform.subject, "uniformProbability");
+        assert_eq!(
+            uniform.dimension_exponents,
+            Vec::new(),
+            "dimensionless subject honestly renders an EMPTY exponent vector, not a hard fail"
+        );
+        assert_eq!(
+            uniform.dimension_label, None,
+            "math:dimensionless carries no local label in this file — an honest absence"
+        );
+        assert!(uniform.unit.is_none());
+        assert!(uniform.quantity_value.is_none());
+        assert!(
+            !uniform.turtle.contains("baseDimensionExponent"),
+            "no fabricated exponent breakdown for the dimensionless case"
+        );
     }
 }

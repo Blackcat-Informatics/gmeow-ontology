@@ -288,6 +288,7 @@ mod tests {
             competencies: Vec::new(),
             grammars: Vec::new(),
             loss_targets: Vec::new(),
+            worked_instances: Vec::new(),
             concerns: Vec::new(),
             external_terms: Vec::new(),
             recipes: Vec::new(),

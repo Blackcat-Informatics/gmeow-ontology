@@ -2637,6 +2637,86 @@ fn md_example_index(model: &DocsModel) -> String {
         }
         blank(&mut out);
     }
+
+    // ── Worked math instances (ℚ⁷ SI-dimension worked examples) ─────────────
+    // Distinct from the example listing above: every example subject (in any
+    // slice) carrying `math:hasDimension`, resolved generically by
+    // `gmeow_docs::model::extract_worked_instances` — not special-cased to
+    // `measure-and-dimension.ttl` (today's only author). Placed on THIS page
+    // (rather than a new dedicated `Page` variant) because a worked instance
+    // IS a worked example — the same `examples/*.ttl` scan Task 4's loss-row
+    // section reuses, and `Page::ExampleIndex` is already the page readers
+    // reach for "show me a concrete instance", so it stays their next stop
+    // rather than a fourth example-adjacent page.
+    heading(&mut out, 2, model.ui("body_worked_instances"));
+    line(
+        &mut out,
+        "Concrete quantities/measures/functions carrying `math:hasDimension`, resolved to their \
+         ℚ⁷ SI base-dimension exponent vector (mass · length · time · electric current · \
+         temperature · amount of substance · luminous intensity) when the dimension object \
+         breaks one down — a dimensionless subject (e.g. `math:dimensionless`) honestly renders \
+         with no exponent rows, not a fabricated breakdown.",
+    );
+    if model.worked_instances.is_empty() {
+        line(&mut out, model.ui("body_no_worked_instances"));
+    } else {
+        for instance in &model.worked_instances {
+            let type_suffix = if instance.types.is_empty() {
+                String::new()
+            } else {
+                format!(" ({})", instance.types.join(", "))
+            };
+            heading(
+                &mut out,
+                3,
+                &format!(
+                    "{}{}",
+                    md_escape(&instance.subject),
+                    md_escape(&type_suffix)
+                ),
+            );
+            line(
+                &mut out,
+                &format!(
+                    "`{}` — `{}`",
+                    code_escape(&slice_name(model, &instance.slice)),
+                    code_escape(&instance.logical_path)
+                ),
+            );
+            if let Some(label) = &instance.label {
+                line(&mut out, &md_escape(label));
+            }
+            if let Some(dimension_label) = &instance.dimension_label {
+                line(
+                    &mut out,
+                    &format!("Dimension: {}", md_escape(dimension_label)),
+                );
+            }
+            if instance.dimension_exponents.is_empty() {
+                line(
+                    &mut out,
+                    "Dimensionless — no base-dimension exponent breakdown.",
+                );
+            } else {
+                push_line(&mut out, "| Base dimension | Numerator | Denominator |");
+                push_line(&mut out, "| --- | --- | --- |");
+                for exponent in &instance.dimension_exponents {
+                    push_line(
+                        &mut out,
+                        &format!(
+                            "| `{}` | {} | {} |",
+                            code_escape(&exponent.base_dimension),
+                            exponent.numerator,
+                            exponent.denominator
+                        ),
+                    );
+                }
+                blank(&mut out);
+            }
+            fenced(&mut out, "turtle", &instance.turtle);
+        }
+    }
+
     out
 }
 
@@ -4999,6 +5079,7 @@ mod tests {
             competencies: Vec::new(),
             grammars: Vec::new(),
             loss_targets: Vec::new(),
+            worked_instances: Vec::new(),
             concerns: Vec::new(),
             external_terms: Vec::new(),
             recipes: Vec::new(),
