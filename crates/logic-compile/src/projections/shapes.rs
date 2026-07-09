@@ -25,12 +25,28 @@ use crate::ir::{
 
 use super::sparql_lower::{sparql_literal, sparql_predicate};
 
-/// The `logic:` comparison relations the procedural-constraint fragment lowers to a SPARQL
-/// `FILTER` rather than a triple pattern: an equality / inequality between two already-bound
-/// terms (the cross-node co-occurrence / inequality pattern). They are recognized here (not in a
-/// second Formula→SPARQL lowering) so a `logic:Constraint` can express `?a = ?b` / `?a != ?b`.
+/// The `logic:` comparison / node-kind relations the procedural-constraint fragment lowers to a
+/// SPARQL `FILTER` rather than a triple pattern. A binary comparison filters two already-bound
+/// terms (the cross-node co-occurrence / inequality / ordering pattern); a unary node-kind test
+/// filters one bound term. They are recognized here (not in a second Formula→SPARQL lowering) so a
+/// `logic:Constraint` can express `?a = ?b`, a numeric bound `?a >= ?b`, or a node-kind restriction
+/// `isIRI(?a)`. A comparison / node-kind atom binds nothing, so it never introduces a new variable
+/// that must be triple-bound.
 const LOGIC_TERM_EQUAL: &str = "https://blackcatinformatics.ca/logic/termEqual";
 const LOGIC_TERM_DISTINCT: &str = "https://blackcatinformatics.ca/logic/termDistinct";
+const LOGIC_TERM_LESS: &str = "https://blackcatinformatics.ca/logic/termLess";
+const LOGIC_TERM_LESS_EQUAL: &str = "https://blackcatinformatics.ca/logic/termLessEqual";
+const LOGIC_TERM_GREATER: &str = "https://blackcatinformatics.ca/logic/termGreater";
+const LOGIC_TERM_GREATER_EQUAL: &str = "https://blackcatinformatics.ca/logic/termGreaterEqual";
+const LOGIC_TERM_IS_IRI: &str = "https://blackcatinformatics.ca/logic/termIsIri";
+const LOGIC_TERM_IS_LITERAL: &str = "https://blackcatinformatics.ca/logic/termIsLiteral";
+const LOGIC_TERM_IS_BLANK_OR_IRI: &str = "https://blackcatinformatics.ca/logic/termIsBlankOrIri";
+/// The `logic:` transitive-reachability relation `transitiveReach(subject, pathPredicate, target)`,
+/// lowered to a SPARQL one-or-more property path `subject <pathPredicate>+ target .`. The middle
+/// argument is the path predicate IRI (not a bound term); the outer two are subject / object terms.
+/// It lets a `logic:Constraint` express a transitive walk (subclass-chain membership, a dependency
+/// cycle) the flat triple-pattern fragment cannot.
+const LOGIC_TRANSITIVE_REACH: &str = "https://blackcatinformatics.ca/logic/transitiveReach";
 
 /// The prefix header prepended to a multi-shape SHACL document.
 const SHACL_PREFIXES: &str = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
@@ -800,17 +816,107 @@ fn constraint_term(t: &Term, focus: &str) -> Result<String, String> {
     }
 }
 
-/// Render one binary atomic predication as a SPARQL triple pattern `subj pred obj .`. A
-/// non-binary atom (unary or n ≥ 3) or a sequence-marker argument has no direct SPARQL
-/// triple form and is refused so the constraint is carried-and-flagged rather than emitted
-/// as a broken query.
+/// The SPARQL relational operator a binary comparison relation lowers to in POSITIVE position,
+/// paired with the operator of its logical NEGATION (used when the atom appears under a `¬`, so the
+/// NNF lowering never wraps a `FILTER` in a nonsensical `FILTER NOT EXISTS`). `None` for a relation
+/// that is not a comparison.
+fn binary_comparison_ops(pred: &str) -> Option<(&'static str, &'static str)> {
+    match pred {
+        LOGIC_TERM_EQUAL => Some(("=", "!=")),
+        LOGIC_TERM_DISTINCT => Some(("!=", "=")),
+        LOGIC_TERM_LESS => Some(("<", ">=")),
+        LOGIC_TERM_LESS_EQUAL => Some(("<=", ">")),
+        LOGIC_TERM_GREATER => Some((">", "<=")),
+        LOGIC_TERM_GREATER_EQUAL => Some((">=", "<")),
+        _ => None,
+    }
+}
+
+/// The SPARQL node-kind test a unary node-kind relation lowers to over the bound term `x`, paired
+/// with its logical NEGATION. `None` for a relation that is not a node-kind test.
+fn unary_nodekind_exprs(pred: &str, x: &str) -> Option<(String, String)> {
+    match pred {
+        LOGIC_TERM_IS_IRI => Some((format!("isIRI({x})"), format!("!isIRI({x})"))),
+        LOGIC_TERM_IS_LITERAL => Some((format!("isLiteral({x})"), format!("!isLiteral({x})"))),
+        LOGIC_TERM_IS_BLANK_OR_IRI => Some((
+            format!("( isIRI({x}) || isBlank({x}) )"),
+            format!("!( isIRI({x}) || isBlank({x}) )"),
+        )),
+        _ => None,
+    }
+}
+
+/// Render a comparison / node-kind atom as a SPARQL `FILTER`, in POSITIVE (`negate = false`) or
+/// NEGATED (`negate = true`) form. Returns `None` when the atom's relation is not a recognized
+/// comparison / node-kind relation (so the caller falls back to the triple-pattern lowering).
+fn try_filter_atom(f: &Formula, focus: &str, negate: bool) -> Option<Result<String, String>> {
+    let Formula::Atom { relation, args } = f else {
+        return None;
+    };
+    let Term::Iri(pred) = relation else {
+        return None;
+    };
+    if let Some((pos, neg)) = binary_comparison_ops(pred) {
+        if args.len() != 2 {
+            return Some(Err(format!(
+                "comparison relation <{pred}> has arity {}, a binary comparison needs two operands",
+                args.len()
+            )));
+        }
+        let op = if negate { neg } else { pos };
+        let s = match constraint_term(&args[0], focus) {
+            Ok(s) => s,
+            Err(e) => return Some(Err(e)),
+        };
+        let o = match constraint_term(&args[1], focus) {
+            Ok(o) => o,
+            Err(e) => return Some(Err(e)),
+        };
+        return Some(Ok(format!("FILTER ( {s} {op} {o} )")));
+    }
+    if args.len() == 1 {
+        let x = match constraint_term(&args[0], focus) {
+            Ok(x) => x,
+            Err(e) => return Some(Err(e)),
+        };
+        if let Some((pos, neg)) = unary_nodekind_exprs(pred, &x) {
+            let expr = if negate { neg } else { pos };
+            return Some(Ok(format!("FILTER ( {expr} )")));
+        }
+    }
+    None
+}
+
+/// Render one binary atomic predication as a SPARQL triple pattern `subj pred obj .`, OR a
+/// comparison / node-kind atom as a `FILTER`. A non-binary, non-filter atom (unary or n ≥ 3) or a
+/// sequence-marker argument has no direct SPARQL triple form and is refused so the constraint is
+/// carried-and-flagged rather than emitted as a broken query.
 fn constraint_atom(f: &Formula, focus: &str) -> Result<String, String> {
+    if let Some(filter) = try_filter_atom(f, focus, false) {
+        return filter;
+    }
     let Formula::Atom { relation, args } = f else {
         return Err("expected an atomic predication".to_owned());
     };
     let Term::Iri(pred) = relation else {
         return Err("atom relation must be an IRI".to_owned());
     };
+    // A transitive-reachability atom lowers to a one-or-more property path `subj <Q>+ obj .`; the
+    // middle argument names the path predicate IRI (not a bound term).
+    if pred == LOGIC_TRANSITIVE_REACH {
+        if args.len() != 3 {
+            return Err(format!(
+                "transitiveReach has arity {}, it needs (subject, pathPredicate, target)",
+                args.len()
+            ));
+        }
+        let s = constraint_term(&args[0], focus)?;
+        let Term::Iri(path) = &args[1] else {
+            return Err("transitiveReach path predicate (argument 1) must be an IRI".to_owned());
+        };
+        let o = constraint_term(&args[2], focus)?;
+        return Ok(format!("{s} <{path}>+ {o} ."));
+    }
     if args.len() != 2 {
         return Err(format!(
             "atom <{pred}> has arity {}, only a binary atom lowers to a SPARQL triple pattern",
@@ -819,16 +925,6 @@ fn constraint_atom(f: &Formula, focus: &str) -> Result<String, String> {
     }
     let s = constraint_term(&args[0], focus)?;
     let o = constraint_term(&args[1], focus)?;
-    // The `logic:termEqual` / `logic:termDistinct` comparison relations lower to a `FILTER` over
-    // two already-bound terms, not a triple pattern (the cross-node co-occurrence / inequality
-    // pattern). A comparison between two bound terms binds nothing, so it never introduces a new
-    // variable that must be triple-bound.
-    if pred == LOGIC_TERM_EQUAL {
-        return Ok(format!("FILTER ( {s} = {o} )"));
-    }
-    if pred == LOGIC_TERM_DISTINCT {
-        return Ok(format!("FILTER ( {s} != {o} )"));
-    }
     let p = sparql_predicate(pred);
     Ok(format!("{s} {p} {o} ."))
 }
@@ -882,6 +978,11 @@ fn lower_positive(f: &Formula, focus: &str) -> Result<Vec<String>, String> {
 /// `FILTER NOT EXISTS { {a} UNION {b} }`, `¬(a∧b)` → `{¬a} UNION {¬b}`.
 fn lower_negative(f: &Formula, focus: &str) -> Result<Vec<String>, String> {
     match f {
+        // A comparison / node-kind atom negates to its negated `FILTER` (`?a >= ?b` ↦ `?a < ?b`,
+        // `isIRI(?v)` ↦ `!isIRI(?v)`), NOT a `FILTER NOT EXISTS` over a triple that binds nothing.
+        Formula::Atom { .. } if try_filter_atom(f, focus, true).is_some() => {
+            Ok(vec![try_filter_atom(f, focus, true).expect("filter atom")?])
+        }
         Formula::Atom { .. } => Ok(vec![format!(
             "FILTER NOT EXISTS {{ {} }}",
             constraint_atom(f, focus)?
@@ -2543,6 +2644,183 @@ ex:aggv a logic:AggregateConstraint ;\n\
         assert!(
             !flagged.iter().any(|f| f.contains("good")),
             "the conforming node must NOT be flagged; flagged: {flagged:?}"
+        );
+    }
+
+    #[test]
+    fn comparison_constraint_lowers_to_an_ordering_filter() {
+        let b = project_sugar(
+            "ex:cmp a logic:ComparisonConstraint ;\n\
+             logic:onClass ex:ScoreScale ;\n\
+             logic:leftPath ex:scaleMin ;\n\
+             logic:rightPath ex:scaleMax ;\n\
+             logic:compareOp \">=\" ;\n\
+             logic:formalizes ex:ScoreScale .",
+        );
+        assert!(b.contains("sh:targetClass <https://ex/ScoreScale>"), "{b}");
+        assert!(b.contains("$this <https://ex/scaleMin> ?l ."), "{b}");
+        assert!(b.contains("$this <https://ex/scaleMax> ?r ."), "{b}");
+        // The FORBIDDEN relation (min >= max) is the violation-selecting FILTER.
+        assert!(b.contains("FILTER ( ?l >= ?r )"), "{b}");
+        assert!(!b.contains("NOT EXISTS"), "{b}");
+    }
+
+    #[test]
+    fn path_node_kind_iri_lowers_to_a_negated_isiri_filter() {
+        // With no onClass the value-path is the range restriction → sh:targetSubjectsOf.
+        let b = project_sugar(
+            "ex:nk a logic:PathNodeKindConstraint ;\n\
+             logic:valuePath ex:hasAboutness ;\n\
+             logic:nodeKind \"IRI\" ;\n\
+             logic:formalizes ex:AboutnessTargetShape .",
+        );
+        assert!(
+            b.contains("sh:targetSubjectsOf <https://ex/hasAboutness>"),
+            "{b}"
+        );
+        assert!(b.contains("$this <https://ex/hasAboutness> ?v ."), "{b}");
+        // The violation is a value that is NOT an IRI.
+        assert!(b.contains("FILTER ( !isIRI(?v) )"), "{b}");
+    }
+
+    #[test]
+    fn path_node_kind_blank_or_iri_on_a_class_target() {
+        let b = project_sugar(
+            "ex:nk2 a logic:PathNodeKindConstraint ;\n\
+             logic:onClass ex:SetBuilderExpression ;\n\
+             logic:valuePath ex:memberCondition ;\n\
+             logic:nodeKind \"BlankNodeOrIRI\" ;\n\
+             logic:formalizes ex:SetBuilderExpression .",
+        );
+        assert!(
+            b.contains("sh:targetClass <https://ex/SetBuilderExpression>"),
+            "{b}"
+        );
+        assert!(
+            b.contains("FILTER ( !( isIRI(?v) || isBlank(?v) ) )"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn self_join_uniqueness_lowers_to_a_shared_value_self_join() {
+        let b = project_sugar(
+            "ex:sj a logic:SelfJoinUniquenessConstraint ;\n\
+             logic:siblingPredicate ex:argumentSlot ;\n\
+             logic:sharedPredicate ex:slotIndex ;\n\
+             logic:formalizes ex:SlotIndexUniquenessShape .",
+        );
+        assert!(
+            b.contains("sh:targetSubjectsOf <https://ex/argumentSlot>"),
+            "{b}"
+        );
+        assert!(b.contains("$this <https://ex/argumentSlot> ?s1 ."), "{b}");
+        assert!(b.contains("$this <https://ex/argumentSlot> ?s2 ."), "{b}");
+        assert!(b.contains("?s1 <https://ex/slotIndex> ?i ."), "{b}");
+        assert!(b.contains("?s2 <https://ex/slotIndex> ?i ."), "{b}");
+        assert!(b.contains("FILTER ( ?s1 != ?s2 )"), "{b}");
+    }
+
+    #[test]
+    fn inverse_existence_lowers_to_a_typed_inverse_not_exists() {
+        let b = project_sugar(
+            "ex:inv a logic:InverseExistenceConstraint ;\n\
+             logic:onClass ex:FeatureValue ;\n\
+             logic:inversePredicate ex:denotationTarget ;\n\
+             logic:subjectClass ex:Denotation ;\n\
+             logic:formalizes ex:FeatureValue .",
+        );
+        assert!(
+            b.contains("sh:targetClass <https://ex/FeatureValue>"),
+            "{b}"
+        );
+        // Violation = no typed Denotation points back at $this.
+        assert!(b.contains("FILTER NOT EXISTS"), "{b}");
+        assert!(b.contains("?s a <https://ex/Denotation> ."), "{b}");
+        assert!(
+            b.contains("?s <https://ex/denotationTarget> $this ."),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn transitive_reachability_lowers_to_a_subclass_property_path() {
+        let b = project_sugar(
+            "ex:tr a logic:TransitiveReachabilityConstraint ;\n\
+             logic:onClass ex:FlagshipScenario ;\n\
+             logic:viaPredicate ex:enforcesFailureClass ;\n\
+             logic:pathPredicate ex:subClassOf ;\n\
+             logic:reachTarget ex:ConformanceFailure ;\n\
+             logic:formalizes ex:FlagshipScenario .",
+        );
+        assert!(
+            b.contains("sh:targetClass <https://ex/FlagshipScenario>"),
+            "{b}"
+        );
+        assert!(
+            b.contains("$this <https://ex/enforcesFailureClass> ?v ."),
+            "{b}"
+        );
+        // Violation = a failure class that does NOT transitively subclass the root.
+        assert!(
+            b.contains(
+                "FILTER NOT EXISTS { ?v <https://ex/subClassOf>+ <https://ex/ConformanceFailure> . }"
+            ),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn acyclic_constraint_lowers_to_a_self_reaching_property_path() {
+        let b = project_sugar(
+            "ex:ac a logic:AcyclicConstraint ;\n\
+             logic:onClass ex:FormSlot ;\n\
+             logic:pathPredicate ex:dependsOn ;\n\
+             logic:formalizes ex:FormSlot .",
+        );
+        assert!(b.contains("sh:targetClass <https://ex/FormSlot>"), "{b}");
+        // Violation = the focus reaches itself along one-or-more dependsOn hops.
+        assert!(b.contains("$this <https://ex/dependsOn>+ $this ."), "{b}");
+        assert!(!b.contains("NOT EXISTS"), "{b}");
+    }
+
+    #[test]
+    fn comparison_and_node_kind_constraints_validate_against_a_graph() {
+        use purrdf::shapes::engine::validate_graphs;
+        let src = format!(
+            "{SUGAR_PREFIXES}\
+ex:scaleCmp a logic:ComparisonConstraint ;\n\
+  logic:onClass ex:ScoreScale ;\n\
+  logic:leftPath ex:scaleMin ;\n\
+  logic:rightPath ex:scaleMax ;\n\
+  logic:compareOp \">=\" ;\n\
+  logic:formalizes ex:ScoreScale ."
+        );
+        let (program, _) = crate::frontend::parse_logic_str(&src, None).expect("parse");
+        let shapes_ttl = project_procedural_constraints(&program);
+        let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+        let dec = "^^<http://www.w3.org/2001/XMLSchema#decimal>";
+        let data = format!(
+            "<https://ex/good> {ty} <https://ex/ScoreScale> .\n\
+<https://ex/good> <https://ex/scaleMin> \"0.0\"{dec} .\n\
+<https://ex/good> <https://ex/scaleMax> \"1.0\"{dec} .\n\
+<https://ex/bad> {ty} <https://ex/ScoreScale> .\n\
+<https://ex/bad> <https://ex/scaleMin> \"1.0\"{dec} .\n\
+<https://ex/bad> <https://ex/scaleMax> \"1.0\"{dec} .\n"
+        );
+        let report = validate_graphs(&data, &shapes_ttl).expect("validate");
+        let flagged: Vec<String> = report
+            .results
+            .iter()
+            .map(|r| r.focus_node.to_string())
+            .collect();
+        assert!(
+            flagged.iter().any(|f| f.contains("bad")),
+            "the min>=max scale must be flagged; flagged: {flagged:?}"
+        );
+        assert!(
+            !flagged.iter().any(|f| f.contains("good")),
+            "the well-formed scale must NOT be flagged; flagged: {flagged:?}"
         );
     }
 }

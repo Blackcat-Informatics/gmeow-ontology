@@ -273,6 +273,16 @@ fn is_constraint_structural_predicate(prop_local: &str) -> bool {
             | "forbiddenPredicate" | "forbiddenValue"
             // Aggregate-comparison satellite.
             | "aggFunction" | "aggDistinct" | "aggPath" | "aggComparator" | "aggCompareTo"
+            // Comparison constraint (two focus-property values compared).
+            | "leftPath" | "rightPath" | "compareOp"
+            // Path node-kind constraint.
+            | "nodeKind"
+            // Self-join uniqueness (no two distinct siblings share a value).
+            | "siblingPredicate" | "sharedPredicate"
+            // Inverse-existence (must be the object of a predicate from a typed subject).
+            | "inversePredicate" | "subjectClass"
+            // Transitive reachability / acyclicity (a one-or-more property-path walk).
+            | "viaPredicate" | "pathPredicate" | "reachTarget"
     )
 }
 
@@ -290,6 +300,12 @@ fn is_constraint_sugar_class(local: &str) -> bool {
             | "CrossNodeConstraint"
             | "ForbiddenPatternConstraint"
             | "AggregateConstraint"
+            | "ComparisonConstraint"
+            | "PathNodeKindConstraint"
+            | "SelfJoinUniquenessConstraint"
+            | "InverseExistenceConstraint"
+            | "TransitiveReachabilityConstraint"
+            | "AcyclicConstraint"
     )
 }
 
@@ -2886,6 +2902,228 @@ fn read_aggregate_constraint(store: &RdfDataset, node: &Subject) -> Result<Const
     Ok(finalize_sugar(store, node, integrity)?.with_aggregate(agg))
 }
 
+/// Map an authored `logic:compareOp` symbol to the `logic:` comparison relation local name the
+/// projector recognizes (the FORBIDDEN relation whose satisfaction is the violation).
+fn compare_op_relation(op: &str) -> Option<&'static str> {
+    match op.trim() {
+        "=" | "==" => Some("termEqual"),
+        "!=" | "≠" | "<>" => Some("termDistinct"),
+        "<" => Some("termLess"),
+        "<=" | "≤" => Some("termLessEqual"),
+        ">" => Some("termGreater"),
+        ">=" | "≥" => Some("termGreaterEqual"),
+        _ => None,
+    }
+}
+
+/// Map an authored `logic:nodeKind` token to the unary `logic:` node-kind relation local name the
+/// projector recognizes (the REQUIRED kind; its failure is the violation).
+fn node_kind_relation(kind: &str) -> Option<&'static str> {
+    match kind.trim() {
+        "IRI" | "iri" => Some("termIsIri"),
+        "Literal" | "literal" => Some("termIsLiteral"),
+        "BlankNodeOrIRI" | "BlankNodeOrIri" | "blankNodeOrIri" => Some("termIsBlankOrIri"),
+        _ => None,
+    }
+}
+
+/// A comparison constraint: two focus-node property values compared. `logic:leftPath P` +
+/// `logic:rightPath Q` + `logic:compareOp OP` where OP is the FORBIDDEN relation, so the violation
+/// is `∃ l, r . P(this, l) ∧ Q(this, r) ∧ OP(l, r)` — e.g. a `gmeow:ScoreScale` whose
+/// `gmeow:scaleMin >= gmeow:scaleMax`. Integrity: `∀ this . C(this) → ¬∃ l, r . (…)`.
+fn read_comparison(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+    let class = sugar_target_class(store, node)?;
+    let left = value(store, node, &nn(&logic_iri("leftPath")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| "logic:ComparisonConstraint requires logic:leftPath".to_owned())?;
+    let right = value(store, node, &nn(&logic_iri("rightPath")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| "logic:ComparisonConstraint requires logic:rightPath".to_owned())?;
+    let op = value(store, node, &nn(&logic_iri("compareOp")))
+        .map(|t| term_str(&t))
+        .and_then(|s| compare_op_relation(&s))
+        .ok_or_else(|| {
+            "logic:ComparisonConstraint requires a logic:compareOp in =/!=/</<=/>/>=".to_owned()
+        })?;
+    let forbidden = Formula::Not(Box::new(Formula::Exists {
+        vars: vec!["l".to_owned(), "r".to_owned()],
+        body: Box::new(Formula::And(vec![
+            f_atom2(&left, t_var("this"), t_var("l"))?,
+            f_atom2(&right, t_var("this"), t_var("r"))?,
+            f_atom2(&logic_iri(op), t_var("l"), t_var("r"))?,
+        ])),
+    }));
+    finalize_sugar(
+        store,
+        node,
+        f_forall_this(f_guard_class(&class)?, forbidden),
+    )
+}
+
+/// A path node-kind constraint: every value on `logic:valuePath P` must be of the given
+/// `logic:nodeKind` (`IRI` / `BlankNodeOrIRI` / `Literal`). Integrity:
+/// `∀ this . guard → ∀ v . P(this, v) → kind(v)`. With `logic:onClass` the guard is class
+/// membership; without it the trigger predicate `P` is the range restriction (→ `sh:targetSubjectsOf
+/// P`, the "subjects of a predicate — its value must be an IRI" pattern).
+fn read_path_node_kind(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+    let class = sugar_optional_target_class(store, node);
+    let path = value(store, node, &nn(&logic_iri("valuePath")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| "logic:PathNodeKindConstraint requires logic:valuePath".to_owned())?;
+    let kind = value(store, node, &nn(&logic_iri("nodeKind")))
+        .map(|t| term_str(&t))
+        .and_then(|s| node_kind_relation(&s))
+        .ok_or_else(|| {
+            "logic:PathNodeKindConstraint requires a logic:nodeKind in IRI/BlankNodeOrIRI/Literal"
+                .to_owned()
+        })?;
+    let kind_atom = Formula::atom(Term::iri(logic_iri(kind))?, vec![t_var("v")])?;
+    let inner = Formula::Forall {
+        vars: vec!["v".to_owned()],
+        body: Box::new(Formula::Implies(
+            Box::new(f_atom2(&path, t_var("this"), t_var("v"))?),
+            Box::new(kind_atom),
+        )),
+    };
+    // With a target class the guard is class membership; without one the value-path atom IS the
+    // guard (a predicate-presence range restriction → SubjectsOf).
+    let guard = match &class {
+        Some(c) => f_guard_class(c)?,
+        None => f_atom2(&path, t_var("this"), t_var("g"))?,
+    };
+    finalize_sugar(store, node, f_forall_this(guard, inner))
+}
+
+/// A self-join uniqueness constraint: no two DISTINCT siblings reached through
+/// `logic:siblingPredicate P` may share the same value on `logic:sharedPredicate Q`. Violation:
+/// `∃ s1, s2, i . P(this, s1) ∧ P(this, s2) ∧ Q(s1, i) ∧ Q(s2, i) ∧ s1 ≠ s2` — e.g. two
+/// argument slots with the same slot index. Integrity: `∀ this . guard → ¬∃ (…)`. With
+/// `logic:onClass` the guard is class membership; without it `P` is the range restriction (→
+/// `sh:targetSubjectsOf P`).
+fn read_self_join_uniqueness(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+    let class = sugar_optional_target_class(store, node);
+    let sibling = value(store, node, &nn(&logic_iri("siblingPredicate")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| {
+            "logic:SelfJoinUniquenessConstraint requires logic:siblingPredicate".to_owned()
+        })?;
+    let shared = value(store, node, &nn(&logic_iri("sharedPredicate")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| {
+            "logic:SelfJoinUniquenessConstraint requires logic:sharedPredicate".to_owned()
+        })?;
+    let forbidden = Formula::Not(Box::new(Formula::Exists {
+        vars: vec!["s1".to_owned(), "s2".to_owned(), "i".to_owned()],
+        body: Box::new(Formula::And(vec![
+            f_atom2(&sibling, t_var("this"), t_var("s1"))?,
+            f_atom2(&sibling, t_var("this"), t_var("s2"))?,
+            f_atom2(&shared, t_var("s1"), t_var("i"))?,
+            f_atom2(&shared, t_var("s2"), t_var("i"))?,
+            f_atom2(&logic_iri("termDistinct"), t_var("s1"), t_var("s2"))?,
+        ])),
+    }));
+    let guard = match &class {
+        Some(c) => f_guard_class(c)?,
+        None => f_atom2(&sibling, t_var("this"), t_var("g"))?,
+    };
+    finalize_sugar(store, node, f_forall_this(guard, forbidden))
+}
+
+/// An inverse-existence constraint: every `logic:onClass C` must be the OBJECT of
+/// `logic:inversePredicate P` from some subject, optionally typed `logic:subjectClass T`.
+/// Integrity: `∀ this . C(this) → ∃ s . ([T(s) ∧] P(s, this))` — e.g. a `lang:FeatureValue` must
+/// be the `lang:denotationTarget` of some `lang:Denotation`.
+fn read_inverse_existence(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+    let class = sugar_target_class(store, node)?;
+    let inverse = value(store, node, &nn(&logic_iri("inversePredicate")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| {
+            "logic:InverseExistenceConstraint requires logic:inversePredicate".to_owned()
+        })?;
+    let subject_class = value(store, node, &nn(&logic_iri("subjectClass"))).map(|t| term_str(&t));
+    let mut conj = Vec::new();
+    if let Some(t) = &subject_class {
+        conj.push(f_atom2(RDF_TYPE, t_var("s"), Term::iri(t)?)?);
+    }
+    conj.push(f_atom2(&inverse, t_var("s"), t_var("this"))?);
+    let existence = Formula::Exists {
+        vars: vec!["s".to_owned()],
+        body: Box::new(if conj.len() == 1 {
+            conj.pop().expect("one atom")
+        } else {
+            Formula::And(conj)
+        }),
+    };
+    finalize_sugar(
+        store,
+        node,
+        f_forall_this(f_guard_class(&class)?, existence),
+    )
+}
+
+/// The `logic:` transitive-reachability relation the projector lowers to a `subject <Q>+ target`
+/// property path.
+fn f_transitive_reach(subject: Term, path: &str, target: Term) -> Result<Formula, String> {
+    Formula::atom(
+        Term::iri(logic_iri("transitiveReach"))?,
+        vec![subject, Term::iri(path)?, target],
+    )
+}
+
+/// A transitive-reachability constraint: every value on `logic:viaPredicate P` must reach
+/// `logic:reachTarget T` along a one-or-more `logic:pathPredicate Q` walk. Integrity:
+/// `∀ this . C(this) → ∀ v . P(this, v) → v Q+ T` — e.g. a flagship scenario's enforced failure
+/// class must transitively `rdfs:subClassOf+` the conformance-failure root.
+fn read_transitive_reachability(
+    store: &RdfDataset,
+    node: &Subject,
+) -> Result<ConstraintIr, String> {
+    let class = sugar_target_class(store, node)?;
+    let via = value(store, node, &nn(&logic_iri("viaPredicate")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| {
+            "logic:TransitiveReachabilityConstraint requires logic:viaPredicate".to_owned()
+        })?;
+    let path = value(store, node, &nn(&logic_iri("pathPredicate")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| {
+            "logic:TransitiveReachabilityConstraint requires logic:pathPredicate".to_owned()
+        })?;
+    let target = value(store, node, &nn(&logic_iri("reachTarget")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| {
+            "logic:TransitiveReachabilityConstraint requires logic:reachTarget".to_owned()
+        })?;
+    let inner = Formula::Forall {
+        vars: vec!["v".to_owned()],
+        body: Box::new(Formula::Implies(
+            Box::new(f_atom2(&via, t_var("this"), t_var("v"))?),
+            Box::new(f_transitive_reach(t_var("v"), &path, Term::iri(&target)?)?),
+        )),
+    };
+    finalize_sugar(store, node, f_forall_this(f_guard_class(&class)?, inner))
+}
+
+/// An acyclicity constraint: no `logic:onClass C` may reach itself along a one-or-more
+/// `logic:pathPredicate Q` walk. Integrity: `∀ this . C(this) → ¬ (this Q+ this)` — e.g. a form
+/// slot may not depend (transitively) on itself.
+fn read_acyclic(store: &RdfDataset, node: &Subject) -> Result<ConstraintIr, String> {
+    let class = sugar_target_class(store, node)?;
+    let path = value(store, node, &nn(&logic_iri("pathPredicate")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| "logic:AcyclicConstraint requires logic:pathPredicate".to_owned())?;
+    let forbidden = Formula::Not(Box::new(f_transitive_reach(
+        t_var("this"),
+        &path,
+        t_var("this"),
+    )?));
+    finalize_sugar(
+        store,
+        node,
+        f_forall_this(f_guard_class(&class)?, forbidden),
+    )
+}
+
 /// Read every compact constraint-sugar record (P1–P5, P7, and the aggregate P6) into
 /// [`ConstraintIr`]s. Fail-soft like the other extractors: a malformed record emits a
 /// `MALFORMED_CONSTRAINT` warning and is skipped, never silently dropped. A sugar-free source
@@ -2895,7 +3133,7 @@ fn extract_sugar_constraints(
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Vec<ConstraintIr> {
     type Reader = fn(&RdfDataset, &Subject) -> Result<ConstraintIr, String>;
-    let readers: [(&str, Reader); 7] = [
+    let readers: [(&str, Reader); 13] = [
         ("ChoiceGroupConstraint", read_choice_group),
         ("GuardedImplicationConstraint", read_guarded_implication),
         (
@@ -2906,6 +3144,15 @@ fn extract_sugar_constraints(
         ("CrossNodeConstraint", read_cross_node),
         ("ForbiddenPatternConstraint", read_forbidden_pattern),
         ("AggregateConstraint", read_aggregate_constraint),
+        ("ComparisonConstraint", read_comparison),
+        ("PathNodeKindConstraint", read_path_node_kind),
+        ("SelfJoinUniquenessConstraint", read_self_join_uniqueness),
+        ("InverseExistenceConstraint", read_inverse_existence),
+        (
+            "TransitiveReachabilityConstraint",
+            read_transitive_reachability,
+        ),
+        ("AcyclicConstraint", read_acyclic),
     ];
     let mut out: Vec<ConstraintIr> = Vec::new();
     for (class_local, reader) in readers {

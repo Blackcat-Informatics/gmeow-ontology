@@ -1441,3 +1441,80 @@ gmeow:usesScale a owl:FunctionalProperty ;
 <https://blackcatinformatics.ca/gmeow/ScoreAnchor> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/anchorRangeMin> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#decimal> ] .
 <https://blackcatinformatics.ca/gmeow/ScoreAnchor> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/anchorRangeMax> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#decimal> ] .
 <https://blackcatinformatics.ca/gmeow/Persona> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/personaBearer> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+
+# =========================================================================== #
+# Procedural constraints — compact logic: constraint-sugar records expanded by  #
+# the frontend to canonical logic:Constraint individuals and projected to       #
+# sh:SPARQLConstraint (the validation twin of the derivation surface).          #
+# =========================================================================== #
+
+# A gmeow:Norm carrying a gmeow:deonticModality must name its gmeow:normIssuer —
+# no anonymous oughts (a guarded implication: the modality is the trigger).
+gmeow:NormIssuerPresenceConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:label "Norm issuer presence constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A procedural integrity constraint: a gmeow:Norm carrying a gmeow:deonticModality must name its gmeow:normIssuer — no anonymous oughts."@x-gmeow-english ;
+    logic:onClass gmeow:Norm ;
+    logic:trigger gmeow:deonticModality ;
+    logic:requires gmeow:normIssuer ;
+    logic:formalizes gmeow:Norm ;
+    logic:message "A gmeow:Norm that carries a gmeow:deonticModality must name its gmeow:normIssuer; an anonymous ought is ill-formed." .
+
+# A gmeow:Assessment must name at least one appraisal method — a
+# gmeow:assessmentCriterion or a gmeow:assessmentRubric (disjunctive requiredness).
+gmeow:AssessmentMethodConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Assessment method presence constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A procedural integrity constraint: a gmeow:Assessment must name at least one appraisal method — a gmeow:assessmentCriterion or a gmeow:assessmentRubric."@x-gmeow-english ;
+    logic:onClass gmeow:Assessment ;
+    logic:anyOf gmeow:assessmentCriterion , gmeow:assessmentRubric ;
+    logic:formalizes gmeow:Assessment ;
+    logic:message "A gmeow:Assessment must name at least one of gmeow:assessmentCriterion or gmeow:assessmentRubric; a methodless score is ill-formed." .
+
+# A gmeow:ConditionParameter binds EXACTLY one of gmeow:parameterValue (a literal)
+# or gmeow:parameterEntity (a resource), never both and never neither (a choice group).
+gmeow:ConditionParameterMutexConstraint
+    a logic:ChoiceGroupConstraint ;
+    rdfs:label "Condition parameter mutual-exclusion constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A procedural integrity constraint: a gmeow:ConditionParameter binds exactly one of gmeow:parameterValue or gmeow:parameterEntity, never both."@x-gmeow-english ;
+    logic:onClass gmeow:ConditionParameter ;
+    logic:choicePredicate gmeow:parameterValue , gmeow:parameterEntity ;
+    logic:choiceMode "exactly-one" ;
+    logic:formalizes gmeow:ConditionParameter ;
+    logic:message "A gmeow:ConditionParameter must bind exactly one of gmeow:parameterValue or gmeow:parameterEntity, never both." .
+
+# A gmeow:ScoreScale's gmeow:scaleMin must be strictly below its gmeow:scaleMax —
+# an inverted or degenerate scale is ill-formed (a comparison constraint: min >= max
+# is the forbidden relation).
+gmeow:ScoreScaleOrderConstraint
+    a logic:ComparisonConstraint ;
+    rdfs:label "Score scale ordering constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A procedural integrity constraint: a gmeow:ScoreScale's gmeow:scaleMin must be strictly below its gmeow:scaleMax."@x-gmeow-english ;
+    logic:onClass gmeow:ScoreScale ;
+    logic:leftPath gmeow:scaleMin ;
+    logic:rightPath gmeow:scaleMax ;
+    logic:compareOp ">=" ;
+    logic:formalizes gmeow:ScoreScale ;
+    logic:message "A gmeow:ScoreScale's gmeow:scaleMin must be strictly below its gmeow:scaleMax; an inverted or degenerate scale is ill-formed." .
+
+# A gmeow:Persona's gmeow:personaRegister must be an IRI (a register individual), not
+# a free literal (a path node-kind constraint).
+gmeow:PersonaRegisterNodeKindConstraint
+    a logic:PathNodeKindConstraint ;
+    rdfs:label "Persona register node-kind constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A procedural integrity constraint: a gmeow:Persona's gmeow:personaRegister must be an IRI (a register individual), not a free literal."@x-gmeow-english ;
+    logic:onClass gmeow:Persona ;
+    logic:valuePath gmeow:personaRegister ;
+    logic:nodeKind "IRI" ;
+    logic:formalizes gmeow:Persona ;
+    logic:message "A gmeow:Persona's gmeow:personaRegister must name a register individual (an IRI), not a free literal." .

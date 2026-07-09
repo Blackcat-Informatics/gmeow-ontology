@@ -5180,3 +5180,35 @@ math:LogicLoweringDeclaredConstraint
 <https://blackcatinformatics.ca/math/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/demonstratedByCompetency> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/guardedByCounterExample> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/math/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/enforcesFailureClass> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+
+# A math:SetBuilderExpression's math:memberCondition must be a resource denoting a
+# logic: formula (a blank node or IRI), not an opaque literal string (a path node-kind
+# constraint).
+math:SetBuilderMemberConditionNodeKindConstraint
+    a logic:PathNodeKindConstraint ;
+    logic:onClass math:SetBuilderExpression ;
+    logic:valuePath math:memberCondition ;
+    logic:nodeKind "BlankNodeOrIRI" ;
+    logic:formalizes math:SetBuilderExpression ;
+    logic:message "A math:SetBuilderExpression must name its math:memberCondition as a resource denoting a logic: formula (a blank node or IRI), not an opaque literal string." .
+
+# No two distinct math:argumentSlot cells of the same parent may share the same
+# math:slotIndex — a duplicate index makes operand order ambiguous (a self-join
+# uniqueness constraint over subjects of math:argumentSlot).
+math:ArgumentSlotIndexUniquenessConstraint
+    a logic:SelfJoinUniquenessConstraint ;
+    logic:siblingPredicate math:argumentSlot ;
+    logic:sharedPredicate math:slotIndex ;
+    logic:formalizes math:SlotIndexUniquenessShape ;
+    logic:message "No two distinct math:argumentSlot cells of the same parent may share the same math:slotIndex; a duplicate index makes operand order ambiguous." .
+
+# A math:FlagshipScenario's math:enforcesFailureClass must name a class that transitively
+# rdfs:subClassOf the conformance-failure root — a transitive reachability constraint.
+math:FlagshipScenarioFailureClassConstraint
+    a logic:TransitiveReachabilityConstraint ;
+    logic:onClass math:FlagshipScenario ;
+    logic:viaPredicate math:enforcesFailureClass ;
+    logic:pathPredicate rdfs:subClassOf ;
+    logic:reachTarget math:MathConformanceFailure ;
+    logic:formalizes math:FlagshipScenario ;
+    logic:message "A math:FlagshipScenario's math:enforcesFailureClass must transitively rdfs:subClassOf math:MathConformanceFailure; a scenario that enforces a non-failure class is ill-formed." .
