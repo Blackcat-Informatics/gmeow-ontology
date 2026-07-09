@@ -35,6 +35,10 @@ pub(crate) mod id;
 mod magic;
 mod magic_generic;
 mod parity;
+// The consuming type-state plan pipeline (issue 1418, item 7): `Parsed → Stratified →
+// Planned → Executable`. Makes an unstratified/unplanned program unrepresentable at the
+// semi-naive executor boundary and memoizes the stratification + per-rule join partition.
+mod plan;
 mod seminaive;
 mod store;
 
@@ -67,6 +71,14 @@ pub(crate) use store::{Bound, RelationStore, extract_edb};
 pub(crate) use seminaive::{
     Budgeted, NativeOutcome, UnsupportedKind, evaluate, materialize_native,
 };
+
+// The type-state plan pipeline: the executor's entry-gate types. `Parsed` is the sole
+// entry; `Executable` is the sole type the forward/backward evaluators accept. The
+// intermediate `Stratified`/`Planned` are re-exported so a caller can name a stage if it
+// chooses, though the fluent `Parsed::new(..).stratify()?.plan().into_executable()` chain
+// never needs to.
+#[allow(unused_imports)]
+pub(crate) use plan::{Executable, Parsed, Planned, Stratified};
 
 // The native restricted (standard) existential-rule chase: value invention for the
 // existential fragment, admitted by the `ChaseAdmission` termination certificate and

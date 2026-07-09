@@ -549,6 +549,7 @@ mod tests {
     };
     use crate::physical::chase::{ChaseAdmission, ExistentialRule, chase_world, route_chase};
     use crate::physical::magic::resolve_native;
+    use crate::physical::plan::Parsed;
     use crate::physical::seminaive::{NativeOutcome, materialize_native};
     use crate::query_ir::{
         Budget, QAtom, QBodyLit, QGoal, QProgram, QRule, QTerm, parse_query_program,
@@ -1260,7 +1261,14 @@ mod tests {
             .unwrap_or_else(|e| panic!("[{}] parse_eval_rules failed: {e}", p.label));
         // The coverage floor runs unbudgeted (`None`), so the native step governor never
         // trips: the returned status is always `Ok` and the full least model is produced.
-        match materialize_native(&store, &rules, None)
+        // The corpus program is stratifiable by construction, so the type-state pipeline's
+        // `stratify()` always yields the `Executable` the executor requires.
+        let executable = Parsed::new(&rules)
+            .stratify()
+            .unwrap_or_else(|| panic!("[{}] corpus program must be stratifiable", p.label))
+            .plan()
+            .into_executable();
+        match materialize_native(&store, &executable, None)
             .unwrap_or_else(|e| panic!("[{}] materialize_native errored: {e}", p.label))
         {
             NativeOutcome::Decided(budgeted) => budgeted.rows,
