@@ -144,9 +144,27 @@ const SH_MESSAGE: &str = "http://www.w3.org/ns/shacl#message";
 const GMEOW_COMPETENCY_QUESTION: &str = "https://blackcatinformatics.ca/gmeow/CompetencyQuestion";
 const GMEOW_CQ_RATIONALE: &str = "https://blackcatinformatics.ca/gmeow/cqRationale";
 const GMEOW_CQ_QUERY_FILE: &str = "https://blackcatinformatics.ca/gmeow/cqQueryFile";
+/// `gmeow:cqQuery` — the inline SPARQL literal, used instead of
+/// [`GMEOW_CQ_QUERY_FILE`] by a CQ that embeds its query rather than pointing at
+/// a committed `.rq` file. No authored competency question carries both.
+const GMEOW_CQ_QUERY: &str = "https://blackcatinformatics.ca/gmeow/cqQuery";
+/// `gmeow:cqExactRows` — an `xsd:boolean` pinning whether `cqExpectRow` is the
+/// CLOSED result set (`true`) or a floor/subset (`false`/omitted → contains-check).
+const GMEOW_CQ_EXACT_ROWS: &str = "https://blackcatinformatics.ca/gmeow/cqExactRows";
+/// `gmeow:cqExpectRowCount` — an `xsd:integer` pinning an expected row COUNT
+/// (e.g. `0` for a must-be-empty QC query), used instead of an enumerated
+/// `cqExpectRow` list when only the cardinality — not the row content — matters.
+const GMEOW_CQ_EXPECT_ROW_COUNT: &str = "https://blackcatinformatics.ca/gmeow/cqExpectRowCount";
 const GMEOW_CQ_EXPECT_ROW: &str = "https://blackcatinformatics.ca/gmeow/cqExpectRow";
 const GMEOW_ROW_CELL: &str = "https://blackcatinformatics.ca/gmeow/rowCell";
 const GMEOW_CELL_VALUE_IRI: &str = "https://blackcatinformatics.ca/gmeow/cellValueIri";
+/// `gmeow:cellVar` — the SPARQL projection variable name a cell binds (e.g.
+/// `"neighbor"`).
+const GMEOW_CELL_VAR: &str = "https://blackcatinformatics.ca/gmeow/cellVar";
+/// `gmeow:cellValueLiteral` — a cell's expected literal lexical form, used
+/// instead of [`GMEOW_CELL_VALUE_IRI`] when the bound variable is a literal
+/// (e.g. a label or classification string) rather than an IRI.
+const GMEOW_CELL_VALUE_LITERAL: &str = "https://blackcatinformatics.ca/gmeow/cellValueLiteral";
 
 // ── Conformance-fixture Do/Don't binding surface ─────────────────────────────
 // The fixtures themselves (`tests/conformance-fixtures/*.ttl` /
@@ -185,6 +203,13 @@ pub enum DocsError {
     /// complete, well-formed manifest, so any of these is a broken invariant, never
     /// an optional input.
     TermManifest(String),
+    /// A competency question declares `gmeow:cqQueryFile` (a repo-root-relative
+    /// `.rq` path) but the file could not be read at that path. `cqQueryFile`
+    /// existing is the ontology's own claim that a resolvable query file exists
+    /// (mirroring the executing competency harness's own
+    /// `crates/slicetest/src/paths.rs::query_file` resolution), so a dangling
+    /// reference is a data bug, never an honest absence to swallow as `None`.
+    CompetencyQuery(String),
 }
 
 impl std::fmt::Display for DocsError {
@@ -194,6 +219,7 @@ impl std::fmt::Display for DocsError {
             DocsError::ConstraintCatalog(msg) => write!(f, "constraint catalog error: {msg}"),
             DocsError::MappingSets(msg) => write!(f, "central mapping-sets error: {msg}"),
             DocsError::TermManifest(msg) => write!(f, "term content manifest error: {msg}"),
+            DocsError::CompetencyQuery(msg) => write!(f, "competency query file error: {msg}"),
         }
     }
 }
@@ -597,21 +623,76 @@ pub struct DocShape {
 }
 
 /// A competency question (`gmeow:CompetencyQuestion`) reverse-mapped to the terms
-/// it exercises, so each term page can surface a "Tested by" block. Parsed from
-/// each slice's `tests/competency.ttl`.
+/// it exercises, so each term page can surface a "Tested by" block, and to a
+/// full copy-paste-runnable SPARQL query + its expected result, so
+/// `Page::CompetencyIndex` can render the whole question standalone. Parsed
+/// from each slice's `tests/competency.ttl`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct DocCompetency {
     /// The competency-question IRI.
     pub iri: String,
     /// `gmeow:cqRationale` — why the ontology must answer this.
     pub rationale: Option<String>,
-    /// `gmeow:cqQueryFile` — the slice-relative SPARQL query path.
+    /// `gmeow:cqQueryFile` — the REPO-ROOT-RELATIVE SPARQL query path, as
+    /// authored (kept verbatim for citation/display even once resolved). Some
+    /// slices author their own `.rq` under `slices/<group>/<name>/queries/…`;
+    /// others point at the shared `queries/competency/…` (or `queries/qc/…`)
+    /// tree at the repo root — both are legitimate repo-root-relative paths
+    /// (mirrors `crates/slicetest/src/paths.rs::query_file`, the executing
+    /// harness's own resolution contract). `None` when the CQ instead embeds
+    /// its query inline via `gmeow:cqQuery`.
     pub query_file: Option<String>,
+    /// The resolved SPARQL query body: `gmeow:cqQuery`'s inline literal when
+    /// present, or the text read from [`query_file`](Self::query_file) via
+    /// [`DocsModel::discover`]'s `apply_competency_query_text` pass (needs the
+    /// repo root, so `extract_competency` cannot resolve it itself). `None`
+    /// only when the CQ carries neither predicate (never happens for a
+    /// well-formed `competency.ttl`, but is not asserted here — `dsl::load_spec`
+    /// is the enforcement point for the harness; this is a docs *read*, not a
+    /// re-validation of the DSL). A `query_file` that fails to resolve to an
+    /// existing file is a hard fail (see `DocsError::CompetencyQuery`), never a
+    /// silent `None`.
+    pub query_text: Option<String>,
+    /// `gmeow:cqExactRows` — `Some(true)` when `expected_rows` is the CLOSED
+    /// result set, `Some(false)` when it is a floor/subset (contains-check),
+    /// `None` when the CQ declares neither (most common for a subset check).
+    pub exact_rows: Option<bool>,
+    /// `gmeow:cqExpectRowCount` — an expected row COUNT (e.g. `0` for a
+    /// must-be-empty QC query), used instead of an enumerated `expected_rows`
+    /// list when only cardinality matters. `None` for a CQ that enumerates rows.
+    pub expected_row_count: Option<i64>,
+    /// The enumerated expected rows (`gmeow:cqExpectRow` → `gmeow:rowCell`),
+    /// each a set of variable/value bindings, in [`GMEOW_CQ_EXPECT_ROW`]'s
+    /// deterministic (row-IRI-sorted) order. Empty when the CQ instead pins
+    /// [`expected_row_count`](Self::expected_row_count) or neither.
+    pub expected_rows: Vec<DocExpectedRow>,
     /// The term IRIs this CQ exercises, reached via
     /// `gmeow:cqExpectRow → gmeow:rowCell → gmeow:cellValueIri` (sorted/deduped).
     pub exercises: Vec<String>,
     /// The slice IRI that owns the competency artifact.
     pub owner_slice: String,
+}
+
+/// One expected result row of a competency question (`gmeow:ExpectedRow`): the
+/// set of per-variable cell bindings, sorted by `(var, value_iri, value_literal)`
+/// for deterministic rendering (blank-node cell order is not itself meaningful).
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
+pub struct DocExpectedRow {
+    /// The row's cell bindings, one per projected SPARQL variable.
+    pub cells: Vec<DocExpectedCell>,
+}
+
+/// One expected cell binding (`gmeow:ExpectedCell`) within an expected row.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
+pub struct DocExpectedCell {
+    /// `gmeow:cellVar` — the SPARQL projection variable this cell binds.
+    pub var: Option<String>,
+    /// `gmeow:cellValueIri` — the expected IRI binding, when the variable binds
+    /// a resource.
+    pub value_iri: Option<String>,
+    /// `gmeow:cellValueLiteral` — the expected literal lexical form, when the
+    /// variable binds a literal.
+    pub value_literal: Option<String>,
 }
 
 /// A documentation concern (`gmeow:DocumentationConcern`) and the terms that
@@ -860,7 +941,12 @@ impl DocsModel {
     /// v8: adds [`fixtures`](DocsModel::fixtures) — conformance Do/Don't
     /// fixtures joined to their slice's `tests/example-conformance.ttl`
     /// binding.
-    pub const VERSION: &'static str = "8";
+    ///
+    /// v9: [`DocCompetency`] grows `query_text` (resolved `.rq` body / inline
+    /// `cqQuery`), `exact_rows`, `expected_row_count`, and structured
+    /// `expected_rows` (`DocExpectedRow`/`DocExpectedCell`) — the full
+    /// copy-paste-runnable competency-question surface for `Page::CompetencyIndex`.
+    pub const VERSION: &'static str = "9";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -1225,6 +1311,11 @@ impl DocsModel {
         // populated (from_catalog runs before the catalog is read, so every
         // fixture starts with catalog_slug: None).
         apply_fixture_catalog_slugs(&mut model);
+        // Resolve each competency question's declared `cqQueryFile` to its
+        // repo-root-relative `.rq` file text (`extract_competency` only fills
+        // `query_text` from an inline `cqQuery`, since it never sees the repo
+        // root). Hard-fails on a dangling `cqQueryFile` — see `DocsError::CompetencyQuery`.
+        apply_competency_query_text(&mut model, root)?;
         // The per-term content-address manifest, read from the committed N-Quads
         // fanout artifact. It sets each documented term's content digest and
         // first-seen version and unions the computed changelog into the authored
@@ -1393,6 +1484,40 @@ fn apply_fixture_catalog_slugs(model: &mut DocsModel) {
             .and_then(|code| by_code.get(code))
             .cloned();
     }
+}
+
+/// Resolve each [`DocCompetency::query_file`] to its [`DocCompetency::query_text`]
+/// by reading the repo-root-relative `.rq` path. `query_file` is
+/// REPO-ROOT-RELATIVE regardless of whether it happens to start with
+/// `slices/<group>/<name>/…` (a slice's own committed query) or
+/// `queries/competency/…` / `queries/qc/…` (the shared root-level query tree) —
+/// this is exactly `crates/slicetest/src/paths.rs::query_file`'s own resolution
+/// contract (`repo_root().join(rel)`), the single source of truth the executing
+/// competency harness already uses, so docs reuses it rather than guessing at a
+/// slice-relative convention that does not exist in the data.
+///
+/// A CQ with `query_text` already set (an inline `gmeow:cqQuery`) is left alone.
+/// A CQ with `query_file` set but no readable file at that path is a hard
+/// fail — `cqQueryFile` existing is the ontology's own claim that the file
+/// resolves; a dangling reference is a data bug, not an honest absence.
+fn apply_competency_query_text(model: &mut DocsModel, root: &Path) -> Result<(), DocsError> {
+    for cq in &mut model.competencies {
+        if cq.query_text.is_some() {
+            continue;
+        }
+        let Some(rel) = &cq.query_file else { continue };
+        let path = root.join(rel);
+        let text = std::fs::read_to_string(&path).map_err(|e| {
+            DocsError::CompetencyQuery(format!(
+                "competency question <{}> declares gmeow:cqQueryFile {rel:?} but the file could \
+                 not be read at {}: {e}",
+                cq.iri,
+                path.display()
+            ))
+        })?;
+        cq.query_text = Some(text);
+    }
+    Ok(())
 }
 
 /// Read the constraint catalog from `<root>/generated/catalog/constraint-catalog.nq`
@@ -1825,21 +1950,57 @@ fn shape_messages(store: &Store, start: &Node) -> Vec<String> {
 
 /// Extract competency questions reverse-mapped to the terms they exercise. The
 /// terms are reached via `gmeow:cqExpectRow → gmeow:rowCell → gmeow:cellValueIri`.
+///
+/// `query_text` is only filled in here for an inline `gmeow:cqQuery`; a
+/// `gmeow:cqQueryFile` reference needs the repo root to resolve (this function
+/// only sees one slice's parsed store), so that half is completed afterwards by
+/// `apply_competency_query_text` in [`DocsModel::discover`].
 fn extract_competency(store: &Store, owner_slice: &str) -> Vec<DocCompetency> {
     let mut out = Vec::new();
     for cq in subjects_of_type(store, GMEOW_COMPETENCY_QUESTION) {
         let rationale = first_literal(store, &cq, GMEOW_CQ_RATIONALE);
         let query_file = first_literal(store, &cq, GMEOW_CQ_QUERY_FILE);
+        // No authored CQ carries both `cqQuery` and `cqQueryFile` (verified
+        // across all `slices/*/*/tests/competency.ttl`), so filling `query_text`
+        // from the inline literal here never collides with the file-based
+        // resolution `apply_competency_query_text` performs afterwards.
+        let query_text = first_literal(store, &cq, GMEOW_CQ_QUERY);
+        let exact_rows = literals(store, &cq, GMEOW_CQ_EXACT_ROWS)
+            .into_iter()
+            .next()
+            .map(|v| v == "true");
+        let expected_row_count = first_literal(store, &cq, GMEOW_CQ_EXPECT_ROW_COUNT).map(|v| {
+            v.parse::<i64>().unwrap_or_else(|e| {
+                panic!(
+                    "competency question <{cq}> gmeow:cqExpectRowCount {v:?} is not a valid \
+                     xsd:integer: {e}"
+                )
+            })
+        });
         let mut exercises: Vec<String> = Vec::new();
+        // `named_objects` returns rows sorted/deduped by row-subject IRI, which is
+        // already deterministic — no further row-level sort is needed.
+        let mut expected_rows: Vec<DocExpectedRow> = Vec::new();
         for row in named_objects(store, &cq, GMEOW_CQ_EXPECT_ROW) {
+            let mut cells: Vec<DocExpectedCell> = Vec::new();
             for cell in blank_objects(store, &row, GMEOW_ROW_CELL) {
                 let cell_node = Node::Blank(cell);
-                for object in store.objects_of_node(&cell_node, GMEOW_CELL_VALUE_IRI) {
-                    if let Object::Named(v) = object {
-                        exercises.push(v);
-                    }
+                let var = store.first_literal_of(&cell_node, GMEOW_CELL_VAR);
+                let value_iri = first_named_of_node(store, &cell_node, GMEOW_CELL_VALUE_IRI);
+                let value_literal = store.first_literal_of(&cell_node, GMEOW_CELL_VALUE_LITERAL);
+                if let Some(v) = &value_iri {
+                    exercises.push(v.clone());
                 }
+                cells.push(DocExpectedCell {
+                    var,
+                    value_iri,
+                    value_literal,
+                });
             }
+            // Cell blank-node discovery order is not itself meaningful; sort by
+            // content for deterministic column order in the rendered table.
+            cells.sort();
+            expected_rows.push(DocExpectedRow { cells });
         }
         exercises.sort();
         exercises.dedup();
@@ -1847,11 +2008,29 @@ fn extract_competency(store: &Store, owner_slice: &str) -> Vec<DocCompetency> {
             iri: cq,
             rationale,
             query_file,
+            query_text,
+            exact_rows,
+            expected_row_count,
+            expected_rows,
             exercises,
             owner_slice: owner_slice.to_string(),
         });
     }
     out
+}
+
+/// The lowest-sorted named-node object of `<node> <pred> ?o`, or `None` — the
+/// blank-node-subject twin of a named-object read, used for per-cell
+/// `gmeow:cellValueIri` lookups where the cell is itself a blank node.
+fn first_named_of_node(store: &Store, node: &Node, pred: &str) -> Option<String> {
+    store
+        .objects_of_node(node, pred)
+        .into_iter()
+        .filter_map(|o| match o {
+            Object::Named(v) => Some(v),
+            _ => None,
+        })
+        .min()
 }
 
 /// All blank-node object labels of `subject predicate ?o` in the default graph.

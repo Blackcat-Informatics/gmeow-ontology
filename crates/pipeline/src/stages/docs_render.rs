@@ -127,11 +127,16 @@ fn walk_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), gmeow
 /// `shapes.ttl` SHACL constraint files, per-slice `tests/competency.ttl`
 /// competency-question overlays, per-slice `tests/conformance-fixtures/*.ttl` /
 /// `tests/counter-examples/*.ttl` Do/Don't fixtures + their
-/// `tests/example-conformance.ttl` binding overlay, and root `shapes/*.ttl`
-/// aggregate node shapes. These are NOT reflected in the composed
-/// `stage-gts-compose` product (guide bodies ride the bundle only as blake3
-/// digests), so any stage that derives an artifact from the docs model must
-/// declare them as `input_files` for cache soundness. Shared by
+/// `tests/example-conformance.ttl` binding overlay, per-slice `queries/*` SPARQL
+/// files (a `gmeow:cqQueryFile` may resolve into a slice's own `queries/competency/`
+/// tree) plus the shared repo-root `queries/*` tree (the same `cqQueryFile` value
+/// may instead point at a root-level shared query, e.g. `queries/competency/…` or
+/// `queries/qc/…` — both forms are repo-root-relative, mirroring
+/// `crates/slicetest/src/paths.rs::query_file`'s own resolution contract), and
+/// root `shapes/*.ttl` aggregate node shapes. These are NOT reflected in the
+/// composed `stage-gts-compose` product (guide bodies ride the bundle only as
+/// blake3 digests), so any stage that derives an artifact from the docs model
+/// must declare them as `input_files` for cache soundness. Shared by
 /// `DocsRenderStage` (the documentation graph) and `SnapshotStage` (the
 /// embedded rendered site).
 pub(crate) fn docs_source_files(
@@ -186,6 +191,9 @@ pub(crate) fn docs_source_files(
                 }
             }
         }
+        // A slice's own `queries/` tree (typically `queries/competency/*.rq`) — a
+        // `gmeow:cqQueryFile` this slice's `competency.ttl` declares may resolve here.
+        walk_files(&dir.join("queries"), &mut files)?;
     }
     let four_boxes = root.join("docs").join("four-boxes.md");
     if four_boxes.is_file() {
@@ -200,6 +208,10 @@ pub(crate) fn docs_source_files(
     }
     walk_files(&root.join("i18n"), &mut files)?;
     walk_files(&root.join("shapes"), &mut files)?;
+    // The shared repo-root query tree (`queries/competency/*.rq`, `queries/qc/*.rq`,
+    // …) — many `gmeow:cqQueryFile` values resolve here rather than into a slice's
+    // own directory (both forms are repo-root-relative; see the doc comment above).
+    walk_files(&root.join("queries"), &mut files)?;
     files.sort();
     files.dedup();
     Ok(files)
@@ -316,6 +328,22 @@ mod tests {
         assert!(
             has_root_shapes,
             "docs_source_files must include root shapes/*.ttl files"
+        );
+        // A CQ's `cqQueryFile` may resolve into a slice's own `queries/competency/`
+        // tree (`slices/grounding/logic/queries/competency/named-parametric-paths.rq`)
+        // or the shared repo-root tree (`queries/competency/citation-intents.rq`) —
+        // both must be cache-salted (`gmeow_docs::model::apply_competency_query_text`).
+        let has_slice_query = files
+            .iter()
+            .any(|p| p.ends_with("queries/competency/named-parametric-paths.rq"));
+        assert!(
+            has_slice_query,
+            "docs_source_files must include at least one per-slice queries/competency/*.rq"
+        );
+        let root_query = root.join("queries/competency/citation-intents.rq");
+        assert!(
+            files.contains(&root_query),
+            "docs_source_files must include the shared root queries/competency/*.rq tree"
         );
     }
 

@@ -89,6 +89,7 @@ fn fixture_model() -> DocsModel {
         query_file: Some("demo.rq".to_string()),
         exercises: vec!["https://blackcatinformatics.ca/gmeow/Foo".to_string()],
         owner_slice: "https://blackcatinformatics.ca/gmeow/slice/demo".to_string(),
+        ..Default::default()
     };
 
     let linkage = DocLinkage {
