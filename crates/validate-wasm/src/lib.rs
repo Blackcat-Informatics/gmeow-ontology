@@ -70,5 +70,5 @@ pub fn validate(
     origin: &str,
 ) -> Result<String, JsError> {
     gmeow_validate::data_validate::validate_json(data.as_bytes(), format, gts, namespace, origin)
-        .map_err(|e| JsError::new(&e))
+        .map_err(|e| JsError::new(e.message()))
 }

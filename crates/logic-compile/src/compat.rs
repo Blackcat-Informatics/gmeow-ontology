@@ -35,6 +35,7 @@
 //! Some("EntrenchmentRevision")` rather than on a modality string — the contract
 //! carries no per-world modality, only its revision policy.
 
+use gmeow_errors::Diag;
 use purrdf::{RdfDataset, TermRef};
 
 use super::ir::{LOGIC_NAMESPACE, ReasoningContract};
@@ -72,17 +73,19 @@ impl ContradictionPolicy {
     /// Parse the `module.ttl` local value name. HARD-FAILS on an unrecognised name —
     /// the coherence certificate must never silently default a *garbled* policy to a
     /// permissive one (that would mask a forbidden glut and turn the gate green).
-    pub fn from_local(name: &str) -> Result<Self, String> {
+    pub fn from_local(name: &str) -> gmeow_errors::Result<Self> {
         Ok(match name {
             "AdmitAllFour" => Self::AdmitAllFour,
             "ForbidGap" => Self::ForbidGap,
             "ForbidGlut" => Self::ForbidGlut,
             "ForbidGapAndGlut" => Self::ForbidGapAndGlut,
             other => {
-                return Err(format!(
-                    "unknown admissible-valuation policy `{other}`; expected one of \
+                return Err(Diag::of_kind(crate::error::Compat {
+                    detail: format!(
+                        "unknown admissible-valuation policy `{other}`; expected one of \
                      AdmitAllFour, ForbidGap, ForbidGlut, ForbidGapAndGlut"
-                ));
+                    ),
+                }));
             }
         })
     }
@@ -90,7 +93,7 @@ impl ContradictionPolicy {
     /// The policy a contract carries: its explicit `admissible_valuation` (HARD-FAIL
     /// on a garbled value), or the conservative classical [`Self::DEFAULT`] when none
     /// is pinned.
-    pub fn for_contract(contract: &ReasoningContract) -> Result<Self, String> {
+    pub fn for_contract(contract: &ReasoningContract) -> gmeow_errors::Result<Self> {
         match contract.admissible_valuation.as_deref() {
             Some(name) => Self::from_local(name),
             None => Ok(Self::DEFAULT),
@@ -134,7 +137,7 @@ impl ContradictionPolicy {
     /// # Errors
     /// Propagates the [`Self::from_local`] error if ANY declared valuation is a
     /// garbled / unknown policy name — a HARD FAIL, never a silent fallback.
-    pub fn resolve_from_dataset(dataset: &RdfDataset) -> Result<Self, String> {
+    pub fn resolve_from_dataset(dataset: &RdfDataset) -> gmeow_errors::Result<Self> {
         let admissible_valuation = format!("{LOGIC_NAMESPACE}admissibleValuation");
         let contract_type = format!("{LOGIC_NAMESPACE}ReasoningContract");
         let preset_type = format!("{LOGIC_NAMESPACE}ReasoningPreset");
@@ -718,8 +721,8 @@ logic:strict rdf:type logic:ReasoningContract ; logic:admissibleValuation logic:
     fn contradiction_policy_local_name_round_trips_and_hard_fails() {
         for &policy in ContradictionPolicy::ALL {
             assert_eq!(
-                ContradictionPolicy::from_local(policy.local_name()),
-                Ok(policy)
+                ContradictionPolicy::from_local(policy.local_name()).unwrap(),
+                policy
             );
             assert!(policy.iri().ends_with(policy.local_name()));
         }
@@ -735,8 +738,8 @@ logic:strict rdf:type logic:ReasoningContract ; logic:admissibleValuation logic:
         let bare = ReasoningContract::default();
         assert_eq!(bare.admissible_valuation, None);
         assert_eq!(
-            ContradictionPolicy::for_contract(&bare),
-            Ok(ContradictionPolicy::ForbidGapAndGlut)
+            ContradictionPolicy::for_contract(&bare).unwrap(),
+            ContradictionPolicy::ForbidGapAndGlut
         );
         // An explicit glut-admitting policy relaxes it to permitted.
         let paraconsistent = ReasoningContract {
@@ -744,8 +747,8 @@ logic:strict rdf:type logic:ReasoningContract ; logic:admissibleValuation logic:
             ..ReasoningContract::default()
         };
         assert_eq!(
-            ContradictionPolicy::for_contract(&paraconsistent),
-            Ok(ContradictionPolicy::ForbidGap)
+            ContradictionPolicy::for_contract(&paraconsistent).unwrap(),
+            ContradictionPolicy::ForbidGap
         );
         // A garbled explicit value propagates the hard failure.
         let garbled = ReasoningContract {

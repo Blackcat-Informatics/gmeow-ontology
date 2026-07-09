@@ -14,22 +14,30 @@ use purrdf::RdfDataset;
 use crate::graph::{all_iris, g, id, instances_of, label_of, one_iri, one_lit};
 use crate::model::{Axis, ContextScope, Exemption, Rubric, Threshold, Tier};
 
+/// Wrap a structural-rubric-defect message as a typed diagnostic on the substrate,
+/// preserving the authored text verbatim.
+fn rubric_err(detail: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Rubric {
+        detail: detail.into(),
+    })
+}
+
 /// Load the whole rubric from a dataset that contains the rubric module graph.
 ///
 /// # Errors
 /// Returns a message if the rubric is structurally incomplete — no tier ladder,
 /// an axis missing its producer/dimension/scope, or a threshold naming an
 /// unknown tier. A missing required binding is a hard fail, never papered over.
-pub fn load_rubric(ds: &RdfDataset) -> Result<Rubric, String> {
+pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
     // --- Tiers -------------------------------------------------------------
     let rank_p = id(ds, &g("tierRank"));
     let mut tiers: Vec<Tier> = Vec::new();
     for iri in instances_of(ds, &g("QualityTier")) {
-        let sid = id(ds, &iri).ok_or_else(|| format!("tier {iri} not resolvable"))?;
+        let sid = id(ds, &iri).ok_or_else(|| rubric_err(format!("tier {iri} not resolvable")))?;
         let rank = rank_p
             .and_then(|p| one_lit(ds, sid, p))
             .and_then(|s| s.parse::<i64>().ok())
-            .ok_or_else(|| format!("tier {iri} has no integer gmeow:tierRank"))?;
+            .ok_or_else(|| rubric_err(format!("tier {iri} has no integer gmeow:tierRank")))?;
         tiers.push(Tier {
             iri,
             label: label_of(ds, sid),
@@ -37,22 +45,27 @@ pub fn load_rubric(ds: &RdfDataset) -> Result<Rubric, String> {
         });
     }
     if tiers.is_empty() {
-        return Err("rubric has no gmeow:QualityTier ladder".to_owned());
+        return Err(rubric_err("rubric has no gmeow:QualityTier ladder"));
     }
     tiers.sort_by(|a, b| a.sort_key().cmp(&b.sort_key()));
 
     // --- Thresholds (resolved inline per axis) -----------------------------
     let thr_tier_p = id(ds, &g("thresholdTier"));
     let thr_floor_p = id(ds, &g("thresholdFloor"));
-    let load_threshold = |thr_iri: &str| -> Result<Threshold, String> {
-        let tid = id(ds, thr_iri).ok_or_else(|| format!("threshold {thr_iri} not resolvable"))?;
+    let load_threshold = |thr_iri: &str| -> gmeow_errors::Result<Threshold> {
+        let tid = id(ds, thr_iri)
+            .ok_or_else(|| rubric_err(format!("threshold {thr_iri} not resolvable")))?;
         let tier_iri = thr_tier_p
             .and_then(|p| one_iri(ds, tid, p))
-            .ok_or_else(|| format!("threshold {thr_iri} has no gmeow:thresholdTier"))?;
+            .ok_or_else(|| rubric_err(format!("threshold {thr_iri} has no gmeow:thresholdTier")))?;
         let floor = thr_floor_p
             .and_then(|p| one_lit(ds, tid, p))
             .and_then(|s| s.parse::<f64>().ok())
-            .ok_or_else(|| format!("threshold {thr_iri} has no decimal gmeow:thresholdFloor"))?;
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "threshold {thr_iri} has no decimal gmeow:thresholdFloor"
+                ))
+            })?;
         Ok(Threshold { tier_iri, floor })
     };
 
@@ -66,18 +79,18 @@ pub fn load_rubric(ds: &RdfDataset) -> Result<Rubric, String> {
 
     let mut axes: Vec<Axis> = Vec::new();
     for iri in instances_of(ds, &g("QualityAxis")) {
-        let sid = id(ds, &iri).ok_or_else(|| format!("axis {iri} not resolvable"))?;
+        let sid = id(ds, &iri).ok_or_else(|| rubric_err(format!("axis {iri} not resolvable")))?;
         let producer = producer_p
             .and_then(|p| one_lit(ds, sid, p))
-            .ok_or_else(|| format!("axis {iri} has no gmeow:axisProducer"))?;
+            .ok_or_else(|| rubric_err(format!("axis {iri} has no gmeow:axisProducer")))?;
         let dimension_iri = dimension_p
             .and_then(|p| one_iri(ds, sid, p))
-            .ok_or_else(|| format!("axis {iri} has no gmeow:axisDimension"))?;
+            .ok_or_else(|| rubric_err(format!("axis {iri} has no gmeow:axisDimension")))?;
         let scope_iri = scope_p
             .and_then(|p| one_iri(ds, sid, p))
-            .ok_or_else(|| format!("axis {iri} has no gmeow:axisContextScope"))?;
+            .ok_or_else(|| rubric_err(format!("axis {iri} has no gmeow:axisContextScope")))?;
         let scope = ContextScope::from_local(scope_iri.rsplit(['/', '#']).next().unwrap_or(""))
-            .ok_or_else(|| format!("axis {iri} names unknown scope {scope_iri}"))?;
+            .ok_or_else(|| rubric_err(format!("axis {iri} names unknown scope {scope_iri}")))?;
         let weight = weight_p
             .and_then(|p| one_lit(ds, sid, p))
             .and_then(|s| s.parse::<f64>().ok())
@@ -93,15 +106,15 @@ pub fn load_rubric(ds: &RdfDataset) -> Result<Rubric, String> {
             }
         }
         if thresholds.is_empty() {
-            return Err(format!("axis {iri} has no gmeow:axisThreshold"));
+            return Err(rubric_err(format!("axis {iri} has no gmeow:axisThreshold")));
         }
         // Validate every threshold names a real tier.
         for t in &thresholds {
             if !tiers.iter().any(|tier| tier.iri == t.tier_iri) {
-                return Err(format!(
+                return Err(rubric_err(format!(
                     "axis {iri} threshold names unknown tier {}",
                     t.tier_iri
-                ));
+                )));
             }
         }
         thresholds.sort_by(|a, b| {
@@ -122,7 +135,7 @@ pub fn load_rubric(ds: &RdfDataset) -> Result<Rubric, String> {
         });
     }
     if axes.is_empty() {
-        return Err("rubric has no gmeow:QualityAxis individuals".to_owned());
+        return Err(rubric_err("rubric has no gmeow:QualityAxis individuals"));
     }
     axes.sort_by(|a, b| a.iri.cmp(&b.iri));
 
@@ -133,7 +146,8 @@ pub fn load_rubric(ds: &RdfDataset) -> Result<Rubric, String> {
     let exproducer_p = id(ds, &g("exemptionProducer"));
     let mut exemptions: Vec<Exemption> = Vec::new();
     for iri in instances_of(ds, &g("AxisExemption")) {
-        let sid = id(ds, &iri).ok_or_else(|| format!("exemption {iri} not resolvable"))?;
+        let sid =
+            id(ds, &iri).ok_or_else(|| rubric_err(format!("exemption {iri} not resolvable")))?;
         let axis_iri = exempts_p
             .and_then(|p| one_iri(ds, sid, p))
             .unwrap_or_default();
@@ -145,21 +159,23 @@ pub fn load_rubric(ds: &RdfDataset) -> Result<Rubric, String> {
             .and_then(|p| one_lit(ds, sid, p))
             .unwrap_or_default();
         if producer.is_empty() || date.is_empty() {
-            return Err(format!(
+            return Err(rubric_err(format!(
                 "exemption {iri} must carry a dated producer symbol"
-            ));
+            )));
         }
         // Every exemption must name a REAL loaded axis. A missing or unknown
         // gmeow:exemptsAxis is a hard fail (.goals no-optionality): otherwise the
         // axis_iri silently defaults to an unresolvable value and the staleness /
         // completeness gates can never bind the exemption to the surface it exempts.
         if axis_iri.is_empty() {
-            return Err(format!("exemption {iri} names no gmeow:exemptsAxis"));
+            return Err(rubric_err(format!(
+                "exemption {iri} names no gmeow:exemptsAxis"
+            )));
         }
         if !axes.iter().any(|a| a.iri == axis_iri) {
-            return Err(format!(
+            return Err(rubric_err(format!(
                 "exemption {iri} exempts unknown axis {axis_iri} (no such gmeow:QualityAxis in the rubric)"
-            ));
+            )));
         }
         exemptions.push(Exemption {
             iri,
@@ -205,12 +221,12 @@ gmeow:exFoo a gmeow:AxisExemption ;
         )
     }
 
-    fn load(ttl: &str) -> Result<Rubric, String> {
+    fn load(ttl: &str) -> gmeow_errors::Result<Rubric> {
         let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None)
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| super::rubric_err(e.to_string()))?;
         let mut b = purrdf::RdfDatasetBuilder::new();
         b.push_dataset(&ds);
-        let frozen = b.freeze().map_err(|e| e.to_string())?;
+        let frozen = b.freeze().map_err(|e| super::rubric_err(e.to_string()))?;
         load_rubric(&frozen)
     }
 
@@ -227,8 +243,11 @@ gmeow:exFoo a gmeow:AxisExemption ;
     fn exemption_with_unknown_axis_hard_fails() {
         // (e) An exemption naming an axis the rubric never loaded is a hard fail.
         let err = load(&rubric_ttl("gmeow:axisNope")).unwrap_err();
-        assert!(err.contains("exempts unknown axis"), "{err}");
-        assert!(err.contains("axisNope"), "names the offending axis: {err}");
+        assert!(err.message().contains("exempts unknown axis"), "{err}");
+        assert!(
+            err.message().contains("axisNope"),
+            "names the offending axis: {err}"
+        );
     }
 
     const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";

@@ -38,6 +38,9 @@
 #![forbid(unsafe_code)]
 
 pub mod adapter;
+// The logic-compiler diagnostic-code catalog: every hard compile/parse/lowering
+// failure surfaces as a typed diagnostic on the shared substrate.
+pub mod error;
 // The CGIF (Conceptual Graph Interchange Format) text dialect: a bidirectional,
 // PreservationKind::Exact conceptual-graph FOL surface (writer + reader).
 pub mod cgif;

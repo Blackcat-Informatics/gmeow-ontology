@@ -58,6 +58,6 @@ fn assert_no_digest_collision_errors_on_forced_collision() {
         ("key-b".to_owned(), "same".to_owned()),
     ];
     let err = assert_no_digest_collision(&entries).expect_err("distinct keys, same digest");
-    assert!(err.contains("key-a"));
-    assert!(err.contains("key-b"));
+    assert!(err.message().contains("key-a"));
+    assert!(err.message().contains("key-b"));
 }

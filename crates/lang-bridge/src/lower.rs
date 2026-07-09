@@ -316,8 +316,9 @@ fn noun_phrase_parts(form: &Form, role: &str) -> Result<(String, String), Loweri
 
 /// Mint the predicate atom `<PREDICATE_NS+lemma>(args)`.
 fn predicate_atom(lemma: &str, args: Vec<Term>) -> Result<Formula, LoweringError> {
-    let relation = Term::iri(format!("{PREDICATE_NS}{lemma}")).map_err(LoweringError::unmodeled)?;
-    Formula::atom(relation, args).map_err(LoweringError::unmodeled)
+    let relation = Term::iri(format!("{PREDICATE_NS}{lemma}"))
+        .map_err(|e| LoweringError::unmodeled(e.message()))?;
+    Formula::atom(relation, args).map_err(|e| LoweringError::unmodeled(e.message()))
 }
 
 // --------------------------------------------------------------------------- //
@@ -405,8 +406,8 @@ pub fn lower_svo(sentence: &Form) -> Result<Lowering, LoweringError> {
     };
 
     // ---- Stage 3: predicate–argument binding ------------------------------- //
-    let x = Term::var("x").map_err(LoweringError::unmodeled)?;
-    let y = Term::var("y").map_err(LoweringError::unmodeled)?;
+    let x = Term::var("x").map_err(|e| LoweringError::unmodeled(e.message()))?;
+    let y = Term::var("y").map_err(|e| LoweringError::unmodeled(e.message()))?;
 
     let verb_atom = predicate_atom(&verb_lemma, vec![x.clone(), y.clone()])?;
     let object_restrictor = predicate_atom(&object_noun, vec![y.clone()])?;
@@ -492,24 +493,24 @@ impl DerivationRule {
 
 /// The span variable `i{n}`.
 fn span_var(n: usize) -> Result<Term, LoweringError> {
-    Term::var(format!("i{n}")).map_err(LoweringError::unmodeled)
+    Term::var(format!("i{n}")).map_err(|e| LoweringError::unmodeled(e.message()))
 }
 
 /// The atom `<NONTERMINAL_NS+name>(i{start}, i{end})`.
 fn nonterminal_atom(name: &str, start: usize, end: usize) -> Result<Formula, LoweringError> {
-    let relation =
-        Term::iri(format!("{NONTERMINAL_NS}{name}")).map_err(LoweringError::unmodeled)?;
+    let relation = Term::iri(format!("{NONTERMINAL_NS}{name}"))
+        .map_err(|e| LoweringError::unmodeled(e.message()))?;
     Formula::atom(relation, vec![span_var(start)?, span_var(end)?])
-        .map_err(LoweringError::unmodeled)
+        .map_err(|e| LoweringError::unmodeled(e.message()))
 }
 
 /// The atom `<TERMINAL_NS+digest>(i{start}, i{end})` for a terminal token — content-addressed
 /// on the terminal text so distinct terminals get distinct span relations.
 fn terminal_atom(text: &str, start: usize, end: usize) -> Result<Formula, LoweringError> {
     let relation = Term::iri(format!("{TERMINAL_NS}{}", digest16("lang-terminal", text)))
-        .map_err(LoweringError::unmodeled)?;
+        .map_err(|e| LoweringError::unmodeled(e.message()))?;
     Formula::atom(relation, vec![span_var(start)?, span_var(end)?])
-        .map_err(LoweringError::unmodeled)
+        .map_err(|e| LoweringError::unmodeled(e.message()))
 }
 
 /// The span atom for one right-hand-side symbol occupying `(ik, i(k+1))`. A [`RuleExpr::Ref`]

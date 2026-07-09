@@ -250,13 +250,13 @@ impl WorldStoreForeign {
     ///
     /// # Errors
     ///
-    /// Returns `Err(String)` if `store.quads_for_pattern_in_world` itself panics
+    /// Returns `Err` if `store.quads_for_pattern_in_world` itself panics
     /// (it does not in practice), or if reifier minting fails for any quad.
     pub fn from_world(
         store: &crate::store::WorldStore,
         world: &str,
         profile: &str,
-    ) -> Result<Self, String> {
+    ) -> gmeow_errors::Result<Self> {
         let raw_quads = store.quads_for_pattern_in_world(world, None, None, None);
 
         let mut derived: Vec<DerivedQuad> = Vec::with_capacity(raw_quads.len());
@@ -269,8 +269,12 @@ impl WorldStoreForeign {
             let subject = quad.s.clone();
             let object = quad.o.clone();
 
-            let reifier = crate::provenance::mint_reifier(&subject, &predicate, &object)
-                .map_err(|e| format!("WorldStoreForeign: mint_reifier failed: {e}"))?;
+            let reifier =
+                crate::provenance::mint_reifier(&subject, &predicate, &object).map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Reason {
+                        detail: format!("WorldStoreForeign: mint_reifier failed: {e}"),
+                    })
+                })?;
 
             let derivation_id = DerivationId(crate::provenance::mint_derivation_id(
                 crate::provenance::ASSERT_RULE_IRI,

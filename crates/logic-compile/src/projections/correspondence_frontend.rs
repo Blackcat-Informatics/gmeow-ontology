@@ -37,6 +37,8 @@ use std::collections::BTreeMap;
 
 use sha2::{Digest, Sha256};
 
+use gmeow_errors::Diag;
+
 use crate::ingest::DslView;
 use crate::ir::{
     Correspondence, CorrespondenceRelation, LOGIC_NAMESPACE, MorphismClass, MorphismKind,
@@ -139,17 +141,19 @@ impl CorrespondenceLookup {
         subject: &str,
         predicate: &str,
         obj: &str,
-    ) -> Result<TypedRelation, String> {
+    ) -> gmeow_errors::Result<TypedRelation> {
         let key = NaturalKey::Equivalence {
             subject: subject.to_owned(),
             predicate: predicate.to_owned(),
             obj: obj.to_owned(),
         };
         self.by_key.get(&key).copied().ok_or_else(|| {
-            format!(
-                "no materialized correspondence for TermEquivalence cell \
-                 ({subject}, {predicate}, {obj}) — every authored cell must be transpiled"
-            )
+            Diag::of_kind(crate::error::Correspondence {
+                detail: format!(
+                    "no materialized correspondence for TermEquivalence cell \
+                     ({subject}, {predicate}, {obj}) — every authored cell must be transpiled"
+                ),
+            })
         })
     }
 
@@ -159,16 +163,18 @@ impl CorrespondenceLookup {
     /// # Errors
     ///
     /// HARD-fails if the binding has no materialized correspondence (no-optionality).
-    pub fn binding(&self, cell_iri: &str, profile: &str) -> Result<TypedRelation, String> {
+    pub fn binding(&self, cell_iri: &str, profile: &str) -> gmeow_errors::Result<TypedRelation> {
         let key = NaturalKey::Binding {
             cell_iri: cell_iri.to_owned(),
             profile: profile.to_owned(),
         };
         self.by_key.get(&key).copied().ok_or_else(|| {
-            format!(
-                "no materialized correspondence for ProjectionMapping binding \
-                 ({cell_iri}, {profile}) — every authored binding must be transpiled"
-            )
+            Diag::of_kind(crate::error::Correspondence {
+                detail: format!(
+                    "no materialized correspondence for ProjectionMapping binding \
+                     ({cell_iri}, {profile}) — every authored binding must be transpiled"
+                ),
+            })
         })
     }
 
@@ -213,7 +219,7 @@ impl CorrespondenceLookup {
 pub fn transpile_correspondences(
     dsl_view: &DslView,
     onto_view: &DslView,
-) -> Result<CorrespondenceProgram, String> {
+) -> gmeow_errors::Result<CorrespondenceProgram> {
     Ok(transpile_correspondences_indexed(dsl_view, onto_view)?.0)
 }
 
@@ -236,7 +242,7 @@ pub fn transpile_correspondences(
 pub fn transpile_correspondences_indexed(
     dsl_view: &DslView,
     _onto_view: &DslView,
-) -> Result<(CorrespondenceProgram, CorrespondenceLookup), String> {
+) -> gmeow_errors::Result<(CorrespondenceProgram, CorrespondenceLookup)> {
     let mut correspondences: Vec<Correspondence> = Vec::new();
     let mut by_key: BTreeMap<NaturalKey, TypedRelation> = BTreeMap::new();
     let mut binding_profiles: BTreeMap<String, String> = BTreeMap::new();
@@ -327,7 +333,7 @@ pub fn transpile_correspondences_indexed(
 fn correspondence_for_binding(
     cell_iri: &str,
     binding: &ProfileBinding,
-) -> Result<(Correspondence, TypedRelation), String> {
+) -> gmeow_errors::Result<(Correspondence, TypedRelation)> {
     let (relation, morphism_class, morphism_kind) = binding.lattice();
     // The per-profile target IRI the binding projects onto (predicate, class, or EDOAL
     // target — the first one named). It is the put leg's apex.

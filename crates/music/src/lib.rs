@@ -6,11 +6,14 @@
 //! This crate is the authority for GMEOW music-package model conversion,
 //! GTS package I/O, notation renderers, MusicXML import, and loss manifests.
 
+pub mod error;
+
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
+use gmeow_errors::{Diag, ResultExt};
 use purrdf::gts::model::{Term, TermKind};
 use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
 use purrdf::{NativeRdfFormat, parse_dataset};
@@ -49,12 +52,16 @@ pub struct Fraction {
 }
 
 impl Fraction {
-    pub fn new(numerator: i64, denominator: i64) -> Result<Self, String> {
+    pub fn new(numerator: i64, denominator: i64) -> gmeow_errors::Result<Self> {
         if denominator == 0 {
-            return Err("fraction denominator must not be zero".to_string());
+            return Err(Diag::of_kind(error::InvalidFraction {
+                detail: "fraction denominator must not be zero".to_owned(),
+            }));
         }
         if numerator == i64::MIN || denominator == i64::MIN {
-            return Err("fraction values must not be i64::MIN".to_string());
+            return Err(Diag::of_kind(error::InvalidFraction {
+                detail: "fraction values must not be i64::MIN".to_owned(),
+            }));
         }
         let sign = if denominator < 0 { -1 } else { 1 };
         let g = gcd(numerator, denominator) as i64;
@@ -71,9 +78,11 @@ impl Fraction {
         }
     }
 
-    pub fn from_f64(value: f64, max_denominator: i64) -> Result<Self, String> {
+    pub fn from_f64(value: f64, max_denominator: i64) -> gmeow_errors::Result<Self> {
         if !value.is_finite() {
-            return Err("cannot convert non-finite value to fraction".to_string());
+            return Err(Diag::of_kind(error::InvalidFraction {
+                detail: "cannot convert non-finite value to fraction".to_owned(),
+            }));
         }
         let mut best = Self::from_i64(value.round() as i64);
         let mut best_error = (best.to_f64() - value).abs();
@@ -459,12 +468,16 @@ pub fn list_formats() -> Vec<&'static str> {
     PROFILES.iter().map(|p| p.format).collect()
 }
 
-pub fn get_profile(format_name: &str) -> Result<&'static NotationProfile, String> {
+pub fn get_profile(format_name: &str) -> gmeow_errors::Result<&'static NotationProfile> {
     let normalized = format_name.to_ascii_lowercase();
     PROFILES
         .iter()
         .find(|profile| profile.format == normalized)
-        .ok_or_else(|| format!("unsupported format: {format_name}"))
+        .ok_or_else(|| {
+            Diag::of_kind(error::UnsupportedFormat {
+                format: format_name.to_owned(),
+            })
+        })
 }
 
 fn escape_turtle_literal(value: &str) -> String {
@@ -760,16 +773,22 @@ pub fn piece_to_turtle(piece: &Piece) -> String {
     out
 }
 
-pub fn piece_to_gts_bytes(piece: &Piece) -> Result<Vec<u8>, String> {
+pub fn piece_to_gts_bytes(piece: &Piece) -> gmeow_errors::Result<Vec<u8>> {
     let turtle = piece_to_turtle(piece);
     let dataset = parse_dataset(
         turtle.as_bytes(),
         NativeRdfFormat::Turtle.media_type(),
         None,
     )
-    .map_err(|e| e.to_string())?;
+    .map_err(|e| {
+        Diag::of_kind(error::RdfPipelineFailed {
+            detail: e.to_string(),
+        })
+    })?;
     let mut builder = SnapshotBuilder::default();
-    builder.add_dataset(&dataset)?;
+    builder
+        .add_dataset(&dataset)
+        .map_err(|e| Diag::of_kind(error::RdfPipelineFailed { detail: e }))?;
     emit_gts(
         &builder,
         "dist",
@@ -781,6 +800,7 @@ pub fn piece_to_gts_bytes(piece: &Piece) -> Result<Vec<u8>, String> {
         None,
         DEFAULT_RSYNCABLE_THRESHOLD,
     )
+    .map_err(|e| Diag::of_kind(error::RdfPipelineFailed { detail: e }))
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -970,7 +990,7 @@ fn load_pitch(index: &TripleIndex, iri: &str) -> Option<PitchValue> {
     })
 }
 
-pub fn piece_from_gts_bytes(bytes: &[u8]) -> Result<Piece, String> {
+pub fn piece_from_gts_bytes(bytes: &[u8]) -> gmeow_errors::Result<Piece> {
     let index = index_triples(triples_from_gts(bytes));
     let musical_expression = gm("MusicalExpression");
     let musical_work = gm("MusicalWork");
@@ -988,7 +1008,7 @@ pub fn piece_from_gts_bytes(bytes: &[u8]) -> Result<Piece, String> {
         .collect::<BTreeSet<_>>();
     let piece_iri = pieces
         .pop_first()
-        .ok_or_else(|| "no MusicalExpression or MusicalWork found in graph".to_string())?;
+        .ok_or_else(|| Diag::of_kind(error::NoMusicalEntity {}))?;
     let mut piece = Piece {
         title: first_literal(&index, &piece_iri, RDFS_LABEL),
         composer: first_literal(&index, &piece_iri, &gm("composer")),
@@ -1055,7 +1075,7 @@ pub enum Rendered {
     Binary(Vec<u8>),
 }
 
-pub fn render_piece(piece: &Piece, format_name: &str) -> Result<Rendered, String> {
+pub fn render_piece(piece: &Piece, format_name: &str) -> gmeow_errors::Result<Rendered> {
     let profile = get_profile(format_name)?;
     match profile.format {
         "musicxml" => Ok(Rendered::Text(render_musicxml(piece, profile))),
@@ -1068,7 +1088,9 @@ pub fn render_piece(piece: &Piece, format_name: &str) -> Result<Rendered, String
         "kern" => Ok(Rendered::Text(render_kern(piece, profile))),
         "mensural" => Ok(Rendered::Text(render_mensural(piece, profile))),
         "graphic" => Ok(Rendered::Text(render_graphic(piece, profile))),
-        _ => Err(format!("unsupported format: {format_name}")),
+        _ => Err(Diag::of_kind(error::UnsupportedFormat {
+            format: format_name.to_owned(),
+        })),
     }
 }
 
@@ -1579,7 +1601,10 @@ fn musicxml_pitch(note: roxmltree::Node<'_, '_>) -> Option<PitchValue> {
     ))
 }
 
-fn musicxml_duration(note: roxmltree::Node<'_, '_>, divisions: f64) -> Result<Fraction, String> {
+fn musicxml_duration(
+    note: roxmltree::Node<'_, '_>,
+    divisions: f64,
+) -> gmeow_errors::Result<Fraction> {
     let duration_divs = child_text(note, "duration")
         .and_then(|value| value.parse::<f64>().ok())
         .unwrap_or(divisions);
@@ -1606,8 +1631,12 @@ fn musicxml_voice_id(note: roxmltree::Node<'_, '_>) -> String {
         .to_string()
 }
 
-pub fn piece_from_musicxml_text(text: &str) -> Result<Piece, String> {
-    let doc = roxmltree::Document::parse(text).map_err(|e| format!("MusicXML parse error: {e}"))?;
+pub fn piece_from_musicxml_text(text: &str) -> gmeow_errors::Result<Piece> {
+    let doc = roxmltree::Document::parse(text).map_err(|e| {
+        Diag::of_kind(error::MusicXmlParse {
+            detail: format!("MusicXML parse error: {e}"),
+        })
+    })?;
     let title = doc
         .descendants()
         .find(|node| node.is_element() && node.tag_name().name() == "work-title")
@@ -1650,8 +1679,11 @@ pub fn piece_from_musicxml_text(text: &str) -> Result<Piece, String> {
                     }
                     "forward" => {
                         let duration = musicxml_duration(child, divisions)?;
-                        cursor = fraction_add(cursor, duration)
-                            .ok_or_else(|| "MusicXML forward overflowed timeline".to_string())?;
+                        cursor = fraction_add(cursor, duration).ok_or_else(|| {
+                            Diag::of_kind(error::TimelineOverflow {
+                                detail: "MusicXML forward overflowed timeline".to_owned(),
+                            })
+                        })?;
                     }
                     "note" => {
                         let duration = musicxml_duration(child, divisions)?;
@@ -1674,7 +1706,9 @@ pub fn piece_from_musicxml_text(text: &str) -> Result<Piece, String> {
                         });
                         if !is_chord {
                             cursor = fraction_add(cursor, duration).ok_or_else(|| {
-                                "MusicXML note duration overflowed timeline".to_string()
+                                Diag::of_kind(error::TimelineOverflow {
+                                    detail: "MusicXML note duration overflowed timeline".to_owned(),
+                                })
                             })?;
                             last_note_onset = onset;
                         }
@@ -1732,17 +1766,17 @@ pub fn piece_from_musicxml_text(text: &str) -> Result<Piece, String> {
     })
 }
 
-pub fn piece_from_musicxml_file(path: &Path) -> Result<Piece, String> {
+pub fn piece_from_musicxml_file(path: &Path) -> gmeow_errors::Result<Piece> {
     let suffix = path
         .extension()
         .and_then(|s| s.to_str())
         .unwrap_or_default()
         .to_ascii_lowercase();
     if !matches!(suffix.as_str(), "xml" | "musicxml") {
-        return Err("MusicXML import only supports .xml and .musicxml files".to_string());
+        return Err(Diag::of_kind(error::UnsupportedImportSuffix {}));
     }
-    let text = std::fs::read_to_string(path)
-        .map_err(|e| format!("failed to read {}: {e}", path.display()))?;
+    let text =
+        std::fs::read_to_string(path).with_ctx(|| format!("failed to read {}", path.display()))?;
     piece_from_musicxml_text(&text)
 }
 
@@ -1753,7 +1787,10 @@ fn turtle_multiline_literal(value: &str) -> String {
     )
 }
 
-pub fn manifest_turtle(format_name: &str, provenance: Option<&str>) -> Result<String, String> {
+pub fn manifest_turtle(
+    format_name: &str,
+    provenance: Option<&str>,
+) -> gmeow_errors::Result<String> {
     let profile = get_profile(format_name)?;
     let mut out = String::new();
     out.push_str("@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\n");
@@ -1809,9 +1846,8 @@ fn percent_encode_path(path: &str) -> String {
         .collect()
 }
 
-fn file_uri(path: &Path) -> Result<String, String> {
-    let absolute =
-        std::path::absolute(path).map_err(|e| format!("failed to resolve absolute path: {e}"))?;
+fn file_uri(path: &Path) -> gmeow_errors::Result<String> {
+    let absolute = std::path::absolute(path).ctx("failed to resolve absolute path")?;
     let normalized = absolute.to_string_lossy().replace('\\', "/");
     let prefix = if normalized.starts_with('/') {
         "file://"
@@ -1825,7 +1861,7 @@ pub fn import_manifest_turtle(
     source: &Path,
     piece_iri: &str,
     provenance: Option<&str>,
-) -> Result<String, String> {
+) -> gmeow_errors::Result<String> {
     let source_uri = file_uri(source)?;
     let label = provenance
         .map(str::to_string)
@@ -1847,23 +1883,24 @@ fn manifest_path_for(out: &Path) -> PathBuf {
     PathBuf::from(format!("{}.manifest.ttl", out.display()))
 }
 
-pub fn render_file(source: &Path, format_name: &str, out: &Path) -> Result<Vec<PathBuf>, String> {
-    let data =
-        std::fs::read(source).map_err(|e| format!("failed to read {}: {e}", source.display()))?;
+pub fn render_file(
+    source: &Path,
+    format_name: &str,
+    out: &Path,
+) -> gmeow_errors::Result<Vec<PathBuf>> {
+    let data = std::fs::read(source).with_ctx(|| format!("failed to read {}", source.display()))?;
     let piece = piece_from_gts_bytes(&data)?;
     let rendered = render_piece(&piece, format_name)?;
     if let Some(parent) = out.parent() {
         std::fs::create_dir_all(parent)
-            .map_err(|e| format!("failed to create {}: {e}", parent.display()))?;
+            .with_ctx(|| format!("failed to create {}", parent.display()))?;
     }
     match rendered {
         Rendered::Text(text) => {
-            std::fs::write(out, text)
-                .map_err(|e| format!("failed to write {}: {e}", out.display()))?;
+            std::fs::write(out, text).with_ctx(|| format!("failed to write {}", out.display()))?;
         }
         Rendered::Binary(bytes) => {
-            std::fs::write(out, bytes)
-                .map_err(|e| format!("failed to write {}: {e}", out.display()))?;
+            std::fs::write(out, bytes).with_ctx(|| format!("failed to write {}", out.display()))?;
         }
     }
     let manifest_path = manifest_path_for(out);
@@ -1880,18 +1917,18 @@ pub fn render_file(source: &Path, format_name: &str, out: &Path) -> Result<Vec<P
         &manifest_path,
         manifest_turtle(format_name, Some(&provenance))?,
     )
-    .map_err(|e| format!("failed to write {}: {e}", manifest_path.display()))?;
+    .with_ctx(|| format!("failed to write {}", manifest_path.display()))?;
     Ok(vec![out.to_path_buf(), manifest_path])
 }
 
-pub fn import_file(source: &Path, out: &Path) -> Result<Vec<PathBuf>, String> {
+pub fn import_file(source: &Path, out: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let piece = piece_from_musicxml_file(source)?;
     let data = piece_to_gts_bytes(&piece)?;
     if let Some(parent) = out.parent() {
         std::fs::create_dir_all(parent)
-            .map_err(|e| format!("failed to create {}: {e}", parent.display()))?;
+            .with_ctx(|| format!("failed to create {}", parent.display()))?;
     }
-    std::fs::write(out, data).map_err(|e| format!("failed to write {}: {e}", out.display()))?;
+    std::fs::write(out, data).with_ctx(|| format!("failed to write {}", out.display()))?;
     let manifest_path = manifest_path_for(out);
     let provenance = format!(
         "gmeow music import {} -o {}",
@@ -1907,7 +1944,7 @@ pub fn import_file(source: &Path, out: &Path) -> Result<Vec<PathBuf>, String> {
         &manifest_path,
         import_manifest_turtle(source, &piece.iri, Some(&provenance))?,
     )
-    .map_err(|e| format!("failed to write {}: {e}", manifest_path.display()))?;
+    .with_ctx(|| format!("failed to write {}", manifest_path.display()))?;
     Ok(vec![out.to_path_buf(), manifest_path])
 }
 
@@ -2016,8 +2053,18 @@ mod tests {
 
     #[test]
     fn fraction_rejects_i64_min_values() {
-        assert!(Fraction::new(i64::MIN, 1).unwrap_err().contains("i64::MIN"));
-        assert!(Fraction::new(1, i64::MIN).unwrap_err().contains("i64::MIN"));
+        assert!(
+            Fraction::new(i64::MIN, 1)
+                .unwrap_err()
+                .message()
+                .contains("i64::MIN")
+        );
+        assert!(
+            Fraction::new(1, i64::MIN)
+                .unwrap_err()
+                .message()
+                .contains("i64::MIN")
+        );
     }
 
     #[test]

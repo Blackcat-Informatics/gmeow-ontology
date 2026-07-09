@@ -455,7 +455,9 @@ fn cotyped_disjoint(
 ///
 /// # Errors
 /// Returns a message if reasoning fails on a reduced graph.
-pub fn closure_redundant_subclasses(ds: &RdfDataset) -> Result<Vec<(String, String)>, String> {
+pub fn closure_redundant_subclasses(
+    ds: &RdfDataset,
+) -> gmeow_errors::Result<Vec<(String, String)>> {
     let mut out = Vec::new();
     for (s, o) in named_subclass_triples(ds) {
         let reduced = edb_without_triple(ds, &s, SUBCLASS, &o);

@@ -104,9 +104,13 @@ fn run_leg(
     engine: &NativeSparqlEngine,
     source_nt: &str,
     query: &str,
-) -> Result<BTreeSet<Atom>, String> {
-    let dataset = parse_dataset(source_nt.as_bytes(), "application/n-triples", None)
-        .map_err(|e| format!("parse round-trip source graph: {e}"))?;
+) -> gmeow_errors::Result<BTreeSet<Atom>> {
+    let dataset =
+        parse_dataset(source_nt.as_bytes(), "application/n-triples", None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Reason {
+                detail: format!("parse round-trip source graph: {e}"),
+            })
+        })?;
     let result = engine
         .query(
             &dataset,
@@ -116,9 +120,15 @@ fn run_leg(
                 substitutions: &[],
             },
         )
-        .map_err(|e| format!("leg CONSTRUCT evaluation failed: {e}"))?;
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Reason {
+                detail: format!("leg CONSTRUCT evaluation failed: {e}"),
+            })
+        })?;
     let SparqlResult::Graph(ds) = result else {
-        return Err("leg CONSTRUCT did not return a graph".to_owned());
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+            detail: "leg CONSTRUCT did not return a graph".to_owned(),
+        }));
     };
     Ok(purrdf::native_quads::flat_rdf_quads_from_dataset(&ds)
         .into_iter()
@@ -207,7 +217,9 @@ pub fn program_verdicts(program: &CorrespondenceProgram) -> BTreeMap<String, Dis
 /// A correspondence-free program yields an empty map (the gates never run). A malformed
 /// leg registry (a put leg that cannot be derived) surfaces as a clean `Err`, never a panic —
 /// the caller propagates it as a surfaced diagnostic.
-pub fn logic_program_verdicts(program: &LogicProgram) -> Result<CorrespondenceVerdicts, String> {
+pub fn logic_program_verdicts(
+    program: &LogicProgram,
+) -> gmeow_errors::Result<CorrespondenceVerdicts> {
     if program.correspondences.is_empty() {
         return Ok(CorrespondenceVerdicts::new());
     }

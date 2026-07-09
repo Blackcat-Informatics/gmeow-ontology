@@ -32,8 +32,10 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use gmeow_errors::{Diag, Result};
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, SparqlResult};
 
+use crate::error::{LogicReasoning, MergedGraph, RdfsClosure, UnexpectedResultForm};
 use crate::native_query::{self, merge_preserving_blanks};
 use crate::paths;
 
@@ -41,19 +43,22 @@ use crate::paths;
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if a source file fails to read or parse.
-pub fn merged_store() -> Result<Arc<RdfDataset>, String> {
-    native_query::dataset_from_files(&source_files()?)
-        .map_err(|e| format!("merging ontology sources: {e}"))
+/// Hard-fails if a source file fails to read or parse.
+pub fn merged_store() -> Result<Arc<RdfDataset>> {
+    native_query::dataset_from_files(&source_files()?).map_err(|e| {
+        Diag::of_kind(MergedGraph {
+            detail: format!("merging ontology sources: {e}"),
+        })
+    })
 }
 
 /// Build the merged ontology and return it closed under **RDFS**.
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the merged dataset cannot be built or the closure
-/// fails to reach a fixpoint within the safety bound.
-pub fn rdfs_closed_store() -> Result<Arc<RdfDataset>, String> {
+/// Hard-fails if the merged dataset cannot be built or the closure fails to reach
+/// a fixpoint within the safety bound.
+pub fn rdfs_closed_store() -> Result<Arc<RdfDataset>> {
     rdfs_close(merged_store()?)
 }
 
@@ -81,13 +86,16 @@ pub fn rdfs_closed_store() -> Result<Arc<RdfDataset>, String> {
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the law sources cannot be built, if the program cannot be
-/// compiled (a parse error, or any `Severity::Error` diagnostic — never papered over), or
-/// if the native reasoner fails.
-pub fn native_closed_store() -> Result<Arc<RdfDataset>, String> {
+/// Hard-fails if the law sources cannot be built, if the program cannot be compiled
+/// (a parse error, or any `Severity::Error` diagnostic — never papered over), or if
+/// the native reasoner fails.
+pub fn native_closed_store() -> Result<Arc<RdfDataset>> {
     let files = algebra_law_files();
-    let store = native_query::dataset_from_files(&files)
-        .map_err(|e| format!("loading the algebra-law example sources: {e}"))?;
+    let store = native_query::dataset_from_files(&files).map_err(|e| {
+        Diag::of_kind(LogicReasoning {
+            detail: format!("loading the algebra-law example sources: {e}"),
+        })
+    })?;
     // The program is extracted from the DEFAULT-graph source (parse_logic_dataset reads the
     // default graph), but the native reasoner's EDB is world-scoped: it only reasons over
     // NAMED-graph quads (WorldStore::worlds skips the default graph by design). Slice Turtle
@@ -95,7 +103,9 @@ pub fn native_closed_store() -> Result<Arc<RdfDataset>, String> {
     // before reasoning; the closure projection maps that world back to the RDF default graph.
     let (program, diagnostics) =
         gmeow_logic_compile::frontend::parse_logic_dataset(store.as_ref(), None).map_err(|e| {
-            format!("compiling the logic program from the algebra-law sources: {e}")
+            Diag::of_kind(LogicReasoning {
+                detail: format!("compiling the logic program from the algebra-law sources: {e}"),
+            })
         })?;
     // The front-end is fail-soft (a malformed cell becomes a WARNING and is skipped), but a
     // Severity::Error diagnostic is a hard, non-recoverable fault — refuse to reason over a
@@ -106,15 +116,20 @@ pub fn native_closed_store() -> Result<Arc<RdfDataset>, String> {
         .map(|d| format!("{}: {}", d.code, d.message))
         .collect();
     if !errors.is_empty() {
-        return Err(format!(
-            "the algebra-law sources did not compile to a clean logic program ({} error diagnostic(s)): {}",
-            errors.len(),
-            errors.join("; ")
-        ));
+        return Err(Diag::of_kind(LogicReasoning {
+            detail: format!(
+                "the algebra-law sources did not compile to a clean logic program ({} error diagnostic(s)): {}",
+                errors.len(),
+                errors.join("; ")
+            ),
+        }));
     }
     let edb = world_scoped(&store)?;
-    gmeow_logic::reason::reason_program_closure_dataset(&program, edb.as_ref())
-        .map_err(|e| format!("native logic reasoning over the algebra-law sources: {e}"))
+    gmeow_logic::reason::reason_program_closure_dataset(&program, edb.as_ref()).map_err(|e| {
+        Diag::of_kind(LogicReasoning {
+            detail: format!("native logic reasoning over the algebra-law sources: {e}"),
+        })
+    })
 }
 
 /// Re-scope every quad of `dataset` into the native reasoner's default world
@@ -124,7 +139,7 @@ pub fn native_closed_store() -> Result<Arc<RdfDataset>, String> {
 /// graph, so without this every fact would be invisible and the closure empty. The closure
 /// projection maps this world back to the RDF default graph, so the round-trip is transparent
 /// to a competency query.
-fn world_scoped(dataset: &Arc<RdfDataset>) -> Result<Arc<RdfDataset>, String> {
+fn world_scoped(dataset: &Arc<RdfDataset>) -> Result<Arc<RdfDataset>> {
     let world = RdfTerm::iri(gmeow_logic::reason::rl::DEFAULT_WORLD);
     let mut builder = RdfDatasetBuilder::new();
     for quad in dataset.owned_quads() {
@@ -132,9 +147,11 @@ fn world_scoped(dataset: &Arc<RdfDataset>) -> Result<Arc<RdfDataset>, String> {
             RdfQuad::new(quad.subject, quad.predicate, quad.object).in_graph(world.clone());
         builder.push_owned_quad(&scoped);
     }
-    builder
-        .freeze()
-        .map_err(|e| format!("re-scoping the merged graph into the reasoner world: {e}"))
+    builder.freeze().map_err(|e| {
+        Diag::of_kind(LogicReasoning {
+            detail: format!("re-scoping the merged graph into the reasoner world: {e}"),
+        })
+    })
 }
 
 /// The four authored algebra-law example files the native lane reasons over, in addition
@@ -162,15 +179,17 @@ fn algebra_law_files() -> Vec<PathBuf> {
 
 /// The reasoned source-set: `ontology/gmeow.ttl` followed by every slice module,
 /// imports excluded — identical to `iter_source_files(include_imports=False)`.
-fn source_files() -> Result<Vec<PathBuf>, String> {
+fn source_files() -> Result<Vec<PathBuf>> {
     // The ontology root is REQUIRED — silently filtering it out would build a
     // partial merged graph against which competency questions could falsely pass.
     let root = paths::repo_root().join("ontology/gmeow.ttl");
     if !root.is_file() {
-        return Err(format!(
-            "missing required ontology root {} — refusing to build a partial merged graph",
-            root.display()
-        ));
+        return Err(Diag::of_kind(MergedGraph {
+            detail: format!(
+                "missing required ontology root {} — refusing to build a partial merged graph",
+                root.display()
+            ),
+        }));
     }
     let mut files = vec![root];
     files.extend(module_files()?);
@@ -178,7 +197,7 @@ fn source_files() -> Result<Vec<PathBuf>, String> {
 }
 
 /// Every `slices/<group>/<name>/module.ttl`, in sorted (deterministic) order.
-fn module_files() -> Result<Vec<PathBuf>, String> {
+fn module_files() -> Result<Vec<PathBuf>> {
     let mut out = Vec::new();
     for group in sorted_subdirs(&paths::slices_root())? {
         for slice in sorted_subdirs(&group)? {
@@ -191,12 +210,20 @@ fn module_files() -> Result<Vec<PathBuf>, String> {
     Ok(out)
 }
 
-fn sorted_subdirs(dir: &std::path::Path) -> Result<Vec<PathBuf>, String> {
+fn sorted_subdirs(dir: &std::path::Path) -> Result<Vec<PathBuf>> {
     // Propagate per-entry read errors rather than `filter_map(Result::ok)`: an
     // unreadable entry must surface, not silently shrink the discovered slice set.
     let mut dirs: Vec<PathBuf> = Vec::new();
-    for entry in std::fs::read_dir(dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))? {
-        let entry = entry.map_err(|e| format!("read_dir entry under {}: {e}", dir.display()))?;
+    for entry in std::fs::read_dir(dir).map_err(|e| {
+        Diag::of_kind(MergedGraph {
+            detail: format!("read_dir {}: {e}", dir.display()),
+        })
+    })? {
+        let entry = entry.map_err(|e| {
+            Diag::of_kind(MergedGraph {
+                detail: format!("read_dir entry under {}: {e}", dir.display()),
+            })
+        })?;
         let path = entry.path();
         if path.is_dir() {
             dirs.push(path);
@@ -246,7 +273,7 @@ const RDFS_RULES: &[&str] = &[
 /// blank-bearing subject dedups against its prior copy rather than minting a fresh
 /// blank every round (the property the count-stable fixpoint depends on). Fixpoint is
 /// reached when a round adds no new quads.
-fn rdfs_close(mut dataset: Arc<RdfDataset>) -> Result<Arc<RdfDataset>, String> {
+fn rdfs_close(mut dataset: Arc<RdfDataset>) -> Result<Arc<RdfDataset>> {
     for _ in 0..MAX_ROUNDS {
         let before = dataset.quad_count();
         // Materialize every rule's CONSTRUCT graph, then merge them all (plus the
@@ -262,17 +289,23 @@ fn rdfs_close(mut dataset: Arc<RdfDataset>) -> Result<Arc<RdfDataset>, String> {
             return Ok(dataset);
         }
     }
-    Err(format!(
-        "RDFS closure did not reach a fixpoint within {MAX_ROUNDS} rounds"
-    ))
+    Err(Diag::of_kind(RdfsClosure {
+        detail: format!("RDFS closure did not reach a fixpoint within {MAX_ROUNDS} rounds"),
+    }))
 }
 
 /// Run a CONSTRUCT query and return its derived graph as a frozen dataset.
-fn construct(dataset: &Arc<RdfDataset>, query: &str) -> Result<Arc<RdfDataset>, String> {
-    match native_query::query(dataset, query).map_err(|e| format!("RDFS rule error: {e}"))? {
+fn construct(dataset: &Arc<RdfDataset>, query: &str) -> Result<Arc<RdfDataset>> {
+    match native_query::query(dataset, query).map_err(|e| {
+        Diag::of_kind(RdfsClosure {
+            detail: format!("RDFS rule error: {e}"),
+        })
+    })? {
         SparqlResult::Graph(graph) => Ok(graph),
         SparqlResult::Solutions { .. } | SparqlResult::Boolean(_) => {
-            Err("RDFS rule must be a CONSTRUCT".to_owned())
+            Err(Diag::of_kind(UnexpectedResultForm {
+                detail: "RDFS rule must be a CONSTRUCT".to_owned(),
+            }))
         }
     }
 }

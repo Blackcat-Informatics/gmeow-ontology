@@ -33,6 +33,9 @@
 
 use std::path::Path;
 
+use gmeow_errors::Diag;
+
+use crate::error::{Io, Serialize};
 use crate::run::CaseOutputs;
 
 /// Whether bless is in seed/init mode (`GMEOW_CONFORMANCE_BLESS_INIT=1`) — write the
@@ -49,7 +52,7 @@ fn init_mode() -> bool {
 ///
 /// # Errors
 /// Returns an error string on any filesystem or serialization failure.
-pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> Result<(), String> {
+pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> gmeow_errors::Result<()> {
     let init = init_mode();
     let expected = case_dir.join("expected");
     let proj = expected.join("projections");
@@ -197,8 +200,8 @@ pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> Result<(), String> 
 fn write_if(
     init: bool,
     path: &Path,
-    f: impl FnOnce(&Path) -> Result<(), String>,
-) -> Result<(), String> {
+    f: impl FnOnce(&Path) -> gmeow_errors::Result<()>,
+) -> gmeow_errors::Result<()> {
     if init || path.exists() {
         f(path)
     } else {
@@ -207,19 +210,30 @@ fn write_if(
 }
 
 /// Create `dir` and all parents.
-fn mkdirs(dir: &Path) -> Result<(), String> {
-    std::fs::create_dir_all(dir).map_err(|e| format!("cannot create {}: {e}", dir.display()))
+fn mkdirs(dir: &Path) -> gmeow_errors::Result<()> {
+    std::fs::create_dir_all(dir).map_err(|e| {
+        Diag::of_kind(Io {
+            detail: format!("cannot create {}: {e}", dir.display()),
+        })
+    })
 }
 
 /// Write `content` to `path` verbatim.
-fn write_text(path: &Path, content: &str) -> Result<(), String> {
-    std::fs::write(path, content).map_err(|e| format!("cannot write {}: {e}", path.display()))
+fn write_text(path: &Path, content: &str) -> gmeow_errors::Result<()> {
+    std::fs::write(path, content).map_err(|e| {
+        Diag::of_kind(Io {
+            detail: format!("cannot write {}: {e}", path.display()),
+        })
+    })
 }
 
 /// Write `value` as sorted-key, 2-space-indented JSON with a trailing newline.
-fn write_json(path: &Path, value: &serde_json::Value) -> Result<(), String> {
-    let mut text = serde_json::to_string_pretty(value)
-        .map_err(|e| format!("cannot serialize {}: {e}", path.display()))?;
+fn write_json(path: &Path, value: &serde_json::Value) -> gmeow_errors::Result<()> {
+    let mut text = serde_json::to_string_pretty(value).map_err(|e| {
+        Diag::of_kind(Serialize {
+            detail: format!("cannot serialize {}: {e}", path.display()),
+        })
+    })?;
     text.push('\n');
     write_text(path, &text)
 }

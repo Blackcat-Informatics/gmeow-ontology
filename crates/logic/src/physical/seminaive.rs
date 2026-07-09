@@ -591,7 +591,7 @@ pub(crate) fn materialize_native(
     store: &crate::store::WorldStore,
     rules: &[EvalRule],
     max_steps: Option<u64>,
-) -> Result<NativeOutcome<Budgeted<Vec<DerivedRow>>>, String> {
+) -> gmeow_errors::Result<NativeOutcome<Budgeted<Vec<DerivedRow>>>> {
     // Stratification is a property of the rules alone; decide it once.
     let Some(stratum_of) = stratify(rules) else {
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
@@ -634,7 +634,7 @@ pub(crate) fn materialize_native(
         let edb_by_world: Vec<(String, Vec<Fact>)> = worlds
             .iter()
             .map(|world| Ok((world.clone(), world_edb_facts(store, world)?)))
-            .collect::<Result<Vec<_>, String>>()?;
+            .collect::<gmeow_errors::Result<Vec<_>>>()?;
 
         // Per-world independent chase.  `into_par_iter().map(..).collect::<Result<Vec<_>>>()`
         // preserves the sorted-world INPUT order in the output Vec, so folding the results
@@ -642,7 +642,7 @@ pub(crate) fn materialize_native(
         let per_world: Vec<(Vec<DerivedRow>, BTreeSet<String>, u64)> = edb_by_world
             .into_par_iter()
             .map(
-                |(world, edb_facts)| -> Result<(Vec<DerivedRow>, BTreeSet<String>, u64), String> {
+                |(world, edb_facts)| -> gmeow_errors::Result<(Vec<DerivedRow>, BTreeSet<String>, u64)> {
                     // Echo the asserted EDB FIRST (identical order to the sequential body).
                     let mut rows = echo_asserted(&world, &edb_facts)?;
                     // A PER-WORLD unbounded governor: it never cuts, so its final
@@ -662,7 +662,7 @@ pub(crate) fn materialize_native(
                     Ok((rows, budgeted.progress.saturated_preds, governor.consumed))
                 },
             )
-            .collect::<Result<Vec<_>, String>>()?;
+            .collect::<gmeow_errors::Result<Vec<_>>>()?;
 
         let mut out: Vec<DerivedRow> = Vec::new();
         let mut frontier: Option<BTreeSet<String>> = None;
@@ -788,7 +788,7 @@ fn eval_world_stratified(
     rules_by_stratum: &[Vec<&EvalRule>],
     governor: &mut StepGovernor,
     mode: ProvenanceMode,
-) -> Result<Budgeted<Vec<DerivedRow>>, String> {
+) -> gmeow_errors::Result<Budgeted<Vec<DerivedRow>>> {
     // Shared accumulated store (both forms), seeded from the EDB in sorted-key order
     // (world_edb_facts already sorted), so seeding matches the reference.
     let mut store = FactStore::new();
@@ -903,7 +903,7 @@ fn eval_stratum_fixpoint(
     state: &mut FixpointState<'_>,
     governor: &mut StepGovernor,
     mode: ProvenanceMode,
-) -> Result<FixpointStatus, String> {
+) -> gmeow_errors::Result<FixpointStatus> {
     // Reborrow each accumulator into a single `&mut` local so the loop body below is a verbatim
     // copy of `least_model_of_reduct`'s — the `FixpointState` bundle exists only to keep the
     // signature under clippy's argument-count bar without an `#[allow]`, not to change the engine.
@@ -1077,7 +1077,7 @@ pub(crate) fn evaluate(
     edb: RelationStore,
     rules: &[EvalRule],
     max_steps: Option<u64>,
-) -> Result<NativeOutcome<Budgeted<Vec<Fact>>>, String> {
+) -> gmeow_errors::Result<NativeOutcome<Budgeted<Vec<Fact>>>> {
     let Some(stratum_of) = stratify(rules) else {
         return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
     };

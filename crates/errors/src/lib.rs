@@ -29,6 +29,7 @@ macro_rules! assert_diag_snapshot {
 pub mod code;
 pub mod dag;
 pub mod diag;
+pub mod error;
 pub mod grade;
 pub mod ledger;
 pub mod lower;
@@ -53,6 +54,6 @@ pub use ledger::{
     DiagFingerprint, DiagLedger, DiagNode, Observation, SerFrame, SerLocation, fingerprint_iri,
 };
 pub use model::{
-    DiagnosticAttribution, Finding, FindingCategory, Location, Report, Rule, Severity,
+    DiagnosticAttribution, Finding, FindingCategory, Location, RelatedLabel, Report, Rule, Severity,
 };
 pub use rdf::severity_from_rdf;

@@ -31,6 +31,12 @@ use crate::reason::el::InferredAxiom;
 use crate::reason::ledger::{DivergenceLedger, divergence_findings};
 use crate::result::ReasoningResult;
 
+/// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn reason_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Reason { detail })
+}
+
 // ── Namespaces ──────────────────────────────────────────────────────────────────
 
 /// The gmeow vocabulary namespace (term IRIs are `GMEOW_NS + local`).
@@ -101,15 +107,15 @@ const LEDGER_HEADER: &str = "\
 /// Mint the percent-encoded rule IRI for a *derived* axiom, failing loudly on a
 /// missing rule name (no-optionality doctrine — a `None` rule on a derived axiom
 /// is an engine-invariant violation, never a recoverable condition).
-fn derived_rule_iri(axiom: &InferredAxiom) -> Result<String, String> {
+fn derived_rule_iri(axiom: &InferredAxiom) -> gmeow_errors::Result<String> {
     match axiom.rule_name.as_deref() {
         Some(name) if !name.is_empty() => Ok(rule_iri(RULE_IRI_BASE, name)),
-        _ => Err(format!(
+        _ => Err(reason_err(format!(
             "derived axiom has no rule_name; the native engine must label every \
              inferred (non-EDB) axiom with the rule that produced it: \
              <{}> <{}> <{}>",
             axiom.subject, axiom.predicate, axiom.object
-        )),
+        ))),
     }
 }
 
@@ -178,7 +184,7 @@ fn derived_sorted(result: &ReasoningResult) -> Vec<&InferredAxiom> {
 pub fn build_inferred_closure_ttl(
     result: &ReasoningResult,
     merge_asserted: Option<&RdfDataset>,
-) -> Result<String, String> {
+) -> gmeow_errors::Result<String> {
     let mut out = String::from(CLOSURE_HEADER);
 
     if let Some(store) = merge_asserted {
@@ -225,7 +231,7 @@ pub fn build_inferred_closure_ttl(
 /// # Errors
 ///
 /// Returns `Err` if any derived axiom is missing its `rule_name`.
-pub fn build_explanations_ttl(result: &ReasoningResult) -> Result<String, String> {
+pub fn build_explanations_ttl(result: &ReasoningResult) -> gmeow_errors::Result<String> {
     let mut out = String::from(EXPLANATIONS_HEADER);
     out.push_str("\n# --- derivation proof skeletons ---\n");
     for axiom in derived_sorted(result) {
@@ -942,7 +948,7 @@ pub(crate) fn escape_literal(value: &str) -> String {
 /// # Errors
 ///
 /// Returns `Err` if the store surfaces a quad/reifier/annotation read failure.
-fn asserted_turtle(store: &RdfDataset) -> Result<String, String> {
+fn asserted_turtle(store: &RdfDataset) -> gmeow_errors::Result<String> {
     let mut out = String::new();
     for quad in store.owned_quads() {
         out.push_str(&emit_quad(&quad));
@@ -1088,7 +1094,7 @@ mod tests {
             true,
         );
         let err = build_inferred_closure_ttl(&result, None).unwrap_err();
-        assert!(err.contains("no rule_name"), "got: {err}");
+        assert!(err.message().contains("no rule_name"), "got: {err}");
     }
 
     #[test]

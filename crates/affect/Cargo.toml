@@ -17,6 +17,9 @@ path = "src/lib.rs"
 
 [dependencies]
 purrdf = "0.4"
+# The diagnostic substrate: the affect graph readers raise typed `Diag` kinds
+# (never ad-hoc `String` errors) so a malformed affect graph carries a stable code.
+gmeow-errors = { path = "../errors" }
 # The reusable exact-rational inner-product-space + pure math: graph loaders. The
 # affect-specific readers compute THROUGH this shared engine rather than owning it.
 gmeow-math = { path = "../math" }

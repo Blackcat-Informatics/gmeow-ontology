@@ -82,6 +82,9 @@ gmeow-logic = { path = "../logic" }
 # type), and the math:Norm conformance gate computes a norm/distance THROUGH its
 # `InnerProductSpace`. Native-only: the lint module is `cfg(not(wasm32))`.
 gmeow-math = { path = "../math" }
+# Structured, subscriber-controlled sink for the native cache's lenient
+# missing-input notice — telemetry with no reporter in scope, never a gate.
+tracing = "0.1"
 
 [dev-dependencies]
 # Native RDF 1.2 dataset used directly by integration tests that query generated Turtle.

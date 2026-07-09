@@ -26,15 +26,19 @@ use crate::store;
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` on parse, merge, store-build, shape-parse, or SHACL
+/// Returns `Err` on parse, merge, store-build, shape-parse, or SHACL
 /// failures. The DSL gate is fail-hard and never silently conforms.
 pub fn validate_dsl(
     paths: &[PathBuf],
     shapes_ttl: &str,
     label: &str,
-) -> Result<Vec<Finding>, String> {
+) -> gmeow_errors::Result<Vec<Finding>> {
     let merge = dsl::merge_with_provenance(paths)?;
-    let shapes = purrdf::shapes::engine::parse_shapes(shapes_ttl)?;
+    let shapes = purrdf::shapes::engine::parse_shapes(shapes_ttl).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("SHACL shapes failed to parse: {e}"),
+        })
+    })?;
     let report = store::shacl_validate_dataset(&merge.dataset, &shapes);
     let focus_to_file: HashMap<String, String> = merge.focus_to_file.into_iter().collect();
     Ok(dsl_findings(&report, &focus_to_file, label))

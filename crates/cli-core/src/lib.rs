@@ -25,8 +25,12 @@ use std::path::{Component, Path, PathBuf};
 use std::time::Duration;
 
 use gmeow_errors::render;
-use gmeow_errors::{Finding, Report};
+use gmeow_errors::{Diag, DiagLedger, Finding, Report, StageId};
 use serde::Serialize;
+
+pub mod error;
+
+use error::{EmptyArtifactSelection, UnknownArtifactKind, UnknownConsoleMode};
 
 /// The output surface a CLI run presents on, resolved once at startup.
 ///
@@ -80,6 +84,32 @@ impl ConsoleMode {
         }
     }
 
+    /// Like [`ConsoleMode::resolve`], but [`ConsoleMode::Auto`] collapses to a
+    /// HUMAN stderr surface off a TTY ([`ConsoleMode::Text`]) instead of
+    /// [`ConsoleMode::Jsonl`].
+    ///
+    /// This is the resolution a CONSUMER CLI (`gmeow`) wants: stdout is the
+    /// product stream (a converted document, a projected graph, the MCP
+    /// JSON-RPC transport), so diagnostics must stay on stderr by default and
+    /// never interleave NDJSON into piped product output. An agent still opts
+    /// into the machine surface explicitly with `--console jsonl` (or
+    /// `GMEOW_CONSOLE=jsonl`); the flag > env > default precedence is identical
+    /// to [`ConsoleMode::resolve`].
+    pub fn resolve_stderr_default(
+        flag: Option<ConsoleMode>,
+        env_val: Option<&str>,
+        is_tty: bool,
+    ) -> ConsoleMode {
+        let chosen = flag
+            .or_else(|| env_val.and_then(Self::parse_env))
+            .unwrap_or(ConsoleMode::Auto);
+        match chosen {
+            ConsoleMode::Auto if is_tty => ConsoleMode::Pretty,
+            ConsoleMode::Auto => ConsoleMode::Text,
+            other => other,
+        }
+    }
+
     /// Parse an environment/config spelling into a mode, case-insensitively.
     /// Returns `None` for an unknown value so the caller can fall through to the
     /// next precedence tier.
@@ -93,31 +123,6 @@ impl ConsoleMode {
             _ => None,
         }
     }
-}
-
-/// Errors raised while resolving a [`DiagnosticsConfig`].
-///
-/// Invalid tokens are hard failures: the diagnostics policy has no silent
-/// fallback, so a typo cannot silently degrade output.
-#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
-pub enum DiagnosticsConfigError {
-    /// An unrecognized `--diagnostics-console` / `GMEOW_DIAGNOSTICS_CONSOLE` token.
-    #[error("unknown diagnostics console mode: {0:?}")]
-    UnknownConsoleMode(String),
-    /// One or more entries in an artifact selector are not known kinds.
-    #[error(
-        "unknown diagnostics artifact kind(s): {unknown:?} \
-         (expected a subset of {expected:?}, or 'none'/'all')"
-    )]
-    UnknownArtifactKind {
-        /// The unrecognized token(s) from the selector.
-        unknown: Vec<String>,
-        /// The canonical artifact kinds the selector may name.
-        expected: Vec<String>,
-    },
-    /// The artifact selector parsed to an empty set.
-    #[error("empty diagnostics artifact selection: {0:?}")]
-    EmptyArtifactSelection(String),
 }
 
 /// Resolved diagnostics output policy (immutable).
@@ -177,7 +182,7 @@ impl DiagnosticsConfig {
         env: &HashMap<String, String>,
         is_tty: bool,
         dist_dir: &Path,
-    ) -> Result<Self, DiagnosticsConfigError> {
+    ) -> gmeow_errors::Result<Self> {
         let console = Self::resolve_console(
             console
                 .or_else(|| env.get("GMEOW_DIAGNOSTICS_CONSOLE").map(String::as_str))
@@ -231,7 +236,7 @@ impl DiagnosticsConfig {
         })
     }
 
-    fn resolve_console(raw: &str, is_tty: bool) -> Result<ConsoleMode, DiagnosticsConfigError> {
+    fn resolve_console(raw: &str, is_tty: bool) -> gmeow_errors::Result<ConsoleMode> {
         match raw.trim().to_ascii_lowercase().as_str() {
             "auto" => Ok(if is_tty {
                 ConsoleMode::Pretty
@@ -242,11 +247,13 @@ impl DiagnosticsConfig {
             "text" => Ok(ConsoleMode::Text),
             "jsonl" => Ok(ConsoleMode::Jsonl),
             "silent" => Ok(ConsoleMode::Silent),
-            other => Err(DiagnosticsConfigError::UnknownConsoleMode(other.to_owned())),
+            other => Err(Diag::of_kind(UnknownConsoleMode {
+                value: other.to_owned(),
+            })),
         }
     }
 
-    fn parse_artifacts(raw: &str) -> Result<BTreeSet<String>, DiagnosticsConfigError> {
+    fn parse_artifacts(raw: &str) -> gmeow_errors::Result<BTreeSet<String>> {
         let token = raw.trim().to_ascii_lowercase();
         if token == "none" {
             return Ok(BTreeSet::new());
@@ -260,17 +267,17 @@ impl DiagnosticsConfig {
             .filter(|s| !s.is_empty())
             .collect();
         if kinds.is_empty() {
-            return Err(DiagnosticsConfigError::EmptyArtifactSelection(
-                raw.to_owned(),
-            ));
+            return Err(Diag::of_kind(EmptyArtifactSelection {
+                raw: raw.to_owned(),
+            }));
         }
         let known: BTreeSet<String> = Self::ARTIFACT_KINDS.iter().map(|&s| s.to_owned()).collect();
         let unknown: Vec<String> = kinds.difference(&known).cloned().collect();
         if !unknown.is_empty() {
-            return Err(DiagnosticsConfigError::UnknownArtifactKind {
-                unknown,
-                expected: known.into_iter().collect(),
-            });
+            return Err(Diag::of_kind(UnknownArtifactKind {
+                unknown: unknown.join(", "),
+                expected: known.into_iter().collect::<Vec<_>>().join(", "),
+            }));
         }
         Ok(kinds)
     }
@@ -337,14 +344,32 @@ pub fn write_docs_projection(
     0
 }
 
-/// Print an error message to stderr and yield the failure exit code `1`.
+/// Emit an Error-grade diagnostic through the console sink and yield the failure
+/// exit code `1`.
 ///
-/// This is the shared implementation the two bins' own `fail` helpers mirror;
+/// The shared implementation the two bins' own `fail` helpers mirror;
 /// [`write_docs_projection`] uses it directly so it never needs to thread a
-/// caller-supplied error sink through.
+/// caller-supplied error sink through. It resolves a reporter from the
+/// environment (honouring `GMEOW_CONSOLE` and the stderr TTY) so the docs-export
+/// error surfaces as the same graded witness every other diagnostic does — human
+/// text on a TTY, an NDJSON `finding` line for agents — never a bare stderr write.
 fn fail(message: impl AsRef<str>) -> i32 {
-    eprintln!("{}", message.as_ref());
-    1
+    use std::io::IsTerminal;
+    let diag = Diag::new(
+        gmeow_errors::code::register_code("gmeow-cli-core.docs-export.io"),
+        gmeow_errors::Grade::new(
+            gmeow_errors::Severity::Error,
+            gmeow_errors::FindingCategory::ModelingDisciplineViolation,
+            gmeow_errors::Standpoint::Binding,
+        ),
+        message.as_ref().to_owned(),
+    );
+    let mode = ConsoleMode::resolve(
+        None,
+        std::env::var("GMEOW_CONSOLE").ok().as_deref(),
+        std::io::stderr().is_terminal(),
+    );
+    emit_and_exit(reporter_for(mode).as_ref(), diag, "gmeow")
 }
 
 /// How a CLI run surfaces its diagnostics, progress, and closing summary.
@@ -509,6 +534,85 @@ impl Reporter for NdjsonReporter {
     }
 }
 
+/// A reporter that suppresses all diagnostic chrome (the `silent` surface):
+/// every event is dropped so only product results (written by the command
+/// itself) reach stdout.
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SilentReporter;
+
+impl Reporter for SilentReporter {
+    fn report(&self, _report: &Report) {}
+    fn stage_start(&self, _stage: &str) {}
+    fn stage_end(&self, _stage: &str, _elapsed: Duration) {}
+    fn summary(&self, _report: &Report) {}
+}
+
+/// A boxed [`Reporter`] for a resolved [`ConsoleMode`]: line-framed NDJSON for
+/// `jsonl` (agents/pipelines), a silent sink for `silent`, and human-facing
+/// stderr text for every interactive/`pretty`/`text` surface. This is the single
+/// reporter factory both the consumer `gmeow` binary and the repo-maintenance
+/// `gmeow-dev` binary construct their startup reporter from.
+pub fn reporter_for(mode: ConsoleMode) -> Box<dyn Reporter> {
+    match mode {
+        ConsoleMode::Jsonl => Box::new(NdjsonReporter::new()),
+        ConsoleMode::Silent => Box::new(SilentReporter),
+        _ => Box::new(HumanReporter::new()),
+    }
+}
+
+/// Lower a single [`Diag`] to a one-finding [`Report`] WITHOUT a pipeline carrier.
+///
+/// A CLI or config error can arise *before* any pipeline carrier (and its
+/// [`DiagLedger`]) exists — yet it must still be emitted as the same graded
+/// witness a mid-pipeline finding is, not a bare string. The canonical
+/// Diag→Finding lowering lives on the ledger projection
+/// ([`DiagLedger::project_report`]), so this constructor stands up a fresh local
+/// ledger, attaches the one diagnostic stamped with the emitting `tool` as its
+/// stage, and returns the projected, normalized report. The single diagnostic
+/// keeps its grade, so [`Report::ok`] / [`exit_code`] read the same gate a
+/// carrier-borne finding would.
+pub fn report_diag(diag: Diag, tool: &str) -> Report {
+    let mut ledger = DiagLedger::new();
+    ledger.attach(diag, StageId::new(tool));
+    ledger.project_report(tool).normalized()
+}
+
+/// Emit one pre-carrier [`Diag`] through `reporter` and return the process exit
+/// code it maps to — the one-call CLI/config-error path built on
+/// [`report_diag`] and [`exit_code`].
+pub fn emit_and_exit(reporter: &dyn Reporter, diag: Diag, tool: &str) -> i32 {
+    let report = report_diag(diag, tool);
+    reporter.report(&report);
+    exit_code(&report)
+}
+
+/// Route a NON-GATING **note** — a progress/status/chatter line — through
+/// `reporter` as a [`FindingCategory::Transient`](gmeow_errors::FindingCategory)
+/// logging witness. This is the substrate replacement idiom for a bare
+/// stderr chatter line: the message becomes a graded (Note-severity,
+/// Advisory, Transient) [`Diag::note`], is lowered to a one-finding [`Report`]
+/// (via [`report_diag`], stamped with `tool` as its stage), and is surfaced on
+/// the reporter's channel — human text on stderr, an NDJSON `finding` line on
+/// stdout, or dropped by a silent sink. It NEVER gates ([`Report::ok`] stays
+/// true), so it is safe for pure narration.
+///
+/// `code` is the stable finding-code string the witness carries (interned once,
+/// idempotently); reuse a per-area `<crate>.<area>.note` code for a family of
+/// related chatter and let the message carry the specifics.
+pub fn note(reporter: &dyn Reporter, tool: &str, code: &str, message: impl Into<String>) {
+    let diag = Diag::note(gmeow_errors::code::register_code(code), message);
+    reporter.report(&report_diag(diag, tool));
+}
+
+/// Route a NON-GATING **info** witness — the lowest-severity chatter — through
+/// `reporter`. The [`info`] twin of [`note`]: identical routing, an
+/// [`Severity::Info`](gmeow_errors::Severity) [`Diag::info`] grade instead of
+/// Note. Never gates.
+pub fn info(reporter: &dyn Reporter, tool: &str, code: &str, message: impl Into<String>) {
+    let diag = Diag::info(gmeow_errors::code::register_code(code), message);
+    reporter.report(&report_diag(diag, tool));
+}
+
 /// The process exit code a report maps to: `0` when the report is clean
 /// ([`Report::ok`]), else `1`.
 ///
@@ -641,5 +745,41 @@ mod tests {
             std::env::temp_dir().join(format!("gmeow-cli-core-test-{}-{n}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         dir
+    }
+
+    #[test]
+    fn report_diag_of_an_error_grade_gates() {
+        // An Error-grade pre-carrier Diag lowers to a report that is NOT ok and
+        // exits 1 — the same gate a carrier-borne Error finding hits.
+        use gmeow_errors::grade::{FindingCategory, Grade, Severity, Standpoint};
+        let code = gmeow_errors::code::register_code("test.cli-core.pre-carrier.error");
+        let diag = Diag::new(
+            code,
+            Grade::new(
+                Severity::Error,
+                FindingCategory::ModelingDisciplineViolation,
+                Standpoint::Binding,
+            ),
+            "config could not be resolved",
+        );
+        let report = report_diag(diag, "gmeow");
+        assert!(!report.ok());
+        assert_eq!(report.error_count(), 1);
+        assert_eq!(exit_code(&report), 1);
+    }
+
+    #[test]
+    fn report_diag_of_transient_chatter_is_clean() {
+        // A Note/Info Transient chatter Diag lowers to an ok report and exits 0 —
+        // chatter never gates.
+        let code = gmeow_errors::code::register_code("test.cli-core.pre-carrier.note");
+        let report = report_diag(Diag::note(code, "just narrating progress"), "gmeow");
+        assert!(report.ok());
+        assert_eq!(exit_code(&report), 0);
+
+        let info_code = gmeow_errors::code::register_code("test.cli-core.pre-carrier.info");
+        let info_report = report_diag(Diag::info(info_code, "low-severity witness"), "gmeow");
+        assert!(info_report.ok());
+        assert_eq!(exit_code(&info_report), 0);
     }
 }
