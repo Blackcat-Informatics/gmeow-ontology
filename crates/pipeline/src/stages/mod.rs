@@ -34,6 +34,7 @@ pub mod correspondence_lower;
 pub mod constraint_shapes;
 pub mod correspondence_soundness;
 pub mod diag_render;
+pub mod docs_format_rendering;
 pub mod docs_render;
 pub mod evals;
 pub mod export;

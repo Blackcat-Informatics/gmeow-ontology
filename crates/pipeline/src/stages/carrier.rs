@@ -162,6 +162,18 @@ pub(crate) const GRAPH_LANG_LOWERING_CORPUS: &str =
 /// axioms).
 pub(crate) const GRAPH_LANG_DOCS_RENDERING_CORPUS: &str =
     "https://blackcatinformatics.ca/gmeow/graph/lang-docs-rendering-corpus";
+/// The docs-format grounding corpus: the four documentation output formats (site, mdbook,
+/// print PDF, term snippets) typed as lossy projections of one shared documentation body-set.
+/// Carries a `logic:Correspondence` per composition-DAG leg (with the derived
+/// weakest-dominates preservation join per format), a `gmeow:NotationProjectionProfile` per
+/// format enumerating the capabilities it represents / declares lost, and a
+/// `gmeow:contentDigest` self-description of the packed `docs-book` / `docs-print` blobs.
+/// Assembled at carrier time — the only point the packed blobs' byte digests exist. Folded
+/// as its own queryable named graph, excluded from the reasoned object-level EDB exactly like
+/// `graph/lang-docs-rendering-corpus` (it asserts a self-description corpus, not object-level
+/// axioms).
+pub(crate) const GRAPH_DOCS_FORMAT_RENDERING: &str =
+    "https://blackcatinformatics.ca/gmeow/graph/docs-format-rendering";
 /// The correspondence-laws corpus: every authored `logic:Correspondence` re-projected with
 /// the EXECUTED lens-law discharge verdicts attached — one `logic:LawClaim`
 /// (`logic:lawClaimed` / `logic:lawDischargeVerdict` / `logic:lawDischargeCondition`) per law
@@ -336,6 +348,25 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
     );
     blobs.push(docs_site_blob?);
     let (docs_book_blob, docs_print_blob) = docs_book_and_print?;
+    // Ground the four documentation output formats as lossy projections of one shared
+    // documentation body-set, content-addressing the packed docs-book / docs-print blobs
+    // by their blake3 digest (F4). This is the ONLY point the packed blobs' byte digests
+    // exist, so the docs-format grounding graph is assembled here; the blob-free capability
+    // loss ledger folds upstream in the mappings stage (where the single report loss store
+    // lives), exactly like the sibling lang: corpora.
+    let docs_format_graph = {
+        let book_digest = purrdf::gts::writer::digest_string(&docs_book_blob.data);
+        let print_digest = purrdf::gts::writer::digest_string(&docs_print_blob.data);
+        let corpus = crate::stages::docs_format_rendering::build_docs_format_corpus(
+            &book_digest,
+            &print_digest,
+        );
+        parse_into_graph(
+            &corpus.ntriples,
+            "application/n-triples",
+            GRAPH_DOCS_FORMAT_RENDERING,
+        )?
+    };
     blobs.push(docs_book_blob);
     blobs.push(docs_print_blob);
     blobs.push(build_reasoning_blob(upstream)?);
@@ -365,7 +396,7 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
             rep: REP_SHACL_FINDINGS.to_string(),
         },
     ];
-    serialize_snapshot(carrier, blobs, report_blobs)
+    serialize_snapshot(carrier, &[docs_format_graph], blobs, report_blobs)
 }
 
 /// Hard-fail if any documented class/property/individual term would link to an OKF
@@ -955,6 +986,7 @@ fn compile_logic_object_graphs(
 /// OKF / caller blobs, and emit. The SOLE serialization of the snapshot.
 fn serialize_snapshot(
     carrier: &purrdf::RdfDataset,
+    extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
     blobs: Vec<BlobRow>,
     report_blobs: Vec<BlobRow>,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
@@ -962,6 +994,13 @@ fn serialize_snapshot(
     builder
         .add_dataset(carrier)
         .map_err(|e| stage_err(&format!("fold carrier into snapshot: {e}")))?;
+    // Carrier-time named graphs (e.g. the docs-format grounding, which content-addresses
+    // the packed docs blobs built in this stage) fold in alongside the assembled carrier.
+    for graph in extra_graphs {
+        builder
+            .add_dataset(graph)
+            .map_err(|e| stage_err(&format!("fold carrier-time named graph into snapshot: {e}")))?;
+    }
     // The JSON-LD-star + OKF archive blobs serialize the SAME native carrier dataset
     // (the value just folded into the builder) — no gts round-trip.
     let yaml_ld_blob = build_yaml_ld_blob_from_dataset(carrier)?;

@@ -105,6 +105,15 @@ pub fn fold_release_bundle(
     // doc_blobs so the release bundle carries the committed bundle's payloads.
     let doc_blobs = existing_blobs(&graph)?;
 
+    // A8: auto-attest the packed documentation artifacts (the docs-book / docs-print
+    // archives) carried by the committed snapshot. The blobs already ride in the bundle,
+    // so this mints an `gmeow:AttestationArtifact` + blake3 `gmeow:contentDigest` per docs
+    // archive WITHOUT re-folding the bytes (the dedup below suppresses the twin), and the
+    // consumer half (`verify_release_bundle`) recomputes each attested digest against a
+    // backing blob — so a drifted docs digest reds the gate.
+    let mut evidence = evidence;
+    evidence.extend(docs_artifact_evidence(&graph)?);
+
     // 2. Mint the attestation named graph. Sort evidence by content digest so the
     //    output is a pure function of the inputs (determinism, §18).
     let mut sorted: Vec<(String, EvidenceInput)> = evidence
@@ -425,6 +434,51 @@ fn replay_graph(graph: &Graph, builder: &mut SnapshotBuilder) -> gmeow_errors::R
         })
     })?;
     Ok(())
+}
+
+/// The `gmeow:attestationType*` local name every packed-docs artifact attestation
+/// carries (A8): a documentation-artifact byte-identity vouch.
+const DOCS_ATTESTATION_TYPE: &str = "attestationTypeDocumentationArtifact";
+
+/// Build one [`EvidenceInput`] per packed documentation artifact (the `docs-book` and
+/// `docs-print` archives) carried by the committed snapshot, so the release fold mints a
+/// `gmeow:AttestationArtifact` + blake3 `gmeow:contentDigest` binding each docs archive
+/// to its bytes. The bytes already ride in the bundle (the dedup in
+/// [`fold_release_bundle`] suppresses a twin blob frame), and the digest the attestation
+/// records is exactly the blob's own content address, so [`verify_release_bundle`]'s
+/// evidence-presence leg verifies the docs artifacts end to end. A missing docs blob is
+/// NOT synthesized — a snapshot without the docs archives simply attests none (the docs
+/// blobs are always present in a real regenerated bundle).
+fn docs_artifact_evidence(graph: &Graph) -> gmeow_errors::Result<Vec<EvidenceInput>> {
+    use crate::bundle_blobs::{REP_DOCS_BOOK, REP_DOCS_PRINT};
+    let mut rows: Vec<EvidenceInput> = Vec::new();
+    for (rep, label) in [
+        (REP_DOCS_BOOK, "Documentation book archive"),
+        (REP_DOCS_PRINT, "Documentation print archive"),
+    ] {
+        // Find the committed blob whose declared `rep` is this docs archive.
+        let hit = graph
+            .blobs
+            .iter()
+            .find(|(digest, _)| matches!(blob_meta_for(graph, digest), Ok((_, r)) if r == rep));
+        let Some((digest, entry)) = hit else {
+            continue;
+        };
+        let data = entry.decoded_vec().map_err(|e| {
+            Diag::of_kind(Release {
+                message: format!("decoding committed docs blob {digest} for attestation: {e}"),
+            })
+        })?;
+        let (media_type, _) = blob_meta_for(graph, digest)?;
+        rows.push(EvidenceInput {
+            data,
+            media_type,
+            attestation_type_iri: format!("{GMEOW_NS}{DOCS_ATTESTATION_TYPE}"),
+            rep: format!("{rep}-attestation"),
+            subject_label: label.to_owned(),
+        });
+    }
+    Ok(rows)
 }
 
 /// Decode every existing snapshot blob into a [`BlobRow`], preserving the
@@ -1386,6 +1440,134 @@ mod tests {
                 "https://blackcatinformatics.ca/gmeow/attestationTypeCrossCheckAgreement"
             ),
             "https://blackcatinformatics.ca/gmeow/attestationTypeCrossCheckAgreement"
+        );
+    }
+
+    /// A `dist` snapshot carrying the two packed documentation archives (the
+    /// docs-book / docs-print blobs), under their canonical `rep`s.
+    fn docs_snapshot() -> Vec<u8> {
+        use crate::bundle_blobs::{REP_DOCS_BOOK, REP_DOCS_PRINT};
+        let nq = "<https://e/s> <https://e/p> <https://e/o> .\n";
+        let b = builder_from(nq, NativeRdfFormat::NTriples.media_type());
+        emit_gts(
+            &b,
+            "dist",
+            None,
+            vec![
+                BlobRow {
+                    data: b"BOOK-ARCHIVE-BYTES".to_vec(),
+                    media_type: "application/x-tar".to_string(),
+                    rep: REP_DOCS_BOOK.to_string(),
+                },
+                BlobRow {
+                    data: b"PRINT-ARCHIVE-BYTES-WITH-PDF".to_vec(),
+                    media_type: "application/x-tar".to_string(),
+                    rep: REP_DOCS_PRINT.to_string(),
+                },
+            ],
+            Vec::new(),
+            None,
+            None,
+            None,
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit docs snapshot")
+    }
+
+    /// A8: folding a release bundle over a snapshot that carries the packed docs
+    /// archives auto-mints a documentation-artifact attestation per archive, binds it
+    /// by blake3 `gmeow:contentDigest`, and the consumer verify accepts it with the
+    /// docs artifacts counted among the verified evidence.
+    #[test]
+    fn release_fold_attests_the_packed_docs_artifacts() {
+        use crate::bundle_blobs::REP_DOCS_PRINT;
+        let snapshot = docs_snapshot();
+        let print_digest = {
+            let graph = read(&snapshot, true, None);
+            let (digest, _) = graph
+                .blobs
+                .iter()
+                .find(
+                    |(d, _)| matches!(blob_meta_for(&graph, d), Ok((_, r)) if r == REP_DOCS_PRINT),
+                )
+                .expect("docs-print blob present");
+            digest.clone()
+        };
+
+        let bundle = fold(&snapshot, Vec::new(), "2026-06-25T00:00:00Z");
+        let graph = read(&bundle, true, None);
+        let nquads = graph_nquads(&graph);
+
+        assert!(
+            nquads.contains("attestationTypeDocumentationArtifact"),
+            "a documentation-artifact attestation must be minted for the packed docs"
+        );
+        assert!(
+            nquads.contains(&print_digest),
+            "the docs-print archive must be bound by gmeow:contentDigest {print_digest}"
+        );
+
+        // The consumer verify accepts the bundle and counts the docs artifacts (2) among
+        // the verified evidence.
+        let report = verify_release_bundle(&bundle, None).expect("docs bundle must verify");
+        assert!(
+            report.artifacts_verified >= 2,
+            "both packed docs archives must be verified evidence, saw {}",
+            report.artifacts_verified
+        );
+    }
+
+    /// A8/F4: a signed bundle whose attestation graph binds a documentation-artifact
+    /// `gmeow:contentDigest` with NO backing blob (a drifted / removed docs blob) must
+    /// FAIL verify's evidence-presence leg — the drift reds the gate.
+    #[test]
+    fn verify_rejects_docs_attestation_without_backing_blob() {
+        let base = "<https://e/s> <https://e/p> <https://e/o> .\n";
+        let mut builder = builder_from(base, NativeRdfFormat::NTriples.media_type());
+
+        // A phantom docs artifact: attested, but its bytes are never folded as a blob.
+        let phantom = EvidenceInput {
+            data: b"PHANTOM-DOCS-PRINT-BYTES".to_vec(),
+            media_type: "application/x-tar".to_string(),
+            attestation_type_iri: format!("{GMEOW_NS}{DOCS_ATTESTATION_TYPE}"),
+            rep: "docs-print-attestation".to_string(),
+            subject_label: "Documentation print archive".to_string(),
+        };
+        let phantom_digest = digest_string(&phantom.data);
+        let sorted = vec![(phantom_digest.clone(), phantom)];
+        let nq = build_attestations_nquads(
+            &sorted,
+            "https://blackcatinformatics.ca/gmeow/agent/release-lane",
+            "2026-06-25T00:00:00Z",
+            "https://blackcatinformatics.ca/gmeow/release/gmeow.gts",
+        );
+        let att = parse_dataset(nq.as_bytes(), "application/n-quads", None).expect("parse att");
+        builder.add_dataset(&att).expect("add att");
+
+        // Sign the bundle but DELIBERATELY do not fold the phantom's bytes as a blob.
+        let signing = deterministic_signing_key(7);
+        let armor = fake_public_armor(&signing.verifying_key().to_bytes());
+        let bundle = emit_gts(
+            &builder,
+            "dist",
+            None,
+            Vec::new(),
+            Vec::new(),
+            Some(signing.to_bytes()),
+            Some("release-test-kid".to_string()),
+            Some(armor),
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit signed phantom bundle");
+
+        let result = verify_release_bundle(&bundle, None);
+        let msg = match result {
+            Ok(_) => panic!("a docs attestation with no backing blob must red the gate"),
+            Err(e) => format!("{e}"),
+        };
+        assert!(
+            msg.contains(&phantom_digest) || msg.contains("no backing blob"),
+            "verify must reject the attested-but-absent docs digest: {msg}"
         );
     }
 }
