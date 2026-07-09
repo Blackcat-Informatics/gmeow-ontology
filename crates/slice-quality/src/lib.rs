@@ -33,6 +33,17 @@ pub use model::{
     Axis, AxisGrade, ContextScope, Exemption, Rubric, SliceAssessment, Threshold, Tier,
 };
 
+/// The repo-wide slice-quality sweep products, scored in one pass over the discovered
+/// slice set: the RDF assessment graph and the diagnostics report that backs JSON/SARIF/HTML
+/// projections. Keeping these together prevents the pipeline from running the expensive
+/// sweep twice when it needs both the queryable graph and the human-facing report.
+pub struct AssessmentArtifacts {
+    /// Deterministic N-Quads in the slice-quality assessment graph.
+    pub nquads: String,
+    /// Aggregate diagnostics report containing every scored slice's grades and advisories.
+    pub report: gmeow_errors::Report,
+}
+
 /// Parse one or more Turtle files into a single merged dataset.
 ///
 /// # Errors
@@ -108,6 +119,39 @@ pub fn scored_source_files(repo_root: &Path) -> Vec<PathBuf> {
     files
 }
 
+/// Score every discovered slice once and return all first-class assessment products:
+/// the RDF graph projection and the aggregate diagnostics report. This is the shared
+/// authority for repo-wide outputs, so the dev CLI, pipeline graph, and embedded HTML
+/// report can agree without separate sweeps.
+///
+/// # Errors
+/// Hard-fails if the rubric or ANY discovered slice cannot be scored.
+pub fn assessment_artifacts(repo_root: &Path) -> Result<AssessmentArtifacts, String> {
+    let rubric = load_repo_rubric(repo_root)?;
+    let dirs = discover_slice_dirs(&repo_root.join("slices"));
+    if dirs.is_empty() {
+        return Err("quality-assessment sweep found no slices".to_string());
+    }
+
+    let mut nquads = String::new();
+    let mut aggregate = gmeow_errors::Report::new("slice-quality");
+    for dir in dirs {
+        let report = report::score_slice_with_rubric(&dir, rubric.clone())?;
+        nquads.push_str(&report.to_gmeow_rdf());
+        let diagnostics = report.to_report();
+        for finding in diagnostics.findings {
+            aggregate.add_finding(finding);
+        }
+        for rule in diagnostics.rules {
+            aggregate.add_rule(rule);
+        }
+    }
+    Ok(AssessmentArtifacts {
+        nquads,
+        report: aggregate.normalized(),
+    })
+}
+
 /// Score every discovered slice against the repo rubric and project the combined
 /// assessment as deterministic N-Quads in the `gmeow:graph/slice-quality` named graph
 /// (each slice's [`report::SliceReport::to_gmeow_rdf`] concatenated in sorted slice-dir
@@ -119,11 +163,5 @@ pub fn scored_source_files(repo_root: &Path) -> Vec<PathBuf> {
 /// Hard-fails (never a silent skip — no-optionality) if the rubric or ANY discovered
 /// slice cannot be scored.
 pub fn assessment_nquads(repo_root: &Path) -> Result<String, String> {
-    let rubric = load_repo_rubric(repo_root)?;
-    let mut out = String::new();
-    for dir in discover_slice_dirs(&repo_root.join("slices")) {
-        let report = report::score_slice_with_rubric(&dir, rubric.clone())?;
-        out.push_str(&report.to_gmeow_rdf());
-    }
-    Ok(out)
+    Ok(assessment_artifacts(repo_root)?.nquads)
 }

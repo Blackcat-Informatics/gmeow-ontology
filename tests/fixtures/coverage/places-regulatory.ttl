@@ -30,6 +30,7 @@ ex:unSecurityCouncil a gmeow:Organization , gmeow:Agent ; rdfs:label "UN Securit
 ex:stateA        a gmeow:Organization , gmeow:Agent ; rdfs:label "State A Foreign Ministry"@en .
 ex:stateB        a gmeow:Organization , gmeow:Agent ; rdfs:label "State B Foreign Ministry"@en .
 ex:electionBoard a gmeow:Organization , gmeow:Agent ; rdfs:label "Independent Election Board"@en .
+gmeow:actionUse a gmeow:RightsAction .
 
 # --- RegulatoryOverlayType values (exercising the open value vocabulary) -------- #
 gmeow:overlayTypeZoning              a gmeow:RegulatoryOverlayType ; rdfs:label "zoning"@en .

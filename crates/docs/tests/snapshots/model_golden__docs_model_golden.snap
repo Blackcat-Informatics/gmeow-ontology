@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/model_golden.rs
-assertion_line: 187
 expression: summary
 ---
 {
@@ -8,7 +7,7 @@ expression: summary
   "version": "7",
   "slice_count": 81,
   "term_count": 2517,
-  "dependency_edge_count": 1003,
+  "dependency_edge_count": 1005,
   "term_count_by_category": {
     "Class": 747,
     "Datatype": 1,
@@ -297,10 +296,10 @@ expression: summary
     }
   ],
   "mapping_set_count": 81,
-  "linkage_count": 1990,
+  "linkage_count": 1867,
   "example_count": 143,
   "concern_count": 7,
-  "external_term_count": 1730,
+  "external_term_count": 1612,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -418,7 +417,7 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 322,
+  "shape_count": 333,
   "competency_count": 133,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
