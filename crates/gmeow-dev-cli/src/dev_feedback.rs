@@ -18,7 +18,7 @@ use std::process::Command;
 use gmeow_cli_core::{ConsoleMode, DiagnosticsConfig};
 use gmeow_errors::{Finding, Report, Severity, render};
 
-use crate::dev_common::{NAMESPACE, ONTOLOGY_IRI, fail, project_root, reporter_for};
+use crate::dev_common::{NAMESPACE, ONTOLOGY_IRI, fail, note, project_root, reporter_for};
 use crate::error;
 
 /// Logs at or under this many characters ride verbatim in a finding's detail;
@@ -198,7 +198,10 @@ pub(crate) fn write_artifacts(report: &Report, config: &DiagnosticsConfig) -> Re
         // Progress notice on STDERR, never stdout: stdout carries the command's data
         // render (e.g. `slice-quality --all --format json`), so a "wrote …" line must
         // not contaminate an otherwise single, parseable JSON/SARIF document.
-        eprintln!("wrote {}", path.display());
+        note(
+            "gmeow-dev.feedback.wrote",
+            format!("wrote {}", path.display()),
+        );
     }
     Ok(())
 }

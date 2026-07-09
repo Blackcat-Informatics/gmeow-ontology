@@ -30,7 +30,6 @@ fn scores_the_rubric_slice_across_all_ten_axes() {
     let text = report.render_text();
     assert!(text.contains("roll-up tier:"));
     assert!(text.contains("per-axis grades"));
-    eprintln!("\n{text}");
 
     // The advisory Report is on the diagnostics substrate and never gates.
     let diag = report.to_report();
@@ -128,5 +127,4 @@ fn scores_the_logic_slice_green_vs_advisory() {
         "all ten axes graded on logic"
     );
     assert!(report.to_report().ok(), "advisory only");
-    eprintln!("\nlogic roll-up: {}", report.rollup_label());
 }
