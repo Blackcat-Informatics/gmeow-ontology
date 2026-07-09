@@ -3207,6 +3207,28 @@ lang:GmnUncostedScriptGlyph
     skos:definition "The graph-side coverage failure of the glyph plane: a lang:Grapheme admitted to the GMN script (lang:inScript gmeow:gmnScript) — an IPA phonological grapheme, the `*` operator glyph — that carries no gmeow:gmnGlyphTokenCost, the measured per-glyph token-cost feed the glyph-versus-named-key disposition is read off. Cost coverage over the shared inventory is total by rule: a symbol earns a glyph slot only when its measured cost warrants one, so a script glyph with no cost feed is a silent gap in the disposition plane. It is the glyph-plane sibling of lang:GmnUndispositionedTerm, which is the feature-value-plane coverage failure; together they close the plane against silent gaps."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+# =========================================================================== #
+# Mentation <-> lang binding gate (Item 4 of #1475). This is NOT one of the   #
+# twelve GMN dialect hard rules enumerated above — LANG-CONFORMANCE.md's rule #
+# count is unchanged by this class. It is a separate cross-slice competency   #
+# check proving gmeow:processExport (mentation, core tier) binds to           #
+# gmeow:GmnSecurityRing (lang, this slice) through the gmeow:wasGeneratedBy   #
+# hook already in the envelope's eight-field contract, so mentation names no  #
+# lang term and gains no gmeow:sliceDependsOn edge on lang — the reference    #
+# direction stays lang -> mentation (this slice's manifest declares the       #
+# dependency; docs/GROUNDING.md's tier rule permits a grounding slice to      #
+# depend on a non-grounding slice for a non-grounding concept, and lang       #
+# already depends on other core-tier slices such as provenance and events).   #
+# =========================================================================== #
+
+lang:GmnUnringedExportCrossing
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Unringed Export Crossing"@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:GmnEnvelope whose gmeow:wasGeneratedBy names an activity carrying gmeow:mentalProcessType gmeow:processExport (mentation slice) declares no gmeow:gmnSecurityRing. gmeow:processExport is the externalization/communication episode of an information-flow-controlled agent's mental timeline — the emit member of mentation's train/audit/export triple — and its disclosure semantics are governed BY REFERENCE (Principle 5) by the boundary ring the envelope it generates was admitted under. An export activity that generated an envelope with no ring crossed a serialization boundary with no admission class checked, exactly the disclosure gap the security-ring model exists to close."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # --- The per-glyph token-cost feed ------------------------------------------ #
 
 gmeow:gmnGlyphTokenCost
