@@ -4110,3 +4110,89 @@ lang:ggcS1 a logic:Formula ; logic:relation gmeow:gmnSigilScope ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sc1" ] .
 lang:ggcS2 a logic:Formula ; logic:relation gmeow:gmnSigilScope ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "g2" ] , [ logic:termIndex 1 ; logic:termVariable "sc2" ] .
+
+# =========================================================================== #
+# Procedural constraints (#1194) authored as raw logic:Formula integrity trees, #
+# projected to sh:SPARQLConstraint keyed (via logic:formalizes) onto the same    #
+# source-terms the hand-authored SHACL enforced. GmnCompaction uses the          #
+# logic:linkVia variable-predicate relation; GmnVersionOverclaim a filter        #
+# conjunction over the version-scale classification.                            #
+# =========================================================================== #
+
+# A gmeow:GmnCompaction's correspondence never claims a preservation stronger
+# than logic:ValidationOnly: any logic:Correspondence the compaction record links
+# — through ANY predicate — must not carry logic:mnemomorphic true,
+# logic:ExactPreservation, or logic:SoundUnderApproximation.
+lang:GmnCompactionOverclaimConstraint
+    a logic:Constraint ;
+    rdfs:label "GMN compaction overclaim constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:GmnCompaction that links a logic:Correspondence claiming mnemomorphic recoverability, exact preservation, or soundness under approximation overclaims — compaction is get-leg-only (validation-only)."@x-gmeow-english ;
+    logic:formalizes gmeow:GmnCompaction ;
+    logic:severity "Violation" ;
+    logic:message "A gmeow:GmnCompaction links a logic:Correspondence claiming mnemomorphic recoverability, exact preservation, or soundness under approximation; compaction is validation-only." ;
+    logic:integrity lang:gmnCoForall .
+lang:gmnCoForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:gmnCoImpl .
+lang:gmnCoImpl a logic:Formula ; logic:antecedent lang:gmnCoGuard ; logic:consequent lang:gmnCoPhi .
+lang:gmnCoGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:GmnCompaction ] .
+lang:gmnCoPhi a logic:Formula ; logic:not lang:gmnCoEx .
+lang:gmnCoEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "link" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] ;
+    logic:exists lang:gmnCoBody .
+lang:gmnCoBody a logic:Formula ; logic:and lang:gmnCoLink , lang:gmnCoType , lang:gmnCoClaim .
+lang:gmnCoLink a logic:Formula ; logic:relation logic:linkVia ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "link" ] , [ logic:termIndex 2 ; logic:termVariable "c" ] .
+lang:gmnCoType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termIri logic:Correspondence ] .
+lang:gmnCoClaim a logic:Formula ; logic:or lang:gmnCoMnemo , lang:gmnCoExact , lang:gmnCoSound .
+lang:gmnCoMnemo a logic:Formula ; logic:relation logic:mnemomorphic ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] .
+lang:gmnCoExact a logic:Formula ; logic:relation logic:preservationKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termIri logic:ExactPreservation ] .
+lang:gmnCoSound a logic:Formula ; logic:relation logic:preservationKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termIri logic:SoundUnderApproximation ] .
+
+# A GMN version migration (a subject of gmeow:gmnMigratesTo) whose carried
+# correspondence claims logic:mnemomorphic true is honest only over an additive
+# bump: when the destination version's gmeow:VersionMembership carries a
+# gmeow:versionScale other than gmeow:scaleMinor or gmeow:scaleTrivial, the
+# recoverability witness is an overclaim.
+lang:GmnVersionOverclaimConstraint
+    a logic:Constraint ;
+    rdfs:label "GMN version overclaim constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a GMN migration whose carried lang:translationCorrespondence claims logic:mnemomorphic true over a stronger-than-additive version bump (a destination gmeow:versionScale other than gmeow:scaleMinor or gmeow:scaleTrivial) overclaims — the version machinery never claims more than its lineage discharges."@x-gmeow-english ;
+    logic:formalizes lang:GmnVersionOverclaimShape ;
+    logic:severity "Violation" ;
+    logic:message "A GMN migration claims logic:mnemomorphic true over a stronger-than-additive version bump; the version machinery never claims more than its lineage discharges." ;
+    logic:integrity lang:gmnVoForall .
+lang:gmnVoForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vg" ] ;
+    logic:forall lang:gmnVoImpl .
+lang:gmnVoImpl a logic:Formula ; logic:antecedent lang:gmnVoGuard ; logic:consequent lang:gmnVoPhi .
+lang:gmnVoGuard a logic:Formula ; logic:relation gmeow:gmnMigratesTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vg" ] .
+lang:gmnVoPhi a logic:Formula ; logic:not lang:gmnVoEx .
+lang:gmnVoEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] , [ logic:termIndex 2 ; logic:termVariable "m" ] , [ logic:termIndex 3 ; logic:termVariable "sc" ] ;
+    logic:exists lang:gmnVoBody .
+lang:gmnVoBody a logic:Formula ; logic:and lang:gmnVoTo , lang:gmnVoCorr , lang:gmnVoMnemo , lang:gmnVoMember , lang:gmnVoScale , lang:gmnVoNotMinor , lang:gmnVoNotTrivial .
+lang:gmnVoTo a logic:Formula ; logic:relation gmeow:gmnMigratesTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+lang:gmnVoCorr a logic:Formula ; logic:relation lang:translationCorrespondence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
+lang:gmnVoMnemo a logic:Formula ; logic:relation logic:mnemomorphic ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] .
+lang:gmnVoMember a logic:Formula ; logic:relation gmeow:versionMember ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+lang:gmnVoScale a logic:Formula ; logic:relation gmeow:versionScale ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "sc" ] .
+lang:gmnVoNotMinor a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sc" ] , [ logic:termIndex 1 ; logic:termIri gmeow:scaleMinor ] .
+lang:gmnVoNotTrivial a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sc" ] , [ logic:termIndex 1 ; logic:termIri gmeow:scaleTrivial ] .

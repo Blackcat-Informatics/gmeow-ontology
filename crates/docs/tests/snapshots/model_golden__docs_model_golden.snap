@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/model_golden.rs
+assertion_line: 187
 expression: summary
 ---
 {
@@ -7,7 +8,7 @@ expression: summary
   "version": "7",
   "slice_count": 80,
   "term_count": 2481,
-  "dependency_edge_count": 1004,
+  "dependency_edge_count": 1005,
   "term_count_by_category": {
     "Class": 739,
     "Datatype": 1,

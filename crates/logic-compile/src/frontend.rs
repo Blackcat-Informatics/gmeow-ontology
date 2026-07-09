@@ -1475,6 +1475,10 @@ pub fn derive_validation_shapes(store: &RdfDataset) -> Result<Vec<ValidationShap
             ShapeTarget::ValueKeyed { predicate, value } => {
                 format!("{predicate}-{value}-value-shape")
             }
+            // The declarative deriver never mints a direct-instance / raw-sparql target (those are
+            // procedural-constraint selectors only), but the match stays exhaustive.
+            ShapeTarget::DirectClass(c) => format!("{c}-direct-shape"),
+            ShapeTarget::Sparql(_) => "sparql-target-shape".to_owned(),
         };
         acc.entry(iri)
             .or_insert_with(|| (target, Vec::new(), Vec::new()))

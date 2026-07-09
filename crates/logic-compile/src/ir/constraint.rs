@@ -26,6 +26,12 @@ use super::{Formula, SEP, Term};
 
 /// The `rdf:type` IRI — the relation of a class-membership guard atom `rdf:type(this, C)`.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// The `logic:directType(this, C)` guard marker deriving a subclass-excluding
+/// [`ShapeTarget::DirectClass`] (mirrors the projector-side constant in `projections::shapes`).
+const LOGIC_DIRECT_TYPE: &str = "https://blackcatinformatics.ca/logic/directType";
+/// The `logic:sparqlTarget(this, "SELECT …")` guard marker deriving a raw [`ShapeTarget::Sparql`]
+/// (mirrors the projector-side constant in `projections::shapes`).
+const LOGIC_SPARQL_TARGET: &str = "https://blackcatinformatics.ca/logic/sparqlTarget";
 
 /// The relational comparator of an [`AggregateComparison`] — the SPARQL `HAVING` operator the
 /// aggregate value is tested against. Named the FOL way (equality / inequality / ordering), with
@@ -375,6 +381,31 @@ fn target_from_integrity(integrity: &Formula) -> Result<ShapeTarget, String> {
             && let Term::Iri(class) = &args[1]
         {
             return Ok(ShapeTarget::Class(class.clone()));
+        }
+    }
+    // A `sparqlTarget(this, "SELECT …")` marker carries a raw SPARQL focus selector (checked before
+    // the generic subject branch, which would otherwise read it as `SubjectsOf`). Its second
+    // argument is the literal select body.
+    for atom in &guard_atoms {
+        if let Formula::Atom { relation, args } = atom
+            && matches!(relation, Term::Iri(iri) if iri == LOGIC_SPARQL_TARGET)
+            && args.len() == 2
+            && matches!(&args[0], Term::Var(v) if v == focus)
+            && let Term::Literal { lexical, .. } = &args[1]
+        {
+            return Ok(ShapeTarget::Sparql(lexical.clone()));
+        }
+    }
+    // A `directType(this, C)` marker range-restricts to the DIRECT instances of `C` (checked
+    // before the generic subject branch, which would otherwise read it as `SubjectsOf`).
+    for atom in &guard_atoms {
+        if let Formula::Atom { relation, args } = atom
+            && matches!(relation, Term::Iri(iri) if iri == LOGIC_DIRECT_TYPE)
+            && args.len() == 2
+            && matches!(&args[0], Term::Var(v) if v == focus)
+            && let Term::Iri(class) = &args[1]
+        {
+            return Ok(ShapeTarget::DirectClass(class.clone()));
         }
     }
     // Else a binary predicate guard with the focus as its subject.
