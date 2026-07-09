@@ -3990,3 +3990,123 @@ lang:FormSlotAcyclicDependencyConstraint
     logic:pathPredicate lang:dependsOn ;
     logic:formalizes lang:FormSlot ;
     logic:message "A lang:FormSlot may not depend on itself transitively along lang:dependsOn; a dependency cycle is ill-formed." .
+
+# =========================================================================== #
+# Procedural constraints authored as raw logic:Formula integrity trees. Each   #
+# carries logic:formalizes so its projected sh:SPARQLConstraint twin keys onto  #
+# the same source-term as the hand-authored SHACL it replaces.                 #
+# =========================================================================== #
+
+# A lang:Grapheme belongs to the repertoire of the lang:Script it declares: the
+# script lists it through lang:hasGrapheme. A grapheme whose declared script does
+# not list it is ungrounded — an inverse-existence over the declared script.
+lang:GraphemeRepertoireConstraint
+    a logic:Constraint ;
+    rdfs:label "Grapheme repertoire constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a lang:Grapheme is in the repertoire of the lang:Script it declares (the script lists it through lang:hasGrapheme)."@x-gmeow-english ;
+    logic:formalizes lang:Grapheme ;
+    logic:message "A grapheme is not in the repertoire of the script it declares." ;
+    logic:integrity lang:grForall .
+lang:grForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] ;
+    logic:forall lang:grImpl .
+lang:grImpl a logic:Formula ; logic:antecedent lang:grGuard ; logic:consequent lang:grHas .
+lang:grGuard a logic:Formula ; logic:and lang:grType , lang:grInScript .
+lang:grType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:Grapheme ] .
+lang:grInScript a logic:Formula ; logic:relation lang:inScript ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+lang:grHas a logic:Formula ; logic:relation lang:hasGrapheme ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+
+# A reading-preference claim (a subject of lang:aboutReading) that carries a
+# logic:probability must declare a logic:probabilityModel — a preference weight is
+# a logic:confidence unless a real model is present. A DUAL guard (aboutReading
+# AND probability) so a bare logic:probability elsewhere is not swept in.
+lang:ConfidenceModelConstraint
+    a logic:Constraint ;
+    rdfs:label "Confidence model constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a reading claim (a subject of lang:aboutReading) carrying a logic:probability declares a logic:probabilityModel."@x-gmeow-english ;
+    logic:formalizes lang:ConfidenceNotProbabilityShape ;
+    logic:message "A reading claim carries a logic:probability with no declared logic:probabilityModel." ;
+    logic:integrity lang:cnpForall .
+lang:cnpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] , [ logic:termIndex 2 ; logic:termVariable "p" ] ;
+    logic:forall lang:cnpImpl .
+lang:cnpImpl a logic:Formula ; logic:antecedent lang:cnpGuard ; logic:consequent lang:cnpModel .
+lang:cnpGuard a logic:Formula ; logic:and lang:cnpAbout , lang:cnpProb .
+lang:cnpAbout a logic:Formula ; logic:relation lang:aboutReading ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
+lang:cnpProb a logic:Formula ; logic:relation logic:probability ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+lang:cnpModel a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m" ] ;
+    logic:exists lang:cnpModelAtom .
+lang:cnpModelAtom a logic:Formula ; logic:relation logic:probabilityModel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "m" ] .
+
+# No two distinct graphemes of gmeow:gmnScript are related by
+# gmeow:gmnConfusableWith — the confusables blocklist of the GMN orthography.
+lang:GmnConfusableGlyphConstraint
+    a logic:Constraint ;
+    rdfs:label "GMN confusable glyph constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: no two distinct graphemes of gmeow:gmnScript are a declared gmeow:gmnConfusableWith pair."@x-gmeow-english ;
+    logic:formalizes lang:GmnConfusableGlyphShape ;
+    logic:message "Two distinct graphemes of the GMN script are a declared gmeow:gmnConfusableWith pair; the orthography's confusables blocklist forbids co-resident confusables." ;
+    logic:integrity lang:gcgForall .
+lang:gcgForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "g2" ] ;
+    logic:forall lang:gcgImpl .
+lang:gcgImpl a logic:Formula ; logic:antecedent lang:gcgGuard ; logic:consequent lang:gcgNot .
+lang:gcgGuard a logic:Formula ; logic:relation gmeow:gmnConfusableWith ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "g2" ] .
+lang:gcgNot a logic:Formula ; logic:not lang:gcgBody .
+lang:gcgBody a logic:Formula ; logic:and lang:gcgA1 , lang:gcgA2 , lang:gcgA3 .
+lang:gcgA1 a logic:Formula ; logic:relation lang:inScript ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:gmnScript ] .
+lang:gcgA2 a logic:Formula ; logic:relation lang:inScript ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "g2" ] , [ logic:termIndex 1 ; logic:termIri gmeow:gmnScript ] .
+lang:gcgA3 a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "g2" ] .
+
+# No two distinct graphemes of one lang:Script share an identical
+# gmeow:gmnCodepoints value unless BOTH carry a gmeow:gmnSigilScope (the record-
+# initial sigil discipline is the single lawful cross-plane reuse).
+lang:GmnGlyphCollisionConstraint
+    a logic:Constraint ;
+    rdfs:label "GMN glyph collision constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: two distinct graphemes of one script sharing a gmeow:gmnCodepoints value must both carry a gmeow:gmnSigilScope."@x-gmeow-english ;
+    logic:formalizes lang:GmnGlyphCollisionShape ;
+    logic:message "Two distinct graphemes of one script share an identical gmeow:gmnCodepoints value without both carrying a gmeow:gmnSigilScope; unscoped glyph collisions are forbidden." ;
+    logic:integrity lang:ggcForall .
+lang:ggcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cp" ] , [ logic:termIndex 2 ; logic:termVariable "s" ] , [ logic:termIndex 3 ; logic:termVariable "g2" ] ;
+    logic:forall lang:ggcImpl .
+lang:ggcImpl a logic:Formula ; logic:antecedent lang:ggcGuard ; logic:consequent lang:ggcScoped .
+lang:ggcGuard a logic:Formula ; logic:and lang:ggcA1 , lang:ggcA2 , lang:ggcA3 , lang:ggcA4 , lang:ggcA5 .
+lang:ggcA1 a logic:Formula ; logic:relation gmeow:gmnCodepoints ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cp" ] .
+lang:ggcA2 a logic:Formula ; logic:relation lang:inScript ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+lang:ggcA3 a logic:Formula ; logic:relation gmeow:gmnCodepoints ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "g2" ] , [ logic:termIndex 1 ; logic:termVariable "cp" ] .
+lang:ggcA4 a logic:Formula ; logic:relation lang:inScript ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "g2" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+lang:ggcA5 a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "g2" ] .
+lang:ggcScoped a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sc1" ] , [ logic:termIndex 1 ; logic:termVariable "sc2" ] ;
+    logic:exists lang:ggcScopedBody .
+lang:ggcScopedBody a logic:Formula ; logic:and lang:ggcS1 , lang:ggcS2 .
+lang:ggcS1 a logic:Formula ; logic:relation gmeow:gmnSigilScope ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sc1" ] .
+lang:ggcS2 a logic:Formula ; logic:relation gmeow:gmnSigilScope ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "g2" ] , [ logic:termIndex 1 ; logic:termVariable "sc2" ] .

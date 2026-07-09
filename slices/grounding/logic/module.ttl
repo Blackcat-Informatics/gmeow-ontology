@@ -9079,3 +9079,44 @@ logic:valueObject
 <https://blackcatinformatics.ca/logic/Conjecture> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/verdictProvenance> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/logic/VerdictProvenanceKind> ] .
 <https://blackcatinformatics.ca/logic/ContradictionWitness> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/witnessIndividual> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/logic/ContradictionWitness> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/witnessWorld> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
+
+# =========================================================================== #
+# Procedural constraint authored as a raw logic:Formula integrity tree —        #
+# projected to a sh:SPARQLConstraint. logic:formalizes keys the projected twin  #
+# onto gmeow:Goal, the source-term of the hand-authored SHACL it replaces.      #
+# =========================================================================== #
+
+# A conclusive gmeow:satisfiedBy(goal, situation) edge must be backed by at least
+# one logic:GoalEvaluation under SOME vantage whose logic:evaluatesGoal is the
+# goal, logic:evaluatedAgainst is the situation, logic:satisfactionStatus is
+# logic:Satisfied, and logic:goalEvaluationStatus is logic:GoalEvaluationCompleted.
+logic:SatisfiedByBackedByEvaluationConstraint
+    a logic:Constraint ;
+    rdfs:label "satisfiedBy backed-by-evaluation constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a conclusive gmeow:satisfiedBy edge is backed by a vantage-scoped logic:GoalEvaluation that evaluatesGoal this goal, was evaluatedAgainst the situation, and is Satisfied and completed."@x-gmeow-english ;
+    logic:formalizes gmeow:Goal ;
+    logic:message "A conclusive gmeow:satisfiedBy edge must be backed by a vantage-scoped logic:GoalEvaluation (evaluatesGoal = this goal, evaluatedAgainst = the situation, satisfactionStatus = logic:Satisfied, goalEvaluationStatus = logic:GoalEvaluationCompleted). No backing evaluation under any vantage was found." ;
+    logic:integrity logic:sbeForall .
+logic:sbeForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "situation" ] ;
+    logic:forall logic:sbeImpl .
+logic:sbeImpl a logic:Formula ; logic:antecedent logic:sbeGuard ; logic:consequent logic:sbeExists .
+logic:sbeGuard a logic:Formula ; logic:and logic:sbeType , logic:sbeSat .
+logic:sbeType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Goal ] .
+logic:sbeSat a logic:Formula ; logic:relation gmeow:satisfiedBy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "situation" ] .
+logic:sbeExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "eval" ] ;
+    logic:exists logic:sbeBody .
+logic:sbeBody a logic:Formula ; logic:and logic:sbeB1 , logic:sbeB2 , logic:sbeB3 , logic:sbeB4 .
+logic:sbeB1 a logic:Formula ; logic:relation logic:evaluatesGoal ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "eval" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:sbeB2 a logic:Formula ; logic:relation logic:evaluatedAgainst ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "eval" ] , [ logic:termIndex 1 ; logic:termVariable "situation" ] .
+logic:sbeB3 a logic:Formula ; logic:relation logic:satisfactionStatus ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "eval" ] , [ logic:termIndex 1 ; logic:termIri logic:Satisfied ] .
+logic:sbeB4 a logic:Formula ; logic:relation logic:goalEvaluationStatus ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "eval" ] , [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluationCompleted ] .

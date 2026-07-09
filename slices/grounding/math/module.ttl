@@ -5222,3 +5222,174 @@ math:FlagshipScenarioFailureClassConstraint
     logic:reachTarget math:MathConformanceFailure ;
     logic:formalizes math:FlagshipScenario ;
     logic:message "A math:FlagshipScenario's math:enforcesFailureClass must transitively rdfs:subClassOf math:MathConformanceFailure; a scenario that enforces a non-failure class is ill-formed." .
+
+# =========================================================================== #
+# Procedural constraints authored as raw logic:Formula integrity trees — the   #
+# compound closed-world checks whose violation is a finding, lowered to a       #
+# sh:SPARQLConstraint. Each carries logic:formalizes so its projected twin      #
+# keys onto the same domain source-term as the hand-authored SHACL it replaces. #
+# =========================================================================== #
+
+# A math:Theorem must be warranted by either an in-graph math:Proof (some
+# resource math:provesStatement it) or a declared math:externalWarrant; a
+# theorem asserted with neither is an unwarranted truth-bit claim. The proof arm
+# is an inverse existence and the warrant arm a direct one, joined by a
+# disjunction — beyond any single sugar, so authored as a raw formula.
+math:TheoremWarrantConstraint
+    a logic:Constraint ;
+    rdfs:label "Theorem warrant constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a math:Theorem must be warranted by an in-graph math:Proof that math:provesStatement it, or by a declared math:externalWarrant; a theorem with neither is an ungrounded truth-bit claim."@x-gmeow-english ;
+    logic:formalizes math:Theorem ;
+    logic:message "A math:Theorem must be warranted by either an in-graph math:Proof (some resource math:provesStatement it) or a declared math:externalWarrant; a theorem asserted with neither is an unwarranted truth-bit claim (math:UngroundedTheoremClaim)." ;
+    logic:integrity math:twForall .
+math:twForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:twImpl .
+math:twImpl a logic:Formula ; logic:antecedent math:twGuard ; logic:consequent math:twOr .
+math:twGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:Theorem ] .
+math:twOr a logic:Formula ; logic:or math:twProof , math:twWarrant .
+math:twProof a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ;
+    logic:exists math:twProofAtom .
+math:twProofAtom a logic:Formula ; logic:relation math:provesStatement ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+math:twWarrant a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w" ] ;
+    logic:exists math:twWarrantAtom .
+math:twWarrantAtom a logic:Formula ; logic:relation math:externalWarrant ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] .
+
+# A math:Chart's math:targetCoordinateSpace has the same math:spaceDimension as
+# its manifold's math:manifoldDimension; a chart into a wrong-dimensional space is
+# a math:DimensionMismatch. A cross-node numeric inequality — a raw formula.
+math:ChartDimensionMatchConstraint
+    a logic:Constraint ;
+    rdfs:label "Chart dimension-match constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a math:Chart's target coordinate space dimension equals its manifold's dimension."@x-gmeow-english ;
+    logic:formalizes math:Chart ;
+    logic:message "A math:Chart's target coordinate space dimension does not equal its manifold's dimension (math:DimensionMismatch)." ;
+    logic:integrity math:cdForall .
+math:cdForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:cdImpl .
+math:cdImpl a logic:Formula ; logic:antecedent math:cdGuard ; logic:consequent math:cdNot .
+math:cdGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:Chart ] .
+math:cdNot a logic:Formula ; logic:not math:cdExists .
+math:cdExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m" ] ,
+                             [ logic:termIndex 1 ; logic:termVariable "md" ] ,
+                             [ logic:termIndex 2 ; logic:termVariable "t" ] ,
+                             [ logic:termIndex 3 ; logic:termVariable "sd" ] ;
+    logic:exists math:cdBody .
+math:cdBody a logic:Formula ; logic:and math:cdA1 , math:cdA2 , math:cdA3 , math:cdA4 , math:cdA5 .
+math:cdA1 a logic:Formula ; logic:relation math:hasChart ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+math:cdA2 a logic:Formula ; logic:relation math:manifoldDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "md" ] .
+math:cdA3 a logic:Formula ; logic:relation math:targetCoordinateSpace ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "t" ] .
+math:cdA4 a logic:Formula ; logic:relation math:spaceDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "t" ] , [ logic:termIndex 1 ; logic:termVariable "sd" ] .
+math:cdA5 a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "md" ] , [ logic:termIndex 1 ; logic:termVariable "sd" ] .
+
+# A math:RootSystem carrying the E8 fingerprint (240 roots in rank 8) must declare
+# a math:weylGroup whose math:groupOrder is 696,729,600 — the order of W(E8); a
+# different order corrupts the flagship invariant. A value-guarded inequality —
+# a raw formula.
+math:E8WeylOrderConstraint
+    a logic:Constraint ;
+    rdfs:label "E8 Weyl-order constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a math:RootSystem with the E8 fingerprint (240 roots, rank 8) declares a math:weylGroup of math:groupOrder 696729600."@x-gmeow-english ;
+    logic:formalizes math:RootSystem ;
+    logic:message "A math:RootSystem with the E8 fingerprint (math:rootCount 240, math:rootSystemRank 8) must declare a math:weylGroup of math:groupOrder 696729600 — the order of W(E8); a different order corrupts the flagship invariant and is rejected." ;
+    logic:integrity math:e8Forall .
+math:e8Forall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:e8Impl .
+math:e8Impl a logic:Formula ; logic:antecedent math:e8Guard ; logic:consequent math:e8Not .
+math:e8Guard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:RootSystem ] .
+math:e8Not a logic:Formula ; logic:not math:e8Exists .
+math:e8Exists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] ;
+    logic:exists math:e8Body .
+math:e8Body a logic:Formula ; logic:and math:e8A1 , math:e8A2 , math:e8A3 , math:e8A4 , math:e8A5 .
+math:e8A1 a logic:Formula ; logic:relation math:rootCount ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "240" ; logic:termLiteralDatatype xsd:integer ] .
+math:e8A2 a logic:Formula ; logic:relation math:rootSystemRank ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "8" ; logic:termLiteralDatatype xsd:integer ] .
+math:e8A3 a logic:Formula ; logic:relation math:weylGroup ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] .
+math:e8A4 a logic:Formula ; logic:relation math:groupOrder ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "w" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+math:e8A5 a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "o" ] , [ logic:termIndex 1 ; logic:termLiteral "696729600" ; logic:termLiteralDatatype xsd:integer ] .
+
+# A math:GramMatrix is the matrix of a symmetric form: every math:MatrixEntry at
+# (row, column) carrying value num/den has a transpose entry at (column, row)
+# with the same num/den; a missing or mismatched transpose is an
+# math:AsymmetricGramMatrix. A universally-quantified entry with an existential
+# transpose witness — a raw formula.
+math:GramMatrixSymmetryConstraint
+    a logic:Constraint ;
+    rdfs:label "Gram-matrix symmetry constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a math:GramMatrix is symmetric — every entry at (row, column) has a transpose entry at (column, row) with the same math:entryValue."@x-gmeow-english ;
+    logic:formalizes math:GramMatrix ;
+    logic:message "A math:GramMatrix must be symmetric: every math:MatrixEntry at (row, column) needs a transpose entry at (column, row) with the same math:entryValue; a missing or mismatched transpose entry is ill-formed (math:AsymmetricGramMatrix)." ;
+    logic:integrity math:gmForall .
+math:gmForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:gmImpl .
+math:gmImpl a logic:Formula ; logic:antecedent math:gmGuard ; logic:consequent math:gmInner .
+math:gmGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:GramMatrix ] .
+math:gmInner a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "entry" ] ,
+                             [ logic:termIndex 1 ; logic:termVariable "row" ] ,
+                             [ logic:termIndex 2 ; logic:termVariable "col" ] ,
+                             [ logic:termIndex 3 ; logic:termVariable "val" ] ,
+                             [ logic:termIndex 4 ; logic:termVariable "vnum" ] ,
+                             [ logic:termIndex 5 ; logic:termVariable "vden" ] ;
+    logic:forall math:gmInnerImpl .
+math:gmInnerImpl a logic:Formula ; logic:antecedent math:gmEntryConj ; logic:consequent math:gmMateExists .
+math:gmEntryConj a logic:Formula ; logic:and math:gmE1 , math:gmE2 , math:gmE3 , math:gmE4 , math:gmE5 , math:gmE6 .
+math:gmE1 a logic:Formula ; logic:relation math:hasEntry ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "entry" ] .
+math:gmE2 a logic:Formula ; logic:relation math:atRow ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] , [ logic:termIndex 1 ; logic:termVariable "row" ] .
+math:gmE3 a logic:Formula ; logic:relation math:atColumn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] , [ logic:termIndex 1 ; logic:termVariable "col" ] .
+math:gmE4 a logic:Formula ; logic:relation math:entryValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] , [ logic:termIndex 1 ; logic:termVariable "val" ] .
+math:gmE5 a logic:Formula ; logic:relation math:numerator ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "val" ] , [ logic:termIndex 1 ; logic:termVariable "vnum" ] .
+math:gmE6 a logic:Formula ; logic:relation math:denominator ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "val" ] , [ logic:termIndex 1 ; logic:termVariable "vden" ] .
+math:gmMateExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "mate" ] ,
+                             [ logic:termIndex 1 ; logic:termVariable "mval" ] ;
+    logic:exists math:gmMateConj .
+math:gmMateConj a logic:Formula ; logic:and math:gmM1 , math:gmM2 , math:gmM3 , math:gmM4 , math:gmM5 , math:gmM6 .
+math:gmM1 a logic:Formula ; logic:relation math:hasEntry ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "mate" ] .
+math:gmM2 a logic:Formula ; logic:relation math:atRow ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mate" ] , [ logic:termIndex 1 ; logic:termVariable "col" ] .
+math:gmM3 a logic:Formula ; logic:relation math:atColumn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mate" ] , [ logic:termIndex 1 ; logic:termVariable "row" ] .
+math:gmM4 a logic:Formula ; logic:relation math:entryValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mate" ] , [ logic:termIndex 1 ; logic:termVariable "mval" ] .
+math:gmM5 a logic:Formula ; logic:relation math:numerator ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mval" ] , [ logic:termIndex 1 ; logic:termVariable "vnum" ] .
+math:gmM6 a logic:Formula ; logic:relation math:denominator ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mval" ] , [ logic:termIndex 1 ; logic:termVariable "vden" ] .
