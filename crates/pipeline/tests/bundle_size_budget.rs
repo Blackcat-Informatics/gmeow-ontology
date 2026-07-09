@@ -78,11 +78,13 @@ const REP_CEILINGS: &[RepCeiling] = &[
         rep: REP_DOCS_PRINT,
         ceiling: 9_500_000,
     },
-    // measured 7_158_386 → ×1.15 ≈ 8_232_144 → pinned 8_500_000
+    // measured 8_887_022 (grown by the reasoner-safe shape grounding: the injected owl:someValuesFrom
+    // / owl:allValuesFrom restrictions enrich the inferred closure + reasoning explanations)
+    // → ×1.15 ≈ 10_220_075 → pinned 10_500_000
     RepCeiling {
         name: "REP_REASONING",
         rep: REP_REASONING,
-        ceiling: 8_500_000,
+        ceiling: 10_500_000,
     },
     // measured 2_381_714 → ×1.15 ≈ 2_739_471 → pinned 2_800_000
     RepCeiling {

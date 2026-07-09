@@ -516,3 +516,8 @@ gmeow:writingSystemAsNotation
     skos:definition "The GMEOW Notation and Symbolic Systems Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/NotationProjectionProfile> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/notationSystemOf> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/NotationSystem> ] .
+<https://blackcatinformatics.ca/gmeow/NotationProjectionProfile> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/projectionFunction> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/NotationSystem> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/smuflCodepoint> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .

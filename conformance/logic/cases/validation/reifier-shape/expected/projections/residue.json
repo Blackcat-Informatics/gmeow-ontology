@@ -1,0 +1,7 @@
+{
+  "shacl-core": [],
+  "shex": [
+    "RDF-1.2 reifier/reification-required condition on https://blackcatinformatics.ca/gmeow/provenance/asserts has no ShEx form; carried in the canonical logic: layer",
+    "sh:class https://blackcatinformatics.ca/gmeow/provenance/Agent on https://blackcatinformatics.ca/gmeow/provenance/endorsedBy has no ShEx facet; ShEx constrains the value to an IRI only, the class membership is carried in the canonical logic: layer"
+  ]
+}

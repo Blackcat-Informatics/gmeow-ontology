@@ -412,6 +412,10 @@ class AxisThresholdEnum(str, Enum):
     thrReasonerGrounded = "thrReasonerGrounded"
     thrReasonerLinked = "thrReasonerLinked"
     thrReasonerMaximal = "thrReasonerMaximal"
+    thrShapeMigrationExemplified = "thrShapeMigrationExemplified"
+    thrShapeMigrationGrounded = "thrShapeMigrationGrounded"
+    thrShapeMigrationLinked = "thrShapeMigrationLinked"
+    thrShapeMigrationMaximal = "thrShapeMigrationMaximal"
     thrTestingExemplified = "thrTestingExemplified"
     thrTestingGrounded = "thrTestingGrounded"
     thrTestingLinked = "thrTestingLinked"
@@ -2627,6 +2631,7 @@ class QualityAxisEnum(str, Enum):
     axisProseQuality = "axisProseQuality"
     axisProvenanceHonesty = "axisProvenanceHonesty"
     axisReasonerDerived = "axisReasonerDerived"
+    axisShapeMigration = "axisShapeMigration"
     axisTranslationCoverage = "axisTranslationCoverage"
 
 
@@ -3555,7 +3560,7 @@ class Activity(Event):
 
 class TimeScopedRelation(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/TimeScopedRelation"
-    duringInterval: list[TimeInterval] | None = Field(default=None)
+    duringInterval: TimeInterval | None = Field(default=None)
     tenureEndedBy: list[Event] | None = Field(default=None)
 
 
@@ -3586,10 +3591,10 @@ class Observation(ConfiguredBaseModel):
     observationEvent: list[Event] | None = Field(default=None)
     observationMethod: ObservationMethod | None = Field(default=None)
     observationOf: list[Quality] | None = Field(default=None)
-    observationResult: list[Entity] | None = Field(default=None)
+    observationResult: Entity | None = Field(default=None)
     observationType: list[ObservationType] | None = Field(default=None)
     observedAt: str | None = Field(default=None)
-    observedFeature: list[str] | None = Field(default=None)
+    observedFeature: str | None = Field(default=None)
     perceptionEnvironment: SensoryEnvironment | None = Field(default=None)
     timbreObservationResult: TimbreDescriptor | None = Field(default=None)
     vantage: list[Entity] | None = Field(default=None)
@@ -3876,8 +3881,8 @@ class Agent(Entity):
 class AgentSession(Activity):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/AgentSession"
     is_a: ClassVar[str] = "Activity"
-    sessionConfiguration: list[str] | None = Field(default=None)
-    sessionSubjectStage: list[str] | None = Field(default=None)
+    sessionConfiguration: str | None = Field(default=None)
+    sessionSubjectStage: str | None = Field(default=None)
 
 
 class AggregationFunction(ConfiguredBaseModel):
@@ -5040,15 +5045,15 @@ class Finding(Observation):
     findingAntecedent: list[Finding] | None = Field(default=None)
     findingCategory: list[str] | None = Field(default=None)
     findingCluster: list[FindingCluster] | None = Field(default=None)
-    findingCode: list[str] | None = Field(default=None)
+    findingCode: str | None = Field(default=None)
     findingGateVerdict: list[GateVerdict] | None = Field(default=None)
     findingHasAntecedent: list[Finding] | None = Field(default=None)
     findingHelpUri: list[str] | None = Field(default=None)
     findingLocation: list[str] | None = Field(default=None)
-    findingMessage: list[str] | None = Field(default=None)
+    findingMessage: str | None = Field(default=None)
     findingRemediation: list[str] | None = Field(default=None)
     findingRootCause: list[Finding] | None = Field(default=None)
-    findingSeverity: list[DiagnosticSeverity] | None = Field(default=None)
+    findingSeverity: DiagnosticSeverity | None = Field(default=None)
     findingStandpoint: list[DiagnosticStandpoint] | None = Field(default=None)
     findingSuggestion: list[str] | None = Field(default=None)
     findingTool: list[str] | None = Field(default=None)
@@ -6032,9 +6037,9 @@ class InhabitationClaim(StandpointClaim):
 class InhabitationConfiguration(TimeScopedRelation):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/InhabitationConfiguration"
     is_a: ClassVar[str] = "TimeScopedRelation"
-    configurationEmbodiment: list[EmbodimentAssignment] | None = Field(default=None)
+    configurationEmbodiment: EmbodimentAssignment | None = Field(default=None)
     configurationFacet: list[str] | None = Field(default=None)
-    configurationOfTenure: list[InhabitationTenure] | None = Field(default=None)
+    configurationOfTenure: InhabitationTenure | None = Field(default=None)
 
 
 class Proposition(SocialObject):
@@ -6714,10 +6719,10 @@ class ModelCard(InformationObject):
 
 class ModelDeployment(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ModelDeployment"
-    deploymentArtifact: list[ModelArtifact] | None = Field(default=None)
+    deploymentArtifact: ModelArtifact | None = Field(default=None)
     deploymentEndpoint: list[str] | None = Field(default=None)
-    deploymentHost: list[Entity] | None = Field(default=None)
-    deploymentService: list[SoftwareAgent] | None = Field(default=None)
+    deploymentHost: Entity | None = Field(default=None)
+    deploymentService: SoftwareAgent | None = Field(default=None)
 
 
 class ModelInferenceRun(Entity):
@@ -7304,7 +7309,7 @@ class PipelineStage(SocialObject):
     hasCapability: list[StageCapability] | None = Field(default=None)
     producesFormat: list[str] | None = Field(default=None)
     requiresResource: list[Resource] | None = Field(default=None)
-    stageImpl: list[str] | None = Field(default=None)
+    stageImpl: str | None = Field(default=None)
 
 
 class PitchAnchor(Entity):

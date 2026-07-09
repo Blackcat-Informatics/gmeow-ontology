@@ -388,6 +388,10 @@ export enum AxisThresholdEnum {
     thrReasonerGrounded = "thrReasonerGrounded",
     thrReasonerLinked = "thrReasonerLinked",
     thrReasonerMaximal = "thrReasonerMaximal",
+    thrShapeMigrationExemplified = "thrShapeMigrationExemplified",
+    thrShapeMigrationGrounded = "thrShapeMigrationGrounded",
+    thrShapeMigrationLinked = "thrShapeMigrationLinked",
+    thrShapeMigrationMaximal = "thrShapeMigrationMaximal",
     thrTestingExemplified = "thrTestingExemplified",
     thrTestingGrounded = "thrTestingGrounded",
     thrTestingLinked = "thrTestingLinked",
@@ -2603,6 +2607,7 @@ export enum QualityAxisEnum {
     axisProseQuality = "axisProseQuality",
     axisProvenanceHonesty = "axisProvenanceHonesty",
     axisReasonerDerived = "axisReasonerDerived",
+    axisShapeMigration = "axisShapeMigration",
     axisTranslationCoverage = "axisTranslationCoverage",
 }
 
@@ -3586,8 +3591,8 @@ export interface Agent extends Entity {
 }
 
 export interface AgentSession extends Activity {
-    sessionConfiguration?: string[],
-    sessionSubjectStage?: string[],
+    sessionConfiguration?: string,
+    sessionSubjectStage?: string,
 }
 
 export interface AggregationFunction {
@@ -4829,15 +4834,15 @@ export interface Finding extends Observation {
     findingAntecedent?: Finding[],
     findingCategory?: string[],
     findingCluster?: FindingCluster[],
-    findingCode?: string[],
+    findingCode?: string,
     findingGateVerdict?: GateVerdict[],
     findingHasAntecedent?: Finding[],
     findingHelpUri?: string[],
     findingLocation?: string[],
-    findingMessage?: string[],
+    findingMessage?: string,
     findingRemediation?: string[],
     findingRootCause?: Finding[],
-    findingSeverity?: DiagnosticSeverity[],
+    findingSeverity?: DiagnosticSeverity,
     findingStandpoint?: DiagnosticStandpoint[],
     findingSuggestion?: string[],
     findingTool?: string[],
@@ -5095,9 +5100,9 @@ export interface InhabitationClaim extends StandpointClaim {
 }
 
 export interface InhabitationConfiguration extends TimeScopedRelation {
-    configurationEmbodiment?: EmbodimentAssignment[],
+    configurationEmbodiment?: EmbodimentAssignment,
     configurationFacet?: string[],
-    configurationOfTenure?: InhabitationTenure[],
+    configurationOfTenure?: InhabitationTenure,
 }
 
 export interface InhabitationDescription extends Proposition {
@@ -5660,10 +5665,10 @@ export interface ModelCard extends InformationObject {
 }
 
 export interface ModelDeployment {
-    deploymentArtifact?: ModelArtifact[],
+    deploymentArtifact?: ModelArtifact,
     deploymentEndpoint?: string[],
-    deploymentHost?: Entity[],
-    deploymentService?: SoftwareAgent[],
+    deploymentHost?: Entity,
+    deploymentService?: SoftwareAgent,
 }
 
 export interface ModelInferenceRun extends Entity {
@@ -5895,10 +5900,10 @@ export interface Observation {
     observationEvent?: Event[],
     observationMethod?: ObservationMethod,
     observationOf?: Quality[],
-    observationResult?: Entity[],
+    observationResult?: Entity,
     observationType?: ObservationType[],
     observedAt?: string,
-    observedFeature?: string[],
+    observedFeature?: string,
     perceptionEnvironment?: SensoryEnvironment,
     timbreObservationResult?: TimbreDescriptor,
     vantage?: Entity[],
@@ -6119,7 +6124,7 @@ export interface PipelineStage extends SocialObject {
     hasCapability?: StageCapability[],
     producesFormat?: string[],
     requiresResource?: Resource[],
-    stageImpl?: string[],
+    stageImpl?: string,
 }
 
 export interface PitchAnchor extends Entity {
@@ -7054,7 +7059,7 @@ export interface TimeScale extends Entity {
 }
 
 export interface TimeScopedRelation {
-    duringInterval?: TimeInterval[],
+    duringInterval?: TimeInterval,
     tenureEndedBy?: Event[],
 }
 

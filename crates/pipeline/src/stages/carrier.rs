@@ -220,6 +220,19 @@ pub(crate) const MATH_PRODUCER_GRAPHS: [&str; 5] = [
 const REP_SHACL_SARIF: &str = "gmeow:report/shacl/sarif";
 const REP_SHACL_FINDINGS: &str = "gmeow:report/shacl/findings";
 
+/// The media type carried on the typed SHACL validation-shape sidecar blob. The gts
+/// decode side (`purrdf::gts::lookaside_from_graph` → `lookaside_kind_from_metadata`)
+/// classifies a blob whose media type contains `shacl` into
+/// [`purrdf::RdfLookasideKind::Shacl`], so a repo-free consumer reads the SHACL
+/// validation surface under its typed kind without re-running the compiler. The bytes
+/// are SHACL-in-Turtle; the `profile=shacl` parameter carries the domain hint the
+/// classifier keys on while keeping the base type honest.
+const VALIDATION_SHACL_MEDIA_TYPE: &str = "text/turtle;profile=shacl";
+/// The media type carried on the typed ShEx validation-shape sidecar blob. Contains
+/// `shex`, so the gts decode classifies the blob into
+/// [`purrdf::RdfLookasideKind::Shex`] (`text/shex` is the ShExC compact-syntax type).
+const VALIDATION_SHEX_MEDIA_TYPE: &str = "text/shex";
+
 /// Gather the by-reference archive blobs + the SHACL report
 /// blobs from `upstream`, and serialize the ALREADY-ASSEMBLED `carrier` into the
 /// terminal `gmeow.gts` package — the SINGLE serialization the terminal gts sink
@@ -391,6 +404,12 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
     // The opaque-fanout archive: every non-RDF generated/ fanout output, recomputed
     // from THIS run's carrier (superset law — RDF rides as named graphs, not here).
     blobs.push(build_fanout_opaque_blob(carrier, upstream)?);
+    // The typed Shacl/Shex validation-shape sidecars: the SAME validation surfaces the
+    // REP_GENERATED archive carries (one source — `validation_shape_surfaces`), ALSO folded
+    // as content-addressed blobs whose media type classifies each on decode into its typed
+    // lookaside kind, so a repo-free consumer reads the validation surface under
+    // RdfLookasideKind::Shacl / Shex without re-running the compiler (LOGIC-VALIDATION.md).
+    blobs.extend(build_validation_shape_typed_blobs(upstream)?);
 
     let shacl_json = upstream
         .get("stage-validate")
@@ -1448,6 +1467,62 @@ fn opaque_already_carried(path: &str) -> bool {
         || path == "generated/logic/gmeow.rls" // REP_AXIOMS
 }
 
+/// The two generated validation-shape surfaces (SHACL Core Turtle + ShEx compact),
+/// read ONCE off THIS run's `stage-compile-logic` product — the SINGLE source both the
+/// `REP_GENERATED` archive fold (committed-file reconstruction) and the typed
+/// `Shacl`/`Shex` consumer sidecars ([`build_validation_shape_typed_blobs`]) draw from,
+/// so the two channels can never drift from one another or from the committed files.
+/// Hard-fails if either surface is absent from the product (no-optionality, fail-closed).
+fn validation_shape_surfaces(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<(Vec<u8>, Vec<u8>), gmeow_errors::Diag> {
+    let shacl = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| {
+            stage_err("missing generated/shapes/validation-shapes.ttl in stage-compile-logic")
+        })?;
+    let shex = upstream
+        .get("stage-compile-logic")
+        .and_then(|p| p.artifact(crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| {
+            stage_err("missing generated/shapes/validation-shapes.shex in stage-compile-logic")
+        })?;
+    Ok((shacl, shex))
+}
+
+/// The typed `Shacl`/`Shex` consumer sidecars for the validation surface: the two
+/// generated validation-shape surfaces carried as content-addressed blobs whose media
+/// type classifies each on gts decode into its typed lookaside kind
+/// ([`purrdf::RdfLookasideKind::Shacl`] / [`purrdf::RdfLookasideKind::Shex`], via
+/// `purrdf::gts::lookaside_from_graph`), so a repo-free consumer reads the validation
+/// surface under its typed kind without re-running the compiler (LOGIC-VALIDATION.md).
+///
+/// ADDITIVE: the SAME bytes also ride the `REP_GENERATED` archive (the committed-file
+/// reconstruction the fanout/superset gate depends on); both channels draw from
+/// [`validation_shape_surfaces`] (ONE source, no drift). The `rep` carries the committed
+/// path so a consumer recovers the surface's logical path from the blob metadata. The
+/// two blobs carry distinct reps, so the blob-frame sort in `emit_gts` is deterministic.
+fn build_validation_shape_typed_blobs(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<Vec<BlobRow>, gmeow_errors::Diag> {
+    let (shacl, shex) = validation_shape_surfaces(upstream)?;
+    Ok(vec![
+        BlobRow {
+            data: shacl,
+            media_type: VALIDATION_SHACL_MEDIA_TYPE.to_string(),
+            rep: crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH.to_string(),
+        },
+        BlobRow {
+            data: shex,
+            media_type: VALIDATION_SHEX_MEDIA_TYPE.to_string(),
+            rep: crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH.to_string(),
+        },
+    ])
+}
+
 /// Build the generated-fanout archive [`REP_GENERATED`]: the byte-exact `generated/`
 /// fanout members that ride as opaque byte projections (as opposed to named-graph
 /// folds). Each rides in from a sink-consumed stage product — either projected from
@@ -1660,25 +1735,14 @@ fn build_fanout_opaque_blob(
     );
 
     // The validation-shape surfaces (SHACL Core + ShEx) — the OPT/ADL constraint axis lifted
-    // to logic:ValidationShape and projected — ride in from the same compile-logic product.
-    let validation_shacl = upstream
-        .get("stage-compile-logic")
-        .and_then(|p| p.artifact(crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH))
-        .map(<[u8]>::to_vec)
-        .ok_or_else(|| {
-            stage_err("missing generated/shapes/validation-shapes.ttl in stage-compile-logic")
-        })?;
+    // to logic:ValidationShape and projected — ride in from the same compile-logic product,
+    // read through [`validation_shape_surfaces`] so these archive members and the typed
+    // Shacl/Shex consumer sidecars ([`build_validation_shape_typed_blobs`]) share ONE source.
+    let (validation_shacl, validation_shex) = validation_shape_surfaces(upstream)?;
     members.insert(
         crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH.to_string(),
         validation_shacl,
     );
-    let validation_shex = upstream
-        .get("stage-compile-logic")
-        .and_then(|p| p.artifact(crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH))
-        .map(<[u8]>::to_vec)
-        .ok_or_else(|| {
-            stage_err("missing generated/shapes/validation-shapes.shex in stage-compile-logic")
-        })?;
     members.insert(
         crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH.to_string(),
         validation_shex,
@@ -4933,6 +4997,107 @@ mod conformance_fold_tests {
         assert!(
             !folded_graph_names(&gts).contains(GRAPH_CONFORMANCE),
             "an all-agree corpus must not fold a phantom graph/conformance"
+        );
+    }
+}
+
+#[cfg(test)]
+mod validation_shape_typed_lookaside_tests {
+    use super::*;
+    use crate::node::StageProduct;
+
+    /// The typed Shacl/Shex validation-shape sidecars ride the REAL gmeow.gts
+    /// serialize+decode: a decoded bundle exposes the SHACL surface under
+    /// [`purrdf::RdfLookasideKind::Shacl`] and the ShEx surface under
+    /// [`purrdf::RdfLookasideKind::Shex`], each resolving to the exact producer bytes.
+    /// This is the production-surface demonstration that a repo-free consumer reads the
+    /// validation surface under its typed kind (LOGIC-VALIDATION.md) without re-running
+    /// the compiler — the decode path exercised is the true `emit_gts` writer +
+    /// `read_graph`/`lookaside_from_graph` reader, never a hand-rolled shortcut.
+    #[test]
+    fn typed_shacl_shex_sidecars_round_trip_through_gmeow_gts() {
+        // A minimal stage-compile-logic product carrying the two validation-shape surfaces
+        // (the SINGLE source the typed sidecars and the REP_GENERATED archive both draw from).
+        let shacl_bytes = b"@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+            <https://blackcatinformatics.ca/gmeow/CatShape> a sh:NodeShape .\n"
+            .to_vec();
+        let shex_bytes = b"PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n\
+            gmeow:CatShape { gmeow:name . }\n"
+            .to_vec();
+        let mut compile_arts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        compile_arts.insert(
+            crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH.to_string(),
+            shacl_bytes.clone(),
+        );
+        compile_arts.insert(
+            crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH.to_string(),
+            shex_bytes.clone(),
+        );
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert(
+            "stage-compile-logic".to_string(),
+            StageProduct::from_artifacts("stage-compile-logic", compile_arts),
+        );
+
+        // Build the typed sidecars through the PRODUCTION helper, fold them into a
+        // well-formed snapshot, and emit through the REAL gts writer (`emit_gts`).
+        let typed_blobs = build_validation_shape_typed_blobs(&upstream).expect("typed sidecars");
+        let mut builder = SnapshotBuilder::new();
+        add_base_nq(
+            &mut builder,
+            b"<https://blackcatinformatics.ca/gmeow/> \
+              <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+              <http://www.w3.org/2002/07/owl#Ontology> .\n",
+            "base",
+        )
+        .expect("fold base graph");
+        let gts = emit_gts(
+            &builder,
+            "dist",
+            Some(vec!["gzip".to_string()]),
+            typed_blobs,
+            Vec::new(),
+            None,
+            None,
+            None,
+            purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit snapshot");
+
+        // DECODE the emitted bytes back through the real gts reader + lookaside fold.
+        let graph = purrdf::gts::read_graph(&gts, true).expect("read_graph");
+        let lookaside = purrdf::gts::lookaside_from_graph(&graph);
+
+        // Resolve the single resource of `kind` to its payload bytes via the content-store
+        // (digest → bytes) join — exactly how a repo-free consumer reads a typed surface.
+        let bytes_of = |kind: purrdf::RdfLookasideKind| -> Vec<u8> {
+            let resource = lookaside
+                .resources_of_kind(kind.clone())
+                .next()
+                .unwrap_or_else(|| panic!("a decoded {kind:?} resource is present"));
+            let digest = resource
+                .content_digest
+                .as_deref()
+                .expect("typed resource carries a content digest");
+            let (_, entry) = graph
+                .blobs
+                .iter()
+                .find(|(d, _)| d == digest)
+                .expect("blob store carries the resource payload by digest");
+            entry.decoded_vec().expect("decode blob payload")
+        };
+
+        // The typed Shacl kind decodes to the exact SHACL surface bytes.
+        assert_eq!(
+            bytes_of(purrdf::RdfLookasideKind::Shacl),
+            shacl_bytes,
+            "resources_of_kind(Shacl) yields the validation-shapes.ttl content"
+        );
+        // The typed Shex kind decodes to the exact ShEx surface bytes.
+        assert_eq!(
+            bytes_of(purrdf::RdfLookasideKind::Shex),
+            shex_bytes,
+            "resources_of_kind(Shex) yields the validation-shapes.shex content"
         );
     }
 }

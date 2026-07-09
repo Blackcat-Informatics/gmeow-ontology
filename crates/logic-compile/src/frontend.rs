@@ -1188,6 +1188,79 @@ fn read_list_member_subjects(store: &RdfDataset, head: &Node) -> Vec<Subject> {
 /// Hard-fails (`Err`) rather than silently dropping a malformed REQUIRED constraint: a
 /// cardinality with `min > max` (via [`PropertyConstraintIr::new`]), a qualified cardinality
 /// with no `owl:onClass`, or an `owl:hasValue` whose fixed value is an anonymous node.
+/// Conjunctively merge the property shapes that share the same `(path, inverse)` on one shape
+/// target. FAMILY 1 emits one [`PropertyConstraintIr`] per restriction axiom, so a class that
+/// authors a cardinality restriction AND an `owl:allValuesFrom` class restriction on ONE property
+/// yields two same-path property shapes. SHACL reads several property shapes on one path
+/// CONJUNCTIVELY — identical in enforcement to one `sh:property` block carrying every conjunct —
+/// so a hand-authored legacy shape states them as a single merged block. Emitting them unmerged
+/// keys distinctly from that block ([`PropertyConstraintIr::enforcement_key`] is per-path), which
+/// would defeat the equivalence-before-deletion oracle for a shape whose covered fragment is
+/// genuinely equivalent. Merging is sound: the lower bound is the tightest present (max of mins),
+/// the upper bound the tightest present (min of maxes), the components the de-duplicated union, and
+/// the reifier obligation the strengthened one (present shape / required OR). A same-path but
+/// opposite-`inverse` pair constrains different statements (forward vs. inverse) and is never
+/// merged. Deterministic: groups keep first-seen path order, and [`PropertyConstraintIr::new`]
+/// sorts the merged components into canonical order. A merged `min > max` is a genuine
+/// contradiction and hard-fails through the constructor, never a silent drop.
+fn merge_same_path_properties(
+    props: Vec<PropertyConstraintIr>,
+) -> gmeow_errors::Result<Vec<PropertyConstraintIr>> {
+    let mut order: Vec<(String, bool)> = Vec::new();
+    let mut groups: BTreeMap<(String, bool), Vec<PropertyConstraintIr>> = BTreeMap::new();
+    for p in props {
+        let key = (p.path.clone(), p.inverse);
+        if !groups.contains_key(&key) {
+            order.push(key.clone());
+        }
+        groups.entry(key).or_default().push(p);
+    }
+    let mut out = Vec::with_capacity(order.len());
+    for key in order {
+        let mut group = groups
+            .remove(&key)
+            .expect("group was inserted for every ordered key");
+        if group.len() == 1 {
+            out.push(group.pop().expect("a one-element group has its element"));
+            continue;
+        }
+        let (path, inverse) = key;
+        let mut min_count: Option<u32> = None;
+        let mut max_count: Option<u32> = None;
+        let mut components: Vec<ConstraintComponent> = Vec::new();
+        let mut reifier_shape: Option<String> = None;
+        let mut reification_required = false;
+        for p in group {
+            if let Some(lo) = p.min_count {
+                min_count = Some(min_count.map_or(lo, |cur| cur.max(lo)));
+            }
+            if let Some(hi) = p.max_count {
+                max_count = Some(max_count.map_or(hi, |cur| cur.min(hi)));
+            }
+            for c in p.components {
+                if !components.contains(&c) {
+                    components.push(c);
+                }
+            }
+            if p.reifier_shape.is_some() {
+                reifier_shape = p.reifier_shape;
+            }
+            reification_required |= p.reification_required;
+        }
+        let provenance = (min_count.is_some() || max_count.is_some())
+            .then_some(ConstraintProvenance::OwlRestriction);
+        let mut pc = PropertyConstraintIr::new(path, min_count, max_count, provenance, components)?;
+        if inverse {
+            pc = pc.inverted();
+        }
+        if reifier_shape.is_some() || reification_required {
+            pc = pc.with_reifier(reifier_shape, reification_required)?;
+        }
+        out.push(pc);
+    }
+    Ok(out)
+}
+
 pub fn derive_validation_shapes(
     store: &RdfDataset,
 ) -> gmeow_errors::Result<Vec<ValidationShapeIr>> {
@@ -1277,6 +1350,10 @@ pub fn derive_validation_shapes(
     let xsd_pattern = nn(&format!("{xsd}pattern"));
     let xsd_minlength = nn(&format!("{xsd}minLength"));
     let xsd_maxlength = nn(&format!("{xsd}maxLength"));
+    let xsd_mininclusive = nn(&format!("{xsd}minInclusive"));
+    let xsd_maxinclusive = nn(&format!("{xsd}maxInclusive"));
+    let xsd_minexclusive = nn(&format!("{xsd}minExclusive"));
+    let xsd_maxexclusive = nn(&format!("{xsd}maxExclusive"));
     let datatype_facets = |filler: &Subject| -> Vec<ConstraintComponent> {
         let Some(list_head) = value(store, filler, &p_withrestrictions) else {
             return Vec::new();
@@ -1285,6 +1362,14 @@ pub fn derive_validation_shapes(
         if let Some(Node::Iri(dt)) = value(store, filler, &p_ondatatype) {
             comps.push(ConstraintComponent::Datatype(dt));
         }
+        // The numeric bound facets accumulate across the whole restriction list into ONE
+        // `NumericRange` (a `[ xsd:minInclusive … ] [ xsd:maxExclusive … ]` list is one interval,
+        // not two components). The inclusive facet wins over the exclusive one if a malformed list
+        // carries both bounds on the same side; the last-read value wins for a duplicated facet.
+        let mut range_min: Option<f64> = None;
+        let mut range_max: Option<f64> = None;
+        let mut min_inclusive = true;
+        let mut max_inclusive = true;
         for facet in read_list_member_subjects(store, &list_head) {
             if let Some(Node::Lit(regex)) = value(store, &facet, &xsd_pattern) {
                 comps.push(ConstraintComponent::Pattern { regex, flags: None });
@@ -1299,8 +1384,88 @@ pub fn derive_validation_shapes(
             {
                 comps.push(ConstraintComponent::MaxLength(n));
             }
+            if let Some(Node::Lit(n)) = value(store, &facet, &xsd_mininclusive)
+                && let Ok(v) = n.trim().parse::<f64>()
+            {
+                range_min = Some(v);
+                min_inclusive = true;
+            }
+            if let Some(Node::Lit(n)) = value(store, &facet, &xsd_minexclusive)
+                && let Ok(v) = n.trim().parse::<f64>()
+            {
+                range_min = Some(v);
+                min_inclusive = false;
+            }
+            if let Some(Node::Lit(n)) = value(store, &facet, &xsd_maxinclusive)
+                && let Ok(v) = n.trim().parse::<f64>()
+            {
+                range_max = Some(v);
+                max_inclusive = true;
+            }
+            if let Some(Node::Lit(n)) = value(store, &facet, &xsd_maxexclusive)
+                && let Ok(v) = n.trim().parse::<f64>()
+            {
+                range_max = Some(v);
+                max_inclusive = false;
+            }
+        }
+        if range_min.is_some() || range_max.is_some() {
+            comps.push(ConstraintComponent::NumericRange {
+                min: range_min,
+                max: range_max,
+                min_inclusive,
+                max_inclusive,
+            });
         }
         comps
+    };
+
+    // The closed-world reading of a blank ANONYMOUS-CLASS-EXPRESSION filler (an
+    // `owl:someValuesFrom` / `owl:allValuesFrom` value whose filler is not a named class): an
+    // `owl:unionOf ( C1 C2 … )` → `sh:or ( [ sh:class C1 ] … )`, an `owl:disjointUnionOf ( … )` →
+    // `sh:xone ( … )`, an `owl:complementOf C` → `sh:not [ sh:class C ]`, and the nested value
+    // negation `owl:complementOf [ owl:hasValue v ]` → `sh:not [ sh:hasValue v ]`. Returns `None`
+    // for a filler that carries no such expression (the caller then leaves it in the canon).
+    let p_unionof = nn(&format!("{owl}unionOf"));
+    let p_disjointunion = nn(&format!("{owl}disjointUnionOf"));
+    let classify_filler = |fs: &Subject| -> Option<ConstraintComponent> {
+        if let Some(head) = value(store, fs, &p_unionof) {
+            let branches: Vec<ConstraintComponent> = read_iri_list(store, &head)
+                .into_iter()
+                .filter_map(|c| classify(&c))
+                .collect();
+            if !branches.is_empty() {
+                return Some(ConstraintComponent::Or(branches));
+            }
+        }
+        if let Some(head) = value(store, fs, &p_disjointunion) {
+            let branches: Vec<ConstraintComponent> = read_iri_list(store, &head)
+                .into_iter()
+                .filter_map(|c| classify(&c))
+                .collect();
+            if !branches.is_empty() {
+                return Some(ConstraintComponent::Xone(branches));
+            }
+        }
+        match value(store, fs, &p_complement) {
+            Some(Node::Iri(d)) => classify(&d).map(|cc| ConstraintComponent::Not(Box::new(cc))),
+            Some(inner @ Node::Blank { .. }) => {
+                let bs = term_as_subject(&inner)?;
+                let sv = match value(store, &bs, &p_hasvalue)? {
+                    Node::Iri(i) => ShapeValue::Iri(i),
+                    Node::Lit(lex) => ShapeValue::Literal {
+                        lexical: lex,
+                        datatype: None,
+                        lang: None,
+                    },
+                    _ => return None,
+                };
+                Some(ConstraintComponent::Not(Box::new(
+                    ConstraintComponent::HasValue(sv),
+                )))
+            }
+            _ => None,
+        }
     };
 
     // A non-negative-integer cardinality literal off a restriction blank node; `None` (never a
@@ -1404,6 +1569,11 @@ pub fn derive_validation_shapes(
                             entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                                 .2
                                 .push(pc);
+                        } else if let Some(cc) = classify_filler(&fs) {
+                            let pc = PropertyConstraintIr::new(&on, None, None, None, vec![cc])?;
+                            entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                                .2
+                                .push(pc);
                         }
                     }
                 }
@@ -1427,6 +1597,11 @@ pub fn derive_validation_shapes(
                         let facets = datatype_facets(&fs);
                         if !facets.is_empty() {
                             let pc = PropertyConstraintIr::new(&on, None, None, None, facets)?;
+                            entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                                .2
+                                .push(pc);
+                        } else if let Some(cc) = classify_filler(&fs) {
+                            let pc = PropertyConstraintIr::new(&on, None, None, None, vec![cc])?;
                             entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                                 .2
                                 .push(pc);
@@ -1812,6 +1987,77 @@ pub fn derive_validation_shapes(
             .push(property);
     }
 
+    // ── FAMILY 6 — value-keyed general class inclusion (ValueKeyed(P,V) target) ────────────
+    // A general class axiom whose SUBJECT is an anonymous value restriction
+    // `[ owl:onProperty P ; owl:hasValue V ]` reads closed-world as "every focus node with P = V
+    // must satisfy the superclass" — a value-keyed selection projected to an `sh:SPARQLTarget`
+    // (`SELECT ?this WHERE { ?this P V }`). It is the modes-ride-one-class idiom: several kinds
+    // share ONE class, discriminated by a VALUE (`inferenceModeOf gmeow:modeAbduction`), never a
+    // subclass (Principle 9). The superclass restriction lowers to one property constraint exactly
+    // as FAMILY 1 reads a subclass restriction. Only an IRI-valued key is value-keyable (the SPARQL
+    // target binds an IRI object); a literal key or a superclass that is not a single-property
+    // restriction is carried in the canon, never a wrong value-keyed shape.
+    let subclassof_iri = format!("{rdfs}subClassOf");
+    for q in default_graph_quads(store) {
+        if q.predicate.as_str() != subclassof_iri || !subject_is_blank(&q.subject) {
+            continue;
+        }
+        let key_subj = q.subject.clone();
+        let Some(Node::Iri(key_pred)) = value(store, &key_subj, &p_on) else {
+            continue;
+        };
+        let Some(Node::Iri(key_val)) = value(store, &key_subj, &p_hasvalue) else {
+            continue;
+        };
+        if !key_pred.starts_with(GMEOW_NS) || optouts.contains(&key_pred) {
+            continue;
+        }
+        let Some(super_subj) = term_as_subject(&q.object) else {
+            continue;
+        };
+        let Some(Node::Iri(on)) = value(store, &super_subj, &p_on) else {
+            continue;
+        };
+        if optouts.contains(&on) {
+            continue;
+        }
+        let mut components: Vec<ConstraintComponent> = Vec::new();
+        for vp in [&p_some, &p_all] {
+            if let Some(Node::Iri(cv)) = value(store, &super_subj, vp)
+                && let Some(cc) = classify(&cv)
+            {
+                components.push(cc);
+            }
+        }
+        if let Some(Node::Iri(v)) = value(store, &super_subj, &p_hasvalue) {
+            components.push(ConstraintComponent::HasValue(ShapeValue::Iri(v)));
+        }
+        let exact = card_of(&super_subj, &p_card);
+        let (mut lo, mut hi) = (
+            card_of(&super_subj, &p_mincard),
+            card_of(&super_subj, &p_maxcard),
+        );
+        if let Some(n) = exact {
+            lo = Some(n);
+            hi = Some(n);
+        }
+        if components.is_empty() && lo.is_none() && hi.is_none() {
+            continue;
+        }
+        let provenance =
+            (lo.is_some() || hi.is_some()).then_some(ConstraintProvenance::OwlRestriction);
+        let pc = PropertyConstraintIr::new(&on, lo, hi, provenance, components)?;
+        entry_for(
+            &mut acc,
+            ShapeTarget::ValueKeyed {
+                predicate: key_pred,
+                value: key_val,
+            },
+        )
+        .2
+        .push(pc);
+    }
+
     // ── Build one shape per target ────────────────────────────────────────────────────────
     // Dedup by structural (`PartialEq`) identity so a duplicate axiom never double-counts; the IR
     // constructors then sort node_components + properties into canonical content-key order, so
@@ -1830,7 +2076,7 @@ pub fn derive_validation_shapes(
     let mut shapes = Vec::new();
     for (iri, (target, node_components, properties)) in acc {
         let node_components = dedup_eq(node_components);
-        let properties = dedup_eq(properties);
+        let properties = merge_same_path_properties(dedup_eq(properties))?;
         if node_components.is_empty() && properties.is_empty() {
             continue;
         }
