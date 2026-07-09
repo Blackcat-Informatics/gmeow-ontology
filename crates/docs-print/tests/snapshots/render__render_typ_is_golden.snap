@@ -1,6 +1,5 @@
 ---
 source: crates/docs-print/tests/render.rs
-assertion_line: 136
 expression: typ
 ---
 #set document(title: "GMEOW Demo Documentation", author: ("GMEOW",))
@@ -26,11 +25,11 @@ expression: typ
 
 #"A foundational demonstration class."
 
-*Parents:* #("gufo:Object")
+*Parents:* #"gufo:Object"
 
-*Use when:* #("When you need a demo class.")
+*Use when:* #"When you need a demo class."
 
-*Examples:* #("ex:a a gmeow:Foo .")
+*Examples:* #"ex:a a gmeow:Foo ."
 
 == #"gmeow:hasValue"
 
@@ -38,9 +37,9 @@ expression: typ
 
 #"Relates a Foo to a value."
 
-*Domain:* #("gmeow:Foo")
+*Domain:* #"gmeow:Foo"
 
-*Range:* #("http://www.w3.org/2001/XMLSchema#string")
+*Range:* #"http://www.w3.org/2001/XMLSchema#string"
 
 == #"gmeow:Baz"
 
