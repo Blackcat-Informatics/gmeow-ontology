@@ -261,6 +261,17 @@
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/vantage> ?v . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/PermissionActionKindConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/Permission> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Permission> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A rights rule must name exactly one regulated gmeow:RightsAction via gmeow:ruleAction." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/Permission> . $this <https://blackcatinformatics.ca/gmeow/ruleAction> ?v . FILTER NOT EXISTS { ?v a <https://blackcatinformatics.ca/gmeow/RightsAction> . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/PersonaRegisterNodeKindConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Persona> ;
