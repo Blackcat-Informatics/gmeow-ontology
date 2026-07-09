@@ -42,13 +42,9 @@ use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use foldhash::fast::FixedState;
-// hashbrown's `HashMap` (aliased) gives the `entry_ref` borrowed-key insertion the
-// predicate-keyed relation table needs — so `insert` allocates the owned predicate
-// `String` only on a genuine first-seen miss, never per probe.
-use hashbrown::HashMap as FastMap;
 use purrdf::TermValue;
 
-use crate::facts::{TermId, TermInterner, skolem_iri};
+use crate::facts::{PredId, PredInterner, TermId, TermInterner, skolem_iri};
 use crate::provenance::term_display;
 use crate::seam::ScryerForeign;
 
@@ -249,8 +245,15 @@ pub(crate) enum Bound {
 /// dictionary shared by every relation), so `insert` borrows the store's interner.
 #[derive(Debug, Clone, Default)]
 struct Relation {
-    /// `(subject, object)` tuples in insertion order.
-    rows: Vec<(TermValue, TermValue)>,
+    /// `(subject_id, object_id)` tuples in insertion order.
+    ///
+    /// Rows hold interned [`TermId`]s ONLY — never cloned [`TermValue`]s (greenfield:
+    /// the owned-term row path is deleted).  A `TermId` is a `Copy` niche integer, so a
+    /// row is 8 bytes and `select` copies (never clones/allocates) the matching rows; a
+    /// caller that needs a surface resolves it lazily via the store's
+    /// [`TermInterner`](RelationStore::interner) at the point it actually stringifies
+    /// (head grounding / provenance), which is exactly where a surface is already required.
+    rows: Vec<(TermId, TermId)>,
     /// Dedup keys `(subject_id, object_id)` for O(1) membership.
     ///
     /// Fixed-seed hashed (`FixedState`) — off std's SipHash; the id keys are `Copy`
@@ -270,16 +273,16 @@ impl Relation {
     fn insert(
         &mut self,
         interner: &mut TermInterner,
-        subject: TermValue,
-        object: TermValue,
+        subject: &TermValue,
+        object: &TermValue,
     ) -> bool {
-        let s_id = interner.intern(&subject);
-        let o_id = interner.intern(&object);
+        let s_id = interner.intern(subject);
+        let o_id = interner.intern(object);
         if !self.keys.insert((s_id, o_id)) {
             return false;
         }
         let idx = self.rows.len();
-        self.rows.push((subject, object));
+        self.rows.push((s_id, o_id));
         self.by_subject.entry(s_id).or_default().push(idx);
         self.by_object.entry(o_id).or_default().push(idx);
         true
@@ -300,22 +303,25 @@ impl Relation {
         self.by_object.get(&o).map_or(&[][..], Vec::as_slice)
     }
 
-    /// Materialize the tuples selected by `bound`, cloned, in insertion order.
+    /// The `(subject_id, object_id)` id rows selected by `bound`, in insertion order.
     ///
-    /// `Both` picks the SMALLER of the two index buckets to scan, filtering against
-    /// the other position — the cheapest probe for the bound positions.
-    fn select(&self, bound: Bound) -> Vec<(TermValue, TermValue)> {
+    /// Returns interned [`TermId`] rows (`Copy`, so this copies — never clones a
+    /// `TermValue`); a caller resolves surfaces lazily via the store's interner only
+    /// where it actually stringifies.  `Both` picks the SMALLER of the two index
+    /// buckets to scan, filtering against the other position — the cheapest probe for
+    /// the bound positions.
+    fn select(&self, bound: Bound) -> Vec<(TermId, TermId)> {
         match bound {
             Bound::Any => self.rows.clone(),
             Bound::Subject(s) => self
                 .rows_for_subject(s)
                 .iter()
-                .map(|&i| self.rows[i].clone())
+                .map(|&i| self.rows[i])
                 .collect(),
             Bound::Object(o) => self
                 .rows_for_object(o)
                 .iter()
-                .map(|&i| self.rows[i].clone())
+                .map(|&i| self.rows[i])
                 .collect(),
             Bound::Both(s, o) => {
                 let by_s = self.rows_for_subject(s);
@@ -331,7 +337,7 @@ impl Relation {
                         Ordering::Less => i += 1,
                         Ordering::Greater => j += 1,
                         Ordering::Equal => {
-                            out.push(self.rows[by_s[i]].clone());
+                            out.push(self.rows[by_s[i]]);
                             i += 1;
                             j += 1;
                         }
@@ -350,14 +356,18 @@ impl Relation {
 /// outside this store — probes obtain them via [`Self::term_id`].
 #[derive(Debug, Clone, Default)]
 pub(crate) struct RelationStore {
-    /// The store's term dictionary, shared by every relation.
+    /// The store's term dictionary, shared by every relation (the persistent term
+    /// arena — never reset within the store's lifetime; the issue-1307 DAG seam).
     interner: TermInterner,
-    /// Predicate IRI surface → its binary relation.
+    /// The store's predicate dictionary: predicate IRI surface → dense [`PredId`],
+    /// interned once at first insert.  Keeps [`relations`](Self::relations) keyed by a
+    /// `Copy` niche integer instead of an owned `String`.
+    predicates: PredInterner,
+    /// Binary relations indexed by [`PredId`] slot (`relations[pid.index()]`).
     ///
-    /// A fixed-seed `FastMap` (hashbrown, off std SipHash) whose `entry_ref` lets
-    /// [`insert`](Self::insert) probe by borrowed `&str` — the owned predicate
-    /// `String` is allocated only when a new predicate is first seen.
-    relations: FastMap<String, Relation, FixedState>,
+    /// `PredId`s are minted densely (0, 1, 2, …) so a new predicate's slot is always
+    /// the vector's current length; there are never gap / empty relations.
+    relations: Vec<Relation>,
 }
 
 impl RelationStore {
@@ -365,24 +375,56 @@ impl RelationStore {
     pub(crate) fn new() -> Self {
         Self {
             interner: TermInterner::new(),
-            relations: FastMap::default(),
+            predicates: PredInterner::new(),
+            relations: Vec::new(),
         }
     }
 
     /// Insert `(subject, object)` under `predicate`; return `true` if newly inserted.
     ///
-    /// Deduped on the interned tuple key per predicate; both secondary indexes are
-    /// maintained in lockstep.
+    /// The predicate IRI is interned to a [`PredId`] once (borrowed-key probe — no
+    /// owned-key clone per call); the tuple is deduped on its interned id key per
+    /// relation, and both secondary indexes are maintained in lockstep.
     pub(crate) fn insert(
         &mut self,
         predicate: &str,
         subject: TermValue,
         object: TermValue,
     ) -> bool {
-        self.relations
-            .entry_ref(predicate)
-            .or_default()
-            .insert(&mut self.interner, subject, object)
+        let idx = self.predicates.intern(predicate).index();
+        if idx >= self.relations.len() {
+            // A newly-minted PredId's slot is always the current length (dense mint),
+            // so this resize adds exactly one default relation — never an empty gap.
+            self.relations.resize_with(idx + 1, Relation::default);
+        }
+        self.relations[idx].insert(&mut self.interner, &subject, &object)
+    }
+
+    /// The store's term dictionary — for resolving a selected id row's `(subject,
+    /// object)` back to their [`TermValue`] surfaces at the point a caller stringifies.
+    pub(crate) fn interner(&self) -> &TermInterner {
+        &self.interner
+    }
+
+    /// The interned [`PredId`] for `predicate`, if any relation of this store carries
+    /// it; never inserts.  `None` ⇒ no relation ⇒ any selection on it is empty.
+    pub(crate) fn pred_id(&self, predicate: &str) -> Option<PredId> {
+        self.predicates.lookup(predicate)
+    }
+
+    /// Every `(pred_id, subject_id, object_id)` dense row key currently in the store,
+    /// in `PredId`-slot then insertion order.
+    ///
+    /// The semi-naive fixpoint seeds its dense delta from this at each stratum start —
+    /// the id-space analogue of the ternary store's `key_set()`, with no string
+    /// allocation.  Order is irrelevant (it feeds a membership set, never emission).
+    pub(crate) fn dense_row_keys(&self) -> Vec<(PredId, TermId, TermId)> {
+        let mut out = Vec::new();
+        for (idx, rel) in self.relations.iter().enumerate() {
+            let pid = PredId::from_index(idx);
+            out.extend(rel.rows.iter().map(|&(s, o)| (pid, s, o)));
+        }
+        out
     }
 
     /// The interned id of the term with this [`crate::provenance::term_display`]
@@ -405,34 +447,43 @@ impl RelationStore {
         let (Some(s), Some(o)) = (self.term_id(subject), self.term_id(object)) else {
             return false;
         };
-        self.relations
-            .get(predicate)
-            .is_some_and(|r| r.contains(s, o))
+        self.relation(predicate).is_some_and(|r| r.contains(s, o))
     }
 
-    /// The tuples under `predicate` selected by `bound`, cloned, in insertion order.
+    /// The id rows under `predicate` selected by `bound`, in insertion order.
     ///
+    /// Returns interned `(subject_id, object_id)` rows (`Copy` — no `TermValue` clone);
+    /// resolve surfaces via [`interner`](Self::interner) only where you stringify.
     /// Picks the cheapest index for the bound positions; an unknown predicate yields
     /// the empty vector.
-    pub(crate) fn select(&self, predicate: &str, bound: Bound) -> Vec<(TermValue, TermValue)> {
-        self.relations
-            .get(predicate)
+    pub(crate) fn select(&self, predicate: &str, bound: Bound) -> Vec<(TermId, TermId)> {
+        self.relation(predicate)
             .map_or_else(Vec::new, |r| r.select(bound))
     }
 
     /// The number of distinct tuples stored under `predicate` (0 if unknown).
     pub(crate) fn len_for(&self, predicate: &str) -> usize {
-        self.relations.get(predicate).map_or(0, |r| r.rows.len())
+        self.relation(predicate).map_or(0, |r| r.rows.len())
+    }
+
+    /// The relation for `predicate`, if interned (resolves `PredId` → slot).
+    fn relation(&self, predicate: &str) -> Option<&Relation> {
+        self.predicates
+            .lookup(predicate)
+            .and_then(|pid| self.relations.get(pid.index()))
     }
 
     /// Every predicate IRI surface that has at least one tuple, in sorted order.
     ///
-    /// Sorted (BTreeSet) so any "all relations" sweep is deterministic.  Predicate
-    /// names stay `String`-keyed and lexically sorted — NEVER `TermId`-ordered
-    /// (id order is mint order, not lexical order).
+    /// Resolves every interned [`PredId`] back to its string surface and sorts them
+    /// LEXICALLY (through the `BTreeSet`) — NEVER by `PredId` mint order (id order is
+    /// insertion order, not lexical order), so any "all relations" sweep is
+    /// byte-deterministic.  Every interned predicate has ≥ 1 tuple (a `PredId` is
+    /// minted only by [`insert`](Self::insert), which then adds the row).
     pub(crate) fn predicates(&self) -> impl Iterator<Item = &str> {
-        self.relations
-            .keys()
+        self.predicates
+            .names()
+            .iter()
             .map(String::as_str)
             .collect::<BTreeSet<_>>()
             .into_iter()
@@ -469,6 +520,20 @@ mod tests {
             .unwrap_or_else(|| panic!("term {display:?} must be interned"))
     }
 
+    /// Resolve selected `(subject_id, object_id)` id rows back to their `TermValue`
+    /// surfaces via the store's interner — `select` returns ids only, never cloned
+    /// terms, so a caller resolves lazily exactly here.
+    fn resolved(s: &RelationStore, rows: &[(TermId, TermId)]) -> Vec<(TermValue, TermValue)> {
+        rows.iter()
+            .map(|&(si, oi)| {
+                (
+                    s.interner().resolve(si).clone(),
+                    s.interner().resolve(oi).clone(),
+                )
+            })
+            .collect()
+    }
+
     /// Build a store with a small `knows`/`likes` corpus.
     ///
     /// `knows`: (a,b), (a,c), (b,c)  — `likes`: (a,c)
@@ -489,7 +554,7 @@ mod tests {
         let a = id_of(&s, "<http://ex/a>");
         let got = s.select("http://ex/knows", Bound::Subject(a));
         assert_eq!(
-            got,
+            resolved(&s, &got),
             vec![
                 (term("http://ex/a"), term("http://ex/b")),
                 (term("http://ex/a"), term("http://ex/c")),
@@ -503,7 +568,7 @@ mod tests {
         let c = id_of(&s, "<http://ex/c>");
         let got = s.select("http://ex/knows", Bound::Object(c));
         assert_eq!(
-            got,
+            resolved(&s, &got),
             vec![
                 (term("http://ex/a"), term("http://ex/c")),
                 (term("http://ex/b"), term("http://ex/c")),
@@ -518,7 +583,10 @@ mod tests {
         let b = id_of(&s, "<http://ex/b>");
         let c = id_of(&s, "<http://ex/c>");
         let got = s.select("http://ex/knows", Bound::Both(a, c));
-        assert_eq!(got, vec![(term("http://ex/a"), term("http://ex/c"))]);
+        assert_eq!(
+            resolved(&s, &got),
+            vec![(term("http://ex/a"), term("http://ex/c"))]
+        );
 
         // A both-bound miss (b is interned but (b,b) is not a tuple) yields nothing.
         let none = s.select("http://ex/knows", Bound::Both(b, b));
@@ -530,7 +598,7 @@ mod tests {
         let s = sample_store();
         let got = s.select("http://ex/knows", Bound::Any);
         assert_eq!(
-            got,
+            resolved(&s, &got),
             vec![
                 (term("http://ex/a"), term("http://ex/b")),
                 (term("http://ex/a"), term("http://ex/c")),
@@ -548,7 +616,7 @@ mod tests {
         assert!(!s.insert(knows, term("http://ex/a"), term("http://ex/b")));
         assert_eq!(s.len_for("http://ex/knows"), 1);
         assert_eq!(
-            s.select("http://ex/knows", Bound::Any),
+            resolved(&s, &s.select("http://ex/knows", Bound::Any)),
             vec![(term("http://ex/a"), term("http://ex/b"))],
         );
     }
@@ -580,7 +648,7 @@ mod tests {
         let s = sample_store();
         let a = id_of(&s, "<http://ex/a>");
         assert_eq!(
-            s.select("http://ex/likes", Bound::Subject(a)),
+            resolved(&s, &s.select("http://ex/likes", Bound::Subject(a))),
             vec![(term("http://ex/a"), term("http://ex/c"))],
         );
     }
@@ -713,7 +781,7 @@ mod tests {
         assert_eq!(edb.len_for("http://ex/knows"), 2);
         assert_eq!(edb.len_for("http://ex/likes"), 1);
         assert_eq!(
-            edb.select("http://ex/knows", Bound::Any),
+            resolved(&edb, &edb.select("http://ex/knows", Bound::Any)),
             vec![
                 (term("http://ex/a"), term("http://ex/b")),
                 (term("http://ex/a"), term("http://ex/c")),

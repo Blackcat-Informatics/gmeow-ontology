@@ -155,6 +155,7 @@ fn collect_var(term: &EvalTerm, vars: &mut BTreeSet<String>) {
 /// agree and a constant must equal the fact surface).  Used both for the body frontier
 /// join and for the restricted-chase head-satisfaction probe.
 fn join_atoms(atoms: &[EvalAtom], rel: &RelationStore, seed: &Solution) -> Vec<Solution> {
+    let interner = rel.interner();
     let mut solutions = vec![seed.clone()];
     for atom in atoms {
         let mut next: Vec<Solution> = Vec::new();
@@ -164,11 +165,12 @@ fn join_atoms(atoms: &[EvalAtom], rel: &RelationStore, seed: &Solution) -> Vec<S
             let Some(bound) = atom_bound(rel, subj.as_deref(), obj.as_deref()) else {
                 continue; // a bound term the store has never seen matches nothing
             };
-            for (subject, object) in rel.select(atom.predicate.as_str(), bound) {
+            for (s_id, o_id) in rel.select(atom.predicate.as_str(), bound) {
+                // `select` returns interned id rows; resolve to `TermValue` surfaces here.
                 let f = Fact {
-                    subject,
+                    subject: interner.resolve(s_id).clone(),
                     predicate: atom.predicate.clone(),
-                    object,
+                    object: interner.resolve(o_id).clone(),
                 };
                 if let Some(mut merged) = match_atom(atom, &f, sol) {
                     merged.source_facts.push(f);

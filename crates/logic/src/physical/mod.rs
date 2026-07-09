@@ -16,6 +16,10 @@
 //! that would be unwound the next rung.
 #![allow(dead_code)]
 
+// The phase-scoped row/tuple bump arena (issue 1418, item 3): a genuinely resettable
+// per-round argument-tuple buffer, distinct from the persistent term arena
+// (`facts::TermInterner`). Consumed by the semi-naive fixpoint (`seminaive`).
+mod arena;
 mod binding_pattern;
 mod builtin_eval;
 mod chase;

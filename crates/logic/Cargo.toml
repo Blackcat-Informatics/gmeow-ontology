@@ -48,6 +48,13 @@ foldhash = "0.1"
 # probe (#1418, item 2). Direct, always-on dependency; version matches the copy
 # petgraph already pins in the workspace lock.
 hashbrown = "0.15"
+# smallvec: the issue-sanctioned inline form for the phase-scoped row/tuple arena
+# (#1418, item 3). A per-round argument tuple that fits inline (arity ≤ 4 — the
+# binary engine's common case) stays on the stack; a larger n-ary tuple spills into
+# the arena's contiguous backing buffer, truncated at each round boundary. Direct,
+# always-on dependency; version matches the copy already resolved in the workspace
+# lock.
+smallvec = "1"
 # petgraph: cycle detection (tarjan_scc) for the DAG-workflow profile certifier
 # (crate::dag_profile), the single shared acyclicity certifier crates/pipeline's
 # stage graph delegates to. default-features off — only the core graph + algo are
