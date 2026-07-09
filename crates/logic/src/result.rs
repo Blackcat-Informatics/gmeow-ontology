@@ -46,6 +46,12 @@ use crate::query_ir::Binding;
 use crate::reason::el::InferredAxiom;
 use crate::reason::{DlVerdict, InconsistencyWitness};
 
+/// Wrap a reasoning-result condition message as a typed diagnostic on the shared
+/// substrate, preserving the authored text verbatim.
+fn result_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Result { detail })
+}
+
 // --------------------------------------------------------------------------- //
 // Field enums — single source of truth.
 //
@@ -453,13 +459,13 @@ impl PreservationClaim {
     ///
     /// # Errors
     /// Returns `Err` if `kind` is [`PreservationKind::ValidationOnly`].
-    pub fn insert(&mut self, kind: PreservationKind) -> Result<(), String> {
+    pub fn insert(&mut self, kind: PreservationKind) -> gmeow_errors::Result<()> {
         if kind == PreservationKind::ValidationOnly {
-            return Err(
+            return Err(result_err(
                 "PreservationClaim.polarities must not contain ValidationOnly: it names a \
                  lowering's purpose, not an answer-preservation polarity"
                     .to_owned(),
-            );
+            ));
         }
         self.polarities.insert(kind);
         Ok(())
@@ -473,9 +479,11 @@ impl PreservationClaim {
     }
 
     /// Validate the polarity-set invariant (no `ValidationOnly`).
-    pub fn validate(&self) -> Result<(), String> {
+    pub fn validate(&self) -> gmeow_errors::Result<()> {
         if self.polarities.contains(&PreservationKind::ValidationOnly) {
-            return Err("PreservationClaim.polarities must not contain ValidationOnly".to_owned());
+            return Err(result_err(
+                "PreservationClaim.polarities must not contain ValidationOnly".to_owned(),
+            ));
         }
         Ok(())
     }
@@ -799,26 +807,26 @@ impl ReasoningResult {
     ///
     /// # Errors
     /// Returns `Err` describing the first violated invariant.
-    pub fn validate(&self) -> Result<(), String> {
+    pub fn validate(&self) -> gmeow_errors::Result<()> {
         if self.information == InformationState::Neither && !self.is_conclusive() {
-            return Err(
+            return Err(result_err(
                 "ReasoningResult: information=neither requires a conclusive evaluation \
                  (completed run or complete-for-fragment); a non-conclusive empty verdict is \
                  undetermined, not neither"
                     .to_owned(),
-            );
+            ));
         }
         self.preservation.validate()?;
         if self.information == InformationState::Both
             && (self.provenance.proof.is_none() || self.provenance.counterproof.is_none())
             && self.provenance.contradiction_witnesses.is_empty()
         {
-            return Err(
+            return Err(result_err(
                 "ReasoningResult: information=both requires either a proof+counterproof pair \
                  or at least one contradiction witness; a lone proof or counterproof without \
                  the other does not justify a glut"
                     .to_owned(),
-            );
+            ));
         }
         Ok(())
     }

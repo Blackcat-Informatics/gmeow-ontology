@@ -2121,6 +2121,7 @@ checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 name = "gmeow-affect"
 version = "0.1.0"
 dependencies = [
+ "gmeow-errors",
  "gmeow-math",
  "purrdf",
 ]
@@ -2170,7 +2171,6 @@ dependencies = [
  "indicatif",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
  "tracing",
  "tracing-subscriber",
 ]
@@ -2181,6 +2181,7 @@ version = "0.1.0"
 dependencies = [
  "blake3",
  "datatest-stable",
+ "gmeow-cli-core",
  "gmeow-errors",
  "gmeow-license",
  "gmeow-logic",
@@ -2261,6 +2262,7 @@ dependencies = [
 name = "gmeow-lang-bridge"
 version = "0.1.0"
 dependencies = [
+ "gmeow-errors",
  "gmeow-lang-form",
  "gmeow-logic-compile",
  "insta",
@@ -2323,9 +2325,11 @@ dependencies = [
 name = "gmeow-lsp"
 version = "0.1.0"
 dependencies = [
+ "gmeow-cli-core",
  "gmeow-errors",
  "gmeow-logic",
  "gmeow-logic-compile",
+ "gmeow-validate",
  "insta",
  "lsp-server",
  "lsp-types 0.97.0",
@@ -2339,6 +2343,7 @@ dependencies = [
 name = "gmeow-math"
 version = "0.1.0"
 dependencies = [
+ "gmeow-errors",
  "purrdf",
 ]
 
@@ -2346,6 +2351,7 @@ dependencies = [
 name = "gmeow-music"
 version = "0.1.0"
 dependencies = [
+ "gmeow-errors",
  "purrdf",
  "roxmltree",
 ]
@@ -2384,6 +2390,7 @@ dependencies = [
  "sha1",
  "sha2",
  "tempfile",
+ "tracing",
  "ureq",
 ]
 
@@ -2409,6 +2416,7 @@ name = "gmeow-slicetest"
 version = "0.1.0"
 dependencies = [
  "datatest-stable",
+ "gmeow-errors",
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-validate",
@@ -2418,6 +2426,10 @@ dependencies = [
 [[package]]
 name = "gmeow-test-budget"
 version = "0.1.0"
+dependencies = [
+ "gmeow-cli-core",
+ "gmeow-errors",
+]
 
 [[package]]
 name = "gmeow-validate"
@@ -2443,6 +2455,7 @@ dependencies = [
  "sha2",
  "tempfile",
  "toml",
+ "tracing",
  "ureq",
 ]
 

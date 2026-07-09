@@ -12,6 +12,8 @@
 //! are a human-readable VIEW; the reader still VALIDATES them (a malformed graph raises a
 //! `CGIF_MALFORMED_SENTENCE` diagnostic), but the IR is never reconstructed from them.
 
+use gmeow_errors::Diag;
+
 use crate::frontend::{Diagnostic, LogicParseError, Severity, parse_logic_dataset};
 use crate::ir::LogicProgram;
 use crate::nt::{nt_escape_iri, nt_escape_literal};
@@ -68,7 +70,7 @@ pub fn parse_cgif_str(
                     diagnostics.push(Diagnostic {
                         severity: Severity::Warning,
                         code: "CGIF_MALFORMED_SENTENCE".to_owned(),
-                        message: msg,
+                        message: msg.message().to_owned(),
                         subject: None,
                     });
                 }
@@ -81,13 +83,14 @@ pub fn parse_cgif_str(
             if meta_src.trim().is_empty() && !graph_src.trim().is_empty() {
                 return Err(LogicParseError(format!(
                     "CGIF graph channel is malformed and there is no \
-                     `/* @@gmeow-rdf-meta@@ */` carrier block to reconstruct from: {msg}"
+                     `/* @@gmeow-rdf-meta@@ */` carrier block to reconstruct from: {}",
+                    msg.message()
                 )));
             }
             diagnostics.push(Diagnostic {
                 severity: Severity::Warning,
                 code: "CGIF_MALFORMED_SENTENCE".to_owned(),
-                message: msg,
+                message: msg.message().to_owned(),
                 subject: None,
             });
         }
@@ -115,7 +118,7 @@ fn parse_meta_block(
         ));
     }
 
-    let forms = parse_forms(meta_src).map_err(LogicParseError)?;
+    let forms = parse_forms(meta_src).map_err(|e| LogicParseError(e.message().to_owned()))?;
     let mut nt_lines: Vec<String> = Vec::new();
     for form in &forms {
         let CExpr::Paren(items) = form else {
@@ -240,17 +243,19 @@ fn parse_lit_form(items: &[CExpr]) -> Result<LitTerm, LogicParseError> {
 /// relation `( … )`, a concept / context node `[ … ]`, a negated context `~[ … ]`, or a bare
 /// coreference label. `Ok(())` = well-formed; `Err(msg)` = a `CGIF_MALFORMED_SENTENCE`
 /// diagnostic. The graph is a view only — the RDF channel is the round-trip authority.
-fn validate_graph_form(form: &CExpr) -> Result<(), String> {
+fn validate_graph_form(form: &CExpr) -> gmeow_errors::Result<()> {
     match form {
         // A relation `(name arc…)` must have a name-like head (a quoted CGIF name or a symbol).
         CExpr::Paren(items) => {
             let Some(head) = items.first() else {
-                return Err("empty relation `()` in the CGIF graph channel".to_owned());
+                return Err(Diag::of_kind(crate::error::Cgif {
+                    detail: "empty relation `()` in the CGIF graph channel".to_owned(),
+                }));
             };
             if !matches!(head, CExpr::Str(_) | CExpr::Sym(_)) {
-                return Err(format!(
-                    "CGIF relation must start with a name, found head {head:?}"
-                ));
+                return Err(Diag::of_kind(crate::error::Cgif {
+                    detail: format!("CGIF relation must start with a name, found head {head:?}"),
+                }));
             }
             Ok(())
         }
@@ -260,10 +265,12 @@ fn validate_graph_form(form: &CExpr) -> Result<(), String> {
         CExpr::Neg(inner) => validate_graph_form(inner),
         // A bare coreference label or quantifier is an acceptable dangling view element.
         CExpr::Bound(_) | CExpr::Def(_) | CExpr::At(_) => Ok(()),
-        other => Err(format!(
-            "top-level CGIF graph form must be a relation, concept, or negated context, \
-             found {other:?}"
-        )),
+        other => Err(Diag::of_kind(crate::error::Cgif {
+            detail: format!(
+                "top-level CGIF graph form must be a relation, concept, or negated context, \
+                 found {other:?}"
+            ),
+        })),
     }
 }
 

@@ -15,7 +15,8 @@ use gmeow_pipeline::projections::{
     self, GTS_VIEW_ALL, GTS_VIEW_GMEOW, MaximalInputs, TagMap, UpProjectionInputs,
 };
 
-use crate::dev_common::{fail, project_root, snapshot_bytes};
+use crate::dev_common::{fail, note, project_root, snapshot_bytes};
+use crate::error;
 
 /// The internal→BCP-47 retag map (used-tags only) built from a snapshot.
 fn tag_map(bytes: &[u8]) -> TagMap {
@@ -35,28 +36,29 @@ fn tag_map(bytes: &[u8]) -> TagMap {
 }
 
 /// Serialize a flat default-graph quad stream to canonical N-Triples.
-fn quads_to_nt(quads: &[purrdf::RdfQuad]) -> Result<String, String> {
+fn quads_to_nt(quads: &[purrdf::RdfQuad]) -> gmeow_errors::Result<String> {
     let flat = purrdf::flat_dataset_from_quads(quads)
-        .map_err(|e| format!("N-Triples flatten failed: {e}"))?;
+        .map_err(|e| error::rdf(format!("N-Triples flatten failed: {e}")))?;
     let bytes = purrdf::serialize_dataset(
         &flat,
         "application/n-triples",
         purrdf::SerializeGraph::DefaultGraph,
     )
-    .map_err(|e| format!("N-Triples serialization failed: {e}"))?;
-    String::from_utf8(bytes).map_err(|e| format!("N-Triples output is not UTF-8: {e}"))
+    .map_err(|e| error::rdf(format!("N-Triples serialization failed: {e}")))?;
+    String::from_utf8(bytes)
+        .map_err(|e| error::encoding(format!("N-Triples output is not UTF-8: {e}")))
 }
 
 /// Re-serialize an N-Triples document as Turtle.
-fn nt_to_turtle(nt: &str) -> Result<Vec<u8>, String> {
+fn nt_to_turtle(nt: &str) -> gmeow_errors::Result<Vec<u8>> {
     let dataset = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
-        .map_err(|e| format!("projected N-Triples parse failed: {e}"))?;
+        .map_err(|e| error::rdf(format!("projected N-Triples parse failed: {e}")))?;
     purrdf::serialize_dataset(
         &dataset,
         "text/turtle",
         purrdf::SerializeGraph::DefaultGraph,
     )
-    .map_err(|e| format!("Turtle serialization failed: {e}"))
+    .map_err(|e| error::rdf(format!("Turtle serialization failed: {e}")))
 }
 
 // ── build ─────────────────────────────────────────────────────────────────────
@@ -125,9 +127,9 @@ fn write_or_fail(path: &Path, data: &[u8]) -> Result<(), i32> {
 /// Assemble the lawful up-projection + maximal inputs from a folded snapshot: the
 /// SSSOM lift maps, projection/EDOAL TTLs, ontology base graph, per-profile
 /// CONSTRUCT queries, and the saturation refusal set.
-fn assemble_inputs(bytes: &[u8]) -> Result<(UpProjectionInputs, MaximalInputs), String> {
+fn assemble_inputs(bytes: &[u8]) -> gmeow_errors::Result<(UpProjectionInputs, MaximalInputs)> {
     let sssom_texts: Vec<String> = bundle_blobs::bundled_sssom(bytes)
-        .map_err(|e| format!("cannot read bundled SSSOM: {e}"))?
+        .map_err(|e| error::bundle(format!("cannot read bundled SSSOM: {e}")))?
         .into_values()
         .map(|v| String::from_utf8_lossy(&v).into_owned())
         .collect();
@@ -137,9 +139,9 @@ fn assemble_inputs(bytes: &[u8]) -> Result<(UpProjectionInputs, MaximalInputs), 
     // program; the old REP_MAPPINGS read folded an EMPTY `.ttl` set, so up-projection saw no
     // projection cells at all.
     let projection_ttls: Vec<String> = bundle_blobs::Bundle::from_snapshot(bytes)
-        .map_err(|e| format!("cannot fold bundle: {e}"))?
+        .map_err(|e| error::rdf(format!("cannot fold bundle: {e}")))?
         .archive(bundle_blobs::REP_CELLS)
-        .map_err(|e| format!("cannot read bundled cells: {e}"))?
+        .map_err(|e| error::bundle(format!("cannot read bundled cells: {e}")))?
         .into_iter()
         .filter(|(k, _)| k.ends_with(".ttl"))
         .map(|(_, v)| String::from_utf8_lossy(&v).into_owned())
@@ -147,11 +149,13 @@ fn assemble_inputs(bytes: &[u8]) -> Result<(UpProjectionInputs, MaximalInputs), 
     // The A→B authorization channel: the mnemomorphic `=` cells whose executed lens law
     // discharged (Deliverable A), read from the bundle's `graph/correspondence-laws`. The
     // lift program consumes this to promote those cells to lawful FACT renames.
-    let discharged_section_cells = projections::discharged_section_cells_from_bundle(bytes)?;
-    let base = projections::gts_base_graph(bytes).map_err(|e| e.to_string())?;
+    let discharged_section_cells = projections::discharged_section_cells_from_bundle(bytes)
+        .map_err(|e| error::bundle(format!("cannot read discharged section cells: {e}")))?;
+    let base = projections::gts_base_graph(bytes)
+        .map_err(|e| error::rdf(format!("cannot read base graph: {e}")))?;
     let ontology_nt = quads_to_nt(&base)?;
     let projection_queries: Vec<(String, String)> = bundle_blobs::bundled_queries(bytes)
-        .map_err(|e| format!("cannot read bundled queries: {e}"))?
+        .map_err(|e| error::bundle(format!("cannot read bundled queries: {e}")))?
         .into_iter()
         .filter(|(k, _)| k.ends_with(".rq"))
         .map(|(k, v)| {
@@ -163,7 +167,7 @@ fn assemble_inputs(bytes: &[u8]) -> Result<(UpProjectionInputs, MaximalInputs), 
         })
         .collect();
     let denied = bundle_blobs::bundled_denied_cells(bytes)
-        .map_err(|e| format!("cannot read denied cells: {e}"))?
+        .map_err(|e| error::bundle(format!("cannot read denied cells: {e}")))?
         .unwrap_or_default();
 
     let up_inputs = UpProjectionInputs {
@@ -182,26 +186,27 @@ fn assemble_inputs(bytes: &[u8]) -> Result<(UpProjectionInputs, MaximalInputs), 
 }
 
 /// Read a source RDF file (Turtle) or stdin (`-`) as `(source_nt, stem)`.
-fn load_source_nt(source: &Path) -> Result<(String, String), String> {
+fn load_source_nt(source: &Path) -> gmeow_errors::Result<(String, String)> {
     let is_stdin = source.as_os_str() == "-";
     let bytes = if is_stdin {
         use std::io::Read;
         let mut buf = Vec::new();
         std::io::stdin()
             .read_to_end(&mut buf)
-            .map_err(|e| format!("cannot read stdin: {e}"))?;
+            .map_err(|e| error::source(format!("cannot read stdin: {e}")))?;
         buf
     } else {
-        std::fs::read(source).map_err(|e| format!("cannot read {}: {e}", source.display()))?
+        std::fs::read(source)
+            .map_err(|e| error::source(format!("cannot read {}: {e}", source.display())))?
     };
     let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)
-        .map_err(|e| format!("cannot parse Turtle source: {e}"))?;
+        .map_err(|e| error::source(format!("cannot parse Turtle source: {e}")))?;
     let nt = purrdf::serialize_dataset(
         &dataset,
         "application/n-triples",
         purrdf::SerializeGraph::DefaultGraph,
     )
-    .map_err(|e| format!("cannot project source to N-Triples: {e}"))?;
+    .map_err(|e| error::rdf(format!("cannot project source to N-Triples: {e}")))?;
     let stem = if is_stdin {
         "stdin".to_owned()
     } else {
@@ -290,7 +295,7 @@ fn project_view(bytes: &[u8], profile: &str, out: &Path, tags: &TagMap) -> i32 {
             Ok(ttl) => {
                 write_or_fail(&out.join(format!("{profile}.ttl")), &ttl).map_or_else(|c| c, |()| 0)
             }
-            Err(e) => fail(e),
+            Err(e) => fail(e.to_string()),
         },
         Err(e) => fail(e.to_string()),
     }
@@ -323,7 +328,7 @@ fn project_data_file(
     };
     let ontology_nt = match quads_to_nt(&base) {
         Ok(nt) => nt,
-        Err(e) => return fail(e),
+        Err(e) => return fail(e.to_string()),
     };
     let instance_bytes = match std::fs::read(source) {
         Ok(b) => b,
@@ -347,7 +352,7 @@ fn project_data_file(
             Ok(ttl) => {
                 write_or_fail(&out.join(format!("{profile}.ttl")), &ttl).map_or_else(|c| c, |()| 0)
             }
-            Err(e) => fail(e),
+            Err(e) => fail(e.to_string()),
         },
         Err(e) => fail(e.to_string()),
     }
@@ -389,20 +394,23 @@ pub fn transform(
 
     let (up_inputs, maximal_inputs) = match assemble_inputs(&snapshot) {
         Ok(p) => p,
-        Err(e) => return fail(e),
+        Err(e) => return fail(e.to_string()),
     };
     let (source_nt, stem) = match load_source_nt(abox) {
         Ok(pair) => pair,
-        Err(e) => return fail(e),
+        Err(e) => return fail(e.to_string()),
     };
     let report_native =
         match projections::transpile_graph(&source_nt, &stem, &up_inputs, &maximal_inputs, &tags) {
             Ok(r) => r,
             Err(e) => return fail(e.to_string()),
         };
-    eprintln!(
-        "lifted {} facts · claimed {} inferred · gap {}",
-        report_native.lifted, report_native.claimed, report_native.gap_terms
+    note(
+        "gmeow-dev.transform.summary",
+        format!(
+            "lifted {} facts · claimed {} inferred · gap {}",
+            report_native.lifted, report_native.claimed, report_native.gap_terms
+        ),
     );
 
     let out_dir = out
@@ -421,7 +429,7 @@ pub fn transform(
     if let Some(target) = diff_target {
         let table = match vocab_diff(&report_native.transform.gts_bytes, target) {
             Ok(t) => t,
-            Err(e) => return fail(e),
+            Err(e) => return fail(e.to_string()),
         };
         match report {
             Some(path) => {
@@ -437,13 +445,13 @@ pub fn transform(
 }
 
 /// A vocabulary-coverage diff between the maximal transform output and a target.
-fn vocab_diff(maximal_gts: &[u8], target: &Path) -> Result<String, String> {
+fn vocab_diff(maximal_gts: &[u8], target: &Path) -> gmeow_errors::Result<String> {
     let maximal_ds = purrdf::gts::flattened_dataset_from_bytes(maximal_gts)
-        .map_err(|e| format!("cannot fold transform output: {e}"))?;
-    let target_bytes =
-        std::fs::read(target).map_err(|e| format!("cannot read {}: {e}", target.display()))?;
+        .map_err(|e| error::rdf(format!("cannot fold transform output: {e}")))?;
+    let target_bytes = std::fs::read(target)
+        .map_err(|e| error::source(format!("cannot read {}: {e}", target.display())))?;
     let target_ds = purrdf::parse_dataset(&target_bytes, "text/turtle", None)
-        .map_err(|e| format!("cannot parse {}: {e}", target.display()))?;
+        .map_err(|e| error::source(format!("cannot parse {}: {e}", target.display())))?;
     let max_preds = predicate_set(&maximal_ds);
     let tgt_preds = predicate_set(&target_ds);
     let covered = tgt_preds.intersection(&max_preds).count();
@@ -483,11 +491,11 @@ pub fn up_project(source: &Path, out: Option<&Path>) -> i32 {
     let tags = tag_map(&snapshot);
     let (up_inputs, _maximal) = match assemble_inputs(&snapshot) {
         Ok(p) => p,
-        Err(e) => return fail(e),
+        Err(e) => return fail(e.to_string()),
     };
     let (source_nt, _stem) = match load_source_nt(source) {
         Ok(pair) => pair,
-        Err(e) => return fail(e),
+        Err(e) => return fail(e.to_string()),
     };
     let result = match projections::up_project(&source_nt, &up_inputs, &tags) {
         Ok(r) => r,
@@ -495,25 +503,31 @@ pub fn up_project(source: &Path, out: Option<&Path>) -> i32 {
     };
     let ttl = match nt_to_turtle(&result.graph_nt) {
         Ok(t) => t,
-        Err(e) => return fail(e),
+        Err(e) => return fail(e.to_string()),
     };
     match out {
         Some(path) => {
             if let Err(e) = std::fs::write(path, &ttl) {
                 return fail(format!("cannot write {}: {e}", path.display()));
             }
-            eprintln!("wrote {}", path.display());
+            note(
+                "gmeow-dev.up-project.wrote",
+                format!("wrote {}", path.display()),
+            );
         }
         None => {
             use std::io::Write;
             let _ = std::io::stdout().write_all(&ttl);
         }
     }
-    eprintln!(
-        "lifted {} facts · claimed {} inferred · gap {} terms",
-        result.lifted,
-        result.claimed,
-        result.gap_terms.len()
+    note(
+        "gmeow-dev.up-project.summary",
+        format!(
+            "lifted {} facts · claimed {} inferred · gap {} terms",
+            result.lifted,
+            result.claimed,
+            result.gap_terms.len()
+        ),
     );
     0
 }

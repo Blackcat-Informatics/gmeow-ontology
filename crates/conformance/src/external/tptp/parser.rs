@@ -640,12 +640,14 @@ impl<'a> Parser<'a> {
                 "a variable `{v}` cannot be a predicate (first-orderness)"
             ))),
             PTerm::Func(pred, args) => {
-                let relation = Term::iri(format!("{TPTP_NS}{pred}")).map_err(TptpError::Syntax)?;
+                let relation = Term::iri(format!("{TPTP_NS}{pred}"))
+                    .map_err(|e| TptpError::Syntax(e.message().to_owned()))?;
                 let mut term_args = Vec::with_capacity(args.len());
                 for a in args {
                     term_args.push(pterm_to_term(a)?);
                 }
-                Formula::atom(relation, term_args).map_err(TptpError::Syntax)
+                Formula::atom(relation, term_args)
+                    .map_err(|e| TptpError::Syntax(e.message().to_owned()))
             }
         }
     }
@@ -744,10 +746,9 @@ impl<'a> Parser<'a> {
 /// the [`Term`] AST has no function-application leaf.
 fn pterm_to_term(t: PTerm) -> Result<Term, TptpError> {
     match t {
-        PTerm::Var(v) => Term::var(v).map_err(TptpError::Syntax),
-        PTerm::Func(name, args) if args.is_empty() => {
-            Term::iri(format!("{TPTP_NS}{name}")).map_err(TptpError::Syntax)
-        }
+        PTerm::Var(v) => Term::var(v).map_err(|e| TptpError::Syntax(e.message().to_owned())),
+        PTerm::Func(name, args) if args.is_empty() => Term::iri(format!("{TPTP_NS}{name}"))
+            .map_err(|e| TptpError::Syntax(e.message().to_owned())),
         PTerm::Func(name, _) => Err(TptpError::Unsupported(format!(
             "function symbol `{name}` in argument position — the first-order Term AST \
              (and the EL/DL fragment) carries no functional terms"

@@ -100,12 +100,12 @@ fn is_covered(iri: &str, aligned: &BTreeSet<String>, namespace: &str) -> bool {
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if any fixture fails to read or parse.
+/// Fails if any fixture fails to read or parse.
 pub fn coverage_analyze(
     fixture_paths: &[PathBuf],
     aligned: &BTreeSet<String>,
     namespace: &str,
-) -> Result<CoverageSets, String> {
+) -> gmeow_errors::Result<CoverageSets> {
     let ds = store::dataset_from_paths(fixture_paths)?;
     let mut sets = CoverageSets::default();
 
@@ -197,19 +197,29 @@ impl CoverageReport {
 /// Mirrors `coverage.fixture_paths` (`sorted(fixtures_dir.rglob("*.ttl"))`): it
 /// recurses into subdirectories (e.g. `external/`) so the real-world site
 /// snapshots are part of the measurement.
-fn fixture_paths(fixtures_dir: &Path) -> Result<Vec<PathBuf>, String> {
+fn fixture_paths(fixtures_dir: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let mut paths = Vec::new();
     let mut stack = vec![fixtures_dir.to_path_buf()];
     while let Some(dir) = stack.pop() {
-        for entry in std::fs::read_dir(&dir)
-            .map_err(|e| format!("failed to read fixtures dir {}: {e}", dir.display()))?
-        {
-            let entry = entry.map_err(|e| format!("failed to read fixtures dir entry: {e}"))?;
+        for entry in std::fs::read_dir(&dir).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Io {
+                detail: format!("failed to read fixtures dir {}: {e}", dir.display()),
+            })
+        })? {
+            let entry = entry.map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Io {
+                    detail: format!("failed to read fixtures dir entry: {e}"),
+                })
+            })?;
             // Use the dirent file type (no stat, no symlink follow) so a circular symlink
             // can't drive the walk into an infinite loop.
             let is_dir = entry
                 .file_type()
-                .map_err(|e| format!("failed to read fixtures dir entry type: {e}"))?
+                .map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Io {
+                        detail: format!("failed to read fixtures dir entry type: {e}"),
+                    })
+                })?
                 .is_dir();
             let path = entry.path();
             if is_dir {
@@ -237,13 +247,12 @@ fn fixture_paths(fixtures_dir: &Path) -> Result<Vec<PathBuf>, String> {
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if the mappings dir or any fixture cannot be read or
-/// parsed.
+/// Fails if the mappings dir or any fixture cannot be read or parsed.
 pub fn run_coverage(
     fixtures_dir: &Path,
     mappings_dir: &Path,
     namespace: &str,
-) -> Result<CoverageReport, String> {
+) -> gmeow_errors::Result<CoverageReport> {
     let aligned = crate::mapping_eval::aligned_iris(mappings_dir)?;
     let paths = fixture_paths(fixtures_dir)?;
     let sets = coverage_analyze(&paths, &aligned, namespace)?;

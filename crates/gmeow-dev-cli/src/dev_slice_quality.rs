@@ -16,7 +16,7 @@ use gmeow_errors::Report;
 use gmeow_slice_quality::model::{Rubric, SliceAssessment, Tier};
 use gmeow_slice_quality::report::{SliceReport, score_slice, score_slice_with_rubric};
 
-use crate::dev_common::{fail, project_root};
+use crate::dev_common::{emit_error, fail, project_root};
 use crate::dev_feedback::{diagnostics_env, write_artifacts};
 
 /// The output rendering the caller asked for.
@@ -32,29 +32,30 @@ pub enum Format {
     Rdf,
 }
 
+/// Wrap a slice-quality-dev error message as a typed diagnostic on the substrate.
+fn sqe(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::SourceReadFailed { detail })
+}
+
 impl Format {
-    fn parse(s: Option<&str>) -> Result<Self, String> {
+    fn parse(s: Option<&str>) -> gmeow_errors::Result<Self> {
         match s {
             None | Some("text") => Ok(Self::Text),
             Some("json") => Ok(Self::Json),
             Some("sarif") => Ok(Self::Sarif),
             Some("rdf") => Ok(Self::Rdf),
-            Some(other) => Err(format!(
+            Some(other) => Err(sqe(format!(
                 "unknown --format {other} (want text|json|sarif|rdf)"
-            )),
+            ))),
         }
     }
 }
 
-fn render(report: &SliceReport, format: Format) -> Result<String, String> {
+fn render(report: &SliceReport, format: Format) -> gmeow_errors::Result<String> {
     match format {
         Format::Text => Ok(report.render_text()),
-        Format::Json => {
-            gmeow_errors::render::to_json(&report.to_report()).map_err(|e| e.to_string())
-        }
-        Format::Sarif => {
-            gmeow_errors::render::to_sarif(&report.to_report()).map_err(|e| e.to_string())
-        }
+        Format::Json => Ok(gmeow_errors::render::to_json(&report.to_report())?),
+        Format::Sarif => Ok(gmeow_errors::render::to_sarif(&report.to_report())?),
         Format::Rdf => Ok(report.to_gmeow_rdf()),
     }
 }
@@ -168,7 +169,7 @@ fn tier_gate_passes(measured: &Tier, required: Option<&Tier>) -> bool {
 /// tier's human label (`Grounded`) or its IRI local name (`tierGrounded`),
 /// case-insensitively. Returns a clear error naming the available rungs on an
 /// unknown tier — a HARD FAIL, never a silently-ignored gate request.
-fn resolve_min_tier<'a>(rubric: &'a Rubric, name: &str) -> Result<&'a Tier, String> {
+fn resolve_min_tier<'a>(rubric: &'a Rubric, name: &str) -> gmeow_errors::Result<&'a Tier> {
     let local_of =
         |iri: &str| -> String { iri.rsplit(['/', '#']).next().unwrap_or(iri).to_owned() };
     if let Some(t) = rubric
@@ -181,10 +182,10 @@ fn resolve_min_tier<'a>(rubric: &'a Rubric, name: &str) -> Result<&'a Tier, Stri
     let mut rungs: Vec<&Tier> = rubric.tiers.iter().collect();
     rungs.sort_by(|a, b| a.sort_key().cmp(&b.sort_key()));
     let known: Vec<String> = rungs.iter().map(|t| t.label.clone()).collect();
-    Err(format!(
+    Err(sqe(format!(
         "slice-quality: unknown --min-tier {name:?} (want one of: {})",
         known.join(", ")
-    ))
+    )))
 }
 
 /// Score every discovered slice against one loaded rubric and print a roll-up
@@ -259,7 +260,10 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
                 printed += 1;
             }
             // A slice that cannot be scored is reported, not silently skipped.
-            Err(e) => eprintln!("slice-quality: {}: {e}", dir.display()),
+            Err(e) => emit_error(
+                "gmeow-dev.slice-quality.score",
+                format!("slice-quality: {}: {e}", dir.display()),
+            ),
         }
     }
     if printed == 0 {
@@ -304,9 +308,12 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
         && !below.is_empty()
     {
         for (slice, measured) in &below {
-            eprintln!(
-                "FAIL {slice} measures {measured} — below --min-tier {}",
-                required.label
+            emit_error(
+                "gmeow-dev.slice-quality.gate",
+                format!(
+                    "FAIL {slice} measures {measured} — below --min-tier {}",
+                    required.label
+                ),
             );
         }
         return fail(format!(
@@ -353,7 +360,7 @@ pub fn slice_quality_gate() -> i32 {
     ));
     if !structural.is_empty() {
         for e in &structural {
-            eprintln!("FAIL {e}");
+            emit_error("gmeow-dev.slice-quality.gate", format!("FAIL {e}"));
         }
         return fail(format!(
             "slice-quality-gate: {} rubric structural failure(s)",
@@ -399,16 +406,22 @@ pub fn slice_quality_gate() -> i32 {
                 );
             }
             RatchetVerdict::MeasuredBelowDeclared => {
-                eprintln!(
-                    "FAIL {} declared {} but measures {} — uplift the slice or lower is forbidden",
-                    report.assessment.slice, declared.label, report.assessment.rollup.label
+                emit_error(
+                    "gmeow-dev.slice-quality.gate",
+                    format!(
+                        "FAIL {} declared {} but measures {} — uplift the slice or lower is forbidden",
+                        report.assessment.slice, declared.label, report.assessment.rollup.label
+                    ),
                 );
                 failures += 1;
             }
             RatchetVerdict::DeclaredBelowFloor => {
-                eprintln!(
-                    "FAIL {} declares {} below its committed ratchet floor — the tier may only be raised",
-                    report.assessment.slice, declared.label
+                emit_error(
+                    "gmeow-dev.slice-quality.gate",
+                    format!(
+                        "FAIL {} declares {} below its committed ratchet floor — the tier may only be raised",
+                        report.assessment.slice, declared.label
+                    ),
                 );
                 failures += 1;
             }
@@ -435,13 +448,13 @@ pub fn slice_quality_gate() -> i32 {
 fn load_floors(
     root: &Path,
     rubric: &gmeow_slice_quality::Rubric,
-) -> Result<std::collections::HashMap<String, i64>, String> {
+) -> gmeow_errors::Result<std::collections::HashMap<String, i64>> {
     let path = root.join(FLOOR_FILE);
     let text = std::fs::read_to_string(&path).map_err(|e| {
-        format!(
+        sqe(format!(
             "cannot read ratchet floor file {} (the gate cannot enforce a floor it cannot read): {e}",
             path.display()
-        )
+        ))
     })?;
     let mut out = std::collections::HashMap::new();
     for (idx, raw) in text.lines().enumerate() {
@@ -451,18 +464,18 @@ fn load_floors(
         }
         let lineno = idx + 1;
         let Some((iri, tier_local)) = line.split_once('\t') else {
-            return Err(format!(
+            return Err(sqe(format!(
                 "{}:{lineno}: malformed floor line (want <slice-iri>\\t<tier-local-name>): {raw:?}",
                 path.display()
-            ));
+            )));
         };
         let tier_local = tier_local.trim();
         let tier_iri = format!("{}{}", gmeow_slice_quality::model::GMEOW, tier_local);
         let Some(tier) = rubric.tier(&tier_iri) else {
-            return Err(format!(
+            return Err(sqe(format!(
                 "{}:{lineno}: unknown tier label {tier_local:?} (names no gmeow:QualityTier in the rubric ladder)",
                 path.display()
-            ));
+            )));
         };
         out.insert(iri.trim().to_owned(), tier.rank);
     }
@@ -579,11 +592,15 @@ mod min_tier_tests {
     fn resolve_unknown_tier_errors_naming_the_rungs() {
         let r = ladder();
         let err = resolve_min_tier(&r, "Platinum").unwrap_err();
-        assert!(err.contains("unknown --min-tier"), "{err}");
-        assert!(err.contains("Platinum"), "names the bad input: {err}");
+        assert!(err.message().contains("unknown --min-tier"), "{err}");
+        assert!(
+            err.message().contains("Platinum"),
+            "names the bad input: {err}"
+        );
         // Lists the available rungs, ladder-ordered.
         assert!(
-            err.contains("Registered, Grounded, Linked, Exemplified, Maximal"),
+            err.message()
+                .contains("Registered, Grounded, Linked, Exemplified, Maximal"),
             "lists rungs: {err}"
         );
     }
@@ -629,7 +646,7 @@ mod load_floors_tests {
         let root = temp_root("missing");
         let err = load_floors(&root, &registered_rubric()).unwrap_err();
         assert!(
-            err.contains("cannot read ratchet floor file"),
+            err.message().contains("cannot read ratchet floor file"),
             "missing floors file must hard-fail: {err}"
         );
         std::fs::remove_dir_all(&root).ok();
@@ -644,10 +661,13 @@ mod load_floors_tests {
             "# header\nhttps://x/slices/logic\ttierRegistered\nno-tab-on-this-line\n",
         );
         let err = load_floors(&root, &registered_rubric()).unwrap_err();
-        assert!(err.contains("malformed floor line"), "{err}");
-        assert!(err.contains(":3:"), "names the 1-based line: {err}");
+        assert!(err.message().contains("malformed floor line"), "{err}");
         assert!(
-            err.contains("no-tab-on-this-line"),
+            err.message().contains(":3:"),
+            "names the 1-based line: {err}"
+        );
+        assert!(
+            err.message().contains("no-tab-on-this-line"),
             "quotes the line: {err}"
         );
         std::fs::remove_dir_all(&root).ok();
@@ -659,8 +679,11 @@ mod load_floors_tests {
         let root = temp_root("unknown-tier");
         write_floors(&root, "https://x/slices/logic\ttierBogus\n");
         let err = load_floors(&root, &registered_rubric()).unwrap_err();
-        assert!(err.contains("unknown tier label"), "{err}");
-        assert!(err.contains("tierBogus"), "names the label: {err}");
+        assert!(err.message().contains("unknown tier label"), "{err}");
+        assert!(
+            err.message().contains("tierBogus"),
+            "names the label: {err}"
+        );
         std::fs::remove_dir_all(&root).ok();
     }
 

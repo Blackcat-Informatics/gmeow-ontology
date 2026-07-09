@@ -25,6 +25,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
+use gmeow_errors::Diag;
+
 /// The null-byte field separator used by every `sort_key` (Python `"\x00"`).
 const SEP: char = '\u{0}';
 
@@ -392,10 +394,12 @@ pub struct ComplexityClass {
 impl ComplexityClass {
     /// Construct, validating that the label is non-empty (after trimming),
     /// mirroring the Python `__post_init__`.
-    pub fn new(label: impl Into<String>) -> Result<Self, String> {
+    pub fn new(label: impl Into<String>) -> gmeow_errors::Result<Self> {
         let label = label.into();
         if label.trim().is_empty() {
-            return Err("ComplexityClass.label must be a non-empty string".to_owned());
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "ComplexityClass.label must be a non-empty string".to_owned(),
+            }));
         }
         Ok(Self { label })
     }
@@ -445,13 +449,13 @@ impl ContextualScope {
         modality: LogicModality,
         provenance: Option<String>,
         module: Option<String>,
-    ) -> Result<Self, String> {
+    ) -> gmeow_errors::Result<Self> {
         if let Some(c) = confidence
             && !(0.0..=1.0).contains(&c)
         {
-            return Err(format!(
-                "ContextualScope.confidence must be in [0, 1], got {c}"
-            ));
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: format!("ContextualScope.confidence must be in [0, 1], got {c}"),
+            }));
         }
         Ok(Self {
             standpoint,
@@ -540,14 +544,18 @@ impl LogicAxiom {
         obj_is_literal: bool,
         negated: bool,
         scope: ContextualScope,
-    ) -> Result<Self, String> {
+    ) -> gmeow_errors::Result<Self> {
         let subject = subject.into();
         let predicate = predicate.into();
         if subject.is_empty() {
-            return Err("LogicAxiom.subject must be a non-empty IRI string".to_owned());
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "LogicAxiom.subject must be a non-empty IRI string".to_owned(),
+            }));
         }
         if predicate.is_empty() {
-            return Err("LogicAxiom.predicate must be a non-empty IRI string".to_owned());
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "LogicAxiom.predicate must be a non-empty IRI string".to_owned(),
+            }));
         }
         Ok(Self {
             subject,
@@ -582,7 +590,7 @@ impl LogicAxiom {
         predicate: impl Into<String>,
         obj: impl Into<String>,
         obj_is_literal: bool,
-    ) -> Result<Self, String> {
+    ) -> gmeow_errors::Result<Self> {
         Self::new(
             subject,
             predicate,
@@ -1065,58 +1073,71 @@ impl PathShapeIr {
         max_depth: Option<u32>,
         namespace_scope: Option<String>,
         depth_param: Option<String>,
-    ) -> Result<Self, String> {
+    ) -> gmeow_errors::Result<Self> {
         let iri = iri.into();
         if iri.is_empty() {
-            return Err("PathShapeIr.iri must be a non-empty IRI string".to_owned());
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "PathShapeIr.iri must be a non-empty IRI string".to_owned(),
+            }));
         }
         if min_depth < 1 {
-            return Err("PathShapeIr.min_depth must be >= 1".to_owned());
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "PathShapeIr.min_depth must be >= 1".to_owned(),
+            }));
         }
         // Cap min_depth too (CWE-400): an unbounded path (max_depth = None) with a
         // huge min_depth still unrolls a 1..min_depth edge chain in datalog_text,
         // exhausting memory. The cap on max_depth alone does not bound this.
         if min_depth as usize > MAX_PATH_DEPTH {
-            return Err(format!(
-                "PathShapeIr.min_depth ({min_depth}) exceeds the hard cap of {MAX_PATH_DEPTH}; \
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: format!(
+                    "PathShapeIr.min_depth ({min_depth}) exceeds the hard cap of {MAX_PATH_DEPTH}; \
                  no legitimate graph walk needs a deeper minimum"
-            ));
+                ),
+            }));
         }
         if let Some(m) = max_depth {
             if min_depth > m {
-                return Err(format!(
-                    "PathShapeIr min_depth ({min_depth}) must not exceed max_depth ({m})"
-                ));
+                return Err(Diag::of_kind(crate::error::Ir {
+                    detail: format!(
+                        "PathShapeIr min_depth ({min_depth}) must not exceed max_depth ({m})"
+                    ),
+                }));
             }
             if m as usize > MAX_PATH_DEPTH {
-                return Err(format!(
-                    "PathShapeIr max_depth ({m}) exceeds the hard cap of {MAX_PATH_DEPTH}; \
+                return Err(Diag::of_kind(crate::error::Ir {
+                    detail: format!(
+                        "PathShapeIr max_depth ({m}) exceeds the hard cap of {MAX_PATH_DEPTH}; \
                      use an unbounded path (max_depth = None) for deeper traversals"
-                ));
+                    ),
+                }));
             }
         }
         if let PathBase::NamedPredicate(p) = &base
             && p.is_empty()
         {
-            return Err("PathShapeIr named-predicate step must be a non-empty IRI".to_owned());
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "PathShapeIr named-predicate step must be a non-empty IRI".to_owned(),
+            }));
         }
         if let Some(ns) = &namespace_scope {
             if ns.trim().is_empty() {
-                return Err(
-                    "PathShapeIr.namespace_scope must be a non-empty IRI string when present; \
+                return Err(Diag::of_kind(crate::error::Ir {
+                    detail:
+                        "PathShapeIr.namespace_scope must be a non-empty IRI string when present; \
                      pass None to leave it unset"
-                        .to_owned(),
-                );
+                            .to_owned(),
+                }));
             }
             // namespace_scope only scopes a wildcard step (projections apply it
             // solely to wildcards). Carrying it on a named-predicate path is
             // malformed — reject rather than silently ignore it.
             if let PathBase::NamedPredicate(_) = &base {
-                return Err(
-                    "PathShapeIr.namespace_scope is only meaningful for a wildcard step \
+                return Err(Diag::of_kind(crate::error::Ir {
+                    detail: "PathShapeIr.namespace_scope is only meaningful for a wildcard step \
                      (logic:pathWildcard true); a named-predicate path must not carry one"
                         .to_owned(),
-                );
+                }));
             }
         }
         // An empty/whitespace depth_param collides with None in content_key()
@@ -1125,11 +1146,11 @@ impl PathShapeIr {
         if let Some(dp) = &depth_param
             && dp.trim().is_empty()
         {
-            return Err(
-                "PathShapeIr.depth_param must be a non-empty string when present; \
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "PathShapeIr.depth_param must be a non-empty string when present; \
                      pass None to leave it unset"
                     .to_owned(),
-            );
+            }));
         }
         Ok(Self {
             iri,
@@ -1747,10 +1768,12 @@ impl Correspondence {
         probability: Option<f64>,
         according_to: Option<String>,
         preservation: Option<PreservationKind>,
-    ) -> Result<Self, String> {
+    ) -> gmeow_errors::Result<Self> {
         let iri = iri.into();
         if iri.is_empty() {
-            return Err("Correspondence.iri must be a non-empty IRI string".to_owned());
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "Correspondence.iri must be a non-empty IRI string".to_owned(),
+            }));
         }
         // Some("") collides with None in content_key() (content-addressing determinism
         // hazard): reject an empty/whitespace optional string so Some("") is never built.
@@ -1762,10 +1785,12 @@ impl Correspondence {
             if let Some(s) = val
                 && s.trim().is_empty()
             {
-                return Err(format!(
-                    "Correspondence.{field} must be a non-empty IRI string when present; \
+                return Err(Diag::of_kind(crate::error::Ir {
+                    detail: format!(
+                        "Correspondence.{field} must be a non-empty IRI string when present; \
                          pass None to leave it unset"
-                ));
+                    ),
+                }));
             }
         }
         // The unit-interval axes must be a finite value in [0, 1]; `weight` is a finite
@@ -1778,13 +1803,17 @@ impl Correspondence {
             if let Some(x) = val
                 && !(0.0..=1.0).contains(&x)
             {
-                return Err(format!("Correspondence.{field} must be in [0, 1], got {x}"));
+                return Err(Diag::of_kind(crate::error::Ir {
+                    detail: format!("Correspondence.{field} must be in [0, 1], got {x}"),
+                }));
             }
         }
         if let Some(w) = weight
             && !w.is_finite()
         {
-            return Err(format!("Correspondence.weight must be finite, got {w}"));
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: format!("Correspondence.weight must be finite, got {w}"),
+            }));
         }
         let mut law_claims = law_claims;
         law_claims.sort_by_cached_key(LawClaimIr::sort_key);
@@ -1875,32 +1904,40 @@ pub enum Term {
 impl Term {
     /// A variable term, rejecting an empty/whitespace-only name (a blank name collides
     /// with absence and breaks the alpha-normalized key's determinism).
-    pub fn var(name: impl Into<String>) -> Result<Self, String> {
+    pub fn var(name: impl Into<String>) -> gmeow_errors::Result<Self> {
         let name = name.into();
         if name.trim().is_empty() {
-            return Err("Term::Var name must be non-empty".to_owned());
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "Term::Var name must be non-empty".to_owned(),
+            }));
         }
         Ok(Self::Var(name))
     }
 
     /// An IRI term, rejecting an empty/whitespace-only IRI.
-    pub fn iri(iri: impl Into<String>) -> Result<Self, String> {
+    pub fn iri(iri: impl Into<String>) -> gmeow_errors::Result<Self> {
         let iri = iri.into();
         if iri.trim().is_empty() {
-            return Err("Term::Iri must be a non-empty IRI string".to_owned());
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "Term::Iri must be a non-empty IRI string".to_owned(),
+            }));
         }
         Ok(Self::Iri(iri))
     }
 
     /// A literal term. The lexical form may be empty (a legal RDF literal); a present
     /// datatype must be a non-empty IRI (`Some("")` would collide with `None`).
-    pub fn literal(lexical: impl Into<String>, datatype: Option<String>) -> Result<Self, String> {
+    pub fn literal(
+        lexical: impl Into<String>,
+        datatype: Option<String>,
+    ) -> gmeow_errors::Result<Self> {
         if let Some(dt) = &datatype
             && dt.trim().is_empty()
         {
-            return Err(
-                "Term::Literal datatype must be a non-empty IRI when present; pass None".to_owned(),
-            );
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "Term::Literal datatype must be a non-empty IRI when present; pass None"
+                    .to_owned(),
+            }));
         }
         Ok(Self::Literal {
             lexical: lexical.into(),
@@ -1909,10 +1946,12 @@ impl Term {
     }
 
     /// A sequence-marker term, rejecting an empty/whitespace-only name.
-    pub fn sequence_marker(name: impl Into<String>) -> Result<Self, String> {
+    pub fn sequence_marker(name: impl Into<String>) -> gmeow_errors::Result<Self> {
         let name = name.into();
         if name.trim().is_empty() {
-            return Err("Term::SequenceMarker name must be non-empty".to_owned());
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "Term::SequenceMarker name must be non-empty".to_owned(),
+            }));
         }
         Ok(Self::SequenceMarker(name))
     }
@@ -2072,13 +2111,13 @@ impl Formula {
     /// An atomic predication, enforcing first-orderness: `relation` MUST be a
     /// [`Term::Iri`] (a reified relation / HiLog individual), never a variable, literal,
     /// or sequence marker.
-    pub fn atom(relation: Term, args: Vec<Term>) -> Result<Self, String> {
+    pub fn atom(relation: Term, args: Vec<Term>) -> gmeow_errors::Result<Self> {
         if !matches!(relation, Term::Iri(_)) {
-            return Err(
-                "Formula::Atom relation must be a Term::Iri (the reified relation / HiLog \
+            return Err(Diag::of_kind(crate::error::Ir {
+                detail: "Formula::Atom relation must be a Term::Iri (the reified relation / HiLog \
                  individual); a predicate variable would break first-orderness"
                     .to_owned(),
-            );
+            }));
         }
         Ok(Self::Atom { relation, args })
     }

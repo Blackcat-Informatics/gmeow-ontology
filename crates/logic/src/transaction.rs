@@ -68,6 +68,12 @@ fn logic(local: &str) -> String {
     format!("{LOGIC_NAMESPACE}{local}")
 }
 
+/// Wrap a transaction-derivation condition message as a typed diagnostic on the
+/// shared substrate, preserving the authored text verbatim.
+fn transaction_err(detail: String) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Transaction { detail })
+}
+
 // Combinator class local names.
 const SERIAL_CONJUNCTION: &str = "SerialConjunction";
 const CHOICE: &str = "Choice";
@@ -314,13 +320,13 @@ impl StepCounter {
     }
 
     /// Consume one work unit; hard-fail on a non-terminating program.
-    fn tick(&mut self) -> Result<(), String> {
+    fn tick(&mut self) -> gmeow_errors::Result<()> {
         self.count += 1;
         if self.count > MAX_TRANSACTION_STEPS {
-            return Err(format!(
+            return Err(transaction_err(format!(
                 "transaction exceeds step bound {MAX_TRANSACTION_STEPS} \
                  (non-terminating program)"
-            ));
+            )));
         }
         Ok(())
     }
@@ -337,16 +343,16 @@ impl Default for StepCounter {
 /// Require exactly one object IRI for `(node, logic:<prop>)`; a missing or doubled
 /// structural link is a HARD ERROR (never first-wins, which would hide a malformed
 /// program).
-fn require_one(facts: &WorldFacts, node: &str, prop: &str) -> Result<String, String> {
+fn require_one(facts: &WorldFacts, node: &str, prop: &str) -> gmeow_errors::Result<String> {
     let objs = facts.objects(node, &logic(prop));
     match objs.len() {
         1 => Ok(objs[0].to_owned()),
-        0 => Err(format!(
+        0 => Err(transaction_err(format!(
             "transaction-program node {node:?} has no logic:{prop}"
-        )),
-        n => Err(format!(
+        ))),
+        n => Err(transaction_err(format!(
             "transaction-program node {node:?} has {n} logic:{prop} links (exactly one required)"
-        )),
+        ))),
     }
 }
 
@@ -363,12 +369,12 @@ pub(crate) fn parse_program(
     facts: &WorldFacts,
     node: &str,
     depth: usize,
-) -> Result<TransactionProgram, String> {
+) -> gmeow_errors::Result<TransactionProgram> {
     if depth > MAX_PROGRAM_DEPTH {
-        return Err(format!(
+        return Err(transaction_err(format!(
             "transaction-program operand graph exceeds depth {MAX_PROGRAM_DEPTH} \
              (malformed cyclic operands?) at {node:?}"
-        ));
+        )));
     }
     // The recognized combinator classes among this node's rdf:type.
     let types: Vec<String> = facts
@@ -378,10 +384,10 @@ pub(crate) fn parse_program(
         .filter(|local| COMBINATOR_CLASSES.contains(&local.as_str()))
         .collect();
     if types.len() > 1 {
-        return Err(format!(
+        return Err(transaction_err(format!(
             "transaction-program node {node:?} carries more than one combinator type: {types:?} \
              (a program node has exactly one operator type)"
-        ));
+        )));
     }
 
     match types.first().map(String::as_str) {
@@ -432,18 +438,18 @@ pub(crate) fn parse_program(
                 right: Box::new(parse_program(facts, &right, depth + 1)?),
             })
         }
-        Some(other) => Err(format!(
+        Some(other) => Err(transaction_err(format!(
             "transaction-program node {node:?} has unhandled combinator type {other:?}"
-        )),
+        ))),
         None => {
             // A primitive leaf invokes an action schema.
             let schema = facts
                 .object(node, &logic(INSTANTIATES_SCHEMA))
                 .ok_or_else(|| {
-                    format!(
-                    "transaction-program node {node:?} is neither a recognized combinator nor a \
-                     primitive (no logic:instantiatesSchema)"
-                )
+                    transaction_err(format!(
+                        "transaction-program node {node:?} is neither a recognized combinator nor \
+                         a primitive (no logic:instantiatesSchema)"
+                    ))
                 })?;
             Ok(TransactionProgram::Primitive {
                 node: node.to_owned(),
@@ -524,7 +530,7 @@ pub(crate) fn plan_path(
     sits: &BTreeSet<String>,
     root: &str,
     counter: &mut StepCounter,
-) -> Result<ExecOutcome, String> {
+) -> gmeow_errors::Result<ExecOutcome> {
     match program {
         TransactionProgram::Primitive { node, schema } => {
             // Executability gate — three distinct outcomes, never collapsed:
@@ -761,7 +767,7 @@ pub(crate) fn program_roots(facts: &WorldFacts) -> Vec<String> {
 pub(crate) fn root_start(
     facts: &WorldFacts,
     root: &str,
-) -> Result<(String, BTreeSet<String>), String> {
+) -> gmeow_errors::Result<(String, BTreeSet<String>)> {
     let start = require_one(facts, root, TRANSITION_FROM_STATE)?;
     let sits: BTreeSet<String> = facts
         .objects(&start, &logic(SITUATION_OBTAINS))
@@ -803,7 +809,10 @@ pub(crate) enum ExecutionMode {
 /// non-IRI (literal) `logic:executedUnderContract` or `logic:executionMode` value, a contract
 /// carrying more than one `logic:executionMode` value, or an `executionMode` value that is
 /// neither `logic:CommittedExecution` nor `logic:HypotheticalExecution`.
-pub(crate) fn root_execution_mode(facts: &WorldFacts, root: &str) -> Result<ExecutionMode, String> {
+pub(crate) fn root_execution_mode(
+    facts: &WorldFacts,
+    root: &str,
+) -> gmeow_errors::Result<ExecutionMode> {
     let contracts = facts.objects(root, &logic(EXECUTED_UNDER_CONTRACT));
     let contract = match contracts.len() {
         // `WorldFacts::objects` returns only IRI-valued objects, so a present-but-non-IRI link
@@ -815,17 +824,17 @@ pub(crate) fn root_execution_mode(facts: &WorldFacts, root: &str) -> Result<Exec
                 .object_n3(root, &logic(EXECUTED_UNDER_CONTRACT))
                 .is_some()
             {
-                return Err(format!(
+                return Err(transaction_err(format!(
                     "transaction-program node {root:?} names a non-IRI logic:executedUnderContract value (a governing contract must be an IRI)"
-                ));
+                )));
             }
             return Ok(ExecutionMode::Committed);
         }
         1 => contracts[0],
         n => {
-            return Err(format!(
+            return Err(transaction_err(format!(
                 "transaction-program node {root:?} has {n} logic:executedUnderContract links (at most one governing contract allowed)"
-            ));
+            )));
         }
     };
     let modes = facts.objects(contract, &logic(EXECUTION_MODE));
@@ -833,9 +842,9 @@ pub(crate) fn root_execution_mode(facts: &WorldFacts, root: &str) -> Result<Exec
         // Same fail-closed discipline for the mode value: a non-IRI literal is malformed, not absent.
         0 => {
             if let Some(value) = facts.object_n3(contract, &logic(EXECUTION_MODE)) {
-                return Err(format!(
+                return Err(transaction_err(format!(
                     "logic:ReasoningContract {contract:?} names a non-IRI logic:executionMode value {value:?} (expected logic:CommittedExecution or logic:HypotheticalExecution)"
-                ));
+                )));
             }
             Ok(ExecutionMode::Committed)
         }
@@ -846,14 +855,14 @@ pub(crate) fn root_execution_mode(facts: &WorldFacts, root: &str) -> Result<Exec
             } else if value == logic(HYPOTHETICAL_EXECUTION) {
                 Ok(ExecutionMode::Hypothetical)
             } else {
-                Err(format!(
+                Err(transaction_err(format!(
                     "logic:ReasoningContract {contract:?} names an unknown logic:executionMode {value:?} (expected logic:CommittedExecution or logic:HypotheticalExecution)"
-                ))
+                )))
             }
         }
-        n => Err(format!(
+        n => Err(transaction_err(format!(
             "logic:ReasoningContract {contract:?} has {n} logic:executionMode values (exactly one required)"
-        )),
+        ))),
     }
 }
 
@@ -1055,7 +1064,7 @@ pub(crate) fn emit_transaction_outcome(
     facts: &WorldFacts,
     world: &str,
     root: &str,
-) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<crate::teleology::TeleologyQuad>> {
     let (start, sits) = root_start(facts, root)?;
     let program = parse_program(facts, root, 0)?;
     // The execution-commitment mode is read from the program's governing contract; the
@@ -1091,7 +1100,7 @@ pub(crate) fn emit_program_outcome(
     start: &str,
     sits: &BTreeSet<String>,
     source: &str,
-) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<crate::teleology::TeleologyQuad>> {
     use crate::provenance::mint_derivation_id;
     use crate::teleology::{TeleologyQuad, n3};
 
@@ -1247,7 +1256,7 @@ fn emit_committed_run(
     steps: &[PlannedStep],
     source: &str,
     deriv: &str,
-) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<crate::teleology::TeleologyQuad>> {
     use crate::provenance::mint_derivation_id;
     use crate::teleology::{TeleologyQuad, effect_quads, n3, triple_reifier};
 
@@ -1269,10 +1278,10 @@ fn emit_committed_run(
     }
     for step in steps {
         let effect = facts.object(&step.schema, &logic(EFFECT)).ok_or_else(|| {
-            format!(
+            transaction_err(format!(
                 "logic:ActionSchema {:?} names no logic:effect node",
                 step.schema
-            )
+            ))
         })?;
         let step_source = triple_reifier(&step.schema, &logic(EFFECT), effect)?;
         let step_deriv = mint_derivation_id(TRANSACTION_RULE_IRI, &[step_source.as_str()]);
@@ -1319,17 +1328,17 @@ fn emit_committed_run(
 fn step_footprint(
     facts: &WorldFacts,
     step: &PlannedStep,
-) -> Result<(BTreeSet<String>, BTreeSet<String>), String> {
+) -> gmeow_errors::Result<(BTreeSet<String>, BTreeSet<String>)> {
     let read: BTreeSet<String> = facts
         .objects(&step.schema, &logic(PRECONDITION))
         .into_iter()
         .map(ToOwned::to_owned)
         .collect();
     let effect = facts.object(&step.schema, &logic(EFFECT)).ok_or_else(|| {
-        format!(
+        transaction_err(format!(
             "logic:ActionSchema {:?} names no logic:effect node",
             step.schema
-        )
+        ))
     })?;
     let mut write: BTreeSet<String> = BTreeSet::new();
     for s in facts.objects(effect, &logic(INS)) {
@@ -1362,7 +1371,7 @@ fn derive_conflict_edges(
     left: &[PlannedStep],
     right_tx: &str,
     right: &[PlannedStep],
-) -> Result<Vec<crate::teleology::ConflictEdge>, String> {
+) -> gmeow_errors::Result<Vec<crate::teleology::ConflictEdge>> {
     use crate::teleology::ConflictEdge;
     let left_fp: Vec<(BTreeSet<String>, BTreeSet<String>)> = left
         .iter()
@@ -1470,7 +1479,7 @@ fn classify_view_serializability(
     facts: &WorldFacts,
     left: &[PlannedStep],
     right: &[PlannedStep],
-) -> Result<ViewClassification, String> {
+) -> gmeow_errors::Result<ViewClassification> {
     let left_fp: Vec<(BTreeSet<String>, BTreeSet<String>)> = left
         .iter()
         .map(|s| step_footprint(facts, s))
@@ -1596,24 +1605,24 @@ fn root_contract_value(
     prop: &str,
     closed_set: &[&str],
     what: &str,
-) -> Result<Option<String>, String> {
+) -> gmeow_errors::Result<Option<String>> {
     let contracts = facts.objects(root, &logic(EXECUTED_UNDER_CONTRACT));
     let contract = match contracts.len() {
         0 => return Ok(None),
         1 => contracts[0],
         n => {
-            return Err(format!(
+            return Err(transaction_err(format!(
                 "transaction-program node {root:?} has {n} logic:executedUnderContract links (at most one governing contract allowed)"
-            ));
+            )));
         }
     };
     let values = facts.objects(contract, &logic(prop));
     match values.len() {
         0 => {
             if let Some(value) = facts.object_n3(contract, &logic(prop)) {
-                return Err(format!(
+                return Err(transaction_err(format!(
                     "logic:ReasoningContract {contract:?} names a non-IRI logic:{prop} value {value:?} (expected {what})"
-                ));
+                )));
             }
             Ok(None)
         }
@@ -1621,20 +1630,20 @@ fn root_contract_value(
             let value = values[0];
             match value.strip_prefix(LOGIC_NAMESPACE) {
                 Some(local) if closed_set.contains(&local) => Ok(Some(value.to_owned())),
-                _ => Err(format!(
+                _ => Err(transaction_err(format!(
                     "logic:ReasoningContract {contract:?} names an unknown logic:{prop} {value:?} (expected {what} from the closed set)"
-                )),
+                ))),
             }
         }
-        n => Err(format!(
+        n => Err(transaction_err(format!(
             "logic:ReasoningContract {contract:?} has {n} logic:{prop} values (at most one required)"
-        )),
+        ))),
     }
 }
 
 /// The concurrency-control protocol a program `root` DECLARES (`logic:declaredProtocol`), or
 /// `None` when it declares none. Hard-fails on a malformed declaration ([`root_contract_value`]).
-fn root_declared_protocol(facts: &WorldFacts, root: &str) -> Result<Option<String>, String> {
+fn root_declared_protocol(facts: &WorldFacts, root: &str) -> gmeow_errors::Result<Option<String>> {
     root_contract_value(
         facts,
         root,
@@ -1646,7 +1655,10 @@ fn root_declared_protocol(facts: &WorldFacts, root: &str) -> Result<Option<Strin
 
 /// The isolation-level guarantee a program `root` DECLARES (`logic:declaredIsolationLevel`), or
 /// `None` when it declares none. Hard-fails on a malformed declaration ([`root_contract_value`]).
-fn root_declared_isolation_level(facts: &WorldFacts, root: &str) -> Result<Option<String>, String> {
+fn root_declared_isolation_level(
+    facts: &WorldFacts,
+    root: &str,
+) -> gmeow_errors::Result<Option<String>> {
     root_contract_value(
         facts,
         root,
@@ -1679,7 +1691,7 @@ fn check_isolation_adequacy(
     conflict_serializable: bool,
     source: &str,
     deriv: &str,
-) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<crate::teleology::TeleologyQuad>> {
     use crate::teleology::TeleologyQuad;
 
     let Some(level) = root_declared_isolation_level(facts, root)? else {
@@ -1713,7 +1725,9 @@ fn check_isolation_adequacy(
         }
         other => {
             // root_declared_isolation_level already gates the closed set; be total.
-            return Err(format!("unhandled isolation level {other:?}"));
+            return Err(transaction_err(format!(
+                "unhandled isolation level {other:?}"
+            )));
         }
     };
 
@@ -1792,7 +1806,7 @@ fn check_protocol_level_adequacy(
     root: &str,
     source: &str,
     deriv: &str,
-) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<crate::teleology::TeleologyQuad>> {
     use crate::teleology::TeleologyQuad;
 
     let (Some(protocol), Some(level)) = (
@@ -1801,12 +1815,16 @@ fn check_protocol_level_adequacy(
     ) else {
         return Ok(Vec::new());
     };
-    let protocol_local = protocol
-        .strip_prefix(LOGIC_NAMESPACE)
-        .ok_or_else(|| format!("declared protocol {protocol:?} is not a logic: IRI"))?;
-    let level_local = level
-        .strip_prefix(LOGIC_NAMESPACE)
-        .ok_or_else(|| format!("declared isolation level {level:?} is not a logic: IRI"))?;
+    let protocol_local = protocol.strip_prefix(LOGIC_NAMESPACE).ok_or_else(|| {
+        transaction_err(format!(
+            "declared protocol {protocol:?} is not a logic: IRI"
+        ))
+    })?;
+    let level_local = level.strip_prefix(LOGIC_NAMESPACE).ok_or_else(|| {
+        transaction_err(format!(
+            "declared isolation level {level:?} is not a logic: IRI"
+        ))
+    })?;
 
     let ceiling = protocol_ceiling(protocol_local);
     let adequate = isolation_rank(ceiling) >= isolation_rank(level_local);
@@ -1863,7 +1881,7 @@ fn parse_int_literal(n3: &str) -> Option<i64> {
 fn leg_footprint(
     facts: &WorldFacts,
     steps: &[PlannedStep],
-) -> Result<(BTreeSet<String>, BTreeSet<String>), String> {
+) -> gmeow_errors::Result<(BTreeSet<String>, BTreeSet<String>)> {
     let mut read = BTreeSet::new();
     let mut write = BTreeSet::new();
     for step in steps {
@@ -1929,7 +1947,7 @@ fn verify_protocol_enforcement(
     edges: &[crate::teleology::ConflictEdge],
     source: &str,
     deriv: &str,
-) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<crate::teleology::TeleologyQuad>> {
     use crate::teleology::TeleologyQuad;
 
     let Some(protocol) = root_declared_protocol(facts, root)? else {
@@ -1945,10 +1963,10 @@ fn verify_protocol_enforcement(
             let (l_two, l_commit, l_events) = leg_lock_discipline(facts, left);
             let (r_two, r_commit, r_events) = leg_lock_discipline(facts, right);
             if l_events + r_events == 0 {
-                return Err(format!(
+                return Err(transaction_err(format!(
                     "logic:ConcurrentComposition {root:?} declares {protocol:?} but the run records \
                      no logic:lockAcquired / logic:lockReleased events to verify the lock discipline against"
-                ));
+                )));
             }
             let two_phase = l_two && r_two;
             let strong = local == STRONG_STRICT_TWO_PHASE_LOCKING;
@@ -1968,10 +1986,10 @@ fn verify_protocol_enforcement(
                     .and_then(parse_int_literal)
             };
             let (Some(l_ts), Some(r_ts)) = (ts(left_tx), ts(right_tx)) else {
-                return Err(format!(
+                return Err(transaction_err(format!(
                     "logic:ConcurrentComposition {root:?} declares {protocol:?} but a leg is missing its \
                      logic:transactionTimestamp (timestamp ordering is verified against per-transaction timestamps)"
-                ));
+                )));
             };
             let stamp = |tx: &str| if tx == left_tx { l_ts } else { r_ts };
             // Every conflict edge must run from the earlier timestamp to the later one.
@@ -2011,7 +2029,9 @@ fn verify_protocol_enforcement(
         }
         other => {
             // root_declared_protocol already gates the closed set; be total.
-            return Err(format!("unhandled concurrency-control protocol {other:?}"));
+            return Err(transaction_err(format!(
+                "unhandled concurrency-control protocol {other:?}"
+            )));
         }
     };
 
@@ -2065,7 +2085,7 @@ fn emit_concurrent_history(
     right: &TransactionProgram,
     source: &str,
     deriv: &str,
-) -> Result<Vec<crate::teleology::TeleologyQuad>, String> {
+) -> gmeow_errors::Result<Vec<crate::teleology::TeleologyQuad>> {
     use crate::teleology::{
         SerializationVerdict, TeleologyQuad, detect_serialization_anomaly,
         emit_serialization_anomaly, mint_anomaly_finding_iri, n3,
@@ -2102,11 +2122,11 @@ fn emit_concurrent_history(
     // that makes view-serializability decidable by checking exactly two serial orders (P12): an
     // n-ary extension would have to revisit it rather than enumerate n! orders.
     if left_tx == right_tx {
-        return Err(format!(
+        return Err(transaction_err(format!(
             "logic:ConcurrentComposition {root:?} composes a program with itself \
              (both legs are {left_tx:?}); the two legs must be distinct transaction-program \
              nodes for serializability analysis"
-        ));
+        )));
     }
 
     let mut out: Vec<TeleologyQuad> = Vec::new();

@@ -105,7 +105,12 @@ pub fn regenerate(
             let mut drifted = report.drifted.clone();
             drifted.sort();
             for path in &drifted {
-                eprintln!("drift {path}");
+                gmeow_cli_core::note(
+                    reporter.as_ref(),
+                    "gmeow-dev",
+                    "gmeow-dev.regenerate.drift",
+                    format!("drift {path}"),
+                );
             }
             return fail(format!("{} artifact(s) drifted", report.drifted.len()));
         }
@@ -182,7 +187,12 @@ pub fn check_generated(
         let mut drifted = report.drifted.clone();
         drifted.sort();
         for rel in &drifted {
-            eprintln!("drift {rel}");
+            gmeow_cli_core::note(
+                reporter.as_ref(),
+                "gmeow-dev",
+                "gmeow-dev.check-generated.drift",
+                format!("drift {rel}"),
+            );
         }
         return fail(format!(
             "{} artifact(s) drifted — run `gmeow-dev regenerate`",

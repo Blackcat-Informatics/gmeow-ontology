@@ -25,6 +25,7 @@ mod dev_slice_quality;
 mod dev_targets;
 mod dev_transpile;
 mod dev_validate;
+mod error;
 pub mod feedback_bundle;
 
 use std::path::PathBuf;
@@ -599,7 +600,10 @@ fn info() -> i32 {
     println!("  docs blobs   {}", graph.blobs.len());
     println!("  opaque       {}", graph.opaque.len());
     for diag in &graph.diagnostics {
-        eprintln!("{}: {}", diag.code, diag.detail);
+        dev_common::note(
+            "gmeow-dev.info.diagnostic",
+            format!("{}: {}", diag.code, diag.detail),
+        );
     }
     0
 }

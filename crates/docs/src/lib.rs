@@ -20,6 +20,7 @@ pub mod badge;
 pub mod card;
 pub mod coverage;
 pub mod describe;
+pub mod error;
 pub mod exec;
 pub mod fixture;
 pub mod formats;

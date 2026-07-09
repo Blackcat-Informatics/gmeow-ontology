@@ -13,7 +13,12 @@ use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
-use gmeow_cli_core::{ConsoleMode, HumanReporter, NdjsonReporter, Reporter};
+use gmeow_cli_core::{ConsoleMode, Reporter, report_diag};
+use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint};
+// The reporter factory is the shared cli-core surface both bins construct from
+// (no per-crate re-implementation) — re-exported here so the dev command modules
+// keep importing it from `crate::dev_common`.
+pub use gmeow_cli_core::reporter_for;
 
 /// gmeow's canonical ontology IRI (no trailing slash) — the `ONTOLOGY_IRI`.
 pub const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
@@ -22,16 +27,73 @@ pub const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 /// The committed unsigned bundle path, relative to the repo root.
 pub const GTS_SNAPSHOT_REL: &str = "generated/dist/gmeow.gts";
 
-/// Print an error to stderr and yield the failure exit code `1`.
-pub fn fail(message: impl AsRef<str>) -> i32 {
-    eprintln!("{}", message.as_ref());
+/// The dev-CLI diagnostic reporter. Diagnostics default to the HUMAN stderr
+/// surface (`resolve_stderr_default`, not the NDJSON-default `resolve_console`):
+/// the dev CLI's stdout carries product data (committed paths, projected graphs,
+/// serialized artifacts), so a handled failure or status witness must stay on
+/// stderr and never interleave NDJSON into a pipe. An agent still opts into the
+/// machine surface with `GMEOW_CONSOLE=jsonl`. Reporters are zero-sized, so
+/// resolving one per diagnostic site is free.
+pub fn dev_reporter() -> Box<dyn Reporter> {
+    let env_val = std::env::var("GMEOW_CONSOLE").ok();
+    let mode = ConsoleMode::resolve_stderr_default(
+        None,
+        env_val.as_deref(),
+        std::io::stderr().is_terminal(),
+    );
+    reporter_for(mode)
+}
+
+/// An Error-grade dev diagnostic carrying a per-site stable code — the graded
+/// pre-carrier witness a handled `gmeow-dev` failure lowers to (never a bare
+/// string). The `code` is interned once (idempotently); the message carries the
+/// specifics.
+fn error_diag(code: &str, message: impl Into<String>) -> Diag {
+    Diag::new(
+        gmeow_errors::code::register_code(code),
+        Grade::new(
+            Severity::Error,
+            FindingCategory::ModelingDisciplineViolation,
+            Standpoint::Binding,
+        ),
+        message,
+    )
+}
+
+/// Emit an Error-grade dev diagnostic on the console sink (human text on stderr,
+/// an NDJSON `finding` line for agents, dropped by a silent sink) WITHOUT altering
+/// the exit code — the substrate replacement for a bare error stderr write at a
+/// site that already carries its own return value.
+pub fn emit_error(code: &str, message: impl Into<String>) {
+    dev_reporter().report(&report_diag(error_diag(code, message), "gmeow-dev"));
+}
+
+/// Emit a Transient status/progress witness (never gating) on the console sink —
+/// the substrate replacement for a chatter / per-item status stderr line.
+pub fn note(code: &str, message: impl Into<String>) {
+    gmeow_cli_core::note(dev_reporter().as_ref(), "gmeow-dev", code, message);
+}
+
+/// Project a whole diagnostics [`gmeow_errors::Report`] onto the console sink —
+/// the substrate replacement for a hand-rendered `render::to_text(&report)` write: a
+/// TTY sees the rendered text on stderr, an agent the NDJSON `finding` lines, and
+/// a silent sink drops it. An empty report renders nothing.
+pub fn emit_report(report: &gmeow_errors::Report) {
+    dev_reporter().report(&report.normalized());
+}
+
+/// Emit an Error-grade dev diagnostic on the console sink and yield the failure
+/// exit code `1` — the substrate replacement for the old stderr `fail`.
+pub fn fail(message: impl std::fmt::Display) -> i32 {
+    emit_error("gmeow-dev.cli.fail", message.to_string());
     1
 }
 
-/// Print an error to stderr and yield an explicit exit code (e.g. `2` for a
-/// tool-unavailable condition, mirroring the Python `_fail(code=2)` paths).
-pub fn fail_code(message: impl AsRef<str>, code: i32) -> i32 {
-    eprintln!("{}", message.as_ref());
+/// Emit an Error-grade dev diagnostic on the console sink and yield an explicit
+/// exit code (e.g. `2` for a tool-unavailable condition, mirroring the Python
+/// `_fail(code=2)` paths).
+pub fn fail_code(message: impl std::fmt::Display, code: i32) -> i32 {
+    emit_error("gmeow-dev.cli.fail", message.to_string());
     code
 }
 
@@ -74,28 +136,6 @@ pub fn snapshot_bytes(root: &Path) -> Result<Vec<u8>, i32> {
 pub fn resolve_console(flag: Option<ConsoleMode>) -> ConsoleMode {
     let env_val = std::env::var("GMEOW_CONSOLE").ok();
     ConsoleMode::resolve(flag, env_val.as_deref(), std::io::stderr().is_terminal())
-}
-
-/// A boxed [`Reporter`] for the resolved console mode: human-facing stderr text
-/// for interactive/`pretty`/`text` surfaces, line-framed NDJSON for `jsonl`
-/// (agents/pipelines), and a silent sink for `silent`.
-pub fn reporter_for(mode: ConsoleMode) -> Box<dyn Reporter> {
-    match mode {
-        ConsoleMode::Jsonl => Box::new(NdjsonReporter::new()),
-        ConsoleMode::Silent => Box::new(SilentReporter),
-        _ => Box::new(HumanReporter::new()),
-    }
-}
-
-/// A reporter that suppresses all diagnostic chrome (the `silent` surface).
-#[derive(Debug, Default, Clone, Copy)]
-pub struct SilentReporter;
-
-impl Reporter for SilentReporter {
-    fn report(&self, _report: &gmeow_errors::Report) {}
-    fn stage_start(&self, _stage: &str) {}
-    fn stage_end(&self, _stage: &str, _elapsed: std::time::Duration) {}
-    fn summary(&self, _report: &gmeow_errors::Report) {}
 }
 
 /// Reject a non-positive `--jobs` before it reaches the native `usize` boundary

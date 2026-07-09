@@ -26,7 +26,7 @@ use crate::validate_all::SignatureConfig;
 pub fn verify_gts_bundle(
     bytes: &[u8],
     config: &SignatureConfig,
-) -> Result<(Vec<Finding>, bool), String> {
+) -> gmeow_errors::Result<(Vec<Finding>, bool)> {
     let armored_key = if let Some(path) = &config.trusted_key {
         Some(read_armored_key(path)?)
     } else {
@@ -227,7 +227,7 @@ fn reader_diagnostic_severity(code: &str) -> Severity {
 
 /// Read an ASCII-armored OpenPGP key from `path`, or return the string as-is if
 /// it already looks like an armored key block.
-fn read_armored_key(path: &str) -> Result<String, String> {
+fn read_armored_key(path: &str) -> gmeow_errors::Result<String> {
     const ARMOR_BEGIN: &str = "-----BEGIN PGP PUBLIC KEY BLOCK-----";
 
     let trimmed = path.trim();
@@ -237,7 +237,11 @@ fn read_armored_key(path: &str) -> Result<String, String> {
 
     std::fs::read_to_string(trimmed)
         .map(|s| s.trim().to_owned())
-        .map_err(|e| format!("cannot read trusted key file {}: {e}", path))
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Io {
+                detail: format!("cannot read trusted key file {}: {e}", path),
+            })
+        })
 }
 
 #[cfg(test)]

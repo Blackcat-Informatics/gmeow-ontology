@@ -28,6 +28,7 @@
 //! * [`paths`] — `CARGO_MANIFEST_DIR`-anchored path resolution.
 
 pub mod dsl;
+pub mod error;
 pub mod exec;
 pub mod flagship;
 pub mod native_query;
