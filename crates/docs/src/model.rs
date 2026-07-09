@@ -94,6 +94,13 @@ const GMEOW_FOLLOWS_GUIDE_PATH: &str = "https://blackcatinformatics.ca/gmeow/fol
 /// values under it are surfaced as the term's logic stereotypes.
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
+/// `logic:preservationKind` — the preservation-polarity vocabulary object a
+/// worked authored-example loss row declares (e.g. `logic:SoundUnderApproximation`,
+/// `logic:ValidationOnly`).
+const LOGIC_PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/preservationKind";
+/// `logic:complexityClass` — the plain-literal complexity-class string a worked
+/// authored-example loss row declares alongside its `logic:preservationKind`.
+const LOGIC_COMPLEXITY_CLASS: &str = "https://blackcatinformatics.ca/logic/complexityClass";
 
 // ── Constraint catalog (gmeow:ValidationRule individuals) ───────────────────────
 /// The class every catalog subject is typed as in
@@ -722,6 +729,37 @@ pub struct DocGrammar {
     pub license: String,
 }
 
+/// One authored, worked projection-loss-ledger row: a `gmeow:InformationObject`
+/// individual (in ANY slice's `examples/*.ttl`) that carries BOTH
+/// `logic:preservationKind` and `logic:complexityClass` — the pedagogical,
+/// concrete-artifact twin of the compiler-emitted static whole-program ledger
+/// (`gmeow_logic_compile::projections::projection_ledger_rows`, rendered by
+/// `render.rs::md_logic_loss_ledger`'s existing table). Discovered generically:
+/// ANY example subject authoring both predicates becomes a row, not just the
+/// individuals in `slices/grounding/logic/examples/projection-loss-ledger.ttl`
+/// (today's only author).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DocLossTarget {
+    /// The subject IRI's local name (e.g. `"elProjectionReport"`) — a stable,
+    /// code-like identifier mirroring the compiler ledger's `target` column
+    /// (which shows a target code, not prose). The human-readable
+    /// [`label`](Self::label) carries the prose description separately, so
+    /// this field stays a terse, sortable/citable id rather than duplicating
+    /// the label.
+    pub target: String,
+    /// `rdfs:label`, when the subject carries one (every authored row does
+    /// today, but this is a documentation READ, not a re-validation of the
+    /// authoring convention — so it stays `Option`).
+    pub label: Option<String>,
+    /// The local name of the `logic:preservationKind` object IRI (e.g.
+    /// `"SoundUnderApproximation"`, `"ValidationOnly"`).
+    pub preservation_kind: String,
+    /// `logic:complexityClass`'s literal value.
+    pub complexity_class: String,
+    /// The slice IRI that owns the example artifact this row was parsed from.
+    pub slice: String,
+}
+
 /// A documentation concern (`gmeow:DocumentationConcern`) and the terms that
 /// declare it via `gmeow:docsConcern`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -836,6 +874,13 @@ pub struct DocsModel {
     /// discovered from every slice's `grammars/*.ebnf` artifacts (sorted by
     /// slug).
     pub grammars: Vec<DocGrammar>,
+    /// All authored, worked projection-loss-ledger rows — every example
+    /// subject (in any slice) carrying both `logic:preservationKind` and
+    /// `logic:complexityClass` (sorted by slice then target). Distinct from
+    /// the compiler-emitted static ledger already rendered from
+    /// `gmeow_logic_compile::projections::projection_ledger_rows()`; this is
+    /// the pedagogical, concrete-artifact companion table.
+    pub loss_targets: Vec<DocLossTarget>,
     /// All documentation concerns (sorted by IRI).
     pub concerns: Vec<DocConcern>,
     /// All external (non-GMEOW) terms referenced (sorted by IRI).
@@ -978,7 +1023,15 @@ impl DocsModel {
     /// `cqQuery`), `exact_rows`, `expected_row_count`, and structured
     /// `expected_rows` (`DocExpectedRow`/`DocExpectedCell`) — the full
     /// copy-paste-runnable competency-question surface for `Page::CompetencyIndex`.
-    pub const VERSION: &'static str = "10";
+    ///
+    /// v10: adds [`grammars`](DocsModel::grammars) — first-class W3C EBNF
+    /// notation exhibits discovered from every slice's `grammars/*.ebnf`.
+    ///
+    /// v11: adds [`loss_targets`](DocsModel::loss_targets) — authored, worked
+    /// projection-loss-ledger rows discovered generically from every example
+    /// subject (in any slice) carrying both `logic:preservationKind` and
+    /// `logic:complexityClass`.
+    pub const VERSION: &'static str = "11";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -1175,14 +1228,22 @@ impl DocsModel {
         });
 
         // ── Examples (carried in full from each slice's Example artifacts) ──────
+        // Each example artifact's Turtle is parsed exactly ONCE here and reused for
+        // both `DocExample` extraction and the generic authored projection-loss-
+        // ledger scan (`DocLossTarget`) — no artifact is re-parsed.
         let mut examples: Vec<DocExample> = Vec::new();
+        let mut loss_targets: Vec<DocLossTarget> = Vec::new();
         for record in catalog.records() {
             let owner = &record.manifest.slice_iri;
             for artifact in &record.artifacts {
                 if artifact.role != ArtifactRole::Example {
                     continue;
                 }
-                examples.push(extract_example(artifact, owner));
+                let parsed = parse_turtle_lenient(&artifact.content).ok();
+                examples.push(extract_example_from(artifact, owner, parsed.as_ref()));
+                if let Some(store) = &parsed {
+                    loss_targets.extend(extract_loss_targets(store, owner));
+                }
             }
         }
         examples.sort_by(|a, b| {
@@ -1190,6 +1251,7 @@ impl DocsModel {
                 .cmp(&b.slice)
                 .then_with(|| a.logical_path.cmp(&b.logical_path))
         });
+        loss_targets.sort_by(|a, b| a.slice.cmp(&b.slice).then_with(|| a.target.cmp(&b.target)));
 
         // ── Conformance fixtures (Do/Don't pairs, joined to example-conformance.ttl) ─
         let mut fixtures: Vec<DocFixture> = Vec::new();
@@ -1318,6 +1380,7 @@ impl DocsModel {
             shapes,
             competencies,
             grammars,
+            loss_targets,
             concerns,
             external_terms,
             recipes,
@@ -2148,16 +2211,27 @@ fn extract_mappings(store: &Store, owner_slice: &str) -> (Vec<DocMappingSet>, Ve
     (sets, links)
 }
 
-/// Extract a single example, carrying its Turtle source in full.
+/// Extract a single example, carrying its Turtle source in full. Parses the
+/// artifact itself; use [`extract_example_from`] when a store is already
+/// parsed (the `examples/*.ttl` discovery loop reuses one parse for both
+/// [`DocExample`] and [`DocLossTarget`] extraction).
 fn extract_example(artifact: &ArtifactRecord, owner_slice: &str) -> DocExample {
+    let parsed = parse_turtle_lenient(&artifact.content).ok();
+    extract_example_from(artifact, owner_slice, parsed.as_ref())
+}
+
+/// Extract a single example from an already-parsed `store` (or `None` when
+/// the artifact failed to parse), carrying its Turtle source in full.
+fn extract_example_from(
+    artifact: &ArtifactRecord,
+    owner_slice: &str,
+    parsed: Option<&Store>,
+) -> DocExample {
     let text = String::from_utf8_lossy(&artifact.content).into_owned();
     let logical_path = artifact.logical_path.clone();
 
-    let parsed = parse_turtle_lenient(&artifact.content).ok();
-
     // Title: lexically-lowest rdfs:label literal on any subject, else the stem.
     let title = parsed
-        .as_ref()
         .and_then(|store| {
             let mut labels: Vec<String> = Vec::new();
             store.for_each_quad(|_s, p, o| {
@@ -2173,7 +2247,6 @@ fn extract_example(artifact: &ArtifactRecord, owner_slice: &str) -> DocExample {
 
     // Terms referenced: every gmeow: CURIE appearing as a NamedNode anywhere.
     let mut terms_referenced: Vec<String> = parsed
-        .as_ref()
         .map(|store| {
             let mut set: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
             store.for_each_quad(|s, _p, o| {
@@ -2201,6 +2274,44 @@ fn extract_example(artifact: &ArtifactRecord, owner_slice: &str) -> DocExample {
         text,
         terms_referenced,
     }
+}
+
+/// Extract every authored projection-loss-ledger row from an already-parsed
+/// example `store`: ANY subject carrying BOTH `logic:preservationKind` and
+/// `logic:complexityClass` is a worked preservation example.
+/// Generic across every `examples/*.ttl` artifact in every slice — NOT
+/// special-cased to `projection-loss-ledger.ttl` — so any future authored
+/// example declaring a loss row the same way is picked up automatically. A
+/// subject typed `gmeow:InformationObject` that carries only ONE of the two
+/// predicates (like this file's `ex:mortalityRuleSet` / `ex:derivation-
+/// socratesMortal`, which are unrelated pedagogical individuals) is correctly
+/// skipped — it is not a loss-ledger row.
+fn extract_loss_targets(store: &Store, owner_slice: &str) -> Vec<DocLossTarget> {
+    let mut out = Vec::new();
+    for subject in subjects_with_predicate(store, LOGIC_PRESERVATION_KIND) {
+        // Deterministic even if a subject somehow declared more than one
+        // `logic:preservationKind` object: the lexically-lowest IRI wins.
+        let Some(kind_iri) = named_objects(store, &subject, LOGIC_PRESERVATION_KIND)
+            .into_iter()
+            .min()
+        else {
+            continue;
+        };
+        let Some(complexity_class) = first_literal(store, &subject, LOGIC_COMPLEXITY_CLASS) else {
+            // Carries `preservationKind` but no `complexityClass` — not a
+            // loss-ledger row by this surface's definition (both required).
+            continue;
+        };
+        let label = first_literal(store, &subject, RDFS_LABEL);
+        out.push(DocLossTarget {
+            target: local_name(&subject).to_string(),
+            label,
+            preservation_kind: local_name(&kind_iri).to_string(),
+            complexity_class,
+            slice: owner_slice.to_string(),
+        });
+    }
+    out
 }
 
 /// One `gmeow:ExampleConformance` binding read from a slice's
@@ -2669,6 +2780,12 @@ fn subjects_of_type(store: &Store, type_iri: &str) -> Vec<String> {
     store.subjects_of_type(type_iri)
 }
 
+/// Every distinct named subject carrying `?s <predicate> ?o` in the default
+/// graph (sorted, deduped).
+fn subjects_with_predicate(store: &Store, predicate: &str) -> Vec<String> {
+    store.subjects_with_predicate(predicate)
+}
+
 /// Map an `rdf:type` object IRI to a documented term category.
 fn category_for_type(type_iri: &str) -> Option<DocTermCategory> {
     match type_iri {
@@ -2896,5 +3013,42 @@ gmeow:Thing a owl:Class ;
                 },
             ]
         );
+    }
+
+    /// [`extract_loss_targets`] is generic: it finds every subject carrying
+    /// BOTH `logic:preservationKind` and `logic:complexityClass` — not just a
+    /// hardcoded filename's individuals — and correctly skips a subject that
+    /// carries only one of the two predicates (an unrelated pedagogical
+    /// individual, mirroring `ex:mortalityRuleSet` in the real
+    /// `projection-loss-ledger.ttl`).
+    #[test]
+    fn extract_loss_targets_finds_rows_and_skips_partial_subjects() {
+        let ttl = r#"
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/demo/> .
+
+ex:notARow a gmeow:InformationObject ;
+    rdfs:label "carries only preservationKind, not a loss row"@x-gmeow-english ;
+    logic:preservationKind logic:ValidationOnly .
+
+ex:elProjectionReport a gmeow:InformationObject ;
+    rdfs:label "OWL-EL projection of the demo rule set"@x-gmeow-english ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:complexityClass "EL -> PTIME" .
+"#;
+        let store = store_from(ttl);
+        let rows = extract_loss_targets(&store, "https://example.org/slice/demo");
+        assert_eq!(rows.len(), 1, "only the fully-attributed subject is a row");
+        let row = &rows[0];
+        assert_eq!(row.target, "elProjectionReport");
+        assert_eq!(
+            row.label.as_deref(),
+            Some("OWL-EL projection of the demo rule set")
+        );
+        assert_eq!(row.preservation_kind, "SoundUnderApproximation");
+        assert_eq!(row.complexity_class, "EL -> PTIME");
+        assert_eq!(row.slice, "https://example.org/slice/demo");
     }
 }

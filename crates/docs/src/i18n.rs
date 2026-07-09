@@ -630,6 +630,10 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
         "body_no_verify_queries",
         "No verification queries are declared in any slice.",
     ),
+    (
+        "body_no_worked_preservation_examples",
+        "No authored preservation examples are declared in any slice.",
+    ),
     ("body_notation_grammars", "Notation grammars"),
     ("body_other_equivalences", "Other equivalences"),
     ("body_part_of", "Part of"),
@@ -673,6 +677,10 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_vocabulary_by_category", "Vocabulary by category"),
     ("body_what_is_this", "What is this?"),
     ("body_where_to_go_next", "Where to go next"),
+    (
+        "body_worked_preservation_examples",
+        "Worked preservation examples",
+    ),
     // Category labels
     ("category_class", "Classes"),
     ("category_datatype", "Datatypes"),
@@ -965,9 +973,9 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 122 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 124 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 182);
+        assert_eq!(UI_TEMPLATES.len(), 184);
     }
 
     #[test]

@@ -2141,6 +2141,51 @@ fn md_logic_loss_ledger(model: &DocsModel) -> String {
         );
     }
     blank(&mut out);
+
+    // ── Worked, authored examples ────────────────────────────────────────────
+    // Distinct from the static whole-program rows above: these come from
+    // concrete AUTHORED artifacts (`examples/*.ttl`, any slice — not just the
+    // logic slice's `projection-loss-ledger.ttl`) applying the SAME
+    // preservation-kind vocabulary to a specific report, not a whole target
+    // class. Discovered generically by `gmeow_docs::model::extract_loss_targets`:
+    // any example subject carrying both `logic:preservationKind` and
+    // `logic:complexityClass` becomes a row here.
+    heading(&mut out, 2, model.ui("body_worked_preservation_examples"));
+    line(
+        &mut out,
+        "The compiler ledger above covers the static, whole-program targets; \
+         these are worked, authored examples of the SAME preservation-kind \
+         vocabulary applied to concrete artifacts — a projection report, a \
+         bridge view, a closed-world SHACL-to-JSON-Schema compile — each one an \
+         instance, not a target class.",
+    );
+    if model.loss_targets.is_empty() {
+        line(&mut out, model.ui("body_no_worked_preservation_examples"));
+    } else {
+        push_line(
+            &mut out,
+            "| Target | Label | Preservation kind | Complexity class |",
+        );
+        push_line(&mut out, "| --- | --- | --- | --- |");
+        for row in &model.loss_targets {
+            let label = row
+                .label
+                .as_deref()
+                .map(|l| md_escape(&one_line(l)))
+                .unwrap_or_else(|| "—".to_string());
+            push_line(
+                &mut out,
+                &format!(
+                    "| `{}` | {} | `{}` | `{}` |",
+                    code_escape(&row.target),
+                    label,
+                    code_escape(&row.preservation_kind),
+                    code_escape(&row.complexity_class),
+                ),
+            );
+        }
+        blank(&mut out);
+    }
     out
 }
 
@@ -4953,6 +4998,7 @@ mod tests {
             shapes: Vec::new(),
             competencies: Vec::new(),
             grammars: Vec::new(),
+            loss_targets: Vec::new(),
             concerns: Vec::new(),
             external_terms: Vec::new(),
             recipes: Vec::new(),
