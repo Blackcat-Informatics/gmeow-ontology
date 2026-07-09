@@ -357,10 +357,46 @@ pub fn dispatch_query(
     profile_gate::check_builtin_profile(program, profile)?;
 
     // (2) Native physical core first — the primary backward path. The magic-sets engine
-    // (`crate::physical::resolve_native`) answers the binary positive query fragment by
-    // bottom-up demand evaluation; it is authoritative for what it decides. A declared
-    // gap (`NativeOutcome::Unsupported` — cut / arithmetic / non-binary / demand-breaks-
-    // stratification) falls through to the demoted fast-path / Scryer fallback below.
+    // (`crate::physical::resolve_native`) answers the query fragment it decides by bottom-up
+    // demand evaluation and is AUTHORITATIVE for that fragment. A `NativeOutcome::Unsupported`
+    // is native declaring an honest DECLINE (incomplete-but-never-wrong), never a fallback
+    // masking a case native could decide. The residual routed here to `backward_oracle()` is
+    // EXACTLY this enumerated `UnsupportedKind` taxonomy — the closed set of gaps the backward
+    // core cannot yet soundly decide, for which the Scryer oracle is the sanctioned decider:
+    //
+    //   - `Cut`                     — a `!` control construct. Constitutionally oracle-only
+    //                                 (P17): cut is procedural, with no declarative bottom-up
+    //                                 meaning, so it can only be discharged by the oracle.
+    //                                 Produced at `physical/magic.rs` (whole-program + per-rule)
+    //                                 and `physical/magic_generic.rs` (n-ary lowering).
+    //   - `Floundering`             — NAF over a variable no positive body atom range-restricts.
+    //                                 Deciding it natively would test one partial grounding, not
+    //                                 the intended universal absence — an UNSOUND answer — so
+    //                                 native refuses it. Produced at `physical/magic.rs`.
+    //   - `NonStratifiable`         — a negative dependency edge inside a cycle: no stratification
+    //                                 exists (or n-ary negation, unsupported on the generic leg).
+    //                                 The demand/magic transform cannot give it a least model, so
+    //                                 native declines. Produced at `physical/seminaive.rs` and
+    //                                 `physical/magic_generic.rs`.
+    //   - `NonTerminatingArithmetic`— a value-generating `is` inside an IDB cycle with no finite
+    //                                 driver and no `max_steps` budget: an unbounded Herbrand
+    //                                 stream. Refused STATICALLY rather than hang (with a step
+    //                                 budget the governor cuts it and native decides it, so it
+    //                                 never reaches here). Produced at `physical/magic.rs`.
+    //   - `NonBinaryAtom`           — an arity the served evaluators cannot query (a non-binary
+    //                                 shape that is not the reserved `triple/4` the generic leg
+    //                                 serves). Emitting its empty demand slice as `Decided` would
+    //                                 be a silent wrong answer; native declines instead. Produced
+    //                                 at `physical/magic.rs` and `physical/magic_generic.rs`.
+    //   - `Arithmetic`              — a residual arithmetic MODE the closed native builtin set
+    //                                 cannot compute (an unbound operand, ÷0, or i64 overflow), or
+    //                                 a builtin on the n-ary generic leg. A single such residual
+    //                                 re-demotes the whole program rather than return a wrong or
+    //                                 truncated answer. Produced at `physical/seminaive.rs` and
+    //                                 `physical/magic_generic.rs`.
+    //
+    // (`NonTerminatingExistential` is a FORWARD-chase-only gap — produced in `physical/chase.rs`,
+    // reached only via `materialize` / `reason`, never through this backward `resolve_native`.)
     //
     // The native engine now HONOURS `max_steps` (its semi-naive governor stamps
     // `BudgetStatus::Exhausted` at the step ceiling — a sound partial answer, never a
@@ -791,6 +827,104 @@ mod tests {
             .map(|x| format!("<{BASE}{x}>"))
             .collect();
         assert_eq!(ys, want, "native-resolved transitive ancestors: {ys:?}");
+    }
+
+    // ── N-ary predicate-as-data `triple/4` on the PARSED production surface ──────────
+
+    /// The canonical predicate-as-data `triple/4` shape, driven end-to-end through the
+    /// REAL production surface (`parse_query_program` → `dispatch_query`), DECIDES with
+    /// non-empty correct bindings.
+    ///
+    /// This is the parser-driven twin of the hand-built-IR unit tests in
+    /// `physical::magic_generic`: it proves the reserved bare `triple` relation now
+    /// parses (previously `parse_query_program` rejected it with
+    /// `cannot resolve predicate IRI "triple"`), routes through the arity-generic
+    /// evaluator, and agrees with the generic-triple EDB's `push_fact("triple", …)`.
+    #[test]
+    fn dispatch_query_parsed_triple4_decides_nary_goal() {
+        // A single <p1> edge x→y; the sub-property rule derives x <p2> y.
+        let store = WorldStore::new();
+        store.insert_quad(W, &p("x"), &p("p1"), &p("y"));
+        let world_nn = W.to_owned();
+
+        // The reserved bare `triple` relation with the property pinned in the DATA
+        // position — the shape the binary store cannot express.
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             triple(S, ex:p2, O, Wg) :- triple(S, ex:p1, O, Wg).\n\
+             ?- triple(S, ex:p2, O, Wg).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        // The parser carried the reserved relation VERBATIM (bare, un-resolved).
+        assert_eq!(prog.goal.atoms[0].pred, "triple");
+        assert_eq!(prog.goal.atoms[0].args.len(), 4, "arity 4 ⇒ n-ary path");
+
+        let budget = Budget::default();
+        let foreign = WorldStoreForeign::from_world(&store, W, HORN_PROFILE).unwrap();
+        let ans =
+            dispatch_query(&foreign, &store, &world_nn, &prog, HORN_PROFILE, &budget).unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok);
+        assert_eq!(
+            ans.bindings.len(),
+            1,
+            "exactly one derived <p2> edge (non-empty): {ans:?}"
+        );
+        let b = &ans.bindings[0];
+        assert_eq!(b["S"], format!("<{BASE}x>"), "subject binding");
+        assert_eq!(b["O"], format!("<{BASE}y>"), "object binding");
+        assert_eq!(b["Wg"], format!("<{W}>"), "world binding");
+    }
+
+    /// An n-ary shape the generic evaluator CANNOT serve — an arity-3 IDB over a binary
+    /// EDB predicate (`edge`) that the generic-triple EDB never loads — must NOT be a
+    /// silent-empty `Ok`.  Native declares an honest `Unsupported(NonBinaryAtom)` gap and
+    /// `dispatch_query` routes it to the oracle, which decides it CORRECTLY (non-empty).
+    /// This closes the F2 silent-wrong-answer defect on the parsed production surface.
+    #[test]
+    fn dispatch_query_parsed_nary_over_binary_edb_not_silent_empty() {
+        let store = WorldStore::new();
+        store.insert_quad(W, &p("a"), &p("edge"), &p("b"));
+        store.insert_quad(W, &p("b"), &p("edge"), &p("c"));
+        let world_nn = W.to_owned();
+
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:tri(X, Y, Z) :- ex:edge(X, Y), ex:edge(Y, Z).\n\
+             ?- ex:tri(ex:a, Y, Z).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let budget = Budget::default();
+
+        // Native MUST declare the gap (never a silent-empty `Decided`): the generic
+        // evaluator cannot load the binary `edge` EDB, so it is `NonBinaryAtom`.
+        let native = crate::physical::resolve_native(
+            &WorldStoreForeign::from_world(&store, W, HORN_PROFILE).unwrap(),
+            &world_nn,
+            &prog,
+            &budget,
+        )
+        .unwrap();
+        assert!(
+            matches!(
+                native,
+                crate::physical::NativeOutcome::Unsupported(
+                    crate::physical::UnsupportedKind::NonBinaryAtom
+                )
+            ),
+            "an un-servable n-ary shape must be a declared gap, not silent-empty: {native:?}"
+        );
+
+        // dispatch_query routes the gap to the oracle, which decides it non-empty.
+        let foreign = WorldStoreForeign::from_world(&store, W, HORN_PROFILE).unwrap();
+        let ans =
+            dispatch_query(&foreign, &store, &world_nn, &prog, HORN_PROFILE, &budget).unwrap();
+        assert_eq!(
+            ans.bindings.len(),
+            1,
+            "the oracle decides tri(a,Y,Z) non-empty (Y=b, Z=c): {ans:?}"
+        );
+        assert_eq!(ans.bindings[0]["Y"], format!("<{BASE}b>"));
+        assert_eq!(ans.bindings[0]["Z"], format!("<{BASE}c>"));
     }
 
     /// A declared native gap falls through to the demoted fallback router. A cut under
