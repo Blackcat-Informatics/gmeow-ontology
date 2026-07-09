@@ -1,0 +1,24 @@
+---
+source: crates/docs/tests/mdbook_render.rs
+expression: head
+---
+# Acquaintance Relationship
+
+`gmeow:AcquaintanceRelationship` · Class
+
+| Field | Value |
+| --- | --- |
+| CURIE | `gmeow:AcquaintanceRelationship` |
+| IRI | `https://blackcatinformatics.ca/gmeow/AcquaintanceRelationship` |
+| Category | Class |
+| Slice | [GMEOW Contacts Module](../../slices/contacts/index.md) |
+
+![completeness: Docs 4/6](https://blackcatinformatics.ca/gmeow/docs/badges/completeness/4.svg) ![stability: stable](https://blackcatinformatics.ca/gmeow/docs/badges/stability/stable.svg) ![category: Class](https://blackcatinformatics.ca/gmeow/docs/badges/category/class.svg) ![box: TBox](https://blackcatinformatics.ca/gmeow/docs/badges/box/boxtbox.svg) ![stereotype: SubKind](https://blackcatinformatics.ca/gmeow/docs/badges/stereotype/subkind.svg)
+
+## Definition
+
+An interpersonal relationship of social acquaintance — agents who have met and know one another \(the reified form of hasMet\)\.
+
+## Neighborhood
+
+![Term neighborhood](https://blackcatinformatics.ca/gmeow/docs/diagrams/terms/acquaintancerelationship.svg)
