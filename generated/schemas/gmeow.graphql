@@ -176,6 +176,7 @@ enum AttestationTypeEnum {
   attestationTypeConformanceVerdict
   attestationTypeCrossCheckAgreement
   attestationTypeDSSE
+  attestationTypeDocumentationArtifact
   attestationTypeEAT
   attestationTypeFactCheck
   attestationTypeGitSignedTag

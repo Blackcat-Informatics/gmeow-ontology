@@ -14,6 +14,9 @@ members = [
     "crates/errors",
     # Rust-owned typed documentation model built from the slice catalog (#853).
     "crates/docs",
+    # Deterministic Typst-source renderer + in-memory byte-reproducible PDF
+    # compiler for the print documentation projection.
+    "crates/docs-print",
     # Foundation-corpus importer (#364): narrative JSONL corpus → RDF graph +
     # budget report + six lossy projections; the consumer child of EPICs #358/#364.
     "crates/foundation-corpus",

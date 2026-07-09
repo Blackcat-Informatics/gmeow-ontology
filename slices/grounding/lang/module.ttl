@@ -1838,7 +1838,7 @@ lang:RenderingKind
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "Rendering Kind"@x-gmeow-english ;
-    skos:definition "The kind of a rendering — serialization, prose, transliteration, notation, or docs page. Its instances are the named individuals lang:renderingSerialization, lang:renderingProse, lang:renderingTransliteration, lang:renderingNotation, and lang:renderingDocsPage. A lang:Rendering points at one through lang:renderingKind; the kind-individual pattern keeps the TBox small rather than minting a class per rendering mode, and it is a facet only — the preservation and morphism class of the crossing live on the linked logic:Correspondence."@x-gmeow-english ;
+    skos:definition "The kind of a rendering — serialization, prose, transliteration, notation, docs page, book, print, or snippet. Its instances are the named individuals lang:renderingSerialization, lang:renderingProse, lang:renderingTransliteration, lang:renderingNotation, lang:renderingDocsPage, lang:renderingBook, lang:renderingPrint, and lang:renderingSnippet. A lang:Rendering points at one through lang:renderingKind; the kind-individual pattern keeps the TBox small rather than minting a class per rendering mode, and it is a facet only — the preservation and morphism class of the crossing live on the linked logic:Correspondence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 lang:TransliterationMap
@@ -1914,6 +1914,24 @@ lang:renderingDocsPage
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "docs page"@x-gmeow-english ;
     skos:definition "The rendering kind that lifts ontology content into a documentation page — a term or slice rendered to a human-facing docs surface."@x-gmeow-english .
+
+lang:renderingBook
+    a owl:NamedIndividual , lang:RenderingKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "book"@x-gmeow-english ;
+    skos:definition "The rendering kind that lifts ontology documentation into a self-contained book surface — the linked-chapter mdbook tree, a paginated navigable projection of the documentation body-set."@x-gmeow-english .
+
+lang:renderingPrint
+    a owl:NamedIndividual , lang:RenderingKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "print"@x-gmeow-english ;
+    skos:definition "The rendering kind that lifts ontology documentation into a print surface — the single typeset PDF of term text, tables, and bibliography, with the interactive and cross-link surfaces of the live site dropped."@x-gmeow-english .
+
+lang:renderingSnippet
+    a owl:NamedIndividual , lang:RenderingKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "snippet"@x-gmeow-english ;
+    skos:definition "The rendering kind that lifts ontology documentation into flat per-term snippets — standalone Markdown blocks carrying no cross-links, search, or diagrams, the poorest surface on the documentation loss chain."@x-gmeow-english .
 
 # --- Translation-method individuals ----------------------------------------- #
 

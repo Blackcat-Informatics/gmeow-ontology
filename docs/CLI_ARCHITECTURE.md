@@ -198,7 +198,7 @@ not by convention.
   tree.
 - **Subcommands** (ported 1:1 from the Python consumer CLI): `version`, `info`,
   `verify`, `verify-release-bundle`, `describe`, `validate`, `build`, `project`,
-  `transpile`, `export`, `convert`, `extract-docs`, `crossref`, `mcp` (starts the
+  `transpile`, `export`, `convert`, `export-docs`, `docs-on`, `crossref`, `mcp` (starts the
   consumer MCP stdio server, [§7](#7-surface-c--mcp-interface)), `gts` (thin shim to
   the external `gts` binary), and the extension dispatch (`music`, …) via the
   [`cli-extensions.md`](./cli-extensions.md) `gmeow:providesSubcommand` discovery model.
