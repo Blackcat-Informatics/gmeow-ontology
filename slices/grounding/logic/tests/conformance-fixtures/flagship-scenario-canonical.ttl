@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a gmeow:FlagshipScenario binding all realizing/enforcing artifacts —
+# a worked example, a competency question, a producer, a counter-example, and an
+# enforcing failure class that IS a logic:LogicConformanceFailure subclass
+# (logic:IncompleteClosure, resolved against module.ttl). Passes the logic: slice's
+# thin logic:FlagshipScenarioShape failure-range sh:sparql, so it validates with no
+# findings. Bound by ex:ecFlagshipCanonical.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/logic/> .
+
+ex:wiredScenario a gmeow:FlagshipScenario ;
+    gmeow:demonstratedByExample "tests/conformance-fixtures/closure-witness-complete.ttl" ;
+    gmeow:demonstratedByCompetency <https://blackcatinformatics.ca/gmeow/examples/logic/tests/cqLogicClosure> ;
+    gmeow:demonstratedByProducer "logic::reason::reason_all" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/closure-witness-empty.ttl" ;
+    gmeow:enforcesFailureClass logic:IncompleteClosure .

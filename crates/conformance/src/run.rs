@@ -91,6 +91,17 @@ pub struct ProjectionOutputs {
     /// Per-shape property-path projections (`logic:PathShape` → SPARQL + Datalog).
     /// Empty when the program declares no path shapes — never absent.
     pub path_projections: Vec<PathProjectionOut>,
+    /// The closed-world SHACL Core projection of the program's `logic:ValidationShape`s
+    /// (Turtle, graph-isomorphism comparison against `expected/projections/shacl-core.ttl`).
+    /// Empty string when the program declares no validation shapes — never absent.
+    pub shacl_core: String,
+    /// The closed-world ShEx projection of the program's validation shapes (ShExC, exact-text
+    /// comparison against `expected/projections/shapes.shex`). Empty string when shape-free.
+    pub shex: String,
+    /// The per-target validation-shape residue set (`{shacl-core: [...], shex: [...]}`,
+    /// deterministically sorted + deduped) — the constructs each shape surface cannot faithfully
+    /// hold, carried in the canonical logic: layer. Gates `expected/projections/residue.json`.
+    pub residue: serde_json::Value,
 }
 
 /// Everything one case run produces, ready for `diff_case` / bless.
@@ -190,6 +201,15 @@ pub fn run_case(case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
         CompileOutcome::Unsupported => return Ok(empty_outputs(case_id)),
         CompileOutcome::Program(program, _diagnostics) => *program,
     };
+
+    // ── Validation shapes (closed-world SHACL Core / ShEx projection) ─────────
+    // Derive the closed-world validation shapes from the case input's OWL restriction axioms —
+    // the SAME `derive_validation_shapes` the pipeline's compile_logic stage runs over the merged
+    // authored ontology. A case authoring no GMEOW-namespace OWL restriction derives no shape, so
+    // the historical corpus stays byte-identical; the `validation/` category authors restrictions
+    // that project to shacl-core / shex documents + a preservation-ledger residue.
+    let program = attach_validation_shapes(&case_id, case_dir, program)
+        .map_err(|e| prefix(format!("attach validation shapes: {e}")))?;
 
     // ── Universal CL round-trip invariant ─────────────────────────────────────
     // Every materialized case's IR must round-trip through all three ISO 24707 dialects
@@ -309,12 +329,22 @@ pub fn run_case(case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
         })
         .collect();
 
+    // Validation-shape surfaces: the SHACL Core / ShEx documents compile_program projected from
+    // `program.validation_shapes` (pulled from the SAME artifact set, never recomputed), plus the
+    // per-target residue set built by reusing the shape-projection residue functions.
+    let shacl_core = projection_content(&arts, "shacl-core");
+    let shex = projection_content(&arts, "shex");
+    let residue = shape_residue_json(&program);
+
     let projections = ProjectionOutputs {
         rdf,
         report_turtle: arts.report.clone(),
         ledger: serialize::ledger_to_json(&arts.preservation_ledger),
         text,
         path_projections: path_projections_out,
+        shacl_core,
+        shex,
+        residue,
     };
 
     // ── Correspondence gates (F4) ─────────────────────────────────────────────
@@ -356,6 +386,76 @@ pub fn run_case(case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
         // case pins the dialect texts + verdict).
         cl_dialects: None,
     })
+}
+
+/// Parse the case input as an RDF dataset and derive its closed-world validation shapes from the
+/// OWL restriction axioms, attaching them to `program`. Mirrors the pipeline's compile_logic stage
+/// (`derive_validation_shapes` over the authored ontology): a case authoring no GMEOW-namespace OWL
+/// restriction derives no shape and the program is unchanged. Hard-fails (never silently drops) on a
+/// malformed restriction — the same fail-closed contract the derive itself enforces.
+fn attach_validation_shapes(
+    case_id: &str,
+    case_dir: &Path,
+    program: gmeow_logic_compile::ir::LogicProgram,
+) -> gmeow_errors::Result<gmeow_logic_compile::ir::LogicProgram> {
+    let prefix = |msg: String| run_fail(format!("case {case_id}: {msg}"));
+    let source = std::fs::read_to_string(case_dir.join("input.logic.ttl"))
+        .map_err(|e| prefix(format!("cannot read input.logic.ttl: {e}")))?;
+    let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None)
+        .map_err(|e| prefix(format!("input.logic.ttl RDF parse failed: {e}")))?;
+    let shapes = gmeow_logic_compile::frontend::derive_validation_shapes(dataset.as_ref())
+        .map_err(|e| prefix(format!("derive validation shapes: {e}")))?;
+    if shapes.is_empty() {
+        return Ok(program);
+    }
+    Ok(program.with_validation_shapes(shapes))
+}
+
+/// The serialized content of one whole-program projection `target` (`"shacl-core"` / `"shex"`) from
+/// the compiled artifacts — the SAME document compile_program interned, never recomputed. Empty
+/// string when the target is absent (a shape-free program still carries the row with empty content).
+fn projection_content(
+    arts: &gmeow_logic_compile::projections::CompiledArtifacts,
+    target: &str,
+) -> String {
+    arts.logic_projections
+        .iter()
+        .find(|p| p.target == target)
+        .map(|p| p.content.clone())
+        .unwrap_or_default()
+}
+
+/// The empty per-target residue value (`{shacl-core: [], shex: []}`) — the residue shape a
+/// non-materializing / shape-free case carries so the golden's structure is stable.
+fn empty_shape_residue() -> serde_json::Value {
+    serde_json::json!({ "shacl-core": [], "shex": [] })
+}
+
+/// The per-target validation-shape residue set, reusing the shape-projection residue functions
+/// (`shapes::shacl_residue` / `shapes::shex_residue`) over every declared shape. Each target's
+/// residue is sorted + deduped so the golden is deterministic regardless of shape order.
+fn shape_residue_json(program: &gmeow_logic_compile::ir::LogicProgram) -> serde_json::Value {
+    use gmeow_logic_compile::projections::shapes;
+    let dedup_sorted = |mut v: Vec<String>| -> Vec<String> {
+        v.sort();
+        v.dedup();
+        v
+    };
+    let shacl: Vec<String> = dedup_sorted(
+        program
+            .validation_shapes
+            .iter()
+            .flat_map(shapes::shacl_residue)
+            .collect(),
+    );
+    let shex: Vec<String> = dedup_sorted(
+        program
+            .validation_shapes
+            .iter()
+            .flat_map(shapes::shex_residue)
+            .collect(),
+    );
+    serde_json::json!({ "shacl-core": shacl, "shex": shex })
 }
 
 /// Whether `diags` carries at least one `Severity::Error` diagnostic, returning
@@ -489,6 +589,10 @@ fn run_cl_roundtrip_case(case_id: &str, case_dir: &Path) -> gmeow_errors::Result
             ledger: serde_json::json!({}),
             text,
             path_projections: Vec::new(),
+            // A cl-roundtrip case authors no validation shapes and gates none of the shape goldens.
+            shacl_core: String::new(),
+            shex: String::new(),
+            residue: empty_shape_residue(),
         },
         explanations: Vec::new(),
         verdicts: serde_json::json!({}),
@@ -529,6 +633,10 @@ fn empty_outputs(case_id: String) -> CaseOutputs {
             ledger: serde_json::json!({}),
             text,
             path_projections: Vec::new(),
+            // An unsupported case is never evaluated: no shapes, no shape goldens gated.
+            shacl_core: String::new(),
+            shex: String::new(),
+            residue: empty_shape_residue(),
         },
         explanations: Vec::new(),
         verdicts: serde_json::json!({}),

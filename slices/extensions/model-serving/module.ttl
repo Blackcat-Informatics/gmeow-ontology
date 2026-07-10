@@ -94,7 +94,22 @@ gmeow:ModelDeployment
     owl:disjointWith gmeow:Agent ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "Model Deployment"@x-gmeow-english ;
-    rdfs:subClassOf logic:Relator ;
+    rdfs:subClassOf logic:Relator ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:deploymentArtifact ;
+            owl:allValuesFrom gmeow:ModelArtifact ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:deploymentService ;
+            owl:allValuesFrom gmeow:SoftwareAgent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:deploymentHost ;
+            owl:allValuesFrom gmeow:Entity ;
+        ] ;
     skos:definition "A served, callable realization of a model artifact — the relator binding an artifact, a service identity, a host / runtime, an endpoint, a configuration, an operator, a policy, and a serving interval. Distinct from the artifact (what runs) and from any one execution (an occurrent). Its serving mode over an interval is recorded as a FACET by a gmeow:AwarenessTenure(modeOnlineInference) whose gmeow:awarenessSubject is the deployment's service gmeow:SoftwareAgent, not by the deployment being a tenure."@x-gmeow-english ;
     skos:example "ex:opusDeployment a gmeow:ModelDeployment ; gmeow:deploymentArtifact ex:opus-artifact ; gmeow:deploymentService ex:opusServiceAgent ; gmeow:deploymentHost ex:usEast1 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid collapsing a deployment onto a gmeow:AwarenessTenure (a tenure records a processing MODE over an interval and carries none of the deployment's binding structure), and never attach gmeow:awarenessSubject to the deployment itself — it ranges over gmeow:Agent, so it attaches to the deployment's gmeow:deploymentService SoftwareAgent."@x-gmeow-english ;
@@ -102,6 +117,18 @@ gmeow:ModelDeployment
         gmeow:boxTBox ;
     gmeow:howToUse "Mint the deployment as the join of what serves the model: gmeow:deploymentArtifact (the ModelArtifact), gmeow:deploymentService (the acting SoftwareAgent), gmeow:deploymentHost (the runtime Entity), gmeow:deploymentEndpoint (the callable address); document it from a gmeow:ModelCard via gmeow:describesModelService; record its serving mode as an AwarenessTenure facet on its service agent."@x-gmeow-english ;
     gmeow:useWhen "Use for the deployment identity — the served, callable realization that binds an artifact, service, host, endpoint, and interval; the endurant relator a runtime execution is an execution OF."@x-gmeow-english .
+
+gmeow:ModelCard
+    rdfs:subClassOf [
+            a owl:Restriction ;
+            owl:onProperty gmeow:describesModelArtifact ;
+            owl:allValuesFrom gmeow:ModelArtifact ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:describesModelService ;
+            owl:allValuesFrom gmeow:ModelDeployment ;
+        ] .
 
 gmeow:RuntimeExecution
     a logic:Event ,
@@ -122,7 +149,8 @@ gmeow:RuntimeExecution
 # ─────────────────────────────────────────────────────────────────────────────
 
 gmeow:deploymentArtifact
-    a owl:ObjectProperty ;
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
     rdfs:domain gmeow:ModelDeployment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "deployment artifact"@x-gmeow-english ;
@@ -141,7 +169,8 @@ gmeow:deploymentEndpoint
         gmeow:boxRBox .
 
 gmeow:deploymentHost
-    a owl:ObjectProperty ;
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
     rdfs:domain gmeow:ModelDeployment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "deployment host"@x-gmeow-english ;
@@ -151,7 +180,8 @@ gmeow:deploymentHost
         gmeow:boxRBox .
 
 gmeow:deploymentService
-    a owl:ObjectProperty ;
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
     rdfs:domain gmeow:ModelDeployment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "deployment service"@x-gmeow-english ;
@@ -221,7 +251,8 @@ gmeow:invocationInExecution
         gmeow:boxRBox .
 
 gmeow:sessionConfiguration
-    a owl:ObjectProperty ;
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
     rdfs:domain gmeow:AgentSession ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "session configuration"@x-gmeow-english ;
@@ -230,7 +261,8 @@ gmeow:sessionConfiguration
         gmeow:boxRBox .
 
 gmeow:sessionSubjectStage
-    a owl:ObjectProperty ;
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
     rdfs:domain gmeow:AgentSession ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "session subject stage"@x-gmeow-english ;

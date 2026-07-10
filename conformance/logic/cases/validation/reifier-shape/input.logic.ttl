@@ -1,0 +1,41 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: validation/reifier-shape
+# Proves the validation-shape PROJECTION for the RDF-1.2 STATEMENT-LAYER reifier
+# obligation family: the closed-world condition "every K→P→value assertion must be
+# reified, and its reifier must conform to shape C", authored in the classic RDF
+# reification form (rdf:Statement + rdf:subject/rdf:predicate + a typed reifier). It
+# lowers to a property shape on P carrying sh:reifierShape {C}-shape +
+# sh:reificationRequired true. ShEx has no statement layer, so the reifier condition
+# is carried in the canonical logic: layer (a ShEx-only residue row).
+
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix g:    <https://blackcatinformatics.ca/gmeow/provenance/> .
+
+# The reifier's shape C (g:Endorsement): constrained by FAMILY 1 so the {C}-shape
+# node the sh:reifierShape reference resolves to genuinely exists — an endorsement's
+# endorsedBy values are agents (allValuesFrom g:Agent → sh:class g:Agent).
+g:Agent a owl:Class .
+g:Endorsement a owl:Class ;
+    rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty g:endorsedBy ;
+        owl:allValuesFrom g:Agent
+    ] .
+
+# The obligation subject K (g:Record).
+g:Record a owl:Class .
+
+g:asserts    a owl:ObjectProperty .
+g:endorsedBy a owl:ObjectProperty .
+
+# The statement-layer reifier obligation: every g:Record g:asserts value must be
+# reified by a g:Endorsement. Authored as a classic rdf:Statement whose reifier is
+# typed g:Endorsement (the shape C) — no logic: scope, so it is inert to the logic
+# frontend and read only by the shape derivation (FAMILY 5).
+[] a rdf:Statement, g:Endorsement ;
+    rdf:subject g:Record ;
+    rdf:predicate g:asserts .

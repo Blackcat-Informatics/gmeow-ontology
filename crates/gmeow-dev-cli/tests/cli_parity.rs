@@ -438,3 +438,67 @@ fn tempdir() -> PathBuf {
     std::fs::create_dir_all(&path).expect("create temp dir");
     path
 }
+
+// ── shape-equivalence: the per-increment migration verifier ──────────────────
+
+/// Write a hermetic mini-repo (a projected `validation-shapes.ttl` plus a slice `shapes.ttl`)
+/// under `root`, so the `shape-equivalence` gate can be exercised without the live tree.
+fn write_shape_fixture(root: &std::path::Path, legacy_property: &str) {
+    let shapes_dir = root.join("generated").join("shapes");
+    std::fs::create_dir_all(&shapes_dir).expect("mk generated/shapes");
+    // The projected surface: Foo with exactly-one bar.
+    std::fs::write(
+        shapes_dir.join("validation-shapes.ttl"),
+        "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+         <https://blackcatinformatics.ca/gmeow/Foo-shape> a sh:NodeShape ;\n\
+             sh:targetClass <https://blackcatinformatics.ca/gmeow/Foo> ;\n\
+             sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/bar> ; sh:minCount 1 ; sh:maxCount 1 ] .\n",
+    )
+    .expect("write projected shapes");
+    let slice_dir = root.join("slices").join("demo");
+    std::fs::create_dir_all(&slice_dir).expect("mk slices/demo");
+    std::fs::write(
+        slice_dir.join("shapes.ttl"),
+        format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             gmeow:FooShape a sh:NodeShape ;\n\
+                 sh:targetClass gmeow:Foo ;\n\
+                 sh:property [ sh:path gmeow:bar ; {legacy_property} ] .\n"
+        ),
+    )
+    .expect("write legacy shapes");
+}
+
+/// A legacy block the projector reproduces exactly is `EQUIV` and clears the gate (exit 0).
+#[test]
+fn shape_equivalence_reports_equiv_and_exits_zero_when_reproduced() {
+    let root = tempdir();
+    write_shape_fixture(&root, "sh:minCount 1 ; sh:maxCount 1");
+    Command::cargo_bin("gmeow-dev")
+        .expect("gmeow-dev binary")
+        .env("GMEOW_ROOT", &root)
+        .args(["shape-equivalence", "--path", "slices/demo"])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("[EQUIV]").and(predicate::str::contains("gmeow:FooShape")),
+        );
+    std::fs::remove_dir_all(&root).ok();
+}
+
+/// A legacy block the projector does NOT reproduce (a tighter cardinality) is `NOT-EQUIV`
+/// and reds the gate (exit non-zero) — the equivalence-before-deletion guard.
+#[test]
+fn shape_equivalence_reports_not_equiv_and_exits_nonzero_when_divergent() {
+    let root = tempdir();
+    write_shape_fixture(&root, "sh:minCount 1 ; sh:maxCount 2");
+    Command::cargo_bin("gmeow-dev")
+        .expect("gmeow-dev binary")
+        .env("GMEOW_ROOT", &root)
+        .args(["shape-equivalence", "--path", "slices/demo"])
+        .assert()
+        .failure()
+        .stdout(predicate::str::contains("[NOT-EQUIV"));
+    std::fs::remove_dir_all(&root).ok();
+}

@@ -57,6 +57,27 @@ resources in the current slices-first, Rust-native repository.
      and `gmeow:ProjectionMapping` frontend honestly so it can lower to
      `logic:Correspondence` with the right relation, direction, loss, law, and
      preservation claims.
+5. **Reasoner-driven flagship counter-examples (Principle 17/18)**:
+   - When authoring or improving a slice's flagship acceptance scenarios
+     (`gmeow:FlagshipScenario`), drive each guarding counter-example to the
+     reasoner: the malformed input should make the native solver observe the
+     missing or failed entailment at reasoning-runtime, raising the scenario's
+     named failure class — not merely trip a structural/SHACL well-formedness
+     shape. Because SHACL is a lossy projection of the canonical `logic:` core
+     (Principle 17), a counter-example that bites only at the projection surface
+     leaves the negative space unproven; run it through the native solver
+     (Principle 18) so the failure is raised in the core.
+   - The structural/SHACL proxy is the floor; the reasoner-driven counter-example
+     is the depth target. Mark each scenario honestly with
+     `gmeow:counterExampleDischarge` (`gmeow:structuralDischarge` today,
+     `gmeow:reasonerDrivenDischarge` once the solver is actually run over the
+     counter-example) — never assert reasoner-driven for a counter-example the
+     solver is not run over. The `flagship_counterexample_depth` slice-quality
+     axis reads that marker and surfaces which counter-examples remain
+     structural-only.
+   - See
+     [`slices/grounding/logic/design/LOGIC-CONFORMANCE.md`](../../../slices/grounding/logic/design/LOGIC-CONFORMANCE.md)
+     (Tests as ontology data) for the counter-example depth expectation.
 
 ## Actionable Instructions
 
@@ -115,6 +136,33 @@ resources in the current slices-first, Rust-native repository.
   correspondence-calculus roadmap. For example, a missing shape surface points
   toward canonical logic constraints and derived validation shapes, not a new
   hand-authored `shapes.ttl`.
+
+- **Migrate the slice's hand-authored shapes (do this whenever you touch a slice)**:
+  The **Shape Migration** slice-quality axis lists every hand-authored `sh:NodeShape`
+  in the slice's `shapes.ttl` that carries no `logic:formalizes`
+  (`slice-quality.projection.ungrounded-shape`). Each is a second source of truth to
+  migrate into the canon. Prove and clear them:
+
+  ```bash
+  gmeow-dev slice-quality slices/<g>/<s>      # lists the ungrounded shapes
+  gmeow-dev shape-equivalence --path slices/<g>/<s>   # EQUIV ⇒ the projector reproduces it
+  ```
+
+  Author each obligation in `module.ttl` with a **reasoner-safe** antecedent so the
+  projector reproduces the shape, then delete the block — **never** `owl:cardinality` /
+  `owl:minCardinality` / `owl:maxCardinality` (out of the EL fragment; they red
+  `make reason-verify` and block `make check`):
+  - at-most-one → `a owl:FunctionalProperty` (→ `sh:maxCount 1`);
+  - existence → `owl:someValuesFrom <Class>` (→ `sh:class`; the dropped `sh:minCount` is a
+    design-sanctioned ValidationOnly under-approximation);
+  - class/datatype → `owl:allValuesFrom`; disjunction → `owl:unionOf`; faceted range →
+    `owl:onDatatype` + `owl:withRestrictions`; cross-node check → a `logic:` FOL assertion in
+    `crates/pipeline/src/stages/constraint_shapes.rs`.
+
+  A genuine residue the fragment cannot express (exactly-N cardinality, node-level `sh:or`,
+  bespoke cross-node `sh:sparql`) instead **keeps its block but adds `logic:formalizes`**
+  naming its canonical `logic:` source — the form the blanket projection-purity gate
+  legalizes. `docs/SLICE_GUIDE.md` §9 is the reference.
 
 - **Run ontology reasoning and verification**:
 

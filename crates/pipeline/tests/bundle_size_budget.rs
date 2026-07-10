@@ -78,9 +78,10 @@ const REP_CEILINGS: &[RepCeiling] = &[
         rep: REP_DOCS_PRINT,
         ceiling: 9_500_000,
     },
-    // measured 10_698_488 → ×1.15 ≈ 12_303_261 → pinned 12_500_000
-    // (the procedural logic:Constraint records and their reasoning projections grow the
-    // canonical logic: layer)
+    // grown by BOTH the procedural logic:Constraint records + their reasoning projections
+    // (canonical logic: layer) AND the reasoner-safe shape grounding (injected
+    // owl:someValuesFrom / owl:allValuesFrom restrictions enriching the inferred closure +
+    // reasoning explanations) → pinned 12_500_000 (re-verified against the merged bundle)
     RepCeiling {
         name: "REP_REASONING",
         rep: REP_REASONING,

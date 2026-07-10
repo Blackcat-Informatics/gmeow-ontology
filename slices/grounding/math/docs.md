@@ -41,7 +41,7 @@ The object-layer parents (`math:Set`, `math:Function`, `math:Operation`, `math:R
 expression grammar and proof/theory layer belong to the mathematical-core surface.
 
 Every well-formedness violation is a typed, queryable object: `math:MathConformanceFailure` and its
-subclasses, each raised by a SHACL shape that names it through `math:enforcesFailureClass`. The
+subclasses, each raised by a SHACL shape that names it through `gmeow:enforcesFailureClass`. The
 preservation-polarity vocabulary is reused verbatim from the `logic:` loss ledger, and each named
 constant and number system is anchored to Wikidata (with OEIS locators for the constants) as a
 `gmeow:TermEquivalence` alignment.
@@ -255,24 +255,30 @@ The layer's depth is defined by five flagship acceptance scenarios — the symme
 homomorphic encryption works, complex proofs as process, a universal R → `math:` bridge, and an AI
 describing its own structure. Each has a worked example, a competency question that pins it, and a
 counter-example that proves its gate bites. The acceptance bar *itself* is reified as a typed,
-queryable object rather than left as prose: a `math:FlagshipScenario` (authored in
+queryable object rather than left as prose: a `gmeow:FlagshipScenario` (authored in
 [`examples/flagship-acceptance.ttl`](./examples/flagship-acceptance.ttl)) binds each scenario to the
-four artifacts that realize and enforce it —
+five artifacts that realize and enforce it —
 
-- `math:demonstratedByExample` → the worked `examples/*.ttl`,
-- `math:demonstratedByCompetency` → the `gmeow:CompetencyQuestion` that pins it,
-- `math:guardedByCounterExample` → the minimal violation under `tests/counter-examples/`,
-- `math:enforcesFailureClass` → the `math:MathConformanceFailure` subclass its gate raises.
+- `gmeow:demonstratedByExample` → the worked, self-contained fixture under `tests/conformance-fixtures/`,
+- `gmeow:demonstratedByCompetency` → the `gmeow:CompetencyQuestion` that pins it,
+- `gmeow:demonstratedByProducer` → the native producer entrypoint (`math::producers::*`) that emits it,
+- `gmeow:guardedByCounterExample` → the minimal violation under `tests/counter-examples/`,
+- `gmeow:enforcesFailureClass` → the `math:MathConformanceFailure` subclass its gate raises.
 
-The wiring is gated on three surfaces (the module/examples vs. `tests/` dataset split forces the
-split): `math:FlagshipScenarioShape` (SHACL) and `ex:saFlagshipCoverage` (structural) prove the five
-are present and fully linked to a real failure class, and a native cross-check in `crates/slicetest`
-resolves each competency reference into `tests/competency.ttl` and confirms it is a registered, green
-(`cqExpectRow`) question with an existing query file. A scenario that is not fully wired is the typed
-failure `math:UnwiredFlagshipScenario` — the epic's depth bar cannot silently regress.
+The wiring is gated on three static surfaces (the module/examples vs. `tests/` dataset split forces
+the split) **plus execution**: the shared `gmeow:FlagshipScenarioShape` (SHACL cardinality, producer
+now required) and the thin slice `math:FlagshipScenarioShape` (failure-range) with `ex:saFlagshipCoverage`
+(structural) prove the five are present and fully linked to a real failure class; a native cross-check
+in `crates/slicetest` resolves each competency reference into `tests/competency.ttl` and confirms it is
+a registered, green (`cqExpectRow`) question with an existing query file; and the execution-discharge
+harness (`crates/pipeline/tests/math_flagship_discharge.rs`) RUNS each counter-example (asserting it
+raises exactly its declared failure class), each worked example (asserting nothing fires), and each
+native producer (asserting its pinned output). A scenario that is not fully wired is the typed failure
+`math:UnwiredFlagshipScenario` — the depth bar cannot silently regress.
 
 | Rule | Gate | Failure class |
 | --- | --- | --- |
-| A flagship scenario binds all four artifacts to a real conformance-failure subclass | `math:FlagshipScenarioShape` (SHACL) | `math:UnwiredFlagshipScenario` |
+| A flagship scenario binds all five artifacts (incl. a native producer) to a real conformance-failure subclass | `gmeow:FlagshipScenarioShape` (shared SHACL) | `gmeow:UnwiredFlagshipScenario` |
 | The five canonical scenarios are all present and fully wired | `ex:saFlagshipCoverage` (structural) | — |
 | Each competency reference is a registered, green question with an existing query file | `flagship_manifest` (native cross-check) | — |
+| Each counter-example raises exactly its class, each worked example is clean, each producer runs to its pinned output | `math_flagship_discharge` (execution) | — |

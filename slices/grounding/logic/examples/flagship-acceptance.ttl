@@ -1,0 +1,91 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The flagship acceptance manifest — the logic grounding layer's depth bar as a
+# typed contract.
+#
+# The logic grounding layer's depth is defined by five flagship acceptance
+# scenarios, not by adjectives. Each is realized by a worked example, pinned by a
+# competency question, emitted by a named native producer, and guarded by a
+# counter-example that raises a named failure class. This manifest reifies the
+# acceptance bar ITSELF: five gmeow:FlagshipScenario individuals, each binding one
+# scenario to the artifacts that realize and enforce it —
+#   gmeow:demonstratedByExample     → the worked tests/conformance-fixtures/*.ttl
+#   gmeow:demonstratedByCompetency  → the gmeow:CompetencyQuestion that pins it
+#   gmeow:demonstratedByProducer    → the native producer entrypoint
+#   gmeow:guardedByCounterExample   → the minimal violation that proves the gate bites
+#   gmeow:enforcesFailureClass      → the logic:LogicConformanceFailure subclass it raises
+#
+# The bindings are gated across three surfaces: the shared SHACL
+# gmeow:FlagshipScenarioShape (cardinalities) plus the slice's thin
+# logic:FlagshipScenarioShape (failure-range) and a structural ASK
+# (ex:saFlagshipCoverage) check that the five are present and fully linked with a
+# real failure class; the native flagship cross-check (crates/slicetest) resolves
+# each gmeow:demonstratedByCompetency into tests/competency.ttl and confirms it
+# carries a gmeow:cqExpectRow expectation and an existing query file. The
+# execution-discharge harness (crates/pipeline/tests/logic_flagship_discharge.rs)
+# runs each named producer and pins its falsifiable datum. The competency-question
+# individuals live in the tests dataset, which SHACL never loads — hence the split.
+# Validates cleanly.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix exa:  <https://blackcatinformatics.ca/gmeow/examples/logic/acceptance/> .
+@prefix cq:   <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+# --- Flagship 1 — the EL→RL→DL reasoning closure --------------------------- #
+exa:elRlDlClosure a gmeow:FlagshipScenario ;
+    rdfs:label "Flagship: the EL→RL→DL reasoning closure"@x-gmeow-english ;
+    skos:definition "The canonical native reasoner (gmeow_logic::reason::reason_all) runs the layered EL→RL→DL closure and genuinely entails new atoms: over a worked subclass ontology it derives a transitive subClassOf atom absent from the asserted EDB, pinned by an exact-match competency gate."@x-gmeow-english ;
+    gmeow:demonstratedByExample "tests/conformance-fixtures/closure-witness-complete.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqLogicClosure ;
+    gmeow:demonstratedByProducer "logic::reason::reason_all" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/closure-witness-empty.ttl" ;
+    gmeow:enforcesFailureClass logic:IncompleteClosure ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
+
+# --- Flagship 2 — the correspondence section-law discharge ----------------- #
+exa:correspondenceSection a gmeow:FlagshipScenario ;
+    rdfs:label "Flagship: the correspondence section-law discharge"@x-gmeow-english ;
+    skos:definition "A correspondence get/put leg pair discharges its section law (put ∘ get = identity), executed by gmeow_logic::correspondence_exec::leg_pair_verdict: a genuine inverse yields DischargeVerdict::ObligationDischarged, and a broken section does not. The section obligation the round-trip discharges is the correspondence's teeth."@x-gmeow-english ;
+    gmeow:demonstratedByExample "tests/conformance-fixtures/section-witness-complete.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqLogicSection ;
+    gmeow:demonstratedByProducer "logic::correspondence_exec::logic_program_verdicts" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/section-witness-unobligated.ttl" ;
+    gmeow:enforcesFailureClass logic:SectionObligationViolated ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
+
+# --- Flagship 3 — the Stratum-C counterfactual with entrenchment ----------- #
+exa:counterfactualStratumC a gmeow:FlagshipScenario ;
+    rdfs:label "Flagship: the Stratum-C counterfactual with entrenchment"@x-gmeow-english ;
+    skos:definition "A Stratum-C counterfactual world is constructed and resolved to a deterministic outcome by gmeow_logic::counterfactual::construct_and_resolve over the entrenchment ordering: overriding the base assumption, the consequent is selected by entrenchment rank, deterministically. The selected outcome is the witness that the resolution was not an arbitrary guess."@x-gmeow-english ;
+    gmeow:demonstratedByExample "tests/conformance-fixtures/counterfactual-witness-complete.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqLogicCounterfactual ;
+    gmeow:demonstratedByProducer "logic::counterfactual::construct_and_resolve" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/counterfactual-witness-unentrenched.ttl" ;
+    gmeow:enforcesFailureClass logic:UnentrenchedCounterfactual ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
+
+# --- Flagship 4 — the symmetric φ/¬φ conjecture test ----------------------- #
+exa:symmetricConjecture a gmeow:FlagshipScenario ;
+    rdfs:label "Flagship: the symmetric φ/¬φ conjecture test"@x-gmeow-english ;
+    skos:definition "A symmetric conjecture test (gmeow_logic::conjecture::conjecture_test) evaluates φ and ¬φ over a standpoint-scoped knowledge base: a refutation case yields a concrete logic:ContradictionWitness (Some), and a corroboration case yields None. A refutation names the witness the clash rests on rather than merely asserting the verdict."@x-gmeow-english ;
+    gmeow:demonstratedByExample "tests/conformance-fixtures/refutation-witness-complete.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqLogicConjecture ;
+    gmeow:demonstratedByProducer "logic::conjecture::conjecture_test" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/refutation-witness-unwitnessed.ttl" ;
+    gmeow:enforcesFailureClass logic:UnwitnessedRefutation ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
+
+# --- Flagship 5 — the chase termination certificate ------------------------ #
+exa:chaseTerminationCertificate a gmeow:FlagshipScenario ;
+    rdfs:label "Flagship: the chase termination certificate"@x-gmeow-english ;
+    skos:definition "An existential-rule chase materialization (gmeow_logic::materialize::materialize_routed) terminates under a weak-acyclicity certificate surfaced as a first-class gmeow:Finding (ChaseAdmission::to_finding). The worked program is weakly acyclic — its Finding is non-empty and its derivation carries an explain trace passing gmeow_logic::explain::assert_faithful — so the closure is certified rather than uncertified."@x-gmeow-english ;
+    gmeow:demonstratedByExample "tests/conformance-fixtures/chase-witness-complete.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqLogicChase ;
+    gmeow:demonstratedByProducer "logic::materialize::materialize_routed" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/chase-witness-uncertified.ttl" ;
+    gmeow:enforcesFailureClass logic:UncertifiedChase ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .

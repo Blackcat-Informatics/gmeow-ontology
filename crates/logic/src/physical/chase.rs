@@ -881,7 +881,7 @@ fn class_key(other: &EvalTerm) -> ClassKey {
 /// explicitly, never derived: a derived `Ord` would order by declaration, not by the
 /// certified-strength meaning.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) enum ChaseAdmission {
+pub enum ChaseAdmission {
     /// Certified terminating: no existential edge lies inside a cycle.  `evidence`
     /// records the proof shape (position / existential-edge counts).
     WeaklyAcyclic {
@@ -1006,7 +1006,7 @@ impl ChaseAdmission {
     /// A [`Self::WeaklyAcyclic`] certificate is an informational finding carrying its proof
     /// evidence; an [`Self::Uncertified`] one is an error finding carrying the joined
     /// weak-acyclicity violations.
-    pub(crate) fn to_finding(&self) -> Finding {
+    pub fn to_finding(&self) -> Finding {
         match self {
             Self::WeaklyAcyclic { evidence } => Finding::new(
                 Severity::Info,

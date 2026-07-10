@@ -545,3 +545,10 @@ logic:evcGenBy a logic:Formula ; logic:relation gmeow:wasGeneratedBy ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "activity" ] .
 logic:evcCompaction a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "activity" ] , [ logic:termIndex 1 ; logic:termIri gmeow:GTSCompaction ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gtsHeadId> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gtsProfile> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/GTSProfile> ] .
+<https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gtsSegmentIndex> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
+<https://blackcatinformatics.ca/gmeow/OpaqueFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/opacityReason> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/OpacityReason> ] .
+<https://blackcatinformatics.ca/gmeow/OpaqueFrame> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/opaqueFrameIn> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/GTSSegment> ] .

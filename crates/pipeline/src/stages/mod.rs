@@ -51,6 +51,7 @@ pub mod lang_projection;
 pub mod lang_translation;
 pub mod lpg;
 pub mod mappings;
+pub mod math_producers;
 pub mod matrix;
 pub mod meta_findings;
 pub mod metadata;
@@ -87,6 +88,10 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("gts_compose", Arc::new(gts_compose::GtsComposeStage::new()));
     registry.register("reason", Arc::new(reason::ReasonStage::new()));
     registry.register("mappings", Arc::new(mappings::MappingsStage::new()));
+    registry.register(
+        "math_producers",
+        Arc::new(math_producers::MathProducersStage::new()),
+    );
     registry.register("validate", Arc::new(validate::ValidateStage::new()));
     registry.register("docs_render", Arc::new(docs_render::DocsRenderStage::new()));
     registry.register("conformance", Arc::new(conformance::ConformanceStage));

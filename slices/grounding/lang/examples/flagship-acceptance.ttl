@@ -1,24 +1,24 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# The flagship acceptance manifest — the epic's depth bar as a typed contract.
+# The flagship acceptance manifest — the language grounding layer's depth bar as a typed contract.
 #
 # The language grounding layer's depth is defined by five flagship acceptance scenarios,
 # not by adjectives. Each is realized by a worked example, pinned by a competency
 # question, emitted by a named native producer, and guarded by a counter-example that
 # raises a named failure class. This manifest reifies the acceptance bar ITSELF: five
-# lang:FlagshipScenario individuals, each binding one scenario to the artifacts that
+# gmeow:FlagshipScenario individuals, each binding one scenario to the artifacts that
 # realize and enforce it —
-#   lang:demonstratedByExample     -> the worked example fixture
-#   lang:demonstratedByCompetency  -> the gmeow:CompetencyQuestion that pins it
-#   lang:demonstratedByProducer    -> the native entrypoint the discharge harness RUNS
-#   lang:guardedByCounterExample   -> the minimal violation that proves the gate bites
-#   lang:enforcesFailureClass      -> the lang:LangConformanceFailure subclass it raises
+#   gmeow:demonstratedByExample     -> the worked example fixture
+#   gmeow:demonstratedByCompetency  -> the gmeow:CompetencyQuestion that pins it
+#   gmeow:demonstratedByProducer    -> the native entrypoint the discharge harness RUNS
+#   gmeow:guardedByCounterExample   -> the minimal violation that proves the gate bites
+#   gmeow:enforcesFailureClass      -> the lang:LangConformanceFailure subclass it raises
 #
 # The bindings are gated across three surfaces. SHACL (lang:FlagshipScenarioShape) and a
 # structural ASK (ex:saFlagshipCoverage) check the five are present and fully linked with
 # a real failure class. The native flagship cross-check resolves each
-# lang:demonstratedByCompetency into tests/competency.ttl and confirms it carries a
+# gmeow:demonstratedByCompetency into tests/competency.ttl and confirms it carries a
 # gmeow:cqExpectRow expectation and an existing query file (the competency-question
 # individuals live in the tests dataset, which SHACL never loads — hence the split). The
 # execution-discharge harness goes further than the math precedent: it RUNS each named
@@ -26,6 +26,7 @@
 # and the worked example is clean — the acceptance bar discharged by execution, not
 # existence. Validates cleanly.
 
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -33,51 +34,56 @@
 @prefix cq:   <https://blackcatinformatics.ca/gmeow/examples/lang/tests/> .
 
 # --- Flagship 1 — a sentence to a formula, compositionally ----------------- #
-exa:sentenceToFormula a lang:FlagshipScenario ;
+exa:sentenceToFormula a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: a sentence to a formula, compositionally"@x-gmeow-english ;
     skos:definition "The declarative sentence \"cats chase mice\" denotes a full-FOL logic:Formula through a compositional lowering (form AST -> Montagovian composition -> logic: FOL), each step carrying a logic:preservationKind, pinned by the denotes-to-formula competency and produced by the native lang-bridge SVO lowering."@x-gmeow-english ;
-    lang:demonstratedByExample "tests/conformance-fixtures/meaning-cats-chase-mice.ttl" ;
-    lang:demonstratedByCompetency cq:cqDenotationsToFormula ;
-    lang:demonstratedByProducer "pipeline::stages::lang_lowering::build_corpus" ;
-    lang:guardedByCounterExample "tests/counter-examples/meaning-underspecified-denotation.ttl" ;
-    lang:enforcesFailureClass lang:UnderspecifiedDenotation .
+    gmeow:demonstratedByExample "tests/conformance-fixtures/meaning-cats-chase-mice.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqDenotationsToFormula ;
+    gmeow:demonstratedByProducer "pipeline::stages::lang_lowering::build_corpus" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/meaning-underspecified-denotation.ttl" ;
+    gmeow:enforcesFailureClass lang:UnderspecifiedDenotation ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 2 — GMEOW reading its own prose ------------------------------ #
-exa:proseSelfReading a lang:FlagshipScenario ;
+exa:proseSelfReading a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: GMEOW reading its own prose"@x-gmeow-english ;
     skos:definition "Every @x-gmeow-english source literal is lifted to a content-addressed lang:SurfaceForm carrying its prose-hash (logic:candidateSourceHash) and an exact surface round-trip logic:Correspondence — dogfooding. The shape is pinned by the prose-lift competency; the totality (every literal) is discharged by executing the lang_form prose-lift stage over the real slice catalog."@x-gmeow-english ;
-    lang:demonstratedByExample "tests/conformance-fixtures/meaning-prose-lift-hashed.ttl" ;
-    lang:demonstratedByCompetency cq:cqProseLiftHashed ;
-    lang:demonstratedByProducer "pipeline::stages::lang_form::build_corpus" ;
-    lang:guardedByCounterExample "tests/counter-examples/surface-unhashable.ttl" ;
-    lang:enforcesFailureClass lang:UnhashableSurface .
+    gmeow:demonstratedByExample "tests/conformance-fixtures/meaning-prose-lift-hashed.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqProseLiftHashed ;
+    gmeow:demonstratedByProducer "pipeline::stages::lang_form::build_corpus" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/surface-unhashable.ttl" ;
+    gmeow:enforcesFailureClass lang:UnhashableSurface ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 3 — the multilingual docs trees as translation --------------- #
-exa:docsAsTranslation a lang:FlagshipScenario ;
+exa:docsAsTranslation a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: the multilingual docs trees as translation"@x-gmeow-english ;
     skos:definition "The multilingual docs catalogs are lang:TranslationUnits, each crossing carrying its adequacy on a logic:Correspondence rather than a silent Exact default — the per-unit preservation judgment in the loss ledger. Pinned by the projection-loss-against-canon competency and produced by the native lang_translation stage over the real .po catalogs."@x-gmeow-english ;
-    lang:demonstratedByExample "tests/conformance-fixtures/translation-french-english-pair.ttl" ;
-    lang:demonstratedByCompetency cq:cqProjectionLossAgainstCanon ;
-    lang:demonstratedByProducer "pipeline::stages::lang_translation::build_corpus" ;
-    lang:guardedByCounterExample "tests/counter-examples/translation-unit-underspecified.ttl" ;
-    lang:enforcesFailureClass lang:UnderspecifiedTranslationUnit .
+    gmeow:demonstratedByExample "tests/conformance-fixtures/translation-french-english-pair.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqProjectionLossAgainstCanon ;
+    gmeow:demonstratedByProducer "pipeline::stages::lang_translation::build_corpus" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/translation-unit-underspecified.ttl" ;
+    gmeow:enforcesFailureClass lang:UnderspecifiedTranslationUnit ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 4 — GMEOW's serializations as grammars ----------------------- #
-exa:serializationsAsGrammars a lang:FlagshipScenario ;
+exa:serializationsAsGrammars a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: GMEOW's serializations as grammars"@x-gmeow-english ;
     skos:definition "GMEOW's Turtle/GTS/GMN serialization grammars are lang:Grammar objects; parse is interpretation and emit is rendering, and the emit/parse round-trip is exact (a lossless crossing carrying logic:ExactPreservation). Pinned by the grammar-round-trip competency and produced by the native lang_projection stage lifting the real grammars/*.ebnf into the bundle."@x-gmeow-english ;
-    lang:demonstratedByExample "tests/conformance-fixtures/rendering-turtle-emit.ttl" ;
-    lang:demonstratedByCompetency cq:cqGrammarRoundTrip ;
-    lang:demonstratedByProducer "pipeline::stages::lang_projection::build_corpus" ;
-    lang:guardedByCounterExample "tests/counter-examples/projection-exact-preservation-violated.ttl" ;
-    lang:enforcesFailureClass lang:ExactPreservationViolated .
+    gmeow:demonstratedByExample "tests/conformance-fixtures/rendering-turtle-emit.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqGrammarRoundTrip ;
+    gmeow:demonstratedByProducer "pipeline::stages::lang_projection::build_corpus" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/projection-exact-preservation-violated.ttl" ;
+    gmeow:enforcesFailureClass lang:ExactPreservationViolated ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .
 
 # --- Flagship 5 — ambiguity held honestly ---------------------------------- #
-exa:ambiguityHeldHonestly a lang:FlagshipScenario ;
+exa:ambiguityHeldHonestly a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: ambiguity held honestly"@x-gmeow-english ;
     skos:definition "An ambiguous form keeps every reading as first-class co-resident data with its vantage; a projection emits one artifact per reading and never silently collapses to one, and an unrouted ambiguous denotation is rejected. Pinned by the co-resident-readings competency and produced by the native lang_projection stage."@x-gmeow-english ;
-    lang:demonstratedByExample "tests/conformance-fixtures/meaning-scope-ambiguity.ttl" ;
-    lang:demonstratedByCompetency cq:cqCoresidentReadings ;
-    lang:demonstratedByProducer "pipeline::stages::lang_projection::build_corpus" ;
-    lang:guardedByCounterExample "tests/counter-examples/meaning-unrouted-ambiguous.ttl" ;
-    lang:enforcesFailureClass lang:UnroutedAmbiguousDenotation .
+    gmeow:demonstratedByExample "tests/conformance-fixtures/meaning-scope-ambiguity.ttl" ;
+    gmeow:demonstratedByCompetency cq:cqCoresidentReadings ;
+    gmeow:demonstratedByProducer "pipeline::stages::lang_projection::build_corpus" ;
+    gmeow:guardedByCounterExample "tests/counter-examples/meaning-unrouted-ambiguous.ttl" ;
+    gmeow:enforcesFailureClass lang:UnroutedAmbiguousDenotation ;
+    gmeow:counterExampleDischarge gmeow:structuralDischarge .

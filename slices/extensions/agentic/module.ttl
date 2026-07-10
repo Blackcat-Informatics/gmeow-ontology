@@ -11,7 +11,27 @@ gmeow:ToolCall
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "Tool Call"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Activity ;
+    rdfs:subClassOf gmeow:Activity ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:usedTool ;
+            owl:someValuesFrom gmeow:SoftwareAgent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:calledByInvocation ;
+            owl:allValuesFrom gmeow:ModelInvocation ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:toolArguments ;
+            owl:allValuesFrom rdfs:Literal ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:toolResult ;
+            owl:allValuesFrom rdfs:Literal ;
+        ] ;
     skos:definition "One invocation of a tool by an agent: the tool agent (gmeow:usedTool), the requesting model invocation when known (gmeow:calledByInvocation), and the verbatim arguments/result payloads. The agent's actions join the same provenance graph as its claims — an entity the call produced links back via gmeow:wasGeneratedBy (no forward output property, Principle 5), so 'which tool, called by which invocation, with what arguments?' is answerable after the fact. The ModelInvocation idiom one level down."@x-gmeow-english ;
     skos:example "An assistant's MCP store_claim call: the ToolCall records the tool agent, the verbatim JSON arguments, and the stored claim's id as the result payload; the claim itself links back with gmeow:wasGeneratedBy."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .

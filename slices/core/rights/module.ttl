@@ -2328,3 +2328,28 @@ gmeow:PrivacyNoticeAttributionConstraint
     logic:formalizes gmeow:PrivacyNotice ;
     logic:severity "Warning" ;
     logic:message "A privacy notice should declare who issued it (dcterms:creator or gmeow:wasAttributedTo)." .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/gmeow/AtomicConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/constraintOperator> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/ConstraintOperator> ] .
+<https://blackcatinformatics.ca/gmeow/AtomicConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/leftOperand> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/LeftOperand> ] .
+<https://blackcatinformatics.ca/gmeow/AtomicConstraint> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/rightOperand> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+<https://blackcatinformatics.ca/gmeow/Copyright> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/copyrightNotice> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+<https://blackcatinformatics.ca/gmeow/Copyright> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/copyrightStatus> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/CopyrightStatus> ] .
+<https://blackcatinformatics.ca/gmeow/Copyright> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/copyrightYear> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+<https://blackcatinformatics.ca/gmeow/License> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/licenseFamily> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/LicenseFamily> ] .
+<https://blackcatinformatics.ca/gmeow/License> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/licensee> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
+<https://blackcatinformatics.ca/gmeow/License> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spdxLicenseId> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+<https://blackcatinformatics.ca/gmeow/License> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spdxLicenseName> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+<https://blackcatinformatics.ca/gmeow/Mark> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/markText> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+<https://blackcatinformatics.ca/gmeow/RightsStatement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/conflictStrategy> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/ConflictStrategy> ] .
+<https://blackcatinformatics.ca/gmeow/RightsStatement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasDataController> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
+<https://blackcatinformatics.ca/gmeow/RightsStatement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasDataSubject> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
+<https://blackcatinformatics.ca/gmeow/RightsStatement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasDuty> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Duty> ] .
+<https://blackcatinformatics.ca/gmeow/RightsStatement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasPermission> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Permission> ] .
+<https://blackcatinformatics.ca/gmeow/RightsStatement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasProhibition> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/Prohibition> ] .
+<https://blackcatinformatics.ca/gmeow/RightsStatement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/rightsType> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/RightsType> ] .
+<https://blackcatinformatics.ca/gmeow/RightsStatement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/statementAbout> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Trademark> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/registrationNumber> ; owl:allValuesFrom <http://www.w3.org/2000/01/rdf-schema#Literal> ] .
+<https://blackcatinformatics.ca/gmeow/Trademark> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/trademarkHolder> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Agent> ] .
+<https://blackcatinformatics.ca/gmeow/Trademark> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/trademarkMark> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/Mark> ] .
+<https://blackcatinformatics.ca/gmeow/Trademark> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/trademarkStatus> ; owl:allValuesFrom <https://blackcatinformatics.ca/gmeow/TrademarkStatus> ] .

@@ -6283,7 +6283,7 @@ slots:
     title: configuration embodiment
     range: EmbodimentAssignment
     domain: InhabitationConfiguration
-    multivalued: true
+    multivalued: false
   configurationFacet:
     slot_uri: https://blackcatinformatics.ca/gmeow/configurationFacet
     title: configuration facet
@@ -6319,7 +6319,7 @@ slots:
     title: configuration of tenure
     range: InhabitationTenure
     domain: InhabitationConfiguration
-    multivalued: true
+    multivalued: false
   configurationTuningFrame:
     slot_uri: https://blackcatinformatics.ca/gmeow/configurationTuningFrame
     title: configuration tuning frame
@@ -6961,7 +6961,7 @@ slots:
     title: deployment artifact
     range: ModelArtifact
     domain: ModelDeployment
-    multivalued: true
+    multivalued: false
   deploymentEndpoint:
     slot_uri: https://blackcatinformatics.ca/gmeow/deploymentEndpoint
     title: deployment endpoint
@@ -6973,13 +6973,13 @@ slots:
     title: deployment host
     range: Entity
     domain: ModelDeployment
-    multivalued: true
+    multivalued: false
   deploymentService:
     slot_uri: https://blackcatinformatics.ca/gmeow/deploymentService
     title: deployment service
     range: SoftwareAgent
     domain: ModelDeployment
-    multivalued: true
+    multivalued: false
   derivationEvidence:
     slot_uri: https://blackcatinformatics.ca/gmeow/derivationEvidence
     title: derivation evidence
@@ -7313,7 +7313,7 @@ slots:
     title: during interval
     range: TimeInterval
     domain: TimeScopedRelation
-    multivalued: true
+    multivalued: false
   earliestStart:
     slot_uri: https://blackcatinformatics.ca/gmeow/earliestStart
     title: earliest start
@@ -7943,7 +7943,7 @@ slots:
     title: finding code
     range: string
     domain: Finding
-    multivalued: true
+    multivalued: false
   findingGateVerdict:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingGateVerdict
     title: finding gate verdict
@@ -7973,7 +7973,7 @@ slots:
     title: finding message
     range: string
     domain: Finding
-    multivalued: true
+    multivalued: false
   findingRemediation:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingRemediation
     title: finding remediation
@@ -7991,7 +7991,7 @@ slots:
     title: finding severity
     range: DiagnosticSeverity
     domain: Finding
-    multivalued: true
+    multivalued: false
   findingStandpoint:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingStandpoint
     title: finding standpoint
@@ -11305,7 +11305,7 @@ slots:
     title: observation result
     range: Entity
     domain: Observation
-    multivalued: true
+    multivalued: false
   observationType:
     slot_uri: https://blackcatinformatics.ca/gmeow/observationType
     title: observation type
@@ -11323,7 +11323,7 @@ slots:
     title: observed feature
     range: uriorcurie
     domain: Observation
-    multivalued: true
+    multivalued: false
   occupancyOf:
     slot_uri: https://blackcatinformatics.ca/gmeow/occupancyOf
     title: occupancy of
@@ -13234,13 +13234,13 @@ slots:
     title: session configuration
     range: uriorcurie
     domain: AgentSession
-    multivalued: true
+    multivalued: false
   sessionSubjectStage:
     slot_uri: https://blackcatinformatics.ca/gmeow/sessionSubjectStage
     title: session subject stage
     range: uriorcurie
     domain: AgentSession
-    multivalued: true
+    multivalued: false
   sexAssignedAtBirth:
     slot_uri: https://blackcatinformatics.ca/gmeow/sexAssignedAtBirth
     title: sex assigned at birth
@@ -13471,7 +13471,7 @@ slots:
     title: stage impl
     range: string
     domain: PipelineStage
-    multivalued: true
+    multivalued: false
   stageOfLineage:
     slot_uri: https://blackcatinformatics.ca/gmeow/stageOfLineage
     title: stage of lineage
@@ -15796,6 +15796,21 @@ enums:
       thrDocumentationMaximal:
         meaning: https://blackcatinformatics.ca/gmeow/thrDocumentationMaximal
         title: documentation floor — Maximal
+      thrFlagshipDepthExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrFlagshipDepthExemplified
+        title: flagship-depth floor — Exemplified
+      thrFlagshipDepthGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrFlagshipDepthGrounded
+        title: flagship-depth floor — Grounded
+      thrFlagshipDepthLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrFlagshipDepthLinked
+        title: flagship-depth floor — Linked
+      thrFlagshipDepthMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrFlagshipDepthMaximal
+        title: flagship-depth floor — Maximal
+      thrFlagshipDepthRegistered:
+        meaning: https://blackcatinformatics.ca/gmeow/thrFlagshipDepthRegistered
+        title: flagship-depth floor — Registered
       thrGroundingExemplified:
         meaning: https://blackcatinformatics.ca/gmeow/thrGroundingExemplified
         title: grounding floor — Exemplified
@@ -15880,6 +15895,18 @@ enums:
       thrReasonerMaximal:
         meaning: https://blackcatinformatics.ca/gmeow/thrReasonerMaximal
         title: reasoner floor — Maximal
+      thrShapeMigrationExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrShapeMigrationExemplified
+        title: shape-migration floor — Exemplified
+      thrShapeMigrationGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrShapeMigrationGrounded
+        title: shape-migration floor — Grounded
+      thrShapeMigrationLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrShapeMigrationLinked
+        title: shape-migration floor — Linked
+      thrShapeMigrationMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrShapeMigrationMaximal
+        title: shape-migration floor — Maximal
       thrTestingExemplified:
         meaning: https://blackcatinformatics.ca/gmeow/thrTestingExemplified
         title: testing floor — Exemplified
@@ -20425,6 +20452,9 @@ enums:
       stage-mappings:
         meaning: https://blackcatinformatics.ca/gmeow/stage-mappings
         title: mappings
+      stage-math-producers:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-math-producers
+        title: math-producers
       stage-reason:
         meaning: https://blackcatinformatics.ca/gmeow/stage-reason
         title: reason
@@ -21235,6 +21265,9 @@ enums:
       axisDocumentation:
         meaning: https://blackcatinformatics.ca/gmeow/axisDocumentation
         title: Documentation
+      axisFlagshipCounterExampleDepth:
+        meaning: https://blackcatinformatics.ca/gmeow/axisFlagshipCounterExampleDepth
+        title: Flagship Counter-Example Depth
       axisMaximalGrounding:
         meaning: https://blackcatinformatics.ca/gmeow/axisMaximalGrounding
         title: Maximal Grounding
@@ -21259,6 +21292,9 @@ enums:
       axisReasonerDerived:
         meaning: https://blackcatinformatics.ca/gmeow/axisReasonerDerived
         title: Reasoner-Derived
+      axisShapeMigration:
+        meaning: https://blackcatinformatics.ca/gmeow/axisShapeMigration
+        title: Shape Migration
       axisTranslationCoverage:
         meaning: https://blackcatinformatics.ca/gmeow/axisTranslationCoverage
         title: Translation Coverage
@@ -21268,6 +21304,9 @@ enums:
       qualityDimensionCompleteness:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionCompleteness
         title: completeness
+      qualityDimensionCounterExampleDepth:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionCounterExampleDepth
+        title: counter-example depth
       qualityDimensionDocumentation:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionDocumentation
         title: documentation

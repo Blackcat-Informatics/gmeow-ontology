@@ -171,6 +171,11 @@ ex:ecE8WeylCanonical a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A math:RootSystem with the E8 fingerprint (240 roots, rank 8) whose math:weylGroup declares math:groupOrder 696729600 — the true order of W(E8) — satisfies math:E8WeylOrderShape (and math:RootSystemShape, math:AutomorphismGroupShape, math:AlgebraicStructureShape) and validates with no findings." .
 
+ex:ecE8WeylProduced a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/e8-weyl-produced.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The e8Symmetry flagship's worked example — the exact output of math::producers::e8_weyl_order — a math:RootSystem with the E8 fingerprint (240 roots, rank 8) whose math:weylGroup declares math:groupOrder 696729600. It satisfies math:E8WeylOrderShape, math:RootSystemShape, math:AutomorphismGroupShape, and math:AlgebraicStructureShape and validates with no findings." .
+
 ex:ecE8WrongWeylOrder a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/e8-wrong-weyl-order.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
@@ -183,6 +188,11 @@ ex:ecHeSchemeComplete a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/he-scheme-complete.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A math:HomomorphicEncryptionScheme declaring math:homomorphicOver, math:securityAssumption, math:noiseModel, and — as a math:RingHomomorphism — math:preservedOperation and a resource-valued math:preservationLaw satisfies math:HomomorphicEncryptionSchemeShape, math:HomomorphismShape, and math:PreservationLawShape and validates with no findings." .
+
+ex:ecHeSchemeProduced a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/he-scheme-produced.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The homomorphicEncryption flagship's worked example — the exact output of math::producers::additive_he_demo — a math:HomomorphicEncryptionScheme declaring math:homomorphicOver, math:securityAssumption (math:learningWithErrors), math:noiseModel, and — as a math:RingHomomorphism — math:preservedOperation and a resource-valued math:preservationLaw. It satisfies math:HomomorphicEncryptionSchemeShape, math:HomomorphismShape, and math:PreservationLawShape and validates with no findings." .
 
 ex:ecHeMissingNoiseModel a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/he-scheme-missing-noise-model.ttl" ;
@@ -475,6 +485,11 @@ ex:ecPCAAnalysisComplete a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A math:PCAAnalysis declaring its math:analysisInput, math:centeringPolicy, math:scalingPolicy, math:covarianceOperator, math:eigensolver, and its math:principalComponent / math:loadingVector / math:scoreVector / math:explainedVarianceRatio / math:residualSubspace outputs satisfies math:PCAAnalysisShape and validates with no findings." .
 
+ex:ecPCAResidualLifted a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/pca-residual-lifted.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The aiSelfStructure flagship's worked example — the exact output of math::producers::exact_pca_residual — a math:PCAAnalysis over the exact-rational math:GramMatrix it decomposes. It declares every required PCA role (input, centering/scaling policy, covariance operator, eigensolver, and the component/loading/score/variance/residual outputs) and a symmetric positive-definite math:GramMatrix with well-formed math:RationalValue entries, so it satisfies math:PCAAnalysisShape and math:GramMatrixShape and validates with no findings." .
+
 ex:ecPCAAnalysisMissingCovariance a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/pca-analysis-missing-covariance.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
@@ -584,6 +599,11 @@ ex:ecIngestRunGrounded a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A math:IngestRun that retains its source through math:parseSource and carries the process-layer in-band witness through logic:instantiatesSchema and logic:instantiatesPlan satisfies math:IngestRunShape and validates with no findings." .
 
+ex:ecIngestRunLifted a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/ingest-run-lifted.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The rBridge flagship's worked example (the output of the native math::producers::r_bridge_lift producer): a math:RIngestRun that both satisfies math:IngestRunShape and produces a structured math: codomain — a math:FittedModel and one math:Residual per lifted observation, each gmeow:wasGeneratedBy the run — so it is clean under the native math:UnliftableIngest lint as well as SHACL." .
+
 ex:ecIngestRunUngrounded a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/ingest-run-ungrounded.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
@@ -619,6 +639,11 @@ ex:ecVerificationResultGrounded a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A math:FormalVerificationResult grounded BY a gmeow:Observation that names it through gmeow:observationResult and carries a gmeow:vantage satisfies math:FormalVerificationResultShape and validates with no findings." .
 
+ex:ecVerificationResultProduced a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/verification-result-produced.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The proofAsProcess flagship's worked example — the exact output of math::producers::proof_ingest — a proof trace whose QED math:FormalVerificationResult is grounded BY a separate gmeow:Observation that names it through gmeow:observationResult and carries a gmeow:vantage. It satisfies math:FormalVerificationResultShape and validates with no findings." .
+
 ex:ecVerificationResultUngrounded a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/verification-result-ungrounded.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
@@ -644,21 +669,24 @@ ex:ecTheoremUnwarranted a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is a math:Theorem with a theory context but neither a math:Proof (nothing math:provesStatement it) nor a declared math:externalWarrant, so it fails the sh:sparql proof-or-warrant constraint on math:TheoremGroundingShape. Validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:UngroundedTheoremClaim)." .
 
-# === Flagship acceptance manifest: every scenario is fully wired ============= #
+# === Flagship acceptance manifest: the failure-range shape bites ============= #
+#
+# The shared cardinality wiring (an example, competency, producer, counter-example, and
+# enforcing class, each exactly once) is now the shared gmeow:FlagshipScenarioShape's job
+# (shapes/gmeow-shapes.ttl), gated positively over examples/flagship-acceptance.ttl by
+# `make validate` and by the native flagship cross-check (a missing required link drops the
+# scenario from the coverage set). This slice's thin math:FlagshipScenarioShape carries
+# ONLY the failure-range sh:sparql, so the per-slice conformance cells exercise exactly
+# that: a well-formed scenario conforms, and one whose enforcing class is not a
+# math:MathConformanceFailure subclass raises shacl.SPARQLConstraintComponent.
 
 ex:ecFlagshipCanonical a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/flagship-scenario-canonical.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "A math:FlagshipScenario binding all four artifacts (math:demonstratedByExample, math:demonstratedByCompetency, math:guardedByCounterExample) and naming an enforcing failure class that IS a math:MathConformanceFailure subclass (math:WrongE8WeylOrder) satisfies math:FlagshipScenarioShape's four cardinalities and its sh:sparql subclass check, and validates with no findings." .
-
-ex:ecFlagshipUnwired a gmeow:ExampleConformance ;
-    gmeow:exampleFile "tests/counter-examples/flagship-scenario-unwired.ttl" ;
-    gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example is a math:FlagshipScenario that binds its example, competency, and counter-example but omits math:enforcesFailureClass (sh:minCount 1 on math:FlagshipScenarioShape); the other three links are present so only the missing-enforcing-class violation fires, and validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnwiredFlagshipScenario)." .
+    gmeow:conformanceRationale "A gmeow:FlagshipScenario binding all artifacts (gmeow:demonstratedByExample, gmeow:demonstratedByCompetency, gmeow:demonstratedByProducer, gmeow:guardedByCounterExample) and naming an enforcing failure class that IS a math:MathConformanceFailure subclass (math:WrongE8WeylOrder) passes the slice's thin math:FlagshipScenarioShape failure-range sh:sparql, and validates with no findings." .
 
 ex:ecFlagshipNonFailureClass a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/flagship-scenario-nonfailure-class.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example is a math:FlagshipScenario binding all four links (math:demonstratedByExample, math:demonstratedByCompetency, math:guardedByCounterExample, and math:enforcesFailureClass), so every sh:minCount branch is satisfied, but math:enforcesFailureClass names math:Set — a real class that is NOT a math:MathConformanceFailure subclass (the sh:sparql subclass check of math:FlagshipScenarioShape). Only the sh:sparql constraint fires, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:UnwiredFlagshipScenario) — the enforcing failure class is checked by value." .
+    gmeow:conformanceRationale "The counter-example is a gmeow:FlagshipScenario whose gmeow:enforcesFailureClass names math:Set — a real class that is NOT a math:MathConformanceFailure subclass (the failure-range sh:sparql of the slice's thin math:FlagshipScenarioShape). That constraint fires, so validation MUST emit shacl.SPARQLConstraintComponent (math:UnwiredFlagshipScenario) — the enforcing failure class is checked by value." .

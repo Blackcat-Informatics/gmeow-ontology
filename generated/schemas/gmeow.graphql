@@ -355,6 +355,11 @@ enum AxisThresholdEnum {
   thrDocumentationGrounded
   thrDocumentationLinked
   thrDocumentationMaximal
+  thrFlagshipDepthExemplified
+  thrFlagshipDepthGrounded
+  thrFlagshipDepthLinked
+  thrFlagshipDepthMaximal
+  thrFlagshipDepthRegistered
   thrGroundingExemplified
   thrGroundingGrounded
   thrGroundingLinked
@@ -383,6 +388,10 @@ enum AxisThresholdEnum {
   thrReasonerGrounded
   thrReasonerLinked
   thrReasonerMaximal
+  thrShapeMigrationExemplified
+  thrShapeMigrationGrounded
+  thrShapeMigrationLinked
+  thrShapeMigrationMaximal
   thrTestingExemplified
   thrTestingGrounded
   thrTestingLinked
@@ -2264,6 +2273,7 @@ enum PipelineStageEnum {
   stage_gts_compose
   stage_gts_sink
   stage_mappings
+  stage_math_producers
   stage_reason
   stage_snapshot
   stage_source_load
@@ -2588,6 +2598,7 @@ enum PronounSetEnum {
 
 enum QualityAxisEnum {
   axisDocumentation
+  axisFlagshipCounterExampleDepth
   axisMaximalGrounding
   axisMaximalInformation
   axisMaximalLinkage
@@ -2596,11 +2607,13 @@ enum QualityAxisEnum {
   axisProseQuality
   axisProvenanceHonesty
   axisReasonerDerived
+  axisShapeMigration
   axisTranslationCoverage
 }
 
 enum QualityDimensionEnum {
   qualityDimensionCompleteness
+  qualityDimensionCounterExampleDepth
   qualityDimensionDocumentation
   qualityDimensionGrounding
   qualityDimensionInferentialDensity
@@ -3636,8 +3649,8 @@ type Agent {
 type AgentSession {
   id: String
   iri: String
-  sessionConfiguration: [String!]
-  sessionSubjectStage: [String!]
+  sessionConfiguration: String
+  sessionSubjectStage: String
 }
 
 type AggregationFunction {
@@ -5335,15 +5348,15 @@ type Finding {
   findingAntecedent: [Finding!]
   findingCategory: [String!]
   findingCluster: [FindingCluster!]
-  findingCode: [String!]
+  findingCode: String
   findingGateVerdict: [GateVerdict!]
   findingHasAntecedent: [Finding!]
   findingHelpUri: [String!]
   findingLocation: [String!]
-  findingMessage: [String!]
+  findingMessage: String
   findingRemediation: [String!]
   findingRootCause: [Finding!]
-  findingSeverity: [DiagnosticSeverity!]
+  findingSeverity: DiagnosticSeverity
   findingStandpoint: [DiagnosticStandpoint!]
   findingSuggestion: [String!]
   findingTool: [String!]
@@ -5723,9 +5736,9 @@ type InhabitationClaim {
 type InhabitationConfiguration {
   id: String
   iri: String
-  configurationEmbodiment: [EmbodimentAssignment!]
+  configurationEmbodiment: EmbodimentAssignment
   configurationFacet: [String!]
-  configurationOfTenure: [InhabitationTenure!]
+  configurationOfTenure: InhabitationTenure
 }
 
 type InhabitationDescription {
@@ -6506,10 +6519,10 @@ type ModelCard {
 type ModelDeployment {
   id: String
   iri: String
-  deploymentArtifact: [ModelArtifact!]
+  deploymentArtifact: ModelArtifact
   deploymentEndpoint: [String!]
-  deploymentHost: [Entity!]
-  deploymentService: [SoftwareAgent!]
+  deploymentHost: Entity
+  deploymentService: SoftwareAgent
 }
 
 type ModelInferenceRun {
@@ -6827,10 +6840,10 @@ type Observation {
   observationEvent: [Event!]
   observationMethod: ObservationMethod
   observationOf: [Quality!]
-  observationResult: [Entity!]
+  observationResult: Entity
   observationType: [ObservationType!]
   observedAt: String
-  observedFeature: [String!]
+  observedFeature: String
   perceptionEnvironment: SensoryEnvironment
   timbreObservationResult: TimbreDescriptor
   vantage: [Entity!]
@@ -7127,7 +7140,7 @@ type PipelineStage {
   hasCapability: [StageCapability!]
   producesFormat: [String!]
   requiresResource: [Resource!]
-  stageImpl: [String!]
+  stageImpl: String
 }
 
 type PitchAnchor {
@@ -8460,7 +8473,7 @@ type TimeScale {
 type TimeScopedRelation {
   id: String
   iri: String
-  duringInterval: [TimeInterval!]
+  duringInterval: TimeInterval
   tenureEndedBy: [Event!]
 }
 

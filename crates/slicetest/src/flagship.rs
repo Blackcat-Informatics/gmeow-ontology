@@ -21,15 +21,20 @@
 //! * its worked example and its counter-example both exist on disk.
 //!
 //! It also pins the coverage set to EXACTLY the canonical scenarios passed in — no more,
-//! no fewer. This is generic over the layer namespace (`math:`, `lang:`, …), so math and
-//! lang share one implementation and a copy-paste mirror cannot silently re-assert the
-//! wrong layer's coverage array.
+//! no fewer. The flagship manifest vocabulary is HOISTED to the shared `gmeow:` namespace
+//! (`gmeow:FlagshipScenario`, `gmeow:demonstratedBy*`, `gmeow:guardedByCounterExample`,
+//! `gmeow:enforcesFailureClass`), so this one implementation binds every grounding slice
+//! by its slice directory alone — a copy-paste mirror cannot silently re-assert the wrong
+//! layer's coverage array, and there is no per-layer namespace parameter to get wrong.
 
 use std::collections::BTreeSet;
 use std::path::Path;
 
 use crate::native_query::{dataset_from_file, render_term, select, union};
 use crate::paths::{example_file, query_file};
+
+/// The shared `gmeow:` namespace the flagship acceptance manifest vocabulary lives under.
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
 /// Render one bound cell to its N-Triples lexical form, hard-failing on an unbound slot —
 /// every column projected below is required, so an unbound cell is a bug in the manifest,
@@ -61,14 +66,17 @@ fn as_literal(rendered: &str) -> String {
 }
 
 /// Cross-check the flagship acceptance manifest of the slice at `slice_dir`, whose
-/// scenarios live under the layer namespace `ns` (e.g.
-/// `https://blackcatinformatics.ca/math/`) and whose coverage set is EXACTLY `canonical`.
+/// scenarios are typed `gmeow:FlagshipScenario` (the shared, hoisted vocabulary) and whose
+/// coverage set is EXACTLY `canonical`.
 ///
 /// Unions `examples/flagship-acceptance.ttl` with `tests/competency.ttl` and asserts, per
-/// scenario, that its competency resolves to a pinned green `gmeow:CompetencyQuestion`,
-/// its query file exists, and its worked example and counter-example exist on disk. Then
-/// pins the coverage set to `canonical` — a 6th or dropped scenario fails the assertion.
-pub fn assert_flagship_manifest(slice_dir: &Path, ns: &str, canonical: &[&str]) {
+/// scenario, that its competency resolves to a pinned green `gmeow:CompetencyQuestion`, its
+/// query file exists, its worked example and counter-example exist on disk, and it names a
+/// producer (`gmeow:demonstratedByProducer`, a REQUIRED column — a scenario missing it is
+/// not bound by the SELECT and so drops out of the coverage set, failing the pin below).
+/// Then pins the coverage set to `canonical` — a 6th or dropped scenario fails the
+/// assertion.
+pub fn assert_flagship_manifest(slice_dir: &Path, canonical: &[&str]) {
     let manifest_path = slice_dir.join("examples").join("flagship-acceptance.ttl");
     let competency_path = slice_dir.join("tests").join("competency.ttl");
 
@@ -76,17 +84,21 @@ pub fn assert_flagship_manifest(slice_dir: &Path, ns: &str, canonical: &[&str]) 
     let competency = dataset_from_file(&competency_path).expect("parse competency.ttl");
     let dataset = union(&[manifest, competency]);
 
-    // Every scenario and its four realizing/enforcing links, in one pass.
+    // Every scenario and its five realizing/enforcing links, in one pass. The producer is a
+    // REQUIRED column: a scenario missing gmeow:demonstratedByProducer will not bind and so
+    // never enters `seen`, failing the exact coverage-set pin — the acceptance bar is
+    // discharged by a runnable producer, not by an unrun label.
     let scenarios = select(
         &dataset,
         &format!(
             r"
-            SELECT ?s ?ex ?cq ?ce ?fc WHERE {{
-                ?s a <{ns}FlagshipScenario> ;
-                   <{ns}demonstratedByExample>   ?ex ;
-                   <{ns}demonstratedByCompetency> ?cq ;
-                   <{ns}guardedByCounterExample> ?ce ;
-                   <{ns}enforcesFailureClass>    ?fc .
+            SELECT ?s ?ex ?cq ?prod ?ce ?fc WHERE {{
+                ?s a <{GMEOW_NS}FlagshipScenario> ;
+                   <{GMEOW_NS}demonstratedByExample>    ?ex ;
+                   <{GMEOW_NS}demonstratedByCompetency> ?cq ;
+                   <{GMEOW_NS}demonstratedByProducer>   ?prod ;
+                   <{GMEOW_NS}guardedByCounterExample>  ?ce ;
+                   <{GMEOW_NS}enforcesFailureClass>     ?fc .
             }}"
         ),
     )
@@ -97,21 +109,23 @@ pub fn assert_flagship_manifest(slice_dir: &Path, ns: &str, canonical: &[&str]) 
         let scenario = as_iri(&rendered(&row[0])).to_owned();
         let example = as_literal(&rendered(&row[1]));
         let competency_iri = as_iri(&rendered(&row[2])).to_owned();
-        let counter_example = as_literal(&rendered(&row[3]));
+        // ?prod must be a bound literal; running the producer is the discharge harness's job.
+        let _producer = as_literal(&rendered(&row[3]));
+        let counter_example = as_literal(&rendered(&row[4]));
         // ?fc must be an IRI; the subclass check is the structural/SHACL gate's job.
-        let _failure_class = as_iri(&rendered(&row[4]));
+        let _failure_class = as_iri(&rendered(&row[5]));
 
         // The worked example and the counter-example must exist on disk.
         let example_abs = example_file(slice_dir, &example);
         assert!(
             example_abs.exists(),
-            "{scenario}: {ns}demonstratedByExample {example} does not exist at {}",
+            "{scenario}: gmeow:demonstratedByExample {example} does not exist at {}",
             example_abs.display()
         );
         let counter_abs = example_file(slice_dir, &counter_example);
         assert!(
             counter_abs.exists(),
-            "{scenario}: {ns}guardedByCounterExample {counter_example} does not exist at {}",
+            "{scenario}: gmeow:guardedByCounterExample {counter_example} does not exist at {}",
             counter_abs.display()
         );
 

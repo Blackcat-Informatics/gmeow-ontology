@@ -59,6 +59,16 @@
 #     fixture-only conformance_* domain tests stay on-gate against the same full
 #     shape corpus, and the whole-ontology-union path stays covered on maint-heavy
 #     alongside imported_graph_conforms_to_shapes.
+#   - gmeow-validate conformance_math_producers: ~20 s per test in CI. Each of the
+#     five tests validates a native math-flagship producer's emitted graph, merged
+#     with the WHOLE base ontology, against the ENTIRE shape corpus via
+#     validate_with_ontology() — the identical whole-ontology-union cost as the four
+#     domain conformance binaries above, so it joins the same off-gate group. No
+#     coverage leaves the per-commit gate: the five producers' pinned falsifiable
+#     values are still RUN and asserted on-gate by
+#     crates/pipeline/tests/math_flagship_discharge.rs (which executes each producer),
+#     and this binary is the extra cross-crate proof that the producer output also
+#     validates SHACL-clean — reevaluated on maint-heavy.
 #   - gmeow-logic whole_bundle_coherence_gate_catches_injected_clash:
 #     ~570 s locally; it imports the WHOLE committed `gmeow.gts` bundle and drives
 #     the native Nemo chase over it twice (once benign, once with an injected
@@ -129,6 +139,40 @@
 #     reject/parity coverage on-gate in the same binaries, the serializations are
 #     drift-gated via `make check-generated`, and all three stay on-gate on
 #     `maint-heavy`.
+#   - gmeow-cli self_sufficiency::transpile_wheel_mode_equals_repo_mode +
+#     self_sufficiency::transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak +
+#     self_sufficiency::project_wheel_mode_equals_repo_mode:
+#     31-53 s locally. Each drives `gmeow transpile`/`gmeow project` over the
+#     WHOLE embedded bundle — `transpile`'s parity test runs it TWICE
+#     (blinded-cwd leg + repo-cwd leg), the leak/fan-out test folds the full
+#     multi-vocab MAXIMAL(G) output — the same whole-committed-bundle class as
+#     the `build_writes_serializations` / `export_respects_language_selector` /
+#     `project_schema_org_view_filter` trio above, irreducibly O(bundle size).
+#     Coverage stays: the SAME wheel-mode==repo-mode parity law stays on-gate
+#     at fixture scale via `self_sufficiency::validate_wheel_mode_equals_repo_mode`
+#     (the cheapest subcommand, no bundle-scale output), and all three heavier
+#     tests stay on-gate on `maint-heavy`.
+#     `self_sufficiency::describe_wheel_mode_equals_repo_mode` was moved BACK
+#     on-gate: unlike its three siblings above, it is genuinely cheap
+#     standalone (6.3-6.8 s measured locally, matching the file's prior
+#     "7.6 s standalone" note) and only rode the 25 s cliff (27.6 s) under
+#     full-parallelism CI contention — the same fix-not-off-gate situation as
+#     `fanout_parity` below (see that override's comment). It stays on the
+#     default-filter and instead joins a dedicated serialized test-group (see
+#     the `cli-cwd-parity` override near the bottom of this file) so CI
+#     contention can no longer push it over budget.
+#   - gmeow-pipeline release_verify_roundtrip binary:
+#     ~75 s per test locally. `fold_release_bundle`/`verify_release_bundle` each
+#     replay the WHOLE committed ~48 MB `generated/dist/gmeow.gts` — the
+#     identical "whole committed bundle" cost class as `fold_parity`/
+#     `fanout_parity`/`end_to_end` above, irreducibly O(bundle size). Coverage
+#     stays: the real crypto-through-the-built-binary requirement (accept a
+#     valid signature, reject an invalid one) runs on-gate via
+#     `crates/gmeow-cli/tests/bundle_smoke.rs`, which builds a small in-process
+#     signed `.gts` rather than replaying the shipped bundle; `release.rs`'s own
+#     unit tests cover the fold/verify pair's logic against a tiny synthetic
+#     snapshot; and the full committed-bundle round-trip stays on-gate on
+#     `maint-heavy`.
 #   - gmeow-pipeline quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate:
 #     86.2 s. It builds the full self-description carrier, which scores every one of
 #     the ~81 slices via `slice_quality::score_slice` to attach the
@@ -153,11 +197,13 @@ default-filter = '''
     | (package(gmeow-pipeline) & binary(fanout_parity))
     | (package(gmeow-pipeline) & test(/stages::superset::tests::project_bundle_reconstructs_the_committed_tree_and_gate_is_clean/))
     | (package(gmeow-foundation-corpus) & test(/imported_graph_conforms_to_shapes/))
-    | (package(gmeow-validate) & (binary(conformance_finance) | binary(conformance_agentic) | binary(conformance_ai_claims) | binary(conformance_music_analysis)))
+    | (package(gmeow-validate) & (binary(conformance_finance) | binary(conformance_agentic) | binary(conformance_ai_claims) | binary(conformance_music_analysis) | binary(conformance_math_producers)))
     | (package(gmeow-dev-cli) & binary(cli_parity) & (test(build_writes_serializations) | test(project_view_over_the_snapshot)))
     | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter) | test(project_unknown_view_fails) | test(describe_env_language_rejected_if_unknown)))
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(rendered_tree_is_disk_faithful))
     | (package(gmeow-pipeline) & test(/quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate/))
+    | (package(gmeow-pipeline) & binary(release_verify_roundtrip))
+    | (package(gmeow-cli) & binary(self_sufficiency) & (test(transpile_wheel_mode_equals_repo_mode) | test(transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak) | test(project_wheel_mode_equals_repo_mode)))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
@@ -198,6 +244,13 @@ fail-fast = false
 [test-groups]
 engine = { max-threads = 2 }
 mapping-stage = { max-threads = 1 }
+# CWD-parity CLI tests that fold the WHOLE embedded/committed bundle in-process
+# (no Nemo/Scryer chase, so they do not belong in `engine`'s memory-pressure
+# group) but are cheap enough standalone to stay on-gate rather than being
+# carved out entirely. This caps how many of them run concurrently so
+# generic CPU/process contention in a busy CI shard cannot push one of them
+# over the 25 s budget on its own.
+cli-cwd-parity = { max-threads = 2 }
 
 [[profile.default.overrides]]
 # The whole gmeow-conformance datatest harness (its foundation/* cases materialize
@@ -306,3 +359,18 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 filter = 'package(gmeow-pipeline) & test(/stages::mappings::tests::(sssom_emits_and_overlaps_byte_identically_with_committed|edoal_and_sparql_emit_byte_identically_with_committed|standpoint_and_dsl_stats_emit_byte_identically_with_committed|fno_is_well_formed_ntriples|prefix_set_projections_are_emitted_and_parse|list_functions_are_emitted_and_parse)/)'
 test-group = 'mapping-stage'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
+# self_sufficiency::describe_wheel_mode_equals_repo_mode drives `gmeow
+# describe` over the WHOLE embedded bundle, but does NOT drive a Nemo/Scryer
+# chase, so it does not belong in the `engine` memory-pressure group (that
+# group exists for multi-GB chase processes, not generic whole-bundle load/
+# describe work). It stays ON the default-filter (~6.3-6.8 s standalone,
+# measured directly, well under the 25 s policy) but joins the dedicated
+# `cli-cwd-parity` test-group: unserialized it piled onto other whole-bundle-
+# folding tests in the shared shard and rode the 25 s cliff over on CI jitter
+# alone (measured 27.6 s under full-parallelism contention) — the same
+# fix-not-off-gate bias as `fanout_parity` above, for a test this cheap
+# standalone.
+filter = 'package(gmeow-cli) & binary(self_sufficiency) & test(describe_wheel_mode_equals_repo_mode)'
+test-group = 'cli-cwd-parity'

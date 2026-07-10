@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the elRlDlClosure flagship: a logic:ClosureAcceptanceWitness
+# that names NO logic:closureEntailedAtom — a closure that entails nothing beyond
+# its EDB demonstrates no reasoning. Trips logic:ClosureAcceptanceWitnessShape
+# (sh:minCount 1) → shacl.MinCountConstraintComponent (logic:IncompleteClosure),
+# and no other finding. Bound by ex:ecClosureEmpty.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/logic/> .
+
+ex:closureWitness a logic:ClosureAcceptanceWitness .

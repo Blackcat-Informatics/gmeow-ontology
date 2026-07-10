@@ -287,6 +287,25 @@ as two denotations.*
   `logic:` rules and projected to the SHACL-AF surface (`LOGIC-SHACL-AF.md`). A
   hand-authored computational SHACL construct without a `logic:` source fails the
   projection-purity gate (Principle 17's enforcement set).
+- **Grounding a shape — the migration you do while touching any slice.** A legacy
+  hand-authored `sh:NodeShape` in a slice's `shapes.ttl` is a second source of truth. When
+  you touch a slice, migrate its authored shapes into the canon so the projector reproduces
+  them, then delete the block. `gmeow-dev slice-quality slices/<g>/<s>` names every un-backed
+  shape (the `slice-quality.projection.ungrounded-shape` finding of the **Shape Migration**
+  axis); `gmeow-dev shape-equivalence --path slices/<g>/<s>` proves each is reproduced
+  (`EQUIV`) before you delete it. Author the obligation in `module.ttl` with a **reasoner-safe**
+  antecedent — never `owl:cardinality`/`owl:minCardinality`/`owl:maxCardinality`, which are
+  out of the EL fragment and red `make reason-verify`:
+  - at-most-one → declare the property `a owl:FunctionalProperty` (projects `sh:maxCount 1`);
+  - existence → `owl:someValuesFrom <Class>` (projects `sh:class`; the `sh:minCount` is the
+    design's deliberate ValidationOnly under-approximation, credited by the oracle);
+  - class / datatype → `owl:allValuesFrom`; type-disjunction → `owl:unionOf`; faceted range
+    (`[0,1]`) → `owl:onDatatype` + `owl:withRestrictions`; cross-node checks → a `logic:` FOL
+    assertion projected through `crates/pipeline/src/stages/constraint_shapes.rs`.
+  - A genuine ValidationOnly **residue** the fragment cannot express (exactly-N cardinality,
+    node-level `sh:or`/`sh:and`, a bespoke cross-node `sh:sparql`) is *not* deleted: it carries
+    a `logic:formalizes` back-reference naming its canonical `logic:` source, which is what the
+    blanket projection-purity gate legalizes.
 - **Every hard rule maps to exactly one primary gate** with a named, typed failure class —
   the conformance charters (`LOGIC-CONFORMANCE.md` and its `math:`/`lang:` peers) fix the
   gate taxonomy: OWL axiom → SHACL Core → SHACL-SPARQL → source-lint → Rust validator →

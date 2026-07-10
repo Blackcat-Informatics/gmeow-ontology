@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The homomorphicEncryption flagship's worked example: the exact output of the native producer
+# math::producers::additive_he_demo (dogfooded — the worked example IS what the producer emits;
+# the math flagship discharge harness asserts this fixture is graph-isomorphic to the
+# producer's Turtle, so neither can silently drift). A math:HomomorphicEncryptionScheme
+# declaring the operation it is math:homomorphicOver, its math:securityAssumption
+# (math:learningWithErrors), its math:noiseModel, and — as a math:RingHomomorphism — its
+# math:preservedOperation and its math:preservationLaw. The scheme's additive-homomorphic law
+# Dec(Enc(a) ⊕ Enc(b)) = a ⊕ b is verified exactly in the producer. Conforms to
+# math:HomomorphicEncryptionSchemeShape, math:HomomorphismShape, and math:PreservationLawShape.
+# Bound by ex:ecHeSchemeProduced.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix mprod:     <https://blackcatinformatics.ca/gmeow/examples/math/producers/> .
+
+# Flagship 2 — an exact additive-homomorphic encryption scheme.
+# Dec(Enc(a) ⊕ Enc(b)) = a ⊕ b holds exactly over ℤ_q; verified in-code.
+mprod:heScheme a math:HomomorphicEncryptionScheme ;
+    math:homomorphicOver mprod:heAdd ;
+    math:preservedOperation mprod:heAdd ;
+    math:preservationLaw mprod:heLaw ;
+    math:securityAssumption math:learningWithErrors ;
+    math:noiseModel mprod:heNoise .
+
+mprod:heAdd a math:Operation .
+mprod:heLaw a math:Axiom .
+mprod:heNoise a math:MathematicalObject .

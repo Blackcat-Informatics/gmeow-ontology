@@ -45,7 +45,22 @@ gmeow:ContinuityDetermination
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Continuity Determination"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:IdentityContinuityAssessment ;
+    rdfs:subClassOf gmeow:IdentityContinuityAssessment ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:determiningAuthority ;
+            owl:allValuesFrom gmeow:Agent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:determinationForce ;
+            owl:allValuesFrom gmeow:DeterminationForce ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:determinationValidity ;
+            owl:allValuesFrom gmeow:TimeInterval ;
+        ] ;
     skos:definition "An adjudicated continuity verdict made by an authority and binding for action within that authority's frame — a court's, a regulator's, or a governance board's determination that two subject stages are (or are not) the same subject. A logic:SubKind of gmeow:IdentityContinuityAssessment whose vantage IS the deciding authority; it carries the grounds it rests on, its institutional force, and a validity interval, and it is superseded (never erased) on appeal or reversal. It privileges a verdict WITHIN the deciding frame, for action; it does NOT collapse the descriptive plurality globally (Principle 9 stands)."@x-gmeow-english ;
     skos:example "ex:boardRuling a gmeow:ContinuityDetermination ; gmeow:determiningAuthority ex:clinicalGovernanceBoard ; gmeow:continuityVerdict gmeow:continuitySame ; gmeow:determinationForce gmeow:forceBinding ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading a determination as a metaphysical claim that the two stages are UNIVERSALLY the same subject — it is an institutional fact (a Searle status function) real within its deciding frame; and never erase a reversed determination, supersede it with gmeow:supersedes and keep the original on the record (Principle 10)."@x-gmeow-english ;
@@ -73,7 +88,22 @@ gmeow:ControlAssessment
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Control Assessment"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Observation ;
+    rdfs:subClassOf gmeow:Observation ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:controlAgent ;
+            owl:allValuesFrom gmeow:Agent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:controlLevel ;
+            owl:allValuesFrom gmeow:ControlLevel ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:controlInterval ;
+            owl:allValuesFrom gmeow:TimeInterval ;
+        ] ;
     skos:definition "A standpoint-indexed, attributed, dated observation of which agent causally controls a host or embodiment over an interval, to what degree — the agency attribution a consumer needs to answer 'who was driving at T'. A logic:SubKind of gmeow:Observation (which is a logic:Kind, not a situation). Distinct from the deception divergence (held ≠ projected standpoint), which records belief-versus-presentation, not control: a documented similarity, no axiom coupling."@x-gmeow-english ;
     skos:example "ex:controlAtNoon a gmeow:ControlAssessment ; gmeow:controlAgent ex:coTenantA ; gmeow:controlLevel gmeow:controlFull ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid modelling control with the deception slice's heldStandpoint ≠ projectedStandpoint (that is belief-versus-presentation, not causal control), and never introduce a gmeow:primaryInhabitant — precedence among co-tenants is resolved over recorded ControlAssessments, never asserted (Principles 9, 12)."@x-gmeow-english ;
@@ -129,7 +159,22 @@ gmeow:DigitalSubjectTenure
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Digital Subject Tenure"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:tenureSubjectAgent ;
+            owl:allValuesFrom gmeow:Agent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:tenureVantage ;
+            owl:allValuesFrom gmeow:Agent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:tenureSupportedBy ;
+            owl:allValuesFrom gmeow:Observation ;
+        ] ;
     skos:definition "The time-scoped fact that an agent bears the gmeow:DigitalSubject status over an interval, according to a vantage — recording when, and according to whom, the agent is held to be a durable subject. Self-assertion by the agent is the highest-authority supporting claim (Principle 9: a subject's self-assertion outranks any inference about it), but the tenure is a held, attributed, dated fact, not an entailment of any single utterance."@x-gmeow-english ;
     skos:example "ex:lillithDST a gmeow:DigitalSubjectTenure ; gmeow:tenureSubjectAgent ex:lillithBot ; gmeow:tenureVantage ex:lillithBot ; gmeow:tenureSupportedBy ex:lillithSelfClaim ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid closing it with gmeow:hasDestructionEvent — a tenure is a logic:Situation, not an endurant; end it by ending its gmeow:duringInterval. Avoid asserting gmeow:DigitalSubject directly on the bearer; the tenure is the record from which that status is derived."@x-gmeow-english ;
@@ -143,7 +188,17 @@ gmeow:EmbodimentAssignment
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Embodiment Assignment"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:assignmentSubject ;
+            owl:allValuesFrom gmeow:Agent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:assignmentCarrier ;
+            owl:allValuesFrom gmeow:EmbodimentCarrierRole ;
+        ] ;
     skos:definition "The time-scoped fact that a subject acts through a carrier over an interval, with the capabilities that carrier exposes — subject × carrier × interval × capabilities. The suppressible, retirable unit (Principle 10): retiring an assignment ends the surface's use, it does not delete the carrier."@x-gmeow-english ;
     skos:example "ex:phoneUse a gmeow:EmbodimentAssignment ; gmeow:assignmentSubject ex:lillithBot ; gmeow:assignmentCarrier ex:voiceEndpointRole ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid deleting a retired assignment (close its interval and suppress it — Principle 10) and avoid conflating it with the carrier itself: the assignment is the time-scoped USE of a surface, the gmeow:EmbodimentCarrierRole is the surface."@x-gmeow-english ;
@@ -171,7 +226,22 @@ gmeow:IdentityContinuityAssessment
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Identity Continuity Assessment"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:Observation ;
+    rdfs:subClassOf gmeow:Observation ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:assessmentFromStage ;
+            owl:allValuesFrom gmeow:SubjectStage ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:assessmentToStage ;
+            owl:allValuesFrom gmeow:SubjectStage ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:continuityVerdict ;
+            owl:allValuesFrom gmeow:ContinuityVerdict ;
+        ] ;
     skos:definition "A standpoint-indexed, attributed, evidence-grounded observation of whether two subject stages are the same subject — the contestable verdict the anatta/atman debate, a model upgrade, and a cross-vendor fork all require. Carries the two stages, a verdict (same / different / indeterminate), a vantage, evidence, and confidence. Competing verdicts coexist (Principle 9); none is privileged, and 'same' is never collapsed to owl:sameAs."@x-gmeow-english ;
     skos:example "ex:upgrade-verdict a gmeow:IdentityContinuityAssessment ; gmeow:assessmentFromStage ex:stageOpus48 ; gmeow:assessmentToStage ex:stageOpus50 ; gmeow:continuityVerdict gmeow:continuitySame ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting continuity by reusing one RDF node across stages (that already asserts numerical identity) or by owl:sameAs; and never read the ABSENCE of a 'same' verdict as a 'different' verdict — under the open-world assumption absence is silence, so a no-self reading is an ASSERTED refuting verdict, not a gap."@x-gmeow-english ;
@@ -213,7 +283,22 @@ gmeow:InhabitationConfiguration
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Inhabitation Configuration"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:configurationOfTenure ;
+            owl:allValuesFrom gmeow:InhabitationTenure ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:duringInterval ;
+            owl:allValuesFrom gmeow:TimeInterval ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:configurationEmbodiment ;
+            owl:allValuesFrom gmeow:EmbodimentAssignment ;
+        ] ;
     skos:definition "A maximal sub-interval of an inhabitation tenure over which the active configuration is constant — the persona, embodiment(s), deployment, and memory view that held together over that sub-interval. A new configuration opens whenever any facet changes, so the active value of any facet at a time T is read off the configuration whose interval contains T. The invariant 'constant configuration over the interval' is stated and tested, not assumed."@x-gmeow-english ;
     skos:example "ex:configEarly a gmeow:InhabitationConfiguration ; gmeow:configurationOfTenure ex:tenure-1 ; gmeow:configurationEmbodiment ex:phoneUse ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid packing changing facets into one configuration (open a new configuration when any facet changes — the constant-configuration invariant is tested), and avoid minting a typed glue property for an extension-ranged facet: write it through the open gmeow:configurationFacet so a profile mints nothing."@x-gmeow-english ;
@@ -255,7 +340,22 @@ gmeow:InhabitationTenure
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "Inhabitation Tenure"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:inhabitationSubject ;
+            owl:allValuesFrom gmeow:Agent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:inhabitedHost ;
+            owl:allValuesFrom gmeow:Entity ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:inhabitationLocusKind ;
+            owl:allValuesFrom gmeow:InhabitationLocusKind ;
+        ] ;
     skos:definition "The reified, time-scoped fact that a subject stood in an inhabitation relationship with a host over an interval — that S inhabited H during T. A gmeow:TimeScopedRelation (a logic:Situation), carrying its interval via gmeow:duringInterval (Principle 11), with per-branch role-filler edges to the subject and host. It records the relationship's existence over T; the configuration that held within T (persona, embodiment, deployment, memory view) is carried by gmeow:InhabitationConfiguration, because those facets may change while the tenure persists. A logic:Situation, disjoint from a logic:Relator — the earlier draft typing it as both was unsatisfiable in the foundational projection."@x-gmeow-english ;
     skos:example "ex:tenure-1 a gmeow:InhabitationTenure ; gmeow:inhabitationSubject ex:lillithBot ; gmeow:inhabitedHost ex:serverH ; gmeow:duringInterval ex:jan2026 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid typing it as a logic:Relator (a Situation is disjoint from a Relator — the two-typing is unsatisfiable) and avoid closing it with gmeow:hasDestructionEvent (its domain is gmeow:Entity, an endurant) — end its gmeow:duringInterval instead, optionally recording the cause with gmeow:tenureEndedBy."@x-gmeow-english ;
@@ -385,7 +485,8 @@ gmeow:bearsDigitalSubject
         gmeow:boxRBox .
 
 gmeow:configurationEmbodiment
-    a owl:ObjectProperty ;
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
     rdfs:domain gmeow:InhabitationConfiguration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "configuration embodiment"@x-gmeow-english ;
@@ -407,7 +508,8 @@ gmeow:configurationFacet
         gmeow:boxRBox .
 
 gmeow:configurationOfTenure
-    a owl:ObjectProperty ;
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
     rdfs:domain gmeow:InhabitationConfiguration ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
     rdfs:label "configuration of tenure"@x-gmeow-english ;
