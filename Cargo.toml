@@ -214,6 +214,13 @@ opt-level = 1
 # overrides below cannot reach.
 [profile.release]
 lto = "thin"
+# Same no-debug-symbol contract as `[profile.dev]`/`[profile.test]` above: this
+# profile-level setting was previously missing here, so every `--release` build
+# (wheel builds, `cargo run --release`, ad-hoc release binaries) left full
+# symbol tables un-stripped — the identical disk-bloat pattern the dev/test
+# comment above describes, just never closed for this profile. `debug` is
+# already Cargo's release default (no DWARF); `strip` is not.
+strip = "symbols"
 
 # Release/wheel builds: opt-level 3 on nemo's generics is the RAM driver. opt 2
 # keeps ~all the runtime speed; many small codegen units cap per-unit LLVM peak.
@@ -311,6 +318,10 @@ codegen-units = 1
 
 [profile.bench]
 lto = false
+# Same no-debug-symbol contract as `[profile.dev]`/`[profile.test]`/`[profile.release]`
+# above — `bench` does not inherit `[profile.release]`'s settings (Cargo profile
+# overrides are per-profile), so it needs its own `strip` closing the same gap.
+strip = "symbols"
 
 [profile.bench.package.nemo]
 opt-level = 2

@@ -107,12 +107,14 @@ machine fixtures are seeded from.
 | Every glyph of the GMN script carries a canonical "U+XXXX"-style codepoint spelling | SHACL Core + SHACL-SPARQL (`tests/counter-examples/gmn-noncanonical-codepoint.ttl`) | `lang:GmnNonCanonicalCodepoint` |
 | No co-resident confusable pair in the glyph inventory (UTS #39 skeleton rule) | SHACL-SPARQL (`tests/counter-examples/gmn-confusable-glyph.ttl`) | `lang:GmnConfusableGlyph` |
 | One codepoint sequence, one glyph identity per script, unless both readings are sigil-scoped | SHACL-SPARQL (`tests/counter-examples/gmn-glyph-collision.ttl`) | `lang:GmnGlyphCollision` |
-| Every envelope carries its full eight-field contract | SHACL Core (`tests/counter-examples/gmn-envelope-missing-field.ttl`) | `lang:GmnMissingEnvelopeField` |
+| Every envelope carries its full eight-field contract, each field cardinality-pinned (no field missing, none plural) | SHACL Core (`tests/counter-examples/gmn-envelope-missing-field.ttl`, `tests/counter-examples/gmn-envelope-dictionary-version-plural.ttl`) | `lang:GmnMissingEnvelopeField` |
+| No two entries of one `gmeow:GmnDictionary` alias two different terms with the same alias string (the alias table is a bijection over its covered term set, the witness `gmeow:gmnCorrNormalToGmn`'s mnemomorphic claim rests on) | SHACL-SPARQL (`tests/counter-examples/gmn-dictionary-alias-collision.ttl`) | `lang:GmnDictionaryAliasCollision` |
+| Every `gmeow:GmnSecurityRing` carries exactly one `gmeow:gmnRingLevel` and only declared `gmeow:GmnCompartment` values (the authored coordinates the derived `gmeow:gmnRingWithin` lattice reads from) | SHACL Core (`tests/counter-examples/gmn-ring-lattice-malformed.ttl`) | `lang:GmnRingLatticeMalformed` |
 | No mnemomorphic migration over a stronger-than-additive bump; no accept window beyond 1 | SHACL-SPARQL (`tests/counter-examples/gmn-version-overclaim.ttl`) | `lang:GmnVersionOverclaim` |
 | Every compaction names its sources and its holding vantage | SHACL Core (`tests/counter-examples/gmn-compaction-without-provenance.ttl`) | `lang:GmnCompactionWithoutProvenance` |
 | No compaction correspondence stronger than `ValidationOnly` | SHACL-SPARQL (`tests/counter-examples/gmn-compaction-overclaim.ttl`) | `lang:GmnCompactionOverclaim` |
 | Every document token resolves through the pinned dictionary or a named-key ruling | Rust validator (`LANG-GMN.md`, the invalid-uncovered-term block) | `lang:GmnUncoveredTerm` |
-| Records in content-sorted order; keys in generation order (`s p o v q st ev`) | Rust validator (`LANG-GMN.md`, the invalid-key-order block) | `lang:GmnNonCanonicalOrder` |
+| Records in content-sorted order; keys in generation order (`s p o v q st ev m ek`, plus the `@p`-only `bd it`) | Rust validator (`LANG-GMN.md`, the invalid-key-order block) | `lang:GmnNonCanonicalOrder` |
 | Confidences at two fractional digits; no scientific notation; one spelling per value | Rust validator (`LANG-GMN.md`, the invalid-number block) | `lang:GmnMalformedNumber` |
 | No record before the `@gmn` header pins the dialect coordinates | Rust validator (`LANG-GMN.md`, the invalid-missing-header block) | `lang:GmnUndeclaredDialectVersion` |
 | The declared `LL(1)` determinism class survives parse-table construction | Rust validator (the `grammars/gmn.ebnf` exact round-trip lift) | `lang:GmnNonDecodableGrammar` |

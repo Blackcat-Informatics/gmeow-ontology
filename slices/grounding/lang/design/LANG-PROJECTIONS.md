@@ -114,11 +114,19 @@ The token-compact model surface of [`LANG-GMN.md`](LANG-GMN.md): the GMN writer 
 notation (`gmeow:gmnModelNotation`) from the GMN-0 narrow-waist normal form — the forward/put leg,
 registered through this charter's registry like every other target, with its preservation
 **derived** from the executed dialect crossings (`gmeow:gmnCorrNormalToGmn` and kin), never
-declared. **Declared loss.** The GMN-0 → GMN-1 drop list is categorical: full IRIs collapse to
-dictionary aliases, annotation baggage drops, and confidences round to two fractional digits —
-`SoundUnderApproximation`, a lossy lens with no recoverability witness. GMN's declared rate
+declared. **Preservation kind `ExactPreservation`.** The GMN-0 → GMN-1 crossing is a
+section/retraction with a retained mnemomorphic witness: full IRIs invert through the codebook's
+version-pinned, injectivity-gated alias bijection; confidence and annotations ride BY REFERENCE
+(never inlined, never lost). **Enumerated unsupported constructs: none within its covered
+domain.** The declared domain is the ENTIRE GMN-0 normal form; the codec is total over the
+grounding slices' GMN-0 (logic, lang, math) now (hard-fail on any uncovered grounding construct —
+`lang:GmnUncoveredTerm`, never a silent drop), and coverage of every other slice's GMN-0 is a
+measured, gated slice-quality axis (`axisGmn1Coverage`) rather than a silently assumed drop.
+**Round-trip verdict: discharged by execution.** The claim is honest only once the GMN-1
+round-trip gate (a `superset.rs`-style byte-teeth gate over the codec) runs green, exactly as
+`gmeow:gmnCorrNormalToGts` is discharged by the narrow-waist superset gate. GMN's declared rate
 (`gmeow:gmnDeclaredRate`) is the loss ledger's first rate–fidelity instance: a target whose ledger
-row carries not only what the emission drops but the token rate the encoding is contracted to.
+row carries the token rate the encoding is contracted to, now alongside a zero structural-drop set.
 
 ### Wikidata lexemes — the authority surface
 

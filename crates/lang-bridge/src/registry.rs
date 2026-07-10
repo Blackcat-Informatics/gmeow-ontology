@@ -20,8 +20,8 @@
 //! ledger and the `lang:ProjectionEmission` corpus.
 
 use gmeow_logic_compile::ir::{
-    Correspondence, CorrespondenceLaw, CorrespondenceRelation, Determinacy, DischargeVerdict,
-    LawClaimIr, LegPath, MorphismClass, MorphismKind, PreservationKind,
+    Correspondence, CorrespondenceLaw, CorrespondenceRelation, Determinacy, DischargeCondition,
+    DischargeVerdict, LawClaimIr, LegPath, MorphismClass, MorphismKind, PreservationKind,
 };
 pub(crate) use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
@@ -30,6 +30,7 @@ use crate::bcp47::Bcp47Target;
 use crate::bridge::IngestDiagnostic;
 use crate::conllu::ConlluTarget;
 use crate::emit::digest16;
+use crate::gmn1_codec::{Gmn0Model, GmnDictionary, gmn0_canonically_equal, gmn1_read, gmn1_write};
 use crate::grammar::{
     EbnfBridge, Formalism, Grammar, RuleExpr, grammar_correspondence, grammar_leg_pair,
     grammar_to_ntriples, parse_grammar, serialize_grammar,
@@ -152,6 +153,7 @@ pub fn registry() -> Vec<Box<dyn LangProjectionTarget>> {
         Box::new(NifBridge),
         Box::new(SemafBridge),
         Box::new(Bcp47Target),
+        Box::new(Gmn1Target),
     ]
 }
 
@@ -348,6 +350,177 @@ impl LangProjectionTarget for AbnfTarget {
         }
         Ok(emissions)
     }
+}
+
+// ── GMN-1 ────────────────────────────────────────────────────────────────────────
+
+/// The GMN-1 model-notation projection target: registers [`crate::gmn1_codec`] on the
+/// SOLE `lang:` emission seam per `LANG-PROJECTIONS.md` ("a parallel generic transcode
+/// codec beside the registry is ruled out"). Lowers each `lang_models` source's GMN-0
+/// normal form (a `purrdf::RdfDataset` parse of the source Turtle) to GMN-1 text via
+/// [`gmn1_write`], and MEASURES the round-trip via [`gmn1_read`] +
+/// [`gmn0_canonically_equal`] — never declares it.
+///
+/// This target's `emit` NEVER hard-fails on an uncovered construct (unlike a `Bridge`):
+/// `lang_models` here spans EVERY slice's `examples/*.ttl` referencing `lang:` (the
+/// registry's input aBox carries no slice-scoping metadata to filter on), while the
+/// GMN-1 codec's TOTAL-coverage claim (Task 6) is scoped to the grounding slices only —
+/// full coverage of every other slice is the separate, floor-gated `axisGmn1Coverage`
+/// slice-quality axis (Task 7), not this seam. So a source outside the codec's covered
+/// fragment is an honest [`PreservationKind::SoundUnder`] emission enumerating the
+/// uncovered construct — mirroring [`AbnfTarget`]'s non-ABNF-expressible branch — never a
+/// silent drop and never a build-wide hard fail for content outside this task's scope.
+/// The REAL byte-teeth gate behind `gmeow:gmnCorrNormalToGmn`'s `mnemomorphic true`
+/// claim is the dedicated, grounding-scoped round-trip gate wired into
+/// `crates/pipeline/src/stages/gmn1_gate.rs` — this target's job is registration on the
+/// seam and an honest per-source preservation record, not that gate's total-coverage bar.
+struct Gmn1Target;
+
+const GMN1_CORR_BASE: &str = "https://blackcatinformatics.ca/lang/gmn1-correspondence/";
+const GMN1_GET_LEG: &str = "https://blackcatinformatics.ca/lang/gmn1WriteStep";
+
+impl LangProjectionTarget for Gmn1Target {
+    fn name(&self) -> &'static str {
+        "gmn1"
+    }
+
+    fn emit(&self, input: &LangProjectionInput) -> Result<Vec<LangEmission>, IngestDiagnostic> {
+        let mut emissions = Vec::new();
+        for source in &input.lang_models {
+            let Ok(ds) = purrdf::parse_dataset(&source.bytes, "text/turtle", None) else {
+                // A source that fails to parse as Turtle is out of this target's domain
+                // entirely (every OTHER registered target already requires valid Turtle
+                // input from the shared catalog scan) — fold one honest no-source row
+                // rather than treat a parse defect as a codec coverage gap.
+                continue;
+            };
+            let model = Gmn0Model::from_dataset(&ds);
+            let dict = GmnDictionary::from_dataset(&ds).unwrap_or_default();
+
+            let write_result = gmn1_write(&model, &dict);
+            let (exact, artifact_text, unsupported) = match write_result {
+                Ok(doc) => match gmn1_read(&doc, &dict) {
+                    Ok(back) if gmn0_canonically_equal(&model, &back) => {
+                        (true, doc.text, Vec::new())
+                    }
+                    Ok(_) => (
+                        false,
+                        String::new(),
+                        vec!["round-trip canonical mismatch".to_owned()],
+                    ),
+                    Err(e) => (false, String::new(), vec![e.to_string()]),
+                },
+                Err(e) => (false, String::new(), vec![e.to_string()]),
+            };
+
+            let source_iri = format!(
+                "{EXAMPLE_BASE}gmn1-source/{}",
+                digest16("gmn1-source", &source.name)
+            );
+            let mut loss = LossLedger::new();
+            let preservation = if exact {
+                PreservationKind::Exact
+            } else {
+                PreservationKind::SoundUnder
+            };
+            emissions.push(LangEmission {
+                artifacts: if exact {
+                    vec![EmittedArtifact {
+                        path_suffix: format!("gmn1/{}.gmn", source.name),
+                        bytes: artifact_text.into_bytes(),
+                        is_rdf: false,
+                    }]
+                } else {
+                    Vec::new()
+                },
+                correspondence: gmn1_correspondence(exact, &source.name),
+                ledger: vec![emit_ledger_row(
+                    &mut loss,
+                    format!("gmn1:{}", source.name),
+                    String::new(),
+                    false,
+                    preservation,
+                    "n/a".to_owned(),
+                    Vec::new(),
+                    unsupported.clone(),
+                )],
+                loss,
+                leg_pair: exact.then(gmn1_leg_pair),
+                emitted_reading_count: None,
+                source_iri,
+                unsupported,
+                round_trip_holds: exact,
+                lossy_kind: PreservationKind::SoundUnder,
+                source_rdf: Vec::new(),
+            });
+        }
+        Ok(emissions)
+    }
+}
+
+/// The EXACT `logic:Correspondence` a GMN-1 emission carries when its measured
+/// round-trip holds: `logic:SectionRetraction`/`logic:ExactPreservation`, mnemomorphic —
+/// the SAME rung `gmeow:gmnCorrNormalToGmn` declares in the carrier, discharged here by
+/// EXECUTION rather than declared on faith.
+fn gmn1_correspondence(exact: bool, source_key: &str) -> Correspondence {
+    let iri = format!("{GMN1_CORR_BASE}{}", digest16("gmn1-corr", source_key));
+    if exact {
+        let discharged = |law: CorrespondenceLaw| LawClaimIr {
+            law,
+            verdict: DischargeVerdict::ObligationDischarged,
+            condition: Some(DischargeCondition::DischargeSyntacticReachability),
+        };
+        Correspondence::new(
+            iri,
+            CorrespondenceRelation::Subsumes,
+            MorphismClass::SectionRetraction,
+            MorphismKind::InstitutionMorphism,
+            true,
+            Some(Determinacy::Crisp),
+            Some(GMN1_GET_LEG.to_owned()),
+            None,
+            vec![discharged(CorrespondenceLaw::GetPut)],
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some(PreservationKind::Exact),
+        )
+        .expect("exact gmn1 correspondence is well-formed by construction")
+    } else {
+        Correspondence::new(
+            iri,
+            CorrespondenceRelation::RelatedMatch,
+            MorphismClass::LossyLens,
+            MorphismKind::InstitutionMorphism,
+            false,
+            Some(Determinacy::Crisp),
+            Some(GMN1_GET_LEG.to_owned()),
+            None,
+            vec![LawClaimIr {
+                law: CorrespondenceLaw::GetPut,
+                verdict: DischargeVerdict::ObligationUnknown,
+                condition: None,
+            }],
+            None,
+            None,
+            None,
+            None,
+            None,
+            Some(PreservationKind::SoundUnder),
+        )
+        .expect("sound-under gmn1 correspondence is well-formed by construction")
+    }
+}
+
+/// The GMN-1 get/put leg pair — declarative `logic:TransactionProgram` step metadata
+/// (never the executable Rust round-trip itself, which is [`gmn1_write`]/[`gmn1_read`]
+/// in `crate::gmn1_codec`, independently written per that module's own documentation).
+fn gmn1_leg_pair() -> (LegPath, LegPath) {
+    let get = LegPath::Step(GMN1_GET_LEG.to_owned());
+    let put = get.invert();
+    (get, put)
 }
 
 // ── shared helpers ────────────────────────────────────────────────────────────────

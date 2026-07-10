@@ -522,6 +522,31 @@ ex:ecEmbeddingMissingModel a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example names the embedding's source, target, function, and its math:Function frame, but omits the math:embeddingModel (sh:minCount 1 on math:EmbeddingShape); every other role is present, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedEmbedding)." .
 
+# === Filtration, persistence, and stability-calibrated credence ============= #
+
+ex:ecPersistenceCalibratedEmbedding a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/persistence-calibrated-embedding.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Filtration over an embedded image declaring four math:FiltrationStages (each with a math:filtrationThreshold gmeow:Quantity and a math:TopologicalSpace math:stageStructure, nested under math:subsetOf), two math:PersistenceLifetimes exercising both a finite math:diesAt and math:diesAt math:PositiveInfinity, and a math:StabilityCalibrationRecord naming its math:calibrationEvidence, math:persistenceDerivedCredence, and math:bottleneckStabilityTheorem, with the credence landing as logic:confidence on a math:ResidualInterpretationClaim — satisfies math:FiltrationShape, math:FiltrationStageShape, math:PersistenceLifetimeShape, math:StabilityCalibrationRecordShape, math:EmbeddingShape, math:ResidualInterpretationClaimShape, and the inherited math:AlgebraicStructureShape frames, and validates with no findings." .
+
+ex:ecFiltrationNoStages a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/filtration-no-stages.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:Filtration naming its ambient object and index kind but declaring no math:hasFiltrationStage (sh:minCount 1 on math:FiltrationShape); a filtration with no stages is ill-formed, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedFiltration)." .
+
+ex:ecPersistenceLifetimeNoDeath a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/persistence-lifetime-missing-death.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:PersistenceLifetime naming its filtration, feature, and math:bornAt but omitting math:diesAt entirely — not even math:PositiveInfinity (sh:minCount 1 on math:PersistenceLifetimeShape); a lifetime missing its death has no persistence value, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedPersistenceLifetime)." .
+
+ex:ecStabilityCalibrationNoEvidence a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/stability-calibration-missing-evidence.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:StabilityCalibrationRecord naming its math:credenceDerivationKind and math:stabilityGuarantee but omitting math:calibrationEvidence (sh:minCount 1 on math:StabilityCalibrationRecordShape); a calibrated credence with no persistence evidence is unwarranted, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UngroundedStabilityCalibration)." .
+
 # === Tensor computation graph reuses the expression AST ===================== #
 
 ex:ecTensorGraphFramed a gmeow:ExampleConformance ;

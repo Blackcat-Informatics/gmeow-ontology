@@ -16,13 +16,35 @@
 //! that would be unwound the next rung.
 #![allow(dead_code)]
 
+// The phase-scoped row/tuple bump arena: a genuinely resettable
+// per-round argument-tuple buffer, distinct from the persistent term arena
+// (`facts::TermInterner`). Consumed by the semi-naive fixpoint (`seminaive`).
+mod arena;
 mod binding_pattern;
+// The dense `u64`-word delta bitset: row-id membership over the
+// phase-scoped value column. It is the delta probe of the semi-naive fixpoint
+// (`seminaive`) and the ternary reduct engine (`crate::rule_ir`) — one word test per
+// selected row, no hashing. `pub(crate)` (like `id`) so the sibling `rule_ir` module
+// reuses the SAME `DenseBitset` for its own row-index delta (one definition, greenfield).
+pub(crate) mod bitset;
 mod builtin_eval;
 mod chase;
+// The arrangement's native galloping lending cursor: a sealed
+// GAT `LendingIterator` over row-id-ordered runs, replacing the materialized per-stage
+// `Vec<(TermId, TermId, RowId)>` on the semi-naive join hot path (`seminaive`, `chase`).
+mod cursor;
 mod generic;
+// Branded niche IDs for every engine entity class (`TermId`/`PredId`/`RuleId`/
+// `RowId`). `pub(crate)` so `crate::facts` can re-express its `TermId` as this
+// module's `Id<Term>` alias (one definition, not two — greenfield).
+pub(crate) mod id;
 mod magic;
 mod magic_generic;
 mod parity;
+// The consuming type-state plan pipeline: `Parsed → Stratified →
+// Planned → Executable`. Makes an unstratified/unplanned program unrepresentable at the
+// semi-naive executor boundary and memoizes the stratification + per-rule join partition.
+mod plan;
 mod seminaive;
 mod store;
 
@@ -47,6 +69,11 @@ pub(crate) use generic::{
 #[allow(unused_imports)]
 pub(crate) use store::{Bound, RelationStore, extract_edb};
 
+// The arrangement's native lending cursor + its sealed GAT trait: the zero-alloc row
+// scan consumed by the semi-naive join (`seminaive`) and the chase (`chase`).
+#[allow(unused_imports)]
+pub(crate) use cursor::{LendingIterator, RowCursor};
+
 // The forward native evaluator: the stratified semi-naive core, its
 // `RelationStore`-seeded backward entry, and the declared-gap outcome. `materialize_native`
 // + `NativeOutcome` are the primary forward path consumed by `materialize::materialize_routed`;
@@ -55,6 +82,14 @@ pub(crate) use store::{Bound, RelationStore, extract_edb};
 pub(crate) use seminaive::{
     Budgeted, NativeOutcome, UnsupportedKind, evaluate, materialize_native,
 };
+
+// The type-state plan pipeline: the executor's entry-gate types. `Parsed` is the sole
+// entry; `Executable` is the sole type the forward/backward evaluators accept. The
+// intermediate `Stratified`/`Planned` are re-exported so a caller can name a stage if it
+// chooses, though the fluent `Parsed::new(..).stratify()?.plan().into_executable()` chain
+// never needs to.
+#[allow(unused_imports)]
+pub(crate) use plan::{Executable, Parsed, Planned, Stratified};
 
 // The native restricted (standard) existential-rule chase: value invention for the
 // existential fragment, admitted by the `ChaseAdmission` termination certificate and

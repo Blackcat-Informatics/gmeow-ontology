@@ -211,6 +211,41 @@ pub fn evaluate_ratchet(
     RatchetVerdict::Pass
 }
 
+/// The verdict for one slice's PER-AXIS committed-floor check — distinct from
+/// and additional to [`RatchetVerdict`]'s roll-up-tier ratchet. A
+/// per-axis floor gates one axis's raw MEASURED score directly (never a tier), so a
+/// grounding slice cannot clear the gate on `axisGmn1Coverage < 1.0` regardless of
+/// its other axes' scores or its own roll-up tier.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AxisRatchetVerdict {
+    /// The measured score meets or exceeds the committed floor.
+    Pass,
+    /// The measured score has fallen below the committed floor (a regression).
+    MeasuredBelowFloor,
+}
+
+impl AxisRatchetVerdict {
+    /// Whether this verdict fails the gate.
+    #[must_use]
+    pub fn is_failure(self) -> bool {
+        !matches!(self, Self::Pass)
+    }
+}
+
+/// Evaluate one axis's committed-floor check: `Pass` iff `measured >= floor`, a pure
+/// comparator with no new scoring path — the caller supplies both the measured
+/// `gmeow:AxisGrade.score` and the floor resolved from `governance/
+/// slice-quality-axis-floors.tsv` (defaulting to `1.0` for a grounding slice absent
+/// from the file — see the caller in `gmeow-dev-cli`'s `slice_quality_gate`).
+#[must_use]
+pub fn evaluate_axis_floor(measured: f64, floor: f64) -> AxisRatchetVerdict {
+    if measured + f64::EPSILON >= floor {
+        AxisRatchetVerdict::Pass
+    } else {
+        AxisRatchetVerdict::MeasuredBelowFloor
+    }
+}
+
 /// The `gmeow:sliceQualityTier` a slice's `manifest.ttl` declares, resolved against
 /// the rubric's ladder — `None` when the slice has not opted in.
 ///
@@ -389,6 +424,21 @@ mod tests {
             errs.iter().any(|e| e.contains("empty/whitespace reason")),
             "empty exemption reason must red: {errs:#?}"
         );
+    }
+
+    #[test]
+    fn axis_floor_pass_and_fail() {
+        // Exactly at the floor passes.
+        assert_eq!(evaluate_axis_floor(1.0, 1.0), AxisRatchetVerdict::Pass);
+        // Above the floor passes.
+        assert_eq!(evaluate_axis_floor(0.99, 0.5), AxisRatchetVerdict::Pass);
+        // Below the floor fails — a real regression.
+        assert_eq!(
+            evaluate_axis_floor(0.90, 1.0),
+            AxisRatchetVerdict::MeasuredBelowFloor
+        );
+        assert!(evaluate_axis_floor(0.90, 1.0).is_failure());
+        assert!(!evaluate_axis_floor(1.0, 1.0).is_failure());
     }
 
     #[test]

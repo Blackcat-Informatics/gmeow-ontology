@@ -67,6 +67,48 @@ Homotopy and homology give the algebraic-topology bridge (a
 Little external ontology exists — the content is in prover libraries (mathlib, Isabelle/AFP), so the
 depth is **authored** and **cited**.
 
+### Persistent homology — filtrations, lifetimes, and stability
+
+Core classes: `math:Filtration`, `math:FiltrationStage`, and `math:PersistenceLifetime`.
+
+Core properties: `math:hasFiltrationStage`, `math:filtrationThreshold`, `math:stageStructure`,
+`math:filtrationIndexKind`, `math:filtrationAmbient`, `math:overFiltration`, `math:persistenceFeature`,
+`math:bornAt`, and `math:diesAt`.
+
+A `math:Filtration` is a monotone family of substructures of an ambient object indexed by a real-valued
+threshold ε: each `math:FiltrationStage` pairs a `math:filtrationThreshold` (a `gmeow:Quantity`) with
+the `math:stageStructure` present at it (a `math:TopologicalSpace`), and for thresholds ε₁ ≤ ε₂ the
+stage at ε₁ is contained in the stage at ε₂. The containment is the **existing** transitive
+`math:subsetOf`, not a new order relation; the nesting law that ε₁ ≤ ε₂ *entails* containment is
+authored as the first-order `logic:Formula` `math:filtrationMonotonicityLaw`, a sibling of
+`math:continuityLaw` and `math:connectednessLaw` over the reified stage/threshold/structure signature.
+The SHACL gate enforces only structural presence (a filtration has stages; each stage has a threshold
+and a structure) — monotonicity is a law, not a shape, exactly as for the separation axioms.
+
+A `math:PersistenceLifetime` is the birth–death interval of one topological feature — a
+`math:HomologyGroup` generator, a hole of some dimension — across a filtration: it names the filtration
+(`math:overFiltration`), the feature (`math:persistenceFeature`), the threshold the feature appears at
+(`math:bornAt`, a `gmeow:Quantity`), and the threshold it disappears at (`math:diesAt`). Its persistence
+is death − birth: a long-lived feature is signal, a short-lived one is noise. An **essential** feature
+never dies within the filtration, so its `math:diesAt` is the individual `math:PositiveInfinity` rather
+than a finite threshold — the same extended-real range `math:totalMass` carries, which is why
+`math:diesAt` is a bare `rdf:Property` (its range spans a finite quantity individual and
+`math:PositiveInfinity`, and neither DL property kind admits both).
+
+The bedrock stability result is the **bottleneck stability theorem** (`math:bottleneckStabilityTheorem`,
+a `math:Theorem` held under `math:computationalTopologyTheory` and warranted by
+`math:cohenSteinerEdelsbrunnerHarer2007`): for tame functions *f*, *g* on a common space, the bottleneck
+distance between their persistence diagrams satisfies d\_B(Dgm(*f*), Dgm(*g*)) ≤ ‖*f* − *g*‖\_∞ — the
+persistence-diagram map is 1-Lipschitz. Its kept corollary (correct by the triangle inequality on the
+two independently-bounded endpoints, |Δbirth| ≤ δ and |Δdeath| ≤ δ ⇒ |Δ(death − birth)| ≤ 2δ) is that a
+feature's persistence value can shift by at most 2‖*f* − *g*‖\_∞ under such a perturbation. No
+Wasserstein-distance bound is asserted: it needs extra hypotheses this statement does not verify. This
+theorem is what turns the persistence of a feature into a *warranted* credence
+([`MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md`](MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md)), the
+persistence-calibration surface that lands as `logic:confidence` on a latent-meaning claim. Like the
+rest of the topology depth, the content is authored and cited (mathlib/AFP; Edelsbrunner–Harer,
+*Computational Topology*).
+
 ## Differential geometry and manifolds
 
 Core classes: `math:Manifold`, `math:SmoothManifold`, `math:ComplexManifold`,

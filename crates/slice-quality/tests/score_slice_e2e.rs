@@ -15,12 +15,16 @@ fn repo_root() -> PathBuf {
 }
 
 #[test]
-fn scores_the_rubric_slice_across_all_twelve_axes() {
+fn scores_the_rubric_slice_across_all_thirteen_axes() {
     let root = repo_root();
     let dir = root.join("slices/core/slice-quality-rubric");
     let report = score_slice(&root, &dir).expect("the rubric slice scores");
 
-    assert_eq!(report.assessment.grades.len(), 12, "all twelve axes graded");
+    assert_eq!(
+        report.assessment.grades.len(),
+        13,
+        "all thirteen axes graded"
+    );
     assert!(
         !report.rollup_label().is_empty(),
         "a roll-up tier is assigned"
@@ -123,8 +127,8 @@ fn scores_the_logic_slice_green_vs_advisory() {
     let report = score_slice(&root, &dir).expect("the logic slice scores");
     assert_eq!(
         report.assessment.grades.len(),
-        12,
-        "all twelve axes graded on logic"
+        13,
+        "all thirteen axes graded on logic"
     );
     assert!(report.to_report().ok(), "advisory only");
 }

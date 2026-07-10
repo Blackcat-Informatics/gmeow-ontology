@@ -4102,6 +4102,291 @@ math:latentDimensionOf
     skos:definition "Relates a math:EmbeddingDimension to the math:LatentSpace it is an axis of. Domain math:EmbeddingDimension, range math:LatentSpace (stated in prose). Names which latent space a dimension belongs to; its meaning remains a vantage-held claim."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- Filtrations, persistence, and stability-calibrated credence ------------- #
+# The topological read of an embedding: filter the embedded image by a real-valued
+# threshold, watch which features (math:HomologyGroup generators) are born and die
+# across the filtration, and turn the PERSISTENCE of a feature — how long it survives
+# — into a calibrated logic:confidence on a latent-meaning claim. This is the
+# topological sibling of the status-quo embedding-similarity signal: the credence a
+# latent direction MEANS something can be derived from nearest-neighbour similarity
+# (math:similarityDerivedCredence) OR from the persistence of the topological feature
+# that direction realizes (math:persistenceDerivedCredence). The calibration is not a
+# free number: the Cohen-Steiner–Edelsbrunner–Harer stability theorem
+# (math:bottleneckStabilityTheorem) bounds how much a persistence diagram can move
+# under a perturbation of the underlying function, so a persistence-derived credence is
+# a warranted quantity, not a heuristic. Filtration classes reuse math:TopologicalSpace
+# and math:HomologyGroup from the topology charter and math:subsetOf for the nesting;
+# the credence rides the SAME math:ResidualInterpretationClaim surface the PCA-of-
+# residuals flagship uses, carrying logic:confidence (never logic:probability).
+
+math:Filtration
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Filtration"@x-gmeow-english ;
+    skos:definition "A filtration (Kε): a monotone family of substructures of an ambient object indexed by a real-valued threshold ε, such that a smaller threshold's structure is contained in a larger one's — for thresholds ε₁ ≤ ε₂ the stage at ε₁ satisfies Kε₁ math:subsetOf Kε₂ (the containment is the EXISTING transitive math:subsetOf, not a new order relation). A subclass of math:MathematicalObject. It names the object it filters through math:filtrationAmbient, the index quantity kind through math:filtrationIndexKind (the dimension the threshold ε ranges over — a distance/scale/density), and its stages through math:hasFiltrationStage, each a math:FiltrationStage pairing a threshold with the substructure present at it. The nesting law that ε₁ ≤ ε₂ entails containment is authored as the first-order logic:Formula math:filtrationMonotonicityLaw; the SHACL gate enforces only the structural presence of stages (a filtration naming no stage, or a stage missing its threshold or structure, is ill-formed, math:UnderspecifiedFiltration). The persistence of a feature across a filtration is a math:PersistenceLifetime."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:FiltrationStage
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Filtration Stage"@x-gmeow-english ;
+    skos:definition "One stage of a math:Filtration: a (threshold, substructure) cell naming the real-valued threshold ε it sits at through math:filtrationThreshold (a gmeow:Quantity) and the substructure present at that threshold through math:stageStructure (a math:TopologicalSpace — the sub-space Kε of the ambient object at ε). A subclass of math:MathematicalObject; a filtration names its stages through math:hasFiltrationStage. Stages are ordered by their thresholds, and the monotonicity law math:filtrationMonotonicityLaw requires the structure at a lower threshold to be a math:subsetOf the structure at a higher one. A stage missing its threshold or its structure is ill-formed (math:UnderspecifiedFiltration)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PersistenceLifetime
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Persistence Lifetime"@x-gmeow-english ;
+    skos:definition "The birth–death interval of a single topological feature across a math:Filtration: the range of thresholds over which one math:HomologyGroup generator (a hole of some dimension) exists. A subclass of math:MathematicalObject. It names the filtration it is read over through math:overFiltration, the feature it tracks through math:persistenceFeature (a math:HomologyGroup generator), the threshold at which the feature appears through math:bornAt (a gmeow:Quantity), and the threshold at which it disappears through math:diesAt. Its persistence value is death − birth; a long-lived feature is signal, a short-lived one is noise. An ESSENTIAL feature never dies within the filtration, so its math:diesAt is the individual math:PositiveInfinity rather than a finite threshold — exactly as math:totalMass ranges over a finite value or math:PositiveInfinity, which is why math:diesAt is a bare rdf:Property. A lifetime missing its birth or death is ill-formed (math:UnderspecifiedPersistenceLifetime)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CredenceDerivationKind
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Credence Derivation Kind"@x-gmeow-english ;
+    skos:definition "The kind of evidence a credence on a latent-meaning claim is derived from — the axis that names WHICH signal produced a logic:confidence. A value vocabulary (individuals, never subclasses): its two members are math:similarityDerivedCredence (credence from embedding-space similarity/nearest-neighbour search, the status-quo signal) and math:persistenceDerivedCredence (credence from the topological persistence of the feature the latent direction realizes, warranted by math:bottleneckStabilityTheorem). A math:StabilityCalibrationRecord names exactly one through math:credenceDerivationKind, so which evidence a confidence rests on is queryable rather than implicit. Minting the axis with BOTH siblings — rather than a lone persistence individual — keeps the two credence sources one system, not two parallel ones."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:similarityDerivedCredence
+    a owl:NamedIndividual , math:CredenceDerivationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "similarity-derived credence"@x-gmeow-english ;
+    skos:definition "The credence-derivation kind naming the status-quo signal: a confidence derived from similarity in the embedding space — nearest-neighbour retrieval, cosine similarity, or clustering density in a math:LatentSpace. It is a geometric proximity signal, calibrated against distances rather than topological survival; the sibling math:persistenceDerivedCredence derives the same kind of confidence from the persistence of a topological feature instead."@x-gmeow-english .
+
+math:persistenceDerivedCredence
+    a owl:NamedIndividual , math:CredenceDerivationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "persistence-derived credence"@x-gmeow-english ;
+    skos:definition "The credence-derivation kind naming the topological signal: a confidence derived from the math:PersistenceLifetime of a feature across a math:Filtration — how long a math:HomologyGroup generator survives (death − birth) is turned into a logic:confidence on the latent-meaning claim that feature supports. Unlike a bare heuristic, this credence is warranted: the Cohen-Steiner–Edelsbrunner–Harer bottleneck stability theorem (math:bottleneckStabilityTheorem) bounds how far the persistence diagram — and hence the derived credence — can move under a perturbation of the underlying function, which is what a math:StabilityCalibrationRecord records. The topological sibling of math:similarityDerivedCredence over the same math:ResidualInterpretationClaim surface."@x-gmeow-english .
+
+math:computationalTopologyTheory
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "computational topology (persistence theory)"@x-gmeow-english ;
+    skos:definition "The named, versioned theory context under which math:bottleneckStabilityTheorem holds its theorem role: the theory of persistent homology and its stability results as developed in computational topology (Edelsbrunner–Harer, Computational Topology: An Introduction, and the stability line originating with Cohen-Steiner–Edelsbrunner–Harer 2007). A theorem's status is theory-relative (math:roleInTheory), so the stability bound is stated as a theorem IN this theory, never as an unconditional global truth bit."@x-gmeow-english .
+
+math:cohenSteinerEdelsbrunnerHarer2007
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cohen-Steiner, Edelsbrunner & Harer (2007), Stability of Persistence Diagrams"@x-gmeow-english ;
+    skos:definition "The external warrant standing in for an in-graph math:Proof of math:bottleneckStabilityTheorem: Cohen-Steiner, D., Edelsbrunner, H., & Harer, J. (2007). Stability of Persistence Diagrams. Discrete & Computational Geometry, 37(1), 103–120. The published proof that the persistence-diagram map is 1-Lipschitz in the bottleneck distance — the attested basis on which the theorem discharges the theorem-is-not-a-truth-bit gate."@x-gmeow-english .
+
+math:bottleneckStabilityTheorem
+    a math:Theorem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "bottleneck stability of persistence diagrams"@x-gmeow-english ;
+    math:statementRole math:roleTheorem ;
+    math:roleInTheory math:computationalTopologyTheory ;
+    math:externalWarrant math:cohenSteinerEdelsbrunnerHarer2007 ;
+    skos:definition "The bottleneck stability theorem for persistence diagrams (Cohen-Steiner–Edelsbrunner–Harer 2007): for tame real-valued functions f, g on a common topological space, the bottleneck distance between their persistence diagrams is bounded by the supremum-norm distance of the functions — d_B(Dgm(f), Dgm(g)) ≤ ‖f − g‖_∞ — i.e. the persistence-diagram map is 1-Lipschitz. A math:Theorem held under math:computationalTopologyTheory (math:roleInTheory) and warranted by the published proof (math:externalWarrant math:cohenSteinerEdelsbrunnerHarer2007), so its theorem-hood is a theory-scoped, warranted role, not a truth bit read off the type. Corollary (kept, and correct by the triangle inequality on the two independently-bounded endpoints): a single feature's persistence value, death − birth, can shift by at most 2‖f − g‖_∞ under such a perturbation, since |Δbirth| ≤ ‖f − g‖_∞ and |Δdeath| ≤ ‖f − g‖_∞ give |Δ(death − birth)| ≤ 2‖f − g‖_∞. This is the guarantee a math:StabilityCalibrationRecord cites through math:stabilityGuarantee to warrant a math:persistenceDerivedCredence. (No Wasserstein-distance bound is asserted here: the Wasserstein stability of persistence diagrams needs extra tameness/finiteness hypotheses that this statement does not verify, so it is deliberately left out.)"@x-gmeow-english .
+
+math:UnderspecifiedFiltration
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Filtration"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Filtration or one of its stages is not structurally complete: a filtration declaring no math:hasFiltrationStage, or a math:FiltrationStage missing its math:filtrationThreshold or its math:stageStructure. A filtration is a family of substructures indexed by a threshold; one without stages, or a stage that names neither where it sits nor what is present there, is ill-formed. This gate enforces STRUCTURAL PRESENCE only — the monotonicity of the family (ε₁ ≤ ε₂ ⇒ containment) is carried by the first-order law math:filtrationMonotonicityLaw, not by this SHACL gate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnderspecifiedPersistenceLifetime
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Persistence Lifetime"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:PersistenceLifetime does not declare both endpoints of its birth–death interval: it is missing its math:bornAt (the threshold the feature appears at) or its math:diesAt (the threshold it disappears at — a finite gmeow:Quantity, or math:PositiveInfinity for an essential feature that never dies within the filtration). A lifetime is the interval death − birth; one missing either endpoint has no persistence value and is ill-formed. Omitting math:diesAt entirely is a violation even for an essential feature — the death must be stated as math:PositiveInfinity, never left absent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UngroundedStabilityCalibration
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ungrounded Stability Calibration"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:StabilityCalibrationRecord does not carry the evidence and warrant a calibrated credence rests on: it is missing its math:calibrationEvidence (the math:PersistenceLifetime whose persistence produced the credence), its math:credenceDerivationKind (which signal the credence derives from), or its math:stabilityGuarantee (the theorem bounding how far the persistence — and hence the credence — can move under perturbation). A persistence-derived credence with no evidence, no declared derivation kind, or no stability guarantee is an unwarranted number rather than a calibrated one, and is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:StabilityCalibrationRecord
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Stability Calibration Record"@x-gmeow-english ;
+    skos:definition "The derivation record that warrants a credence: it ties the persistence evidence, the derivation kind, and the stability guarantee to the logic:confidence a latent-meaning claim carries. A subclass of math:MathematicalObject naming its evidence through math:calibrationEvidence (a math:PersistenceLifetime), the kind of credence it produces through math:credenceDerivationKind (typically math:persistenceDerivedCredence), and the theorem underwriting the calibration through math:stabilityGuarantee (math:bottleneckStabilityTheorem — the bottleneck bound that a small perturbation of the underlying function moves the persistence, and hence the credence, by a bounded amount). The credence itself lands on the held claim, a math:ResidualInterpretationClaim carrying logic:confidence (never logic:probability); the claim references the record through gmeow:wasDerivedFrom, so a consumer can trace a confidence back to the filtration, the birth/death thresholds, and the guarantee that calibrated it. A record missing its evidence, derivation kind, or guarantee is ill-formed (math:UngroundedStabilityCalibration)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:hasFiltrationStage
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has filtration stage"@x-gmeow-english ;
+    skos:definition "Relates a math:Filtration to one of its math:FiltrationStage cells — a (threshold, substructure) pair of the indexed family. Domain math:Filtration, range math:FiltrationStage (stated in prose). A filtration is given by its stages; one declaring no stage is ill-formed (math:UnderspecifiedFiltration)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:filtrationThreshold
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "filtration threshold"@x-gmeow-english ;
+    skos:definition "Relates a math:FiltrationStage to the real-valued threshold ε it sits at — the index value of the stage in the filtration. Domain math:FiltrationStage, range gmeow:Quantity (stated in prose). Every stage names exactly one; a stage without its threshold is ill-formed (math:UnderspecifiedFiltration). The monotonicity law math:filtrationMonotonicityLaw orders stages by this threshold."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:stageStructure
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "stage structure"@x-gmeow-english ;
+    skos:definition "Relates a math:FiltrationStage to the substructure present at its threshold — the sub-space Kε of the filtered object at ε. Domain math:FiltrationStage, range math:TopologicalSpace (stated in prose). Every stage names exactly one; a stage without its structure is ill-formed (math:UnderspecifiedFiltration). The structure at a lower threshold is a math:subsetOf the structure at a higher one (math:filtrationMonotonicityLaw)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:filtrationIndexKind
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "filtration index kind"@x-gmeow-english ;
+    skos:definition "Relates a math:Filtration to the quantity kind its threshold ε ranges over — the dimension of the index, such as a distance/scale (a math:Dimension) for a Vietoris–Rips or Čech filtration or a density for a sublevel-set filtration. Domain math:Filtration, range a math:Dimension or quantity kind (stated in prose). Names what the threshold measures, so two filtrations' thresholds are only comparable when their index kinds agree."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:filtrationAmbient
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "filtration ambient"@x-gmeow-english ;
+    skos:definition "Relates a math:Filtration to the ambient object it filters — the point cloud, embedded image, or space whose substructures the stages are. Domain math:Filtration, range math:MathematicalObject (stated in prose, e.g. the image of a math:Embedding into a math:LatentSpace). The object the family of substructures lives in."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:overFiltration
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "over filtration"@x-gmeow-english ;
+    skos:definition "Relates a math:PersistenceLifetime to the math:Filtration it is read over — the indexed family across which the feature is born and dies. Domain math:PersistenceLifetime, range math:Filtration (stated in prose). A lifetime is always relative to a filtration; its birth and death thresholds are index values of that filtration."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:persistenceFeature
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "persistence feature"@x-gmeow-english ;
+    skos:definition "Relates a math:PersistenceLifetime to the topological feature it tracks — a math:HomologyGroup generator (a connected component, loop, or higher-dimensional void) whose birth and death the lifetime records. Domain math:PersistenceLifetime, range math:HomologyGroup (stated in prose). The feature whose survival across the filtration is the persistence signal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:bornAt
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "born at"@x-gmeow-english ;
+    skos:definition "Relates a math:PersistenceLifetime to the threshold at which its feature appears in the filtration — the birth ε of the feature. Domain math:PersistenceLifetime, range gmeow:Quantity (stated in prose). Every lifetime names exactly one birth; a lifetime without it is ill-formed (math:UnderspecifiedPersistenceLifetime). Birth is always a finite threshold (a feature is born when it first appears); the death (math:diesAt) may be finite or math:PositiveInfinity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:diesAt
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "dies at"@x-gmeow-english ;
+    skos:definition "Relates a math:PersistenceLifetime to the threshold at which its feature disappears — the death ε of the feature, or math:PositiveInfinity for an ESSENTIAL feature that never dies within the filtration. Domain math:PersistenceLifetime, range a gmeow:Quantity (the finite death threshold) or the individual math:PositiveInfinity (stated in prose). It is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a finite quantity individual and the extended-real math:PositiveInfinity — the same extended-real modelling math:totalMass uses, so the honest RDF supertype carries both without a DL contradiction. A lifetime missing its death entirely is ill-formed (math:UnderspecifiedPersistenceLifetime): even an essential feature must state math:PositiveInfinity rather than omit the death."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:credenceDerivationKind
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "credence derivation kind"@x-gmeow-english ;
+    skos:definition "Relates a math:StabilityCalibrationRecord to the math:CredenceDerivationKind it produces — math:similarityDerivedCredence or math:persistenceDerivedCredence. Domain math:StabilityCalibrationRecord, range math:CredenceDerivationKind (stated in prose). Every record names exactly one, so which signal a calibrated logic:confidence rests on is queryable; a record without it is ill-formed (math:UngroundedStabilityCalibration)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:calibrationEvidence
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "calibration evidence"@x-gmeow-english ;
+    skos:definition "Relates a math:StabilityCalibrationRecord to the math:PersistenceLifetime whose persistence (death − birth) produced the calibrated credence — the evidence the confidence rests on. Domain math:StabilityCalibrationRecord, range math:PersistenceLifetime (stated in prose). Every record names at least one; a record with no evidence is an unwarranted number and is ill-formed (math:UngroundedStabilityCalibration)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:stabilityGuarantee
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "stability guarantee"@x-gmeow-english ;
+    skos:definition "Relates a math:StabilityCalibrationRecord to the math:Theorem underwriting its calibration — the stability result bounding how far the persistence, and hence the derived credence, can move under a perturbation of the underlying function (math:bottleneckStabilityTheorem, the 1-Lipschitz bottleneck bound). Domain math:StabilityCalibrationRecord, range math:Theorem (stated in prose). The warrant that turns a persistence-derived credence from a heuristic into a bounded quantity; a record without it is ill-formed (math:UngroundedStabilityCalibration)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Reified relation atoms for the filtration-monotonicity law (HiLog) ------ #
+
+math:hasFiltrationStageRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "hasStage(K,s) ⟺ s is a stage of filtration K"@x-gmeow-english ;
+    rdfs:seeAlso math:hasFiltrationStage ;
+    skos:definition "The HiLog reflection of stage membership as a binary relation individual, so the filtration-monotonicity law can predicate 's is a stage of K' inside a logic:Formula atom. Reflects the existing math:hasFiltrationStage declaration (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:filtrationThresholdRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "thresholdOf(s,e) ⟺ stage s sits at threshold e"@x-gmeow-english ;
+    rdfs:seeAlso math:filtrationThreshold ;
+    skos:definition "The HiLog reflection of a stage's threshold as a binary relation individual, so the filtration-monotonicity law can predicate 'stage s sits at threshold e' inside a logic:Formula atom. Reflects the existing math:filtrationThreshold declaration (rdfs:seeAlso)."@x-gmeow-english .
+
+math:stageStructureRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "structureOf(s,A) ⟺ stage s carries substructure A"@x-gmeow-english ;
+    rdfs:seeAlso math:stageStructure ;
+    skos:definition "The HiLog reflection of a stage's substructure as a binary relation individual, so the filtration-monotonicity law can predicate 'stage s carries substructure A' inside a logic:Formula atom. Reflects the existing math:stageStructure declaration (rdfs:seeAlso)."@x-gmeow-english .
+
+math:thresholdOrderRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "leq(e1,e2) ⟺ ε₁ ≤ ε₂ on the index"@x-gmeow-english ;
+    skos:definition "The threshold-order relation the filtration-monotonicity law quantifies over: leq(e1,e2) holds exactly when ε₁ ≤ ε₂ in the filtration's real-valued index. A binary HiLog relation individual over which the law states 'a smaller threshold's structure is contained in a larger one's'; no first-class asserted property is minted, because the order is the numeric order on the index quantity, a derived comparison rather than authored data."@x-gmeow-english .
+
+math:subsetRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "subset(A,B) ⟺ A ⊆ B"@x-gmeow-english ;
+    rdfs:seeAlso math:subsetOf ;
+    skos:definition "The HiLog reflection of containment as a binary relation individual in the natural subset order, so the filtration-monotonicity law can state its consequent 'A ⊆ B' inside a logic:Formula atom. Reflects the existing transitive math:subsetOf declaration (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+# --- Law: filtration monotonicity — ε₁ ≤ ε₂ entails containment -------------- #
+# ∀K,s1,s2,e1,e2,A,B: hasStage(K,s1) ∧ hasStage(K,s2) ∧ thresholdOf(s1,e1)
+#   ∧ thresholdOf(s2,e2) ∧ structureOf(s1,A) ∧ structureOf(s2,B) ∧ leq(e1,e2)
+#   → subset(A,B)
+# The defining law of a math:Filtration, authored as a first-order logic:Formula
+# exactly as math:continuityLaw and math:connectednessLaw author their hard laws.
+# It is the monotonicity a filtration preserves: the substructure at a lower
+# threshold is contained in the substructure at a higher one. The SHACL gate
+# enforces only the structural presence of stages (math:UnderspecifiedFiltration);
+# this law carries the ordering content that a presence gate cannot express.
+
+math:filtrationMonotonicityLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "filtration monotonicity: a smaller threshold's structure is contained in a larger one's"@x-gmeow-english ;
+    skos:definition "The defining law of a math:Filtration as a universally-quantified first-order logic:Formula over the reified stage/threshold/structure signature: for a filtration K with stages s₁ and s₂ at thresholds ε₁ and ε₂ carrying substructures A and B, if ε₁ ≤ ε₂ then A math:subsetOf B. math: expresses the law; logic: owns reasoning over it. It is the monotonicity a filtration carries — the family of substructures grows with the threshold — and it is the ordering content the structural presence gate (math:UnderspecifiedFiltration) cannot express, so it is authored as a real law rather than left implicit. A sibling of math:continuityLaw and math:connectednessLaw in the same first-order style."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "K" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "s1" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "s2" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "e1" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "e2" ] ,
+        [ logic:termIndex 5 ; logic:termVariable "A" ] ,
+        [ logic:termIndex 6 ; logic:termVariable "B" ] ;
+    logic:forall math:filtrationMonotonicityImpl .
+
+math:filtrationMonotonicityImpl a logic:Formula ;
+    logic:antecedent math:filtrationMonotonicityAnte ;
+    logic:consequent math:filtrationMonotonicityCons .
+
+math:filtrationMonotonicityAnte a logic:Formula ;
+    logic:and math:fmA1 , math:fmA2 , math:fmA3 , math:fmA4 , math:fmA5 , math:fmA6 , math:fmA7 .
+
+math:fmA1 a logic:Formula ; logic:relation math:hasFiltrationStageRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "K" ] , [ logic:termIndex 1 ; logic:termVariable "s1" ] .
+math:fmA2 a logic:Formula ; logic:relation math:hasFiltrationStageRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "K" ] , [ logic:termIndex 1 ; logic:termVariable "s2" ] .
+math:fmA3 a logic:Formula ; logic:relation math:filtrationThresholdRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s1" ] , [ logic:termIndex 1 ; logic:termVariable "e1" ] .
+math:fmA4 a logic:Formula ; logic:relation math:filtrationThresholdRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s2" ] , [ logic:termIndex 1 ; logic:termVariable "e2" ] .
+math:fmA5 a logic:Formula ; logic:relation math:stageStructureRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s1" ] , [ logic:termIndex 1 ; logic:termVariable "A" ] .
+math:fmA6 a logic:Formula ; logic:relation math:stageStructureRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s2" ] , [ logic:termIndex 1 ; logic:termVariable "B" ] .
+math:fmA7 a logic:Formula ; logic:relation math:thresholdOrderRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "e1" ] , [ logic:termIndex 1 ; logic:termVariable "e2" ] .
+
+math:filtrationMonotonicityCons a logic:Formula ; logic:relation math:subsetRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "A" ] , [ logic:termIndex 1 ; logic:termVariable "B" ] .
+
 # --- An AI describing its own structure — the self-structure flagship -------- #
 
 math:TensorComputationGraph

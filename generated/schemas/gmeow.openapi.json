@@ -11155,6 +11155,31 @@
         ],
         "type": "object"
       },
+      "GmnDictionary": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "GmnEnvelope": {
         "properties": {
           "@annotation": {
@@ -11360,29 +11385,41 @@
           "gmeow:gmnSecurityRing": {
             "anyOf": [
               {
-                "$comment": "gmeow:GmnSecurityRing has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/GmnSecurityRing"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "gmeow:GmnSecurityRing has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/GmnSecurityRing"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "type": "array"
               }
@@ -11426,6 +11463,121 @@
           "gmeow:gmnGlyphTableVersion",
           "gmeow:gmnSchemaVersion",
           "gmeow:wasGeneratedBy"
+        ],
+        "type": "object"
+      },
+      "GmnSecurityRing": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:gmnRingCompartment": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$comment": "gmeow:GmnCompartment has no NodeShape; node reference only",
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$comment": "gmeow:GmnCompartment has no NodeShape; node reference only",
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "gmeow:gmnRingLevel": {
+            "anyOf": [
+              {
+                "$comment": "gmeow:GmnRingLevel has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "gmeow:gmnRingLevel"
         ],
         "type": "object"
       },
@@ -21663,6 +21815,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "gmeow:GmnDictionary"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:GmnDictionary"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/GmnDictionary"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "gmeow:GmnEnvelope"
                     },
                     {
@@ -21680,6 +21857,31 @@
             },
             "then": {
               "$ref": "#/$defs/GmnEnvelope"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:GmnSecurityRing"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:GmnSecurityRing"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/GmnSecurityRing"
             }
           },
           {
@@ -27838,6 +28040,56 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:Filtration"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Filtration"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Filtration"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:FiltrationStage"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:FiltrationStage"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:FiltrationStage"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:FittedModel"
                     },
                     {
@@ -28338,6 +28590,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:PersistenceLifetime"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:PersistenceLifetime"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:PersistenceLifetime"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:ProbabilityMeasure"
                     },
                     {
@@ -28605,6 +28882,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:SetBuilderExpression"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:StabilityCalibrationRecord"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:StabilityCalibrationRecord"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:StabilityCalibrationRecord"
             }
           },
           {
@@ -44832,6 +45134,137 @@
         ],
         "type": "object"
       },
+      "math:Filtration": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:hasFiltrationStage": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$comment": "external class https://blackcatinformatics.ca/math/FiltrationStage",
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$comment": "external class https://blackcatinformatics.ca/math/FiltrationStage",
+                      "type": "string"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:hasFiltrationStage"
+        ],
+        "type": "object"
+      },
+      "math:FiltrationStage": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:filtrationThreshold": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "math:stageStructure": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/TopologicalSpace",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:filtrationThreshold",
+          "math:stageStructure"
+        ],
+        "type": "object"
+      },
       "math:FittedModel": {
         "properties": {
           "@annotation": {
@@ -46199,6 +46632,96 @@
         ],
         "type": "object"
       },
+      "math:PersistenceLifetime": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:bornAt": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "math:diesAt": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "math:overFiltration": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/Filtration",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "math:persistenceFeature": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/HomologyGroup",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:bornAt",
+          "math:diesAt",
+          "math:overFiltration",
+          "math:persistenceFeature"
+        ],
+        "type": "object"
+      },
       "math:ProbabilityMeasure": {
         "properties": {
           "@annotation": {
@@ -46674,6 +47197,119 @@
         },
         "required": [
           "math:memberCondition"
+        ],
+        "type": "object"
+      },
+      "math:StabilityCalibrationRecord": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:calibrationEvidence": {
+            "anyOf": [
+              {
+                "anyOf": [
+                  {
+                    "$comment": "external class https://blackcatinformatics.ca/math/PersistenceLifetime",
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$comment": "external class https://blackcatinformatics.ca/math/PersistenceLifetime",
+                      "type": "string"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "math:credenceDerivationKind": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/CredenceDerivationKind",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "math:stabilityGuarantee": {
+            "anyOf": [
+              {
+                "$comment": "external class https://blackcatinformatics.ca/math/Theorem",
+                "type": "string"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:calibrationEvidence",
+          "math:credenceDerivationKind",
+          "math:stabilityGuarantee"
         ],
         "type": "object"
       },

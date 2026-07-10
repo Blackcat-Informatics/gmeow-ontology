@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a gmeow:GmnDictionary whose two entries alias
+# TWO DIFFERENT terms with the SAME alias string "genv" — the alias table is not
+# injective, so a reader cannot tell which term an occurrence of "genv" names. Fires
+# the sh:sparql constraint of lang:GmnDictionaryAliasInjectivityShape
+# (lang:GmnDictionaryAliasCollision).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:dictColliding a gmeow:GmnDictionary ;
+    gmeow:gmnDictionaryVersion "test-collision" ;
+    gmeow:gmnDictionaryEntry ex:entryEnvelope , ex:entryCodebook .
+
+ex:entryEnvelope a gmeow:GmnDictionaryEntry ;
+    gmeow:gmnDictionaryEntryTerm gmeow:GmnEnvelope ;
+    gmeow:gmnDictionaryEntryAlias "genv" .
+
+# Collides with ex:entryEnvelope: a DIFFERENT term, the SAME alias string.
+ex:entryCodebook a gmeow:GmnDictionaryEntry ;
+    gmeow:gmnDictionaryEntryTerm gmeow:GmnCodebook ;
+    gmeow:gmnDictionaryEntryAlias "genv" .

@@ -56,18 +56,24 @@
 #![allow(dead_code)]
 
 use std::borrow::Cow;
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap};
 
+use hashbrown::HashTable;
 use rayon::prelude::*;
 
+use crate::physical::arena::{RowArena, RowTuple};
+use crate::physical::bitset::DenseBitset;
 use crate::physical::builtin_eval::{BuiltinOutcome, emit_integer_surface, eval as eval_builtin};
+use crate::physical::cursor::LendingIterator;
+use crate::physical::id::{RowId, TermRef};
+use crate::physical::plan::{Executable, RulePlan};
 use crate::physical::store::{Bound, RelationStore};
 use crate::provenance::mint_derivation_id;
 use crate::query_ir::QBuiltin;
 use crate::rule_ir::{
     DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, Provenance, RuleRoundCandidate,
-    Solution, distinct_pairs_satisfied, echo_asserted, ground, ground_head, match_atom, sort_rows,
-    world_edb_facts,
+    Solution, distinct_pairs_satisfied, echo_asserted, fact_key_hash, ground, ground_head,
+    match_atom, sort_rows, world_edb_facts,
 };
 use crate::seam::BudgetStatus;
 
@@ -184,24 +190,6 @@ impl<T> Budgeted<T> {
     }
 }
 
-/// The set of predicates that appear as a rule HEAD (i.e. are IDB-derivable).
-///
-/// A predicate in this set is NOT settled merely by seeding its EDB facts: its full
-/// least-model extension also includes whatever its stratum derives, so it becomes
-/// settled only when that stratum reaches its natural fixpoint.  Only a *pure-EDB*
-/// predicate — one that is never a rule head — is final from the seed alone.  This
-/// distinction matters for a **self-recursive** predicate (both an EDB fact set and a
-/// recursive head, e.g. `subClassOf(X,Z) :- subClassOf(X,Y), subClassOf(Y,Z)`): seeding
-/// it as saturated would OVER-claim a settled extension while its closure is still being
-/// (or was never) derived.  The frontier under-claims rather than over-claims.
-fn head_predicates(rules_by_stratum: &[Vec<&EvalRule>]) -> BTreeSet<String> {
-    rules_by_stratum
-        .iter()
-        .flatten()
-        .map(|r| r.head.predicate.as_str().to_owned())
-        .collect()
-}
-
 /// Whether a stratum's semi-naive fixpoint reached its natural end or was budget-cut.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum FixpointStatus {
@@ -297,23 +285,48 @@ fn atom_bound(rel: &RelationStore, subj: Option<&str>, obj: Option<&str>) -> Opt
 
 /// Extend each partial solution by index-selecting `atom`'s matching rows under `scan`.
 ///
-/// This is the index-selected analogue of `rule_ir::extend_solutions`: instead of
-/// scanning the whole predicate bucket and post-filtering on the bound positions,
-/// it computes a [`Bound`] from each partial solution and calls
-/// [`RelationStore::select`], which returns ONLY the matching rows in insertion
-/// order.  Each returned `(subject, object)` tuple is wrapped as a [`Fact`] and
-/// handed to [`match_atom`] exactly as `extend_solutions` does, so the produced
-/// solution sequence (and `source_facts` order) is identical to the full-scan
-/// engine.  The semi-naive [`Scan`] filter is applied on the [`FactKey`] of each
-/// wrapped fact, identical to `extend_solutions`'s `keep`.
+/// This is the ONE-TIME [`Scan`]-mode dispatch: once per operator
+/// (per atom-scan invocation, NOT per row) it lifts the semi-naive scan mode to the
+/// `const SCAN: u8` compile-time parameter of [`extend_solutions_kernel`] via this
+/// single enum `match`, so the per-row delta filter is resolved at monomorphization
+/// instead of re-branched per tuple.  Dispatch is a plain enum `match` into the
+/// concrete monomorphized kernel — never a trait object.
 fn extend_solutions_indexed(
     atom: &EvalAtom,
     rel: &RelationStore,
-    delta: &HashSet<FactKey>,
+    delta: &DenseBitset,
     scan: Scan,
     solutions: &[Solution],
 ) -> Vec<Solution> {
+    match scan {
+        Scan::Delta => extend_solutions_kernel::<SCAN_DELTA>(atom, rel, delta, solutions),
+        Scan::Full => extend_solutions_kernel::<SCAN_FULL>(atom, rel, delta, solutions),
+        Scan::OldOnly => extend_solutions_kernel::<SCAN_OLD_ONLY>(atom, rel, delta, solutions),
+    }
+}
+
+/// The monomorphized index-selected join kernel for a fixed compile-time scan mode.
+///
+/// The index-selected analogue of `rule_ir::extend_solutions`: instead of scanning the
+/// whole predicate bucket and post-filtering on the bound positions, it computes a
+/// [`Bound`] from each partial solution and calls [`RelationStore::select`], which
+/// returns ONLY the matching rows in insertion order.  Each returned `(subject, object)`
+/// tuple is wrapped as a [`Fact`] and handed to [`match_atom`] exactly as
+/// `extend_solutions` does, so the produced solution sequence (and `source_facts` order)
+/// is identical to the full-scan engine.
+///
+/// `SCAN` is a compile-time constant ([`SCAN_DELTA`] / [`SCAN_FULL`] / [`SCAN_OLD_ONLY`]),
+/// so the per-row semi-naive delta filter ([`keep_row`]) monomorphizes to a single
+/// constant / one-word bitset probe with NO runtime branch on the scan mode — the
+/// `match scan { … }` that formerly sat INSIDE this per-tuple loop is gone (greenfield).
+fn extend_solutions_kernel<const SCAN: u8>(
+    atom: &EvalAtom,
+    rel: &RelationStore,
+    delta: &DenseBitset,
+    solutions: &[Solution],
+) -> Vec<Solution> {
     let pred = atom.predicate.as_str();
+    let interner = rel.interner();
     let mut next: Vec<Solution> = Vec::new();
     for sol in solutions {
         // Compute the selection bound from the current partial solution, translating
@@ -324,22 +337,27 @@ fn extend_solutions_indexed(
         let Some(bound) = atom_bound(rel, subj_surface.as_deref(), obj_surface.as_deref()) else {
             continue;
         };
-        for (subject, object) in rel.select(pred, bound) {
-            let f = Fact {
-                subject,
-                predicate: atom.predicate.clone(),
-                object,
-            };
-            // Semi-naive position decomposition: keep only the rows this scan mode
-            // admits, on the SAME FactKey `extend_solutions` filters on.
-            let keep = match scan {
-                Scan::Delta => delta.contains(&f.key()),
-                Scan::Full => true,
-                Scan::OldOnly => !delta.contains(&f.key()),
-            };
-            if !keep {
+        // Drive the arrangement's galloping lending cursor directly — NO per-stage
+        // `Vec<(TermId, TermId, RowId)>` is materialized for this atom's selection.
+        // Each `next()` yields one borrowed id row in row-id
+        // (insertion) order, byte-identical to the former eager `select` vector.
+        let mut cursor = rel.select(pred, bound);
+        while let Some((s_id, o_id, row_id)) = cursor.next() {
+            // Semi-naive position decomposition on the selected row's dense RowId — the
+            // same delta×full split `extend_solutions` applies, but membership is one
+            // `u64`-word test on the delta bitset.  `SCAN` is a
+            // monomorphization constant, so `keep_row` is branch-free on the scan mode,
+            // with NO three-`String` `Fact::key()` allocation and NO hashing per row.
+            if !keep_row::<SCAN>(delta, row_id) {
                 continue;
             }
+            // Resolve the id row to its `TermValue` surfaces ONLY now — at the single
+            // point the `Fact` (and its downstream reifier / provenance) needs them.
+            let f = Fact {
+                subject: interner.resolve(s_id).clone(),
+                predicate: atom.predicate.clone(),
+                object: interner.resolve(o_id).clone(),
+            };
             if let Some(mut merged) = match_atom(atom, &f, sol) {
                 merged.source_facts.push(f);
                 next.push(merged);
@@ -349,10 +367,39 @@ fn extend_solutions_indexed(
     next
 }
 
+/// The compile-time scan-mode codes for [`extend_solutions_kernel`]'s `const SCAN`
+/// parameter — the const-generic translation of [`Scan`]'s three variants (Rust const
+/// generics range over primitive `u8`, not enum variants directly).
+const SCAN_DELTA: u8 = 0;
+const SCAN_FULL: u8 = 1;
+const SCAN_OLD_ONLY: u8 = 2;
+
+/// The monomorphized per-row semi-naive keep test for a fixed scan mode.
+///
+/// `SCAN` is a compile-time constant, so this `match` folds at monomorphization to a
+/// single arm — `true` (Full), `delta.contains(row_id)` (Delta), or its negation
+/// (OldOnly) — with the other arms (and the `unreachable!`) dead-code eliminated.  The
+/// result is byte-identical to the former runtime `match scan { … }`, but the branch is
+/// resolved at compile time, once per operator, not per tuple.
+#[inline(always)]
+fn keep_row<const SCAN: u8>(delta: &DenseBitset, row_id: RowId) -> bool {
+    match SCAN {
+        SCAN_FULL => true,
+        SCAN_DELTA => delta.contains(row_id),
+        SCAN_OLD_ONLY => !delta.contains(row_id),
+        // `extend_solutions_indexed` instantiates only the three `Scan` codes above;
+        // no other `SCAN` value is constructible, so this arm is statically unreachable.
+        _ => unreachable!("SCAN is one of SCAN_DELTA / SCAN_FULL / SCAN_OLD_ONLY"),
+    }
+}
+
 /// The semi-naive position-decomposition scan mode for one positive body atom.
 ///
 /// Identical in meaning to `rule_ir::Scan` (which is private), reproduced here so the
-/// index-selected join applies the same delta×full decomposition.
+/// index-selected join applies the same delta×full decomposition.  It is the fixed
+/// per-(round, atom-position) shape [`join_body_indexed`] decides once, then hands to
+/// [`extend_solutions_indexed`] which lifts it to the `const SCAN` monomorphization
+/// parameter.
 #[derive(Clone, Copy)]
 enum Scan {
     /// Bind to rows whose key is in `delta` (the "new at p" position).
@@ -373,13 +420,18 @@ enum Scan {
 /// which is exactly the stratified-negation reference.
 fn join_body_indexed(
     rule: &EvalRule,
+    plan: &RulePlan,
     rel: &RelationStore,
     accumulated: &RelationStore,
-    delta: &HashSet<FactKey>,
+    delta: &DenseBitset,
     gap: &mut bool,
 ) -> Vec<Solution> {
-    let positive: Vec<&EvalAtom> = rule.body.iter().filter(|a| !a.negated).collect();
-    let negated: Vec<&EvalAtom> = rule.body.iter().filter(|a| a.negated).collect();
+    // The positive (join) / negated (NAF) body-atom partition was precomputed ONCE at
+    // plan time ([`RulePlan`]); the per-round `filter(..).collect()` allocation is gone.
+    // Both slices are body-order indices into `rule.body`, so the produced solution
+    // sequence is byte-identical to the previous per-round partition.
+    let positive = plan.positive();
+    let negated = plan.negated();
 
     let empty = Solution {
         bindings: Vec::new(),
@@ -395,7 +447,8 @@ fn join_body_indexed(
         let mut all: Vec<Solution> = Vec::new();
         for p in 0..k {
             let mut partial: Vec<Solution> = vec![empty.clone()];
-            for (j, atom) in positive.iter().enumerate() {
+            for (j, &atom_idx) in positive.iter().enumerate() {
+                let atom = &rule.body[atom_idx];
                 let scan = if j < p {
                     Scan::Full
                 } else if j == p {
@@ -426,7 +479,7 @@ fn join_body_indexed(
         solutions.retain(|sol| {
             !negated
                 .iter()
-                .any(|neg| negated_atom_satisfied(neg, sol, accumulated))
+                .any(|&i| negated_atom_satisfied(&rule.body[i], sol, accumulated))
         });
     }
 
@@ -504,9 +557,12 @@ fn negated_atom_satisfied(atom: &EvalAtom, sol: &Solution, accumulated: &Relatio
             let Some(bound) = atom_bound(accumulated, s.as_deref(), o.as_deref()) else {
                 return false;
             };
-            !accumulated
+            // Existential NAF asks only "does SOME row match?" — probe the cursor for a
+            // single row (`any_remaining`) instead of materializing a whole `Vec` just
+            // to call `is_empty()` on it.
+            accumulated
                 .select(atom.predicate.as_str(), bound)
-                .is_empty()
+                .any_remaining()
         }
     }
 }
@@ -524,7 +580,7 @@ fn negated_atom_satisfied(atom: &EvalAtom, sol: &Solution, accumulated: &Relatio
 ///
 /// Predicates appearing only as constants in EDB but never as a head still get a
 /// stratum (0) so a negated reference to a base predicate is decided in stratum 0.
-fn stratify(rules: &[EvalRule]) -> Option<HashMap<String, usize>> {
+pub(super) fn stratify(rules: &[EvalRule]) -> Option<HashMap<String, usize>> {
     // Collect every predicate (heads and body atoms).
     let mut preds: BTreeSet<String> = BTreeSet::new();
     for rule in rules {
@@ -589,37 +645,22 @@ fn stratify(rules: &[EvalRule]) -> Option<HashMap<String, usize>> {
 /// provenance-recipe failure (propagated from the shared `rule_ir` helpers).
 pub(crate) fn materialize_native(
     store: &crate::store::WorldStore,
-    rules: &[EvalRule],
+    exe: &Executable<'_>,
     max_steps: Option<u64>,
 ) -> gmeow_errors::Result<NativeOutcome<Budgeted<Vec<DerivedRow>>>> {
-    // Stratification is a property of the rules alone; decide it once.
-    let Some(stratum_of) = stratify(rules) else {
-        return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
-    };
-
-    // Order the rules into strata.  A rule belongs to the stratum of its HEAD
-    // predicate; within a stratum the original program order is preserved (rules
-    // fire in parse order, matching the reference engine).
-    let max_stratum = rules
-        .iter()
-        .map(|r| stratum_of[r.head.predicate.as_str()])
-        .max()
-        .unwrap_or(0);
-    let mut rules_by_stratum: Vec<Vec<&EvalRule>> = vec![Vec::new(); max_stratum + 1];
-    for rule in rules {
-        let s = stratum_of[rule.head.predicate.as_str()];
-        rules_by_stratum[s].push(rule);
-    }
-
+    // Stratification and per-rule join planning are properties of the rules alone; the
+    // caller computed them ONCE through the `Parsed → Stratified → Planned → Executable`
+    // pipeline (a non-stratifiable program never reaches here — it is the pipeline's
+    // `stratify()` → `None` declared gap).  This forward leg only executes the plan.
     let mut worlds = store.worlds();
     worlds.sort();
 
-    let total = rules_by_stratum.len();
+    let total = exe.stratum_count();
 
     // UNBOUNDED path (foundation's `materialize_native(store, &rules, None)`): with no
     // step budget the `StepGovernor` never cuts, so every world runs to full fixpoint,
     // `status` is always `Ok`, no world is left untouched, and the worlds are fully
-    // independent (each reads only the shared `store` + `rules_by_stratum`, both `&`-
+    // independent (each reads only the shared `store` + `exe`, both `&`-
     // shared/read-only).  That independence is what makes per-world rayon parallelism
     // deterministic and byte-identical to the sequential fold.  A SHARED step budget,
     // by contrast, is inherently order-serial and cannot be parallelized deterministically
@@ -630,7 +671,8 @@ pub(crate) fn materialize_native(
         // per sorted world FIRST.  The read is pure and order-independent, so this seed
         // pass changes no observable output; only the OWNED `(world, edb)` pairs cross
         // into the thread pool.  The per-world chase below reads only these owned facts
-        // and the `&`-shared read-only `rules_by_stratum` (a `Sync` slice of `&EvalRule`).
+        // and the `&`-shared read-only `exe` (an `Executable` — its `&[EvalRule]` +
+        // owned strata/plans are all `Sync`).
         let edb_by_world: Vec<(String, Vec<Fact>)> = worlds
             .iter()
             .map(|world| Ok((world.clone(), world_edb_facts(store, world)?)))
@@ -650,7 +692,7 @@ pub(crate) fn materialize_native(
                     let mut governor = StepGovernor::new(None);
                     let budgeted = eval_world_stratified(
                         &edb_facts,
-                        &rules_by_stratum,
+                        exe,
                         &mut governor,
                         ProvenanceMode::Record,
                     )?;
@@ -721,12 +763,8 @@ pub(crate) fn materialize_native(
         // Asserted-EDB echo (identical to wellfounded::materialize).
         out.extend(echo_asserted(world, &edb_facts)?);
 
-        let budgeted = eval_world_stratified(
-            &edb_facts,
-            &rules_by_stratum,
-            &mut governor,
-            ProvenanceMode::Record,
-        )?;
+        let budgeted =
+            eval_world_stratified(&edb_facts, exe, &mut governor, ProvenanceMode::Record)?;
         for mut row in budgeted.rows {
             row.graph = world.clone();
             out.push(row);
@@ -785,7 +823,7 @@ pub(crate) fn materialize_native(
 /// strictly-lower strata fully materialized and frozen.
 fn eval_world_stratified(
     edb_facts: &[Fact],
-    rules_by_stratum: &[Vec<&EvalRule>],
+    exe: &Executable<'_>,
     governor: &mut StepGovernor,
     mode: ProvenanceMode,
 ) -> gmeow_errors::Result<Budgeted<Vec<DerivedRow>>> {
@@ -793,13 +831,16 @@ fn eval_world_stratified(
     // (world_edb_facts already sorted), so seeding matches the reference.
     let mut store = FactStore::new();
     let mut rel = RelationStore::new();
-    let mut depth: HashMap<FactKey, u32> = HashMap::new();
+    // Per-fact derivation-depth column, indexed by `store`'s insertion-order row (pushed
+    // in lockstep with `store.insert`).  Depth feeds ONLY the Record-mode tiebreak; the
+    // Skip lane never writes it, so it stays empty there (asserted below in `evaluate`).
+    let mut depth: Vec<u32> = Vec::new();
 
     // A PURE-EDB predicate (never a rule head) is settled from the seed; a predicate that
     // is also a rule head is settled only when its stratum completes (below), so exclude
     // it here — otherwise a self-recursive predicate would over-claim while its closure is
-    // still unbuilt.
-    let head_preds = head_predicates(rules_by_stratum);
+    // still unbuilt.  The head-predicate set is memoized on the `Executable`.
+    let head_preds = exe.head_predicates();
     let mut saturated_preds: BTreeSet<String> = edb_facts
         .iter()
         .map(|f| f.predicate.clone())
@@ -807,30 +848,33 @@ fn eval_world_stratified(
         .collect();
 
     for f in edb_facts {
-        // Depth 0 for the asserted seed feeds only the Record-mode tiebreak; Skip omits it.
-        if let ProvenanceMode::Record = mode {
-            depth.insert(f.key(), 0);
-        }
-        if store.insert(f.clone()) {
-            rel.insert(&f.predicate, f.subject.clone(), f.object.clone());
+        // Insert into both stores in lockstep; under Record push the depth-0 seed slot
+        // so `depth` tracks `store`'s rows exactly (Skip omits depth entirely).
+        if let Some(idx) = store.insert(f.clone()) {
+            rel.insert(&f.predicate, &f.subject, &f.object);
+            if let ProvenanceMode::Record = mode {
+                debug_assert_eq!(idx, depth.len(), "depth/store lockstep on the EDB seed");
+                depth.push(0); // EDB facts have depth 0
+            }
         }
     }
 
     let mut derivations: Vec<DerivedRow> = Vec::new();
 
-    let total = rules_by_stratum.len();
+    let total = exe.stratum_count();
     let mut completed = 0usize;
     let mut status = BudgetStatus::Ok;
     // The forward `.rls` materialization carries no arithmetic builtins (the ontology
     // corpus has none), so this stays false; assert that invariant below.
     let mut builtin_gap = false;
-    for stratum_rules in rules_by_stratum {
-        if stratum_rules.is_empty() {
+    for k in 0..total {
+        if exe.stratum_is_empty(k) {
             completed += 1; // an empty stratum is trivially saturated
             continue;
         }
         match eval_stratum_fixpoint(
-            stratum_rules,
+            exe,
+            k,
             &mut FixpointState {
                 store: &mut store,
                 rel: &mut rel,
@@ -844,8 +888,8 @@ fn eval_world_stratified(
             FixpointStatus::Complete => {
                 // This stratum reached its natural fixpoint: its head predicates are now
                 // final and join the settled frontier.
-                for rule in stratum_rules {
-                    saturated_preds.insert(rule.head.predicate.as_str().to_owned());
+                for pred in exe.stratum_head_predicates(k) {
+                    saturated_preds.insert(pred.to_owned());
                 }
                 completed += 1;
             }
@@ -882,7 +926,7 @@ fn eval_world_stratified(
 struct FixpointState<'a> {
     store: &'a mut FactStore,
     rel: &'a mut RelationStore,
-    depth: &'a mut HashMap<FactKey, u32>,
+    depth: &'a mut Vec<u32>,
     derivations: &'a mut Vec<DerivedRow>,
     builtin_gap: &'a mut bool,
 }
@@ -898,8 +942,18 @@ struct FixpointState<'a> {
 /// `mode` selects whether the loop mints and records provenance ([`ProvenanceMode::Record`],
 /// the forward leg) or commits facts only ([`ProvenanceMode::Skip`], the backward leg) — the
 /// committed fact set, insertion order, and step budget are identical either way.
+///
+/// # The type-state executor gate
+///
+/// This is the semi-naive executor entry point, and it is **unrepresentable without an
+/// [`Executable`]**: the rules of stratum `stratum` are read from `exe`, whose only
+/// constructor chain is `Parsed::new(..).stratify()?.plan().into_executable()` (see
+/// [`super::plan`]).  There is no overload taking `&[EvalRule]`, a `Parsed`, a
+/// `Stratified`, or a `Planned`; the compiler — not a doc comment — rejects any attempt
+/// to execute a program that has not been stratified AND join-planned.
 fn eval_stratum_fixpoint(
-    rules: &[&EvalRule],
+    exe: &Executable<'_>,
+    stratum: usize,
     state: &mut FixpointState<'_>,
     governor: &mut StepGovernor,
     mode: ProvenanceMode,
@@ -912,15 +966,32 @@ fn eval_stratum_fixpoint(
     let depth = &mut *state.depth;
     let derivations = &mut *state.derivations;
     let builtin_gap = &mut *state.builtin_gap;
-    // Seed delta with ALL currently-known keys so this stratum's rules fire against
-    // the seed in round 1 (mirrors `least_model_of_reduct`'s `delta = key_set()`).
-    let mut delta: HashSet<FactKey> = store.key_set();
+    // Seed delta with EVERY accumulated row so this stratum's rules fire against the
+    // seed in round 1 (mirrors `least_model_of_reduct`'s `delta = key_set()`).  The
+    // `RelationStore` mints RowIds densely as `0..row_count` in insertion order, so the
+    // whole accumulated store is exactly the low `row_count` bits — one `all_set`, no
+    // per-key materialization and no hashing.
+    let mut delta = DenseBitset::all_set(rel.row_count());
+
+    // The phase-scoped row/tuple arena for THIS stratum's rounds: a
+    // genuinely resettable bump buffer the committed argument tuples are allocated into
+    // each round, read back to build the next round's dense delta, then truncated at
+    // the round boundary (allocate → sort-commit → reset).  It is thread-local by
+    // construction: each world's fixpoint runs sequentially on its own stack, so no
+    // arena is ever shared across rayon's per-world parallelism.
+    let mut arena = RowArena::new();
 
     loop {
-        let mut round: HashMap<FactKey, RuleRoundCandidate> = HashMap::new();
+        // Per-round canonical-winner map: a borrowed-key `HashTable<usize>` into a side
+        // `Vec<(FactKey, RuleRoundCandidate)>` (mirrors `FactStore`'s cached-surface
+        // probe) — no owned-key clone per candidate, and the cached `FactKey` is reused
+        // at commit for the sort.  Identical selection semantics to
+        // `least_model_of_reduct`'s round map.
+        let mut round_entries: Vec<(FactKey, RuleRoundCandidate)> = Vec::new();
+        let mut round_index: HashTable<usize> = HashTable::new();
 
-        for rule in rules {
-            for sol in join_body_indexed(rule, rel, rel, &delta, builtin_gap) {
+        for (rule, plan) in exe.stratum_entries(stratum) {
+            for sol in join_body_indexed(rule, plan, rel, rel, &delta, builtin_gap) {
                 if !distinct_pairs_satisfied(&rule.distinct_pairs, &sol)? {
                     continue;
                 }
@@ -938,7 +1009,11 @@ fn eval_stratum_fixpoint(
                         let mut sum_sd: u64 = 0;
                         for sf in &sol.source_facts {
                             sources.push(sf.reifier()?);
-                            let d = *depth.get(&sf.key()).unwrap_or(&0);
+                            let d = store
+                                .row_index(&sf.key())
+                                .and_then(|i| depth.get(i))
+                                .copied()
+                                .unwrap_or(0);
                             max_sd = max_sd.max(d);
                             sum_sd = sum_sd.saturating_add(u64::from(d));
                         }
@@ -949,7 +1024,6 @@ fn eval_stratum_fixpoint(
 
                         let candidate = RuleRoundCandidate {
                             head,
-                            key: key.clone(),
                             prov: Some(Provenance {
                                 sources,
                                 sorted_sources,
@@ -960,14 +1034,21 @@ fn eval_stratum_fixpoint(
                                 sum_src_depth: sum_sd,
                             }),
                         };
-                        round
-                            .entry(key)
-                            .and_modify(|existing| {
-                                if candidate.tiebreak_key() < existing.tiebreak_key() {
-                                    *existing = candidate.clone();
+                        let hash = fact_key_hash(&key);
+                        match round_index.find(hash, |&i| round_entries[i].0 == key) {
+                            Some(&i) => {
+                                if candidate.tiebreak_key() < round_entries[i].1.tiebreak_key() {
+                                    round_entries[i].1 = candidate;
                                 }
-                            })
-                            .or_insert(candidate);
+                            }
+                            None => {
+                                let idx = round_entries.len();
+                                round_entries.push((key, candidate));
+                                let entries = &round_entries;
+                                round_index
+                                    .insert_unique(hash, idx, |&i| fact_key_hash(&entries[i].0));
+                            }
+                        }
                     }
                     ProvenanceMode::Skip => {
                         // Facts-only: no `reifier()` minting, no derivation id, no depth read,
@@ -975,26 +1056,43 @@ fn eval_stratum_fixpoint(
                         // (the key is content-derived from the head), so first-seen wins and the
                         // committed fact is invariant to the choice.  `prov: None` makes the
                         // absence of provenance a type-enforced fact, not a sentinel-filled struct.
-                        let cand = RuleRoundCandidate {
-                            head,
-                            key: key.clone(),
-                            prov: None,
-                        };
-                        round.entry(key).or_insert(cand);
+                        let hash = fact_key_hash(&key);
+                        if round_index
+                            .find(hash, |&i| round_entries[i].0 == key)
+                            .is_none()
+                        {
+                            let idx = round_entries.len();
+                            round_entries.push((key, RuleRoundCandidate { head, prov: None }));
+                            let entries = &round_entries;
+                            round_index.insert_unique(hash, idx, |&i| fact_key_hash(&entries[i].0));
+                        }
                     }
                 }
             }
         }
 
-        if round.is_empty() {
+        if round_entries.is_empty() {
             break; // stratum fixpoint
         }
 
-        let mut new_delta: HashSet<FactKey> = HashSet::with_capacity(round.len());
-        // Commit winners in FactKey order, not raw `HashMap` order: store/index
-        // insertion order must be deterministic (the columnar-store determinism
-        // doctrine), matching `least_model_of_reduct`'s commit discipline.
-        let mut winners: Vec<(FactKey, RuleRoundCandidate)> = round.into_iter().collect();
+        // Reset the phase-scoped arena for THIS round (truncate the real backing
+        // buffer — a genuine reclaim, matching the allocate → commit → reset phases).
+        // This is the round boundary at which BOTH the value column (arena) and the
+        // delta bitset (built below) are reset in lockstep.
+        arena.reset();
+        // The round's committed rows, paired as (staged argument tuple, dense RowId), in
+        // the FactKey-sorted commit order.  The arena is the arrangement's contiguous
+        // value column; the delta bitset built after the loop is row-id membership over
+        // exactly this column.
+        let round_len = round_entries.len();
+        let mut committed: Vec<(RowTuple, RowId)> = Vec::with_capacity(round_len);
+        // Commit winners in RESOLVED LEXICAL FactKey order — NOT any id/mint order — so
+        // store/index insertion order AND the per-winner `governor.charge()` sequence
+        // stay byte-deterministic.  RowId assignment is a purely ADDITIVE side effect of
+        // the lockstep `rel.insert` inside this sorted loop; it never orders the commit
+        // or the budget charge (mint order ≠ lexical order).  This is the columnar-store
+        // determinism doctrine, matching `least_model_of_reduct`'s commit discipline.
+        let mut winners: Vec<(FactKey, RuleRoundCandidate)> = round_entries;
         winners.sort_by(|(a, _), (b, _)| a.cmp(b));
         for (_key, winner) in winners {
             // The step/derivation budget is charged HERE — one step per committed
@@ -1006,25 +1104,48 @@ fn eval_stratum_fixpoint(
             if governor.spent() {
                 return Ok(FixpointStatus::Exhausted);
             }
-            // Depth bookkeeping feeds ONLY the provenance tiebreak; the facts-only lane carries
-            // `prov: None`, so it is not maintained there (keeping the `depth` map empty under
-            // Skip — the `assert!` in `evaluate` locks that invariant in release builds too).
-            if let Some(prov) = &winner.prov {
-                let winner_depth = prov.max_src_depth.saturating_add(1);
-                depth.insert(winner.key.clone(), winner_depth);
-            }
-            // Insert into both stores in lockstep so the columnar index order tracks
-            // the ternary store's insertion order exactly.  This — and the FactKey-sorted
-            // commit order, the `new_delta`, and the per-winner budget charge — are
-            // provenance-independent, so the committed fact set is byte-identical across modes.
-            if store.insert(winner.head.clone()) {
+            // Insert into both stores in lockstep so the columnar index order tracks the
+            // ternary store's insertion order exactly, capturing the store row index (for
+            // the Record-mode depth push) and the store-global dense RowId the
+            // `RelationStore` stamps on the new row.  This — and the FactKey-sorted commit
+            // order, the delta, and the per-winner budget charge — are provenance-
+            // independent, so the committed fact set is byte-identical across modes.  A
+            // winner is always a genuinely-new fact (heads already present are skipped
+            // above via `store.contains_key`), so the lockstep insert returns `Some(...)`.
+            let store_idx = store.insert(winner.head.clone());
+            let ids = if store_idx.is_some() {
                 rel.insert(
                     &winner.head.predicate,
-                    winner.head.subject.clone(),
-                    winner.head.object.clone(),
+                    &winner.head.subject,
+                    &winner.head.object,
+                )
+            } else {
+                None
+            };
+            // Depth bookkeeping feeds ONLY the provenance tiebreak; the facts-only lane
+            // carries `prov: None`, so it is not maintained there (keeping the `depth` Vec
+            // empty under Skip — the `assert!` in `evaluate` locks that invariant in
+            // release builds too).  Pushed in lockstep with the store row just added, so
+            // `depth[i]` stays the depth of the store's row `i`.
+            if let (Some(idx), Some(prov)) = (store_idx, winner.prov.as_ref()) {
+                let winner_depth = prov.max_src_depth.saturating_add(1);
+                assert_eq!(
+                    idx,
+                    depth.len(),
+                    "depth/store index desync: `depth` and the `FactStore` rows must stay \
+                     in lockstep under Record (each committed row pushes one depth slot)"
                 );
+                depth.push(winner_depth);
             }
-            new_delta.insert(winner.key.clone());
+            // Stage the committed argument tuple into the phase-scoped value column
+            // (arena), paired with its RowId; the read-back below turns the column into
+            // the next round's delta bitset.  The subject/object term ids come straight
+            // back from the columnar insert (never re-derived via a second interner
+            // lookup — the just-interned head terms).
+            if let Some((s_id, o_id, row_id)) = ids {
+                let tuple = arena.alloc(&[TermRef::term(s_id), TermRef::term(o_id)]);
+                committed.push((tuple, row_id));
+            }
 
             // A winner is always a NEW key: heads already present (including every
             // EDB fact, seeded into `store` before the fixpoint) are skipped above via
@@ -1046,6 +1167,23 @@ fn eval_stratum_fixpoint(
             governor.charge();
         }
 
+        // Build the next round's delta as a dense `u64`-word bitset: row-id membership
+        // over the value column just staged.  Read each committed
+        // row back out of the phase-scoped arena and set its dense RowId's bit, so the
+        // next round tests delta membership with ONE word test per selected row and no
+        // hashing.  Sized to the store's current row count so every selectable row is
+        // addressable.  The `arena.get` read-back confirms the value column's binary
+        // (arity-2) shape — the native engine derives only binary facts.
+        let mut new_delta = DenseBitset::with_capacity(rel.row_count());
+        for (tuple, row_id) in &committed {
+            let args = arena.get(tuple);
+            assert_eq!(
+                args.len(),
+                2,
+                "the native engine stages arity-2 committed argument tuples"
+            );
+            new_delta.set(*row_id);
+        }
         delta = new_delta;
     }
 
@@ -1071,39 +1209,32 @@ fn eval_stratum_fixpoint(
 /// # Errors
 ///
 /// Returns `Err` for an unbound head/guard variable or a provenance-recipe failure
-/// (propagated from the shared `rule_ir` helpers); `Ok(Unsupported(NonStratifiable))` if
-/// the (transformed) rules carry a negative edge inside a cycle.
+/// (propagated from the shared `rule_ir` helpers).  A non-stratifiable program never
+/// reaches here — it is the pipeline's `stratify()` → `None` declared gap, decided by the
+/// caller (`magic::eval_with_base_fallback`) before an [`Executable`] exists; the only
+/// `Unsupported` this leg raises is [`UnsupportedKind::Arithmetic`] (a builtin gap).
 pub(crate) fn evaluate(
     edb: RelationStore,
-    rules: &[EvalRule],
+    exe: &Executable<'_>,
     max_steps: Option<u64>,
 ) -> gmeow_errors::Result<NativeOutcome<Budgeted<Vec<Fact>>>> {
-    let Some(stratum_of) = stratify(rules) else {
-        return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
-    };
-
-    let max_stratum = rules
-        .iter()
-        .map(|r| stratum_of[r.head.predicate.as_str()])
-        .max()
-        .unwrap_or(0);
-    let mut rules_by_stratum: Vec<Vec<&EvalRule>> = vec![Vec::new(); max_stratum + 1];
-    for rule in rules {
-        let s = stratum_of[rule.head.predicate.as_str()];
-        rules_by_stratum[s].push(rule);
-    }
-
     // Lower the columnar EDB into the ternary `Fact` seed in sorted-key order so the
     // semi-naive seed order is deterministic (mirrors `world_edb_facts`).
     let mut edb_facts: Vec<Fact> = Vec::new();
+    let interner = edb.interner();
     for pred in edb.predicates() {
         // `pred` is a predicate IRI surface already validated by the seam; carry it directly.
         let predicate = pred.to_owned();
-        for (subject, object) in edb.select(pred, Bound::Any) {
+        // Drive the lending cursor directly (no eager `Vec`): each `next()` yields one
+        // id row (plus a delta-probe RowId unused when seeding) in row-id order.
+        let mut cursor = edb.select(pred, Bound::Any);
+        while let Some((s_id, o_id, _row)) = cursor.next() {
+            // Resolve each term id to its `TermValue` surface here, at the point the
+            // `Fact` seed actually needs them.
             edb_facts.push(Fact {
-                subject,
+                subject: interner.resolve(s_id).clone(),
                 predicate: predicate.clone(),
-                object,
+                object: interner.resolve(o_id).clone(),
             });
         }
     }
@@ -1112,12 +1243,15 @@ pub(crate) fn evaluate(
     // Run the stratified fixpoint, accumulating into a shared FactStore/RelationStore.
     let mut store = FactStore::new();
     let mut rel = RelationStore::new();
-    let mut depth: HashMap<FactKey, u32> = HashMap::new();
+    // Depth column (row-indexed, like the forward leg).  This Skip-mode leg never records
+    // provenance, so it is never written — it stays empty, asserted below.
+    let mut depth: Vec<u32> = Vec::new();
 
     // A PURE-EDB predicate (never a rule head) is settled from the seed; a self-recursive
     // or otherwise IDB-derived predicate becomes settled only when its stratum completes
-    // (below), so exclude the head predicates here to avoid over-claiming.
-    let head_preds = head_predicates(&rules_by_stratum);
+    // (below), so exclude the head predicates here to avoid over-claiming.  The
+    // head-predicate set is memoized on the `Executable`.
+    let head_preds = exe.head_predicates();
     let mut saturated_preds: BTreeSet<String> = edb_facts
         .iter()
         .map(|f| f.predicate.clone())
@@ -1130,15 +1264,15 @@ pub(crate) fn evaluate(
     // memory a closure-only lane must not pay).  The seed therefore also skips the
     // provenance-only `depth` bookkeeping.
     for f in &edb_facts {
-        if store.insert(f.clone()) {
-            rel.insert(&f.predicate, f.subject.clone(), f.object.clone());
+        if store.insert(f.clone()).is_some() {
+            rel.insert(&f.predicate, &f.subject, &f.object);
         }
     }
 
     // The step governor is honoured identically to the forward path (single EDB, so the
     // frontier is exact — no cross-world under-claim).
     let mut governor = StepGovernor::new(max_steps);
-    let total = rules_by_stratum.len();
+    let total = exe.stratum_count();
     let mut completed = 0usize;
     let mut status = BudgetStatus::Ok;
     let mut derivations: Vec<DerivedRow> = Vec::new();
@@ -1147,13 +1281,14 @@ pub(crate) fn evaluate(
     // gap: the whole query re-demotes to the oracle rather than present an
     // incomplete answer set — never a wrong answer.
     let mut builtin_gap = false;
-    for stratum_rules in &rules_by_stratum {
-        if stratum_rules.is_empty() {
+    for k in 0..total {
+        if exe.stratum_is_empty(k) {
             completed += 1;
             continue;
         }
         match eval_stratum_fixpoint(
-            stratum_rules,
+            exe,
+            k,
             &mut FixpointState {
                 store: &mut store,
                 rel: &mut rel,
@@ -1165,8 +1300,8 @@ pub(crate) fn evaluate(
             ProvenanceMode::Skip,
         )? {
             FixpointStatus::Complete => {
-                for rule in stratum_rules {
-                    saturated_preds.insert(rule.head.predicate.as_str().to_owned());
+                for pred in exe.stratum_head_predicates(k) {
+                    saturated_preds.insert(pred.to_owned());
                 }
                 completed += 1;
             }
@@ -1215,6 +1350,36 @@ mod tests {
     use purrdf::TermValue;
 
     const NS: &str = "https://example.org/p3/";
+
+    use crate::physical::plan::Parsed;
+
+    /// Drive the type-state plan pipeline for a stratifiable test program: the only path
+    /// to the `Executable` the forward/backward executors accept.  A non-stratifiable
+    /// program has no place in these tests (it is a caller-side declared gap), so `expect`.
+    fn exe(rules: &[EvalRule]) -> Executable<'_> {
+        Parsed::new(rules)
+            .stratify()
+            .expect("stratifiable test program")
+            .plan()
+            .into_executable()
+    }
+
+    /// Compile-time proof that the semi-naive executor entry `eval_stratum_fixpoint` — the
+    /// truly-private stratum runner, not just the `pub(crate)` `materialize_native`/
+    /// `evaluate` wrappers — accepts ONLY an `Executable` as its rule source.  If its first
+    /// parameter were reverted to `&[&EvalRule]` (the pre-pipeline ad-hoc signature) or any
+    /// non-`Executable` stage, this `fn`-pointer coercion would fail to compile.  The gate
+    /// is enforced by the type system here, not by a doc comment.
+    #[test]
+    fn executor_entry_accepts_only_executable() {
+        let _executor_gate: fn(
+            &Executable<'_>,
+            usize,
+            &mut FixpointState<'_>,
+            &mut StepGovernor,
+            ProvenanceMode,
+        ) -> gmeow_errors::Result<FixpointStatus> = eval_stratum_fixpoint;
+    }
 
     fn nn(local: &str) -> String {
         format!("{NS}{local}")
@@ -1333,7 +1498,7 @@ mod tests {
 
         // Native path via a WorldStore.
         let store = tc_store();
-        let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
+        let outcome = materialize_native(&store, &exe(&rules), None).expect("materialize_native");
         let NativeOutcome::Decided(Budgeted { rows, .. }) = outcome else {
             panic!("expected Decided for a stratifiable positive program");
         };
@@ -1350,12 +1515,97 @@ mod tests {
         );
     }
 
+    /// FULL-SCAN ORDER-INVARIANCE GATE (the primary byte-drift
+    /// landmine for the galloping-cursor full-scan work).
+    ///
+    /// The leading unbound body atom drives a [`Bound::Any`] FULL SCAN.  This replaces
+    /// the materialized `Vec<(TermId, TermId, RowId)>` with a galloping lending
+    /// [`RowCursor`](crate::physical::cursor::RowCursor); the cursor MUST iterate
+    /// **row-id (insertion) order** — NEVER a key-sorted (lexical) order, which would
+    /// flip the solution / `source_facts` / winner sequence and drift `gmeow.gts` bytes.
+    /// A global key-sorted arrangement is explicitly out of scope for this work.
+    ///
+    /// This inserts three rows whose INSERTION order (`z, a, m`) deliberately DIVERGES
+    /// from their lexical order (`a, m, z`), drives the actual cursor-backed full-scan
+    /// kernel ([`extend_solutions_indexed`] with [`Scan::Full`], which yields the
+    /// `Bound::Any` cursor per solution), and asserts the produced solutions AND their
+    /// recorded `source_facts` come out in INSERTION order — then asserts that order is
+    /// provably NOT the lexical order.  A cursor that key-sorted would fail this.
+    #[test]
+    fn physical_full_scan_iterates_row_id_order_not_lexical() {
+        // One binary relation, rows inserted anti-lexically: z→p, then a→q, then m→r.
+        let mut rel = RelationStore::new();
+        for (s, o) in [("z", "p"), ("a", "q"), ("m", "r")] {
+            assert!(
+                rel.insert(&nn("edge"), &term(s), &term(o)).is_some(),
+                "each anti-lexical row inserts"
+            );
+        }
+        // The leading body atom `edge(?X, ?Y)`: BOTH positions unbound ⇒ Bound::Any.
+        let atom = EvalAtom {
+            subject: EvalTerm::Var("?X".to_owned()),
+            predicate: nn("edge"),
+            object: EvalTerm::Var("?Y".to_owned()),
+            negated: false,
+        };
+        // A Full scan ignores the delta (`keep_row::<SCAN_FULL>` is `true`), so an empty
+        // bitset is correct — this isolates the SCAN ORDER, not the delta membership.
+        let delta = DenseBitset::new();
+        let seed = Solution {
+            bindings: Vec::new(),
+            source_facts: Vec::new(),
+        };
+        let out = extend_solutions_indexed(&atom, &rel, &delta, Scan::Full, &[seed]);
+
+        // Every produced solution bound ?X/?Y to one scanned row, IN INSERTION ORDER.
+        let got: Vec<(String, String)> = out
+            .iter()
+            .map(|sol| {
+                (
+                    sol.get("?X").expect("?X bound").to_owned(),
+                    sol.get("?Y").expect("?Y bound").to_owned(),
+                )
+            })
+            .collect();
+        let want_insertion = vec![
+            (format!("<{}>", nn("z")), format!("<{}>", nn("p"))),
+            (format!("<{}>", nn("a")), format!("<{}>", nn("q"))),
+            (format!("<{}>", nn("m")), format!("<{}>", nn("r"))),
+        ];
+        assert_eq!(
+            got, want_insertion,
+            "the full scan MUST iterate insertion (row-id) order, not a key-sorted order"
+        );
+        // The divergence this guards: insertion order is NOT the lexical order.
+        let mut lexical = want_insertion.clone();
+        lexical.sort();
+        assert_ne!(
+            got, lexical,
+            "insertion order (z,a,m) genuinely diverges from lexical order (a,m,z) — \
+             so a key-sorted cursor would produce a DIFFERENT (drifting) sequence"
+        );
+        // The recorded provenance `source_facts` follow the same insertion order.
+        let src: Vec<String> = out
+            .iter()
+            .map(|s| term_display(&s.source_facts[0].subject))
+            .collect();
+        assert_eq!(
+            src,
+            vec![
+                format!("<{}>", nn("z")),
+                format!("<{}>", nn("a")),
+                format!("<{}>", nn("m")),
+            ],
+            "source_facts (provenance byte order) follow the row-id scan order"
+        );
+    }
+
     /// Transitive closure correctness: every reachable pair is in the `path` relation.
     #[test]
     fn physical_transitive_closure_reaches_all_pairs() {
         let rules = tc_rules();
         let store = tc_store();
-        let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
+        let outcome = materialize_native(&store, &exe(&rules), None).expect("materialize_native");
         let NativeOutcome::Decided(Budgeted { rows, .. }) = outcome else {
             panic!("expected Decided");
         };
@@ -1432,7 +1682,7 @@ mod tests {
             &format!("{NS}b"),
         );
 
-        let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
+        let outcome = materialize_native(&store, &exe(&rules), None).expect("materialize_native");
         let NativeOutcome::Decided(Budgeted { rows, .. }) = outcome else {
             panic!("expected Decided for a stratifiable program");
         };
@@ -1508,7 +1758,7 @@ mod tests {
         // r(m, n) with m ≠ n: the sole base fact for the repeated-unbound-var probe.
         store.insert_quad(WORLD, &nn("m"), &nn("r"), &nn("n"));
 
-        let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
+        let outcome = materialize_native(&store, &exe(&rules), None).expect("materialize_native");
         let NativeOutcome::Decided(Budgeted { rows, .. }) = outcome else {
             panic!("expected Decided for a stratifiable existential-NAF program");
         };
@@ -1548,7 +1798,10 @@ mod tests {
         );
     }
 
-    /// A non-stratifiable program (negative edge in a cycle) is a declared gap.
+    /// A non-stratifiable program (negative edge in a cycle) is a declared gap surfaced by
+    /// the plan pipeline BEFORE an `Executable` exists: `stratify()` → `None`.  This is
+    /// where the old in-evaluator `Unsupported(NonStratifiable)` moved — the executor can no
+    /// longer even be reached for such a program (it has no `Executable` to run).
     #[test]
     fn physical_non_stratifiable_is_unsupported() {
         // p(?X) :- ~q(?X). q(?X) :- ~p(?X).  (self-loop encoding for the unary preds.)
@@ -1560,21 +1813,9 @@ mod tests {
         );
         let rules = parse_eval_rules(&rls).expect("parse cyclic-negation rules");
 
-        let store = WorldStore::new();
-        store.insert_quad(
-            WORLD,
-            &format!("{NS}a"),
-            &format!("{NS}dom"),
-            &format!("{NS}a"),
-        );
-
-        let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
         assert!(
-            matches!(
-                outcome,
-                NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable)
-            ),
-            "p↔q via mutual negation must be reported non-stratifiable"
+            Parsed::new(&rules).stratify().is_none(),
+            "p↔q via mutual negation must be reported non-stratifiable (no Executable)"
         );
     }
 
@@ -1606,7 +1847,7 @@ mod tests {
         rules: &[EvalRule],
         max_steps: Option<u64>,
     ) -> Budgeted<Vec<DerivedRow>> {
-        match materialize_native(store, rules, max_steps).expect("materialize_native") {
+        match materialize_native(store, &exe(rules), max_steps).expect("materialize_native") {
             NativeOutcome::Decided(b) => b,
             other => panic!("expected Decided, got {other:?}"),
         }
@@ -1798,6 +2039,90 @@ mod tests {
         );
     }
 
+    /// COMMIT-ORDER / GOVERNOR INVARIANT (the arena-reset / dense-ID blocking constraint).
+    ///
+    /// Every committed row is stamped with a dense `RowId` (insertion order), which keys
+    /// the semi-naive delta on a `RowId` bitset.  `RowId` order is MINT (insertion) order,
+    /// NOT lexical order — so if the winner sort or the `governor.charge()` prefix ever
+    /// ordered by `RowId` it would silently drift both the emitted bytes and the
+    /// budget-cut derivation.  RowId assignment MUST be a purely ADDITIVE bookkeeping side
+    /// effect of the lockstep `rel.insert` inside the already-lexically-sorted commit
+    /// loop: it never influences WHICH derivation wins or WHEN the budget is charged.
+    ///
+    /// This constructs a scenario where mint order is the REVERSE of lexical order and
+    /// asserts the whole `governor.consumed` sequence AND the committed prefix follow
+    /// LEXICAL surface, not mint/RowId order:
+    ///
+    /// * Two stratum-0 rules fire in ONE round from `trigger(a, a)`: `rZ` derives
+    ///   `zzz(a, a)`, `rA` derives `aaa(a, a)`.
+    /// * The program lists `rZ` BEFORE `rA`, so ENUMERATION (mint / RowId) order derives
+    ///   `zzz` first.  A commit sort keyed on the row's dense id would commit `zzz` first
+    ///   and, under a budget of 1, admit `zzz`.
+    /// * The engine MUST instead commit in RESOLVED LEXICAL `FactKey` order
+    ///   (`aaa` < `zzz`), so budget 0 admits nothing, budget 1 admits `aaa` (never
+    ///   `zzz`), and budget 2 admits `aaa` then `zzz` — the `governor.consumed` sequence
+    ///   `0, 1, 2` is RowId-independent.
+    #[test]
+    fn physical_commit_order_is_lexical_surface_not_mint_order() {
+        let rls = format!(
+            "#[name(\"{NS}rZ\")]\n\
+             <{NS}zzz>(?X, ?X, ?W) :- <{NS}trigger>(?X, ?X, ?W) .\n\
+             #[name(\"{NS}rA\")]\n\
+             <{NS}aaa>(?X, ?X, ?W) :- <{NS}trigger>(?X, ?X, ?W) .\n"
+        );
+        let rules = parse_eval_rules(&rls).expect("parse lexical-vs-mint rules");
+        let store = WorldStore::new();
+        store.insert_quad(WORLD, &nn("a"), &nn("trigger"), &nn("a"));
+
+        // Unbounded: BOTH facts derive — the two candidates genuinely coexist in round 1.
+        let full = materialize_budgeted(&store, &rules, None);
+        let full_preds: BTreeSet<String> = derived_only(&full.rows)
+            .iter()
+            .map(|r| r.predicate.as_str().to_owned())
+            .collect();
+        assert_eq!(
+            full_preds,
+            [nn("aaa"), nn("zzz")].into_iter().collect::<BTreeSet<_>>(),
+            "unbounded run derives BOTH aaa and zzz"
+        );
+
+        // The unbounded run commits exactly two derivations — the full `governor.consumed`.
+        assert_eq!(
+            full.consumed_steps, 2,
+            "the unbounded run charges the budget once per committed derivation"
+        );
+
+        // Sweep every budget: the committed prefix and the `governor.consumed` count are
+        // the LEXICAL prefix (aaa before zzz), byte-for-byte independent of the RowId a
+        // row happens to be minted with.  Budget 0 ⇒ nothing; 1 ⇒ [aaa]; 2 ⇒ [aaa, zzz].
+        let derived_seq = |b: &Budgeted<Vec<DerivedRow>>| -> Vec<String> {
+            derived_only(&b.rows)
+                .iter()
+                .map(|r| r.predicate.as_str().to_owned())
+                .collect()
+        };
+        let expected: [(&[&str], u64, BudgetStatus); 3] = [
+            (&[], 0, BudgetStatus::Exhausted),
+            (&["aaa"], 1, BudgetStatus::Exhausted),
+            (&["aaa", "zzz"], 2, BudgetStatus::Ok),
+        ];
+        for (budget, (want_preds, want_consumed, want_status)) in expected.into_iter().enumerate() {
+            let b = materialize_budgeted(&store, &rules, Some(budget as u64));
+            assert_eq!(
+                b.consumed_steps, want_consumed,
+                "budget {budget}: governor.consumed follows the lexical commit count, not RowId"
+            );
+            assert_eq!(b.status, want_status, "budget {budget}: status");
+            let want: Vec<String> = want_preds.iter().map(|p| nn(p)).collect();
+            assert_eq!(
+                derived_seq(&b),
+                want,
+                "budget {budget}: the committed prefix is the LEXICAL prefix (aaa before zzz), \
+                 never the MINT/RowId order (zzz first) — RowId assignment is purely additive"
+            );
+        }
+    }
+
     /// PER-WORLD PARALLELISM DETERMINISM GATE.
     ///
     /// The unbounded (`max_steps == None`) path chases every world in parallel with
@@ -1835,7 +2160,8 @@ mod tests {
         // w3 deliberately has no edges.
 
         let run = || {
-            let outcome = materialize_native(&store, &rules, None).expect("materialize_native");
+            let outcome =
+                materialize_native(&store, &exe(&rules), None).expect("materialize_native");
             let NativeOutcome::Decided(Budgeted { rows, .. }) = outcome else {
                 panic!("expected Decided for a stratifiable multi-world program");
             };
@@ -1929,7 +2255,7 @@ mod tests {
     fn val_edb(pairs: &[(&str, i64)]) -> RelationStore {
         let mut edb = RelationStore::new();
         for (s, n) in pairs {
-            edb.insert(&nn("val"), term(s), int_lit(*n));
+            edb.insert(&nn("val"), &term(s), &int_lit(*n));
         }
         edb
     }
@@ -1973,7 +2299,7 @@ mod tests {
             distinct_pairs: vec![],
             builtins: vec![is_builtin("?D", "?N", ArithOp::Add, QBuiltinRhs::Num(10))],
         };
-        let out = evaluate(val_edb(&[("a", 2)]), &[rule], None).expect("evaluate");
+        let out = evaluate(val_edb(&[("a", 2)]), &exe(&[rule]), None).expect("evaluate");
         let NativeOutcome::Decided(budgeted) = out else {
             panic!("expected Decided, got a gap");
         };
@@ -2004,7 +2330,7 @@ mod tests {
                 rhs: QTerm::Num(5),
             }],
         };
-        let out = evaluate(val_edb(&[("a", 2), ("b", 9)]), &[rule], None).expect("evaluate");
+        let out = evaluate(val_edb(&[("a", 2), ("b", 9)]), &exe(&[rule]), None).expect("evaluate");
         let NativeOutcome::Decided(budgeted) = out else {
             panic!("expected Decided, got a gap");
         };
@@ -2063,11 +2389,11 @@ mod tests {
         };
         // EDB: seed(a, a), edge(a, b), edge(b, c).
         let mut edb = RelationStore::new();
-        edb.insert(&nn("seed"), term("a"), term("a"));
-        edb.insert(&nn("edge"), term("a"), term("b"));
-        edb.insert(&nn("edge"), term("b"), term("c"));
+        edb.insert(&nn("seed"), &term("a"), &term("a"));
+        edb.insert(&nn("edge"), &term("a"), &term("b"));
+        edb.insert(&nn("edge"), &term("b"), &term("c"));
 
-        let out = evaluate(edb, &[seed_rule, step_rule], None).expect("evaluate");
+        let out = evaluate(edb, &exe(&[seed_rule, step_rule]), None).expect("evaluate");
         let NativeOutcome::Decided(budgeted) = out else {
             panic!("expected Decided, got a gap");
         };
@@ -2102,7 +2428,7 @@ mod tests {
                 QBuiltinRhs::Num(i64::MAX),
             )],
         };
-        let out = evaluate(val_edb(&[("a", 1)]), &[rule], None).expect("evaluate");
+        let out = evaluate(val_edb(&[("a", 1)]), &exe(&[rule]), None).expect("evaluate");
         assert!(
             matches!(out, NativeOutcome::Unsupported(UnsupportedKind::Arithmetic)),
             "overflow must be a declared Arithmetic gap, never a wrong answer"
@@ -2133,7 +2459,7 @@ mod tests {
     fn rel_store_from(triples: &[(&str, &str, &str)]) -> RelationStore {
         let mut rel = RelationStore::new();
         for &(s, p, o) in triples {
-            rel.insert(&nn(p), term(s), term(o));
+            rel.insert(&nn(p), &term(s), &term(o));
         }
         rel
     }
@@ -2176,7 +2502,8 @@ mod tests {
         max_steps: Option<u64>,
     ) -> (std::collections::BTreeSet<FactKey>, u64) {
         let store = world_store_from(triples);
-        match materialize_native(&store, rules, max_steps).expect("record materialize_native") {
+        match materialize_native(&store, &exe(rules), max_steps).expect("record materialize_native")
+        {
             NativeOutcome::Decided(b) => {
                 let set = b
                     .rows
@@ -2202,7 +2529,7 @@ mod tests {
         rules: &[EvalRule],
         max_steps: Option<u64>,
     ) -> (std::collections::BTreeSet<FactKey>, u64) {
-        match evaluate(rel_store_from(triples), rules, max_steps).expect("skip evaluate") {
+        match evaluate(rel_store_from(triples), &exe(rules), max_steps).expect("skip evaluate") {
             NativeOutcome::Decided(b) => (fact_keys(&b.rows), b.consumed_steps),
             NativeOutcome::Unsupported(k) => panic!("skip lane unsupported: {k:?}"),
         }
@@ -2315,8 +2642,10 @@ mod tests {
         );
     }
 
-    /// A non-stratifiable program is refused identically on the Skip lane (the outcome variant,
-    /// not just the fact set, is provenance-independent).
+    /// A non-stratifiable program is refused identically for the Skip lane: the refusal is
+    /// surfaced by the SHARED plan pipeline (`stratify()` → `None`) BEFORE an `Executable`
+    /// exists, so neither lane can even reach the executor for such a program — the gap is
+    /// provenance-independent by construction, not by two parallel in-evaluator checks.
     #[test]
     fn skip_reports_nonstratifiable_like_record() {
         // p(?X,?Y) :- q(?X,?Y) .   q(?X,?Y) :- e(?X,?Y), NOT p(?X,?Y) .  → negation in a cycle.
@@ -2336,13 +2665,9 @@ mod tests {
                 builtins: vec![],
             },
         ];
-        let out = evaluate(rel_store_from(&[("a", "e", "b")]), &rules, None).expect("evaluate");
         assert!(
-            matches!(
-                out,
-                NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable)
-            ),
-            "the Skip lane must refuse a non-stratifiable program exactly as the forward lane does"
+            Parsed::new(&rules).stratify().is_none(),
+            "the pipeline must refuse a non-stratifiable program before either lane runs"
         );
     }
 
@@ -2382,8 +2707,9 @@ mod tests {
 
         // Skip lane: the same program returns the derived answer, minting no reifier.
         let mut rel = RelationStore::new();
-        rel.insert(&nn("src"), quoted.clone(), term("z"));
-        let NativeOutcome::Decided(b) = evaluate(rel, &rules, None).expect("skip evaluate") else {
+        rel.insert(&nn("src"), &quoted, &term("z"));
+        let NativeOutcome::Decided(b) = evaluate(rel, &exe(&rules), None).expect("skip evaluate")
+        else {
             panic!("expected Decided from the Skip lane");
         };
         let keys = fact_keys(&b.rows);
@@ -2403,7 +2729,7 @@ mod tests {
         let store = tc_store();
         let rules = tc_rules();
         let NativeOutcome::Decided(Budgeted { rows, .. }) =
-            materialize_native(&store, &rules, None).expect("materialize_native")
+            materialize_native(&store, &exe(&rules), None).expect("materialize_native")
         else {
             panic!("expected Decided");
         };
@@ -2455,7 +2781,7 @@ mod tests {
         // the trace-recording engine pays.
         let store = world_store_from(edb);
         let NativeOutcome::Decided(rec) =
-            materialize_native(&store, &rules, None).expect("record materialize_native")
+            materialize_native(&store, &exe(&rules), None).expect("record materialize_native")
         else {
             panic!("record lane unsupported");
         };

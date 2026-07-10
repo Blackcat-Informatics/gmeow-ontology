@@ -15,6 +15,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::sync::LazyLock;
 
+use gmeow_lang_bridge::{Gmn0Model, GmnDictionary, measure_coverage};
 use gmeow_logic_compile::projections::correspondence::extract_correspondences;
 use gmeow_logic_compile::projections::correspondence_soundness::{Mapping, lint_dc_refinement};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
@@ -43,6 +44,7 @@ pub fn resolve(producer: &str) -> Option<Primitive> {
         "translation_axis" => Some(translation_axis),
         "reasoner_axis" => Some(crate::reasoner::reasoner_axis),
         "flagship_counterexample_depth_axis" => Some(flagship_counterexample_depth_axis),
+        "gmn1_coverage_axis" => Some(gmn1_coverage_axis),
         _ => None,
     }
 }
@@ -62,6 +64,7 @@ pub const IMPLEMENTED: &[&str] = &[
     "translation_axis",
     "reasoner_axis",
     "flagship_counterexample_depth_axis",
+    "gmn1_coverage_axis",
 ];
 
 // ── Axis 1: Maximal grounding ─────────────────────────────────────────────
@@ -1103,6 +1106,115 @@ fn flagship_counterexample_depth_axis(ctx: &ScoreContext) -> AxisScore {
     }
     #[allow(clippy::cast_precision_loss)]
     let score = reasoner_backed as f64 / scenarios.len() as f64;
+    AxisScore { score, findings }
+}
+
+// ── Axis: GMN-1 coverage (Task 7 — the F1 mnemomorphic-domain convergence contract) ─
+
+/// Walk `slice_dir`'s components to the repo root — the directory whose child is the
+/// FIRST `slices` component. The same path-prefix discipline the plan's own grounding
+/// detection uses (no `gmeow:tierGrounding` predicate exists to read; `slices/
+/// grounding/` is organizational path-only per `slices/vocabulary.ttl`), applied here
+/// to locate the shared `slices/grounding/lang/module.ttl` dictionary from any slice's
+/// own directory.
+fn repo_root_of(slice_dir: &Path) -> Option<std::path::PathBuf> {
+    let mut root = std::path::PathBuf::new();
+    for comp in slice_dir.components() {
+        if comp.as_os_str() == "slices" {
+            return Some(root);
+        }
+        root.push(comp);
+    }
+    None
+}
+
+/// Load the shared `gmeow:gmnDictV1` dictionary from the canonical
+/// `slices/grounding/lang/module.ttl` — the SAME dictionary the Task-6 round-trip
+/// gate (`crates/pipeline/src/stages/gmn1_gate.rs`) loads, so this axis's coverage
+/// measurement never diverges against a second, locally-improvised dictionary.
+fn gmn1_dictionary(root: &std::path::Path) -> Option<GmnDictionary> {
+    let path = root.join("slices/grounding/lang/module.ttl");
+    let bytes = std::fs::read(&path).ok()?;
+    let ds = purrdf::parse_dataset(&bytes, "text/turtle", None).ok()?;
+    GmnDictionary::from_dataset(&ds).ok()
+}
+
+/// The slice's own GMN-0 source surface: `module.ttl` plus every (non-recursive)
+/// `examples/*.ttl` — module + examples ONLY, never `tests/`, mirroring both this
+/// axis's own `skos:definition` and the Task-6 grounding gate's identical scope.
+fn gmn1_coverage_source_paths(slice_dir: &Path) -> Vec<std::path::PathBuf> {
+    let mut paths = vec![slice_dir.join("module.ttl")];
+    if let Ok(rd) = std::fs::read_dir(slice_dir.join("examples")) {
+        for e in rd.flatten() {
+            let p = e.path();
+            if p.extension().is_some_and(|x| x == "ttl") {
+                paths.push(p);
+            }
+        }
+    }
+    paths.retain(|p| p.is_file());
+    paths.sort();
+    paths
+}
+
+/// GMN-1 coverage: the fraction of a slice's own GMN-0 normal-form vocabulary
+/// (module + examples) the Task-6 codec can losslessly round-trip.
+///
+/// Reuses the codec's OWN term encoder via [`measure_coverage`] — never a duplicated,
+/// possibly-divergent notion of "coverable" — so this axis and the grounding
+/// round-trip gate (`gmn1_gate.rs`) can never silently disagree on what counts as
+/// covered. A slice with no module/examples GMN-0 content, or whose repo root or
+/// shared dictionary cannot be resolved (a malformed checkout — a condition other
+/// structural gates catch independently), scores the crate's neutral vacuous 1.0
+/// with an advisory naming the reason, never a silent false-positive "fully covered".
+fn gmn1_coverage_axis(ctx: &ScoreContext) -> AxisScore {
+    let Some(root) = repo_root_of(&ctx.slice_dir) else {
+        return AxisScore {
+            score: 1.0,
+            findings: vec![advisory(
+                "slice-quality.gmn1-coverage.no-repo-root",
+                "the slice directory carries no resolvable slices/ path prefix — GMN-1 coverage cannot be measured (vacuous 1.0).".to_owned(),
+            )],
+        };
+    };
+    let Some(dict) = gmn1_dictionary(&root) else {
+        return AxisScore {
+            score: 1.0,
+            findings: vec![advisory(
+                "slice-quality.gmn1-coverage.no-dictionary",
+                "the shared gmeow:gmnDictV1 dictionary (slices/grounding/lang/module.ttl) failed to load — GMN-1 coverage cannot be measured (vacuous 1.0).".to_owned(),
+            )],
+        };
+    };
+
+    let paths = gmn1_coverage_source_paths(&ctx.slice_dir);
+    if paths.is_empty() {
+        return AxisScore::clean(1.0); // no GMN-0 source content → vacuously covered
+    }
+    let path_refs: Vec<&Path> = paths.iter().map(std::path::PathBuf::as_path).collect();
+    let Ok(ds) = crate::dataset_from_paths(&path_refs) else {
+        // A malformed source surfaces as a validation error on another gate, not here.
+        return AxisScore::clean(1.0);
+    };
+
+    let model = Gmn0Model::from_dataset(&ds);
+    let report = measure_coverage(&model, &dict);
+    let score = report.fraction();
+    let findings = if report.covered < report.total {
+        vec![advisory(
+            "slice-quality.gmn1-coverage.uncovered",
+            format!(
+                "{}/{} of the slice's GMN-0 quads (module + examples) do not yet round-trip \
+                 losslessly through the GMN-1 codec — extend crates/lang-bridge/src/gmn1_codec.rs \
+                 to cover the construct, or file it as a named codec-coverage gap against \
+                 LANG-GMN.md (never leave it silently unmeasured).",
+                report.total - report.covered,
+                report.total
+            ),
+        )]
+    } else {
+        Vec::new()
+    };
     AxisScore { score, findings }
 }
 

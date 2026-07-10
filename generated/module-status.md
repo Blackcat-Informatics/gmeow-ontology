@@ -48,13 +48,13 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | inhabitation | core | core | 11 | 20 | 34 | 0 | 5 | 20/54 | full |
 | inquiry | core | core | 5 | 3 | 10 | 0 | 2 | 13/13 | full |
 | kernel | core | core | 0 | 17 | 27 | 0 | 1 | 28/44 | full |
-| lang | core | grounding | 6 | 6 | 20 | 29 | 3 | 26/26 | full |
+| lang | core | grounding | 7 | 12 | 30 | 54 | 3 | 42/42 | full |
 | language | core | core | 3 | 2 | 3 | 0 | 1 | 5/5 | full |
 | languages | extension | extensions | 6 | 11 | 22 | 0 | 1 | - | full |
 | learning | core | core | 7 | 3 | 8 | 0 | 2 | 11/11 | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 8/8 | full |
-| logic | core | grounding | 0 | 211 | 399 | 398 | 8 | 0/610 | full |
+| logic | core | grounding | 0 | 204 | 376 | 398 | 8 | 0/580 | full |
 | math | core | grounding | 2 | 0 | 0 | 0 | 14 | 0/0 | full |
 | mentation | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
 | metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
@@ -88,4 +88,4 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 13 | 0 | 1 | 19/19 | full |
 
-**80 slices** · documentation: 80 full guides, 0 stubs remaining; advisory coverage: 1334/2182 core class/property terms.
+**80 slices** · documentation: 80 full guides, 0 stubs remaining; advisory coverage: 1350/2168 core class/property terms.

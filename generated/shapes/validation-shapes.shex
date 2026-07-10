@@ -2598,6 +2598,21 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/geohash> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryTerm> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryTerm-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryTerm> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gmnRingLevel> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/gmnRingLevel-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/gmnRingLevel> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/grooveGridUnit> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/grooveGridUnit-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/grooveGridUnit> . {0,1} ;
