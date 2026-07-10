@@ -616,6 +616,15 @@ fn projection_derived(
 ) -> gmeow_errors::Result<BTreeMap<TripleKey, DerivedTriple>> {
     let projection_input = projection_input_graph(abox, onto)?;
     let onto_subjects = subjects(onto);
+    // Strip the `<`/`>` brackets off every onto subject ONCE, up front: the
+    // per-quad `derives_from_onto_subject` check below is called once per
+    // projection-result quad (potentially thousands, across every projection
+    // query), and re-deriving these unbracketed IRIs from `onto_subjects` on
+    // every call would be O(quads × onto_subjects) redundant string work.
+    let onto_subject_iris: Vec<&str> = onto_subjects
+        .iter()
+        .filter_map(|s| s.strip_prefix('<').and_then(|s| s.strip_suffix('>')))
+        .collect();
     let mut derived: BTreeMap<TripleKey, DerivedTriple> = BTreeMap::new();
     let engine = NativeSparqlEngine::new();
     for (name, query) in projection_queries {
@@ -642,7 +651,7 @@ fn projection_derived(
             let predicate = quad.predicate;
             let subject_token = term_token(&subject);
             if onto_subjects.contains(&subject_token)
-                || derives_from_onto_subject(&subject_token, &onto_subjects)
+                || derives_from_onto_subject(&subject_token, &onto_subject_iris)
             {
                 continue;
             }
@@ -988,25 +997,23 @@ fn subjects(graph: &Graph) -> BTreeSet<String> {
 /// (e.g. the imported `imports/languages-reference.ttl` catalog) leaks that
 /// ENTIRE static catalog into every MAXIMAL(G) transform, regardless of the
 /// actual instance content.
-fn derives_from_onto_subject(subject_token: &str, onto_subjects: &BTreeSet<String>) -> bool {
+fn derives_from_onto_subject(subject_token: &str, onto_subject_iris: &[&str]) -> bool {
     // Tokens are bracketed IRIs (`<https://…>`); compare the INNER IRI text, not
     // the bracketed token — `<...Exonym-form>` does not `starts_with`
     // `<...Exonym>` (the closing `>` breaks the naive bracketed prefix match),
-    // but the inner IRI `...Exonym-form` does start with `...Exonym`.
+    // but the inner IRI `...Exonym-form` does start with `...Exonym`. Callers
+    // pre-strip the brackets off `onto_subject_iris` ONCE (this runs once per
+    // projection-result quad, so re-deriving the onto side's unbracketed IRIs
+    // on every call would be redundant O(quads × onto_subjects) string work).
     let Some(subject_iri) = subject_token
         .strip_prefix('<')
         .and_then(|s| s.strip_suffix('>'))
     else {
         return false;
     };
-    onto_subjects.iter().any(|onto_subject| {
-        onto_subject
-            .strip_prefix('<')
-            .and_then(|s| s.strip_suffix('>'))
-            .is_some_and(|onto_iri| {
-                onto_iri.len() < subject_iri.len() && subject_iri.starts_with(onto_iri)
-            })
-    })
+    onto_subject_iris
+        .iter()
+        .any(|onto_iri| onto_iri.len() < subject_iri.len() && subject_iri.starts_with(onto_iri))
 }
 
 fn has_type(graph: &Graph, subject: &str, class: &str) -> bool {
