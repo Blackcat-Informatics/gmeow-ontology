@@ -139,6 +139,10 @@ fn spine() -> PipelineSpec {
             spec("stage-source-load", "source_load", &[]),
             spec("stage-statements", "statements", &[]),
             spec("stage-compile-logic", "compile_logic", &[]),
+            // Leaf compute: the five math flagship producers, folded into the snapshot
+            // (mirrors `run.rs::full_spec()` — kept in sync so `bind`'s Rust/RDF
+            // consumes-agreement check holds for `stage-snapshot`).
+            spec("stage-math-producers", "math_producers", &[]),
             spec("stage-mappings", "mappings", &["stage-compile-logic"]),
             spec(
                 "stage-reason",
@@ -177,6 +181,9 @@ fn spine() -> PipelineSpec {
             // leaf, never re-rendered in the presenter (the transform-once razor).
             spec("stage-export-profiles", "profiles", &[]),
             spec("stage-export-evals", "evals", &[]),
+            // references.bib feeds the docs-print PDF #bibliography; a source-reading
+            // ExportLeaf the snapshot folds (mirrors `run.rs::full_spec()`).
+            spec("stage-export-references", "references", &[]),
             spec(
                 "stage-export-research-objects",
                 "research-objects",
@@ -202,9 +209,11 @@ fn spine() -> PipelineSpec {
                     "stage-export-evals",
                     "stage-export-json-schema",
                     "stage-export-profiles",
+                    "stage-export-references",
                     "stage-export-research-objects",
                     "stage-gts-compose",
                     "stage-mappings",
+                    "stage-math-producers",
                     "stage-reason",
                     "stage-source-load",
                     "stage-statements",
@@ -227,7 +236,7 @@ fn executor_runs_the_spine_end_to_end() {
     // registry.
     let graph = spec.validate().expect("spine DAG validates");
     let bound = bind(&spec, &graph, &registry()).expect("every spine stage binds");
-    assert_eq!(bound.len(), 17, "all 17 snapshot-spine stages bound");
+    assert_eq!(bound.len(), 19, "all 19 snapshot-spine stages bound");
     assert!(
         bound.iter().any(|s| s.id() == "stage-constraint-catalog"),
         "constraint-catalog stage bound by id, not merely counted"
@@ -243,7 +252,7 @@ fn executor_runs_the_spine_end_to_end() {
     ctx.cache = PipelineCache::open(cache_dir.path()).unwrap();
 
     let result = run(&graph, &bound, &mut ctx).expect("pipeline runs end-to-end");
-    assert_eq!(result.products.len(), 17);
+    assert_eq!(result.products.len(), 19);
     assert!(
         result.products.contains_key("stage-constraint-catalog"),
         "constraint-catalog produced a product, not merely counted"
