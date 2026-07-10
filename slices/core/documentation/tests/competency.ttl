@@ -41,3 +41,24 @@ ex:cqDocEvidenceGrounded a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "examples/documented-term.ttl" ;
     gmeow:cqRationale "Proof-carrying documentation demands that every gmeow:DocEvidence node be a claim WITH its grounds: a kind (gmeow:docEvidenceKind) and at least one carrier truthmaker (gmeow:docGroundedBy). An ungrounded evidence node is the doc-layer analogue of a DARK finding. The ASK witnesses that the worked scene holds together as a grounded evidence node." ;
     gmeow:cqExpectAsk true .
+
+# --- 3. Is Full's intent a PROPER subset of Maximal's? (RowsContains, module base) ---
+# The derived maturity lattice must place FULL strictly below MAXIMAL: the maximal
+# anchor's intent must carry attributes the full anchor does not. The query returns
+# the maximal-only dimensions; RowsContains pins one guaranteed witness
+# (gmeow:dimAnnotationCoat, a maximal-tier dimension) so the cell stays stable as the
+# ladder is extended. The anchors and their intents live in the module base graph, so
+# no gmeow:cqDataFile overlay is needed.
+ex:cqMaturityLattice a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/documentation/queries/competency/maturity-lattice.rq" ;
+    gmeow:cqRationale "The named maturity anchors are distinguished intents inside the Formal-Concept lattice of the coverage incidence, and the ladder MUST be a proper chain: gmeow:docMaturityFull's intent is a strict subset of gmeow:docMaturityMaximal's. The query returns the dimensions maximal requires that full does not; a non-empty result proves Full ⊂ Maximal (proper containment), so the two tiers are genuinely distinct concepts and the maturity order is real rather than a degenerate collapse." ;
+    gmeow:cqResultShape ex:cqMaturityLatticeShape ;
+    gmeow:cqExpectRow ex:cqMaturityLatticeRowAnnotationCoat .
+
+ex:cqMaturityLatticeShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "dim" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ex:cqMaturityLatticeRowAnnotationCoat a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dim" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/dimAnnotationCoat> ] .

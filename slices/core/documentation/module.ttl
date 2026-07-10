@@ -420,6 +420,339 @@ gmeow:docProvenanceDepth
     gmeow:howToUse "Let the docs projection derive it as the length of the backward stage walk from stage-docs-render; render it beside the provenance chain."@x-gmeow-english ;
     gmeow:useWhen "Use to record how many build stages produced a documented term on its provenance evidence node."@x-gmeow-english .
 
+# ── Coverage-dimension value vocabulary ──────────────────────────────────────
+# The attributes of the Formal-Concept-Analysis incidence "a documented term or
+# slice COVERS this dimension". Each dimension is a first-class join-able value
+# (mirrors gmeow:DocEvidenceKind / gmeow:VersionRole's QualityValue discipline),
+# and — the binding invariant that keeps the maturity axes objective — each
+# names a DETERMINISTIC structural predicate: a present/absent fact detected by a
+# pure function of the model, never a corpus-tuned threshold. The incidence is
+# projected per record by crates/docs (gmeow:docCoversDimension /
+# gmeow:docMissesDimension), and the named gmeow:DocMaturity anchors are
+# distinguished intents over it.
+
+gmeow:DocCoverageDimension
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "Doc Coverage Dimension"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The kind of documentation coverage a term or slice carries — a VALUE, never an Entity subclass. Each individual names one coverage dimension of the Formal-Concept-Analysis incidence a documented record runs over: the record either COVERS the dimension (gmeow:docCoversDimension) or MISSES it (gmeow:docMissesDimension). The binding invariant that keeps every maturity axis objective: every dimension's detector is a DETERMINISTIC structural predicate — a present/absent fact computed by a pure function of the model, never a corpus-tuned threshold or subjective score. The seed list is an anchor, not a fence, and every dimension is tier-eligible: it may enter a gmeow:DocMaturity anchor's intent via gmeow:maturityRequiresDimension."@x-gmeow-english ;
+    skos:example "gmeow:dimDefinition a gmeow:DocCoverageDimension ; rdfs:label \"definition\"@x-gmeow-english ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-dimension Entity subclasses or typing a documented record directly with a dimension class; the dimension is an individual value referenced through gmeow:docCoversDimension / gmeow:maturityRequiresDimension, not an essential type. Avoid a dimension whose detector is a tuned threshold rather than a present/absent structural fact — that would make the axis subjective."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference the seeded individuals from gmeow:docCoversDimension / gmeow:docMissesDimension and gmeow:maturityRequiresDimension; extend the anchor list with a new gmeow:DocCoverageDimension individual (label + a stated deterministic detection rule) when a new structural coverage fact is added."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for documentation-coverage dimensions — the named structural facts (definition, label, usage advice, example, …) a documented term or slice covers or misses, and the attributes the gmeow:DocMaturity intents are built from."@x-gmeow-english .
+
+gmeow:dimDefinition
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "definition"@x-gmeow-english ;
+    skos:definition "The definition coverage dimension — the documented term carries a non-empty skos:definition (or rdfs:comment). Detection rule: the definition string is present and non-blank (a deterministic presence test)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimLabel
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "label"@x-gmeow-english ;
+    skos:definition "The label coverage dimension — the documented term carries a non-empty rdfs:label. Detection rule: the label string is present and non-blank (a deterministic presence test)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimUsageAdvice
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "usage advice"@x-gmeow-english ;
+    skos:definition "The usage-advice coverage dimension — the documented term carries adopter guidance. Detection rule: at least one of gmeow:useWhen / gmeow:avoidWhen / gmeow:howToUse is present (a deterministic presence test)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimExample
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "example"@x-gmeow-english ;
+    skos:definition "The example coverage dimension — the documented term carries a usage example. Detection rule: at least one skos:example is present (a deterministic presence test)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimScopeNote
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "scope note"@x-gmeow-english ;
+    skos:definition "The scope-note coverage dimension — the documented term carries a boundary note. Detection rule: at least one skos:scopeNote is present (a deterministic presence test)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimAlignment
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "alignment"@x-gmeow-english ;
+    skos:definition "The alignment coverage dimension — the documented term is aligned to an external vocabulary. Detection rule: the term IRI is the subject of at least one external alignment / linkage (a deterministic membership test against the linkage subject set)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimFixturePair
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "fixture pair"@x-gmeow-english ;
+    skos:definition "The fixture-pair coverage dimension — the documented term is exercised by BOTH a well-formed conformance fixture and a counter-example (a rule with no negative fixture is not enforced). Detection rule: the term is referenced by at least one well-formed and at least one counter-example fixture (a deterministic presence test over the fixture set)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimCompetencyRationale
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "competency rationale"@x-gmeow-english ;
+    skos:definition "The competency-rationale coverage dimension — the documented term is exercised by a competency question that carries a rationale. Detection rule: the term is exercised by at least one competency question whose rationale is present and non-blank (a deterministic presence test)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimWorkedInstance
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "worked instance"@x-gmeow-english ;
+    skos:definition "The worked-instance coverage dimension — the documented term is demonstrated by a worked instance under examples/. Detection rule: the term is referenced by at least one worked-instance example (a deterministic presence test over the example set)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimLossLedgerRow
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "loss ledger row"@x-gmeow-english ;
+    skos:definition "The loss-ledger coverage dimension — the documented term's projection loss is recorded in the ledger. Detection rule: the term carries a loss-kind gmeow:DocEvidence node (a projection-loss ledger row). At MAXIMAL this dimension is judgment-valued, not a bare presence bit: every projection of the term must carry a preservation judgment ≥ sound (read from the loss ledger via the gmeow:docJudgment values the projection emits), tying DocMaturity to the repo's existing preservation ordering (Principle 17) rather than a parallel bit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimLinkageCoverage
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "linkage coverage"@x-gmeow-english ;
+    skos:definition "The linkage-coverage dimension — the documented term participates in the cross-vocabulary linkage / mapping-set coverage. Detection rule: the term is a member of at least one compiled mapping set's coverage (a deterministic membership test against the linkage coverage set)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimAnnotationCoat
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "annotation coat"@x-gmeow-english ;
+    skos:definition "The annotation-coat coverage dimension — the documented term carries the full advice coat. Detection rule: gmeow:useWhen AND gmeow:avoidWhen AND gmeow:howToUse AND gmeow:graphBoxRole are all present (a deterministic conjunction of presence tests, stricter than gmeow:dimUsageAdvice which needs only one advice string)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimThesisSentence
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "thesis sentence"@x-gmeow-english ;
+    skos:definition "The thesis-sentence coverage dimension — the owning slice's docs.md opens with a thesis sentence. Detection rule: the slice's docs.md carries a non-empty leading thesis sentence (a deterministic presence test over the narrative)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimTranslationCoverage
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "translation coverage"@x-gmeow-english ;
+    skos:definition "The translation-coverage dimension — the documented term's carrier strings are available in every supported language. Detection rule: the term's translatable strings are present for each language in the supported set (en / fr / cmn), read from the i18n translation set (a deterministic membership test)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimTestReach
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "test reach"@x-gmeow-english ;
+    skos:definition "The test-reach coverage dimension — the documented term is reached by at least one test. Detection rule: the term is referenced by at least one structural assertion or competency question (a deterministic presence test over the test set)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimRealizedState
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "realized state"@x-gmeow-english ;
+    skos:definition "The realized-state coverage dimension — the slice's design-set table honestly marks each documented artifact's realized state. Detection rule: every documented artifact in the slice's docs.md design-set table carries a realized-state marker (design-only / partial / built); a table entry with no marker misses this dimension (a deterministic presence test over the table rows, not authorial prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimProvenanceHonesty
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "provenance honesty"@x-gmeow-english ;
+    skos:definition "The provenance-honesty coverage dimension — a rationale is not silently a test reference. Detection rule: the rationale string/IRI names no test artifact (a deterministic name-membership test of the rationale against the slice's test-artifact set)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:dimProseQuality
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "prose quality"@x-gmeow-english ;
+    skos:definition "The prose-quality coverage dimension — reformulated from subjective judgment into a deterministic structural conjunction so it is gate-safe. Detection rule (structural conjunction, each conjunct a present/absent fact): the boundary definition contains the three-NOTs structural pattern AND at least one worked-triple example is present AND a non-empty usage-coat distinct from the definition is present AND a present rationale distinct from the label is present. No substantiveness score, no corpus calibration."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# ── DocMaturity anchors — distinguished intents over the coverage incidence ───
+# The named maturity tiers are anchors (not fences) inside the Formal-Concept
+# lattice of the "covers dimension" incidence. Each anchor's INTENT is the set of
+# structural dimensions it requires (gmeow:maturityRequiresDimension), authored
+# EXPLICITLY for all four so the nesting Minimal ⊆ Basic ⊆ Full ⊆ Maximal holds
+# across the whole ladder without relying on inference. The order between anchors
+# is DERIVED from intent inclusion — never a tuned threshold; the only numeric is
+# the bounded fraction gmeow:coverageFraction = |covered ∩ intent| / |intent| ∈ [0,1].
+
+gmeow:DocMaturity
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "Doc Maturity"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The documentation-maturity anchor a term or slice claims or earns — a VALUE, never an Entity subclass. Each anchor individual (minimal, basic, full, maximal) is a distinguished INTENT inside the Formal-Concept lattice of the gmeow:docCoversDimension incidence: the set of gmeow:DocCoverageDimension attributes it requires via gmeow:maturityRequiresDimension. The maturity ORDER is derived from intent inclusion (Minimal ⊆ Basic ⊆ Full ⊆ Maximal), never a tuned numeric threshold. A slice's CLAIMED anchor is gmeow:sliceDocMaturity; its EARNED floor (largest anchor whose intent ⊆ covered set) is gmeow:docEarnedMaturity; the headline gate is exactly asserted ⊄ earned. The seed list is an anchor, not a fence."@x-gmeow-english ;
+    skos:example "gmeow:docMaturityFull a gmeow:DocMaturity ; gmeow:maturityRequiresDimension gmeow:dimDefinition ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-tier Entity subclasses or making one anchor rdfs:subClassOf another (the order is intent inclusion, not a class hierarchy); avoid asserting a maturity a slice's coverage does not support (the asserted ⊄ earned gate bites); avoid tuning the ladder to a target — the order is intrinsic to the incidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference the seeded anchor individuals from gmeow:sliceDocMaturity (claimed) and gmeow:docEarnedMaturity (earned); read each anchor's gmeow:maturityRequiresDimension set to see its intent; extend the ladder with a new gmeow:DocMaturity anchor (label + an explicit intent) when a domain needs a tier the seeds omit."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for documentation-maturity tiers — the named anchors (minimal, basic, full, maximal) a slice claims or earns, each defined by the dimension intent it requires rather than a numeric score."@x-gmeow-english .
+
+gmeow:docMaturityMinimal
+    a gmeow:DocMaturity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "minimal"@x-gmeow-english ;
+    skos:definition "The minimal documentation-maturity anchor — a term is named and defined. Intent: gmeow:dimDefinition, gmeow:dimLabel."@x-gmeow-english ;
+    gmeow:maturityRequiresDimension
+        gmeow:dimDefinition ,
+        gmeow:dimLabel ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:docMaturityBasic
+    a gmeow:DocMaturity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "basic"@x-gmeow-english ;
+    skos:definition "The basic documentation-maturity anchor — the six-dimension core coat. Intent: the minimal intent plus gmeow:dimUsageAdvice, gmeow:dimExample, gmeow:dimScopeNote, gmeow:dimAlignment."@x-gmeow-english ;
+    gmeow:maturityRequiresDimension
+        gmeow:dimDefinition ,
+        gmeow:dimLabel ,
+        gmeow:dimUsageAdvice ,
+        gmeow:dimExample ,
+        gmeow:dimScopeNote ,
+        gmeow:dimAlignment ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:docMaturityFull
+    a gmeow:DocMaturity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "full"@x-gmeow-english ;
+    skos:definition "The full documentation-maturity anchor — the basic coat plus proof-carrying evidence and honest realized state. Intent: the basic intent plus gmeow:dimFixturePair, gmeow:dimCompetencyRationale, gmeow:dimWorkedInstance, gmeow:dimLossLedgerRow, gmeow:dimLinkageCoverage, gmeow:dimRealizedState. A ≥FULL slice that omits a realized-state marker drops below its asserted tier and the gate bites."@x-gmeow-english ;
+    gmeow:maturityRequiresDimension
+        gmeow:dimDefinition ,
+        gmeow:dimLabel ,
+        gmeow:dimUsageAdvice ,
+        gmeow:dimExample ,
+        gmeow:dimScopeNote ,
+        gmeow:dimAlignment ,
+        gmeow:dimFixturePair ,
+        gmeow:dimCompetencyRationale ,
+        gmeow:dimWorkedInstance ,
+        gmeow:dimLossLedgerRow ,
+        gmeow:dimLinkageCoverage ,
+        gmeow:dimRealizedState ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:docMaturityMaximal
+    a gmeow:DocMaturity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "maximal"@x-gmeow-english ;
+    skos:definition "The maximal documentation-maturity anchor — the full intent plus every remaining structural dimension. Intent: the full intent plus gmeow:dimAnnotationCoat, gmeow:dimThesisSentence, gmeow:dimTranslationCoverage, gmeow:dimTestReach, gmeow:dimProvenanceHonesty, gmeow:dimProseQuality (all eighteen). At MAXIMAL the loss dimension is judgment-valued: every projection of the term carries a preservation judgment ≥ sound (Principle 17)."@x-gmeow-english ;
+    gmeow:maturityRequiresDimension
+        gmeow:dimDefinition ,
+        gmeow:dimLabel ,
+        gmeow:dimUsageAdvice ,
+        gmeow:dimExample ,
+        gmeow:dimScopeNote ,
+        gmeow:dimAlignment ,
+        gmeow:dimFixturePair ,
+        gmeow:dimCompetencyRationale ,
+        gmeow:dimWorkedInstance ,
+        gmeow:dimLossLedgerRow ,
+        gmeow:dimLinkageCoverage ,
+        gmeow:dimRealizedState ,
+        gmeow:dimAnnotationCoat ,
+        gmeow:dimThesisSentence ,
+        gmeow:dimTranslationCoverage ,
+        gmeow:dimTestReach ,
+        gmeow:dimProvenanceHonesty ,
+        gmeow:dimProseQuality ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# ── Maturity + coverage projection predicates ────────────────────────────────
+
+gmeow:maturityRequiresDimension
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:DocMaturity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "maturity requires dimension"@x-gmeow-english ;
+    rdfs:range gmeow:DocCoverageDimension ;
+    skos:definition "Names one gmeow:DocCoverageDimension in a gmeow:DocMaturity anchor's INTENT — the structural coverage facts the anchor requires. The union of an anchor's gmeow:maturityRequiresDimension objects IS its intent; the anchors are authored so their intents nest (Minimal ⊆ Basic ⊆ Full ⊆ Maximal), and a term/slice earns an anchor exactly when its covered-dimension set ⊇ the anchor's intent. An instance-level owl:ObjectProperty from an anchor value to a dimension value — the join the Formal-Concept closure runs over."@x-gmeow-english ;
+    skos:example "gmeow:docMaturityFull gmeow:maturityRequiresDimension gmeow:dimFixturePair ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting an intent that breaks nesting (a lower anchor requiring a dimension a higher one does not); avoid pointing it at anything but a seeded gmeow:DocCoverageDimension individual; avoid deriving the intent by inference rather than authoring it explicitly — the structural gate checks the authored triples."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Author the full explicit dimension set on each anchor; read the union of an anchor's objects as its intent when computing earned maturity and the coverage fraction."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare which coverage dimensions a maturity anchor requires — the anchor's intent, the set a documented record's coverage must include to earn it."@x-gmeow-english .
+
+gmeow:sliceDocMaturity
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "slice doc maturity"@x-gmeow-english ;
+    rdfs:range gmeow:DocMaturity ;
+    skos:definition "The documentation-maturity anchor a slice CLAIMS — asserted about the slice in its manifest, a gmeow:DocMaturity individual. An owl:AnnotationProperty (the gmeow:termStability pattern, Principle 3) because it is asserted ABOUT a slice / owl:Ontology node, keeping the generated OWL in OWL 2 DL. When absent, the docs generator derives the slice's maturity from its EARNED floor (gmeow:docEarnedMaturity); an explicit assertion is the CLAIM the asserted ⊄ earned gate checks against the earned floor."@x-gmeow-english ;
+    skos:example "ex:sliceZoo gmeow:sliceDocMaturity gmeow:docMaturityFull ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting a maturity the slice's coverage does not support (the earned floor will be lower and the gate bites) and avoid using it on a term rather than a slice — a term's coverage rolls up into its slice's earned maturity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one seeded gmeow:DocMaturity anchor on the slice in its manifest as the tier it claims; omit it to accept the derived earned floor."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the documentation-maturity tier a slice claims for itself, so the gate can check the claim against the maturity its coverage earns."@x-gmeow-english .
+
+gmeow:docEarnedMaturity
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc earned maturity"@x-gmeow-english ;
+    rdfs:range gmeow:DocMaturity ;
+    skos:definition "The documentation-maturity anchor a term or slice EARNS — the projected floor: the largest gmeow:DocMaturity anchor whose intent (its gmeow:maturityRequiresDimension set) is a subset of the record's covered-dimension set, computed by the deterministic Formal-Concept closure over the gmeow:docCoversDimension incidence. Emitted by the docs projection (crates/docs), never authored. An owl:AnnotationProperty (mirroring gmeow:sliceDocMaturity) because it is asserted about a slice / documented-term record whose subject a logical object property would pun. The gate is exactly gmeow:sliceDocMaturity ⊄ gmeow:docEarnedMaturity → violation."@x-gmeow-english ;
+    skos:example "ex:sliceZoo gmeow:docEarnedMaturity gmeow:docMaturityBasic ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid authoring it by hand (it is a projection of the covered-dimension set) and avoid reading it as the claim — it is the EARNED floor the claim (gmeow:sliceDocMaturity) is checked against."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection compute it as the largest anchor whose intent ⊆ covered set; compare it to gmeow:sliceDocMaturity to run the asserted ⊄ earned gate."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the documentation maturity a term or slice actually earns from its coverage, so the gate and the health page read one projected floor rather than re-deriving it."@x-gmeow-english .
+
+gmeow:coverageFraction
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "coverage fraction"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "The bounded coverage fraction of a documented record against a maturity intent — |covered ∩ intent| / |intent|, a decimal in the closed interval [0,1] (an empty intent yields 1.0). The ONLY numeric on the maturity surface, and a bounded fraction by construction (never an unbounded ratio), so it can never be tuned to a target: it reports how much of an anchor's intent a record's coverage meets. An owl:AnnotationProperty mirroring gmeow:docEarnedMaturity (asserted about a slice / documented-term record), keeping the generated OWL in OWL 2 DL."@x-gmeow-english ;
+    skos:example "ex:sliceZoo gmeow:coverageFraction \"0.5\"^^xsd:decimal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as a tunable score or ranking axis (it is a bounded objective fraction, not a grade), avoid values outside [0,1], and avoid substituting it for the earned anchor — the anchor is the gate, the fraction is the burn-down readout."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection compute it as |covered ∩ intent| / |intent| for the record's earned or claimed anchor; render it as the per-slice burn-down toward the next tier."@x-gmeow-english ;
+    gmeow:useWhen "Use to record how much of a maturity anchor's intent a documented record's coverage meets, as a bounded [0,1] fraction driving the gap-to-next-tier burn-down."@x-gmeow-english .
+
+gmeow:docCoversDimension
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc covers dimension"@x-gmeow-english ;
+    rdfs:range gmeow:DocCoverageDimension ;
+    skos:definition "The positive incidence relation the Formal-Concept closure runs over: the documented record (a gmeow:DocumentedTerm or gmeow:DocumentedSlice) COVERS this gmeow:DocCoverageDimension — the dimension's deterministic structural detector fires for the record. Emitted per record by the docs projection (crates/docs); the union of a record's covered dimensions is its concept intent, from which gmeow:docEarnedMaturity and gmeow:coverageFraction are computed. An instance-level owl:ObjectProperty into the value vocabulary (mirrors gmeow:docEvidenceKind); its domain is left open (both gmeow:DocumentedTerm and gmeow:DocumentedSlice records carry it)."@x-gmeow-english ;
+    skos:example "ex:entryCat gmeow:docCoversDimension gmeow:dimDefinition ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it for a dimension whose detector did not fire (it is the actual incidence, not an aspiration) and avoid asserting both gmeow:docCoversDimension and gmeow:docMissesDimension for the same record/dimension pair — a dimension is covered XOR missed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection emit one per (record, dimension) whose detector fires; collect a record's objects as its covered-dimension set for the maturity closure."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that a documented term or slice covers a coverage dimension — the positive edge of the incidence the maturity anchors are intents over."@x-gmeow-english .
+
+gmeow:docMissesDimension
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc misses dimension"@x-gmeow-english ;
+    rdfs:range gmeow:DocCoverageDimension ;
+    skos:definition "The negative incidence relation: the documented record (a gmeow:DocumentedTerm or gmeow:DocumentedSlice) MISSES this gmeow:DocCoverageDimension — the dimension's deterministic structural detector did NOT fire for the record. Emitted per record by the docs projection (crates/docs) as the complement of gmeow:docCoversDimension, so the health page can render the gap-to-next-tier burn-down directly rather than re-deriving it. An instance-level owl:ObjectProperty into the value vocabulary (mirrors gmeow:docEvidenceKind); its domain is left open (both record kinds carry it)."@x-gmeow-english ;
+    skos:example "ex:entryCat gmeow:docMissesDimension gmeow:dimScopeNote ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it for a dimension whose detector fired (that is gmeow:docCoversDimension) and avoid asserting both for the same record/dimension pair — a dimension is covered XOR missed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection emit one per (record, dimension) whose detector did not fire; collect a record's objects as its missing-dimension set for the burn-down toward the next anchor."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that a documented term or slice misses a coverage dimension — the negative edge that drives the gap-to-next-tier readout on the documentation-health surface."@x-gmeow-english .
+
 <https://blackcatinformatics.ca/gmeow/slices/documentation>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
