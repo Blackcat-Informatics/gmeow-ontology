@@ -1422,7 +1422,11 @@ impl DocsModel {
     /// example subject (in any slice) carrying `math:hasDimension`, resolved
     /// down to a labeled base-dimension exponent table plus a copy-paste
     /// Turtle block.
-    pub const VERSION: &'static str = "13";
+    ///
+    /// v14: lifts every `gmeow:PipelineStage` individual into a documented term,
+    /// so each stage's term page renders the enriched build-pipeline section
+    /// (`stageImpl` link, consumes / consumed-by tables, flowing graphs).
+    pub const VERSION: &'static str = "14";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -3642,6 +3646,16 @@ fn category_for_type(type_iri: &str) -> Option<DocTermCategory> {
         // `category_rank` (Individual = 1) is deliberate: a domain property that
         // is ALSO grounded as a PathShape keeps its stronger `Property` category.
         LOGIC_PATH_SHAPE => Some(DocTermCategory::Individual),
+        // A `gmeow:PipelineStage` INSTANCE (each `gmeow:stage-*` node of the
+        // dogfooded build DAG, authored in `slices/core/pipeline/module.ttl`) is
+        // an OWL individual, so `Individual` is its honest category — and, unlike
+        // `logic:PathShape`, its instances live in a `module.ttl`, so the
+        // module-wide `extract_terms` scan lifts them here directly (no separate
+        // example scan). Making each stage a documented term is what gives it a
+        // term page, which is the surface `render::append_stage_section` enriches
+        // with the stage's Rust `stageImpl` binding and consumes / consumed-by /
+        // flowing-graph dataflow tables read back from `DocPipeline`.
+        GMEOW_PIPELINE_STAGE => Some(DocTermCategory::Individual),
         _ => None,
     }
 }

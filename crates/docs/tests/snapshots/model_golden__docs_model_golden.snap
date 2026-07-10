@@ -4,14 +4,14 @@ expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
-  "version": "13",
+  "version": "14",
   "slice_count": 81,
-  "term_count": 2560,
+  "term_count": 2595,
   "dependency_edge_count": 1008,
   "term_count_by_category": {
     "Class": 753,
     "Datatype": 1,
-    "Individual": 59,
+    "Individual": 94,
     "Property": 1747
   },
   "slice_iris": [
