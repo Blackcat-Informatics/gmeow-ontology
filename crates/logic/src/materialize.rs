@@ -867,19 +867,31 @@ pub fn materialize_routed(
                     (None, Some(b)) => Some(b),
                     (None, None) => None,
                 };
-                match crate::physical::materialize_native(&store, &eval_rules, max_steps)
-                    .map_err(|e| MaterializeError::Chase(e.message().to_owned()))?
-                {
-                    crate::physical::NativeOutcome::Decided(budgeted) => {
-                        // Surface the forward governor's completion frontier instead of
-                        // dropping it: an `Exhausted` chase is incomplete, and the caller
-                        // reads `completed < total` to tell which strata are settled.
-                        let frontier = budgeted.frontier();
-                        Some((budgeted.rows, budgeted.status, frontier))
+                // Enter the type-state plan pipeline: stratify ONCE (a non-stratifiable
+                // program is `None` here — a declared native gap that falls through to the
+                // Nemo fallback / conformance oracle, exactly as the old
+                // `Unsupported(NonStratifiable)` did), then join-plan and seal into the
+                // `Executable` the native forward executor requires.
+                match crate::physical::Parsed::new(&eval_rules).stratify() {
+                    None => None,
+                    Some(stratified) => {
+                        let executable = stratified.plan().into_executable();
+                        match crate::physical::materialize_native(&store, &executable, max_steps)
+                            .map_err(|e| MaterializeError::Chase(e.message().to_owned()))?
+                        {
+                            crate::physical::NativeOutcome::Decided(budgeted) => {
+                                // Surface the forward governor's completion frontier instead
+                                // of dropping it: an `Exhausted` chase is incomplete, and the
+                                // caller reads `completed < total` to tell which strata are
+                                // settled.
+                                let frontier = budgeted.frontier();
+                                Some((budgeted.rows, budgeted.status, frontier))
+                            }
+                            // A declared native gap falls through to the demoted Nemo
+                            // fallback / conformance oracle.
+                            crate::physical::NativeOutcome::Unsupported(_) => None,
+                        }
                     }
-                    // A declared native gap (e.g. non-stratifiable after parse) falls
-                    // through to the demoted Nemo fallback / conformance oracle.
-                    crate::physical::NativeOutcome::Unsupported(_) => None,
                 }
             }
         }
