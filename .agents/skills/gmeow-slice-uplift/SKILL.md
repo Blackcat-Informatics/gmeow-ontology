@@ -265,6 +265,7 @@ Those deltas — not any single frozen number — are the evidence the loop is w
 - [`CONSTITUTION.md`](../../../CONSTITUTION.md) — the normative principles (16: manifest
   is the sole tier truth; 17: logic-first projection; 7: no-drift)
 - [`docs/SLICE_GUIDE.md`](../../../docs/SLICE_GUIDE.md) — §9 (author in the canon,
-  project the surface), §10 (gates, drift, and landing), §13 (the condensed checklist)
+  project the surface), §10 (continuous uplift — the slice-quality lane, this lane's
+  doctrine), §11 (gates, drift, and landing), §14 (the condensed checklist)
 - [`docs/SLICE_QA.md`](../../../docs/SLICE_QA.md) — moving every test bit into the slice
   structure (the testing axes read this)
