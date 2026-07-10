@@ -38,13 +38,13 @@
 //! [`extract_edb`] is the SOLE place the forward and backward engine paths cross from
 //! the oxigraph blackboard ([`crate::seam::ScryerForeign`]) into the columnar form.
 
-use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use foldhash::fast::FixedState;
 use purrdf::TermValue;
 
 use crate::facts::{PredId, PredInterner, TermId, TermInterner, skolem_iri};
+use crate::physical::cursor::RowCursor;
 use crate::physical::id::RowId;
 use crate::provenance::term_display;
 use crate::seam::ScryerForeign;
@@ -244,8 +244,12 @@ pub(crate) enum Bound {
 /// indexes maintained in lockstep — the column-oriented sibling of `FactStore`'s
 /// predicate bucket.  Term interning lives at the [`RelationStore`] level (one
 /// dictionary shared by every relation), so `insert` borrows the store's interner.
+///
+/// `pub(crate)` (its fields stay private) so the arrangement's native lending cursor
+/// [`crate::physical::cursor::RowCursor`] can borrow it and resolve rows via
+/// [`row_at`](Self::row_at); the cursor is the SOLE row-materialization path.
 #[derive(Debug, Clone, Default)]
-struct Relation {
+pub(crate) struct Relation {
     /// `(subject_id, object_id)` tuples in insertion order.
     ///
     /// Rows hold interned [`TermId`]s ONLY — never cloned [`TermValue`]s (greenfield:
@@ -317,87 +321,52 @@ impl Relation {
         self.by_object.get(&o).map_or(&[][..], Vec::as_slice)
     }
 
-    /// Resolve a row index to its `(subject_id, object_id, row_id)` id row.
+    /// The number of rows in this relation — the length of the [`Bound::Any`] full
+    /// scan's implicit `0..row_count` posting run.
+    #[inline]
+    pub(crate) fn row_count(&self) -> usize {
+        self.rows.len()
+    }
+
+    /// Resolve a relation-local row index to its `(subject_id, object_id, row_id)` id
+    /// row.
     ///
-    /// The single row-materialization point every `select_*` kernel shares: all `Copy`
+    /// The single row-materialization point [`RowCursor`] yields through: all `Copy`
     /// ids, so this copies — never clones a `TermValue`.
     #[inline]
-    fn row_at(&self, i: usize) -> (TermId, TermId, RowId) {
+    pub(crate) fn row_at(&self, i: usize) -> (TermId, TermId, RowId) {
         let (s, o) = self.rows[i];
         (s, o, self.row_ids[i])
     }
 
-    /// The `(subject_id, object_id, row_id)` id rows selected by `bound`, in insertion
-    /// order.
+    /// A galloping lending [`RowCursor`] over the `(subject_id, object_id, row_id)` id
+    /// rows selected by `bound`, in **row-id (insertion) order**.
     ///
-    /// Returns interned [`TermId`] rows plus each row's store-global [`RowId`] (all
-    /// `Copy`, so this copies — never clones a `TermValue`); a caller resolves term
-    /// surfaces lazily via the store's interner only where it actually stringifies, and
-    /// tests delta membership on the `RowId` with a single word probe.
+    /// The cursor yields interned [`TermId`] rows plus each row's store-global
+    /// [`RowId`] one at a time, borrowing this relation's columns — NO per-stage `Vec`
+    /// is materialized (issue 1418, item 6; the eager-`Vec` `select_*` kernels are
+    /// deleted, greenfield).  A caller resolves term surfaces lazily via the store's
+    /// interner only where it stringifies, and tests delta membership on the `RowId`
+    /// with a single word probe.
     ///
     /// # Adornment dispatched ONCE per call, never per row (issue 1418, item 4)
     ///
     /// The [`Bound`] shape (the query-plan *adornment*) is resolved by a SINGLE `match`
-    /// here — once per `select` invocation — into a zero-branch specialized kernel
-    /// ([`select_any`](Self::select_any) / [`select_subject`](Self::select_subject) /
-    /// [`select_object`](Self::select_object) / [`select_both`](Self::select_both)).
-    /// The shape IS the kernel, so no residual adornment branch survives on the per-row
-    /// path; the previous single function with an internal per-shape `match` is deleted
-    /// (greenfield).  Dispatch is a plain enum `match`, never a trait object.
-    fn select(&self, bound: Bound) -> Vec<(TermId, TermId, RowId)> {
+    /// here — once per `select` invocation — into the specialized cursor constructor
+    /// ([`RowCursor::any`] / [`subject`](RowCursor::subject) /
+    /// [`object`](RowCursor::object) / [`select_both`](RowCursor::select_both)).  The
+    /// shape IS the cursor, so no residual adornment branch survives on the per-row
+    /// path.  Dispatch is a plain enum `match`, never a trait object.  `Both` drives a
+    /// leapfrog intersection of the two buckets inside the cursor.
+    fn select(&self, bound: Bound) -> RowCursor<'_> {
         match bound {
-            Bound::Any => self.select_any(),
-            Bound::Subject(s) => self.select_subject(s),
-            Bound::Object(o) => self.select_object(o),
-            Bound::Both(s, o) => self.select_both(s, o),
-        }
-    }
-
-    /// The `Bound::Any` kernel: every row in insertion order, no position bound.
-    fn select_any(&self) -> Vec<(TermId, TermId, RowId)> {
-        (0..self.rows.len()).map(|i| self.row_at(i)).collect()
-    }
-
-    /// The `Bound::Subject` kernel: rows whose subject is `s`, in insertion order.
-    fn select_subject(&self, s: TermId) -> Vec<(TermId, TermId, RowId)> {
-        self.rows_for_subject(s)
-            .iter()
-            .map(|&i| self.row_at(i))
-            .collect()
-    }
-
-    /// The `Bound::Object` kernel: rows whose object is `o`, in insertion order.
-    fn select_object(&self, o: TermId) -> Vec<(TermId, TermId, RowId)> {
-        self.rows_for_object(o)
-            .iter()
-            .map(|&i| self.row_at(i))
-            .collect()
-    }
-
-    /// The `Bound::Both` kernel: rows matching BOTH positions, in insertion order.
-    ///
-    /// Both buckets hold row indices in ascending (insertion) order, so the rows
-    /// satisfying both bounds are exactly their sorted intersection: a two-pointer
-    /// merge, with no per-row term re-hashing.  The result keeps insertion order,
-    /// matching a full scan's relative order.  (The inner `cmp` is the merge step, not
-    /// an adornment branch — the shape is already fixed by this being the `Both` kernel.)
-    fn select_both(&self, s: TermId, o: TermId) -> Vec<(TermId, TermId, RowId)> {
-        let by_s = self.rows_for_subject(s);
-        let by_o = self.rows_for_object(o);
-        let mut out = Vec::new();
-        let (mut i, mut j) = (0usize, 0usize);
-        while i < by_s.len() && j < by_o.len() {
-            match by_s[i].cmp(&by_o[j]) {
-                Ordering::Less => i += 1,
-                Ordering::Greater => j += 1,
-                Ordering::Equal => {
-                    out.push(self.row_at(by_s[i]));
-                    i += 1;
-                    j += 1;
-                }
+            Bound::Any => RowCursor::any(self),
+            Bound::Subject(s) => RowCursor::subject(self, self.rows_for_subject(s)),
+            Bound::Object(o) => RowCursor::object(self, self.rows_for_object(o)),
+            Bound::Both(s, o) => {
+                RowCursor::select_both(self, self.rows_for_subject(s), self.rows_for_object(o))
             }
         }
-        out
     }
 }
 
@@ -425,6 +394,11 @@ pub(crate) struct RelationStore {
     /// insertion order, so at any point the live rows are exactly RowIds `0..row_count`.
     /// This is the single row-id source; the id never enters a derivation/provenance hash.
     row_count: usize,
+    /// A permanently-empty relation handed to [`select`](Self::select) on a predicate
+    /// miss, so an unknown predicate yields an empty [`RowCursor`] with NO `Option`
+    /// branch on the per-row scan — the cursor is over a zero-length run, its `rel`
+    /// borrow never dereferenced.  Never inserted into.
+    empty: Relation,
 }
 
 impl RelationStore {
@@ -435,6 +409,7 @@ impl RelationStore {
             predicates: PredInterner::new(),
             relations: Vec::new(),
             row_count: 0,
+            empty: Relation::default(),
         }
     }
 
@@ -513,16 +488,19 @@ impl RelationStore {
         self.relation(predicate).is_some_and(|r| r.contains(s, o))
     }
 
-    /// The id rows under `predicate` selected by `bound`, in insertion order.
+    /// A galloping lending [`RowCursor`] over the id rows under `predicate` selected by
+    /// `bound`, in **row-id (insertion) order**.
     ///
-    /// Returns interned `(subject_id, object_id, row_id)` rows (`Copy` — no `TermValue`
-    /// clone): the term ids for lazy surface resolution via [`interner`](Self::interner)
-    /// where you stringify, and the store-global [`RowId`] for a one-word delta-bitset
-    /// probe.  Picks the cheapest index for the bound positions; an unknown predicate
-    /// yields the empty vector.
-    pub(crate) fn select(&self, predicate: &str, bound: Bound) -> Vec<(TermId, TermId, RowId)> {
+    /// Yields interned `(subject_id, object_id, row_id)` rows (`Copy` — no `TermValue`
+    /// clone) one at a time: the term ids for lazy surface resolution via
+    /// [`interner`](Self::interner) where you stringify, and the store-global [`RowId`]
+    /// for a one-word delta-bitset probe.  Picks the cheapest index for the bound
+    /// positions; an unknown predicate yields an empty cursor (over the shared
+    /// [`empty`](Self::empty) relation) — NO `Vec` is materialized (issue 1418, item 6).
+    pub(crate) fn select(&self, predicate: &str, bound: Bound) -> RowCursor<'_> {
         self.relation(predicate)
-            .map_or_else(Vec::new, |r| r.select(bound))
+            .unwrap_or(&self.empty)
+            .select(bound)
     }
 
     /// The number of distinct tuples stored under `predicate` (0 if unknown).
@@ -572,10 +550,27 @@ pub(crate) fn extract_edb(foreign: &dyn ScryerForeign, world: &str) -> RelationS
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::physical::cursor::LendingIterator;
     use crate::seam::{BudgetStatus, DerivationId, DerivedQuad};
 
     fn term(iri: &str) -> TermValue {
         TermValue::iri(iri)
+    }
+
+    /// Drain a [`RowCursor`] into a `Vec` of id rows — a `#[cfg(test)]`-only helper for
+    /// asserting a selection's full sequence.  `select` now returns a lending cursor
+    /// (no eager `Vec` on the production hot path), so tests collect it here.
+    fn select_rows(
+        s: &RelationStore,
+        predicate: &str,
+        bound: Bound,
+    ) -> Vec<(TermId, TermId, RowId)> {
+        let mut cursor = s.select(predicate, bound);
+        let mut rows = Vec::new();
+        while let Some(row) = cursor.next() {
+            rows.push(row);
+        }
+        rows
     }
 
     /// The interned id for a display surface, asserting it is present.
@@ -632,7 +627,7 @@ mod tests {
     fn physical_select_subject_bound() {
         let s = sample_store();
         let a = id_of(&s, "<http://ex/a>");
-        let got = s.select("http://ex/knows", Bound::Subject(a));
+        let got = select_rows(&s, "http://ex/knows", Bound::Subject(a));
         assert_eq!(
             resolved(&s, &got),
             vec![
@@ -646,7 +641,7 @@ mod tests {
     fn physical_select_object_bound() {
         let s = sample_store();
         let c = id_of(&s, "<http://ex/c>");
-        let got = s.select("http://ex/knows", Bound::Object(c));
+        let got = select_rows(&s, "http://ex/knows", Bound::Object(c));
         assert_eq!(
             resolved(&s, &got),
             vec![
@@ -662,21 +657,21 @@ mod tests {
         let a = id_of(&s, "<http://ex/a>");
         let b = id_of(&s, "<http://ex/b>");
         let c = id_of(&s, "<http://ex/c>");
-        let got = s.select("http://ex/knows", Bound::Both(a, c));
+        let got = select_rows(&s, "http://ex/knows", Bound::Both(a, c));
         assert_eq!(
             resolved(&s, &got),
             vec![(term("http://ex/a"), term("http://ex/c"))]
         );
 
         // A both-bound miss (b is interned but (b,b) is not a tuple) yields nothing.
-        let none = s.select("http://ex/knows", Bound::Both(b, b));
+        let none = select_rows(&s, "http://ex/knows", Bound::Both(b, b));
         assert!(none.is_empty());
     }
 
     #[test]
     fn physical_select_any_is_insertion_order() {
         let s = sample_store();
-        let got = s.select("http://ex/knows", Bound::Any);
+        let got = select_rows(&s, "http://ex/knows", Bound::Any);
         assert_eq!(
             resolved(&s, &got),
             vec![
@@ -702,7 +697,7 @@ mod tests {
         );
         assert_eq!(s.len_for("http://ex/knows"), 1);
         assert_eq!(
-            resolved(&s, &s.select("http://ex/knows", Bound::Any)),
+            resolved(&s, &select_rows(&s, "http://ex/knows", Bound::Any)),
             vec![(term("http://ex/a"), term("http://ex/b"))],
         );
     }
@@ -735,17 +730,67 @@ mod tests {
         assert_eq!(s.row_count(), 3, "three distinct rows ⇒ RowIds 0..3");
         // `select` returns each row with its store-global RowId: knows row 0 is id 0,
         // knows row 1 is id 2 (the interleaved likes insert took id 1).
-        let knows_rows = s.select(knows, Bound::Any);
+        let knows_rows = select_rows(&s, knows, Bound::Any);
         assert_eq!(
             knows_rows.iter().map(|&(_, _, r)| r).collect::<Vec<_>>(),
             vec![RowId::from_index(0), RowId::from_index(2)],
             "selected rows carry their store-global RowId, not a per-relation index",
         );
-        let likes_rows = s.select(likes, Bound::Any);
+        let likes_rows = select_rows(&s, likes, Bound::Any);
         assert_eq!(
             likes_rows.iter().map(|&(_, _, r)| r).collect::<Vec<_>>(),
             vec![RowId::from_index(1)],
         );
+    }
+
+    /// THE BYTE-IDENTITY INVARIANT (issue 1418, item 6): within ONE relation,
+    /// row-INDEX order and store-global [`RowId`] order COINCIDE.
+    ///
+    /// `row_ids[idx]` is assigned once per successful store-wide `insert` (a strictly
+    /// increasing global counter), and a single relation only ever grows by appending,
+    /// so its `row_ids` are strictly increasing in `idx`.  This is the load-bearing
+    /// fact that makes the galloping cursor's "row-id-ordered value runs" claim hold:
+    /// galloping over ascending row-INDEX positions (the `by_subject`/`by_object`
+    /// buckets, and the full scan's `0..len`) IS galloping in RowId order, so the
+    /// leading full scan iterates row-id order with NO key-sorted reordering.  We build
+    /// a heavily-interleaved store (so RowIds are NOT `0,1,2,…` within a relation) and
+    /// assert every relation's `row_ids` still ascend in lockstep with `idx`.
+    #[test]
+    fn physical_row_index_order_coincides_with_row_id_order() {
+        let (p, q) = ("http://ex/p", "http://ex/q");
+        let mut s = RelationStore::new();
+        // Interleave p and q so neither relation's RowIds are the contiguous 0,1,2,….
+        for i in 0..6 {
+            let pred = if i % 2 == 0 { p } else { q };
+            assert!(
+                s.insert(pred, term("http://ex/s"), term(&format!("http://ex/o{i}")))
+                    .is_some()
+            );
+        }
+        // Every relation's parallel `row_ids` is strictly increasing in the row index —
+        // the direct empirical statement of the invariant.
+        for rel in &s.relations {
+            for w in rel.row_ids.windows(2) {
+                assert!(
+                    w[0] < w[1],
+                    "row_ids must strictly increase in row-index order within a relation"
+                );
+            }
+        }
+        // And a full scan (`Bound::Any`, the leading-atom scan) therefore yields RowIds
+        // in ascending (= row-index = insertion) order — never a key-sorted order.
+        for pred in [p, q] {
+            let ids: Vec<RowId> = select_rows(&s, pred, Bound::Any)
+                .iter()
+                .map(|&(_, _, r)| r)
+                .collect();
+            let mut ascending = ids.clone();
+            ascending.sort();
+            assert_eq!(
+                ids, ascending,
+                "the full scan emits rows in ascending RowId (row-index) order"
+            );
+        }
     }
 
     #[test]
@@ -775,7 +820,7 @@ mod tests {
         let s = sample_store();
         let a = id_of(&s, "<http://ex/a>");
         assert_eq!(
-            resolved(&s, &s.select("http://ex/likes", Bound::Subject(a))),
+            resolved(&s, &select_rows(&s, "http://ex/likes", Bound::Subject(a))),
             vec![(term("http://ex/a"), term("http://ex/c"))],
         );
     }
@@ -813,8 +858,8 @@ mod tests {
         // Repeated builds give identical select output (determinism).
         let s2 = sample_store();
         assert_eq!(
-            s.select("http://ex/knows", Bound::Any),
-            s2.select("http://ex/knows", Bound::Any),
+            select_rows(&s, "http://ex/knows", Bound::Any),
+            select_rows(&s2, "http://ex/knows", Bound::Any),
         );
         let p2: Vec<&str> = s2.predicates().collect();
         assert_eq!(preds, p2);
@@ -911,7 +956,7 @@ mod tests {
         assert_eq!(edb.len_for("http://ex/knows"), 2);
         assert_eq!(edb.len_for("http://ex/likes"), 1);
         assert_eq!(
-            resolved(&edb, &edb.select("http://ex/knows", Bound::Any)),
+            resolved(&edb, &select_rows(&edb, "http://ex/knows", Bound::Any)),
             vec![
                 (term("http://ex/a"), term("http://ex/b")),
                 (term("http://ex/a"), term("http://ex/c")),

@@ -63,6 +63,7 @@ use rayon::prelude::*;
 use crate::physical::arena::{RowArena, RowTuple};
 use crate::physical::bitset::DenseBitset;
 use crate::physical::builtin_eval::{BuiltinOutcome, emit_integer_surface, eval as eval_builtin};
+use crate::physical::cursor::LendingIterator;
 use crate::physical::id::{RowId, TermRef};
 use crate::physical::plan::{Executable, RulePlan};
 use crate::physical::store::{Bound, RelationStore};
@@ -335,7 +336,12 @@ fn extend_solutions_kernel<const SCAN: u8>(
         let Some(bound) = atom_bound(rel, subj_surface.as_deref(), obj_surface.as_deref()) else {
             continue;
         };
-        for (s_id, o_id, row_id) in rel.select(pred, bound) {
+        // Drive the arrangement's galloping lending cursor directly — NO per-stage
+        // `Vec<(TermId, TermId, RowId)>` is materialized for this atom's selection
+        // (issue 1418, item 6).  Each `next()` yields one borrowed id row in row-id
+        // (insertion) order, byte-identical to the former eager `select` vector.
+        let mut cursor = rel.select(pred, bound);
+        while let Some((s_id, o_id, row_id)) = cursor.next() {
             // Semi-naive position decomposition on the selected row's dense RowId — the
             // same delta×full split `extend_solutions` applies, but membership is one
             // `u64`-word test on the delta bitset (issue 1418, item 5).  `SCAN` is a
@@ -550,9 +556,12 @@ fn negated_atom_satisfied(atom: &EvalAtom, sol: &Solution, accumulated: &Relatio
             let Some(bound) = atom_bound(accumulated, s.as_deref(), o.as_deref()) else {
                 return false;
             };
-            !accumulated
+            // Existential NAF asks only "does SOME row match?" — probe the cursor for a
+            // single row (`any_remaining`) instead of materializing a whole `Vec` just
+            // to call `is_empty()` on it.
+            accumulated
                 .select(atom.predicate.as_str(), bound)
-                .is_empty()
+                .any_remaining()
         }
     }
 }
@@ -1187,10 +1196,12 @@ pub(crate) fn evaluate(
     for pred in edb.predicates() {
         // `pred` is a predicate IRI surface already validated by the seam; carry it directly.
         let predicate = pred.to_owned();
-        for (s_id, o_id, _row) in edb.select(pred, Bound::Any) {
-            // `select` returns interned id rows (plus a delta-probe RowId unused when
-            // seeding); resolve each term id to its `TermValue` surface here, at the
-            // point the `Fact` seed actually needs them.
+        // Drive the lending cursor directly (no eager `Vec`): each `next()` yields one
+        // id row (plus a delta-probe RowId unused when seeding) in row-id order.
+        let mut cursor = edb.select(pred, Bound::Any);
+        while let Some((s_id, o_id, _row)) = cursor.next() {
+            // Resolve each term id to its `TermValue` surface here, at the point the
+            // `Fact` seed actually needs them.
             edb_facts.push(Fact {
                 subject: interner.resolve(s_id).clone(),
                 predicate: predicate.clone(),
@@ -1470,6 +1481,91 @@ mod tests {
         assert!(
             !native_rows.is_empty(),
             "transitive closure must derive at least one path"
+        );
+    }
+
+    /// FULL-SCAN ORDER-INVARIANCE GATE (issue 1418, item 6 — the primary byte-drift
+    /// landmine for Tasks 5/6).
+    ///
+    /// The leading unbound body atom drives a [`Bound::Any`] FULL SCAN.  Item 6 replaces
+    /// the materialized `Vec<(TermId, TermId, RowId)>` with a galloping lending
+    /// [`RowCursor`](crate::physical::cursor::RowCursor); the cursor MUST iterate
+    /// **row-id (insertion) order** — NEVER a key-sorted (lexical) order, which would
+    /// flip the solution / `source_facts` / winner sequence and drift `gmeow.gts` bytes.
+    /// A global key-sorted arrangement is explicitly out of scope for this work.
+    ///
+    /// This inserts three rows whose INSERTION order (`z, a, m`) deliberately DIVERGES
+    /// from their lexical order (`a, m, z`), drives the actual cursor-backed full-scan
+    /// kernel ([`extend_solutions_indexed`] with [`Scan::Full`], which yields the
+    /// `Bound::Any` cursor per solution), and asserts the produced solutions AND their
+    /// recorded `source_facts` come out in INSERTION order — then asserts that order is
+    /// provably NOT the lexical order.  A cursor that key-sorted would fail this.
+    #[test]
+    fn physical_full_scan_iterates_row_id_order_not_lexical() {
+        // One binary relation, rows inserted anti-lexically: z→p, then a→q, then m→r.
+        let mut rel = RelationStore::new();
+        for (s, o) in [("z", "p"), ("a", "q"), ("m", "r")] {
+            assert!(
+                rel.insert(&nn("edge"), term(s), term(o)).is_some(),
+                "each anti-lexical row inserts"
+            );
+        }
+        // The leading body atom `edge(?X, ?Y)`: BOTH positions unbound ⇒ Bound::Any.
+        let atom = EvalAtom {
+            subject: EvalTerm::Var("?X".to_owned()),
+            predicate: nn("edge"),
+            object: EvalTerm::Var("?Y".to_owned()),
+            negated: false,
+        };
+        // A Full scan ignores the delta (`keep_row::<SCAN_FULL>` is `true`), so an empty
+        // bitset is correct — this isolates the SCAN ORDER, not the delta membership.
+        let delta = DenseBitset::new();
+        let seed = Solution {
+            bindings: Vec::new(),
+            source_facts: Vec::new(),
+        };
+        let out = extend_solutions_indexed(&atom, &rel, &delta, Scan::Full, &[seed]);
+
+        // Every produced solution bound ?X/?Y to one scanned row, IN INSERTION ORDER.
+        let got: Vec<(String, String)> = out
+            .iter()
+            .map(|sol| {
+                (
+                    sol.get("?X").expect("?X bound").to_owned(),
+                    sol.get("?Y").expect("?Y bound").to_owned(),
+                )
+            })
+            .collect();
+        let want_insertion = vec![
+            (format!("<{}>", nn("z")), format!("<{}>", nn("p"))),
+            (format!("<{}>", nn("a")), format!("<{}>", nn("q"))),
+            (format!("<{}>", nn("m")), format!("<{}>", nn("r"))),
+        ];
+        assert_eq!(
+            got, want_insertion,
+            "the full scan MUST iterate insertion (row-id) order, not a key-sorted order"
+        );
+        // The divergence this guards: insertion order is NOT the lexical order.
+        let mut lexical = want_insertion.clone();
+        lexical.sort();
+        assert_ne!(
+            got, lexical,
+            "insertion order (z,a,m) genuinely diverges from lexical order (a,m,z) — \
+             so a key-sorted cursor would produce a DIFFERENT (drifting) sequence"
+        );
+        // The recorded provenance `source_facts` follow the same insertion order.
+        let src: Vec<String> = out
+            .iter()
+            .map(|s| term_display(&s.source_facts[0].subject))
+            .collect();
+        assert_eq!(
+            src,
+            vec![
+                format!("<{}>", nn("z")),
+                format!("<{}>", nn("a")),
+                format!("<{}>", nn("m")),
+            ],
+            "source_facts (provenance byte order) follow the row-id scan order"
         );
     }
 
