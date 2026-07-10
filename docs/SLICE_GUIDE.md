@@ -19,7 +19,7 @@
 > **The living example.** The `slices/core/tags/` slice is this guide's worked instance —
 > small, useful, and re-authored to this recipe. Where a section says *"see the exhibit"*,
 > it names a real file in that slice. Read the guide once, then read the tags slice in the
-> order §12 gives, and you have seen every motion performed on real data.
+> order §13 gives, and you have seen every motion performed on real data.
 
 ---
 
@@ -53,7 +53,7 @@ queried, and tested.
 3. **What does the triad already own?** For every concept you are about to model, run the
    grounding test (§4). Most of what feels like "your" vocabulary is a reference into
    `logic:`, `math:`, or `lang:` — and minting a domain twin of a grounding-layer term is
-   the first anti-pattern (§11).
+   the first anti-pattern (§12).
 4. **What does the world already call it?** Survey the external vocabularies before
    minting (the design sets' references appendices are the pattern). You will align to
    them by reference, at an honest rung (§7) — never import, never rewrite (Principle 5).
@@ -81,7 +81,7 @@ same at domain scale.
 6. **Pin the questions as tests**: each query becomes a `gmeow:CompetencyQuestion` cell in
    `tests/competency.ttl` with an expected shape or ASK verdict, executed by the native
    slice-test harness. A competency failure is a coverage gap, not a data violation.
-7. **Run the gates and own every drift** (§10).
+7. **Run the gates and own every drift** (§11).
 
 The loop is re-entrant: re-authoring an existing slice starts at step 1 against the
 *existing* module and usually discovers that the vocabulary is adequate but unqueried,
@@ -324,7 +324,78 @@ as two denotations.*
   probabilistic updates are computed by engines the ontology points to by reference, never
   materialized as asserted triples.
 
-## 10. Gates, drift, and landing
+## 10. Continuous uplift — the slice-quality lane
+
+A slice is never *finished*; it is *held and lifted*. Beyond §9's pass/fail gates, every
+slice carries a **per-axis quality profile** — one earned tier per rubric axis, a point in
+`[0,1]^n` over an open axis vocabulary, each tier a `logic:QualityValue` along one quality
+dimension (`slices/core/slice-quality-rubric/`). Lifting it is the standing, issue-less
+**slice-quality uplift lane**: this section is its doctrine; the
+[`gmeow-slice-uplift`](../.agents/skills/gmeow-slice-uplift/SKILL.md) skill is its
+procedure, and where the two differ the skill and the rubric win. Keep the lane distinct
+from §9's hard gates — it *measures and holds*, it never asserts a bit right or wrong
+([`docs/SLICE_QA.md`](SLICE_QA.md)).
+
+- **The ascent is a lattice meet, not a score.** The roll-up tier is the lossy meet
+  projection of the profile: the UNWEIGHTED lattice meet — `min` over the per-axis tier
+  ranks (`crates/slice-quality/src/prioritize.rs`). `axisWeight` orders ties only; it never
+  moves a rank or a score, because that would corrupt the unweighted meet. The meet's
+  witness is the **min-rank antichain** (the axes tied at the minimum rank), and the
+  **capping axis** is that antichain's heaviest-leverage member — least rank, ties broken by
+  weight then axis IRI. Fixing it is a NECESSARY start, never one-step-sufficient under
+  ties: the roll-up rises only once EVERY tied axis clears its next threshold, so the lane
+  may legitimately re-pick a slice with a fresh capping axis until the last tied axis lifts.
+  Per-slice **termination is the advisory fixpoint** — `advise(slice) = ∅`, the observable
+  `advice=0` column.
+
+- **The workflow is one capping axis, one slice-local PR.** Consume the repo-wide
+  prioritization (`make slice-quality`), uplift the named capping axis in the slice's
+  canonical sources, ship one **slice-local** PR, ratchet the floor. The procedure — reading
+  the worklist columns, applying the ranked `gmeow:axisAdviceTemplate` ahead of its per-site
+  findings, landing under the bundle discipline — is the skill's contract; this guide states
+  only *why* that order is forced.
+
+- **The floors are a raise-only ratchet — now a hard gate.** The committed floors are the
+  monotonicity certificate of the ascent, enforced not promised. Two governance artifacts
+  hold the ground: the per-slice tier ratchet
+  [`governance/slice-quality-floors.tsv`](../governance/slice-quality-floors.tsv) and the
+  per-axis score ratchet
+  [`governance/slice-quality-axis-floors.tsv`](../governance/slice-quality-axis-floors.tsv).
+  Both are **raise-only** — monotonic non-regression, never forced ascent: a committed floor
+  may be raised as a slice earns it and only ever raised, never lowered, never bumped ahead
+  of a real measured uplift. The gate (`crates/slice-quality/src/gate.rs`) reds with three
+  named verdicts — `MeasuredBelowDeclared` (the slice no longer holds the tier its manifest
+  declares), `DeclaredBelowFloor` (the declaration was lowered beneath the committed floor),
+  and `MeasuredBelowFloor` (a per-axis measured score fell below its committed floor) — and a
+  lowered or still-live-deleted floor line additionally reds the floor-monotonicity check.
+  Land the raised floor in the SAME PR as the uplift that earned it; grounding is
+  hard-gated at the `axisGmn1Coverage` floor of `1.0` (§9).
+
+- **The contention rule: yield to the issue lanes.** The lane is a background citizen. Two
+  shards are machine-enforced, one is doctrine CI cannot see. *Enforced:* floor
+  monotonicity — a lowered or still-live-deleted floor line reds `make slice-quality-gate`,
+  and thus `make check`. *Doctrine (unenforced):* never touch a slice an in-flight branch or
+  an active issue lane owns; keep every PR **slice-local**; land bundle-touching
+  regenerations of `generated/dist/gmeow.gts` (`merge=ours`) one at a time — nothing in the
+  gate knows which branch claimed which slice.
+
+- **A sweep is never an issue.** A cross-cutting quality demand — "every slice needs X" — is
+  never filed as an issue and never lands as a mega-PR. Re-scope the **sweep** into the three
+  durable artifacts the lane already runs on: a quality axis that measures the deficiency
+  objectively, curation docs that teach the remediation (this guide,
+  [`docs/SLICE_QA.md`](SLICE_QA.md), or the axis's `gmeow:axisAdviceTemplate`), and the
+  uplift skill if the loop's shape changed. Then the sweep discharges itself, one
+  slice-local PR at a time, through the ordinary prioritization.
+
+- **Every axis is an objective `[0,1]` measure** where `1.0` is *definitional* — the
+  property fully holds — scored by a deterministic Rust primitive, never expert judgement and
+  never calibrated toward a target (the quality-metrics doctrine). Use bounded fractions
+  only: an unbounded ratio (a raw density or count) is BANNED from a tier ladder, because a
+  ladder rung must be a bounded `[0,1]` fraction for the meet lattice to be well-defined.
+  Tiers rise **only by genuine uplift**; the raise-only floors above exist precisely so a
+  score cannot quietly slide back after a ladder claims it.
+
+## 11. Gates, drift, and landing
 
 - Work in a worktree (`.worktrees/<slug>/`), never the top-level checkout; build the
   native extensions before regenerating; regenerate with `make regenerate`, never the bare
@@ -340,7 +411,7 @@ as two denotations.*
 - **Own every red.** Any failure on your branch is yours to fix now, regardless of where
   it started.
 
-## 11. Anti-patterns — named, so reviews can cite them
+## 12. Anti-patterns — named, so reviews can cite them
 
 | Anti-pattern | Why it is wrong | What catches it |
 | --- | --- | --- |
@@ -359,7 +430,7 @@ as two denotations.*
 | Structural test without a rationale | unmaintainable invariant | review practice (§6.6) |
 | Module without a consumer | a monument, not a product | the manifest consumer field (Principle 15) |
 
-## 12. The worked instance — reading order for the tags slice
+## 13. The worked instance — reading order for the tags slice
 
 The tags slice is small enough to read in one sitting and re-authored to this guide.
 Read in this order, mapping each file to the section it demonstrates:
@@ -376,7 +447,7 @@ Read in this order, mapping each file to the section it demonstrates:
    §6.6).
 7. `tests/structural.ttl` — the invariants, each with its why (§6.6).
 
-## 13. The condensed checklist
+## 14. The condensed checklist
 
 Before opening the PR, every box:
 
@@ -395,4 +466,6 @@ Before opening the PR, every box:
       rationales (§3, §6.6)
 - [ ] No derived facts asserted; no hand-authored projection surfaces (P4/7/12/17)
 - [ ] `make regenerate` landed with the change; drifted goldens re-blessed deliberately;
-      full `make check` green merged into current `main` (§10)
+      full `make check` green merged into current `main` (§11)
+- [ ] Capping axis uplifted where the lane names one; the raised `slice-quality-floors.tsv`
+      / axis floor landed in the same slice-local PR as the uplift, raise-only (§10)
