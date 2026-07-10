@@ -258,6 +258,11 @@ pub fn project_shacl_af(
     )];
 
     let mut actual_drops: Vec<String> = Vec::new();
+    // Per-drop attribution to a DOCUMENTED gmeow: source term (keyed by exact note string):
+    // a rule whose head predicate (or a ground axiom whose subject/predicate) is a gmeow: term
+    // with no SHACL-AF derivation form carries this loss on that term's page.
+    let mut attributed: std::collections::BTreeMap<String, String> =
+        std::collections::BTreeMap::new();
 
     for (i, rule) in program.rules.iter().enumerate() {
         // A modal / world / standpoint-scoped rule (on the rule or any of its atoms) has no
@@ -268,12 +273,16 @@ pub fn project_shacl_af(
             || rule.scope.time.is_some();
         let atom_modal = is_modal_or_scoped(&rule.head) || rule.body.iter().any(is_modal_or_scoped);
         if rule_modal || atom_modal {
-            actual_drops.push(format!(
+            let note = format!(
                 "rule deriving <{}> is context-scoped (modal/standpoint/time); it has no faithful \
                  SHACL-AF projection over the default graph and is carried in the canonical logic: \
                  layer, not emitted",
                 rule.head.predicate
-            ));
+            );
+            if let Some(src) = super::gmeow_term(&rule.head.predicate) {
+                attributed.insert(note.clone(), src);
+            }
+            actual_drops.push(note);
             continue;
         }
 
@@ -290,13 +299,17 @@ pub fn project_shacl_af(
                 && head.obj == agg.result_var
                 && pos_bound.contains(&agg.aggregate_var);
             if !projectable {
-                actual_drops.push(format!(
+                let note = format!(
                     "rule deriving <{}> is an aggregation (reduce) rule whose shape is not a \
                      single-group-key focus reduce (group key = head subject, head object = the \
                      aggregate result, aggregated variable positively bound); it is carried in the \
                      canon, not emitted",
                     head.predicate
-                ));
+                );
+                if let Some(src) = super::gmeow_term(&head.predicate) {
+                    attributed.insert(note.clone(), src);
+                }
+                actual_drops.push(note);
                 continue;
             }
             let local = rule_shape_local(rule, i);
@@ -329,11 +342,15 @@ pub fn project_shacl_af(
         // The focus is the head subject when it is a variable. A ground-subject head (no focus
         // variable) cannot be expressed as a focus-node SHACL-AF rule soundly; record it and skip.
         if !rule.head.subject.starts_with('?') {
-            actual_drops.push(format!(
+            let note = format!(
                 "rule deriving <{}> has a ground (non-variable) head subject; the focus-node \
                  SHACL-AF rule form needs a variable subject, so it is not emitted",
                 rule.head.predicate
-            ));
+            );
+            if let Some(src) = super::gmeow_term(&rule.head.predicate) {
+                attributed.insert(note.clone(), src);
+            }
+            actual_drops.push(note);
             continue;
         }
         // Head-variable safety: every CONSTRUCT-head variable (subject AND object) must be bound
@@ -345,23 +362,31 @@ pub fn project_shacl_af(
         // silently.
         let pos_bound = positive_body_vars(rule);
         if !pos_bound.contains(&rule.head.subject) {
-            actual_drops.push(format!(
+            let note = format!(
                 "rule deriving <{}> has a head subject variable not positively bound by the body \
                  (it occurs only under negation or an inequality guard); no sound SHACL-AF \
                  CONSTRUCT exists, so it is carried in the canon, not emitted",
                 rule.head.predicate
-            ));
+            );
+            if let Some(src) = super::gmeow_term(&rule.head.predicate) {
+                attributed.insert(note.clone(), src);
+            }
+            actual_drops.push(note);
             continue;
         }
         let focus_var = Some(rule.head.subject.as_str());
         // A head object variable absent from the positive body would invent a value (existential),
         // which a sound CONSTRUCT cannot do.
         if rule.head.obj.starts_with('?') && !pos_bound.contains(&rule.head.obj) {
-            actual_drops.push(format!(
+            let note = format!(
                 "rule deriving <{}> has an existential (positively unbound) head object variable; \
                  no sound SHACL-AF CONSTRUCT exists, so it is carried in the canon, not emitted",
                 rule.head.predicate
-            ));
+            );
+            if let Some(src) = super::gmeow_term(&rule.head.predicate) {
+                attributed.insert(note.clone(), src);
+            }
+            actual_drops.push(note);
             continue;
         }
 
@@ -448,12 +473,18 @@ pub fn project_shacl_af(
             } else {
                 format!("<{}>", axiom.obj)
             };
-            actual_drops.push(format!(
+            let note = format!(
                 "ground axiom <{}> <{}> {obj_disp} is an asserted fact (not a class/property \
                  subsumption), so it has no SHACL-AF sh:SPARQLRule derivation form and is carried \
                  in the canonical RDF-1.2 layer",
                 axiom.subject, axiom.predicate
-            ));
+            );
+            // The dropped ground axiom is ABOUT its subject (prefer a gmeow: subject, else a
+            // gmeow: predicate); attribute to that documented term when present.
+            if let Some(src) = super::gmeow_endpoint(&axiom.subject, &axiom.predicate) {
+                attributed.insert(note.clone(), src);
+            }
+            actual_drops.push(note);
         }
     }
 
@@ -463,7 +494,11 @@ pub fn project_shacl_af(
 
     let content = format!("{}\n", blocks.join("\n\n"));
     let structural: Vec<String> = drops.into_iter().map(str::to_owned).collect();
-    loss.record_projection_drops("shacl-af", kind, &structural, &actual_drops);
+    let attributed_drops: Vec<(String, Option<String>)> = actual_drops
+        .iter()
+        .map(|note| (note.clone(), attributed.get(note).cloned()))
+        .collect();
+    loss.record_projection_drops_attributed("shacl-af", kind, &structural, &attributed_drops);
     ProjectionResult {
         target: "shacl-af".to_owned(),
         content,

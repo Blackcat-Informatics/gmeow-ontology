@@ -327,7 +327,7 @@ fn emit_sparql(
                     .to_owned(),
             );
             let key = format!("{}::{}", local_cell(&cell.iri), b.profile);
-            ledger.push(correspondence_result(loss, "sparql", &key, residue));
+            ledger.push(correspondence_result(loss, "sparql", &key, residue, None));
         }
     }
     if branches.is_empty() {

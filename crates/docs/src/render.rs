@@ -765,11 +765,17 @@ pub fn okf_doc_reference(term: &DocTerm) -> Option<String> {
         DocTermCategory::Individual => "individuals",
         DocTermCategory::Datatype | DocTermCategory::Other => return None,
     };
-    let local = term
-        .curie
-        .split_once(':')
-        .map(|(_, l)| l)
-        .unwrap_or(&term.curie);
+    // The OKF projection is derived from the COMPOSED ontology (the carrier term surface),
+    // so it covers only core vocabulary with a compact `prefix:local` CURIE. A term whose
+    // curie is a full IRI — a docs-site-only term with no compact form, e.g. a nested
+    // example-namespace `logic:PathShape` individual under `.../gmeow/examples/…` — is NOT in
+    // the OKF export universe, so it emits no OKF link (and the OKF-coverage gate, which pairs
+    // this reference against the emitted OKF docs, correctly skips it rather than flagging a
+    // dangling link the OKF bundle never promised to render).
+    let (_, local) = term.curie.split_once(':')?;
+    if local.contains(['/', '#']) {
+        return None;
+    }
     Some(format!("gmeow-okf/{dir}/{local}.md"))
 }
 

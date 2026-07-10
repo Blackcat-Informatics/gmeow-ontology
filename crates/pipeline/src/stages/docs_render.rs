@@ -257,6 +257,16 @@ const LOGIC_PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/pres
 const LOGIC_COMPLEXITY_CLASS: &str = "https://blackcatinformatics.ca/logic/complexityClass";
 const GMEOW_LOSSY_DROP: &str = "https://blackcatinformatics.ca/gmeow/lossyDrop";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+/// The reified per-term projection-loss node type emitted by the projection-report
+/// serializer for every actual drop that names a DOCUMENTED source term (the term
+/// projected DOWN to a lossy surface). Carries `gmeow:lossySourceTerm` (the term IRI),
+/// `rdfs:label` (the projection target name, e.g. `sssom:<hash>`), `logic:preservationKind`,
+/// `logic:complexityClass`, and one `gmeow:lossyDrop` per dropped feature.
+const LOGIC_TERM_PROJECTION_LOSS_TYPE: &str =
+    "https://blackcatinformatics.ca/logic/TermProjectionLoss";
+/// The structured source-term IRI a `logic:TermProjectionLoss` attributes its drops to —
+/// matched (byte-identical) against a documented `DocTerm.iri`, never scraped from prose.
+const GMEOW_LOSSY_SOURCE_TERM: &str = "https://blackcatinformatics.ca/gmeow/lossySourceTerm";
 
 /// Fold the dynamic per-term projection-loss join [`TermLossDigest`] from the LIVE
 /// `stage-mappings` product's [`GRAPH_PROJECTION_LEDGER`](crate::stages::carrier::GRAPH_PROJECTION_LEDGER)
@@ -292,6 +302,11 @@ pub(crate) fn term_loss_digest_from_upstream(
     // kind/complexity-class/lossy-drops off the flat quad stream (order-independent —
     // a subject's predicates may arrive in any order).
     let mut target_subjects: BTreeSet<String> = BTreeSet::new();
+    // The reified per-term projection-loss subjects (`logic:TermProjectionLoss`) and their
+    // structured `gmeow:lossySourceTerm` IRIs — the term-attributed drops the report emits
+    // for EVERY projection target (owl-dl/datalog/sssom/…), not just `property-path:`.
+    let mut term_loss_subjects: BTreeSet<String> = BTreeSet::new();
+    let mut source_terms: BTreeMap<String, String> = BTreeMap::new();
     let mut labels: BTreeMap<String, String> = BTreeMap::new();
     let mut preservation_kinds: BTreeMap<String, String> = BTreeMap::new();
     let mut complexity_classes: BTreeMap<String, String> = BTreeMap::new();
@@ -302,10 +317,17 @@ pub(crate) fn term_loss_digest_from_upstream(
         };
         match q.predicate.as_str() {
             RDF_TYPE => {
-                if let RdfTerm::Iri(object) = &q.object
-                    && object == LOGIC_PROJECTION_TARGET_TYPE
-                {
-                    target_subjects.insert(subject.clone());
+                if let RdfTerm::Iri(object) = &q.object {
+                    if object == LOGIC_PROJECTION_TARGET_TYPE {
+                        target_subjects.insert(subject.clone());
+                    } else if object == LOGIC_TERM_PROJECTION_LOSS_TYPE {
+                        term_loss_subjects.insert(subject.clone());
+                    }
+                }
+            }
+            GMEOW_LOSSY_SOURCE_TERM => {
+                if let RdfTerm::Iri(object) = &q.object {
+                    source_terms.insert(subject.clone(), object.clone());
                 }
             }
             RDFS_LABEL => {
@@ -380,8 +402,47 @@ pub(crate) fn term_loss_digest_from_upstream(
                 lossy_drops: drops,
             });
     }
+    // Second join: EVERY projection target's term-attributed drops (the reified
+    // `logic:TermProjectionLoss` nodes), attributed to their documented source term. This is
+    // the general per-term loss surface — a CORE `gmeow:` term projected DOWN to a lossy
+    // external surface (e.g. its SSSOM alignment cannot carry a distinction) carries the drop
+    // on its own page. A node whose `gmeow:lossySourceTerm` names no documented term is
+    // honestly absent (never forced). `term_loss_subjects` is a BTreeSet, so the join order
+    // is deterministic.
+    for subject in &term_loss_subjects {
+        let Some(source_term) = source_terms.get(subject) else {
+            // A malformed term-loss node with no structured source term: honest skip.
+            continue;
+        };
+        if !known_term_iris.contains(source_term.as_str()) {
+            // The named source term is not a documented term — honest absence.
+            continue;
+        }
+
+        let mut drops: Vec<String> = lossy_drops.get(subject).cloned().unwrap_or_default();
+        drops.sort();
+        drops.dedup();
+
+        by_term
+            .entry(source_term.clone())
+            .or_default()
+            .push(gmeow_docs::model::TermLossRow {
+                // The projection target this loss belongs to (owl-dl / sssom:<hash> / …),
+                // carried on the term-loss node's `rdfs:label`.
+                target: labels.get(subject).cloned().unwrap_or_default(),
+                preservation_kind: preservation_kinds.get(subject).cloned().unwrap_or_default(),
+                complexity_class: complexity_classes.get(subject).cloned().unwrap_or_default(),
+                lossy_drops: drops,
+            });
+    }
+
     for rows in by_term.values_mut() {
-        rows.sort_by(|a, b| a.target.cmp(&b.target));
+        rows.sort_by(|a, b| {
+            a.target
+                .cmp(&b.target)
+                .then_with(|| a.lossy_drops.cmp(&b.lossy_drops))
+        });
+        rows.dedup();
     }
 
     Ok(gmeow_docs::model::TermLossDigest {
@@ -1149,6 +1210,85 @@ mod tests {
         );
     }
 
+    /// The GENERAL per-term attribution join (the source-term-attribution correction): a
+    /// `logic:TermProjectionLoss` node on ANY projection target attributes its drops to the
+    /// DOCUMENTED source term named by its structured `gmeow:lossySourceTerm` IRI — the
+    /// canonical core's loss when projected DOWN lands on the term's page. A node whose
+    /// source term is NOT documented is honestly absent (never forced onto a term).
+    #[test]
+    fn term_loss_digest_attributes_term_projection_loss_nodes_to_documented_source_terms() {
+        use gmeow_docs::model::{DocTerm, DocTermCategory};
+
+        let core_term = "https://blackcatinformatics.ca/gmeow/Agent";
+        let undocumented = "https://blackcatinformatics.ca/gmeow/NotDocumented";
+        let preservation_kind_val = format!("{LOGIC_NS}SoundUnderApproximation");
+        // Two term-loss nodes: one attributing to a documented CORE term (joins), one to an
+        // undocumented term (honest absence). Each carries the projection target label, the
+        // preservation kind, the complexity class, and a dropped feature.
+        let turtle = format!(
+            "<https://example.test/target/sssom:abc/termloss/agent> <{rdf_type}> <{tpl}> .\n\
+             <https://example.test/target/sssom:abc/termloss/agent> <{src}> <{core}> .\n\
+             <https://example.test/target/sssom:abc/termloss/agent> <{label}> \"sssom:abc\" .\n\
+             <https://example.test/target/sssom:abc/termloss/agent> <{pk}> <{pk_val}> .\n\
+             <https://example.test/target/sssom:abc/termloss/agent> <{cc}> \"1:1 lattice band\" .\n\
+             <https://example.test/target/sssom:abc/termloss/agent> <{drop}> \"gmeow:Agent equivalentClass prov:Agent loses the caveat structure\" .\n\
+             <https://example.test/target/sssom:def/termloss/nd> <{rdf_type}> <{tpl}> .\n\
+             <https://example.test/target/sssom:def/termloss/nd> <{src}> <{nd}> .\n\
+             <https://example.test/target/sssom:def/termloss/nd> <{label}> \"sssom:def\" .\n\
+             <https://example.test/target/sssom:def/termloss/nd> <{pk}> <{pk_val}> .\n\
+             <https://example.test/target/sssom:def/termloss/nd> <{drop}> \"orphan drop\" .\n",
+            rdf_type = RDF_TYPE,
+            tpl = LOGIC_TERM_PROJECTION_LOSS_TYPE,
+            src = GMEOW_LOSSY_SOURCE_TERM,
+            label = RDFS_LABEL,
+            pk = LOGIC_PRESERVATION_KIND,
+            pk_val = preservation_kind_val,
+            cc = LOGIC_COMPLEXITY_CLASS,
+            drop = GMEOW_LOSSY_DROP,
+            core = core_term,
+            nd = undocumented,
+        );
+
+        let terms = vec![DocTerm {
+            iri: core_term.to_string(),
+            curie: "gmeow:Agent".to_string(),
+            category: DocTermCategory::Class,
+            owner_slice: "test-slice".to_string(),
+            ..Default::default()
+        }];
+
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert(
+            "stage-mappings".to_string(),
+            mappings_product_with_ledger(&turtle),
+        );
+
+        let digest = term_loss_digest_from_upstream(&upstream, &[], &terms)
+            .expect("digest folds from synthetic term-loss upstream");
+
+        // The documented CORE term carries the attributed row (target = the projection
+        // target label, preservation kind + complexity + dropped feature all present).
+        let rows = digest
+            .by_term
+            .get(core_term)
+            .expect("documented source term must carry its attributed projection-loss row");
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].target, "sssom:abc");
+        assert_eq!(rows[0].preservation_kind, "SoundUnderApproximation");
+        assert_eq!(rows[0].complexity_class, "1:1 lattice band");
+        assert_eq!(
+            rows[0].lossy_drops,
+            vec!["gmeow:Agent equivalentClass prov:Agent loses the caveat structure".to_string()]
+        );
+        // The undocumented source term is honestly absent — never fabricated onto a term.
+        assert!(
+            !digest.by_term.contains_key(undocumented),
+            "a term-loss node whose source term is undocumented must not enter by_term"
+        );
+        // Whole-program `property-path` count is untouched by the general attribution join.
+        assert_eq!(digest.total_property_path_rows, 0);
+    }
+
     #[test]
     fn docs_graph_is_nonempty_and_parses() {
         let root = repo_root();
@@ -1264,5 +1404,129 @@ mod tests {
             "the diagnostics digest total must be non-vacuous on the real repo (B1) — the docs \
              diagnostics surface must never ship with zero folded findings"
         );
+    }
+
+    /// B2 (real-repo non-vacuity, symmetric with the B1/B3 gates above): the per-term
+    /// projection-loss digest [`gmeow_docs::model::TermLossDigest`] folded from the REAL
+    /// `stage-mappings` product over the real ontology must carry at least one
+    /// `property-path:<iri>` row. Root cause (gap G1): `compile_logic`'s
+    /// `SOURCE_PATH` (`slices/grounding/logic/module.ttl`) carries only the
+    /// `logic:PathShape` VOCABULARY; the two authored INSTANCES (`ex:nearbyOrgs`,
+    /// `ex:ancestorsTo3`) live in the worked example
+    /// `slices/grounding/logic/examples/predicate-paths.ttl` and were never ingested, so
+    /// `program.path_shapes` was empty and `paths::project_path_shapes` emitted zero rows
+    /// — this is the hard-fail gate that catches a regression back to that vacuous state.
+    /// Runs the real `source_load`-free `compile_logic` → `mappings` stage chain directly
+    /// (each `Stage::run` call is pure in-memory — no disk write; the committed
+    /// `generated/` tree is untouched), mirroring the B3 `term_entailments_are_non_vacuous_
+    /// on_the_real_repo` chaining pattern in `carrier.rs`.
+    #[test]
+    fn term_loss_digest_is_non_vacuous_on_the_real_repo() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .unwrap();
+        let empty: BTreeMap<String, StageProduct> = BTreeMap::new();
+
+        let compile = crate::stages::compile_logic::CompileLogicStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &empty,
+            })
+            .expect("real compile-logic");
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert("stage-compile-logic".to_string(), compile.product);
+
+        let mappings = crate::stages::mappings::MappingsStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &upstream,
+            })
+            .expect("real mappings");
+        upstream.insert("stage-mappings".to_string(), mappings.product);
+
+        let model = DocsModel::discover(&root).expect("real docs model discovery");
+        let digest = term_loss_digest_from_upstream(&upstream, &model.shapes, &model.terms)
+            .expect("real term-loss digest folds from the stage-mappings product");
+
+        // The weaker proxy: at least one `property-path:<iri>` ledger row exists.
+        // This alone passed while the HEADLINE per-term surface (`by_term`) was
+        // empty, so it is NOT the true bar — it is retained only as a precondition.
+        assert!(
+            digest.total_property_path_rows >= 1,
+            "G1/B2: total_property_path_rows must be non-vacuous on the real repo — the \
+             authored logic:PathShape worked examples (ex:nearbyOrgs, ex:ancestorsTo3) must \
+             produce real property-path:<iri> ledger rows, not zero"
+        );
+
+        // The TRUE B2 bar: the per-term join must actually connect — at least one
+        // DOCUMENTED term carries a per-term projection-loss row. A `property-path`
+        // row joins a term only if its bare shape IRI resolves to a documented
+        // `DocTerm.iri` (or a `DocShape.target_term`), so an empty `by_term` means
+        // the authored PathShapes never became documented terms and the headline
+        // surface ships vacuous on every one of the ~2357 term pages. The two
+        // authored worked-example PathShapes are documented Individual terms, so
+        // each must carry its own per-term loss row here.
+        assert!(
+            !digest.by_term.is_empty(),
+            "G1/B2 (true bar): TermLossDigest.by_term must be NON-EMPTY on the real repo — \
+             at least one DOCUMENTED term must carry a per-term projection-loss row, not just \
+             a whole-program `property-path:<iri>` count. An empty by_term means the per-term \
+             join is vacuous and every term page's projection-loss table renders blank"
+        );
+        for shape_iri in [
+            "https://blackcatinformatics.ca/gmeow/examples/logic/nearbyOrgs",
+            "https://blackcatinformatics.ca/gmeow/examples/logic/ancestorsTo3",
+        ] {
+            let rows = digest.by_term.get(shape_iri).unwrap_or_else(|| {
+                panic!(
+                    "G1/B2 (true bar): the authored logic:PathShape term <{shape_iri}> must be a \
+                     documented term carrying its own per-term projection-loss row in by_term; \
+                     got keys {:?}",
+                    digest.by_term.keys().collect::<Vec<_>>()
+                )
+            });
+            assert!(
+                rows.iter()
+                    .any(|r| r.target == format!("property-path:{shape_iri}")),
+                "G1/B2 (true bar): term <{shape_iri}>'s per-term rows must include its own \
+                 property-path:<iri> projection-loss row; got {rows:?}"
+            );
+        }
+
+        // The CORRECTED B2 bar (source-term-attribution reframing): the per-term loss table must surface
+        // what the canonical `logic:`/`gmeow:` core loses when projected DOWN to a lossy
+        // surface (OWL/EL/Datalog/SPARQL/SSSOM/…). At least one CORE documented term — NOT an
+        // example worked shape under `.../gmeow/examples/` — must carry a projection-loss row
+        // attributed structurally via `gmeow:lossySourceTerm` (the correspondence/SSSOM
+        // down-projections attribute each aligned `gmeow:` term's dropped alignment
+        // distinction to its page). An empty CORE set means the general term-attribution join
+        // is inert and only the two worked-example path shapes ever light up.
+        const EXAMPLE_NS: &str = "https://blackcatinformatics.ca/gmeow/examples/";
+        let core_terms: Vec<&String> = digest
+            .by_term
+            .keys()
+            .filter(|iri| !iri.starts_with(EXAMPLE_NS))
+            .collect();
+        assert!(
+            !core_terms.is_empty(),
+            "G1/B2 (corrected bar): at least one CORE documented term (NOT a \
+             .../gmeow/examples/ worked shape) must carry a per-term projection-loss row — the \
+             canonical core's loss when projected DOWN must land on real term pages. Only \
+             example path shapes lit up; by_term keys = {:?}",
+            digest.by_term.keys().collect::<Vec<_>>()
+        );
+        // Every CORE row must be honestly attributed (a real projection target + at least one
+        // dropped feature), never an empty placeholder.
+        for term in &core_terms {
+            let rows = &digest.by_term[*term];
+            assert!(
+                rows.iter()
+                    .all(|r| !r.target.is_empty() && !r.lossy_drops.is_empty()),
+                "G1/B2 (corrected bar): CORE term <{term}> carries a malformed loss row \
+                 (empty target or no dropped feature); rows = {rows:?}"
+            );
+        }
     }
 }
