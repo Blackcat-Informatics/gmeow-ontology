@@ -10,8 +10,10 @@
 //! clones, fewer owned-key allocations) shows up as a monotone drop in a number
 //! a gate can compare. Unlike peak-RSS (which is polluted by the allocator's
 //! arena high-water, page reuse, and background threads and is therefore
-//! non-deterministic), [`AllocSample::peak_live`] is a pure function of the
-//! measured operation and *can* gate.
+//! non-deterministic), all three scalars of an [`AllocSample`] are a pure
+//! function of the measured operation (given a sequential measured region) and
+//! **all three gate** — see the determinism guarantee below for why each metric
+//! uses the accounting mechanism that keeps *it* deterministic.
 //!
 //! # Why this lives in its own crate (and must never reach the CLI)
 //!
@@ -48,49 +50,69 @@
 //! let _ = sample; // sample.bytes / sample.count / sample.peak_live
 //! ```
 //!
-//! # Determinism guarantee (single-threaded measured region)
+//! # Determinism guarantee (sequential measured region; split accounting)
 //!
-//! The engine parallelizes with Rayon. A **process-global** allocation counter
-//! would capture background worker-thread allocations non-deterministically —
-//! the exact failure this crate exists to kill. The counters here are therefore
-//! **thread-local**: [`measure`] accounts only the allocations performed *on the
-//! calling thread*. The guarantee is: **if the measured closure runs entirely on
-//! the calling thread (a single-threaded region), the returned
-//! [`AllocSample`] is a deterministic function of the closure.** Allocations a
-//! closure fans out onto other threads are, by construction, not counted — so
-//! the measured region must be single-threaded for the sample to be meaningful.
+//! The engine parallelizes with Rayon: even under a single-thread global pool,
+//! `par_iter`/parallel sections execute partly on the Rayon worker thread (a
+//! *different* thread from the measuring caller) via work-stealing. That split
+//! is non-deterministic run-to-run, so the two total-allocation scalars and the
+//! net-live peak need **different** accounting mechanisms — each chosen so its
+//! own metric is deterministic:
 //!
-//! The alloc/dealloc hot path touches only [`Cell`]-backed, `const`-initialized
-//! thread-locals (no destructor, no lazy-init guard) and never itself heap-
-//! allocates, so it is re-entrancy-safe and cannot recurse into the allocator —
-//! avoiding the classic "thread-local that allocates on first access inside the
-//! alloc path" footgun. The real allocation is always delegated to
-//! [`System`](std::alloc::System); this wrapper only accounts around it.
+//! * **`bytes` / `count` are PROCESS-GLOBAL running totals** (atomics summed
+//!   across *all* threads). The *total* bytes/count a measured operation
+//!   allocates is the logical allocation of the work and is **invariant to which
+//!   thread (caller vs Rayon worker) performs each allocation** — a sum does not
+//!   depend on the interleaving — so the global delta across [`measure`] is a
+//!   deterministic function of the closure even though the per-thread split is
+//!   not. This is sound *because the harness is sequential*: it pins the global
+//!   Rayon pool to one thread and measures each case one at a time, so no
+//!   unrelated concurrent allocation falls inside a measured region. **The
+//!   measured region must be the only thing allocating in the process** for the
+//!   global delta to attribute solely to the closure.
+//! * **`peak_live` stays THREAD-LOCAL** (`alloc` − `dealloc` net high-water on
+//!   the calling thread). Net-live is *order-dependent* — a global net-live
+//!   high-water would depend on the non-deterministic caller/worker interleaving
+//!   — so it is accounted per-thread, where it is a deterministic function of the
+//!   caller's own allocation pattern and nets each transient scratch allocation
+//!   (freed within the region) to zero.
+//!
+//! The alloc/dealloc hot path touches only lock-free atomics plus a
+//! [`Cell`]-backed, `const`-initialized thread-local (no destructor, no lazy-init
+//! guard) and never itself heap-allocates, so it is re-entrancy-safe and cannot
+//! recurse into the allocator — avoiding the classic "thread-local that allocates
+//! on first access inside the alloc path" footgun. The real allocation is always
+//! delegated to [`System`](std::alloc::System); this wrapper only accounts around
+//! it.
 
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::cell::Cell;
+use std::sync::atomic::{AtomicU64, Ordering};
 
-/// Per-thread allocation counters. Four independent [`Cell`]s so the alloc hot
-/// path is a handful of plain integer loads/stores with no heap traffic.
-struct Counters {
-    /// Monotonic total bytes requested via `alloc` on this thread.
-    total_bytes: Cell<u64>,
-    /// Monotonic count of successful `alloc` calls on this thread.
-    count: Cell<u64>,
+/// Process-global monotonic total bytes requested via `alloc`, summed across
+/// **every** thread. Deterministic as a per-region delta because a sum is
+/// invariant to which thread performed each allocation (see the crate docs).
+static TOTAL_BYTES: AtomicU64 = AtomicU64::new(0);
+/// Process-global monotonic count of successful `alloc` calls, summed across
+/// every thread. Deterministic as a per-region delta for the same reason.
+static ALLOC_COUNT: AtomicU64 = AtomicU64::new(0);
+
+/// Per-thread net-live counters backing the order-dependent [`AllocSample::peak_live`].
+/// Two [`Cell`]s so the live/peak update is a couple of plain integer loads/stores
+/// with no heap traffic.
+struct LiveCounters {
     /// Current simultaneously-live bytes on this thread (`alloc` − `dealloc`).
     live: Cell<u64>,
     /// High-water mark of [`Self::live`] since the last [`measure`] reset.
     peak: Cell<u64>,
 }
 
-impl Counters {
+impl LiveCounters {
     /// A zeroed counter block usable as a `const` thread-local initializer (so
     /// the thread-local registers no destructor and never lazily allocates on
     /// first access — the property that makes the alloc path re-entrancy-safe).
     const fn new() -> Self {
         Self {
-            total_bytes: Cell::new(0),
-            count: Cell::new(0),
             live: Cell::new(0),
             peak: Cell::new(0),
         }
@@ -98,10 +120,10 @@ impl Counters {
 }
 
 thread_local! {
-    /// The calling thread's allocation counters. `const`-initialized: no
-    /// destructor is registered and access never allocates, so reading/writing
-    /// these from inside `alloc`/`dealloc` cannot recurse into the allocator.
-    static COUNTERS: Counters = const { Counters::new() };
+    /// The calling thread's net-live counters. `const`-initialized: no destructor
+    /// is registered and access never allocates, so reading/writing these from
+    /// inside `alloc`/`dealloc` cannot recurse into the allocator.
+    static LIVE: LiveCounters = const { LiveCounters::new() };
 }
 
 /// A deterministic snapshot of the allocation cost of a measured region, as
@@ -116,18 +138,22 @@ thread_local! {
 /// logic crate to this allocator.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AllocSample {
-    /// Total bytes requested via `alloc` on the calling thread during the region.
+    /// Total bytes requested via `alloc` across **all threads** during the region
+    /// (the process-global sum; invariant to the caller/worker split, so it gates).
     pub bytes: u64,
-    /// Number of `alloc` calls on the calling thread during the region.
+    /// Number of `alloc` calls across **all threads** during the region (the
+    /// process-global sum; invariant to the caller/worker split, so it gates).
     pub count: u64,
-    /// High-water of simultaneously-live bytes during the region (the
-    /// deterministic memory metric — unlike peak-RSS, this *can* gate).
+    /// High-water of simultaneously-live bytes on the calling thread during the
+    /// region (the order-dependent memory metric, accounted per-thread so it stays
+    /// deterministic — unlike peak-RSS, this *can* gate).
     pub peak_live: u64,
 }
 
 /// A [`GlobalAlloc`] that delegates every real allocation to
-/// [`System`](std::alloc::System) and accounts each call into the calling
-/// thread's [`COUNTERS`].
+/// [`System`](std::alloc::System) and accounts each call into the process-global
+/// [`TOTAL_BYTES`]/[`ALLOC_COUNT`] totals plus the calling thread's net-live
+/// [`LIVE`] counters.
 ///
 /// Installing this as the `#[global_allocator]` of a binary is what turns
 /// [`measure`] on for that binary; see the crate-level docs. It must **never**
@@ -150,17 +176,21 @@ impl CountingAllocator {
     }
 }
 
-/// Record a successful allocation of `size` bytes on the calling thread: bump the
-/// monotonic totals and raise the live/peak high-water. Touches only `Cell`s, so
-/// it performs no heap allocation and cannot recurse into the allocator.
+/// Record a successful allocation of `size` bytes: bump the process-global
+/// monotonic totals (summed across all threads) and raise the calling thread's
+/// net-live/peak high-water. Touches only lock-free atomics and thread-local
+/// `Cell`s, so it performs no heap allocation and cannot recurse into the allocator.
 #[inline]
 fn account_alloc(size: usize) {
     let size = size as u64;
+    // `Relaxed` is sufficient: the harness reads the totals as a delta only after
+    // the measured closure has fully returned (a happens-before established by the
+    // sequential control flow / thread joins), never racing an in-flight `alloc`.
+    TOTAL_BYTES.fetch_add(size, Ordering::Relaxed);
+    ALLOC_COUNT.fetch_add(1, Ordering::Relaxed);
     // `with` on a `const`-initialized, destructor-free thread-local never fails,
     // so a hard `with` (not `try_with`) is correct and cheapest here.
-    COUNTERS.with(|c| {
-        c.total_bytes.set(c.total_bytes.get().wrapping_add(size));
-        c.count.set(c.count.get().wrapping_add(1));
+    LIVE.with(|c| {
         let live = c.live.get().wrapping_add(size);
         c.live.set(live);
         if live > c.peak.get() {
@@ -169,21 +199,21 @@ fn account_alloc(size: usize) {
     });
 }
 
-/// Record a deallocation of `size` bytes on the calling thread: lower the live
+/// Record a deallocation of `size` bytes: lower the calling thread's net-live
 /// gauge (never touching the monotonic totals or the peak high-water). Touches
-/// only `Cell`s.
+/// only thread-local `Cell`s.
 #[inline]
 fn account_dealloc(size: usize) {
     let size = size as u64;
-    COUNTERS.with(|c| {
+    LIVE.with(|c| {
         c.live.set(c.live.get().saturating_sub(size));
     });
 }
 
 // SAFETY: every real allocation/deallocation is delegated verbatim to `System`,
 // which is a correct `GlobalAlloc`; the accounting is pure integer bookkeeping in
-// thread-local `Cell`s that performs no allocation, so it upholds every
-// `GlobalAlloc` invariant that `System` upholds. `realloc` is intentionally NOT
+// lock-free atomics and thread-local `Cell`s that performs no allocation, so it
+// upholds every `GlobalAlloc` invariant that `System` upholds. `realloc` is NOT
 // overridden: the default `GlobalAlloc::realloc` routes through `self.alloc` +
 // `self.dealloc`, so a reallocation is accounted as a counted alloc/dealloc pair
 // (deterministic), rather than an unaccounted in-place `System::realloc`.
@@ -214,35 +244,44 @@ unsafe impl GlobalAlloc for CountingAllocator {
     }
 }
 
-/// Run `f` on the calling thread, returning its value plus the deterministic
-/// [`AllocSample`] of the allocations it performed **on this thread**.
+/// Run `f`, returning its value plus the deterministic [`AllocSample`] of the
+/// allocations it performed.
 ///
 /// The totals ([`AllocSample::bytes`], [`AllocSample::count`]) are read as a
-/// delta across `f` (snapshot before, difference after), and the peak high-water
-/// is reset to the current live level before `f` so [`AllocSample::peak_live`] is
-/// the high-water of *net* simultaneously-live bytes reached *during* `f`.
+/// delta across `f` over the **process-global** counters — capturing every
+/// thread's allocations, including work `f` fans out onto a Rayon worker — and
+/// the peak high-water is reset to the calling thread's current live level before
+/// `f` so [`AllocSample::peak_live`] is the high-water of *net* simultaneously-live
+/// bytes reached *during* `f` on this thread.
 ///
-/// Determinism holds only when `f` runs entirely on the calling thread; work `f`
-/// fans out onto other threads (e.g. via Rayon) is not counted. See the
-/// crate-level docs.
+/// Determinism of the global totals holds only when the measured region is the
+/// only thing allocating in the process (a sequential harness); a concurrent
+/// unrelated allocation would land inside the delta. See the crate-level docs.
 pub fn measure<T>(f: impl FnOnce() -> T) -> (T, AllocSample) {
-    let (bytes0, count0, live0) = COUNTERS.with(|c| {
+    // Snapshot the calling thread's live level and reset its peak high-water so
+    // the reported peak is the growth reached during `f`, not a stale earlier one.
+    let live0 = LIVE.with(|c| {
         let live0 = c.live.get();
-        // Reset the peak high-water to the current live level so the reported
-        // peak is the growth reached during `f`, not a stale earlier high-water.
         c.peak.set(live0);
-        (c.total_bytes.get(), c.count.get(), live0)
+        live0
     });
+    let bytes0 = TOTAL_BYTES.load(Ordering::Relaxed);
+    let count0 = ALLOC_COUNT.load(Ordering::Relaxed);
 
     let value = f();
 
-    let sample = COUNTERS.with(|c| AllocSample {
-        bytes: c.total_bytes.get().wrapping_sub(bytes0),
-        count: c.count.get().wrapping_sub(count0),
-        peak_live: c.peak.get().saturating_sub(live0),
-    });
+    let bytes = TOTAL_BYTES.load(Ordering::Relaxed).wrapping_sub(bytes0);
+    let count = ALLOC_COUNT.load(Ordering::Relaxed).wrapping_sub(count0);
+    let peak_live = LIVE.with(|c| c.peak.get().saturating_sub(live0));
 
-    (value, sample)
+    (
+        value,
+        AllocSample {
+            bytes,
+            count,
+            peak_live,
+        },
+    )
 }
 
 #[cfg(test)]

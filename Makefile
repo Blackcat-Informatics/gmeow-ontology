@@ -574,21 +574,24 @@ maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from
 	@# `gmeow-bench-engines --emit-cost` over the committed mini corpora (offline; no
 	@# `--corpus-dir`, so the Nemo-fetch full corpora are NOT included). Mirrors
 	@# `maint-bench-baseline`: a deliberate, hand-committed refresh — never auto-drift.
-	@# The artifact is a pure function of engine version + corpus (integer cost vectors,
-	@# consumed_steps, derived counts, peak-live bytes, verdict-agreement tokens, and the
-	@# per-corpus divergence-ledger tally), so it is emitted TWICE and diffed — a byte
-	@# difference FAILS the lane. `generated/bench/cost-ledger.md` is its drift-gated
-	@# projection (the `stage-export-cost-ledger` leaf), regenerated + committed alongside.
+	@# The deterministic part of the artifact (integer cost vectors, consumed_steps,
+	@# derived counts, peak-live bytes, verdict-agreement tokens, the per-corpus
+	@# divergence-ledger tally) is a pure function of engine version + corpus. The two
+	@# TOTAL-allocation scalars (alloc_bytes / alloc_count) are NOT byte-reproducible (a
+	@# ~0.06% quantized per-run engine transient), so instead of a raw two-run byte-diff
+	@# the fresh baseline is re-verified with the harness's OWN band-aware `--check-cost`:
+	@# it hard-fails on ANY exact-descriptor divergence AND on an alloc total outside the
+	@# one-sided tolerance band, so a passing self-check proves the deterministic part is
+	@# byte-identical and the alloc totals are within band. `generated/bench/cost-ledger.md`
+	@# is the drift-gated projection (the `stage-export-cost-ledger` leaf), regenerated +
+	@# committed alongside.
 	@set -e; \
-	  tmp="$$(mktemp)"; \
-	  trap 'rm -f "$$tmp"' EXIT; \
 	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --emit-cost bench/cost-baseline.json; \
-	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --emit-cost "$$tmp" 2>/dev/null; \
-	  if ! diff -u bench/cost-baseline.json "$$tmp"; then \
-	    echo "ERROR: bench/cost-baseline.json DIFFERED across two runs — it must be byte-identical (a pure function of engine version + corpus)."; \
+	  if ! cargo run -q -p gmeow-bench-engines --bin bench-engines -- --check-cost bench/cost-baseline.json >/dev/null 2>&1; then \
+	    echo "ERROR: a fresh run diverged from the just-written bench/cost-baseline.json (exact descriptor drift, or an alloc total outside the tolerance band)."; \
 	    exit 1; \
 	  fi; \
-	  echo "wrote bench/cost-baseline.json ($$(wc -c < bench/cost-baseline.json) bytes, byte-identical across two runs) — regenerate + commit generated/bench/cost-ledger.md"
+	  echo "wrote bench/cost-baseline.json ($$(wc -c < bench/cost-baseline.json) bytes; deterministic part byte-identical + alloc totals within band on the self-check) — regenerate + commit generated/bench/cost-ledger.md"
 
 # The bounded ORE subset cap: the ORE 2015 sample corpus is ~725 MB / 1920
 # ontologies. Grading all of them is intractable for a maint lane, so we cap to

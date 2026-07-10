@@ -406,6 +406,13 @@ struct NativeCost {
     derived_count: Option<u64>,
     #[serde(default)]
     answer_count: Option<u64>,
+    /// Total bytes allocated during the run — gated through the one-sided tolerance band
+    /// (`fresh ≤ baseline·(1+ε)`) in the harness `--check-cost` lane; rendered here as a
+    /// committed, drift-gated integer column (this projection reproduces the committed
+    /// baseline byte-for-byte, so it is stable even though the live measure jitters).
+    alloc_bytes: u64,
+    /// Total allocation count during the run — gated through the same tolerance band.
+    alloc_count: u64,
     peak_live_bytes: u64,
     /// Sorted `[rule, predicate, stratum, derivations]` tuples (may be empty at seams
     /// that expose no decomposable vector — never fabricated).
@@ -467,11 +474,13 @@ struct CostArtifact {
 }
 
 /// Render the committed deterministic engine-cost ledger from the committed cost
-/// baseline. PURELY deterministic — integer counts and boolean verdicts rendered in
-/// sorted `(corpus, case)` order, no wall-clock / peak-RSS / total-allocation scalars
+/// baseline. PURELY deterministic — integer counts, the three allocation scalars, and
+/// boolean verdicts rendered in sorted `(corpus, case)` order, no wall-clock / peak-RSS
 /// (those are report-only in the harness) — so it survives the `check-generated` byte
-/// gate without ever running a benchmark. Hard-fails if `bench/cost-baseline.json` is
-/// missing or malformed (no degraded fallback).
+/// gate without ever running a benchmark. The `alloc_bytes` / `alloc_count` columns are a
+/// projection of the COMMITTED baseline (byte-stable here even though the live measure
+/// jitters; the jitter is absorbed by the harness tolerance-band gate). Hard-fails if
+/// `bench/cost-baseline.json` is missing or malformed (no degraded fallback).
 pub(crate) fn render_cost_ledger(
     root: &Path,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
@@ -494,10 +503,12 @@ pub(crate) fn render_cost_ledger(
         "Committed engine-vs-engine cost/agreement baseline (`bench/cost-baseline.json`),"
             .to_string(),
         "refreshed via `make maint-bench-cost-baseline`. Every value is an integer count".to_string(),
-        "or a boolean verdict — NO wall-clock, NO peak-RSS, NO total-allocation scalars".to_string(),
-        "(those are report-only in the harness). This is a drift-gated projection of the".to_string(),
-        "deterministic cost artifact; `check-generated` reproduces it byte-for-byte from".to_string(),
-        "the committed baseline without ever running a benchmark.".to_string(),
+        "or a boolean verdict — NO wall-clock, NO peak-RSS (those are report-only in the".to_string(),
+        "harness). The three allocation scalars GATE: `peak_live_bytes` by exact drift-match,".to_string(),
+        "and `alloc_bytes`/`alloc_count` (the total-allocation scalars, which jitter ~0.06%".to_string(),
+        "run-to-run) through a one-sided tolerance band `fresh ≤ baseline·(1+ε)`, ε = 1%. This".to_string(),
+        "is a drift-gated projection of the deterministic cost artifact; `check-generated`".to_string(),
+        "reproduces it byte-for-byte from the committed baseline without running a benchmark.".to_string(),
         String::new(),
         format!(
             "Engine pins: native `{}`, nemo `{}`, scryer `{}`.",
@@ -508,18 +519,20 @@ pub(crate) fn render_cost_ledger(
         String::new(),
         "## Per-case deterministic cost + verdict-agreement".to_string(),
         String::new(),
-        "| corpus | case | fragment | consumed_steps | derived | peak_live_bytes | native_vs_golden | native_vs_oracle |"
+        "| corpus | case | fragment | consumed_steps | derived | alloc_bytes | alloc_count | peak_live_bytes | native_vs_golden | native_vs_oracle |"
             .to_string(),
-        "|---|---|---|---|---|---|---|---|".to_string(),
+        "|---|---|---|---|---|---|---|---|---|---|".to_string(),
     ];
     for case in &cases {
         lines.push(format!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} |",
+            "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
             case.corpus,
             case.case,
             case.fragment,
             case.native.consumed_steps,
             case.count()?,
+            case.native.alloc_bytes,
+            case.native.alloc_count,
             case.native.peak_live_bytes,
             case.agreement.native_vs_golden,
             case.agreement.native_vs_oracle,

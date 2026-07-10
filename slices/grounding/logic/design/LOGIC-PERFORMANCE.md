@@ -275,12 +275,21 @@ corpus)`: bit-for-bit reproducible, immune to the scheduler.
     of an external corpus is a deterministic set comparison and gates **on-gate**, with no oracle
     process required.
   - *Cost* — the engine's own operational counters are the gating cost signal: the per-round
-    committed-derivation count and **peak simultaneously-live bytes**. These are byte-reproducible
-    and gate **on-gate**; externally-instrumented retired-instruction counts corroborate them in a
-    maintainer lane. Total allocation bytes and allocation count are also measured, but the current
-    native core emits a small amount of non-deterministic transient scratch (parallel-runtime and
-    allocator bookkeeping) that peak-live nets to zero, so bytes/count are carried **advisory-only**
-    — a ledger entry until the transient scratch is made deterministic, never a silent gate.
+    committed-derivation count, **peak simultaneously-live bytes**, and the **total allocation
+    bytes / allocation count**. The count and peak-live are byte-reproducible and gate **on-gate**
+    by exact drift-match; externally-instrumented retired-instruction counts corroborate them in a
+    maintainer lane. The two total-allocation scalars are NOT byte-reproducible — the native core
+    emits a small quantized run-to-run allocation transient (measured at ~0.06% on the most-recursive
+    corpus case, and empirically irreducible: it survives a process-global total, an inline
+    single-thread parallel pool, and a fully serial engine, so it is genuine per-run engine jitter,
+    not a threading artifact). Rather than leave them advisory, they gate through a **one-sided
+    tolerance band** `fresh ≤ baseline·(1+ε)` with **ε = 1%** (set ~17× above the measured 0.06%
+    jitter floor), folded through the SAME divergence ledger as the exact signals: a within-band run
+    is a non-blocking `Agree`, a breach a blocking `CorpusOnly` cost-regression finding. The band is a
+    deterministic verdict (a pure function of `(fresh, baseline, ε)`) that never flakes yet still bites
+    the gross allocation regression the doctrine targets — a "fewer clones / fewer owned-key
+    allocations" backslide re-adds allocations far above ε; a sub-ε change is below the engine's own
+    allocation-noise floor and is not gate-detectable, the honest limit of a global-allocator counter.
   - *Speed* — wall-clock and peak-RSS are **advisory evidence only, never a gate**: engine-vs-engine
     leaderboard rows over a named, version-pinned corpus.
 - **Cost is an algebra, not a scalar.** Cost is a tropical / counting semiring over the
