@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# A schema.org source graph mirroring the retired Python self-sufficiency
+# test's `ada` fixture: a typed schema:Person carrying properties the bundled
+# SSSOM correspondence (slices/core/entities, slices/core/contacts) actually
+# maps to gmeow: terms, so `gmeow transpile` lifts every asserted triple (zero
+# gap) and the MAXIMAL multi-vocab fan-out over the embedded bundle is
+# non-trivial (empirically verified: 4 lifted facts -> 18 asserted lift lines
+# -> hundreds of projected quads after fan-out).
+@prefix schema: <https://schema.org/> .
+@prefix ex: <https://example.org/> .
+
+ex:ada a schema:Person ;
+    schema:name "Ada Lovelace"@en ;
+    schema:description "Mathematician and writer, chiefly known for her work on Charles Babbage's Analytical Engine"@en ;
+    schema:url <https://example.org/ada> ;
+    schema:email "ada@example.org" .
