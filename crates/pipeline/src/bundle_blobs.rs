@@ -24,7 +24,7 @@
 //! the retired Python `REP_*` constants EXACTLY — a drifted label silently
 //! resolves to an empty archive, shipping the bundle without that surface.
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::path::Path;
 
 use purrdf::gts::reader::read;
@@ -556,8 +556,7 @@ impl Bundle {
         }
 
         // Dangling refs: referenced digests with no matching stored blob key.
-        let stored: std::collections::BTreeSet<&str> =
-            graph.blobs.iter().map(|(d, _)| d.as_str()).collect();
+        let stored: HashSet<&str> = graph.blobs.iter().map(|(d, _)| d.as_str()).collect();
         let mut dangling: BTreeMap<String, Vec<String>> = BTreeMap::new();
         for (pred, digests) in &referenced {
             let missing: Vec<String> = digests
@@ -578,7 +577,7 @@ impl Bundle {
         // forward-compatible test for "intentionally shipped", not a
         // hand-maintained enumeration of the reps this module happens to
         // expose a typed accessor for.
-        let all_referenced: std::collections::BTreeSet<&str> =
+        let all_referenced: HashSet<&str> =
             referenced.values().flatten().map(String::as_str).collect();
         let mut orphan_blobs: Vec<String> = Vec::new();
         for (digest, _entry) in &graph.blobs {
