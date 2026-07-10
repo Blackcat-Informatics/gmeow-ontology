@@ -304,6 +304,7 @@ mod tests {
             ui_catalog: crate::i18n::UiCatalog::default(),
             reasoning: None,
             diagnostics: None,
+            term_loss: None,
             lang: String::new(),
         }
     }

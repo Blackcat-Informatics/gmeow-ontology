@@ -167,6 +167,7 @@ fn spine() -> PipelineSpec {
                 &[
                     "stage-compile-logic",
                     "stage-gts-compose",
+                    "stage-mappings",
                     "stage-reason",
                     "stage-validate",
                 ],

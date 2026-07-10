@@ -200,6 +200,7 @@ pub fn full_spec() -> PipelineSpec {
             &[
                 "stage-compile-logic",
                 "stage-gts-compose",
+                "stage-mappings",
                 "stage-reason",
                 "stage-validate",
             ],

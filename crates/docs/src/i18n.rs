@@ -684,6 +684,15 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_super_classes", "Super-classes"),
     ("body_super_properties", "Super-properties"),
     ("body_term_not_found", "Term not found."),
+    (
+        "body_term_projection_degradation",
+        "How this term degrades under projection",
+    ),
+    (
+        "body_term_projection_degradation_none",
+        "Carried exactly by every projection — no per-shape property-path drops are \
+         recorded against this term in the current build.",
+    ),
     ("body_terms_used", "Terms used"),
     ("body_tested_by", "Tested by"),
     ("body_usage_advice", "Usage Advice"),
@@ -987,9 +996,9 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 129 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 131 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 189);
+        assert_eq!(UI_TEMPLATES.len(), 191);
     }
 
     #[test]
