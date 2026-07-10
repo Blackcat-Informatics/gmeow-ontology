@@ -56,8 +56,9 @@ pub use engine::{
 };
 pub use gmn_symbology::{GMN_LANG_AST_COLUMNS, gmn_glyph_token_cost};
 pub use gmn1_codec::{
-    CoverageReport, Gmn0Model, Gmn1Document, Gmn1Error, GmnDictionary, gmn0_canonically_equal,
-    gmn1_read, gmn1_write, gmn1_write_tabular, measure_coverage, round_trip_check,
+    ConstructCoverageTally, CoverageReport, Gmn0Model, Gmn1ConstructCategory, Gmn1Document,
+    Gmn1Error, GmnDictionary, QuadCoverage, classify_quad, gmn0_canonically_equal, gmn1_read,
+    gmn1_write, gmn1_write_tabular, measure_coverage, round_trip_check,
 };
 pub use grammar::{
     AbnfBridge, EbnfBridge, Formalism, Grammar, GrammarRule, RuleExpr, canonicalize_expr,

@@ -94,7 +94,7 @@ const SEP: &str = "__";
 const BLANK_PREFIX: &str = "_b";
 /// The by-reference literal-key token prefix: reserved so a plain identifier-shaped
 /// literal lexical form is never allowed to collide with a reference key (see
-/// [`encode_literal`]).
+/// [`classify_literal`]).
 const REF_PREFIX: &str = "r_";
 
 const DICT_VERSION: &str = "1";
@@ -318,6 +318,84 @@ impl std::fmt::Display for Gmn1Error {
 
 impl std::error::Error for Gmn1Error {}
 
+// ── Construct-category classification (the coverage-completeness audit's
+// vocabulary) ─────────────────────────────────────────────────────────────
+
+/// The codec's own closed set of GMN-0 "construct categories" a WRITE-side term can
+/// classify into. This is not a second notion of coverage: [`classify_iri`],
+/// [`classify_literal`], [`classify_reference`], and [`classify_value`] are the SAME
+/// dispatch [`encode_reference`]/[`encode_value`] call (each is a one-line wrapper
+/// around its classifier), so a category label can never drift from what [`gmn1_write`] really
+/// does to the same term. [`classify_quad`] and [`ConstructCoverageTally`] compose these
+/// into the per-quad, corpus-wide audit `crates/pipeline/src/stages/gmn1_gate.rs`'s
+/// `check_gmn1_construct_coverage` runs over the real grounding slices.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Gmn1ConstructCategory {
+    /// An IRI resolved via the `gmeow:gmnDictV1` alias table (a dictionary hit).
+    IriDictAlias,
+    /// An IRI resolved via `prefix__local` mangling with no `/` in the stripped local
+    /// part (the common case).
+    IriPrefixMangled,
+    /// An IRI resolved via `prefix__local` mangling whose local part needed the `/` →
+    /// [`SLASH_ESCAPE`] reversible escape (a multi-segment path IRI under a registered
+    /// namespace, e.g. `http://lexvo.org/id/iso639-3/eng`).
+    IriPrefixMangledSlashEscaped,
+    /// An IRI that IS a registered namespace's own bare root (empty local part).
+    IriBareNamespaceRoot,
+    /// A blank node in a reference-position slot.
+    BlankNode,
+    /// An `xsd:string` literal, identifier-shaped, inlined directly as a GMN-1
+    /// identifier token.
+    LiteralIdentifier,
+    /// A canonical-shaped `xsd:integer` literal, inlined directly as a GMN-1 integer
+    /// token.
+    LiteralInteger,
+    /// A canonical two-digit-fraction `xsd:decimal` literal, inlined directly as a
+    /// GMN-1 number token.
+    LiteralDecimal,
+    /// Any other literal (an `rdf:langString`/language-tagged literal, a
+    /// non-canonical-shaped number, arbitrary prose, or any other datatype), riding by
+    /// reference through the document's reference table.
+    LiteralByReference,
+}
+
+impl Gmn1ConstructCategory {
+    /// Every category this codec's write-side dispatch can produce — the audit's
+    /// enumeration of "what totality over a construct means." A category MISSING from
+    /// this list would make [`ConstructCoverageTally::unexercised_categories`] blind to
+    /// it, so [`Self::all_covered_by_match`] is a compile-time witness that `ALL` cannot
+    /// silently fall out of sync with the enum's own variant list.
+    pub const ALL: &'static [Self] = &[
+        Self::IriDictAlias,
+        Self::IriPrefixMangled,
+        Self::IriPrefixMangledSlashEscaped,
+        Self::IriBareNamespaceRoot,
+        Self::BlankNode,
+        Self::LiteralIdentifier,
+        Self::LiteralInteger,
+        Self::LiteralDecimal,
+        Self::LiteralByReference,
+    ];
+
+    // Never called; exists so an exhaustive match over `Self` fails to compile the
+    // moment a new variant is added without a matching arm HERE (and, by the doc
+    // comment's discipline, without also being added to `ALL`).
+    #[allow(dead_code)]
+    fn all_covered_by_match(self) {
+        match self {
+            Self::IriDictAlias
+            | Self::IriPrefixMangled
+            | Self::IriPrefixMangledSlashEscaped
+            | Self::IriBareNamespaceRoot
+            | Self::BlankNode
+            | Self::LiteralIdentifier
+            | Self::LiteralInteger
+            | Self::LiteralDecimal
+            | Self::LiteralByReference => {}
+        }
+    }
+}
+
 // ── Term ⇄ token codec (shared by every record field position) ─────────────────────
 
 /// A by-reference literal payload the reference table carries (langString, arbitrary
@@ -355,13 +433,13 @@ pub struct Gmn1Document {
 /// never be misread as a reference, because it is never ENCODED as one — [`encode_value`]
 /// handles every literal, unconditionally, through the reference table when it is not
 /// safely inlinable, and NEVER through the dictionary.
-fn encode_reference(
+fn classify_reference(
     term: &RdfTerm,
     dict: &GmnDictionary,
     ns_to_prefix: &[(String, String)],
-) -> Result<String, UncoveredTerm> {
+) -> Result<(String, Gmn1ConstructCategory), UncoveredTerm> {
     match term {
-        RdfTerm::Iri(iri) => iri_to_token(iri, dict, ns_to_prefix)
+        RdfTerm::Iri(iri) => classify_iri(iri, dict, ns_to_prefix)
             .ok_or_else(|| UncoveredTerm(format!("IRI under no registered namespace: {iri}"))),
         RdfTerm::BlankNode(label) => {
             if !is_safe_token_body(label) {
@@ -369,7 +447,10 @@ fn encode_reference(
                     "blank node label is not GMN-1 identifier-safe: {label}"
                 )));
             }
-            Ok(format!("{BLANK_PREFIX}{label}"))
+            Ok((
+                format!("{BLANK_PREFIX}{label}"),
+                Gmn1ConstructCategory::BlankNode,
+            ))
         }
         RdfTerm::Literal(lit) => Err(UncoveredTerm(format!(
             "a reference-position slot (s/p/o/st/ev/m/ek/bd/it) cannot carry a literal: {lit:?}"
@@ -380,32 +461,56 @@ fn encode_reference(
     }
 }
 
+/// The token-only view of [`classify_reference`] — a one-line wrapper so the write path
+/// and the classification path can never disagree about what a reference-position term
+/// encodes to.
+fn encode_reference(
+    term: &RdfTerm,
+    dict: &GmnDictionary,
+    ns_to_prefix: &[(String, String)],
+) -> Result<String, UncoveredTerm> {
+    classify_reference(term, dict, ns_to_prefix).map(|(token, _)| token)
+}
+
 /// Encode a VALUE-position term (`v q`: the object's own literal payload, or an asserted
 /// confidence) as a GMN-1 token — a canonical number when the shape/datatype allow it,
 /// otherwise a content-addressed by-reference key. Deliberately does NOT consult the
 /// dictionary (see [`encode_reference`]'s doc comment for why that would be unsound).
-fn encode_value(
+fn classify_value(
     term: &RdfTerm,
     refs: &mut BTreeMap<String, RefPayload>,
-) -> Result<String, UncoveredTerm> {
+) -> Result<(String, Gmn1ConstructCategory), UncoveredTerm> {
     match term {
-        RdfTerm::Literal(lit) => Ok(encode_literal(lit, refs)),
+        RdfTerm::Literal(lit) => Ok(classify_literal(lit, refs)),
         other => Err(UncoveredTerm(format!(
             "a value-position slot (v/q) must carry a literal, got: {other:?}"
         ))),
     }
 }
 
+/// The token-only view of [`classify_value`] — a one-line wrapper so the write path and
+/// the classification path can never disagree about what a value-position term encodes
+/// to.
+fn encode_value(
+    term: &RdfTerm,
+    refs: &mut BTreeMap<String, RefPayload>,
+) -> Result<String, UncoveredTerm> {
+    classify_value(term, refs).map(|(token, _)| token)
+}
+
 /// `prefix__local` if `iri` starts with a registered namespace and the local part is
 /// GMN-1 identifier-safe; the dictionary alias takes precedence when present (shorter,
-/// and the charter's witness-carried bijection).
-fn iri_to_token(
+/// and the charter's witness-carried bijection). Also tags WHICH construct category the
+/// resolution took, for [`classify_reference`]/[`classify_quad`]'s audit use — the
+/// classification is computed inline (never a second, drift-prone re-derivation of the
+/// same branches).
+fn classify_iri(
     iri: &str,
     dict: &GmnDictionary,
     ns_to_prefix: &[(String, String)],
-) -> Option<String> {
+) -> Option<(String, Gmn1ConstructCategory)> {
     if let Some(alias) = dict.alias_for(iri) {
-        return Some(alias.to_owned());
+        return Some((alias.to_owned(), Gmn1ConstructCategory::IriDictAlias));
     }
     for (ns, prefix) in ns_to_prefix {
         if let Some(local) = iri.strip_prefix(ns.as_str())
@@ -413,14 +518,19 @@ fn iri_to_token(
             && !prefix.contains(SEP)
             && let Some(mangled) = mangle_local(local)
         {
-            return Some(format!("{prefix}{SEP}{mangled}"));
+            let category = if local.contains('/') {
+                Gmn1ConstructCategory::IriPrefixMangledSlashEscaped
+            } else {
+                Gmn1ConstructCategory::IriPrefixMangled
+            };
+            return Some((format!("{prefix}{SEP}{mangled}"), category));
         }
         // The bare namespace root itself (e.g. the ontology's own base IRI, used as an
         // `owl:imports` object with no trailing slash): the local part is empty, so
         // there is nothing to mangle — the prefix ALONE is the token (still injective:
         // it is disjoint from every `prefix__local` token, which always contains SEP).
         if iri == ns.trim_end_matches('/') {
-            return Some(prefix.clone());
+            return Some((prefix.clone(), Gmn1ConstructCategory::IriBareNamespaceRoot));
         }
     }
     None
@@ -497,10 +607,15 @@ fn is_decimal_token(s: &str) -> bool {
         && frac_part.bytes().all(|b| b.is_ascii_digit())
 }
 
-/// Encode a literal: inline as an identifier or canonical number when the datatype and
-/// shape allow it losslessly; otherwise mint a content-addressed `r_<hash>` reference
-/// and carry the full payload in `refs`.
-fn encode_literal(lit: &RdfLiteral, refs: &mut BTreeMap<String, RefPayload>) -> String {
+/// Classify + encode a literal: inline as an identifier or canonical number when the
+/// datatype and shape allow it losslessly; otherwise mint a content-addressed `r_<hash>`
+/// reference and carry the full payload in `refs`. [`classify_value`] delegates to this
+/// (its token-only view) — never a second, drift-prone re-derivation of the same
+/// branches.
+fn classify_literal(
+    lit: &RdfLiteral,
+    refs: &mut BTreeMap<String, RefPayload>,
+) -> (String, Gmn1ConstructCategory) {
     let plain_string = lit.language.is_none()
         && lit.direction.is_none()
         && lit.datatype.as_deref() == Some(XSD_STRING);
@@ -509,20 +624,29 @@ fn encode_literal(lit: &RdfLiteral, refs: &mut BTreeMap<String, RefPayload>) -> 
         && !lit.lexical_form.starts_with(BLANK_PREFIX)
         && !lit.lexical_form.starts_with(REF_PREFIX)
     {
-        return lit.lexical_form.clone();
+        return (
+            lit.lexical_form.clone(),
+            Gmn1ConstructCategory::LiteralIdentifier,
+        );
     }
     let integer_or_decimal = lit.language.is_none() && lit.direction.is_none();
     if integer_or_decimal
         && lit.datatype.as_deref() == Some(XSD_INTEGER)
         && is_integer_token(&lit.lexical_form)
     {
-        return lit.lexical_form.clone();
+        return (
+            lit.lexical_form.clone(),
+            Gmn1ConstructCategory::LiteralInteger,
+        );
     }
     if integer_or_decimal
         && lit.datatype.as_deref() == Some(XSD_DECIMAL)
         && is_decimal_token(&lit.lexical_form)
     {
-        return lit.lexical_form.clone();
+        return (
+            lit.lexical_form.clone(),
+            Gmn1ConstructCategory::LiteralDecimal,
+        );
     }
     // By reference: content-addressed on the full payload, so two occurrences of the
     // same literal share one reference-table entry.
@@ -543,7 +667,7 @@ fn encode_literal(lit: &RdfLiteral, refs: &mut BTreeMap<String, RefPayload>) -> 
         datatype: lit.datatype.clone(),
         language: lit.language.clone(),
     });
-    key
+    (key, Gmn1ConstructCategory::LiteralByReference)
 }
 
 /// Decode a REFERENCE-position token (`s p o st ev m ek bd it`) back to an [`RdfTerm`] —
@@ -572,7 +696,7 @@ fn decode_reference(
     {
         return Ok(RdfTerm::Iri(format!("{ns}{}", unmangle_local(local))));
     }
-    // The bare namespace-root form (see `iri_to_token`): a token with no SEP that
+    // The bare namespace-root form (see `classify_iri`): a token with no SEP that
     // exactly names a registered prefix decodes to that namespace's root IRI (trailing
     // slash stripped).
     if let Some(ns) = prefix_to_ns.get(token) {
@@ -1045,6 +1169,7 @@ pub fn gmn1_read(doc: &Gmn1Document, dict: &GmnDictionary) -> Result<Gmn0Model, 
 /// Parse `@gmn{v: 1, aliases: dict-v1}` by explicit token scanning — never by
 /// re-deriving from what [`gmn1_write`] would emit.
 fn parse_header(line: &str) -> Result<(), Gmn1Error> {
+    let line = line.trim();
     let body = line
         .strip_prefix("@gmn{")
         .and_then(|s| s.strip_suffix('}'))
@@ -1083,7 +1208,7 @@ fn parse_sigil_record(line: &str) -> Result<Record, Gmn1Error> {
     let brace = line
         .find('{')
         .ok_or_else(|| Gmn1Error::Malformed(format!("record line has no '{{': {line}")))?;
-    let sigil_str = &line[..brace];
+    let sigil_str = line[..brace].trim();
     let sigil = match sigil_str {
         "@c" => SIGIL_CLAIM,
         "@p" => SIGIL_PROCESS,
@@ -1130,7 +1255,7 @@ fn parse_sigil_record(line: &str) -> Result<Record, Gmn1Error> {
 
 /// Parse one bare tabular row against the pending `@claims[...]` column schema.
 fn parse_tabular_row(cols: &[String], line: &str) -> Result<Record, Gmn1Error> {
-    let values: Vec<&str> = line.split(' ').filter(|s| !s.is_empty()).collect();
+    let values: Vec<&str> = line.split_whitespace().collect();
     if values.len() != cols.len() {
         return Err(Gmn1Error::Malformed(format!(
             "tabular row has {} value(s) but the declared schema has {} column(s): {line}",
@@ -1193,27 +1318,146 @@ impl CoverageReport {
 }
 
 /// Measure [`CoverageReport`] over every quad in `model` against `dict`, reusing the
-/// SAME `encode_reference`/`encode_object` term codec [`gmn1_write`] calls — never a
-/// second, duplicated notion of "coverable". A named-graph-scoped quad is uncovered
-/// (the same fragment boundary [`quads_to_records`] enforces for the writer), counted
-/// in the denominator but never the numerator.
+/// SAME [`classify_quad`] dispatch [`gmn1_write`] calls — never a second, duplicated
+/// notion of "coverable".
 #[must_use]
 pub fn measure_coverage(model: &Gmn0Model, dict: &GmnDictionary) -> CoverageReport {
-    let ns_to_prefix = ns_to_prefix_table();
-    let mut refs = BTreeMap::new();
     let mut covered = 0usize;
     for q in &model.quads {
-        let ok = q.graph_name.is_none()
-            && encode_reference(&q.subject, dict, &ns_to_prefix).is_ok()
-            && encode_reference(&RdfTerm::Iri(q.predicate.clone()), dict, &ns_to_prefix).is_ok()
-            && encode_object(&q.object, dict, &ns_to_prefix, &mut refs).is_ok();
-        if ok {
+        if matches!(classify_quad(q, dict), QuadCoverage::Covered { .. }) {
             covered += 1;
         }
     }
     CoverageReport {
         covered,
         total: model.quads.len(),
+    }
+}
+
+// ── Per-quad construct classification (the coverage-completeness audit) ────────────
+
+/// One quad's classification against this codec's own write-side dispatch — see
+/// [`Gmn1ConstructCategory`]'s doc for why this can never drift from what [`gmn1_write`]
+/// actually does to the same quad.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum QuadCoverage {
+    /// Every slot (subject, predicate, object) encodes losslessly; the categories name
+    /// which codec construct each slot fell into. The object's category is whichever
+    /// [`classify_value`] (a literal object — the `v` slot) or [`classify_reference`]
+    /// (an IRI/blank-node object — the `o` slot) produced, mirroring [`encode_object`]'s
+    /// o-vs-v split.
+    Covered {
+        subject: Gmn1ConstructCategory,
+        predicate: Gmn1ConstructCategory,
+        object: Gmn1ConstructCategory,
+    },
+    /// This quad hits an uncovered construct — the SAME [`UncoveredTerm`] [`gmn1_write`]
+    /// would hard-fail on for this quad (a named-graph quad, an IRI under no registered
+    /// namespace, an unsafe blank-node label, a quoted-triple term, or a
+    /// non-literal/non-reference term in a slot that requires the other shape).
+    Uncovered(UncoveredTerm),
+}
+
+/// Classify one quad exactly the way [`gmn1_write`]'s `quads_to_records`/
+/// [`encode_object`] dispatch would: a named-graph quad is uncovered (the same fragment
+/// boundary [`quads_to_records`] enforces for the writer, checked first here so it is
+/// never silently subsumed by a slot-level classification), then subject/predicate
+/// classify via [`classify_reference`] and the object classifies via [`classify_value`]
+/// (literal) or [`classify_reference`] (otherwise) — the o-vs-v split. This is the
+/// audit's sole classification entry point: `crates/pipeline/src/stages/gmn1_gate.rs`'s
+/// `check_gmn1_construct_coverage` and [`ConstructCoverageTally`] both call only this.
+#[must_use]
+pub fn classify_quad(quad: &RdfQuad, dict: &GmnDictionary) -> QuadCoverage {
+    if quad.graph_name.is_some() {
+        return QuadCoverage::Uncovered(UncoveredTerm(
+            "named-graph-scoped quads are outside this codec's covered record model \
+             (no graph slot in the GMN-1 record shape)"
+                .to_owned(),
+        ));
+    }
+    let ns_to_prefix = ns_to_prefix_table();
+    let mut refs = BTreeMap::new();
+    let subject = match classify_reference(&quad.subject, dict, &ns_to_prefix) {
+        Ok((_, category)) => category,
+        Err(e) => return QuadCoverage::Uncovered(e),
+    };
+    let predicate =
+        match classify_reference(&RdfTerm::Iri(quad.predicate.clone()), dict, &ns_to_prefix) {
+            Ok((_, category)) => category,
+            Err(e) => return QuadCoverage::Uncovered(e),
+        };
+    let object_result = if matches!(quad.object, RdfTerm::Literal(_)) {
+        classify_value(&quad.object, &mut refs)
+    } else {
+        classify_reference(&quad.object, dict, &ns_to_prefix)
+    };
+    let object = match object_result {
+        Ok((_, category)) => category,
+        Err(e) => return QuadCoverage::Uncovered(e),
+    };
+    QuadCoverage::Covered {
+        subject,
+        predicate,
+        object,
+    }
+}
+
+/// Per-[`Gmn1ConstructCategory`] occurrence tally over a quad corpus — the
+/// coverage-COMPLETENESS primitive, distinct from
+/// [`CoverageReport`] (which measures the FRACTION of quads covered). This measures
+/// whether each of the codec's own [`Gmn1ConstructCategory::ALL`] categories was hit AT
+/// LEAST ONCE by the corpus: a category with zero real occurrences is a category no
+/// round-trip test — however large the corpus it runs over — could ever have actually
+/// exercised, so a latent bug in that dispatch branch would go undetected indefinitely.
+/// Proving every category's count is nonzero over the REAL grounding slices turns
+/// "the round-trip gate happens to pass" into "every codec construct category is
+/// genuinely proven against production content."
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ConstructCoverageTally {
+    counts: BTreeMap<Gmn1ConstructCategory, usize>,
+    /// Every quad this tally found uncovered, in encounter order. A non-empty list here
+    /// is the round-trip gate's own job to catch (an `Uncovered` construct hard-fails
+    /// `gmn1_write`); this tally surfaces it too purely so a caller can cross-check the
+    /// two audits agree, never as a substitute for the round-trip gate's hard fail.
+    pub uncovered: Vec<UncoveredTerm>,
+}
+
+impl ConstructCoverageTally {
+    /// Fold every quad of `model` into this tally, via [`classify_quad`].
+    pub fn absorb(&mut self, model: &Gmn0Model, dict: &GmnDictionary) {
+        for q in &model.quads {
+            match classify_quad(q, dict) {
+                QuadCoverage::Covered {
+                    subject,
+                    predicate,
+                    object,
+                } => {
+                    *self.counts.entry(subject).or_insert(0) += 1;
+                    *self.counts.entry(predicate).or_insert(0) += 1;
+                    *self.counts.entry(object).or_insert(0) += 1;
+                }
+                QuadCoverage::Uncovered(u) => self.uncovered.push(u),
+            }
+        }
+    }
+
+    /// The count for one category (0 if never observed).
+    #[must_use]
+    pub fn count(&self, category: Gmn1ConstructCategory) -> usize {
+        self.counts.get(&category).copied().unwrap_or(0)
+    }
+
+    /// Every category in [`Gmn1ConstructCategory::ALL`] this tally never observed, in
+    /// `ALL`'s order — a non-empty result is the completeness gap this audit exists to
+    /// catch: falsifiable by construction (see the type-level doc and this crate's
+    /// `construct_coverage_audit_is_falsifiable_on_a_missing_category` test).
+    #[must_use]
+    pub fn unexercised_categories(&self) -> Vec<Gmn1ConstructCategory> {
+        Gmn1ConstructCategory::ALL
+            .iter()
+            .copied()
+            .filter(|c| self.count(*c) == 0)
+            .collect()
     }
 }
 
@@ -1384,5 +1628,67 @@ mod tests {
             "only the registered-namespace quad is covered"
         );
         assert!((report.fraction() - 0.5).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn parse_header_tolerates_trailing_cr_and_incidental_whitespace() {
+        // GMN-1 is an LLM-first interchange dialect: the reader must parse text an
+        // external author/tool emits, not only gmn1_write's own canonical whitespace.
+        // A trailing '\r' can survive std::str::lines()'s built-in CRLF handling (e.g.
+        // a doubled '\r\r\n', or a lone trailing '\r' with no following '\n') — before
+        // the fix, parse_header matched the un-trimmed line exactly against
+        // "@gmn{...}" and hard-failed as Malformed on any such residue.
+        assert!(parse_header("@gmn{v: 1, aliases: dict-v1}\r").is_ok());
+        assert!(parse_header("  @gmn{v: 1, aliases: dict-v1}  ").is_ok());
+        assert!(parse_header("@gmn{v: 1, aliases: dict-v1}").is_ok());
+    }
+
+    #[test]
+    fn gmn1_read_parses_externally_authored_whitespace_variants() {
+        // Hand-written text simulating an externally-authored GMN-1 document —
+        // deliberately NOT produced via this crate's own `gmn1_write` (which always
+        // emits canonical single-space, LF-only whitespace) — so this proves the
+        // reader tolerates real external variance, not merely its own writer's output.
+        let dict = empty_dict();
+        let text = concat!(
+            // A doubled '\r' before the line feed: std::str::lines() strips exactly
+            // one trailing '\r' per line, so one '\r' still reaches parse_header
+            // un-trimmed without the fix.
+            "@gmn{v: 1, aliases: dict-v1}\r\r\n",
+            // A stray space between the sigil and its opening brace.
+            "@c {s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}\n",
+            "@claims[s p o]\n",
+            // A tab-delimited tabular row (mixed with normal spacing elsewhere).
+            "gmeow__gate2\tgmeow__hasState\tgmeow__doorGate2\n",
+        );
+        let doc = Gmn1Document {
+            text: text.to_owned(),
+            refs: BTreeMap::new(),
+        };
+        let model = gmn1_read(&doc, &dict)
+            .expect("CRLF header, spaced sigil, and tab-delimited row must all parse");
+        assert_eq!(
+            model.quads.len(),
+            2,
+            "one @c record plus one tabular row decode to two quads"
+        );
+    }
+
+    #[test]
+    fn gmn1_read_unknown_sigil_still_hard_fails_as_uncovered_after_trim() {
+        // Negative control: trimming whitespace must never broaden vocabulary
+        // coverage. A genuinely unknown sigil is still outside the codec's covered
+        // record model and must still raise Uncovered, not silently parse.
+        let dict = empty_dict();
+        let text = "@gmn{v: 1, aliases: dict-v1}\n@x{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}\n";
+        let doc = Gmn1Document {
+            text: text.to_owned(),
+            refs: BTreeMap::new(),
+        };
+        let err = gmn1_read(&doc, &dict).expect_err("an unknown sigil must still hard-fail");
+        match err {
+            Gmn1Error::Uncovered(_) => {}
+            other => panic!("expected Uncovered for an unknown sigil, got {other:?}"),
+        }
     }
 }

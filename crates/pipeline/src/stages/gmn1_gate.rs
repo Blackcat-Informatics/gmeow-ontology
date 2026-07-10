@@ -25,11 +25,25 @@
 //! GTS/N-Quads byte-teeth gates use). A write-side uncovered construct, a read-side
 //! parse defect, or a canonical mismatch is a hard failure — no skips, no optional
 //! coverage, a single non-round-tripping fixture reds the gate.
+//!
+//! # The construct-coverage-completeness audit
+//!
+//! [`check_gmn1_roundtrip`] proves every quad IN the grounding corpus round-trips
+//! byte-exact. It does NOT prove the corpus actually EXERCISES every branch of the
+//! codec's own write-side dispatch (a category with zero real occurrences could carry a
+//! latent bug that no amount of round-tripping the SAME corpus would ever surface).
+//! [`check_gmn1_construct_coverage`] closes that gap: it classifies every quad via
+//! [`gmeow_lang_bridge::classify_quad`] (the SAME dispatch [`gmn1_write`] calls, so the
+//! classification can never drift from what the codec actually does) and hard-fails if
+//! any [`gmeow_lang_bridge::Gmn1ConstructCategory`] has zero occurrences across the real
+//! grounding sources. Both audits run in `run.rs`'s reconcile phase; both are total,
+//! hard-fail gates over the same source domain.
 
 use std::path::Path;
 
 use gmeow_lang_bridge::{
-    Gmn0Model, Gmn1Error, GmnDictionary, gmn0_canonically_equal, gmn1_read, gmn1_write,
+    ConstructCoverageTally, Gmn0Model, Gmn1ConstructCategory, Gmn1Error, GmnDictionary,
+    gmn0_canonically_equal, gmn1_read, gmn1_write,
 };
 use purrdf::parse_dataset;
 
@@ -86,20 +100,26 @@ impl Gmn1RoundTripReport {
     }
 }
 
-/// Run the GMN-1 round-trip gate over every grounding slice's `module.ttl` and
-/// `examples/*.ttl` under `<root>/slices/grounding/`.
-pub fn check_gmn1_roundtrip(root: &Path) -> Result<Gmn1RoundTripReport, gmeow_errors::Diag> {
-    // The dictionary is authored in the lang slice's `module.ttl`; every grounding
-    // source is decoded/encoded against the SAME loaded dictionary (one shipped
-    // `gmeow:gmnDictV1` version, per the carrier's own version-pinning discipline).
+/// Load `gmeow:gmnDictV1` from the lang slice's authored `module.ttl` — the SAME
+/// dictionary every grounding source is decoded/encoded against (one shipped
+/// `gmeow:gmnDictV1` version, per the carrier's own version-pinning discipline). Shared
+/// by [`check_gmn1_roundtrip`] and [`check_gmn1_construct_coverage`] so both audits load
+/// the identical dictionary, never two independently-loaded copies.
+fn load_lang_dictionary(root: &Path) -> Result<GmnDictionary, gmeow_errors::Diag> {
     let lang_module_path = root.join("slices/grounding/lang/module.ttl");
     let lang_bytes = std::fs::read(&lang_module_path)
         .map_err(|e| stage_err(&format!("read {}: {e}", lang_module_path.display())))?;
     let lang_ds = parse_dataset(&lang_bytes, "text/turtle", None)
         .map_err(|e| stage_err(&format!("parse {}: {e}", lang_module_path.display())))?;
-    let dict = GmnDictionary::from_dataset(&lang_ds)
-        .map_err(|e| stage_err(&format!("gmeow:gmnDictV1 failed to load: {}", e.0)))?;
+    GmnDictionary::from_dataset(&lang_ds)
+        .map_err(|e| stage_err(&format!("gmeow:gmnDictV1 failed to load: {}", e.0)))
+}
 
+/// Every grounding source path (`slices/grounding/<slice>/module.ttl` plus every
+/// `examples/*.ttl` under it, repo-root-relative), sorted. Shared by
+/// [`check_gmn1_roundtrip`] and [`check_gmn1_construct_coverage`] so the two audits can
+/// never disagree about WHICH files are in the "total over grounding" domain.
+fn collect_grounding_sources(root: &Path) -> Result<Vec<String>, gmeow_errors::Diag> {
     let mut sources: Vec<String> = Vec::new();
     for slice in GROUNDING_SLICES {
         let slice_dir = root.join("slices/grounding").join(slice);
@@ -133,6 +153,14 @@ pub fn check_gmn1_roundtrip(root: &Path) -> Result<Gmn1RoundTripReport, gmeow_er
         }
     }
     sources.sort();
+    Ok(sources)
+}
+
+/// Run the GMN-1 round-trip gate over every grounding slice's `module.ttl` and
+/// `examples/*.ttl` under `<root>/slices/grounding/`.
+pub fn check_gmn1_roundtrip(root: &Path) -> Result<Gmn1RoundTripReport, gmeow_errors::Diag> {
+    let dict = load_lang_dictionary(root)?;
+    let sources = collect_grounding_sources(root)?;
 
     let mut failures = Vec::new();
     for source in &sources {
@@ -178,6 +206,70 @@ pub fn check_gmn1_roundtrip(root: &Path) -> Result<Gmn1RoundTripReport, gmeow_er
 
     failures.sort_by(|a, b| a.path.cmp(&b.path));
     Ok(Gmn1RoundTripReport { failures })
+}
+
+/// A codec construct category the real grounding corpus never exercised — the
+/// completeness gap [`check_gmn1_construct_coverage`] exists to catch.
+///
+/// [`check_gmn1_roundtrip`] proves every quad IN the grounding corpus round-trips
+/// byte-exact through [`gmn1_write`]/[`gmn1_read`] — but that says nothing about whether
+/// the corpus actually EXERCISES every branch of the codec's own write-side dispatch
+/// ([`Gmn1ConstructCategory`]). A branch with zero real occurrences could carry a latent
+/// encode/decode bug indefinitely: the round-trip gate would keep passing (nothing in
+/// the corpus takes that branch, so nothing can expose a mismatch in it), while the
+/// carrier's `logic:mnemomorphic true` claim implicitly asserts totality over
+/// EVERYTHING the grounding slices actually emit — the very fragment this gate is
+/// scoped to. This gate closes that gap mechanically, over the SAME source files and
+/// the SAME dictionary [`check_gmn1_roundtrip`] uses.
+pub fn check_gmn1_construct_coverage(
+    root: &Path,
+) -> Result<Gmn1ConstructCoverageReport, gmeow_errors::Diag> {
+    let dict = load_lang_dictionary(root)?;
+    let sources = collect_grounding_sources(root)?;
+
+    let mut tally = ConstructCoverageTally::default();
+    for source in &sources {
+        let bytes = std::fs::read(root.join(source))
+            .map_err(|e| stage_err(&format!("read {source}: {e}")))?;
+        let ds = parse_dataset(&bytes, "text/turtle", None).map_err(|e| {
+            stage_err(&format!(
+                "parse {source} for the GMN-1 construct-coverage audit: {e}"
+            ))
+        })?;
+        let model = Gmn0Model::from_dataset(&ds);
+        tally.absorb(&model, &dict);
+    }
+
+    Ok(Gmn1ConstructCoverageReport {
+        unexercised: tally.unexercised_categories(),
+        // A quad this tally found uncovered here is the SAME construct
+        // `check_gmn1_roundtrip` would hard-fail on for the same source (both audits
+        // call `gmn1_codec`'s own dispatch) — carried through so a caller can assert the
+        // two audits agree, never as this gate's own primary failure surface.
+        uncovered_quad_count: tally.uncovered.len(),
+    })
+}
+
+/// [`check_gmn1_construct_coverage`]'s outcome: every codec construct category the real
+/// grounding corpus never exercised. Empty ⇒ every category the codec's write-side
+/// dispatch can produce ([`Gmn1ConstructCategory::ALL`]) is genuinely proven against
+/// production content, not merely a corpus that happens to round-trip.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Gmn1ConstructCoverageReport {
+    /// Every unexercised category, in [`Gmn1ConstructCategory::ALL`] order.
+    pub unexercised: Vec<Gmn1ConstructCategory>,
+    /// How many quads the SAME classification pass found uncovered — cross-checked
+    /// against [`check_gmn1_roundtrip`]'s own failures by
+    /// [`tests::construct_coverage_agrees_with_the_roundtrip_gate_on_uncovered_count`].
+    pub uncovered_quad_count: usize,
+}
+
+impl Gmn1ConstructCoverageReport {
+    /// The gate passes when every codec construct category was exercised at least once.
+    #[must_use]
+    pub fn is_complete(&self) -> bool {
+        self.unexercised.is_empty()
+    }
 }
 
 /// Classify a codec-level [`Gmn1Error`] into the gate's own [`Gmn1FailureKind`] — the
@@ -276,6 +368,131 @@ mod tests {
              (so run.rs routes it through lang:GmnUncoveredTerm, not the generic \
              round-trip-mismatch code): {:#?}",
             report.failures
+        );
+    }
+
+    #[test]
+    fn construct_coverage_is_complete_over_the_real_grounding_slices() {
+        let root = repo_root();
+        let report =
+            check_gmn1_construct_coverage(&root).expect("audit runs without a hard I/O error");
+        assert!(
+            report.is_complete(),
+            "GMN-1 construct-coverage audit found {} the real grounding corpus \
+             never exercises — the 'total over grounding' claim is unproven for: {:#?}",
+            if report.unexercised.len() == 1 {
+                "a category"
+            } else {
+                "categories"
+            },
+            report.unexercised
+        );
+        assert_eq!(
+            report.uncovered_quad_count, 0,
+            "the construct-coverage audit's own classification pass must find zero \
+             uncovered quads over the real grounding corpus"
+        );
+    }
+
+    /// Cross-checks the two independently-computed GMN-1 audits agree: the round-trip
+    /// gate's own `Uncovered`-kind failure count and the construct-coverage audit's
+    /// `uncovered_quad_count` must both be zero over the real grounding corpus (both
+    /// call the SAME `gmn1_codec` dispatch, so a disagreement would itself be a bug).
+    #[test]
+    fn construct_coverage_agrees_with_the_roundtrip_gate_on_uncovered_count() {
+        let root = repo_root();
+        let roundtrip = check_gmn1_roundtrip(&root).expect("round-trip gate runs");
+        let coverage = check_gmn1_construct_coverage(&root).expect("coverage audit runs");
+        let roundtrip_uncovered = roundtrip
+            .failures
+            .iter()
+            .filter(|f| f.kind == Gmn1FailureKind::Uncovered)
+            .count();
+        assert_eq!(
+            roundtrip_uncovered, 0,
+            "sanity: the real grounding corpus has zero Uncovered round-trip failures"
+        );
+        assert_eq!(
+            coverage.uncovered_quad_count, 0,
+            "the construct-coverage audit must agree with the round-trip gate: zero \
+             uncovered quads over the real grounding corpus"
+        );
+    }
+
+    /// The construct-coverage audit's own negative teeth (proving this assertion is
+    /// falsifiable, not vacuously true). Starting from REAL grounding content — not
+    /// a fabricated fixture — this filters
+    /// OUT every quad that hits [`Gmn1ConstructCategory::LiteralDecimal`] (the real
+    /// corpus's rarest category: exactly one occurrence across all three grounding
+    /// slices' module.ttl + examples, per the audit's own tally) and proves the SAME
+    /// tally machinery [`check_gmn1_construct_coverage`] runs in production then flags
+    /// that category unexercised. This demonstrates the completeness assertion has real
+    /// teeth: removing a real grounding construct's only occurrence genuinely fails the
+    /// audit, exactly the failure mode Task 3 exists to catch (a construct present in
+    /// production content but never proven against by any test).
+    #[test]
+    fn construct_coverage_audit_is_falsifiable_when_a_real_category_is_removed() {
+        let root = repo_root();
+        let dict = load_lang_dictionary(&root).expect("dictionary loads");
+        let sources = collect_grounding_sources(&root).expect("collect sources");
+
+        let mut full_tally = ConstructCoverageTally::default();
+        let mut filtered_quads = Vec::new();
+        for source in &sources {
+            let bytes = std::fs::read(root.join(source)).expect("read source");
+            let ds = parse_dataset(&bytes, "text/turtle", None).expect("parse source");
+            let model = Gmn0Model::from_dataset(&ds);
+            full_tally.absorb(&model, &dict);
+            for q in &model.quads {
+                let hits_decimal = matches!(
+                    gmeow_lang_bridge::classify_quad(q, &dict),
+                    gmeow_lang_bridge::QuadCoverage::Covered {
+                        subject,
+                        predicate,
+                        object,
+                    } if subject == Gmn1ConstructCategory::LiteralDecimal
+                        || predicate == Gmn1ConstructCategory::LiteralDecimal
+                        || object == Gmn1ConstructCategory::LiteralDecimal
+                );
+                if !hits_decimal {
+                    filtered_quads.push(q.clone());
+                }
+            }
+        }
+
+        // Sanity: the real corpus DOES exercise LiteralDecimal — the negative control is
+        // only meaningful if the category it removes was genuinely present beforehand.
+        assert!(
+            full_tally.count(Gmn1ConstructCategory::LiteralDecimal) > 0,
+            "sanity: the real grounding corpus must exercise LiteralDecimal for this \
+             negative control to prove anything; the corpus changed — pick a different \
+             sparse category to filter"
+        );
+        assert!(
+            !filtered_quads.is_empty(),
+            "sanity: filtering must not remove the whole corpus"
+        );
+
+        let filtered_model = Gmn0Model {
+            quads: filtered_quads,
+        };
+        let mut filtered_tally = ConstructCoverageTally::default();
+        filtered_tally.absorb(&filtered_model, &dict);
+
+        assert_eq!(
+            filtered_tally.count(Gmn1ConstructCategory::LiteralDecimal),
+            0,
+            "filtering out every quad that hits LiteralDecimal must leave zero \
+             occurrences in the filtered corpus"
+        );
+        assert!(
+            filtered_tally
+                .unexercised_categories()
+                .contains(&Gmn1ConstructCategory::LiteralDecimal),
+            "the completeness audit must flag LiteralDecimal as unexercised once its \
+             only real occurrence is removed — proof the assertion is falsifiable, not a \
+             vacuous pass: {:#?}",
+            filtered_tally.unexercised_categories()
         );
     }
 
