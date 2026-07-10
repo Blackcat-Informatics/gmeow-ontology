@@ -24,6 +24,8 @@
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/> .
 @prefix exorg: <https://blackcatinformatics.ca/gmeow/examples/logic/org/> .
@@ -32,6 +34,8 @@
 
 ex:nearbyOrgs
     a logic:PathShape ;
+    rdfs:label "nearby organisations (≤2 hops, any predicate)"@en ;
+    skos:definition "A wildcard, namespace-scoped, bounded-depth path shape: every organisation within 2 hops of a start organisation, reachable by ANY predicate in the org vocabulary (logic:pathNamespaceScope bounds the fan-out to that one namespace). The predicate wildcard combined with a bounded {1,2} depth is exactly what SPARQL 1.1 §9 property paths cannot express, so its property-path projection carries a declared loss at the standard-SPARQL exit gate. Invoked by name with a depth parameter — :nearbyOrgs(?maxDepth := 2)."@en ;
     logic:pathWildcard true ;
     logic:pathNamespaceScope "https://blackcatinformatics.ca/gmeow/examples/logic/org/"^^xsd:anyURI ;
     logic:pathMinDepth 1 ;
@@ -56,6 +60,8 @@ ex:gamma   exorg:partnersWith ex:epsilon .
 
 ex:ancestorsTo3
     a logic:PathShape ;
+    rdfs:label "ancestors up to 3 generations (via parentOf)"@en ;
+    skos:definition "A named-predicate, bounded-depth path shape: the ancestors of a person up to 3 generations away, following ex:parentOf for {1,3} hops. Losslessly representable in GMEOW's EXTENDED SPARQL property-path algebra as a bounded range, and unrollable to standard SPARQL 1.1 §9 as ex:parentOf | ex:parentOf/ex:parentOf | ex:parentOf/ex:parentOf/ex:parentOf — the bounded {1,3} depth being the construct §9 lacks directly. Invoked by name with a depth parameter — :ancestorsTo3(?maxDepth := 3)."@en ;
     logic:pathStepPredicate ex:parentOf ;
     logic:pathMinDepth 1 ;
     logic:pathMaxDepth 3 ;

@@ -94,6 +94,11 @@ const GMEOW_FOLLOWS_GUIDE_PATH: &str = "https://blackcatinformatics.ca/gmeow/fol
 /// values under it are surfaced as the term's logic stereotypes.
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
+/// `logic:PathShape` — a named, parametric predicate-path traversal specification
+/// (design/LOGIC-PATHS.md). Its authored INSTANCES are first-class, reusable
+/// by-name terms, so a GMEOW-namespaced subject typed with it is a documented term
+/// (an [`DocTermCategory::Individual`]) whose projection-loss row joins its page.
+const LOGIC_PATH_SHAPE: &str = "https://blackcatinformatics.ca/logic/PathShape";
 /// `logic:preservationKind` — the preservation-polarity vocabulary object a
 /// worked authored-example loss row declares (e.g. `logic:SoundUnderApproximation`,
 /// `logic:ValidationOnly`).
@@ -1458,6 +1463,32 @@ impl DocsModel {
                 formalizes_edges.extend(extract_formalizes(&store));
             }
         }
+
+        // ── PathShape example terms (design/LOGIC-PATHS.md) ─────────────────
+        // A `logic:PathShape` is a first-class reusable by-name term, but its
+        // authored INSTANCES live in worked-example artifacts, not module.ttl, so
+        // the module-only scan above misses them. Lift them here — BEFORE the
+        // related-terms / profile-membership passes below — so an example
+        // PathShape term participates in those passes exactly like a module term
+        // (and its `property-path:<iri>` projection-loss row joins its page). This
+        // is a small independent parse of each Example artifact; the reuse loop
+        // further down re-parses for the DocExample / loss / worked-instance scans.
+        for record in catalog.records() {
+            let owner = &record.manifest.slice_iri;
+            for artifact in &record.artifacts {
+                if artifact.role != ArtifactRole::Example {
+                    continue;
+                }
+                let Ok(store) = parse_turtle_lenient(&artifact.content) else {
+                    continue;
+                };
+                terms.extend(extract_path_shape_terms(
+                    &store,
+                    owner,
+                    record.manifest.tier.as_ref(),
+                ));
+            }
+        }
         terms.sort_by(|a, b| a.iri.cmp(&b.iri));
 
         // Bidirectional related terms: if A lists B, ensure B lists A. The
@@ -2188,7 +2219,57 @@ fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> 
         }
     }
 
-    // Second pass: build a DocTerm per discovered subject.
+    build_doc_terms(store, categories, owner_slice, tier)
+}
+
+/// Lift every GMEOW-namespaced `a logic:PathShape` subject in an EXAMPLE store as a
+/// documented [`DocTermCategory::Individual`] term. A `logic:PathShape` is, by
+/// canonical design (`design/LOGIC-PATHS.md`), "a first-class, reusable, by-name
+/// term", but the only authored PathShape INSTANCES live in worked-example
+/// artifacts (e.g. `slices/grounding/logic/examples/predicate-paths.ttl`), never a
+/// `module.ttl` — so the module-only [`extract_terms`] scan never sees them and
+/// their `property-path:<iri>` projection-loss rows joined no term page
+/// (`TermLossDigest.by_term` was vacuous). This focused scan admits ONLY the
+/// `logic:PathShape` type: an example's demonstrative ABox (its
+/// `owl:NamedIndividual` / class instances) is NOT lifted — that stays example
+/// payload, not documented vocabulary. The full-IRI subject is what the ledger
+/// row's `property-path:<iri>` label strips to, so the resulting `DocTerm.iri` is
+/// byte-identical to the join key.
+fn extract_path_shape_terms(
+    store: &Store,
+    owner_slice: &str,
+    tier: Option<&SliceTier>,
+) -> Vec<DocTerm> {
+    let mut categories: BTreeMap<String, DocTermCategory> = BTreeMap::new();
+    for (subject, object) in store.pattern_subjects_objects(RDF_TYPE) {
+        let Some(subject) = subject.as_named() else {
+            continue;
+        };
+        if !subject.starts_with(GMEOW_NS) {
+            continue;
+        }
+        let Object::Named(type_node) = &object else {
+            continue;
+        };
+        if type_node.as_str() != LOGIC_PATH_SHAPE {
+            continue;
+        }
+        categories
+            .entry(subject.to_string())
+            .or_insert(DocTermCategory::Individual);
+    }
+    build_doc_terms(store, categories, owner_slice, tier)
+}
+
+/// Build one [`DocTerm`] per `(iri, category)` in `categories`, reading its label /
+/// definition / relations / lifecycle off `store`. Shared by the module-wide
+/// [`extract_terms`] scan and the example-only [`extract_path_shape_terms`] scan.
+fn build_doc_terms(
+    store: &Store,
+    categories: BTreeMap<String, DocTermCategory>,
+    owner_slice: &str,
+    tier: Option<&SliceTier>,
+) -> Vec<DocTerm> {
     let mut terms = Vec::new();
     for (iri, category) in categories {
         let label = first_literal(store, &iri, RDFS_LABEL);
@@ -3554,6 +3635,12 @@ fn category_for_type(type_iri: &str) -> Option<DocTermCategory> {
         }
         OWL_NAMED_INDIVIDUAL => Some(DocTermCategory::Individual),
         RDFS_DATATYPE => Some(DocTermCategory::Datatype),
+        // A `logic:PathShape` INSTANCE is an OWL individual (an instance of the
+        // `logic:PathShape` class), not a TBox class/property/datatype — so
+        // `Individual` is its definitionally-honest category. Its low
+        // `category_rank` (Individual = 1) is deliberate: a domain property that
+        // is ALSO grounded as a PathShape keeps its stronger `Property` category.
+        LOGIC_PATH_SHAPE => Some(DocTermCategory::Individual),
         _ => None,
     }
 }
@@ -3598,11 +3685,17 @@ fn named_objects(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
 }
 
 /// Compute the compact CURIE for an IRI: `gmeow:Local` for GMEOW-namespaced
-/// IRIs, otherwise the IRI unchanged.
+/// IRIs, otherwise the IRI unchanged. A GMEOW-nested example namespace (e.g.
+/// `https://blackcatinformatics.ca/gmeow/examples/logic/nearbyOrgs`) has a local
+/// part carrying `/` — an invalid Turtle PN_LOCAL — so it falls through to the
+/// full IRI rather than minting a broken `gmeow:examples/logic/nearbyOrgs` CURIE
+/// (the same invariant [`turtle_iri`] already enforces).
 fn to_curie(iri: &str) -> String {
     match iri.strip_prefix(GMEOW_NS) {
-        Some(local) => format!("gmeow:{local}"),
-        None => iri.to_string(),
+        Some(local) if !local.is_empty() && !local.contains(['/', '#']) => {
+            format!("gmeow:{local}")
+        }
+        _ => iri.to_string(),
     }
 }
 

@@ -288,6 +288,7 @@ pub(crate) fn emit_put(
                             "sparql-put",
                             &key,
                             b.ingest_residue.clone(),
+                            None,
                         ));
                     }
                 }

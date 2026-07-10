@@ -6,12 +6,12 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "13",
   "slice_count": 81,
-  "term_count": 2517,
+  "term_count": 2519,
   "dependency_edge_count": 1006,
   "term_count_by_category": {
     "Class": 747,
     "Datatype": 1,
-    "Individual": 32,
+    "Individual": 34,
     "Property": 1737
   },
   "slice_iris": [
@@ -329,13 +329,13 @@ expression: summary
       "gmeow:AccessibilityAssertion",
       "gmeow:Person",
       "gmeow:Place",
-      "gmeow:examples/accessibility/assertion",
-      "gmeow:examples/accessibility/dana",
-      "gmeow:examples/accessibility/library",
       "gmeow:facetStepFree",
       "gmeow:facetVisual",
       "gmeow:facetWheelchair",
-      "gmeow:polarityFeature"
+      "gmeow:polarityFeature",
+      "https://blackcatinformatics.ca/gmeow/examples/accessibility/assertion",
+      "https://blackcatinformatics.ca/gmeow/examples/accessibility/dana",
+      "https://blackcatinformatics.ca/gmeow/examples/accessibility/library"
     ]
   },
   "sample_concern": {
