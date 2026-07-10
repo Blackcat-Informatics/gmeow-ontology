@@ -494,6 +494,25 @@ mod tests {
             "snippets re-key card.md members to flattened terms/<slug>.md: {:?}",
             snippets.keys().take(3).collect::<Vec<_>>()
         );
+        // GAP G5 (issue 1404): pin the DESIGN INTENT that a snippet (== a term
+        // `card.md`, byte-for-byte — see `card_snippets`) carries NO provenance
+        // footer. `gmeow_docs::card::Card` (crates/docs/src/card.rs) has no
+        // provenance field at all: a card is a "compact, link-free, prompt-ready"
+        // block for context-window injection, deliberately distinct from the
+        // durable `terms/<slug>/index.md` page (which DOES append one — see
+        // `append_provenance_footer` in crates/docs/src/render.rs). This is an
+        // honest, by-design omission, not an unguarded gap — if a future change
+        // ever starts injecting a footer into cards it would silently double the
+        // per-term byte cost of every prompt-injected snippet, so a REGRESSION in
+        // the other direction reds here too.
+        for (path, bytes) in &snippets {
+            let text = String::from_utf8_lossy(bytes);
+            assert!(
+                !text.contains("**Provenance:**"),
+                "{path} unexpectedly carries a provenance footer; cards are \
+                 deliberately link-free/provenance-free by design (crates/docs/src/card.rs)"
+            );
+        }
     }
 
     #[test]
