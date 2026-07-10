@@ -350,6 +350,48 @@ impl ForwardOracle for NativeForwardOracle {
             )));
         }
 
+        // The oracle boundary carries only the closure vocabulary, so the
+        // native governor's completion frontier is discarded here.  The benchmark
+        // seam ([`crate::cost::run_native_forward`]) reaches the SAME evaluation
+        // through [`native_forward_with_frontier`] to keep the frontier's
+        // `consumed_steps` cost probe.
+        let (result, _frontier) = native_forward_with_frontier(facts, rules)?;
+        Ok(result)
+    }
+
+    fn provides_provenance(&self) -> bool {
+        true
+    }
+}
+
+/// Run the native stratified forward chase over `facts` under `rules` UNBUDGETED,
+/// returning BOTH the typed closure AND the governor's [`CompletionFrontier`].
+///
+/// This is the exact evaluation [`NativeForwardOracle::materialize`] performs — the
+/// [`ForwardOracle`] boundary just discards the frontier because its neutral
+/// closure vocabulary ([`TypedChaseResult`]) carries no governor state.  The
+/// deterministic-cost benchmark seam ([`crate::cost::run_native_forward`]) needs
+/// the frontier's `consumed_steps` (the committed-derivation count — a scalar
+/// projection of the cost semiring), so it calls THIS entry instead and reads both.
+///
+/// The binary named-ternary path reports the real governor frontier (`consumed_steps`
+/// = the semi-naive commit count); the arity-generic n-ary path is not governed
+/// through the frontier, so it reports the empty frontier
+/// ([`crate::query_ir::CompletionFrontier::empty`]) — the same "empty ⇒ no governor
+/// stats" convention [`crate::materialize::Materialization`] uses on its ungoverned
+/// routes.  Dispatch, IR lowering, and the WrongClosure guards are byte-identical to
+/// the production oracle path (this is the one body both entries share).
+///
+/// # Errors
+///
+/// Returns `Err` on a parse/lowering failure, a non-ternary EDB fact on the binary
+/// path, or a declared native gap (non-stratifiable / `Unsupported`) the chase must
+/// not approximate.
+pub(crate) fn native_forward_with_frontier(
+    facts: &crate::facts::TypedFactSet,
+    rules: &str,
+) -> gmeow_errors::Result<(TypedChaseResult, crate::query_ir::CompletionFrontier)> {
+    {
         // ── Dispatch: binary (named-ternary EL/DL) vs generic (n-ary RL/RDF, or
         //    an arity-3 program that carries a non-ternary HELPER relation) ──
         //
@@ -401,7 +443,11 @@ impl ForwardOracle for NativeForwardOracle {
             // run the arity-generic positive-Datalog least-fixpoint.  The binary core
             // below is left UNTOUCHED — EL/DL never reach this branch.
             let generic_rules = crate::physical::lower_program_generic_rules(&program)?;
-            return crate::physical::materialize_generic(facts, &generic_rules);
+            let result = crate::physical::materialize_generic(facts, &generic_rules)?;
+            // The arity-generic evaluator is not driven through the stratum governor,
+            // so it reports the empty frontier (no `consumed_steps` cost probe) — the
+            // same "empty ⇒ ungoverned" convention `Materialization` uses.
+            return Ok((result, crate::query_ir::CompletionFrontier::empty()));
         }
 
         // Reconstruct the world-indexed store the native chase materializes over
@@ -446,8 +492,15 @@ impl ForwardOracle for NativeForwardOracle {
             ));
         };
         let executable = stratified.plan().into_executable();
-        let rows = match crate::physical::materialize_native(&store, &executable, None)? {
-            crate::physical::NativeOutcome::Decided(budgeted) => budgeted.rows,
+        // Capture the governor's completion frontier alongside the rows: its
+        // `consumed_steps` is the committed-derivation count the benchmark seam reads
+        // as a scalar projection of the cost semiring.
+        let (rows, frontier) = match crate::physical::materialize_native(&store, &executable, None)?
+        {
+            crate::physical::NativeOutcome::Decided(budgeted) => {
+                let frontier = budgeted.frontier();
+                (budgeted.rows, frontier)
+            }
             // Any other declared native gap the forward executor might raise — never
             // approximate it into a fabricated closure.
             crate::physical::NativeOutcome::Unsupported(kind) => {
@@ -514,11 +567,7 @@ impl ForwardOracle for NativeForwardOracle {
             })
             .collect();
 
-        Ok(TypedChaseResult { rows: typed })
-    }
-
-    fn provides_provenance(&self) -> bool {
-        true
+        Ok((TypedChaseResult { rows: typed }, frontier))
     }
 }
 

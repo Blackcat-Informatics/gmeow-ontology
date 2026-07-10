@@ -19,6 +19,11 @@ pub mod conjecture;
 /// Executed lens-law discharge for a `logic:Correspondence`'s realized `LegPath` legs —
 /// the per-correspondence section-law verdict the (execution-free) correspondence gates read.
 pub mod correspondence_exec;
+/// Deterministic engine-benchmark seams ([`cost::run_native_forward`] /
+/// [`cost::run_nemo_forward`]) and the decomposable [`cost::CostVector`] — the
+/// scalar-projection carrier of the cost semiring (`LOGIC-PERFORMANCE.md
+/// §Measurement doctrine`) keyed by `(rule, predicate, stratum)`.
+pub mod cost;
 pub mod counterfactual;
 /// The DAG-workflow profile certifier (`logic:DagWorkflowResource`): the single
 /// shared acyclicity check the canonical process model and the build pipeline run.

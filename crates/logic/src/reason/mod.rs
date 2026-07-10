@@ -484,19 +484,42 @@ pub(crate) fn run_reasoning_with(
     rules: &str,
     oracle: &dyn ForwardOracle,
 ) -> gmeow_errors::Result<Vec<InferredAxiom>> {
-    // 1. Load the source into a fresh world-indexed store.
+    // 1-2. Build the typed EDB (the byte-identical fact set every engine sees).
+    let edb_facts = build_edb_facts(edb)?;
+
+    // 3. Run the typed chase through the CHOSEN forward oracle (the adapter renders
+    //    the fact lines internally).
+    let chase = oracle.materialize(&edb_facts, rules, &ForwardBudget::UNBOUNDED)?;
+
+    // 4. Coerce every ternary typed row into an InferredAxiom.
+    chase_rows_to_inferred(&chase)
+}
+
+/// Build the typed EDB ([`TypedFactSet`]) for `edb` — the single, engine-neutral
+/// fact-set construction the whole reasoning path shares.
+///
+/// Loads `edb` into a fresh [`WorldStore`], then pushes every IRI-object quad of
+/// every world into the typed EDB. The IRI-object filter is a SEMANTIC EL/DL
+/// restriction: the fixed calculi only fire on axioms whose object is an IRI
+/// (subClassOf, type, disjointWith, equivalentClass, subPropertyOf), so a
+/// literal-object quad (an annotation such as rdfs:comment / dc:creator) can never
+/// participate in any rule, and skipping them is sound for the closure AND the
+/// verdict. It is no longer a transport necessity: the typed adapter carries
+/// literal objects — control characters included — losslessly through the chase.
+///
+/// Factored out of [`run_reasoning_with`] so the benchmark seams
+/// ([`crate::cost::run_native_forward`] / [`crate::cost::run_nemo_forward`]) drive
+/// each engine over the EXACT same fact set the production reasoning path builds —
+/// byte-identical EDB across engines is what lets the cost/parity comparison isolate
+/// the engine and nothing else.
+///
+/// # Errors
+///
+/// Returns `Err` if the source store cannot be loaded.
+pub(crate) fn build_edb_facts(edb: &RdfDataset) -> gmeow_errors::Result<TypedFactSet> {
     let store = WorldStore::new();
     store.load_dataset(edb)?;
 
-    // 2. Push every IRI-object quad of every world into the typed EDB.
-    //    The IRI-object filter is a SEMANTIC EL/DL restriction: the fixed
-    //    calculi only fire on axioms whose object is an IRI (subClassOf, type,
-    //    disjointWith, equivalentClass, subPropertyOf), so a literal-object
-    //    quad (an annotation such as rdfs:comment / dc:creator) can never
-    //    participate in any rule, and skipping them is sound for the closure
-    //    AND the verdict. It is no longer a transport necessity: the typed
-    //    adapter carries literal objects — control characters included —
-    //    losslessly through the chase.
     let mut edb_facts = TypedFactSet::new();
     for world in store.worlds() {
         for quad in store.quads_for_pattern_in_world(&world, None, None, None) {
@@ -513,13 +536,7 @@ pub(crate) fn run_reasoning_with(
             edb_facts.push_quad(&quad.s, predicate, &quad.o, &world);
         }
     }
-
-    // 3. Run the typed chase through the CHOSEN forward oracle (the adapter renders
-    //    the fact lines internally).
-    let chase = oracle.materialize(&edb_facts, rules, &ForwardBudget::UNBOUNDED)?;
-
-    // 4. Coerce every ternary typed row into an InferredAxiom.
-    chase_rows_to_inferred(&chase)
+    Ok(edb_facts)
 }
 
 /// `rdfs:subClassOf` — the subsumption predicate the native↔Nemo differential compares.
