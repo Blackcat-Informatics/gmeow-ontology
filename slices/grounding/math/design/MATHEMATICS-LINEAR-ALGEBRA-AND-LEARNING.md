@@ -114,6 +114,33 @@ gradient machinery is the calculus charter's derivatives, and natural-gradient /
 geometry is the authored information-geometry material. Latent-space and dimension *semantics* are
 GMEOW-original — no external ontology exists.
 
+The *credence* a latent direction means something is itself first-class, and it has two sibling
+sources over the SAME `math:ResidualInterpretationClaim` surface. The status-quo signal is
+**similarity-derived** (`math:similarityDerivedCredence`): confidence read off embedding-space
+proximity — nearest-neighbour retrieval, cosine similarity, clustering density. Its topological sibling
+is **persistence-derived** (`math:persistenceDerivedCredence`): confidence read off how long the
+topological feature a direction realizes *survives* across a `math:Filtration` of the embedded image —
+the `math:PersistenceLifetime`'s death − birth
+([`MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](MATHEMATICS-ANALYSIS-AND-GEOMETRY.md)). The two are one axis,
+`math:CredenceDerivationKind`, minted with both members rather than a lone new individual, so which
+evidence a confidence rests on is queryable rather than implicit. A `math:StabilityCalibrationRecord`
+ties the persistence evidence (`math:calibrationEvidence`), the derivation kind
+(`math:credenceDerivationKind`), and the stability guarantee (`math:stabilityGuarantee`,
+`math:bottleneckStabilityTheorem`) to the produced confidence, which lands as `logic:confidence` on the
+held `math:ResidualInterpretationClaim` (never `logic:probability`, never `math:ProbabilityValue`). The
+claim references the record through `gmeow:wasDerivedFrom`, so a consumer can trace a confidence back to
+the filtration, the birth/death thresholds, and the bottleneck bound that calibrated it — the whole
+point of grounding the credence rather than emitting a bare number.
+
+> **Hard rule — a persistence-derived credence is warranted, not a heuristic.** A
+> `math:StabilityCalibrationRecord` must name its persistence evidence, its derivation kind, and the
+> stability theorem underwriting it, or it is ill-formed (`math:UngroundedStabilityCalibration`,
+> [`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md)); the filtration and the lifetime it rests
+> on must themselves be structurally complete (`math:UnderspecifiedFiltration`,
+> `math:UnderspecifiedPersistenceLifetime`). The stability theorem is why the calibration is sound: the
+> bottleneck bound guarantees that a small perturbation of the underlying function moves the persistence
+> — and hence the credence — by a bounded amount.
+
 ## An AI describing its own structure — the self-structure flagship
 
 Core classes: `math:TensorComputationGraph`, `math:NeuralLayer`, `math:WeightTensor`,

@@ -231,6 +231,21 @@ Three systems carry most of the load and should be treated as the spine of the r
   most.
 - **Prover libraries (mathlib / AFP / Rocq)** — R | Apache/BSD | active — full C^∞ manifolds/bundles as
   *proofs*, not RDF.
+- **Cohen-Steiner, Edelsbrunner & Harer (2007), "Stability of Persistence Diagrams"** — R |
+  Springer (subscription) | definitional — Discrete & Computational Geometry 37(1), 103–120; the proof
+  that the persistence-diagram map is 1-Lipschitz in the bottleneck distance. The external warrant for
+  `math:bottleneckStabilityTheorem` (`math:cohenSteinerEdelsbrunnerHarer2007`); referenced as
+  definitional authority, not projected.
+- **Edelsbrunner & Harer, *Computational Topology: An Introduction* (AMS, 2010)** — R | book | current —
+  the standard text for filtrations, persistence diagrams, and the stability line; the theory context
+  `math:computationalTopologyTheory` names.
+- **Persistent homology (Wikidata `wd:Q17099562`)** — L | CC0 | active — `math:Filtration` carries a
+  `skos:closeMatch` alignment to this item (the family a persistence computation runs over, related
+  to but not identical with the method the QID names — see
+  [`mappings/equivalences.ttl`](../mappings/equivalences.ttl)). No dedicated Wikidata item exists for
+  bottleneck distance specifically: the concept there is covered only by individual research-article
+  items, not a definitional entry, so `math:bottleneckStabilityTheorem` carries no Wikidata alignment
+  — its external warrant is the Cohen-Steiner–Edelsbrunner–Harer citation above instead.
 - **Dedicated topology/manifold/chart/Lorentzian-metric ontology** — **none exists → GMEOW authors it.**
 
 ## Cluster M — Linear algebra / decompositions / PCA (domain depth)
