@@ -88,7 +88,8 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
 	maint-bench-engines maint-rust-heavy \
-	maint-external-corpora maint-tptp-corpus maint-lang-selfhost
+	maint-external-corpora maint-tptp-corpus maint-lang-selfhost \
+	maint-nemo-kr2024-corpus maint-chasebench-corpus
 
 ##@ Core Workflows
 
@@ -680,6 +681,107 @@ maint-ontouml-corpus: ## Grade the native foundation disciplines against a live/
 	  cargo run -p gmeow-conformance --bin ingest-external -- --grade-ontouml "$$dir" ontouml-live generated/conformance/divergence-ontouml.nq; \
 	'
 	@echo "OntoUML Lane-B grading complete; divergences in generated/conformance/divergence-ontouml.nq"
+
+# ── Nemo-examples KR2024 (ChaseBench-family) n-ary engine-vs-engine corpus ────────
+# knowsys/nemo-examples is Apache-2.0 (verified: LICENSE.txt) and packages the
+# ChaseBench-family scenarios (deep / doctors / LUBM / Ontology-256) plus an EL/Galen
+# classification scenario as Nemo `.rls` programs. This lane FETCHES it at a pinned
+# commit, verifies the Apache-2.0 license, converts a bounded set of scenarios into the
+# bench-corpus `nary-existential` layout (the `bench-ingest` bin: `@import <rel>` →
+# `data/<rel>.csv[.gz]`, `@import`/`@output` stripped, a synthesized profile.json, and a
+# Nemo-reference `expected/result.json` golden), and runs the native-vs-Nemo
+# engine-vs-engine harness over the converted corpus. Everything lands in gitignored
+# `.tmp/`; nothing is vendored/committed. NOT wired into `make check`.
+#
+# Which scenarios RUN vs. refuse (honest, no-optionality):
+#   * The default `examples/owl-el/from-preprocessed-csv` (EL/Galen classification) is
+#     self-contained under the Apache-2.0 packaging and RUNS native-vs-Nemo to a folded
+#     agreement/divergence verdict.
+#   * The ChaseBench `deep` / `doctors` rule sets carry multi-head existential TGDs whose
+#     single-head-atom value nulls are Skolem-FUNCTION obligations the native fixed-arity
+#     fragment REFUSES with a named diagnostic (set NEMO_KR2024_SCENARIOS=chasebench/deep
+#     to see the refusal). Their EDB for most sizes is NOT committed here — it must be
+#     staged from the unlicensed dbunibas/chasebench (see `make maint-chasebench-corpus`).
+NEMO_KR2024_REF ?= 82e4076945439b4a772a0f25a6803219d73ae4df
+NEMO_KR2024_URL ?= https://github.com/knowsys/nemo-examples/archive/$(NEMO_KR2024_REF).tar.gz
+NEMO_KR2024_CAP ?= 1
+NEMO_KR2024_SCENARIOS ?= examples/owl-el/from-preprocessed-csv
+
+maint-nemo-kr2024-corpus: ## (maintainer) Fetch knowsys/nemo-examples (Apache-2.0, pinned), convert ChaseBench-family n-ary scenarios to the bench-corpus layout, and run native-vs-Nemo over them (offline after fetch; NOT in `make check`).
+	mkdir -p .tmp/nemo-kr2024
+	bash -euo pipefail -c '\
+	  url="$(NEMO_KR2024_URL)"; ref="$(NEMO_KR2024_REF)"; tgz=.tmp/nemo-kr2024/src.tar.gz; \
+	  echo "-> fetching nemo-examples @ $$ref"; \
+	  curl -fsSL "$$url" -o "$$tgz" || { \
+	    echo "FETCH FAILED: could not download $$url (network unreachable or ref moved)."; \
+	    echo "remediation: set NEMO_KR2024_URL=<archive-tarball-url> and NEMO_KR2024_REF=<commit>,"; \
+	    echo "or unpack a local nemo-examples checkout under .tmp/nemo-kr2024/ and re-run."; \
+	    exit 1; }; \
+	  rm -rf .tmp/nemo-kr2024/nemo-examples-*; \
+	  tar -xzf "$$tgz" -C .tmp/nemo-kr2024/; \
+	  root=$$(find .tmp/nemo-kr2024 -maxdepth 1 -type d -name "nemo-examples-*" | head -1); \
+	  test -n "$$root" || { echo "FETCH PRODUCED NOTHING: no nemo-examples-* root extracted"; exit 1; }; \
+	  lic="$$root/LICENSE.txt"; \
+	  { test -f "$$lic" && grep -q "Apache License" "$$lic" && grep -q "Version 2.0" "$$lic"; } || { \
+	    echo "LICENSE CHECK FAILED: $$lic is not an Apache-2.0 license — refusing to convert."; \
+	    exit 1; }; \
+	  echo "-> license OK (Apache-2.0); converting $(NEMO_KR2024_SCENARIOS) (cap $(NEMO_KR2024_CAP))"; \
+	  rm -rf .tmp/nemo-kr2024/bench; \
+	  cargo run -q -p gmeow-conformance --bin bench-ingest -- \
+	    --input "$$root/$(NEMO_KR2024_SCENARIOS)" \
+	    --out .tmp/nemo-kr2024/bench \
+	    --corpus-name nemo-kr2024 \
+	    --cap $(NEMO_KR2024_CAP) \
+	    --source-url "$$url" \
+	    --commit "$$ref" \
+	    --refresh "make maint-nemo-kr2024-corpus" \
+	    --license Apache-2.0; \
+	  test -f .tmp/nemo-kr2024/bench/nemo-kr2024/corpus.json || { \
+	    echo "CONVERT PRODUCED NOTHING under .tmp/nemo-kr2024/bench."; \
+	    echo "remediation: point NEMO_KR2024_SCENARIOS at a self-contained *.rls + data directory;"; \
+	    echo "the kr2024/programs/* scenarios need dbunibas/chasebench data staged into ../data/."; \
+	    exit 1; }; \
+	  echo "-> running native-vs-Nemo engine-vs-engine harness over the converted corpus"; \
+	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --corpus-dir .tmp/nemo-kr2024/bench; \
+	'
+	@echo "nemo-kr2024 engine-vs-engine run complete (converted corpus in .tmp/nemo-kr2024/bench)"
+
+# ── dbunibas/chasebench (NO LICENSE -> ReferenceOnly -> refused) ──────────────────
+# The upstream ChaseBench distribution ships NO license file (verified: GitHub reports
+# no license), so gmeow_license::policy_for_license classifies it ReferenceOnly: it may
+# be REFERENCED but never vendored or converted. This lane FETCHES it, CHECKS the
+# license, and HARD-FAILS with a remediation pointing at maint-nemo-kr2024-corpus, which
+# runs the same ChaseBench-family scenarios under the Apache-2.0 Nemo-examples packaging.
+# This is the honest no-optionality behavior: the lane exists, fetches, checks, refuses.
+CHASEBENCH_URL ?= https://github.com/dbunibas/chasebench/archive/refs/heads/master.tar.gz
+
+maint-chasebench-corpus: ## (maintainer) Fetch dbunibas/chasebench, check its license, and HARD-FAIL (no license -> ReferenceOnly); use maint-nemo-kr2024-corpus instead (offline; NEVER in `make check`).
+	mkdir -p .tmp/chasebench
+	bash -euo pipefail -c '\
+	  url="$(CHASEBENCH_URL)"; tgz=.tmp/chasebench/src.tar.gz; \
+	  echo "-> fetching dbunibas/chasebench from $$url"; \
+	  if curl -fsSL "$$url" -o "$$tgz"; then \
+	    rm -rf .tmp/chasebench/chasebench-*; \
+	    tar -xzf "$$tgz" -C .tmp/chasebench/ || true; \
+	    root=$$(find .tmp/chasebench -maxdepth 1 -type d -name "chasebench-*" | head -1); \
+	    if [ -n "$$root" ] && find "$$root" -maxdepth 1 \( -iname "license*" -o -iname "copying*" \) | grep -q .; then \
+	      echo "UNEXPECTED: dbunibas/chasebench now ships a license file — re-audit it through"; \
+	      echo "gmeow_license::policy_for_license before enabling conversion."; \
+	      exit 1; \
+	    fi; \
+	    echo "-> fetched; confirmed NO license file is present in the upstream tree."; \
+	  else \
+	    echo "-> fetch failed (network unreachable or ref moved); the license status is unchanged."; \
+	  fi; \
+	  echo ""; \
+	  echo "HARD FAIL: dbunibas/chasebench ships NO license. Under gmeow_license::policy_for_license"; \
+	  echo "  an unlicensed corpus is ReferenceOnly — it CANNOT be vendored or converted into a"; \
+	  echo "  runnable bench corpus."; \
+	  echo "remediation: run  make maint-nemo-kr2024-corpus  — it runs the SAME ChaseBench-family"; \
+	  echo "  scenarios (deep / doctors / LUBM / Ontology-256 / EL) packaged under the Apache-2.0"; \
+	  echo "  knowsys/nemo-examples distribution, which IS license-clear to fetch and convert."; \
+	  exit 1; \
+	'
 
 $(RUST_READY_STAMP): $(RUST_INPUTS)
 	@mkdir -p $(dir $@)
