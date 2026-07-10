@@ -14,3 +14,8 @@ expression: "to_markdown(&model, &Page::RecipeIndex)"
 | [Model Graph\-RAG Dataset Lineage](graph-rag-dataset-lineage/index.md) | Connect sources, chunks, extracted entities, evidence spans, and pipeline provenance so retrieval artifacts remain auditable\. |
 | [Describe Offline GTS Distribution](offline-gts-distribution/index.md) | Treat a GTS file as a first\-class graph object with segments, profiles, chain heads, opaque frames, codecs, and compaction lineage\. |
 | [Model Person Names Without a Preferred\-Name Slot](person-names-and-display/index.md) | Represent coexisting names, pronouns, aliases, usage contexts, and display suppression without asserting one global winner\. |
+
+---
+
+**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic`
+Rendered from `gmeow.gts` by the dogfooded build pipeline.

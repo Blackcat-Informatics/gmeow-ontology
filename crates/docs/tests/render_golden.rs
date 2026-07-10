@@ -66,8 +66,11 @@ fn fully_populated_term_slug(model: &DocsModel) -> String {
 
 /// A deterministic term that exercises the relational surfaces: the term
 /// (by stable curie/iri sort) carrying the MOST of {logic stereotype, SHACL
-/// constraint, related term, competency back-ref, example cross-link, box role}.
-/// Locks a byte-golden that actually renders the new term-page sections.
+/// constraint, related term, competency back-ref, example cross-link, box role,
+/// conformance fixture back-ref, pipeline-stage identity}. Locks a byte-golden
+/// that actually renders the new term-page sections — the conformance Do/Don't
+/// pairs and the enriched pipeline-stage surface (issue 1404) join here so the
+/// richest term reaches those renderers too, not just the pre-1404 sections.
 fn richest_surface_term_slug(model: &DocsModel) -> String {
     let surface_count = |t: &gmeow_docs::DocTerm| -> usize {
         let has_constraint = model.shapes.iter().any(|s| s.target_term == t.iri);
@@ -79,12 +82,26 @@ fn richest_surface_term_slug(model: &DocsModel) -> String {
             .examples
             .iter()
             .any(|e| e.terms_referenced.iter().any(|c| c == &t.curie));
+        // The conformance Do/Don't fixtures reference a term by CURIE (issue 1404);
+        // a term with fixtures reaches the "Conformance examples" renderer.
+        let has_fixture = model
+            .fixtures
+            .iter()
+            .any(|f| f.terms_referenced.iter().any(|c| c == &t.curie));
+        // A `gmeow:PipelineStage` term reaches the enriched stage-page surface
+        // (consumes/consumed-by tables, flowing graphs); its IRI is a stage IRI.
+        let is_pipeline_stage = model
+            .pipeline
+            .as_ref()
+            .is_some_and(|p| p.stages.iter().any(|s| s.iri == t.iri));
         usize::from(!t.logic_stereotypes.is_empty())
             + usize::from(!t.related_terms.is_empty())
             + usize::from(t.box_role.is_some())
             + usize::from(has_constraint)
             + usize::from(has_competency)
             + usize::from(has_example)
+            + usize::from(has_fixture)
+            + usize::from(is_pipeline_stage)
     };
     let mut terms: Vec<&gmeow_docs::DocTerm> = model.terms.iter().collect();
     terms.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));

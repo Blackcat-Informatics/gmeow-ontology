@@ -1,0 +1,34 @@
+---
+source: crates/docs/tests/enrichment_golden.rs
+expression: head
+---
+# Competency questions
+
+**138** competency question(s) — declarative SPARQL questions the ontology must answer, each pinning an expected result over the asserted merged ontology (or its RDFS/native-reasoned closure, when the question opts in).
+
+## GMEOW Affect Module
+
+### cqCompositeDecomposition
+
+- A named emotion is modeled UP, not minted: schadenfreude decomposes into a positive core\-affect vector over another agent's misfortune with an other\-directed agency structure\. The query projects the per\-axis readings that decompose the composite — answering 'is this schadenfreude a positive vector over another's misfortune?' directly from the data \(positive valence AND other\-directed negative agency\)\. (`slices/core/affect/queries/competency/composite-decomposition.rq`)
+- **Terms used:** `gmeow:dimensionAgency`, `gmeow:dimensionValence`
+- **Expected rows:** 2 row(s)
+
+**Query:**
+
+```sparql
+# Competency question 9: "Which axis-vector and relations decompose a given named
+# emotion — is this 'schadenfreude' a positive vector over another's misfortune?"
+# The composite's declared constituents are its core-affect vector cells (valence,
+# arousal) plus its differentiating appraisal relations (agency other-directed,
+# norm deserved). Modeling up, not minting: the decomposing axes are queryable.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT DISTINCT ?dimension WHERE {
+    gmeow:schadenfreudeComposite gmeow:affectiveConstituent ?constituent .
+    {
+        ?constituent gmeow:appraisalDimension ?dimension .
+    }
+    UNION
+    {

@@ -1,0 +1,9 @@
+---
+source: crates/docs/tests/enrichment_golden.rs
+expression: "section(&md, \"Inferred facts\")"
+---
+## Inferred facts
+
+- **logic:SubClassTransitivity** ⟹ `gmeow:AboutnessMode rdfs:subClassOf gmeow:Entity`
+  - via `gmeow:AboutnessMode rdfs:subClassOf gmeow:Continuant`
+  - via `gmeow:Continuant rdfs:subClassOf gmeow:Entity`

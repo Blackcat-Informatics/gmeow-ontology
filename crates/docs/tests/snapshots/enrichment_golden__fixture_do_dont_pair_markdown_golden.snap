@@ -1,0 +1,12 @@
+---
+source: crates/docs/tests/enrichment_golden.rs
+expression: "section(&md, \"Conformance examples\")"
+---
+## Conformance examples
+
+- **Do:** `tests/conformance-fixtures/gmn-envelope-complete.ttl`
+  - A gmeow:GmnEnvelope carrying all eight contract fields — the three dialect coordinates, the boundary ring, gmeow:accordingTo, gmeow:wasGeneratedBy, gmeow:contentDigest, and a logic:Correspondence losslessness judgment — satisfies lang:GmnEnvelopeContractShape and validates with no findings\.
+- **Don't:** `tests/counter-examples/gmn-envelope-missing-field.ttl`
+  - **Violation code:** `shacl.MinCountConstraintComponent`
+  - The gmeow:GmnEnvelope omits exactly one of its eight contract fields — the gmeow:gmnSecurityRing boundary ring \(sh:minCount 1 on lang:GmnEnvelopeContractShape\) — so validation MUST emit shacl\.MinCountConstraintComponent and NO other finding \(lang:GmnMissingEnvelopeField\); the other seven fields are present\.
+- See the [conformance fixtures index](../../fixtures/index.md).

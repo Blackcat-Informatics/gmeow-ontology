@@ -26,3 +26,8 @@ Projection\-time withholding, coarsening, sensitivity, and display control\.
 - [GMEOW Names Module](../../slices/names/index.md)
 - [GMEOW Standpoint Module](../../slices/standpoint/index.md)
 - [GMEOW Temporal — intervals, instants, temporal frames, time\-scoped relations](../../slices/temporal/index.md)
+
+---
+
+**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic`
+Rendered from `gmeow.gts` by the dogfooded build pipeline.

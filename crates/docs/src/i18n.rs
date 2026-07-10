@@ -1025,9 +1025,9 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 145 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 154 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 205);
+        assert_eq!(UI_TEMPLATES.len(), 214);
     }
 
     #[test]
