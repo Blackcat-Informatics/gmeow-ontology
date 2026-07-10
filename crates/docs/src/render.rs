@@ -2011,8 +2011,10 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
     // rendered for a source-only model, so no satisfiability claim is fabricated.
     if let Some(verdict) = &model.reasoning {
         heading(&mut out, 2, model.ui("body_reasoning_status"));
+        let unsatisfiable =
+            term.category == DocTermCategory::Class && verdict.unsatisfiable.contains(&term.iri);
         let status = if term.category == DocTermCategory::Class {
-            if verdict.unsatisfiable.contains(&term.iri) {
+            if unsatisfiable {
                 model.ui("body_reasoning_unsatisfiable")
             } else {
                 model.ui("body_reasoning_satisfiable")
@@ -2021,6 +2023,69 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
             model.ui("body_reasoning_not_evaluated")
         };
         push_line(&mut out, &format!("- {status}"));
+        // ── Unsatisfiable because (B3): the derivation chain(s) proving this
+        // class necessarily empty, read off the SAME per-term entailment panel
+        // "Inferred facts" reads below — never a second join. A term the
+        // reasoner proved unsatisfiable but whose witnessing derivation is not
+        // (yet) attached renders no extra lines here, rather than a fabricated
+        // "because" claim.
+        if unsatisfiable {
+            let because: Vec<&crate::exec::Entailment> = exec
+                .term_entailments
+                .get(&term.iri)
+                .map(|entries| {
+                    entries
+                        .iter()
+                        .filter(|e| is_unsatisfiable_conclusion(&e.conclusion))
+                        .collect()
+                })
+                .unwrap_or_default();
+            if !because.is_empty() {
+                push_line(
+                    &mut out,
+                    &format!(
+                        "- **{}:**",
+                        model.ui("body_reasoning_unsatisfiable_because")
+                    ),
+                );
+                for entailment in because {
+                    push_line(
+                        &mut out,
+                        &format!(
+                            "  - `{}` (via `{}`)",
+                            code_escape(&entailment.conclusion),
+                            code_escape(&entailment.rule)
+                        ),
+                    );
+                }
+            }
+        }
+        blank(&mut out);
+    }
+
+    // ── Inferred facts (present only when the pipeline attached B3 entailment data
+    // AND this term has a matching derivation) ─────────────────────────────────
+    // The reasoner-derived "why" panel: for a documented term appearing in the
+    // subject/predicate/object position of a materialized derivation's conclusion
+    // or premises, list the firing rule, the concluded axiom, and its premises.
+    // `exec.term_entailments` is empty in a model-only render (the genuine
+    // `ExecutableDocsData` layering seam — see `exec.rs`), so the panel is simply
+    // absent there, never a fabricated "no entailments" claim.
+    if let Some(entailments) = exec.term_entailments.get(&term.iri) {
+        heading(&mut out, 2, model.ui("body_term_entailments"));
+        for entailment in entailments {
+            push_line(
+                &mut out,
+                &format!(
+                    "- **{}** ⟹ `{}`",
+                    code_escape(&entailment.rule),
+                    code_escape(&entailment.conclusion)
+                ),
+            );
+            for premise in &entailment.premises {
+                push_line(&mut out, &format!("  - via `{}`", code_escape(premise)));
+            }
+        }
         blank(&mut out);
     }
 
@@ -4749,6 +4814,14 @@ fn code_escape(text: &str) -> String {
     out
 }
 
+/// Whether a B3 entailment's display-form conclusion (`s p o`, CURIE-compacted) is a
+/// class-unsatisfiability witness — `<class> rdfs:subClassOf owl:Nothing` — the same
+/// signal [`crate::model::ReasoningVerdict::unsatisfiable`] keys on, so the
+/// "unsatisfiable because" derivation lines never surface an unrelated entailment.
+fn is_unsatisfiable_conclusion(conclusion: &str) -> bool {
+    conclusion.contains(" rdfs:subClassOf ") && conclusion.ends_with(" owl:Nothing")
+}
+
 /// Escape model-derived text for safe Markdown emission: backslash-escape the
 /// inline metacharacters that would otherwise be interpreted, and replace `|`
 /// (table-cell delimiter) and newlines so cell content cannot break the grid.
@@ -5528,6 +5601,7 @@ mod tests {
             example_inferences,
             cross_example: vec!["ex:shared gmeow:derived ex:x".to_string()],
             playground_trig: b"@prefix ex: <https://e/> . ex:a ex:b ex:c .\n".to_vec(),
+            ..Default::default()
         };
 
         let site = render_site_lang_exec(&model, "english", &exec);
