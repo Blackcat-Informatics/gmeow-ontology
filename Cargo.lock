@@ -2294,8 +2294,10 @@ dependencies = [
  "blake3",
  "chrono",
  "criterion",
+ "foldhash 0.1.5",
  "gmeow-errors",
  "gmeow-logic-compile",
+ "hashbrown 0.15.5",
  "insta",
  "nemo",
  "petgraph",
@@ -2306,6 +2308,7 @@ dependencies = [
  "serde_json",
  "sha1",
  "sha2",
+ "smallvec",
  "tokio",
 ]
 
