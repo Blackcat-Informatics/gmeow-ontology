@@ -39,21 +39,6 @@ fn repo_root() -> PathBuf {
         .unwrap_or_else(|e| panic!("canonicalize repo root {}: {e}", path.display()))
 }
 
-/// A fresh, unique, empty scratch directory under the system temp dir.
-fn scratch(tag: &str) -> PathBuf {
-    let mut dir = std::env::temp_dir();
-    dir.push(format!(
-        "gmeow-cli-bundle-smoke-{tag}-{}-{}",
-        std::process::id(),
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
-    ));
-    std::fs::create_dir_all(&dir).expect("create scratch dir");
-    dir
-}
-
 /// The built `gmeow` binary, as an `assert_cmd::Command`.
 fn gmeow() -> Command {
     Command::cargo_bin("gmeow").expect("gmeow binary builds")
@@ -264,20 +249,27 @@ fn minimal_signed_gts_bytes(signing_key: &SigningKey, kid: &str) -> Vec<u8> {
 }
 
 /// A signed bundle + its signer's armored public key, written to fresh scratch
-/// files: `(bundle_path, signer_armor_path)`.
-fn write_signed_bundle_and_key(tag: &str, seed: u8) -> (PathBuf, PathBuf, String) {
+/// files inside a freshly-created `TempDir`: `(scratch_dir, bundle_path,
+/// signer_armor_path, armor)`. The caller must hold the returned `TempDir`
+/// alive for as long as the paths are needed — its `Drop` impl removes the
+/// directory (and everything under it) on ANY exit path, including a panic,
+/// with no manual cleanup required.
+fn write_signed_bundle_and_key(
+    _tag: &str,
+    seed: u8,
+) -> (tempfile::TempDir, PathBuf, PathBuf, String) {
     let signer = deterministic_signing_key(seed);
     let armor = ed25519_public_key_armor(&signer.verifying_key().to_bytes());
     let transport =
         purrdf::gts::openpgp::parse_transport_key(&armor).expect("test armor must parse");
     let bundle_bytes = minimal_signed_gts_bytes(&signer, &transport.fingerprint);
 
-    let dir = scratch(tag);
-    let bundle_path = dir.join("signed.gts");
-    let armor_path = dir.join("key.asc");
+    let dir = tempfile::TempDir::new().expect("create temp dir");
+    let bundle_path = dir.path().join("signed.gts");
+    let armor_path = dir.path().join("key.asc");
     std::fs::write(&bundle_path, &bundle_bytes).expect("write signed bundle");
     std::fs::write(&armor_path, &armor).expect("write armored key");
-    (bundle_path, armor_path, armor)
+    (dir, bundle_path, armor_path, armor)
 }
 
 /// Positive case: `gmeow verify --trusted-key <armor>` against a bundle signed
@@ -286,7 +278,8 @@ fn write_signed_bundle_and_key(tag: &str, seed: u8) -> (PathBuf, PathBuf, String
 /// point, not merely a liveness check.
 #[test]
 fn verify_accepts_a_validly_signed_trusted_bundle() {
-    let (bundle_path, armor_path, _armor) = write_signed_bundle_and_key("positive", 11);
+    let (_scratch_dir, bundle_path, armor_path, _armor) =
+        write_signed_bundle_and_key("positive", 11);
 
     let output = gmeow()
         .args(["verify", "--trusted-key"])
@@ -309,8 +302,6 @@ fn verify_accepts_a_validly_signed_trusted_bundle() {
         stderr.contains("resolved transport key"),
         "the resolved-key finding must be surfaced: {stderr}"
     );
-
-    std::fs::remove_dir_all(bundle_path.parent().unwrap()).ok();
 }
 
 /// Negative case: the SAME signed bundle verified against a DIFFERENT ephemeral
@@ -318,8 +309,9 @@ fn verify_accepts_a_validly_signed_trusted_bundle() {
 /// discriminates a wrong trusted key, not merely always-passes.
 #[test]
 fn verify_rejects_the_same_bundle_under_a_different_trusted_key() {
-    let (bundle_path, _armor_path, _armor) = write_signed_bundle_and_key("negative-signed", 11);
-    let (_other_bundle, wrong_armor_path, _wrong_armor) =
+    let (_scratch_dir, bundle_path, _armor_path, _armor) =
+        write_signed_bundle_and_key("negative-signed", 11);
+    let (_wrong_scratch_dir, _other_bundle, wrong_armor_path, _wrong_armor) =
         write_signed_bundle_and_key("negative-wrong-key", 99);
 
     let output = gmeow()
@@ -335,9 +327,6 @@ fn verify_rejects_the_same_bundle_under_a_different_trusted_key() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-
-    std::fs::remove_dir_all(bundle_path.parent().unwrap()).ok();
-    std::fs::remove_dir_all(wrong_armor_path.parent().unwrap()).ok();
 }
 
 // ── 4. Embedded == committed (load-liveness closure) ─────────────────────────
