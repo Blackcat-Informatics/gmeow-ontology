@@ -192,58 +192,53 @@ pub fn verify(
         Err(code) => return code,
     };
 
-    // 1. Signature check via the external `gts` binary (never gpg directly).
-    let exe = match crate::passthrough::resolve_gts_binary() {
-        Some(exe) => exe,
-        None => {
-            return fail(
-                reporter,
-                "gmeow-cli.verify.gts-missing",
-                crate::passthrough::GTS_INSTALL_HINT,
-            );
-        }
+    // 1. Signature/trust check via the native `purrdf::gts::verify` primitive,
+    // in-process — no external `gts` binary, no PATH/`GMEOW_GTS_BIN` lookup, no
+    // temp-file staging (the wrapper takes the bundle bytes directly).
+    let config = gmeow_validate::validate_all::SignatureConfig {
+        require_signatures: !allow_unsigned,
+        trusted_key: trusted_key.map(|p| p.to_string_lossy().into_owned()),
+        ..Default::default()
     };
-    // The bundle is embedded; write it to a temp file when verifying the default.
-    let mut tmp: Option<tempfile_path::Temp> = None;
-    let target: std::path::PathBuf = match file {
-        Some(path) => path.to_path_buf(),
-        None => match tempfile_path::Temp::write(&bytes) {
-            Ok(t) => {
-                let p = t.path().to_path_buf();
-                tmp = Some(t);
-                p
-            }
+    let (sig_findings, sig_hard_fail) =
+        match gmeow_validate::signature::verify_gts_bundle(&bytes, &config) {
+            Ok(pair) => pair,
             Err(e) => {
                 return fail(
                     reporter,
-                    "gmeow-cli.verify.stage-bundle",
-                    format!("cannot stage bundled snapshot: {e}"),
+                    "gmeow-cli.verify.signature",
+                    format!("signature verification failed: {e}"),
                 );
             }
-        },
-    };
-    let mut cmd = std::process::Command::new(&exe);
-    cmd.arg("verify").arg(&target);
-    if let Some(key) = trusted_key {
-        cmd.arg("--trusted-key").arg(key);
+        };
+    let sig_ok = !sig_hard_fail;
+    // Surface every signature/trust finding (resolved key/fingerprint, missing
+    // signature, untrusted signer, …) through the shared reporter channel instead
+    // of silently dropping them behind a boolean.
+    let mut sig_report = gmeow_errors::Report::new("gmeow-cli.verify");
+    for finding in sig_findings {
+        sig_report.add_finding(finding);
     }
-    if allow_unsigned {
-        cmd.arg("--allow-unsigned");
-    }
-    let status = match cmd.status() {
-        Ok(s) => s,
+    reporter.report(&sig_report);
+
+    // 2. Blob-DAG integrity over the folded snapshot (the reusable law from
+    // `Bundle::integrity_report`): no dangling content-addressed reference, no
+    // orphan blob, no hash-integrity mismatch.
+    let integrity_report = match gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(&bytes)
+        .and_then(|bundle| bundle.integrity_report())
+    {
+        Ok(report) => report,
         Err(e) => {
             return fail(
                 reporter,
-                "gmeow-cli.verify.gts-spawn",
-                format!("failed to run gts: {e}"),
+                "gmeow-cli.verify.integrity",
+                format!("blob integrity check failed: {e}"),
             );
         }
     };
-    drop(tmp);
-    let sig_ok = status.success();
+    let integrity_ok = integrity_report.is_clean();
 
-    // 2. Source-free ontology checks over the folded snapshot.
+    // 3. Source-free ontology checks over the folded snapshot.
     let checks = match gmeow_pipeline::cli_ops::confirmations::bundle_term_summaries(&bytes) {
         Ok(terms) => terms,
         Err(e) => {
@@ -281,7 +276,8 @@ pub fn verify(
         missing_def == 0,
         format!("{missing_def} missing"),
     );
-    row("signatures", sig_ok, "gts verify".to_owned());
+    row("signatures", sig_ok, "native gts verify".to_owned());
+    row("blob integrity", integrity_ok, integrity_report.summary());
 
     if !ok {
         return fail(reporter, "gmeow-cli.verify.failed", "verification failed");
@@ -1099,6 +1095,7 @@ pub fn transpile(
         let report = match gmeow_pipeline::cli_ops::okf_import::transpile_okf(
             source,
             &maximal_inputs,
+            &tag_map,
             None,
             None,
         ) {
@@ -2046,46 +2043,5 @@ mod explain_tests {
             0,
             "an unknown target exits non-zero"
         );
-    }
-}
-
-/// A tiny scoped temp file: writes bytes to a uniquely named file under the
-/// system temp dir and removes it on drop. Used to stage the embedded bundle for
-/// the external `gts` binary, which expects a filesystem path.
-mod tempfile_path {
-    use std::path::{Path, PathBuf};
-
-    /// A temp file removed on drop.
-    pub struct Temp {
-        path: PathBuf,
-    }
-
-    impl Temp {
-        /// Write `bytes` to a fresh temp file and return its handle.
-        pub fn write(bytes: &[u8]) -> std::io::Result<Self> {
-            let mut path = std::env::temp_dir();
-            let unique = format!(
-                "gmeow-{}-{}.gts",
-                std::process::id(),
-                std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .map(|d| d.as_nanos())
-                    .unwrap_or(0)
-            );
-            path.push(unique);
-            std::fs::write(&path, bytes)?;
-            Ok(Self { path })
-        }
-
-        /// The staged file's path.
-        pub fn path(&self) -> &Path {
-            &self.path
-        }
-    }
-
-    impl Drop for Temp {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_file(&self.path);
-        }
     }
 }
