@@ -139,6 +139,32 @@
 #     reject/parity coverage on-gate in the same binaries, the serializations are
 #     drift-gated via `make check-generated`, and all three stay on-gate on
 #     `maint-heavy`.
+#   - gmeow-cli self_sufficiency::transpile_wheel_mode_equals_repo_mode +
+#     self_sufficiency::transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak +
+#     self_sufficiency::project_wheel_mode_equals_repo_mode:
+#     31-53 s locally (#1458). Each drives `gmeow transpile`/`gmeow project`
+#     over the WHOLE embedded bundle — `transpile`'s parity test runs it TWICE
+#     (blinded-cwd leg + repo-cwd leg), and the leak/fan-out test folds the full
+#     multi-vocab MAXIMAL(G) output — the same whole-committed-bundle class as
+#     the `build_writes_serializations` / `export_respects_language_selector` /
+#     `project_schema_org_view_filter` trio above, irreducibly O(bundle size).
+#     Coverage stays: the SAME wheel-mode==repo-mode parity law stays on-gate at
+#     fixture scale via `self_sufficiency::describe_wheel_mode_equals_repo_mode`
+#     and `::validate_wheel_mode_equals_repo_mode` (cheap subcommands that don't
+#     write bundle-scale output), and all three heavier tests stay on-gate on
+#     `maint-heavy`.
+#   - gmeow-pipeline release_verify_roundtrip binary:
+#     ~75 s per test locally. `fold_release_bundle`/`verify_release_bundle` each
+#     replay the WHOLE committed ~48 MB `generated/dist/gmeow.gts` (#1458) — the
+#     identical "whole committed bundle" cost class as `fold_parity`/
+#     `fanout_parity`/`end_to_end` above, irreducibly O(bundle size). Coverage
+#     stays: the real crypto-through-the-built-binary requirement (accept a
+#     valid signature, reject an invalid one) runs on-gate via
+#     `crates/gmeow-cli/tests/bundle_smoke.rs`, which builds a small in-process
+#     signed `.gts` rather than replaying the shipped bundle; `release.rs`'s own
+#     unit tests cover the fold/verify pair's logic against a tiny synthetic
+#     snapshot; and the full committed-bundle round-trip stays on-gate on
+#     `maint-heavy`.
 #   - gmeow-pipeline quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate:
 #     86.2 s. It builds the full self-description carrier, which scores every one of
 #     the ~81 slices via `slice_quality::score_slice` to attach the
@@ -168,6 +194,8 @@ default-filter = '''
     | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter) | test(project_unknown_view_fails) | test(describe_env_language_rejected_if_unknown)))
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(rendered_tree_is_disk_faithful))
     | (package(gmeow-pipeline) & test(/quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate/))
+    | (package(gmeow-pipeline) & binary(release_verify_roundtrip))
+    | (package(gmeow-cli) & binary(self_sufficiency) & (test(transpile_wheel_mode_equals_repo_mode) | test(transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak) | test(project_wheel_mode_equals_repo_mode)))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
