@@ -141,3 +141,44 @@ gmeow:profileTemporalProvenance
     skos:definition "The GMEOW Profile Meta-pattern Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# Migrated (#1194): projection of gmeow:ProfileOpenValueUseShape (Warning) — an
+# individual of a profile's gmeow:profileOpenValue class must be the object of at
+# least one of that profile's gmeow:profileDescriptor predicates (Principle 17).
+# The descriptor predicate is named by the profile, so this is a variable-predicate
+# (logic:linkVia) join, mirroring the source sh:SPARQLTarget + FILTER NOT EXISTS.
+gmeow:ProfileOpenValueUseConstraint
+    a logic:Constraint ;
+    rdfs:label "Profile open-value use constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every individual of a gmeow:profileOpenValue class is referenced through one of the owning profile's gmeow:profileDescriptor predicates."@x-gmeow-english ;
+    logic:formalizes gmeow:profileOpenValue ;
+    logic:severity "Warning" ;
+    logic:message "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard." ;
+    logic:integrity logic:povuForall .
+logic:povuForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:povuImpl .
+logic:povuImpl a logic:Formula ; logic:antecedent logic:povuTarget ; logic:consequent logic:povuNot .
+logic:povuTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                   [ logic:termIndex 1 ; logic:termLiteral "SELECT ?this WHERE { ?profile <https://blackcatinformatics.ca/gmeow/profileOpenValue> ?openClass . ?this a ?openClass . }" ] .
+logic:povuNot a logic:Formula ; logic:not logic:povuExists .
+logic:povuExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "profile" ] , [ logic:termIndex 1 ; logic:termVariable "openClass" ] ;
+    logic:exists logic:povuBody .
+logic:povuBody a logic:Formula ; logic:and logic:povuOpen , logic:povuType , logic:povuNoDesc .
+logic:povuOpen a logic:Formula ; logic:relation gmeow:profileOpenValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "profile" ] , [ logic:termIndex 1 ; logic:termVariable "openClass" ] .
+logic:povuType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "openClass" ] .
+logic:povuNoDesc a logic:Formula ; logic:not logic:povuDescExists .
+logic:povuDescExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "descriptor" ] , [ logic:termIndex 1 ; logic:termVariable "subj" ] ;
+    logic:exists logic:povuDescBody .
+logic:povuDescBody a logic:Formula ; logic:and logic:povuDescProp , logic:povuDescLink .
+logic:povuDescProp a logic:Formula ; logic:relation gmeow:profileDescriptor ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "profile" ] , [ logic:termIndex 1 ; logic:termVariable "descriptor" ] .
+logic:povuDescLink a logic:Formula ; logic:relation logic:linkVia ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "subj" ] , [ logic:termIndex 1 ; logic:termVariable "descriptor" ] , [ logic:termIndex 2 ; logic:termVariable "this" ] .

@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 113
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # Doxastic State
@@ -99,9 +100,10 @@ An agent's intrinsic believing mode toward a proposition — the reified, first\
 ## Changelog
 
 - **Added in:** 0\.1\.0
+- **0\.1\.0** — Definition changed
 
 ## Citation
 
 - **Permalink:** <https://blackcatinformatics.ca/gmeow/DoxasticState>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/DoxasticState@blake3:361cc1c1e108d0f6c1d8cf3f30a54859258def1d8af1a3cae800c4ccbef65053`
+- **Content address:** `https://blackcatinformatics.ca/gmeow/DoxasticState@blake3:446f6df43c1b3f129596b73ab2fef873a4611c68bd346da8e69c85ada004bf9f`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)

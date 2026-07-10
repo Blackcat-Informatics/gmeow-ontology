@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/model_golden.rs
+assertion_line: 187
 expression: summary
 ---
 {
@@ -7,7 +8,7 @@ expression: summary
   "version": "7",
   "slice_count": 81,
   "term_count": 2558,
-  "dependency_edge_count": 1008,
+  "dependency_edge_count": 1031,
   "term_count_by_category": {
     "Class": 753,
     "Datatype": 1,
@@ -147,8 +148,8 @@ expression: summary
         "role": "Module",
         "logical_path": "module.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "f92829a3a938a0f5951c953fae21041d32666b6fa1378621df8ddbc4113a4076",
-        "semantic_digest": "fc5669686ccdda45a89af6a954748a6dc4fc0cf1af3571c2f496c9eea3608d22"
+        "raw_digest": "42a00e09c34a1b2d32662a38ede41b060a0dbbf14d2f703ddfc093788939092d",
+        "semantic_digest": "3c4146747590396bbd444ba05272ff0434f6a75232822a8503460a521732b51e"
       },
       {
         "role": "TestDsl",

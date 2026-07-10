@@ -1557,3 +1557,73 @@ This module ABSORBS the former genealogy event hierarchy (Principle 6 — refact
     skos:definition "The GMEOW Events Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# Closed-world cardinality/value axioms backing the hand-authored SHACL
+# well-formedness shapes.
+gmeow:Participation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:participationEvent ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:participationParticipant ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+<https://blackcatinformatics.ca/gmeow/Participation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/participationEvent> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+
+# =========================================================================== #
+# Migrated procedural constraints (#1194): the closed-world Participation        #
+# well-formedness shapes from shapes/gmeow-shapes.ttl (Principle 17).            #
+# =========================================================================== #
+
+gmeow:ParticipationEventPresenceConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Participation event-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Participation is part of a gmeow:participationEvent."@x-gmeow-english ;
+    logic:onClass gmeow:Participation ;
+    logic:anyOf gmeow:participationEvent ;
+    logic:formalizes gmeow:Participation ;
+    logic:message "A Participation must be part of exactly one event (gmeow:participationEvent)." .
+
+gmeow:ParticipationParticipantPresenceConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Participation participant-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Participation has a gmeow:participationParticipant."@x-gmeow-english ;
+    logic:onClass gmeow:Participation ;
+    logic:anyOf gmeow:participationParticipant ;
+    logic:formalizes gmeow:Participation ;
+    logic:message "A Participation must have at least one participant (gmeow:participationParticipant)." .
+
+# =========================================================================== #
+# Suppression constraint (#1194) — projection of CorrectedEventSuppressionShape.
+# A superseded participation (one carrying gmeow:validUntil) that is not         #
+# suppressed (gmeow:displayable false) is a Warning — a source may lag the flag. #
+# =========================================================================== #
+
+gmeow:SupersededParticipationSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Superseded participation suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a superseded gmeow:Participation (one carrying gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
+    logic:formalizes gmeow:Participation ;
+    logic:severity "Warning" ;
+    logic:message "A superseded participation (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
+    logic:integrity logic:supPtForall .
+logic:supPtForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:supPtImpl .
+logic:supPtImpl a logic:Formula ; logic:antecedent logic:supPtGuard ; logic:consequent logic:supPtPhi .
+logic:supPtGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Participation ] .
+logic:supPtPhi a logic:Formula ; logic:not logic:supPtEx .
+logic:supPtEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "u" ] ;
+    logic:exists logic:supPtBody .
+logic:supPtBody a logic:Formula ; logic:and logic:supPtValid , logic:supPtNotSuppressed .
+logic:supPtValid a logic:Formula ; logic:relation gmeow:validUntil ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "u" ] .
+logic:supPtNotSuppressed a logic:Formula ; logic:not logic:supPtDisp .
+logic:supPtDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .

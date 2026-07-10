@@ -11,7 +11,7 @@
 gmeow:actionReproduce a gmeow:RightsAction .
 gmeow:trademarkStatusRegistered a gmeow:TrademarkStatus .
 
-ex:work a gmeow:MediaObject , gmeow:InformationObject ; rdfs:label "A work"@en .
+ex:work a gmeow:MediaObject , gmeow:Entity , gmeow:InformationObject ; rdfs:label "A work"@en .
 ex:alice a gmeow:Person , gmeow:Agent ; rdfs:label "Alice"@en .
 
 ex:rights a gmeow:RightsStatement ;

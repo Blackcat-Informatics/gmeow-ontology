@@ -41,6 +41,7 @@ const RDFS_SUBPROPERTYOF: &str = "http://www.w3.org/2000/01/rdf-schema#subProper
 const OWL_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
 const OWL_ON_PROPERTY: &str = "http://www.w3.org/2002/07/owl#onProperty";
 const OWL_ON_CLASS: &str = "http://www.w3.org/2002/07/owl#onClass";
+const OWL_ON_DATA_RANGE: &str = "http://www.w3.org/2002/07/owl#onDataRange";
 const OWL_DIFFERENT_FROM: &str = "http://www.w3.org/2002/07/owl#differentFrom";
 const OWL_SAME_AS: &str = "http://www.w3.org/2002/07/owl#sameAs";
 const OWL_PROPERTY_CHAIN_AXIOM: &str = "http://www.w3.org/2002/07/owl#propertyChainAxiom";
@@ -474,6 +475,7 @@ impl Fact {
 struct Restriction {
     on_property: Option<String>,
     on_class: Option<String>,
+    on_data_range: Option<String>,
     some_values_from: Option<String>,
     all_values_from: Option<String>,
     has_value: Option<String>,
@@ -606,6 +608,14 @@ fn read_restrictions(edb: &RdfDataset) -> BTreeMap<(String, String), Restriction
                         .entry((world.clone(), subject.clone()))
                         .or_default();
                     entry.on_class = Some(value);
+                }
+            }
+            OWL_ON_DATA_RANGE => {
+                if let Some(value) = term_resource_key(&object) {
+                    let entry = restrictions
+                        .entry((world.clone(), subject.clone()))
+                        .or_default();
+                    entry.on_data_range = Some(value);
                 }
             }
             OWL_SOME_VALUES_FROM => {
@@ -911,11 +921,18 @@ fn cardinality_maxima(restriction: &Restriction) -> Vec<(usize, Option<&str>)> {
     if let Some(n) = restriction.max_cardinality {
         maxima.push((n, None));
     }
-    if let Some(n) = restriction.qualified_cardinality {
-        maxima.push((n, restriction.on_class.as_deref()));
-    }
-    if let Some(n) = restriction.max_qualified_cardinality {
-        maxima.push((n, restriction.on_class.as_deref()));
+    // A DATATYPE-qualified cardinality (`owl:onDataRange`) counts literal fillers,
+    // which the IRI-individual chase does not carry — it is decided as inert (or
+    // honestly withheld on a live violation) by `classify_coverage`, never counted
+    // here as if unqualified. So a qualified maximum contributes to the chase only
+    // for its OBJECT-qualified (`owl:onClass`) or unqualified reading.
+    if restriction.on_data_range.is_none() {
+        if let Some(n) = restriction.qualified_cardinality {
+            maxima.push((n, restriction.on_class.as_deref()));
+        }
+        if let Some(n) = restriction.max_qualified_cardinality {
+            maxima.push((n, restriction.on_class.as_deref()));
+        }
     }
     maxima
 }
@@ -928,11 +945,17 @@ fn cardinality_minima(restriction: &Restriction) -> Vec<(usize, Option<&str>)> {
     if let Some(n) = restriction.min_cardinality {
         minima.push((n, None));
     }
-    if let Some(n) = restriction.qualified_cardinality {
-        minima.push((n, restriction.on_class.as_deref()));
-    }
-    if let Some(n) = restriction.min_qualified_cardinality {
-        minima.push((n, restriction.on_class.as_deref()));
+    // A DATATYPE-qualified minimum (`owl:onDataRange`) is an existential into a
+    // non-empty datatype — satisfiable without inventing an IRI witness (which
+    // would be a phantom, not a literal). It is decided as inert by
+    // `classify_coverage`, so it contributes no IRI-individual obligation here.
+    if restriction.on_data_range.is_none() {
+        if let Some(n) = restriction.qualified_cardinality {
+            minima.push((n, restriction.on_class.as_deref()));
+        }
+        if let Some(n) = restriction.min_qualified_cardinality {
+            minima.push((n, restriction.on_class.as_deref()));
+        }
     }
     minima
 }
@@ -3360,17 +3383,27 @@ fn classify_coverage(edb: &RdfDataset, present: &[String]) -> BTreeSet<String> {
 
     // Cardinality family: minima generate distinct witnesses, maxima clash via
     // counting + identity-stance anti-merge. Decided iff every present instance
-    // is well-formed for the relevant generation/clash (Gap B).
+    // is well-formed for the relevant generation/clash (Gap B). The QUALIFIED
+    // families additionally admit a DATATYPE filler (`owl:onDataRange`), whose
+    // literal-counted obligation the IRI chase does not carry: those are decided
+    // only when no instance carries a live datatype-max violation (PRECISE withhold,
+    // mirroring the datatype-facet family) — otherwise the family is left undecided.
+    let datatype_qualified_live = datatype_qualified_cardinality_has_live_obligation(edb);
+    for family in ["cardinality", "minCardinality", "maxCardinality"] {
+        if present_set.contains(family)
+            && all_cardinality_instances_decidable(edb, &restrictions, family)
+        {
+            decided.insert(family.to_owned());
+        }
+    }
     for family in [
-        "cardinality",
-        "minCardinality",
-        "maxCardinality",
         "qualifiedCardinality",
         "minQualifiedCardinality",
         "maxQualifiedCardinality",
     ] {
         if present_set.contains(family)
             && all_cardinality_instances_decidable(edb, &restrictions, family)
+            && !datatype_qualified_live
         {
             decided.insert(family.to_owned());
         }
@@ -3613,6 +3646,62 @@ fn all_property_chains_are_binary(
     saw_instance
 }
 
+/// True iff the EDB carries a LIVE undecidable DATATYPE-qualified cardinality
+/// obligation — a datatype-qualified maximum (`owl:maxQualifiedCardinality` /
+/// exact `owl:qualifiedCardinality` with `owl:onDataRange`) that some instance
+/// could actually violate.
+///
+/// A datatype-qualified cardinality counts LITERAL fillers, which the
+/// IRI-individual chase does not carry. Like a merely-defined datatype facet
+/// ([`datatype_facet_has_live_obligation`]), such a restriction is INERT when no
+/// instance can violate it — a maximum on a datatype property can only clash when a
+/// subject carries MORE value-distinct literals of that datatype than the bound
+/// allows, and a datatype MINIMUM is an existential into a non-empty datatype
+/// (always satisfiable). Only a genuine max overflow is a live obligation the
+/// native path cannot decide; absent one, the datatype-qualified families are
+/// decided soundly (incomplete-never-wrong). Matching is exact on the literal's
+/// datatype, mirroring [`datatype_facet_has_live_obligation`].
+fn datatype_qualified_cardinality_has_live_obligation(edb: &RdfDataset) -> bool {
+    let restrictions = read_restrictions(edb);
+    // Datatype-qualified maxima: `(on_property, datatype, max)`. An exact
+    // `owl:qualifiedCardinality n` also bounds the maximum at `n`.
+    let mut maxima: Vec<(String, String, usize)> = Vec::new();
+    for r in restrictions.values() {
+        let (Some(prop), Some(dt)) = (r.on_property.as_ref(), r.on_data_range.as_ref()) else {
+            continue;
+        };
+        for bound in [r.max_qualified_cardinality, r.qualified_cardinality]
+            .into_iter()
+            .flatten()
+        {
+            maxima.push((prop.clone(), dt.clone(), bound));
+        }
+    }
+    if maxima.is_empty() {
+        return false;
+    }
+    // The literal-aware value index already folds value-distinct fillers (its keys
+    // are `term_value_key`), so a bucket's literal count IS the distinct-value count.
+    let value_index = build_value_index(edb);
+    for ((_world, _subject, pred), terms) in &value_index {
+        for (prop, dt, max) in &maxima {
+            if pred != prop {
+                continue;
+            }
+            let distinct = terms
+                .values()
+                .filter(|t| {
+                    matches!(t, RdfTerm::Literal(l) if l.datatype.as_deref() == Some(dt.as_str()))
+                })
+                .count();
+            if distinct > *max {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 /// True iff every restriction carrying the cardinality `family` is in the
 /// genuinely-decidable sub-case for the native handler (Gap B).
 ///
@@ -3625,8 +3714,11 @@ fn all_property_chains_are_binary(
 ///   distinct fillers under the identity-stance anti-merge ([`pairwise_distinct`]).
 ///
 /// An unparsable bound, a missing `onProperty`, or a qualified restriction with
-/// no `onClass` is a shape the handler cannot act on, so it stays undecided
-/// (honesty over green) and surfaces as a gap.
+/// neither `onClass` nor `onDataRange` is a shape the handler cannot act on, so it
+/// stays undecided (honesty over green) and surfaces as a gap. A DATATYPE-qualified
+/// restriction (`onDataRange`) is well-formed here; its inert-vs-live decision is
+/// taken separately in [`classify_coverage`] via
+/// [`datatype_qualified_cardinality_has_live_obligation`].
 fn all_cardinality_instances_decidable(
     edb: &RdfDataset,
     restrictions: &BTreeMap<(String, String), Restriction>,
@@ -3666,7 +3758,7 @@ fn all_cardinality_instances_decidable(
         if bound.is_none() || restriction.on_property.is_none() {
             return false;
         }
-        if qualified && restriction.on_class.is_none() {
+        if qualified && restriction.on_class.is_none() && restriction.on_data_range.is_none() {
             return false;
         }
     }
@@ -4423,6 +4515,83 @@ mod tests {
                 .iter()
                 .any(|g| g.code == "reason.dl-gap.maxCardinality"),
             "gaps must name the undecided construct: {:?}",
+            verdict.gaps
+        );
+    }
+
+    #[test]
+    fn datatype_qualified_max_without_violation_is_decided_inert() {
+        // R = ≤1 p.decimal (maxQualifiedCardinality 1, onDataRange xsd:decimal),
+        // x : R, one decimal filler. A datatype-qualified maximum counts LITERAL
+        // fillers the IRI chase does not carry; with no subject exceeding the bound
+        // it is INERT and the native path decides it (no gap), never withholding the
+        // whole qualified family on the absent `owl:onClass`.
+        const ON_DATA_RANGE: &str = "http://www.w3.org/2002/07/owl#onDataRange";
+        const MAX_QUALIFIED_CARDINALITY: &str =
+            "http://www.w3.org/2002/07/owl#maxQualifiedCardinality";
+        const DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
+        let store = dataset(vec![
+            quad(R, ON_PROPERTY, P),
+            quad(R, ON_DATA_RANGE, DECIMAL),
+            literal_quad(R, MAX_QUALIFIED_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
+            quad(X, TYPE, R),
+            literal_quad(X, P, "1.5", DECIMAL),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            verdict.consistent,
+            "a ≤1 p.decimal with one value is consistent: {:?}",
+            verdict.inconsistencies
+        );
+        assert!(
+            verdict
+                .coverage
+                .decided
+                .contains(&"maxQualifiedCardinality".to_owned()),
+            "an inert datatype-qualified maximum is decided: {:?}",
+            verdict.coverage
+        );
+        assert!(
+            verdict.gaps.is_empty(),
+            "no gap for an inert datatype-qualified maximum: {:?}",
+            verdict.gaps
+        );
+    }
+
+    #[test]
+    fn datatype_qualified_max_overflow_stays_unsupported_so_the_gate_can_fire() {
+        // Same ≤1 p.decimal, but x carries TWO value-distinct decimal literals — a
+        // live max overflow the literal-blind IRI chase cannot decide. The family is
+        // honestly WITHHELD (unsupported → gap), never wrongly reported decided.
+        const ON_DATA_RANGE: &str = "http://www.w3.org/2002/07/owl#onDataRange";
+        const MAX_QUALIFIED_CARDINALITY: &str =
+            "http://www.w3.org/2002/07/owl#maxQualifiedCardinality";
+        const DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
+        let store = dataset(vec![
+            quad(R, ON_PROPERTY, P),
+            quad(R, ON_DATA_RANGE, DECIMAL),
+            literal_quad(R, MAX_QUALIFIED_CARDINALITY, "1", XSD_NON_NEGATIVE_INTEGER),
+            quad(X, TYPE, R),
+            literal_quad(X, P, "1.5", DECIMAL),
+            literal_quad(X, P, "2.5", DECIMAL),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            verdict
+                .coverage
+                .unsupported
+                .contains(&"maxQualifiedCardinality".to_owned()),
+            "a live datatype-max overflow is not genuinely decided: {:?}",
+            verdict.coverage
+        );
+        assert!(
+            verdict
+                .gaps
+                .iter()
+                .any(|g| g.code == "reason.dl-gap.maxQualifiedCardinality"),
+            "gaps must name the withheld construct: {:?}",
             verdict.gaps
         );
     }

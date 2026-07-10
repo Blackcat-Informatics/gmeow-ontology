@@ -870,3 +870,53 @@ gmeow:transferredView
     skos:definition "The coarse-grained reference to the state a gmeow:TransferManifest carried across a transition — a gmeow:MemoryView individual or a named-graph checkpoint URI, rather than a per-item edge for every claim. The range is left OPEN so the manifest may reference either a memory-slice view or a bare checkpoint URI without a cross-tier dependency."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxRBox .
+
+# =========================================================================== #
+# Declarative constraint axioms (core slices) — the closed-world
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). A restriction carrying both owl:*Cardinality and
+# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# sh:datatype property shape. The cross-node / disjunctive-range / value-keyed
+# (sh:sparql, sh:or, SPARQLTarget) conditions have no OWL antecedent and remain
+# the procedural fragment .
+# =========================================================================== #
+
+gmeow:InhabitationTenure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:inhabitationSubject ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:inhabitedHost ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Entity ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:inhabitationLocusKind ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:InhabitationLocusKind ] .
+
+gmeow:EmbodimentAssignment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:assignmentSubject ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assignmentCarrier ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:EmbodimentCarrierRole ] .
+
+gmeow:InhabitationConfiguration rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:configurationOfTenure ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:InhabitationTenure ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:TimeInterval ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:configurationEmbodiment ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:EmbodimentAssignment ] .
+
+gmeow:ControlAssessment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:controlAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:controlLevel ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ControlLevel ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:controlInterval ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:TimeInterval ] .
+
+gmeow:IdentityContinuityAssessment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:assessmentFromStage ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:SubjectStage ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:assessmentToStage ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:SubjectStage ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:continuityVerdict ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ContinuityVerdict ] .
+
+gmeow:ContinuityDetermination rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:determiningAuthority ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:determinationForce ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:DeterminationForce ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:determinationValidity ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:TimeInterval ] .
+
+gmeow:DigitalSubjectTenure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureSubjectAgent ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureVantage ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:tenureSupportedBy ; owl:allValuesFrom gmeow:Observation ] .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+<https://blackcatinformatics.ca/gmeow/InhabitationConfiguration> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/duringInterval> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/TimeInterval> ] .

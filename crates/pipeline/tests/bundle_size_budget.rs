@@ -78,13 +78,14 @@ const REP_CEILINGS: &[RepCeiling] = &[
         rep: REP_DOCS_PRINT,
         ceiling: 9_500_000,
     },
-    // measured 8_887_022 (grown by the reasoner-safe shape grounding: the injected owl:someValuesFrom
-    // / owl:allValuesFrom restrictions enrich the inferred closure + reasoning explanations)
-    // → ×1.15 ≈ 10_220_075 → pinned 10_500_000
+    // grown by BOTH the procedural logic:Constraint records + their reasoning projections
+    // (canonical logic: layer) AND the reasoner-safe shape grounding (injected
+    // owl:someValuesFrom / owl:allValuesFrom restrictions enriching the inferred closure +
+    // reasoning explanations) → pinned 12_500_000 (re-verified against the merged bundle)
     RepCeiling {
         name: "REP_REASONING",
         rep: REP_REASONING,
-        ceiling: 10_500_000,
+        ceiling: 12_500_000,
     },
     // measured 2_381_714 → ×1.15 ≈ 2_739_471 → pinned 2_800_000
     RepCeiling {
@@ -104,11 +105,11 @@ const REP_CEILINGS: &[RepCeiling] = &[
         rep: REP_CELLS,
         ceiling: 2_000_000,
     },
-    // measured 1_180_671 → ×1.15 ≈ 1_357_772 → pinned 1_400_000
+    // measured 1_401_834 (after the procedural-constraint migration) → ×1.15 ≈ 1_612_109 → pinned 1_620_000
     RepCeiling {
         name: "REP_SHAPES",
         rep: REP_SHAPES,
-        ceiling: 1_400_000,
+        ceiling: 1_620_000,
     },
     // measured 501_179 → ×1.15 ≈ 576_356 → pinned 600_000
     RepCeiling {

@@ -834,3 +834,208 @@ DOCTRINE.
     skos:definition "The GMEOW Narrative Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# Closed-world cardinality/value axioms backing the hand-authored SHACL
+# well-formedness shapes for the narrative relators.
+gmeow:NarrationUsage rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:narrationSegment ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ContentSegment ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:narrationSubject ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:narrationMode ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+gmeow:NarrativeTimeFrame rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:narrativeTimeAxis ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:frameRealm ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:frameRealm ; owl:hasValue gmeow:frameRealmNarrative ] .
+
+gmeow:ArcSample rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:sampleSubject ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:samplePosition ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:NarrativePosition ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:sampleState ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+gmeow:RoleInNarrative rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:narrativeRoleBearer ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:narrativeRoleScope ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:narrativeRoleValue ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+gmeow:Motif rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty rdfs:label ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:motifOccursIn ; owl:allValuesFrom gmeow:ContentSegment ] .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+<https://blackcatinformatics.ca/gmeow/ArcSample> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/sampleState> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/RoleInNarrative> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/narrativeRoleBearer> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/RoleInNarrative> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/narrativeRoleScope> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/RoleInNarrative> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/narrativeRoleValue> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/NarrationUsage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/narrationSegment> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ContentSegment> ] .
+<https://blackcatinformatics.ca/gmeow/NarrationUsage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/narrationSubject> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/narrativeTimeAxis> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/NarrativeTimeFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/frameRealm> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ArcSample> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/sampleSubject> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ArcSample> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/samplePosition> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/NarrativePosition> ] .
+
+# =========================================================================== #
+# Procedural constraints authored as raw logic:Formula integrity trees —        #
+# projected to sh:SPARQLConstraint, keyed onto gmeow:NarrativeTimeFrame. The     #
+# two axis-anchor arms are separate single-arm constraints so each lowers        #
+# without a union.                                                              #
+# =========================================================================== #
+
+# A discourse-time frame anchors via gmeow:discourseTimeOf, never gmeow:storyTimeOf.
+gmeow:NarrativeDiscourseAnchorConstraint
+    a logic:Constraint ;
+    rdfs:label "Narrative discourse-anchor constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a discourse-time gmeow:NarrativeTimeFrame does not anchor via gmeow:storyTimeOf."@x-gmeow-english ;
+    logic:formalizes gmeow:NarrativeTimeFrame ;
+    logic:message "A discourse-time frame anchors via gmeow:discourseTimeOf and a story-time frame via gmeow:storyTimeOf — never the other anchor." ;
+    logic:integrity logic:ndaForall .
+logic:ndaForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:ndaImpl .
+logic:ndaImpl a logic:Formula ; logic:antecedent logic:ndaGuard ; logic:consequent logic:ndaNot .
+logic:ndaGuard a logic:Formula ; logic:and logic:ndaType , logic:ndaAxis .
+logic:ndaType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:NarrativeTimeFrame ] .
+logic:ndaAxis a logic:Formula ; logic:relation gmeow:narrativeTimeAxis ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:axisDiscourseTime ] .
+logic:ndaNot a logic:Formula ; logic:not logic:ndaExists .
+logic:ndaExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:exists logic:ndaAtom .
+logic:ndaAtom a logic:Formula ; logic:relation gmeow:storyTimeOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
+
+# A story-time frame anchors via gmeow:storyTimeOf, never gmeow:discourseTimeOf.
+gmeow:NarrativeStoryAnchorConstraint
+    a logic:Constraint ;
+    rdfs:label "Narrative story-anchor constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a story-time gmeow:NarrativeTimeFrame does not anchor via gmeow:discourseTimeOf."@x-gmeow-english ;
+    logic:formalizes gmeow:NarrativeTimeFrame ;
+    logic:message "A discourse-time frame anchors via gmeow:discourseTimeOf and a story-time frame via gmeow:storyTimeOf — never the other anchor." ;
+    logic:integrity logic:nsaForall .
+logic:nsaForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:nsaImpl .
+logic:nsaImpl a logic:Formula ; logic:antecedent logic:nsaGuard ; logic:consequent logic:nsaNot .
+logic:nsaGuard a logic:Formula ; logic:and logic:nsaType , logic:nsaAxis .
+logic:nsaType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:NarrativeTimeFrame ] .
+logic:nsaAxis a logic:Formula ; logic:relation gmeow:narrativeTimeAxis ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:axisStoryTime ] .
+logic:nsaNot a logic:Formula ; logic:not logic:nsaExists .
+logic:nsaExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:exists logic:nsaAtom .
+logic:nsaAtom a logic:Formula ; logic:relation gmeow:discourseTimeOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
+
+# =========================================================================== #
+# Migrated procedural constraints (#1194): the closed-world narrative-interior,   #
+# narration-seam and narrative-time well-formedness shapes from                   #
+# shapes/gmeow-shapes.ttl, re-authored as compact logic: sugar records (P17).     #
+# =========================================================================== #
+
+gmeow:ArcSamplePositionConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ArcSample position-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ArcSample reads at a gmeow:samplePosition."@x-gmeow-english ;
+    logic:onClass gmeow:ArcSample ;
+    logic:anyOf gmeow:samplePosition ;
+    logic:formalizes gmeow:ArcSample ;
+    logic:message "An ArcSample must read at exactly one gmeow:samplePosition, a NarrativePosition — never a bare index (#359)." .
+
+gmeow:ArcSampleStateConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ArcSample state-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ArcSample reads a gmeow:sampleState."@x-gmeow-english ;
+    logic:onClass gmeow:ArcSample ;
+    logic:anyOf gmeow:sampleState ;
+    logic:formalizes gmeow:ArcSample ;
+    logic:message "An ArcSample must read exactly one gmeow:sampleState by IRI (affect EmotionType, EmotionML category, or another tradition's term — open by design, P16 soft reference)." .
+
+gmeow:RoleInNarrativeScopeConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "RoleInNarrative scope-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:RoleInNarrative is relative to a gmeow:narrativeRoleScope."@x-gmeow-english ;
+    logic:onClass gmeow:RoleInNarrative ;
+    logic:anyOf gmeow:narrativeRoleScope ;
+    logic:formalizes gmeow:RoleInNarrative ;
+    logic:message "A RoleInNarrative must be relative to exactly one gmeow:narrativeRoleScope (an IRI) — protagonist-of-WHAT is half the claim. nodeKind only: scope instances are data-typed concretely (BookRelease, NarrativeReferenceFrame, ContentSegment) and raw-graph SHACL does no subclass inference toward NarrativeScope." .
+
+gmeow:MotifLabelConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Motif label-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Motif carries an rdfs:label."@x-gmeow-english ;
+    logic:onClass gmeow:Motif ;
+    logic:anyOf rdfs:label ;
+    logic:formalizes gmeow:Motif ;
+    logic:message "A Motif must carry at least one rdfs:label, at most one per language tag — identity-bearing means nameable; an unnameable recurring unit is a tag." .
+
+gmeow:MotifOccursInSegmentConstraint
+    a logic:PathValueTypeConstraint ;
+    rdfs:label "Motif occurrence segment-typed constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:motifOccursIn value is a gmeow:ContentSegment."@x-gmeow-english ;
+    logic:onClass gmeow:Motif ;
+    logic:valuePath gmeow:motifOccursIn ;
+    logic:valueClass gmeow:ContentSegment ;
+    logic:formalizes gmeow:Motif ;
+    logic:message "A motif occurrence rides the narration seam into a ContentSegment (#360)." .
+
+gmeow:NarrationUsageSegmentConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "NarrationUsage segment-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:NarrationUsage carries a gmeow:narrationSegment."@x-gmeow-english ;
+    logic:onClass gmeow:NarrationUsage ;
+    logic:anyOf gmeow:narrationSegment ;
+    logic:formalizes gmeow:NarrationUsage ;
+    logic:message "A NarrationUsage must carry exactly one gmeow:narrationSegment." .
+
+gmeow:NarrationUsageSubjectConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "NarrationUsage subject-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:NarrationUsage carries a gmeow:narrationSubject."@x-gmeow-english ;
+    logic:onClass gmeow:NarrationUsage ;
+    logic:anyOf gmeow:narrationSubject ;
+    logic:formalizes gmeow:NarrationUsage ;
+    logic:message "A NarrationUsage must carry exactly one gmeow:narrationSubject — one relator per (segment, subject) pair." .
+
+gmeow:NarrationUsageModeConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "NarrationUsage mode-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:NarrationUsage states a gmeow:narrationMode."@x-gmeow-english ;
+    logic:onClass gmeow:NarrationUsage ;
+    logic:anyOf gmeow:narrationMode ;
+    logic:formalizes gmeow:NarrationUsage ;
+    logic:message "A NarrationUsage must state at least one gmeow:narrationMode (an IRI — the vocabulary is OPEN per Principle 9, so no sh:class/sh:in: the aboutness-guard convention) — if you reified, you had a reason; the modeless case is the flat gmeow:narrates shortcut (efficiency doctrine, #360)." .
+
+gmeow:NarrativeTimeFrameAxisConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "NarrativeTimeFrame axis-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:NarrativeTimeFrame declares a gmeow:narrativeTimeAxis."@x-gmeow-english ;
+    logic:onClass gmeow:NarrativeTimeFrame ;
+    logic:anyOf gmeow:narrativeTimeAxis ;
+    logic:formalizes gmeow:NarrativeTimeFrame ;
+    logic:message "A NarrativeTimeFrame must declare exactly one gmeow:narrativeTimeAxis (discourse time or story time) — a work and its fabula are two frames, not one frame with two moods." .

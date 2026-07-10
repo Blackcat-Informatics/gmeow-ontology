@@ -359,24 +359,30 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
         );
     }
 
-    // Deterministic SVG diagrams (pure functions of the model).
+    // Diagram SVGs are DEFERRED pending purrdf's SVG graph library: the
+    // hand-rolled renderers carry a latent cross-process ordering non-determinism,
+    // so each diagram is emitted as a deterministic placeholder for now. AUTHORIZED
+    // DEFERRAL (paudley) — restore the `svg::*_svg` calls when the purrdf SVG lib
+    // lands (tracked in the docs-SVG revisit issue). The emitted file set and every
+    // page embed are unchanged, so no image link dangles.
     files.insert(
         "diagrams/slices.svg".to_string(),
-        svg::slice_dependency_svg(model).into_bytes(),
+        svg::deferred_diagram_svg("Slice dependency graph").into_bytes(),
     );
     files.insert(
         "diagrams/concerns.svg".to_string(),
-        svg::concern_overview_svg(model).into_bytes(),
+        svg::deferred_diagram_svg("Concerns by term count").into_bytes(),
     );
     // The per-slice documentation-coverage heatmap embedded on the health page.
     files.insert(
         "diagrams/coverage-heatmap.svg".to_string(),
-        svg::coverage_heatmap_svg(model).into_bytes(),
+        svg::deferred_diagram_svg("Documentation coverage by slice").into_bytes(),
     );
     for slice in &model.slices {
         files.insert(
             format!("diagrams/slices/{}.svg", slice_slug(slice)),
-            svg::slice_local_svg(model, &slice.iri).into_bytes(),
+            svg::deferred_diagram_svg(&format!("Dependencies for slice {}", slice_slug(slice)))
+                .into_bytes(),
         );
     }
     // Per-term neighbourhood diagrams — only for terms that actually have a
@@ -386,7 +392,8 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
         if svg::term_has_neighbourhood(term) {
             files.insert(
                 format!("diagrams/terms/{}.svg", term_slug(term)),
-                svg::term_neighbourhood_svg(term).into_bytes(),
+                svg::deferred_diagram_svg(&format!("Neighborhood for term {}", term_slug(term)))
+                    .into_bytes(),
             );
         }
     }
