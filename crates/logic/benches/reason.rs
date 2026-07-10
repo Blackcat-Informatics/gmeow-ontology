@@ -83,6 +83,8 @@ fn chain_nquads(n: usize) -> String {
 
 fn bench_reason_all(c: &mut Criterion) {
     let mut group = c.benchmark_group("reason_all");
+    // ADVISORY-ONLY (measurement doctrine): wall-clock is report-only and NEVER gates
+    // `make check`, so the reduced sample_size is a runtime economy, not a gate risk.
     group.sample_size(20);
     for &(n, inst) in &[(8usize, 4usize), (30usize, 15usize)] {
         let store = hierarchy_store(n, inst);
@@ -95,6 +97,8 @@ fn bench_reason_all(c: &mut Criterion) {
 
 fn bench_el_closure(c: &mut Criterion) {
     let mut group = c.benchmark_group("el_closure");
+    // ADVISORY-ONLY (measurement doctrine): wall-clock is report-only and NEVER gates
+    // `make check`, so the reduced sample_size is a runtime economy, not a gate risk.
     group.sample_size(20);
     for &(n, inst) in &[(8usize, 4usize), (30usize, 15usize)] {
         let store = hierarchy_store(n, inst);
@@ -107,6 +111,8 @@ fn bench_el_closure(c: &mut Criterion) {
 
 fn bench_materialize_core(c: &mut Criterion) {
     let mut group = c.benchmark_group("materialize_core");
+    // ADVISORY-ONLY (measurement doctrine): wall-clock is report-only and NEVER gates
+    // `make check`, so the reduced sample_size is a runtime economy, not a gate risk.
     group.sample_size(20);
     for &n in &[8usize, 40usize] {
         let input = chain_nquads(n);

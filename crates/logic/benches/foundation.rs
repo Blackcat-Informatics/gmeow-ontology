@@ -151,7 +151,9 @@ fn bench_foundation_large(c: &mut Criterion) {
     let quad_count = nq.lines().count();
 
     let mut group = c.benchmark_group("foundation_evaluate_large");
-    // Fewer samples: this bench is slow; 10 samples is enough for the comparison.
+    // ADVISORY-ONLY (measurement doctrine): wall-clock is report-only and NEVER gates
+    // `make check`, so this reduced sample_size is a runtime economy, not a gate risk —
+    // this bench is slow and 10 samples is enough for the report-only comparison.
     group.sample_size(10);
     group.bench_function(format!("large_synthetic_{quad_count}quads_40worlds"), |b| {
         b.iter(|| {

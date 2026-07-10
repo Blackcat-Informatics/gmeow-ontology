@@ -165,10 +165,14 @@ fn main() -> gmeow_errors::Result<()> {
     let mut corpus_dir: Option<PathBuf> = None;
     let mut emit_cost: Option<PathBuf> = None;
     let mut check_cost: Option<PathBuf> = None;
+    let mut check_golden = false;
 
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
+            "--check-golden" => {
+                check_golden = true;
+            }
             "--corpus-dir" => {
                 corpus_dir = Some(PathBuf::from(args.next().ok_or_else(|| {
                     Diag::of_kind(Cli {
@@ -209,6 +213,16 @@ fn main() -> gmeow_errors::Result<()> {
         return Err(Diag::of_kind(RunFailed {
             detail: "the bench corpus loaded zero cases; expected at least one".to_string(),
         }));
+    }
+
+    // ── (1) The ON-GATE native-vs-golden agreement gate ─────────────────────────
+    // `--check-golden` runs the NATIVE engine ONLY over the committed mini corpora and
+    // HARD-FAILS if any case's native result disagrees with its committed golden
+    // (`expected/result.json`). It deliberately drives NO oracle (Nemo/Scryer): golden
+    // agreement is native-vs-published only, so the check stays cheap enough to wire into
+    // `make check`. It returns before any oracle run / artifact emission below.
+    if check_golden {
+        return run_golden_gate(&cases);
     }
 
     // Per-case deterministic records, and the report-only advisory rows.
@@ -1004,6 +1018,150 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
             "{regressions} cost-regression finding(s): the fresh engine cost/agreement run diverged \
              from the committed baseline {} — regenerate + review before refreshing the baseline",
             baseline_path.display()
+        ),
+    }))
+}
+
+/// Drive one case through the NATIVE engine ONLY and return `(world, native_count,
+/// golden_rows)` — the native derived-fact / answer COUNT and the committed golden's
+/// count for its sole world. This is the exact native invocation each `run_*` fragment
+/// runner performs, minus the allocation `measure` wrapper and WITHOUT touching any
+/// oracle (Nemo/Scryer are never constructed), so the golden gate stays cheap on-gate.
+fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<(String, u64, u64)> {
+    match case.fragment {
+        Fragment::Forward => {
+            let (world, golden_rows) = sole_world(case)?;
+            let edb = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
+                .map_err(|e| run_err(case, format!("EDB parse error: {e}")))?;
+            let native = run_native_forward(edb.as_ref(), &case.rules)
+                .map_err(|e| run_err(case, format!("native forward failed: {e}")))?;
+            Ok((world, native.cost.total_derivations(), golden_rows))
+        }
+        Fragment::Existential => {
+            let (world, golden_rows) = sole_world(case)?;
+            let native = materialize_routed(
+                &case.rules,
+                &case.edb_nq,
+                None,
+                None,
+                None,
+                Some(HORN_PROFILE_TOKEN),
+            )
+            .map_err(|e| run_err(case, format!("native chase failed: {e}")))?;
+            let native_derived = native
+                .quads
+                .iter()
+                .filter(|q| q.rule_iri != ASSERT_RULE_IRI)
+                .count() as u64;
+            Ok((world, native_derived, golden_rows))
+        }
+        Fragment::NaryExistential => {
+            let (world, golden_rows) = sole_world(case)?;
+            let rules = parse_nary_rls_program(&case.rules)
+                .map_err(|e| run_err(case, format!("n-ary .rls parse failed: {e}")))?;
+            let native = run_native_nary_forward_run(&case.nary_edb, &rules)
+                .map_err(|e| run_err(case, format!("native n-ary chase failed: {e}")))?;
+            Ok((world, native.tuples.len() as u64, golden_rows))
+        }
+        Fragment::Backward => {
+            if case.golden.len() != 1 {
+                return Err(Diag::of_kind(RunFailed {
+                    detail: format!(
+                        "{}/{}: backward bench case must carry exactly one golden world, found {}",
+                        case.corpus,
+                        case.name,
+                        case.golden.len()
+                    ),
+                }));
+            }
+            let (world, golden) = case.golden.iter().next().expect("checked len == 1");
+            let golden_rows = golden.rows;
+            let store = WorldStore::new();
+            store
+                .load_nquads(&case.edb_nq)
+                .map_err(|e| run_err(case, format!("EDB load failed: {e}")))?;
+            let program = parse_query_program(&case.rules)
+                .map_err(|e| run_err(case, format!("query parse failed: {e}")))?;
+            let foreign = WorldStoreForeign::from_world(&store, world, HORN_PROFILE_IRI)
+                .map_err(|e| run_err(case, format!("foreign snapshot failed: {e}")))?;
+            let budget = Budget::default();
+            let native =
+                dispatch_query(&foreign, &store, world, &program, HORN_PROFILE_IRI, &budget)
+                    .map_err(|e| run_err(case, format!("native backward failed: {e}")))?;
+            Ok((world.clone(), native.bindings.len() as u64, golden_rows))
+        }
+    }
+}
+
+/// (Deliverable 1) The ON-GATE native-vs-golden agreement gate. Runs the NATIVE engine
+/// ONLY over every committed mini bench case and compares its deterministic derived /
+/// answer COUNT against the committed golden (`expected/result.json`). Each `(corpus,
+/// case)` comparison is folded through the SHARED divergence ledger — an equal count is
+/// `Agree`, a divergent one is `CorpusOnly` — so every disagreement becomes a named
+/// `gmeow:Finding` carrying content-addressed ledger identity (`finding_iri` + anchor +
+/// antecedents), NOT a bare diff. ANY disagreement HARD-FAILS (no-optionality). No oracle
+/// is driven, so this is cheap enough for `make check`.
+fn run_golden_gate(cases: &[BenchCase]) -> gmeow_errors::Result<()> {
+    let mut comps_by_corpus: BTreeMap<String, Vec<ExternalComparison>> = BTreeMap::new();
+    for case in cases {
+        let (world, native_count, golden_rows) = native_golden_pair(case)?;
+        comps_by_corpus
+            .entry(case.corpus.clone())
+            .or_default()
+            .push(comp(
+                case,
+                &world,
+                "native-vs-golden",
+                &count_token(native_count),
+                &count_token(golden_rows),
+            ));
+    }
+
+    let mut disagreements = 0usize;
+    let mut findings: Vec<Value> = Vec::new();
+    for (corpus, comps) in &comps_by_corpus {
+        let rows = compare_external_corpus(corpus, comps);
+        let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+        disagreements += ledger.corpus_only;
+        for f in divergence_findings(&ledger) {
+            if f.code == "reason.divergence.corpus-only" {
+                findings.push(json!({
+                    "code": f.code,
+                    "finding_iri": f.finding_iri.clone().unwrap_or_default(),
+                    "anchor_iri": f.anchor_iri.clone().unwrap_or_default(),
+                    "antecedents": f.antecedents.clone(),
+                    "message": f.message,
+                }));
+            }
+        }
+    }
+
+    if disagreements == 0 {
+        eprintln!(
+            "✓ golden gate: all {} native mini-corpus case(s) agree with their committed golden \
+             (native-vs-golden count equality; no oracle run).",
+            cases.len()
+        );
+        return Ok(());
+    }
+
+    findings.sort_by(|a, b| a["finding_iri"].as_str().cmp(&b["finding_iri"].as_str()));
+    let report = json!({
+        "schema": "gmeow.bench-engines.golden-gate/1",
+        "disagreement_count": disagreements,
+        "findings": findings,
+    });
+    let json = serde_json::to_string_pretty(&report).map_err(|e| {
+        Diag::of_kind(Serialize {
+            detail: e.to_string(),
+        })
+    })?;
+    println!("{json}");
+    Err(Diag::of_kind(RunFailed {
+        detail: format!(
+            "{disagreements} golden-gate disagreement(s): the native engine's result diverged from \
+             the committed golden on the mini bench corpora — the native core changed a result set, \
+             or a committed golden is stale; review before landing"
         ),
     }))
 }
