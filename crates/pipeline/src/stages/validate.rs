@@ -149,9 +149,14 @@ impl Stage for ValidateStage {
         true
     }
     fn impl_version(&self) -> &str {
+        // v3: attribute each SHACL finding to its DOCUMENTED constrained property (the
+        // `sh:path`) via the finding's `documented_terms` carrier, so the docs
+        // diagnostics→term join lights up the property's per-term page. Additive: the
+        // finding's blake3 identity/anchor and the rendered SARIF/RDF/HTML bytes are
+        // unchanged; only the full-fidelity JSON report gains the attribution.
         // v2: lift stage-source-load's source spans onto each SHACL finding's focus-node
         // location (path + line/column) before rendering + the forward diagnostics fold.
-        "validate.v2-shacl-diagnostics-source-spans"
+        "validate.v3-shacl-documented-term-attribution"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         purrdf::shapes::shape_union::shape_files(root)

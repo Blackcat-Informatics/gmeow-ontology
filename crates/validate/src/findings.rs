@@ -21,6 +21,7 @@ use gmeow_errors::grade::{Grade, Standpoint};
 use gmeow_errors::model::FindingCategory;
 use gmeow_errors::{Finding, Location, Severity};
 use purrdf::shapes::report::{Severity as ShaclSeverity, ValidationResult};
+use purrdf::shapes::term::Term;
 
 /// Normalize a SHACL [`ShaclSeverity`] to the canonical diagnostics [`Severity`].
 ///
@@ -55,6 +56,26 @@ fn strip_angle(term: &str) -> &str {
     term.strip_prefix('<')
         .and_then(|inner| inner.strip_suffix('>'))
         .unwrap_or(term)
+}
+
+/// The DOCUMENTED source term a SHACL result honestly concerns: its CONSTRAINED
+/// PROPERTY — the `sh:path` — when that path is a plain IRI (a documented `gmeow:`
+/// property term), NOT the ABox focus node that tripped the shape. The focus node is
+/// a data individual that names no documented ontology term, so it can never join the
+/// docs per-term "Diagnostics you might hit" surface; the constrained property is the
+/// documented term whose page the violation genuinely belongs on ("set this required
+/// property or you hit a MinCount violation"). A node-level constraint (no `sh:path`)
+/// or a complex property-path expression (a blank-node path) yields `None`: there is
+/// no single documented property to attribute to and one is never fabricated (the
+/// docs join simply renders no per-term row for that finding). The violated shape's
+/// target class would be the honest fallback, but a `ValidationResult` carries only
+/// the shape IRI, not its resolved `sh:targetClass`, so that fallback is not available
+/// at this construction site without the shapes graph.
+fn documented_constrained_property(result: &ValidationResult) -> Option<&str> {
+    match &result.result_path {
+        Some(Term::NamedNode(iri)) => Some(iri.as_str()),
+        _ => None,
+    }
 }
 
 /// Convert a SHACL [`ValidationResult`] into a canonical [`Finding`].
@@ -97,6 +118,13 @@ pub fn finding_from_shacl(result: &ValidationResult) -> Finding {
         "source shape: {}",
         strip_angle(&result.source_shape.to_string())
     ));
+    // Attribute the finding to the DOCUMENTED constrained property (the `sh:path`) it
+    // concerns — the documented term whose "Diagnostics you might hit" page this
+    // violation belongs on — distinct from the ABox focus node in its primary
+    // location. Absent for node-level / complex-path constraints (honest absence).
+    if let Some(property) = documented_constrained_property(result) {
+        finding.documented_terms.push(property.to_owned());
+    }
     finding
 }
 
@@ -178,10 +206,18 @@ pub fn diag_from_shacl(result: &ValidationResult) -> Diag {
     }
     // The source shape rides as a context frame so the projection folds it into the
     // finding detail — the SAME `source shape: <iri>` string `finding_from_shacl` sets.
-    diag.with_context(format!(
+    diag = diag.with_context(format!(
         "source shape: {}",
         strip_angle(&result.source_shape.to_string())
-    ))
+    ));
+    // Attribute to the DOCUMENTED constrained property (the `sh:path`), symmetric with
+    // `finding_from_shacl`. Payload, not an identity field, so the witness's blake3
+    // fingerprint / anchor are unchanged — the attribution is purely additive and only
+    // the projected finding's `documented_terms` (the docs per-term join key) grows.
+    if let Some(property) = documented_constrained_property(result) {
+        diag = diag.with_documented_term(property.to_owned());
+    }
+    diag
 }
 
 #[cfg(test)]
@@ -232,6 +268,23 @@ mod tests {
             finding.detail.as_deref(),
             Some("source shape: https://ex/shape")
         );
+        // The finding is attributed to the DOCUMENTED constrained property (the
+        // `sh:path`), NOT the ABox focus node — the term whose "Diagnostics you
+        // might hit" page this violation belongs on.
+        assert_eq!(finding.documented_terms, vec!["https://ex/p".to_owned()]);
+    }
+
+    #[test]
+    fn node_level_constraint_attributes_no_documented_term() {
+        // A result with NO `sh:path` (a node-level / focus-node constraint) names no
+        // single constrained property, so no documented term is fabricated.
+        let mut result = min_count_result("https://ex/a");
+        result.result_path = None;
+        assert!(finding_from_shacl(&result).documented_terms.is_empty());
+        // Same honest absence when the path is a complex (blank-node) property path.
+        let mut complex = min_count_result("https://ex/a");
+        complex.result_path = Some(Term::BlankNode("b0".to_owned()));
+        assert!(finding_from_shacl(&complex).documented_terms.is_empty());
     }
 
     fn min_count_result(focus: &str) -> ValidationResult {
@@ -310,6 +363,9 @@ mod tests {
             finding.detail.as_deref(),
             Some("source shape: https://ex/shape")
         );
+        // The documented constrained property survives routing through the ledger onto
+        // the projected finding — the docs per-term diagnostics join key.
+        assert_eq!(finding.documented_terms, vec!["https://ex/p".to_owned()]);
     }
 
     #[test]

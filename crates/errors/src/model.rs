@@ -563,6 +563,19 @@ pub struct Finding {
     /// in producing this finding. Empty when no attribution context is available.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub attributions: Vec<DiagnosticAttribution>,
+    /// The DOCUMENTED ontology terms this finding structurally concerns — distinct
+    /// from the ABox focus node(s) in [`locations`](Finding::locations). A SHACL
+    /// violation's honest documented attribution is its CONSTRAINED PROPERTY (the
+    /// `sh:path`), a documented `gmeow:` term, NOT the data individual that tripped
+    /// the shape; carrying it here (rather than overloading the focus location) lets
+    /// the docs "Diagnostics you might hit" per-term join light up the property's
+    /// page. Empty for findings that concern no single documented term (an honest
+    /// absence, never fabricated); `skip_serializing_if` keeps it out of the wire
+    /// form when absent so existing JSON/SARIF/RDF goldens are byte-unchanged, and
+    /// the SARIF/RDF/HTML projections never read it so those bytes never change even
+    /// when it IS present (it rides only the full-fidelity JSON `Report`).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub documented_terms: Vec<String>,
 }
 
 impl Finding {
@@ -590,6 +603,7 @@ impl Finding {
             category: None,
             standpoint: None,
             attributions: Vec::new(),
+            documented_terms: Vec::new(),
         }
     }
 
@@ -608,6 +622,15 @@ impl Finding {
     /// asserted from (the gating-strength truth-axis).
     pub fn with_standpoint(mut self, standpoint: crate::grade::Standpoint) -> Self {
         self.standpoint = Some(standpoint);
+        self
+    }
+
+    /// Attribute this finding to a DOCUMENTED ontology term it structurally concerns
+    /// (e.g. a SHACL violation's constrained `sh:path` property) — distinct from the
+    /// ABox focus node in [`locations`](Finding::locations). Additive: the docs
+    /// per-term diagnostics join reads it; the SARIF/RDF/HTML projections do not.
+    pub fn with_documented_term(mut self, term_iri: impl Into<String>) -> Self {
+        self.documented_terms.push(term_iri.into());
         self
     }
 
@@ -661,6 +684,10 @@ impl Finding {
         self.antecedents.dedup();
         self.cross_node_glut_with.sort();
         self.cross_node_glut_with.dedup();
+        // Deterministic order for the documented-term attributions so a finding
+        // projects the same byte sequence regardless of attach order.
+        self.documented_terms.sort();
+        self.documented_terms.dedup();
     }
 }
 

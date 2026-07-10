@@ -543,9 +543,11 @@ fn term_evidence(
     }
 
     // diagnostics — the term is a key in the diagnostics-to-term join. Grounded
-    // by each finding code (the finding's stable identifier). On the real repo
-    // `by_term` is currently empty, so this kind emits for zero terms today —
-    // an honest absence proven correct by the synthetic-digest unit test.
+    // by each finding code (the finding's stable identifier). On the real repo a
+    // documented term joins when a finding structurally concerns it — e.g. a SHACL
+    // violation's constrained `sh:path` property (`gmeow:hasReferenceFrame` carries
+    // the ExpressionFrameRequirement MinCount violations); a term no finding concerns
+    // is honestly absent (proven by the synthetic-digest and real-repo B1 gates).
     if let Some(findings) = model
         .diagnostics
         .as_ref()
