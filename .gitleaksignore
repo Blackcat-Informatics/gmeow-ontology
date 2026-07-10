@@ -14,3 +14,39 @@ affect-ingest/fixtures/ekman7-sample.json:generic-api-key:10
 crates/affect-ingest/fixtures/ekman7-sample.json:generic-api-key:10
 affect-ingest/fixtures/zeroshot-sample.json:generic-api-key:10
 crates/affect-ingest/fixtures/zeroshot-sample.json:generic-api-key:10
+# Deterministic engine-vs-oracle cost baseline. The flagged high-entropy values
+# are content-addressed reasoning-result fingerprints (SHA-256 oracle/rows
+# tokens), not secrets. See bench/README.md. Both path forms are listed because
+# gitleaks reports the scanned path with and without the crate/dir prefix.
+cost-baseline.json:generic-api-key:34
+cost-baseline.json:generic-api-key:37
+cost-baseline.json:generic-api-key:62
+cost-baseline.json:generic-api-key:65
+cost-baseline.json:generic-api-key:90
+cost-baseline.json:generic-api-key:93
+cost-baseline.json:generic-api-key:118
+cost-baseline.json:generic-api-key:121
+cost-baseline.json:generic-api-key:159
+cost-baseline.json:generic-api-key:162
+cost-baseline.json:generic-api-key:200
+cost-baseline.json:generic-api-key:203
+cost-baseline.json:generic-api-key:241
+cost-baseline.json:generic-api-key:244
+cost-baseline.json:generic-api-key:288
+cost-baseline.json:generic-api-key:291
+bench/cost-baseline.json:generic-api-key:34
+bench/cost-baseline.json:generic-api-key:37
+bench/cost-baseline.json:generic-api-key:62
+bench/cost-baseline.json:generic-api-key:65
+bench/cost-baseline.json:generic-api-key:90
+bench/cost-baseline.json:generic-api-key:93
+bench/cost-baseline.json:generic-api-key:118
+bench/cost-baseline.json:generic-api-key:121
+bench/cost-baseline.json:generic-api-key:159
+bench/cost-baseline.json:generic-api-key:162
+bench/cost-baseline.json:generic-api-key:200
+bench/cost-baseline.json:generic-api-key:203
+bench/cost-baseline.json:generic-api-key:241
+bench/cost-baseline.json:generic-api-key:244
+bench/cost-baseline.json:generic-api-key:288
+bench/cost-baseline.json:generic-api-key:291

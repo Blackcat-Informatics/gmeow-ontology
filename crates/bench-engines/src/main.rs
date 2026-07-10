@@ -92,8 +92,8 @@
 //! gmeow-cost-measure` returning nothing. `gmeow-conformance` itself gains no
 //! `gmeow-cost-measure` edge; this crate depends on both as siblings.
 
-use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::collections::{BTreeMap, BTreeSet};
+use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 use serde_json::{Value, json};
@@ -164,6 +164,7 @@ fn main() -> gmeow_errors::Result<()> {
 
     let mut corpus_dir: Option<PathBuf> = None;
     let mut emit_cost: Option<PathBuf> = None;
+    let mut check_cost: Option<PathBuf> = None;
 
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
@@ -179,6 +180,13 @@ fn main() -> gmeow_errors::Result<()> {
                 emit_cost = Some(PathBuf::from(args.next().ok_or_else(|| {
                     Diag::of_kind(Cli {
                         detail: "--emit-cost requires a path value".to_string(),
+                    })
+                })?));
+            }
+            "--check-cost" => {
+                check_cost = Some(PathBuf::from(args.next().ok_or_else(|| {
+                    Diag::of_kind(Cli {
+                        detail: "--check-cost requires a path value".to_string(),
                     })
                 })?));
             }
@@ -259,6 +267,16 @@ fn main() -> gmeow_errors::Result<()> {
                 "findings": ids,
             }),
         );
+    }
+
+    // ── Cost-regression check (L3): compare THIS fresh run's deterministic cost +
+    //    verdict-agreement against the committed baseline; ANY divergence is a
+    //    cost-regression gmeow:Finding routed through the SHARED divergence ledger
+    //    (content-addressed identity), and hard-fails the run. This is the richer
+    //    honesty surface behind the primary on-gate `check-generated` cost-ledger
+    //    drift gate. Run BEFORE the artifact is assembled (it borrows the records). ──
+    if let Some(baseline_path) = &check_cost {
+        run_cost_regression_check(baseline_path, &case_records)?;
     }
 
     // ── (2a) The DETERMINISTIC structured artifact ──────────────────────────────
@@ -831,6 +849,165 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────────
 
+/// The `(corpus, case)` identity key of a per-case deterministic record. Hard-fails if
+/// either field is missing (a malformed record is an error, never silently keyed empty).
+fn case_key(rec: &Value) -> gmeow_errors::Result<(String, String)> {
+    let corpus = rec.get("corpus").and_then(Value::as_str).ok_or_else(|| {
+        Diag::of_kind(RunFailed {
+            detail: "cost record missing `corpus`".to_string(),
+        })
+    })?;
+    let case = rec.get("case").and_then(Value::as_str).ok_or_else(|| {
+        Diag::of_kind(RunFailed {
+            detail: format!("cost record for corpus {corpus} missing `case`"),
+        })
+    })?;
+    Ok((corpus.to_owned(), case.to_owned()))
+}
+
+/// A COMPLETE deterministic descriptor of one case's native cost + verdict-agreement
+/// sub-records. serde_json serializes object keys sorted (no `preserve_order` feature),
+/// so this is byte-stable; ANY change to a deterministic count / fingerprint / verdict
+/// changes the descriptor, and thus surfaces as a cost-regression divergence.
+fn cost_descriptor(rec: &Value) -> String {
+    let native = rec.get("native").cloned().unwrap_or(Value::Null);
+    let agreement = rec.get("agreement").cloned().unwrap_or(Value::Null);
+    // Both sub-objects are already integer/boolean/fingerprint-valued; a compact
+    // canonical JSON of the pair is the comparable descriptor.
+    format!(
+        "native={} agreement={}",
+        serde_json::to_string(&native).unwrap_or_default(),
+        serde_json::to_string(&agreement).unwrap_or_default(),
+    )
+}
+
+/// Compare THIS fresh run's per-case deterministic cost + verdict-agreement against the
+/// committed baseline (`bench/cost-baseline.json`). Each `(corpus, case)` divergence —
+/// a changed count/fingerprint/verdict, a case dropped from the run, or a case absent
+/// from the baseline — is folded through the SHARED divergence ledger as a `CorpusOnly`
+/// row, so every cost regression becomes a `gmeow:Finding` carrying content-addressed
+/// ledger identity (`finding_iri` + anchor + antecedents), NOT a bare diff. Emits the
+/// regression findings and HARD-FAILS on any divergence (no-optionality).
+fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_errors::Result<()> {
+    let bytes = std::fs::read(baseline_path).map_err(|e| {
+        Diag::of_kind(Io {
+            detail: format!("reading cost baseline {}: {e}", baseline_path.display()),
+        })
+    })?;
+    let baseline: Value = serde_json::from_slice(&bytes).map_err(|e| {
+        Diag::of_kind(Serialize {
+            detail: format!("cost baseline {} parse: {e}", baseline_path.display()),
+        })
+    })?;
+    let base_cases = baseline
+        .get("cases")
+        .and_then(Value::as_array)
+        .ok_or_else(|| {
+            Diag::of_kind(RunFailed {
+                detail: format!(
+                    "cost baseline {} has no `cases` array",
+                    baseline_path.display()
+                ),
+            })
+        })?;
+
+    // Index both sides by (corpus, case).
+    let mut fresh_idx: BTreeMap<(String, String), &Value> = BTreeMap::new();
+    for r in fresh {
+        fresh_idx.insert(case_key(r)?, r);
+    }
+    let mut base_idx: BTreeMap<(String, String), &Value> = BTreeMap::new();
+    for r in base_cases {
+        base_idx.insert(case_key(r)?, r);
+    }
+
+    // The union of keys → per-corpus comparisons (deterministic BTree order).
+    let mut keys: BTreeSet<(String, String)> = BTreeSet::new();
+    keys.extend(fresh_idx.keys().cloned());
+    keys.extend(base_idx.keys().cloned());
+
+    let mut comps_by_corpus: BTreeMap<String, Vec<ExternalComparison>> = BTreeMap::new();
+    for key in &keys {
+        let (corpus, case) = key;
+        let fresh_rec = fresh_idx.get(key);
+        let base_rec = base_idx.get(key);
+        let native = fresh_rec
+            .map(|r| cost_descriptor(r))
+            .unwrap_or_else(|| "absent-from-fresh-run".to_string());
+        let published = base_rec
+            .map(|r| cost_descriptor(r))
+            .unwrap_or_else(|| "absent-from-baseline".to_string());
+        let world = fresh_rec
+            .or(base_rec)
+            .and_then(|r| r.get("world").and_then(Value::as_str))
+            .unwrap_or("")
+            .to_owned();
+        comps_by_corpus
+            .entry(corpus.clone())
+            .or_default()
+            .push(ExternalComparison {
+                case: format!("{corpus}/{case}::cost"),
+                world,
+                native,
+                published,
+            });
+    }
+
+    // Fold each corpus's comparisons through the shared divergence ledger: an equal
+    // descriptor is `Agree` (a non-blocking corroboration finding), a divergent one is
+    // `CorpusOnly` (a blocking cost-regression finding with content-addressed identity).
+    let mut regressions = 0usize;
+    let mut regression_findings: Vec<Value> = Vec::new();
+    for (corpus, comps) in &comps_by_corpus {
+        let rows = compare_external_corpus(corpus, comps);
+        let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+        regressions += ledger.corpus_only;
+        for f in divergence_findings(&ledger) {
+            if f.code == "reason.divergence.corpus-only" {
+                regression_findings.push(json!({
+                    "code": f.code,
+                    "finding_iri": f.finding_iri.clone().unwrap_or_default(),
+                    "anchor_iri": f.anchor_iri.clone().unwrap_or_default(),
+                    "antecedents": f.antecedents.clone(),
+                    "message": f.message,
+                }));
+            }
+        }
+    }
+
+    if regressions == 0 {
+        eprintln!(
+            "✓ cost-regression check: {} case(s) match the committed baseline {} (no deterministic-count divergence).",
+            keys.len(),
+            baseline_path.display()
+        );
+        return Ok(());
+    }
+
+    // Emit the cost-regression findings (each carrying its ledger identity), sorted by
+    // finding IRI for determinism, then HARD-FAIL.
+    regression_findings.sort_by(|a, b| a["finding_iri"].as_str().cmp(&b["finding_iri"].as_str()));
+    let report = json!({
+        "schema": "gmeow.bench-engines.cost-regression/1",
+        "regression_count": regressions,
+        "baseline": baseline_path.display().to_string(),
+        "findings": regression_findings,
+    });
+    let json = serde_json::to_string_pretty(&report).map_err(|e| {
+        Diag::of_kind(Serialize {
+            detail: e.to_string(),
+        })
+    })?;
+    println!("{json}");
+    Err(Diag::of_kind(RunFailed {
+        detail: format!(
+            "{regressions} cost-regression finding(s): the fresh engine cost/agreement run diverged \
+             from the committed baseline {} — regenerate + review before refreshing the baseline",
+            baseline_path.display()
+        ),
+    }))
+}
+
 /// Wrap a case-scoped failure as a typed `RunFailed` diagnostic (hard-fail, never a
 /// silent skip: a listed engine that cannot be driven is an error).
 fn run_err(case: &BenchCase, detail: String) -> Diag {
@@ -991,4 +1168,101 @@ fn print_advisory_table(rows: &[AdvisoryRow]) {
     eprintln!(
         "────────────────────────────────────────────────────────────────────────────────────"
     );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A minimal per-case deterministic record with the fields the cost-regression
+    /// check compares.
+    fn rec(corpus: &str, case: &str, steps: u64) -> Value {
+        json!({
+            "corpus": corpus,
+            "case": case,
+            "world": "urn:gmeow:test:world",
+            "native": {
+                "consumed_steps": steps,
+                "derived_count": 3,
+                "peak_live_bytes": 100,
+                "cost_vector": [],
+            },
+            "agreement": { "native_vs_golden": true, "native_vs_oracle": true },
+        })
+    }
+
+    /// Write a minimal cost baseline artifact to a unique temp path.
+    fn write_baseline(cases: Vec<Value>) -> PathBuf {
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let mut p = std::env::temp_dir();
+        p.push(format!(
+            "gmeow-cost-baseline-test-{}-{nanos}.json",
+            std::process::id()
+        ));
+        std::fs::write(
+            &p,
+            serde_json::to_string(&json!({ "cases": cases })).unwrap(),
+        )
+        .unwrap();
+        p
+    }
+
+    #[test]
+    fn cost_descriptor_is_stable_and_count_sensitive() {
+        let a = rec("c", "x", 3);
+        let b = rec("c", "x", 3);
+        assert_eq!(
+            cost_descriptor(&a),
+            cost_descriptor(&b),
+            "identical records must yield identical descriptors"
+        );
+        let changed = rec("c", "x", 4);
+        assert_ne!(
+            cost_descriptor(&a),
+            cost_descriptor(&changed),
+            "a changed consumed_steps count must change the descriptor"
+        );
+    }
+
+    #[test]
+    fn regression_check_passes_on_match() {
+        let fresh = vec![rec("c", "x", 3)];
+        let base = write_baseline(vec![rec("c", "x", 3)]);
+        let out = run_cost_regression_check(&base, &fresh);
+        std::fs::remove_file(&base).ok();
+        assert!(
+            out.is_ok(),
+            "an identical fresh run must not regress: {out:?}"
+        );
+    }
+
+    #[test]
+    fn regression_check_hard_fails_on_count_divergence() {
+        // Fresh run has consumed_steps=3; the committed baseline recorded 4 → a
+        // deterministic-count divergence is a cost regression (hard fail).
+        let fresh = vec![rec("c", "x", 3)];
+        let base = write_baseline(vec![rec("c", "x", 4)]);
+        let out = run_cost_regression_check(&base, &fresh);
+        std::fs::remove_file(&base).ok();
+        assert!(
+            out.is_err(),
+            "a diverged deterministic count must be a cost regression"
+        );
+    }
+
+    #[test]
+    fn regression_check_hard_fails_on_dropped_case() {
+        // The baseline has a case the fresh run does not produce → divergence.
+        let fresh = vec![rec("c", "x", 3)];
+        let base = write_baseline(vec![rec("c", "x", 3), rec("c", "y", 5)]);
+        let out = run_cost_regression_check(&base, &fresh);
+        std::fs::remove_file(&base).ok();
+        assert!(
+            out.is_err(),
+            "a case present in the baseline but absent from the fresh run must regress"
+        );
+    }
 }

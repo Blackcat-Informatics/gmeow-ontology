@@ -1,0 +1,482 @@
+{
+  "case_count": 9,
+  "cases": [
+    {
+      "agreement": {
+        "golden_token": "derived=3",
+        "native_golden_token": "derived=3",
+        "native_oracle_token": "derived=3",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "derived=3"
+      },
+      "case": "deep-linear",
+      "corpus": "chasebench-mini",
+      "fragment": "existential",
+      "golden_rows": 3,
+      "native": {
+        "consumed_steps": 3,
+        "cost_vector": [],
+        "derived_count": 3,
+        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "peak_live_bytes": 34937
+      },
+      "oracle": {
+        "derived_count": 3,
+        "engine": "nemo"
+      },
+      "world": "https://example.org/bench/world"
+    },
+    {
+      "agreement": {
+        "golden_token": "derived=6",
+        "native_golden_token": "derived=6",
+        "native_oracle_token": "6bca53ca2d002eb66547f256edda3da1a1cddaf6",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "6bca53ca2d002eb66547f256edda3da1a1cddaf6"
+      },
+      "case": "co-witness",
+      "corpus": "nary-mini",
+      "fragment": "nary-existential",
+      "golden_rows": 6,
+      "native": {
+        "closure_fingerprint": "6bca53ca2d002eb66547f256edda3da1a1cddaf6",
+        "consumed_steps": 16,
+        "cost_vector": [],
+        "derived_count": 6,
+        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "peak_live_bytes": 102307
+      },
+      "oracle": {
+        "closure_count": 6,
+        "closure_fingerprint": "6bca53ca2d002eb66547f256edda3da1a1cddaf6",
+        "engine": "nemo"
+      },
+      "world": "urn:gmeow:nary:world"
+    },
+    {
+      "agreement": {
+        "golden_token": "derived=6",
+        "native_golden_token": "derived=6",
+        "native_oracle_token": "587f5ae95392df97b9693fe3ec70e200daad86c8",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "587f5ae95392df97b9693fe3ec70e200daad86c8"
+      },
+      "case": "split-null",
+      "corpus": "nary-mini",
+      "fragment": "nary-existential",
+      "golden_rows": 6,
+      "native": {
+        "closure_fingerprint": "587f5ae95392df97b9693fe3ec70e200daad86c8",
+        "consumed_steps": 14,
+        "cost_vector": [],
+        "derived_count": 6,
+        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "peak_live_bytes": 88846
+      },
+      "oracle": {
+        "closure_count": 6,
+        "closure_fingerprint": "587f5ae95392df97b9693fe3ec70e200daad86c8",
+        "engine": "nemo"
+      },
+      "world": "urn:gmeow:nary:world"
+    },
+    {
+      "agreement": {
+        "golden_token": "derived=2",
+        "native_golden_token": "derived=2",
+        "native_oracle_token": "405626611e7d61ab7226bd2c2a297ea4e0e8d9c18b7de00857938b7d99e2e3b4",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "405626611e7d61ab7226bd2c2a297ea4e0e8d9c18b7de00857938b7d99e2e3b4"
+      },
+      "case": "reachability-query",
+      "corpus": "nemo-kr2024-mini",
+      "fragment": "backward",
+      "golden_rows": 2,
+      "native": {
+        "answer_count": 2,
+        "answers_fingerprint": "405626611e7d61ab7226bd2c2a297ea4e0e8d9c18b7de00857938b7d99e2e3b4",
+        "consumed_steps": 5,
+        "cost_vector": [],
+        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "peak_live_bytes": 25492
+      },
+      "oracle": {
+        "answer_count": 2,
+        "answers_fingerprint": "405626611e7d61ab7226bd2c2a297ea4e0e8d9c18b7de00857938b7d99e2e3b4",
+        "engine": "scryer"
+      },
+      "world": "https://example.org/bench/world"
+    },
+    {
+      "agreement": {
+        "golden_token": "derived=3",
+        "native_golden_token": "derived=3",
+        "native_oracle_token": "51cd1fc8691b307c9a429b7afa4ef6ddbcb5c91f8d89bd45f3c676cb5aaa9447",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "51cd1fc8691b307c9a429b7afa4ef6ddbcb5c91f8d89bd45f3c676cb5aaa9447"
+      },
+      "case": "transitive-connection",
+      "corpus": "nemo-kr2024-mini",
+      "fragment": "forward",
+      "golden_rows": 3,
+      "native": {
+        "consumed_steps": 3,
+        "cost_vector": [
+          [
+            "https://example.org/bench/rules/conn-base",
+            "https://example.org/bench/conn",
+            1,
+            2
+          ],
+          [
+            "https://example.org/bench/rules/conn-step",
+            "https://example.org/bench/conn",
+            1,
+            1
+          ]
+        ],
+        "derived_count": 3,
+        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "peak_live_bytes": 37822,
+        "rows_fingerprint": "51cd1fc8691b307c9a429b7afa4ef6ddbcb5c91f8d89bd45f3c676cb5aaa9447"
+      },
+      "oracle": {
+        "engine": "nemo",
+        "row_count": 5,
+        "rows_fingerprint": "51cd1fc8691b307c9a429b7afa4ef6ddbcb5c91f8d89bd45f3c676cb5aaa9447"
+      },
+      "world": "https://example.org/bench/world"
+    },
+    {
+      "agreement": {
+        "golden_token": "derived=2",
+        "native_golden_token": "derived=2",
+        "native_oracle_token": "62f716d024cd5c0ae67195157d008fc9bcccab7ecb0df10117bd617b27d4d494",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "62f716d024cd5c0ae67195157d008fc9bcccab7ecb0df10117bd617b27d4d494"
+      },
+      "case": "reachability",
+      "corpus": "relational-core-mini",
+      "fragment": "forward",
+      "golden_rows": 2,
+      "native": {
+        "consumed_steps": 2,
+        "cost_vector": [
+          [
+            "https://example.org/bench/rules/reach-base",
+            "https://example.org/bench/reach",
+            1,
+            1
+          ],
+          [
+            "https://example.org/bench/rules/reach-step",
+            "https://example.org/bench/reach",
+            1,
+            1
+          ]
+        ],
+        "derived_count": 2,
+        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "peak_live_bytes": 36685,
+        "rows_fingerprint": "62f716d024cd5c0ae67195157d008fc9bcccab7ecb0df10117bd617b27d4d494"
+      },
+      "oracle": {
+        "engine": "nemo",
+        "row_count": 4,
+        "rows_fingerprint": "62f716d024cd5c0ae67195157d008fc9bcccab7ecb0df10117bd617b27d4d494"
+      },
+      "world": "https://example.org/bench/world"
+    },
+    {
+      "agreement": {
+        "golden_token": "derived=8",
+        "native_golden_token": "derived=8",
+        "native_oracle_token": "1fbc5a74847284527461ac58d15ba951d3c4c41330019eef0441a08465d5d308",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "1fbc5a74847284527461ac58d15ba951d3c4c41330019eef0441a08465d5d308"
+      },
+      "case": "same-generation",
+      "corpus": "relational-core-mini",
+      "fragment": "forward",
+      "golden_rows": 8,
+      "native": {
+        "consumed_steps": 8,
+        "cost_vector": [
+          [
+            "https://example.org/bench/rules/sg-base",
+            "https://example.org/bench/same_gen",
+            1,
+            6
+          ],
+          [
+            "https://example.org/bench/rules/sg-step",
+            "https://example.org/bench/same_gen",
+            1,
+            2
+          ]
+        ],
+        "derived_count": 8,
+        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "peak_live_bytes": 54978,
+        "rows_fingerprint": "1fbc5a74847284527461ac58d15ba951d3c4c41330019eef0441a08465d5d308"
+      },
+      "oracle": {
+        "engine": "nemo",
+        "row_count": 12,
+        "rows_fingerprint": "1fbc5a74847284527461ac58d15ba951d3c4c41330019eef0441a08465d5d308"
+      },
+      "world": "https://example.org/bench/world"
+    },
+    {
+      "agreement": {
+        "golden_token": "derived=8",
+        "native_golden_token": "derived=8",
+        "native_oracle_token": "8de03a4728f4bc62d04f3288454b73ef3e883beee6dd0660690f81b84aa4cd28",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "8de03a4728f4bc62d04f3288454b73ef3e883beee6dd0660690f81b84aa4cd28"
+      },
+      "case": "scc",
+      "corpus": "relational-core-mini",
+      "fragment": "forward",
+      "golden_rows": 8,
+      "native": {
+        "consumed_steps": 8,
+        "cost_vector": [
+          [
+            "https://example.org/bench/rules/scc-path-base",
+            "https://example.org/bench/path",
+            1,
+            2
+          ],
+          [
+            "https://example.org/bench/rules/scc-path-step",
+            "https://example.org/bench/path",
+            1,
+            2
+          ],
+          [
+            "https://example.org/bench/rules/scc-same-component",
+            "https://example.org/bench/same_component",
+            2,
+            4
+          ]
+        ],
+        "derived_count": 8,
+        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "peak_live_bytes": 53796,
+        "rows_fingerprint": "8de03a4728f4bc62d04f3288454b73ef3e883beee6dd0660690f81b84aa4cd28"
+      },
+      "oracle": {
+        "engine": "nemo",
+        "row_count": 10,
+        "rows_fingerprint": "8de03a4728f4bc62d04f3288454b73ef3e883beee6dd0660690f81b84aa4cd28"
+      },
+      "world": "https://example.org/bench/world"
+    },
+    {
+      "agreement": {
+        "golden_token": "derived=3",
+        "native_golden_token": "derived=3",
+        "native_oracle_token": "cf8d6fe43b6165e0fa972fb1546426dcb381c541a0f53c77a2ab2d654bdba22b",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "cf8d6fe43b6165e0fa972fb1546426dcb381c541a0f53c77a2ab2d654bdba22b"
+      },
+      "case": "transitive-closure",
+      "corpus": "relational-core-mini",
+      "fragment": "forward",
+      "golden_rows": 3,
+      "native": {
+        "consumed_steps": 3,
+        "cost_vector": [
+          [
+            "https://example.org/bench/rules/tc-base",
+            "https://example.org/bench/path",
+            1,
+            2
+          ],
+          [
+            "https://example.org/bench/rules/tc-step",
+            "https://example.org/bench/path",
+            1,
+            1
+          ]
+        ],
+        "derived_count": 3,
+        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "peak_live_bytes": 37785,
+        "rows_fingerprint": "cf8d6fe43b6165e0fa972fb1546426dcb381c541a0f53c77a2ab2d654bdba22b"
+      },
+      "oracle": {
+        "engine": "nemo",
+        "row_count": 5,
+        "rows_fingerprint": "cf8d6fe43b6165e0fa972fb1546426dcb381c541a0f53c77a2ab2d654bdba22b"
+      },
+      "world": "https://example.org/bench/world"
+    }
+  ],
+  "engine_pins": {
+    "native": "gmeow-logic/0.1.0+nemo+scryer",
+    "nemo_rev": "4415bc2e180adf33a7a4b98ddc41be9914b7584e",
+    "scryer_branch": "master"
+  },
+  "ledgers": {
+    "chasebench-mini": {
+      "agree": 2,
+      "cases": 2,
+      "corpus_only": 0,
+      "dl_gap": 0,
+      "finding_count": 2,
+      "finding_graph_blake3": "d9c758426c40e8b12d830a06f54cab35efcde6716f232aa913e66aa2c6b65dd1",
+      "findings": [
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/d74fffbb75111a38fb28b7ebbaf31fcc",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/7ef874632a5703282d14c159cb503c80"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/31e159d1f715e22b57136a9996bb38da",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/f52037a690276d092d55dc19a173cf1d"
+        }
+      ]
+    },
+    "nary-mini": {
+      "agree": 4,
+      "cases": 4,
+      "corpus_only": 0,
+      "dl_gap": 0,
+      "finding_count": 4,
+      "finding_graph_blake3": "0f8576dae8c1613ee3d1808c438b637af12b16855527a51aeb58e8f360c68422",
+      "findings": [
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/678b1390334b1fac71eec2f6f119b2b6",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/43a7a12d9887d715146b681264af2a9a"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/0037a6486bd7f50f56cadd5f9d8eae9f",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/4e4d1c93f0c1d269c7e967078c55933f"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/f48ce302203f58dd4f6ac90b8aa3ca5c",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/d1e4912cef6c76740ae69aed1f00d646"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/8c08150822554ecfbd05f25a74aaba7b",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/f4e5e4daf565ee58b30a0b84f23d769b"
+        }
+      ]
+    },
+    "nemo-kr2024-mini": {
+      "agree": 4,
+      "cases": 4,
+      "corpus_only": 0,
+      "dl_gap": 0,
+      "finding_count": 4,
+      "finding_graph_blake3": "49f9011ba14424c9b37c9329fd2a4cc38c84e696a7d7b5ad8545533c2c16539c",
+      "findings": [
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/904335816af109d55ba49a40f2ed1557",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/640c89f917d28b32990245b1b51c419a"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/1e66d31782257025291f2f23d5bbe6ee",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/691a7c0e619da77a130f9d486f651ff6"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/53e66072951ae1a7c3c22dc3645be8f6",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/92d00dd2be0aeaa51862a7956f2a724a"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/d9f5f38622b98c35220ca1da213b2134",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/b077fbbe7bcd5d801c894f1b377ca21c"
+        }
+      ]
+    },
+    "relational-core-mini": {
+      "agree": 8,
+      "cases": 8,
+      "corpus_only": 0,
+      "dl_gap": 0,
+      "finding_count": 8,
+      "finding_graph_blake3": "af6f81f99c939fb56709fd101a7ec88d848b054196617ed32454f72c5da23471",
+      "findings": [
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/d7f9dad000434c585e2cd30caa3a6420",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/01272e5093b13c0deee95c5c66dc4adc"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/5acc129cd75d2748f546e68dcba1e3e3",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/0bb8dce8c39762b459533da0e6bcbd51"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/ba692074e8d2f7eb891706fd60c54f00",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/10b768d307629ec0abfe28e64c5b75af"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/4795866b3b2187e390e1ecc367c5d4e5",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/1ff6b7053064db7576ae208ef2f8ae35"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/7accd59d9c75374e9241f7d53983a5d5",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/3f54fee0c07a9b0c2f08d96d0512a147"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/c722eec246cbdf23c16a7362b3f18907",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bfcd12dc206ca8f78a5464114daa810f"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/80b7ab1ef549dccf0269a7b5d59e61e2",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/cb6876933c9442a218f2ca88c7a8b38c"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/0240f0180ab892c47506bbeee1844b85",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/dd7a4dc9e2066dd99cadc7310882a2d2"
+        }
+      ]
+    }
+  },
+  "schema": "gmeow.bench-engines.cost/1"
+}

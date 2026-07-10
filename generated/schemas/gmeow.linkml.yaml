@@ -20608,6 +20608,9 @@ enums:
       stage-export-constraint-shapes:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-constraint-shapes
         title: 'export: constraint shapes'
+      stage-export-cost-ledger:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-cost-ledger
+        title: 'export: cost ledger'
       stage-export-evals:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-evals
         title: 'export: evals'

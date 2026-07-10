@@ -1558,6 +1558,12 @@ fn build_fanout_opaque_blob(
         &mut members,
         producer_artifacts("stage-export-bench", upstream)?,
     );
+    // The deterministic engine-cost ledger: projected once in stage-export-cost-ledger
+    // from the committed cost baseline; read off its product, never re-rendered from disk.
+    take_opaque(
+        &mut members,
+        producer_artifacts("stage-export-cost-ledger", upstream)?,
+    );
     // The external-corpus agreement matrix: projected once in stage-export-agreement
     // from the single grade's attached tallies; read off its product, never re-rendered.
     take_opaque(

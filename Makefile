@@ -87,7 +87,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
-	maint-bench-engines maint-rust-heavy \
+	maint-bench-engines maint-bench-cost-baseline maint-rust-heavy \
 	maint-external-corpora maint-tptp-corpus maint-lang-selfhost \
 	maint-nemo-kr2024-corpus maint-chasebench-corpus
 
@@ -564,6 +564,27 @@ maint-bench-engines: ## (maintainer) Engine-vs-engine benchmark over the committ
 	    exit 1; \
 	  fi; \
 	  echo "✓ deterministic cost/agreement artifact is byte-identical across two runs ($$(wc -c < "$$tmpdir/cost-1.json") bytes)"
+
+maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from a fresh engine-vs-engine run (offline; the drift-gated cost-ledger source).
+	@# The SINGLE producer of the committed deterministic cost/agreement baseline:
+	@# `gmeow-bench-engines --emit-cost` over the committed mini corpora (offline; no
+	@# `--corpus-dir`, so the Nemo-fetch full corpora are NOT included). Mirrors
+	@# `maint-bench-baseline`: a deliberate, hand-committed refresh — never auto-drift.
+	@# The artifact is a pure function of engine version + corpus (integer cost vectors,
+	@# consumed_steps, derived counts, peak-live bytes, verdict-agreement tokens, and the
+	@# per-corpus divergence-ledger tally), so it is emitted TWICE and diffed — a byte
+	@# difference FAILS the lane. `generated/bench/cost-ledger.md` is its drift-gated
+	@# projection (the `stage-export-cost-ledger` leaf), regenerated + committed alongside.
+	@set -e; \
+	  tmp="$$(mktemp)"; \
+	  trap 'rm -f "$$tmp"' EXIT; \
+	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --emit-cost bench/cost-baseline.json; \
+	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --emit-cost "$$tmp" 2>/dev/null; \
+	  if ! diff -u bench/cost-baseline.json "$$tmp"; then \
+	    echo "ERROR: bench/cost-baseline.json DIFFERED across two runs — it must be byte-identical (a pure function of engine version + corpus)."; \
+	    exit 1; \
+	  fi; \
+	  echo "wrote bench/cost-baseline.json ($$(wc -c < bench/cost-baseline.json) bytes, byte-identical across two runs) — regenerate + commit generated/bench/cost-ledger.md"
 
 # The bounded ORE subset cap: the ORE 2015 sample corpus is ~725 MB / 1920
 # ontologies. Grading all of them is intractable for a maint lane, so we cap to
