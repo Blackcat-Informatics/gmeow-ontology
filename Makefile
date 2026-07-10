@@ -86,7 +86,8 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
-	maint-compliance-report-full maint-bench-baseline maint-bench-instructions maint-rust-heavy \
+	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
+	maint-bench-engines maint-rust-heavy \
 	maint-external-corpora maint-tptp-corpus maint-lang-selfhost
 
 ##@ Core Workflows
@@ -522,6 +523,46 @@ maint-bench-instructions: ## (maintainer) Deterministic retired-instruction coun
 	@# env, so DWARF is not persisted into the checked-in bench profile.
 	CARGO_PROFILE_BENCH_STRIP=none CARGO_PROFILE_BENCH_DEBUG=line-tables-only \
 	  cargo bench -p gmeow-logic --bench engines_iai
+
+maint-bench-engines: ## (maintainer) Engine-vs-engine benchmark over the committed mini corpora: emit the DETERMINISTIC cost/agreement artifact + the REPORT-ONLY wall/RSS advisory table (offline; NOT wired into `make check`).
+	@# The `bench-engines` harness drives every committed mini bench case through the
+	@# native engine and the applicable oracle (Nemo forward/existential, Scryer
+	@# backward), IN-PROCESS with a fresh EDB per case. This is sound because each
+	@# oracle rebuilds a FRESH engine per call (Nemo `load_string` under CHASE_LOCK,
+	@# Scryer a fresh Machine under SCRYER_LOCK), exactly as the production
+	@# native↔Nemo crosscheck already dual-runs many cases in one process. Offline:
+	@# no network, no Valgrind.
+	@#
+	@# It produces TWO strictly-separated outputs: (2a) a DETERMINISTIC, gate-eligible
+	@# cost/agreement artifact (integer cost vectors, consumed_steps, derived_count,
+	@# the deterministic peak-live bytes, and verdict-agreement tokens; NO wall-clock,
+	@# NO peak-RSS, NO total-allocation scalars), and (2b) a REPORT-ONLY advisory table
+	@# on stderr carrying the non-deterministic wall/RSS AND the total-allocation
+	@# bytes/count. The committed baseline + drift gate over (2a) is a downstream task;
+	@# this lane only PRODUCES the artifact and prints the advisory table.
+	@#
+	@# R1 pool-quiesce: `main` pins the process-GLOBAL Rayon pool to a single thread
+	@# (`ThreadPoolBuilder::new().num_threads(1).build_global()`) before any engine
+	@# call — good hygiene that makes peak-live-bytes rock-solid. The TOTAL allocation
+	@# bytes/count still carry a small irreducible transient (rayon/allocator scratch,
+	@# ~0.008% on the most-recursive case, proven by differing back-to-back in-process
+	@# measures), so they are advisory-only; peak simultaneously-live bytes nets that
+	@# scratch to zero and is the deterministic, gate-eligible allocation metric in (2a).
+	@#
+	@# Determinism assertion: emit the artifact TWICE and diff — a byte difference
+	@# FAILS the lane (the artifact must be a pure function of engine version + corpus).
+	@set -e; \
+	  tmpdir="$$(mktemp -d)"; \
+	  trap 'rm -rf "$$tmpdir"' EXIT; \
+	  echo "→ bench-engines run 1 (artifact + advisory table on stderr)"; \
+	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --emit-cost "$$tmpdir/cost-1.json"; \
+	  echo "→ bench-engines run 2 (determinism replay)"; \
+	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --emit-cost "$$tmpdir/cost-2.json" 2>/dev/null; \
+	  if ! diff -u "$$tmpdir/cost-1.json" "$$tmpdir/cost-2.json"; then \
+	    echo "ERROR: the deterministic cost/agreement artifact DIFFERED across two runs — it must be byte-identical."; \
+	    exit 1; \
+	  fi; \
+	  echo "✓ deterministic cost/agreement artifact is byte-identical across two runs ($$(wc -c < "$$tmpdir/cost-1.json") bytes)"
 
 # The bounded ORE subset cap: the ORE 2015 sample corpus is ~725 MB / 1920
 # ontologies. Grading all of them is intractable for a maint lane, so we cap to

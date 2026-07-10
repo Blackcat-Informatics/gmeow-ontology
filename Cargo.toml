@@ -11,6 +11,11 @@ members = [
     "crates/cli-core",
     # Native logic-conformance harness (#785): datatest-stable over the corpus.
     "crates/conformance",
+    # Engine-vs-engine benchmark harness (dedicated LEAF bin). It is the ONLY
+    # installer of the gmeow-cost-measure counting #[global_allocator]; as a leaf
+    # nothing depends on it, so the allocator never reaches gmeow-cli even though the
+    # CLI transitively depends on gmeow-conformance (cli→pipeline→conformance).
+    "crates/bench-engines",
     # Harness-scoped deterministic allocation-measurement allocator + measure()
     # helper. Depended on ONLY by bench targets / the future maint harness bin —
     # NEVER by gmeow-cli, since its #[global_allocator] is process-global.

@@ -124,19 +124,38 @@ pub fn bench_cases_root() -> PathBuf {
 /// Hard-fails when the bench root is missing, a `corpus.json` is unreadable / invalid
 /// / declares a non-vendorable license, or any case artifact is missing / malformed.
 pub fn load_bench_corpora() -> gmeow_errors::Result<Vec<BenchCase>> {
-    let root = bench_cases_root();
+    load_bench_corpora_from(&bench_cases_root())
+}
+
+/// Enumerate and load every committed bench case under an explicit `root`, auditing
+/// each corpus's license before any of its cases are admitted.
+///
+/// This is the root-parameterized form of [`load_bench_corpora`] (which delegates
+/// here with [`bench_cases_root`]). It is the seam a later fetch lane points at a
+/// full fetched-distribution corpus root: the `bench-engines` harness's
+/// `--corpus-dir <path>` flag flows straight into this function, so the exact same
+/// hard-fail loader and license audit govern committed and fetched corpora alike.
+///
+/// The returned vector is deterministically ordered: corpora sorted by directory
+/// name, and within each corpus, cases sorted by directory name.
+///
+/// # Errors
+///
+/// Hard-fails when `root` is missing, a `corpus.json` is unreadable / invalid /
+/// declares a non-vendorable license, or any case artifact is missing / malformed.
+pub fn load_bench_corpora_from(root: &Path) -> gmeow_errors::Result<Vec<BenchCase>> {
     if !root.is_dir() {
         return Err(Diag::of_kind(Io {
             detail: format!(
                 "engine-benchmark corpus root does not exist: {}. Expected \
-                 conformance/logic/cases/bench/ to be present.",
+                 conformance/logic/cases/bench/ (or an explicit --corpus-dir) to be present.",
                 root.display()
             ),
         }));
     }
 
     let mut out: Vec<BenchCase> = Vec::new();
-    for corpus_dir in sorted_subdirs(&root)? {
+    for corpus_dir in sorted_subdirs(root)? {
         let corpus_name = dir_name(&corpus_dir)?;
 
         // License gate: audit the declared license BEFORE admitting any case (a

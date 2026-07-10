@@ -275,9 +275,12 @@ corpus)`: bit-for-bit reproducible, immune to the scheduler.
     of an external corpus is a deterministic set comparison and gates **on-gate**, with no oracle
     process required.
   - *Cost* — the engine's own operational counters are the gating cost signal: the per-round
-    committed-derivation count, allocation bytes and count, and peak simultaneously-live bytes.
-    These are **deterministic** and gate **on-gate**; externally-instrumented retired-instruction
-    counts corroborate them in a maintainer lane.
+    committed-derivation count and **peak simultaneously-live bytes**. These are byte-reproducible
+    and gate **on-gate**; externally-instrumented retired-instruction counts corroborate them in a
+    maintainer lane. Total allocation bytes and allocation count are also measured, but the current
+    native core emits a small amount of non-deterministic transient scratch (parallel-runtime and
+    allocator bookkeeping) that peak-live nets to zero, so bytes/count are carried **advisory-only**
+    — a ledger entry until the transient scratch is made deterministic, never a silent gate.
   - *Speed* — wall-clock and peak-RSS are **advisory evidence only, never a gate**: engine-vs-engine
     leaderboard rows over a named, version-pinned corpus.
 - **Cost is an algebra, not a scalar.** Cost is a tropical / counting semiring over the
