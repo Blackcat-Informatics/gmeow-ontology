@@ -48,37 +48,46 @@
 //! would have to be unwound next phase.
 #![allow(dead_code)]
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
+use std::hash::{BuildHasher, Hash, Hasher};
 
 use foldhash::fast::FixedState;
+use hashbrown::HashTable;
 use purrdf::TermValue;
 
 use crate::facts::{PredId, PredInterner};
+use crate::physical::bitset::DenseBitset;
+use crate::physical::id::RowId;
 use crate::provenance::{
     ASSERT_RULE_IRI, LOGIC_NAMESPACE, mint_derivation_id, mint_reifier, term_display,
 };
 use crate::query_ir::QBuiltin;
 
-/// A fixed-seed hash set over [`FactKey`]s — the fixpoint's delta / store-key
-/// membership form.
+/// A set of [`FactKey`]s — the whole-model comparison form used by the well-founded
+/// alternating fixpoint ([`crate::wellfounded`]) and the stable-model stability test
+/// ([`crate::stablemodel`]).
 ///
-/// The seed is fixed (`FixedState`, never random) and NEVER persisted: this set is
-/// a pure membership probe, never an emission-order source.  Every emitted order in
-/// the engine derives from the sorted round commit, not from this set's iteration.
-/// (Interim form — a later dense `RowId` bitset replaces the delta; until
-/// then it must not remain std SipHash.)
-pub(crate) type FactKeySet = std::collections::HashSet<FactKey, FixedState>;
+/// This is a COLD-PATH structure: it is materialized only for coarse model-equality
+/// checks (`k2.key_set() == k.key_set()`) and skeptical-intersection sweeps, never
+/// probed on the per-candidate join path — that hot delta membership moved to a dense
+/// [`DenseBitset`] over the store's insertion-order [`RowId`]s.  A `BTreeSet` gives
+/// order-independent equality with no hasher, so no SipHash-keyed owned-key set
+/// survives on any path; determinism still derives from the sorted round commit, never
+/// from this set's iteration.
+pub(crate) type FactKeySet = BTreeSet<FactKey>;
 
-/// A fixed-seed hash map keyed by [`FactKey`] (same determinism contract as
-/// [`FactKeySet`]).
-pub(crate) type FactKeyMap<V> = std::collections::HashMap<FactKey, V, FixedState>;
-
-/// A [`FactKeySet`] preallocated for `n` keys with the fixed seed.
+/// Fixed-seed hash of a [`FactKey`], for the borrowed-key `HashTable` probes in
+/// [`FactStore`] and the per-round winner map — mirrors `facts::fact_key_hash` /
+/// `physical::generic`'s borrowed-key probe and never clones the key to hash it.
 ///
-/// `HashSet::with_capacity` is unavailable for a non-default hasher, so this is the
-/// capacity-reserving constructor the round-commit path uses.
-pub(crate) fn fact_key_set_with_capacity(n: usize) -> FactKeySet {
-    FactKeySet::with_capacity_and_hasher(n, FixedState::default())
+/// The seed is fixed (`FixedState::default()`, never random) and NEVER persisted: it
+/// backs pure membership probes, never an emission-order source.
+pub(crate) fn fact_key_hash(key: &FactKey) -> u64 {
+    let mut hasher = FixedState::default().build_hasher();
+    key.0.hash(&mut hasher);
+    key.1.hash(&mut hasher);
+    key.2.hash(&mut hasher);
+    hasher.finish()
 }
 
 /// Wrap a runtime-IR condition message as a typed diagnostic on the shared
@@ -174,10 +183,24 @@ impl Fact {
 }
 
 /// Insertion-ordered fact store with O(1) dedup — mirrors `foundation.rs::FactStore`.
+///
+/// Dedup is a borrowed-key `HashTable<usize>` probe into `facts`/`surfaces` (mirrors
+/// `facts::TypedFactSet` / `physical::generic::GenericStore`): the owned
+/// `(subject, predicate, object)` key lives once in `surfaces`, so no owned-key clone
+/// is paid per probe.  Delta membership on the hot join path is NOT this table — it is
+/// a dense [`DenseBitset`] over each row's insertion-order index (see
+/// [`least_model_of_reduct`]).
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FactStore {
     facts: Vec<Fact>,
-    keys: FactKeySet,
+    /// The cached `(subject, predicate, object)` N3-surface of each `facts[i]`,
+    /// computed once at insert — avoids re-rendering a stored fact's surface on every
+    /// subsequent probe against it, and is the side arena the `keys` probe resolves.
+    surfaces: Vec<FactKey>,
+    /// Borrowed-key dedup index into `facts`/`surfaces`: a hashbrown [`HashTable`]
+    /// holding only the ROW INDEX, hashed via [`fact_key_hash`] from the cached
+    /// surface.  No owned-key clone per probe.
+    keys: HashTable<usize>,
     /// The store's predicate dictionary: predicate surface → dense [`PredId`].
     predicates: PredInterner,
     /// [`PredId`] (interned predicate surface) → row indices into `facts`, in
@@ -198,37 +221,68 @@ impl FactStore {
     pub(crate) fn new() -> Self {
         Self {
             facts: Vec::new(),
-            keys: FactKeySet::default(),
+            surfaces: Vec::new(),
+            keys: HashTable::new(),
             predicates: PredInterner::new(),
             predicate_index: HashMap::default(),
         }
     }
 
-    /// Insert `fact` if its key is new; return `true` if it was inserted.
-    pub(crate) fn insert(&mut self, fact: Fact) -> bool {
-        let key = fact.key();
-        if self.keys.contains(&key) {
-            return false;
+    /// Insert `fact` if its key is new; return the newly-assigned insertion-order row
+    /// index on success, `None` if a fact with the same key already exists.
+    ///
+    /// The returned index is the store-global dense slot of the new row (equal to
+    /// `facts().len()` before the push), so callers keeping a parallel per-row column
+    /// (a depth `Vec`, a delta [`DenseBitset`]) can address the new row directly.
+    pub(crate) fn insert(&mut self, fact: Fact) -> Option<usize> {
+        let surface = fact.key();
+        let hash = fact_key_hash(&surface);
+        // Borrowed-key membership probe: compare against the cached surface in place,
+        // allocating NOTHING on a hit.
+        let surfaces = &self.surfaces;
+        if self.keys.find(hash, |&i| surfaces[i] == surface).is_some() {
+            return None;
         }
-        self.keys.insert(key);
         // Intern the predicate surface once to a dense `PredId` (borrowed-key probe —
         // no owned-key clone per bucket), then push the new row index in lockstep with
-        // `facts`, preserving insertion order within the predicate bucket.
+        // `facts`/`surfaces`, preserving insertion order within the predicate bucket.
         let pid = self.predicates.intern(&fact.predicate);
         let idx = self.facts.len();
         self.facts.push(fact);
+        self.surfaces.push(surface);
         self.predicate_index.entry(pid).or_default().push(idx);
-        true
+        let surfaces = &self.surfaces;
+        self.keys
+            .insert_unique(hash, idx, |&i| fact_key_hash(&surfaces[i]));
+        Some(idx)
     }
 
     /// Whether a fact with this key exists.
     pub(crate) fn contains_key(&self, key: &FactKey) -> bool {
-        self.keys.contains(key)
+        let hash = fact_key_hash(key);
+        self.keys
+            .find(hash, |&i| self.surfaces[i] == *key)
+            .is_some()
     }
 
-    /// The set of all fact keys (for fixpoint comparison).
+    /// The insertion-order row index of the fact with this key, if present.
+    ///
+    /// The same borrowed-key probe as [`contains_key`](Self::contains_key), returning
+    /// the row index so a per-row side column (e.g. the derivation-depth `Vec`) can be
+    /// addressed without a second owned-key map.
+    pub(crate) fn row_index(&self, key: &FactKey) -> Option<usize> {
+        let hash = fact_key_hash(key);
+        self.keys.find(hash, |&i| self.surfaces[i] == *key).copied()
+    }
+
+    /// The set of all fact keys (for fixpoint comparison — a cold, whole-model path).
     pub(crate) fn key_set(&self) -> FactKeySet {
-        self.keys.clone()
+        self.surfaces.iter().cloned().collect()
+    }
+
+    /// The number of stored rows (insertion-order slots `0..row_count`).
+    pub(crate) fn row_count(&self) -> usize {
+        self.facts.len()
     }
 
     /// The facts in insertion order.
@@ -606,23 +660,26 @@ enum Scan {
 fn extend_solutions(
     atom: &EvalAtom,
     store: &FactStore,
-    delta: &FactKeySet,
+    delta: &DenseBitset,
     scan: &Scan,
     solutions: &[Solution],
 ) -> Vec<Solution> {
-    let keep = |f: &Fact| match scan {
-        Scan::Delta => delta.contains(&f.key()),
+    // The row index `i` is already in hand from the predicate bucket, so delta
+    // membership is one dense `u64`-word test on the row's `RowId` — NO `Fact::key()`
+    // rendering (2 allocs + 1 clone) and NO hashing per (solution × row).
+    let keep = |i: usize| match scan {
+        Scan::Delta => delta.contains(RowId::from_index(i)),
         Scan::Full => true,
-        Scan::OldOnly => !delta.contains(&f.key()),
+        Scan::OldOnly => !delta.contains(RowId::from_index(i)),
     };
     let mut next: Vec<Solution> = Vec::new();
     let bucket = store.facts_for_predicate(atom.predicate.as_str());
     for sol in solutions {
         for &i in bucket {
-            let f = &store.facts()[i];
-            if !keep(f) {
+            if !keep(i) {
                 continue;
             }
+            let f = &store.facts()[i];
             if let Some(mut merged) = match_atom(atom, f, sol) {
                 merged.source_facts.push(f.clone());
                 next.push(merged);
@@ -646,7 +703,7 @@ fn join_body(
     rule: &EvalRule,
     store: &FactStore,
     reference: &FactStore,
-    delta: &FactKeySet,
+    delta: &DenseBitset,
 ) -> Vec<Solution> {
     let positive: Vec<&EvalAtom> = rule.body.iter().filter(|a| !a.negated).collect();
     let negated: Vec<&EvalAtom> = rule.body.iter().filter(|a| a.negated).collect();
@@ -740,7 +797,10 @@ pub(crate) struct Provenance {
 #[derive(Clone)]
 pub(crate) struct RuleRoundCandidate {
     pub(crate) head: Fact,
-    pub(crate) key: FactKey,
+    // `key: FactKey` REMOVED — it was always identical to `head.key()`, computed once at
+    // construction only to be re-derived by callers.  The per-round winner map now caches
+    // each candidate's key alongside it (like `FactStore.surfaces`), and the commit loop
+    // reads that cached key, so the redundant per-candidate field is gone.
     /// The recorded provenance, or `None` on the facts-only (Skip) lane.
     pub(crate) prov: Option<Provenance>,
 }
@@ -792,27 +852,43 @@ pub(crate) fn least_model_of_reduct(
     reference: &FactStore,
 ) -> gmeow_errors::Result<ReductResult> {
     let mut store = FactStore::new();
-    let edb_keys: FactKeySet = edb.key_set();
 
-    // Per-fact derivation-depth map: depth 0 for every EDB (asserted) fact;
-    // derived facts get depth = 1 + max(source depths) when committed at round end.
-    let mut depth: FactKeyMap<u32> = FactKeyMap::default();
+    // Per-fact derivation-depth column, indexed by the store's insertion-order row:
+    // `depth[i]` is the depth of `store`'s row `i`.  Depth 0 for every EDB (asserted)
+    // fact; derived facts get depth = 1 + max(source depths) when committed at round
+    // end.  It is pushed in lockstep with `store.insert`, so it never needs an owned-key
+    // map — the row index the store returns is the column index.
+    let mut depth: Vec<u32> = Vec::new();
 
     for f in edb.facts() {
-        let key = f.key();
-        depth.insert(key, 0); // EDB facts have depth 0
-        store.insert(f.clone());
+        // `edb` is itself a `FactStore` (no duplicate keys), so every seed inserts into
+        // the fresh `store`; guard on `Some` regardless so `depth` tracks `store`'s rows
+        // exactly.
+        if store.insert(f.clone()).is_some() {
+            depth.push(0); // EDB facts have depth 0
+        }
     }
+
+    // The EDB occupies rows `0..edb_row_count` (seeded first, in dense order); a later
+    // winner is a genuine derivation iff its assigned row index is at or beyond this,
+    // replacing the old `edb_keys` membership set.
+    let edb_row_count = store.row_count();
 
     let mut derivations: Vec<DerivedRow> = Vec::new();
 
-    // Seed delta with all EDB keys so rules fire against the seed in round 1.
-    let mut delta: FactKeySet = store.key_set();
+    // Seed delta with every EDB row so rules fire against the seed in round 1.  The store
+    // holds exactly the EDB facts in dense order `0..edb_row_count`, so the whole set is
+    // the low `edb_row_count` bits — one `all_set`, no per-key materialization.
+    let mut delta = DenseBitset::all_set(store.row_count());
     loop {
-        // Per-round canonical-winner map: keyed by head key, holds the candidate
-        // chosen by a quality-ordered total-order tiebreak (see struct doc above).
-        // This makes provenance selection independent of firing-enumeration order.
-        let mut round: FactKeyMap<RuleRoundCandidate> = FactKeyMap::default();
+        // Per-round canonical-winner map: a borrowed-key `HashTable<usize>` into a side
+        // `Vec<(FactKey, RuleRoundCandidate)>` (mirrors `FactStore`'s cached-surface
+        // probe), holding the candidate chosen by a quality-ordered total-order tiebreak
+        // (see struct doc above).  This makes provenance selection independent of
+        // firing-enumeration order.  The cached `FactKey` is reused at commit for the
+        // sort, so no candidate's surface is re-rendered on a probe.
+        let mut round_entries: Vec<(FactKey, RuleRoundCandidate)> = Vec::new();
+        let mut round_index: HashTable<usize> = HashTable::new();
 
         for rule in rules {
             for sol in join_body(rule, &store, reference, &delta) {
@@ -831,7 +907,11 @@ pub(crate) fn least_model_of_reduct(
                 let mut sum_sd: u64 = 0;
                 for sf in &sol.source_facts {
                     sources.push(sf.reifier()?);
-                    let d = *depth.get(&sf.key()).unwrap_or(&0);
+                    let d = store
+                        .row_index(&sf.key())
+                        .and_then(|i| depth.get(i))
+                        .copied()
+                        .unwrap_or(0);
                     max_sd = max_sd.max(d);
                     sum_sd = sum_sd.saturating_add(u64::from(d));
                 }
@@ -848,7 +928,6 @@ pub(crate) fn least_model_of_reduct(
                 // Level 4: rule_iri — total-order backstop (IRIs vary per rule).
                 let candidate = RuleRoundCandidate {
                     head,
-                    key: key.clone(),
                     prov: Some(Provenance {
                         sources,
                         sorted_sources,
@@ -859,39 +938,58 @@ pub(crate) fn least_model_of_reduct(
                         source_facts: sol.source_facts.clone(),
                     }),
                 };
-                round
-                    .entry(key)
-                    .and_modify(|existing| {
-                        if candidate.tiebreak_key() < existing.tiebreak_key() {
-                            *existing = candidate.clone();
+                let hash = fact_key_hash(&key);
+                match round_index.find(hash, |&i| round_entries[i].0 == key) {
+                    Some(&i) => {
+                        if candidate.tiebreak_key() < round_entries[i].1.tiebreak_key() {
+                            round_entries[i].1 = candidate;
                         }
-                    })
-                    .or_insert(candidate);
+                    }
+                    None => {
+                        let idx = round_entries.len();
+                        round_entries.push((key, candidate));
+                        let entries = &round_entries;
+                        round_index.insert_unique(hash, idx, |&i| fact_key_hash(&entries[i].0));
+                    }
+                }
             }
         }
 
-        if round.is_empty() {
+        if round_entries.is_empty() {
             break; // fixpoint
         }
 
-        // Commit all winners from this round in FactKey order, not raw `HashMap`
-        // order, so store/index insertion order is deterministic.
-        let mut new_delta: FactKeySet = fact_key_set_with_capacity(round.len());
-        let mut winners: Vec<_> = round.into_iter().collect();
+        // Commit all winners from this round in resolved-lexical FactKey order, not raw
+        // table order, so store/index insertion order is deterministic.
+        let round_len = round_entries.len();
+        let mut winners: Vec<(FactKey, RuleRoundCandidate)> = round_entries;
         winners.sort_by(|(a, _), (b, _)| a.cmp(b));
+        let mut new_delta = DenseBitset::with_capacity(store.row_count() + round_len);
         for (_key, winner) in winners {
-            let RuleRoundCandidate { head, key, prov } = winner;
+            let RuleRoundCandidate { head, prov } = winner;
             // The reduct evaluator always records provenance; a `None` here is an engine
             // bug (a candidate committed without its derivation), not a data condition.
             let prov = prov.expect("least_model_of_reduct always records provenance");
             let winner_depth = prov.max_src_depth.saturating_add(1);
-            depth.insert(key.clone(), winner_depth);
-            store.insert(head.clone());
-            new_delta.insert(key.clone());
+            // A winner is always a genuinely-new fact (heads already present are skipped
+            // above via `store.contains_key`), so the insert returns `Some(idx)`; that
+            // index drives the lockstep depth push AND the EDB-vs-derived membership test.
+            let idx = store
+                .insert(head.clone())
+                .expect("a round winner is a genuinely-new fact (head not already present)");
+            assert_eq!(
+                idx,
+                depth.len(),
+                "depth/store index desync: `depth` and the `FactStore` rows must stay in \
+                 lockstep (each committed row pushes exactly one depth slot)"
+            );
+            depth.push(winner_depth);
+            new_delta.set(RowId::from_index(idx));
 
-            // Record provenance only for genuinely-derived facts (a rule whose
-            // head re-states an EDB fact is not a derivation row).
-            if !edb_keys.contains(&key) {
+            // Record provenance only for genuinely-derived facts (a rule whose head
+            // re-states an EDB fact — row index below the EDB range — is not a
+            // derivation row).
+            if idx >= edb_row_count {
                 derivations.push(DerivedRow {
                     graph: String::new(),
                     subject: head.subject,

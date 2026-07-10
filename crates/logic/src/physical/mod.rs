@@ -23,8 +23,10 @@ mod arena;
 mod binding_pattern;
 // The dense `u64`-word delta bitset: row-id membership over the
 // phase-scoped value column. It is the delta probe of the semi-naive fixpoint
-// (`seminaive`) — one word test per selected row, no hashing.
-mod bitset;
+// (`seminaive`) and the ternary reduct engine (`crate::rule_ir`) — one word test per
+// selected row, no hashing. `pub(crate)` (like `id`) so the sibling `rule_ir` module
+// reuses the SAME `DenseBitset` for its own row-index delta (one definition, greenfield).
+pub(crate) mod bitset;
 mod builtin_eval;
 mod chase;
 // The arrangement's native galloping lending cursor: a sealed
