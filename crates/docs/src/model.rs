@@ -2563,10 +2563,7 @@ fn extract_competency(store: &Store, owner_slice: &str) -> Vec<DocCompetency> {
         // from the inline literal here never collides with the file-based
         // resolution `apply_competency_query_text` performs afterwards.
         let query_text = first_literal(store, &cq, GMEOW_CQ_QUERY);
-        let exact_rows = literals(store, &cq, GMEOW_CQ_EXACT_ROWS)
-            .into_iter()
-            .next()
-            .map(|v| v == "true");
+        let exact_rows = first_literal(store, &cq, GMEOW_CQ_EXACT_ROWS).map(|v| v == "true");
         let expected_row_count = first_literal(store, &cq, GMEOW_CQ_EXPECT_ROW_COUNT).map(|v| {
             v.parse::<i64>().unwrap_or_else(|e| {
                 panic!(
@@ -3154,12 +3151,16 @@ fn filename_title(logical_path: &str) -> String {
 /// placeholder.
 fn extract_grammar(artifact: &ArtifactRecord) -> DocGrammar {
     let source = String::from_utf8_lossy(&artifact.content).into_owned();
-    let slug = artifact
+    let filename = artifact
         .logical_path
         .rsplit('/')
         .next()
-        .unwrap_or(&artifact.logical_path)
-        .trim_end_matches(".ebnf")
+        .unwrap_or(&artifact.logical_path);
+    // `strip_suffix` removes the extension exactly once (never mid-name characters,
+    // unlike `trim_end_matches`), falling back to the bare filename when absent.
+    let slug = filename
+        .strip_suffix(".ebnf")
+        .unwrap_or(filename)
         .to_string();
     let title = grammar_title(&source).unwrap_or_else(|| {
         panic!(
