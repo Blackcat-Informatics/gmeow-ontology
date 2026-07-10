@@ -594,6 +594,43 @@ fn health_page_numbers_are_derivable_from_the_documentation_graph() {
     );
 }
 
+/// Doc-entry term slugs are INJECTIVE over the real model: no two distinct term
+/// IRIs map to the same `documentation/term/{slug}` subject. Before the resolved
+/// slug map this FAILED — the lossy `slugify` case/punctuation fold merged 163
+/// distinct terms (e.g. class `AcceptanceStatus` and property `acceptanceStatus`)
+/// onto shared subjects, conflating their coverage incidence in the projected
+/// graph. Also confirms only a MINORITY of slugs changed (the colliders), so the
+/// ~2.4k non-colliders keep their historical URLs.
+#[test]
+fn doc_entry_term_slugs_are_injective_over_the_model() {
+    use gmeow_docs::render::term_slug;
+
+    let model = common::cached_model();
+    let distinct_iris: BTreeSet<&str> = model.terms.iter().map(|t| t.iri.as_str()).collect();
+    let distinct_slugs: BTreeSet<String> = model.terms.iter().map(term_slug).collect();
+
+    assert_eq!(
+        distinct_slugs.len(),
+        distinct_iris.len(),
+        "doc-entry slugs must be injective: {} distinct term IRIs but only {} distinct \
+         slugs — distinct terms are conflated onto shared documentation/term/ subjects",
+        distinct_iris.len(),
+        distinct_slugs.len(),
+    );
+
+    // Only the colliding minority carries a disambiguated (resolved != empty) slug;
+    // the resolved slug field is empty exactly when the base was already unique
+    // (term_slug then falls back to base), so a non-empty resolved slug marks a
+    // participant of a contended base group.
+    let disambiguated = model.terms.iter().filter(|t| !t.slug.is_empty()).count();
+    assert!(
+        disambiguated > 0 && disambiguated < model.terms.len() / 4,
+        "expected only the colliding minority to carry a resolved slug, got {disambiguated} \
+         of {}",
+        model.terms.len(),
+    );
+}
+
 #[test]
 fn llms_txt_header_golden() {
     // The standard llmstxt.org index is ~2k bullets; lock only its deterministic

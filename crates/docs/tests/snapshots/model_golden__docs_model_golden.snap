@@ -5,7 +5,7 @@ expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
-  "version": "14",
+  "version": "15",
   "slice_count": 82,
   "term_count": 2626,
   "dependency_edge_count": 1038,
@@ -166,6 +166,7 @@ expression: summary
   "sample_terms": [
     {
       "iri": "https://blackcatinformatics.ca/gmeow/AboutnessMode",
+      "slug": "",
       "curie": "gmeow:AboutnessMode",
       "label": "Aboutness Mode",
       "definition": "The rhetorical relation between an information carrier and its subject matter — whether the carrier describes the subject (mention: reporting, quoting, depicting, analyzing) or enacts it (use: performing, demanding, exemplifying, embodying). A value vocabulary of individuals (never subclasses). Orthogonal to granularity, determinacy, sensitivity, confidence, and standpoint modality (Principle 9): a carrier may describe one subject while enacting another, and distinct vantages may classify the same carrier differently through the statement layer. The distinction every rubric, citation, and evidence assessment eventually needs: text ABOUT deception is not text THAT deceives.",
@@ -216,6 +217,7 @@ expression: summary
     },
     {
       "iri": "https://blackcatinformatics.ca/gmeow/abstract",
+      "slug": "",
       "curie": "gmeow:abstract",
       "label": "abstract",
       "definition": "A summary of the content of a creative work.",
@@ -266,6 +268,7 @@ expression: summary
     },
     {
       "iri": "https://blackcatinformatics.ca/gmeow/VerdictEquivalent",
+      "slug": "",
       "curie": "gmeow:VerdictEquivalent",
       "label": "Verdict Equivalent",
       "definition": "The gmeow:VerdictLatticeRelation for a native verdict that coincides with the published one: native ≡ published in the logic:ConformanceVerdict lattice. The reified image of the Agree DivergenceKind — the qualitative outcome a corroborating conformance comparison carries, folded as a non-blocking logic:FindingCorroboration rather than dropped.",
