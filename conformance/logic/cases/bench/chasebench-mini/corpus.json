@@ -1,0 +1,8 @@
+{
+  "name": "chasebench-mini",
+  "spdx_license": "CC-BY-4.0",
+  "source_url": "https://github.com/dbunibas/chasebench",
+  "version_or_commit": "gmeow-self-authored-1",
+  "refresh_command": "make maint-chasebench-corpus",
+  "lane": "a"
+}
