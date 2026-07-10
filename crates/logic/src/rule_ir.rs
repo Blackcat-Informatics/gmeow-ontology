@@ -48,14 +48,47 @@
 //! would have to be unwound next phase.
 #![allow(dead_code)]
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
+use std::hash::{BuildHasher, Hash, Hasher};
 
+use foldhash::fast::FixedState;
+use hashbrown::HashTable;
 use purrdf::TermValue;
 
+use crate::facts::{PredId, PredInterner};
+use crate::physical::bitset::DenseBitset;
+use crate::physical::id::RowId;
 use crate::provenance::{
     ASSERT_RULE_IRI, LOGIC_NAMESPACE, mint_derivation_id, mint_reifier, term_display,
 };
 use crate::query_ir::QBuiltin;
+
+/// A set of [`FactKey`]s — the whole-model comparison form used by the well-founded
+/// alternating fixpoint ([`crate::wellfounded`]) and the stable-model stability test
+/// ([`crate::stablemodel`]).
+///
+/// This is a COLD-PATH structure: it is materialized only for coarse model-equality
+/// checks (`k2.key_set() == k.key_set()`) and skeptical-intersection sweeps, never
+/// probed on the per-candidate join path — that hot delta membership moved to a dense
+/// [`DenseBitset`] over the store's insertion-order [`RowId`]s.  A `BTreeSet` gives
+/// order-independent equality with no hasher, so no SipHash-keyed owned-key set
+/// survives on any path; determinism still derives from the sorted round commit, never
+/// from this set's iteration.
+pub(crate) type FactKeySet = BTreeSet<FactKey>;
+
+/// Fixed-seed hash of a [`FactKey`], for the borrowed-key `HashTable` probes in
+/// [`FactStore`] and the per-round winner map — mirrors `facts::fact_key_hash` /
+/// `physical::generic`'s borrowed-key probe and never clones the key to hash it.
+///
+/// The seed is fixed (`FixedState::default()`, never random) and NEVER persisted: it
+/// backs pure membership probes, never an emission-order source.
+pub(crate) fn fact_key_hash(key: &FactKey) -> u64 {
+    let mut hasher = FixedState::default().build_hasher();
+    key.0.hash(&mut hasher);
+    key.1.hash(&mut hasher);
+    key.2.hash(&mut hasher);
+    hasher.finish()
+}
 
 /// Wrap a runtime-IR condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
@@ -104,8 +137,14 @@ pub(crate) struct EvalRule {
     pub(crate) body: Vec<EvalAtom>,
     /// The firing rule IRI (the `#[name(...)]` value, or a synthesized anonymous IRI).
     pub(crate) rule_iri: String,
-    /// Inequality guards `(?A, ?B)`.  The WFS/stable corpus has none, so this is
-    /// empty for every corpus case (see the NOTE in [`parse_eval_rules`]).
+    /// Inequality guards `(?A, ?B)`: a `distinctBody` (`?A != ?B`) constraint that
+    /// blocks the rule's firing when the two variables bind to the same value.
+    /// Populated by both lowering paths — the canonical-AST path
+    /// ([`crate::lower::lower_rule`]) directly from `LogicRule::distinct_pairs`, and
+    /// the Nemo-reparse path ([`parse_eval_rules`]) by translating Nemo's
+    /// `Operation`-encoded `Unequals` body literals (see `extract_distinct_pairs`) —
+    /// so the chase (`distinct_pairs_satisfied`) sees the same guard regardless of
+    /// which path produced the [`EvalRule`].
     pub(crate) distinct_pairs: Vec<(String, String)>,
     /// Arithmetic / comparison builtins, in body order, with variable operands in
     /// the engine's `?`-prefixed surface (matching the body atoms' [`EvalTerm::Var`]
@@ -150,16 +189,37 @@ impl Fact {
 }
 
 /// Insertion-ordered fact store with O(1) dedup — mirrors `foundation.rs::FactStore`.
+///
+/// Dedup is a borrowed-key `HashTable<usize>` probe into `facts`/`surfaces` (mirrors
+/// `facts::TypedFactSet` / `physical::generic::GenericStore`): the owned
+/// `(subject, predicate, object)` key lives once in `surfaces`, so no owned-key clone
+/// is paid per probe.  Delta membership on the hot join path is NOT this table — it is
+/// a dense [`DenseBitset`] over each row's insertion-order index (see
+/// [`least_model_of_reduct`]).
 #[derive(Debug, Clone, Default)]
 pub(crate) struct FactStore {
     facts: Vec<Fact>,
-    keys: HashSet<FactKey>,
-    /// Predicate surface (`predicate.as_str()`, the same component `Fact::key`
-    /// uses) → row indices into `facts`, in insertion order.  Maintained in
-    /// lockstep with `facts` so each bucket's order equals insertion order; this
-    /// lets the join scan only the rows for a constant-predicate atom while
-    /// returning exactly the subsequence (same relative order) a full scan would.
-    predicate_index: HashMap<String, Vec<usize>>,
+    /// The cached `(subject, predicate, object)` N3-surface of each `facts[i]`,
+    /// computed once at insert — avoids re-rendering a stored fact's surface on every
+    /// subsequent probe against it, and is the side arena the `keys` probe resolves.
+    surfaces: Vec<FactKey>,
+    /// Borrowed-key dedup index into `facts`/`surfaces`: a hashbrown [`HashTable`]
+    /// holding only the ROW INDEX, hashed via [`fact_key_hash`] from the cached
+    /// surface.  No owned-key clone per probe.
+    keys: HashTable<usize>,
+    /// The store's predicate dictionary: predicate surface → dense [`PredId`].
+    predicates: PredInterner,
+    /// [`PredId`] (interned predicate surface) → row indices into `facts`, in
+    /// insertion order.  Maintained in lockstep with `facts` so each bucket's order
+    /// equals insertion order; this lets the join scan only the rows for a
+    /// constant-predicate atom while returning exactly the subsequence (same relative
+    /// order) a full scan would.
+    ///
+    /// Keyed by `PredId` (a `Copy` niche integer) instead of an owned predicate
+    /// `String` — the surface is interned once in `predicates`, never re-cloned per
+    /// bucket.  Fixed-seed (`FixedState`, off std SipHash); never an emission-order
+    /// source.
+    predicate_index: HashMap<PredId, Vec<usize>, FixedState>,
 }
 
 impl FactStore {
@@ -167,41 +227,68 @@ impl FactStore {
     pub(crate) fn new() -> Self {
         Self {
             facts: Vec::new(),
-            keys: HashSet::new(),
-            predicate_index: HashMap::new(),
+            surfaces: Vec::new(),
+            keys: HashTable::new(),
+            predicates: PredInterner::new(),
+            predicate_index: HashMap::default(),
         }
     }
 
-    /// Insert `fact` if its key is new; return `true` if it was inserted.
-    pub(crate) fn insert(&mut self, fact: Fact) -> bool {
-        let key = fact.key();
-        if self.keys.contains(&key) {
-            return false;
+    /// Insert `fact` if its key is new; return the newly-assigned insertion-order row
+    /// index on success, `None` if a fact with the same key already exists.
+    ///
+    /// The returned index is the store-global dense slot of the new row (equal to
+    /// `facts().len()` before the push), so callers keeping a parallel per-row column
+    /// (a depth `Vec`, a delta [`DenseBitset`]) can address the new row directly.
+    pub(crate) fn insert(&mut self, fact: Fact) -> Option<usize> {
+        let surface = fact.key();
+        let hash = fact_key_hash(&surface);
+        // Borrowed-key membership probe: compare against the cached surface in place,
+        // allocating NOTHING on a hit.
+        let surfaces = &self.surfaces;
+        if self.keys.find(hash, |&i| surfaces[i] == surface).is_some() {
+            return None;
         }
-        self.keys.insert(key);
+        // Intern the predicate surface once to a dense `PredId` (borrowed-key probe —
+        // no owned-key clone per bucket), then push the new row index in lockstep with
+        // `facts`/`surfaces`, preserving insertion order within the predicate bucket.
+        let pid = self.predicates.intern(&fact.predicate);
         let idx = self.facts.len();
         self.facts.push(fact);
-        // Push the new row index in lockstep with `facts`, preserving insertion
-        // order within the predicate bucket (only on a successful insert).
-        // Clone the predicate string only on first occurrence to avoid a heap
-        // allocation for repeat predicates.
-        let pred = self.facts[idx].predicate.as_str();
-        if let Some(bucket) = self.predicate_index.get_mut(pred) {
-            bucket.push(idx);
-        } else {
-            self.predicate_index.insert(pred.to_owned(), vec![idx]);
-        }
-        true
+        self.surfaces.push(surface);
+        self.predicate_index.entry(pid).or_default().push(idx);
+        let surfaces = &self.surfaces;
+        self.keys
+            .insert_unique(hash, idx, |&i| fact_key_hash(&surfaces[i]));
+        Some(idx)
     }
 
     /// Whether a fact with this key exists.
     pub(crate) fn contains_key(&self, key: &FactKey) -> bool {
-        self.keys.contains(key)
+        let hash = fact_key_hash(key);
+        self.keys
+            .find(hash, |&i| self.surfaces[i] == *key)
+            .is_some()
     }
 
-    /// The set of all fact keys (for fixpoint comparison).
-    pub(crate) fn key_set(&self) -> HashSet<FactKey> {
-        self.keys.clone()
+    /// The insertion-order row index of the fact with this key, if present.
+    ///
+    /// The same borrowed-key probe as [`contains_key`](Self::contains_key), returning
+    /// the row index so a per-row side column (e.g. the derivation-depth `Vec`) can be
+    /// addressed without a second owned-key map.
+    pub(crate) fn row_index(&self, key: &FactKey) -> Option<usize> {
+        let hash = fact_key_hash(key);
+        self.keys.find(hash, |&i| self.surfaces[i] == *key).copied()
+    }
+
+    /// The set of all fact keys (for fixpoint comparison — a cold, whole-model path).
+    pub(crate) fn key_set(&self) -> FactKeySet {
+        self.surfaces.iter().cloned().collect()
+    }
+
+    /// The number of stored rows (insertion-order slots `0..row_count`).
+    pub(crate) fn row_count(&self) -> usize {
+        self.facts.len()
     }
 
     /// The facts in insertion order.
@@ -212,8 +299,9 @@ impl FactStore {
     /// Row indices (into [`facts`](Self::facts), insertion-ordered) of facts whose
     /// predicate surface (`predicate.as_str()`) equals `pred`; empty slice if none.
     pub(crate) fn facts_for_predicate(&self, pred: &str) -> &[usize] {
-        self.predicate_index
-            .get(pred)
+        self.predicates
+            .lookup(pred)
+            .and_then(|pid| self.predicate_index.get(&pid))
             .map_or(&[][..], Vec::as_slice)
     }
 }
@@ -332,6 +420,59 @@ fn parse_n3_object_literal(n3: &str) -> gmeow_errors::Result<TermValue> {
         .map_err(|e| ir_err(format!("rule_ir: cannot parse literal object {n3:?}: {e}")))
 }
 
+/// Extract the inequality body guards (`?A != ?B`) from a Nemo rule's body
+/// operations, translating Nemo's `Operation`-encoded `Unequals` literals into the
+/// `(String, String)` variable-pair representation [`crate::lower::lower_rule`]'s
+/// canonical-AST path already populates on [`EvalRule::distinct_pairs`] — same field,
+/// same `?`-prefixed variable surface — so [`distinct_pairs_satisfied`] (and the chase
+/// that calls it) honors a `distinctBody` guard identically regardless of which
+/// lowering path produced the [`EvalRule`].
+///
+/// # Errors
+///
+/// Returns `Err` if an `Unequals` operand is not a plain variable. The gmeow fragment
+/// (`logic:distinctBody`) only ever projects a variable-variable guard — a
+/// constant-object guard is rejected at compile time in
+/// `gmeow_logic_compile::frontend` before it can reach `.rls` text — so a non-variable
+/// operand here means the input did not originate from this compiler's projection;
+/// there is no fallback representation for it, so this is a hard failure, not a
+/// silent drop.
+fn extract_distinct_pairs(
+    rule: &nemo::rule_model::components::rule::Rule,
+) -> gmeow_errors::Result<Vec<(String, String)>> {
+    use nemo::rule_model::components::term::operation::operation_kind::OperationKind;
+
+    let mut pairs: Vec<(String, String)> = Vec::new();
+    for op in rule.body_operations() {
+        if op.operation_kind() != OperationKind::Unequals {
+            continue;
+        }
+        let mut terms = op.terms();
+        let left = terms.next().ok_or_else(|| {
+            ir_err("rule_ir: != operation has no operands (arity < 1)".to_owned())
+        })?;
+        let right = terms.next().ok_or_else(|| {
+            ir_err("rule_ir: != operation has only one operand (arity < 2)".to_owned())
+        })?;
+        pairs.push((require_var_term(left)?, require_var_term(right)?));
+    }
+    Ok(pairs)
+}
+
+/// The `?Name` surface of `term` (matching [`EvalTerm::Var`]'s convention), or a hard
+/// error if `term` is not a plain variable.
+fn require_var_term(
+    term: &nemo::rule_model::components::term::Term,
+) -> gmeow_errors::Result<String> {
+    if term.is_variable() {
+        return Ok(term.to_string());
+    }
+    Err(ir_err(format!(
+        "rule_ir: != operand {term} is not a variable — only a variable-variable \
+         inequality guard is representable in distinct_pairs"
+    )))
+}
+
 /// Lower a Nemo atom into an [`EvalAtom`], dropping the arity-3 world slot.
 ///
 /// `terms()[0]` = subject, `terms()[1]` = object; `terms()[2]` (world) is ignored,
@@ -410,15 +551,16 @@ pub(crate) fn lower_program_eval_rules(
             .name()
             .unwrap_or_else(|| format!("{LOGIC_NAMESPACE}rule/anonymous"));
 
-        // NOTE: the WFS / stable-model conformance corpus carries NO body
-        // inequality guards, so `distinct_pairs` is always empty here.  Extracting
-        // Nemo's `Operation`-encoded inequalities is deferred until a corpus case
-        // needs it; an empty vec is correct for every case Phase A targets.
+        // Translate Nemo's `Operation`-encoded `!=` body literals into `distinct_pairs`
+        // (see `extract_distinct_pairs`) — the reparse path is otherwise faithful to
+        // the canonical AST lowering (`crate::lower::lower_rule`) for this guard.
+        let distinct_pairs = extract_distinct_pairs(rule)?;
+
         out.push(EvalRule {
             head,
             body,
             rule_iri,
-            distinct_pairs: Vec::new(),
+            distinct_pairs,
             // Forward `.rls` rules carry no arithmetic (the ontology corpus has none).
             builtins: Vec::new(),
         });
@@ -578,23 +720,26 @@ enum Scan {
 fn extend_solutions(
     atom: &EvalAtom,
     store: &FactStore,
-    delta: &HashSet<FactKey>,
+    delta: &DenseBitset,
     scan: &Scan,
     solutions: &[Solution],
 ) -> Vec<Solution> {
-    let keep = |f: &Fact| match scan {
-        Scan::Delta => delta.contains(&f.key()),
+    // The row index `i` is already in hand from the predicate bucket, so delta
+    // membership is one dense `u64`-word test on the row's `RowId` — NO `Fact::key()`
+    // rendering (2 allocs + 1 clone) and NO hashing per (solution × row).
+    let keep = |i: usize| match scan {
+        Scan::Delta => delta.contains(RowId::from_index(i)),
         Scan::Full => true,
-        Scan::OldOnly => !delta.contains(&f.key()),
+        Scan::OldOnly => !delta.contains(RowId::from_index(i)),
     };
     let mut next: Vec<Solution> = Vec::new();
     let bucket = store.facts_for_predicate(atom.predicate.as_str());
     for sol in solutions {
         for &i in bucket {
-            let f = &store.facts()[i];
-            if !keep(f) {
+            if !keep(i) {
                 continue;
             }
+            let f = &store.facts()[i];
             if let Some(mut merged) = match_atom(atom, f, sol) {
                 merged.source_facts.push(f.clone());
                 next.push(merged);
@@ -618,7 +763,7 @@ fn join_body(
     rule: &EvalRule,
     store: &FactStore,
     reference: &FactStore,
-    delta: &HashSet<FactKey>,
+    delta: &DenseBitset,
 ) -> Vec<Solution> {
     let positive: Vec<&EvalAtom> = rule.body.iter().filter(|a| !a.negated).collect();
     let negated: Vec<&EvalAtom> = rule.body.iter().filter(|a| a.negated).collect();
@@ -712,7 +857,10 @@ pub(crate) struct Provenance {
 #[derive(Clone)]
 pub(crate) struct RuleRoundCandidate {
     pub(crate) head: Fact,
-    pub(crate) key: FactKey,
+    // `key: FactKey` REMOVED — it was always identical to `head.key()`, computed once at
+    // construction only to be re-derived by callers.  The per-round winner map now caches
+    // each candidate's key alongside it (like `FactStore.surfaces`), and the commit loop
+    // reads that cached key, so the redundant per-candidate field is gone.
     /// The recorded provenance, or `None` on the facts-only (Skip) lane.
     pub(crate) prov: Option<Provenance>,
 }
@@ -764,27 +912,43 @@ pub(crate) fn least_model_of_reduct(
     reference: &FactStore,
 ) -> gmeow_errors::Result<ReductResult> {
     let mut store = FactStore::new();
-    let edb_keys: HashSet<FactKey> = edb.key_set();
 
-    // Per-fact derivation-depth map: depth 0 for every EDB (asserted) fact;
-    // derived facts get depth = 1 + max(source depths) when committed at round end.
-    let mut depth: HashMap<FactKey, u32> = HashMap::new();
+    // Per-fact derivation-depth column, indexed by the store's insertion-order row:
+    // `depth[i]` is the depth of `store`'s row `i`.  Depth 0 for every EDB (asserted)
+    // fact; derived facts get depth = 1 + max(source depths) when committed at round
+    // end.  It is pushed in lockstep with `store.insert`, so it never needs an owned-key
+    // map — the row index the store returns is the column index.
+    let mut depth: Vec<u32> = Vec::new();
 
     for f in edb.facts() {
-        let key = f.key();
-        depth.insert(key, 0); // EDB facts have depth 0
-        store.insert(f.clone());
+        // `edb` is itself a `FactStore` (no duplicate keys), so every seed inserts into
+        // the fresh `store`; guard on `Some` regardless so `depth` tracks `store`'s rows
+        // exactly.
+        if store.insert(f.clone()).is_some() {
+            depth.push(0); // EDB facts have depth 0
+        }
     }
+
+    // The EDB occupies rows `0..edb_row_count` (seeded first, in dense order); a later
+    // winner is a genuine derivation iff its assigned row index is at or beyond this,
+    // replacing the old `edb_keys` membership set.
+    let edb_row_count = store.row_count();
 
     let mut derivations: Vec<DerivedRow> = Vec::new();
 
-    // Seed delta with all EDB keys so rules fire against the seed in round 1.
-    let mut delta: HashSet<FactKey> = store.key_set();
+    // Seed delta with every EDB row so rules fire against the seed in round 1.  The store
+    // holds exactly the EDB facts in dense order `0..edb_row_count`, so the whole set is
+    // the low `edb_row_count` bits — one `all_set`, no per-key materialization.
+    let mut delta = DenseBitset::all_set(store.row_count());
     loop {
-        // Per-round canonical-winner map: keyed by head key, holds the candidate
-        // chosen by a quality-ordered total-order tiebreak (see struct doc above).
-        // This makes provenance selection independent of firing-enumeration order.
-        let mut round: HashMap<FactKey, RuleRoundCandidate> = HashMap::new();
+        // Per-round canonical-winner map: a borrowed-key `HashTable<usize>` into a side
+        // `Vec<(FactKey, RuleRoundCandidate)>` (mirrors `FactStore`'s cached-surface
+        // probe), holding the candidate chosen by a quality-ordered total-order tiebreak
+        // (see struct doc above).  This makes provenance selection independent of
+        // firing-enumeration order.  The cached `FactKey` is reused at commit for the
+        // sort, so no candidate's surface is re-rendered on a probe.
+        let mut round_entries: Vec<(FactKey, RuleRoundCandidate)> = Vec::new();
+        let mut round_index: HashTable<usize> = HashTable::new();
 
         for rule in rules {
             for sol in join_body(rule, &store, reference, &delta) {
@@ -803,7 +967,11 @@ pub(crate) fn least_model_of_reduct(
                 let mut sum_sd: u64 = 0;
                 for sf in &sol.source_facts {
                     sources.push(sf.reifier()?);
-                    let d = *depth.get(&sf.key()).unwrap_or(&0);
+                    let d = store
+                        .row_index(&sf.key())
+                        .and_then(|i| depth.get(i))
+                        .copied()
+                        .unwrap_or(0);
                     max_sd = max_sd.max(d);
                     sum_sd = sum_sd.saturating_add(u64::from(d));
                 }
@@ -820,7 +988,6 @@ pub(crate) fn least_model_of_reduct(
                 // Level 4: rule_iri — total-order backstop (IRIs vary per rule).
                 let candidate = RuleRoundCandidate {
                     head,
-                    key: key.clone(),
                     prov: Some(Provenance {
                         sources,
                         sorted_sources,
@@ -831,39 +998,58 @@ pub(crate) fn least_model_of_reduct(
                         source_facts: sol.source_facts.clone(),
                     }),
                 };
-                round
-                    .entry(key)
-                    .and_modify(|existing| {
-                        if candidate.tiebreak_key() < existing.tiebreak_key() {
-                            *existing = candidate.clone();
+                let hash = fact_key_hash(&key);
+                match round_index.find(hash, |&i| round_entries[i].0 == key) {
+                    Some(&i) => {
+                        if candidate.tiebreak_key() < round_entries[i].1.tiebreak_key() {
+                            round_entries[i].1 = candidate;
                         }
-                    })
-                    .or_insert(candidate);
+                    }
+                    None => {
+                        let idx = round_entries.len();
+                        round_entries.push((key, candidate));
+                        let entries = &round_entries;
+                        round_index.insert_unique(hash, idx, |&i| fact_key_hash(&entries[i].0));
+                    }
+                }
             }
         }
 
-        if round.is_empty() {
+        if round_entries.is_empty() {
             break; // fixpoint
         }
 
-        // Commit all winners from this round in FactKey order, not raw `HashMap`
-        // order, so store/index insertion order is deterministic.
-        let mut new_delta: HashSet<FactKey> = HashSet::with_capacity(round.len());
-        let mut winners: Vec<_> = round.into_iter().collect();
+        // Commit all winners from this round in resolved-lexical FactKey order, not raw
+        // table order, so store/index insertion order is deterministic.
+        let round_len = round_entries.len();
+        let mut winners: Vec<(FactKey, RuleRoundCandidate)> = round_entries;
         winners.sort_by(|(a, _), (b, _)| a.cmp(b));
+        let mut new_delta = DenseBitset::with_capacity(store.row_count() + round_len);
         for (_key, winner) in winners {
-            let RuleRoundCandidate { head, key, prov } = winner;
+            let RuleRoundCandidate { head, prov } = winner;
             // The reduct evaluator always records provenance; a `None` here is an engine
             // bug (a candidate committed without its derivation), not a data condition.
             let prov = prov.expect("least_model_of_reduct always records provenance");
             let winner_depth = prov.max_src_depth.saturating_add(1);
-            depth.insert(key.clone(), winner_depth);
-            store.insert(head.clone());
-            new_delta.insert(key.clone());
+            // A winner is always a genuinely-new fact (heads already present are skipped
+            // above via `store.contains_key`), so the insert returns `Some(idx)`; that
+            // index drives the lockstep depth push AND the EDB-vs-derived membership test.
+            let idx = store
+                .insert(head.clone())
+                .expect("a round winner is a genuinely-new fact (head not already present)");
+            assert_eq!(
+                idx,
+                depth.len(),
+                "depth/store index desync: `depth` and the `FactStore` rows must stay in \
+                 lockstep (each committed row pushes exactly one depth slot)"
+            );
+            depth.push(winner_depth);
+            new_delta.set(RowId::from_index(idx));
 
-            // Record provenance only for genuinely-derived facts (a rule whose
-            // head re-states an EDB fact is not a derivation row).
-            if !edb_keys.contains(&key) {
+            // Record provenance only for genuinely-derived facts (a rule whose head
+            // re-states an EDB fact — row index below the EDB range — is not a
+            // derivation row).
+            if idx >= edb_row_count {
                 derivations.push(DerivedRow {
                     graph: String::new(),
                     subject: head.subject,
@@ -1213,6 +1399,65 @@ mod tests {
         assert_eq!(
             row.derivation_id,
             mint_derivation_id(&anon, &[want_src.as_str()])
+        );
+    }
+
+    #[test]
+    fn reparse_path_extracts_distinct_pairs_and_blocks_self_loop() {
+        // Regression for the Nemo-reparse path silently dropping `distinctBody`
+        // guards. Mirrors `logic:ruleCrossNodeGlut`'s
+        // real production shape: two head variables (?f1, ?f2) are joined ONLY
+        // through a shared "anchor" body atom, guarded by an inequality (f1 ≠ f2)
+        // so a single anchor-sharer cannot self-join into a self-loop edge — exactly
+        // the shape that let `crossNodeGlutWith(f, f)` over-derive when this vec was
+        // always empty on this path.
+        //
+        // This exercises `parse_eval_rules` (the Nemo `.rls`-text reparse path)
+        // specifically, NOT `crate::lower::lower_rule` (the canonical-AST path),
+        // which already preserved `distinct_pairs` correctly before this fix.
+        let rls = format!(
+            "<{NS}r>(?f1, ?f2, ?W) :- <{NS}p>(?f1, ?a, ?W), <{NS}p>(?f2, ?a, ?W), ?f1 != ?f2 .\n"
+        );
+        let rules = parse_eval_rules(&rls).expect("parse");
+        assert_eq!(rules.len(), 1);
+        // The reparse must translate Nemo's `Unequals` body operation into
+        // `distinct_pairs` — before this fix, this vec was unconditionally empty
+        // regardless of the source text, silently discarding the guard.
+        assert_eq!(
+            rules[0].distinct_pairs,
+            vec![("?f1".to_owned(), "?f2".to_owned())],
+            "reparse must populate distinct_pairs from the Nemo Unequals operation"
+        );
+
+        // Two distinct entities (x, y) share one anchor (a) — the exact fixture
+        // shape where, WITHOUT the guard enforced, the join binds ?f1 = ?f2 = x (and
+        // = y) and derives the forbidden self-loops r(x,x) / r(y,y).
+        let mut edb = FactStore::new();
+        edb.insert(fact("x", "p", "a"));
+        edb.insert(fact("y", "p", "a"));
+        let reference = FactStore::new();
+        let res = least_model_of_reduct(&edb, &rules, &reference).expect("lmr");
+
+        let key = |s: &str, o: &str| (format!("<{NS}{s}>"), format!("{NS}r"), format!("<{NS}{o}>"));
+
+        // The guard must block both self-loops.
+        assert!(
+            !res.store.contains_key(&key("x", "x")),
+            "distinct_pairs guard must block the r(x,x) self-loop"
+        );
+        assert!(
+            !res.store.contains_key(&key("y", "y")),
+            "distinct_pairs guard must block the r(y,y) self-loop"
+        );
+        // The guard must not over-suppress: a genuinely-distinct pair sharing the
+        // anchor still derives in both directions.
+        assert!(
+            res.store.contains_key(&key("x", "y")),
+            "distinct pair (x,y) must still derive"
+        );
+        assert!(
+            res.store.contains_key(&key("y", "x")),
+            "distinct pair (y,x) must still derive"
         );
     }
 

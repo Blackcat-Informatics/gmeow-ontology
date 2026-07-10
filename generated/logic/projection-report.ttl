@@ -8055,6 +8055,73 @@
     logic:complexityClass "N/A (transform signatures)" ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/gmn1:authority-links>
+    a logic:ProjectionTarget ;
+    rdfs:label "gmn1:authority-links" ;
+    gmeow:lossyDrop "actual: lang:GmnUncoveredTerm: IRI under no registered namespace: https://orcid.org/0000-0002-1825-0097" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/gmn1:expression-rendering>
+    a logic:ProjectionTarget ;
+    rdfs:label "gmn1:expression-rendering" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
+<https://blackcatinformatics.ca/logic/target/gmn1:flagship-acceptance>
+    a logic:ProjectionTarget ;
+    rdfs:label "gmn1:flagship-acceptance" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
+<https://blackcatinformatics.ca/logic/target/gmn1:forms-and-sign-systems>
+    a logic:ProjectionTarget ;
+    rdfs:label "gmn1:forms-and-sign-systems" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
+<https://blackcatinformatics.ca/logic/target/gmn1:gmn-dialect>
+    a logic:ProjectionTarget ;
+    rdfs:label "gmn1:gmn-dialect" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
+<https://blackcatinformatics.ca/logic/target/gmn1:inscription-reading>
+    a logic:ProjectionTarget ;
+    rdfs:label "gmn1:inscription-reading" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
+<https://blackcatinformatics.ca/logic/target/gmn1:multilingual-document>
+    a logic:ProjectionTarget ;
+    rdfs:label "gmn1:multilingual-document" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
+<https://blackcatinformatics.ca/logic/target/gmn1:notation-systems>
+    a logic:ProjectionTarget ;
+    rdfs:label "gmn1:notation-systems" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
+<https://blackcatinformatics.ca/logic/target/gmn1:person-names>
+    a logic:ProjectionTarget ;
+    rdfs:label "gmn1:person-names" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
+<https://blackcatinformatics.ca/logic/target/gmn1:proficiency>
+    a logic:ProjectionTarget ;
+    rdfs:label "gmn1:proficiency" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
+<https://blackcatinformatics.ca/logic/target/gmn1:word-etymology>
+    a logic:ProjectionTarget ;
+    rdfs:label "gmn1:word-etymology" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
 <https://blackcatinformatics.ca/logic/target/gufo>
     a logic:ProjectionTarget ;
     rdfs:label "gufo" ;
@@ -45048,6 +45115,17 @@
     logic:complexityClass "N/A (1:1 lattice band)" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/sssom:b15a4573edafaca9>
+    a logic:ProjectionTarget ;
+    rdfs:label "sssom:b15a4573edafaca9" ;
+    gmeow:lossyDrop "actual: correspondence: https://blackcatinformatics.ca/math/Filtration|http://www.w3.org/2004/02/skos/core#closeMatch|http://www.wikidata.org/entity/Q17099562" ,
+        "actual: get-leg: the caveat/law/leg structure of the correspondence is dropped (only subject/predicate/object, confidence, and justification survive)" ,
+        "actual: get-leg: world/standpoint scope and the put leg are not carried by SSSOM" ,
+        "the caveat/law/leg structure of the correspondence is dropped; only subject/predicate/object, confidence, and justification survive" ,
+        "world/standpoint scope and the put leg are not carried" ;
+    logic:complexityClass "N/A (1:1 lattice band)" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/sssom:b16634b366a442dd>
     a logic:ProjectionTarget ;
     rdfs:label "sssom:b16634b366a442dd" ;
@@ -52578,6 +52656,17 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/fno:f64f9edec48a87f2> ,
         <https://blackcatinformatics.ca/logic/target/fno:f97ab23988289696> ,
         <https://blackcatinformatics.ca/logic/target/fno:fda31433851be3f9> ,
+        <https://blackcatinformatics.ca/logic/target/gmn1:authority-links> ,
+        <https://blackcatinformatics.ca/logic/target/gmn1:expression-rendering> ,
+        <https://blackcatinformatics.ca/logic/target/gmn1:flagship-acceptance> ,
+        <https://blackcatinformatics.ca/logic/target/gmn1:forms-and-sign-systems> ,
+        <https://blackcatinformatics.ca/logic/target/gmn1:gmn-dialect> ,
+        <https://blackcatinformatics.ca/logic/target/gmn1:inscription-reading> ,
+        <https://blackcatinformatics.ca/logic/target/gmn1:multilingual-document> ,
+        <https://blackcatinformatics.ca/logic/target/gmn1:notation-systems> ,
+        <https://blackcatinformatics.ca/logic/target/gmn1:person-names> ,
+        <https://blackcatinformatics.ca/logic/target/gmn1:proficiency> ,
+        <https://blackcatinformatics.ca/logic/target/gmn1:word-etymology> ,
         <https://blackcatinformatics.ca/logic/target/gufo> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-execgap:fr> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-execgap:zh> ,
@@ -56251,6 +56340,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:b10e3b3ef33a8b8c> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b151834052e61d0e> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b157935cd3af5c0d> ,
+        <https://blackcatinformatics.ca/logic/target/sssom:b15a4573edafaca9> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b16634b366a442dd> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b1906626893b5b65> ,
         <https://blackcatinformatics.ca/logic/target/sssom:b1ab99466808cb44> ,

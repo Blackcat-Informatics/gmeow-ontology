@@ -77,11 +77,11 @@ ex:nightlyGmnWrite a gmeow:Activity .
 
 ex:corrNightlyEnvelope
     a logic:Correspondence ;
-    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:preservationKind logic:ExactPreservation ;
     logic:correspondenceRelation logic:Subsumes ;
-    logic:morphismClass logic:LossyLens ;
+    logic:morphismClass logic:SectionRetraction ;
     logic:hasDeterminacy logic:Crisp ;
-    logic:mnemomorphic false .
+    logic:mnemomorphic true .
 
 ex:nightlyEnvelope
     a gmeow:GmnEnvelope ;
@@ -93,6 +93,61 @@ ex:nightlyEnvelope
     gmeow:wasGeneratedBy ex:nightlyGmnWrite ;
     gmeow:contentDigest "blake3:9c4b1d7e2f5a8c0b3e6d9f2a5c8b1e4d7a0c3f6b9e2d5a8c1b4e7d0a3c6f9b2e" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrNightlyEnvelope .
+
+# --- A compartmented-scope envelope: the NATO demonstrator ring -------------- #
+# gmeow:gmnRingNato shares gmeow:gmnRingTrusted's level but carries the
+# gmeow:gmnCompartmentNato / gmeow:gmnCompartmentPartner compartments (module.ttl)
+# — the Denning case "same level, different scope, different ring": an envelope
+# admitted at gmeow:gmnRingNato is NOT interchangeable with one admitted at
+# gmeow:gmnRingTrusted, even though the two share a classification level.
+
+ex:coalitionDesk a gmeow:Agent .
+ex:coalitionGmnWrite a gmeow:Activity .
+
+ex:corrCoalitionEnvelope
+    a logic:Correspondence ;
+    logic:preservationKind logic:ExactPreservation ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:morphismClass logic:SectionRetraction ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic true .
+
+ex:coalitionEnvelope
+    a gmeow:GmnEnvelope ;
+    gmeow:gmnSchemaVersion "1" ;
+    gmeow:gmnDictionaryVersion "1" ;
+    gmeow:gmnGlyphTableVersion "1" ;
+    gmeow:gmnSecurityRing gmeow:gmnRingNato ;
+    gmeow:accordingTo ex:coalitionDesk ;
+    gmeow:wasGeneratedBy ex:coalitionGmnWrite ;
+    gmeow:contentDigest "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809" ;
+    gmeow:gmnEnvelopeCorrespondence ex:corrCoalitionEnvelope .
+
+# --- A worked gmeow:gmnRingWithin flow example: querying the DERIVED order --- #
+# gmeow:gmnRingWithin is NEVER authored (a zero-authored-triples structural gate
+# enforces this) — it is computed at reason time from gmeow:gmnRingLevel /
+# gmeow:gmnRingCompartment by gmeow:ruleGmnRingWithinDerive. Whether
+# ex:nightlyEnvelope's payload (admitted at gmeow:gmnRingTrusted) is eligible to
+# flow to a hypothetical restricted-ring destination is decided by querying the
+# reasoned closure, never by reading an asserted edge:
+#
+#   ASK { gmeow:gmnRingTrusted gmeow:gmnRingWithin gmeow:gmnRingRestricted }
+#
+# under the native logic: reasoner (gmeow:reasoningLogic) — the tests/competency.ttl
+# migration-equivalence witness pins this computed answer to TRUE, and pins
+# gmeow:gmnRingRestricted gmeow:gmnRingWithin gmeow:gmnRingTrusted to FALSE (the
+# loosest-bar ring never flows inward). ex:coalitionEnvelope's ring
+# (gmeow:gmnRingNato) shares gmeow:gmnRingTrusted's level, so the SAME level does
+# NOT collapse the two rings into one: their compartment sets make the derived
+# order strictly ASYMMETRIC. gmeow:gmnRingNato's compartment set {NATO, partner}
+# is a superset of gmeow:gmnRingTrusted's empty set, so NATO content is eligible
+# to flow into the trusted ring; the reverse never holds, because trusted content
+# carries neither compartment marking gmeow:gmnRingNato requires — exactly the
+# "same level, different scope, different ring" case the demonstrator exists to
+# show:
+#
+#   ASK { gmeow:gmnRingNato gmeow:gmnRingWithin gmeow:gmnRingTrusted }   # -> true
+#   ASK { gmeow:gmnRingTrusted gmeow:gmnRingWithin gmeow:gmnRingNato }   # -> false
 
 # --- An honest GMN-2 compaction: provenance-linked, vantage-held ------------- #
 # Compaction NEVER overwrites its sources: it is a reified NEW claim naming

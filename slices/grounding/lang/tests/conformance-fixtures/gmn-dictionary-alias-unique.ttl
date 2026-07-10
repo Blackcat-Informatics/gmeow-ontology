@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Conforming fixture: a gmeow:GmnDictionary whose two entries alias two DIFFERENT terms
+# with two DIFFERENT alias strings, satisfying lang:GmnDictionaryAliasInjectivityShape.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:dict a gmeow:GmnDictionary ;
+    gmeow:gmnDictionaryVersion "test-1" ;
+    gmeow:gmnDictionaryEntry ex:entryA , ex:entryB .
+
+ex:entryA a gmeow:GmnDictionaryEntry ;
+    gmeow:gmnDictionaryEntryTerm gmeow:GmnEnvelope ;
+    gmeow:gmnDictionaryEntryAlias "genv" .
+
+ex:entryB a gmeow:GmnDictionaryEntry ;
+    gmeow:gmnDictionaryEntryTerm gmeow:GmnCodebook ;
+    gmeow:gmnDictionaryEntryAlias "gcb" .

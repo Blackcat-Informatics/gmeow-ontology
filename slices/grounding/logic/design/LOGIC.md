@@ -133,6 +133,7 @@ restraint we reject; `logic:` subsumes the contribution and discards the restrai
 | SPARQL | query, CONSTRUCT | a query language, not a logic | query is a *projection* of goal resolution |
 | Common Logic | first-order interchange | no RDF model, no contextual layer | FOL-grade expressivity, RDF 1.2-native, contextualized — and operationalized as generated *and* ingested CLIF, CGIF, and XCL dialects, and independently cross-checked by an external first-order reasoner over the CLIF export (an FOL oracle held to the *native ⊇ oracle* discipline) and by the external TPTP/SZS soundness corpus over the full-FOL IR (see [`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md)), not merely cited as an ancestor |
 | gUFO | OWL upper ontology, stereotypes | a *lossy OWL realization of UFO* — drops modality and higher-order types | the full foundational theory; gUFO becomes a projection |
+| Cyc (CycL, microtheories) | maximal common-sense axiomatization ambition; microtheories as context indexing (CycL contexts holding mutually-inconsistent assertions — prior art for standpoint/context indexing) | truth-as-a-bit + curated-monolith epistemology; hand-curation without statement-level provenance / confidence / revision-as-suppression | typed context algebra with accessibility; attributed, confidence-weighted defeasible claims; conformance-gated projection *as* curation |
 
 The closest living ancestor is **N3 Logic and the EYE reasoner**: RDF-native rules, quoted graphs
 (the direct precursor of RDF 1.2 triple terms), builtins, and both forward and backward chaining.
@@ -175,6 +176,19 @@ Datalog, Prolog, SHACL, gUFO) for every consumer.
 
 > **GMEOW Logic is Ithkuil's precision with Ithkuil's fatal flaw engineered out — a maximal canon
 > that always carries a lossy, usable projection.**
+
+**The same lessons compact GMN-1, not only `logic:`.** The orthogonal-factorization,
+obligatory-evidentiality, and factored-aspect lessons above are applied a second time, downstream,
+to the token-compact GMN-1 dialect surface (`design/LANG-GMN.md`, "The factored qualifier slots"):
+a closed set of single-token qualifier markers in fixed record positions — a modality slot, an
+evidentiality-kind slot, and an `@p`-process-record boundary/iteration pair — each dealiasing to
+vocabulary `logic:` (or a `logic:`-adjacent grounding/core slice) already formalizes, never a
+GMN-local shadow axis. Where Ithkuil's own failure mode was engineered out of `logic:` by always
+carrying a lossy, speakable projection, it is engineered out of GMN-1's compaction by a narrower,
+executable razor: a marker is admitted only if it measurably reduces token cost or retires a
+named ambiguity class with a falsifiable fixture, and no marker is ever a private symbol — the
+same "precision without a usable surface" trap, closed the same way, one level further out on the
+projection ladder.
 
 ## OWL, gUFO, and the upper ontologies as projections
 

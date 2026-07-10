@@ -4,15 +4,15 @@ expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
-  "version": "13",
+  "version": "7",
   "slice_count": 81,
-  "term_count": 2519,
-  "dependency_edge_count": 1006,
+  "term_count": 2558,
+  "dependency_edge_count": 1008,
   "term_count_by_category": {
-    "Class": 747,
+    "Class": 753,
     "Datatype": 1,
-    "Individual": 34,
-    "Property": 1737
+    "Individual": 57,
+    "Property": 1747
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -296,10 +296,10 @@ expression: summary
     }
   ],
   "mapping_set_count": 81,
-  "linkage_count": 1867,
+  "linkage_count": 1868,
   "example_count": 144,
   "concern_count": 7,
-  "external_term_count": 1612,
+  "external_term_count": 1613,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -329,13 +329,13 @@ expression: summary
       "gmeow:AccessibilityAssertion",
       "gmeow:Person",
       "gmeow:Place",
+      "gmeow:examples/accessibility/assertion",
+      "gmeow:examples/accessibility/dana",
+      "gmeow:examples/accessibility/library",
       "gmeow:facetStepFree",
       "gmeow:facetVisual",
       "gmeow:facetWheelchair",
-      "gmeow:polarityFeature",
-      "https://blackcatinformatics.ca/gmeow/examples/accessibility/assertion",
-      "https://blackcatinformatics.ca/gmeow/examples/accessibility/dana",
-      "https://blackcatinformatics.ca/gmeow/examples/accessibility/library"
+      "gmeow:polarityFeature"
     ]
   },
   "sample_concern": {
@@ -417,8 +417,8 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 321,
-  "competency_count": 138,
+  "shape_count": 324,
+  "competency_count": 140,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",
@@ -431,29 +431,6 @@ expression: summary
     "iri": "https://blackcatinformatics.ca/gmeow/examples/affect/tests/cqCompositeDecomposition",
     "rationale": "A named emotion is modeled UP, not minted: schadenfreude decomposes into a positive core-affect vector over another agent's misfortune with an other-directed agency structure. The query projects the per-axis readings that decompose the composite — answering 'is this schadenfreude a positive vector over another's misfortune?' directly from the data (positive valence AND other-directed negative agency).",
     "query_file": "slices/core/affect/queries/competency/composite-decomposition.rq",
-    "query_text": "# Competency question 9: \"Which axis-vector and relations decompose a given named\n# emotion — is this 'schadenfreude' a positive vector over another's misfortune?\"\n# The composite's declared constituents are its core-affect vector cells (valence,\n# arousal) plus its differentiating appraisal relations (agency other-directed,\n# norm deserved). Modeling up, not minting: the decomposing axes are queryable.\n\nPREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n\nSELECT DISTINCT ?dimension WHERE {\n    gmeow:schadenfreudeComposite gmeow:affectiveConstituent ?constituent .\n    {\n        ?constituent gmeow:appraisalDimension ?dimension .\n    }\n    UNION\n    {\n        ?constituent gmeow:vectorComponent ?cell .\n        ?cell gmeow:appraisalDimension ?dimension .\n    }\n}\nORDER BY ?dimension\n",
-    "exact_rows": null,
-    "expected_row_count": null,
-    "expected_rows": [
-      {
-        "cells": [
-          {
-            "var": "dimension",
-            "value_iri": "https://blackcatinformatics.ca/gmeow/dimensionValence",
-            "value_literal": null
-          }
-        ]
-      },
-      {
-        "cells": [
-          {
-            "var": "dimension",
-            "value_iri": "https://blackcatinformatics.ca/gmeow/dimensionAgency",
-            "value_literal": null
-          }
-        ]
-      }
-    ],
     "exercises": [
       "https://blackcatinformatics.ca/gmeow/dimensionAgency",
       "https://blackcatinformatics.ca/gmeow/dimensionValence"

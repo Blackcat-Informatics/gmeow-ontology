@@ -389,7 +389,7 @@ its fixture-scale reject/parity coverage on-gate in the same binaries, the
 serializations stay drift-gated via `make check-generated`, and all three stay
 on-gate on `maint-heavy`).
 `gmeow-pipeline::stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo`
-(F1, issue 1404; ~100 s locally) proves the B3 entailment-join is non-vacuous against
+(~100 s locally) proves the B3 entailment-join is non-vacuous against
 the REAL ontology by running the real `source_load` → `statements` /
 `compile_logic` → `mappings` → `reason` stage chain — a full native-chase
 reasoning pass over the whole EDB, irreducibly O(bundle size), the same
@@ -398,6 +398,51 @@ the join logic itself stays on-gate via the fast fixture-only siblings
 `term_entailments_from_explanations_populates_matching_term_only` and
 `term_entailments_from_upstream_joins_and_hard_fails_on_missing_artifact` in the
 same module, and the real-repo non-vacuity proof stays on-gate on `maint-heavy`.
+Its two symmetric per-term siblings —
+`stages::docs_render::tests::diagnostics_digest_total_is_non_vacuous_on_the_real_repo`
+(the diagnostics→term join over the real `source_load` → `validate` / `compile_logic`
+chain) and `::term_loss_digest_is_non_vacuous_on_the_real_repo` (the per-term
+projection-loss join over the real `compile_logic` → `mappings` chain) — are the same
+whole-repo cost class and are likewise carved to `maint-heavy`, with their join logic
+proven on-gate by fast synthetic siblings in the same module.
+A new GMN-1 Coverage quality axis grew
+`slices/core/slice-quality-rubric/module.ttl` — already the largest, most prose-dense
+module in the repo, being the self-describing quality rubric itself — to a 13th axis,
+nudging its `structural.ttl` datatest case past budget on this shared dev box:
+`gmeow-slicetest::run_structural_file::core/slice-quality-rubric/tests/structural.ttl`
+(19–42 s depending on contention; a same-scope dataset cache landed in
+`run_structural_cell` first, halving the standalone cost, but the module-size x
+cell-count product is still irreducibly over budget under contention). No coverage
+leaves the gate: the assertions still run on `make maint-rust-heavy`, every other
+slice's `structural.ttl` stays on-gate (only this one file's datatest case is
+excluded), and the rubric's axis-shape invariants stay drift-gated via
+`make check-generated`.
+The self-sufficiency parity harness added four more whole-bundle CLI tests —
+`gmeow-cli::self_sufficiency::transpile_wheel_mode_equals_repo_mode`,
+`::transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak`,
+`::project_wheel_mode_equals_repo_mode`, and
+`::describe_wheel_mode_equals_repo_mode` (31-53 s locally, `describe` 7.6 s
+standalone but 27.6 s under full-parallelism CI contention; each drives
+`gmeow transpile`/`gmeow project`/`gmeow describe` over the WHOLE embedded
+bundle — the transpile parity test runs it twice, blinded-cwd and repo-cwd
+legs — the identical whole-committed-bundle class as the
+`build_writes_serializations` / `export_respects_language_selector` /
+`project_schema_org_view_filter` trio above; the same wheel-mode==repo-mode
+parity law stays on-gate at fixture scale via
+`self_sufficiency::validate_wheel_mode_equals_repo_mode`, and all four stay on-gate on
+`maint-heavy`).
+The native release-attestation round-trip added a whole-bundle pair —
+`gmeow-pipeline::release_verify_roundtrip::release_bundle_with_coherence_evidence_round_trips_natively`
+and `::release_bundle_rejects_an_untrusted_out_of_band_key` (~75 s each locally;
+`fold_release_bundle`/`verify_release_bundle` each replay the WHOLE committed
+~48 MB `generated/dist/gmeow.gts`, irreducibly O(bundle size), the identical
+whole-committed-bundle class as `fold_parity`/`fanout_parity`/`end_to_end`
+above; the real crypto-through-the-built-binary requirement — accept a valid
+signature, reject an invalid one — stays on-gate via
+`gmeow-cli::bundle_smoke`, which builds a small in-process signed `.gts`
+rather than replaying the shipped bundle, and `release.rs`'s own unit tests
+cover the fold/verify pair's logic against a tiny synthetic snapshot; the full
+committed-bundle round-trip stays on-gate on `maint-heavy`).
 Former off-gate groups such as
 ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
 correspondence parity, mapping parity, carrier/docs archive tests, scoreboards

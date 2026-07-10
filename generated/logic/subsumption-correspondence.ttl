@@ -17,7 +17,7 @@
    <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/CompleteOverApproximation> ;
    <https://blackcatinformatics.ca/logic/mnemomorphic> true ;
    <https://blackcatinformatics.ca/logic/hasLawClaim> <https://blackcatinformatics.ca/gmeow/el-native-subsumption-lawclaim> ;
-   <https://blackcatinformatics.ca/logic/contractHash> "c78e728e6a68b97d5dcf4ed0a869214d373ec1cd" ;
+   <https://blackcatinformatics.ca/logic/contractHash> "03374e5a3936b465156d1ce5ec09195e5752a79c" ;
    <https://blackcatinformatics.ca/logic/engine> "native ⊒ nemo" ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "native subsumes nemo on the certified EL fragment, proved gap-zero"@en ;
    <https://blackcatinformatics.ca/gmeow/agreeCount> 13 ;
@@ -40,7 +40,7 @@
    <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/CompleteOverApproximation> ;
    <https://blackcatinformatics.ca/logic/mnemomorphic> true ;
    <https://blackcatinformatics.ca/logic/hasLawClaim> <https://blackcatinformatics.ca/gmeow/rl-native-subsumption-lawclaim> ;
-   <https://blackcatinformatics.ca/logic/contractHash> "c78e728e6a68b97d5dcf4ed0a869214d373ec1cd" ;
+   <https://blackcatinformatics.ca/logic/contractHash> "03374e5a3936b465156d1ce5ec09195e5752a79c" ;
    <https://blackcatinformatics.ca/logic/engine> "native ⊒ nemo" ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "native subsumes nemo on the certified RL fragment, proved gap-zero"@en ;
    <https://blackcatinformatics.ca/gmeow/agreeCount> 25 ;
@@ -63,7 +63,7 @@
    <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/CompleteOverApproximation> ;
    <https://blackcatinformatics.ca/logic/mnemomorphic> true ;
    <https://blackcatinformatics.ca/logic/hasLawClaim> <https://blackcatinformatics.ca/gmeow/dl-native-subsumption-lawclaim> ;
-   <https://blackcatinformatics.ca/logic/contractHash> "c78e728e6a68b97d5dcf4ed0a869214d373ec1cd" ;
+   <https://blackcatinformatics.ca/logic/contractHash> "03374e5a3936b465156d1ce5ec09195e5752a79c" ;
    <https://blackcatinformatics.ca/logic/engine> "native ⊒ nemo" ;
    <http://www.w3.org/2000/01/rdf-schema#comment> "native subsumes nemo on the certified DL fragment, proved gap-zero"@en ;
    <https://blackcatinformatics.ca/gmeow/agreeCount> 17 ;

@@ -46,6 +46,7 @@ use std::collections::BTreeSet;
 
 use gmeow_errors::{Finding, Severity};
 
+use crate::physical::cursor::LendingIterator;
 use crate::physical::seminaive::{
     Budgeted, NativeOutcome, StepGovernor, StrataProgress, UnsupportedKind,
 };
@@ -155,6 +156,7 @@ fn collect_var(term: &EvalTerm, vars: &mut BTreeSet<String>) {
 /// agree and a constant must equal the fact surface).  Used both for the body frontier
 /// join and for the restricted-chase head-satisfaction probe.
 fn join_atoms(atoms: &[EvalAtom], rel: &RelationStore, seed: &Solution) -> Vec<Solution> {
+    let interner = rel.interner();
     let mut solutions = vec![seed.clone()];
     for atom in atoms {
         let mut next: Vec<Solution> = Vec::new();
@@ -164,11 +166,15 @@ fn join_atoms(atoms: &[EvalAtom], rel: &RelationStore, seed: &Solution) -> Vec<S
             let Some(bound) = atom_bound(rel, subj.as_deref(), obj.as_deref()) else {
                 continue; // a bound term the store has never seen matches nothing
             };
-            for (subject, object) in rel.select(atom.predicate.as_str(), bound) {
+            // Drive the lending cursor directly (no eager `Vec`): each `next()` yields
+            // one id row (the delta-probe RowId is ignored by the chase) in row-id order.
+            let mut cursor = rel.select(atom.predicate.as_str(), bound);
+            while let Some((s_id, o_id, _row)) = cursor.next() {
+                // Resolve the term ids to `TermValue` surfaces here.
                 let f = Fact {
-                    subject,
+                    subject: interner.resolve(s_id).clone(),
                     predicate: atom.predicate.clone(),
-                    object,
+                    object: interner.resolve(o_id).clone(),
                 };
                 if let Some(mut merged) = match_atom(atom, &f, sol) {
                     merged.source_facts.push(f);
@@ -309,7 +315,7 @@ fn chase_world_into(
     // the EDB).
     let mut store = RelationStore::new();
     for f in edb_facts {
-        store.insert(&f.predicate, f.subject.clone(), f.object.clone());
+        store.insert(&f.predicate, &f.subject, &f.object);
     }
     out.extend(echo_asserted(world, edb_facts)?);
 
@@ -402,7 +408,7 @@ fn chase_world_into(
             }
             let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
             let derivation_id = mint_derivation_id(&fact_rule_iri(&sources), &src_refs);
-            store.insert(&fact.predicate, fact.subject.clone(), fact.object.clone());
+            store.insert(&fact.predicate, &fact.subject, &fact.object);
             out.push(DerivedRow {
                 graph: world.to_owned(),
                 subject: fact.subject,

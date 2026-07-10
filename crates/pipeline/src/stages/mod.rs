@@ -41,6 +41,10 @@ pub mod export;
 pub mod fold_arena;
 pub mod frame_shapes;
 pub mod gate_verdict;
+// The GMN-1 round-trip gate: the executed byte witness behind
+// `gmeow:gmnCorrNormalToGmn`'s `logic:mnemomorphic true` declaration, mirroring
+// `superset`'s byte-reconstruction discipline over the grounding slices' GMN-0.
+pub mod gmn1_gate;
 pub mod gts_compose;
 pub mod gts_sink;
 pub mod json_schema;

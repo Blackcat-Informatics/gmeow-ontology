@@ -360,6 +360,10 @@ export enum AxisThresholdEnum {
     thrFlagshipDepthLinked = "thrFlagshipDepthLinked",
     thrFlagshipDepthMaximal = "thrFlagshipDepthMaximal",
     thrFlagshipDepthRegistered = "thrFlagshipDepthRegistered",
+    thrGmn1CoverageExemplified = "thrGmn1CoverageExemplified",
+    thrGmn1CoverageGrounded = "thrGmn1CoverageGrounded",
+    thrGmn1CoverageLinked = "thrGmn1CoverageLinked",
+    thrGmn1CoverageMaximal = "thrGmn1CoverageMaximal",
     thrGroundingExemplified = "thrGroundingExemplified",
     thrGroundingGrounded = "thrGroundingGrounded",
     thrGroundingLinked = "thrGroundingLinked",
@@ -1265,6 +1269,33 @@ export enum GmnCodebookEnum {
     gmnCodebookCurrent = "gmnCodebookCurrent",
 }
 
+export enum GmnCompartmentEnum {
+    gmnCompartmentNato = "gmnCompartmentNato",
+    gmnCompartmentPartner = "gmnCompartmentPartner",
+}
+
+export enum GmnDictionaryEntryEnum {
+    gmnDictV1EntryBoundaryClosed = "gmnDictV1EntryBoundaryClosed",
+    gmnDictV1EntryBoundaryOpen = "gmnDictV1EntryBoundaryOpen",
+    gmnDictV1EntryCodebook = "gmnDictV1EntryCodebook",
+    gmnDictV1EntryEnvelope = "gmnDictV1EntryEnvelope",
+    gmnDictV1EntryEvKindComputational = "gmnDictV1EntryEvKindComputational",
+    gmnDictV1EntryEvKindDirect = "gmnDictV1EntryEvKindDirect",
+    gmnDictV1EntryEvKindExpert = "gmnDictV1EntryEvKindExpert",
+    gmnDictV1EntryEvKindInstrumental = "gmnDictV1EntryEvKindInstrumental",
+    gmnDictV1EntryEvKindRemote = "gmnDictV1EntryEvKindRemote",
+    gmnDictV1EntryEvKindStreaming = "gmnDictV1EntryEvKindStreaming",
+    gmnDictV1EntryEvKindSurvey = "gmnDictV1EntryEvKindSurvey",
+    gmnDictV1EntryModalActual = "gmnDictV1EntryModalActual",
+    gmnDictV1EntryModalCounterfactual = "gmnDictV1EntryModalCounterfactual",
+    gmnDictV1EntryModalNecessary = "gmnDictV1EntryModalNecessary",
+    gmnDictV1EntryModalPossible = "gmnDictV1EntryModalPossible",
+}
+
+export enum GmnDictionaryEnum {
+    gmnDictV1 = "gmnDictV1",
+}
+
 export enum GmnFixityEnum {
     gmnFixityBracketing = "gmnFixityBracketing",
     gmnFixityInfix = "gmnFixityInfix",
@@ -1272,8 +1303,24 @@ export enum GmnFixityEnum {
     gmnFixityPrefix = "gmnFixityPrefix",
 }
 
+export enum GmnRingCriterionEnum {
+    gmnCriterionAutomatedUnreviewed = "gmnCriterionAutomatedUnreviewed",
+    gmnCriterionHumanReviewed = "gmnCriterionHumanReviewed",
+}
+
+export enum GmnRingLevelEnum {
+    gmnLevelCore = "gmnLevelCore",
+    gmnLevelRestricted = "gmnLevelRestricted",
+    gmnLevelTrusted = "gmnLevelTrusted",
+}
+
+export enum GmnRingPresetEnum {
+    gmnRingPresetDefault = "gmnRingPresetDefault",
+}
+
 export enum GmnSecurityRingEnum {
     gmnRingCore = "gmnRingCore",
+    gmnRingNato = "gmnRingNato",
     gmnRingRestricted = "gmnRingRestricted",
     gmnRingTrusted = "gmnRingTrusted",
 }
@@ -1713,14 +1760,17 @@ export enum MemoryKindEnum {
 export enum MentalProcessTypeEnum {
     processAffectiveExperience = "processAffectiveExperience",
     processAttention = "processAttention",
+    processAudit = "processAudit",
     processDeliberation = "processDeliberation",
     processDreaming = "processDreaming",
+    processExport = "processExport",
     processImagining = "processImagining",
     processLearning = "processLearning",
     processMindWandering = "processMindWandering",
     processPerception = "processPerception",
     processReasoning = "processReasoning",
     processRecollection = "processRecollection",
+    processTraining = "processTraining",
 }
 
 export enum MentalReferenceFrameEnum {
@@ -2599,6 +2649,7 @@ export enum PronounSetEnum {
 export enum QualityAxisEnum {
     axisDocumentation = "axisDocumentation",
     axisFlagshipCounterExampleDepth = "axisFlagshipCounterExampleDepth",
+    axisGmn1Coverage = "axisGmn1Coverage",
     axisMaximalGrounding = "axisMaximalGrounding",
     axisMaximalInformation = "axisMaximalInformation",
     axisMaximalLinkage = "axisMaximalLinkage",
@@ -4952,13 +5003,41 @@ export interface GmnCodebook extends InformationObject {
 export interface GmnCompaction extends StandpointClaim {
 }
 
+export interface GmnCompartment {
+}
+
+export interface GmnDictionary extends InformationObject {
+    gmnDictionaryEntry?: GmnDictionaryEntry[],
+}
+
+export interface GmnDictionaryEntry extends InformationObject {
+    gmnDictionaryEntryAlias?: string,
+    gmnDictionaryEntryTerm?: string,
+}
+
 export interface GmnEnvelope extends AttestationArtifact {
 }
 
 export interface GmnFixity {
 }
 
+export interface GmnRingCriterion {
+}
+
+export interface GmnRingLevel {
+    gmnRingLevelDominates?: GmnRingLevel[],
+}
+
+export interface GmnRingPreset extends InformationObject {
+    gmnRingPresetMember?: GmnSecurityRing[],
+}
+
 export interface GmnSecurityRing {
+    gmnRingAdmits?: GmnRingCriterion[],
+    gmnRingCompartment?: GmnCompartment[],
+    gmnRingCompartmentGap?: GmnSecurityRing[],
+    gmnRingExcludes?: GmnRingCriterion[],
+    gmnRingLevel?: GmnRingLevel,
 }
 
 export interface GmnSigilRole {
