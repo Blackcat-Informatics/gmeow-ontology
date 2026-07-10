@@ -253,20 +253,35 @@ fn check_projection_compute_purity(root: &Path, report: &mut RepoStaticReport) {
     }
 }
 
+/// The gmeow domain namespace — the migrated FOL-axiom predicates live under it.
+const GMEOW_NS_STATIC: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// The migrated irreflexive/acyclic predicates: a hand-authored `sh:select` self-reference
+/// `$this <P> $this` (optionally `+`/`*`) IS an irreflexivity/acyclicity axiom — a logical
+/// characteristic that must be authored in the logic: canon and PROJECTED, not hand-authored.
+const MIGRATED_SELF_PREDS: &[&str] = &["counterGoal", "overrides", "linkNext"];
+
+/// The migrated relatum-distinctness role-pairs: a `sh:select` binding both roles to one value
+/// IS a mutual-inequality axiom (`logic:RelatumDistinctnessAssertion`). Detected by both role
+/// IRIs co-occurring in one select body — a pattern the retained closed-world checks never use.
+const MIGRATED_DISTINCT_PAIRS: &[(&str, &str)] = &[
+    ("committedAgent", "commitmentBeneficiary"),
+    ("precedenceHigher", "precedenceLower"),
+    ("rewardPole", "penaltyPole"),
+    ("linkAntecedent", "linkConsequent"),
+];
+
 /// The shape-half of the projection-purity seal (the peer of [`check_projection_compute_purity`]):
-/// the authored tree holds `logic:` ONLY. Any SHACL *shape* construct in `shapes/` / `slices/` /
-/// `dsl/` — a subject typed `sh:NodeShape`/`sh:PropertyShape`, or the subject of a shape-defining
-/// predicate (`sh:property` / `sh:path` / `sh:target{Class,SubjectsOf,ObjectsOf}` / `sh:sparql`) —
-/// is a hand-authored second source of truth. Validation is authored in the logic: canon
-/// (`logic:Constraint` for the procedural fragment, plus the OWL/RDFS axioms the declarative shapes
-/// derive from) and PROJECTED to `generated/shapes/*` (Principle 17, `design/LOGIC-VALIDATION.md`).
-/// This is an UNCONDITIONAL blanket seal: there is NO `logic:formalizes` legalization in the
-/// authored tree — a back-reference is meaningful only on the `generated/**` projections this gate
-/// does not scan, so honouring it here would reopen the leave-the-hardest-shape-in-`slices/` escape
-/// the seal exists to close. The check is Turtle-aware (it parses each file and resolves the SHACL
-/// vocabulary as IRIs, so an alternate prefix, a full IRI, or a construct named only in a comment or
-/// a string literal cannot bypass or trip it). Scans `shapes/` (where the root SHACL lived) as well
-/// as `slices/` + `dsl/`.
+/// an authored `sh:sparql`/`sh:select` that re-encodes a migrated open-world FOL axiom
+/// (irreflexivity / acyclicity / relatum-distinctness — the distinctive self-reference and
+/// coincident-role signatures) is a hand-authored second source of truth. It must be authored in
+/// the logic: canon and PROJECTED to `generated/shapes/constraint-shapes.ttl` (Principle 17), or
+/// carry a `logic:formalizes` back-reference on the construct or its owning shape. This realizes
+/// the `sh:sparql` procedural-constraint fragment of the shape gate
+/// (`design/LOGIC-VALIDATION.md`); the declarative `sh:PropertyShape` fragment follows as the
+/// remaining closed-world shapes migrate (the same incremental realization the frame/result shape
+/// stages are already described under). Scans `shapes/` (where the FOL SHACL lived) as well as
+/// `slices/` + `dsl/`.
 fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
     let mut ttl_files = Vec::new();
     for sub in ["shapes", "slices", "dsl"] {
@@ -296,51 +311,64 @@ fn check_projection_shape_purity(root: &Path, report: &mut RepoStaticReport) {
             }
         };
 
-        // Subjects that declare a hand-authored shape, with the construct that flagged them.
-        // A blanket seal: a typed shape node, or the subject of any shape-defining predicate.
-        // There is deliberately no `logic:formalizes` legalization here (see the doc comment).
-        let mut shape_subjects: BTreeMap<TermId, BTreeSet<String>> = BTreeMap::new();
-        if let Some(type_id) = iri_id_static(&ds, rdf::TYPE) {
-            for local in ["NodeShape", "PropertyShape"] {
-                let Some(cid) = iri_id_static(&ds, &format!("{SHACL_NS}{local}")) else {
-                    continue;
-                };
-                for q in ds.quads_for_pattern(None, Some(type_id), Some(cid), GraphMatch::Any) {
-                    shape_subjects
-                        .entry(q.s)
-                        .or_default()
-                        .insert(format!("sh:{local}"));
-                }
-            }
-        }
-        for local in [
-            "property",
-            "path",
-            "targetClass",
-            "targetSubjectsOf",
-            "targetObjectsOf",
-            "sparql",
-        ] {
+        // Parents: a `sh:sparql` / `sh:target` construct block → its owning shape, so a
+        // `logic:formalizes` on the shape legalizes the block (the upward walk).
+        let mut parents: BTreeMap<TermId, BTreeSet<TermId>> = BTreeMap::new();
+        for local in ["sparql", "target"] {
             let Some(pid) = iri_id_static(&ds, &format!("{SHACL_NS}{local}")) else {
                 continue;
             };
             for q in ds.quads_for_pattern(None, Some(pid), None, GraphMatch::Any) {
-                shape_subjects
-                    .entry(q.s)
-                    .or_default()
-                    .insert(format!("sh:{local}"));
+                parents.entry(q.o).or_default().insert(q.s);
+            }
+        }
+        let mut directly_backed: BTreeSet<TermId> = BTreeSet::new();
+        if let Some(fid) = iri_id_static(&ds, PROJECTION_FORMALIZES_IRI) {
+            for q in ds.quads_for_pattern(None, Some(fid), None, GraphMatch::Any) {
+                directly_backed.insert(q.s);
             }
         }
 
-        for (subj, markers) in &shape_subjects {
-            let constructs: Vec<&str> = markers.iter().map(String::as_str).collect();
+        let Some(sel_id) = iri_id_static(&ds, &format!("{SHACL_NS}select")) else {
+            continue;
+        };
+        for q in ds.quads_for_pattern(None, Some(sel_id), None, GraphMatch::Any) {
+            let TermRef::Literal { lexical, .. } = ds.resolve(q.o) else {
+                continue;
+            };
+            // The sh:select lexical with ALL whitespace removed. The seal is a lexical
+            // heuristic; stripping whitespace means a hand-authored re-encoding cannot slip
+            // it by padding the `<prop> $this` self-loop (or the `<prop1> … <prop2>` pair)
+            // with tabs, newlines, or extra spaces. IRIs and `$this` carry no interior
+            // whitespace, so removal preserves every token while collapsing the evasion
+            // surface (it also defeats a stray space before a `+` property-path modifier).
+            let sel: String = lexical.split_whitespace().collect();
+            let mut matched: Option<String> = None;
+            for p in MIGRATED_SELF_PREDS {
+                let base = format!("{GMEOW_NS_STATIC}{p}>");
+                if sel.contains(&format!("{base}$this")) || sel.contains(&format!("{base}+$this")) {
+                    matched = Some(format!("irreflexivity/acyclicity on gmeow:{p}"));
+                }
+            }
+            for (a, b) in MIGRATED_DISTINCT_PAIRS {
+                if sel.contains(&format!("{GMEOW_NS_STATIC}{a}>"))
+                    && sel.contains(&format!("{GMEOW_NS_STATIC}{b}>"))
+                {
+                    matched = Some(format!("relatum-distinctness on gmeow:{a}/gmeow:{b}"));
+                }
+            }
+            let Some(desc) = matched else {
+                continue;
+            };
+            if formalizes_backed(q.s, &directly_backed, &parents) {
+                continue;
+            }
             report.error(format!(
-                "{rel}: {} hand-authors SHACL shape vocabulary ({}): validation is authored in \
-                 the logic: canon (logic:Constraint plus the OWL/RDFS axioms the declarative \
-                 shapes derive from) and PROJECTED to generated/shapes/* (Principle 17), never \
-                 hand-authored as a second source of truth (design/LOGIC-VALIDATION.md)",
-                node_label(&ds, *subj),
-                constructs.join(", ")
+                "{rel}: a hand-authored sh:sparql re-encodes the migrated FOL axiom \
+                 ({desc}) without a `logic:formalizes` back-reference on it or its owning \
+                 shape: this axiom is authored in the logic: canon and PROJECTED to \
+                 generated/shapes/constraint-shapes.ttl (Principle 17, H8), never \
+                 hand-authored as a second source of truth (design/LOGIC-VALIDATION.md)"
             ));
         }
     }
@@ -1560,7 +1588,7 @@ mod tests {
     }
 
     #[test]
-    fn shape_purity_blanket_seals_every_authored_shape_construct() {
+    fn shape_purity_flags_unbacked_migrated_axioms_and_passes_backed_and_closed_world() {
         let temp = tempfile::tempdir().unwrap();
         let root = temp.path();
         let g = "https://blackcatinformatics.ca/gmeow/";
@@ -1587,8 +1615,7 @@ mod tests {
                      sh:select \"\"\"SELECT $this WHERE {{ $this <{g}committedAgent> ?v . $this <{g}commitmentBeneficiary> ?v . }}\"\"\" ] .\n"
             ),
         );
-        // The SAME irreflexivity axiom WITH a logic:formalizes on its owning shape: under the
-        // blanket seal a back-reference no longer legalizes an authored-tree shape → STILL flagged.
+        // The SAME irreflexivity axiom WITH a logic:formalizes on its owning shape → legal.
         write(
             &root.join("shapes/good-backed.ttl"),
             &format!(
@@ -1600,8 +1627,8 @@ mod tests {
                      sh:select \"\"\"SELECT $this WHERE {{ $this <{g}counterGoal> $this . }}\"\"\" ] .\n"
             ),
         );
-        // A closed-world check (FILTER NOT EXISTS existence): under the blanket seal ANY authored
-        // sh:sparql shape is a second source of truth → flagged (its check belongs in the canon).
+        // A retained closed-world check (FILTER NOT EXISTS existence) → NOT a migrated axiom,
+        // must NOT be flagged even without logic:formalizes.
         write(
             &root.join("shapes/closed-world.ttl"),
             &format!(
@@ -1611,14 +1638,6 @@ mod tests {
                      sh:sparql [ a sh:SPARQLConstraint ; \
                      sh:select \"\"\"SELECT $this WHERE {{ $this <{g}deonticModality> ?m . FILTER NOT EXISTS {{ $this <{g}normIssuer> ?i . }} }}\"\"\" ] .\n"
             ),
-        );
-        // A purely declarative shape (sh:PropertyShape + sh:path/sh:minCount, no sh:sparql): the
-        // blanket seal flags the declarative fragment too, not just procedural sh:sparql.
-        write(
-            &root.join("shapes/bad-declarative.ttl"),
-            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
-                 @prefix ex: <https://example.org/> .\n\
-                 ex:P a sh:PropertyShape ; sh:path ex:foo ; sh:minCount 1 .\n",
         );
 
         // The SAME irreflexivity axiom, unbacked, but padded with a newline + tab + extra
@@ -1659,24 +1678,13 @@ mod tests {
             report.errors
         );
         assert!(
-            report.errors.iter().any(|e| e.contains("good-backed.ttl")),
-            "the blanket seal admits NO logic:formalizes legalization in the authored tree — a \
-             back-referenced shape must STILL be flagged; got {:?}",
+            !report.errors.iter().any(|e| e.contains("good-backed.ttl")),
+            "a logic:formalizes-backed axiom must pass; got {:?}",
             report.errors
         );
         assert!(
-            report.errors.iter().any(|e| e.contains("closed-world.ttl")),
-            "any authored sh:sparql shape is a second source of truth and must be flagged, \
-             closed-world or not; got {:?}",
-            report.errors
-        );
-        assert!(
-            report
-                .errors
-                .iter()
-                .any(|e| e.contains("bad-declarative.ttl")),
-            "a declarative sh:PropertyShape (sh:path/sh:minCount, no sh:sparql) must be flagged; \
-             got {:?}",
+            !report.errors.iter().any(|e| e.contains("closed-world.ttl")),
+            "a retained closed-world check must NOT be flagged; got {:?}",
             report.errors
         );
     }

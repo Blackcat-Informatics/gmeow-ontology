@@ -135,7 +135,7 @@ meta:tests-identity-orthogonality a meta:TestSuite ;
 
 meta:shapes-core a meta:Shape ;
     rdfs:label "core SHACL shapes (identity facets, claim spine, frames)"@x-gmeow-english ;
-    meta:artifact "generated/shapes/validation-shapes.ttl", "generated/shapes/procedural-constraints.ttl" ;
+    meta:artifact "shapes/gmeow-shapes.ttl" ;
     meta:makeTarget "validate" .
 
 meta:gate-suppression a meta:Gate ;

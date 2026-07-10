@@ -122,12 +122,10 @@ const AUDIT_HEADLINE: &[&str] = &[
     "claims-contradicted-by-higher-confidence",
     "stale-source-claims",
 ];
-// The claim-audit shapes are now projections of authored `logic:Constraint` nodes
-// (slices/core/ai/module.ttl); each projects to `{Name}ProceduralConstraintShape`.
 const CLAIM_AUDIT_SHAPES: &[&str] = &[
-    "ClaimNeedsEvidenceConstraintProceduralConstraintShape",
-    "GroundingSpanConstraintProceduralConstraintShape",
-    "StaleSourceConstraintProceduralConstraintShape",
+    "ClaimNeedsEvidenceShape",
+    "GroundingSpanShape",
+    "StaleSourceShape",
 ];
 
 const FLAT_QUERY: &str = r#"
@@ -1100,16 +1098,37 @@ fn retain_claim_audit_shapes(
 }
 
 fn shapes_turtle(root: &Path) -> gmeow_errors::Result<String> {
-    // The hand-authored SHACL shapes were retired (Principle 17): the validation surface is
-    // now the projected `generated/shapes/*`. Build the audit union from the projected shapes
-    // plus the importable core prefix set.
-    let generated_shapes = root.join("generated").join("shapes"); // GENERATED-READ-OK: dev-CLI scoreboard audit of the projected shapes; never folds into gmeow.gts
-    let mut files = glob_ttl(&generated_shapes)?;
-    if files.is_empty() {
+    let shapes_dir = root.join("shapes");
+    let base = shapes_dir.join("gmeow-shapes.ttl");
+    if !base.exists() {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
+            message: format!("SHACL shapes not found: {}", base.display()),
+        }));
+    }
+    let mut files = vec![base.clone()];
+    let excluded = BTreeSet::from([
+        "mapping-dsl-shapes.ttl",
+        "statement-dsl-shapes.ttl",
+        "test-dsl-shapes.ttl",
+        "slice-manifest-shapes.ttl",
+        "gmeow-shapes.ttl",
+    ]);
+    for path in glob_ttl(&shapes_dir)? {
+        if let Some(name) = path.file_name().and_then(|n| n.to_str())
+            && !excluded.contains(name)
+        {
+            files.push(path);
+        }
+    }
+    let generated_shapes = root.join("generated").join("shapes"); // GENERATED-READ-OK: dev-CLI scoreboard audit of committed shapes; never folds into gmeow.gts
+    let generated = glob_ttl(&generated_shapes)?;
+    if generated.is_empty() {
         return Err(gmeow_errors::Diag::of_kind(crate::error::Scoreboard {
             message: format!("no generated shapes under {}", generated_shapes.display()),
         }));
     }
+    files.extend(generated);
+    files.extend(slice_files(root, "shapes.ttl")?);
     // The importable named prefix set (`gmeow:CorePrefixes`) must live in the
     // shapes graph the reader parses so that `sh:prefixes gmeow:CorePrefixes`
     // references on production shapes RESOLVE (not just fall back to the
