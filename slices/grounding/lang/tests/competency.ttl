@@ -347,7 +347,7 @@ ex:rowGrammarRoundTrip a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "grammar" ; gmeow:cellValueIri exf:turtleGrammar ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:ExactPreservation ] .
 
-# === Q13 (Item 3 of #1475) — the ring-within migration-equivalence witness =============== #
+# === Q13 — the ring-within migration-equivalence witness ================================ #
 # gmeow:gmnRingWithin is DERIVED, not asserted (gmeow:ruleGmnRingWithinDerive /
 # gmeow:ruleGmnRingCompartmentGap, module.ttl). This question runs in the native
 # gmeow:reasoningLogic lane so the derivation rules actually FIRE, and COMPUTES

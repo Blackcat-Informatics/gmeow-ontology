@@ -151,8 +151,8 @@
 #     the folded `generated/quality/gmeow.quality-assessment.nt` is drift-gated on every
 #     `make check` via `make check-generated`, and the exhaustive real-carrier proof
 #     stays on-gate on `maint-heavy`.
-#   - gmeow-slicetest run_structural_file::core/slice-quality-rubric/tests/structural.ttl
-#     (2026-07-09, #1475 Task 7): 19-42 s depending on contention (was 41.1 s before a
+#   - gmeow-slicetest run_structural_file::core/slice-quality-rubric/tests/structural.ttl:
+#     19-42 s depending on contention (was 41.1 s before a
 #     same-scope dataset cache landed in `run_structural_cell`, which halved the standalone
 #     cost). The slice-quality rubric module (`slices/core/slice-quality-rubric/module.ttl`)
 #     is the largest, most prose-dense module in the repo — it is the self-describing quality

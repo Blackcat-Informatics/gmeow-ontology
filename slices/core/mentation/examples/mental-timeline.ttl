@@ -15,7 +15,7 @@
 #      processDreaming — Ada's dream last night. gmeow:Experience is used because
 #      there is something it is like to undergo a dream (the qualia-bearing subset).
 #   4. A gmeow:MentalProcess of type processExport — Ada writes up her proof as a
-#      report. The emit member of the train/audit/export triple (Item 4 of #1475):
+#      report. The emit member of the train/audit/export triple:
 #      an externalization episode whose disclosure semantics, when it crosses a
 #      serialization boundary, are governed by reference to the lang slice's
 #      gmeow:GmnSecurityRing (see slices/grounding/lang/shapes.ttl's

@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
-# Conforming GMN fixture: an export crossing bound to its ring (Item 4 of #1475). The
+# Conforming GMN fixture: an export crossing bound to its ring. The
 # generating activity carries gmeow:mentalProcessType gmeow:processExport (mentation) and
 # the gmeow:GmnEnvelope it produced carries a full eight-field contract INCLUDING
 # gmeow:gmnSecurityRing, so lang:GmnExportRingBindingShape validates with no findings

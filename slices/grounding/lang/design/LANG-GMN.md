@@ -201,8 +201,8 @@ anti-rigid-sortal meta-type, e.g. "child"/"adult" — a false friend), and no ot
 carries a phase-of-occurrent axis. Rather than mint a new foundational `logic:` axis as a
 byproduct of a GMN compaction slot — a new occurrent-semantics distinction deserves its own
 design-reviewed treatment, not a silent side effect here — the `@p` factored-aspect set stays at
-two genuinely-grounded factors, `bd` and `it`; "phase" is subsumed by `bd`'s two-valued boundary
-for now.
+two genuinely-grounded factors, `bd` and `it`; "phase" is subsumed by `bd`'s two-valued boundary,
+and a dedicated phase marker is declined.
 
 A record exercising the new slots, alongside a `@p` process record exercising the `@p`-only pair:
 
@@ -474,10 +474,9 @@ containment test are never OWL characteristics** — no `owl:irreflexive` / `owl
 on the derived order, which would push the profile out of the EL fragment and hard-fail
 `make reason-verify`. The relation is REFLEXIVE (a ring is trivially within itself, the standard
 Denning ⊑ reading — the flow-check idiom already asks "ring equals the destination, OR is
-`gmeow:gmnRingWithin` it", so equality is handled once); the migration-equivalence witness below
-applies its own `FILTER(?x != ?y)` at the SPARQL layer where irreflexivity is actually load-bearing
-(`logic:distinctBody` is parsed and correctly projected into Nemo rule text, but is not enforced by
-the native chase's execution — a discovered reasoner gap, worked around rather than relied on here).
+`gmeow:gmnRingWithin` it", so equality is handled once); the derivation rule itself carries no inequality guard, since the order it computes wants to be
+reflexive; the migration-equivalence witness below instead applies its own `FILTER(?x != ?y)` at the
+SPARQL layer, where irreflexivity is actually load-bearing.
 A structural gate (`tests/structural.ttl`) additionally asserts that ZERO
 `gmeow:gmnRingWithin` triples are ever authored in the carrier — the predicate is populated only at
 reason time, and a hand-authored edge (including a reintroduction of the retired chain) fails the

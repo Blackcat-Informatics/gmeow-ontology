@@ -906,7 +906,7 @@ lang:GmnEnvelopeContractShape
     ] .
 
 # =========================================================================== #
-# GMN dictionary alias-injectivity gate (Item 1 / R5 of #1475). The section-
+# GMN dictionary alias-injectivity gate. The section-
 # retraction witness gmeow:gmnCorrNormalToGmn now claims rests on the alias
 # table being a genuine BIJECTION over its covered term set. Two entries of one
 # gmeow:GmnDictionary aliasing two DIFFERENT terms with the SAME alias string
@@ -940,7 +940,7 @@ lang:GmnDictionaryAliasInjectivityShape
     ] .
 
 # =========================================================================== #
-# GMN security-ring lattice gates (Item 3 of #1475). gmeow:gmnRingWithin is
+# GMN security-ring lattice gates. gmeow:gmnRingWithin is
 # DERIVED (module.ttl, gmeow:ruleGmnRingWithinDerive) from a ring's AUTHORED
 # (gmeow:gmnRingLevel, gmeow:gmnRingCompartment) coordinates. Gating the
 # DERIVED relation for partial-order-ness would be a tautology (a derivation
@@ -1119,7 +1119,7 @@ lang:GmnScriptGlyphCoverageShape
     ] .
 
 # =========================================================================== #
-# Mentation <-> lang binding gate (Item 4 of #1475): gmeow:processExport      #
+# Mentation <-> lang binding gate: gmeow:processExport                       #
 # (mentation, core tier) crossings bind to the ring model. NOT one of the     #
 # eight SHACL hard rules of the "GMN dialect gates" banner above --           #
 # LANG-CONFORMANCE.md's rule count is unchanged; this is a separate           #

@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
-# Counter-example (Item 1 / R5 of #1475, version-pinning): a gmeow:GmnEnvelope declaring
+# Counter-example (version-pinning): a gmeow:GmnEnvelope declaring
 # TWO gmeow:gmnDictionaryVersion literals at once. An alias is meaningless without the
 # ONE dictionary version that minted it — declaring two simultaneously makes the pinning
 # ambiguous, exactly the "non-interchangeable" property lang:GmnMissingEnvelopeField's
