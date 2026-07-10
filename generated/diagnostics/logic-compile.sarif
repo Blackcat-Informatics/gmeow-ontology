@@ -365,6 +365,52 @@
             }
           ],
           "message": {
+            "text": "bounded depth {n,m} and the predicate wildcard are GMEOW property-path extensions beyond SPARQL 1.1 §9; a consumer restricted to standard SPARQL receives the unrolled (bounded) or approximated (wildcard) form"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "11aec932c62b8497"
+          },
+          "properties": {
+            "detail": "a predicate wildcard has no SPARQL §9 operator; its edge relation is materialized by a namespace-scoped pre-pass before the depth closure\nmodal/world context and contextual scope are not carried by a path surface",
+            "gmeow.category": "projection-loss"
+          },
+          "ruleId": "preservation.rung.structural"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "bounded depth {n,m} and the predicate wildcard are GMEOW property-path extensions beyond SPARQL 1.1 §9; a consumer restricted to standard SPARQL receives the unrolled (bounded) or approximated (wildcard) form"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "11aec932c62b8497"
+          },
+          "properties": {
+            "detail": "a predicate wildcard has no SPARQL §9 operator; its edge relation is materialized by a namespace-scoped pre-pass before the depth closure\nmodal/world context and contextual scope are not carried by a path surface",
+            "gmeow.category": "projection-loss"
+          },
+          "ruleId": "preservation.rung.structural"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/logic/module.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
             "text": "modal context encoded as quoted graph arguments (may overgenerate)"
           },
           "partialFingerprints": {

@@ -4,9 +4,24 @@ expression: "to_markdown(&model, &Page::Landing)"
 ---
 # GMEOW Ontology Documentation
 
-Version **7**.
+Version **13**.
 
-This site documents **2558** vocabulary terms across **81** slices.
+This site documents **2560** vocabulary terms across **81** slices.
+
+## I want to…
+
+- [Model Contested or Attributed Facts](recipes/contested-or-attributed-facts/index.md) — Keep incompatible claims side by side by recording standpoint, vantage, modality, and evidence on the claim rather than on a single global fact slot\.
+- [Publish Documents for Schema\.org Consumers](recipes/documents-and-schema-org/index.md) — Start with native document and web\-presence facts, then inspect which facts project to schema\.org and where projection is lossy\.
+- [Model Events and Participants](recipes/events-and-participants/index.md) — Describe an event, participant roles, time, place, and source evidence without collapsing participation into a flat string\.
+- [Model Graph\-RAG Dataset Lineage](recipes/graph-rag-dataset-lineage/index.md) — Connect sources, chunks, extracted entities, evidence spans, and pipeline provenance so retrieval artifacts remain auditable\.
+- [Describe Offline GTS Distribution](recipes/offline-gts-distribution/index.md) — Treat a GTS file as a first\-class graph object with segments, profiles, chain heads, opaque frames, codecs, and compaction lineage\.
+- [Model Person Names Without a Preferred\-Name Slot](recipes/person-names-and-display/index.md) — Represent coexisting names, pronouns, aliases, usage contexts, and display suppression without asserting one global winner\.
+- [Audit AI and Graph\-RAG Pipelines](learning-paths/audit-ai-or-graph-rag/index.md) — Connect generated claims to source chunks, evidence spans, tools, model context, and provenance before consumers see them\.
+- [Model a Contested or Attributed Claim](learning-paths/model-a-contested-claim/index.md) — Represent claims by vantage and evidence rather than overwriting facts into a single global truth slot\.
+- [Model a Person Without Flattening Identity](learning-paths/model-a-person/index.md) — Start with a person, add names and contact points, then keep authority links and display choices separate from identity\.
+- [Publish Web Structured Data](learning-paths/publish-web-structured-data/index.md) — Model documents, events, people, and organizations natively, then inspect which fields project cleanly to broad consumers\.
+- [Ship Offline GTS Documentation](learning-paths/ship-offline-gts-docs/index.md) — Treat the distribution file, embedded docs, profiles, segments, codecs, and lineage as first\-class graph facts\.
+- [RDF\-to\-developer glossary](glossary/index.md) — a bridge for readers new to RDF.
 
 ## Vocabulary by category
 
@@ -14,7 +29,7 @@ This site documents **2558** vocabulary terms across **81** slices.
 | --- | --- |
 | [Classes](classes/index.md) | 753 |
 | [Properties](properties/index.md) | 1747 |
-| [Individuals](individuals/index.md) | 57 |
+| [Individuals](individuals/index.md) | 59 |
 | [Datatypes](datatypes/index.md) | 1 |
 
 ## Browse
@@ -32,3 +47,8 @@ This site documents **2558** vocabulary terms across **81** slices.
 - [Documentation health](health/index.md) — per-dimension coverage of the vocabulary surface.
 - [Getting started](getting-started/index.md)
 - [About](about/index.md)
+
+---
+
+**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic`
+Rendered from `gmeow.gts` by the dogfooded build pipeline.

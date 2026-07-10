@@ -32,6 +32,17 @@
   </sentences>
   <!-- RDF/predication channel: canonical N-Triples (round-trip authority). -->
   <gmeow-rdf-meta>
+&lt;https://blackcatinformatics.ca/gmeow/examples/logic/ancestorsTo3&gt; &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt; &lt;https://blackcatinformatics.ca/logic/PathShape&gt; .
+&lt;https://blackcatinformatics.ca/gmeow/examples/logic/ancestorsTo3&gt; &lt;https://blackcatinformatics.ca/logic/pathDepthParam&gt; "maxDepth" .
+&lt;https://blackcatinformatics.ca/gmeow/examples/logic/ancestorsTo3&gt; &lt;https://blackcatinformatics.ca/logic/pathMaxDepth&gt; "3"^^&lt;http://www.w3.org/2001/XMLSchema#integer&gt; .
+&lt;https://blackcatinformatics.ca/gmeow/examples/logic/ancestorsTo3&gt; &lt;https://blackcatinformatics.ca/logic/pathMinDepth&gt; "1"^^&lt;http://www.w3.org/2001/XMLSchema#integer&gt; .
+&lt;https://blackcatinformatics.ca/gmeow/examples/logic/ancestorsTo3&gt; &lt;https://blackcatinformatics.ca/logic/pathStepPredicate&gt; &lt;https://blackcatinformatics.ca/gmeow/examples/logic/parentOf&gt; .
+&lt;https://blackcatinformatics.ca/gmeow/examples/logic/nearbyOrgs&gt; &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt; &lt;https://blackcatinformatics.ca/logic/PathShape&gt; .
+&lt;https://blackcatinformatics.ca/gmeow/examples/logic/nearbyOrgs&gt; &lt;https://blackcatinformatics.ca/logic/pathDepthParam&gt; "maxDepth" .
+&lt;https://blackcatinformatics.ca/gmeow/examples/logic/nearbyOrgs&gt; &lt;https://blackcatinformatics.ca/logic/pathMaxDepth&gt; "2"^^&lt;http://www.w3.org/2001/XMLSchema#integer&gt; .
+&lt;https://blackcatinformatics.ca/gmeow/examples/logic/nearbyOrgs&gt; &lt;https://blackcatinformatics.ca/logic/pathMinDepth&gt; "1"^^&lt;http://www.w3.org/2001/XMLSchema#integer&gt; .
+&lt;https://blackcatinformatics.ca/gmeow/examples/logic/nearbyOrgs&gt; &lt;https://blackcatinformatics.ca/logic/pathNamespaceScope&gt; "https://blackcatinformatics.ca/gmeow/examples/logic/org/" .
+&lt;https://blackcatinformatics.ca/gmeow/examples/logic/nearbyOrgs&gt; &lt;https://blackcatinformatics.ca/logic/pathWildcard&gt; "true" .
 &lt;https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12&gt; &lt;http://www.w3.org/1999/02/22-rdf-syntax-ns#type&gt; &lt;http://www.w3.org/2002/07/owl#Ontology&gt; .
 &lt;https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12&gt; &lt;https://blackcatinformatics.ca/logic/hasFormula&gt; &lt;https://blackcatinformatics.ca/logic/formula/_000001&gt; .
 &lt;https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12&gt; &lt;https://blackcatinformatics.ca/logic/hasFormula&gt; &lt;https://blackcatinformatics.ca/logic/formula/_000002&gt; .

@@ -353,6 +353,46 @@
     {
       "severity": "note",
       "code": "preservation.rung.structural",
+      "message": "bounded depth {n,m} and the predicate wildcard are GMEOW property-path extensions beyond SPARQL 1.1 §9; a consumer restricted to standard SPARQL receives the unrolled (bounded) or approximated (wildcard) form",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/67f6e2c623e68798ce347c00cae34f0f",
+      "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/b660701c54f2bbc7af27e8c35e42aab3",
+      "anchor_non_trivial": true,
+      "tags": [
+        "preservation:SoundUnderApproximation"
+      ],
+      "detail": "a predicate wildcard has no SPARQL §9 operator; its edge relation is materialized by a namespace-scoped pre-pass before the depth closure\nmodal/world context and contextual scope are not carried by a path surface",
+      "category": "projection-loss",
+      "standpoint": "perspectival"
+    },
+    {
+      "severity": "note",
+      "code": "preservation.rung.structural",
+      "message": "bounded depth {n,m} and the predicate wildcard are GMEOW property-path extensions beyond SPARQL 1.1 §9; a consumer restricted to standard SPARQL receives the unrolled (bounded) or approximated (wildcard) form",
+      "tool": "logic-compile",
+      "locations": [
+        {
+          "path": "slices/grounding/logic/module.ttl"
+        }
+      ],
+      "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/cfaf3dc3afacf093e2cab40f6cae8920",
+      "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/6facdd22ae4bf9c2a9fda7923622b9f8",
+      "anchor_non_trivial": true,
+      "tags": [
+        "preservation:SoundUnderApproximation"
+      ],
+      "detail": "a predicate wildcard has no SPARQL §9 operator; its edge relation is materialized by a namespace-scoped pre-pass before the depth closure\nmodal/world context and contextual scope are not carried by a path surface",
+      "category": "projection-loss",
+      "standpoint": "perspectival"
+    },
+    {
+      "severity": "note",
+      "code": "preservation.rung.structural",
       "message": "modal context encoded as quoted graph arguments (may overgenerate)",
       "tool": "logic-compile",
       "locations": [

@@ -39,7 +39,10 @@
       "anchor_non_trivial": true,
       "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
       "category": "data-shape-violation",
-      "standpoint": "perspectival"
+      "standpoint": "perspectival",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+      ]
     },
     {
       "severity": "warning",
@@ -79,7 +82,10 @@
       "anchor_non_trivial": true,
       "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
       "category": "data-shape-violation",
-      "standpoint": "perspectival"
+      "standpoint": "perspectival",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+      ]
     },
     {
       "severity": "warning",
@@ -119,7 +125,10 @@
       "anchor_non_trivial": true,
       "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
       "category": "data-shape-violation",
-      "standpoint": "perspectival"
+      "standpoint": "perspectival",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+      ]
     },
     {
       "severity": "warning",
@@ -159,7 +168,10 @@
       "anchor_non_trivial": true,
       "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
       "category": "data-shape-violation",
-      "standpoint": "perspectival"
+      "standpoint": "perspectival",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+      ]
     },
     {
       "severity": "warning",
