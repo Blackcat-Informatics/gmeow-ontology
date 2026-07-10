@@ -41,7 +41,6 @@ pub const FINDING_CODES: &[&str] = &[
     "slice-quality.linkage.no-calculus-eligible-correspondence",
     "slice-quality.linkage.uncalculated-correspondence",
     "slice-quality.projection.hand-authored-shapes",
-    "slice-quality.projection.no-shapes",
     "slice-quality.projection.no-mappings",
     "slice-quality.testing.no-cells",
     "slice-quality.testing.untested-term",

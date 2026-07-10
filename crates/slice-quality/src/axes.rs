@@ -735,8 +735,10 @@ fn linkage_axis(ctx: &ScoreContext) -> AxisScore {
 
 // ── Axis 5: Maximal projection ─────────────────────────────────────────────
 
-/// Projection: does the slice provide its projectable source surfaces? SHACL
-/// shapes when it has structural constraints, mappings when it links out.
+/// Projection: does the slice provide its projectable source surfaces? The
+/// projecting source for structural constraints is the `module.ttl` OWL/RDFS
+/// axioms (never a hand-authored `shapes.ttl`, which is migration debt), and
+/// mappings when it links out.
 fn projection_axis(ctx: &ScoreContext) -> AxisScore {
     let ds = ctx.graph;
     let mut expected = 0usize;
@@ -761,21 +763,23 @@ fn projection_axis(ctx: &ScoreContext) -> AxisScore {
         ));
     }
 
-    // A slice with owl:Restriction / disjointness should source SHACL from logic:.
+    // A slice with owl:Restriction / disjointness should source SHACL from logic:. Under
+    // Principle 17 the PROJECTING source for those constraints is the OWL/RDFS axioms
+    // themselves (they derive generated/shapes/* via `derive_validation_shapes`), not a
+    // hand-authored shapes.ttl — that file is migration debt (flagged above), never a
+    // legitimate projection source. `has_constraints` already means those axioms are present
+    // in the merged slice graph this axis reads, so the projecting source is definitionally
+    // present: credit it regardless of whether a hand-authored shapes.ttl also exists.
+    // Migrating (deleting shapes.ttl) must never lower this score, and shipping shapes.ttl
+    // must never raise it above the migrated state — the debt finding above is the only
+    // signal for that file's presence.
     let has_constraints = id(ds, "http://www.w3.org/2002/07/owl#Restriction")
         .is_some_and(|c| id(ds, graph::RDF_TYPE).is_some_and(|t| graph::has_any_object(ds, t, c)))
         || id(ds, "http://www.w3.org/2002/07/owl#disjointWith")
             .is_some_and(|p| graph::predicate_used(ds, p));
     if has_constraints {
         expected += 1;
-        if ctx.slice_dir.join("shapes.ttl").is_file() {
-            present += 1;
-        } else {
-            findings.push(advisory(
-                "slice-quality.projection.no-shapes",
-                "the slice declares structural constraints but ships no shapes.ttl projection source (projection purity).".to_owned(),
-            ));
-        }
+        present += 1;
     }
     // A slice whose own vocabulary links out should carry a mapping file.
     let links_out = !external_alignment_surface(ctx).is_empty();
