@@ -174,7 +174,7 @@ ex:rowLossDog a gmeow:ExpectedRow ;
 ex:cqGmnLevelCorrespondences a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/lang/queries/competency/gmn-level-correspondences.rq" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "Which preservation judgment does each GMN level crossing carry? Every crossing between dialect levels is a lang:TranslationUnit carrying its law-spine on exactly one logic:Correspondence, never asserted flat; the answer is exactly the four module crossings — the two GMN-0 encodings (GTS, N-Quads) as ExactPreservation with a retained mnemomorphic witness, GMN-0 → GMN-1 as SoundUnderApproximation with none, and GMN-1 → GMN-2 as ValidationOnly with none." ;
+    gmeow:cqRationale "Which preservation judgment does each GMN level crossing carry? Every crossing between dialect levels is a lang:TranslationUnit carrying its law-spine on exactly one logic:Correspondence, never asserted flat; the answer is exactly the four module crossings — the three GMN-0 encodings (GTS, N-Quads, and now GMN-1) as ExactPreservation with a retained mnemomorphic witness (GTS/N-Quads at the top Isomorphism rung; GMN-1 one rung below at SectionRetraction, since it need not recover the exact GMN-0 byte serialization, only the underlying model), and GMN-1 → GMN-2 as ValidationOnly with none." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqGmnLevelShape ;
     gmeow:cqExpectRow ex:rowGmnCrossGmnToCompacted , ex:rowGmnCrossNormalToGmn ,
@@ -197,8 +197,8 @@ ex:rowGmnCrossGmnToCompacted a gmeow:ExpectedRow ;
 ex:rowGmnCrossNormalToGmn a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri gmeow:gmnUnitNormalToGmn ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "corr" ; gmeow:cellValueIri gmeow:gmnCorrNormalToGmn ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mnemomorphic" ; gmeow:cellValueLiteral "false" ] .
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:ExactPreservation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mnemomorphic" ; gmeow:cellValueLiteral "true" ] .
 
 ex:rowGmnCrossNormalToGts a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "unit" ; gmeow:cellValueIri gmeow:gmnUnitNormalToGts ] ;
@@ -346,3 +346,45 @@ ex:cqGrammarRoundTripShape a logic:ResultShape ;
 ex:rowGrammarRoundTrip a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "grammar" ; gmeow:cellValueIri exf:turtleGrammar ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:ExactPreservation ] .
+
+# === Q13 — the ring-within migration-equivalence witness ================================ #
+# gmeow:gmnRingWithin is DERIVED, not asserted (gmeow:ruleGmnRingWithinDerive /
+# gmeow:ruleGmnRingCompartmentGap, module.ttl). This question runs in the native
+# gmeow:reasoningLogic lane so the derivation rules actually FIRE, and COMPUTES
+# the dominance order over the three default-preset rings' authored
+# (gmeow:gmnRingLevel, gmeow:gmnRingCompartment) coordinates. The expected rows
+# are the retired hand-chained chain (core-within-trusted, trusted-within-
+# restricted, and the transitively-implied core-within-restricted) — a FIXED
+# literal the computed answer is compared against, so a wrong coordinate
+# assignment on any ring makes the computed order diverge from this chain and
+# reds the gate (proving the greenfield refactor is behaviour-preserving, not
+# merely asserted so).
+
+ex:cqGmnRingWithinMigrationEquivalence a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/lang/queries/competency/gmn-ring-within-migration-equivalence.rq" ;
+    gmeow:cqReasoning gmeow:reasoningLogic ;
+    gmeow:cqRationale "The DERIVED gmeow:gmnRingWithin order over the three default-preset rings' authored (gmeow:gmnRingLevel, gmeow:gmnRingCompartment) coordinates, computed by gmeow:ruleGmnRingWithinDerive under the native logic: reasoner, is EXACTLY the retired hand-chained chain: core-within-trusted, trusted-within-restricted, and core-within-restricted (implied by the coordinates directly, since gmeow:gmnRingLevelDominates is hand-closed reflexive-transitively — no chaining through an intermediate ring is needed). The relation is also reflexive (every ring is trivially within itself); the query's FILTER(?x != ?y) excludes those trivial pairs so the comparison targets the STRICT order the retired chain actually encoded. Nothing asserts gmeow:gmnRingWithin anywhere in the source graph (tests/structural.ttl's zero-authored-triples gate enforces that); every row here exists only because the derivation fired, so this witness COMPUTES the equivalence rather than merely asserting it." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqGmnRingWithinMigrationEquivalenceShape ;
+    gmeow:cqExpectRow
+        ex:rowRingWithinCoreTrusted ,
+        ex:rowRingWithinTrustedRestricted ,
+        ex:rowRingWithinCoreRestricted .
+
+ex:cqGmnRingWithinMigrationEquivalenceShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "x" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "y" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowRingWithinCoreTrusted a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "x" ; gmeow:cellValueIri gmeow:gmnRingCore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "y" ; gmeow:cellValueIri gmeow:gmnRingTrusted ] .
+
+ex:rowRingWithinTrustedRestricted a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "x" ; gmeow:cellValueIri gmeow:gmnRingTrusted ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "y" ; gmeow:cellValueIri gmeow:gmnRingRestricted ] .
+
+ex:rowRingWithinCoreRestricted a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "x" ; gmeow:cellValueIri gmeow:gmnRingCore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "y" ; gmeow:cellValueIri gmeow:gmnRingRestricted ] .

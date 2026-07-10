@@ -40,11 +40,25 @@ define_diag_kind! {
     message = "emission-worthy class lang:{} declares projection target(s) {} that are not registered (functor totality: every declared target must be registered)", lang_class, missing;
 }
 
+define_diag_kind! {
+    /// `lang:GmnUncoveredTerm` — a GMN-0 construct the GMN-1 codec cannot losslessly
+    /// encode or decode: an IRI under no registered namespace, a quoted RDF 1.2 triple
+    /// term, a named-graph-scoped quad, or GMN-1 text carrying a token/sigil outside the
+    /// codec's covered fragment. The no-optionality hard fail behind
+    /// `gmeow:gmnCorrNormalToGmn`'s `logic:mnemomorphic true` claim: an uncovered
+    /// construct is named and reported here, never silently dropped.
+    pub struct GmnUncoveredTerm { construct: String }
+    code = "lang-bridge.gmn1.uncovered-term";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "lang:GmnUncoveredTerm: {}", construct;
+}
+
 /// The complete `lang:` bridge diagnostic-code catalog, in registration order.
 pub const LANG_BRIDGE_DIAG_CODES: &[&str] = &[
     DigestCollision::CODE,
     ClassNotEmissionWorthy::CODE,
     MissingProjectionTargets::CODE,
+    GmnUncoveredTerm::CODE,
 ];
 
 /// Eagerly intern every `lang:` bridge diagnostic code (idempotent).
@@ -53,7 +67,27 @@ pub fn register_all() -> Vec<Code> {
         DigestCollision::register(),
         ClassNotEmissionWorthy::register(),
         MissingProjectionTargets::register(),
+        GmnUncoveredTerm::register(),
     ]
+}
+
+/// Intern one `lang:GmnUncoveredTerm` finding into `ledger`, focused on `focus` (the
+/// fixture/source name the uncovered construct came from) — the LossLedger/DiagLedger
+/// identity discipline (finding_iri + anchor + antecedents) every hard-fail finding in
+/// this codebase routes through, never a bespoke ad hoc error type. Mirrors
+/// `crates/pipeline/src/run.rs`'s `attach_pipeline_finding` for the drift/superset
+/// findings — the SAME mechanism, applied to the GMN-1 round-trip gate's findings.
+pub fn attach_gmn_uncovered(
+    ledger: &mut gmeow_errors::DiagLedger,
+    stage_id: &str,
+    focus: &str,
+    construct: &str,
+) {
+    let diag = gmeow_errors::Diag::of_kind(GmnUncoveredTerm {
+        construct: construct.to_owned(),
+    })
+    .with_focus(focus.to_owned());
+    ledger.attach(diag, gmeow_errors::StageId::new(stage_id.to_owned()));
 }
 
 #[cfg(test)]

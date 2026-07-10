@@ -306,6 +306,16 @@ as two denotations.*
     node-level `sh:or`/`sh:and`, a bespoke cross-node `sh:sparql`) is *not* deleted: it carries
     a `logic:formalizes` back-reference naming its canonical `logic:` source, which is what the
     blanket projection-purity gate legalizes.
+- **Converging a slice's GMN-1 coverage.** `gmeow:gmnCorrNormalToGmn`'s `logic:mnemomorphic
+  true` claim is declared over ALL of GMN-0: the grounding slices are total NOW (the executed
+  GMN-1 codec + round-trip gate, `crates/lang-bridge/src/gmn1_codec.rs` +
+  `crates/pipeline/src/stages/gmn1_gate.rs`), and every other slice's coverage is the measured
+  **GMN-1 Coverage** slice-quality axis (`axisGmn1Coverage`), gated at a committed floor with
+  monotonic non-regression (never forced ascent) in `governance/slice-quality-axis-floors.tsv`
+  — grounding is additionally hard-gated at floor `1.0`. `gmeow-dev slice-quality
+  slices/<g>/<s>` names every uncovered GMN-0 quad (`slice-quality.gmn1-coverage.uncovered`);
+  extend the codec's covered fragment to raise the score, then raise the slice's committed
+  floor in a separate, deliberate commit once the uplift has genuinely landed.
 - **Every hard rule maps to exactly one primary gate** with a named, typed failure class —
   the conformance charters (`LOGIC-CONFORMANCE.md` and its `math:`/`lang:` peers) fix the
   gate taxonomy: OWL axiom → SHACL Core → SHACL-SPARQL → source-lint → Rust validator →

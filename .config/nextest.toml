@@ -139,6 +139,40 @@
 #     reject/parity coverage on-gate in the same binaries, the serializations are
 #     drift-gated via `make check-generated`, and all three stay on-gate on
 #     `maint-heavy`.
+#   - gmeow-cli self_sufficiency::transpile_wheel_mode_equals_repo_mode +
+#     self_sufficiency::transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak +
+#     self_sufficiency::project_wheel_mode_equals_repo_mode:
+#     31-53 s locally. Each drives `gmeow transpile`/`gmeow project` over the
+#     WHOLE embedded bundle — `transpile`'s parity test runs it TWICE
+#     (blinded-cwd leg + repo-cwd leg), the leak/fan-out test folds the full
+#     multi-vocab MAXIMAL(G) output — the same whole-committed-bundle class as
+#     the `build_writes_serializations` / `export_respects_language_selector` /
+#     `project_schema_org_view_filter` trio above, irreducibly O(bundle size).
+#     Coverage stays: the SAME wheel-mode==repo-mode parity law stays on-gate
+#     at fixture scale via `self_sufficiency::validate_wheel_mode_equals_repo_mode`
+#     (the cheapest subcommand, no bundle-scale output), and all three heavier
+#     tests stay on-gate on `maint-heavy`.
+#     `self_sufficiency::describe_wheel_mode_equals_repo_mode` was moved BACK
+#     on-gate: unlike its three siblings above, it is genuinely cheap
+#     standalone (6.3-6.8 s measured locally, matching the file's prior
+#     "7.6 s standalone" note) and only rode the 25 s cliff (27.6 s) under
+#     full-parallelism CI contention — the same fix-not-off-gate situation as
+#     `fanout_parity` below (see that override's comment). It stays on the
+#     default-filter and instead joins a dedicated serialized test-group (see
+#     the `cli-cwd-parity` override near the bottom of this file) so CI
+#     contention can no longer push it over budget.
+#   - gmeow-pipeline release_verify_roundtrip binary:
+#     ~75 s per test locally. `fold_release_bundle`/`verify_release_bundle` each
+#     replay the WHOLE committed ~48 MB `generated/dist/gmeow.gts` — the
+#     identical "whole committed bundle" cost class as `fold_parity`/
+#     `fanout_parity`/`end_to_end` above, irreducibly O(bundle size). Coverage
+#     stays: the real crypto-through-the-built-binary requirement (accept a
+#     valid signature, reject an invalid one) runs on-gate via
+#     `crates/gmeow-cli/tests/bundle_smoke.rs`, which builds a small in-process
+#     signed `.gts` rather than replaying the shipped bundle; `release.rs`'s own
+#     unit tests cover the fold/verify pair's logic against a tiny synthetic
+#     snapshot; and the full committed-bundle round-trip stays on-gate on
+#     `maint-heavy`.
 #   - gmeow-pipeline quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate:
 #     86.2 s. It builds the full self-description carrier, which scores every one of
 #     the ~81 slices via `slice_quality::score_slice` to attach the
@@ -151,8 +185,8 @@
 #     the folded `generated/quality/gmeow.quality-assessment.nt` is drift-gated on every
 #     `make check` via `make check-generated`, and the exhaustive real-carrier proof
 #     stays on-gate on `maint-heavy`.
-#   - gmeow-pipeline stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo
-#     (F1, issue 1404): ~100 s locally. Proves the B3 entailment join is non-vacuous
+#   - gmeow-pipeline stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo:
+#     ~100 s locally. Proves the B3 entailment join is non-vacuous
 #     against the REAL ontology by running the real `source_load` → `statements` /
 #     `compile_logic` → `mappings` → `reason` stage chain (a full native-chase
 #     reasoning pass over the whole EDB) and asserting `term_entailments` is
@@ -164,15 +198,37 @@
 #     `term_entailments_from_explanations_populates_matching_term_only` and
 #     `term_entailments_from_upstream_joins_and_hard_fails_on_missing_artifact` in the
 #     same module, and the real-repo non-vacuity proof stays on-gate on `maint-heavy`.
-#   - gmeow-pipeline stages::docs_render::tests::diagnostics_digest_total_is_non_vacuous_on_the_real_repo
-#     (B1, issue 1404): ~105 s locally. The symmetric real-repo non-vacuity proof for
+#   - gmeow-pipeline stages::docs_render::tests::diagnostics_digest_total_is_non_vacuous_on_the_real_repo:
+#     ~105 s locally. The symmetric real-repo non-vacuity proof for
 #     the diagnostics digest — runs the real `source_load` → `validate` /
 #     `compile_logic` chain (whole-ontology SHACL validation + logic compile) and
-#     asserts the folded finding `total` is non-zero, the same whole-repo cost class
-#     as the conformance-union binaries above. Coverage stays: the term/slice join +
-#     hard-fail-on-missing-upstream mechanism is proven on-gate by the fast synthetic
-#     sibling `diagnostics_digest_joins_term_and_slice_and_hard_fails_on_missing_upstream`
+#     asserts the folded finding `total` is non-zero and that a documented term carries
+#     a diagnostic, the same whole-repo cost class as the conformance-union binaries
+#     above. Coverage stays: the documented-term attribution join is proven on-gate by
+#     the fast synthetic sibling
+#     `diagnostics_digest_joins_on_documented_term_attribution_not_abox_focus`
 #     in the same module, and the real-repo non-vacuity proof stays on-gate on `maint-heavy`.
+#   - gmeow-pipeline stages::docs_render::tests::term_loss_digest_is_non_vacuous_on_the_real_repo:
+#     ~100 s locally. The symmetric real-repo non-vacuity proof for the per-term
+#     projection-loss digest — runs the real `compile_logic` → `mappings` chain and
+#     asserts a documented core term carries a projection-loss row. Coverage stays: the
+#     attribution/join logic is proven on-gate by the fast synthetic sibling
+#     `term_loss_digest_attributes_term_projection_loss_nodes_to_documented_source_terms`,
+#     and the real-repo non-vacuity proof stays on-gate on `maint-heavy`.
+#   - gmeow-slicetest run_structural_file::core/slice-quality-rubric/tests/structural.ttl:
+#     19-42 s depending on contention (was 41.1 s before a
+#     same-scope dataset cache landed in `run_structural_cell`, which halved the standalone
+#     cost). The slice-quality rubric module (`slices/core/slice-quality-rubric/module.ttl`)
+#     is the largest, most prose-dense module in the repo — it is the self-describing quality
+#     rubric itself, documenting every axis in full natural-language prose — and each new axis
+#     (13 now, after the GMN-1 Coverage axis) both grows that file and adds another structural
+#     cell that re-unions + re-plans a SPARQL ASK over it, so the cost is irreducibly
+#     O(module size x cell count) under this shared dev box's contention, the same
+#     under-contention class as the CLI/up_project siblings above. No coverage leaves the
+#     gate: the assertions are still RUN and asserted correct on every `make check` via
+#     `make maint-rust-heavy`, every other slice's `structural.ttl` stays on-gate (this
+#     exclusion is scoped to this one file's datatest case, not the whole class), and the
+#     rubric's axis-shape invariants stay drift-gated via `make check-generated`.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -192,6 +248,10 @@ default-filter = '''
     | (package(gmeow-pipeline) & test(/quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate/))
     | (package(gmeow-pipeline) & test(/stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo/))
     | (package(gmeow-pipeline) & test(/stages::docs_render::tests::diagnostics_digest_total_is_non_vacuous_on_the_real_repo/))
+    | (package(gmeow-pipeline) & test(/stages::docs_render::tests::term_loss_digest_is_non_vacuous_on_the_real_repo/))
+    | (package(gmeow-slicetest) & test(/run_structural_file::core\/slice-quality-rubric\/tests\/structural\.ttl/))
+    | (package(gmeow-pipeline) & binary(release_verify_roundtrip))
+    | (package(gmeow-cli) & binary(self_sufficiency) & (test(transpile_wheel_mode_equals_repo_mode) | test(transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak) | test(project_wheel_mode_equals_repo_mode)))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
@@ -232,6 +292,13 @@ fail-fast = false
 [test-groups]
 engine = { max-threads = 2 }
 mapping-stage = { max-threads = 1 }
+# CWD-parity CLI tests that fold the WHOLE embedded/committed bundle in-process
+# (no Nemo/Scryer chase, so they do not belong in `engine`'s memory-pressure
+# group) but are cheap enough standalone to stay on-gate rather than being
+# carved out entirely. This caps how many of them run concurrently so
+# generic CPU/process contention in a busy CI shard cannot push one of them
+# over the 25 s budget on its own.
+cli-cwd-parity = { max-threads = 2 }
 
 [[profile.default.overrides]]
 # The whole gmeow-conformance datatest harness (its foundation/* cases materialize
@@ -360,3 +427,18 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 filter = 'package(gmeow-pipeline) & test(/stages::mappings::tests::(sssom_emits_and_overlaps_byte_identically_with_committed|edoal_and_sparql_emit_byte_identically_with_committed|standpoint_and_dsl_stats_emit_byte_identically_with_committed|fno_is_well_formed_ntriples|prefix_set_projections_are_emitted_and_parse|list_functions_are_emitted_and_parse)/)'
 test-group = 'mapping-stage'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
+# self_sufficiency::describe_wheel_mode_equals_repo_mode drives `gmeow
+# describe` over the WHOLE embedded bundle, but does NOT drive a Nemo/Scryer
+# chase, so it does not belong in the `engine` memory-pressure group (that
+# group exists for multi-GB chase processes, not generic whole-bundle load/
+# describe work). It stays ON the default-filter (~6.3-6.8 s standalone,
+# measured directly, well under the 25 s policy) but joins the dedicated
+# `cli-cwd-parity` test-group: unserialized it piled onto other whole-bundle-
+# folding tests in the shared shard and rode the 25 s cliff over on CI jitter
+# alone (measured 27.6 s under full-parallelism contention) — the same
+# fix-not-off-gate bias as `fanout_parity` above, for a test this cheap
+# standalone.
+filter = 'package(gmeow-cli) & binary(self_sufficiency) & test(describe_wheel_mode_equals_repo_mode)'
+test-group = 'cli-cwd-parity'

@@ -298,13 +298,25 @@ pub fn available_doc_languages(snapshot: &[u8]) -> Result<Vec<String>, gmeow_err
     Ok(langs.into_iter().collect())
 }
 
-/// Summarise every term in a folded GTS snapshot as `(curie, label, definition)`.
+/// Summarise every documented VOCABULARY term (class / property) in a folded GTS
+/// snapshot as `(curie, label, definition)`.
 ///
 /// Confirms and exposes the native authority behind `bundle_term_summaries`:
 /// [`crate::stages::export::FoldView`] + [`crate::stages::export::collect_terms`]. A
 /// term with an empty `label` / `definition` is a "missing" one for the source-free
 /// bundle checks (`gmeow verify`). No logic is duplicated here — this is a one-name
 /// pass-through so a `gmeow` / `gmeow-dev` binary need not reach into `stages::export`.
+///
+/// `collect_terms` also folds every `individual` (any instance of an in-namespace
+/// class — content-addressed evidence records like `gmeow:conformance-comparison/*`,
+/// `gmeow:rule/*`, `gmeow:verify-attestation/*`, self-description subjects, …), which
+/// this check deliberately EXCLUDES: those are auto-minted DATA, not curated
+/// vocabulary, and requiring a human-authored `rdfs:label`/`skos:definition` on every
+/// one would be a category error (and would make the label/definition completeness
+/// check permanently red on a healthy bundle, since evidence records are, by
+/// definition, never hand-documented). The "term catalog" contract is over the
+/// documented surface — classes and properties — matching the `gmeow-classes.csv` /
+/// `gmeow-properties.csv` export split.
 ///
 /// # Errors
 ///
@@ -322,6 +334,7 @@ pub fn bundle_term_summaries(
     let terms = crate::stages::export::collect_terms(&view);
     Ok(terms
         .into_iter()
+        .filter(|t| t.category == "class" || t.category == "property")
         .map(|t| (t.curie, t.label, t.definition))
         .collect())
 }

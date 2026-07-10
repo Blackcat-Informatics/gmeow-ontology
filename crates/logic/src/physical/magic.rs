@@ -90,6 +90,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use purrdf::TermValue;
 
 use crate::physical::binding_pattern::BindingPattern;
+use crate::physical::plan::Parsed;
 use crate::physical::seminaive::{NativeOutcome, UnsupportedKind, evaluate};
 use crate::physical::store::{RelationStore, extract_edb};
 use crate::profile_gate;
@@ -1028,7 +1029,44 @@ fn eval_with_base_fallback(
     max_steps: Option<u64>,
     base_edb: impl FnOnce() -> RelationStore,
 ) -> gmeow_errors::Result<FallbackOutcome> {
-    match evaluate(edb, transformed_rules, max_steps)? {
+    // Enter the type-state plan pipeline for the demand-transformed program.  A magic
+    // (demand) transform threads a magic guard — and, under stratified NAF, a negated
+    // guard — through the program; a negative edge in that guarded cycle can make the
+    // transformed program non-stratifiable even though the UNTRANSFORMED program is
+    // stratified.  `stratify()` → `None` is exactly that trigger: fall back to the base
+    // rules over a freshly extracted EDB (without the demand seed the base rules never
+    // reference); the answer is exact but the demand pruning was dropped, so the caller
+    // downgrades the preservation claim.
+    let Some(transformed_exe) = Parsed::new(transformed_rules)
+        .stratify()
+        .map(|s| s.plan().into_executable())
+    else {
+        let Some(base_exe) = Parsed::new(base_rules)
+            .stratify()
+            .map(|s| s.plan().into_executable())
+        else {
+            // If the BASE program is also non-stratifiable, the program genuinely is — a
+            // real declared gap the caller routes to the oracle.
+            return Ok(FallbackOutcome::Unsupported(
+                UnsupportedKind::NonStratifiable,
+            ));
+        };
+        return match evaluate(base_edb(), &base_exe, max_steps)? {
+            NativeOutcome::Decided(budgeted) => {
+                let frontier = budgeted.frontier();
+                Ok(FallbackOutcome::Decided {
+                    facts: budgeted.rows,
+                    status: budgeted.status,
+                    frontier,
+                    demand_pruning_dropped: true,
+                })
+            }
+            // A builtin gap in the base program passes through to the caller's oracle route.
+            NativeOutcome::Unsupported(other) => Ok(FallbackOutcome::Unsupported(other)),
+        };
+    };
+
+    match evaluate(edb, &transformed_exe, max_steps)? {
         NativeOutcome::Decided(budgeted) => {
             let frontier = budgeted.frontier();
             Ok(FallbackOutcome::Decided {
@@ -1037,28 +1075,6 @@ fn eval_with_base_fallback(
                 frontier,
                 demand_pruning_dropped: false,
             })
-        }
-        // A magic (demand) transform threads a magic guard — and, under stratified NAF, a
-        // negated guard — through the program; a negative edge in that guarded cycle can
-        // make the transformed program non-stratifiable even though the UNTRANSFORMED
-        // program is stratified. Fall back to the base rules over a freshly extracted EDB
-        // (without the demand seed the base rules never reference); the answer is exact but
-        // the demand pruning was dropped, so the caller downgrades the preservation claim.
-        NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable) => {
-            match evaluate(base_edb(), base_rules, max_steps)? {
-                NativeOutcome::Decided(budgeted) => {
-                    let frontier = budgeted.frontier();
-                    Ok(FallbackOutcome::Decided {
-                        facts: budgeted.rows,
-                        status: budgeted.status,
-                        frontier,
-                        demand_pruning_dropped: true,
-                    })
-                }
-                // If the BASE program is also non-stratifiable, the program genuinely is —
-                // a real declared gap the caller routes to the oracle.
-                NativeOutcome::Unsupported(other) => Ok(FallbackOutcome::Unsupported(other)),
-            }
         }
         // Any other declared native gap (cut / arithmetic / non-binary) passes through to
         // the caller's oracle route unchanged.
@@ -1225,7 +1241,7 @@ pub(crate) fn resolve_native(
     let mut edb = extract_edb(foreign, world);
     if let Some(seed) = &transformed.seed {
         let fact = seed_to_fact(seed)?;
-        edb.insert(&fact.predicate, fact.subject, fact.object);
+        edb.insert(&fact.predicate, &fact.subject, &fact.object);
     }
     // The step/derivation budget is honoured DURING the fixpoint: `Exhausted` on a cut,
     // `Ok` on a natural fixpoint (including the pure-EDB case, where no rule fires).  The
@@ -1332,6 +1348,16 @@ mod tests {
     const W: &str = "http://logic.test/world/magic";
     const PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
     const BASE: &str = "https://example.org/";
+
+    /// Drive the type-state plan pipeline for a stratifiable test program — the only path
+    /// to the `Executable` the backward `evaluate` executor accepts.
+    fn exe(rules: &[EvalRule]) -> crate::physical::plan::Executable<'_> {
+        Parsed::new(rules)
+            .stratify()
+            .expect("stratifiable test program")
+            .plan()
+            .into_executable()
+    }
 
     fn make_world(triples: &[(&str, &str, &str)]) -> (WorldStore, String) {
         let store = WorldStore::new();
@@ -1673,9 +1699,9 @@ mod tests {
         let mut edb = extract_edb(&foreign, &world_nn);
         if let Some(seed) = &transformed.seed {
             let f = seed_to_fact(seed).unwrap();
-            edb.insert(&f.predicate, f.subject, f.object);
+            edb.insert(&f.predicate, &f.subject, &f.object);
         }
-        let facts = match evaluate(edb, &transformed.rules, None).unwrap() {
+        let facts = match evaluate(edb, &exe(&transformed.rules), None).unwrap() {
             NativeOutcome::Decided(budgeted) => budgeted.rows,
             other => panic!("expected Decided, got {other:?}"),
         };
@@ -2188,8 +2214,8 @@ mod tests {
             let mut edb = RelationStore::new();
             edb.insert(
                 &format!("{BASE}src"),
-                TermValue::iri(x.clone()),
-                TermValue::iri(y.clone()),
+                &TermValue::iri(x.clone()),
+                &TermValue::iri(y.clone()),
             );
             edb
         };
@@ -2584,9 +2610,9 @@ mod tests {
         let mut edb = extract_edb(foreign, world);
         if let Some(seed) = &transformed.seed {
             let f = seed_to_fact(seed).unwrap();
-            edb.insert(&f.predicate, f.subject, f.object);
+            edb.insert(&f.predicate, &f.subject, &f.object);
         }
-        let facts = match evaluate(edb, &transformed.rules, None).unwrap() {
+        let facts = match evaluate(edb, &exe(&transformed.rules), None).unwrap() {
             NativeOutcome::Decided(b) => b.rows,
             other => panic!("expected Decided, got {other:?}"),
         };
@@ -2810,9 +2836,9 @@ mod tests {
         let mut edb = extract_edb(&foreign, &world_nn);
         if let Some(seed) = &mp.seed {
             let f = seed_to_fact(seed).unwrap();
-            edb.insert(&f.predicate, f.subject, f.object);
+            edb.insert(&f.predicate, &f.subject, &f.object);
         }
-        let facts = match evaluate(edb, &mp.rules, None).unwrap() {
+        let facts = match evaluate(edb, &exe(&mp.rules), None).unwrap() {
             NativeOutcome::Decided(b) => b.rows,
             other => panic!("expected Decided, got {other:?}"),
         };

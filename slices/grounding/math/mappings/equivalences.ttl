@@ -1450,3 +1450,13 @@ gmeow:eqMathActivationFunction a gmeow:TermEquivalence ;
     gmeow:objectLabel "activation function" ;
     gmeow:comment "math:ActivationFunction is the elementwise nonlinearity of a neural layer; wd:Q4677469 (activation function) is the same concept. Identity, so skos:exactMatch." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathFiltration a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Filtration ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q17099562 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "persistent homology" ;
+    gmeow:comment "math:Filtration is the indexed nested family a persistence computation runs over; wd:Q17099562 (persistent homology) is the method built on that family, not the family itself. A related but non-identical concept, so skos:closeMatch rather than skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .

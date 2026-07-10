@@ -434,10 +434,22 @@ impl ForwardOracle for NativeForwardOracle {
         // least-fixpoint closure UNBOUNDED (`None` max_steps — the governor never
         // cuts, so the full least model is produced).
         let eval_rules = crate::rule_ir::lower_program_eval_rules(&program)?;
-        let rows = match crate::physical::materialize_native(&store, &eval_rules, None)? {
+        // Enter the type-state plan pipeline: a non-stratifiable program is a DECLARED
+        // gap (`stratify()` → `None`) the native engine does not decide — never
+        // approximate it into a fabricated closure.
+        let Some(stratified) = crate::physical::Parsed::new(&eval_rules).stratify() else {
+            return Err(oracle_err(
+                "NativeForwardOracle: the native chase does not decide this rule set \
+                 (non-stratifiable: a negative dependency-graph edge inside a cycle); it \
+                 must not approximate an undecided fragment"
+                    .to_owned(),
+            ));
+        };
+        let executable = stratified.plan().into_executable();
+        let rows = match crate::physical::materialize_native(&store, &executable, None)? {
             crate::physical::NativeOutcome::Decided(budgeted) => budgeted.rows,
-            // A non-stratifiable program is a DECLARED gap the native engine does
-            // not decide — never approximate it into a fabricated closure.
+            // Any other declared native gap the forward executor might raise — never
+            // approximate it into a fabricated closure.
             crate::physical::NativeOutcome::Unsupported(kind) => {
                 return Err(oracle_err(format!(
                     "NativeForwardOracle: the native chase does not decide this rule set \

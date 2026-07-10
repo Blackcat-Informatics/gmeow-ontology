@@ -139,6 +139,10 @@ fn spine() -> PipelineSpec {
             spec("stage-source-load", "source_load", &[]),
             spec("stage-statements", "statements", &[]),
             spec("stage-compile-logic", "compile_logic", &[]),
+            // Leaf compute: the five math flagship producers, folded into the snapshot
+            // (mirrors `run.rs::full_spec()` — kept in sync so `bind`'s Rust/RDF
+            // consumes-agreement check holds for `stage-snapshot`).
+            spec("stage-math-producers", "math_producers", &[]),
             spec("stage-mappings", "mappings", &["stage-compile-logic"]),
             spec(
                 "stage-reason",

@@ -588,8 +588,8 @@ fn quads_by_subject(edb: &RdfDataset) -> Vec<(String, String, RdfTerm, String)> 
     rows
 }
 
-fn read_restrictions(edb: &RdfDataset) -> HashMap<(String, String), Restriction> {
-    let mut restrictions: HashMap<(String, String), Restriction> = HashMap::new();
+fn read_restrictions(edb: &RdfDataset) -> BTreeMap<(String, String), Restriction> {
+    let mut restrictions: BTreeMap<(String, String), Restriction> = BTreeMap::new();
     for (subject, predicate, object, world) in quads_by_subject(edb) {
         match predicate.as_str() {
             OWL_ON_PROPERTY => {
@@ -1940,7 +1940,7 @@ pub(crate) fn augment_inferred_with_dl(
 fn augment_with_extra_dl_clashes(
     inferred: &mut Vec<InferredAxiom>,
     facts: &mut BTreeSet<Fact>,
-    restrictions: &HashMap<(String, String), Restriction>,
+    restrictions: &BTreeMap<(String, String), Restriction>,
     edb: &RdfDataset,
 ) {
     // ── 1. owl:Thing forced into owl:Nothing ──────────────────────────────────
@@ -3538,7 +3538,7 @@ fn functional_property_has_unresolvable_xml_literals(edb: &RdfDataset) -> bool {
 /// (IRI/bnode) filler class. A literal or absent filler/property is not a shape
 /// the value-invention handler generates for, so it stays undecided.
 fn all_some_values_from_instances_decidable(
-    restrictions: &HashMap<(String, String), Restriction>,
+    restrictions: &BTreeMap<(String, String), Restriction>,
 ) -> bool {
     let mut saw_instance = false;
     for restriction in restrictions.values() {
@@ -3629,7 +3629,7 @@ fn all_property_chains_are_binary(
 /// (honesty over green) and surfaces as a gap.
 fn all_cardinality_instances_decidable(
     edb: &RdfDataset,
-    restrictions: &HashMap<(String, String), Restriction>,
+    restrictions: &BTreeMap<(String, String), Restriction>,
     family: &str,
 ) -> bool {
     let (predicate_iri, qualified) = match family {

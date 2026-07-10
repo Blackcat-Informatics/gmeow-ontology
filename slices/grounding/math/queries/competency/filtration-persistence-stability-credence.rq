@@ -1,0 +1,29 @@
+# Competency question: "Over which filtration, and with what birth/death thresholds and
+# stability guarantee, was the persistence-derived credence of this latent-meaning claim
+# calibrated?"
+# This exercises the persistence-calibration discipline: a math:ResidualInterpretationClaim
+# carries its calibrated logic:confidence and traces back — through gmeow:wasDerivedFrom to
+# the math:StabilityCalibrationRecord, its math:calibrationEvidence (a math:PersistenceLifetime),
+# and that lifetime's math:overFiltration — to the filtration, the birth (math:bornAt) and
+# death (math:diesAt) thresholds of the persistence feature, and the theorem
+# (math:stabilityGuarantee) underwriting the calibration. It reads only the declared
+# derivation chain; it does not compute persistence. Scoped to the fixture namespace so the
+# answer is exactly the loop lifetime's row over ex:latentMeaningClaim.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?claim ?filtration ?bornAt ?diesAt ?guarantee ?confidence WHERE {
+    ?claim a math:ResidualInterpretationClaim ;
+           logic:confidence ?confidenceRaw ;
+           gmeow:wasDerivedFrom ?record .
+    ?record math:credenceDerivationKind math:persistenceDerivedCredence ;
+            math:calibrationEvidence ?lifetime ;
+            math:stabilityGuarantee ?guarantee .
+    ?lifetime math:overFiltration ?filtration ;
+              math:bornAt ?bornAt ;
+              math:diesAt ?diesAt .
+    FILTER(STRSTARTS(STR(?claim), "http://example.org/math/"))
+    BIND(STR(?confidenceRaw) AS ?confidence)
+}
+ORDER BY ?claim ?bornAt ?diesAt

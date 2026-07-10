@@ -67,3 +67,4 @@ rustc-ice-*.txt
 
 # insta pending-snapshot temp files (never commit)
 *.snap.new
+.deficiencies
