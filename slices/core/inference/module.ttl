@@ -689,3 +689,145 @@ gmeow:InferenceApplication rdfs:subClassOf
 <https://blackcatinformatics.ca/gmeow/PremiseUse> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/premiseUsed> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/InferenceApplication> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/appliedRule> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/InferenceCommitment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/conclusion> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/StandpointClaim> ] .
+
+# =========================================================================== #
+# Migrated procedural constraints (#1194): closed-world SHACL sparql shapes    #
+# from slices/core/inference/shapes.ttl, re-expressed as canonical            #
+# logic:Constraints (Principle 17). The authored shapes stay (additive).       #
+# =========================================================================== #
+
+gmeow:InferencePremiseNotConclusionConstraint
+    a logic:CrossNodeConstraint ;
+    rdfs:label "Premise-not-conclusion constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:InferenceCommitment has no gmeow:premise that is also its gmeow:conclusion — an argument cannot assume what it proves."@x-gmeow-english ;
+    logic:onClass gmeow:InferenceCommitment ;
+    logic:roleA gmeow:premise ;
+    logic:roleB gmeow:conclusion ;
+    logic:crossMode "differ" ;
+    logic:formalizes gmeow:InferenceCommitment ;
+    logic:message "A premise must not also be the conclusion (gmeow:premise = gmeow:conclusion) — an argument cannot assume what it proves." .
+
+gmeow:CompetesWithIrreflexiveConstraint
+    a logic:Constraint ;
+    rdfs:label "Competes-with irreflexivity constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:StandpointClaim never gmeow:competesWith itself — competition between rival hypotheses is irreflexive."@x-gmeow-english ;
+    logic:formalizes gmeow:CompetesWithShape ;
+    logic:message "A claim must not gmeow:competesWith itself — competition between rival hypotheses is irreflexive." ;
+    logic:integrity logic:cwiForall .
+logic:cwiForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] ;
+    logic:forall logic:cwiImpl .
+logic:cwiImpl a logic:Formula ; logic:antecedent logic:cwiGuard ; logic:consequent logic:cwiNot .
+logic:cwiGuard a logic:Formula ; logic:relation gmeow:competesWith ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+logic:cwiNot a logic:Formula ; logic:not logic:cwiSelf .
+logic:cwiSelf a logic:Formula ; logic:relation gmeow:competesWith ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+
+gmeow:AttackKindTargetAgreementConstraint
+    a logic:Constraint ;
+    rdfs:label "Attack kind-target agreement constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Attack's gmeow:attackKind agrees with its gmeow:attackTarget type — undermine to a PremiseUse, undercut to an InferenceApplication, rebut to a StandpointClaim."@x-gmeow-english ;
+    logic:formalizes gmeow:Attack ;
+    logic:message "An Attack kind must agree with its target: undermine -> PremiseUse, undercut -> InferenceApplication, rebut -> StandpointClaim." ;
+    logic:integrity logic:aktForall .
+logic:aktForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:aktImpl .
+logic:aktImpl a logic:Formula ; logic:antecedent logic:aktGuard ; logic:consequent logic:aktNot .
+logic:aktGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Attack ] .
+logic:aktNot a logic:Formula ; logic:not logic:aktEx .
+logic:aktEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "kind" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ;
+    logic:exists logic:aktBody .
+logic:aktBody a logic:Formula ; logic:and logic:aktKind , logic:aktTarget , logic:aktMismatch .
+logic:aktKind a logic:Formula ; logic:relation gmeow:attackKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "kind" ] .
+logic:aktTarget a logic:Formula ; logic:relation gmeow:attackTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
+logic:aktMismatch a logic:Formula ; logic:or logic:aktArmUndermine , logic:aktArmUndercut , logic:aktArmRebut .
+logic:aktArmUndermine a logic:Formula ; logic:and logic:aktKindUndermine , logic:aktNotPU .
+logic:aktKindUndermine a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "kind" ] , [ logic:termIndex 1 ; logic:termIri gmeow:attackUndermine ] .
+logic:aktNotPU a logic:Formula ; logic:not logic:aktTypePU .
+logic:aktTypePU a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "target" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PremiseUse ] .
+logic:aktArmUndercut a logic:Formula ; logic:and logic:aktKindUndercut , logic:aktNotIA .
+logic:aktKindUndercut a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "kind" ] , [ logic:termIndex 1 ; logic:termIri gmeow:attackUndercut ] .
+logic:aktNotIA a logic:Formula ; logic:not logic:aktTypeIA .
+logic:aktTypeIA a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "target" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InferenceApplication ] .
+logic:aktArmRebut a logic:Formula ; logic:and logic:aktKindRebut , logic:aktNotSC .
+logic:aktKindRebut a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "kind" ] , [ logic:termIndex 1 ; logic:termIri gmeow:attackRebut ] .
+logic:aktNotSC a logic:Formula ; logic:not logic:aktTypeSC .
+logic:aktTypeSC a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "target" ] , [ logic:termIndex 1 ; logic:termIri gmeow:StandpointClaim ] .
+
+gmeow:AttackNotSelfConstraint
+    a logic:CrossNodeConstraint ;
+    rdfs:label "Attack-not-self constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Attack's gmeow:attackSource and gmeow:attackTarget never bind the same value — conflict is irreflexive."@x-gmeow-english ;
+    logic:onClass gmeow:Attack ;
+    logic:roleA gmeow:attackSource ;
+    logic:roleB gmeow:attackTarget ;
+    logic:crossMode "differ" ;
+    logic:formalizes gmeow:Attack ;
+    logic:message "An Attack must not attack itself (gmeow:attackSource = gmeow:attackTarget) — conflict is irreflexive." .
+
+gmeow:AttackNotOwnComponentConstraint
+    a logic:Constraint ;
+    rdfs:label "Attack-not-own-component constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Attack whose gmeow:attackSource is a gmeow:Argument does not target that Argument's own component (its gmeow:argumentConclusion, gmeow:hasPremiseUse, or gmeow:hasInferenceApplication) — conflict is irreflexive."@x-gmeow-english ;
+    logic:formalizes gmeow:Attack ;
+    logic:message "An Argument must not attack its own component (conclusion, premise-use, or inference-application) — conflict is irreflexive." ;
+    logic:integrity logic:aocForall .
+logic:aocForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:aocImpl .
+logic:aocImpl a logic:Formula ; logic:antecedent logic:aocGuard ; logic:consequent logic:aocNot .
+logic:aocGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Attack ] .
+logic:aocNot a logic:Formula ; logic:not logic:aocEx .
+logic:aocEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ;
+    logic:exists logic:aocBody .
+logic:aocBody a logic:Formula ; logic:and logic:aocSource , logic:aocTarget , logic:aocArgType , logic:aocComponent .
+logic:aocSource a logic:Formula ; logic:relation gmeow:attackSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] .
+logic:aocTarget a logic:Formula ; logic:relation gmeow:attackTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
+logic:aocArgType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Argument ] .
+logic:aocComponent a logic:Formula ; logic:or logic:aocConcl , logic:aocPrem , logic:aocInf .
+logic:aocConcl a logic:Formula ; logic:relation gmeow:argumentConclusion ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
+logic:aocPrem a logic:Formula ; logic:relation gmeow:hasPremiseUse ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
+logic:aocInf a logic:Formula ; logic:relation gmeow:hasInferenceApplication ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
+
+gmeow:SupportNotSelfConstraint
+    a logic:CrossNodeConstraint ;
+    rdfs:label "Support-not-self constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Support's gmeow:supportSource and gmeow:supportTarget never bind the same value — support is irreflexive."@x-gmeow-english ;
+    logic:onClass gmeow:Support ;
+    logic:roleA gmeow:supportSource ;
+    logic:roleB gmeow:supportTarget ;
+    logic:crossMode "differ" ;
+    logic:formalizes gmeow:Support ;
+    logic:message "A Support must not support itself (gmeow:supportSource = gmeow:supportTarget) — support is irreflexive." .

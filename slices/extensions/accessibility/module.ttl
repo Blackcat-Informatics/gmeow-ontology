@@ -190,3 +190,36 @@ gmeow:polarityLimited
     skos:definition "The GMEOW Accessibility Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Suppression constraint (#1194) — projection of RetractedAccessibilityAssertionShape.
+# A retracted/superseded accessibility assertion (one carrying gmeow:validUntil) #
+# that is not suppressed (gmeow:displayable false) is a Warning — source may lag. #
+# =========================================================================== #
+
+gmeow:RetractedAccessibilityAssertionSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Retracted accessibility-assertion suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a retracted or superseded gmeow:AccessibilityAssertion (one carrying gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
+    logic:formalizes gmeow:AccessibilityAssertion ;
+    logic:severity "Warning" ;
+    logic:message "A retracted or superseded accessibility assertion (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
+    logic:integrity logic:supAxForall .
+logic:supAxForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:supAxImpl .
+logic:supAxImpl a logic:Formula ; logic:antecedent logic:supAxGuard ; logic:consequent logic:supAxPhi .
+logic:supAxGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AccessibilityAssertion ] .
+logic:supAxPhi a logic:Formula ; logic:not logic:supAxEx .
+logic:supAxEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "u" ] ;
+    logic:exists logic:supAxBody .
+logic:supAxBody a logic:Formula ; logic:and logic:supAxValid , logic:supAxNotSuppressed .
+logic:supAxValid a logic:Formula ; logic:relation gmeow:validUntil ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "u" ] .
+logic:supAxNotSuppressed a logic:Formula ; logic:not logic:supAxDisp .
+logic:supAxDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype <http://www.w3.org/2001/XMLSchema#boolean> ] .

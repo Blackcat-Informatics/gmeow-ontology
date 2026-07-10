@@ -2241,3 +2241,90 @@ gmeow:CopyrightHolderRequiredConstraint
     logic:anyOf gmeow:copyrightHolder ;
     logic:formalizes gmeow:Copyright ;
     logic:message "A Copyright must have at least one holder (gmeow:copyrightHolder)." .
+
+# =========================================================================== #
+# Migrated procedural constraints (#1194): the closed-world rights relator        #
+# well-formedness shapes from shapes/gmeow-shapes.ttl (Principle 17). The rule    #
+# action shape targets Permission/Prohibition/Duty directly (raw-graph SHACL does #
+# no subclass inference), so one record per concrete rule kind.                   #
+# =========================================================================== #
+
+gmeow:RightsStatementAssetConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "RightsStatement asset-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:RightsStatement governs a gmeow:statementAbout asset."@x-gmeow-english ;
+    logic:onClass gmeow:RightsStatement ;
+    logic:anyOf gmeow:statementAbout ;
+    logic:formalizes gmeow:RightsStatement ;
+    logic:message "A RightsStatement must govern exactly one asset (gmeow:statementAbout)." .
+
+gmeow:PermissionRuleActionConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Permission rule-action constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Permission regulates a gmeow:ruleAction."@x-gmeow-english ;
+    logic:onClass gmeow:Permission ;
+    logic:anyOf gmeow:ruleAction ;
+    logic:formalizes gmeow:Permission ;
+    logic:message "A rule (Permission / Prohibition / Duty) must regulate exactly one action (gmeow:ruleAction)." .
+
+gmeow:ProhibitionRuleActionConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Prohibition rule-action constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Prohibition regulates a gmeow:ruleAction."@x-gmeow-english ;
+    logic:onClass gmeow:Prohibition ;
+    logic:anyOf gmeow:ruleAction ;
+    logic:formalizes gmeow:Prohibition ;
+    logic:message "A rule (Permission / Prohibition / Duty) must regulate exactly one action (gmeow:ruleAction)." .
+
+gmeow:DutyRuleActionConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Duty rule-action constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Duty regulates a gmeow:ruleAction."@x-gmeow-english ;
+    logic:onClass gmeow:Duty ;
+    logic:anyOf gmeow:ruleAction ;
+    logic:formalizes gmeow:Duty ;
+    logic:message "A rule (Permission / Prohibition / Duty) must regulate exactly one action (gmeow:ruleAction)." .
+
+gmeow:LicenseLicensorConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "License licensor-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:License names a gmeow:licensor."@x-gmeow-english ;
+    logic:onClass gmeow:License ;
+    logic:anyOf gmeow:licensor ;
+    logic:formalizes gmeow:License ;
+    logic:message "A License must name at least one licensor (gmeow:licensor)." .
+
+gmeow:TrademarkMarkConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Trademark mark-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Trademark is about a gmeow:trademarkMark."@x-gmeow-english ;
+    logic:onClass gmeow:Trademark ;
+    logic:anyOf gmeow:trademarkMark ;
+    logic:formalizes gmeow:Trademark ;
+    logic:message "A Trademark must be about exactly one mark (gmeow:trademarkMark)." .
+
+# Migrated (#1194): a privacy notice should declare its issuer — projection of
+# gmeow:PrivacyNoticeShape from shapes/gmeow-shapes.ttl (Principle 17, Warning).
+gmeow:PrivacyNoticeAttributionConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Privacy notice attribution constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:PrivacyNotice declares who issued it via dcterms:creator or gmeow:wasAttributedTo."@x-gmeow-english ;
+    logic:onClass gmeow:PrivacyNotice ;
+    logic:anyOf <http://purl.org/dc/terms/creator> , gmeow:wasAttributedTo ;
+    logic:formalizes gmeow:PrivacyNotice ;
+    logic:severity "Warning" ;
+    logic:message "A privacy notice should declare who issued it (dcterms:creator or gmeow:wasAttributedTo)." .

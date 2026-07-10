@@ -4396,3 +4396,372 @@ lang:ustToUns a logic:Formula ; logic:relation logic:preservationKind ;
 lang:ustToNotVal a logic:Formula ; logic:not lang:ustToVal .
 lang:ustToVal a logic:Formula ; logic:relation logic:preservationKind ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "c" ] , [ logic:termIndex 1 ; logic:termIri logic:ValidationOnly ] .
+
+# =========================================================================== #
+# Procedural constraints (#1194) — remaining hand-authored sh:sparql NodeShapes  #
+# of shapes.ttl migrated to canonical logic:Constraint records. Each carries      #
+# logic:formalizes keyed on the shape term its projected sh:SPARQLConstraint twin #
+# replaces; the raw logic:Formula integrity trees mirror each sh:select's BGP +   #
+# FILTER exactly. All source shapes are sh:Violation (default severity).          #
+# =========================================================================== #
+
+# lang:SurfaceAnalysisShape (sparql) — a lang:SurfaceForm's structure must match
+# its declared lang:analysisLevel: a parsedLevel surface realizes a
+# lang:ComposedForm, a rawLevel surface is typed lang:UnanalyzedProse, and no
+# surface both realizes an analyzed form and is typed unanalyzed prose (a 3-way
+# disjunctive forbidden pattern over the focus lang:SurfaceForm).
+lang:SurfaceAnalysisStructureConstraint
+    a logic:Constraint ;
+    rdfs:label "Surface analysis-structure constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a lang:SurfaceForm's structure matches its declared lang:analysisLevel — a parsedLevel surface lang:realizes a lang:ComposedForm, a rawLevel surface is typed lang:UnanalyzedProse, and no surface both realizes an analyzed form and is typed unanalyzed prose."@x-gmeow-english ;
+    logic:formalizes lang:SurfaceAnalysisShape ;
+    logic:message "A lang:SurfaceForm's structure must match its declared analysis level (parsed realizes a composed form; raw is unanalyzed prose; never both)." ;
+    logic:integrity lang:sasForall .
+lang:sasForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:sasImpl .
+lang:sasImpl a logic:Formula ; logic:antecedent lang:sasGuard ; logic:consequent lang:sasPhi .
+lang:sasGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:SurfaceForm ] .
+lang:sasPhi a logic:Formula ; logic:not lang:sasBad .
+lang:sasBad a logic:Formula ; logic:or lang:sasA , lang:sasB , lang:sasC .
+lang:sasA a logic:Formula ; logic:and lang:sasAlvl , lang:sasAnoReal .
+lang:sasAlvl a logic:Formula ; logic:relation lang:analysisLevel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:parsedLevel ] .
+lang:sasAnoReal a logic:Formula ; logic:not lang:sasARealEx .
+lang:sasARealEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "f" ] ;
+    logic:exists lang:sasARealBody .
+lang:sasARealBody a logic:Formula ; logic:and lang:sasAReal , lang:sasACF .
+lang:sasAReal a logic:Formula ; logic:relation lang:realizes ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] .
+lang:sasACF a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termIri lang:ComposedForm ] .
+lang:sasB a logic:Formula ; logic:and lang:sasBlvl , lang:sasBnoProse .
+lang:sasBlvl a logic:Formula ; logic:relation lang:analysisLevel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:rawLevel ] .
+lang:sasBnoProse a logic:Formula ; logic:not lang:sasBProse .
+lang:sasBProse a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:UnanalyzedProse ] .
+lang:sasC a logic:Formula ; logic:and lang:sasCRealEx , lang:sasCProse .
+lang:sasCRealEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "g" ] ;
+    logic:exists lang:sasCReal .
+lang:sasCReal a logic:Formula ; logic:relation lang:realizes ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "g" ] .
+lang:sasCProse a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:UnanalyzedProse ] .
+
+# lang:DependencyIntegrityShape (analysis-leaving half) — a lang:FormSlot whose
+# lang:dependsOn head reference leaves the lang:Analysis its slot belongs to: it
+# lang:dependsOn a head ?h and is lang:inAnalysis ?a, but ?h is not lang:inAnalysis
+# the same ?a. The cycle half of this shape is the peer
+# lang:FormSlotAcyclicDependencyConstraint.
+lang:DependencyLeavesAnalysisConstraint
+    a logic:Constraint ;
+    rdfs:label "Dependency leaves-analysis constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a lang:FormSlot's lang:dependsOn head reference stays within the lang:Analysis its slot belongs to — a slot lang:inAnalysis ?a that lang:dependsOn a head ?h names a head that is itself lang:inAnalysis ?a. The dependency-cycle half is the peer lang:FormSlotAcyclicDependencyConstraint."@x-gmeow-english ;
+    logic:formalizes lang:DependencyIntegrityShape ;
+    logic:message "A dependency head reference leaves its analysis or forms a cycle." ;
+    logic:integrity lang:dlaForall .
+lang:dlaForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:dlaImpl .
+lang:dlaImpl a logic:Formula ; logic:antecedent lang:dlaGuard ; logic:consequent lang:dlaPhi .
+lang:dlaGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:FormSlot ] .
+lang:dlaPhi a logic:Formula ; logic:not lang:dlaEx .
+lang:dlaEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "h" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] ;
+    logic:exists lang:dlaBody .
+lang:dlaBody a logic:Formula ; logic:and lang:dlaDep , lang:dlaIn , lang:dlaNotIn .
+lang:dlaDep a logic:Formula ; logic:relation lang:dependsOn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "h" ] .
+lang:dlaIn a logic:Formula ; logic:relation lang:inAnalysis ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+lang:dlaNotIn a logic:Formula ; logic:not lang:dlaHeadIn .
+lang:dlaHeadIn a logic:Formula ; logic:relation lang:inAnalysis ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "h" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+
+# lang:DenotationNonSurfaceShape — a lang:Denotation attaches to a lang:Form that is
+# not a lang:SurfaceForm; meaning attaches above the byte level, so a denotation
+# whose lang:denotedForm is a lang:SurfaceForm is ill-formed.
+lang:DenotationNonSurfaceConstraint
+    a logic:Constraint ;
+    rdfs:label "Denotation non-surface constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a lang:Denotation's lang:denotedForm is not a lang:SurfaceForm — meaning attaches above the byte level."@x-gmeow-english ;
+    logic:formalizes lang:DenotationNonSurfaceShape ;
+    logic:message "A lang:Denotation attaches to a lang:SurfaceForm; meaning attaches above the byte level." ;
+    logic:integrity lang:dnsForall .
+lang:dnsForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:dnsImpl .
+lang:dnsImpl a logic:Formula ; logic:antecedent lang:dnsGuard ; logic:consequent lang:dnsPhi .
+lang:dnsGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:Denotation ] .
+lang:dnsPhi a logic:Formula ; logic:not lang:dnsEx .
+lang:dnsEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "f" ] ;
+    logic:exists lang:dnsBody .
+lang:dnsBody a logic:Formula ; logic:and lang:dnsForm , lang:dnsSurf .
+lang:dnsForm a logic:Formula ; logic:relation lang:denotedForm ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] .
+lang:dnsSurf a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termIri lang:SurfaceForm ] .
+
+# lang:AmbiguityRoutingShape — where a lang:Denotation's lang:denotedForm head
+# lexeme has more than one recorded lang:Sense (two distinct ?s1, ?s2 lang:senseOf
+# the same lexeme), the denotation must route through one via lang:viaSense. The
+# SHACL COUNT(DISTINCT ?s) > 1 is mirrored as the existence of two distinct senses.
+lang:AmbiguousDenotationRoutingConstraint
+    a logic:Constraint ;
+    rdfs:label "Ambiguous-denotation routing constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a lang:Denotation whose denoted form's head lexeme carries more than one lang:Sense (two distinct senses lang:senseOf the lexeme) routes through one via lang:viaSense."@x-gmeow-english ;
+    logic:formalizes lang:AmbiguityRoutingShape ;
+    logic:message "The denoted form's head lexeme has more than one sense but the denotation omits lang:viaSense." ;
+    logic:integrity lang:adrForall .
+lang:adrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:adrImpl .
+lang:adrImpl a logic:Formula ; logic:antecedent lang:adrGuard ; logic:consequent lang:adrPhi .
+lang:adrGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:Denotation ] .
+lang:adrPhi a logic:Formula ; logic:not lang:adrEx .
+lang:adrEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "lex" ] , [ logic:termIndex 2 ; logic:termVariable "s1" ] , [ logic:termIndex 3 ; logic:termVariable "s2" ] ;
+    logic:exists lang:adrBody .
+lang:adrBody a logic:Formula ; logic:and lang:adrForm , lang:adrLex , lang:adrS1 , lang:adrS2 , lang:adrDistinct , lang:adrNoVia .
+lang:adrForm a logic:Formula ; logic:relation lang:denotedForm ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] .
+lang:adrLex a logic:Formula ; logic:relation lang:lexemeOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "lex" ] .
+lang:adrS1 a logic:Formula ; logic:relation lang:senseOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s1" ] , [ logic:termIndex 1 ; logic:termVariable "lex" ] .
+lang:adrS2 a logic:Formula ; logic:relation lang:senseOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s2" ] , [ logic:termIndex 1 ; logic:termVariable "lex" ] .
+lang:adrDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s1" ] , [ logic:termIndex 1 ; logic:termVariable "s2" ] .
+lang:adrNoVia a logic:Formula ; logic:not lang:adrViaEx .
+lang:adrViaEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "vs" ] ;
+    logic:exists lang:adrVia .
+lang:adrVia a logic:Formula ; logic:relation lang:viaSense ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vs" ] .
+
+# lang:DenotationKindMatchShape — a lang:denotationKind fixes its
+# lang:denotationTarget's type: denotesLogicFormula → logic:Formula, denotesLogicType
+# → logic:Type, denotesLogicTerm → logic:Individual, denotesClass → owl:Class,
+# denotesByDescription → lang:Intension. A 5-branch disjunction: a kind whose target
+# does not carry the matching rdf:type is a violation.
+lang:DenotationKindMatchConstraint
+    a logic:Constraint ;
+    rdfs:label "Denotation kind-match constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a lang:denotationKind matches its lang:denotationTarget's type — denotesLogicFormula a logic:Formula, denotesLogicType a logic:Type, denotesLogicTerm a logic:Individual, denotesClass an owl:Class, and denotesByDescription a lang:Intension."@x-gmeow-english ;
+    logic:formalizes lang:DenotationKindMatchShape ;
+    logic:message "A denotation kind does not match its target's type." ;
+    logic:integrity lang:dkmForall .
+lang:dkmForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:dkmImpl .
+lang:dkmImpl a logic:Formula ; logic:antecedent lang:dkmGuard ; logic:consequent lang:dkmPhi .
+lang:dkmGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:Denotation ] .
+lang:dkmPhi a logic:Formula ; logic:not lang:dkmEx .
+lang:dkmEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "t" ] ;
+    logic:exists lang:dkmOr .
+lang:dkmOr a logic:Formula ; logic:or lang:dkmB1 , lang:dkmB2 , lang:dkmB3 , lang:dkmB4 , lang:dkmB5 .
+lang:dkmTgt a logic:Formula ; logic:relation lang:denotationTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "t" ] .
+lang:dkmB1 a logic:Formula ; logic:and lang:dkmK1 , lang:dkmTgt , lang:dkmN1 .
+lang:dkmK1 a logic:Formula ; logic:relation lang:denotationKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:denotesLogicFormula ] .
+lang:dkmN1 a logic:Formula ; logic:not lang:dkmTy1 .
+lang:dkmTy1 a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "t" ] , [ logic:termIndex 1 ; logic:termIri logic:Formula ] .
+lang:dkmB2 a logic:Formula ; logic:and lang:dkmK2 , lang:dkmTgt , lang:dkmN2 .
+lang:dkmK2 a logic:Formula ; logic:relation lang:denotationKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:denotesLogicType ] .
+lang:dkmN2 a logic:Formula ; logic:not lang:dkmTy2 .
+lang:dkmTy2 a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "t" ] , [ logic:termIndex 1 ; logic:termIri logic:Type ] .
+lang:dkmB3 a logic:Formula ; logic:and lang:dkmK3 , lang:dkmTgt , lang:dkmN3 .
+lang:dkmK3 a logic:Formula ; logic:relation lang:denotationKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:denotesLogicTerm ] .
+lang:dkmN3 a logic:Formula ; logic:not lang:dkmTy3 .
+lang:dkmTy3 a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "t" ] , [ logic:termIndex 1 ; logic:termIri logic:Individual ] .
+lang:dkmB4 a logic:Formula ; logic:and lang:dkmK4 , lang:dkmTgt , lang:dkmN4 .
+lang:dkmK4 a logic:Formula ; logic:relation lang:denotationKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:denotesClass ] .
+lang:dkmN4 a logic:Formula ; logic:not lang:dkmTy4 .
+lang:dkmTy4 a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "t" ] , [ logic:termIndex 1 ; logic:termIri owl:Class ] .
+lang:dkmB5 a logic:Formula ; logic:and lang:dkmK5 , lang:dkmTgt , lang:dkmN5 .
+lang:dkmK5 a logic:Formula ; logic:relation lang:denotationKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:denotesByDescription ] .
+lang:dkmN5 a logic:Formula ; logic:not lang:dkmTy5 .
+lang:dkmTy5 a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "t" ] , [ logic:termIndex 1 ; logic:termIri lang:Intension ] .
+
+# lang:IndexicalAnchoredShape — an indexical lang:Denotation (lang:isIndexical true)
+# is read by a lang:InterpretationAct that names a lang:IndexicalAnchor through
+# lang:anchorsIndexical. The act reaches the denotation via a lang:Reading:
+# ?r lang:denotation $this, ?act lang:producedReading ?r; the act must
+# lang:anchorsIndexical some anchor.
+lang:IndexicalAnchoredConstraint
+    a logic:Constraint ;
+    rdfs:label "Indexical anchored constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: an indexical lang:Denotation (lang:isIndexical true) whose reading was produced by a lang:InterpretationAct is anchored — the act names a lang:IndexicalAnchor through lang:anchorsIndexical."@x-gmeow-english ;
+    logic:formalizes lang:IndexicalAnchoredShape ;
+    logic:message "An indexical denotation's interpretation act names no lang:IndexicalAnchor." ;
+    logic:integrity lang:idaForall .
+lang:idaForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:idaImpl .
+lang:idaImpl a logic:Formula ; logic:antecedent lang:idaGuard ; logic:consequent lang:idaPhi .
+lang:idaGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:Denotation ] .
+lang:idaPhi a logic:Formula ; logic:not lang:idaEx .
+lang:idaEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] , [ logic:termIndex 1 ; logic:termVariable "act" ] ;
+    logic:exists lang:idaBody .
+lang:idaBody a logic:Formula ; logic:and lang:idaIdx , lang:idaDen , lang:idaProd , lang:idaNoAnchor .
+lang:idaIdx a logic:Formula ; logic:relation lang:isIndexical ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] .
+lang:idaDen a logic:Formula ; logic:relation lang:denotation ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "r" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+lang:idaProd a logic:Formula ; logic:relation lang:producedReading ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "act" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
+lang:idaNoAnchor a logic:Formula ; logic:not lang:idaAnchorEx .
+lang:idaAnchorEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "an" ] ;
+    logic:exists lang:idaAnchor .
+lang:idaAnchor a logic:Formula ; logic:relation lang:anchorsIndexical ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "act" ] , [ logic:termIndex 1 ; logic:termVariable "an" ] .
+
+# lang:FregeDisjointShape — a node is never typed as two corners of the Frege
+# triangle (lang:Form, lang:Sense, lang:Denotation): (Form and Sense), (Form and
+# Denotation), or (Sense and Denotation) co-typing is the violation. A secondary
+# finding surface for the OWL disjointness that is the primary gate; the target is
+# the union of lang:Sense and lang:Denotation, every violation node inhabiting one.
+# Split into two single-class-guarded peers (the projector's integrity guard must be
+# an atom / conjunction of atoms, never a disjunction): the Sense-cornered peer forbids
+# co-typing as Form or Denotation (covers Form∧Sense and Sense∧Denotation); the
+# Denotation-cornered peer forbids co-typing as Form (covers Form∧Denotation). Together
+# they reject every Frege-triangle co-typing over the lang:Sense ∪ lang:Denotation target.
+lang:FregeDisjointSenseConstraint
+    a logic:Constraint ;
+    rdfs:label "Frege disjointness (sense corner) constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a lang:Sense node is not also typed lang:Form or lang:Denotation — the sense corner of the Frege triangle is neither a form nor a denotation."@x-gmeow-english ;
+    logic:formalizes lang:FregeDisjointShape ;
+    logic:message "A node is typed as two corners of the Frege triangle (form/sense/denotation)." ;
+    logic:integrity lang:fdsForall .
+lang:fdsForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:fdsImpl .
+lang:fdsImpl a logic:Formula ; logic:antecedent lang:fdsGuard ; logic:consequent lang:fdsPhi .
+lang:fdsGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:Sense ] .
+lang:fdsPhi a logic:Formula ; logic:not lang:fdsBad .
+lang:fdsBad a logic:Formula ; logic:or lang:fdsForm , lang:fdsDen .
+lang:fdsForm a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:Form ] .
+lang:fdsDen a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:Denotation ] .
+
+lang:FregeDisjointDenotationConstraint
+    a logic:Constraint ;
+    rdfs:label "Frege disjointness (denotation corner) constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a lang:Denotation node is not also typed lang:Form — the reference corner of the Frege triangle is not a form."@x-gmeow-english ;
+    logic:formalizes lang:FregeDisjointShape ;
+    logic:message "A node is typed as two corners of the Frege triangle (form/sense/denotation)." ;
+    logic:integrity lang:fddForall .
+lang:fddForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:fddImpl .
+lang:fddImpl a logic:Formula ; logic:antecedent lang:fddGuard ; logic:consequent lang:fddPhi .
+lang:fddGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:Denotation ] .
+lang:fddPhi a logic:Formula ; logic:not lang:fddForm .
+lang:fddForm a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:Form ] .
+
+# lang:RenderingNotIdentityShape — a lang:Rendering never renders itself: a
+# rendering that is its own lang:renderedContent is a crossing that never happened
+# (an irreflexivity constraint on lang:renderedContent over the focus lang:Rendering).
+lang:RenderingNotIdentityConstraint
+    a logic:Constraint ;
+    rdfs:label "Rendering non-identity constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a lang:Rendering is not its own lang:renderedContent — a rendering realizes content as a distinct form, so a self-identical rendering is a crossing that never happened."@x-gmeow-english ;
+    logic:formalizes lang:RenderingNotIdentityShape ;
+    logic:message "A lang:Rendering is its own lang:renderedContent; a self-identical rendering is a crossing that never happened." ;
+    logic:integrity lang:rniForall .
+lang:rniForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:rniImpl .
+lang:rniImpl a logic:Formula ; logic:antecedent lang:rniGuard ; logic:consequent lang:rniPhi .
+lang:rniGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:Rendering ] .
+lang:rniPhi a logic:Formula ; logic:not lang:rniSelf .
+lang:rniSelf a logic:Formula ; logic:relation lang:renderedContent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+
+# lang:TranslationAttributionShape (sparql half) — a lang:TranslationUnit whose
+# lang:translationMethod is lang:methodMachine names the gmeow:wasGeneratedBy
+# activity that produced it (a guarded implication: the machine-method trigger
+# value requires a generating activity). The lang:translationMethod cardinality
+# half is a peer OWL restriction / cardinality shape.
+lang:MachineTranslationProvenanceConstraint
+    a logic:GuardedImplicationConstraint ;
+    logic:onClass lang:TranslationUnit ;
+    logic:trigger lang:translationMethod ;
+    logic:triggerValue lang:methodMachine ;
+    logic:requires gmeow:wasGeneratedBy ;
+    logic:formalizes lang:TranslationAttributionShape ;
+    logic:message "A machine translation (lang:methodMachine) names no gmeow:wasGeneratedBy activity that produced it." .
+
+# lang:GmnScriptCodepointPresenceShape — every lang:Grapheme in the repertoire of
+# gmeow:gmnScript (the script lists it through lang:hasGrapheme) carries a
+# gmeow:gmnCodepoints spelling; the GMN glyph table is codepoint-explicit by rule.
+lang:GmnScriptCodepointPresenceConstraint
+    a logic:Constraint ;
+    rdfs:label "GMN script codepoint-presence constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every lang:Grapheme in the repertoire of gmeow:gmnScript (listed through lang:hasGrapheme) carries a gmeow:gmnCodepoints spelling — the GMN glyph table is codepoint-explicit."@x-gmeow-english ;
+    logic:formalizes lang:GmnScriptCodepointPresenceShape ;
+    logic:message "A grapheme in the GMN script's repertoire carries no gmeow:gmnCodepoints spelling; the GMN glyph table is codepoint-explicit." ;
+    logic:integrity lang:gcpForall .
+lang:gcpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:gcpImpl .
+lang:gcpImpl a logic:Formula ; logic:antecedent lang:gcpGuard ; logic:consequent lang:gcpHas .
+lang:gcpGuard a logic:Formula ; logic:and lang:gcpType , lang:gcpInRep .
+lang:gcpType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:Grapheme ] .
+lang:gcpInRep a logic:Formula ; logic:relation lang:hasGrapheme ;
+    logic:argument [ logic:termIndex 0 ; logic:termIri gmeow:gmnScript ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+lang:gcpHas a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "cp" ] ;
+    logic:exists lang:gcpCp .
+lang:gcpCp a logic:Formula ; logic:relation gmeow:gmnCodepoints ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cp" ] .

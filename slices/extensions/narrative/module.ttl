@@ -933,3 +933,109 @@ logic:nsaExists a logic:Formula ;
     logic:exists logic:nsaAtom .
 logic:nsaAtom a logic:Formula ; logic:relation gmeow:discourseTimeOf ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
+
+# =========================================================================== #
+# Migrated procedural constraints (#1194): the closed-world narrative-interior,   #
+# narration-seam and narrative-time well-formedness shapes from                   #
+# shapes/gmeow-shapes.ttl, re-authored as compact logic: sugar records (P17).     #
+# =========================================================================== #
+
+gmeow:ArcSamplePositionConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ArcSample position-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ArcSample reads at a gmeow:samplePosition."@x-gmeow-english ;
+    logic:onClass gmeow:ArcSample ;
+    logic:anyOf gmeow:samplePosition ;
+    logic:formalizes gmeow:ArcSample ;
+    logic:message "An ArcSample must read at exactly one gmeow:samplePosition, a NarrativePosition — never a bare index (#359)." .
+
+gmeow:ArcSampleStateConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ArcSample state-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ArcSample reads a gmeow:sampleState."@x-gmeow-english ;
+    logic:onClass gmeow:ArcSample ;
+    logic:anyOf gmeow:sampleState ;
+    logic:formalizes gmeow:ArcSample ;
+    logic:message "An ArcSample must read exactly one gmeow:sampleState by IRI (affect EmotionType, EmotionML category, or another tradition's term — open by design, P16 soft reference)." .
+
+gmeow:RoleInNarrativeScopeConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "RoleInNarrative scope-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:RoleInNarrative is relative to a gmeow:narrativeRoleScope."@x-gmeow-english ;
+    logic:onClass gmeow:RoleInNarrative ;
+    logic:anyOf gmeow:narrativeRoleScope ;
+    logic:formalizes gmeow:RoleInNarrative ;
+    logic:message "A RoleInNarrative must be relative to exactly one gmeow:narrativeRoleScope (an IRI) — protagonist-of-WHAT is half the claim. nodeKind only: scope instances are data-typed concretely (BookRelease, NarrativeReferenceFrame, ContentSegment) and raw-graph SHACL does no subclass inference toward NarrativeScope." .
+
+gmeow:MotifLabelConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Motif label-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Motif carries an rdfs:label."@x-gmeow-english ;
+    logic:onClass gmeow:Motif ;
+    logic:anyOf rdfs:label ;
+    logic:formalizes gmeow:Motif ;
+    logic:message "A Motif must carry at least one rdfs:label, at most one per language tag — identity-bearing means nameable; an unnameable recurring unit is a tag." .
+
+gmeow:MotifOccursInSegmentConstraint
+    a logic:PathValueTypeConstraint ;
+    rdfs:label "Motif occurrence segment-typed constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:motifOccursIn value is a gmeow:ContentSegment."@x-gmeow-english ;
+    logic:onClass gmeow:Motif ;
+    logic:valuePath gmeow:motifOccursIn ;
+    logic:valueClass gmeow:ContentSegment ;
+    logic:formalizes gmeow:Motif ;
+    logic:message "A motif occurrence rides the narration seam into a ContentSegment (#360)." .
+
+gmeow:NarrationUsageSegmentConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "NarrationUsage segment-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:NarrationUsage carries a gmeow:narrationSegment."@x-gmeow-english ;
+    logic:onClass gmeow:NarrationUsage ;
+    logic:anyOf gmeow:narrationSegment ;
+    logic:formalizes gmeow:NarrationUsage ;
+    logic:message "A NarrationUsage must carry exactly one gmeow:narrationSegment." .
+
+gmeow:NarrationUsageSubjectConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "NarrationUsage subject-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:NarrationUsage carries a gmeow:narrationSubject."@x-gmeow-english ;
+    logic:onClass gmeow:NarrationUsage ;
+    logic:anyOf gmeow:narrationSubject ;
+    logic:formalizes gmeow:NarrationUsage ;
+    logic:message "A NarrationUsage must carry exactly one gmeow:narrationSubject — one relator per (segment, subject) pair." .
+
+gmeow:NarrationUsageModeConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "NarrationUsage mode-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:NarrationUsage states a gmeow:narrationMode."@x-gmeow-english ;
+    logic:onClass gmeow:NarrationUsage ;
+    logic:anyOf gmeow:narrationMode ;
+    logic:formalizes gmeow:NarrationUsage ;
+    logic:message "A NarrationUsage must state at least one gmeow:narrationMode (an IRI — the vocabulary is OPEN per Principle 9, so no sh:class/sh:in: the aboutness-guard convention) — if you reified, you had a reason; the modeless case is the flat gmeow:narrates shortcut (efficiency doctrine, #360)." .
+
+gmeow:NarrativeTimeFrameAxisConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "NarrativeTimeFrame axis-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:NarrativeTimeFrame declares a gmeow:narrativeTimeAxis."@x-gmeow-english ;
+    logic:onClass gmeow:NarrativeTimeFrame ;
+    logic:anyOf gmeow:narrativeTimeAxis ;
+    logic:formalizes gmeow:NarrativeTimeFrame ;
+    logic:message "A NarrativeTimeFrame must declare exactly one gmeow:narrativeTimeAxis (discourse time or story time) — a work and its fabula are two frames, not one frame with two moods." .

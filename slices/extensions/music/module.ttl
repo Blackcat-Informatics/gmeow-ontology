@@ -6778,3 +6778,250 @@ gmeow:MusicAnalysisClaim rdfs:subClassOf
 <https://blackcatinformatics.ca/gmeow/GrooveProfile> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/grooveGridUnit> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/gmeow/GrooveProfile> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/appliesToTimeFrame> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/MusicalSegment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/segmentKind> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+
+# =========================================================================== #
+# CANONICAL logic:Constraints migrated from music shapes.ttl (issue #1194)
+# =========================================================================== #
+
+gmeow:MusicalParameterNoSubclassConstraint
+    a logic:Constraint ;
+    rdfs:label "Musical parameter no-subclass constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "MusicalParameter is a value vocabulary: no subclasses allowed (Principle 9)."@x-gmeow-english ;
+    logic:formalizes gmeow:MusicalParameter ;
+    logic:message "MusicalParameter must not be subclassed (Principle 9)." ;
+    logic:integrity logic:mpNoSubForall .
+logic:mpNoSubForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:mpNoSubImpl .
+logic:mpNoSubImpl a logic:Formula ; logic:antecedent logic:mpNoSubTarget ; logic:consequent logic:mpNoSubPhi .
+logic:mpNoSubTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                   [ logic:termIndex 1 ; logic:termLiteral "SELECT ?this WHERE { VALUES ?this { <https://blackcatinformatics.ca/gmeow/MusicalParameter> } }" ] .
+logic:mpNoSubPhi a logic:Formula ; logic:not logic:mpNoSubEx .
+logic:mpNoSubEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sub" ] ;
+    logic:exists logic:mpNoSubBody .
+logic:mpNoSubBody a logic:Formula ; logic:and logic:mpNoSubEdge , logic:mpNoSubDistinct .
+logic:mpNoSubEdge a logic:Formula ; logic:relation <http://www.w3.org/2000/01/rdf-schema#subClassOf> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:mpNoSubDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+
+gmeow:DeterminationStatusNoSubclassConstraint
+    a logic:Constraint ;
+    rdfs:label "Determination status no-subclass constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "DeterminationStatus is a value vocabulary: no subclasses allowed (Principle 9)."@x-gmeow-english ;
+    logic:formalizes gmeow:DeterminationStatus ;
+    logic:message "DeterminationStatus must not be subclassed (Principle 9)." ;
+    logic:integrity logic:dsNoSubForall .
+logic:dsNoSubForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:dsNoSubImpl .
+logic:dsNoSubImpl a logic:Formula ; logic:antecedent logic:dsNoSubTarget ; logic:consequent logic:dsNoSubPhi .
+logic:dsNoSubTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                   [ logic:termIndex 1 ; logic:termLiteral "SELECT ?this WHERE { VALUES ?this { <https://blackcatinformatics.ca/gmeow/DeterminationStatus> } }" ] .
+logic:dsNoSubPhi a logic:Formula ; logic:not logic:dsNoSubEx .
+logic:dsNoSubEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sub" ] ;
+    logic:exists logic:dsNoSubBody .
+logic:dsNoSubBody a logic:Formula ; logic:and logic:dsNoSubEdge , logic:dsNoSubDistinct .
+logic:dsNoSubEdge a logic:Formula ; logic:relation <http://www.w3.org/2000/01/rdf-schema#subClassOf> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:dsNoSubDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+
+gmeow:GenerativeProcessKindNoSubclassConstraint
+    a logic:Constraint ;
+    rdfs:label "Generative process kind no-subclass constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "GenerativeProcessKind is a value vocabulary: no subclasses allowed (Principle 9)."@x-gmeow-english ;
+    logic:formalizes gmeow:GenerativeProcessKind ;
+    logic:message "GenerativeProcessKind must not be subclassed (Principle 9)." ;
+    logic:integrity logic:gpkNoSubForall .
+logic:gpkNoSubForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:gpkNoSubImpl .
+logic:gpkNoSubImpl a logic:Formula ; logic:antecedent logic:gpkNoSubTarget ; logic:consequent logic:gpkNoSubPhi .
+logic:gpkNoSubTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                   [ logic:termIndex 1 ; logic:termLiteral "SELECT ?this WHERE { VALUES ?this { <https://blackcatinformatics.ca/gmeow/GenerativeProcessKind> } }" ] .
+logic:gpkNoSubPhi a logic:Formula ; logic:not logic:gpkNoSubEx .
+logic:gpkNoSubEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sub" ] ;
+    logic:exists logic:gpkNoSubBody .
+logic:gpkNoSubBody a logic:Formula ; logic:and logic:gpkNoSubEdge , logic:gpkNoSubDistinct .
+logic:gpkNoSubEdge a logic:Formula ; logic:relation <http://www.w3.org/2000/01/rdf-schema#subClassOf> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:gpkNoSubDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+
+gmeow:OrnamentProfileKindNoSubclassConstraint
+    a logic:Constraint ;
+    rdfs:label "Ornament profile kind no-subclass constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "OrnamentProfileKind is a value vocabulary: no subclasses allowed (Principle 9)."@x-gmeow-english ;
+    logic:formalizes gmeow:OrnamentProfileKind ;
+    logic:message "OrnamentProfileKind must not be subclassed (Principle 9)." ;
+    logic:integrity logic:opkNoSubForall .
+logic:opkNoSubForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:opkNoSubImpl .
+logic:opkNoSubImpl a logic:Formula ; logic:antecedent logic:opkNoSubTarget ; logic:consequent logic:opkNoSubPhi .
+logic:opkNoSubTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                   [ logic:termIndex 1 ; logic:termLiteral "SELECT ?this WHERE { VALUES ?this { <https://blackcatinformatics.ca/gmeow/OrnamentProfileKind> } }" ] .
+logic:opkNoSubPhi a logic:Formula ; logic:not logic:opkNoSubEx .
+logic:opkNoSubEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sub" ] ;
+    logic:exists logic:opkNoSubBody .
+logic:opkNoSubBody a logic:Formula ; logic:and logic:opkNoSubEdge , logic:opkNoSubDistinct .
+logic:opkNoSubEdge a logic:Formula ; logic:relation <http://www.w3.org/2000/01/rdf-schema#subClassOf> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:opkNoSubDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+
+gmeow:InstrumentTypeNoSubclassConstraint
+    a logic:Constraint ;
+    rdfs:label "Instrument type no-subclass constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "InstrumentType is a value vocabulary: no subclasses allowed (Principle 9)."@x-gmeow-english ;
+    logic:formalizes gmeow:InstrumentType ;
+    logic:message "InstrumentType must not be subclassed (Principle 9)." ;
+    logic:integrity logic:itNoSubForall .
+logic:itNoSubForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:itNoSubImpl .
+logic:itNoSubImpl a logic:Formula ; logic:antecedent logic:itNoSubTarget ; logic:consequent logic:itNoSubPhi .
+logic:itNoSubTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                   [ logic:termIndex 1 ; logic:termLiteral "SELECT ?this WHERE { VALUES ?this { <https://blackcatinformatics.ca/gmeow/InstrumentType> } }" ] .
+logic:itNoSubPhi a logic:Formula ; logic:not logic:itNoSubEx .
+logic:itNoSubEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sub" ] ;
+    logic:exists logic:itNoSubBody .
+logic:itNoSubBody a logic:Formula ; logic:and logic:itNoSubEdge , logic:itNoSubDistinct .
+logic:itNoSubEdge a logic:Formula ; logic:relation <http://www.w3.org/2000/01/rdf-schema#subClassOf> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:itNoSubDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+
+gmeow:PlayingTechniqueNoSubclassConstraint
+    a logic:Constraint ;
+    rdfs:label "Playing technique no-subclass constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "PlayingTechnique is a value vocabulary: no subclasses allowed (Principle 9)."@x-gmeow-english ;
+    logic:formalizes gmeow:PlayingTechnique ;
+    logic:message "PlayingTechnique must not be subclassed (Principle 9)." ;
+    logic:integrity logic:ptNoSubForall .
+logic:ptNoSubForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:ptNoSubImpl .
+logic:ptNoSubImpl a logic:Formula ; logic:antecedent logic:ptNoSubTarget ; logic:consequent logic:ptNoSubPhi .
+logic:ptNoSubTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                   [ logic:termIndex 1 ; logic:termLiteral "SELECT ?this WHERE { VALUES ?this { <https://blackcatinformatics.ca/gmeow/PlayingTechnique> } }" ] .
+logic:ptNoSubPhi a logic:Formula ; logic:not logic:ptNoSubEx .
+logic:ptNoSubEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sub" ] ;
+    logic:exists logic:ptNoSubBody .
+logic:ptNoSubBody a logic:Formula ; logic:and logic:ptNoSubEdge , logic:ptNoSubDistinct .
+logic:ptNoSubEdge a logic:Formula ; logic:relation <http://www.w3.org/2000/01/rdf-schema#subClassOf> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:ptNoSubDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+
+gmeow:InstrumentModificationNoSubclassConstraint
+    a logic:Constraint ;
+    rdfs:label "Instrument modification no-subclass constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "InstrumentModification is a value vocabulary: no subclasses allowed (Principle 9)."@x-gmeow-english ;
+    logic:formalizes gmeow:InstrumentModification ;
+    logic:message "InstrumentModification must not be subclassed (Principle 9)." ;
+    logic:integrity logic:imNoSubForall .
+logic:imNoSubForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:imNoSubImpl .
+logic:imNoSubImpl a logic:Formula ; logic:antecedent logic:imNoSubTarget ; logic:consequent logic:imNoSubPhi .
+logic:imNoSubTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                   [ logic:termIndex 1 ; logic:termLiteral "SELECT ?this WHERE { VALUES ?this { <https://blackcatinformatics.ca/gmeow/InstrumentModification> } }" ] .
+logic:imNoSubPhi a logic:Formula ; logic:not logic:imNoSubEx .
+logic:imNoSubEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sub" ] ;
+    logic:exists logic:imNoSubBody .
+logic:imNoSubBody a logic:Formula ; logic:and logic:imNoSubEdge , logic:imNoSubDistinct .
+logic:imNoSubEdge a logic:Formula ; logic:relation <http://www.w3.org/2000/01/rdf-schema#subClassOf> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:imNoSubDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+
+gmeow:GenreNoSubclassConstraint
+    a logic:Constraint ;
+    rdfs:label "Genre no-subclass constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "Genre is a value vocabulary / first-class Kind; no subclasses are allowed (Principle 9)."@x-gmeow-english ;
+    logic:formalizes gmeow:Genre ;
+    logic:message "Genre must not be subclassed (Principle 9)." ;
+    logic:integrity logic:genNoSubForall .
+logic:genNoSubForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:genNoSubImpl .
+logic:genNoSubImpl a logic:Formula ; logic:antecedent logic:genNoSubTarget ; logic:consequent logic:genNoSubPhi .
+logic:genNoSubTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                   [ logic:termIndex 1 ; logic:termLiteral "SELECT ?this WHERE { VALUES ?this { <https://blackcatinformatics.ca/gmeow/Genre> } }" ] .
+logic:genNoSubPhi a logic:Formula ; logic:not logic:genNoSubEx .
+logic:genNoSubEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sub" ] ;
+    logic:exists logic:genNoSubBody .
+logic:genNoSubBody a logic:Formula ; logic:and logic:genNoSubEdge , logic:genNoSubDistinct .
+logic:genNoSubEdge a logic:Formula ; logic:relation <http://www.w3.org/2000/01/rdf-schema#subClassOf> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:genNoSubDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+
+gmeow:MetricGroupOrderUniquenessConstraint
+    a logic:SelfJoinUniquenessConstraint ;
+    rdfs:label "Metric group order uniqueness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "Two distinct MetricGroups within the same MetricStructure must not share a metricGroupOrder index."@x-gmeow-english ;
+    logic:formalizes gmeow:MetricGroup ;
+    logic:message "A MetricGroup order must be unique within its MetricStructure." ;
+    logic:siblingPredicate gmeow:hasMetricGroup ;
+    logic:sharedPredicate gmeow:metricGroupOrder .
+
+gmeow:SegmentTransformationDistinctConstraint
+    a logic:CrossNodeConstraint ;
+    rdfs:label "Segment transformation distinct constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A SegmentTransformation source and target must be distinct entities."@x-gmeow-english ;
+    logic:onClass gmeow:SegmentTransformation ;
+    logic:formalizes gmeow:SegmentTransformation ;
+    logic:message "A SegmentTransformation source and target must be distinct entities." ;
+    logic:roleA gmeow:transformationSource ;
+    logic:roleB gmeow:transformationTarget ;
+    logic:crossMode "differ" .
+
+gmeow:OrnamentProfileApplicationConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Ornament profile application constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "An OrnamentProfile must apply to at least one MusicalSegment or Voice."@x-gmeow-english ;
+    logic:onClass gmeow:OrnamentProfile ;
+    logic:formalizes gmeow:OrnamentProfile ;
+    logic:message "An OrnamentProfile must apply to at least one MusicalSegment or Voice." ;
+    logic:anyOf gmeow:appliesToSegment , gmeow:appliesToVoice .
