@@ -251,6 +251,174 @@ fn assert_shared_null_structure(tuples: &[NaryTuple]) {
     }
 }
 
+#[test]
+fn el_shaped_multi_arity_curie_recursion_native_agrees_with_nemo() {
+    // A COMPACT mirror of the Nemo-KR2024 EL calculus's structure: `@prefix`-CURIE
+    // relations of MIXED arity (arity-1 `init`/`isMainClass`, arity-2 `subClassOf`, arity-3
+    // `ex`/`exists`) that recurse ACROSS arities and relations (subClassOf ⇒ ex ⇒ init ⇒
+    // subClassOf …) over the SHARED `naryArg{i}` reification predicates. This is exactly the
+    // shape whose native chase collapsed to zero derivations before the relation-identity
+    // fix; it now derives the full closure in EXACT agreement with Nemo (a pure-Datalog
+    // program — no value nulls — so the de-reified tuple multisets are identical).
+    use super::{run_native_nary_forward, run_nemo_nary_forward};
+    use crate::nary_rls::{parse_nary_rls_program, parse_rls_prefixes, resolve_relation_name};
+
+    let rls = "@prefix ex: <http://ex/mini/> .\n\
+        ex:init(?C) :- ex:isMainClass(?C) .\n\
+        ex:init(?C) :- ex:exq(?E, ?R, ?C) .\n\
+        ex:subClassOf(?C, ?C) :- ex:init(?C) .\n\
+        ex:subClassOf(?C, ?E) :- ex:subClassOf(?C, ?D), ex:nfSubClassOf(?D, ?E) .\n\
+        ex:exq(?E, ?R, ?C) :- ex:subClassOf(?E, ?Y), ex:exists(?Y, ?R, ?C) .\n\
+        ex:subClassOf(?E, ?Y) :- ex:exq(?E, ?R, ?C), ex:subClassOf(?C, ?D), \
+            ex:subProp(?R, ?S), ex:exists(?Y, ?S, ?D), ex:isSubClass(?Y) .\n";
+    let rules = parse_nary_rls_program(rls).expect("parse mini-EL program");
+    let prefixes = parse_rls_prefixes(rls);
+
+    // Author the EDB with CURIE stems resolved to the program namespace (the same identity
+    // the loader produces from a `ex:isMainClass.csv` file).
+    let rel = |curie: &str| resolve_relation_name(curie, &prefixes);
+    let a = |s: &str| iri(&format!("http://ex/mini/{s}"));
+    let tuple = |curie: &str, args: Vec<TermValue>| NaryTuple {
+        relation: rel(curie),
+        args,
+    };
+    let edb = vec![
+        tuple("ex:isMainClass", vec![a("A")]),
+        tuple("ex:isMainClass", vec![a("B")]),
+        tuple("ex:isSubClass", vec![a("Y1")]),
+        tuple("ex:exists", vec![a("Y1"), a("r"), a("A")]),
+        tuple("ex:subProp", vec![a("r"), a("r")]),
+        tuple("ex:nfSubClassOf", vec![a("B"), a("Y1")]),
+    ];
+
+    let native = run_native_nary_forward(&edb, &rules).expect("native mini-EL");
+    let nemo = run_nemo_nary_forward(&edb, rls).expect("nemo mini-EL");
+
+    // The closure must be NON-VACUOUS across all three derived arities (the recursion fired).
+    let derived_arity = |arity: usize| {
+        native
+            .iter()
+            .filter(|t| t.relation.starts_with("http://ex/mini/") && t.args.len() == arity)
+            .count()
+    };
+    assert!(derived_arity(1) > 0, "arity-1 init derived");
+    assert!(derived_arity(2) > 0, "arity-2 subClassOf derived");
+    let ex_count = native
+        .iter()
+        .filter(|t| t.relation == "http://ex/mini/exq")
+        .count();
+    assert!(
+        ex_count > 0,
+        "arity-3 exq derived (cross-arity recursion fired)"
+    );
+
+    // EXACT parity: a pure-Datalog program invents no nulls, so the de-reified multisets
+    // are identical between the native reified chase and the Nemo n-ary chase.
+    assert_eq!(
+        canonical_null_blind_multiset(&native),
+        canonical_null_blind_multiset(&nemo),
+        "native multi-arity recursive closure must EQUAL Nemo's"
+    );
+}
+
+// ── Recursive CURIE-program relation-identity parity (regression) ─────────────
+//
+// A `@prefix`-CURIE recursive n-ary program (ternary transitive `conn` over `link`) whose
+// EDB is authored — as the ChaseBench / Nemo-KR2024 corpora are — with CURIE FILE STEMS
+// (`ex:link.csv`). The Nemo front-end EXPANDS the rule-atom CURIE `ex:link` to
+// `<@prefix ex>link`, so the delimited EDB relation MUST be resolved against the same
+// `@prefix` map ([`crate::nary_rls::resolve_relation_name`]) or the reified body atoms
+// never join the EDB and the native chase derives NOTHING — a silent completeness collapse
+// that the Nemo oracle hides because it re-parses the raw stem through its own front-end.
+// This locks in that relation-identity seam end-to-end through the loader.
+
+/// Write `ex:link.csv` (a chain `n0→n1→…→nk` in one world) into a fresh temp dir and return
+/// its path; the stem is a CURIE exactly like the real corpora.
+fn write_curie_link_csv(chain: usize) -> std::path::PathBuf {
+    let dir = std::env::temp_dir().join(format!("gmeow-nary-curie-{}-{chain}", std::process::id()));
+    std::fs::create_dir_all(&dir).expect("tmp dir");
+    let mut csv = String::new();
+    for i in 0..chain {
+        csv.push_str(&format!(
+            "<http://ex/nary/n{i}>,<http://ex/nary/n{}>,<http://ex/nary/w>\n",
+            i + 1
+        ));
+    }
+    let path = dir.join("ex:link.csv");
+    std::fs::write(&path, csv).expect("write link csv");
+    path
+}
+
+/// The recursive CURIE program: `ex:conn` is the transitive closure of `ex:link`, both
+/// declared through the `ex:` prefix (never as bracketed absolute IRIs).
+fn curie_conn_program() -> String {
+    "@prefix ex: <http://ex/nary/> .\n\
+     #[name(\"http://ex/rules/base\")]\n\
+     ex:conn(?s, ?o, ?w) :- ex:link(?s, ?o, ?w) .\n\
+     #[name(\"http://ex/rules/step\")]\n\
+     ex:conn(?s, ?o, ?w) :- ex:link(?s, ?m, ?w), ex:conn(?m, ?o, ?w) .\n"
+        .to_owned()
+}
+
+#[test]
+fn recursive_curie_program_native_agrees_with_nemo_via_prefix_resolution() {
+    use super::{run_native_nary_forward, run_nemo_nary_forward};
+    use crate::nary_rls::{load_nary_data_file, parse_nary_rls_program, parse_rls_prefixes};
+
+    const CONN: &str = "http://ex/nary/conn";
+    let rls = curie_conn_program();
+    let rules = parse_nary_rls_program(&rls).expect("parse recursive CURIE program");
+    let prefixes = parse_rls_prefixes(&rls);
+    assert_eq!(
+        prefixes.get("ex").map(String::as_str),
+        Some("http://ex/nary/"),
+        "the @prefix map must carry the ex: declaration"
+    );
+
+    let link_csv = write_curie_link_csv(4);
+
+    // THE BUG (no resolution): loading the CURIE stem WITHOUT the program's prefixes names
+    // the EDB relation `ex:link`, which never equals the rule's expanded `http://ex/nary/link`
+    // — so the native chase derives ZERO conn tuples (a silent completeness collapse).
+    let edb_unresolved =
+        load_nary_data_file(&link_csv, &std::collections::BTreeMap::new()).expect("load raw stem");
+    assert_eq!(edb_unresolved[0].relation, "ex:link");
+    let native_unresolved =
+        run_native_nary_forward(&edb_unresolved, &rules).expect("native (unresolved)");
+    let conn_unresolved = native_unresolved
+        .iter()
+        .filter(|t| t.relation == CONN)
+        .count();
+    assert_eq!(
+        conn_unresolved, 0,
+        "the unresolved-CURIE EDB reproduces the bug: no reified body atom joins, zero derivations"
+    );
+
+    // THE FIX (resolution): loading the SAME stem WITH the program's prefixes names the EDB
+    // relation `http://ex/nary/link`, matching the rule — the native chase now derives the
+    // full transitive closure and AGREES with Nemo.
+    let edb = load_nary_data_file(&link_csv, &prefixes).expect("load resolved stem");
+    assert_eq!(edb[0].relation, "http://ex/nary/link");
+
+    let native = run_native_nary_forward(&edb, &rules).expect("native (resolved)");
+    let nemo = run_nemo_nary_forward(&edb, &rls).expect("nemo");
+    let native_conn = native.iter().filter(|t| t.relation == CONN).count();
+    let nemo_conn = nemo.iter().filter(|t| t.relation == CONN).count();
+    // A 4-edge chain has 4+3+2+1 = 10 conn tuples (transitive closure).
+    assert_eq!(
+        native_conn, 10,
+        "native derives the full transitive closure"
+    );
+    assert_eq!(
+        native_conn, nemo_conn,
+        "native reified chase must AGREE with Nemo on the recursive CURIE program"
+    );
+
+    if let Some(parent) = link_csv.parent() {
+        std::fs::remove_dir_all(parent).ok();
+    }
+}
+
 // ── Null-blind canonicalization (colour refinement) ───────────────────────────
 //
 // The `is_null` predicate and the `canonical_null_blind_multiset` colour-refinement

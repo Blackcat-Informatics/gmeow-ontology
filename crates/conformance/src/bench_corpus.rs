@@ -241,7 +241,13 @@ fn load_case(corpus: &str, name: &str, case_dir: &Path) -> gmeow_errors::Result<
     let (rules, edb_nq, nary_edb) = match fragment {
         Fragment::NaryExistential => {
             let rules = read_to_string(&case_dir.join("program.rls"))?;
-            let nary_edb = load_nary_edb_dir(corpus, name, &case_dir.join("data"))?;
+            // Resolve the delimited EDB relation stems against the SAME `@prefix` map the
+            // Nemo front-end resolves the rule-atom CURIEs against, so a CURIE stem
+            // (`nf:isMainClass.csv`) names the SAME relation IRI as its rule atom — without
+            // this the reified body atoms never join the EDB and the native chase silently
+            // derives nothing.
+            let prefixes = gmeow_logic::nary_rls::parse_rls_prefixes(&rules);
+            let nary_edb = load_nary_edb_dir(corpus, name, &case_dir.join("data"), &prefixes)?;
             (rules, String::new(), nary_edb)
         }
         Fragment::Forward | Fragment::Existential | Fragment::Backward => {
@@ -272,6 +278,7 @@ fn load_nary_edb_dir(
     corpus: &str,
     name: &str,
     data_dir: &Path,
+    prefixes: &std::collections::BTreeMap<String, String>,
 ) -> gmeow_errors::Result<Vec<gmeow_logic::nary::NaryTuple>> {
     if !data_dir.is_dir() {
         return Err(Diag::of_kind(CorpusInvalid {
@@ -295,7 +302,7 @@ fn load_nary_edb_dir(
 
     let mut edb: Vec<gmeow_logic::nary::NaryTuple> = Vec::new();
     for path in &files {
-        let tuples = gmeow_logic::nary_rls::load_nary_data_file(path).map_err(|e| {
+        let tuples = gmeow_logic::nary_rls::load_nary_data_file(path, prefixes).map_err(|e| {
             Diag::of_kind(CorpusInvalid {
                 detail: format!("{corpus}/{name}: {} — {e}", path.display()),
             })

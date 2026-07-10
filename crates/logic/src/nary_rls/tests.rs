@@ -9,6 +9,7 @@ use purrdf::TermValue;
 
 use super::{
     classify_data_file, load_nary_data_file, parse_nary_delimited, parse_nary_rls_program,
+    parse_rls_prefixes, resolve_relation_name,
 };
 use crate::nary::{NaryArg, nary_closures_agree, run_native_nary_forward, run_nemo_nary_forward};
 
@@ -220,6 +221,59 @@ fn classify_maps_extension_to_relation_and_delimiter() {
 }
 
 #[test]
+fn prefixes_parse_and_resolve_a_curie_relation_stem() {
+    // The `@prefix` map is extracted from the program's directives, and a CURIE stem
+    // resolves to the SAME IRI the Nemo front-end resolves the rule-atom CURIE to.
+    let rls = "@prefix nf: <http://rulewerk.semantic-web.org/normalForm/> .\n\
+               @prefix inf: <http://rulewerk.semantic-web.org/inferred/> .\n\
+               % a comment line that mentions @prefix but is not one\n\
+               inf:init(?C) :- nf:isMainClass(?C) .\n";
+    let prefixes = parse_rls_prefixes(rls);
+    assert_eq!(
+        prefixes.get("nf").map(String::as_str),
+        Some("http://rulewerk.semantic-web.org/normalForm/")
+    );
+    assert_eq!(
+        prefixes.get("inf").map(String::as_str),
+        Some("http://rulewerk.semantic-web.org/inferred/")
+    );
+
+    // A declared CURIE expands; a bare name and an undeclared prefix pass through unchanged.
+    assert_eq!(
+        resolve_relation_name("nf:isMainClass", &prefixes),
+        "http://rulewerk.semantic-web.org/normalForm/isMainClass"
+    );
+    assert_eq!(resolve_relation_name("edge", &prefixes), "edge");
+    assert_eq!(
+        resolve_relation_name("http://x/y", &prefixes),
+        "http://x/y",
+        "an undeclared prefix (a full IRI's scheme) passes through unchanged"
+    );
+}
+
+#[test]
+fn loader_resolves_a_curie_file_stem_against_the_program_prefixes() {
+    // A file stem authored as a CURIE (`nf:isMainClass.csv`, as the real corpora are) is
+    // resolved to the program-namespace IRI, so the EDB relation matches the rule atom.
+    let prefixes =
+        parse_rls_prefixes("@prefix nf: <http://rulewerk.semantic-web.org/normalForm/> .\n");
+    let dir = std::env::temp_dir().join(format!("gmeow-nary-curie-load-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).expect("tmp dir");
+    let path = dir.join("nf:isMainClass.csv");
+    std::fs::write(&path, "<http://ex/A>\n<http://ex/B>\n").expect("write csv");
+
+    let tuples = load_nary_data_file(&path, &prefixes).expect("load resolved");
+    assert!(
+        tuples
+            .iter()
+            .all(|t| t.relation == "http://rulewerk.semantic-web.org/normalForm/isMainClass"),
+        "the CURIE stem must resolve to the program-namespace relation IRI"
+    );
+
+    std::fs::remove_dir_all(&dir).ok();
+}
+
+#[test]
 fn gzip_data_file_round_trips_through_the_loader() {
     use std::io::Write;
 
@@ -233,7 +287,7 @@ fn gzip_data_file_round_trips_through_the_loader() {
     let path = dir.join("edge.csv.gz");
     std::fs::write(&path, &gz).expect("write gz");
 
-    let from_gz = load_nary_data_file(&path).expect("load gz");
+    let from_gz = load_nary_data_file(&path, &std::collections::BTreeMap::new()).expect("load gz");
     let from_plain = parse_nary_delimited("edge", plain, b',').expect("plain parse");
     assert_eq!(
         from_gz, from_plain,

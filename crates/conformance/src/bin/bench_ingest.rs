@@ -515,9 +515,13 @@ fn nemo_reference_rows(data_dir: &Path, program: &str, case: &str) -> gmeow_erro
         .collect();
     files.sort();
 
+    // Resolve the delimited relation stems against the program's `@prefix` map so a CURIE
+    // stem names the SAME relation IRI as its rule atom (the native/Nemo relation-identity
+    // seam — see `gmeow_logic::nary_rls::parse_rls_prefixes`).
+    let prefixes = gmeow_logic::nary_rls::parse_rls_prefixes(program);
     let mut edb: Vec<gmeow_logic::nary::NaryTuple> = Vec::new();
     for path in &files {
-        let tuples = gmeow_logic::nary_rls::load_nary_data_file(path).map_err(|e| {
+        let tuples = gmeow_logic::nary_rls::load_nary_data_file(path, &prefixes).map_err(|e| {
             Diag::of_kind(CorpusInvalid {
                 detail: format!("{case}: {} — {e}", path.display()),
             })
