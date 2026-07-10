@@ -152,7 +152,12 @@ fn quads_to_nt(quads: &[RdfQuad]) -> gmeow_errors::Result<String> {
 /// Rewrite the language tag of every literal object whose current tag is a key of
 /// `tag_map`, in place over the owned quad stream. The projection-boundary retag: an
 /// empty map is a no-op. Idempotent for already-remapped literals.
-fn retag_quads(quads: &mut [RdfQuad], tag_map: &TagMap) {
+///
+/// `pub(crate)` so [`crate::transform::transform_nt`] can apply the identical retag
+/// to the MAXIMAL(G) base+derived quad stream before GTS emission — the same
+/// projection-boundary law this module already enforces for `project`/`export`,
+/// reused rather than re-derived (Principle 4: one canonical source).
+pub(crate) fn retag_quads(quads: &mut [RdfQuad], tag_map: &TagMap) {
     if tag_map.is_empty() {
         return;
     }
@@ -621,6 +626,7 @@ pub fn transpile_graph(
         &maximal_inputs.cells,
         &maximal_inputs.denied,
         &maximal_inputs.projection_queries,
+        internal_tag_map,
     )?;
 
     Ok(TranspileReport {

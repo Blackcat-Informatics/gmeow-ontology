@@ -1099,6 +1099,7 @@ pub fn transpile(
         let report = match gmeow_pipeline::cli_ops::okf_import::transpile_okf(
             source,
             &maximal_inputs,
+            &tag_map,
             None,
             None,
         ) {
