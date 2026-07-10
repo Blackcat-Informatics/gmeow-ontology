@@ -75,12 +75,17 @@ pub enum Dimension {
     /// The prose-quality structural conjunction (three-NOTs ∧ worked triple ∧
     /// distinct usage coat ∧ distinct rationale).
     ProseQuality,
+    /// The MAXIMAL-only Principle-17 loss refinement: every projection-loss
+    /// judgment for the term is sound-or-stronger in the `logic:PreservationKind`
+    /// ordering. Distinct from [`Dimension::LossLedgerRow`] (the FULL-tier presence
+    /// bit) so the presence and the judgment gate never collide on one attribute.
+    LossJudgmentSound,
 }
 
 impl Dimension {
     /// Every dimension in stable declaration order — the canonical order the
     /// projection and the burn-down readout use.
-    pub const ALL: [Dimension; 18] = [
+    pub const ALL: [Dimension; 19] = [
         Dimension::Definition,
         Dimension::Label,
         Dimension::UsageAdvice,
@@ -99,6 +104,7 @@ impl Dimension {
         Dimension::TestReach,
         Dimension::ProvenanceHonesty,
         Dimension::ProseQuality,
+        Dimension::LossJudgmentSound,
     ];
 
     /// The `gmeow:` local name of the dimension's TBox individual in
@@ -123,6 +129,7 @@ impl Dimension {
             Dimension::TestReach => "dimTestReach",
             Dimension::ProvenanceHonesty => "dimProvenanceHonesty",
             Dimension::ProseQuality => "dimProseQuality",
+            Dimension::LossJudgmentSound => "dimLossJudgmentSound",
         }
     }
 }
@@ -206,6 +213,7 @@ impl MaturityAnchor {
             TestReach,
             ProvenanceHonesty,
             ProseQuality,
+            LossJudgmentSound,
         ];
         let mut set: DimSet = minimal.iter().copied().collect();
         if self.rank() >= MaturityAnchor::Basic.rank() {
@@ -293,7 +301,7 @@ mod tests {
             Some(MaturityAnchor::Minimal)
         );
 
-        // Covers all eighteen → earns Maximal.
+        // Covers all nineteen → earns Maximal.
         let all: DimSet = Dimension::ALL.iter().copied().collect();
         assert_eq!(earned_maturity(&all, &table), Some(MaturityAnchor::Maximal));
 

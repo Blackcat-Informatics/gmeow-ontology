@@ -1,6 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 113
+assertion_line: 130
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # Doxastic State
@@ -14,7 +14,7 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 | Category | Class |
 | Slice | [GMEOW Epistemics Module](../../slices/epistemics/index.md) |
 
-![completeness: Docs 6/6](../../badges/completeness/6.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
+![completeness: Docs 14/17](../../badges/completeness/14.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
 
 ## Definition
 
@@ -331,7 +331,7 @@ gmeow:DoxasticState ⊑ gmeow:MentalMoment
 
 ## Documentation coverage
 
-- **6 of 6 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✓ Scope note · ✓ Alignment
+- **14 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✓ Scope note · ✓ Alignment · ✗ Fixture pair · ✓ Competency rationale · ✓ Worked instance · ✗ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✓ Test reach · ✓ Provenance honesty · ✓ Prose quality · ✓ Loss judgment sound
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
 ## Stability

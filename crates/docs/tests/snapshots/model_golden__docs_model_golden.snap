@@ -1,18 +1,19 @@
 ---
 source: crates/docs/tests/model_golden.rs
+assertion_line: 187
 expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
   "version": "14",
-  "slice_count": 81,
-  "term_count": 2595,
-  "dependency_edge_count": 1031,
+  "slice_count": 82,
+  "term_count": 2626,
+  "dependency_edge_count": 1035,
   "term_count_by_category": {
-    "Class": 753,
+    "Class": 761,
     "Datatype": 1,
     "Individual": 94,
-    "Property": 1747
+    "Property": 1770
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -36,6 +37,7 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/creative-works",
     "https://blackcatinformatics.ca/gmeow/slices/deception",
     "https://blackcatinformatics.ca/gmeow/slices/diagnostics",
+    "https://blackcatinformatics.ca/gmeow/slices/documentation",
     "https://blackcatinformatics.ca/gmeow/slices/documents",
     "https://blackcatinformatics.ca/gmeow/slices/dreaming",
     "https://blackcatinformatics.ca/gmeow/slices/email",
@@ -157,7 +159,9 @@ expression: summary
         "raw_digest": "6b4491bb3bb19bd71b398d870bc523defccf0f988e8f61b93dcbc97a6c14d83b",
         "semantic_digest": "35af3d2678d7c140f60873a03fc610f7d4e875f9ea8239f4a85c8710ef69fcf1"
       }
-    ]
+    ],
+    "has_thesis_sentence": true,
+    "realized_state_complete": false
   },
   "sample_terms": [
     {
@@ -297,7 +301,7 @@ expression: summary
   ],
   "mapping_set_count": 81,
   "linkage_count": 1868,
-  "example_count": 144,
+  "example_count": 145,
   "concern_count": 7,
   "external_term_count": 1613,
   "sample_mapping_set": {
@@ -417,8 +421,8 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 324,
-  "competency_count": 140,
+  "shape_count": 326,
+  "competency_count": 143,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",

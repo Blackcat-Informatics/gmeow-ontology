@@ -40,8 +40,9 @@ use std::collections::BTreeSet;
 
 use gmeow_errors::{Finding, Location, Report, Severity};
 
+use crate::coverage::{CoverageContext, DIMENSIONS, SLICE_DIMENSIONS, term_coverage};
 use crate::model::DocsModel;
-use crate::render::{Site, term_slug};
+use crate::render::{Site, slice_slug, term_slug};
 
 /// The diagnostics tool name for documentation findings.
 const TOOL: &str = "gmeow-docs";
@@ -106,77 +107,64 @@ fn lint_links(site: &Site, report: &mut Report) {
 /// source shared with the rendered docs site — so a `docs/missing-*` warning fires
 /// exactly when the same dimension is shown absent on the term's page.
 fn lint_coverage(model: &DocsModel, report: &mut Report) {
-    let aligned = crate::coverage::alignment_subjects(model);
+    let ctx = CoverageContext::new(model);
 
-    // model.terms is already IRI-sorted → findings come out deterministically.
+    // Per-term dimensions — one `docs/missing-<dim>` WARNING per absent dimension,
+    // driven generically off the single coverage producer so the gate count and
+    // the emitted `gmeow:docMissesDimension` incidence can never disagree. The
+    // ratchet burns down as source prose, fixtures, alignments, and translations
+    // land. model.terms is already IRI-sorted → findings come out deterministically.
     for term in &model.terms {
-        let cov = crate::coverage::term_coverage(term, &aligned);
+        let flags = term_coverage(term, &ctx).flags();
         let loc = Location::new(
             Some(format!("terms/{}/index.html", term_slug(term))),
             None,
             None,
             Some(term.curie.clone()),
         );
-        // Emit a report-only coverage WARNING anchored at this term.
-        let mut emit = |code: &'static str, message: String| {
-            let mut finding = Finding::new(Severity::Warning, code, message).with_tool(TOOL);
-            finding.add_location(loc.clone());
-            report.add_finding(finding);
-        };
+        for (dim, present) in DIMENSIONS.iter().zip(flags) {
+            if !present {
+                let mut finding = Finding::new(
+                    Severity::Warning,
+                    dim.lint_code,
+                    format!(
+                        "term `{}` misses documentation dimension `{}` (documentation coverage gap)",
+                        term.curie, dim.label
+                    ),
+                )
+                .with_tool(TOOL);
+                finding.add_location(loc.clone());
+                report.add_finding(finding);
+            }
+        }
+    }
 
-        if !cov.has_definition {
-            emit(
-                "docs/missing-definition",
-                format!(
-                    "term `{}` has no skos:definition/rdfs:comment (documentation coverage gap)",
-                    term.curie
-                ),
-            );
-        }
-        if !cov.has_label {
-            emit(
-                "docs/missing-label",
-                format!(
-                    "term `{}` has no rdfs:label (annotation-contract triad incomplete)",
-                    term.curie
-                ),
-            );
-        }
-        if !cov.has_usage_advice {
-            emit(
-                "docs/missing-usage-advice",
-                format!(
-                    "term `{}` has no usage advice (gmeow:useWhen/avoidWhen/howToUse) (documentation coverage gap)",
-                    term.curie
-                ),
-            );
-        }
-        if !cov.has_example {
-            emit(
-                "docs/missing-example",
-                format!(
-                    "term `{}` has no skos:example (documentation coverage gap)",
-                    term.curie
-                ),
-            );
-        }
-        if !cov.has_scope_note {
-            emit(
-                "docs/missing-scope-note",
-                format!(
-                    "term `{}` has no skos:scopeNote (documentation coverage gap)",
-                    term.curie
-                ),
-            );
-        }
-        if !cov.has_alignment {
-            emit(
-                "docs/missing-alignment",
-                format!(
-                    "term `{}` has no external alignment (term equivalence) — super-ontology coverage opportunity",
-                    term.curie
-                ),
-            );
+    // Slice-scoped dimensions (thesis sentence, realized-state design-set table) —
+    // one WARNING per slice that misses one, anchored at the slice page. model.slices
+    // is IRI-sorted → deterministic. A missing realized-state marker becomes a scored,
+    // gating defect rather than authorial vigilance.
+    for slice in &model.slices {
+        let loc = Location::new(
+            Some(format!("slices/{}/index.html", slice_slug(slice))),
+            None,
+            None,
+            None,
+        );
+        let slice_flags = [slice.realized_state_complete, slice.has_thesis_sentence];
+        for (dim, present) in SLICE_DIMENSIONS.iter().zip(slice_flags) {
+            if !present {
+                let mut finding = Finding::new(
+                    Severity::Warning,
+                    dim.lint_code,
+                    format!(
+                        "slice `{}` misses documentation dimension `{}` (documentation coverage gap)",
+                        slice.iri, dim.label
+                    ),
+                )
+                .with_tool(TOOL);
+                finding.add_location(loc.clone());
+                report.add_finding(finding);
+            }
         }
     }
 }
@@ -267,7 +255,10 @@ fn resolve(dir: &str, href: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{DocLinkage, DocTerm, DocTermCategory};
+    use crate::model::{
+        DocCompetency, DocExample, DocFixture, DocFixtureKind, DocLinkage, DocLossTarget, DocTerm,
+        DocTermCategory,
+    };
     use crate::render::render_site;
     use std::collections::BTreeMap;
 
@@ -429,14 +420,14 @@ mod tests {
 
     #[test]
     fn coverage_gaps_are_warnings() {
-        // `populated` seeds two fully-covered terms (definition, label, scope note,
-        // example, usage-advice triad, alignment); the bare term adds EXACTLY one
-        // of each of the six coverage warnings — and no errors.
+        // A bare term trips a `docs/missing-*` WARNING for every per-term dimension
+        // EXCEPT the two that are vacuously covered on a bare unit-test model:
+        // translation (no non-English languages configured) and provenance honesty
+        // (no rationale that could name a test artifact). No errors.
         let model = populated(vec![term("Bare", None, None)]);
         let site = render_site(&model);
         let report = lint(&model, &site);
         assert_eq!(report.error_count(), 0);
-        assert_eq!(report.warning_count(), 6, "{:?}", report.legacy_errors());
         let codes: BTreeSet<&str> = report.findings.iter().map(|f| f.code.as_str()).collect();
         for code in [
             "docs/missing-definition",
@@ -445,19 +436,125 @@ mod tests {
             "docs/missing-example",
             "docs/missing-scope-note",
             "docs/missing-alignment",
+            "docs/missing-fixture-pair",
+            "docs/missing-competency-rationale",
+            "docs/missing-worked-instance",
+            "docs/missing-loss-ledger-row",
+            "docs/missing-linkage-coverage",
+            "docs/missing-annotation-coat",
+            "docs/missing-test-reach",
+            "docs/missing-prose-quality",
         ] {
             assert!(codes.contains(code), "expected `{code}`; got {codes:?}");
+        }
+        // The vacuously-covered dimensions never fire on this model (no non-English
+        // langs, no rationale, no loss rows).
+        assert!(!codes.contains("docs/missing-translation-coverage"));
+        assert!(!codes.contains("docs/missing-provenance-honesty"));
+        assert!(!codes.contains("docs/missing-loss-judgment-sound"));
+    }
+
+    /// A term wired to cover ALL sixteen per-term dimensions: full annotation coat,
+    /// a fixture pair, a competency question with a clean rationale, a worked
+    /// example, a projection-loss target, and a mapping-set-backed alignment.
+    fn fully_covered_term(local: &str, category: DocTermCategory, label: &str) -> DocTerm {
+        DocTerm {
+            scope_notes: vec![format!("Scope of {local}.")],
+            // A boundary definition (states what it is NOT) — for dimProseQuality.
+            examples: vec![format!("gmeow:{local} a owl:Class .")],
+            use_when: vec![format!("Use {local} when modelling.")],
+            avoid_when: vec![format!("Avoid {local} for raw strings.")],
+            how_to_use: vec![format!("Attach {local} idiomatically.")],
+            box_role: Some("gmeow:boxTBox".to_string()),
+            ..cat(
+                local,
+                category,
+                Some("A living thing, not a mineral."),
+                Some(label),
+            )
         }
     }
 
     #[test]
     fn fully_covered_terms_emit_no_coverage_warnings() {
-        // The two `rich` + aligned seed terms carry every annotation, so a model of
-        // only those must produce zero warnings (and zero errors).
-        let model = populated(Vec::new());
+        // Two fully-wired terms (a class + a property so both category indexes
+        // render without dangling links) covering every per-term dimension → zero
+        // coverage warnings and zero errors. No slices ⇒ no slice-scoped warnings.
+        let mut model = model_with_terms(vec![
+            fully_covered_term("Animal", DocTermCategory::Class, "Animal"),
+            fully_covered_term("hasOwner", DocTermCategory::Property, "has owner"),
+        ]);
+        for local in ["Animal", "hasOwner"] {
+            let iri = format!("{GMEOW}{local}");
+            let curie = format!("gmeow:{local}");
+            model.fixtures.push(DocFixture {
+                slice: format!("{GMEOW}slice/zoo"),
+                logical_path: format!("tests/conformance-fixtures/{local}-ok.ttl"),
+                title: "ok".to_string(),
+                text: String::new(),
+                kind: DocFixtureKind::Wellformed,
+                terms_referenced: vec![curie.clone()],
+                expected_outcome: None,
+                violation_code: None,
+                rationale: None,
+                catalog_slug: None,
+            });
+            model.fixtures.push(DocFixture {
+                slice: format!("{GMEOW}slice/zoo"),
+                logical_path: format!("tests/counter-examples/{local}-bad.ttl"),
+                title: "bad".to_string(),
+                text: String::new(),
+                kind: DocFixtureKind::CounterExample,
+                terms_referenced: vec![curie.clone()],
+                expected_outcome: None,
+                violation_code: None,
+                rationale: None,
+                catalog_slug: None,
+            });
+            model.examples.push(DocExample {
+                slice: format!("{GMEOW}slice/zoo"),
+                logical_path: format!("examples/{local}.ttl"),
+                title: local.to_string(),
+                text: String::new(),
+                terms_referenced: vec![curie.clone()],
+            });
+            model.competencies.push(DocCompetency {
+                iri: format!("{GMEOW}cq/{local}"),
+                rationale: Some("Every animal is a living thing.".to_string()),
+                exercises: vec![iri.clone()],
+                owner_slice: format!("{GMEOW}slice/zoo"),
+                ..Default::default()
+            });
+            model.loss_targets.push(DocLossTarget {
+                target: local.to_string(),
+                label: None,
+                preservation_kind: "SoundUnderApproximation".to_string(),
+                complexity_class: "PTIME".to_string(),
+                slice: format!("{GMEOW}slice/zoo"),
+            });
+            model.linkages.push(DocLinkage {
+                mapping_set: Some(format!("{GMEOW}mappingSet/1")),
+                subject: iri.clone(),
+                subject_curie: curie.clone(),
+                predicate: "skos:closeMatch".to_string(),
+                object: format!("http://example.org/{local}"),
+                justification: None,
+                confidence: None,
+                owner_slice: format!("{GMEOW}slice/zoo"),
+            });
+        }
         let site = render_site(&model);
         let report = lint(&model, &site);
-        assert_eq!(report.error_count(), 0);
-        assert_eq!(report.warning_count(), 0, "{:?}", report.legacy_errors());
+        assert_eq!(report.error_count(), 0, "{:?}", report.legacy_errors());
+        let coverage: Vec<&str> = report
+            .findings
+            .iter()
+            .map(|f| f.code.as_str())
+            .filter(|c| c.starts_with("docs/missing-"))
+            .collect();
+        assert!(
+            coverage.is_empty(),
+            "fully-covered terms must emit no coverage warnings; got {coverage:?}"
+        );
     }
 }

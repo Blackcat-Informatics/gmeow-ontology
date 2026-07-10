@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/mdbook_render.rs
+assertion_line: 244
 expression: head
 ---
 # Acquaintance Relationship
@@ -13,7 +14,7 @@ expression: head
 | Category | Class |
 | Slice | [GMEOW Contacts Module](../../slices/contacts/index.md) |
 
-![completeness: Docs 4/6](https://blackcatinformatics.ca/gmeow/docs/badges/completeness/4.svg) ![stability: stable](https://blackcatinformatics.ca/gmeow/docs/badges/stability/stable.svg) ![category: Class](https://blackcatinformatics.ca/gmeow/docs/badges/category/class.svg) ![box: TBox](https://blackcatinformatics.ca/gmeow/docs/badges/box/boxtbox.svg) ![stereotype: SubKind](https://blackcatinformatics.ca/gmeow/docs/badges/stereotype/subkind.svg)
+![completeness: Docs 9/17](https://blackcatinformatics.ca/gmeow/docs/badges/completeness/9.svg) ![stability: stable](https://blackcatinformatics.ca/gmeow/docs/badges/stability/stable.svg) ![category: Class](https://blackcatinformatics.ca/gmeow/docs/badges/category/class.svg) ![box: TBox](https://blackcatinformatics.ca/gmeow/docs/badges/box/boxtbox.svg) ![stereotype: SubKind](https://blackcatinformatics.ca/gmeow/docs/badges/stereotype/subkind.svg)
 
 ## Definition
 

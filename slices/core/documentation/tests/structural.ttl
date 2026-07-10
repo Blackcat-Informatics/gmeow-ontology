@@ -137,7 +137,7 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:DocMaturity and gmeow:DocCoverageDimension MUST each be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — the maturity anchors and coverage dimensions are open individual value vocabularies mirroring gmeow:TermStability / gmeow:DocEvidenceKind, never essential types." .
 
-# --- 9. All 18 dimension + 4 anchor seed individuals are typed to their class (MUST) ---
+# --- 9. All 19 dimension + 4 anchor seed individuals are typed to their class (MUST) ---
 ex:saMaturitySeedIndividuals a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -161,12 +161,13 @@ ASK {
     gmeow:dimRealizedState       a gmeow:DocCoverageDimension .
     gmeow:dimProvenanceHonesty   a gmeow:DocCoverageDimension .
     gmeow:dimProseQuality        a gmeow:DocCoverageDimension .
+    gmeow:dimLossJudgmentSound   a gmeow:DocCoverageDimension .
     gmeow:docMaturityMinimal     a gmeow:DocMaturity .
     gmeow:docMaturityBasic       a gmeow:DocMaturity .
     gmeow:docMaturityFull        a gmeow:DocMaturity .
     gmeow:docMaturityMaximal     a gmeow:DocMaturity .
 }""" ;
-    gmeow:saRationale "All eighteen gmeow:DocCoverageDimension seed individuals and all four gmeow:DocMaturity anchor individuals MUST be present and typed to their class — the coverage attributes the Formal-Concept closure runs over and the distinguished intents (minimal, basic, full, maximal) it distinguishes." .
+    gmeow:saRationale "All nineteen gmeow:DocCoverageDimension seed individuals and all four gmeow:DocMaturity anchor individuals MUST be present and typed to their class — the coverage attributes the Formal-Concept closure runs over and the distinguished intents (minimal, basic, full, maximal) it distinguishes. The MAXIMAL-only gmeow:dimLossJudgmentSound is the Principle-17 judgment-valued loss refinement, distinct from the FULL-tier presence bit gmeow:dimLossLedgerRow." .
 
 # --- 10. The four anchor intents nest Minimal ⊆ Basic ⊆ Full ⊆ Maximal (MUST-NOT-violated) ---
 ex:saAnchorIntentsNest a gmeow:StructuralAssertion ;

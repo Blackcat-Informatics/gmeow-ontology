@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 423
 expression: summary
 ---
 {
@@ -24,9 +25,16 @@ expression: summary
     "kind": "term",
     "label": "yaw",
     "missing_coverage": [
-      "scope_note"
+      "scope_note",
+      "fixture_pair",
+      "competency_rationale",
+      "worked_instance",
+      "loss_ledger_row",
+      "translation_coverage",
+      "test_reach",
+      "prose_quality"
     ],
     "url": "terms/yaw/index.html"
   },
-  "record_count": 2764
+  "record_count": 2796
 }
