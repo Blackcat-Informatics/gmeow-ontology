@@ -49,6 +49,9 @@ const CODE_SUPERSET_MISMATCH: &str = "pipeline.superset.mismatch";
 const CODE_SUPERSET_ORPHAN: &str = "pipeline.superset.orphan";
 const CODE_MISSING: &str = "pipeline.missing";
 const CODE_DRIFT: &str = "pipeline.drift";
+/// The GMN-1 round-trip gate's finding code — parallel to
+/// [`CODE_SUPERSET_MISMATCH`], the byte teeth behind `gmeow:gmnCorrNormalToGmn`.
+const CODE_GMN1_ROUNDTRIP_MISMATCH: &str = "pipeline.gmn1.roundtrip-mismatch";
 
 /// Intern a reconcile-phase drift/superset finding into the carrier ledger. The
 /// drifting path is the finding's focus, so each path is a distinct content-addressed
@@ -545,6 +548,54 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
                                 "{rep} is carried in gmeow.gts but maps to no committed generated/ path"
                             ),
                         );
+                    }
+
+                    // GMN-1 round-trip gate: the executed byte
+                    // witness behind `gmeow:gmnCorrNormalToGmn`'s `logic:mnemomorphic
+                    // true` claim, total over the grounding slices' GMN-0 (logic, lang,
+                    // math — module.ttl + examples/*.ttl). Mirrors the superset gate's
+                    // discipline: no skips, a single non-round-tripping source reds the
+                    // build. Reads the grounding sources directly from `root` (the
+                    // codec's covered domain is the AUTHORED slice content, not the
+                    // composed bundle), independent of `bytes`.
+                    let gmn1_started = Instant::now();
+                    let gmn1_report = crate::stages::gmn1_gate::check_gmn1_roundtrip(root)?;
+                    timings.push(TimingRecord {
+                        phase: "gmn1-roundtrip".to_string(),
+                        elapsed_ms: gmn1_started.elapsed().as_millis(),
+                        metadata: Some(format!("failures={}", gmn1_report.failures.len())),
+                    });
+                    for failure in gmn1_report.failures {
+                        drifted.push(failure.path.clone());
+                        // L3 ledger-identity split: an UNCOVERED GMN-0 construct is
+                        // `lang:GmnUncoveredTerm` — interned through the dedicated
+                        // DiagLedger identity `gmeow_lang_bridge::error::attach_gmn_uncovered`
+                        // exposes (finding_iri + anchor + antecedents), never the generic
+                        // drift code, so a reasoner-over-findings meta-fold can join it (per
+                        // the diagnostics-producers-must-carry-ledger-identity rule). Any
+                        // OTHER round-trip defect (a canonical mismatch, a malformed-text
+                        // parse defect) keeps the generic pipeline drift code.
+                        match failure.kind {
+                            crate::stages::gmn1_gate::Gmn1FailureKind::Uncovered => {
+                                gmeow_lang_bridge::error::attach_gmn_uncovered(
+                                    &mut ledger,
+                                    PIPELINE_STAGE_ID,
+                                    &failure.path,
+                                    &failure.detail,
+                                );
+                            }
+                            crate::stages::gmn1_gate::Gmn1FailureKind::RoundTripDefect => {
+                                attach_pipeline_finding(
+                                    &mut ledger,
+                                    CODE_GMN1_ROUNDTRIP_MISMATCH,
+                                    &failure.path,
+                                    format!(
+                                        "{} failed the GMN-1 round-trip gate: {}",
+                                        failure.path, failure.detail
+                                    ),
+                                );
+                            }
+                        }
                     }
                 }
                 reproduced += 1;

@@ -37,8 +37,9 @@ const RIGHT_WHITE_BRACKET: &str = "U+27E7";
 /// The Task-5 factored qualifier-slot aliases: `(alias, full canonical IRI)` pairs
 /// for every marker admitted under razor half (a) — measured cost reduction
 /// (`design/LANG-GMN.md`, "The measured token-cost razor"). None is admitted under half (b)
-/// at this stage, since the GMN-1 codec/validator gate half (b) requires does not exist yet
-/// (Task 6).
+/// (the ambiguity-class discharge, which the Task-6 GMN-1 codec/gate now makes possible):
+/// every marker here pays its way on the measured half alone, so no marker needs a
+/// fires-without/absent-with fixture pair.
 const QUALIFIER_MARKER_ALIASES: &[(&str, &str)] = &[
     // `m` (modality) — standpoint slice's gmeow:ModalForce.
     (
@@ -189,8 +190,9 @@ fn authored_glyph_cost_matches_measurement() {
 /// than the full canonical IRI it dealiases — the cost the alternative of inlining or
 /// separately asserting the full term would pay, and the reason the dictionary bijection
 /// exists at all. A marker that failed this inequality would not be paying its way and would
-/// have to be justified under half (b) instead (not possible yet — Task 6's codec/validator
-/// gate does not exist in this tree) or dropped.
+/// have to be justified under half (b) instead (an executable fires-without/absent-with
+/// fixture pair tied to a named `lang:Gmn*` failure class, run through the Task-6 codec/gate)
+/// or dropped.
 #[test]
 fn qualifier_marker_aliases_cost_less_than_full_iri() {
     for (alias, full_iri) in QUALIFIER_MARKER_ALIASES {
@@ -237,6 +239,40 @@ fn qualifier_marker_aliases_are_authored_dictionary_entries() {
         assert!(
             found,
             "no gmeow:GmnDictionaryEntry binds {full_iri} to the alias {alias:?}"
+        );
+    }
+}
+
+/// The Task-6 closing-the-loop check: the codec must actually EMIT each qualifier
+/// marker's authored alias, verbatim, when a GMN-0 quad uses the term the alias
+/// dealiases — not merely carry a dictionary entry that happens to agree with it. Reads
+/// `gmeow:gmnDictV1` through `GmnDictionary::from_dataset` (the same "compiled carrier"
+/// load path the codec's own writer uses — never a hardcoded parallel alias table) and
+/// asserts the emitted GMN-1 text contains the exact `<slot>: <alias>` token the
+/// dictionary declares, for every Task-5 qualifier marker.
+#[test]
+fn codec_emits_the_authored_qualifier_marker_aliases_verbatim() {
+    use gmeow_lang_bridge::{Gmn0Model, GmnDictionary, gmn1_write};
+    use purrdf::RdfDatasetBuilder;
+
+    const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+
+    let ds = load_lang_module();
+    let dict = GmnDictionary::from_dataset(&ds).expect("dict-v1 loads from the carrier");
+
+    for (alias, full_iri) in QUALIFIER_MARKER_ALIASES {
+        let mut b = RdfDatasetBuilder::new();
+        let s = b.intern_iri(&format!("{GMEOW}probeSubject"));
+        let p = b.intern_iri(&format!("{GMEOW}probePredicate"));
+        let o = b.intern_iri(full_iri);
+        b.push_quad(s, p, o, None);
+        let model = Gmn0Model::from_dataset(&b.freeze().expect("freeze"));
+        let doc = gmn1_write(&model, &dict)
+            .unwrap_or_else(|e| panic!("codec must write a probe quad for {full_iri}: {e}"));
+        assert!(
+            doc.text.contains(&format!(": {alias}")),
+            "the codec must emit the authored alias {alias:?} verbatim for {full_iri}, got:\n{}",
+            doc.text
         );
     }
 }

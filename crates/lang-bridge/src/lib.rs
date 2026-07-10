@@ -29,6 +29,7 @@ pub mod conllu;
 pub mod emit;
 pub mod engine;
 pub mod error;
+pub mod gmn1_codec;
 pub mod gmn_symbology;
 pub mod grammar;
 pub mod lower;
@@ -54,6 +55,10 @@ pub use engine::{
     EngineError, EngineRegistry, FixtureEngine, NlpEngine, Reading, interpretation_act_to_ntriples,
 };
 pub use gmn_symbology::{GMN_LANG_AST_COLUMNS, gmn_glyph_token_cost};
+pub use gmn1_codec::{
+    Gmn0Model, Gmn1Document, Gmn1Error, GmnDictionary, gmn0_canonically_equal, gmn1_read,
+    gmn1_write, gmn1_write_tabular, round_trip_check,
+};
 pub use grammar::{
     AbnfBridge, EbnfBridge, Formalism, Grammar, GrammarRule, RuleExpr, canonicalize_expr,
     grammar_correspondence, grammar_leg_pair, grammar_to_ntriples, parse_grammar,
