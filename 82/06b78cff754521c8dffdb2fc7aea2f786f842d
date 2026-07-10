@@ -1,0 +1,17 @@
+ghprsq PR head backlink metadata
+
+parent_hashes: 8206b78cff754521c8dffdb2fc7aea2f786f842d
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 1479
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1479
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 4596950e25599235baf4e723c1c8301bada56c32
+GhpRsq-Head-Ref: paudley/1475-gmn-losslessness-cyc-rings-mentation
+GhpRsq-Head-OID: 8206b78cff754521c8dffdb2fc7aea2f786f842d
+GhpRsq-Result-Tree: 8df26c0323c0cb0ab3e7845080c11c81a761fb49
+GhpRsq-Result-Commit: a0476a43f1c958ce38425b9ef5537ca438468a3f
+GhpRsq-Parent-Hashes: 8206b78cff754521c8dffdb2fc7aea2f786f842d
+GhpRsq-Squash-Notes-SHA256: f1022dd249ceb8e531e02ec713078fc53a4c339058b97608e7a8c1ae40dc84fb
