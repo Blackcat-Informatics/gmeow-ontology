@@ -282,6 +282,7 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-references", "references"),
         ("stage-export-evals", "evals"),
         ("stage-export-bench", "bench"),
+        ("stage-export-cost-ledger", "cost-ledger"),
     ] {
         stages.push(st(id, impl_key, &[]));
     }
@@ -322,6 +323,10 @@ pub fn full_spec() -> PipelineSpec {
             // REP_SHAPES by build_archive_blobs, so the sink consumes it (kept in sorted
             // position to match the registry consumes()); a first run has no on-disk file.
             "stage-export-constraint-shapes",
+            // The deterministic engine-cost ledger (bench/cost-baseline.json projection)
+            // rides in as an opaque fanout member exactly like the perf leaderboard (sorted
+            // position: constraint-shapes < cost-ledger < evals).
+            "stage-export-cost-ledger",
             "stage-export-evals",
             // The generated shape surfaces (P11 frame shapes + the ResultShape SHACL
             // projection): REP_SHAPES folds THESE runs' fresh bytes, never a stale
