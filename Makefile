@@ -71,7 +71,8 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 
 CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	crate-check audit wikidata coverage acceptance reason-verify reason-crosscheck \
-	mappings lint-alignment doc-lint coherence-gate-teeth slice-quality-gate
+	mappings lint-alignment doc-lint coherence-gate-teeth slice-quality-gate \
+	bench-golden-gate
 
 .PHONY: help \
 	install fmt lint lint-issue-refs \
@@ -81,7 +82,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
-	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report perf-gate \
+	fuzz-smoke bench bench-compare bench-golden-gate rust-coverage mutants compliance-report perf-gate \
 	maint-crosscheck maint-nemo-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
@@ -447,6 +448,9 @@ bench: ## Run criterion benchmarks with host-tuned codegen.
 
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare
+
+bench-golden-gate: ## On-gate native-vs-golden agreement gate: run the NATIVE engine over the committed mini corpora and hard-fail on any golden divergence (no Nemo/Scryer — cheap).
+	cargo run -q -p gmeow-bench-engines -- --check-golden
 
 perf-gate: ## Report-only timings for validate, generated drift, reason, and verify.
 	mkdir -p $(PERF_DIR)
