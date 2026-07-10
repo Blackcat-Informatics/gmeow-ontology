@@ -18130,12 +18130,51 @@ enums:
   GmnDictionaryEntryEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GmnDictionaryEntry
     permissible_values:
+      gmnDictV1EntryBoundaryClosed:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryBoundaryClosed
+        title: 'dict-v1 entry: logic:Closed → closed'
+      gmnDictV1EntryBoundaryOpen:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryBoundaryOpen
+        title: 'dict-v1 entry: logic:Open → open'
       gmnDictV1EntryCodebook:
         meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryCodebook
         title: 'dict-v1 entry: gmeow:GmnCodebook → gcb'
       gmnDictV1EntryEnvelope:
         meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEnvelope
         title: 'dict-v1 entry: gmeow:GmnEnvelope → genv'
+      gmnDictV1EntryEvKindComputational:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEvKindComputational
+        title: 'dict-v1 entry: gmeow:methodComputationalModel → cmp'
+      gmnDictV1EntryEvKindDirect:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEvKindDirect
+        title: 'dict-v1 entry: gmeow:methodDirectObservation → dir'
+      gmnDictV1EntryEvKindExpert:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEvKindExpert
+        title: 'dict-v1 entry: gmeow:methodExpertJudgement → exj'
+      gmnDictV1EntryEvKindInstrumental:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEvKindInstrumental
+        title: 'dict-v1 entry: gmeow:methodInstrumentalReading → inst'
+      gmnDictV1EntryEvKindRemote:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEvKindRemote
+        title: 'dict-v1 entry: gmeow:methodRemoteSensing → rmt'
+      gmnDictV1EntryEvKindStreaming:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEvKindStreaming
+        title: 'dict-v1 entry: gmeow:methodStreaming → strm'
+      gmnDictV1EntryEvKindSurvey:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEvKindSurvey
+        title: 'dict-v1 entry: gmeow:methodSurvey → srv'
+      gmnDictV1EntryModalActual:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryModalActual
+        title: 'dict-v1 entry: gmeow:modalForceActual → act'
+      gmnDictV1EntryModalCounterfactual:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryModalCounterfactual
+        title: 'dict-v1 entry: gmeow:modalForceCounterfactual → cf'
+      gmnDictV1EntryModalNecessary:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryModalNecessary
+        title: 'dict-v1 entry: gmeow:modalForceNecessary → nec'
+      gmnDictV1EntryModalPossible:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryModalPossible
+        title: 'dict-v1 entry: gmeow:modalForcePossible → poss'
   GmnDictionaryEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GmnDictionary
     permissible_values:

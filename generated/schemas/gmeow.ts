@@ -1271,8 +1271,21 @@ export enum GmnCompartmentEnum {
 }
 
 export enum GmnDictionaryEntryEnum {
+    gmnDictV1EntryBoundaryClosed = "gmnDictV1EntryBoundaryClosed",
+    gmnDictV1EntryBoundaryOpen = "gmnDictV1EntryBoundaryOpen",
     gmnDictV1EntryCodebook = "gmnDictV1EntryCodebook",
     gmnDictV1EntryEnvelope = "gmnDictV1EntryEnvelope",
+    gmnDictV1EntryEvKindComputational = "gmnDictV1EntryEvKindComputational",
+    gmnDictV1EntryEvKindDirect = "gmnDictV1EntryEvKindDirect",
+    gmnDictV1EntryEvKindExpert = "gmnDictV1EntryEvKindExpert",
+    gmnDictV1EntryEvKindInstrumental = "gmnDictV1EntryEvKindInstrumental",
+    gmnDictV1EntryEvKindRemote = "gmnDictV1EntryEvKindRemote",
+    gmnDictV1EntryEvKindStreaming = "gmnDictV1EntryEvKindStreaming",
+    gmnDictV1EntryEvKindSurvey = "gmnDictV1EntryEvKindSurvey",
+    gmnDictV1EntryModalActual = "gmnDictV1EntryModalActual",
+    gmnDictV1EntryModalCounterfactual = "gmnDictV1EntryModalCounterfactual",
+    gmnDictV1EntryModalNecessary = "gmnDictV1EntryModalNecessary",
+    gmnDictV1EntryModalPossible = "gmnDictV1EntryModalPossible",
 }
 
 export enum GmnDictionaryEnum {
