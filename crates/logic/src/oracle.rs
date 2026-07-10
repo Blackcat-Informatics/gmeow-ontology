@@ -391,184 +391,181 @@ pub(crate) fn native_forward_with_frontier(
     facts: &crate::facts::TypedFactSet,
     rules: &str,
 ) -> gmeow_errors::Result<(TypedChaseResult, crate::query_ir::CompletionFrontier)> {
-    {
-        // ── Dispatch: binary (named-ternary EL/DL) vs generic (n-ary RL/RDF, or
-        //    an arity-3 program that carries a non-ternary HELPER relation) ──
-        //
-        // The binary `seminaive` core keys every relation by a CONSTANT predicate
-        // NAME and models exactly the ternary `<predicate>(subject, object, world)`
-        // shape: `crate::rule_ir::lower_nemo_atom` reads only `terms[0]`/`terms[1]`
-        // and DROPS the rest, so it is faithful ONLY when EVERY atom it sees is
-        // arity-3.  Feed it an arity-4 `triple(?s,?p,?o,?w)` atom or an arity-2
-        // `helper(?x,?y)` atom and it does not error — it silently mis-slots the
-        // terms and produces a WRONG closure.  So the binary path is admissible
-        // ONLY for a program whose EDB *and* whose whole rule set are purely
-        // arity-3 named-ternary.  Everything else routes to the arity-generic
-        // evaluator `crate::physical::generic`, which keeps EVERY term (predicate
-        // position included) and is a strict generalization — it evaluates the
-        // arity-3 named-ternary relations too (a constant predicate name is just
-        // another relation), so the mixed case (arity-3 program rules + a
-        // non-ternary helper, the shape `crate::materialize` accepts from a user
-        // program) runs correctly on it.
-        //
-        // The signal is the ARITY of the encoding, read from BOTH surfaces:
-        //
-        // * EL/DL: every quad → ternary `<predicate>(subject, object, world)` (EDB
-        //   arity 3) and every rule atom is arity-3 named-ternary → BINARY core.
-        // * OWL 2 RL/RDF (`crate::reason::rl`): every quad → the 4-ary
-        //   `triple(?s, ?p, ?o, ?w)` relation (predicate as a DATA term) and the
-        //   meta-rules carry arity-4 / arity-3 generic atoms → GENERIC evaluator.
-        // * A user materialize program (`crate::materialize`): arity-3 EDB but a
-        //   rule set that declares a HELPER predicate of another arity → GENERIC
-        //   evaluator (the binary core cannot represent the helper atom).
-        //
-        // A program is binary-eligible IFF its EDB is all-ternary AND its rule set
-        // is all-ternary (`rules_are_pure_ternary`).  A non-ternary rule set that
-        // ALSO carries negation is genuinely un-runnable by either native path
-        // (binary needs ternary, generic is positive-only): it routes to generic,
-        // where `parse_generic_rules` HARD-FAILS on the negated atom — never a
-        // guess, never a silent approximation.  An empty EDB with an all-ternary
-        // rule set stays binary (the closure is vacuously empty either way).
-        //
-        // Parse the rule text into a Nemo `Program` ONCE here and thread it into
-        // BOTH the arity-eligibility inspection (`program_is_pure_ternary`) and the
-        // chosen lowering (`lower_program_generic_rules` / `lower_program_eval_rules`).
-        // The dispatch and the downstream IR lowering share a single parse, so a
-        // materialize call parses the rule program exactly once instead of twice.
-        let program = crate::nemo_engine::NemoParsedRules::parse_unvalidated(rules)?.into_program();
-        let edb_all_ternary = facts.facts().all(|f| f.args.len() == 3);
-        let binary_eligible = edb_all_ternary && program_is_pure_ternary(&program);
-        if !binary_eligible {
-            // Generic (n-ary) path: lower the parsed program KEEPING all terms and
-            // run the arity-generic positive-Datalog least-fixpoint.  The binary core
-            // below is left UNTOUCHED — EL/DL never reach this branch.
-            let generic_rules = crate::physical::lower_program_generic_rules(&program)?;
-            let result = crate::physical::materialize_generic(facts, &generic_rules)?;
-            // The arity-generic evaluator is not driven through the stratum governor,
-            // so it reports the empty frontier (no `consumed_steps` cost probe) — the
-            // same "empty ⇒ ungoverned" convention `Materialization` uses.
-            return Ok((result, crate::query_ir::CompletionFrontier::empty()));
-        }
+    // ── Dispatch: binary (named-ternary EL/DL) vs generic (n-ary RL/RDF, or
+    //    an arity-3 program that carries a non-ternary HELPER relation) ──
+    //
+    // The binary `seminaive` core keys every relation by a CONSTANT predicate
+    // NAME and models exactly the ternary `<predicate>(subject, object, world)`
+    // shape: `crate::rule_ir::lower_nemo_atom` reads only `terms[0]`/`terms[1]`
+    // and DROPS the rest, so it is faithful ONLY when EVERY atom it sees is
+    // arity-3.  Feed it an arity-4 `triple(?s,?p,?o,?w)` atom or an arity-2
+    // `helper(?x,?y)` atom and it does not error — it silently mis-slots the
+    // terms and produces a WRONG closure.  So the binary path is admissible
+    // ONLY for a program whose EDB *and* whose whole rule set are purely
+    // arity-3 named-ternary.  Everything else routes to the arity-generic
+    // evaluator `crate::physical::generic`, which keeps EVERY term (predicate
+    // position included) and is a strict generalization — it evaluates the
+    // arity-3 named-ternary relations too (a constant predicate name is just
+    // another relation), so the mixed case (arity-3 program rules + a
+    // non-ternary helper, the shape `crate::materialize` accepts from a user
+    // program) runs correctly on it.
+    //
+    // The signal is the ARITY of the encoding, read from BOTH surfaces:
+    //
+    // * EL/DL: every quad → ternary `<predicate>(subject, object, world)` (EDB
+    //   arity 3) and every rule atom is arity-3 named-ternary → BINARY core.
+    // * OWL 2 RL/RDF (`crate::reason::rl`): every quad → the 4-ary
+    //   `triple(?s, ?p, ?o, ?w)` relation (predicate as a DATA term) and the
+    //   meta-rules carry arity-4 / arity-3 generic atoms → GENERIC evaluator.
+    // * A user materialize program (`crate::materialize`): arity-3 EDB but a
+    //   rule set that declares a HELPER predicate of another arity → GENERIC
+    //   evaluator (the binary core cannot represent the helper atom).
+    //
+    // A program is binary-eligible IFF its EDB is all-ternary AND its rule set
+    // is all-ternary (`rules_are_pure_ternary`).  A non-ternary rule set that
+    // ALSO carries negation is genuinely un-runnable by either native path
+    // (binary needs ternary, generic is positive-only): it routes to generic,
+    // where `parse_generic_rules` HARD-FAILS on the negated atom — never a
+    // guess, never a silent approximation.  An empty EDB with an all-ternary
+    // rule set stays binary (the closure is vacuously empty either way).
+    //
+    // Parse the rule text into a Nemo `Program` ONCE here and thread it into
+    // BOTH the arity-eligibility inspection (`program_is_pure_ternary`) and the
+    // chosen lowering (`lower_program_generic_rules` / `lower_program_eval_rules`).
+    // The dispatch and the downstream IR lowering share a single parse, so a
+    // materialize call parses the rule program exactly once instead of twice.
+    let program = crate::nemo_engine::NemoParsedRules::parse_unvalidated(rules)?.into_program();
+    let edb_all_ternary = facts.facts().all(|f| f.args.len() == 3);
+    let binary_eligible = edb_all_ternary && program_is_pure_ternary(&program);
+    if !binary_eligible {
+        // Generic (n-ary) path: lower the parsed program KEEPING all terms and
+        // run the arity-generic positive-Datalog least-fixpoint.  The binary core
+        // below is left UNTOUCHED — EL/DL never reach this branch.
+        let generic_rules = crate::physical::lower_program_generic_rules(&program)?;
+        let result = crate::physical::materialize_generic(facts, &generic_rules)?;
+        // The arity-generic evaluator is not driven through the stratum governor,
+        // so it reports the empty frontier (no `consumed_steps` cost probe) — the
+        // same "empty ⇒ ungoverned" convention `Materialization` uses.
+        return Ok((result, crate::query_ir::CompletionFrontier::empty()));
+    }
 
-        // Reconstruct the world-indexed store the native chase materializes over
-        // from the ternary typed EDB.  Every reasoning fact is
-        // `predicate(subject, object, world)`; a non-ternary fact is a rule-text /
-        // EDB-construction bug (the fixed reasoning rule texts declare only ternary
-        // relations), so it is a hard error — mirroring `run_reasoning`'s ternary
-        // contract, not a silent skip.
-        let interner = facts.interner();
-        let store = crate::store::WorldStore::new();
-        for fact in facts.facts() {
-            if fact.args.len() != 3 {
-                return Err(oracle_err(format!(
-                    "NativeForwardOracle EDB fact for predicate {:?} has arity {} \
+    // Reconstruct the world-indexed store the native chase materializes over
+    // from the ternary typed EDB.  Every reasoning fact is
+    // `predicate(subject, object, world)`; a non-ternary fact is a rule-text /
+    // EDB-construction bug (the fixed reasoning rule texts declare only ternary
+    // relations), so it is a hard error — mirroring `run_reasoning`'s ternary
+    // contract, not a silent skip.
+    let interner = facts.interner();
+    let store = crate::store::WorldStore::new();
+    for fact in facts.facts() {
+        if fact.args.len() != 3 {
+            return Err(oracle_err(format!(
+                "NativeForwardOracle EDB fact for predicate {:?} has arity {} \
                      (expected 3): the ternary reasoning encoding is \
                      predicate(subject, object, world)",
-                    fact.predicate,
-                    fact.args.len()
-                )));
-            }
-            let subject = interner.resolve(fact.args[0]).clone();
-            let object = interner.resolve(fact.args[1]).clone();
-            let world = world_lexical(interner.resolve(fact.args[2]))?;
-            store
-                .insert_quad_terms(&world, subject, TermValue::iri(&fact.predicate), object)
-                .map_err(|e| oracle_err(format!("NativeForwardOracle store seed failed: {e}")))?;
+                fact.predicate,
+                fact.args.len()
+            )));
         }
+        let subject = interner.resolve(fact.args[0]).clone();
+        let object = interner.resolve(fact.args[1]).clone();
+        let world = world_lexical(interner.resolve(fact.args[2]))?;
+        store
+            .insert_quad_terms(&world, subject, TermValue::iri(&fact.predicate), object)
+            .map_err(|e| oracle_err(format!("NativeForwardOracle store seed failed: {e}")))?;
+    }
 
-        // Parse the rule text into the Horn/stratified IR and run the native
-        // least-fixpoint closure UNBOUNDED (`None` max_steps — the governor never
-        // cuts, so the full least model is produced).
-        let eval_rules = crate::rule_ir::lower_program_eval_rules(&program)?;
-        // Enter the type-state plan pipeline: a non-stratifiable program is a DECLARED
-        // gap (`stratify()` → `None`) the native engine does not decide — never
-        // approximate it into a fabricated closure.
-        let Some(stratified) = crate::physical::Parsed::new(&eval_rules).stratify() else {
-            return Err(oracle_err(
-                "NativeForwardOracle: the native chase does not decide this rule set \
+    // Parse the rule text into the Horn/stratified IR and run the native
+    // least-fixpoint closure UNBOUNDED (`None` max_steps — the governor never
+    // cuts, so the full least model is produced).
+    let eval_rules = crate::rule_ir::lower_program_eval_rules(&program)?;
+    // Enter the type-state plan pipeline: a non-stratifiable program is a DECLARED
+    // gap (`stratify()` → `None`) the native engine does not decide — never
+    // approximate it into a fabricated closure.
+    let Some(stratified) = crate::physical::Parsed::new(&eval_rules).stratify() else {
+        return Err(oracle_err(
+            "NativeForwardOracle: the native chase does not decide this rule set \
                  (non-stratifiable: a negative dependency-graph edge inside a cycle); it \
                  must not approximate an undecided fragment"
-                    .to_owned(),
-            ));
-        };
-        let executable = stratified.plan().into_executable();
-        // Capture the governor's completion frontier alongside the rows: its
-        // `consumed_steps` is the committed-derivation count the benchmark seam reads
-        // as a scalar projection of the cost semiring.
-        let (rows, frontier) = match crate::physical::materialize_native(&store, &executable, None)?
-        {
-            crate::physical::NativeOutcome::Decided(budgeted) => {
-                let frontier = budgeted.frontier();
-                (budgeted.rows, frontier)
-            }
-            // Any other declared native gap the forward executor might raise — never
-            // approximate it into a fabricated closure.
-            crate::physical::NativeOutcome::Unsupported(kind) => {
-                return Err(oracle_err(format!(
-                    "NativeForwardOracle: the native chase does not decide this rule set \
+                .to_owned(),
+        ));
+    };
+    let executable = stratified.plan().into_executable();
+    // Capture the governor's completion frontier alongside the rows: its
+    // `consumed_steps` is the committed-derivation count the benchmark seam reads
+    // as a scalar projection of the cost semiring.
+    let (rows, frontier) = match crate::physical::materialize_native(&store, &executable, None)? {
+        crate::physical::NativeOutcome::Decided(budgeted) => {
+            let frontier = budgeted.frontier();
+            (budgeted.rows, frontier)
+        }
+        // Any other declared native gap the forward executor might raise — never
+        // approximate it into a fabricated closure.
+        crate::physical::NativeOutcome::Unsupported(kind) => {
+            return Err(oracle_err(format!(
+                "NativeForwardOracle: the native chase does not decide this rule set \
                      (Unsupported({kind:?})); it must not approximate an undecided fragment"
-                )));
-            }
-        };
+            )));
+        }
+    };
 
-        // Re-expose each native `DerivedRow` as a ternary `TypedRow`
-        // `predicate(subject, object, world)` — the shape `run_reasoning`'s decoder
-        // and `typed_row_fact_key` both coerce back to a `(subject, predicate,
-        // object)` fact key.  `is_edb` keys off the assert sentinel; `rule_name`
-        // is the firing rule IRI for a derived fact, `None` for an echoed EDB fact.
-        //
-        // The antecedents ARE populated below from `DerivedRow.antecedents` (the
-        // matched body facts): `crate::materialize::materialize` mints reifiers from
-        // `TypedProvenance::antecedents`, and `chase_rows_to_inferred` decodes them
-        // into `InferredAxiom.premises`, so the primary reasoning path now carries
-        // real native provenance end-to-end.
-        let typed = rows
-            .into_iter()
-            .map(|row| {
-                let is_edb = row.rule_iri == crate::provenance::ASSERT_RULE_IRI;
-                let rule_name = if is_edb { None } else { Some(row.rule_iri) };
-                // Re-expose each matched body fact as a ternary antecedent
-                // `predicate(subject, object, world)` — the exact shape
-                // `chase_rows_to_inferred`'s `decode_premise` and
-                // `materialize`'s `reifier_for_antecedent_row` consume.  Every
-                // antecedent of a within-world derivation shares the derived
-                // row's world (`row.graph`), so the world column is that graph
-                // literal (the same `simple_literal(&row.graph)` the derived row
-                // itself carries).  An EDB echo has no antecedents (empty), so the
-                // premise list is correctly empty for asserted rows.
-                let antecedents = row
-                    .antecedents
-                    .into_iter()
-                    .map(|ante| TypedRow {
-                        predicate: ante.predicate,
-                        args: vec![
-                            ante.subject,
-                            ante.object,
-                            TermValue::simple_literal(&row.graph),
-                        ],
-                    })
-                    .collect();
-                (
-                    TypedRow {
-                        predicate: row.predicate,
-                        args: vec![
-                            row.subject,
-                            row.object,
-                            TermValue::simple_literal(&row.graph),
-                        ],
-                    },
-                    TypedProvenance {
-                        is_edb,
-                        rule_name,
-                        antecedents,
-                        attributions: Vec::new(),
-                    },
-                )
-            })
-            .collect();
+    // Re-expose each native `DerivedRow` as a ternary `TypedRow`
+    // `predicate(subject, object, world)` — the shape `run_reasoning`'s decoder
+    // and `typed_row_fact_key` both coerce back to a `(subject, predicate,
+    // object)` fact key.  `is_edb` keys off the assert sentinel; `rule_name`
+    // is the firing rule IRI for a derived fact, `None` for an echoed EDB fact.
+    //
+    // The antecedents ARE populated below from `DerivedRow.antecedents` (the
+    // matched body facts): `crate::materialize::materialize` mints reifiers from
+    // `TypedProvenance::antecedents`, and `chase_rows_to_inferred` decodes them
+    // into `InferredAxiom.premises`, so the primary reasoning path now carries
+    // real native provenance end-to-end.
+    let typed = rows
+        .into_iter()
+        .map(|row| {
+            let is_edb = row.rule_iri == crate::provenance::ASSERT_RULE_IRI;
+            let rule_name = if is_edb { None } else { Some(row.rule_iri) };
+            // Re-expose each matched body fact as a ternary antecedent
+            // `predicate(subject, object, world)` — the exact shape
+            // `chase_rows_to_inferred`'s `decode_premise` and
+            // `materialize`'s `reifier_for_antecedent_row` consume.  Every
+            // antecedent of a within-world derivation shares the derived
+            // row's world (`row.graph`), so the world column is that graph
+            // literal (the same `simple_literal(&row.graph)` the derived row
+            // itself carries).  An EDB echo has no antecedents (empty), so the
+            // premise list is correctly empty for asserted rows.
+            let antecedents = row
+                .antecedents
+                .into_iter()
+                .map(|ante| TypedRow {
+                    predicate: ante.predicate,
+                    args: vec![
+                        ante.subject,
+                        ante.object,
+                        TermValue::simple_literal(&row.graph),
+                    ],
+                })
+                .collect();
+            (
+                TypedRow {
+                    predicate: row.predicate,
+                    args: vec![
+                        row.subject,
+                        row.object,
+                        TermValue::simple_literal(&row.graph),
+                    ],
+                },
+                TypedProvenance {
+                    is_edb,
+                    rule_name,
+                    antecedents,
+                    attributions: Vec::new(),
+                },
+            )
+        })
+        .collect();
 
-        Ok((TypedChaseResult { rows: typed }, frontier))
-    }
+    Ok((TypedChaseResult { rows: typed }, frontier))
 }
 
 /// Parse `rules` and report whether EVERY atom of EVERY rule is arity-3 — the
