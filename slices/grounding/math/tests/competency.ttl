@@ -890,3 +890,36 @@ ex:rowStatementProofTheoryEngine a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "axiom" ; gmeow:cellValueIri exs:euclidPostulate5 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "engine" ; gmeow:cellValueIri exs:coqEngineV8 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "outcome" ; gmeow:cellValueIri math:verificationPassed ] .
+
+# === Persistence Q — filtration, birth/death, and stability guarantee ======= #
+ex:cqFiltrationPersistenceStability a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/filtration-persistence-stability-credence.rq" ;
+    gmeow:cqDataFile "tests/conformance-fixtures/persistence-calibrated-embedding.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A persistence-derived credence traces back from the held math:ResidualInterpretationClaim (through gmeow:wasDerivedFrom to the math:StabilityCalibrationRecord, its math:calibrationEvidence lifetimes, and their math:overFiltration) to the filtration, the birth/death thresholds, and the math:bottleneckStabilityTheorem that calibrated it. Over the fixture the claim ex:latentMeaningClaim has two evidence lifetimes, so the answer is exactly the essential H0 component (born ex:eps1, dies math:PositiveInfinity) and the H1 loop (born ex:eps2, dies ex:eps4), each over ex:persistenceFiltration, guaranteed by math:bottleneckStabilityTheorem at logic:confidence 0.82." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqFiltrationPersistenceStabilityShape ;
+    gmeow:cqExpectRow ex:rowPersistenceEssential , ex:rowPersistenceLoop .
+ex:cqFiltrationPersistenceStabilityShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "claim" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "filtration" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "bornAt" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "diesAt" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "guarantee" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "confidence" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+ex:rowPersistenceEssential a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exf:latentMeaningClaim ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "filtration" ; gmeow:cellValueIri exf:persistenceFiltration ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "bornAt" ; gmeow:cellValueIri exf:eps1 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "diesAt" ; gmeow:cellValueIri math:PositiveInfinity ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "guarantee" ; gmeow:cellValueIri math:bottleneckStabilityTheorem ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "confidence" ; gmeow:cellValueLiteral "0.82" ] .
+ex:rowPersistenceLoop a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exf:latentMeaningClaim ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "filtration" ; gmeow:cellValueIri exf:persistenceFiltration ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "bornAt" ; gmeow:cellValueIri exf:eps2 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "diesAt" ; gmeow:cellValueIri exf:eps4 ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "guarantee" ; gmeow:cellValueIri math:bottleneckStabilityTheorem ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "confidence" ; gmeow:cellValueLiteral "0.82" ] .

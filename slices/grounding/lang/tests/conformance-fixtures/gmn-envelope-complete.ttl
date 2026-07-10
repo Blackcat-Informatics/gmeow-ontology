@@ -4,8 +4,8 @@
 # eight-field contract (the three dialect coordinates, the boundary ring, the asserting
 # standpoint, the generating activity, the byte-exact digest, and the losslessness
 # judgment) so lang:GmnEnvelopeContractShape validates with no findings. The judgment is
-# a logic:Correspondence — the honest lossy-lens verdict of the GMN-0 → GMN-1 crossing,
-# never a boolean lossless flag.
+# a logic:Correspondence — the honest section/retraction verdict of the GMN-0 → GMN-1
+# crossing (mirroring gmeow:gmnCorrNormalToGmn), never a boolean lossless flag.
 
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -17,11 +17,11 @@ ex:archiveTeam a gmeow:Agent .
 ex:gmnWriterRun a gmeow:Activity .
 
 ex:corrEnvelope a logic:Correspondence ;
-    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:preservationKind logic:ExactPreservation ;
     logic:correspondenceRelation logic:Subsumes ;
-    logic:morphismClass logic:LossyLens ;
+    logic:morphismClass logic:SectionRetraction ;
     logic:hasDeterminacy logic:Crisp ;
-    logic:mnemomorphic false .
+    logic:mnemomorphic true .
 
 ex:envelopeComplete a gmeow:GmnEnvelope ;
     gmeow:gmnSchemaVersion "1" ;

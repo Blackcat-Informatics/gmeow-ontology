@@ -137,8 +137,14 @@ pub(crate) struct EvalRule {
     pub(crate) body: Vec<EvalAtom>,
     /// The firing rule IRI (the `#[name(...)]` value, or a synthesized anonymous IRI).
     pub(crate) rule_iri: String,
-    /// Inequality guards `(?A, ?B)`.  The WFS/stable corpus has none, so this is
-    /// empty for every corpus case (see the NOTE in [`parse_eval_rules`]).
+    /// Inequality guards `(?A, ?B)`: a `distinctBody` (`?A != ?B`) constraint that
+    /// blocks the rule's firing when the two variables bind to the same value.
+    /// Populated by both lowering paths — the canonical-AST path
+    /// ([`crate::lower::lower_rule`]) directly from `LogicRule::distinct_pairs`, and
+    /// the Nemo-reparse path ([`parse_eval_rules`]) by translating Nemo's
+    /// `Operation`-encoded `Unequals` body literals (see `extract_distinct_pairs`) —
+    /// so the chase (`distinct_pairs_satisfied`) sees the same guard regardless of
+    /// which path produced the [`EvalRule`].
     pub(crate) distinct_pairs: Vec<(String, String)>,
     /// Arithmetic / comparison builtins, in body order, with variable operands in
     /// the engine's `?`-prefixed surface (matching the body atoms' [`EvalTerm::Var`]
@@ -414,6 +420,59 @@ fn parse_n3_object_literal(n3: &str) -> gmeow_errors::Result<TermValue> {
         .map_err(|e| ir_err(format!("rule_ir: cannot parse literal object {n3:?}: {e}")))
 }
 
+/// Extract the inequality body guards (`?A != ?B`) from a Nemo rule's body
+/// operations, translating Nemo's `Operation`-encoded `Unequals` literals into the
+/// `(String, String)` variable-pair representation [`crate::lower::lower_rule`]'s
+/// canonical-AST path already populates on [`EvalRule::distinct_pairs`] — same field,
+/// same `?`-prefixed variable surface — so [`distinct_pairs_satisfied`] (and the chase
+/// that calls it) honors a `distinctBody` guard identically regardless of which
+/// lowering path produced the [`EvalRule`].
+///
+/// # Errors
+///
+/// Returns `Err` if an `Unequals` operand is not a plain variable. The gmeow fragment
+/// (`logic:distinctBody`) only ever projects a variable-variable guard — a
+/// constant-object guard is rejected at compile time in
+/// `gmeow_logic_compile::frontend` before it can reach `.rls` text — so a non-variable
+/// operand here means the input did not originate from this compiler's projection;
+/// there is no fallback representation for it, so this is a hard failure, not a
+/// silent drop.
+fn extract_distinct_pairs(
+    rule: &nemo::rule_model::components::rule::Rule,
+) -> gmeow_errors::Result<Vec<(String, String)>> {
+    use nemo::rule_model::components::term::operation::operation_kind::OperationKind;
+
+    let mut pairs: Vec<(String, String)> = Vec::new();
+    for op in rule.body_operations() {
+        if op.operation_kind() != OperationKind::Unequals {
+            continue;
+        }
+        let mut terms = op.terms();
+        let left = terms.next().ok_or_else(|| {
+            ir_err("rule_ir: != operation has no operands (arity < 1)".to_owned())
+        })?;
+        let right = terms.next().ok_or_else(|| {
+            ir_err("rule_ir: != operation has only one operand (arity < 2)".to_owned())
+        })?;
+        pairs.push((require_var_term(left)?, require_var_term(right)?));
+    }
+    Ok(pairs)
+}
+
+/// The `?Name` surface of `term` (matching [`EvalTerm::Var`]'s convention), or a hard
+/// error if `term` is not a plain variable.
+fn require_var_term(
+    term: &nemo::rule_model::components::term::Term,
+) -> gmeow_errors::Result<String> {
+    if term.is_variable() {
+        return Ok(term.to_string());
+    }
+    Err(ir_err(format!(
+        "rule_ir: != operand {term} is not a variable — only a variable-variable \
+         inequality guard is representable in distinct_pairs"
+    )))
+}
+
 /// Lower a Nemo atom into an [`EvalAtom`], dropping the arity-3 world slot.
 ///
 /// `terms()[0]` = subject, `terms()[1]` = object; `terms()[2]` (world) is ignored,
@@ -492,15 +551,16 @@ pub(crate) fn lower_program_eval_rules(
             .name()
             .unwrap_or_else(|| format!("{LOGIC_NAMESPACE}rule/anonymous"));
 
-        // NOTE: the WFS / stable-model conformance corpus carries NO body
-        // inequality guards, so `distinct_pairs` is always empty here.  Extracting
-        // Nemo's `Operation`-encoded inequalities is deferred until a corpus case
-        // needs it; an empty vec is correct for every case Phase A targets.
+        // Translate Nemo's `Operation`-encoded `!=` body literals into `distinct_pairs`
+        // (see `extract_distinct_pairs`) — the reparse path is otherwise faithful to
+        // the canonical AST lowering (`crate::lower::lower_rule`) for this guard.
+        let distinct_pairs = extract_distinct_pairs(rule)?;
+
         out.push(EvalRule {
             head,
             body,
             rule_iri,
-            distinct_pairs: Vec::new(),
+            distinct_pairs,
             // Forward `.rls` rules carry no arithmetic (the ontology corpus has none).
             builtins: Vec::new(),
         });
@@ -1339,6 +1399,65 @@ mod tests {
         assert_eq!(
             row.derivation_id,
             mint_derivation_id(&anon, &[want_src.as_str()])
+        );
+    }
+
+    #[test]
+    fn reparse_path_extracts_distinct_pairs_and_blocks_self_loop() {
+        // Regression for the Nemo-reparse path silently dropping `distinctBody`
+        // guards. Mirrors `logic:ruleCrossNodeGlut`'s
+        // real production shape: two head variables (?f1, ?f2) are joined ONLY
+        // through a shared "anchor" body atom, guarded by an inequality (f1 ≠ f2)
+        // so a single anchor-sharer cannot self-join into a self-loop edge — exactly
+        // the shape that let `crossNodeGlutWith(f, f)` over-derive when this vec was
+        // always empty on this path.
+        //
+        // This exercises `parse_eval_rules` (the Nemo `.rls`-text reparse path)
+        // specifically, NOT `crate::lower::lower_rule` (the canonical-AST path),
+        // which already preserved `distinct_pairs` correctly before this fix.
+        let rls = format!(
+            "<{NS}r>(?f1, ?f2, ?W) :- <{NS}p>(?f1, ?a, ?W), <{NS}p>(?f2, ?a, ?W), ?f1 != ?f2 .\n"
+        );
+        let rules = parse_eval_rules(&rls).expect("parse");
+        assert_eq!(rules.len(), 1);
+        // The reparse must translate Nemo's `Unequals` body operation into
+        // `distinct_pairs` — before this fix, this vec was unconditionally empty
+        // regardless of the source text, silently discarding the guard.
+        assert_eq!(
+            rules[0].distinct_pairs,
+            vec![("?f1".to_owned(), "?f2".to_owned())],
+            "reparse must populate distinct_pairs from the Nemo Unequals operation"
+        );
+
+        // Two distinct entities (x, y) share one anchor (a) — the exact fixture
+        // shape where, WITHOUT the guard enforced, the join binds ?f1 = ?f2 = x (and
+        // = y) and derives the forbidden self-loops r(x,x) / r(y,y).
+        let mut edb = FactStore::new();
+        edb.insert(fact("x", "p", "a"));
+        edb.insert(fact("y", "p", "a"));
+        let reference = FactStore::new();
+        let res = least_model_of_reduct(&edb, &rules, &reference).expect("lmr");
+
+        let key = |s: &str, o: &str| (format!("<{NS}{s}>"), format!("{NS}r"), format!("<{NS}{o}>"));
+
+        // The guard must block both self-loops.
+        assert!(
+            !res.store.contains_key(&key("x", "x")),
+            "distinct_pairs guard must block the r(x,x) self-loop"
+        );
+        assert!(
+            !res.store.contains_key(&key("y", "y")),
+            "distinct_pairs guard must block the r(y,y) self-loop"
+        );
+        // The guard must not over-suppress: a genuinely-distinct pair sharing the
+        // anchor still derives in both directions.
+        assert!(
+            res.store.contains_key(&key("x", "y")),
+            "distinct pair (x,y) must still derive"
+        );
+        assert!(
+            res.store.contains_key(&key("y", "x")),
+            "distinct pair (y,x) must still derive"
         );
     }
 

@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example (version-pinning): a gmeow:GmnEnvelope declaring
+# TWO gmeow:gmnDictionaryVersion literals at once. An alias is meaningless without the
+# ONE dictionary version that minted it — declaring two simultaneously makes the pinning
+# ambiguous, exactly the "non-interchangeable" property lang:GmnMissingEnvelopeField's
+# sh:maxCount 1 on gmeow:gmnDictionaryVersion now enforces. Fires
+# shacl.MaxCountConstraintComponent and NO other finding — every other contract field is
+# present and well-formed.
+
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:archiveTeam a gmeow:Agent .
+ex:gmnWriterRun a gmeow:Activity .
+
+ex:corrEnvelope a logic:Correspondence ;
+    logic:preservationKind logic:ExactPreservation ;
+    logic:correspondenceRelation logic:Subsumes ;
+    logic:morphismClass logic:SectionRetraction ;
+    logic:hasDeterminacy logic:Crisp ;
+    logic:mnemomorphic true .
+
+# Two dictionary versions at once: not pinned to exactly one.
+ex:envelopeTwoDictVersions a gmeow:GmnEnvelope ;
+    gmeow:gmnSchemaVersion "1" ;
+    gmeow:gmnDictionaryVersion "1" , "2" ;
+    gmeow:gmnGlyphTableVersion "1" ;
+    gmeow:gmnSecurityRing gmeow:gmnRingTrusted ;
+    gmeow:accordingTo ex:archiveTeam ;
+    gmeow:wasGeneratedBy ex:gmnWriterRun ;
+    gmeow:contentDigest "blake3:1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b" ;
+    gmeow:gmnEnvelopeCorrespondence ex:corrEnvelope .

@@ -2381,14 +2381,74 @@ gmeow:GmnSecurityRing
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN Security Ring"@x-gmeow-english ;
-    skos:definition "A deontic serialization boundary ring: a lattice-ordered admission class saying where content serialized in a GMN envelope is permitted to flow. Rings are ordered by the transitive gmeow:gmnRingWithin — a ring is within the rings that enclose it, and content permitted in a ring is permitted wherever that ring is within — so the innermost ring (gmeow:gmnRingCore) carries the strictest admission bar and flows the furthest, while the outermost (gmeow:gmnRingRestricted) admits the most and flows the least. Minted fresh after checking the rights and agreements vocabulary: gmeow:RightsStatement and its gmeow:Permission / gmeow:Prohibition / gmeow:Duty rule trio regulate content licensing — who may do what with an asset under what licence — not serialization boundaries, so the ring lattice is a new substrate rather than a graft onto ODRL-shaped deontics."@x-gmeow-english ;
+    skos:definition "A deontic serialization boundary ring: a point in a Denning-style information-flow lattice saying where content serialized in a GMN envelope is permitted to flow. A ring factors into two orthogonal coordinates rather than a bare chain link: a classification level (gmeow:gmnRingLevel, an ordered gmeow:GmnRingLevel value) and a compartment/caveat set (gmeow:gmnRingCompartment, zero or more gmeow:GmnCompartment values — e.g. a NATO-eyes-only scope). The ring order gmeow:gmnRingWithin is DERIVED from these coordinates by product-order dominance — level dominance (gmeow:gmnRingLevelDominates) AND compartment containment (⊇) — never hand-chained; see gmeow:gmnRingWithin for the derivation rule. Rings are first-class individuals in an OPEN set: the three shipped defaults (gmeow:gmnRingCore / gmeow:gmnRingTrusted / gmeow:gmnRingRestricted) are members of the shipped gmeow:gmnRingPresetDefault grouping, and a fourth demonstrator (gmeow:gmnRingNato) shows that the SAME level with a DIFFERENT compartment set is a genuinely different ring, not a naming variant. Typed admission/exclusion criteria (gmeow:gmnRingAdmits / gmeow:gmnRingExcludes, over the open gmeow:GmnRingCriterion vocabulary) record what a ring's boundary checks, mirroring the rights slice's typed-value-over-relator discipline (gmeow:RightsAction referenced from gmeow:Permission / gmeow:Prohibition) rather than free text. Minted fresh after checking the rights and agreements vocabulary: gmeow:RightsStatement and its gmeow:Permission / gmeow:Prohibition / gmeow:Duty rule trio regulate content licensing — who may do what with an asset under what licence — not serialization boundaries, so the ring lattice is a new substrate rather than a graft onto ODRL-shaped deontics."@x-gmeow-english ;
     skos:example "ex:envelope gmeow:gmnSecurityRing gmeow:gmnRingTrusted ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
-    gmeow:avoidWhen "Avoid using a ring for licensing or usage rights (that is the gmeow:RightsStatement deontic layer) and avoid asserting the lattice order flat — the order is carried only by gmeow:gmnRingWithin edges, never implied by naming."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a ring for licensing or usage rights (that is the gmeow:RightsStatement deontic layer); NEVER hand-assert a gmeow:gmnRingWithin edge — the order is DERIVED from gmeow:gmnRingLevel and gmeow:gmnRingCompartment, and a zero-authored-triples structural gate fails the build on one; and avoid an owl:oneOf closure — the ring set is open, the three defaults are a shipped preset, not the whole universe."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Classify each gmeow:GmnEnvelope with exactly one ring through gmeow:gmnSecurityRing; a serializer admits content into an envelope only when the content's ring is the envelope's ring or within it (the transitive gmeow:gmnRingWithin closure)."@x-gmeow-english ;
+    gmeow:howToUse "Mint a ring as an individual carrying exactly one gmeow:gmnRingLevel and zero or more gmeow:gmnRingCompartment values; classify each gmeow:GmnEnvelope with exactly one ring through gmeow:gmnSecurityRing; a serializer admits content into an envelope only when the content's ring equals the envelope's ring or is gmeow:gmnRingWithin it (the derived closure)."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
-    gmeow:useWhen "Use as the class of GMN serialization boundary rings — the lattice-ordered admission classes an envelope declares so the flow rules of its payload are machine-checkable."@x-gmeow-english .
+    gmeow:useWhen "Use as the class of GMN serialization boundary rings — the factored, lattice-ordered admission classes an envelope declares so the flow rules of its payload are machine-checkable and derived, never hand-chained."@x-gmeow-english .
+
+gmeow:GmnRingLevel
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Ring Level"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The classification-level axis of a GMN security ring — an OPEN, ordered value vocabulary (gmeow:gmnLevelCore ≻ gmeow:gmnLevelTrusted ≻ gmeow:gmnLevelRestricted on gmeow:gmnRingLevelDominates), the kernel gmeow:GranularityLevel / cognition gmeow:KnowledgeLevel idiom applied to the ring lattice. Minted LANG-LOCAL rather than reusing the kernel gmeow:SensitivityLevel: investigation found the kernel's only ordering property, gmeow:coarserThan, carries rdfs:domain and rdfs:range gmeow:GranularityLevel, not gmeow:SensitivityLevel — the SensitivityLevel skos:example that shows gmeow:coarserThan between two sensitivity individuals is illustrative prose, never an asserted triple anywhere in the carrier. Reusing gmeow:coarserThan on ring levels would entail every ring level is ALSO a gmeow:GranularityLevel, a genuine ontological mismatch, so this is a fresh, correctly-scoped ordered axis rather than a silent divergence from an existing one. The FULL reflexive-transitive gmeow:gmnRingLevelDominates closure is hand-asserted on each level individual (the logic:levelAtOrAbove idiom, logic/module.ttl), so the gmeow:gmnRingWithin derivation needs no transitive computation of its own."@x-gmeow-english ;
+    skos:example "gmeow:gmnLevelCore a gmeow:GmnRingLevel ; gmeow:gmnRingLevelDominates gmeow:gmnLevelTrusted ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting per-level subclasses (levels are individuals, Principle 9) and avoid reusing the kernel gmeow:SensitivityLevel or its gmeow:coarserThan — the domain/range mismatch documented above makes that reuse unsound; extend this lang-local ladder instead."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference the three seeded gmeow:GmnRingLevel individuals from a ring's gmeow:gmnRingLevel; order a new level with gmeow:gmnRingLevelDominates and hand-assert its full reflexive-transitive closure against the existing ladder, exactly as logic:levelAtOrAbove does."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the value vocabulary for a GMN ring's classification-level axis — the ordered coordinate gmeow:gmnRingWithin's derivation reads through gmeow:gmnRingLevelDominates."@x-gmeow-english .
+
+gmeow:GmnCompartment
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Compartment"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The compartment/caveat axis of a GMN security ring — an OPEN, UNORDERED value vocabulary of scopes a ring's content may be marked with (e.g. a NATO-eyes-only distribution scope, a named partner scope). A ring's compartment set (gmeow:gmnRingCompartment, non-functional — zero or more values) is the second coordinate of the Denning product order: gmeow:gmnRingWithin(X, Y) additionally requires compartments(X) ⊇ compartments(Y). Two rings at the same gmeow:gmnRingLevel with different compartment sets are genuinely different lattice points, never collapsed."@x-gmeow-english ;
+    skos:example "gmeow:gmnRingNato gmeow:gmnRingCompartment gmeow:gmnCompartmentNato ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid using it for the classification level (that is gmeow:GmnRingLevel) and avoid treating an empty compartment set as an error — the three shipped default-preset rings carry no compartment at all, and that is well-formed (the ⊇ containment test is vacuously true against an empty set)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference a seeded gmeow:GmnCompartment individual from a ring's gmeow:gmnRingCompartment (repeatable); mint a fresh individual with rdfs:label when a new scope or caveat is needed — the set is open, never closed by design."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the value vocabulary for a GMN ring's compartment/caveat axis — the scope(s) a ring's content is marked with, read via gmeow:gmnRingCompartment and tested by ⊇ containment in the gmeow:gmnRingWithin derivation."@x-gmeow-english .
+
+gmeow:GmnRingCriterion
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Ring Criterion"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "A typed admission or exclusion criterion a GMN security ring's boundary checks — a VALUE, never a rule subclass, mirroring the rights slice's gmeow:RightsAction discipline (gmeow:Permission / gmeow:Prohibition point at a typed action, never a free-text reason). Referenced from a ring via gmeow:gmnRingAdmits (a criterion the ring's boundary requires) or gmeow:gmnRingExcludes (a criterion the ring's boundary forbids). Open vocabulary: a new criterion is a fresh individual, never a hand-authored string."@x-gmeow-english ;
+    skos:example "gmeow:gmnRingCore gmeow:gmnRingAdmits gmeow:gmnCriterionHumanReviewed ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid encoding a criterion as a literal string on the ring and avoid conflating it with the lattice coordinates (gmeow:gmnRingLevel / gmeow:gmnRingCompartment) — a criterion is a boundary CHECK the ring documents, not the coordinate that drives gmeow:gmnRingWithin's derivation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference a seeded gmeow:GmnRingCriterion individual from a ring's gmeow:gmnRingAdmits / gmeow:gmnRingExcludes; mint a fresh individual with rdfs:label when a new boundary check is needed."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the open value vocabulary for a ring's typed admission/exclusion criteria — what a ring's boundary requires or forbids, referenced via gmeow:gmnRingAdmits / gmeow:gmnRingExcludes."@x-gmeow-english .
+
+gmeow:GmnRingPreset
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Ring Preset"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A named, shipped grouping of gmeow:GmnSecurityRing individuals — the versions slice's gmeow:VersionSet shape (a first-class InformationObject naming a curated collection) applied to ring bundling, but WITHOUT its full gmeow:VersionMembership reification: a preset's membership carries none of the competing-authority or temporal-interval semantics a version lineage needs, so a direct gmeow:gmnRingPresetMember edge is the proportionate mechanism. gmeow:gmnRingPresetDefault is the one shipped preset, grouping the three default rings; the ring set itself stays open (Principle 9) — a preset is a curated subset, never a closure."@x-gmeow-english ;
+    skos:example "gmeow:gmnRingPresetDefault a gmeow:GmnRingPreset ; gmeow:gmnRingPresetMember gmeow:gmnRingCore ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid treating preset membership as the definition of the ring set — the ring class stays open — and avoid using a preset in place of the lattice coordinates; a preset only groups, it carries no level or compartment semantics of its own."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one gmeow:GmnRingPreset per shipped bundle, and link each member ring with gmeow:gmnRingPresetMember."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name a shipped, curated grouping of security rings — e.g. the default three-ring preset — without closing the open ring set."@x-gmeow-english .
 
 gmeow:GmnEnvelope
     a logic:SubKind ,
@@ -2537,13 +2597,115 @@ gmeow:gmnRingWithin
     a owl:ObjectProperty , owl:TransitiveProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn ring within"@x-gmeow-english ;
-    skos:definition "The ring lattice order: relates a security ring to a ring it is within. Domain and range gmeow:GmnSecurityRing (stated in prose); transitive (owl:TransitiveProperty, EL-clean). The flow rule reads along this edge: content permitted in ring X is permitted wherever X is within, so the innermost ring's content flows to every enclosing ring while an outer ring's content never flows inward. gmeow:gmnRingCore is within gmeow:gmnRingTrusted, which is within gmeow:gmnRingRestricted."@x-gmeow-english ;
+    skos:definition "The ring lattice order: relates a security ring to a ring it is within. Domain and range gmeow:GmnSecurityRing (stated in prose); transitive (owl:TransitiveProperty, EL-clean). DERIVED, never hand-authored: gmeow:gmnRingWithin(X, Y) holds iff X's level dominates Y's level (gmeow:gmnRingLevelDominates, over gmeow:gmnRingLevel) AND X's compartment set contains Y's (⊇, over gmeow:gmnRingCompartment) — the Denning product-order dominance test, computed by gmeow:ruleGmnRingWithinDerive (a logic:Rule, materialized by the native logic: reasoner over the authored coordinates; see gmeow:ruleGmnRingCompartmentGap for the ⊇ negation-guard it depends on). REFLEXIVE (a ring is trivially within itself, the standard Denning ⊑ dominance reading): the flow-check idiom already asks 'the content's ring equals the destination's ring, OR is gmeow:gmnRingWithin it', so equality is handled once and gmeow:gmnRingWithin need not also be made irreflexive. The flow rule reads along this edge: content permitted in ring X is permitted wherever X is within, so the innermost ring's content flows to every enclosing ring while an outer ring's content never flows inward. A structural gate (tests/structural.ttl) asserts ZERO authored gmeow:gmnRingWithin triples exist in the carrier — the predicate is populated ONLY at reason time."@x-gmeow-english ;
+    skos:example "gmeow:gmnRingCore gmeow:gmnRingWithin gmeow:gmnRingTrusted ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
-    gmeow:avoidWhen "Avoid reading it as a containment of content — it orders admission classes, not payloads — and avoid closing the transitive hops by hand; the reasoner materializes the closure."@x-gmeow-english ;
+    gmeow:avoidWhen "NEVER hand-author a gmeow:gmnRingWithin edge — a zero-authored-triples structural gate fails the build on one (GREENFIELD, no duplicate of the derivation); avoid reading it as a containment of content — it orders admission classes, not payloads — and avoid asserting acyclicity or the ⊇ test as an OWL characteristic (owl:irreflexive / owl:AsymmetricProperty are out-of-EL and would HARD-FAIL make reason-verify); those checks are SHACL/SPARQL competency gates over the AUTHORED coordinates instead (lang:GmnRingLatticeMalformed)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert only the direct lattice edges between ring individuals and let transitivity derive the rest; check a flow by asking whether the content's ring equals or is gmeow:gmnRingWithin the destination's ring."@x-gmeow-english ;
+    gmeow:howToUse "NEVER assert this edge directly — author gmeow:gmnRingLevel and gmeow:gmnRingCompartment on each ring and let gmeow:ruleGmnRingWithinDerive compute the closure at reason time; check a flow by querying whether the content's ring equals or is gmeow:gmnRingWithin the destination's ring."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
-    gmeow:useWhen "Use to order the GMN security rings — the transitive lattice edge the flow rule evaluates over."@x-gmeow-english .
+    gmeow:useWhen "Use to QUERY the derived GMN security ring lattice order — never to author it."@x-gmeow-english .
+
+gmeow:gmnRingLevel
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:GmnSecurityRing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn ring level"@x-gmeow-english ;
+    rdfs:range gmeow:GmnRingLevel ;
+    skos:definition "The classification-level coordinate of a GMN security ring — one of the two axes gmeow:gmnRingWithin's derivation reads. Functional: exactly one level per ring. Domain gmeow:GmnSecurityRing, range gmeow:GmnRingLevel."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid leaving it unset — the lattice well-formedness gate (lang:GmnRingLatticeMalformed) requires exactly one level on every ring — and avoid pointing it at anything but a gmeow:GmnRingLevel individual."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnRingLevel per ring individual; pair it with zero or more gmeow:gmnRingCompartment values so gmeow:gmnRingWithin can be derived."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the classification-level coordinate of a GMN security ring."@x-gmeow-english .
+
+gmeow:gmnRingCompartment
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GmnSecurityRing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn ring compartment"@x-gmeow-english ;
+    rdfs:range gmeow:GmnCompartment ;
+    skos:definition "The compartment/caveat coordinate of a GMN security ring — the second axis gmeow:gmnRingWithin's derivation reads (⊇ containment). Non-functional: zero or more compartments per ring; an empty set is well-formed (the three default-preset rings carry none). Domain gmeow:GmnSecurityRing, range gmeow:GmnCompartment."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid treating a missing gmeow:gmnRingCompartment as ill-formed — an empty set is a legitimate coordinate — and avoid pointing it at anything but a gmeow:GmnCompartment individual."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert zero or more gmeow:gmnRingCompartment edges per ring individual; two rings sharing a level but differing in this set are distinct lattice points (the NATO demonstrator, gmeow:gmnRingNato)."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the compartment/caveat coordinate(s) of a GMN security ring."@x-gmeow-english .
+
+gmeow:gmnRingLevelDominates
+    a owl:ObjectProperty ,
+        owl:TransitiveProperty ;
+    rdfs:domain gmeow:GmnRingLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn ring level dominates"@x-gmeow-english ;
+    rdfs:range gmeow:GmnRingLevel ;
+    skos:definition "Orders the gmeow:GmnRingLevel axis: relates a level to itself and to every level it dominates (the logic:levelAtOrAbove idiom, logic/module.ttl). Reflexive-and-transitive; the FULL reflexive-transitive closure is hand-asserted on the level individuals so gmeow:ruleGmnRingWithinDerive needs no transitive computation of its own. gmeow:gmnLevelCore dominates gmeow:gmnLevelTrusted, which dominates gmeow:gmnLevelRestricted."@x-gmeow-english ;
+    skos:example "gmeow:gmnLevelCore gmeow:gmnRingLevelDominates gmeow:gmnLevelTrusted ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid asserting only the adjacent hop and relying on runtime transitive inference to fill the rest — hand-assert the full reflexive-transitive closure on every level individual, exactly as logic:levelAtOrAbove does, so the derivation rule's body atoms need no chaining."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Hand-assert the full reflexive-transitive closure on each gmeow:GmnRingLevel individual against the existing ladder when adding a new level."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to order the GMN ring level axis — the coordinate gmeow:ruleGmnRingWithinDerive tests for dominance."@x-gmeow-english .
+
+gmeow:gmnRingAdmits
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GmnSecurityRing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn ring admits"@x-gmeow-english ;
+    rdfs:range gmeow:GmnRingCriterion ;
+    skos:definition "A typed criterion a GMN security ring's boundary REQUIRES of admitted content (mirrors gmeow:ruleAction on gmeow:Permission — a typed value, never free text). Domain gmeow:GmnSecurityRing, range gmeow:GmnRingCriterion. Non-functional: a ring may name several admission criteria."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid a bare literal reason on the ring — reference a typed gmeow:GmnRingCriterion instead — and avoid conflating it with the lattice coordinates that drive gmeow:gmnRingWithin."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:gmnRingAdmits from a ring to each gmeow:GmnRingCriterion its boundary requires."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record a criterion a ring's boundary requires of admitted content."@x-gmeow-english .
+
+gmeow:gmnRingExcludes
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GmnSecurityRing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn ring excludes"@x-gmeow-english ;
+    rdfs:range gmeow:GmnRingCriterion ;
+    skos:definition "A typed criterion a GMN security ring's boundary FORBIDS of admitted content — the exclusion twin of gmeow:gmnRingAdmits. Domain gmeow:GmnSecurityRing, range gmeow:GmnRingCriterion. Non-functional."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid a bare literal reason on the ring — reference a typed gmeow:GmnRingCriterion instead — and avoid asserting the same criterion as both gmeow:gmnRingAdmits and gmeow:gmnRingExcludes on one ring."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:gmnRingExcludes from a ring to each gmeow:GmnRingCriterion its boundary forbids."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to record a criterion a ring's boundary forbids of admitted content."@x-gmeow-english .
+
+gmeow:gmnRingPresetMember
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GmnRingPreset ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn ring preset member"@x-gmeow-english ;
+    rdfs:range gmeow:GmnSecurityRing ;
+    skos:definition "Relates a gmeow:GmnRingPreset to a gmeow:GmnSecurityRing it ships. Domain gmeow:GmnRingPreset, range gmeow:GmnSecurityRing. Non-functional: a preset ships several rings."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid using it to imply the ring set is closed to preset members — the ring class stays open; a preset only groups a shipped subset."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:gmnRingPresetMember edge per ring a preset ships."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the ring members of a shipped GMN ring preset."@x-gmeow-english .
+
+gmeow:gmnRingCompartmentGap
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GmnSecurityRing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn ring compartment gap"@x-gmeow-english ;
+    rdfs:range gmeow:GmnSecurityRing ;
+    skos:definition "INTERNAL negation-guard helper for the gmeow:gmnRingWithin derivation: relates a ring X to a ring Y for which X's compartment set does NOT contain some compartment Y carries — a DERIVED-ONLY witness of ⊇-containment failure, computed by gmeow:ruleGmnRingCompartmentGap (a logic:Rule), NEVER hand-authored (the gmeow:gmnGlyph / gmeow:gmnCodepoints 'derived convenience' discipline). gmeow:ruleGmnRingWithinDerive negates this predicate to test compartments(X) ⊇ compartments(Y)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "NEVER hand-author this predicate — it is a derivation-internal negation guard, materialized only by gmeow:ruleGmnRingCompartmentGap at reason time, and consulted only by gmeow:ruleGmnRingWithinDerive's negatedBody."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Never assert directly; read only as a byproduct of the reasoned closure if debugging the gmeow:gmnRingWithin derivation."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Internal use only — the compartment-containment negation guard the gmeow:gmnRingWithin derivation rule depends on."@x-gmeow-english .
 
 gmeow:gmnSchemaVersion
     a owl:DatatypeProperty ;
@@ -2561,13 +2723,86 @@ gmeow:gmnDictionaryVersion
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn dictionary version"@x-gmeow-english ;
-    skos:definition "The alias-table (dictionary) version an envelope or codebook was serialized against — the coordinate of the IRI-to-alias mapping GMN compresses names with. Domain gmeow:GmnEnvelope or gmeow:GmnCodebook, range a string literal (stated in prose). Alias resolution is version-pinned: an alias is meaningless without the dictionary version that minted it."@x-gmeow-english ;
+    skos:definition "The alias-table (dictionary) version an envelope, codebook, or gmeow:GmnDictionary was serialized against — the coordinate of the IRI-to-alias mapping GMN compresses names with. Domain gmeow:GmnEnvelope, gmeow:GmnCodebook, or gmeow:GmnDictionary, range a string literal (stated in prose). Alias resolution is version-pinned: an alias is meaningless without the dictionary version that minted it, and an envelope carries exactly one (sh:maxCount 1 on lang:GmnEnvelopeContractShape) — versions are never interchangeable."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid resolving aliases against any dictionary but the pinned version and avoid reusing a dictionary version after its alias table changes — a changed table is a new version."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Stamp the dictionary version on every envelope and on the codebook; treat an alias + version pair as the resolvable unit."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to pin which alias table a GMN payload's compressed names resolve through."@x-gmeow-english .
+
+gmeow:GmnDictionary
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Dictionary"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "One version of the GMN alias table: the codebook-witnessed bijection between full GMEOW IRIs and their compact GMN-1 aliases that gmeow:gmnCorrNormalToGmn's mnemomorphic claim rests on. A dictionary carries its own gmeow:gmnDictionaryVersion (exactly one) and zero or more gmeow:gmnDictionaryEntry members, each binding one term to one alias string. The dictionary is a BIJECTION over its covered term set: injectivity (no two entries of one dictionary share an alias) is gated by lang:GmnDictionaryAliasInjectivityShape (lang:GmnDictionaryAliasCollision), never merely asserted in prose."@x-gmeow-english ;
+    skos:example "gmeow:gmnDictV1 a gmeow:GmnDictionary ; gmeow:gmnDictionaryVersion \"1\" ; gmeow:gmnDictionaryEntry gmeow:gmnDictV1EntryEnvelope ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid minting a dictionary without a gmeow:gmnDictionaryVersion (an unversioned alias table cannot be resolved) and avoid letting two entries of one dictionary alias the same string — that is the injectivity gate's business, never a hand-checked invariant."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one gmeow:GmnDictionary per alias-table version, stamp its gmeow:gmnDictionaryVersion, and add one gmeow:gmnDictionaryEntry per aliased term; a codebook references its current dictionary through gmeow:references (the same flat-first linkage GmnCodebook already uses for the script and sigil roles)."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to make one version of the GMN dictionary/alias table a first-class, queryable object whose entries can be gated for injectivity — never a bare version string with no term-level structure behind it."@x-gmeow-english .
+
+gmeow:GmnDictionaryEntry
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Dictionary Entry"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "One binding of the GMN alias table: relates the aliased GMEOW term (gmeow:gmnDictionaryEntryTerm, functional) to the compact alias string GMN-1 writes in its place (gmeow:gmnDictionaryEntryAlias, functional). A gmeow:GmnDictionary holds zero or more entries through gmeow:gmnDictionaryEntry; the injectivity gate (lang:GmnDictionaryAliasInjectivityShape) requires that no two entries of one dictionary carry the same alias for two different terms."@x-gmeow-english ;
+    skos:example "gmeow:gmnDictV1EntryEnvelope a gmeow:GmnDictionaryEntry ; gmeow:gmnDictionaryEntryTerm gmeow:GmnEnvelope ; gmeow:gmnDictionaryEntryAlias \"genv\" ."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid an entry with no gmeow:gmnDictionaryEntryTerm or no gmeow:gmnDictionaryEntryAlias — both are the functional payload of the binding — and avoid reusing one entry across two dictionaries; a changed alias table is a new gmeow:GmnDictionary with its own entries."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one entry per aliased term, set its gmeow:gmnDictionaryEntryTerm and gmeow:gmnDictionaryEntryAlias, and link it from its owning gmeow:GmnDictionary through gmeow:gmnDictionaryEntry."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use as the reified per-term binding of a GMN alias table, so alias uniqueness within one dictionary version is a gated graph property rather than an unchecked codec convention."@x-gmeow-english .
+
+gmeow:gmnDictionaryEntry
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:GmnDictionary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn dictionary entry"@x-gmeow-english ;
+    rdfs:range gmeow:GmnDictionaryEntry ;
+    skos:definition "Relates a gmeow:GmnDictionary to one of its term↔alias bindings. Domain gmeow:GmnDictionary, range gmeow:GmnDictionaryEntry. Non-functional: a dictionary holds zero or more entries."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid pointing it at an entry owned by a different dictionary version — an entry belongs to exactly the one alias table it was minted for."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:gmnDictionaryEntry edge per aliased term a dictionary version covers."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the entry members of a GMN dictionary version."@x-gmeow-english .
+
+gmeow:gmnDictionaryEntryTerm
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn dictionary entry term"@x-gmeow-english ;
+    skos:definition "The full GMEOW term (a class, property, or individual IRI) one dictionary entry aliases. Functional: exactly one term per entry. Domain gmeow:GmnDictionaryEntry, range any GMEOW term (stated in prose, deliberately unconstrained — the dictionary aliases across the whole vocabulary, not one rdf:type)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid leaving it unset — an entry with no aliased term carries an alias for nothing — and avoid two entries of one dictionary naming the SAME term with two different aliases (that is a different failure, ambiguous emission, not the gated alias-collision case)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnDictionaryEntryTerm per entry, paired with exactly one gmeow:gmnDictionaryEntryAlias."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to name the GMEOW term a dictionary entry's alias stands for."@x-gmeow-english .
+
+gmeow:gmnDictionaryEntryAlias
+    a owl:FunctionalProperty ,
+        owl:DatatypeProperty ;
+    rdfs:domain gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "gmn dictionary entry alias"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The compact alias string a dictionary entry mints for its aliased term — the token a conforming GMN-1 writer emits in place of the full IRI. Functional: exactly one alias per entry. Domain gmeow:GmnDictionaryEntry, range xsd:string. Injective within one dictionary: two entries of the same gmeow:GmnDictionary never share an alias for two different terms (lang:GmnDictionaryAliasInjectivityShape)."@x-gmeow-english ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:avoidWhen "Avoid reusing an alias string for a second, different term within one dictionary version — that is exactly the injectivity gate's failure case — and avoid an alias that is not identifier-shaped (a GMN-1 alias has the same lexical shape as any other GMN identifier)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:gmnDictionaryEntryAlias string per entry, distinct from every other entry's alias in the same gmeow:GmnDictionary."@x-gmeow-english ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    gmeow:useWhen "Use to declare the compact alias token a dictionary entry binds its term to."@x-gmeow-english .
 
 gmeow:gmnGlyphTableVersion
     a owl:DatatypeProperty ;
@@ -2777,35 +3012,197 @@ gmeow:gmnFixityBracketing
     gmeow:graphBoxRole gmeow:boxABox ;
     skos:definition "The bracketing fixity: the operator is a paired open/close form written around its operands."@x-gmeow-english .
 
-# --- GMN security-ring individuals (lattice-ordered via gmeow:gmnRingWithin) -- #
-# Flow direction, documented once: gmeow:gmnRingWithin means content permitted
-# in a ring is permitted wherever that ring is within. Core is within trusted,
-# trusted within restricted — so core content (strictest admission bar) flows
-# to every ring, while restricted content (loosest bar) flows least, staying in
-# the restricted ring only. Most-restricted flows least.
+# --- GMN ring-level individuals (the classification axis, ordered by         #
+# gmeow:gmnRingLevelDominates) ------------------------------------------------ #
+# Reflexive-and-transitive closure hand-asserted per level, the logic:levelAtOrAbove
+# idiom (logic/module.ttl): gmeow:gmnLevelCore dominates itself, trusted, and
+# restricted; trusted dominates itself and restricted; restricted dominates only
+# itself. No transitive computation is needed by the gmnRingWithin derivation.
+
+gmeow:gmnLevelCore
+    a owl:NamedIndividual , gmeow:GmnRingLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "level: core"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The highest-dominance GMN ring level: content classified at core is permitted to flow to every other level. Dominates gmeow:gmnLevelTrusted and gmeow:gmnLevelRestricted (and itself, reflexively)."@x-gmeow-english ;
+    gmeow:gmnRingLevelDominates gmeow:gmnLevelCore , gmeow:gmnLevelTrusted , gmeow:gmnLevelRestricted .
+
+gmeow:gmnLevelTrusted
+    a owl:NamedIndividual , gmeow:GmnRingLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "level: trusted"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The middle GMN ring level: dominates gmeow:gmnLevelRestricted (and itself, reflexively), but is not dominated by it."@x-gmeow-english ;
+    gmeow:gmnRingLevelDominates gmeow:gmnLevelTrusted , gmeow:gmnLevelRestricted .
+
+gmeow:gmnLevelRestricted
+    a owl:NamedIndividual , gmeow:GmnRingLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "level: restricted"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The lowest-dominance GMN ring level: dominates only itself, reflexively."@x-gmeow-english ;
+    gmeow:gmnRingLevelDominates gmeow:gmnLevelRestricted .
+
+# --- GMN compartment individuals (the caveat/scope axis) -------------------- #
+
+gmeow:gmnCompartmentNato
+    a owl:NamedIndividual , gmeow:GmnCompartment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "compartment: NATO"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "A NATO-eyes-only distribution compartment: content marked with this compartment is scoped to NATO-affiliated recipients regardless of its classification level."@x-gmeow-english .
+
+gmeow:gmnCompartmentPartner
+    a owl:NamedIndividual , gmeow:GmnCompartment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "compartment: partner"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "A named-partner distribution compartment: content marked with this compartment is scoped to a named external partner organization."@x-gmeow-english .
+
+# --- GMN ring criterion individuals (typed admission/exclusion) ------------- #
+
+gmeow:gmnCriterionHumanReviewed
+    a owl:NamedIndividual , gmeow:GmnRingCriterion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "criterion: human-reviewed"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The admission criterion that content has passed human review before serialization."@x-gmeow-english .
+
+gmeow:gmnCriterionAutomatedUnreviewed
+    a owl:NamedIndividual , gmeow:GmnRingCriterion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "criterion: automated, unreviewed"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The exclusion criterion that content was produced by an automated process with no human review step."@x-gmeow-english .
+
+# --- GMN security-ring individuals: open set, factored (level, compartment) -- #
+# gmeow:gmnRingWithin is DERIVED (see the property definition above and the two
+# logic:Rule individuals below) — NO hand-chained edges here (GREENFIELD; a
+# structural gate asserts zero authored gmeow:gmnRingWithin triples). The three
+# default-preset rings carry an EMPTY compartment set (a level-only distinction);
+# gmeow:gmnRingNato demonstrates the same gmeow:gmnLevelTrusted level with a
+# non-empty, distinct compartment set — a genuinely different lattice point, not
+# a naming variant.
 
 gmeow:gmnRingCore
     a owl:NamedIndividual , gmeow:GmnSecurityRing ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "core ring"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    skos:definition "The innermost GMN security ring: the strictest admission bar. Content admitted at core is permitted everywhere — it flows to the trusted and restricted rings through the transitive gmeow:gmnRingWithin order."@x-gmeow-english ;
-    gmeow:gmnRingWithin gmeow:gmnRingTrusted .
+    skos:definition "The innermost GMN security ring: the strictest admission bar. Content admitted at core is permitted everywhere — it flows to the trusted and restricted rings through the DERIVED gmeow:gmnRingWithin order (its gmeow:gmnRingLevel dominates theirs, and its empty compartment set is contained in theirs)."@x-gmeow-english ;
+    gmeow:gmnRingLevel gmeow:gmnLevelCore ;
+    gmeow:gmnRingAdmits gmeow:gmnCriterionHumanReviewed ;
+    gmeow:gmnRingExcludes gmeow:gmnCriterionAutomatedUnreviewed .
 
 gmeow:gmnRingTrusted
     a owl:NamedIndividual , gmeow:GmnSecurityRing ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "trusted ring"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    skos:definition "The middle GMN security ring: content admitted at trusted is permitted in the trusted and restricted rings, but never flows inward to core."@x-gmeow-english ;
-    gmeow:gmnRingWithin gmeow:gmnRingRestricted .
+    skos:definition "The middle GMN security ring: content admitted at trusted is permitted in the trusted and restricted rings, but never flows inward to core — the DERIVED gmeow:gmnRingWithin order does not hold core-ward because trusted's level does not dominate core's."@x-gmeow-english ;
+    gmeow:gmnRingLevel gmeow:gmnLevelTrusted .
 
 gmeow:gmnRingRestricted
     a owl:NamedIndividual , gmeow:GmnSecurityRing ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "restricted ring"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    skos:definition "The outermost GMN security ring: the loosest admission bar and the least flow. Content admitted only at restricted stays in the restricted ring — it is within nothing, so it flows nowhere else."@x-gmeow-english .
+    skos:definition "The outermost GMN security ring: the loosest admission bar and the least flow. Content admitted only at restricted stays in the restricted ring — its level dominates nothing else, so the DERIVED gmeow:gmnRingWithin order gives it no outward edge."@x-gmeow-english ;
+    gmeow:gmnRingLevel gmeow:gmnLevelRestricted .
+
+gmeow:gmnRingNato
+    a owl:NamedIndividual , gmeow:GmnSecurityRing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "NATO-eyes-only ring"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The compartmented-scope demonstrator ring: the SAME gmeow:gmnRingLevel as gmeow:gmnRingTrusted, but marked with the gmeow:gmnCompartmentNato and gmeow:gmnCompartmentPartner compartments — a distinct lattice point from gmeow:gmnRingTrusted even though the two share a level, demonstrating that scope/compartment is a genuine second axis (the NATO case: same level, different scope, different ring). NOT a member of gmeow:gmnRingPresetDefault."@x-gmeow-english ;
+    gmeow:gmnRingLevel gmeow:gmnLevelTrusted ;
+    gmeow:gmnRingCompartment gmeow:gmnCompartmentNato , gmeow:gmnCompartmentPartner .
+
+gmeow:gmnRingPresetDefault
+    a owl:NamedIndividual , gmeow:GmnRingPreset ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "default ring preset"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The shipped default ring preset: groups the three original GMN security rings (core, trusted, restricted), now re-expressed with explicit (level, compartment) coordinates instead of a bare hand-chained edge. gmeow:gmnRingNato is a fourth, separately-shipped demonstrator, deliberately NOT a member of this preset."@x-gmeow-english ;
+    gmeow:gmnRingPresetMember gmeow:gmnRingCore , gmeow:gmnRingTrusted , gmeow:gmnRingRestricted .
+
+# --- GMN ring-within derivation (F4: COMPUTED, never asserted) -------------- #
+# Two logic:Rule individuals, materialized by the native logic: reasoner
+# (gmeow_logic::reason::reason_program, the gmeow:reasoningLogic competency-
+# question lane, crates/slicetest) exactly as logic:ruleProjectIsAwareOf
+# projects the coarse knowledge ladder (logic/module.ttl). Rule 1 computes the
+# ⊇-containment negation guard; Rule 2 tests level dominance AND the negated
+# guard. Neither rule is an OWL characteristic (no owl:irreflexive /
+# owl:AsymmetricProperty anywhere in this derivation) — acyclicity and the ⊇
+# test are Horn-rule / SHACL machinery only, keeping the EL fragment clean
+# (make reason-verify). NOTE: logic:distinctBody is parsed and correctly
+# rendered into the projected Nemo rule text, but is NOT enforced by the
+# native chase's actual execution (verified by isolated repro) — a discovered
+# reasoner gap, not an authoring mistake — so it is deliberately UNUSED here.
+# gmeow:gmnRingWithin is therefore REFLEXIVE (a ring is trivially within
+# itself, the standard Denning ⊑ reading); where irreflexivity is actually
+# load-bearing (the migration-equivalence witness), a plain SPARQL
+# FILTER(?x != ?y) does the job instead, a code path proven to work
+# correctly elsewhere in this slice's own shapes.ttl SPARQL constraints.
+
+gmeow:ruleGmnRingCompartmentGap
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "derive gmn ring compartment gap"@x-gmeow-english ;
+    skos:definition "Derives gmeow:gmnRingCompartmentGap(X, Y) whenever ring Y carries a gmeow:gmnRingCompartment that ring X lacks — the negation guard gmeow:ruleGmnRingWithinDerive tests to decide compartments(X) ⊇ compartments(Y). Positive Horn with one negatedBody atom; X ranges over every ring carrying a gmeow:gmnRingLevel (bound safely by a positive atom) so the guard fires correctly even when X carries no compartments of its own (the default-preset rings)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:provenance gmeow:ruleGmnRingCompartmentGap ;
+    logic:head [
+        rdf:subject   "?x" ;
+        rdf:predicate gmeow:gmnRingCompartmentGap ;
+        rdf:object    "?y"
+    ] ;
+    logic:body [
+        rdf:subject   "?x" ;
+        rdf:predicate gmeow:gmnRingLevel ;
+        rdf:object    "?lx"
+    ] , [
+        rdf:subject   "?y" ;
+        rdf:predicate gmeow:gmnRingCompartment ;
+        rdf:object    "?c"
+    ] ;
+    logic:negatedBody [
+        rdf:subject   "?x" ;
+        rdf:predicate gmeow:gmnRingCompartment ;
+        rdf:object    "?c"
+    ] .
+
+gmeow:ruleGmnRingWithinDerive
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "derive gmn ring within: level dominance x compartment containment"@x-gmeow-english ;
+    skos:definition "Derives gmeow:gmnRingWithin(X, Y) — X within Y — whenever X's gmeow:gmnRingLevel dominates Y's (gmeow:gmnRingLevelDominates, already reflexive-transitively closed on the level individuals) AND X carries no gmeow:gmnRingCompartmentGap toward Y (the negated guard gmeow:ruleGmnRingCompartmentGap computes — its absence is exactly compartments(X) ⊇ compartments(Y)). Positive Horn with one negatedBody atom; the byte teeth behind gmeow:gmnRingWithin's skos:definition claim that the ring order is computed, never hand-chained. Reflexive: since gmeow:gmnRingLevelDominates is reflexive on the levels and the ⊇ containment test is vacuously true against oneself, every ring is trivially within itself, exactly as a Denning ⊑ dominance order is standardly reflexive; the two-argument flow check (\"the content's ring equals the destination's ring, OR is gmeow:gmnRingWithin it\") already treats equality separately, so the reflexive fact adds no new admission case. No inequality guard is asserted here: the derived order is meant to be reflexive (a ring is trivially within itself), so an irreflexivity requirement is expressed only where it is actually load-bearing — the migration-equivalence competency question's own SPARQL FILTER(?x != ?y), not this rule."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:provenance gmeow:ruleGmnRingWithinDerive ;
+    logic:head [
+        rdf:subject   "?x" ;
+        rdf:predicate gmeow:gmnRingWithin ;
+        rdf:object    "?y"
+    ] ;
+    logic:body [
+        rdf:subject   "?x" ;
+        rdf:predicate gmeow:gmnRingLevel ;
+        rdf:object    "?lx"
+    ] , [
+        rdf:subject   "?y" ;
+        rdf:predicate gmeow:gmnRingLevel ;
+        rdf:object    "?ly"
+    ] , [
+        rdf:subject   "?lx" ;
+        rdf:predicate gmeow:gmnRingLevelDominates ;
+        rdf:object    "?ly"
+    ] ;
+    logic:negatedBody [
+        rdf:subject   "?x" ;
+        rdf:predicate gmeow:gmnRingCompartmentGap ;
+        rdf:object    "?y"
+    ] .
 
 # --- GMN dialect individuals (the three-level dialect stack + its apparatus) -- #
 
@@ -2823,7 +3220,7 @@ gmeow:gmnModelNotation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN-1 model notation"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    skos:definition "GMN-1: the GMEOW Model Notation — the engineered, token-compact model surface, a first-class sign system of lang:formalLanguageKind in the written modality. Its records open with gmeow:GmnSigilRole sigils, its operators carry gmeow:gmnFixity and gmeow:gmnPrecedence, its glyphs live in gmeow:gmnScript under gmeow:gmnOrthography, and its grammar is gmeow:gmnGrammar. It is a lossy view of the GMN-0 normal form — the crossing is judged on gmeow:gmnCorrNormalToGmn, never asserted flat."@x-gmeow-english ;
+    skos:definition "GMN-1: the GMEOW Model Notation — the engineered, token-compact model surface, a first-class sign system of lang:formalLanguageKind in the written modality. Its records open with gmeow:GmnSigilRole sigils, its operators carry gmeow:gmnFixity and gmeow:gmnPrecedence, its glyphs live in gmeow:gmnScript under gmeow:gmnOrthography, and its grammar is gmeow:gmnGrammar. It is a codebook-witnessed, section-retracted view of the GMN-0 normal form — the crossing is judged on gmeow:gmnCorrNormalToGmn, never asserted flat."@x-gmeow-english ;
     lang:signSystemKind lang:formalLanguageKind ;
     lang:modality lang:writtenModality .
 
@@ -2890,10 +3287,216 @@ gmeow:gmnCodebookCurrent
         gmeow:gmnSigilModal ,
         gmeow:gmnSigilMath ,
         gmeow:gmnSigilLangAst ,
-        gmeow:gmnSigilLogic ;
+        gmeow:gmnSigilLogic ,
+        gmeow:gmnDictV1 ;
     gmeow:gmnDictionaryVersion "1" ;
     gmeow:gmnGlyphTableVersion "1" ;
     gmeow:gmnDeclaredRate gmeow:gmnRateTokensPerStatement .
+
+# --- GMN alias dictionary (version 1) ----------------------------------------- #
+# The codebook-witnessed bijection gmeow:gmnCorrNormalToGmn's mnemomorphic claim
+# rests on: a version-pinned gmeow:GmnDictionary whose gmeow:GmnDictionaryEntry
+# members each bind one full GMEOW term to one compact alias string. Injectivity
+# (no two entries sharing an alias) is gated structurally by
+# lang:GmnDictionaryAliasInjectivityShape, not merely asserted here.
+
+gmeow:gmnDictV1
+    a owl:NamedIndividual , gmeow:GmnDictionary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN dictionary (version 1)"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "Dictionary version 1 of the GMN alias table (the \"dict-v1\" referenced by the codebook and by every worked example of LANG-GMN.md's @gmn header): the current codebook's alias table, referenced by gmeow:gmnCodebookCurrent through gmeow:references and pinned by gmeow:gmnDictionaryVersion \"1\"."@x-gmeow-english ;
+    gmeow:gmnDictionaryVersion "1" ;
+    gmeow:gmnDictionaryEntry gmeow:gmnDictV1EntryEnvelope ,
+        gmeow:gmnDictV1EntryCodebook ,
+        gmeow:gmnDictV1EntryModalNecessary ,
+        gmeow:gmnDictV1EntryModalActual ,
+        gmeow:gmnDictV1EntryModalPossible ,
+        gmeow:gmnDictV1EntryModalCounterfactual ,
+        gmeow:gmnDictV1EntryEvKindDirect ,
+        gmeow:gmnDictV1EntryEvKindInstrumental ,
+        gmeow:gmnDictV1EntryEvKindRemote ,
+        gmeow:gmnDictV1EntryEvKindComputational ,
+        gmeow:gmnDictV1EntryEvKindExpert ,
+        gmeow:gmnDictV1EntryEvKindSurvey ,
+        gmeow:gmnDictV1EntryEvKindStreaming ,
+        gmeow:gmnDictV1EntryBoundaryOpen ,
+        gmeow:gmnDictV1EntryBoundaryClosed .
+
+gmeow:gmnDictV1EntryEnvelope
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:GmnEnvelope → genv"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for gmeow:GmnEnvelope: the compact token genv."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:GmnEnvelope ;
+    gmeow:gmnDictionaryEntryAlias "genv" .
+
+gmeow:gmnDictV1EntryCodebook
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:GmnCodebook → gcb"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for gmeow:GmnCodebook: the compact token gcb."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:GmnCodebook ;
+    gmeow:gmnDictionaryEntryAlias "gcb" .
+
+# --- GMN-1 factored qualifier-slot aliases --- #
+# The `m` (modality) and `ek` (evidentiality-kind) claim-record slots, and the
+# `@p`-only `bd` (boundary) slot, are COMPACT ALIASES over vocabulary the
+# standpoint, observations, and logic slices already formalize (LANG-GMN.md,
+# "The factored qualifier slots") — never a GMN-local shadow axis (Principle
+# 4/U2). Each alias carries its measured gmeow:gmnGlyphTokenCost, cross-checked
+# by crates/lang-bridge/tests/gmn_cost_feed.rs against the crate-side
+# cl100k_base primitive so an authored value can never drift, and its measured
+# cost is strictly lower than the full canonical IRI it dealiases — the
+# razor's half (a) discharge (LANG-GMN.md, "The measured token-cost razor").
+# The `it` (iteration) slot has no enumerable value set (it names a
+# gmeow:EventSeries by reference, exactly like `st`/`ev`) and so mints no
+# dictionary entries here.
+
+gmeow:gmnDictV1EntryModalNecessary
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:modalForceNecessary → nec"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the standpoint slice's gmeow:modalForceNecessary (the □ alethic register a gmeow:claimModalForce may carry): the compact token nec, the GMN-1 `m` slot value for a claim settled in every admitted precisification."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:modalForceNecessary ;
+    gmeow:gmnDictionaryEntryAlias "nec" ;
+    gmeow:gmnCodepoints "U+006E U+0065 U+0063" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo .
+
+gmeow:gmnDictV1EntryModalActual
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:modalForceActual → act"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the standpoint slice's gmeow:modalForceActual: the compact token act, the GMN-1 `m` slot value for a claim holding in the actual case."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:modalForceActual ;
+    gmeow:gmnDictionaryEntryAlias "act" ;
+    gmeow:gmnCodepoints "U+0061 U+0063 U+0074" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV1EntryModalPossible
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:modalForcePossible → poss"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the standpoint slice's gmeow:modalForcePossible (the ◊ alethic register): the compact token poss, the GMN-1 `m` slot value for a claim holding in some admitted precisification."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:modalForcePossible ;
+    gmeow:gmnDictionaryEntryAlias "poss" ;
+    gmeow:gmnCodepoints "U+0070 U+006F U+0073 U+0073" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV1EntryModalCounterfactual
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:modalForceCounterfactual → cf"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the standpoint slice's gmeow:modalForceCounterfactual: the compact token cf, the GMN-1 `m` slot value for a claim holding in a non-actual world."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:modalForceCounterfactual ;
+    gmeow:gmnDictionaryEntryAlias "cf" ;
+    gmeow:gmnCodepoints "U+0063 U+0066" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV1EntryEvKindDirect
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:methodDirectObservation → dir"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the observations slice's gmeow:methodDirectObservation: the compact token dir, the GMN-1 `ek` slot value for evidence produced by direct, unmediated observation."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodDirectObservation ;
+    gmeow:gmnDictionaryEntryAlias "dir" ;
+    gmeow:gmnCodepoints "U+0064 U+0069 U+0072" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV1EntryEvKindInstrumental
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:methodInstrumentalReading → inst"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the observations slice's gmeow:methodInstrumentalReading: the compact token inst, the GMN-1 `ek` slot value for evidence produced by an instrument reading."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodInstrumentalReading ;
+    gmeow:gmnDictionaryEntryAlias "inst" ;
+    gmeow:gmnCodepoints "U+0069 U+006E U+0073 U+0074" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV1EntryEvKindRemote
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:methodRemoteSensing → rmt"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the observations slice's gmeow:methodRemoteSensing: the compact token rmt, the GMN-1 `ek` slot value for evidence produced by remote sensing."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodRemoteSensing ;
+    gmeow:gmnDictionaryEntryAlias "rmt" ;
+    gmeow:gmnCodepoints "U+0072 U+006D U+0074" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo .
+
+gmeow:gmnDictV1EntryEvKindComputational
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:methodComputationalModel → cmp"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the observations slice's gmeow:methodComputationalModel: the compact token cmp, the GMN-1 `ek` slot value for evidence produced (inferred) by a computational model."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodComputationalModel ;
+    gmeow:gmnDictionaryEntryAlias "cmp" ;
+    gmeow:gmnCodepoints "U+0063 U+006D U+0070" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV1EntryEvKindExpert
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:methodExpertJudgement → exj"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the observations slice's gmeow:methodExpertJudgement: the compact token exj, the GMN-1 `ek` slot value for evidence produced by an expert's inferred judgement."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodExpertJudgement ;
+    gmeow:gmnDictionaryEntryAlias "exj" ;
+    gmeow:gmnCodepoints "U+0065 U+0078 U+006A" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo .
+
+gmeow:gmnDictV1EntryEvKindSurvey
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:methodSurvey → srv"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the observations slice's gmeow:methodSurvey: the compact token srv, the GMN-1 `ek` slot value for evidence produced by asking others — the closest of the seven methods to linguistic evidentiality's 'reported' source."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodSurvey ;
+    gmeow:gmnDictionaryEntryAlias "srv" ;
+    gmeow:gmnCodepoints "U+0073 U+0072 U+0076" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV1EntryEvKindStreaming
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: gmeow:methodStreaming → strm"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the observations slice's gmeow:methodStreaming: the compact token strm, the GMN-1 `ek` slot value for evidence produced by a continuous observation stream."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm gmeow:methodStreaming ;
+    gmeow:gmnDictionaryEntryAlias "strm" ;
+    gmeow:gmnCodepoints "U+0073 U+0074 U+0072 U+006D" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostTwo .
+
+gmeow:gmnDictV1EntryBoundaryOpen
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: logic:Open → open"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the logic slice's logic:Open (the on-going, unfinished-action occurrent boundary): the compact token open, the GMN-1 `bd` slot value for a `@p` process record whose occurrent is still unfolding."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm logic:Open ;
+    gmeow:gmnDictionaryEntryAlias "open" ;
+    gmeow:gmnCodepoints "U+006F U+0070 U+0065 U+006E" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
+
+gmeow:gmnDictV1EntryBoundaryClosed
+    a owl:NamedIndividual , gmeow:GmnDictionaryEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "dict-v1 entry: logic:Closed → closed"@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    skos:definition "The dict-v1 alias binding for the logic slice's logic:Closed (the completed, closed-interval occurrent boundary): the compact token closed, the GMN-1 `bd` slot value for a `@p` process record whose occurrent has finished."@x-gmeow-english ;
+    gmeow:gmnDictionaryEntryTerm logic:Closed ;
+    gmeow:gmnDictionaryEntryAlias "closed" ;
+    gmeow:gmnCodepoints "U+0063 U+006C U+006F U+0073 U+0065 U+0064" ;
+    gmeow:gmnGlyphTokenCost gmeow:gmnTokenCostOne .
 
 # --- GMN dialect crossings (four judged translation units) -------------------- #
 # Each crossing between dialect levels is a lang:TranslationUnit carrying its
@@ -2968,20 +3571,27 @@ gmeow:gmnCorrNormalToGmn
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN-0 → GMN-1 correspondence"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    skos:definition "The judged crossing from the GMN-0 normal form to the GMN-1 model notation: a lossy lens, sound under approximation, with NO recoverability witness (logic:mnemomorphic false) — the source subsumes the compact view. The drop list is categorical: full IRIs collapse to dictionary aliases, annotation baggage (per-term guidance prose, changelog and provenance annotations) is dropped, and numeric confidence values round to two fractional digits. Everything GMN-1 states is derivable from the normal form; the reverse does not hold."@x-gmeow-english ;
-    logic:preservationKind logic:SoundUnderApproximation ;
+    skos:definition "The judged crossing from the GMN-0 normal form to the GMN-1 model notation: a section/retraction with exact preservation and a retained mnemomorphic witness — put ∘ get = id_S on the normal form, NOT the top logic:Isomorphism rung, because GMN-1 need not recover the exact GMN-0 BYTE serialization, only the underlying model (get ∘ put is idempotent on the view plus its in-band complement, not required to reproduce byte-identical GMN-1 text). The drop list from the prior lossy-lens declaration is ELIMINATED, not merely reduced: full IRIs invert through the codebook's version-pinned alias bijection (gmeow:gmnDictionaryVersion witnesses which alias table an alias resolves through); confidence and every annotation (per-term guidance prose, changelog and provenance notes) ride BY REFERENCE — the record carries an alias or record identifier pointing at the canonical confidence- or annotation-bearing statement, never inlined digits or prose, so the crossing's losslessness never rests on the two-fractional-digit assertion policy (a canon-precision quantization alone would not make the crossing lossless: the product t-norm of two 2-digit confidences is 4-digit, and re-quantizing a derived confidence breaks associativity). The only non-image of the crossing is an uncovered term, typed lang:GmnUncoveredTerm — a HARD FAIL at emit time, never a silent drop. Domain of this mnemomorphic-true claim: the ENTIRE GMN-0 normal form, realized as a convergent coverage contract rather than a narrowed claim — the codec + round-trip gate are total over the grounding slices' GMN-0 (logic, lang, math), hard-failing on any uncovered grounding construct; full coverage of every other slice's GMN-0 vocabulary is measured and gated by the GMN-1 coverage slice-quality axis at a committed floor with monotonic non-regression, never silently assumed complete — an uncovered non-grounding term is a MEASURED quality deficit, never a silent drop. This declaration's honesty is discharged by the executed byte-teeth round-trip gate being green, verified at the full make check: a projected LegPath *Step verdict alone is necessary but not sufficient to establish a Section-Retraction — a Step verdict can hold while the retraction it composes into still fails, so only the executed round-trip gate closes that gap. The alias table itself is a BIJECTION over its covered term set: no two distinct terms of one dictionary/alias table share an alias (injectivity, gated structurally — see lang:GmnDictionaryAliasCollision), and an alias is version-pinned, resolving through exactly one gmeow:gmnDictionaryVersion, never interchangeable across versions."@x-gmeow-english ;
+    logic:preservationKind logic:ExactPreservation ;
     logic:correspondenceRelation logic:Subsumes ;
-    logic:morphismClass logic:LossyLens ;
+    logic:morphismClass logic:SectionRetraction ;
     logic:morphismKind logic:InstitutionMorphism ;
     logic:hasDeterminacy logic:Crisp ;
-    logic:mnemomorphic false .
+    logic:mnemomorphic true ;
+    logic:getLeg gmeow:gmnCorrNormalToGmnGet .
+
+# The crossing's authored get-leg witness (see gmeow:gmnCorrNormalToGtsGet): a
+# one-step forward relation whose derived put is discharged by execution in the
+# executed GMN-1 round-trip gate, so the SectionRetraction rung is a
+# structurally-checked witness rather than an unchecked prose claim.
+gmeow:gmnCorrNormalToGmnGet gmeow:path gmeow:gmnCorrNormalToGmnStep .
 
 gmeow:gmnUnitNormalToGmn
     a lang:TranslationUnit ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN-0 → GMN-1 crossing"@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
-    skos:definition "The dialect crossing from the GMN-0 normal form to the GMN-1 model notation, a grammar-directed lossy conversion carrying its law-spine on gmeow:gmnCorrNormalToGmn."@x-gmeow-english ;
+    skos:definition "The dialect crossing from the GMN-0 normal form to the GMN-1 model notation, a grammar-directed, codebook-witnessed conversion carrying its law-spine on gmeow:gmnCorrNormalToGmn."@x-gmeow-english ;
     lang:translationSource gmeow:gmnNormalForm ;
     lang:translationTarget gmeow:gmnModelNotation ;
     lang:translationMethod lang:methodCompositional ;
@@ -3054,8 +3664,8 @@ gmeow:gmnMembershipLatest
     gmeow:versionRole gmeow:roleLatest .
 
 # --- GMN conformance-failure vocabulary (typed, queryable violation objects) -- #
-# The twelve hard rules of the GMN dialect, each a typed lang: failure class
-# under lang:LangConformanceFailure. The first seven are enforced by the SHACL
+# The thirteen hard rules of the GMN dialect, each a typed lang: failure class
+# under lang:LangConformanceFailure. The first eight are enforced by the SHACL
 # gates in shapes.ttl (each shape naming its class through
 # gmeow:enforcesFailureClass); the last five are the GMN parser/writer's own
 # validator tier — the rules a table-driven reader/writer checks against the
@@ -3090,7 +3700,23 @@ lang:GmnMissingEnvelopeField
     rdfs:subClassOf lang:LangConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN Missing Envelope Field"@x-gmeow-english ;
-    skos:definition "The failure raised when a gmeow:GmnEnvelope omits any field of its eight-field contract: the three dialect coordinates (gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, gmeow:gmnGlyphTableVersion), its boundary ring (gmeow:gmnSecurityRing), its asserting standpoint (gmeow:accordingTo), its generating activity (gmeow:wasGeneratedBy), its byte-exact identity (gmeow:contentDigest), and its losslessness judgment (gmeow:gmnEnvelopeCorrespondence). An envelope is the attested carrier of a payload across a serialization boundary; a carrier missing any contract field cannot be admitted, migrated, or audited."@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:GmnEnvelope omits any field of its eight-field contract: the three dialect coordinates (gmeow:gmnSchemaVersion, gmeow:gmnDictionaryVersion, gmeow:gmnGlyphTableVersion), its boundary ring (gmeow:gmnSecurityRing), its asserting standpoint (gmeow:accordingTo), its generating activity (gmeow:wasGeneratedBy), its byte-exact identity (gmeow:contentDigest), and its losslessness judgment (gmeow:gmnEnvelopeCorrespondence). An envelope is the attested carrier of a payload across a serialization boundary; a carrier missing any contract field cannot be admitted, migrated, or audited. The same shape also fires this class when an envelope declares MORE than one gmeow:gmnDictionaryVersion or gmeow:gmnSecurityRing — a version-pinned coordinate that is not exactly one is as ill-formed as one that is absent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnDictionaryAliasCollision
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Dictionary Alias Collision"@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:GmnDictionary's alias table is not injective: two of its gmeow:GmnDictionaryEntry members bind two DIFFERENT gmeow:gmnDictionaryEntryTerm values to the SAME gmeow:gmnDictionaryEntryAlias string. gmeow:gmnCorrNormalToGmn's mnemomorphic claim rests on the dictionary being a genuine bijection over its covered term set; a shared alias makes read-back ambiguous — the reader cannot tell which of the two terms an occurrence of the alias names — silently corrupting the section/retraction witness. Distinct from lang:GmnUncoveredTerm (an alias the dictionary does not mint at all) and from lang:GmnUndeclaredDialectVersion (no pinned dictionary version to resolve against)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+lang:GmnRingLatticeMalformed
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Ring Lattice Malformed"@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:GmnSecurityRing's AUTHORED lattice coordinates are ill-formed: it carries no gmeow:gmnRingLevel (or more than one), or a gmeow:gmnRingCompartment value that is not a declared gmeow:GmnCompartment individual. This gates the coordinates the gmeow:gmnRingWithin derivation reads FROM, not the derived relation itself — gating the derived relation for partial-order-ness would be a tautology, since a derivation from a partial order is trivially one. A ring with malformed coordinates cannot be placed in the lattice at all."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 lang:GmnVersionOverclaim
@@ -3205,6 +3831,28 @@ lang:GmnUncostedScriptGlyph
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "GMN Uncosted Script Glyph"@x-gmeow-english ;
     skos:definition "The graph-side coverage failure of the glyph plane: a lang:Grapheme admitted to the GMN script (lang:inScript gmeow:gmnScript) — an IPA phonological grapheme, the `*` operator glyph — that carries no gmeow:gmnGlyphTokenCost, the measured per-glyph token-cost feed the glyph-versus-named-key disposition is read off. Cost coverage over the shared inventory is total by rule: a symbol earns a glyph slot only when its measured cost warrants one, so a script glyph with no cost feed is a silent gap in the disposition plane. It is the glyph-plane sibling of lang:GmnUndispositionedTerm, which is the feature-value-plane coverage failure; together they close the plane against silent gaps."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# =========================================================================== #
+# Mentation <-> lang binding gate. This is NOT one of the                    #
+# thirteen GMN dialect hard rules enumerated above — LANG-CONFORMANCE.md's rule #
+# count is unchanged by this class. It is a separate cross-slice competency   #
+# check proving gmeow:processExport (mentation, core tier) binds to           #
+# gmeow:GmnSecurityRing (lang, this slice) through the gmeow:wasGeneratedBy   #
+# hook already in the envelope's eight-field contract, so mentation names no  #
+# lang term and gains no gmeow:sliceDependsOn edge on lang — the reference    #
+# direction stays lang -> mentation (this slice's manifest declares the       #
+# dependency; docs/GROUNDING.md's tier rule permits a grounding slice to      #
+# depend on a non-grounding slice for a non-grounding concept, and lang       #
+# already depends on other core-tier slices such as provenance and events).   #
+# =========================================================================== #
+
+lang:GmnUnringedExportCrossing
+    a owl:Class ;
+    rdfs:subClassOf lang:LangConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "GMN Unringed Export Crossing"@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:GmnEnvelope whose gmeow:wasGeneratedBy names an activity carrying gmeow:mentalProcessType gmeow:processExport (mentation slice) declares no gmeow:gmnSecurityRing. gmeow:processExport is the externalization/communication episode of an information-flow-controlled agent's mental timeline — the emit member of mentation's train/audit/export triple — and its disclosure semantics are governed BY REFERENCE (Principle 5) by the boundary ring the envelope it generates was admitted under. An export activity that generated an envelope with no ring crossed a serialization boundary with no admission class checked, exactly the disclosure gap the security-ring model exists to close."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- The per-glyph token-cost feed ------------------------------------------ #

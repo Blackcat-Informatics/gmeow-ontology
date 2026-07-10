@@ -48,6 +48,9 @@ pub const FINDING_CODES: &[&str] = &[
     "slice-quality.documentation.no-docs",
     "slice-quality.translation.incomplete",
     "slice-quality.flagship.counterexample-structural-only",
+    "slice-quality.gmn1-coverage.no-repo-root",
+    "slice-quality.gmn1-coverage.no-dictionary",
+    "slice-quality.gmn1-coverage.uncovered",
 ];
 
 /// Seed every slice-quality finding code into the process-wide code registry

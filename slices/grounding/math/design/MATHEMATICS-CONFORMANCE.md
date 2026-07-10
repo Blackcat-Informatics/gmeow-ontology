@@ -195,6 +195,9 @@ property of the vector.
 | A `math:Embedding` names its source, target space, function, and model | SHACL Core | `math:UnderspecifiedEmbedding` |
 | A `math:TensorComputationGraph` declares its computation nodes, which are `math:ApplicationExpression`s reusing the argument-slot AST (so the inherited slot-uniqueness/well-formedness gates bite) | SHACL Core (+ inherited `math:SlotIndexUniquenessShape`) | `math:MalformedTensorComputationGraph` / `math:MalformedArgumentSlot` |
 | A `math:WeightTensor` names the `math:ParameterSpace` it lives in | SHACL Core | `math:UnframedWeightTensor` |
+| A `math:Filtration` declares at least one `math:FiltrationStage`, and every stage names its `math:filtrationThreshold` and `math:stageStructure` (structural presence only — monotonicity ε₁ ≤ ε₂ ⇒ containment is the first-order law `math:filtrationMonotonicityLaw`, not a shape) | SHACL Core | `math:UnderspecifiedFiltration` |
+| A `math:PersistenceLifetime` names its `math:overFiltration`, its `math:persistenceFeature`, its `math:bornAt`, and its `math:diesAt` — a finite `gmeow:Quantity` or `math:PositiveInfinity` for an essential feature, never omitted | SHACL Core | `math:UnderspecifiedPersistenceLifetime` |
+| A `math:StabilityCalibrationRecord` names its `math:calibrationEvidence`, its `math:credenceDerivationKind`, and its `math:stabilityGuarantee` — the persistence-derived credence is warranted, not a heuristic | SHACL Core | `math:UngroundedStabilityCalibration` |
 
 The residual-meaning rule is the charter's distinguished gate: because no direct
 "meaning" property is minted, the only way to state what a residual or latent
