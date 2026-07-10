@@ -156,6 +156,17 @@ pub const OPT_SOURCE_PATH: &str = "validations/openehr-bloodpressure/Blutdruck.o
 /// that carries `C_DV_ORDINAL` and `C_DATE_TIME` constraints. Lifting it is what makes the
 /// ordinal / datetime constraint families flow slices → gmeow.gts (not just prove in unit tests).
 pub const OPT_TEST_DATATYPES_PATH: &str = "validations/openehr-test-datatypes/TestAllDatatypes.opt";
+/// The worked-example source authoring the ONLY `a logic:PathShape` individuals in the
+/// repo today (design/LOGIC-PATHS.md): `ex:nearbyOrgs` (wildcard, namespace-scoped,
+/// bounded depth) and `ex:ancestorsTo3` (named-predicate bounded depth). `SOURCE_PATH`
+/// carries only the `logic:PathShape` VOCABULARY (the class + its properties); the
+/// authored INSTANCES are a worked example, so they are parsed as a second, independent
+/// source and only their [`gmeow_logic_compile::ir::PathShapeIr`]s are folded onto
+/// `program` — never their axioms/rules/contracts/formulas/correspondences, which stay
+/// scoped to this file and are discarded. Without this, `program.path_shapes` is empty,
+/// `paths::project_path_shapes` emits zero per-shape `property-path:<iri>` ledger rows,
+/// and the docs term-loss table (`TermLossDigest`) is vacuous on every term.
+pub const PATH_SHAPES_EXAMPLE_PATH: &str = "slices/grounding/logic/examples/predicate-paths.ttl";
 /// Committed projection-report loss ledger (preservation kinds + lossy drops).
 ///
 /// NOTE: the COMMITTED file at this path is now assembled by `stage-mappings`, which
@@ -275,7 +286,11 @@ impl Stage for CompileLogicStage {
         &[]
     }
     fn impl_version(&self) -> &str {
-        "compile-logic.v4"
+        // v5: the authored `logic:PathShape` worked-example instances
+        // (`PATH_SHAPES_EXAMPLE_PATH`) are now folded into `program.path_shapes`, so
+        // `project_path_shapes` emits real per-shape ledger rows (G1: the B2 per-term
+        // projection-loss table is no longer vacuous).
+        "compile-logic.v5"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The compiler parses the logic: source and the vendored OPT, and derives validation
@@ -285,6 +300,7 @@ impl Stage for CompileLogicStage {
             root.join(SOURCE_PATH),
             root.join(OPT_SOURCE_PATH),
             root.join(OPT_TEST_DATATYPES_PATH),
+            root.join(PATH_SHAPES_EXAMPLE_PATH),
         ];
         files.extend(crate::stages::source_load::authored_files(root)?);
         Ok(files)
@@ -342,6 +358,26 @@ impl Stage for CompileLogicStage {
         let program = program
             .with_validation_shapes(validation_shapes)
             .with_constraints(all_constraints);
+
+        // Fold in the authored `logic:PathShape` worked-example instances (see
+        // `PATH_SHAPES_EXAMPLE_PATH`'s doc comment): parse the example file as an
+        // INDEPENDENT logic: source and take ONLY its `path_shapes` — its axioms/
+        // rules/contracts/formulas/correspondences stay scoped to that file and are
+        // discarded, so the demonstrative org/family-tree facts it also carries never
+        // pollute the compiled program's domain axioms. Its diagnostics ARE folded in
+        // (never silently dropped), same as every other frontend diagnostic here.
+        let path_shapes_source = std::fs::read_to_string(input.root.join(PATH_SHAPES_EXAMPLE_PATH))
+            .map_err(|e| stage_err(format!("read {PATH_SHAPES_EXAMPLE_PATH}: {e}")))?;
+        let (path_shapes_program, path_shapes_diagnostics) = parse_logic_str(
+            &path_shapes_source,
+            Some(PATH_SHAPES_EXAMPLE_PATH.to_string()),
+        )
+        .map_err(|e| stage_err(format!("parse {PATH_SHAPES_EXAMPLE_PATH}: {}", e.0)))?;
+        diagnostics.extend(path_shapes_diagnostics);
+        let mut path_shapes = program.path_shapes.clone();
+        path_shapes.extend(path_shapes_program.path_shapes);
+        let program = program.with_path_shapes(path_shapes);
+
         // The overclaim / rule-safety gate runs inside `compile_program`; a violation
         // is a hard error (fail-closed), never a silently dropped product.
         // Discharge every authored correspondence's lens law by EXECUTION so the five

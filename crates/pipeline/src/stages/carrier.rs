@@ -21,8 +21,8 @@ use std::path::{Path, PathBuf};
 use purrdf::gts_compose::{BlobRow, SnapshotBuilder, emit_gts};
 use purrdf::provenance::DatasetProvenance;
 use purrdf::{
-    RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, SerializeGraph, flat_rdf_quads_from_dataset,
-    parse_dataset, serialize_dataset,
+    RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, SerializeGraph,
+    flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
 };
 use rayon::prelude::*;
 
@@ -257,6 +257,31 @@ pub(crate) fn serialize_carrier_snapshot(
     let mut docs_model = gmeow_docs::model::DocsModel::discover(root)
         .map_err(|e| stage_err(&format!("docs model discovery: {e}")))?;
     docs_model.attach_reasoning(reasoning_verdict);
+    let known_term_iris: std::collections::BTreeSet<String> =
+        docs_model.terms.iter().map(|t| t.iri.clone()).collect();
+    let diagnostics_digest = crate::stages::docs_render::diagnostics_digest_from_upstream(
+        upstream,
+        &known_term_iris,
+        &docs_model.constraint_rules,
+    )?;
+    docs_model.attach_diagnostics(diagnostics_digest);
+    let term_loss_digest = crate::stages::docs_render::term_loss_digest_from_upstream(
+        upstream,
+        &docs_model.shapes,
+        &docs_model.terms,
+    )?;
+    docs_model.attach_term_loss(term_loss_digest);
+    // The per-term JSON Schema / OpenAPI fragment digest for the term-page
+    // "use this term without RDF" panel + OpenAPI tab, folded from THIS run's
+    // `stage-export-json-schema` product (the same bytes packed into the
+    // `schemas-archive` below) — an in-memory product read, never a `generated/`
+    // disk read. `stage-gts-sink` already consumes `stage-export-json-schema`, so
+    // no new dataflow edge is needed. Attached here (the site-render path) only;
+    // the schema fragment is a render-time `#[serde(skip)]` digest, not projected
+    // to the documentation RDF graph, so `render_docs_graph` does not attach it.
+    let schema_fragments =
+        crate::stages::docs_render::schema_fragments_from_upstream(upstream, &docs_model.terms)?;
+    docs_model.attach_schema_fragments(schema_fragments);
     serialize_carrier_snapshot_with_docs_model(root, upstream, carrier, &docs_model)
 }
 
@@ -675,7 +700,11 @@ fn source_load_graph(
 /// the producer's already-parsed named graph, never re-parses the producer's byte
 /// artifact). The producer attached it via `parse_into_graph`; this is the read half —
 /// no parse. A missing producer HARD-fails (no-optionality).
-fn producer_graph(
+///
+/// `pub(crate)` (not module-private) because `docs_render`'s carrier-lane digests
+/// (e.g. the per-term projection-loss join, B2) read a producer's named graph the
+/// same way `assemble_carrier` does — one read helper, not a duplicate.
+pub(crate) fn producer_graph(
     upstream: &BTreeMap<String, StageProduct>,
     stage: &str,
     graph_iri: &str,
@@ -2100,7 +2129,208 @@ fn build_executable_docs_data(
             text: ex.text.clone(),
         })
         .collect();
-    executable_docs_from_sources(base_seed.as_ref(), base_bytes, &sources, carrier)
+    let mut data = executable_docs_from_sources(base_seed.as_ref(), base_bytes, &sources, carrier)?;
+    // B3: the per-term entailment "why" panels, parsed from `stage-reason`'s materialized
+    // `reasoning-explanations` proof skeletons (reason-once — this reads the SAME product
+    // the CLOSURE_PATH fetch above already reads, a different artifact key on the identical
+    // upstream product, never a second reasoning pass). Joined against every documented
+    // term's IRI, so a term with no matching derivation is honestly absent from the map.
+    let term_iris: std::collections::BTreeSet<String> =
+        model.terms.iter().map(|t| t.iri.clone()).collect();
+    data.term_entailments = term_entailments_from_upstream(upstream, &term_iris)?;
+    Ok(data)
+}
+
+/// One reasoner-derivation's raw shape, accumulated per blank-node subject while
+/// walking the explanations Turtle (see [`term_entailments_from_explanations`]).
+#[derive(Default)]
+struct RawDerivation {
+    /// Whether an `rdf:type gmeow:Derivation` triple was seen for this subject — a
+    /// defensive check so a stray blank node in the explanations graph (there should
+    /// be none) can never masquerade as a derivation.
+    is_derivation: bool,
+    /// The `gmeow:concludes` quoted-triple object, if seen.
+    concludes: Option<RdfTriple>,
+    /// Every `gmeow:hasPremise` quoted-triple object seen (zero or more).
+    premises: Vec<RdfTriple>,
+    /// The `gmeow:viaRule` object IRI, if seen.
+    via_rule: Option<String>,
+}
+
+/// Whether any documented term IRI appears in `triple`'s subject, predicate, or
+/// object position, added to `out` (a term appearing twice in one triple is recorded
+/// once — `out` is a set).
+fn collect_term_matches(
+    triple: &RdfTriple,
+    term_iris: &std::collections::BTreeSet<String>,
+    out: &mut std::collections::BTreeSet<String>,
+) {
+    if let RdfTerm::Iri(iri) = &triple.subject
+        && term_iris.contains(iri)
+    {
+        out.insert(iri.clone());
+    }
+    if term_iris.contains(&triple.predicate) {
+        out.insert(triple.predicate.clone());
+    }
+    if let RdfTerm::Iri(iri) = &triple.object
+        && term_iris.contains(iri)
+    {
+        out.insert(iri.clone());
+    }
+}
+
+/// Fetch `stage-reason`'s materialized `reasoning-explanations` artifact off the
+/// upstream product and fold it into the B3 per-term entailment digest. HARD-fails if
+/// `stage-reason` (or its explanations artifact) is absent — the pipeline path never
+/// falls back to an empty digest silently; only the model-only
+/// `ExecutableDocsData::default()` seam is allowed to be empty (F-2).
+fn term_entailments_from_upstream(
+    upstream: &BTreeMap<String, StageProduct>,
+    term_iris: &std::collections::BTreeSet<String>,
+) -> Result<BTreeMap<String, Vec<gmeow_docs::Entailment>>, gmeow_errors::Diag> {
+    let bytes = upstream
+        .get("stage-reason")
+        .and_then(|p| p.artifact(crate::stages::reason::EXPLANATIONS_PATH))
+        .ok_or_else(|| {
+            stage_err(&format!(
+                "missing stage-reason artifact {} for term entailments",
+                crate::stages::reason::EXPLANATIONS_PATH
+            ))
+        })?;
+    term_entailments_from_explanations(bytes, term_iris)
+}
+
+/// Parse `stage-reason`'s materialized `reasoning-explanations` proof skeletons
+/// (RDF 1.2 Turtle; see `crate::stages::reason::EXPLANATIONS_PATH` and
+/// `gmeow_logic::reason::artifacts::build_explanations_ttl`) into the B3 per-term
+/// entailment digest.
+///
+/// For every `gmeow:Derivation`, any IRI in `term_iris` that appears in the subject,
+/// predicate, or object position of EITHER the `gmeow:concludes` conclusion OR any
+/// `gmeow:hasPremise` premise gets that derivation's rule + a display of its
+/// conclusion + displays of its premises appended to its panel. Pure function of the
+/// bytes + the term-IRI set — independently testable without a pipeline product map
+/// (mirrors [`executable_docs_from_sources`]'s fixture-only core).
+fn term_entailments_from_explanations(
+    explanations_bytes: &[u8],
+    term_iris: &std::collections::BTreeSet<String>,
+) -> Result<BTreeMap<String, Vec<gmeow_docs::Entailment>>, gmeow_errors::Diag> {
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    let dataset = parse_dataset(explanations_bytes, "text/turtle", None).map_err(|e| {
+        stage_err(&format!(
+            "parse reasoning-explanations for term entailments: {e}"
+        ))
+    })?;
+
+    // `gmeow_logic::reason::artifacts::build_explanations_ttl` writes each
+    // `gmeow:concludes` / `gmeow:hasPremise` object via `emit_term(&RdfTerm::triple(..))`,
+    // which serializes the RDF 1.2 triple-term shorthand `<< <s> <p> <o> >>` — the
+    // BARE (non-parenthesized) form. Per the RDF 1.2 Turtle grammar, a bare `<<...>>`
+    // used as the object of any predicate OTHER than `rdf:reifies` is the REIFYING-
+    // TRIPLE production, not a triple-term value: the parser mints a fresh reifier
+    // (here, a blank node) IN THAT POSITION and records the actual triple as a
+    // reifier binding — `dataset.owned_reifiers()` — rather than inline as
+    // `RdfTerm::Triple` on the base quad. So `q.object` here is the reifier (a
+    // blank node), and the real conclusion/premise triple is looked up from this
+    // map. (The canonical parenthesized form `<<( s p o )>>` — used by hand-built
+    // fixtures/tests — parses directly to `RdfTerm::Triple` and is honored as a
+    // fallback below, so both forms resolve identically.)
+    let reifier_triples: std::collections::HashMap<RdfTerm, RdfTriple> = dataset
+        .owned_reifiers()
+        .map(|r| (r.reifier, r.statement))
+        .collect();
+    let resolve_triple = |term: &RdfTerm| -> Option<RdfTriple> {
+        match term {
+            RdfTerm::Triple(t) => Some((**t).clone()),
+            other => reifier_triples.get(other).cloned(),
+        }
+    };
+
+    let derivation_ty = format!("{GMEOW_NS}Derivation");
+    let concludes_p = format!("{GMEOW_NS}concludes");
+    let has_premise_p = format!("{GMEOW_NS}hasPremise");
+    let via_rule_p = format!("{GMEOW_NS}viaRule");
+
+    let mut raw: BTreeMap<String, RawDerivation> = BTreeMap::new();
+    for q in dataset.owned_quads() {
+        let RdfTerm::BlankNode(label) = &q.subject else {
+            continue;
+        };
+        let entry = raw.entry(label.clone()).or_default();
+        if q.predicate == RDF_TYPE {
+            if let RdfTerm::Iri(iri) = &q.object
+                && *iri == derivation_ty
+            {
+                entry.is_derivation = true;
+            }
+        } else if q.predicate == concludes_p {
+            if let Some(triple) = resolve_triple(&q.object) {
+                entry.concludes = Some(triple);
+            }
+        } else if q.predicate == has_premise_p {
+            if let Some(triple) = resolve_triple(&q.object) {
+                entry.premises.push(triple);
+            }
+        } else if q.predicate == via_rule_p
+            && let RdfTerm::Iri(iri) = &q.object
+        {
+            entry.via_rule = Some(iri.clone());
+        }
+    }
+
+    let mut term_entailments: BTreeMap<String, Vec<gmeow_docs::Entailment>> = BTreeMap::new();
+    for derivation in raw.into_values() {
+        if !derivation.is_derivation {
+            continue;
+        }
+        let Some(concludes) = &derivation.concludes else {
+            continue;
+        };
+        let mut matched: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+        collect_term_matches(concludes, term_iris, &mut matched);
+        for premise in &derivation.premises {
+            collect_term_matches(premise, term_iris, &mut matched);
+        }
+        if matched.is_empty() {
+            continue;
+        }
+        let rule = derivation
+            .via_rule
+            .as_deref()
+            .map(compact_iri)
+            .unwrap_or_default();
+        let conclusion =
+            triple_display(&concludes.subject, &concludes.predicate, &concludes.object);
+        let mut premises: Vec<String> = derivation
+            .premises
+            .iter()
+            .map(|p| triple_display(&p.subject, &p.predicate, &p.object))
+            .collect();
+        premises.sort();
+        premises.dedup();
+        let entailment = gmeow_docs::Entailment {
+            rule,
+            conclusion,
+            premises,
+        };
+        for term_iri in matched {
+            term_entailments
+                .entry(term_iri)
+                .or_default()
+                .push(entailment.clone());
+        }
+    }
+    for entries in term_entailments.values_mut() {
+        entries.sort_by(|a, b| {
+            a.conclusion
+                .cmp(&b.conclusion)
+                .then_with(|| a.rule.cmp(&b.rule))
+                .then_with(|| a.premises.cmp(&b.premises))
+        });
+        entries.dedup();
+    }
+    Ok(term_entailments)
 }
 
 /// One worked example's authored source — its slice IRI, logical path (extension drives
@@ -2274,6 +2504,11 @@ pub(crate) fn executable_docs_from_sources(
         example_inferences,
         cross_example,
         playground_trig,
+        // `term_entailments` is NOT this core's concern (it needs the discovered
+        // term-IRI set, not just the reduced reasoning seed): `build_executable_docs_data`
+        // fills it in afterward via `term_entailments_from_upstream`, so this fixture-only
+        // core stays exercisable without a full docs model.
+        ..Default::default()
     })
 }
 
@@ -2346,11 +2581,20 @@ fn build_playground_trig(
 /// Format an owned quad's `(s, p, o)` as a compact, deterministic display line for the
 /// "try it" asserted-vs-inferred surfaces. The graph is dropped (these are triples).
 fn format_triple(q: &RdfQuad) -> String {
+    triple_display(&q.subject, &q.predicate, &q.object)
+}
+
+/// The shared `s p o` compact display form (CURIE-compacted subject/predicate/object)
+/// underlying [`format_triple`] and the B3 entailment displays
+/// ([`term_entailments_from_explanations`]) — a `gmeow:Derivation`'s `gmeow:concludes`
+/// / `gmeow:hasPremise` quoted triple has the identical `(subject, predicate, object)`
+/// shape as an owned quad, so both render through this one function.
+fn triple_display(subject: &RdfTerm, predicate: &str, object: &RdfTerm) -> String {
     format!(
         "{} {} {}",
-        term_display(&q.subject),
-        compact_iri(&q.predicate),
-        term_display(&q.object)
+        term_display(subject),
+        compact_iri(predicate),
+        term_display(object)
     )
 }
 
@@ -2697,7 +2941,15 @@ impl Stage for SnapshotStage {
         // for the bibliography.
         // v22 additionally consumes stage-math-producers and folds its five math flagship
         // producer graphs into gmeow.gts as bundle-internal named graphs (Design A).
-        "snapshot.v22-math-producer-graphs-and-docs-blobs"
+        // v23: the embedded ontology-docs site now carries conformance Do/Don't fixtures
+        // (`DocsModel::fixtures`, joined to each slice's `tests/example-conformance.ttl`
+        // binding) — a new `Page::FixtureIndex` page and a per-term "Conformance examples"
+        // section, so the rendered site bytes change shape for an unchanged model schema.
+        // v24: `DocCompetency` grows the resolved `query_text` / `exact_rows` /
+        // `expected_row_count` / structured `expected_rows` surface (T2) — a new
+        // `Page::CompetencyIndex` page renders the full copy-paste-runnable SPARQL
+        // question set, so the rendered site bytes change shape again.
+        "snapshot.v24-competency-question-query-text-and-expected-rows"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -4633,6 +4885,7 @@ mod ustar_tests {
             query_file: Some("demo.rq".to_string()),
             exercises: vec!["https://blackcatinformatics.ca/gmeow/Foo".to_string()],
             owner_slice: slice_iri.clone(),
+            ..Default::default()
         };
         let linkage = DocLinkage {
             mapping_set: None,
@@ -6291,6 +6544,246 @@ ex:rex a ex:Dog .
                 .all(|l| !l.contains("ImportedExtra")),
             "import-world axiom leaked into cross_example"
         );
+    }
+}
+
+#[cfg(test)]
+mod term_entailments_tests {
+    use super::*;
+
+    /// A hand-built `reasoning-explanations.rdf12.ttl`-shaped fixture, mirroring
+    /// `gmeow_logic::reason::artifacts::build_explanations_ttl`'s ACTUAL output shape:
+    /// one `gmeow:Derivation` blank node with a `gmeow:concludes` quoted triple, one
+    /// `gmeow:hasPremise` quoted triple, and a `gmeow:viaRule` IRI. The quoted triples
+    /// use the BARE `<< s p o >>` form — exactly what `purrdf::turtle::emit_term`
+    /// serializes for a `RdfTerm::Triple` — which the RDF 1.2 Turtle grammar parses as
+    /// the REIFYING-triple production (a minted reifier bound via
+    /// `RdfDataset::owned_reifiers()`), not as an inline `RdfTerm::Triple` object; the
+    /// join must resolve through that reifier binding.
+    const EXPLANATIONS_TTL: &str = "\
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+[] a gmeow:Derivation ;
+   gmeow:concludes << <https://blackcatinformatics.ca/gmeow/Cat> rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/Animal> >> ;
+   gmeow:hasPremise << <https://blackcatinformatics.ca/gmeow/Cat> rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/Mammal> >> ;
+   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/subclass-transitivity> ;
+   gmeow:inferenceKind gmeow:Deduction ;
+   rdfs:label \"derivation of an inferred axiom\"@en ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/world/default> .
+";
+
+    /// The same derivation, but with the CANONICAL parenthesized `<<( s p o )>>` triple-
+    /// term form — parses directly to an inline `RdfTerm::Triple` (no reifier). Both
+    /// forms must resolve to the identical entailment digest.
+    const EXPLANATIONS_TTL_PARENTHESIZED: &str = "\
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+[] a gmeow:Derivation ;
+   gmeow:concludes <<( <https://blackcatinformatics.ca/gmeow/Cat> rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/Animal> )>> ;
+   gmeow:hasPremise <<( <https://blackcatinformatics.ca/gmeow/Cat> rdfs:subClassOf <https://blackcatinformatics.ca/gmeow/Mammal> )>> ;
+   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/subclass-transitivity> ;
+   gmeow:inferenceKind gmeow:Deduction ;
+   rdfs:label \"derivation of an inferred axiom\"@en ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/world/default> .
+";
+
+    #[test]
+    fn term_entailments_from_explanations_populates_matching_term_only() {
+        let mut term_iris: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+        term_iris.insert("https://blackcatinformatics.ca/gmeow/Cat".to_string());
+
+        let digest = term_entailments_from_explanations(EXPLANATIONS_TTL.as_bytes(), &term_iris)
+            .expect("parse explanations fixture");
+
+        // `Cat` is the conclusion's subject AND the premise's subject: matched once
+        // (the join is a set, never a duplicate panel entry for one derivation).
+        let entries = digest
+            .get("https://blackcatinformatics.ca/gmeow/Cat")
+            .expect("Cat must have a populated entailment panel");
+        assert_eq!(entries.len(), 1, "one derivation ⇒ one panel entry");
+        let entailment = &entries[0];
+        assert!(
+            entailment.conclusion.contains("rdfs:subClassOf"),
+            "conclusion display: {}",
+            entailment.conclusion
+        );
+        assert!(
+            entailment.conclusion.contains("Animal"),
+            "conclusion display: {}",
+            entailment.conclusion
+        );
+        assert_eq!(entailment.premises.len(), 1);
+        assert!(
+            entailment.premises[0].contains("Mammal"),
+            "premise display: {}",
+            entailment.premises[0]
+        );
+        assert!(
+            !entailment.rule.is_empty(),
+            "the firing rule must never be a fabricated empty string"
+        );
+
+        // `Animal` and `Mammal` are documented terms too — a term appearing ONLY in an
+        // object/premise-object position also gets the derivation's panel (any position
+        // joins), so the same derivation lands on all three matched terms.
+        let mut term_iris_all = term_iris.clone();
+        term_iris_all.insert("https://blackcatinformatics.ca/gmeow/Animal".to_string());
+        term_iris_all.insert("https://blackcatinformatics.ca/gmeow/Mammal".to_string());
+        let digest_all =
+            term_entailments_from_explanations(EXPLANATIONS_TTL.as_bytes(), &term_iris_all)
+                .expect("parse explanations fixture (wider term set)");
+        assert!(digest_all.contains_key("https://blackcatinformatics.ca/gmeow/Animal"));
+        assert!(digest_all.contains_key("https://blackcatinformatics.ca/gmeow/Mammal"));
+
+        // A term absent from the derivation entirely gets no entry (honest absence,
+        // never a fabricated empty panel).
+        let mut term_iris_unrelated: std::collections::BTreeSet<String> =
+            std::collections::BTreeSet::new();
+        term_iris_unrelated.insert("https://blackcatinformatics.ca/gmeow/Unrelated".to_string());
+        let digest_unrelated =
+            term_entailments_from_explanations(EXPLANATIONS_TTL.as_bytes(), &term_iris_unrelated)
+                .expect("parse explanations fixture (unrelated term)");
+        assert!(digest_unrelated.is_empty());
+
+        // The canonical parenthesized `<<( s p o )>>` form (an inline `RdfTerm::Triple`,
+        // no reifier) must resolve to the IDENTICAL digest as the bare reifying form —
+        // the join is agnostic to which triple-term serialization produced the data.
+        let digest_parenthesized = term_entailments_from_explanations(
+            EXPLANATIONS_TTL_PARENTHESIZED.as_bytes(),
+            &term_iris,
+        )
+        .expect("parse parenthesized explanations fixture");
+        assert_eq!(
+            digest, digest_parenthesized,
+            "bare-reifier and parenthesized triple-term forms must join identically"
+        );
+    }
+
+    #[test]
+    fn term_entailments_from_upstream_joins_and_hard_fails_on_missing_artifact() {
+        let mut term_iris: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+        term_iris.insert("https://blackcatinformatics.ca/gmeow/Cat".to_string());
+
+        // Positive: a synthetic `stage-reason` StageProduct carrying the explanations
+        // artifact joins exactly like the pure function above.
+        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        artifacts.insert(
+            crate::stages::reason::EXPLANATIONS_PATH.to_string(),
+            EXPLANATIONS_TTL.as_bytes().to_vec(),
+        );
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert(
+            "stage-reason".to_string(),
+            StageProduct::from_artifacts("stage-reason", artifacts),
+        );
+        let digest = term_entailments_from_upstream(&upstream, &term_iris)
+            .expect("digest folds from synthetic upstream");
+        assert!(digest.contains_key("https://blackcatinformatics.ca/gmeow/Cat"));
+
+        // Missing the whole stage-reason product hard-fails (never a silent empty digest).
+        assert!(
+            term_entailments_from_upstream(&BTreeMap::new(), &term_iris).is_err(),
+            "missing stage-reason product must hard-fail"
+        );
+
+        // A declared stage-reason product present but MISSING the explanations artifact
+        // (e.g. a stale/partial product) hard-fails too — never silently treated as empty.
+        let mut missing_artifact: BTreeMap<String, StageProduct> = BTreeMap::new();
+        missing_artifact.insert(
+            "stage-reason".to_string(),
+            StageProduct::from_artifacts("stage-reason", BTreeMap::new()),
+        );
+        assert!(
+            term_entailments_from_upstream(&missing_artifact, &term_iris).is_err(),
+            "a stage-reason product missing the explanations artifact must hard-fail"
+        );
+    }
+
+    /// F1 (binding, production-surface non-vacuity): `term_entailments` parsed from the
+    /// REAL materialized `stage-reason` explanations over the real ontology must
+    /// populate ≥1 per-term inferred-facts panel — a reasoner-derived OWL/RL closure
+    /// over an ontology this size entails real subsumption/property-characteristic
+    /// axioms, so the panel must never ship vacuous. Runs the real
+    /// `source_load` → `statements` / `compile_logic` → `mappings` → `reason` stage
+    /// chain directly (each `Stage::run` call is pure in-memory — no disk write; the
+    /// committed `generated/` tree is untouched), mirroring the chaining pattern
+    /// `mappings::projection_report_unions_logic_and_correspondence_rows` already uses.
+    #[test]
+    fn term_entailments_are_non_vacuous_on_the_real_repo() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .unwrap();
+        let empty: BTreeMap<String, StageProduct> = BTreeMap::new();
+
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        let source_load = crate::stages::source_load::SourceLoadStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &empty,
+            })
+            .expect("real source-load");
+        upstream.insert("stage-source-load".to_string(), source_load.product);
+
+        let statements = crate::stages::statements::StatementsStage
+            .run(StageInput {
+                root: &root,
+                upstream: &empty,
+            })
+            .expect("real statements");
+        upstream.insert("stage-statements".to_string(), statements.product);
+
+        let compile = crate::stages::compile_logic::CompileLogicStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &empty,
+            })
+            .expect("real compile-logic");
+        upstream.insert("stage-compile-logic".to_string(), compile.product);
+
+        let mappings = crate::stages::mappings::MappingsStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &upstream,
+            })
+            .expect("real mappings");
+        upstream.insert("stage-mappings".to_string(), mappings.product);
+
+        let reason = crate::stages::reason::ReasonStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &upstream,
+            })
+            .expect("real reason");
+        upstream.insert("stage-reason".to_string(), reason.product);
+
+        let model =
+            gmeow_docs::model::DocsModel::discover(&root).expect("real docs model discovery");
+        let carrier = source_load_dataset(&upstream).expect("source-load dataset");
+        let data = build_executable_docs_data(&upstream, carrier.as_ref(), &model)
+            .expect("real executable docs data");
+
+        assert!(
+            !data.term_entailments.is_empty(),
+            "term_entailments must be non-vacuous on the real repo (F1) — if this trips, \
+             investigate whether the join logic (not merely real-data sparsity) is at fault"
+        );
+        let (term_iri, entailments) = data
+            .term_entailments
+            .iter()
+            .next()
+            .expect("at least one populated panel");
+        assert!(
+            !entailments.is_empty(),
+            "panel for {term_iri} must be non-empty"
+        );
+        assert!(!entailments[0].conclusion.is_empty());
+        assert!(!entailments[0].rule.is_empty());
     }
 }
 

@@ -20,6 +20,229 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 
 An agent's intrinsic believing mode toward a proposition — the reified, first\-class mental moment that grounds the flat doxastic spine \(gmeow:believes, gmeow:knowsThat\)\. A sibling of cognition:CognitiveState \(knowing\) and teleology:IntentionalMode \(desiring/intending\) under kernel:MentalMoment, so an agent's whole endurant mental life is queryable as one family \(Principle 15\)\. Inheres in exactly one agent via epistemicAgent and is directed at exactly one Proposition via doxasticContent; its qualitative belief value is carried by a linked StandpointClaim \(doxasticClaim → claimModality\), and its graded strength by credence \[0,1\]\. Never instantiated directly when the flat spine suffices \(Principle 4\)\.
 
+## For developers
+
+## Quickstart
+
+```turtle
+<subject> a gmeow:DoxasticState ;
+    gmeow:credence "..." ;  # xsd:decimal
+    gmeow:doxasticClaim <...> ;  # gmeow:StandpointClaim
+    gmeow:doxasticContent <...> ;  # gmeow:Proposition
+    gmeow:epistemicAgent <...> .  # gmeow:Agent
+```
+
+## Example in multiple syntaxes
+
+**Turtle**
+
+```turtle
+<subject> a gmeow:DoxasticState ;
+    gmeow:credence "..." ;  # xsd:decimal
+    gmeow:doxasticClaim <...> ;  # gmeow:StandpointClaim
+    gmeow:doxasticContent <...> ;  # gmeow:Proposition
+    gmeow:epistemicAgent <...> .  # gmeow:Agent
+```
+
+**JSON\-LD**
+
+```json
+{
+  "@context": {
+    "afo": "https://w3id.org/afo/onto/1.1#",
+    "afv": "https://w3id.org/afo/vocab/1.1#",
+    "align": "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#",
+    "as": "https://www.w3.org/ns/activitystreams#",
+    "bbc": "http://www.bbc.co.uk/ontologies/news/",
+    "bfo": "http://purl.obolibrary.org/obo/",
+    "bibframe": "http://id.loc.gov/ontologies/bibframe/",
+    "bibo": "http://purl.org/ontology/bibo/",
+    "bio": "http://purl.org/vocab/bio/0.1/",
+    "bot": "https://w3id.org/bot#",
+    "bpmn": "http://www.omg.org/spec/BPMN/20100524/MODEL#",
+    "brick": "https://brickschema.org/schema/Brick#",
+    "cc": "http://creativecommons.org/ns#",
+    "ccpd": "https://creativecommons.org/publicdomain/",
+    "ceterms": "https://purl.org/ctdl/terms/",
+    "chord": "http://purl.org/ontology/chord/",
+    "cito": "http://purl.org/spar/cito/",
+    "codemeta": "https://codemeta.github.io/terms/#",
+    "cora": "http://purl.org/ieee1872-owl/cora#",
+    "cp": "http://inspire.ec.europa.eu/ont/cp#",
+    "credit": "https://credit.niso.org/contributor-roles/",
+    "crm": "http://www.cidoc-crm.org/cidoc-crm/",
+    "crmarc": "http://www.cidoc-crm.org/crmarchaeo/",
+    "crmdig": "http://www.ics.forth.gr/isl/CRMdig/",
+    "crmgeo": "http://www.ics.forth.gr/isl/CRMgeo/",
+    "crminf": "http://www.ics.forth.gr/isl/CRMinf/",
+    "crmsci": "http://www.cidoc-crm.org/extensions/crmsci/",
+    "ctdlasn": "https://credreg.net/ctdlasn/terms/",
+    "cyc": "http://sw.opencyc.org/2012/05/10/concept/en/",
+    "dc": "http://purl.org/dc/elements/1.1/",
+    "dcat": "http://www.w3.org/ns/dcat#",
+    "dcmitype": "http://purl.org/dc/dcmitype/",
+    "dcterms": "http://purl.org/dc/terms/",
+    "did": "https://www.w3.org/ns/did#",
+    "discogs": "https://www.discogs.com/",
+    "doap": "http://usefulinc.com/ns/doap#",
+    "dpv": "https://w3id.org/dpv#",
+    "dqv": "http://www.w3.org/ns/dqv#",
+    "dul": "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#",
+    "edoal": "http://ns.inria.org/edoal/1.0/#",
+    "edtf": "http://id.loc.gov/datatypes/edtf/",
+    "esco": "http://data.europa.eu/esco/model#",
+    "esco-base": "http://data.europa.eu/esco/",
+    "exif": "http://www.w3.org/2003/12/exif/ns#",
+    "fabio": "http://purl.org/spar/fabio/",
+    "faldo": "http://biohackathon.org/resource/faldo#",
+    "fhir": "http://hl7.org/fhir/",
+    "fibo-fbc-fi-fi": "https://spec.edmcouncil.org/fibo/ontology/FBC/FinancialInstruments/FinancialInstruments/",
+    "fibo-fbc-pas-fpas": "https://spec.edmcouncil.org/fibo/ontology/FBC/ProductsAndServices/FinancialProductsAndServices/",
+    "fibo-fnd-acc-ae": "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/AccountingEquity/",
+    "fibo-fnd-acc-cur": "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/CurrencyAmount/",
+    "fibo-fnd-pas-ps": "https://spec.edmcouncil.org/fibo/ontology/FND/ProductsAndServices/ProductsAndServices/",
+    "fibo-iso4217": "https://spec.edmcouncil.org/fibo/ontology/FND/Accounting/ISO4217-CurrencyCodes/",
+    "fno": "https://w3id.org/function/ontology#",
+    "fnom": "https://w3id.org/function/vocabulary/mapping#",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "forgefed": "https://forgefed.org/ns#",
+    "frbr": "http://purl.org/vocab/frbr/core#",
+    "gedcom": "http://www.w3.org/2000/10/swap/pim/gedcom#",
+    "geo": "http://www.opengis.net/ont/geosparql#",
+    "glottolog": "https://glottolog.org/resource/languoid/id/",
+    "gn": "http://www.geonames.org/ontology#",
+    "gsso": "http://purl.obolibrary.org/obo/GSSO_",
+    "gtfs": "http://vocab.gtfs.org/terms#",
+    "gts": "http://resource.geosciml.org/ontology/timescale/gts#",
+    "gufo": "http://purl.org/nemo/gufo#",
+    "gvp": "http://vocab.getty.edu/ontology#",
+    "gx": "http://gedcomx.org/",
+    "gxv": "http://gedcomx.org/v1/",
+    "homosaurus": "https://homosaurus.org/v4/",
+    "iao": "http://purl.obolibrary.org/obo/IAO_",
+    "ical": "http://www.w3.org/2002/12/cal/icaltzd#",
+    "ifc": "http://www.buildingsmart-tech.org/ifcOWL/IFC4#",
+    "iiif": "http://iiif.io/api/presentation/3#",
+    "iptc": "http://iptc.org/std/NewsML-G2/",
+    "iso19156": "http://www.isotc211.org/iso19156/",
+    "ivoa": "http://www.ivoa.net/rdf/",
+    "jams": "http://w3id.org/polifonia/ontology/jams/",
+    "knowrob": "http://knowrob.org/kb/knowrob.owl#",
+    "ladm": "http://www.opengis.net/ont/ladm#",
+    "lexvo": "http://lexvo.org/id/",
+    "lgdo": "http://linkedgeodata.org/ontology/",
+    "lime": "http://www.w3.org/ns/lemon/lime#",
+    "lode": "http://linkedevents.org/ontology/",
+    "logic": "https://blackcatinformatics.ca/logic/",
+    "loinc": "http://loinc.org/rdf/",
+    "lrmoo": "http://iflastandards.info/ns/lrm/lrmoo/",
+    "lvont": "http://lexvo.org/ontology#",
+    "ma": "http://www.w3.org/ns/ma-ont#",
+    "mads": "http://www.loc.gov/mads/rdf/v1#",
+    "mbz": "https://musicbrainz.org/",
+    "mf": "http://www.opengis.net/ont/movingfeatures#",
+    "mimo": "http://www.mimo-db.eu/InstrumentsKeywords/",
+    "mls": "http://www.w3.org/ns/mls#",
+    "mo": "http://purl.org/ontology/mo/",
+    "moat": "http://moat-project.org/ns#",
+    "mrg": "http://marineregions.org/ns/ontology#",
+    "nmo": "http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#",
+    "np": "http://www.nanopub.org/nschema#",
+    "oa": "http://www.w3.org/ns/oa#",
+    "obi": "http://purl.obolibrary.org/obo/OBI_",
+    "oboe": "http://ecoinformatics.org/oboe/oboe.1.2/oboe-core.owl#",
+    "obscore": "http://www.ivoa.net/rdf/ObsCore#",
+    "odrl": "http://www.w3.org/ns/odrl/2/",
+    "om": "http://www.wurvoc.org/vocabularies/om-1.8/",
+    "onet": "https://www.onetcenter.org/",
+    "ontolex": "http://www.w3.org/ns/lemon/ontolex#",
+    "opmw": "https://www.opmw.org/ontology/",
+    "org": "http://www.w3.org/ns/org#",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "p": "http://www.wikidata.org/prop/",
+    "pato": "http://purl.obolibrary.org/obo/PATO_",
+    "pav": "http://purl.org/pav/",
+    "periodo": "http://n2t.net/ark:/99152/",
+    "pleiades": "http://pleiades.stoa.org/places/vocab#",
+    "pon": "https://w3id.org/polifonia/ontology/",
+    "pos": "http://purl.org/ieee1872-owl/pos#",
+    "pplan": "http://purl.org/net/p-plan#",
+    "ppsr": "https://purl.org/ppsr/core#",
+    "premis": "http://www.loc.gov/premis/rdf/v3/",
+    "prof": "http://www.w3.org/ns/dx/prof/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "ps": "http://www.wikidata.org/prop/statement/",
+    "qb": "http://purl.org/linked-data/cube#",
+    "qudt": "http://qudt.org/schema/qudt/",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "rel": "http://purl.org/vocab/relationship/",
+    "ro_crate": "https://w3id.org/ro/crate/#",
+    "rstmt": "https://rightsstatements.org/vocab/",
+    "schema": "https://schema.org/",
+    "sem": "http://semanticweb.cs.vu.nl/2009/11/sem/",
+    "semapv": "https://w3id.org/semapv/vocab/",
+    "sf": "http://www.opengis.net/ont/sf#",
+    "sioc": "http://rdfs.org/sioc/ns#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "snomed": "http://snomed.info/id/",
+    "so": "http://purl.obolibrary.org/obo/SO_",
+    "soma": "http://www.ease-crc.org/ont/SOMA.owl#",
+    "sosa": "http://www.w3.org/ns/sosa/",
+    "spdx": "http://spdx.org/rdf/terms#",
+    "spdxlic": "http://spdx.org/licenses/",
+    "ssn": "http://www.w3.org/ns/ssn/",
+    "sssom": "https://w3id.org/sssom/",
+    "sta": "http://www.opengis.net/def/ont/sensorthings/1.1/",
+    "sumo": "https://www.ontologyportal.org/SUMO.owl#",
+    "sweet": "http://sweetontology.net/",
+    "swh": "https://www.softwareheritage.org/data-model/",
+    "tags": "http://www.holygoat.co.uk/owl/redwood/0.1/tags/",
+    "teo": "https://sbmi.uth.edu/bsdi/TEO_1.0.0.owl#",
+    "tgn": "http://vocab.getty.edu/tgn/",
+    "time": "http://www.w3.org/2006/time#",
+    "umbel": "http://umbel.org/umbel#",
+    "umbelrc": "http://umbel.org/umbel/rc/",
+    "unit": "http://qudt.org/vocab/unit/",
+    "vann": "http://purl.org/vocab/vann/",
+    "vc": "https://www.w3.org/2018/credentials#",
+    "vcard": "http://www.w3.org/2006/vcard/ns#",
+    "vcardx": "https://blackcatinformatics.ca/vcard-ext/",
+    "void": "http://rdfs.org/ns/void#",
+    "wd": "http://www.wikidata.org/entity/",
+    "wds": "http://www.wikidata.org/entity/statement/",
+    "wdt": "http://www.wikidata.org/prop/direct/",
+    "wgs84": "http://www.w3.org/2003/01/geo/wgs84_pos#",
+    "whg": "https://whgazetteer.org/",
+    "wikibase": "http://wikiba.se/ontology#",
+    "wot": "http://xmlns.com/wot/0.1/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#"
+  },
+  "@graph": [
+    {
+      "@id": "https://blackcatinformatics.ca/gmeow/example/subject",
+      "@type": [
+        {
+          "@id": "https://blackcatinformatics.ca/gmeow/DoxasticState"
+        }
+      ],
+      "https://blackcatinformatics.ca/gmeow/credence": {
+        "@value": "..."
+      },
+      "https://blackcatinformatics.ca/gmeow/doxasticClaim": {
+        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
+      },
+      "https://blackcatinformatics.ca/gmeow/doxasticContent": {
+        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
+      },
+      "https://blackcatinformatics.ca/gmeow/epistemicAgent": {
+        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
+      }
+    }
+  ]
+}
+```
+
 ## Neighborhood
 
 ![Term neighborhood](../../diagrams/terms/doxasticstate.svg)
@@ -29,28 +252,6 @@ An agent's intrinsic believing mode toward a proposition — the reified, first\
 - [`gmeow:JustificationGround`](../justificationground/index.md)
 - [`gmeow:JustificationSubject`](../justificationsubject/index.md)
 - [`gmeow:MentalMoment`](../mentalmoment/index.md)
-
-## Usage Advice
-
-- **Scope:** A DoxasticState grounds the canonical claim tokens that report it via gmeow:groundsClaim \(the attitude→token link, inverse of gmeow:heldByAttitude\), distinct from gmeow:doxasticClaim which links to the standpoint\-slice gmeow:StandpointClaim VIEW\. An attitude may ground several tokens or none \(a belief never put forward\) — the held/projected gap \(Principle 9\)\.
-- **Example:** ex:aliceBelievesRound a gmeow:DoxasticState ; gmeow:epistemicAgent ex:alice ; gmeow:doxasticContent ex:earthIsRound ; gmeow:doxasticClaim ex:aliceRoundClaim ; gmeow:credence "0\.92"^^xsd:decimal \.
-- **Use when:** Use when an agent's belief toward a proposition must be first\-class — when credence, temporal scope \(via DoxasticTenure\), standpoint modality, or the mental moment itself needs to be queried or revised \(Principle 15\)\.
-- **Avoid when:** Avoid for the 80% case where an agent simply believes a proposition — use the flat gmeow:believes / gmeow:knowsThat spine and carry modality on the statement layer; avoid double\-typing a belief as both a flat relation and a DoxasticState for the same holding \(Principle 12\)\.
-- **How to use:** Mint one DoxasticState per \(agent, proposition, claim\-modality\) tuple; link it via gmeow:doxasticClaim to a StandpointClaim whose vantage is the agent, observedFeature is the proposition, and claimModality carries the qualitative value; attach credence for graded strength and a DoxasticTenure when belief revision history matters\.
-
-## Alignments
-
-- `closeMatch` → [http://www\.ics\.forth\.gr/isl/CRMinf/I2\_Belief](http://www\.ics\.forth\.gr/isl/CRMinf/I2\_Belief) — *approximate match (close) — not an exact equivalence.*
-- *An approximate match is a lossy projection — the external term is not an exact equivalent. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
-- *These cross-vocabulary crosswalks are also lowered to EDOAL (and, for transformation correspondences, FnO) — sound but lossy under-approximations of the canonical correspondence. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
-
-## Logic stereotypes
-
-`logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
-
-## Box role
-
-[TBox (`gmeow:boxTBox`)](../../four-boxes/index.md)
 
 ## Constraints
 
@@ -67,14 +268,25 @@ An agent's intrinsic believing mode toward a proposition — the reified, first\
 - gmeow:basesBeliefOn should point to an EvidenceSpan, Attestation, or DoxasticState \(advisory warning\)\.
 - gmeow:hasAvailableEvidence should point to an EvidenceSpan, Attestation, or DoxasticState \(advisory warning\)\.
 
+## Conformance examples
+
+- **Don't:** `tests/counter-examples/doxastic-state-missing-agent.ttl`
+  - **Violation code:** `shacl.MinCountConstraintComponent`
+  - The counter\-example declares a gmeow:DoxasticState with no gmeow:epistemicAgent\. gmeow:DoxasticStateShape requires sh:minCount 1 on gmeow:epistemicAgent, so validation MUST emit shacl\.MinCountConstraintComponent\.
+- See the [conformance fixtures index](../../fixtures/index.md).
+
+## Usage Advice
+
+- **Scope:** A DoxasticState grounds the canonical claim tokens that report it via gmeow:groundsClaim \(the attitude→token link, inverse of gmeow:heldByAttitude\), distinct from gmeow:doxasticClaim which links to the standpoint\-slice gmeow:StandpointClaim VIEW\. An attitude may ground several tokens or none \(a belief never put forward\) — the held/projected gap \(Principle 9\)\.
+- **Example:** ex:aliceBelievesRound a gmeow:DoxasticState ; gmeow:epistemicAgent ex:alice ; gmeow:doxasticContent ex:earthIsRound ; gmeow:doxasticClaim ex:aliceRoundClaim ; gmeow:credence "0\.92"^^xsd:decimal \.
+- **Use when:** Use when an agent's belief toward a proposition must be first\-class — when credence, temporal scope \(via DoxasticTenure\), standpoint modality, or the mental moment itself needs to be queried or revised \(Principle 15\)\.
+- **Avoid when:** Avoid for the 80% case where an agent simply believes a proposition — use the flat gmeow:believes / gmeow:knowsThat spine and carry modality on the statement layer; avoid double\-typing a belief as both a flat relation and a DoxasticState for the same holding \(Principle 12\)\.
+- **How to use:** Mint one DoxasticState per \(agent, proposition, claim\-modality\) tuple; link it via gmeow:doxasticClaim to a StandpointClaim whose vantage is the agent, observedFeature is the proposition, and claimModality carries the qualitative value; attach credence for graded strength and a DoxasticTenure when belief revision history matters\.
+
 ## Related terms
 
 - [`gmeow:DoxasticTenure`](../doxastictenure/index.md)
 - [`gmeow:believes`](../believes/index.md)
-
-## Tested by
-
-- GMEOW must answer 'what mental moments does an agent have?' as ONE family: the reparent puts gmeow:Emotion into the kernel gmeow:MentalMoment family, so a single query over gmeow:MentalMoment returns emotions ALONGSIDE knowings \(gmeow:CognitiveState\), beliefs \(gmeow:DoxasticState\), and intentions \(gmeow:IntentionalMode\) — the agent\-memory flagship capability\. The result contains more than these four witnesses; RowsContains asserts the union without pinning every descendant\. (`slices/core/affect/queries/competency/mental-life.rq`)
 
 ## Examples using this term
 
@@ -84,18 +296,47 @@ An agent's intrinsic believing mode toward a proposition — the reified, first\
 - [calendar evidence span for the meeting date](../../slices/epistemics/index.md) — `examples/flagship-epistemic-ledger.ttl`
 - [Ada](../../slices/epistemics/index.md) — `examples/justification-and-defeat.ttl`
 
-## Stability
+## Profiles
 
-- **Status:** stable
+- `claims` · `full` · `memory`
+
+## Formal & academic
+
+## Description\-Logic axioms
+
+```text
+gmeow:DoxasticState ⊑ gmeow:JustificationGround
+gmeow:DoxasticState ⊑ gmeow:JustificationSubject
+gmeow:DoxasticState ⊑ gmeow:MentalMoment
+```
+
+## Alignments
+
+- `closeMatch` → [http://www\.ics\.forth\.gr/isl/CRMinf/I2\_Belief](http://www\.ics\.forth\.gr/isl/CRMinf/I2\_Belief) — *approximate match (close) — not an exact equivalence.*
+- *An approximate match is a lossy projection — the external term is not an exact equivalent. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
+- *These cross-vocabulary crosswalks are also lowered to EDOAL (and, for transformation correspondences, FnO) — sound but lossy under-approximations of the canonical correspondence. See the [preservation loss ledger](../../logic/loss-ledger/index.md) for the per-target structural drops.*
+
+## Logic stereotypes
+
+`logic:Kind` — see the [Logic & Reasoning](../../logic/index.md) index.
+
+## Box role
+
+[TBox (`gmeow:boxTBox`)](../../four-boxes/index.md)
+
+## Tested by
+
+- GMEOW must answer 'what mental moments does an agent have?' as ONE family: the reparent puts gmeow:Emotion into the kernel gmeow:MentalMoment family, so a single query over gmeow:MentalMoment returns emotions ALONGSIDE knowings \(gmeow:CognitiveState\), beliefs \(gmeow:DoxasticState\), and intentions \(gmeow:IntentionalMode\) — the agent\-memory flagship capability\. The result contains more than these four witnesses; RowsContains asserts the union without pinning every descendant\. (`slices/core/affect/queries/competency/mental-life.rq`)
+- See the [competency questions index](../../competency/index.md).
 
 ## Documentation coverage
 
 - **6 of 6 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✓ Scope note · ✓ Alignment
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
-## Profiles
+## Stability
 
-- `claims` · `full` · `memory`
+- **Status:** stable
 
 ## Changelog
 
@@ -107,3 +348,8 @@ An agent's intrinsic believing mode toward a proposition — the reified, first\
 - **Permalink:** <https://blackcatinformatics.ca/gmeow/DoxasticState>
 - **Content address:** `https://blackcatinformatics.ca/gmeow/DoxasticState@blake3:446f6df43c1b3f129596b73ab2fef873a4611c68bd346da8e69c85ada004bf9f`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
+
+---
+
+**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic`
+Rendered from `gmeow.gts` by the dogfooded build pipeline.

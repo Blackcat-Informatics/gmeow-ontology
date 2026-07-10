@@ -408,6 +408,16 @@ fn emit_exec_gap(lang: &str, script: &str, lines: &mut Vec<String>) {
     }
 }
 
+/// The DOCUMENTED gmeow: source term a per-page loss attributes to — the page's `term_iri`
+/// when it is GMEOW-namespaced (so the translation/rendering loss lands on that term's
+/// per-term projection-loss table), else `None` (a non-gmeow page stays whole-program).
+fn gmeow_source_term(group: &PageGroup) -> Option<String> {
+    group
+        .term_iri
+        .starts_with(crate::gmeow_ns::GMEOW_NS)
+        .then(|| group.term_iri.clone())
+}
+
 /// One roll-up ledger row per page translation: its preservation is the DERIVED join of the
 /// page's units, recorded so the ledger carries the computed roll-up rather than a fabricated
 /// document-level flag.
@@ -415,15 +425,18 @@ fn translation_ledger_row(group: &PageGroup, loss: &mut LossLedger) -> Projectio
     let kind = derived_kind(group);
     let short = digest16("docs", &format!("{}\u{1f}{}", group.lang, group.term_iri));
     let target = format!("lang-docs-translation:{short}");
-    let actual_drops = vec![format!(
-        "docs page translation roll-up ({lang}, {term}) over {n} unit(s); \
-         weakest-dominates join = logic:{kind}",
-        lang = group.lang,
-        term = group.term_iri,
-        n = group.entries.len(),
-        kind = kind.as_str(),
+    let actual_drops = vec![(
+        format!(
+            "docs page translation roll-up ({lang}, {term}) over {n} unit(s); \
+             weakest-dominates join = logic:{kind}",
+            lang = group.lang,
+            term = group.term_iri,
+            n = group.entries.len(),
+            kind = kind.as_str(),
+        ),
+        gmeow_source_term(group),
     )];
-    loss.record_projection_drops(&target, kind, &[], &actual_drops);
+    loss.record_projection_drops_attributed(&target, kind, &[], &actual_drops);
     ProjectionResult {
         target,
         content: String::new(),
@@ -439,15 +452,18 @@ fn rendering_ledger_row(group: &PageGroup, loss: &mut LossLedger) -> ProjectionR
     let kind = derived_kind(group);
     let short = digest16("docs", &format!("{}\u{1f}{}", group.lang, group.term_iri));
     let target = format!("lang-docs-rendering:{short}");
-    let actual_drops = vec![format!(
-        "docs page rendering ({lang}, {term}): {n} target surface(s); \
-         derived preservation = logic:{kind}",
-        lang = group.lang,
-        term = group.term_iri,
-        n = group.entries.len(),
-        kind = kind.as_str(),
+    let actual_drops = vec![(
+        format!(
+            "docs page rendering ({lang}, {term}): {n} target surface(s); \
+             derived preservation = logic:{kind}",
+            lang = group.lang,
+            term = group.term_iri,
+            n = group.entries.len(),
+            kind = kind.as_str(),
+        ),
+        gmeow_source_term(group),
     )];
-    loss.record_projection_drops(&target, kind, &[], &actual_drops);
+    loss.record_projection_drops_attributed(&target, kind, &[], &actual_drops);
     ProjectionResult {
         target,
         content: String::new(),

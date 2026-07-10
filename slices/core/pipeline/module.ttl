@@ -484,13 +484,16 @@ gmeow:stage-docs-render
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "docs render"@x-gmeow-english ;
-    skos:definition "Render the typed documentation model (crates/docs) over the composed dataset and fold the doc artifacts into the bundle. Consumes gmeow:stage-reason so the projected documentation graph carries the per-term native-reasoner status (gmeow:docReasoningStatus)."@x-gmeow-english ;
+    skos:definition "Render the typed documentation model (crates/docs) over the composed dataset and fold the doc artifacts into the bundle. Consumes gmeow:stage-reason so the projected documentation graph carries the per-term native-reasoner status (gmeow:docReasoningStatus), gmeow:stage-validate + gmeow:stage-compile-logic so the model carries the diagnostics-to-term join digest driving the per-term 'Diagnostics you might hit' surface, and gmeow:stage-mappings so the model carries the dynamic per-term projection-loss join digest driving the per-term 'how this term degrades under projection' surface."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "docs_render" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ,
-        gmeow:stage-reason .
+    gmeow:dataflowConsumes gmeow:stage-compile-logic ,
+        gmeow:stage-gts-compose ,
+        gmeow:stage-mappings ,
+        gmeow:stage-reason ,
+        gmeow:stage-validate .
 
 gmeow:stage-constraint-catalog
     a gmeow:PipelineStage ;

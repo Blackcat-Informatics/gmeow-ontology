@@ -339,6 +339,27 @@ impl Store {
             .collect()
     }
 
+    /// Every distinct named subject carrying `?s <pred> ?o` in the default graph
+    /// (sorted, deduped). Default-graph twin of [`Store::subjects_with_predicate_any`]
+    /// — the projection-loss-ledger extractor uses it to find every example
+    /// subject declaring `logic:preservationKind`.
+    pub(crate) fn subjects_with_predicate(&self, pred: &str) -> Vec<String> {
+        let Some(p) = self.iri_id(pred) else {
+            return Vec::new();
+        };
+        let mut out: Vec<String> = self
+            .ds
+            .quads_for_pattern(None, Some(p), None, GraphMatch::Default)
+            .filter_map(|q| match self.node_of(q.s) {
+                Some(Node::Named(iri)) => Some(iri),
+                _ => None,
+            })
+            .collect();
+        out.sort();
+        out.dedup();
+        out
+    }
+
     /// All NamedNode subjects of `?s a <type>` in the default graph (sorted,
     /// deduped) — the docs `subjects_of_type`.
     pub(crate) fn subjects_of_type(&self, type_iri: &str) -> Vec<String> {

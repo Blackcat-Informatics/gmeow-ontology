@@ -77,6 +77,7 @@ pub(crate) fn lower(
         remediation: inner.remediation.clone(),
         labels: inner.labels.clone(),
         tags: inner.tags.clone(),
+        documented_terms: inner.documented_terms.clone(),
         knowledge: inner.grade.category.polarity(),
         emitted_at: SerLocation::from_caller(inner.locus.emitted_at),
         locus_stage: inner.locus.stage.as_ref().map(|s| s.0.clone()),

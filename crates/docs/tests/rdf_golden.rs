@@ -12,8 +12,8 @@
 // Rich colored line-diffs on assert_eq! failure; shadows the std macro
 // for this file. Identical behaviour on pass; insta snapshots are unaffected.
 use gmeow_docs::{
-    DocConcern, DocMappingSet, DocSlice, DocTerm, DocTermCategory, DocsModel, Translations,
-    UiCatalog, to_gmeow_rdf,
+    DocCompetency, DocConcern, DocFixture, DocFixtureKind, DocFlowEdge, DocMappingSet, DocPipeline,
+    DocSlice, DocStage, DocTerm, DocTermCategory, DocsModel, Translations, UiCatalog, to_gmeow_rdf,
 };
 use pretty_assertions::assert_eq;
 
@@ -88,8 +88,37 @@ fn small_model() -> DocsModel {
         }],
         linkages: Vec::new(),
         examples: Vec::new(),
+        // A fixture that references gmeow:Cat, so the term projects a `fixture`
+        // gmeow:DocEvidence node (issue 1404).
+        fixtures: vec![DocFixture {
+            slice: format!("{GMEOW}slice/zoo"),
+            logical_path: "tests/conformance-fixtures/cat-ok.ttl".to_string(),
+            title: "A conforming cat".to_string(),
+            text: "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n".to_string(),
+            kind: DocFixtureKind::Wellformed,
+            terms_referenced: vec!["gmeow:Cat".to_string()],
+            expected_outcome: Some("conforms".to_string()),
+            violation_code: None,
+            rationale: None,
+            catalog_slug: None,
+        }],
         shapes: Vec::new(),
-        competencies: Vec::new(),
+        // A competency question exercising gmeow:Cat, so the term projects a
+        // `competency` gmeow:DocEvidence node with a blake3 query digest.
+        competencies: vec![DocCompetency {
+            iri: format!("{GMEOW}cq/cats-are-animals"),
+            rationale: Some("Every cat must classify as an animal.".to_string()),
+            query_file: None,
+            query_text: Some("SELECT ?c WHERE { ?c a gmeow:Cat }".to_string()),
+            exact_rows: None,
+            expected_row_count: None,
+            expected_rows: Vec::new(),
+            exercises: vec![format!("{GMEOW}Cat")],
+            owner_slice: format!("{GMEOW}slice/zoo"),
+        }],
+        grammars: Vec::new(),
+        loss_targets: Vec::new(),
+        worked_instances: Vec::new(),
         concerns: vec![DocConcern {
             iri: format!("{GMEOW}concern/animals"),
             curie: "gmeow:concern/animals".to_string(),
@@ -104,10 +133,36 @@ fn small_model() -> DocsModel {
         constraint_rules: Vec::new(),
         four_boxes: None,
         concept_doi: None,
+        // A minimal pipeline so every term projects a `provenance`
+        // gmeow:DocEvidence node with a real stage-docs-render grounding + chain.
+        pipeline: Some(DocPipeline {
+            stages: vec![
+                DocStage {
+                    iri: format!("{GMEOW}stage-source-load"),
+                    consumes: Vec::new(),
+                    ..Default::default()
+                },
+                DocStage {
+                    iri: format!("{GMEOW}stage-docs-render"),
+                    consumes: vec![format!("{GMEOW}stage-source-load")],
+                    ..Default::default()
+                },
+            ],
+            edges: vec![DocFlowEdge {
+                from: format!("{GMEOW}stage-source-load"),
+                to: format!("{GMEOW}stage-docs-render"),
+                flow_entities: Vec::new(),
+            }],
+            goal: None,
+            success_mode: None,
+        }),
         available_languages: vec!["english".to_string()],
         translations: Translations::default(),
         ui_catalog: UiCatalog::default(),
         reasoning: None,
+        diagnostics: None,
+        term_loss: None,
+        schema_fragments: None,
         lang: String::new(),
     }
 }
@@ -151,6 +206,18 @@ fn gmeow_rdf_carries_the_documentation_vocabulary_in_the_named_graph() {
         "gmeow/docHasDefinition",
         "gmeow/docUrl",
         "gmeow/docOwnerSlice",
+        // The uniform gmeow:DocEvidence layer (issue 1404).
+        "gmeow/DocEvidence",
+        "gmeow/docEvidenceKind",
+        "gmeow/docEvidenceKindFixture",
+        "gmeow/docEvidenceKindCompetency",
+        "gmeow/docEvidenceKindProvenance",
+        "gmeow/docClaim",
+        "gmeow/docGroundedBy",
+        "gmeow/docProducedByChain",
+        "gmeow/docFixtureCount",
+        "gmeow/docCompetencyCount",
+        "gmeow/docProvenanceDepth",
     ] {
         assert!(nq.contains(needle), "projection missing `{needle}`");
     }

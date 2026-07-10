@@ -388,6 +388,23 @@ whole-committed-bundle class as the `build_writes_serializations` / export /
 its fixture-scale reject/parity coverage on-gate in the same binaries, the
 serializations stay drift-gated via `make check-generated`, and all three stay
 on-gate on `maint-heavy`).
+`gmeow-pipeline::stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo`
+(~100 s locally) proves the B3 entailment-join is non-vacuous against
+the REAL ontology by running the real `source_load` → `statements` /
+`compile_logic` → `mappings` → `reason` stage chain — a full native-chase
+reasoning pass over the whole EDB, irreducibly O(bundle size), the same
+whole-repo class as `end_to_end`/`quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate`;
+the join logic itself stays on-gate via the fast fixture-only siblings
+`term_entailments_from_explanations_populates_matching_term_only` and
+`term_entailments_from_upstream_joins_and_hard_fails_on_missing_artifact` in the
+same module, and the real-repo non-vacuity proof stays on-gate on `maint-heavy`.
+Its two symmetric per-term siblings —
+`stages::docs_render::tests::diagnostics_digest_total_is_non_vacuous_on_the_real_repo`
+(the diagnostics→term join over the real `source_load` → `validate` / `compile_logic`
+chain) and `::term_loss_digest_is_non_vacuous_on_the_real_repo` (the per-term
+projection-loss join over the real `compile_logic` → `mappings` chain) — are the same
+whole-repo cost class and are likewise carved to `maint-heavy`, with their join logic
+proven on-gate by fast synthetic siblings in the same module.
 A new GMN-1 Coverage quality axis grew
 `slices/core/slice-quality-rubric/module.ttl` — already the largest, most prose-dense
 module in the repo, being the self-describing quality rubric itself — to a 13th axis,

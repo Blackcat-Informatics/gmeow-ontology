@@ -443,7 +443,21 @@ fn unit_ledger_row(unit: &Unit, loss: &mut LossLedger) -> ProjectionResult {
         ]
     };
     let target = format!("lang-translation:{short}");
-    loss.record_projection_drops(&target, kind, &[], &actual_drops);
+    // Attribute the residue to the DOCUMENTED gmeow: term whose English prose this unit
+    // translates — the term IRI of the `<term-iri>|<predicate>` provenance key — so the
+    // translation loss lands on that term's per-term projection-loss table. A non-gmeow key
+    // (or a malformed one) leaves the drops whole-program; never fabricated onto a term.
+    let source_term = unit
+        .key
+        .split_once('|')
+        .map(|(term_iri, _)| term_iri)
+        .filter(|t| t.starts_with(crate::gmeow_ns::GMEOW_NS))
+        .map(str::to_owned);
+    let attributed: Vec<(String, Option<String>)> = actual_drops
+        .into_iter()
+        .map(|note| (note, source_term.clone()))
+        .collect();
+    loss.record_projection_drops_attributed(&target, kind, &[], &attributed);
     ProjectionResult {
         target,
         content: String::new(),

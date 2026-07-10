@@ -152,7 +152,9 @@ pub fn lower_fno(dsl: &DslView, onto: &DslView) -> gmeow_errors::Result<FnoLower
             "get-leg: the correspondence relation, caveats, and standpoint scope are dropped"
                 .to_owned(),
         ];
-        ledger.push(correspondence_result(&mut loss, "fno", &func.iri, residue));
+        ledger.push(correspondence_result(
+            &mut loss, "fno", &func.iri, residue, None,
+        ));
     }
     Ok(FnoLowering {
         catalog,
