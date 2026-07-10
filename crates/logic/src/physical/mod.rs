@@ -27,6 +27,10 @@ mod binding_pattern;
 mod bitset;
 mod builtin_eval;
 mod chase;
+// The arrangement's native galloping lending cursor (issue 1418, item 6): a sealed
+// GAT `LendingIterator` over row-id-ordered runs, replacing the materialized per-stage
+// `Vec<(TermId, TermId, RowId)>` on the semi-naive join hot path (`seminaive`, `chase`).
+mod cursor;
 mod generic;
 // Branded niche IDs for every engine entity class (`TermId`/`PredId`/`RuleId`/
 // `RowId`). `pub(crate)` so `crate::facts` can re-express its `TermId` as this
@@ -62,6 +66,11 @@ pub(crate) use generic::{
 // unused crate-wide, so allow it here rather than dropping the intended API.
 #[allow(unused_imports)]
 pub(crate) use store::{Bound, RelationStore, extract_edb};
+
+// The arrangement's native lending cursor + its sealed GAT trait: the zero-alloc row
+// scan consumed by the semi-naive join (`seminaive`) and the chase (`chase`).
+#[allow(unused_imports)]
+pub(crate) use cursor::{LendingIterator, RowCursor};
 
 // The forward native evaluator: the stratified semi-naive core, its
 // `RelationStore`-seeded backward entry, and the declared-gap outcome. `materialize_native`

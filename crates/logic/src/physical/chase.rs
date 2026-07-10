@@ -46,6 +46,7 @@ use std::collections::BTreeSet;
 
 use gmeow_errors::{Finding, Severity};
 
+use crate::physical::cursor::LendingIterator;
 use crate::physical::seminaive::{
     Budgeted, NativeOutcome, StepGovernor, StrataProgress, UnsupportedKind,
 };
@@ -165,9 +166,11 @@ fn join_atoms(atoms: &[EvalAtom], rel: &RelationStore, seed: &Solution) -> Vec<S
             let Some(bound) = atom_bound(rel, subj.as_deref(), obj.as_deref()) else {
                 continue; // a bound term the store has never seen matches nothing
             };
-            for (s_id, o_id, _row) in rel.select(atom.predicate.as_str(), bound) {
-                // `select` returns interned id rows (with a delta-probe RowId this chase
-                // ignores); resolve the term ids to `TermValue` surfaces here.
+            // Drive the lending cursor directly (no eager `Vec`): each `next()` yields
+            // one id row (the delta-probe RowId is ignored by the chase) in row-id order.
+            let mut cursor = rel.select(atom.predicate.as_str(), bound);
+            while let Some((s_id, o_id, _row)) = cursor.next() {
+                // Resolve the term ids to `TermValue` surfaces here.
                 let f = Fact {
                     subject: interner.resolve(s_id).clone(),
                     predicate: atom.predicate.clone(),

@@ -19,8 +19,9 @@
 //! space that minted it).  Mint order is **meaningless for emission**: two runs
 //! that intern the same terms in the same sequence mint the same ids, but the id
 //! integers carry no lexical meaning.  It is therefore used ONLY where the code
-//! already sorts on mint order — e.g. the two-pointer intersection of `Vec`-indexed
-//! row buckets that hold row indices in insertion order.  Every emission / commit /
+//! already sorts on mint order — e.g. the galloping leapfrog intersection
+//! ([`crate::physical::cursor`]) of `Vec`-indexed row buckets that hold row indices
+//! in insertion order.  Every emission / commit /
 //! budget-charge ordering ALWAYS derives from the resolved lexical surface at the
 //! sorted round commit — NEVER from `Id` order.  An `Id` integer is never
 //! serialized and never hashed for provenance (content hashing stays over the
