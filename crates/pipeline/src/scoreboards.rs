@@ -584,15 +584,25 @@ fn draft_gates(
 ) -> gmeow_errors::Result<(Vec<GateResult>, usize)> {
     let draft_nt = retag_nt_to_internal(graph_nt, inverse_tag_map)?;
     let draft_store = dataset_from_nt(&draft_nt)?;
+    // `transform_nt` applies the internal->public retag to its own output (the
+    // same projection-boundary law `project`/`export` already enforce), so
+    // `base_plus_derived_nt` is already public-tagged — no separate retag pass
+    // needed here (a prior double-retag masked a gap: MAXIMAL(G)'s own emitted
+    // `.gts` bytes were never retagged, only this scoreboard's private N-Triples
+    // copy of the same data was).
+    let btree_tag_map: BTreeMap<String, String> = tag_map
+        .iter()
+        .map(|(k, v)| (k.clone(), v.clone()))
+        .collect();
     let transformed = transform::transform_nt(
         &draft_nt,
         ontology_nt,
         &load_cells(root)?,
         &denied_cells(root)?,
         &projection_queries(root)?,
+        &btree_tag_map,
     )?;
-    let output_nt = retag_nt_to_public(&transformed.base_plus_derived_nt, tag_map)?;
-    let output_store = dataset_from_nt(&output_nt)?;
+    let output_store = dataset_from_nt(&transformed.base_plus_derived_nt)?;
     let gates = vec![
         gate_pure_gmeow(&draft_store)?,
         gate_round_trip(source_store, &output_store, tag_map)?,
@@ -1475,19 +1485,6 @@ fn retag_nt_to_internal(
             None
         } else {
             inverse_tag_map.get(&lang.to_ascii_lowercase()).cloned()
-        }
-    })
-}
-
-fn retag_nt_to_public(nt: &str, tag_map: &HashMap<String, String>) -> gmeow_errors::Result<String> {
-    retag_nt(nt, |lang| {
-        if gmeow_validate::language_tags::is_internal_tag(lang) {
-            tag_map
-                .get(lang)
-                .or_else(|| tag_map.get(&lang.to_ascii_lowercase()))
-                .cloned()
-        } else {
-            None
         }
     })
 }
