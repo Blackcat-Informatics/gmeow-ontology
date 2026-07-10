@@ -388,17 +388,19 @@ whole-committed-bundle class as the `build_writes_serializations` / export /
 its fixture-scale reject/parity coverage on-gate in the same binaries, the
 serializations stay drift-gated via `make check-generated`, and all three stay
 on-gate on `maint-heavy`).
-The self-sufficiency parity harness added three more whole-bundle CLI tests —
+The self-sufficiency parity harness added four more whole-bundle CLI tests —
 `gmeow-cli::self_sufficiency::transpile_wheel_mode_equals_repo_mode`,
-`::transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak`, and
-`::project_wheel_mode_equals_repo_mode` (31-53 s locally; each drives `gmeow
-transpile`/`gmeow project` over the WHOLE embedded bundle — the transpile
-parity test runs it twice, blinded-cwd and repo-cwd legs — the identical
-whole-committed-bundle class as the `build_writes_serializations` /
-`export_respects_language_selector` / `project_schema_org_view_filter` trio
-above; the same wheel-mode==repo-mode parity law stays on-gate at fixture
-scale via `self_sufficiency::describe_wheel_mode_equals_repo_mode` and
-`::validate_wheel_mode_equals_repo_mode`, and all three stay on-gate on
+`::transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak`,
+`::project_wheel_mode_equals_repo_mode`, and
+`::describe_wheel_mode_equals_repo_mode` (31-53 s locally, `describe` 7.6 s
+standalone but 27.6 s under full-parallelism CI contention; each drives
+`gmeow transpile`/`gmeow project`/`gmeow describe` over the WHOLE embedded
+bundle — the transpile parity test runs it twice, blinded-cwd and repo-cwd
+legs — the identical whole-committed-bundle class as the
+`build_writes_serializations` / `export_respects_language_selector` /
+`project_schema_org_view_filter` trio above; the same wheel-mode==repo-mode
+parity law stays on-gate at fixture scale via
+`self_sufficiency::validate_wheel_mode_equals_repo_mode`, and all four stay on-gate on
 `maint-heavy`).
 The native release-attestation round-trip added a whole-bundle pair —
 `gmeow-pipeline::release_verify_roundtrip::release_bundle_with_coherence_evidence_round_trips_natively`
