@@ -299,11 +299,14 @@ corpus)`: bit-for-bit reproducible, immune to the scheduler.
   regressed" a byte-checkable proposition rather than a noisy sample.
 - **The reporting spine stays, but its gate is deterministic.** The committed baseline, the
   leaderboard, and the drift gate remain; the committed baseline is now the **integer-valued
-  deterministic cost vector**, the drift gate is a **cost certificate on the coherence-certificate
-  ladder** whose regression is a certificate *refutation*, and **the wall-clock duration budget is
-  retired as a gate** — timings fold into the advisory leaderboard only. Retired-instruction counts
-  gate only through their own deterministic column; estimated cycles and cache figures are
-  microarchitecture-dependent and stay advisory.
+  deterministic cost vector**, and the drift gate is a **content-addressed cost-regression finding
+  in the divergence ledger** — an equal cost descriptor folds through as a non-blocking `Agree`
+  corroboration, a divergent one as a **blocking `CorpusOnly` regression finding** carrying
+  content-addressed identity, and the committed cost-ledger projection is additionally enforced by
+  the `check-generated` drift check; a cost regression is thus a ledger refutation / drift failure.
+  **The wall-clock duration budget is retired as a gate** — timings fold into the advisory
+  leaderboard only. Retired-instruction counts gate only through their own deterministic column;
+  estimated cycles and cache figures are microarchitecture-dependent and stay advisory.
 - **Numbers are measured, never invented.** A claim of the form "faster than the subsumed engine"
   is admissible only as a leaderboard row produced by a committed lane over a named corpus, pinned
   to versions on both sides.
