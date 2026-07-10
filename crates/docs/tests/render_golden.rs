@@ -431,17 +431,13 @@ fn search_index_json_golden() {
 /// it guards that the dashboard can never silently disagree with the lint gate.
 #[test]
 fn documentation_health_counts_match_the_coverage_source() {
-    use gmeow_docs::coverage::{DIMENSIONS, TermCoverage, alignment_subjects, term_coverage};
+    use gmeow_docs::coverage::{CoverageContext, DIMENSIONS, TermCoverage, term_coverage};
 
     let model = common::cached_model();
     let page = to_markdown(&model, &Page::Health);
 
-    let aligned = alignment_subjects(&model);
-    let coverages: Vec<TermCoverage> = model
-        .terms
-        .iter()
-        .map(|t| term_coverage(t, &aligned))
-        .collect();
+    let ctx = CoverageContext::new(&model);
+    let coverages: Vec<TermCoverage> = model.terms.iter().map(|t| term_coverage(t, &ctx)).collect();
     let total = coverages.len();
 
     // Per-dimension covered counts (the row continues with a `%` column, so the

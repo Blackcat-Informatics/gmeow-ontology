@@ -1097,10 +1097,11 @@ fn md_health(model: &DocsModel) -> String {
     );
 
     let aligned = crate::coverage::alignment_subjects(model);
+    let ctx = crate::coverage::CoverageContext::new(model);
     let coverages: Vec<crate::coverage::TermCoverage> = model
         .terms
         .iter()
-        .map(|t| crate::coverage::term_coverage(t, &aligned))
+        .map(|t| crate::coverage::term_coverage(t, &ctx))
         .collect();
     let total = coverages.len();
 
@@ -1673,8 +1674,8 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
     // emitted in `render_site_lang` from this same source (no dangling path); the
     // detailed, linkable surfaces follow in their own sections below.
     {
-        let aligned = crate::coverage::alignment_subjects(model);
-        let badges = crate::badge::term_badges(term, &aligned, model.reasoning.as_ref());
+        let ctx = crate::coverage::CoverageContext::new(model);
+        let badges = crate::badge::term_badges(term, &ctx, model.reasoning.as_ref());
         let row = badges
             .iter()
             .map(|b| {
@@ -2358,8 +2359,8 @@ fn term_academic_surface(
     // source — exactly the predicates behind the `docs/missing-*` lint, so the page
     // and the gate can never disagree about what a term is missing.
     {
-        let aligned = crate::coverage::alignment_subjects(model);
-        let cov = crate::coverage::term_coverage(term, &aligned);
+        let ctx = crate::coverage::CoverageContext::new(model);
+        let cov = crate::coverage::term_coverage(term, &ctx);
         heading(&mut out, 2, model.ui("body_documentation_coverage"));
         let badges = crate::coverage::DIMENSIONS
             .iter()
@@ -5750,7 +5751,7 @@ struct SearchRecord {
 pub fn search_index_json(model: &DocsModel) -> String {
     let mut records: Vec<SearchRecord> = Vec::new();
     let alignment_facets = precompute_alignment_facets(model);
-    let aligned = crate::coverage::alignment_subjects(model);
+    let ctx = crate::coverage::CoverageContext::new(model);
 
     for term in &model.terms {
         records.push(SearchRecord {
@@ -5764,7 +5765,7 @@ pub fn search_index_json(model: &DocsModel) -> String {
                 .get(term.iri.as_str())
                 .cloned()
                 .unwrap_or_default(),
-            missing_coverage: crate::coverage::term_coverage(term, &aligned).missing_keys(),
+            missing_coverage: crate::coverage::term_coverage(term, &ctx).missing_keys(),
         });
     }
     for slice in &model.slices {
@@ -6420,6 +6421,8 @@ mod tests {
             profiles: Vec::new(),
             depends_on: Vec::new(),
             artifacts: Vec::new(),
+            has_thesis_sentence: false,
+            realized_state_complete: false,
         });
         // Add a worked example so the "try it" surface has something to render.
         model.examples.push(crate::model::DocExample {

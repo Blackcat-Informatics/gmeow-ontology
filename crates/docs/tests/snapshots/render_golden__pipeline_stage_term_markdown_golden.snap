@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 164
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # gts sink
@@ -13,7 +14,7 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 | Category | Individual |
 | Slice | [GMEOW Build Pipeline Module](../../slices/pipeline/index.md) |
 
-![completeness: Docs 2/6](../../badges/completeness/2.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Individual](../../badges/category/individual.svg) ![box: ABox](../../badges/box/boxabox.svg)
+![completeness: Docs 4/17](../../badges/completeness/4.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Individual](../../badges/category/individual.svg) ![box: ABox](../../badges/box/boxabox.svg)
 
 ## Definition
 
@@ -39,7 +40,7 @@ The terminal gts ARCHIVE writer \(the ONE canonical exit / narrow waist\): seria
 
 ## Documentation coverage
 
-- **2 of 6 dimensions present.** ✓ Definition · ✓ Label · ✗ Usage advice · ✗ Example · ✗ Scope note · ✗ Alignment
+- **4 of 17 dimensions present.** ✓ Definition · ✓ Label · ✗ Usage advice · ✗ Example · ✗ Scope note · ✗ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✗ Worked instance · ✗ Loss ledger row · ✗ Linkage coverage · ✗ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
 ## Stability

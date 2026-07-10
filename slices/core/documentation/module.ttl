@@ -572,6 +572,13 @@ gmeow:dimProseQuality
     skos:definition "The prose-quality coverage dimension — reformulated from subjective judgment into a deterministic structural conjunction so it is gate-safe. Detection rule (structural conjunction, each conjunct a present/absent fact): the boundary definition contains the three-NOTs structural pattern AND at least one worked-triple example is present AND a non-empty usage-coat distinct from the definition is present AND a present rationale distinct from the label is present. No substantiveness score, no corpus calibration."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:dimLossJudgmentSound
+    a gmeow:DocCoverageDimension ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "loss judgment sound"@x-gmeow-english ;
+    skos:definition "The MAXIMAL-only loss-judgment coverage dimension — the Principle-17 judgment-valued refinement of gmeow:dimLossLedgerRow, kept a DISTINCT dimension so the presence bit (gmeow:dimLossLedgerRow, in the FULL intent) and the judgment gate (this dimension, in the MAXIMAL intent only) never collide on one attribute. Detection rule: every preservation judgment the term's projection-loss rows carry is sound-or-stronger in the logic:PreservationKind ordering (logic:ExactPreservation / logic:SoundUnderApproximation are ≥ sound), read from the same docJudgment preservation-kind values the evidence DAG emits — a deterministic field comparison over the existing preservation ordering, never a hand-picked whitelist or corpus tuning. A term with no loss rows vacuously satisfies it (the empty universal, consistent with the other all-present vacuities)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 # ── DocMaturity anchors — distinguished intents over the coverage incidence ───
 # The named maturity tiers are anchors (not fences) inside the Formal-Concept
 # lattice of the "covers dimension" incidence. Each anchor's INTENT is the set of
@@ -644,7 +651,7 @@ gmeow:docMaturityMaximal
     a gmeow:DocMaturity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     rdfs:label "maximal"@x-gmeow-english ;
-    skos:definition "The maximal documentation-maturity anchor — the full intent plus every remaining structural dimension. Intent: the full intent plus gmeow:dimAnnotationCoat, gmeow:dimThesisSentence, gmeow:dimTranslationCoverage, gmeow:dimTestReach, gmeow:dimProvenanceHonesty, gmeow:dimProseQuality (all eighteen). At MAXIMAL the loss dimension is judgment-valued: every projection of the term carries a preservation judgment ≥ sound (Principle 17)."@x-gmeow-english ;
+    skos:definition "The maximal documentation-maturity anchor — the full intent plus every remaining structural dimension. Intent: the full intent plus gmeow:dimAnnotationCoat, gmeow:dimThesisSentence, gmeow:dimTranslationCoverage, gmeow:dimTestReach, gmeow:dimProvenanceHonesty, gmeow:dimProseQuality, and the judgment-valued gmeow:dimLossJudgmentSound (all nineteen). The Principle-17 loss refinement is carried by the DISTINCT gmeow:dimLossJudgmentSound (in the MAXIMAL intent only): FULL demands the loss ledger row is PRESENT (gmeow:dimLossLedgerRow), MAXIMAL additionally demands every projection's preservation judgment is ≥ sound — the two never collide on one attribute."@x-gmeow-english ;
     gmeow:maturityRequiresDimension
         gmeow:dimDefinition ,
         gmeow:dimLabel ,
@@ -663,7 +670,8 @@ gmeow:docMaturityMaximal
         gmeow:dimTranslationCoverage ,
         gmeow:dimTestReach ,
         gmeow:dimProvenanceHonesty ,
-        gmeow:dimProseQuality ;
+        gmeow:dimProseQuality ,
+        gmeow:dimLossJudgmentSound ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 # ── Maturity + coverage projection predicates ────────────────────────────────

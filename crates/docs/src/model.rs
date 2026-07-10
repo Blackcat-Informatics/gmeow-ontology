@@ -368,6 +368,104 @@ pub struct DocSlice {
     pub depends_on: Vec<String>,
     /// All artifacts in the slice (sorted by logical path).
     pub artifacts: Vec<DocArtifact>,
+    /// Deterministic `docs.md` fact: the slice's `docs.md` opens with a thesis
+    /// sentence (a prose sentence, not a heading/table/list). Drives the
+    /// slice-scoped `gmeow:dimThesisSentence` coverage dimension. Computed in
+    /// [`DocSlice::from_record`] from the `docs.md` artifact so the coverage
+    /// producer stays a pure function of the model.
+    #[serde(default)]
+    pub has_thesis_sentence: bool,
+    /// Deterministic `docs.md` fact: every documented artifact in the slice's
+    /// `docs.md` design-set table (a table with a "realized state" column) carries
+    /// a realized-state marker (design-only / partial / built). Drives the
+    /// slice-scoped `gmeow:dimRealizedState` coverage dimension. `false` when the
+    /// slice ships no such table (a gated omission, not authorial vigilance).
+    #[serde(default)]
+    pub realized_state_complete: bool,
+}
+
+/// Deterministic detection of a `docs.md` opening thesis sentence: at least one
+/// prose line — trimmed non-empty, beginning with an alphabetic character (so
+/// headings `#`, tables `|`, block-quotes `>`, list markers `-`/`*`/`+`, and code
+/// fences ` ``` ` are excluded) — that carries a sentence-ending period. A
+/// present/absent structural fact over the narrative, never a tuned length.
+fn detect_thesis_sentence(md: &str) -> bool {
+    md.lines().any(|line| {
+        let t = line.trim();
+        t.chars().next().is_some_and(|c| c.is_ascii_alphabetic()) && t.contains('.')
+    })
+}
+
+/// The interior cells of a markdown table row, preserving empty interior cells.
+fn md_row_cells(line: &str) -> Vec<String> {
+    let trimmed = line.trim();
+    if !trimmed.starts_with('|') {
+        return Vec::new();
+    }
+    let inner = trimmed
+        .strip_prefix('|')
+        .and_then(|s| s.strip_suffix('|'))
+        .unwrap_or(trimmed);
+    inner.split('|').map(|c| c.trim().to_string()).collect()
+}
+
+/// True if a markdown table row is the `|---|:--:|` separator (only dashes,
+/// colons, spaces between the pipes).
+fn is_table_separator(line: &str) -> bool {
+    let cells = md_row_cells(line);
+    !cells.is_empty()
+        && cells
+            .iter()
+            .all(|c| !c.is_empty() && c.chars().all(|ch| ch == '-' || ch == ':' || ch == ' '))
+}
+
+/// Deterministic detection of a complete realized-state design-set table: the
+/// `docs.md` carries a markdown table with a "realized state" header column, and
+/// EVERY data row's cell in that column carries a realized-state marker
+/// (design / partial / built). Returns `false` when no such table exists — a
+/// silent omission is a gated miss, not authorial vigilance.
+fn detect_realized_state_complete(md: &str) -> bool {
+    let lines: Vec<&str> = md.lines().collect();
+    let mut i = 0;
+    while i < lines.len() {
+        let header = md_row_cells(lines[i]);
+        let realized_col = header
+            .iter()
+            .position(|c| c.to_lowercase().contains("realized"));
+        // A header row with a "realized" column, followed by a separator row.
+        if let Some(col) = realized_col
+            && i + 1 < lines.len()
+            && is_table_separator(lines[i + 1])
+        {
+            let mut all_marked = true;
+            let mut j = i + 2;
+            while j < lines.len() && lines[j].trim().starts_with('|') {
+                if is_table_separator(lines[j]) {
+                    j += 1;
+                    continue;
+                }
+                let cells = md_row_cells(lines[j]);
+                let marked = cells.get(col).is_some_and(|cell| {
+                    let c = cell.to_lowercase();
+                    // The realized-state markers: `realized` / `built` (fully
+                    // realized), `partial`, and `design-only` / `design` (not yet
+                    // built). A row whose realized-state cell names none of these
+                    // carries no honest marker and misses the dimension.
+                    c.contains("realized")
+                        || c.contains("built")
+                        || c.contains("partial")
+                        || c.contains("design")
+                });
+                if !marked {
+                    all_marked = false;
+                }
+                j += 1;
+            }
+            return all_marked;
+        }
+        i += 1;
+    }
+    false
 }
 
 impl DocSlice {
@@ -391,6 +489,25 @@ impl DocSlice {
             .collect();
         artifacts.sort_by(|a, b| a.logical_path.cmp(&b.logical_path));
 
+        // Deterministic docs.md facts — read the slice's `docs.md` (an
+        // ArtifactRole::Documentation artifact carrying its bytes) once so the
+        // coverage producer stays a pure function of the model. Absent docs.md ⇒
+        // both facts false (a gated miss, honest absence).
+        let docs_md: Option<String> = record
+            .artifacts
+            .iter()
+            .find(|a| {
+                a.role == ArtifactRole::Documentation
+                    && Path::new(&a.logical_path)
+                        .file_name()
+                        .is_some_and(|n| n == "docs.md")
+            })
+            .map(|a| String::from_utf8_lossy(&a.content).into_owned());
+        let has_thesis_sentence = docs_md.as_deref().is_some_and(detect_thesis_sentence);
+        let realized_state_complete = docs_md
+            .as_deref()
+            .is_some_and(detect_realized_state_complete);
+
         let mut creators = creators.clone();
         creators.sort();
         let mut consumers = consumers.clone();
@@ -412,6 +529,8 @@ impl DocSlice {
             profiles,
             depends_on,
             artifacts,
+            has_thesis_sentence,
+            realized_state_complete,
         }
     }
 }
@@ -3720,6 +3839,47 @@ mod tests {
 
     fn store_from(ttl: &str) -> Store {
         parse_turtle_lenient(ttl.as_bytes()).expect("parse")
+    }
+
+    #[test]
+    fn thesis_sentence_detection_is_structural() {
+        assert!(detect_thesis_sentence(
+            "# Heading\n\nThis slice grounds the documentation standard in RDF."
+        ));
+        // Only headings / tables / lists — no prose sentence.
+        assert!(!detect_thesis_sentence(
+            "# Heading\n\n| a | b |\n| - | - |\n"
+        ));
+        assert!(!detect_thesis_sentence("- a bullet\n- another"));
+        assert!(!detect_thesis_sentence(""));
+    }
+
+    #[test]
+    fn realized_state_table_detection_requires_every_row_marked() {
+        // A table with a "Realized state" column where every row carries a marker
+        // (realized / design-only / partial / built) is complete.
+        let complete = "\
+| Document | Genre | Realized state | Contents |
+| --- | --- | --- | --- |
+| a.md | charter | realized | x |
+| b.md | charter | **design-only** — nothing yet | y |
+| c.md | charter | partial | z |
+";
+        assert!(detect_realized_state_complete(complete));
+
+        // One row with an empty realized-state cell → incomplete.
+        let holey = "\
+| Document | Genre | Realized state | Contents |
+| --- | --- | --- | --- |
+| a.md | charter | realized | x |
+| b.md | charter |  | y |
+";
+        assert!(!detect_realized_state_complete(holey));
+
+        // No realized-state table at all → not complete (a gated miss).
+        assert!(!detect_realized_state_complete(
+            "| Rule | Shape |\n| - | - |\n| r | s |\n"
+        ));
     }
 
     #[test]

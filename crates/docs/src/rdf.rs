@@ -13,6 +13,10 @@
 //! through GTS fold without bnode relabeling, sorted iteration over the
 //! already-sorted model collections, and a trailing newline.
 
+use crate::coverage::{CoverageContext, DIMENSIONS, slice_covered_dims, term_coverage};
+use crate::maturity::{
+    Dimension, MaturityAnchor, anchor_table, coverage_fraction, earned_maturity,
+};
 use crate::model::DocsModel;
 use crate::render::{concern_slug, provenance_chain, slice_slug, term_slug};
 
@@ -26,6 +30,7 @@ const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefined
 const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
 const GMEOW_DEFINITION_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/definitionDigest";
 const GMEOW_ADDED_IN_VERSION: &str = "https://blackcatinformatics.ca/gmeow/addedInVersion";
 const GMEOW_HAS_CHANGELOG_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/hasChangelogEntry";
@@ -106,11 +111,18 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
     // The coarse-grain provenance shared by every documented term's
     // `gmeow:DocEvidence` provenance node: the producing `stage-docs-render` IRI
     // (the `gmeow:docGroundedBy` truthmaker) and the stage chain walked backward
-    // over `gmeow:dataflowConsumes` (the same single relation Task 12's page
-    // footer renders). Present ONLY when the model carries the pipeline — the
+    // over `gmeow:dataflowConsumes` (the same single relation the per-page
+    // provenance footer renders). Present ONLY when the model carries the pipeline — the
     // production docs-graph stage does; a bare unit-test model without a pipeline
     // emits no provenance evidence, an honest absence rather than a fabricated
     // chain.
+    // The deterministic coverage incidence, computed ONCE from the single coverage
+    // producer ([`crate::coverage`]) and shared by the per-term and per-slice
+    // projections below — so the emitted `gmeow:docCoversDimension` graph, the
+    // `docs/missing-*` lint counts, and the health page can never disagree. No
+    // reasoner: the FCA earned-maturity closure is plain deterministic computation.
+    let cov_ctx = CoverageContext::new(model);
+
     let provenance: Option<(String, String)> = model.pipeline.as_ref().and_then(|pipeline| {
         let stage = pipeline
             .stages
@@ -252,7 +264,7 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
             }
         }
 
-        // Uniform `gmeow:DocEvidence` layer (issue 1404, transformational #1): one
+        // Uniform `gmeow:DocEvidence` layer: one
         // node per (term, evidence-kind) carrying the same shape for every kind —
         // a claim, its MANDATORY carrier grounding (`gmeow:docGroundedBy`), the
         // build provenance chain, and (where one exists) a preservation judgment —
@@ -342,6 +354,28 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
                 &mut lines,
             );
         }
+
+        // Per-term documentation-coverage incidence: for each of the sixteen
+        // per-term dimensions, one `gmeow:docCoversDimension` (detector fired) or
+        // `gmeow:docMissesDimension` (did not) edge into the dimension value
+        // vocabulary — the incidence the FCA maturity closure runs over. Emitted in
+        // stable [`DIMENSIONS`] order (a fixed subset of `gmeow:dim*`), so the
+        // projection stays deterministic; the two slice-scoped dimensions are
+        // emitted on the slice record below, not here.
+        let flags = term_coverage(term, &cov_ctx).flags();
+        for (dim, present) in DIMENSIONS.iter().zip(flags) {
+            let predicate = if present {
+                "docCoversDimension"
+            } else {
+                "docMissesDimension"
+            };
+            triple(
+                &subject,
+                &format!("{GMEOW}{predicate}"),
+                &format!("<{GMEOW}{}>", dim.dimension.local_name()),
+                &mut lines,
+            );
+        }
     }
 
     // Slices (model.slices is IRI-sorted).
@@ -372,6 +406,49 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
             &format!("Documentation projection for slice {}.", slice.iri),
             &mut lines,
         );
+
+        // Per-slice documentation-coverage incidence + FCA-derived maturity. The
+        // slice's covered-dimension set is its concept intent over ALL eighteen
+        // dimensions (a per-term dimension is covered iff EVERY documented term the
+        // slice owns covers it; the two slice-scoped dimensions read the slice's
+        // docs.md facts) — computed by the single coverage producer, no reasoner.
+        let covered = slice_covered_dims(&slice.iri, model, &cov_ctx);
+        for dim in Dimension::ALL {
+            let predicate = if covered.contains(&dim) {
+                "docCoversDimension"
+            } else {
+                "docMissesDimension"
+            };
+            triple(
+                &subject,
+                &format!("{GMEOW}{predicate}"),
+                &format!("<{GMEOW}{}>", dim.local_name()),
+                &mut lines,
+            );
+        }
+        // The bounded coverage fraction against the FULL anchor's intent — the
+        // reference floor (`asserted-or-Full`; no per-slice asserted maturity is
+        // carried in the model yet, so FULL is the reference). A value in [0,1],
+        // never an unbounded ratio, so it can never be tuned to a target.
+        let fraction = coverage_fraction(&covered, &MaturityAnchor::Full.intent());
+        triple(
+            &subject,
+            &format!("{GMEOW}coverageFraction"),
+            &decimal(fraction),
+            &mut lines,
+        );
+        // The FCA-derived earned floor: the largest anchor whose intent ⊆ the
+        // slice's covered set. Emitted ONLY when an anchor is earned (an honest
+        // absence otherwise) — deterministic next-closure over the incidence, never
+        // gated on the pipeline (coverage is always available).
+        if let Some(anchor) = earned_maturity(&covered, &anchor_table()) {
+            triple(
+                &subject,
+                &format!("{GMEOW}docEarnedMaturity"),
+                &format!("<{GMEOW}{}>", anchor.local_name()),
+                &mut lines,
+            );
+        }
     }
 
     // Concerns (model.concerns is IRI-sorted).
@@ -464,6 +541,13 @@ fn integer(value: i64) -> String {
     format!("\"{value}\"^^<{XSD_INTEGER}>")
 }
 
+/// An `xsd:decimal`-typed N-Quads literal object with a fixed 4-decimal lexical
+/// form, so the bounded coverage fraction is byte-reproducible across platforms
+/// (Rust's `{:.4}` float formatting is deterministic).
+fn decimal(value: f64) -> String {
+    format!("\"{value:.4}\"^^<{XSD_DECIMAL}>")
+}
+
 /// The local name of an IRI: the tail after the last `/` or `#`.
 fn local_name(iri: &str) -> &str {
     let cut = iri.rfind(['/', '#']).map(|i| i + 1).unwrap_or(0);
@@ -475,7 +559,7 @@ fn local_name(iri: &str) -> &str {
 /// `gmeow:docGroundedBy` carrier truthmaker(s), typed count/string properties,
 /// and (where one exists) a preservation/confidence judgment — so a future
 /// evidence source plugs in as a new `docEvidenceKind`, not a new predicate
-/// family (issue 1404, transformational #1).
+/// family.
 struct Evidence {
     /// The URL-slug kind segment used in the node IRI (`fixture`, `competency`,
     /// `diagnostics`, `loss`, `provenance`).

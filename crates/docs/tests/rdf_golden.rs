@@ -34,6 +34,8 @@ fn small_model() -> DocsModel {
             artifacts: Vec::new(),
             profiles: Vec::new(),
             depends_on: Vec::new(),
+            has_thesis_sentence: false,
+            realized_state_complete: false,
         }],
         terms: vec![
             DocTerm {
