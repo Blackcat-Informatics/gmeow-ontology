@@ -2142,6 +2142,7 @@ version = "0.1.0"
 dependencies = [
  "assert_cmd",
  "clap",
+ "ed25519-dalek",
  "gmeow-affect",
  "gmeow-affect-ingest",
  "gmeow-cli-core",
