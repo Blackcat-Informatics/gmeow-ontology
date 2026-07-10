@@ -4,7 +4,7 @@
 //! Repo-wide slice-quality prioritization: the Pareto frontier over the per-axis
 //! profile vectors, plus each slice's capping axis (the meet witness).
 //!
-//! The 9-axis profile vector is the primary object; the roll-up tier is only its
+//! The per-axis profile vector is the primary object; the roll-up tier is only its
 //! lossy meet projection. `--all` is a maintainer-facing question — "which slices,
 //! and which axes, to uplift first" — so this module answers it objectively:
 //!
