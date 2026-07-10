@@ -5331,17 +5331,132 @@ fn localize_model(model: &DocsModel, lang: &str) -> DocsModel {
 
 // ── Slugging ──────────────────────────────────────────────────────────────────
 
-/// A filesystem-safe slug from a term's local name: the IRI tail after the last
-/// `/` or `#`, lowercased and reduced to `[a-z0-9-]`.
+/// The INJECTIVE documentation-entry slug of a term — the single source of the
+/// `documentation/term/{slug}` doc-entry IRI, the page URL, and every cross-page
+/// link. Returns the term's resolved [`DocTerm::slug`] (assigned once from the
+/// whole term set by [`resolve_term_slugs`] at model build), so the doc-entry
+/// subject is collision-free and its coverage incidence can never be conflated.
+///
+/// A hand-built term (a unit-test fixture that never went through model
+/// resolution) carries an empty `slug`; it then falls back to the base slug —
+/// safe because such tiny models never collide, and the real model always carries
+/// a resolved slug, so this is one function with one answer, never two that can
+/// disagree.
 pub fn term_slug(term: &DocTerm) -> String {
-    slugify(local_name(&term.iri))
+    if term.slug.is_empty() {
+        slugify(local_name(&term.iri))
+    } else {
+        term.slug.clone()
+    }
 }
 
-/// A filesystem-safe slug from a term IRI's local name — the standalone twin of
-/// [`term_slug`] for callers holding an IRI (not a [`DocTerm`]), e.g. `docs-on`
-/// resolving a query to its `terms/<slug>/` page under the ontology-docs blob.
-pub fn slug_for_iri(iri: &str) -> String {
-    slugify(local_name(iri))
+/// The category discriminator segment appended to a contended base slug.
+fn category_slug(category: DocTermCategory) -> &'static str {
+    match category {
+        DocTermCategory::Class => "class",
+        DocTermCategory::Property => "property",
+        DocTermCategory::Individual => "individual",
+        DocTermCategory::Datatype => "datatype",
+        DocTermCategory::Other => "other",
+    }
+}
+
+/// A short, stable IRI discriminator: the first 12 hex chars of the full IRI's
+/// BLAKE3 digest — a deterministic, order-independent tiebreak for the rare case
+/// where two distinct terms share BOTH a base slug and a category.
+fn short_iri_digest(iri: &str) -> String {
+    blake3::hash(iri.as_bytes()).to_hex()[..12].to_owned()
+}
+
+/// Resolve the disambiguated `documentation/term/{slug}` slug for every term whose
+/// base slug COLLIDES — a deterministic pure function of the term set, keyed by
+/// term IRI. Terms whose base slug is already unique are ABSENT from the map (they
+/// keep the base slug via [`term_slug`]'s fallback), so the returned entries are
+/// exactly the colliders — the minority that must change.
+///
+/// # Scheme (minimal churn, no blank nodes)
+///
+/// 1. **Base slug** = [`slugify`] of the IRI's local name (the historical slug).
+///    A base slug carried by exactly ONE term is kept verbatim — the non-colliding
+///    terms' IRIs / URLs / links are unchanged (and they are not in the map).
+/// 2. **Category disambiguation** — a base slug shared by ≥2 distinct terms (the
+///    `slugify` case/punctuation fold is lossy, e.g. class `AcceptanceStatus` and
+///    property `acceptanceStatus` both fold to `acceptancestatus`) gets its
+///    category appended (`-class` / `-property` / `-individual` / `-datatype` /
+///    `-other`).
+/// 3. **Digest tiebreak** — a residual collision (same base AND category, or a
+///    disambiguated slug that would clash with a reserved base) appends
+///    [`short_iri_digest`] of the full IRI; a further clash appends an incrementing
+///    suffix. The full slug set (unique bases ∪ resolved) is asserted injective — a
+///    HARD FAIL otherwise, never silent conflation.
+///
+/// Contended terms are processed in IRI-sorted order, so the assignment is a total
+/// function of the (unordered) term set: the same terms always yield the same map.
+pub fn resolve_term_slugs(terms: &[DocTerm]) -> BTreeMap<String, String> {
+    use std::collections::{HashMap, HashSet};
+
+    // Distinct terms by IRI (first occurrence in IRI-sorted order). A term IRI that
+    // appears more than once in the list (e.g. lifted by two scans) is ONE doc-entry
+    // subject, so it resolves to ONE slug — the injectivity target is distinct IRIs,
+    // not list positions.
+    let mut order: Vec<&DocTerm> = terms.iter().collect();
+    order.sort_by(|a, b| a.iri.cmp(&b.iri));
+    let mut seen: HashSet<&str> = HashSet::new();
+    let distinct: Vec<&DocTerm> = order
+        .into_iter()
+        .filter(|t| seen.insert(t.iri.as_str()))
+        .collect();
+
+    // Base slug per distinct term IRI + how many distinct terms share each base.
+    let base_of: HashMap<&str, String> = distinct
+        .iter()
+        .map(|t| (t.iri.as_str(), slugify(local_name(&t.iri))))
+        .collect();
+    let mut base_count: HashMap<&str, usize> = HashMap::new();
+    for base in base_of.values() {
+        *base_count.entry(base.as_str()).or_default() += 1;
+    }
+
+    // Every uncontended base is reserved (kept verbatim, absent from the map).
+    let mut used: HashSet<String> = HashSet::new();
+    for term in &distinct {
+        let base = &base_of[term.iri.as_str()];
+        if base_count[base.as_str()] == 1 {
+            used.insert(base.clone());
+        }
+    }
+
+    // Disambiguate the contended terms (already in IRI-sorted order → determinism).
+    let mut out: BTreeMap<String, String> = BTreeMap::new();
+    for term in &distinct {
+        let base = &base_of[term.iri.as_str()];
+        if base_count[base.as_str()] == 1 {
+            continue;
+        }
+        let cat = category_slug(term.category);
+        let mut cand = format!("{base}-{cat}");
+        if used.contains(&cand) {
+            cand = format!("{base}-{cat}-{}", short_iri_digest(&term.iri));
+        }
+        let mut n = 2;
+        while used.contains(&cand) {
+            cand = format!("{base}-{cat}-{}-{n}", short_iri_digest(&term.iri));
+            n += 1;
+        }
+        used.insert(cand.clone());
+        out.insert(term.iri.clone(), cand);
+    }
+
+    // Injectivity is the whole point: distinct IRIs → distinct slugs across the
+    // WHOLE surface (unique bases ∪ resolved). `used` grew by exactly one per
+    // reserved base and per resolved slug, so its size must equal the distinct-IRI
+    // count — a HARD FAIL otherwise, never silent conflation.
+    assert_eq!(
+        used.len(),
+        distinct.len(),
+        "resolve_term_slugs produced a non-injective slug surface"
+    );
+    out
 }
 
 /// A filesystem-safe slug from a slice IRI's last path segment.
@@ -6347,6 +6462,67 @@ mod tests {
         assert_eq!(root_href(""), "");
         assert_eq!(root_href("slices"), "../");
         assert_eq!(root_href("terms/cat"), "../../");
+    }
+
+    fn term(iri: &str, category: DocTermCategory) -> DocTerm {
+        DocTerm {
+            iri: iri.to_string(),
+            category,
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn resolve_term_slugs_disambiguates_only_colliders_injectively() {
+        let base = "https://blackcatinformatics.ca/gmeow/";
+        let terms = vec![
+            // A unique base — absent from the map, keeps its base slug.
+            term(&format!("{base}Solo"), DocTermCategory::Class),
+            // A class/property case-collision on `acceptancestatus`.
+            term(&format!("{base}AcceptanceStatus"), DocTermCategory::Class),
+            term(
+                &format!("{base}acceptanceStatus"),
+                DocTermCategory::Property,
+            ),
+            // A base+category collision (two Individuals slugging to `foo`).
+            term(&format!("{base}Foo"), DocTermCategory::Individual),
+            term(&format!("{base}foo"), DocTermCategory::Individual),
+        ];
+
+        let map = resolve_term_slugs(&terms);
+
+        // The unique-base term is NOT in the map (falls back to base).
+        assert!(!map.contains_key(&format!("{base}Solo")));
+        // Case-collision resolved by category.
+        assert_eq!(
+            map[&format!("{base}AcceptanceStatus")],
+            "acceptancestatus-class"
+        );
+        assert_eq!(
+            map[&format!("{base}acceptanceStatus")],
+            "acceptancestatus-property"
+        );
+        // Base+category collision: the IRI-lexically-first keeps `foo-individual`,
+        // the other gets the digest tiebreak.
+        assert_eq!(map[&format!("{base}Foo")], "foo-individual");
+        let other = &map[&format!("{base}foo")];
+        assert!(
+            other.starts_with("foo-individual-") && other.len() > "foo-individual-".len(),
+            "digest-disambiguated slug expected, got {other}"
+        );
+
+        // Deterministic: identical input → identical map.
+        assert_eq!(resolve_term_slugs(&terms), map);
+
+        // Injective over the whole surface: term_slug is distinct for every term.
+        let mut resolved = terms.clone();
+        for t in &mut resolved {
+            if let Some(s) = map.get(&t.iri) {
+                t.slug = s.clone();
+            }
+        }
+        let slugs: std::collections::BTreeSet<String> = resolved.iter().map(term_slug).collect();
+        assert_eq!(slugs.len(), resolved.len(), "slugs must be injective");
     }
 
     #[test]

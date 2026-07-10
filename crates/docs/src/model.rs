@@ -577,6 +577,15 @@ pub struct DocChangelogEntry {
 pub struct DocTerm {
     /// The full term IRI.
     pub iri: String,
+    /// The INJECTIVE documentation-entry slug — the collision-free `{slug}` in this
+    /// term's `documentation/term/{slug}` doc-entry IRI, page URL, and cross-page
+    /// links. Resolved ONCE from the whole term set at model build (see
+    /// [`crate::render::resolve_term_slugs`]) so no two distinct term IRIs share a
+    /// doc-entry subject (which would conflate their coverage incidence). Empty only
+    /// on a hand-built term that never went through model resolution;
+    /// [`crate::render::term_slug`] then falls back to the base slug.
+    #[serde(default)]
+    pub slug: String,
     /// The compact CURIE (`gmeow:Foo` for GMEOW-namespaced terms, else the IRI).
     pub curie: String,
     /// `rdfs:label`.
@@ -1545,7 +1554,12 @@ impl DocsModel {
     /// v14: lifts every `gmeow:PipelineStage` individual into a documented term,
     /// so each stage's term page renders the enriched build-pipeline section
     /// (`stageImpl` link, consumes / consumed-by tables, flowing graphs).
-    pub const VERSION: &'static str = "14";
+    ///
+    /// v15: adds [`DocTerm::slug`] — the INJECTIVE `documentation/term/{slug}`
+    /// doc-entry slug, resolved once from the whole term set so no two distinct
+    /// term IRIs collide onto one doc-entry subject (which previously conflated
+    /// their coverage incidence).
+    pub const VERSION: &'static str = "15";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -1699,6 +1713,21 @@ impl DocsModel {
                 profiles.sort();
                 profiles.dedup();
                 t.profiles = profiles;
+            }
+        }
+
+        // ── Injective doc-entry slugs ────────────────────────────────────────
+        // Resolve a globally-unique `documentation/term/{slug}` slug for every
+        // term, so no two distinct term IRIs collide onto one doc-entry subject
+        // (which would conflate their projected coverage incidence and earned
+        // maturity). A deterministic pure function of the IRI-sorted term set;
+        // see `crate::render::resolve_term_slugs`.
+        {
+            let slugs = crate::render::resolve_term_slugs(&terms);
+            for t in &mut terms {
+                if let Some(slug) = slugs.get(&t.iri) {
+                    t.slug = slug.clone();
+                }
             }
         }
 
@@ -2462,6 +2491,9 @@ fn build_doc_terms(
         let curie = to_curie(&iri);
         terms.push(DocTerm {
             iri,
+            // Resolved after the whole term set is assembled (build() calls
+            // render::resolve_term_slugs); empty here is a placeholder.
+            slug: String::new(),
             curie,
             label,
             definition,

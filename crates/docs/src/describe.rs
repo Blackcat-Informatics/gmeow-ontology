@@ -180,6 +180,34 @@ impl DescribeGraph {
             .collect()
     }
 
+    /// The INJECTIVE `documentation/term/{slug}` slug for a term IRI, read back
+    /// from the docs projection's emitted `gmeow:documents` inverse in the folded
+    /// bundle — the dogfooded, collision-free slug map (`documentation/term/{slug}
+    /// gmeow:documents <term-iri>`). The doc-entry records live in the
+    /// `graph/documentation` named graph, so this reads across ALL graphs
+    /// ([`GraphMatch::Any`]) rather than the default-graph-only describe reads, and
+    /// keeps only the `documentation/term/` doc-entry subject (excluding the
+    /// evidence / changelog nodes that also `gmeow:documents` the term). `None` when
+    /// the bundle carries no documentation entry for the term.
+    pub fn documentation_term_slug(&self, term_iri: &str) -> Option<String> {
+        let documents = format!("{NAMESPACE}documents");
+        let term_prefix = format!("{NAMESPACE}documentation/term/");
+        let (Some(p), Some(o)) = (self.iri_id(&documents), self.iri_id(term_iri)) else {
+            return None;
+        };
+        self.ds
+            .quads_for_pattern(None, Some(p), Some(o), GraphMatch::Any)
+            .filter_map(|q| match self.ds.resolve(q.s) {
+                TermRef::Iri(iri) if iri.starts_with(&term_prefix) => {
+                    Some(iri[term_prefix.len()..].to_owned())
+                }
+                _ => None,
+            })
+            // Exactly one doc-entry record documents a given term; a BTree-min keeps
+            // the read deterministic even if that invariant ever weakened.
+            .min()
+    }
+
     /// Resolve an object term id into an owned object value.
     fn owned_object(&self, id: TermId) -> OwnedObject {
         match self.ds.resolve(id) {
@@ -623,6 +651,38 @@ mod tests {
             .expect("fixture N-Triples must parse");
         purrdf::gts_write::to_gts(&ds, &RdfLookaside::default(), TEST_PROFILE)
             .expect("fixture must serialize to GTS")
+    }
+
+    #[test]
+    fn documentation_term_slug_reads_the_documents_inverse() {
+        // A doc-entry record documents a term IRI in the graph/documentation NAMED
+        // graph; an evidence node documents the SAME term and must be excluded (only
+        // the `documentation/term/` subject is the page slug).
+        let term = format!("{NAMESPACE}AcceptanceStatus");
+        let entry = format!("{NAMESPACE}documentation/term/acceptancestatus-class");
+        let evidence =
+            format!("{NAMESPACE}documentation/evidence/acceptancestatus-class/competency");
+        let documents = format!("{NAMESPACE}documents");
+        let doc_graph = format!("{NAMESPACE}graph/documentation");
+        let nq = format!(
+            "<{entry}> <{documents}> <{term}> <{doc_graph}> .\n\
+             <{evidence}> <{documents}> <{term}> <{doc_graph}> .\n"
+        );
+        let ds = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
+            .expect("fixture N-Quads must parse");
+        let bytes = purrdf::gts_write::to_gts(&ds, &RdfLookaside::default(), TEST_PROFILE)
+            .expect("fixture must serialize to GTS");
+        let graph = DescribeGraph::from_gts_bytes(&bytes).expect("load");
+
+        assert_eq!(
+            graph.documentation_term_slug(&term).as_deref(),
+            Some("acceptancestatus-class"),
+            "must read the injective slug from the documents inverse, excluding evidence nodes"
+        );
+        assert_eq!(
+            graph.documentation_term_slug(&format!("{NAMESPACE}NoSuchTerm")),
+            None
+        );
     }
 
     #[test]

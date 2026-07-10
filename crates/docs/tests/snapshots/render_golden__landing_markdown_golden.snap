@@ -5,7 +5,7 @@ expression: "to_markdown(&model, &Page::Landing)"
 ---
 # GMEOW Ontology Documentation
 
-Version **14**.
+Version **15**.
 
 This site documents **2626** vocabulary terms across **82** slices.
 
