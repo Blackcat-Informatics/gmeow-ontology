@@ -1483,3 +1483,36 @@ gmeow:userAgent
     skos:definition "The GMEOW Email Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Suppression constraint (#1194) — projection of SuppressedMessageParticipantShape.
+# A withdrawn/superseded MessageParticipant (one carrying gmeow:validUntil) that #
+# is not suppressed (gmeow:displayable false) is a Warning — a source may lag.    #
+# =========================================================================== #
+
+gmeow:WithdrawnMessageParticipantSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Withdrawn message-participant suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a withdrawn or superseded gmeow:MessageParticipant (one carrying gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
+    logic:formalizes gmeow:MessageParticipant ;
+    logic:severity "Warning" ;
+    logic:message "A withdrawn or superseded MessageParticipant (one with gmeow:validUntil) should set gmeow:displayable false — suppressed from display, never deleted." ;
+    logic:integrity logic:supMpForall .
+logic:supMpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:supMpImpl .
+logic:supMpImpl a logic:Formula ; logic:antecedent logic:supMpGuard ; logic:consequent logic:supMpPhi .
+logic:supMpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:MessageParticipant ] .
+logic:supMpPhi a logic:Formula ; logic:not logic:supMpEx .
+logic:supMpEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "u" ] ;
+    logic:exists logic:supMpBody .
+logic:supMpBody a logic:Formula ; logic:and logic:supMpValid , logic:supMpNotSuppressed .
+logic:supMpValid a logic:Formula ; logic:relation gmeow:validUntil ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "u" ] .
+logic:supMpNotSuppressed a logic:Formula ; logic:not logic:supMpDisp .
+logic:supMpDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .

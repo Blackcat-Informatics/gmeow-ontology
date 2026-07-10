@@ -351,3 +351,37 @@ gmeow:vectorRef
     skos:definition "Pipeline observability for retrieval-augmented and GraphRAG systems (GraphRAG provenance design facets A/B/F): the corpus, embedding, index, and retrieval substrate, and the derived entity-graph artifacts (extracted entities/relationships, communities, community summaries) — every artifact content-addressed, every step an attributed activity, so the derived graph is AUDITABLE and revisable rather than a black box (GraphRAG, arXiv:2404.16130). Claims extracted by the pipeline are the CORE ai slice's business (a StandpointClaim with model vantage); this extension carries the machinery around them. Vector payloads stay outside the graph by reference (P12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Declarative constraint axioms (extension slices) — the closed-
+# world cardinality obligations the hand-authored shapes.ttl NodeShapes state
+# (gmeow:EmbeddingProvenanceShape, gmeow:RetrievalEventShape,
+# gmeow:ExtractedRelationshipEndsShape), authored here once as OWL restriction
+# axioms and PROJECTED to generated/shapes/validation-shapes.ttl by
+# derive_validation_shapes (Principle 17). exact-one -> owl:maxQualifiedCardinality 1
+# (onClass owl:Thing) -> sh:minCount 1 + sh:maxCount 1. The gmeow:distanceMetric `sh:nodeKind sh:IRI`
+# facet has no ordinary-OWL antecedent (owl:Thing lowers to sh:BlankNodeOrIRI,
+# not sh:IRI); it is a value-node-kind facet carried on the procedural residue
+# in the procedural constraint fragment, so only its cardinality migrates here.
+# =========================================================================== #
+
+gmeow:Embedding rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:embeddingOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:embeddingModel ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:distanceMetric ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+gmeow:RetrievalEvent rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:againstIndex ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+gmeow:ExtractedRelationship rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:relationshipSource ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:relationshipTarget ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+<https://blackcatinformatics.ca/gmeow/Embedding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/distanceMetric> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/RetrievalEvent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/againstIndex> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ExtractedRelationship> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/relationshipSource> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ExtractedRelationship> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/relationshipTarget> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Embedding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/embeddingOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Embedding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/embeddingModel> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .

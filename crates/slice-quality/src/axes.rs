@@ -742,28 +742,51 @@ fn linkage_axis(ctx: &ScoreContext) -> AxisScore {
 
 // ── Axis 5: Maximal projection ─────────────────────────────────────────────
 
-/// Projection: does the slice provide its projectable source surfaces? SHACL
-/// shapes when it has structural constraints, mappings when it links out.
+/// Projection: does the slice express its validation as a pure projection? For
+/// structural constraints that means the `module.ttl` OWL/RDFS axioms alone
+/// (projected to `generated/shapes/*`) with the hand-authored `shapes.ttl`
+/// retired — a slice still shipping that second source scores a shortfall here;
+/// plus mappings when it links out.
 fn projection_axis(ctx: &ScoreContext) -> AxisScore {
     let ds = ctx.graph;
     let mut expected = 0usize;
     let mut present = 0usize;
     let mut findings = Vec::new();
 
-    // A slice with owl:Restriction / disjointness should source SHACL from logic:.
+    // Principle-17 migration debt (advisory): a hand-authored `shapes.ttl` is a SECOND source of
+    // truth. Validation must be authored in `logic:` (a `logic:Constraint` or the OWL/RDFS axioms
+    // the declarative shapes derive from) and PROJECTED to `generated/shapes/*`, never carried as a
+    // parallel hand-authored SHACL surface. A slice still shipping a hand-authored `shapes.ttl`
+    // carries per-slice migration debt for a future quality pass to discharge. This is advisory —
+    // the shapes stay live/enforced until the slice's constraints are migrated (equivalence before
+    // deletion); the finding is the tracked pressure, not a gate.
+    if ctx.slice_dir.join("shapes.ttl").is_file() {
+        findings.push(advisory(
+            "slice-quality.projection.hand-authored-shapes",
+            "this slice ships a hand-authored shapes.ttl (a second source of truth): migrate its \
+             constraints to logic: (a logic:Constraint or the backing OWL/RDFS axioms in \
+             module.ttl) so they PROJECT to generated/shapes/* (Principle 17), then retire the \
+             hand-authored file. See docs/MIGRATING-SHAPES-TO-LOGIC.md."
+                .to_owned(),
+        ));
+    }
+
+    // A slice with owl:Restriction / disjointness carries structural constraints. Under Principle
+    // 17 its validation is "maximally projected" only when those constraints live SOLELY as the
+    // OWL/RDFS axioms in module.ttl (which derive generated/shapes/* via `derive_validation_shapes`)
+    // with NO parallel hand-authored shapes.ttl. So this projectable-source obligation is MET only
+    // once the hand-authored SHACL is retired: a constraint-bearing slice still shipping a
+    // shapes.ttl has not projected its validation and scores a shortfall here (the debt finding
+    // above names the file). This keeps the term falsifiable and aligns it with migration —
+    // retiring shapes.ttl is the ONLY way to earn the credit, and can never lose it.
     let has_constraints = id(ds, "http://www.w3.org/2002/07/owl#Restriction")
         .is_some_and(|c| id(ds, graph::RDF_TYPE).is_some_and(|t| graph::has_any_object(ds, t, c)))
         || id(ds, "http://www.w3.org/2002/07/owl#disjointWith")
             .is_some_and(|p| graph::predicate_used(ds, p));
     if has_constraints {
         expected += 1;
-        if ctx.slice_dir.join("shapes.ttl").is_file() {
+        if !ctx.slice_dir.join("shapes.ttl").is_file() {
             present += 1;
-        } else {
-            findings.push(advisory(
-                "slice-quality.projection.no-shapes",
-                "the slice declares structural constraints but ships no shapes.ttl projection source (projection purity).".to_owned(),
-            ));
         }
     }
     // A slice whose own vocabulary links out should carry a mapping file.

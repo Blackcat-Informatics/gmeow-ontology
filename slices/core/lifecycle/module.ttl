@@ -126,3 +126,74 @@ gmeow:supersededBy
     skos:definition "The GMEOW Lifecycle Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# Closed-world cardinality/value axioms backing the hand-authored SHACL
+# well-formedness shapes.
+gmeow:EntityExistence rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:existenceEntity ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+<https://blackcatinformatics.ca/gmeow/EntityExistence> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/existenceEntity> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/EntityExistence> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/duringInterval> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+
+# =========================================================================== #
+# Migrated procedural constraints (#1194): the closed-world EntityExistence      #
+# well-formedness shapes from shapes/gmeow-shapes.ttl (Principle 17).            #
+# =========================================================================== #
+
+gmeow:EntityExistenceEntityConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "EntityExistence entity-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:EntityExistence records a gmeow:existenceEntity."@x-gmeow-english ;
+    logic:onClass gmeow:EntityExistence ;
+    logic:anyOf gmeow:existenceEntity ;
+    logic:formalizes gmeow:EntityExistence ;
+    logic:message "An EntityExistence must record exactly one entity (gmeow:existenceEntity)." .
+
+gmeow:EntityExistenceIntervalConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "EntityExistence interval-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:EntityExistence records a gmeow:duringInterval."@x-gmeow-english ;
+    logic:onClass gmeow:EntityExistence ;
+    logic:anyOf gmeow:duringInterval ;
+    logic:formalizes gmeow:EntityExistence ;
+    logic:message "An EntityExistence must record exactly one interval (gmeow:duringInterval)." .
+
+# =========================================================================== #
+# Suppression constraint (#1194) — projection of SupersededEntitySuppressionShape.
+# A superseded entity (one carrying gmeow:supersededBy) that is not suppressed   #
+# (gmeow:displayable false) is a Warning — a source may lag the flag.            #
+# =========================================================================== #
+
+gmeow:SupersededEntitySuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Superseded entity suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a superseded gmeow:Entity (one carrying gmeow:supersededBy) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
+    logic:formalizes gmeow:Entity ;
+    logic:severity "Warning" ;
+    logic:message "A superseded entity (one with gmeow:supersededBy) should set gmeow:displayable false — suppressed from display, never deleted." ;
+    logic:integrity logic:supEnForall .
+logic:supEnForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:supEnImpl .
+logic:supEnImpl a logic:Formula ; logic:antecedent logic:supEnGuard ; logic:consequent logic:supEnPhi .
+logic:supEnGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] .
+logic:supEnPhi a logic:Formula ; logic:not logic:supEnEx .
+logic:supEnEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] ;
+    logic:exists logic:supEnBody .
+logic:supEnBody a logic:Formula ; logic:and logic:supEnSuc , logic:supEnNotSuppressed .
+logic:supEnSuc a logic:Formula ; logic:relation gmeow:supersededBy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+logic:supEnNotSuppressed a logic:Formula ; logic:not logic:supEnDisp .
+logic:supEnDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype <http://www.w3.org/2001/XMLSchema#boolean> ] .

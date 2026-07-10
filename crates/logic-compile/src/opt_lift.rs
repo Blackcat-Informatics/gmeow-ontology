@@ -305,6 +305,18 @@ pub fn recover_opt_from_shape(shape: &ValidationShapeIr) -> gmeow_errors::Result
                     .to_owned(),
             }));
         }
+        ShapeTarget::DirectClass(_) => {
+            return Err(Diag::of_kind(crate::error::OptLift {
+                detail: "recover_opt_from_shape: a direct-instance target is not an OPT constraint"
+                    .to_owned(),
+            }));
+        }
+        ShapeTarget::Sparql(_) => {
+            return Err(Diag::of_kind(crate::error::OptLift {
+                detail: "recover_opt_from_shape: a raw-sparql target is not an OPT constraint"
+                    .to_owned(),
+            }));
+        }
     };
     // Collect EVERY family's discriminating component — never return on the first match. A
     // well-formed lifted OPT constraint carries exactly one discriminating family (Quantity's

@@ -861,3 +861,133 @@ vann:preferredNamespacePrefix
 
 vann:preferredNamespaceUri
     a owl:AnnotationProperty .
+
+# =========================================================================== #
+# Declarative constraint axioms (core slice) — the consumer-
+# advisory RANGE shapes (gmeow:useForConsumer / gmeow:avoidForConsumer must
+# point at a declared gmeow:ProjectionContext individual). rdfs:range is an
+# OPEN-WORLD inference axiom, so its closed-world validation reading is derived
+# ONLY when the property is explicitly opted IN with a logic:ClosedWorldClosure
+# closure entry (LOGIC-VALIDATION.md "The domain/range exception"). These two
+# properties ARE genuine closed-world obligations (a value that is not a
+# declared ProjectionContext is malformed, not an un-asserted entailment), so
+# they are opted in here; derive_validation_shapes then projects the
+# sh:targetObjectsOf + sh:class ProjectionContext twin of the authored range
+# shapes to generated/shapes/validation-shapes.ttl (Principle 17).
+# =========================================================================== #
+
+[ a logic:ClosureEntry ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/useForConsumer" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/avoidForConsumer" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
+
+# A gmeow:hasAboutness value must be an AboutnessMode individual (an IRI), not a free
+# literal (a path node-kind constraint targeting subjects of gmeow:hasAboutness).
+gmeow:AboutnessTargetNodeKindConstraint
+    a logic:PathNodeKindConstraint ;
+    rdfs:label "Aboutness target node-kind constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A procedural integrity constraint: a gmeow:hasAboutness value must target an AboutnessMode individual (an IRI), not a free literal."@x-gmeow-english ;
+    logic:valuePath gmeow:hasAboutness ;
+    logic:nodeKind "IRI" ;
+    logic:formalizes gmeow:AboutnessTargetShape ;
+    logic:message "A gmeow:hasAboutness value must target an AboutnessMode individual (an IRI), not a free literal." .
+
+# =========================================================================== #
+# Procedural constraints authored as raw logic:Formula integrity trees —        #
+# projected to sh:SPARQLConstraint, keyed (via logic:formalizes) onto the        #
+# subjects-of disclosure/sensitivity shapes they replace.                       #
+# =========================================================================== #
+
+# A value marked gmeow:sensitivitySensitivePersonal should also carry
+# gmeow:coarsenTo or gmeow:displayable false (Principle 10). Warning.
+gmeow:SensitiveValueConstraint
+    a logic:Constraint ;
+    rdfs:label "Sensitive value disclosure-control constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a value marked gmeow:sensitivitySensitivePersonal carries gmeow:coarsenTo or gmeow:displayable false."@x-gmeow-english ;
+    logic:formalizes gmeow:SensitiveValueShape ;
+    logic:severity "Warning" ;
+    logic:message "A value marked gmeow:sensitivitySensitivePersonal should also carry gmeow:coarsenTo or gmeow:displayable false — the trigger for projection-time redaction (Principle 10). A source may legitimately publish the precise value under explicit consent." ;
+    logic:integrity logic:svForall .
+logic:svForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:svImpl .
+logic:svImpl a logic:Formula ; logic:antecedent logic:svGuard ; logic:consequent logic:svOr .
+logic:svGuard a logic:Formula ; logic:relation gmeow:hasSensitivity ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:sensitivitySensitivePersonal ] .
+logic:svOr a logic:Formula ; logic:or logic:svCoarsen , logic:svDisp .
+logic:svCoarsen a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "lvl" ] ;
+    logic:exists logic:svCoarsenAtom .
+logic:svCoarsenAtom a logic:Formula ; logic:relation gmeow:coarsenTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "lvl" ] .
+logic:svDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype <http://www.w3.org/2001/XMLSchema#boolean> ] .
+
+# A fact marked gmeow:policyNeverPublic or gmeow:policyInternalOnly must not be
+# eligible for any public consumer (two joined value-sets). Violation.
+gmeow:DisclosureLeakConstraint
+    a logic:Constraint ;
+    rdfs:label "Disclosure leak constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a fact whose gmeow:hasDisclosurePolicy is gmeow:policyNeverPublic or gmeow:policyInternalOnly is not gmeow:eligibleForConsumer of any public consumer."@x-gmeow-english ;
+    logic:formalizes gmeow:DisclosureLeakShape ;
+    logic:message "A fact marked gmeow:policyNeverPublic or gmeow:policyInternalOnly must not be eligible for any public consumer (e.g. consumerPublicSite, consumerWikidata, consumerWikipedia, consumerSchemaOrgJsonLd, consumerFoafExport). Principle 10: suppression, never erasure — withhold at projection time." ;
+    logic:integrity logic:dlForall .
+logic:dlForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "policy" ] ;
+    logic:forall logic:dlImpl .
+logic:dlImpl a logic:Formula ; logic:antecedent logic:dlGuard ; logic:consequent logic:dlNot .
+logic:dlGuard a logic:Formula ; logic:and logic:dlPolicy , logic:dlPolicyIn .
+logic:dlPolicy a logic:Formula ; logic:relation gmeow:hasDisclosurePolicy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "policy" ] .
+logic:dlPolicyIn a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "policy" ] , [ logic:termIndex 1 ; logic:termIri gmeow:policyNeverPublic ] , [ logic:termIndex 2 ; logic:termIri gmeow:policyInternalOnly ] .
+logic:dlNot a logic:Formula ; logic:not logic:dlExists .
+logic:dlExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "consumer" ] ;
+    logic:exists logic:dlBody .
+logic:dlBody a logic:Formula ; logic:and logic:dlElig , logic:dlConsumerIn .
+logic:dlElig a logic:Formula ; logic:relation gmeow:eligibleForConsumer ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "consumer" ] .
+logic:dlConsumerIn a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "consumer" ] ,
+                    [ logic:termIndex 1 ; logic:termIri gmeow:consumerPublicSite ] ,
+                    [ logic:termIndex 2 ; logic:termIri gmeow:consumerWikidata ] ,
+                    [ logic:termIndex 3 ; logic:termIri gmeow:consumerWikipedia ] ,
+                    [ logic:termIndex 4 ; logic:termIri gmeow:consumerSchemaOrgJsonLd ] ,
+                    [ logic:termIndex 5 ; logic:termIri gmeow:consumerFoafExport ] .
+
+# A fact marked gmeow:policyPublicOnlyWithIndependentSource should be supported by
+# a citation with gmeow:sourceIndependence gmeow:sourceIndependenceIndependent. Warning.
+gmeow:ConditionalDisclosureWarningConstraint
+    a logic:Constraint ;
+    rdfs:label "Conditional disclosure warning constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a fact marked gmeow:policyPublicOnlyWithIndependentSource is supported by a citation with independent source."@x-gmeow-english ;
+    logic:formalizes gmeow:ConditionalDisclosureWarningShape ;
+    logic:severity "Warning" ;
+    logic:message "A fact marked gmeow:policyPublicOnlyWithIndependentSource should be supported by a citation with gmeow:sourceIndependence gmeow:sourceIndependenceIndependent." ;
+    logic:integrity logic:cdwForall .
+logic:cdwForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:cdwImpl .
+logic:cdwImpl a logic:Formula ; logic:antecedent logic:cdwGuard ; logic:consequent logic:cdwExists .
+logic:cdwGuard a logic:Formula ; logic:relation gmeow:hasDisclosurePolicy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:policyPublicOnlyWithIndependentSource ] .
+logic:cdwExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "citation" ] ;
+    logic:exists logic:cdwBody .
+logic:cdwBody a logic:Formula ; logic:and logic:cdwHasCite , logic:cdwIndep .
+logic:cdwHasCite a logic:Formula ; logic:relation gmeow:hasCitation ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "citation" ] .
+logic:cdwIndep a logic:Formula ; logic:relation gmeow:sourceIndependence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ] , [ logic:termIndex 1 ; logic:termIri gmeow:sourceIndependenceIndependent ] .

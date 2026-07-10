@@ -43,6 +43,15 @@ resources in the current slices-first, Rust-native repository.
    - Existing hand-authored shape surfaces are transitional. Do not satisfy new
      modeling or slice-quality findings by adding hand-authored SHACL or ShEx
      unless the user explicitly scopes work to the legacy migration path.
+   - A slice still shipping a hand-authored `shapes.ttl` (or contributing to a
+     root `shapes/*.ttl`) carries per-slice migration debt, surfaced by the
+     `slice-quality.projection.hand-authored-shapes` advisory. Discharge it by
+     re-expressing each shape as a `logic:Constraint` / OWL axiom in `module.ttl`
+     that PROJECTS to `generated/shapes/*`, proving parity, then retiring the
+     hand-authored file — the exact procedure in
+     [`docs/MIGRATING-SHAPES-TO-LOGIC.md`](../../../docs/MIGRATING-SHAPES-TO-LOGIC.md).
+     Migrate under equivalence-before-deletion: never delete a shape whose check
+     is not yet reproduced by the projected union.
    - Cross-ontology linkage and projection should be represented as
      correspondence work: use the current slice-local `gmeow:TermEquivalence`
      and `gmeow:ProjectionMapping` frontend honestly so it can lower to

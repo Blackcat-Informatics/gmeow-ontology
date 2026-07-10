@@ -1324,10 +1324,26 @@ fn build_archive_blobs(
                  to carry a stale on-disk read (P11 enforcement, fail-closed)",
             )
         })?;
+    // The procedural-constraint SHACL surface (every logic:Constraint → sh:SPARQLConstraint) is
+    // ALSO produced by stage-compile-logic, so it folds from the same product — header-only until
+    // constraints are authored, and (like constraint-shapes.ttl) it does not exist on disk on a
+    // first run at all, so only the fresh product can carry it (fail-closed, no stale disk read).
+    let procedural_constraints = axiom_artifacts
+        .get(crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH)
+        .ok_or_else(|| {
+            stage_err(
+                "carrier: stage-compile-logic produced no procedural-constraints.ttl product; \
+                 refusing to carry a stale on-disk read (P11 enforcement, fail-closed)",
+            )
+        })?;
     for (rel, fresh_bytes) in [
         (
             crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
             validation_shapes.as_slice(),
+        ),
+        (
+            crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
+            procedural_constraints.as_slice(),
         ),
         (
             crate::stages::result_shapes::RESULT_SHAPES_PATH,
@@ -4018,6 +4034,13 @@ mod ustar_tests {
             vs_rel.to_string(),
             std::fs::read(root.join(vs_rel)).unwrap_or_else(|_| panic!("read {vs_rel}")),
         );
+        // The procedural-constraints.ttl product is required (fail-closed) for the same reason:
+        // mirror the committed header-only file, as the production stage-compile-logic emits it.
+        let pc_rel = crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH;
+        axiom_artifacts.insert(
+            pc_rel.to_string(),
+            std::fs::read(root.join(pc_rel)).unwrap_or_else(|_| panic!("read {pc_rel}")),
+        );
         axiom_artifacts
     }
 
@@ -4243,6 +4266,13 @@ mod ustar_tests {
             vs_rel.to_string(),
             std::fs::read(root.join(vs_rel)).unwrap_or_else(|_| panic!("read {vs_rel}")),
         );
+        // The procedural-constraints.ttl product is required (fail-closed) for the same reason:
+        // mirror the committed header-only file, as the production stage-compile-logic emits it.
+        let pc_rel = crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH;
+        axiom_artifacts.insert(
+            pc_rel.to_string(),
+            std::fs::read(root.join(pc_rel)).unwrap_or_else(|_| panic!("read {pc_rel}")),
+        );
         let blobs = build_archive_blobs(
             &root,
             b"",
@@ -4343,6 +4373,13 @@ mod ustar_tests {
         axiom_artifacts.insert(
             vs_rel.to_string(),
             std::fs::read(root.join(vs_rel)).unwrap_or_else(|_| panic!("read {vs_rel}")),
+        );
+        // The procedural-constraints.ttl product is required (fail-closed) for the same reason:
+        // mirror the committed header-only file, as the production stage-compile-logic emits it.
+        let pc_rel = crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH;
+        axiom_artifacts.insert(
+            pc_rel.to_string(),
+            std::fs::read(root.join(pc_rel)).unwrap_or_else(|_| panic!("read {pc_rel}")),
         );
         let blobs = build_archive_blobs(
             &root,

@@ -229,6 +229,75 @@ DOCTRINE.
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
+# =========================================================================== #
+# Declarative constraint axioms (core slices) — the closed-world
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). A restriction carrying both owl:*Cardinality and
+# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# sh:datatype property shape. The cross-node / value-range / disjunctive
+# (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL
+# antecedent and remain the procedural fragment .
+# =========================================================================== #
+
+gmeow:Teaching rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:teacher ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:learner ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:subjectTaught ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+<https://blackcatinformatics.ca/gmeow/Teaching> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/teacher> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Agent> ] .
+
+# A gmeow:Teaching relation's gmeow:teacher and gmeow:learner must differ — a
+# self-teaching relation is ill-formed (a cross-node inequality constraint).
+gmeow:TeachingSelfTeachConstraint
+    a logic:CrossNodeConstraint ;
+    rdfs:label "Teaching non-self-teach constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A procedural integrity constraint: a gmeow:Teaching relation's gmeow:teacher and gmeow:learner must differ; a self-teaching relation is ill-formed."@x-gmeow-english ;
+    logic:onClass gmeow:Teaching ;
+    logic:roleA gmeow:teacher ;
+    logic:roleB gmeow:learner ;
+    logic:crossMode "differ" ;
+    logic:formalizes gmeow:Teaching ;
+    logic:message "A gmeow:Teaching relation's gmeow:teacher and gmeow:learner must differ; a self-teaching relation is ill-formed." .
+
+# =========================================================================== #
+# Procedural constraint authored as a raw logic:Formula integrity tree —        #
+# projected to a sh:SPARQLConstraint keyed onto gmeow:SkillProficiency.         #
+# =========================================================================== #
+
+# The gmeow:skillProficiencyLevel's gmeow:levelScale should match the relator's
+# gmeow:skillProficiencyScale. Warning.
+gmeow:SkillProficiencyScaleMatchConstraint
+    a logic:Constraint ;
+    rdfs:label "Skill proficiency scale-match constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:SkillProficiency's level scale matches its gmeow:skillProficiencyScale."@x-gmeow-english ;
+    logic:formalizes gmeow:SkillProficiency ;
+    logic:severity "Warning" ;
+    logic:message "The skillProficiencyLevel's levelScale should match the relator's skillProficiencyScale." ;
+    logic:integrity logic:spsForall .
+logic:spsForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "level" ] , [ logic:termIndex 2 ; logic:termVariable "expected" ] , [ logic:termIndex 3 ; logic:termVariable "scale" ] ;
+    logic:forall logic:spsImpl .
+logic:spsImpl a logic:Formula ; logic:antecedent logic:spsGuard ; logic:consequent logic:spsEq .
+logic:spsGuard a logic:Formula ; logic:and logic:spsType , logic:spsLevel , logic:spsLevelScale , logic:spsScale .
+logic:spsType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SkillProficiency ] .
+logic:spsLevel a logic:Formula ; logic:relation gmeow:skillProficiencyLevel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "level" ] .
+logic:spsLevelScale a logic:Formula ; logic:relation gmeow:levelScale ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "level" ] , [ logic:termIndex 1 ; logic:termVariable "expected" ] .
+logic:spsScale a logic:Formula ; logic:relation gmeow:skillProficiencyScale ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "scale" ] .
+logic:spsEq a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "scale" ] , [ logic:termIndex 1 ; logic:termVariable "expected" ] .
+
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 <https://blackcatinformatics.ca/gmeow/Teaching> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/subjectTaught> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
