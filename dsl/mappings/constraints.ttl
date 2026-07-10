@@ -1,0 +1,260 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# ---------------------------------------------------------------------------
+# Constraint 1 — PatternAtom: exactly one of predicate / predicateVar / path
+# ---------------------------------------------------------------------------
+gmeow:PatternAtomExactlyOneConstraint
+    a logic:Constraint ;
+    rdfs:label "PatternAtom exactly-one predication constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    skos:definition "A closed-world integrity constraint: a mapping-DSL gmeow:PatternAtom names exactly one of gmeow:predicate (an IRI predicate), gmeow:predicateVar (a string variable), or gmeow:path (a property-path node)."@x-gmeow-english ;
+    logic:formalizes gmeow:PatternAtomShape ;
+    logic:severity "Violation" ;
+    logic:message "PatternAtom must have exactly one of predicate (IRI), predicateVar (string), or path (node)" ;
+    logic:integrity gmeow:paForall .
+gmeow:paForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                             [ logic:termIndex 1 ; logic:termVariable "sv" ] ;
+    logic:forall gmeow:paImpl .
+gmeow:paImpl a logic:Formula ; logic:antecedent gmeow:paGuard ; logic:consequent gmeow:paPhi .
+gmeow:paGuard a logic:Formula ; logic:relation gmeow:subjectVar ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sv" ] .
+gmeow:paPhi a logic:Formula ; logic:or gmeow:paArmA , gmeow:paArmB , gmeow:paArmC .
+gmeow:paArmA a logic:Formula ; logic:and gmeow:paPredPos , gmeow:paNotPvar1 , gmeow:paNotPath1 .
+gmeow:paArmB a logic:Formula ; logic:and gmeow:paNotPred1 , gmeow:paPvarPos , gmeow:paNotPath2 .
+gmeow:paArmC a logic:Formula ; logic:and gmeow:paNotPred2 , gmeow:paNotPvar2 , gmeow:paPathPos .
+# predicate existentials
+gmeow:paPredPos a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ; logic:exists gmeow:paPredAtom1 .
+gmeow:paPredAtom1 a logic:Formula ; logic:relation gmeow:predicate ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+gmeow:paNotPred1 a logic:Formula ; logic:not gmeow:paPredExB .
+gmeow:paPredExB a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ; logic:exists gmeow:paPredAtom2 .
+gmeow:paPredAtom2 a logic:Formula ; logic:relation gmeow:predicate ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+gmeow:paNotPred2 a logic:Formula ; logic:not gmeow:paPredExC .
+gmeow:paPredExC a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ; logic:exists gmeow:paPredAtom3 .
+gmeow:paPredAtom3 a logic:Formula ; logic:relation gmeow:predicate ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+# predicateVar existentials
+gmeow:paPvarPos a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "pv" ] ; logic:exists gmeow:paPvarAtom1 .
+gmeow:paPvarAtom1 a logic:Formula ; logic:relation gmeow:predicateVar ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pv" ] .
+gmeow:paNotPvar1 a logic:Formula ; logic:not gmeow:paPvarExB .
+gmeow:paPvarExB a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "pv" ] ; logic:exists gmeow:paPvarAtom2 .
+gmeow:paPvarAtom2 a logic:Formula ; logic:relation gmeow:predicateVar ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pv" ] .
+gmeow:paNotPvar2 a logic:Formula ; logic:not gmeow:paPvarExC .
+gmeow:paPvarExC a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "pv" ] ; logic:exists gmeow:paPvarAtom3 .
+gmeow:paPvarAtom3 a logic:Formula ; logic:relation gmeow:predicateVar ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pv" ] .
+# path existentials
+gmeow:paPathPos a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "path" ] ; logic:exists gmeow:paPathAtom1 .
+gmeow:paPathAtom1 a logic:Formula ; logic:relation gmeow:path ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "path" ] .
+gmeow:paNotPath1 a logic:Formula ; logic:not gmeow:paPathExB .
+gmeow:paPathExB a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "path" ] ; logic:exists gmeow:paPathAtom2 .
+gmeow:paPathAtom2 a logic:Formula ; logic:relation gmeow:path ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "path" ] .
+gmeow:paNotPath2 a logic:Formula ; logic:not gmeow:paPathExC .
+gmeow:paPathExC a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "path" ] ; logic:exists gmeow:paPathAtom3 .
+gmeow:paPathAtom3 a logic:Formula ; logic:relation gmeow:path ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "path" ] .
+
+# ---------------------------------------------------------------------------
+# Constraint 2 — TemplateAtom: exactly one of tObj / tObjValue
+# ---------------------------------------------------------------------------
+gmeow:TemplateAtomObjectXorConstraint
+    a logic:Constraint ;
+    rdfs:label "TemplateAtom object exactly-one constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    skos:definition "A closed-world integrity constraint: a mapping-DSL gmeow:TemplateAtom names exactly one of gmeow:tObj (a string object) or gmeow:tObjValue (an IRI object)."@x-gmeow-english ;
+    logic:formalizes gmeow:TemplateAtomShape ;
+    logic:severity "Violation" ;
+    logic:message "TemplateAtom must have exactly one of tObj (string) or tObjValue (IRI)" ;
+    logic:integrity gmeow:taForall .
+gmeow:taForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                             [ logic:termIndex 1 ; logic:termVariable "ts" ] ;
+    logic:forall gmeow:taImpl .
+gmeow:taImpl a logic:Formula ; logic:antecedent gmeow:taGuard ; logic:consequent gmeow:taPhi .
+gmeow:taGuard a logic:Formula ; logic:relation gmeow:tSubj ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ts" ] .
+gmeow:taPhi a logic:Formula ; logic:or gmeow:taL , gmeow:taR .
+gmeow:taL a logic:Formula ; logic:and gmeow:taA1 , gmeow:taNotB1 .
+gmeow:taR a logic:Formula ; logic:and gmeow:taNotA1 , gmeow:taB1 .
+gmeow:taA1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ; logic:exists gmeow:taAAtom1 .
+gmeow:taAAtom1 a logic:Formula ; logic:relation gmeow:tObj ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+gmeow:taNotA1 a logic:Formula ; logic:not gmeow:taA2 .
+gmeow:taA2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ; logic:exists gmeow:taAAtom2 .
+gmeow:taAAtom2 a logic:Formula ; logic:relation gmeow:tObj ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+gmeow:taB1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ; logic:exists gmeow:taBAtom1 .
+gmeow:taBAtom1 a logic:Formula ; logic:relation gmeow:tObjValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+gmeow:taNotB1 a logic:Formula ; logic:not gmeow:taB2 .
+gmeow:taB2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ; logic:exists gmeow:taBAtom2 .
+gmeow:taBAtom2 a logic:Formula ; logic:relation gmeow:tObjValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+# ---------------------------------------------------------------------------
+# Constraint 3 — ProfileBinding: at least one output
+# ---------------------------------------------------------------------------
+gmeow:ProfileBindingOutputConstraint
+    a logic:Constraint ;
+    rdfs:label "ProfileBinding at-least-one output constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    skos:definition "A closed-world integrity constraint: a mapping-DSL gmeow:ProfileBinding (the object of gmeow:hasBinding) names at least one output — gmeow:toPredicate, gmeow:toClass, gmeow:templateAtoms, or gmeow:valueClassMap."@x-gmeow-english ;
+    logic:formalizes gmeow:ProfileBindingShape ;
+    logic:severity "Violation" ;
+    logic:message "ProfileBinding must have at least one output: toPredicate, toClass, templateAtoms, or valueClassMap" ;
+    logic:integrity gmeow:pbForall .
+gmeow:pbForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                             [ logic:termIndex 1 ; logic:termVariable "parent" ] ;
+    logic:forall gmeow:pbImpl .
+gmeow:pbImpl a logic:Formula ; logic:antecedent gmeow:pbGuard ; logic:consequent gmeow:pbPhi .
+gmeow:pbGuard a logic:Formula ; logic:relation gmeow:hasBinding ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "parent" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+gmeow:pbPhi a logic:Formula ; logic:or gmeow:pbToPred , gmeow:pbToClass , gmeow:pbTmpl , gmeow:pbVcm .
+gmeow:pbToPred a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ; logic:exists gmeow:pbToPredAtom .
+gmeow:pbToPredAtom a logic:Formula ; logic:relation gmeow:toPredicate ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+gmeow:pbToClass a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ; logic:exists gmeow:pbToClassAtom .
+gmeow:pbToClassAtom a logic:Formula ; logic:relation gmeow:toClass ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+gmeow:pbTmpl a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ; logic:exists gmeow:pbTmplAtom .
+gmeow:pbTmplAtom a logic:Formula ; logic:relation gmeow:templateAtoms ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+gmeow:pbVcm a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ; logic:exists gmeow:pbVcmAtom .
+gmeow:pbVcmAtom a logic:Formula ; logic:relation gmeow:valueClassMap ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+# ---------------------------------------------------------------------------
+# Constraint 4 — ProfileBinding emitSssom implies sssomPredicate + sssomFile
+# ---------------------------------------------------------------------------
+gmeow:ProfileBindingEmitSssomConstraint
+    a logic:Constraint ;
+    rdfs:label "ProfileBinding emitSssom completeness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    skos:definition "A closed-world integrity constraint: a mapping-DSL gmeow:ProfileBinding (the object of gmeow:hasBinding) that sets gmeow:emitSssom true must carry both gmeow:sssomPredicate and gmeow:sssomFile."@x-gmeow-english ;
+    logic:formalizes gmeow:ProfileBindingShape ;
+    logic:severity "Violation" ;
+    logic:message "ProfileBinding with gmeow:emitSssom true must have gmeow:sssomPredicate and gmeow:sssomFile" ;
+    logic:integrity gmeow:pbeForall .
+gmeow:pbeForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                             [ logic:termIndex 1 ; logic:termVariable "parent" ] ;
+    logic:forall gmeow:pbeImpl .
+gmeow:pbeImpl a logic:Formula ; logic:antecedent gmeow:pbeGuard ; logic:consequent gmeow:pbePhi .
+gmeow:pbeGuard a logic:Formula ; logic:relation gmeow:hasBinding ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "parent" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+gmeow:pbePhi a logic:Formula ; logic:antecedent gmeow:pbeEmitAtom ; logic:consequent gmeow:pbeAnd .
+gmeow:pbeEmitAtom a logic:Formula ; logic:relation gmeow:emitSssom ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                   [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] .
+gmeow:pbeAnd a logic:Formula ; logic:and gmeow:pbePred , gmeow:pbeFile .
+gmeow:pbePred a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sp" ] ; logic:exists gmeow:pbePredAtom .
+gmeow:pbePredAtom a logic:Formula ; logic:relation gmeow:sssomPredicate ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sp" ] .
+gmeow:pbeFile a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sf" ] ; logic:exists gmeow:pbeFileAtom .
+gmeow:pbeFileAtom a logic:Formula ; logic:relation gmeow:sssomFile ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sf" ] .
+
+# ---------------------------------------------------------------------------
+# Constraint 5a — Expression exactly-one, targeted via exprOp subjects
+# ---------------------------------------------------------------------------
+gmeow:ExpressionXorViaOpConstraint
+    a logic:Constraint ;
+    rdfs:label "Expression exactly-one constraint (exprOp subjects)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    skos:definition "A closed-world integrity constraint over the subjects of gmeow:exprOp: a mapping-DSL gmeow:Expression names exactly one of gmeow:exprVar (a string variable) or the (gmeow:exprOp + gmeow:exprArgs) operator form."@x-gmeow-english ;
+    logic:formalizes gmeow:ExpressionShape ;
+    logic:severity "Violation" ;
+    logic:message "Expression must have exactly one of exprVar (string) or (exprOp + exprArgs)" ;
+    logic:integrity gmeow:exOpForall .
+gmeow:exOpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                             [ logic:termIndex 1 ; logic:termVariable "op" ] ;
+    logic:forall gmeow:exOpImpl .
+gmeow:exOpImpl a logic:Formula ; logic:antecedent gmeow:exOpGuard ; logic:consequent gmeow:exOpPhi .
+gmeow:exOpGuard a logic:Formula ; logic:relation gmeow:exprOp ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "op" ] .
+gmeow:exOpPhi a logic:Formula ; logic:or gmeow:exOpL , gmeow:exOpR .
+gmeow:exOpL a logic:Formula ; logic:and gmeow:exOpA1 , gmeow:exOpNotB1 .
+gmeow:exOpR a logic:Formula ; logic:and gmeow:exOpNotA1 , gmeow:exOpB1 .
+gmeow:exOpA1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ; logic:exists gmeow:exOpVarAtom1 .
+gmeow:exOpVarAtom1 a logic:Formula ; logic:relation gmeow:exprVar ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+gmeow:exOpNotA1 a logic:Formula ; logic:not gmeow:exOpA2 .
+gmeow:exOpA2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ; logic:exists gmeow:exOpVarAtom2 .
+gmeow:exOpVarAtom2 a logic:Formula ; logic:relation gmeow:exprVar ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+gmeow:exOpB1 a logic:Formula ; logic:and gmeow:exOpOpEx1 , gmeow:exOpArgsEx1 .
+gmeow:exOpOpEx1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ; logic:exists gmeow:exOpOpAtom1 .
+gmeow:exOpOpAtom1 a logic:Formula ; logic:relation gmeow:exprOp ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+gmeow:exOpArgsEx1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a" ] ; logic:exists gmeow:exOpArgsAtom1 .
+gmeow:exOpArgsAtom1 a logic:Formula ; logic:relation gmeow:exprArgs ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+gmeow:exOpNotB1 a logic:Formula ; logic:not gmeow:exOpB2 .
+gmeow:exOpB2 a logic:Formula ; logic:and gmeow:exOpOpEx2 , gmeow:exOpArgsEx2 .
+gmeow:exOpOpEx2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ; logic:exists gmeow:exOpOpAtom2 .
+gmeow:exOpOpAtom2 a logic:Formula ; logic:relation gmeow:exprOp ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+gmeow:exOpArgsEx2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a" ] ; logic:exists gmeow:exOpArgsAtom2 .
+gmeow:exOpArgsAtom2 a logic:Formula ; logic:relation gmeow:exprArgs ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+
+# ---------------------------------------------------------------------------
+# Constraint 5b — Expression exactly-one, targeted via exprVar subjects
+# ---------------------------------------------------------------------------
+gmeow:ExpressionXorViaVarConstraint
+    a logic:Constraint ;
+    rdfs:label "Expression exactly-one constraint (exprVar subjects)"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    skos:definition "A closed-world integrity constraint over the subjects of gmeow:exprVar: a mapping-DSL gmeow:Expression names exactly one of gmeow:exprVar (a string variable) or the (gmeow:exprOp + gmeow:exprArgs) operator form."@x-gmeow-english ;
+    logic:formalizes gmeow:ExpressionShape ;
+    logic:severity "Violation" ;
+    logic:message "Expression must have exactly one of exprVar (string) or (exprOp + exprArgs)" ;
+    logic:integrity gmeow:exVarForall .
+gmeow:exVarForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                             [ logic:termIndex 1 ; logic:termVariable "ev" ] ;
+    logic:forall gmeow:exVarImpl .
+gmeow:exVarImpl a logic:Formula ; logic:antecedent gmeow:exVarGuard ; logic:consequent gmeow:exVarPhi .
+gmeow:exVarGuard a logic:Formula ; logic:relation gmeow:exprVar ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ev" ] .
+gmeow:exVarPhi a logic:Formula ; logic:or gmeow:exVarL , gmeow:exVarR .
+gmeow:exVarL a logic:Formula ; logic:and gmeow:exVarA1 , gmeow:exVarNotB1 .
+gmeow:exVarR a logic:Formula ; logic:and gmeow:exVarNotA1 , gmeow:exVarB1 .
+gmeow:exVarA1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ; logic:exists gmeow:exVarVarAtom1 .
+gmeow:exVarVarAtom1 a logic:Formula ; logic:relation gmeow:exprVar ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+gmeow:exVarNotA1 a logic:Formula ; logic:not gmeow:exVarA2 .
+gmeow:exVarA2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ; logic:exists gmeow:exVarVarAtom2 .
+gmeow:exVarVarAtom2 a logic:Formula ; logic:relation gmeow:exprVar ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+gmeow:exVarB1 a logic:Formula ; logic:and gmeow:exVarOpEx1 , gmeow:exVarArgsEx1 .
+gmeow:exVarOpEx1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ; logic:exists gmeow:exVarOpAtom1 .
+gmeow:exVarOpAtom1 a logic:Formula ; logic:relation gmeow:exprOp ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+gmeow:exVarArgsEx1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a" ] ; logic:exists gmeow:exVarArgsAtom1 .
+gmeow:exVarArgsAtom1 a logic:Formula ; logic:relation gmeow:exprArgs ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+gmeow:exVarNotB1 a logic:Formula ; logic:not gmeow:exVarB2 .
+gmeow:exVarB2 a logic:Formula ; logic:and gmeow:exVarOpEx2 , gmeow:exVarArgsEx2 .
+gmeow:exVarOpEx2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ; logic:exists gmeow:exVarOpAtom2 .
+gmeow:exVarOpAtom2 a logic:Formula ; logic:relation gmeow:exprOp ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+gmeow:exVarArgsEx2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a" ] ; logic:exists gmeow:exVarArgsAtom2 .
+gmeow:exVarArgsAtom2 a logic:Formula ; logic:relation gmeow:exprArgs ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .

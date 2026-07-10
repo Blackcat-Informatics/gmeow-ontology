@@ -1115,3 +1115,35 @@ logic:supOrdStatus a logic:Formula ; logic:relation gmeow:orderStatus ;
 logic:supOrdNotSuppressed a logic:Formula ; logic:not logic:supOrdDisp .
 logic:supOrdDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
+
+# =========================================================================== #
+# Procedural constraint (#1194): the per-currency journal-entry balance. Sum   #
+# of debit postings equals sum of credit postings for each currency — a        #
+# grouped conditional-aggregate (SUM(IF(direction, value, 0)) grouped by        #
+# currency), authored as a logic:AggregateQueryConstraint and projected to the  #
+# sh:SPARQLConstraint twin of the hand-authored gmeow:JournalEntryBalancedShape.#
+# =========================================================================== #
+gmeow:JournalEntryBalancedConstraint
+    a logic:AggregateQueryConstraint ;
+    rdfs:label "JournalEntry balanced constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: within each currency, the sum of a JournalEntry's debit-direction posting amounts equals the sum of its credit-direction posting amounts (double-entry balance)."@x-gmeow-english ;
+    logic:onClass gmeow:JournalEntry ;
+    logic:formalizes gmeow:JournalEntryBalancedShape ;
+    logic:severity "Violation" ;
+    logic:message "The sum of debit postings must equal the sum of credit postings for each currency in a JournalEntry." ;
+    logic:aqPattern
+        [ logic:aqSubj "this" ; logic:aqPred gmeow:journalEntryPostings ; logic:aqObj "posting" ] ,
+        [ logic:aqSubj "posting" ; logic:aqPred gmeow:postingAmount ; logic:aqObj "amount" ] ,
+        [ logic:aqSubj "posting" ; logic:aqPred gmeow:postingDirection ; logic:aqObj "direction" ] ,
+        [ logic:aqSubj "amount" ; logic:aqPred gmeow:monetaryValue ; logic:aqObj "val" ] ,
+        [ logic:aqSubj "amount" ; logic:aqPred gmeow:currency ; logic:aqObj "currency" ] ;
+    logic:aqGroupKey "currency" ;
+    logic:aqBinding
+        [ logic:aqResult "sumDebits" ; logic:aqFunction "SUM" ;
+          logic:aqCondTestVar "direction" ; logic:aqCondTestValue gmeow:postingDirectionDebit ; logic:aqCondThenVar "val" ] ,
+        [ logic:aqResult "sumCredits" ; logic:aqFunction "SUM" ;
+          logic:aqCondTestVar "direction" ; logic:aqCondTestValue gmeow:postingDirectionCredit ; logic:aqCondThenVar "val" ] ;
+    logic:aqHaving
+        [ logic:aqLeftVar "sumDebits" ; logic:aqOp "!=" ; logic:aqRightVar "sumCredits" ] .
