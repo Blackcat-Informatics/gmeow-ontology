@@ -66,6 +66,15 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
                     "threshold {thr_iri} has no decimal gmeow:thresholdFloor"
                 ))
             })?;
+        // A NaN/±inf floor is silently poisonous downstream: it collapses the
+        // `score + EPSILON >= floor` gate checks and the ascending floor sort
+        // below into non-deterministic or vacuous comparisons. Hard-fail here
+        // rather than let a malformed literal degrade the ladder silently.
+        if !floor.is_finite() {
+            return Err(rubric_err(format!(
+                "threshold {thr_iri} has a non-finite gmeow:thresholdFloor {floor}"
+            )));
+        }
         Ok(Threshold { tier_iri, floor })
     };
 
@@ -91,10 +100,28 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
             .ok_or_else(|| rubric_err(format!("axis {iri} has no gmeow:axisContextScope")))?;
         let scope = ContextScope::from_local(scope_iri.rsplit(['/', '#']).next().unwrap_or(""))
             .ok_or_else(|| rubric_err(format!("axis {iri} names unknown scope {scope_iri}")))?;
-        let weight = weight_p
-            .and_then(|p| one_lit(ds, sid, p))
-            .and_then(|s| s.parse::<f64>().ok())
-            .unwrap_or(1.0);
+        // Only a MISSING gmeow:axisWeight defaults to 1.0 (unweighted). A
+        // PRESENT value must be a finite number: a non-finite (NaN/±inf) weight
+        // parses fine as an f64 and then silently collapses the advisory
+        // weight-rank comparator (`partial_cmp(..).unwrap_or(Equal)` in
+        // report.rs) into a no-op order, and a non-numeric weight would silently
+        // degrade back to the default. Both are hard fails, never papered over.
+        let weight = match weight_p.and_then(|p| one_lit(ds, sid, p)) {
+            None => 1.0,
+            Some(s) => match s.parse::<f64>() {
+                Ok(w) if w.is_finite() => w,
+                Ok(w) => {
+                    return Err(rubric_err(format!(
+                        "axis {iri} has a non-finite gmeow:axisWeight {w}"
+                    )));
+                }
+                Err(_) => {
+                    return Err(rubric_err(format!(
+                        "axis {iri} has a non-numeric gmeow:axisWeight {s:?}"
+                    )));
+                }
+            },
+        };
         let advice = advice_p
             .and_then(|p| one_lit(ds, sid, p))
             .unwrap_or_default();
@@ -247,6 +274,96 @@ gmeow:exFoo a gmeow:AxisExemption ;
         assert!(
             err.message().contains("axisNope"),
             "names the offending axis: {err}"
+        );
+    }
+
+    #[test]
+    fn non_finite_axis_weight_hard_fails() {
+        // A NaN gmeow:axisWeight parses fine as an f64 and would otherwise
+        // silently collapse the advisory weight-rank comparator — G4 mandates a
+        // hard fail at load time instead.
+        let ttl = format!(
+            r#"@prefix gmeow: <{GMEOW_NS}> .
+gmeow:tierRegistered a gmeow:QualityTier ; gmeow:tierRank 0 .
+gmeow:axisFoo a gmeow:QualityAxis ;
+    gmeow:axisProducer "foo" ;
+    gmeow:axisDimension gmeow:dimFoo ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisWeight "NaN" ;
+    gmeow:axisThreshold gmeow:thrFoo .
+gmeow:thrFoo a gmeow:AxisThreshold ;
+    gmeow:thresholdTier gmeow:tierRegistered ;
+    gmeow:thresholdFloor 0.0 .
+"#
+        );
+        let err = load(&ttl).unwrap_err();
+        assert!(
+            err.message().contains("non-finite gmeow:axisWeight"),
+            "{err}"
+        );
+        assert!(
+            err.message().contains("axisFoo"),
+            "names the offending axis: {err}"
+        );
+    }
+
+    #[test]
+    fn non_numeric_axis_weight_hard_fails() {
+        // A PRESENT but non-numeric gmeow:axisWeight must hard-fail, never
+        // silently degrade to the missing-value default of 1.0 (.goals
+        // no-optionality) — only an ABSENT predicate earns that default.
+        let ttl = format!(
+            r#"@prefix gmeow: <{GMEOW_NS}> .
+gmeow:tierRegistered a gmeow:QualityTier ; gmeow:tierRank 0 .
+gmeow:axisFoo a gmeow:QualityAxis ;
+    gmeow:axisProducer "foo" ;
+    gmeow:axisDimension gmeow:dimFoo ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisWeight "abc" ;
+    gmeow:axisThreshold gmeow:thrFoo .
+gmeow:thrFoo a gmeow:AxisThreshold ;
+    gmeow:thresholdTier gmeow:tierRegistered ;
+    gmeow:thresholdFloor 0.0 .
+"#
+        );
+        let err = load(&ttl).unwrap_err();
+        assert!(
+            err.message().contains("non-numeric gmeow:axisWeight"),
+            "{err}"
+        );
+        assert!(
+            err.message().contains("axisFoo"),
+            "names the offending axis: {err}"
+        );
+    }
+
+    #[test]
+    fn non_finite_threshold_floor_hard_fails() {
+        // Same defect class for gmeow:thresholdFloor: it feeds the ascending
+        // floor sort and the `score + EPSILON >= floor` gate comparisons, so a
+        // NaN/inf literal must hard-fail at load rather than silently break
+        // tier ordering.
+        let ttl = format!(
+            r#"@prefix gmeow: <{GMEOW_NS}> .
+gmeow:tierRegistered a gmeow:QualityTier ; gmeow:tierRank 0 .
+gmeow:axisFoo a gmeow:QualityAxis ;
+    gmeow:axisProducer "foo" ;
+    gmeow:axisDimension gmeow:dimFoo ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisThreshold gmeow:thrFoo .
+gmeow:thrFoo a gmeow:AxisThreshold ;
+    gmeow:thresholdTier gmeow:tierRegistered ;
+    gmeow:thresholdFloor "inf" .
+"#
+        );
+        let err = load(&ttl).unwrap_err();
+        assert!(
+            err.message().contains("non-finite gmeow:thresholdFloor"),
+            "{err}"
+        );
+        assert!(
+            err.message().contains("thrFoo"),
+            "names the offending threshold: {err}"
         );
     }
 
