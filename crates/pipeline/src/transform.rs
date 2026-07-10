@@ -29,6 +29,8 @@ use sha2::{Digest, Sha256};
 
 use gmeow_errors::ResultExt;
 
+use crate::projections::{TagMap, retag_quads};
+
 const GM: &str = "https://blackcatinformatics.ca/gmeow/";
 const SKOLEM_BASE: &str = "https://blackcatinformatics.ca/gmeow/.well-known/genid/";
 
@@ -298,12 +300,27 @@ pub fn saturate_nt(
 }
 
 /// Compute MAXIMAL(G) over serialized inputs.
+///
+/// `tag_map` is the projection-boundary internal→public BCP-47 language-tag
+/// remap (empty = no-op). It is applied to the base+derived quad stream — and
+/// therefore to both `base_plus_derived_nt` and `gts_bytes` — before this
+/// function returns: `saturate_graph`/`projection_derived` run their CONSTRUCTs
+/// over `abox ∪ onto`, and a profile CONSTRUCT (e.g. the `ontolex` profile's
+/// static exonym/endonym catalog) can copy an internally-tagged ontology
+/// literal straight through to a derived triple. Without this retag, that
+/// internal `x-gmeow-*` tag would leak into every consumer-facing MAXIMAL(G)
+/// output regardless of source content — the exact class of regression the
+/// self-sufficiency parity harness (`gmeow-cli/tests/self_sufficiency.rs`)
+/// pins. Reuses [`crate::projections::retag_quads`], the SAME retag already
+/// applied at the `project`/`export` projection boundaries (Principle 4: one
+/// canonical source), rather than re-deriving the rule here.
 pub fn transform_nt(
     raw_nt: &str,
     ontology_nt: &str,
     cells: &[CellInput],
     denied: &[(String, String, String)],
     projection_queries: &[(String, String)],
+    tag_map: &TagMap,
 ) -> gmeow_errors::Result<TransformReportNative> {
     let mut abox = skolemized_graph(raw_nt)?;
     let onto = parse_graph(ontology_nt.as_bytes())?;
@@ -322,7 +339,7 @@ pub fn transform_nt(
     let derived = merge_derived(saturated, projected);
 
     let base_nt = dump_nt(&abox)?;
-    let base_plus_derived = base_plus_derived_graph(&abox, &derived)?;
+    let base_plus_derived = base_plus_derived_graph(&abox, &derived, tag_map)?;
     let base_plus_derived_nt = dump_nt(&base_plus_derived)?;
     let gts_bytes = gts_from_maximal(&base_plus_derived, &derived)?;
 
@@ -623,7 +640,10 @@ fn projection_derived(
             let object = quad.object;
             // CONSTRUCT predicates are always IRIs; `RdfQuad::predicate` carries the IRI.
             let predicate = quad.predicate;
-            if onto_subjects.contains(&term_token(&subject)) {
+            let subject_token = term_token(&subject);
+            if onto_subjects.contains(&subject_token)
+                || derives_from_onto_subject(&subject_token, &onto_subjects)
+            {
                 continue;
             }
             if suppressed.contains(&term_token(&subject))
@@ -704,6 +724,7 @@ fn merge_derived(
 fn base_plus_derived_graph(
     base: &Graph,
     derived: &BTreeMap<TripleKey, DerivedTriple>,
+    tag_map: &TagMap,
 ) -> gmeow_errors::Result<Graph> {
     let mut quads: Vec<RdfQuad> = default_quads(base);
     for row in derived.values() {
@@ -713,6 +734,7 @@ fn base_plus_derived_graph(
             row.object.clone(),
         ));
     }
+    retag_quads(&mut quads, tag_map);
     Graph::from_quads(quads)
 }
 
@@ -946,6 +968,45 @@ fn subjects(graph: &Graph) -> BTreeSet<String> {
         .iter()
         .map(|q| term_token(&q.subject))
         .collect()
+}
+
+/// Whether `subject_token` (an already-bracketed IRI token, e.g.
+/// `<https://…/appAbkhazianExonym-form>`) is a FRESHLY MINTED individual derived
+/// from an onto-only subject — i.e. its IRI is a proper string extension of some
+/// `onto_subjects` entry.
+///
+/// Closes a coverage gap in the exact-match guard `onto_subjects.contains(..)`:
+/// that guard only catches a projection CONSTRUCT that re-emits an onto
+/// subject's IRI verbatim, not one that mints a fresh sub-resource IRI off it
+/// (the common `BIND(IRI(CONCAT(STR(?onto_individual), "-form")))` idiom several
+/// projection profiles use, e.g. `ontolex`'s per-Appellation lexical Form). Both
+/// guards exist for the SAME reason: `MAXIMAL(G) = G + E(G) + P(G)` projects
+/// facts *about the instance data*, so a CONSTRUCT result whose driving
+/// individual is purely ontology/reference-catalog content (never in `abox`)
+/// is NOT a derived fact about the transpiled instance — without this check, a
+/// profile whose WHERE clause matches static ontology-authored reference data
+/// (e.g. the imported `imports/languages-reference.ttl` catalog) leaks that
+/// ENTIRE static catalog into every MAXIMAL(G) transform, regardless of the
+/// actual instance content.
+fn derives_from_onto_subject(subject_token: &str, onto_subjects: &BTreeSet<String>) -> bool {
+    // Tokens are bracketed IRIs (`<https://…>`); compare the INNER IRI text, not
+    // the bracketed token — `<...Exonym-form>` does not `starts_with`
+    // `<...Exonym>` (the closing `>` breaks the naive bracketed prefix match),
+    // but the inner IRI `...Exonym-form` does start with `...Exonym`.
+    let Some(subject_iri) = subject_token
+        .strip_prefix('<')
+        .and_then(|s| s.strip_suffix('>'))
+    else {
+        return false;
+    };
+    onto_subjects.iter().any(|onto_subject| {
+        onto_subject
+            .strip_prefix('<')
+            .and_then(|s| s.strip_suffix('>'))
+            .is_some_and(|onto_iri| {
+                onto_iri.len() < subject_iri.len() && subject_iri.starts_with(onto_iri)
+            })
+    })
 }
 
 fn has_type(graph: &Graph, subject: &str, class: &str) -> bool {
@@ -1566,6 +1627,74 @@ mod tests {
             run_a.len(),
             7,
             "2 Person subjects × 2 class edges + 2 property mirrors + 1 sameAs mirror: {run_a:?}"
+        );
+    }
+
+    // ── projection P(G): onto-only-catalog exclusion + tag_map retag boundary ──
+    //
+    // Regression coverage for the `gmeow-cli/tests/self_sufficiency.rs` "zero
+    // x-gmeow leak" finding: a projection CONSTRUCT whose WHERE clause matches
+    // `?app gmeow:fullName ?name` (the `ontolex` profile's real shape) and mints
+    // a fresh `<subject>-form` IRI via `BIND(IRI(CONCAT(...)))` must NOT leak an
+    // onto-only individual's data into MAXIMAL(G) — only abox-derived facts are
+    // "about the instance" — and any internally-tagged literal that DOES survive
+    // into the output must be retagged to its public BCP-47 form.
+
+    const CATALOG_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/catalogEntry";
+    const FULL_NAME_QUERY: &str = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\nCONSTRUCT { ?form gmeow:writtenRep ?name }\nWHERE { ?app gmeow:fullName ?name . BIND(IRI(CONCAT(STR(?app), \"-form\")) AS ?form) }";
+
+    #[test]
+    fn projection_derived_excludes_onto_only_catalog_forms_but_keeps_abox_derived_ones() {
+        // onto: an ontology-authored "reference catalog" individual (mirrors
+        // `imports/languages-reference.ttl`'s exonym Appellations) — NOT part of
+        // the transpiled instance.
+        let ontology_nt = format!("<{CATALOG_ENTRY}> <{GM}fullName> \"Catalog Entry\" .\n");
+        // abox: our actual instance data, carrying the SAME predicate.
+        let raw_nt = format!("<{EX_ME}> <{GM}fullName> \"Ada Lovelace\" .\n");
+
+        let report = transform_nt(
+            &raw_nt,
+            &ontology_nt,
+            &[],
+            &[],
+            &[("catalog-forms".to_owned(), FULL_NAME_QUERY.to_owned())],
+            &TagMap::new(),
+        )
+        .unwrap();
+
+        assert!(
+            !report.base_plus_derived_nt.contains("catalogEntry-form"),
+            "onto-only catalog individual's synthesized form leaked into MAXIMAL(G): {}",
+            report.base_plus_derived_nt
+        );
+        assert!(
+            report.base_plus_derived_nt.contains("sat/me-form"),
+            "abox-derived synthesized form is missing (over-exclusion): {}",
+            report.base_plus_derived_nt
+        );
+    }
+
+    #[test]
+    fn transform_nt_retags_internal_language_tags_at_the_maximal_output_boundary() {
+        // The instance's own fullName literal carries an internal x-gmeow-*
+        // authoring tag (the normal in-ontology convention); `tag_map` maps it
+        // to its public BCP-47 form, exactly as `project`/`export` already do at
+        // their projection boundaries (`crate::projections::retag_quads`).
+        let raw_nt = format!("<{EX_ME}> <{GM}fullName> \"Ada Lovelace\"@x-gmeow-english .\n");
+        let mut tag_map = TagMap::new();
+        tag_map.insert("x-gmeow-english".to_owned(), "en".to_owned());
+
+        let report = transform_nt(&raw_nt, "", &[], &[], &[], &tag_map).unwrap();
+
+        assert!(
+            report.base_plus_derived_nt.contains("\"Ada Lovelace\"@en"),
+            "internal tag was not retagged to its public BCP-47 form: {}",
+            report.base_plus_derived_nt
+        );
+        assert!(
+            !report.base_plus_derived_nt.contains("x-gmeow-english"),
+            "internal tag leaked into the MAXIMAL(G) output: {}",
+            report.base_plus_derived_nt
         );
     }
 }
