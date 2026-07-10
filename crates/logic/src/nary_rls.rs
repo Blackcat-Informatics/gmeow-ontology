@@ -49,6 +49,7 @@
 //! sound. gzip is handled through the workspace's existing `flate2`; a uniform-arity
 //! violation or a malformed record is a HARD FAIL, never a silently truncated row.
 
+use std::collections::BTreeMap;
 use std::path::Path;
 
 use purrdf::TermValue;
@@ -171,11 +172,86 @@ fn nary_arg_from_term(
     }
 }
 
+// ── Program-prefix resolution (the relation-identity seam) ─────────────────────
+
+/// Extract the `@prefix` map (`prefix → expanded IRI`) declared in an n-ary `.rls`
+/// program's directives.
+///
+/// This is the SAME namespace environment the Nemo front-end resolves rule-atom relation
+/// CURIEs against when [`parse_nary_rls_program`] parses the program (Nemo expands
+/// `nf:isMainClass` to `<@prefix nf>isMainClass`). The delimited EDB loader
+/// ([`load_nary_data_file`]) keys each relation on its file stem — which authors write as
+/// the SAME CURIE (`nf:isMainClass.csv`). Without resolving that stem against these
+/// prefixes the EDB relation IRI (`nf:isMainClass`) would never equal the rule-atom
+/// relation IRI (`http://…/isMainClass`), so no reified body atom could ever join the EDB
+/// and the native chase would derive nothing — a silent completeness collapse the Nemo
+/// oracle hides because it re-parses the raw stem through its OWN front-end. Resolving the
+/// stem here keeps the two sibling loaders naming relations in ONE namespace, which is the
+/// invariant that makes the cross-engine parity comparison sound.
+///
+/// The parse mirrors the Turtle/Nemo `@prefix name: <iri> .` directive: the prefix name
+/// runs up to the `:` assignment (empty for the default `:` prefix) and the IRI is the
+/// following `<…>`. A `%`-comment line (Nemo's comment syntax) never begins with `@prefix`
+/// so it is skipped, and a trailing `.`/comment after the closing `>` is ignored.
+#[must_use]
+pub fn parse_rls_prefixes(rls: &str) -> BTreeMap<String, String> {
+    let mut out = BTreeMap::new();
+    for line in rls.lines() {
+        // The directive keyword is `@prefix` (Turtle) or the SPARQL-style `PREFIX`; the
+        // rest is `name: <iri>` (with an optional trailing `.`).
+        let trimmed = line.trim_start();
+        let rest = trimmed
+            .strip_prefix("@prefix")
+            .or_else(|| trimmed.strip_prefix("PREFIX"))
+            .or_else(|| trimmed.strip_prefix("prefix"));
+        let Some(rest) = rest else { continue };
+        let rest = rest.trim_start();
+        let Some(colon) = rest.find(':') else {
+            continue;
+        };
+        let name = rest[..colon].trim().to_owned();
+        let after = &rest[colon + 1..];
+        let Some(open) = after.find('<') else {
+            continue;
+        };
+        let tail = &after[open + 1..];
+        let Some(close) = tail.find('>') else {
+            continue;
+        };
+        out.insert(name, tail[..close].to_owned());
+    }
+    out
+}
+
+/// Resolve a delimited-EDB relation stem to the SAME IRI the Nemo front-end resolves the
+/// rule-atom CURIE to, using the program's `@prefix` map ([`parse_rls_prefixes`]).
+///
+/// A `prefix:local` stem whose `prefix` is declared expands to `<prefix-iri>local` (exactly
+/// Nemo's `format!("{expanded_prefix}{tag}")`); a bare name (no `:`) or a stem whose prefix
+/// is NOT declared (e.g. an already-absolute IRI, though a `/`-bearing IRI cannot be a
+/// single file stem) passes through unchanged — matching Nemo, which leaves an unprefixed
+/// predicate name un-expanded.
+#[must_use]
+pub fn resolve_relation_name(stem: &str, prefixes: &BTreeMap<String, String>) -> String {
+    if let Some(colon) = stem.find(':') {
+        let (prefix, local) = (&stem[..colon], &stem[colon + 1..]);
+        if let Some(iri) = prefixes.get(prefix) {
+            return format!("{iri}{local}");
+        }
+    }
+    stem.to_owned()
+}
+
 // ── Delimited EDB loader ───────────────────────────────────────────────────────
 
 /// Load one delimited n-ary data file into [`Vec<NaryTuple>`].
 ///
-/// The relation is the file stem (with any `.gz` and `.csv`/`.tsv` suffix stripped); the
+/// The relation is the file stem (with any `.gz` and `.csv`/`.tsv` suffix stripped),
+/// RESOLVED against the program's `@prefix` map (`prefixes`) so a CURIE stem
+/// (`nf:isMainClass.csv`) names the SAME relation IRI the Nemo front-end resolves the
+/// rule-atom CURIE to ([`resolve_relation_name`]) — without this the reified body atoms
+/// would never join the EDB (see [`parse_rls_prefixes`]). Pass an empty map for a program
+/// with no `@prefix` directives (a bare-name stem then passes through unchanged). The
 /// delimiter is `,` for `.csv` and a tab for `.tsv`; a `.gz` suffix is transparently
 /// gunzipped through the workspace's `flate2`. Every row must have the SAME arity (the
 /// schema is the first row's column count); a differing arity, an empty file, or a
@@ -185,7 +261,10 @@ fn nary_arg_from_term(
 ///
 /// Returns `Err` on an unreadable / undecodable file, an unknown extension, a gzip decode
 /// failure, a non-uniform arity, or a file with zero data rows.
-pub fn load_nary_data_file(path: &Path) -> gmeow_errors::Result<Vec<NaryTuple>> {
+pub fn load_nary_data_file(
+    path: &Path,
+    prefixes: &BTreeMap<String, String>,
+) -> gmeow_errors::Result<Vec<NaryTuple>> {
     let name = path.file_name().and_then(|s| s.to_str()).ok_or_else(|| {
         nary_rls_err(format!(
             "n-ary EDB loader: data file {} has no valid UTF-8 name",
@@ -193,7 +272,8 @@ pub fn load_nary_data_file(path: &Path) -> gmeow_errors::Result<Vec<NaryTuple>> 
         ))
     })?;
 
-    let (relation, delimiter, gzipped) = classify_data_file(name)?;
+    let (stem, delimiter, gzipped) = classify_data_file(name)?;
+    let relation = resolve_relation_name(&stem, prefixes);
 
     let raw = std::fs::read(path).map_err(|e| {
         nary_rls_err(format!(
