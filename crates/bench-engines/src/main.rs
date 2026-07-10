@@ -5,7 +5,14 @@
 //!
 //! It drives every committed mini bench case (`conformance/logic/cases/bench/`, or an
 //! explicit `--corpus-dir`) through the NATIVE engine and, per fragment, the
-//! applicable ORACLE, and emits TWO strictly-separated outputs:
+//! applicable ORACLE, and emits TWO strictly-separated outputs.
+//!
+//! Two cheap native-only gate verbs run BEFORE any oracle is constructed: `--check-golden`
+//! (a single-run native-vs-published agreement gate) and `--soak N` (the N-run soak
+//! window — the same deterministic check re-run N times, asserting gap-zero AND a
+//! byte-identical finding-graph digest across every run; see [`run_soak`]).
+//!
+//! The two strictly-separated outputs are:
 //!
 //! * **(2a) a DETERMINISTIC structured artifact** (`--emit-cost <path>`, else stdout):
 //!   per `(corpus, case, engine)` the sorted `CostVector` `(rule, predicate, stratum,
@@ -172,12 +179,28 @@ fn main() -> gmeow_errors::Result<()> {
     let mut emit_cost: Option<PathBuf> = None;
     let mut check_cost: Option<PathBuf> = None;
     let mut check_golden = false;
+    let mut soak: Option<usize> = None;
 
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--check-golden" => {
                 check_golden = true;
+            }
+            "--soak" => {
+                let raw = args.next().ok_or_else(|| {
+                    Diag::of_kind(Cli {
+                        detail: "--soak requires a window size N (an integer >= 2)".to_string(),
+                    })
+                })?;
+                let n: usize = raw.parse().map_err(|_| {
+                    Diag::of_kind(Cli {
+                        detail: format!(
+                            "--soak window must be a non-negative integer, got `{raw}`"
+                        ),
+                    })
+                })?;
+                soak = Some(n);
             }
             "--corpus-dir" => {
                 corpus_dir = Some(PathBuf::from(args.next().ok_or_else(|| {
@@ -229,6 +252,17 @@ fn main() -> gmeow_errors::Result<()> {
     // `make check`. It returns before any oracle run / artifact emission below.
     if check_golden {
         return run_golden_gate(&cases);
+    }
+
+    // ── (1b) The SOAK-WINDOW gap-zero gate ───────────────────────────────────────
+    // `--soak N` runs the SAME deterministic native-vs-golden agreement check N times
+    // over the committed corpora and asserts, for EVERY run, gap-zero (`dl_gap == 0 &&
+    // corpus_only == 0`) AND that the finding-graph blake3 digest is byte-identical across
+    // all N runs (a drifting fingerprint is itself a divergence finding — reproducibility
+    // is the soak invariant). Native-only, so it stays cheap enough to wire on-gate. It
+    // returns before any oracle run / artifact emission below.
+    if let Some(window) = soak {
+        return run_soak(&cases, window);
     }
 
     // Per-case deterministic records, and the report-only advisory rows.
@@ -1223,7 +1257,14 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<(String, u64, u6
 /// `gmeow:Finding` carrying content-addressed ledger identity (`finding_iri` + anchor +
 /// antecedents), NOT a bare diff. ANY disagreement HARD-FAILS (no-optionality). No oracle
 /// is driven, so this is cheap enough for `make check`.
-fn run_golden_gate(cases: &[BenchCase]) -> gmeow_errors::Result<()> {
+/// Drive every committed mini bench case through the NATIVE engine ONLY and group the
+/// resulting native-vs-golden count comparisons by corpus (deterministic BTree order; the
+/// loader yields cases sorted by `(corpus, case)`). This is the shared native-only path
+/// behind BOTH the single-run golden gate ([`run_golden_gate`]) and the N-run soak window
+/// ([`run_soak`]) — no oracle is ever constructed, so both stay cheap on-gate.
+fn golden_comps_by_corpus(
+    cases: &[BenchCase],
+) -> gmeow_errors::Result<BTreeMap<String, Vec<ExternalComparison>>> {
     let mut comps_by_corpus: BTreeMap<String, Vec<ExternalComparison>> = BTreeMap::new();
     for case in cases {
         let (world, native_count, golden_rows) = native_golden_pair(case)?;
@@ -1238,6 +1279,11 @@ fn run_golden_gate(cases: &[BenchCase]) -> gmeow_errors::Result<()> {
                 &count_token(golden_rows),
             ));
     }
+    Ok(comps_by_corpus)
+}
+
+fn run_golden_gate(cases: &[BenchCase]) -> gmeow_errors::Result<()> {
+    let comps_by_corpus = golden_comps_by_corpus(cases)?;
 
     let mut disagreements = 0usize;
     let mut findings: Vec<Value> = Vec::new();
@@ -1286,6 +1332,151 @@ fn run_golden_gate(cases: &[BenchCase]) -> gmeow_errors::Result<()> {
              or a committed golden is stale; review before landing"
         ),
     }))
+}
+
+/// (Deliverable 1) The SOAK-WINDOW gap-zero gate. Runs the DETERMINISTIC native-vs-golden
+/// agreement check ([`golden_comps_by_corpus`]) `window` times over the committed corpora
+/// and asserts, for EVERY run:
+///
+/// * **(a) gap-zero** — the folded divergence ledger has `dl_gap == 0 && corpus_only == 0`
+///   across all corpora (no native↔published disagreement, no coverage gap);
+/// * **(b) fingerprint reproducibility** — the run's finding-graph digest (a blake3 over
+///   the per-corpus `emit_divergence_nq` finding graphs, in sorted corpus order) is
+///   byte-identical to every other run's. A run whose fingerprint drifts is ITSELF a
+///   divergence finding: reproducibility is the soak invariant a one-shot tally cannot show.
+///
+/// ANY run breaking gap-zero, or ANY digest drift across the window, HARD-FAILS with a
+/// divergence finding (no-optionality). `window` must be `>= 2` (a window of one is a
+/// single-run tally, not soak evidence). Reuses the shared golden/agreement ledger path —
+/// no ledger is re-implemented here.
+fn run_soak(cases: &[BenchCase], window: usize) -> gmeow_errors::Result<()> {
+    if window < 2 {
+        return Err(Diag::of_kind(Cli {
+            detail: format!(
+                "--soak window must be >= 2 (a window of {window} is a single-run tally, not soak \
+                 evidence — a soak window is an N-run longitudinal reproducibility check)"
+            ),
+        }));
+    }
+
+    // Each run's finding-graph digest; asserted byte-identical across the whole window.
+    let mut run_digests: Vec<String> = Vec::with_capacity(window);
+    let mut corpora_count = 0usize;
+    let mut case_count = 0usize;
+
+    for run_ix in 1..=window {
+        let comps_by_corpus = golden_comps_by_corpus(cases)?;
+        corpora_count = comps_by_corpus.len();
+        case_count = comps_by_corpus.values().map(Vec::len).sum();
+
+        // Fold each corpus through the SHARED divergence ledger: tally the gap kinds and
+        // fold the per-corpus finding graph into this run's combined digest (sorted corpus
+        // order, so the digest is a pure function of the run's comparisons).
+        let mut total_dl_gap = 0usize;
+        let mut total_corpus_only = 0usize;
+        let mut hasher = blake3::Hasher::new();
+        let mut findings: Vec<Value> = Vec::new();
+        for (corpus, comps) in &comps_by_corpus {
+            let tally = agreement_tally(corpus, comps);
+            total_dl_gap += tally.dl_gap;
+            total_corpus_only += tally.corpus_only;
+
+            let graph = emit_divergence_nq(corpus, comps);
+            hasher.update(corpus.as_bytes());
+            hasher.update(b"\x1f");
+            hasher.update(graph.as_bytes());
+            hasher.update(b"\n");
+
+            // Surface the blocking divergence findings (corpus-only / dl-gap) for the
+            // hard-fail report, each carrying its content-addressed ledger identity.
+            if tally.corpus_only > 0 || tally.dl_gap > 0 {
+                let rows = compare_external_corpus(corpus, comps);
+                let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+                for f in divergence_findings(&ledger) {
+                    if f.code == "reason.divergence.corpus-only"
+                        || f.code == "reason.divergence.dl-gap"
+                    {
+                        findings.push(json!({
+                            "code": f.code,
+                            "finding_iri": f.finding_iri.clone().unwrap_or_default(),
+                            "anchor_iri": f.anchor_iri.clone().unwrap_or_default(),
+                            "antecedents": f.antecedents.clone(),
+                            "message": f.message,
+                        }));
+                    }
+                }
+            }
+        }
+        let digest = hasher.finalize().to_hex().to_string();
+
+        // (a) gap-zero: ANY corpus-only disagreement or dl-gap breaks the soak window.
+        if total_dl_gap != 0 || total_corpus_only != 0 {
+            findings.sort_by(|a, b| a["finding_iri"].as_str().cmp(&b["finding_iri"].as_str()));
+            let report = json!({
+                "schema": "gmeow.bench-engines.soak/1",
+                "run": run_ix,
+                "window": window,
+                "corpus_only": total_corpus_only,
+                "dl_gap": total_dl_gap,
+                "findings": findings,
+            });
+            let json = serde_json::to_string_pretty(&report).map_err(|e| {
+                Diag::of_kind(Serialize {
+                    detail: e.to_string(),
+                })
+            })?;
+            println!("{json}");
+            return Err(Diag::of_kind(RunFailed {
+                detail: format!(
+                    "soak run {run_ix}/{window} broke gap-zero: {total_corpus_only} corpus-only + \
+                     {total_dl_gap} dl-gap divergence finding(s) over the committed corpora — the \
+                     native core changed a result set, or a committed golden is stale"
+                ),
+            }));
+        }
+
+        eprintln!(
+            "✓ soak run {run_ix}/{window}: gap-zero (0 corpus-only, 0 dl-gap); \
+             finding-graph digest {digest}"
+        );
+        run_digests.push(digest);
+    }
+
+    // (b) reproducibility: every run's finding-graph digest must be byte-identical. A
+    // drifting fingerprint is itself a divergence finding.
+    let first = run_digests[0].clone();
+    for (ix, d) in run_digests.iter().enumerate() {
+        if *d != first {
+            let report = json!({
+                "schema": "gmeow.bench-engines.soak/1",
+                "window": window,
+                "reproducibility": false,
+                "run": ix + 1,
+                "expected_finding_graph_blake3": first,
+                "actual_finding_graph_blake3": d,
+            });
+            let json = serde_json::to_string_pretty(&report).map_err(|e| {
+                Diag::of_kind(Serialize {
+                    detail: e.to_string(),
+                })
+            })?;
+            println!("{json}");
+            return Err(Diag::of_kind(RunFailed {
+                detail: format!(
+                    "soak reproducibility broke: run {}/{window} finding-graph digest {d} != run 1 \
+                     digest {first} — a drifting fingerprint is itself a divergence finding \
+                     (non-deterministic native output over a fixed corpus)",
+                    ix + 1
+                ),
+            }));
+        }
+    }
+
+    eprintln!(
+        "✓ soak: {window}/{window} runs gap-zero with byte-identical finding-graph digest \
+         {first} over {corpora_count} corpora ({case_count} case(s))."
+    );
+    Ok(())
 }
 
 /// Wrap a case-scoped failure as a typed `RunFailed` diagnostic (hard-fail, never a
@@ -1603,6 +1794,20 @@ mod tests {
             out.is_err(),
             "a diverged deterministic count must be a cost regression"
         );
+    }
+
+    #[test]
+    fn soak_rejects_window_below_two() {
+        // A window of 0 or 1 is a single-run tally, NOT soak evidence — the N-run
+        // longitudinal reproducibility contract requires N >= 2. The guard runs before
+        // any case is driven, so an empty corpus slice still surfaces the contract error.
+        for n in [0usize, 1] {
+            let out = run_soak(&[], n);
+            assert!(
+                out.is_err(),
+                "a soak window of {n} must be rejected (< 2 is not a soak window)"
+            );
+        }
     }
 
     #[test]
