@@ -144,13 +144,18 @@ guarantee in the SAME PR:
   [`governance/slice-quality-axis-floors.tsv`](../../../governance/slice-quality-axis-floors.tsv)
   (format `<slice-iri>\t<axis-local-name>\t<floor:f64>`), e.g. when you raise a
   slice's measured `axisGmn1Coverage`.
-- **Raise-only, never ahead of a real uplift.** This is now hard-fail-enforced by the
-  floor-monotonicity gate, not a reviewer promise. The verdict names to keep straight
+- **Raise-only, never ahead of a real uplift.** This is now hard-fail-enforced, not a
+  reviewer promise, by two distinct gate layers — keep them straight
   (mirrored from `crates/slice-quality/src/gate.rs`):
-  - `MeasuredBelowDeclared` — the slice no longer holds the tier its manifest declares;
-  - `DeclaredBelowFloor` — the manifest declaration was lowered beneath the committed
-    tier floor;
-  - `MeasuredBelowFloor` — a per-axis measured score fell below its committed axis floor.
+  - The **floor-monotonicity gate** — `tier_floor_monotonicity` / `axis_floor_monotonicity`
+    — reds the committed floor FILE itself: a lowered floor line reds as `LOWERED`, and
+    removing a still-live floor line reds as `DELETED`.
+  - The **ratchet-verdict gate** — `evaluate_ratchet` / `evaluate_axis_floor`, a separate
+    check layer that compares a slice's measured/declared value against the CURRENT
+    committed floor:
+    - `MeasuredBelowDeclared` — the slice no longer holds the tier its manifest declares;
+    - `DeclaredBelowFloor` — the manifest declaration is below the committed tier floor;
+    - `MeasuredBelowFloor` — a per-axis measured score is below its committed axis floor.
 
 The floor lines are the certificate of §1's monotonicity: they encode "this ground is
 held" so a later regression reds instead of silently eroding.
@@ -242,8 +247,8 @@ make check
 # (4) If the roll-up (or an axis floor) genuinely rose, add the additive floor line
 #     (§5) and re-confirm the ratchet gate stays green:
 make slice-quality-gate
-#   → a lowered/deleted floor reds here as MeasuredBelowDeclared / DeclaredBelowFloor
-#     / MeasuredBelowFloor; a clean raise-only change passes.
+#   → a lowered/deleted floor line reds here as LOWERED / DELETED (the floor-
+#     monotonicity check); a clean raise-only change passes.
 
 # (5) Re-read the worklist: <SLICE>'s `advice=` should have dropped. When it reads
 #     advice=0 the advisory operator has reached its fixpoint and the slice is done.
