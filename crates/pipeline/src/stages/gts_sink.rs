@@ -190,6 +190,7 @@ mod tests {
             // The validation-shape surfaces (SHACL Core + ShEx) — the OPT/ADL constraints axis.
             crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
             crate::stages::compile_logic::VALIDATION_SHAPES_SHEX_PATH,
+            crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
             crate::stages::compile_logic::N3_PATH,
             crate::stages::compile_logic::CLIF_PATH,
             crate::stages::compile_logic::CGIF_PATH,

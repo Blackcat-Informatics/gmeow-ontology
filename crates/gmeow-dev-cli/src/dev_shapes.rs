@@ -199,6 +199,8 @@ fn target_label(target: &ShapeTarget) -> String {
         ShapeTarget::ValueKeyed { predicate, value } => {
             format!("valueKeyed {predicate}={value}")
         }
+        ShapeTarget::DirectClass(c) => format!("directClass {c}"),
+        ShapeTarget::Sparql(select) => format!("sparql {select}"),
     }
 }
 

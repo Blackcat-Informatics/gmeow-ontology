@@ -25,7 +25,17 @@ gmeow:Identifier
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Identifier"@x-gmeow-english ;
-    rdfs:subClassOf logic:FunctionalComplex ;
+    rdfs:subClassOf logic:FunctionalComplex ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:identifierScheme ;
+            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:identifierUrl ;
+            owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+        ] ;
     skos:definition "A reified external-identifier record bundling a scheme-local value with its scheme, and optionally the authority URL that resolves it and a human-readable name — an ORCID, a geni profile id, a Nostr nip05, a LEI, a ROR ID, a NAICS code. Reification ensures that when an entity carries multiple identifiers, each value is paired with its correct scheme (and url/name) in projections. The structured sibling of gmeow:authorityLink: a flat authorityLink points at an external record by IRI; an Identifier decomposes the scheme/value/url/name a schema:PropertyValue or DataCite relatedIdentifier carries."@x-gmeow-english ;
     skos:example "ex:acmeLei a gmeow:Identifier ; gmeow:identifierScheme \"lei\" ; gmeow:identifierValue \"529900T8BM49AURSDO55\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a flat scheme-on-the-bearer property (it produces cross-product pairing bugs when several identifiers coexist) and avoid it for a plain see-also IRI (that is the flat gmeow:authorityLink); a name borne by an entity is a gmeow:Appellation, not an Identifier."@x-gmeow-english ;
@@ -821,3 +831,160 @@ STANDPOINT DOCTRINE. Contested facts in the organization slice — disputed memb
     skos:definition "The GMEOW Organization Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Migrated procedural constraints (#1194): the closed-world organization         #
+# well-formedness shapes from shapes/organization-shapes.ttl (Principle 17).    #
+# =========================================================================== #
+
+gmeow:IdentifierSchemeConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Identifier scheme-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Identifier declares a gmeow:identifierScheme."@x-gmeow-english ;
+    logic:onClass gmeow:Identifier ;
+    logic:anyOf gmeow:identifierScheme ;
+    logic:formalizes gmeow:Identifier ;
+    logic:message "A gmeow:Identifier must declare a gmeow:identifierScheme (e.g. 'lei', 'ror', 'naics', 'isicV4', 'orcid', 'geni', 'nip05')." .
+
+gmeow:IdentifierUrlNodeKindConstraint
+    a logic:PathNodeKindConstraint ;
+    rdfs:label "Identifier url node-kind constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Identifier's gmeow:identifierUrl is an IRI."@x-gmeow-english ;
+    logic:onClass gmeow:Identifier ;
+    logic:valuePath gmeow:identifierUrl ;
+    logic:nodeKind "IRI" ;
+    logic:formalizes gmeow:Identifier ;
+    logic:message "A gmeow:Identifier has at most one gmeow:identifierUrl, an IRI." .
+
+gmeow:PostInPresenceConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Post organization-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Post has a gmeow:postIn organization."@x-gmeow-english ;
+    logic:onClass gmeow:Post ;
+    logic:anyOf gmeow:postIn ;
+    logic:formalizes gmeow:Post ;
+    logic:message "A gmeow:Post must have exactly one gmeow:postIn organization." .
+
+# A Membership fills a Post whose organization must match the membership's own
+# organization (a Warning-severity cross-node join with a two-hop right role, so
+# a raw logic:Formula integrity tree rather than a two-role CrossNode sugar).
+gmeow:MembershipFillsPostOrgMismatchConstraint
+    a logic:Constraint ;
+    rdfs:label "Membership fills-post org-mismatch constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Membership does not fill a gmeow:Post whose gmeow:postIn organization differs from the membership's gmeow:membershipOrganization."@x-gmeow-english ;
+    logic:severity "Warning" ;
+    logic:formalizes gmeow:Membership ;
+    logic:message "A Membership fills a Post whose organization differs from the membership's organization." ;
+    logic:integrity logic:mfpForall .
+logic:mfpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:mfpImpl .
+logic:mfpImpl a logic:Formula ; logic:antecedent logic:mfpGuard ; logic:consequent logic:mfpNot .
+logic:mfpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Membership ] .
+logic:mfpNot a logic:Formula ; logic:not logic:mfpExists .
+logic:mfpExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "post" ] , [ logic:termIndex 1 ; logic:termVariable "memOrg" ] , [ logic:termIndex 2 ; logic:termVariable "postOrg" ] ;
+    logic:exists logic:mfpBody .
+logic:mfpBody a logic:Formula ; logic:and logic:mfpFills , logic:mfpMemOrg , logic:mfpPostIn , logic:mfpDistinct .
+logic:mfpFills a logic:Formula ; logic:relation gmeow:fillsPost ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "post" ] .
+logic:mfpMemOrg a logic:Formula ; logic:relation gmeow:membershipOrganization ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "memOrg" ] .
+logic:mfpPostIn a logic:Formula ; logic:relation gmeow:postIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "post" ] , [ logic:termIndex 1 ; logic:termVariable "postOrg" ] .
+logic:mfpDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "memOrg" ] , [ logic:termIndex 1 ; logic:termVariable "postOrg" ] .
+
+# =========================================================================== #
+# Migrated procedural constraints (#1194): the closed-world multi-org change    #
+# event shapes from shapes/organization-shapes.ttl, re-expressed as canonical  #
+# logic:Constraints (Principle 17). The authored shapes stay (additive). The   #
+# aggregate "at least N" is expressed first-order: N distinct existentials via  #
+# logic:termDistinct (a merger/acquisition needs 2 predecessors + 1 successor;  #
+# a split/spin-off needs 1 predecessor + 2 successors).                         #
+# =========================================================================== #
+
+gmeow:MergerAcquisitionEventConstraint
+    a logic:Constraint ;
+    rdfs:label "Merger / acquisition event constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity warning: a merger or acquisition gmeow:Event has at least two distinct gmeow:predecessorOrganization values and at least one gmeow:successorOrganization."@x-gmeow-english ;
+    logic:severity "Warning" ;
+    logic:formalizes gmeow:Event ;
+    logic:message "A merger or acquisition event should have at least 2 predecessor organizations and at least 1 successor organization." ;
+    logic:integrity logic:maeForall .
+logic:maeForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "et" ] ;
+    logic:forall logic:maeImpl .
+logic:maeImpl a logic:Formula ; logic:antecedent logic:maeGuard ; logic:consequent logic:maeReq .
+logic:maeGuard a logic:Formula ; logic:and logic:maeType , logic:maeEventType , logic:maeIn .
+logic:maeType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Event ] .
+logic:maeEventType a logic:Formula ; logic:relation gmeow:eventType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "et" ] .
+logic:maeIn a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "et" ] , [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeMerger ] , [ logic:termIndex 2 ; logic:termIri gmeow:eventTypeAcquisition ] .
+logic:maeReq a logic:Formula ; logic:and logic:maePredReq , logic:maeSuccReq .
+logic:maePredReq a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p1" ] , [ logic:termIndex 1 ; logic:termVariable "p2" ] ;
+    logic:exists logic:maePredBody .
+logic:maePredBody a logic:Formula ; logic:and logic:maePred1 , logic:maePred2 , logic:maePredDistinct .
+logic:maePred1 a logic:Formula ; logic:relation gmeow:predecessorOrganization ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p1" ] .
+logic:maePred2 a logic:Formula ; logic:relation gmeow:predecessorOrganization ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p2" ] .
+logic:maePredDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p1" ] , [ logic:termIndex 1 ; logic:termVariable "p2" ] .
+logic:maeSuccReq a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] ;
+    logic:exists logic:maeSuccBody .
+logic:maeSuccBody a logic:Formula ; logic:relation gmeow:successorOrganization ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+
+gmeow:SplitSpinOffEventConstraint
+    a logic:Constraint ;
+    rdfs:label "Split / spin-off event constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity warning: a split or spin-off gmeow:Event has at least one gmeow:predecessorOrganization and at least two distinct gmeow:successorOrganization values."@x-gmeow-english ;
+    logic:severity "Warning" ;
+    logic:formalizes gmeow:Event ;
+    logic:message "A split or spin-off event should have at least 1 predecessor organization and at least 2 successor organizations." ;
+    logic:integrity logic:ssoForall .
+logic:ssoForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "et" ] ;
+    logic:forall logic:ssoImpl .
+logic:ssoImpl a logic:Formula ; logic:antecedent logic:ssoGuard ; logic:consequent logic:ssoReq .
+logic:ssoGuard a logic:Formula ; logic:and logic:ssoType , logic:ssoEventType , logic:ssoIn .
+logic:ssoType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Event ] .
+logic:ssoEventType a logic:Formula ; logic:relation gmeow:eventType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "et" ] .
+logic:ssoIn a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "et" ] , [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeSplit ] , [ logic:termIndex 2 ; logic:termIri gmeow:eventTypeSpinOff ] .
+logic:ssoReq a logic:Formula ; logic:and logic:ssoPredReq , logic:ssoSuccReq .
+logic:ssoPredReq a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ;
+    logic:exists logic:ssoPredBody .
+logic:ssoPredBody a logic:Formula ; logic:relation gmeow:predecessorOrganization ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+logic:ssoSuccReq a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s1" ] , [ logic:termIndex 1 ; logic:termVariable "s2" ] ;
+    logic:exists logic:ssoSuccBody .
+logic:ssoSuccBody a logic:Formula ; logic:and logic:ssoSucc1 , logic:ssoSucc2 , logic:ssoSuccDistinct .
+logic:ssoSucc1 a logic:Formula ; logic:relation gmeow:successorOrganization ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s1" ] .
+logic:ssoSucc2 a logic:Formula ; logic:relation gmeow:successorOrganization ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s2" ] .
+logic:ssoSuccDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s1" ] , [ logic:termIndex 1 ; logic:termVariable "s2" ] .

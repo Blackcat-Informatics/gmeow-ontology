@@ -12,9 +12,10 @@
 //!
 //! The pure term model below ([`Node`] / [`Subject`] / [`Quad`]) replaces the
 //! `oxigraph::model` types: a subject is always an IRI or blank node, an object may
-//! additionally be a literal or an RDF 1.2 quoted-triple term. Only the lexical
-//! value of a literal is carried — the compiler never inspects datatype or language
-//! on the parse path (it stringifies via [`term_str`]).
+//! additionally be a literal or an RDF 1.2 quoted-triple term. A literal carries its
+//! lexical value AND its datatype IRI / language tag ([`Node::Lit`]), so a typed value
+//! (`"1"^^xsd:integer`) round-trips its datatype into the derived `sh:hasValue` / `sh:in`
+//! surfaces; [`term_str`] still yields the bare lexical form for the callers that want it.
 //!
 //! This is a shared toolkit built up across the tasks; a few helpers
 //! (e.g. [`contains`]) land here for the projection back-ends before they have an
@@ -33,6 +34,10 @@ pub(crate) const RDF_STATEMENT: &str = "http://www.w3.org/1999/02/22-rdf-syntax-
 pub(crate) const RDF_SUBJECT: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject";
 pub(crate) const RDF_PREDICATE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate";
 pub(crate) const RDF_OBJECT: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#object";
+/// The implicit datatype of a plain literal — normalized to an untyped [`Node::Lit`]
+/// (`datatype: None`) so an authored `"foo"` and an equivalent `"foo"^^xsd:string` collapse to
+/// the same untyped carrier.
+const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 
 // --------------------------------------------------------------------------- //
 // Pure term model (wasm-clean replacement for the oxigraph::model types)
@@ -58,13 +63,26 @@ pub(crate) enum Subject {
     Blank { label: String, scope: BlankScope },
 }
 
-/// An RDF term (object position): IRI, blank node, literal (lexical value only), or
-/// an RDF 1.2 quoted-triple term.
+/// An RDF term (object position): IRI, blank node, literal (lexical value plus its
+/// datatype/language), or an RDF 1.2 quoted-triple term.
+///
+/// A literal carries its `datatype` IRI and `lang` tag so a typed value round-trips its type
+/// (the `owl:hasValue "1"^^xsd:integer` / `owl:oneOf` value-equality path needs the datatype,
+/// not just the lexical form). The two are normalized on resolution: a language-tagged literal
+/// records `lang` and leaves `datatype` `None` (the datatype is the implied `rdf:langString`); a
+/// plain `xsd:string` records neither (untyped); every other datatype records `datatype`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum Node {
     Iri(String),
-    Blank { label: String, scope: BlankScope },
-    Lit(String),
+    Blank {
+        label: String,
+        scope: BlankScope,
+    },
+    Lit {
+        lexical: String,
+        datatype: Option<String>,
+        lang: Option<String>,
+    },
     Triple(Box<TripleTerm>),
 }
 
@@ -72,6 +90,16 @@ impl Node {
     /// Construct a named-node (IRI) object term.
     pub(crate) fn iri(iri: impl Into<String>) -> Self {
         Node::Iri(iri.into())
+    }
+
+    /// Construct an untyped (plain `xsd:string`) literal object term — the datatype/language
+    /// carriers are `None`. Used by the term-model constructors that never mint a typed literal.
+    pub(crate) fn plain_lit(lexical: impl Into<String>) -> Self {
+        Node::Lit {
+            lexical: lexical.into(),
+            datatype: None,
+            lang: None,
+        }
     }
 }
 
@@ -97,7 +125,7 @@ pub(crate) fn term_str(term: &Node) -> String {
     match term {
         Node::Iri(iri) => iri.clone(),
         Node::Blank { label, .. } => label.clone(),
-        Node::Lit(value) => value.clone(),
+        Node::Lit { lexical, .. } => lexical.clone(),
         Node::Triple(_) => panic!(
             "RDF-star quoted-triple terms are not supported in gmeow-logic v1 \
              (a quoted triple cannot be stringified without silent data loss)"
@@ -115,7 +143,7 @@ pub(crate) fn subject_str(s: &Subject) -> String {
 
 /// Whether a term is a literal (rdflib `isinstance(o, Literal)`).
 pub(crate) fn term_is_literal(term: &Node) -> bool {
-    matches!(term, Node::Lit(_))
+    matches!(term, Node::Lit { .. })
 }
 
 /// Whether a subject node is a blank node (rdflib `isinstance(s, BNode)`).
@@ -184,7 +212,30 @@ fn node_of(ds: &RdfDataset, id: TermId) -> Node {
             label: label.to_owned(),
             scope,
         },
-        TermRef::Literal { lexical, .. } => Node::Lit(lexical.to_owned()),
+        TermRef::Literal {
+            lexical,
+            datatype,
+            language,
+            ..
+        } => {
+            // A language-tagged literal records its `lang`; its datatype is the implied
+            // `rdf:langString`, so the datatype carrier stays `None`. A plain `xsd:string`
+            // records neither; every other datatype resolves to its IRI and is preserved.
+            let lang = language.map(str::to_owned);
+            let datatype = if lang.is_some() {
+                None
+            } else {
+                match ds.resolve(datatype) {
+                    TermRef::Iri(dt) if dt != XSD_STRING => Some(dt.to_owned()),
+                    _ => None,
+                }
+            };
+            Node::Lit {
+                lexical: lexical.to_owned(),
+                datatype,
+                lang,
+            }
+        }
         TermRef::Triple { s, p, o } => Node::Triple(Box::new(TripleTerm {
             subject: subject_of(ds, s),
             predicate: iri_of(ds, p),
@@ -242,7 +293,7 @@ fn object_id(ds: &RdfDataset, object: &Node) -> Option<TermId> {
             label: label.clone(),
             scope: *scope,
         },
-        Node::Lit(_) | Node::Triple(_) => return None,
+        Node::Lit { .. } | Node::Triple(_) => return None,
     };
     ds.term_id_by_value(&value)
 }

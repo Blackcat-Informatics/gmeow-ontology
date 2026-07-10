@@ -618,6 +618,87 @@ gmeow:usedModel
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
+# =========================================================================== #
+# Declarative constraint axioms (core slices) — the closed-world
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). Cross-node / value-keyed (sh:sparql, SPARQLTarget) conditions
+# have no OWL antecedent and remain the procedural fragment .
+# =========================================================================== #
+
+gmeow:Contradiction rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:contradictsClaim ; owl:minQualifiedCardinality 2 ; owl:onClass owl:Thing ] .
+
+gmeow:Chunk rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:chunkOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:spanStart ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:spanEnd ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+gmeow:MemoryItem rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:memoryOf ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+<https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/chunkOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/spanStart> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Chunk> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/spanEnd> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+
+# =========================================================================== #
+# Migrated procedural constraints (#1194): closed-world SHACL sparql shapes    #
+# from slices/core/ai/shapes.ttl, re-expressed as canonical logic:Constraints  #
+# (Principle 17). The authored shapes stay (additive).                         #
+# =========================================================================== #
+
+gmeow:SpanEndAfterStartConstraint
+    a logic:Constraint ;
+    rdfs:label "Span end-after-start constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a span's exclusive gmeow:spanEnd offset strictly exceeds its inclusive gmeow:spanStart."@x-gmeow-english ;
+    logic:formalizes gmeow:SpanSanityShape ;
+    logic:message "A span's end offset must be greater than its start (spanEnd exclusive > spanStart inclusive)." ;
+    logic:integrity logic:seaForall .
+logic:seaForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] , [ logic:termIndex 2 ; logic:termVariable "e" ] ;
+    logic:forall logic:seaImpl .
+logic:seaImpl a logic:Formula ; logic:antecedent logic:seaGuard ; logic:consequent logic:seaGt .
+logic:seaGuard a logic:Formula ; logic:and logic:seaStart , logic:seaEnd .
+logic:seaStart a logic:Formula ; logic:relation gmeow:spanStart ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+logic:seaEnd a logic:Formula ; logic:relation gmeow:spanEnd ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
+logic:seaGt a logic:Formula ; logic:relation logic:termGreater ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "e" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+
+gmeow:StaleSourceConstraint
+    a logic:Constraint ;
+    rdfs:label "Stale-source claim constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity warning: a claim grounded in a chunk whose source was modified after the claim's gmeow:assertedAt time — the evidentiary bytes may have drifted (a re-verification trigger, never an eviction; P10)."@x-gmeow-english ;
+    logic:severity "Warning" ;
+    logic:formalizes gmeow:StaleSourceShape ;
+    logic:message "This claim's source was modified after the claim was asserted — the evidence may have drifted; re-verify (stale-source-claims.rq)." ;
+    logic:integrity logic:stsForall .
+logic:stsForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "span" ] , [ logic:termIndex 2 ; logic:termVariable "assertedAt" ] , [ logic:termIndex 3 ; logic:termVariable "chunk" ] , [ logic:termIndex 4 ; logic:termVariable "source" ] , [ logic:termIndex 5 ; logic:termVariable "srcMod" ] ;
+    logic:forall logic:stsImpl .
+logic:stsImpl a logic:Formula ; logic:antecedent logic:stsGuard ; logic:consequent logic:stsLe .
+logic:stsGuard a logic:Formula ; logic:and logic:stsGrounded , logic:stsAsserted , logic:stsSpanChunk , logic:stsChunkOf , logic:stsSrcMod .
+logic:stsGrounded a logic:Formula ; logic:relation gmeow:groundedIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "span" ] .
+logic:stsAsserted a logic:Formula ; logic:relation gmeow:assertedAt ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "assertedAt" ] .
+logic:stsSpanChunk a logic:Formula ; logic:relation gmeow:spanOfChunk ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "span" ] , [ logic:termIndex 1 ; logic:termVariable "chunk" ] .
+logic:stsChunkOf a logic:Formula ; logic:relation gmeow:chunkOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "chunk" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] .
+logic:stsSrcMod a logic:Formula ; logic:relation gmeow:sourceModifiedAt ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "srcMod" ] .
+logic:stsLe a logic:Formula ; logic:relation logic:termLessEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "srcMod" ] , [ logic:termIndex 1 ; logic:termVariable "assertedAt" ] .
+
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/chunkOf> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/gmeow/Chunk> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/spanEnd> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .

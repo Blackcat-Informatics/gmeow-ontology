@@ -7,9 +7,12 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
-ex:birth a gmeow:LifeEvent ;
+ex:birth a gmeow:LifeEvent , gmeow:Event ;
     gmeow:eventType gmeow:eventTypeBirth ;
     gmeow:eventTime "1990-04-12T00:00:00Z"^^xsd:dateTime .
+
+ex:sam a gmeow:Entity .
+ex:wrongMidwife a gmeow:Entity .
 
 ex:bornPart a gmeow:Participation ;
     gmeow:participationEvent ex:birth ;

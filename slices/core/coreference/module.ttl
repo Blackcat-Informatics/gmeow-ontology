@@ -1,5 +1,6 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
@@ -98,3 +99,37 @@ gmeow:versionOf
     skos:definition "The GMEOW Coreference Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# Migrated (#1194): projection of gmeow:AuthorityLinkMatchStrengthShape (Warning)
+# — a gmeow:authorityLink target should also be asserted as skos:exactMatch or
+# skos:closeMatch to record coreference strength (Principle 17).
+gmeow:AuthorityLinkMatchStrengthConstraint
+    a logic:Constraint ;
+    rdfs:label "Authority-link match-strength constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/coreference> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:authorityLink target is also asserted as a skos:exactMatch or skos:closeMatch of the same subject."@x-gmeow-english ;
+    logic:formalizes gmeow:authorityLink ;
+    logic:severity "Warning" ;
+    logic:message "An authority link should also assert skos:exactMatch or skos:closeMatch to record coreference strength." ;
+    logic:integrity logic:almsForall .
+logic:almsForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:almsImpl .
+logic:almsImpl a logic:Formula ; logic:antecedent logic:almsTarget ; logic:consequent logic:almsNot .
+logic:almsTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                   [ logic:termIndex 1 ; logic:termLiteral "SELECT ?this WHERE { ?this <https://blackcatinformatics.ca/gmeow/authorityLink> ?auth . }" ] .
+logic:almsNot a logic:Formula ; logic:not logic:almsExists .
+logic:almsExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "auth" ] ;
+    logic:exists logic:almsBody .
+logic:almsBody a logic:Formula ; logic:and logic:almsLink , logic:almsNoExact , logic:almsNoClose .
+logic:almsLink a logic:Formula ; logic:relation gmeow:authorityLink ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "auth" ] .
+logic:almsNoExact a logic:Formula ; logic:not logic:almsExact .
+logic:almsExact a logic:Formula ; logic:relation skos:exactMatch ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "auth" ] .
+logic:almsNoClose a logic:Formula ; logic:not logic:almsClose .
+logic:almsClose a logic:Formula ; logic:relation skos:closeMatch ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "auth" ] .

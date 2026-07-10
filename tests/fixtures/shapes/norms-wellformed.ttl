@@ -94,7 +94,7 @@ ex:assessment1 a gmeow:ComplianceAssessment ;
 # The graft (#352): a Permission whose stated modality matches its subkind,
 # carrying an issuer per the no-anonymous-oughts rule (Permission ⊑ Rule ⊑
 # Norm with the extension loaded) and its rights-shape obligations.
-ex:work a gmeow:MediaObject ; rdfs:label "a work"@en .
+ex:work a gmeow:MediaObject , gmeow:Entity ; rdfs:label "a work"@en .
 ex:rights a gmeow:RightsStatement ;
     gmeow:statementAbout ex:work ;
     gmeow:hasPermission ex:perm .

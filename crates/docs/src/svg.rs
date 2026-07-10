@@ -39,6 +39,25 @@ fn xml_escape(text: &str) -> String {
     out
 }
 
+/// A deterministic placeholder emitted in place of a rendered diagram while
+/// diagram SVG generation is DEFERRED pending purrdf's high-quality SVG graph
+/// library. The hand-rolled renderers above carry a latent cross-process
+/// ordering non-determinism (two renders of the same model can differ byte-wise);
+/// rather than chase it, the emit sites route through this constant-shape
+/// placeholder so the site render is byte-stable. AUTHORIZED DEFERRAL (paudley) —
+/// restore the `*_svg` calls at the emit sites when the purrdf SVG lib lands.
+/// Pure function of its title (which the callers derive from sorted model data).
+pub fn deferred_diagram_svg(title: &str) -> String {
+    format!(
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"480\" height=\"72\" role=\"img\" \
+         aria-label=\"{t}\">\n  \
+         <rect width=\"480\" height=\"72\" fill=\"#f5f6f8\" stroke=\"#d0d5dd\" />\n  \
+         <text x=\"240\" y=\"40\" text-anchor=\"middle\" font-family=\"sans-serif\" \
+         font-size=\"13\" fill=\"#6b7280\">{t} — diagram pending</text>\n</svg>\n",
+        t = xml_escape(title)
+    )
+}
+
 /// Render the slice dependency DAG as a deterministic grid-layout SVG.
 ///
 /// Nodes are the slices referenced by `model.dependency_edges` (plus every slice

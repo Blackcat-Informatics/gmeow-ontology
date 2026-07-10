@@ -56,11 +56,24 @@ pub enum ShapeTarget {
         /// The value IRI a focus node must carry on `predicate`.
         value: String,
     },
+    /// Focus nodes are DIRECT instances of a class — typed the class but NOT also typed a proper
+    /// subclass of it (projected to an `sh:SPARQLTarget` with a subclass-excluding
+    /// `FILTER NOT EXISTS`). This is the subclass-refining reading a bare `sh:targetClass` cannot
+    /// hold: a node typed both the class and a more-specific subclass is validated by the
+    /// subclass's own shape, not the base one.
+    DirectClass(String),
+    /// Focus nodes are selected by a raw `SELECT ?this WHERE { … }` query (projected verbatim to an
+    /// `sh:SPARQLTarget`). The catch-all target for a constraint whose focus set has no class /
+    /// domain / range form — e.g. "any node carrying a predicate under a forbidden namespace". The
+    /// string is the whole select body (binding `?this`).
+    Sparql(String),
 }
 
 impl ShapeTarget {
     /// A deterministic content-key fragment (variant-tagged so the variants never collide).
-    fn content_key(&self) -> String {
+    /// `pub(crate)` so the sibling [`super::ConstraintIr`] can fold a target into its own
+    /// content key the same way [`ValidationShapeIr`] does.
+    pub(crate) fn content_key(&self) -> String {
         match self {
             ShapeTarget::Class(c) => format!("class={}", key_field(c)),
             ShapeTarget::SubjectsOf(p) => format!("subjectsof={}", key_field(p)),
@@ -68,6 +81,8 @@ impl ShapeTarget {
             ShapeTarget::ValueKeyed { predicate, value } => {
                 format!("valuekeyed={}{}", key_field(predicate), key_field(value))
             }
+            ShapeTarget::DirectClass(c) => format!("directclass={}", key_field(c)),
+            ShapeTarget::Sparql(s) => format!("sparqltarget={}", key_field(s)),
         }
     }
 
@@ -130,6 +145,18 @@ impl ShaclSeverity {
             ShaclSeverity::Violation => "Violation",
             ShaclSeverity::Warning => "Warning",
             ShaclSeverity::Info => "Info",
+        }
+    }
+
+    /// Parse a severity from its SHACL local name (the inverse of [`Self::as_str`]); `None`
+    /// for an unrecognized token. The frontend uses this to read an authored
+    /// `logic:severity "Violation"|"Warning"|"Info"` literal on a `logic:Constraint`.
+    pub fn from_local(s: &str) -> Option<Self> {
+        match s {
+            "Violation" => Some(ShaclSeverity::Violation),
+            "Warning" => Some(ShaclSeverity::Warning),
+            "Info" => Some(ShaclSeverity::Info),
+            _ => None,
         }
     }
 }
@@ -793,6 +820,18 @@ impl ValidationShapeIr {
                     detail:
                         "ValidationShapeIr value-keyed target needs a non-empty predicate and value"
                             .to_owned(),
+                }));
+            }
+            ShapeTarget::DirectClass(c) if c.trim().is_empty() => {
+                return Err(Diag::of_kind(crate::error::Validation {
+                    detail: "ValidationShapeIr direct-instance target must be a non-empty IRI"
+                        .to_owned(),
+                }));
+            }
+            ShapeTarget::Sparql(s) if s.trim().is_empty() => {
+                return Err(Diag::of_kind(crate::error::Validation {
+                    detail: "ValidationShapeIr sparql target must be a non-empty SELECT body"
+                        .to_owned(),
                 }));
             }
             _ => {}

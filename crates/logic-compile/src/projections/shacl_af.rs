@@ -33,48 +33,13 @@
 //! parse-back from `sh:SPARQLRule` into a `logic:` rule (Principle 4).
 
 use super::super::ir::{LogicAxiom, LogicProgram, LogicRule};
+use super::sparql_lower::{sparql_literal, sparql_predicate};
 use super::{
     GMEOW_NS, LOGIC_NS, ProjectionResult, RDF_TYPE, contract_drop_notes, is_modal_or_scoped,
     target_meta,
 };
 
 const SH_NS: &str = "http://www.w3.org/ns/shacl#";
-
-/// Escape a string for a SPARQL single-quoted string literal (`STRING_LITERAL1`): the
-/// backslash, the single quote, and the C0 control characters that may not appear raw.
-fn sparql_escape(value: &str) -> String {
-    let mut out = String::with_capacity(value.len());
-    for c in value.chars() {
-        match c {
-            '\\' => out.push_str("\\\\"),
-            '\'' => out.push_str("\\'"),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            '\u{08}' => out.push_str("\\b"),
-            '\u{0C}' => out.push_str("\\f"),
-            _ => out.push(c),
-        }
-    }
-    out
-}
-
-/// Escape a string for embedding inside a Turtle long string (`"""…"""`): the backslash and
-/// the double quote. Escaping every `"` (so no `"""` can terminate the long string early) and
-/// doubling every `\` makes the embedded text round-trip through the Turtle parser byte-for-byte.
-fn turtle_long_string_escape(value: &str) -> String {
-    value.replace('\\', "\\\\").replace('"', "\\\"")
-}
-
-/// A SPARQL literal rendered for embedding inside a Turtle `"""…"""` SHACL string. The value
-/// passes through TWO parsers — Turtle un-escapes the `"""…"""` carrier, then SHACL parses the
-/// resulting SPARQL — so it is escaped for the SPARQL layer first, then for the Turtle
-/// long-string carrier. A single-quoted SPARQL string keeps an inner `"` off the SPARQL quote;
-/// the Turtle layer then neutralizes every `"` and `\` so a value containing `"""`, a newline,
-/// a tab, or a backslash can never break either parser.
-fn sparql_literal(value: &str) -> String {
-    format!("'{}'", turtle_long_string_escape(&sparql_escape(value)))
-}
 
 /// A SPARQL term token for a subject/object position. A variable equal to `focus_var`
 /// renders as `focus_render` (`?this` in a target SELECT, `$this` in a rule CONSTRUCT);
@@ -95,16 +60,6 @@ fn sparql_term(
         sparql_literal(value)
     } else {
         format!("<{value}>")
-    }
-}
-
-/// The SPARQL predicate token (`a` for `rdf:type`, else `<iri>`). Predicates are always
-/// IRIs in the `logic:` IR.
-fn sparql_predicate(predicate: &str) -> String {
-    if predicate == RDF_TYPE {
-        "a".to_owned()
-    } else {
-        format!("<{predicate}>")
     }
 }
 

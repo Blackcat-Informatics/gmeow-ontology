@@ -300,3 +300,38 @@ gmeow:relatedNote
     skos:definition "The GMEOW Notes & Annotation Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Suppression constraint (#1194) — projection of RetractedNoteSuppressionShape. #
+# A gmeow:Comment whose gmeow:commentParent is itself suppressed                #
+# (gmeow:displayable false) but which is not itself suppressed is a Warning.    #
+# =========================================================================== #
+
+gmeow:CommentParentSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Comment parent-suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Comment whose gmeow:commentParent is suppressed (gmeow:displayable false) should itself set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
+    logic:formalizes gmeow:Comment ;
+    logic:severity "Warning" ;
+    logic:message "A comment whose parent is suppressed should set gmeow:displayable false (Principle 10)." ;
+    logic:integrity logic:supCmForall .
+logic:supCmForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:supCmImpl .
+logic:supCmImpl a logic:Formula ; logic:antecedent logic:supCmGuard ; logic:consequent logic:supCmPhi .
+logic:supCmGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Comment ] .
+logic:supCmPhi a logic:Formula ; logic:not logic:supCmEx .
+logic:supCmEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "parent" ] ;
+    logic:exists logic:supCmBody .
+logic:supCmBody a logic:Formula ; logic:and logic:supCmParent , logic:supCmParentSuppressed , logic:supCmNotSuppressed .
+logic:supCmParent a logic:Formula ; logic:relation gmeow:commentParent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "parent" ] .
+logic:supCmParentSuppressed a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "parent" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
+logic:supCmNotSuppressed a logic:Formula ; logic:not logic:supCmDisp .
+logic:supCmDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
