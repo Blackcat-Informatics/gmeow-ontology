@@ -1826,3 +1826,599 @@ logic:arsDim a logic:Formula ; logic:relation gmeow:appraisalDimension ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
 logic:arsVal a logic:Formula ; logic:relation gmeow:appraisalValue ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vv" ] .
+
+# =========================================================================== #
+# Migrated procedural constraints (#1194): the affect-domain closed-world shapes  #
+# from shapes/gmeow-shapes.ttl, re-authored as logic:Constraint integrity trees   #
+# and projected to generated/shapes/procedural-constraints.ttl (Principle 17).     #
+# =========================================================================== #
+
+gmeow:ModelInferenceRunIdentifierPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "ModelInferenceRun identifier-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ModelInferenceRun declares a gmeow:modelIdentifier."@x-gmeow-english ;
+    logic:formalizes gmeow:ModelInferenceRun ;
+    logic:message "A ModelInferenceRun must declare exactly one gmeow:modelIdentifier (the model repo id) — run provenance is mandatory and single-valued." ;
+    logic:integrity logic:mipForall .
+logic:mipForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:mipImpl .
+logic:mipImpl a logic:Formula ; logic:antecedent logic:mipGuard ; logic:consequent logic:mipExists .
+logic:mipGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ModelInferenceRun ] .
+logic:mipExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:mipAtom .
+logic:mipAtom a logic:Formula ; logic:relation gmeow:modelIdentifier ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:ModelInferenceRunRevisionPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "ModelInferenceRun revision-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ModelInferenceRun declares a pinned gmeow:modelRevision."@x-gmeow-english ;
+    logic:formalizes gmeow:ModelInferenceRun ;
+    logic:message "A ModelInferenceRun must declare exactly one pinned gmeow:modelRevision — a model name without a single pinned revision fails reproducibility (a hard fail)." ;
+    logic:integrity logic:mrpForall .
+logic:mrpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:mrpImpl .
+logic:mrpImpl a logic:Formula ; logic:antecedent logic:mrpGuard ; logic:consequent logic:mrpExists .
+logic:mrpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ModelInferenceRun ] .
+logic:mrpExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:mrpAtom .
+logic:mrpAtom a logic:Formula ; logic:relation gmeow:modelRevision ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:AffectClassifierOutputProducedByPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectClassifierOutput produced-by constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput is gmeow:producedBy a run."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectClassifierOutput ;
+    logic:message "An AffectClassifierOutput must be gmeow:producedBy exactly one gmeow:ModelInferenceRun — output provenance is mandatory." ;
+    logic:integrity logic:opForall .
+logic:opForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:opImpl .
+logic:opImpl a logic:Formula ; logic:antecedent logic:opGuard ; logic:consequent logic:opExists .
+logic:opGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierOutput ] .
+logic:opExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:opAtom .
+logic:opAtom a logic:Formula ; logic:relation gmeow:producedBy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:AffectClassifierOutputTargetPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectClassifierOutput target-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput names a gmeow:classifiedTarget."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectClassifierOutput ;
+    logic:message "An AffectClassifierOutput must name its gmeow:classifiedTarget (the span classified) — an output with no target is unmoored evidence." ;
+    logic:integrity logic:octForall .
+logic:octForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:octImpl .
+logic:octImpl a logic:Formula ; logic:antecedent logic:octGuard ; logic:consequent logic:octExists .
+logic:octGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierOutput ] .
+logic:octExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:octAtom .
+logic:octAtom a logic:Formula ; logic:relation gmeow:classifiedTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:AffectClassifierOutputLabelPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectClassifierOutput label-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput carries a gmeow:emittedLabel."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectClassifierOutput ;
+    logic:message "An AffectClassifierOutput must carry a gmeow:emittedLabel (a registered gmeow:AffectClassifierLabel IRI)." ;
+    logic:integrity logic:oelForall .
+logic:oelForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:oelImpl .
+logic:oelImpl a logic:Formula ; logic:antecedent logic:oelGuard ; logic:consequent logic:oelExists .
+logic:oelGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierOutput ] .
+logic:oelExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:oelAtom .
+logic:oelAtom a logic:Formula ; logic:relation gmeow:emittedLabel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:AffectClassifierOutputScorePresentConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectClassifierOutput score-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput carries a gmeow:classifierScore."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectClassifierOutput ;
+    logic:message "An AffectClassifierOutput must carry a raw gmeow:classifierScore." ;
+    logic:integrity logic:oscForall .
+logic:oscForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:oscImpl .
+logic:oscImpl a logic:Formula ; logic:antecedent logic:oscGuard ; logic:consequent logic:oscExists .
+logic:oscGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierOutput ] .
+logic:oscExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:oscAtom .
+logic:oscAtom a logic:Formula ; logic:relation gmeow:classifierScore ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:AffectClassifierOutputSemanticsPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectClassifierOutput score-semantics constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput declares a gmeow:scoreSemantics."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectClassifierOutput ;
+    logic:message "An AffectClassifierOutput must declare exactly one gmeow:scoreSemantics (sigmoid/softmax/…) — a bare or ambiguous score meaning is uninterpretable." ;
+    logic:integrity logic:ossForall .
+logic:ossForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:ossImpl .
+logic:ossImpl a logic:Formula ; logic:antecedent logic:ossGuard ; logic:consequent logic:ossExists .
+logic:ossGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierOutput ] .
+logic:ossExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:ossAtom .
+logic:ossAtom a logic:Formula ; logic:relation gmeow:scoreSemantics ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:AffectClassifierLabelRegisteredConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectClassifierLabel registered constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierLabel is a gmeow:memberOfLabelSet of a label set."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectClassifierLabel ;
+    logic:message "An AffectClassifierLabel must be registered in a gmeow:AffectLabelSet via gmeow:memberOfLabelSet — an unregistered label fails canonical projection." ;
+    logic:integrity logic:lmrForall .
+logic:lmrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:lmrImpl .
+logic:lmrImpl a logic:Formula ; logic:antecedent logic:lmrGuard ; logic:consequent logic:lmrExists .
+logic:lmrGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierLabel ] .
+logic:lmrExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:lmrAtom .
+logic:lmrAtom a logic:Formula ; logic:relation gmeow:memberOfLabelSet ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:DerivedAffectIntensityBasisPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "Derived affect intensity basis-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:DerivedAffectIntensityObservation declares a gmeow:intensityBasis."@x-gmeow-english ;
+    logic:formalizes gmeow:DerivedAffectIntensityObservation ;
+    logic:message "A derived affect intensity must declare its gmeow:intensityBasis (the AffectVectorObservation it is the norm of) — a floating intensity with no basis is a hard fail (Principle 12)." ;
+    logic:integrity logic:dibForall .
+logic:dibForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:dibImpl .
+logic:dibImpl a logic:Formula ; logic:antecedent logic:dibGuard ; logic:consequent logic:dibExists .
+logic:dibGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DerivedAffectIntensityObservation ] .
+logic:dibExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:dibAtom .
+logic:dibAtom a logic:Formula ; logic:relation gmeow:intensityBasis ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:DerivedAffectIntensityMetricPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "Derived affect intensity metric-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:DerivedAffectIntensityObservation declares a gmeow:metricProfile."@x-gmeow-english ;
+    logic:formalizes gmeow:DerivedAffectIntensityObservation ;
+    logic:message "A derived affect intensity must declare its gmeow:metricProfile (scale normalization) — an intensity with no declared scale is a hard fail." ;
+    logic:integrity logic:dmpForall .
+logic:dmpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:dmpImpl .
+logic:dmpImpl a logic:Formula ; logic:antecedent logic:dmpGuard ; logic:consequent logic:dmpExists .
+logic:dmpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DerivedAffectIntensityObservation ] .
+logic:dmpExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:dmpAtom .
+logic:dmpAtom a logic:Formula ; logic:relation gmeow:metricProfile ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:DerivedAffectIntensityNormPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "Derived affect intensity norm-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:DerivedAffectIntensityObservation declares a gmeow:normFunction."@x-gmeow-english ;
+    logic:formalizes gmeow:DerivedAffectIntensityObservation ;
+    logic:message "A derived affect intensity must declare its gmeow:normFunction (the math:Norm) — a raw L² over the non-orthogonal affect basis is not a default; the metric is an explicit, grounded math:Norm IRI or it is a hard fail." ;
+    logic:integrity logic:dnfForall .
+logic:dnfForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:dnfImpl .
+logic:dnfImpl a logic:Formula ; logic:antecedent logic:dnfGuard ; logic:consequent logic:dnfExists .
+logic:dnfGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DerivedAffectIntensityObservation ] .
+logic:dnfExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:dnfAtom .
+logic:dnfAtom a logic:Formula ; logic:relation gmeow:normFunction ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+gmeow:AffectCompositeConstituentPresentConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectComposite constituent-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:AffectComposite declares at least one gmeow:affectiveConstituent."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectComposite ;
+    logic:message "An AffectComposite must declare at least one gmeow:affectiveConstituent — a named compound with no decomposition is a forbidden unanalyzed primitive (model up from axes, or add the missing axis)." ;
+    logic:integrity logic:accForall .
+logic:accForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:accImpl .
+logic:accImpl a logic:Formula ; logic:antecedent logic:accGuard ; logic:consequent logic:accExists .
+logic:accGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectComposite ] .
+logic:accExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ;
+    logic:exists logic:accAtom .
+logic:accAtom a logic:Formula ; logic:relation gmeow:affectiveConstituent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+
+# modelRevision is single-valued: two distinct pinned revisions is a hard fail.
+gmeow:ModelInferenceRunRevisionUniqueConstraint
+    a logic:Constraint ;
+    rdfs:label "ModelInferenceRun revision-unique constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ModelInferenceRun pins at most one gmeow:modelRevision."@x-gmeow-english ;
+    logic:formalizes gmeow:ModelInferenceRun ;
+    logic:message "A ModelInferenceRun must declare exactly one pinned gmeow:modelRevision — a model name without a single pinned revision fails reproducibility (a hard fail)." ;
+    logic:integrity logic:mruForall .
+logic:mruForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] , [ logic:termIndex 2 ; logic:termVariable "b" ] ;
+    logic:forall logic:mruImpl .
+logic:mruImpl a logic:Formula ; logic:antecedent logic:mruGuard ; logic:consequent logic:mruEq .
+logic:mruGuard a logic:Formula ; logic:and logic:mruType , logic:mruA , logic:mruB .
+logic:mruType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ModelInferenceRun ] .
+logic:mruA a logic:Formula ; logic:relation gmeow:modelRevision ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "a" ] .
+logic:mruB a logic:Formula ; logic:relation gmeow:modelRevision ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+logic:mruEq a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+
+# A derived intensity's weighting policy must be a machine-readable IRI, never a free-text string.
+gmeow:DerivedAffectIntensityWeightingIriConstraint
+    a logic:Constraint ;
+    rdfs:label "Derived affect intensity weighting-IRI constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:DerivedAffectIntensityObservation declares its gmeow:weightingPolicy as an IRI-valued gmeow:WeightingPolicy."@x-gmeow-english ;
+    logic:formalizes gmeow:DerivedAffectIntensityObservation ;
+    logic:message "A derived affect intensity must declare its gmeow:weightingPolicy — the basis is non-orthogonal, so the weighting is an explicit, machine-readable gmeow:WeightingPolicy IRI, never assumed and never a free-text string." ;
+    logic:integrity logic:dwpForall .
+logic:dwpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:dwpImpl .
+logic:dwpImpl a logic:Formula ; logic:antecedent logic:dwpGuard ; logic:consequent logic:dwpExists .
+logic:dwpGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DerivedAffectIntensityObservation ] .
+logic:dwpExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w" ] ;
+    logic:exists logic:dwpBody .
+logic:dwpBody a logic:Formula ; logic:and logic:dwpAtom , logic:dwpIri .
+logic:dwpAtom a logic:Formula ; logic:relation gmeow:weightingPolicy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] .
+logic:dwpIri a logic:Formula ; logic:relation logic:termIsIri ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "w" ] .
+
+# A derived intensity must NOT carry a stored magnitude (the norm is a recomputable derived view).
+gmeow:DerivedAffectIntensityNoStoredMagnitudeConstraint
+    a logic:Constraint ;
+    rdfs:label "Derived affect intensity no-stored-magnitude constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:DerivedAffectIntensityObservation carries no stored gmeow:appraisalValue magnitude."@x-gmeow-english ;
+    logic:formalizes gmeow:DerivedAffectIntensityObservation ;
+    logic:message "A derived affect intensity must NOT carry a stored magnitude (gmeow:appraisalValue) — the norm is a recomputable derived view, never a stored ground fact (Principle 12); a stored intensity value is a hard fail." ;
+    logic:integrity logic:dnmForall .
+logic:dnmForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:dnmImpl .
+logic:dnmImpl a logic:Formula ; logic:antecedent logic:dnmGuard ; logic:consequent logic:dnmNot .
+logic:dnmGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DerivedAffectIntensityObservation ] .
+logic:dnmNot a logic:Formula ; logic:not logic:dnmExists .
+logic:dnmExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:exists logic:dnmAtom .
+logic:dnmAtom a logic:Formula ; logic:relation gmeow:appraisalValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+# A classifier label must not be modeled as a gmeow:EmotionType.
+gmeow:AffectClassifierLabelNotEmotionTypeConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectClassifierLabel not-EmotionType constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierLabel is not also a gmeow:EmotionType."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectClassifierLabel ;
+    logic:message "A classifier label must not be modeled as a gmeow:EmotionType — 'neutral' (or any no-detected-affect label) as an EmotionType is a hard fail; labels are external identities, never canonical emotion vocabulary." ;
+    logic:integrity logic:lneForall .
+logic:lneForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:lneImpl .
+logic:lneImpl a logic:Formula ; logic:antecedent logic:lneGuard ; logic:consequent logic:lneNot .
+logic:lneGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierLabel ] .
+logic:lneNot a logic:Formula ; logic:not logic:lneEmotion .
+logic:lneEmotion a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EmotionType ] .
+
+# A calibrated-probability score requires a gmeow:scoreCalibration profile.
+gmeow:AffectClassifierOutputCalibrationConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectClassifierOutput calibration constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput whose gmeow:scoreSemantics is gmeow:scoreCalibratedProbability declares a gmeow:scoreCalibration."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectClassifierOutput ;
+    logic:message "A score claimed as a calibrated probability requires a gmeow:scoreCalibration profile — a raw sigmoid/softmax score stored as a confidence without calibration metadata is a hard fail (confidence is not a probability without a declared mapping)." ;
+    logic:integrity logic:occForall .
+logic:occForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:occImpl .
+logic:occImpl a logic:Formula ; logic:antecedent logic:occGuard ; logic:consequent logic:occExists .
+logic:occGuard a logic:Formula ; logic:and logic:occType , logic:occSem .
+logic:occType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierOutput ] .
+logic:occSem a logic:Formula ; logic:relation gmeow:scoreSemantics ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:scoreCalibratedProbability ] .
+logic:occExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "c" ] ;
+    logic:exists logic:occAtom .
+logic:occAtom a logic:Formula ; logic:relation gmeow:scoreCalibration ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
+
+# A classifier output must not directly assert inner affect (emotionType / emotionBearer).
+gmeow:AffectClassifierOutputNoInnerAffectConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectClassifierOutput no-inner-affect constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:AffectClassifierOutput asserts neither gmeow:emotionType nor gmeow:emotionBearer directly."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectClassifierOutput ;
+    logic:message "A classifier output must not directly assert inner affect (gmeow:emotionType / gmeow:emotionBearer) — it supports a gmeow:AffectiveClaim by gmeow:supportsAffectiveClaim (evidence, never entailment); asserting inner affect without the claim boundary is a hard fail." ;
+    logic:integrity logic:oiaForall .
+logic:oiaForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:oiaImpl .
+logic:oiaImpl a logic:Formula ; logic:antecedent logic:oiaGuard ; logic:consequent logic:oiaNot .
+logic:oiaGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierOutput ] .
+logic:oiaNot a logic:Formula ; logic:not logic:oiaOr .
+logic:oiaOr a logic:Formula ; logic:or logic:oiaType , logic:oiaBearer .
+logic:oiaType a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "e" ] ;
+    logic:exists logic:oiaTypeAtom .
+logic:oiaTypeAtom a logic:Formula ; logic:relation gmeow:emotionType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
+logic:oiaBearer a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "b" ] ;
+    logic:exists logic:oiaBearerAtom .
+logic:oiaBearerAtom a logic:Formula ; logic:relation gmeow:emotionBearer ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] .
+
+# The named appraisal scale profile must actually be a gmeow:AffectScaleProfile.
+gmeow:AppraisalScaleProfileIsProfileConstraint
+    a logic:Constraint ;
+    rdfs:label "Appraisal scale-profile is-a-profile constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:appraisalScaleProfile value of a gmeow:Appraisal is a gmeow:AffectScaleProfile."@x-gmeow-english ;
+    logic:formalizes gmeow:Appraisal ;
+    logic:message "gmeow:appraisalScaleProfile names exactly one gmeow:AffectScaleProfile IRI — never a literal, a blank node, or a non-profile IRI (the reshape's frame must actually be a frame, Principle 6)." ;
+    logic:integrity logic:aspForall .
+logic:aspForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] ;
+    logic:forall logic:aspImpl .
+logic:aspImpl a logic:Formula ; logic:antecedent logic:aspGuard ; logic:consequent logic:aspClass .
+logic:aspGuard a logic:Formula ; logic:and logic:aspType , logic:aspProfile .
+logic:aspType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Appraisal ] .
+logic:aspProfile a logic:Formula ; logic:relation gmeow:appraisalScaleProfile ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+logic:aspClass a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectScaleProfile ] .
+
+# An AffectScaleProfile range is non-degenerate: max strictly exceeds min.
+gmeow:AffectScaleProfileRangeConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectScaleProfile range constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:AffectScaleProfile has gmeow:profileRangeMax strictly greater than gmeow:profileRangeMin."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectScaleProfile ;
+    logic:message "An AffectScaleProfile is degenerate: gmeow:profileRangeMax must strictly exceed gmeow:profileRangeMin — an inverted or empty range frames nothing (Principle 11)." ;
+    logic:integrity logic:prxForall .
+logic:prxForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "min" ] , [ logic:termIndex 2 ; logic:termVariable "max" ] ;
+    logic:forall logic:prxImpl .
+logic:prxImpl a logic:Formula ; logic:antecedent logic:prxGuard ; logic:consequent logic:prxGt .
+logic:prxGuard a logic:Formula ; logic:and logic:prxType , logic:prxMin , logic:prxMax .
+logic:prxType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectScaleProfile ] .
+logic:prxMin a logic:Formula ; logic:relation gmeow:profileRangeMin ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "min" ] .
+logic:prxMax a logic:Formula ; logic:relation gmeow:profileRangeMax ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "max" ] .
+logic:prxGt a logic:Formula ; logic:relation logic:termGreater ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "max" ] , [ logic:termIndex 1 ; logic:termVariable "min" ] .
+
+# A gmeow:AffectDecision may only be recorded over a single-label (decisionArgmax) label set.
+gmeow:AffectDecisionSingleLabelConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectDecision single-label constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world relational integrity constraint: a gmeow:AffectDecision's decided label belongs to a label set whose gmeow:labelSetDecision is gmeow:decisionArgmax."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectDecision ;
+    logic:message "A gmeow:AffectDecision may only be recorded over a single-label (gmeow:decisionArgmax) label set — a categorical argmax decision over a multi-label set has no single winner (a hard fail)." ;
+    logic:integrity logic:dslForall .
+logic:dslForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "label" ] , [ logic:termIndex 2 ; logic:termVariable "set" ] , [ logic:termIndex 3 ; logic:termVariable "rule" ] ;
+    logic:forall logic:dslImpl .
+logic:dslImpl a logic:Formula ; logic:antecedent logic:dslGuard ; logic:consequent logic:dslEq .
+logic:dslGuard a logic:Formula ; logic:and logic:dslType , logic:dslDecided , logic:dslMember , logic:dslDecision .
+logic:dslType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectDecision ] .
+logic:dslDecided a logic:Formula ; logic:relation gmeow:decidedLabel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "label" ] .
+logic:dslMember a logic:Formula ; logic:relation gmeow:memberOfLabelSet ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "label" ] , [ logic:termIndex 1 ; logic:termVariable "set" ] .
+logic:dslDecision a logic:Formula ; logic:relation gmeow:labelSetDecision ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "set" ] , [ logic:termIndex 1 ; logic:termVariable "rule" ] .
+logic:dslEq a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "rule" ] , [ logic:termIndex 1 ; logic:termIri gmeow:decisionArgmax ] .
+
+# A classifier output's score semantics must match its emitted label's set decision rule.
+gmeow:AffectDecisionRuleConsistencyConstraint
+    a logic:Constraint ;
+    rdfs:label "AffectDecision rule-consistency constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world relational integrity constraint: a gmeow:AffectClassifierOutput's gmeow:scoreSemantics gmeow:impliesLabelSetDecision matches its emitted label's set gmeow:labelSetDecision."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectClassifierOutput ;
+    logic:message "A classifier output's gmeow:scoreSemantics implies a label-set decision rule (softmax → argmax, sigmoid → independent-threshold) that MUST match its emitted label's set gmeow:labelSetDecision — a softmax score over a multi-label set (or a sigmoid over an exclusive set) is an inconsistency (a hard fail)." ;
+    logic:integrity logic:drcForall .
+logic:drcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sem" ] , [ logic:termIndex 2 ; logic:termVariable "label" ] , [ logic:termIndex 3 ; logic:termVariable "implied" ] , [ logic:termIndex 4 ; logic:termVariable "set" ] , [ logic:termIndex 5 ; logic:termVariable "declared" ] ;
+    logic:forall logic:drcImpl .
+logic:drcImpl a logic:Formula ; logic:antecedent logic:drcGuard ; logic:consequent logic:drcEq .
+logic:drcGuard a logic:Formula ; logic:and logic:drcType , logic:drcSem , logic:drcLabel , logic:drcImplies , logic:drcMember , logic:drcDecision .
+logic:drcType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectClassifierOutput ] .
+logic:drcSem a logic:Formula ; logic:relation gmeow:scoreSemantics ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sem" ] .
+logic:drcLabel a logic:Formula ; logic:relation gmeow:emittedLabel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "label" ] .
+logic:drcImplies a logic:Formula ; logic:relation gmeow:impliesLabelSetDecision ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sem" ] , [ logic:termIndex 1 ; logic:termVariable "implied" ] .
+logic:drcMember a logic:Formula ; logic:relation gmeow:memberOfLabelSet ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "label" ] , [ logic:termIndex 1 ; logic:termVariable "set" ] .
+logic:drcDecision a logic:Formula ; logic:relation gmeow:labelSetDecision ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "set" ] , [ logic:termIndex 1 ; logic:termVariable "declared" ] .
+logic:drcEq a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "implied" ] , [ logic:termIndex 1 ; logic:termVariable "declared" ] .
+
+# At most one AffectiveClaim over one target from a single-label (argmax) classifier run.
+gmeow:ExclusiveAffectiveClaimConstraint
+    a logic:Constraint ;
+    rdfs:label "Exclusive affective claim constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world relational integrity constraint: no two distinct gmeow:AffectiveClaims over the same target are supported by outputs of one classifier run whose emitted labels share a single-label (gmeow:decisionArgmax) set."@x-gmeow-english ;
+    logic:formalizes gmeow:AffectiveClaim ;
+    logic:message "At most one gmeow:AffectiveClaim may be routed over one target from a single-label (gmeow:decisionArgmax) classifier run — a threshold policy admitting two mutually-exclusive claims over an exclusive label set is a hard fail." ;
+    logic:integrity logic:eccForall .
+logic:eccForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:eccImpl .
+logic:eccImpl a logic:Formula ; logic:antecedent logic:eccGuard ; logic:consequent logic:eccNot .
+logic:eccGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectiveClaim ] .
+logic:eccNot a logic:Formula ; logic:not logic:eccExists .
+logic:eccExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "target" ] , [ logic:termIndex 1 ; logic:termVariable "out1" ] , [ logic:termIndex 2 ; logic:termVariable "run" ] , [ logic:termIndex 3 ; logic:termVariable "l1" ] , [ logic:termIndex 4 ; logic:termVariable "set" ] , [ logic:termIndex 5 ; logic:termVariable "other" ] , [ logic:termIndex 6 ; logic:termVariable "out2" ] , [ logic:termIndex 7 ; logic:termVariable "l2" ] ;
+    logic:exists logic:eccBody .
+logic:eccBody a logic:Formula ; logic:and
+    logic:eccObs , logic:eccSupports1 , logic:eccProduced1 , logic:eccEmitted1 , logic:eccMember1 , logic:eccArgmax ,
+    logic:eccOtherType , logic:eccOtherObs , logic:eccDistinct , logic:eccSupports2 , logic:eccProduced2 , logic:eccEmitted2 , logic:eccMember2 .
+logic:eccObs a logic:Formula ; logic:relation gmeow:observedFeature ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
+logic:eccSupports1 a logic:Formula ; logic:relation gmeow:supportsAffectiveClaim ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "out1" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:eccProduced1 a logic:Formula ; logic:relation gmeow:producedBy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "out1" ] , [ logic:termIndex 1 ; logic:termVariable "run" ] .
+logic:eccEmitted1 a logic:Formula ; logic:relation gmeow:emittedLabel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "out1" ] , [ logic:termIndex 1 ; logic:termVariable "l1" ] .
+logic:eccMember1 a logic:Formula ; logic:relation gmeow:memberOfLabelSet ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "l1" ] , [ logic:termIndex 1 ; logic:termVariable "set" ] .
+logic:eccArgmax a logic:Formula ; logic:relation gmeow:labelSetDecision ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "set" ] , [ logic:termIndex 1 ; logic:termIri gmeow:decisionArgmax ] .
+logic:eccOtherType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termIri gmeow:AffectiveClaim ] .
+logic:eccOtherObs a logic:Formula ; logic:relation gmeow:observedFeature ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
+logic:eccDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:eccSupports2 a logic:Formula ; logic:relation gmeow:supportsAffectiveClaim ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "out2" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] .
+logic:eccProduced2 a logic:Formula ; logic:relation gmeow:producedBy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "out2" ] , [ logic:termIndex 1 ; logic:termVariable "run" ] .
+logic:eccEmitted2 a logic:Formula ; logic:relation gmeow:emittedLabel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "out2" ] , [ logic:termIndex 1 ; logic:termVariable "l2" ] .
+logic:eccMember2 a logic:Formula ; logic:relation gmeow:memberOfLabelSet ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "l2" ] , [ logic:termIndex 1 ; logic:termVariable "set" ] .
+
+# A dimensional value needs its dimension (and a dimension its value).
+gmeow:AppraisalDimensionValuePairConstraint
+    a logic:Constraint ;
+    rdfs:label "Appraisal dimension-value pair constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Appraisal carrying a gmeow:appraisalValue also carries a gmeow:appraisalDimension, and vice versa."@x-gmeow-english ;
+    logic:formalizes gmeow:Appraisal ;
+    logic:message "A dimensional value needs its dimension (and a dimension its value) — half a reading is no reading." ;
+    logic:integrity logic:advForall .
+logic:advForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:advImpl .
+logic:advImpl a logic:Formula ; logic:antecedent logic:advGuard ; logic:consequent logic:advAnd .
+logic:advGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Appraisal ] .
+logic:advAnd a logic:Formula ; logic:and logic:advValImpl , logic:advDimImpl .
+logic:advValImpl a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:forall logic:advValInner .
+logic:advValInner a logic:Formula ; logic:antecedent logic:advValAtom ; logic:consequent logic:advDimExists .
+logic:advValAtom a logic:Formula ; logic:relation gmeow:appraisalValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:advDimExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ;
+    logic:exists logic:advDimAtom .
+logic:advDimAtom a logic:Formula ; logic:relation gmeow:appraisalDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+logic:advDimImpl a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d2" ] ;
+    logic:forall logic:advDimInner .
+logic:advDimInner a logic:Formula ; logic:antecedent logic:advDimAtom2 ; logic:consequent logic:advValExists .
+logic:advDimAtom2 a logic:Formula ; logic:relation gmeow:appraisalDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d2" ] .
+logic:advValExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v2" ] ;
+    logic:exists logic:advValAtom2 .
+logic:advValAtom2 a logic:Formula ; logic:relation gmeow:appraisalValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v2" ] .
