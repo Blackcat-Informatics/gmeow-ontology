@@ -6,13 +6,30 @@
 //!
 //! Proof-carrying documentation demands that EVERY projected evidence node be a
 //! claim WITH its grounds: an ungrounded `gmeow:DocEvidence` node is the
-//! doc-layer analogue of a DARK finding. This test builds a representative model
-//! that genuinely populates all five evidence kinds (competency, diagnostics,
-//! fixture, loss, provenance), projects it through [`to_gmeow_rdf`], re-parses
-//! the N-Quads through the independent native codec, and asserts that ZERO
-//! `gmeow:DocEvidence` subjects lack a `gmeow:docGroundedBy` object. This is the
-//! genuine, on-gate (`make check` → `rust-test`), executable enforcement of the
-//! invariant — see the crate report on why the SHACL form is scoped elsewhere.
+//! doc-layer analogue of a DARK finding. Two tests enforce this:
+//!
+//! * [`every_doc_evidence_node_is_grounded`] builds a representative SYNTHETIC
+//!   model that genuinely populates all five evidence kinds (competency,
+//!   diagnostics, fixture, loss, provenance) so every per-kind code path fires,
+//!   and asserts each projects exactly one grounded node.
+//! * [`live_doc_evidence_projection_is_fully_grounded`] runs the SAME invariant
+//!   over the REAL production `DocsModel` (the live slice catalog), so the gate
+//!   bites on the shipped documentation graph — not only a hand-built fixture.
+//!
+//! Both project through [`to_gmeow_rdf`], re-parse the N-Quads through the
+//! independent native codec, and assert that ZERO `gmeow:DocEvidence` subjects
+//! lack a `gmeow:docGroundedBy` object.
+//!
+//! This is the genuine, on-gate (`make check` → `rust-test`), executable
+//! enforcement of the invariant. The SHACL form is NOT authored: the
+//! `gmeow:DocEvidence` graph is produced by `stage-docs-render`, which runs
+//! strictly AFTER `stage-validate` (`stage-validate` consumes only
+//! `stage-source-load`; `stage-docs-render` consumes `stage-validate`). `make
+//! validate` / `make check` run SHACL over the authored source graph only (never
+//! the downstream `graph/documentation` projection), so a shape over
+//! `gmeow:DocEvidence` would have nothing to bite on at the gate — a DARK
+//! producer-without-consumer. This Rust invariant, over both a synthetic and the
+//! live model, is the architecturally-correct enforcement point.
 
 use gmeow_docs::{
     DiagnosticsDigest, DocCompetency, DocDiagFinding, DocFixture, DocFixtureKind, DocFlowEdge,
@@ -20,6 +37,8 @@ use gmeow_docs::{
     to_gmeow_rdf,
 };
 use purrdf::{DatasetView, GraphMatch, TermValue};
+
+mod common;
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -216,5 +235,81 @@ fn every_doc_evidence_node_is_grounded() {
     assert!(
         nq.contains("docCompetencyQueryDigest"),
         "the competency evidence node must carry its blake3 query digest"
+    );
+}
+
+/// The grounding invariant over an arbitrary projection: parse the N-Quads, find
+/// every `gmeow:DocEvidence` subject, and return `(total_evidence_nodes,
+/// ungrounded_count)`. Shared by the synthetic and the live-model tests so both
+/// enforce the invariant through one code path.
+fn grounding_tally(nq: &str) -> (usize, usize) {
+    let ds = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
+        .expect("to_gmeow_rdf must emit valid, round-trippable N-Quads");
+
+    // On a projection with zero evidence nodes the type/predicate IRIs may never
+    // be interned; treat an absent id as "no such nodes" rather than panicking.
+    let type_id = match ds.term_id_by_value(&TermValue::iri(RDF_TYPE)) {
+        Some(id) => id,
+        None => return (0, 0),
+    };
+    let docevidence_id = match ds.term_id_by_value(&TermValue::iri(format!("{GMEOW}DocEvidence"))) {
+        Some(id) => id,
+        None => return (0, 0),
+    };
+    let grounded_id = match ds.term_id_by_value(&TermValue::iri(format!("{GMEOW}docGroundedBy"))) {
+        Some(id) => id,
+        None => {
+            // The predicate is never interned ⇒ no node is grounded. Count the
+            // evidence subjects so the caller sees them all as ungrounded.
+            let n = ds
+                .quads_for_pattern(None, Some(type_id), Some(docevidence_id), GraphMatch::Any)
+                .count();
+            return (n, n);
+        }
+    };
+
+    let subjects: Vec<_> = ds
+        .quads_for_pattern(None, Some(type_id), Some(docevidence_id), GraphMatch::Any)
+        .map(|q| q.s)
+        .collect();
+    let ungrounded = subjects
+        .iter()
+        .filter(|s| {
+            ds.quads_for_pattern(Some(**s), Some(grounded_id), None, GraphMatch::Any)
+                .count()
+                == 0
+        })
+        .count();
+    (subjects.len(), ungrounded)
+}
+
+/// The grounding invariant over the LIVE production documentation model: EVERY
+/// `gmeow:DocEvidence` node the real slice catalog projects carries at least one
+/// `gmeow:docGroundedBy` object. This is the on-real-data enforcement point —
+/// SHACL over `gmeow:DocEvidence` cannot bite at `make validate`/`make check`
+/// (the `graph/documentation` projection is produced by `stage-docs-render`,
+/// strictly downstream of the source-graph-only `stage-validate`), so this Rust
+/// invariant, run over the shipped model, is where a dropped grounding edge reds
+/// the gate.
+#[test]
+fn live_doc_evidence_projection_is_fully_grounded() {
+    let model = common::cached_model();
+    let nq = to_gmeow_rdf(&model);
+    let (total, ungrounded) = grounding_tally(&nq);
+
+    // Non-vacuity: the live catalog MUST project real evidence, else the
+    // invariant would be trivially satisfiable over an empty set. The production
+    // model carries a pipeline (so every documented term gets a `provenance`
+    // node) and thousands of enriched terms.
+    assert!(
+        total > 0,
+        "the live documentation model must project gmeow:DocEvidence nodes \
+         (zero would make the grounding invariant vacuous)"
+    );
+    assert_eq!(
+        ungrounded, 0,
+        "every gmeow:DocEvidence node in the LIVE documentation graph must carry \
+         a gmeow:docGroundedBy edge — {ungrounded} of {total} are ungrounded \
+         (an ungrounded evidence node is the doc-layer analogue of a DARK finding)"
     );
 }
