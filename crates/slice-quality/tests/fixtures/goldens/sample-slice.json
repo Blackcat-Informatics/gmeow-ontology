@@ -3,6 +3,41 @@
   "findings": [
     {
       "severity": "warning",
+      "code": "slice-quality.axis-advice",
+      "message": "axisDocumentation: Write a narrative docs.md thesis — substantive prose beyond the headings, not a term listing — for the slice (SLICE_GUIDE documentation doctrine).",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.axis-advice",
+      "message": "axisGmn1Coverage: Round-trip each uncovered GMN-0 construct the advisor names: extend the GMN-1 codec's covered fragment (crates/lang-bridge/src/gmn1_codec.rs) so gmn1_write/gmn1_read carry it losslessly, or — if the construct is genuinely out of the codec's current design scope — file it as a named codec-coverage gap against LANG-GMN.md rather than leaving it silently unmeasured. Raising this slice's committed floor in governance/slice-quality-axis-floors.tsv is a separate, deliberate uplift commit made once the measured score has genuinely risen — the gate enforces non-regression at the committed floor, never automatic ascent.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.axis-advice",
+      "message": "axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a gmeow:TermEquivalence to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17).",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.axis-advice",
+      "message": "axisOptimalTesting: Add at least one test cell or competency query naming each currently-unreached term so every term in the slice is exercised (SLICE_GUIDE §9; SLICE_QA).",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.axis-advice",
+      "message": "axisTranslationCoverage: Add audited French and Mandarin translations for every label and definition literal, recorded in the slice's i18n/fr.po and i18n/zh.po catalogs.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
       "code": "slice-quality.documentation.no-docs",
       "message": "the slice ships no docs.md.",
       "tool": "slice-quality",
@@ -143,6 +178,11 @@
     }
   ],
   "rules": [
+    {
+      "id": "slice-quality.axis-advice",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-axis-advice",
+      "default_severity": "warning"
+    },
     {
       "id": "slice-quality.documentation.no-docs",
       "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-documentation-no-docs",
