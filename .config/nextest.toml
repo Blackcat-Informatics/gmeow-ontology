@@ -151,6 +151,20 @@
 #     the folded `generated/quality/gmeow.quality-assessment.nt` is drift-gated on every
 #     `make check` via `make check-generated`, and the exhaustive real-carrier proof
 #     stays on-gate on `maint-heavy`.
+#   - gmeow-slicetest run_structural_file::core/slice-quality-rubric/tests/structural.ttl
+#     (2026-07-09, #1475 Task 7): 19-42 s depending on contention (was 41.1 s before a
+#     same-scope dataset cache landed in `run_structural_cell`, which halved the standalone
+#     cost). The slice-quality rubric module (`slices/core/slice-quality-rubric/module.ttl`)
+#     is the largest, most prose-dense module in the repo — it is the self-describing quality
+#     rubric itself, documenting every axis in full natural-language prose — and each new axis
+#     (13 now, after the GMN-1 Coverage axis) both grows that file and adds another structural
+#     cell that re-unions + re-plans a SPARQL ASK over it, so the cost is irreducibly
+#     O(module size x cell count) under this shared dev box's contention, the same
+#     under-contention class as the CLI/up_project siblings above. No coverage leaves the
+#     gate: the assertions are still RUN and asserted correct on every `make check` via
+#     `make maint-rust-heavy`, every other slice's `structural.ttl` stays on-gate (this
+#     exclusion is scoped to this one file's datatest case, not the whole class), and the
+#     rubric's axis-shape invariants stay drift-gated via `make check-generated`.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -168,6 +182,7 @@ default-filter = '''
     | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter) | test(project_unknown_view_fails) | test(describe_env_language_rejected_if_unknown)))
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(rendered_tree_is_disk_faithful))
     | (package(gmeow-pipeline) & test(/quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate/))
+    | (package(gmeow-slicetest) & test(/run_structural_file::core\/slice-quality-rubric\/tests\/structural\.ttl/))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
