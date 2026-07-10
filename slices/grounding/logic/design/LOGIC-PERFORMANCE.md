@@ -323,6 +323,14 @@ corpus)`: bit-for-bit reproducible, immune to the scheduler.
   raise it or mark the group advisory-only; a low-sample wall-clock number never gates.
 - Every deliberately non-incremental, refused, or demoted fragment is a **ledger entry** — the
   perf ledger is the honesty surface that keeps "not yet fast" from silently reading as "fast".
+- **Gap-zero is a soak-window claim, not a one-shot tally.** The `bench-soak` gate re-runs the
+  deterministic native-vs-published agreement check over the committed mini corpora N times
+  (window ≥ 2) and hard-fails unless EVERY run is gap-zero (`corpus_only == 0 && dl_gap == 0`) AND
+  its divergence-ledger finding-graph blake3 is byte-identical across the whole window — a drifting
+  fingerprint over a fixed corpus is itself a divergence finding. The committed
+  `generated/bench/soak.md` record projects the invariant per-corpus finding-graph digest and is
+  drift-gated by `check-generated`, so "ledger gap-zero over a soak window" is a checkable claim
+  rather than a single sample.
 
 Consistency with the release-as-evidence principle: perf **timings** remain carried as data and
 never as a gate — they are advisory here. What gates is a deterministic **count**, a different
