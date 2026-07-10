@@ -366,6 +366,21 @@ test-group = 'engine'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
+# The slice-quality e2e logic-slice scorer (crates/slice-quality/tests/score_slice_e2e.rs
+# scores_the_logic_slice_green_vs_advisory) drives `score_slice` over the WHOLE real logic
+# slice — running the reasoner/closure analysis that backs its `slice-quality.reasoner.*`
+# axes. It is ~8 s standalone (measured 8.3 s), NOT irreducible, so the bias is fix-not-off-gate
+# (the same class as `fanout_parity` above): unserialized it piled onto concurrent Nemo/Scryer
+# chases in the shared CI shard and rode the 25 s cliff over on jitter (measured 25.9 s under
+# full-parallelism contention). Serialize it under the `engine` memory group so the slice-closure
+# reasoning does not contend with the other chases — this removes the contention WITHOUT
+# off-gating the logic-slice-scoring coverage (it stays on every `make check`). The other three
+# tests in the binary use the tiny rubric fixture and stay fully parallel.
+filter = 'package(gmeow-slice-quality) & test(scores_the_logic_slice_green_vs_advisory)'
+test-group = 'engine'
+slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
 # The consumer `gmeow validate --deep` AC1 test reasons over the user data merged
 # with the WHOLE bundled TBox via the native Nemo chase (~50s full-fold). It is
 # off-gated via `default-filter` (so it runs only on maint-heavy), but the override
