@@ -132,11 +132,18 @@ fn doc_diag_finding(
 /// product/artifact is absent, or when the artifact bytes fail to parse as a
 /// `Report` (never a silently empty digest).
 ///
-/// The per-term join key is each finding's FIRST `Location` whose `logical` is
-/// `Some` — matched by EXACT string equality against `known_term_iris`, never a
-/// heuristic/fuzzy match. A finding whose first logical location names no known
-/// term (or that carries no logical location at all) simply has no `by_term`
-/// entry (an honest absence, not a bug).
+/// The per-term join has two legs, both EXACT string matches against
+/// `known_term_iris` (never heuristic/fuzzy). The PRIMARY leg reads each finding's
+/// purpose-built [`documented_terms`](gmeow_errors::Finding::documented_terms) — the
+/// DOCUMENTED term the finding structurally concerns, e.g. a SHACL violation's
+/// constrained `sh:path` property (a documented `gmeow:` term), recorded at the
+/// finding-construction site (`gmeow_validate::findings`). This is preferred over the
+/// raw focus node because a SHACL finding's focus is an ABox data individual that
+/// never names a documented term. The SECONDARY leg, retained for findings whose
+/// PRIMARY `Location.logical` genuinely names a documented term, matches the first
+/// such logical location (skipped when it duplicates a documented-term hit). A finding
+/// that resolves to no known term on either leg simply has no `by_term` entry (an
+/// honest absence, not a bug).
 ///
 /// `by_slice` is keyed on EVERY recorded [`gmeow_errors::DiagnosticAttribution`]
 /// (a coarser join, available whenever the finding carries an attribution);
@@ -210,12 +217,32 @@ pub(crate) fn diagnostics_digest_from_upstream(
     for finding in &findings {
         let doc_finding = doc_diag_finding(finding, &by_code);
 
+        // Primary join: the purpose-built documented-term attribution — a SHACL
+        // violation's CONSTRAINED PROPERTY (its `sh:path`), a documented `gmeow:`
+        // term — resolved by EXACT match against `known_term_iris`. This is the
+        // honest carrier the finding-construction site records structurally
+        // (`gmeow_validate::findings`), preferred over the raw focus node below
+        // because the focus is a data individual that never names a documented term.
+        for term_iri in &finding.documented_terms {
+            if known_term_iris.contains(term_iri.as_str()) {
+                by_term
+                    .entry(term_iri.clone())
+                    .or_default()
+                    .push(doc_finding.clone());
+            }
+        }
+        // Secondary join, retained for findings whose PRIMARY location genuinely
+        // names a documented term (e.g. a modeling-discipline finding anchored on a
+        // documented class): the first `logical` location matched exactly. A finding
+        // whose focus is an ABox individual (every real SHACL finding today) has no
+        // `by_term` entry from this leg — an honest absence, not a bug.
         let term_candidate = finding
             .locations
             .iter()
             .find_map(|loc| loc.logical.as_deref());
         if let Some(term_iri) = term_candidate
             && known_term_iris.contains(term_iri)
+            && !finding.documented_terms.iter().any(|t| t == term_iri)
         {
             by_term
                 .entry(term_iri.to_string())
@@ -736,11 +763,16 @@ impl Stage for DocsRenderStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
+        // v7: the diagnostics→term digest now joins on each finding's purpose-built
+        // `documented_terms` attribution (a SHACL violation's constrained `sh:path`
+        // property) as the primary leg, so the per-term "Diagnostics you might hit"
+        // panel lights up on documented property terms instead of shipping vacuous.
+        // Bumped so the cache re-derives the rendered graph now that `by_term` is
+        // populated from the newly-attributed findings.
         // v6: adds `term_loss_digest_from_upstream`, folding the dynamic per-term
         // projection-loss join from the `stage-mappings` product's live
-        // `GRAPH_PROJECTION_LEDGER` graph. Bumped so the cache re-derives the
-        // rendered graph now that a new upstream product feeds it.
-        "docs_render.v6"
+        // `GRAPH_PROJECTION_LEDGER` graph.
+        "docs_render.v7"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The raw-source half of this DocsRender leaf — declared so a guide /
@@ -929,6 +961,68 @@ mod tests {
                 });
         }
         finding
+    }
+
+    #[test]
+    fn diagnostics_digest_joins_on_documented_term_attribution_not_abox_focus() {
+        // The PRIMARY join leg: a SHACL-shaped finding whose FOCUS is an ABox data
+        // individual (names no documented term) but whose `documented_terms` carries
+        // the constrained property (a documented term) joins by_term on the PROPERTY,
+        // never on the focus. This is the exact real-repo shape: the MinCount
+        // violations' focus nodes are fixture individuals; their constrained
+        // `gmeow:hasReferenceFrame` property is the documented term the panel lights up.
+        let property = "https://blackcatinformatics.ca/gmeow/hasReferenceFrame";
+        let mut known_terms: BTreeSet<String> = BTreeSet::new();
+        known_terms.insert(property.to_string());
+
+        let mut shacl_report = gmeow_errors::Report::new("shacl");
+        let mut finding = synthetic_finding(
+            "shacl.MinCountConstraintComponent",
+            gmeow_errors::FindingCategory::DataShapeViolation,
+            // The focus node is an ABox fixture individual — NOT a documented term.
+            Some("https://blackcatinformatics.ca/gmeow/fixtureRagaYamanImprovised1975"),
+            None,
+        );
+        finding = finding.with_documented_term(property);
+        shacl_report.findings.push(finding);
+
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert(
+            "stage-validate".to_string(),
+            report_json_product(
+                "stage-validate",
+                crate::stages::validate::SHACL_JSON_PATH,
+                &shacl_report,
+            ),
+        );
+        upstream.insert(
+            "stage-compile-logic".to_string(),
+            report_json_product(
+                "stage-compile-logic",
+                crate::stages::compile_logic::DIAG_JSON_PATH,
+                &gmeow_errors::Report::new("logic-compile"),
+            ),
+        );
+
+        let digest =
+            diagnostics_digest_from_upstream(&upstream, &known_terms, &[]).expect("digest folds");
+        // Joined on the documented PROPERTY, exactly once, via the primary leg.
+        assert_eq!(
+            digest.by_term.get(property).map(Vec::len),
+            Some(1),
+            "the finding joins by_term on its documented constrained property"
+        );
+        assert_eq!(
+            digest.by_term[property][0].code,
+            "shacl.MinCountConstraintComponent"
+        );
+        // The ABox focus individual never fabricates a by_term key.
+        assert!(
+            !digest.by_term.contains_key(
+                "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanImprovised1975"
+            ),
+            "the ABox focus node must never enter by_term"
+        );
     }
 
     #[test]
@@ -1345,18 +1439,21 @@ mod tests {
         assert!(reasoning_verdict_from_reason(&BTreeMap::new()).is_err());
     }
 
-    /// B1 (real-repo non-vacuity, symmetric with the B3 F1 entailments proof in
-    /// `carrier.rs`): the diagnostics→term digest folded from the REAL
-    /// `stage-validate` + `stage-compile-logic` products over the whole ontology
-    /// must carry a non-zero raw finding total — the docs "Diagnostics you might
-    /// hit" surface must never ship vacuous. `by_term` / `by_slice` are NOT
-    /// asserted non-empty: today's real findings genuinely name no documented-term
-    /// location, so an empty `by_term` is honest data, not a bug (the term/slice
-    /// join mechanism is proven by the synthetic
-    /// `diagnostics_digest_joins_term_and_slice_and_hard_fails_on_missing_upstream`
-    /// test above). Runs the real source-load → validate / compile-logic chain
-    /// directly (each `Stage::run` is pure in-memory — the committed `generated/`
-    /// tree is untouched), mirroring the B3 real-repo chaining.
+    /// B1 (real-repo non-vacuity, symmetric with the B2/B3 gates): the
+    /// diagnostics→term digest folded from the REAL `stage-validate` +
+    /// `stage-compile-logic` products over the whole ontology must carry BOTH a
+    /// non-zero raw finding total AND a NON-EMPTY `by_term` — i.e. at least one
+    /// DOCUMENTED term whose "Diagnostics you might hit" panel renders a real
+    /// diagnostic. The weaker `total > 0` alone passed while the HEADLINE per-term
+    /// surface shipped vacuous on every one of the ~2357 term pages (the real SHACL
+    /// findings' focus nodes are ABox individuals that name no documented term), so
+    /// it is retained only as a precondition. The TRUE bar is the term join: the four
+    /// real `ExpressionFrameRequirement` MinCount violations concern the documented
+    /// property `gmeow:hasReferenceFrame` (their constrained `sh:path`), so that
+    /// term's page must carry a `shacl.MinCountConstraintComponent` row. Runs the real
+    /// source-load → validate / compile-logic chain directly (each `Stage::run` is
+    /// pure in-memory — the committed `generated/` tree is untouched), mirroring the
+    /// B3 real-repo chaining.
     #[test]
     fn diagnostics_digest_total_is_non_vacuous_on_the_real_repo() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -1399,10 +1496,42 @@ mod tests {
             diagnostics_digest_from_upstream(&upstream, &known_term_iris, &model.constraint_rules)
                 .expect("real diagnostics digest folds from validate + compile-logic products");
 
+        // Precondition (weaker proxy): some findings were folded at all.
         assert!(
             digest.total > 0,
             "the diagnostics digest total must be non-vacuous on the real repo (B1) — the docs \
              diagnostics surface must never ship with zero folded findings"
+        );
+
+        // The TRUE B1 bar: the per-term join must actually connect — at least one
+        // DOCUMENTED term carries a "Diagnostics you might hit" row. An empty `by_term`
+        // means every term page's diagnostics panel renders blank ("No diagnostics
+        // recorded against this term in the current build.") on real data.
+        assert!(
+            !digest.by_term.is_empty(),
+            "B1 (true bar): DiagnosticsDigest.by_term must be NON-EMPTY on the real repo — at \
+             least one DOCUMENTED term must carry a real diagnostic on its page, not just a \
+             non-zero raw total. An empty by_term means the diagnostics→term join is vacuous \
+             and every one of the ~2357 term pages ships the blank 'No diagnostics recorded' panel"
+        );
+
+        // The concrete documented term the real MinCount violations honestly concern:
+        // the constrained property `gmeow:hasReferenceFrame` (the `sh:path` of the
+        // ExpressionFrameRequirement shape), NOT the ABox fixture individuals that
+        // tripped it. Its page must carry the SHACL MinCount diagnostic.
+        let has_reference_frame = "https://blackcatinformatics.ca/gmeow/hasReferenceFrame";
+        let rows = digest.by_term.get(has_reference_frame).unwrap_or_else(|| {
+            panic!(
+                "B1 (true bar): the documented property <{has_reference_frame}> must carry its \
+                 constrained-property MinCount diagnostics in by_term; got keys {:?}",
+                digest.by_term.keys().collect::<Vec<_>>()
+            )
+        });
+        assert!(
+            rows.iter()
+                .any(|r| r.code == "shacl.MinCountConstraintComponent"),
+            "B1 (true bar): <{has_reference_frame}>'s per-term rows must include the \
+             shacl.MinCountConstraintComponent violation it constrains; got {rows:?}"
         );
     }
 
