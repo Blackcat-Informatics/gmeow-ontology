@@ -2402,6 +2402,12 @@ pub struct LogicProgram {
     /// [`LogicProgram::with_validation_shapes`]; empty for the historical shape-free corpus,
     /// so the canonical key is byte-unchanged there.
     pub validation_shapes: Vec<ValidationShapeIr>,
+    /// Closed-world procedural constraints (`logic:Constraint`) in canonical (IRI) order —
+    /// the typed home for integrity conditions whose violation is a finding, the canonical
+    /// form the `sh:SPARQLConstraint` surface projects from. Attached via
+    /// [`LogicProgram::with_constraints`]; empty for the historical constraint-free corpus,
+    /// so the canonical key is byte-unchanged there.
+    pub constraints: Vec<ConstraintIr>,
     /// IRI of the source graph/document (optional provenance).
     pub source_iri: Option<String>,
 }
@@ -2430,6 +2436,7 @@ impl LogicProgram {
             transaction_programs: Vec::new(),
             formulas: Vec::new(),
             validation_shapes: Vec::new(),
+            constraints: Vec::new(),
             source_iri,
         }
     }
@@ -2508,6 +2515,24 @@ impl LogicProgram {
             "LogicProgram.validation_shapes must not contain duplicate shape IRIs"
         );
         self.validation_shapes = validation_shapes;
+        self
+    }
+
+    /// Attach the program's `logic:Constraint` nodes, canonicalizing them into IRI order.
+    /// Kept separate from [`Self::new`] so existing call sites are untouched and the
+    /// byte-pinned canonical key of a constraint-free program is unchanged (the constraints
+    /// segment is append-only at the fixed tail when present). Mirrors
+    /// [`Self::with_validation_shapes`]: the IRI is the constraint's identity, so two
+    /// constraints sharing one would make `canonical_key` depend on supply order — a hard
+    /// invariant violation, rejected rather than silently kept.
+    pub fn with_constraints(mut self, constraints: Vec<ConstraintIr>) -> Self {
+        let mut constraints = constraints;
+        constraints.sort_by(|a, b| a.iri.cmp(&b.iri));
+        assert!(
+            constraints.windows(2).all(|w| w[0].iri != w[1].iri),
+            "LogicProgram.constraints must not contain duplicate constraint IRIs"
+        );
+        self.constraints = constraints;
         self
     }
 
@@ -2594,11 +2619,24 @@ impl LogicProgram {
             key.push_str("\nVALIDATIONSHAPES\n");
             key.push_str(&shapes);
         }
+        // Append-only at the FIXED tail: a constraint-free program keeps its exact key.
+        if !self.constraints.is_empty() {
+            let constraints = self
+                .constraints
+                .iter()
+                .map(ConstraintIr::content_key)
+                .collect::<Vec<_>>()
+                .join("\n");
+            key.push_str("\nCONSTRAINTS\n");
+            key.push_str(&constraints);
+        }
         key
     }
 }
 
+mod constraint;
 mod validation;
+pub use constraint::{AggregateComparator, AggregateComparison, AggregateRhs, ConstraintIr};
 pub use validation::{
     ConstraintComponent, ConstraintProvenance, PropertyConstraintIr, ShaclNodeKind, ShaclSeverity,
     ShapeTarget, ShapeValue, ValidationShapeIr,

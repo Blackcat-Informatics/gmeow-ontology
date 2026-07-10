@@ -312,6 +312,11 @@ pub struct DiagInner {
     pub remediation: Vec<Remediation>,
     pub labels: Vec<Label>,
     pub tags: Vec<String>,
+    /// The DOCUMENTED ontology terms this diagnostic structurally concerns (a SHACL
+    /// violation's constrained `sh:path` property, etc.) — payload, NOT an identity
+    /// field, projected onto [`Finding::documented_terms`](crate::model::Finding)
+    /// for the docs per-term "Diagnostics you might hit" join.
+    pub documented_terms: Vec<String>,
     pub observed: Option<Slot>,
     pub expected: Option<Slot>,
     pub locus: PipelineLocus,
@@ -341,6 +346,7 @@ impl Diag {
             remediation: Vec::new(),
             labels: Vec::new(),
             tags: Vec::new(),
+            documented_terms: Vec::new(),
             observed: None,
             expected: None,
             locus: PipelineLocus::here(),
@@ -470,6 +476,14 @@ impl Diag {
     }
     pub fn with_observed(mut self, slot: Slot) -> Self {
         self.0.observed = Some(slot);
+        self
+    }
+    /// Attribute this diagnostic to a DOCUMENTED ontology term it structurally
+    /// concerns (e.g. a SHACL violation's constrained `sh:path` property). Payload,
+    /// never an identity field, so attributing a witness never perturbs its content
+    /// address; projected onto [`Finding::documented_terms`](crate::model::Finding).
+    pub fn with_documented_term(mut self, term_iri: impl Into<String>) -> Self {
+        self.0.documented_terms.push(term_iri.into());
         self
     }
     pub fn with_expected(mut self, slot: Slot) -> Self {

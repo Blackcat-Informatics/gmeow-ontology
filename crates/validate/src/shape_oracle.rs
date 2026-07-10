@@ -1164,11 +1164,21 @@ fn mint(idx: &mut usize) -> String {
 fn target_triples(target: &ShapeTarget, focus: &str) -> String {
     match target {
         ShapeTarget::Class(c) => format!("<{focus}> <{RDF_TYPE}> <{c}> .\n"),
+        // A DIRECT-class focus is typed the class and NOTHING else — a lone `a <c>` (with no
+        // proper-subclass typing) IS a direct instance, so it matches the subclass-excluding
+        // sh:SPARQLTarget exactly as a plain class target matches sh:targetClass.
+        ShapeTarget::DirectClass(c) => format!("<{focus}> <{RDF_TYPE}> <{c}> .\n"),
         ShapeTarget::SubjectsOf(p) => format!("<{focus}> <{p}> <{focus}/target-object> .\n"),
         ShapeTarget::ObjectsOf(p) => format!("<{focus}/target-subject> <{p}> <{focus}> .\n"),
         ShapeTarget::ValueKeyed { predicate, value } => {
             format!("<{focus}> <{predicate}> <{value}> .\n")
         }
+        // A raw SPARQL target selects its focus set with an arbitrary `SELECT ?this WHERE { … }`
+        // body that has no OWL/RDFS antecedent and cannot be inverted into witness triples — it is
+        // entirely uncovered residue (Part A), never a SHACL-Core-comparable target that reaches
+        // this cross-check. If one is ever mis-routed here, it synthesizes no focus node and the
+        // vacuity guard in `cross_check` HARD-FAILS (a pass that exercised nothing is not a pass).
+        ShapeTarget::Sparql(_) => String::new(),
     }
 }
 

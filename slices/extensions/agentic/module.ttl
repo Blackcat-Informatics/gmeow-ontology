@@ -94,3 +94,27 @@ DOCTRINE.
     skos:definition "The GMEOW Agentic Module — tool-call provenance: an agent's ACTIONS join the same provenance graph as its claims. DELIBERATELY THIN."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Declarative constraint axioms (extension slices) — the closed-
+# world cardinality / class / literal obligations the hand-authored
+# gmeow:ToolCallShape states, authored here once as OWL restriction axioms and
+# PROJECTED to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). owl:maxQualifiedCardinality (onClass owl:Thing) -> sh:maxCount;
+# owl:maxQualifiedCardinality 1 (onClass owl:Thing) -> sh:minCount 1 + sh:maxCount 1;
+# owl:allValuesFrom C -> sh:class C;
+# owl:allValuesFrom rdfs:Literal -> sh:nodeKind sh:Literal (the verbatim payload
+# facet). The `sh:nodeKind sh:IRI` facet on the object-valued paths has no
+# ordinary-OWL antecedent (owl:Thing lowers to sh:BlankNodeOrIRI, not sh:IRI) and
+# stays on the procedural constraint fragment.
+# =========================================================================== #
+
+gmeow:ToolCall rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:calledByInvocation ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ModelInvocation ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:usedTool ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:SoftwareAgent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:toolArguments ; owl:maxQualifiedCardinality 1 ; owl:onClass rdfs:Literal ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:toolResult ; owl:maxQualifiedCardinality 1 ; owl:onClass rdfs:Literal ] .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+<https://blackcatinformatics.ca/gmeow/ToolCall> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/usedTool> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ] .

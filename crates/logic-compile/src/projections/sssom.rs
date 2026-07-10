@@ -240,7 +240,13 @@ fn build_rows_and_ledger(
         // subject (one subject may align to several objects), so the per-correspondence
         // key folds all three for a stable, collision-free target name.
         let key = format!("{}|{}|{}", cell.subject, cell.predicate, cell.obj);
-        ledger.push(correspondence_result(loss, "sssom", &key, residue));
+        ledger.push(correspondence_result(
+            loss,
+            "sssom",
+            &key,
+            residue,
+            crate::projections::gmeow_endpoint(&cell.subject, &cell.obj),
+        ));
 
         let justification = cell
             .justification
@@ -322,7 +328,9 @@ fn build_rows_and_ledger(
                     .map(|d| format!("get-leg profile loss: {d}")),
             );
             let key = format!("{}::{}", local_name(&cell.iri), binding.profile);
-            ledger.push(correspondence_result(loss, "sssom", &key, residue));
+            // Profile-binding cells are gmeow:ProjectionMapping views (no clean
+            // subject/object IRI pair); their residue stays whole-program.
+            ledger.push(correspondence_result(loss, "sssom", &key, residue, None));
         }
     }
     Ok((by_file, ledger))

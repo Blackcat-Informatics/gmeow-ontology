@@ -17,7 +17,10 @@ ex:alice  a gmeow:Person , gmeow:Agent ; rdfs:label "Alice"@en .
 ex:acme   a gmeow:Organization , gmeow:Agent ; rdfs:label "Acme"@en .
 ex:co     a gmeow:Organization , gmeow:Agent ; rdfs:label "Co"@en .
 
-ex:home a gmeow:Place ;
+gmeow:leftOpPurpose a gmeow:LeftOperand .
+gmeow:operatorEq a gmeow:ConstraintOperator .
+
+ex:home a gmeow:Place , gmeow:Entity ;
     rdfs:label "Home"@en ;
     gmeow:hasSensitivity gmeow:sensitivitySensitivePersonal ;
     gmeow:displayable false .

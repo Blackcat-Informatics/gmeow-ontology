@@ -66,8 +66,11 @@ fn fully_populated_term_slug(model: &DocsModel) -> String {
 
 /// A deterministic term that exercises the relational surfaces: the term
 /// (by stable curie/iri sort) carrying the MOST of {logic stereotype, SHACL
-/// constraint, related term, competency back-ref, example cross-link, box role}.
-/// Locks a byte-golden that actually renders the new term-page sections.
+/// constraint, related term, competency back-ref, example cross-link, box role,
+/// conformance fixture back-ref, pipeline-stage identity}. Locks a byte-golden
+/// that actually renders the new term-page sections — the conformance Do/Don't
+/// pairs and the enriched pipeline-stage surface (issue 1404) join here so the
+/// richest term reaches those renderers too, not just the pre-1404 sections.
 fn richest_surface_term_slug(model: &DocsModel) -> String {
     let surface_count = |t: &gmeow_docs::DocTerm| -> usize {
         let has_constraint = model.shapes.iter().any(|s| s.target_term == t.iri);
@@ -79,12 +82,26 @@ fn richest_surface_term_slug(model: &DocsModel) -> String {
             .examples
             .iter()
             .any(|e| e.terms_referenced.iter().any(|c| c == &t.curie));
+        // The conformance Do/Don't fixtures reference a term by CURIE (issue 1404);
+        // a term with fixtures reaches the "Conformance examples" renderer.
+        let has_fixture = model
+            .fixtures
+            .iter()
+            .any(|f| f.terms_referenced.iter().any(|c| c == &t.curie));
+        // A `gmeow:PipelineStage` term reaches the enriched stage-page surface
+        // (consumes/consumed-by tables, flowing graphs); its IRI is a stage IRI.
+        let is_pipeline_stage = model
+            .pipeline
+            .as_ref()
+            .is_some_and(|p| p.stages.iter().any(|s| s.iri == t.iri));
         usize::from(!t.logic_stereotypes.is_empty())
             + usize::from(!t.related_terms.is_empty())
             + usize::from(t.box_role.is_some())
             + usize::from(has_constraint)
             + usize::from(has_competency)
             + usize::from(has_example)
+            + usize::from(has_fixture)
+            + usize::from(is_pipeline_stage)
     };
     let mut terms: Vec<&gmeow_docs::DocTerm> = model.terms.iter().collect();
     terms.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
@@ -111,6 +128,109 @@ fn richest_surface_term_markdown_golden() {
     let model = common::cached_model();
     let slug = richest_surface_term_slug(&model);
     insta::assert_snapshot!(to_markdown(&model, &Page::Term(slug)));
+}
+
+/// The fixed IRI of a REAL `gmeow:PipelineStage` — the narrow-waist serialization
+/// exit (`gmeow:stage-gts-sink`). Pinned by IRI, not the shifting richest-surface
+/// heuristic, so the enriched pipeline-stage term page is drift-gated by a stable
+/// subject: it carries the sink capability, consumes an upstream producer, and is
+/// consumed by nothing — a deterministic exercise of every stage sub-section.
+const STAGE_GTS_SINK_IRI: &str = "https://blackcatinformatics.ca/gmeow/stage-gts-sink";
+
+/// Resolve the term slug for a stage IRI, hard-failing if the stage individual was
+/// never lifted into a documented term (the exact regression this golden guards:
+/// a `gmeow:PipelineStage` must be a `DocTerm` for its term page — and thus the
+/// enriched stage section — to exist at all).
+fn stage_term_slug(model: &DocsModel, stage_iri: &str) -> String {
+    let term = model
+        .terms
+        .iter()
+        .find(|t| t.iri == stage_iri)
+        .unwrap_or_else(|| {
+            panic!("pipeline stage `{stage_iri}` must be a documented term (has a term page)")
+        });
+    term_slug(term)
+}
+
+#[test]
+fn pipeline_stage_term_markdown_golden() {
+    // A fixed-subject golden over `gmeow:stage-gts-sink`: locks the enriched
+    // "stage of the build pipeline" section — the `stageImpl`→Rust binding, the
+    // consumes / consumed-by dataflow tables, the flowing named graphs, and the
+    // capabilities/resources — so this surface (issue 1404) cannot silently
+    // regress to the pre-wiring DARK state where no stage was a term page.
+    let model = common::cached_model();
+    let slug = stage_term_slug(&model, STAGE_GTS_SINK_IRI);
+    insta::assert_snapshot!(to_markdown(&model, &Page::Term(slug)));
+}
+
+/// A REAL producer stage that has BOTH downstream consumers (a non-empty
+/// consumed-by reverse-edge table) AND a reified `gmeow:BuildDataFlow` carrying
+/// `gmeow:flowEntity` named graphs (a non-empty flowing-graphs table):
+/// `gmeow:stage-compile-logic` is the `logic:flowFrom` of the
+/// compile-logic → reason edge whose three flowing graphs are authored.
+const STAGE_COMPILE_LOGIC_IRI: &str = "https://blackcatinformatics.ca/gmeow/stage-compile-logic";
+
+#[test]
+fn producer_stage_renders_reverse_edges_and_flowing_graphs() {
+    // The sink golden (`pipeline_stage_term_markdown_golden`) is the terminal
+    // stage, so its consumed-by and flowing-graphs tables are correctly ABSENT.
+    // This gate exercises the OTHER two sub-sections on a producer stage: the
+    // "Consumed by" reverse-edge table (built from `pipeline.edges` where
+    // `from == this stage`) and the "Flowing graphs" table (the reified
+    // `gmeow:flowEntity` named graphs), proving both render live on the
+    // production surface.
+    let model = common::cached_model();
+    let slug = stage_term_slug(&model, STAGE_COMPILE_LOGIC_IRI);
+    let page = to_markdown(&model, &Page::Term(slug));
+
+    assert!(
+        page.contains("## Build\\-pipeline stage"),
+        "producer stage page must render the enriched stage section"
+    );
+    assert!(
+        page.contains("### Consumed by"),
+        "producer stage page must render the consumed-by reverse-edge table"
+    );
+    assert!(
+        page.contains("### Flowing graphs"),
+        "producer stage page must render the flowing-graphs table"
+    );
+    // The three authored flowing named graphs of the compile-logic → reason edge.
+    for graph in [
+        "https://blackcatinformatics.ca/gmeow/graph/correspondence",
+        "https://blackcatinformatics.ca/gmeow/graph/logic",
+        "https://blackcatinformatics.ca/gmeow/graph/relational-core",
+    ] {
+        assert!(
+            page.contains(graph),
+            "flowing-graphs table must list the authored named graph `{graph}`"
+        );
+    }
+}
+
+#[test]
+fn every_pipeline_stage_is_a_documented_term() {
+    // Structural gate: every `gmeow:PipelineStage` individual in the build DAG must
+    // be lifted into a documented term, so every stage's term page renders the
+    // enriched stage section. Guards the `category_for_type` wiring against a
+    // future edit that drops the `GMEOW_PIPELINE_STAGE` arm.
+    let model = common::cached_model();
+    let pipeline = model
+        .pipeline
+        .as_ref()
+        .expect("the whole-repo model carries the build pipeline");
+    let term_iris: BTreeSet<&str> = model.terms.iter().map(|t| t.iri.as_str()).collect();
+    let missing: Vec<&str> = pipeline
+        .stages
+        .iter()
+        .map(|s| s.iri.as_str())
+        .filter(|iri| !term_iris.contains(iri))
+        .collect();
+    assert!(
+        missing.is_empty(),
+        "every pipeline stage must be a documented term; missing: {missing:?}"
+    );
 }
 
 /// A deterministic term that carries a per-term changelog: the first by
@@ -640,6 +760,38 @@ fn first_learning_path_markdown_golden() {
     let model = common::cached_model();
     let slug = model.learning_paths[0].slug.clone();
     insta::assert_snapshot!(to_markdown(&model, &Page::LearningPath(slug)));
+}
+
+#[test]
+fn recipe_and_learning_path_term_curies_resolve_to_documented_terms() {
+    // Every `gmeow:usesTerm` CURIE a recipe/learning path carries is expected to
+    // already be validated upstream (it names a term the guide genuinely
+    // exercises), so the composed quickstart section should never emit its
+    // defensive `# UNRESOLVED` comment against the live repo — an unresolved
+    // CURIE here is a real authoring bug (a typo or a term that moved/was
+    // renamed) worth failing loudly on, not silently swallowing.
+    let model = common::cached_model();
+    let known: BTreeSet<&str> = model.terms.iter().map(|t| t.curie.as_str()).collect();
+
+    let mut unresolved: Vec<String> = Vec::new();
+    for recipe in &model.recipes {
+        for curie in &recipe.term_curies {
+            if !known.contains(curie.as_str()) {
+                unresolved.push(format!("recipe `{}` -> `{curie}`", recipe.slug));
+            }
+        }
+    }
+    for path in &model.learning_paths {
+        for curie in &path.term_curies {
+            if !known.contains(curie.as_str()) {
+                unresolved.push(format!("learning path `{}` -> `{curie}`", path.slug));
+            }
+        }
+    }
+    assert!(
+        unresolved.is_empty(),
+        "recipe/learning-path term_curies with no matching documented term: {unresolved:?}"
+    );
 }
 
 #[test]

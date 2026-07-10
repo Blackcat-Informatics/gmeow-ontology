@@ -18,10 +18,84 @@
 //! closed shape form). [`shacl_residue`] enumerates those drops so the loss ledger records
 //! them; they are never dropped in silence.
 
+use gmeow_errors::Diag;
+
 use crate::ir::{
-    ConstraintComponent, LogicProgram, PropertyConstraintIr, ShaclNodeKind, ShapeTarget,
-    ShapeValue, ValidationShapeIr,
+    AggregateComparison, AggregateRhs, ConstraintComponent, ConstraintIr, Formula, LogicProgram,
+    PropertyConstraintIr, ShaclNodeKind, ShapeTarget, ShapeValue, Term, ValidationShapeIr,
 };
+
+use super::sparql_lower::{sparql_literal, sparql_predicate};
+
+/// Build a projection-grade [`Diag`] (the sole first-party error type — the Phase-6 Diag
+/// substrate) recording why a constraint's integrity exceeds the projectable SPARQL fragment.
+/// The message is surfaced in the loss-ledger residue, never dropped in silence.
+fn proj_err(detail: impl Into<String>) -> Diag {
+    Diag::of_kind(crate::error::Projection {
+        detail: detail.into(),
+    })
+}
+
+/// The `logic:` comparison / node-kind relations the procedural-constraint fragment lowers to a
+/// SPARQL `FILTER` rather than a triple pattern. A binary comparison filters two already-bound
+/// terms (the cross-node co-occurrence / inequality / ordering pattern); a unary node-kind test
+/// filters one bound term. They are recognized here (not in a second Formula→SPARQL lowering) so a
+/// `logic:Constraint` can express `?a = ?b`, a numeric bound `?a >= ?b`, or a node-kind restriction
+/// `isIRI(?a)`. A comparison / node-kind atom binds nothing, so it never introduces a new variable
+/// that must be triple-bound.
+const LOGIC_TERM_EQUAL: &str = "https://blackcatinformatics.ca/logic/termEqual";
+const LOGIC_TERM_DISTINCT: &str = "https://blackcatinformatics.ca/logic/termDistinct";
+const LOGIC_TERM_LESS: &str = "https://blackcatinformatics.ca/logic/termLess";
+const LOGIC_TERM_LESS_EQUAL: &str = "https://blackcatinformatics.ca/logic/termLessEqual";
+const LOGIC_TERM_GREATER: &str = "https://blackcatinformatics.ca/logic/termGreater";
+const LOGIC_TERM_GREATER_EQUAL: &str = "https://blackcatinformatics.ca/logic/termGreaterEqual";
+const LOGIC_TERM_IS_IRI: &str = "https://blackcatinformatics.ca/logic/termIsIri";
+const LOGIC_TERM_IS_LITERAL: &str = "https://blackcatinformatics.ca/logic/termIsLiteral";
+const LOGIC_TERM_IS_BLANK_OR_IRI: &str = "https://blackcatinformatics.ca/logic/termIsBlankOrIri";
+/// The `logic:` value-set membership relation `termIn(x, m1, m2, …)`, lowered to a SPARQL
+/// `FILTER ( x IN (m1, m2, …) )` (negated: `NOT IN`). The first argument is the tested term; every
+/// remaining argument is a set member (an IRI or a data literal). It lets a `logic:Constraint`
+/// express a `sh:in`-style enumerated-value restriction the flat triple fragment cannot.
+const LOGIC_TERM_IN: &str = "https://blackcatinformatics.ca/logic/termIn";
+/// The `logic:` string-prefix relation `termStrStarts(x, "prefix")`, lowered to a SPARQL
+/// `FILTER ( STRSTARTS(STR(x), 'prefix') )` (negated: `!STRSTARTS(…)`). The second argument is the
+/// literal prefix. It expresses a `STRSTARTS`/`sh:pattern`-anchored string test over a bound term.
+const LOGIC_TERM_STR_STARTS: &str = "https://blackcatinformatics.ca/logic/termStrStarts";
+/// The `logic:` regular-expression relation `termRegex(x, "pattern")`, lowered to a SPARQL
+/// `FILTER ( REGEX(STR(x), 'pattern') )` (negated: `!REGEX(…)`). The second argument is the literal
+/// regex. It expresses a `sh:pattern`-style lexical match over a bound term.
+const LOGIC_TERM_REGEX: &str = "https://blackcatinformatics.ca/logic/termRegex";
+/// The `logic:` transitive-reachability relation `transitiveReach(subject, pathPredicate, target)`,
+/// lowered to a SPARQL one-or-more property path `subject <pathPredicate>+ target .`. The middle
+/// argument is the path predicate IRI (not a bound term); the outer two are subject / object terms.
+/// It lets a `logic:Constraint` express a transitive walk (subclass-chain membership, a dependency
+/// cycle) the flat triple-pattern fragment cannot.
+const LOGIC_TRANSITIVE_REACH: &str = "https://blackcatinformatics.ca/logic/transitiveReach";
+/// The `logic:` arithmetic-sum relation `termSum(result, a, b)`, lowered to a SPARQL
+/// `BIND ( ( a + b ) AS result )`. The first argument is the (fresh) result variable the sum binds;
+/// the remaining two are the summed terms (bound variables or numeric literals). It lets a
+/// `logic:Constraint` compute a derived quantity (`p + q`) and then compare it to another property
+/// (via an existing comparison relation such as `termDistinct`) — the metric-signature
+/// dimension-count invariant the flat triple fragment cannot express.
+const LOGIC_TERM_SUM: &str = "https://blackcatinformatics.ca/logic/termSum";
+/// The `logic:` variable-predicate link relation `linkVia(subject, predicateVar, object)`, lowered
+/// to a SPARQL triple `subject ?predicateVar object .` whose PREDICATE slot is a bound variable
+/// (`args[1]` must be a variable). A `Formula::atom` forbids a variable in relation position, so a
+/// variable-predicate pattern (any edge out of the focus, whose predicate is then filtered by
+/// namespace, or whose object is then typed) is carried here as a dedicated relation and lowered by
+/// a dedicated projector arm rather than as an ordinary atom.
+const LOGIC_LINK_VIA: &str = "https://blackcatinformatics.ca/logic/linkVia";
+/// The `logic:` direct-instance guard relation `directType(this, C)` — a guard-only marker that
+/// range-restricts the focus to the DIRECT instances of `C` (a [`ShapeTarget::DirectClass`]). It is
+/// consumed by the target derivation and by the `sh:SPARQLTarget` clause (which does the
+/// subclass-excluding selection); it has no data-triple form, so it is STRIPPED from the violation
+/// `WHERE` body rather than lowered to a `$this <directType> <C>` triple that matches nothing.
+const LOGIC_DIRECT_TYPE: &str = "https://blackcatinformatics.ca/logic/directType";
+/// The `logic:` raw-sparql-target guard relation `sparqlTarget(this, "SELECT ?this WHERE { … }")`
+/// — a guard-only marker whose literal second argument is the whole `sh:SPARQLTarget` select
+/// ([`ShapeTarget::Sparql`]). Like `directType`, it selects the focus but has no data-triple form,
+/// so it is STRIPPED from the violation `WHERE` body rather than lowered to a triple.
+const LOGIC_SPARQL_TARGET: &str = "https://blackcatinformatics.ca/logic/sparqlTarget";
 
 /// The prefix header prepended to a multi-shape SHACL document.
 const SHACL_PREFIXES: &str = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
@@ -316,6 +390,10 @@ pub fn project_validation_shape_shacl(shape: &ValidationShapeIr) -> String {
             "sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"SELECT ?this WHERE {{ ?this {} {} }}\"\"\" ]",
             iri_term(predicate),
             iri_term(value)
+        )),
+        ShapeTarget::DirectClass(c) => pos.push(direct_class_target_clause(c)),
+        ShapeTarget::Sparql(sel) => pos.push(format!(
+            "sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"{sel}\"\"\" ]"
         )),
     }
     // Focus-node-level constraints (domain/range/disjointness) — emitted directly on the node
@@ -638,8 +716,9 @@ pub fn project_validation_shape_shex(shape: &ValidationShapeIr) -> String {
             "# targetObjectsOf {} (associate via ShapeMap)\n",
             iri_term(p)
         )),
-        // A value-keyed (SPARQL) target has no ShEx form; shex_residue records it.
-        ShapeTarget::ValueKeyed { .. } => {}
+        // A value-keyed / direct-instance / raw-sparql (SPARQL) target has no ShEx form;
+        // shex_residue records it.
+        ShapeTarget::ValueKeyed { .. } | ShapeTarget::DirectClass(_) | ShapeTarget::Sparql(_) => {}
     }
     out.push_str(&format!("{} {{\n", iri_term(&shape.iri)));
     for p in &shape.properties {
@@ -769,6 +848,766 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
     }
     residue
 }
+
+// --------------------------------------------------------------------------- //
+// Procedural constraints — logic:Constraint → sh:SPARQLConstraint (the validation
+// twin of the SHACL-AF rule projection: those DERIVE, these VALIDATE)
+// --------------------------------------------------------------------------- //
+
+/// The prefix header of the whole-program procedural-constraint document. Always emitted
+/// (even for a constraint-free program) so the corpus stays byte-stable: a constraint-free
+/// program yields exactly this header, and each authored `logic:Constraint` appends one
+/// `sh:NodeShape` block below it.
+const PROCEDURAL_HEADER: &str = "# GENERATED by `gmeow logic compile` — DO NOT EDIT.\n\
+     # Procedural-constraint projection of the canonical logic: program: each closed-world\n\
+     # logic:Constraint integrity condition projected to a sh:SPARQLConstraint NodeShape\n\
+     # carrying logic:formalizes (the validation twin of the SHACL-AF sh:SPARQLRule surface;\n\
+     # Principle 17 — logic: is canonical, SHACL is the projection; design/LOGIC-VALIDATION.md).\n\
+     @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+     @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+     @prefix sh:    <http://www.w3.org/ns/shacl#> .\n\
+     @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n";
+
+/// The local name of a `gmeow:`/`logic:` IRI (the part after the last `/` or `#`).
+fn local_name(iri: &str) -> &str {
+    iri.rsplit(['/', '#']).next().unwrap_or(iri)
+}
+
+/// The local name with its first character upper-cased (`counterGoal` → `CounterGoal`).
+fn pascal(iri: &str) -> String {
+    let l = local_name(iri);
+    let mut c = l.chars();
+    match c.next() {
+        Some(first) => first.to_uppercase().collect::<String>() + c.as_str(),
+        None => String::new(),
+    }
+}
+
+/// The namespace prefix of an IRI: everything up to and including the last `/` or `#`.
+/// `.../math/FlagshipScenarioFailureClassConstraint` → `.../math/`.
+fn namespace_of(iri: &str) -> &str {
+    match iri.rfind(['/', '#']) {
+        Some(idx) => &iri[..=idx],
+        None => "",
+    }
+}
+
+/// The deterministic shape IRI a constraint projects to (`{Name}ProceduralConstraintShape`),
+/// minted in the constraint's OWN namespace so two constraints that share a local name across
+/// namespaces (e.g. `lang:` and `math:` both declaring `FlagshipScenarioFailureClassConstraint`)
+/// do not collide onto one RDF node — a collision would merge their `sh:targetClass`/`sh:sparql`
+/// and mis-key one twin's findings.
+fn procedural_shape_iri(c: &ConstraintIr) -> String {
+    format!(
+        "{}{}ProceduralConstraintShape",
+        namespace_of(&c.iri),
+        pascal(&c.iri)
+    )
+}
+
+/// Render one FOL [`Term`] as a SPARQL subject/object token: the focus variable renders as
+/// the SHACL pre-bound `$this`, any other variable keeps its `?name` form, an IRI is
+/// angle-bracketed, and a data literal is single-quoted (with an optional `^^<datatype>`).
+/// A sequence marker has no single-term SPARQL form and is refused (carried as residue).
+fn constraint_term(t: &Term, focus: &str) -> gmeow_errors::Result<String> {
+    match t {
+        Term::Var(n) if n == focus => Ok("$this".to_owned()),
+        Term::Var(n) => Ok(format!("?{n}")),
+        Term::Iri(i) => Ok(format!("<{i}>")),
+        Term::Literal { lexical, datatype } => {
+            let lit = sparql_literal(lexical);
+            match datatype {
+                Some(dt) => Ok(format!("{lit}^^<{dt}>")),
+                None => Ok(lit),
+            }
+        }
+        Term::SequenceMarker(n) => Err(proj_err(format!(
+            "sequence marker ...{n} has no single-term SPARQL triple form"
+        ))),
+    }
+}
+
+/// The SPARQL relational operator a binary comparison relation lowers to in POSITIVE position,
+/// paired with the operator of its logical NEGATION (used when the atom appears under a `¬`, so the
+/// NNF lowering never wraps a `FILTER` in a nonsensical `FILTER NOT EXISTS`). `None` for a relation
+/// that is not a comparison.
+fn binary_comparison_ops(pred: &str) -> Option<(&'static str, &'static str)> {
+    match pred {
+        LOGIC_TERM_EQUAL => Some(("=", "!=")),
+        LOGIC_TERM_DISTINCT => Some(("!=", "=")),
+        LOGIC_TERM_LESS => Some(("<", ">=")),
+        LOGIC_TERM_LESS_EQUAL => Some(("<=", ">")),
+        LOGIC_TERM_GREATER => Some((">", "<=")),
+        LOGIC_TERM_GREATER_EQUAL => Some((">=", "<")),
+        _ => None,
+    }
+}
+
+/// The SPARQL string-function name a two-argument string relation lowers to (`STRSTARTS` /
+/// `REGEX`). `None` for a relation that is not a string test.
+fn string_test_func(pred: &str) -> Option<&'static str> {
+    match pred {
+        LOGIC_TERM_STR_STARTS => Some("STRSTARTS"),
+        LOGIC_TERM_REGEX => Some("REGEX"),
+        _ => None,
+    }
+}
+
+/// The SPARQL node-kind test a unary node-kind relation lowers to over the bound term `x`, paired
+/// with its logical NEGATION. `None` for a relation that is not a node-kind test.
+fn unary_nodekind_exprs(pred: &str, x: &str) -> Option<(String, String)> {
+    match pred {
+        LOGIC_TERM_IS_IRI => Some((format!("isIRI({x})"), format!("!isIRI({x})"))),
+        LOGIC_TERM_IS_LITERAL => Some((format!("isLiteral({x})"), format!("!isLiteral({x})"))),
+        LOGIC_TERM_IS_BLANK_OR_IRI => Some((
+            format!("( isIRI({x}) || isBlank({x}) )"),
+            format!("!( isIRI({x}) || isBlank({x}) )"),
+        )),
+        _ => None,
+    }
+}
+
+/// Render a comparison / node-kind / string / value-set atom as a BARE SPARQL boolean expression
+/// (no `FILTER ( … )` wrapper), in POSITIVE (`negate = false`) or NEGATED (`negate = true`) form.
+/// Returns `None` when the atom's relation is not a recognized filter relation (so the caller falls
+/// back to the triple-pattern lowering). This is the join-able unit the compound [`filter_expr`]
+/// combiner glues with `&&` / `||`, and the wrapped [`try_filter_atom`] presents as one `FILTER`.
+fn filter_atom_expr(
+    f: &Formula,
+    focus: &str,
+    negate: bool,
+) -> Option<gmeow_errors::Result<String>> {
+    let Formula::Atom { relation, args } = f else {
+        return None;
+    };
+    let Term::Iri(pred) = relation else {
+        return None;
+    };
+    if let Some((pos, neg)) = binary_comparison_ops(pred) {
+        if args.len() != 2 {
+            return Some(Err(proj_err(format!(
+                "comparison relation <{pred}> has arity {}, a binary comparison needs two operands",
+                args.len()
+            ))));
+        }
+        let op = if negate { neg } else { pos };
+        let s = match constraint_term(&args[0], focus) {
+            Ok(s) => s,
+            Err(e) => return Some(Err(e)),
+        };
+        let o = match constraint_term(&args[1], focus) {
+            Ok(o) => o,
+            Err(e) => return Some(Err(e)),
+        };
+        return Some(Ok(format!("{s} {op} {o}")));
+    }
+    // Value-set membership `termIn(x, m1, m2, …)` → `x IN (m1, …)` (negated: `NOT IN`).
+    if pred == LOGIC_TERM_IN {
+        if args.len() < 2 {
+            return Some(Err(proj_err(format!(
+                "termIn has arity {}, it needs a tested term and at least one set member",
+                args.len()
+            ))));
+        }
+        let x = match constraint_term(&args[0], focus) {
+            Ok(x) => x,
+            Err(e) => return Some(Err(e)),
+        };
+        let mut members = Vec::with_capacity(args.len() - 1);
+        for m in &args[1..] {
+            match constraint_term(m, focus) {
+                Ok(m) => members.push(m),
+                Err(e) => return Some(Err(e)),
+            }
+        }
+        let kw = if negate { "NOT IN" } else { "IN" };
+        return Some(Ok(format!("{x} {kw} ({})", members.join(", "))));
+    }
+    // String tests `termStrStarts(x, "p")` / `termRegex(x, "p")` → `[!]STRSTARTS|REGEX(STR(x), 'p')`.
+    if let Some(func) = string_test_func(pred) {
+        if args.len() != 2 {
+            return Some(Err(proj_err(format!(
+                "string relation <{pred}> has arity {}, it needs a tested term and a literal pattern",
+                args.len()
+            ))));
+        }
+        let x = match constraint_term(&args[0], focus) {
+            Ok(x) => x,
+            Err(e) => return Some(Err(e)),
+        };
+        let Term::Literal { lexical, .. } = &args[1] else {
+            return Some(Err(proj_err(format!(
+                "string relation <{pred}> argument 1 must be a literal pattern"
+            ))));
+        };
+        let pat = sparql_literal(lexical);
+        let expr = format!("{func}(STR({x}), {pat})");
+        let expr = if negate { format!("!{expr}") } else { expr };
+        return Some(Ok(expr));
+    }
+    if args.len() == 1 {
+        let x = match constraint_term(&args[0], focus) {
+            Ok(x) => x,
+            Err(e) => return Some(Err(e)),
+        };
+        if let Some((pos, neg)) = unary_nodekind_exprs(pred, &x) {
+            let expr = if negate { neg } else { pos };
+            return Some(Ok(expr));
+        }
+    }
+    None
+}
+
+/// Render a comparison / node-kind atom as a SPARQL `FILTER`, in POSITIVE (`negate = false`) or
+/// NEGATED (`negate = true`) form. Returns `None` when the atom's relation is not a recognized
+/// filter relation (so the caller falls back to the triple-pattern lowering).
+fn try_filter_atom(f: &Formula, focus: &str, negate: bool) -> Option<gmeow_errors::Result<String>> {
+    match filter_atom_expr(f, focus, negate)? {
+        Ok(expr) => Some(Ok(format!("FILTER ( {expr} )"))),
+        Err(e) => Some(Err(e)),
+    }
+}
+
+/// Lower a formula built ENTIRELY of filter atoms (comparison / node-kind / string / value-set)
+/// combined by `∧` / `∨` / `¬` to a single BARE SPARQL boolean expression — for `¬f` when
+/// `negate` is set (De Morgan is pushed through the connectives so the negation stays a `FILTER`
+/// expression, never a `FILTER NOT EXISTS` over a pattern that binds nothing). Returns `None` the
+/// moment any leaf is NOT a filter atom (a triple pattern, a quantifier), so the caller keeps the
+/// existing `UNION` / `FILTER NOT EXISTS` lowering for a disjunction that actually binds variables.
+/// This is what lets a raw disjunction of bare filters (`?a < ?b ∨ ?c > ?d`) lower to one
+/// `FILTER ( ?a < ?b || ?c > ?d )` instead of `{ FILTER(?a<?b) } UNION { FILTER(?c>?d) }` — UNION
+/// arms that bind no focus and select nothing.
+fn filter_expr(f: &Formula, focus: &str, negate: bool) -> Option<gmeow_errors::Result<String>> {
+    // De Morgan: ∧ under ¬ becomes ∨ (and vice versa); the per-child negate flag flips.
+    fn combine(
+        parts: &[Formula],
+        focus: &str,
+        child_negate: bool,
+        joiner: &str,
+    ) -> Option<gmeow_errors::Result<String>> {
+        let mut exprs = Vec::with_capacity(parts.len());
+        for p in parts {
+            match filter_expr(p, focus, child_negate)? {
+                Ok(e) => exprs.push(format!("( {e} )")),
+                Err(e) => return Some(Err(e)),
+            }
+        }
+        Some(Ok(exprs.join(joiner)))
+    }
+    match f {
+        Formula::Atom { .. } => filter_atom_expr(f, focus, negate),
+        Formula::Not(inner) => filter_expr(inner, focus, !negate),
+        Formula::And(fs) => {
+            if negate {
+                combine(fs, focus, true, " || ")
+            } else {
+                combine(fs, focus, false, " && ")
+            }
+        }
+        Formula::Or(fs) => {
+            if negate {
+                combine(fs, focus, true, " && ")
+            } else {
+                combine(fs, focus, false, " || ")
+            }
+        }
+        _ => None,
+    }
+}
+
+/// Render one binary atomic predication as a SPARQL triple pattern `subj pred obj .`, OR a
+/// comparison / node-kind atom as a `FILTER`. A non-binary, non-filter atom (unary or n ≥ 3) or a
+/// sequence-marker argument has no direct SPARQL triple form and is refused so the constraint is
+/// carried-and-flagged rather than emitted as a broken query.
+fn constraint_atom(f: &Formula, focus: &str) -> gmeow_errors::Result<String> {
+    if let Some(filter) = try_filter_atom(f, focus, false) {
+        return filter;
+    }
+    let Formula::Atom { relation, args } = f else {
+        return Err(proj_err("expected an atomic predication"));
+    };
+    let Term::Iri(pred) = relation else {
+        return Err(proj_err("atom relation must be an IRI"));
+    };
+    // An arithmetic-sum atom lowers to a SPARQL `BIND ( ( a + b ) AS result )`; the first argument
+    // is the result variable the sum binds, the other two are the summed terms.
+    if pred == LOGIC_TERM_SUM {
+        if args.len() != 3 {
+            return Err(proj_err(format!(
+                "termSum has arity {}, it needs (result, a, b)",
+                args.len()
+            )));
+        }
+        let Term::Var(_) = &args[0] else {
+            return Err(proj_err("termSum result (argument 0) must be a variable"));
+        };
+        let result = constraint_term(&args[0], focus)?;
+        let a = constraint_term(&args[1], focus)?;
+        let b = constraint_term(&args[2], focus)?;
+        return Ok(format!("BIND ( ( {a} + {b} ) AS {result} )"));
+    }
+    // A variable-predicate link atom lowers to a triple whose PREDICATE is a bound variable:
+    // `subj ?predVar obj .`. The middle argument must be a variable (the predicate slot).
+    if pred == LOGIC_LINK_VIA {
+        if args.len() != 3 {
+            return Err(proj_err(format!(
+                "linkVia has arity {}, it needs (subject, predicateVar, object)",
+                args.len()
+            )));
+        }
+        let s = constraint_term(&args[0], focus)?;
+        let Term::Var(pv) = &args[1] else {
+            return Err(proj_err(
+                "linkVia predicate (argument 1) must be a variable",
+            ));
+        };
+        let o = constraint_term(&args[2], focus)?;
+        return Ok(format!("{s} ?{pv} {o} ."));
+    }
+    // A transitive-reachability atom lowers to a one-or-more property path `subj <Q>+ obj .`; the
+    // middle argument names the path predicate IRI (not a bound term).
+    if pred == LOGIC_TRANSITIVE_REACH {
+        if args.len() != 3 {
+            return Err(proj_err(format!(
+                "transitiveReach has arity {}, it needs (subject, pathPredicate, target)",
+                args.len()
+            )));
+        }
+        let s = constraint_term(&args[0], focus)?;
+        let Term::Iri(path) = &args[1] else {
+            return Err(proj_err(
+                "transitiveReach path predicate (argument 1) must be an IRI",
+            ));
+        };
+        let o = constraint_term(&args[2], focus)?;
+        return Ok(format!("{s} <{path}>+ {o} ."));
+    }
+    if args.len() != 2 {
+        return Err(proj_err(format!(
+            "atom <{pred}> has arity {}, only a binary atom lowers to a SPARQL triple pattern",
+            args.len()
+        )));
+    }
+    let s = constraint_term(&args[0], focus)?;
+    let o = constraint_term(&args[1], focus)?;
+    let p = sparql_predicate(pred);
+    Ok(format!("{s} {p} {o} ."))
+}
+
+/// Lower a formula to the SPARQL group-graph-pattern fragments that hold **iff the formula
+/// is satisfied** (for the pre-bound focus `$this`). The reused NNF/BGP/`FILTER NOT EXISTS`
+/// machinery: a positive atom is a triple pattern, an existential is its (BGP-existential)
+/// body, a disjunction is a `UNION`, a negation flips to [`lower_negative`]. A universal in
+/// positive position has no bounded SPARQL BGP form (it would need a double negation over an
+/// open domain) and is refused so the constraint is carried-and-flagged.
+fn lower_positive(f: &Formula, focus: &str) -> gmeow_errors::Result<Vec<String>> {
+    match f {
+        Formula::Atom { .. } => Ok(vec![constraint_atom(f, focus)?]),
+        Formula::And(fs) => {
+            let mut out = Vec::new();
+            for x in fs {
+                out.extend(lower_positive(x, focus)?);
+            }
+            // A `logic:and`'s conjuncts have no authored order (RDF is a set), but a SPARQL
+            // `BIND ( … AS ?v )` must follow the triples that bind its inputs (and precede any
+            // `FILTER` reading `?v`). When a `BIND` is present, reorder deterministically —
+            // patterns, then binds, then filters. Absent a `BIND` the order is untouched, so every
+            // existing constraint stays byte-identical (a group's `FILTER`s are group-scoped).
+            if out.iter().any(|f| f.trim_start().starts_with("BIND")) {
+                out.sort_by_key(|f| {
+                    let t = f.trim_start();
+                    if t.starts_with("BIND") {
+                        1
+                    } else if t.starts_with("FILTER") {
+                        2
+                    } else {
+                        0
+                    }
+                });
+            }
+            Ok(out)
+        }
+        Formula::Or(fs) => {
+            // A disjunction of BARE filters (no triple binds anything) must combine into one
+            // `FILTER ( a || b )`, not `{ FILTER(a) } UNION { FILTER(b) }` — the latter's arms bind
+            // no focus and select nothing. Fall back to `UNION` only when an arm binds a pattern.
+            if let Some(expr) = filter_expr(f, focus, false) {
+                return Ok(vec![format!("FILTER ( {} )", expr?)]);
+            }
+            let mut branches = Vec::with_capacity(fs.len());
+            for x in fs {
+                branches.push(format!("{{ {} }}", lower_positive(x, focus)?.join(" ")));
+            }
+            Ok(vec![branches.join(" UNION ")])
+        }
+        // An existential body's variables are ordinary SPARQL variables — a BGP is
+        // existential by default, so `∃v. φ` is exactly the positive lowering of `φ`.
+        Formula::Exists { body, .. } => lower_positive(body, focus),
+        Formula::Not(inner) => lower_negative(inner, focus),
+        // `a → b` ≡ `¬a ∨ b`: the branch where the antecedent fails UNION the branch where
+        // the consequent holds.
+        Formula::Implies(a, b) => Ok(vec![format!(
+            "{{ {} }} UNION {{ {} }}",
+            lower_negative(a, focus)?.join(" "),
+            lower_positive(b, focus)?.join(" ")
+        )]),
+        Formula::Forall { .. } => Err(proj_err(
+            "a universal in positive position has no bounded SPARQL BGP form (it would require a \
+             double negation over an open domain)",
+        )),
+        Formula::Iff(..) => Err(proj_err(
+            "a biconditional has no SPARQL constraint-body form",
+        )),
+    }
+}
+
+/// Lower a formula to the SPARQL fragments that hold **iff the formula is violated** (`¬φ`),
+/// the NNF of the negation: `¬Atom`/`¬∃` → `FILTER NOT EXISTS`, `¬¬` → positive, `¬∀` → the
+/// existential witness of the negated body, `¬(a→b)` → `a ∧ ¬b`, `¬(a∨b)` →
+/// `FILTER NOT EXISTS { {a} UNION {b} }`, `¬(a∧b)` → `{¬a} UNION {¬b}`.
+fn lower_negative(f: &Formula, focus: &str) -> gmeow_errors::Result<Vec<String>> {
+    match f {
+        // A comparison / node-kind atom negates to its negated `FILTER` (`?a >= ?b` ↦ `?a < ?b`,
+        // `isIRI(?v)` ↦ `!isIRI(?v)`), NOT a `FILTER NOT EXISTS` over a triple that binds nothing.
+        Formula::Atom { .. } if try_filter_atom(f, focus, true).is_some() => {
+            Ok(vec![try_filter_atom(f, focus, true).expect("filter atom")?])
+        }
+        Formula::Atom { .. } => Ok(vec![format!(
+            "FILTER NOT EXISTS {{ {} }}",
+            constraint_atom(f, focus)?
+        )]),
+        Formula::Not(inner) => lower_positive(inner, focus),
+        Formula::Exists { body, .. } => Ok(vec![format!(
+            "FILTER NOT EXISTS {{ {} }}",
+            lower_positive(body, focus)?.join(" ")
+        )]),
+        // `¬∀v.φ ≡ ∃v.¬φ`: the negated body is the existential witness.
+        Formula::Forall { body, .. } => lower_negative(body, focus),
+        // `¬(a → b) ≡ a ∧ ¬b`.
+        Formula::Implies(a, b) => {
+            let mut out = lower_positive(a, focus)?;
+            out.extend(lower_negative(b, focus)?);
+            Ok(out)
+        }
+        // `¬(a ∨ b) ≡ ¬a ∧ ¬b`: no solution to `(a UNION b)`. A pure-filter disjunction negates to
+        // one `FILTER ( !(…) )` (De Morgan), never a `FILTER NOT EXISTS` over binding-free arms.
+        Formula::Or(fs) => {
+            if let Some(expr) = filter_expr(f, focus, true) {
+                return Ok(vec![format!("FILTER ( {} )", expr?)]);
+            }
+            let mut branches = Vec::with_capacity(fs.len());
+            for x in fs {
+                branches.push(format!("{{ {} }}", lower_positive(x, focus)?.join(" ")));
+            }
+            Ok(vec![format!(
+                "FILTER NOT EXISTS {{ {} }}",
+                branches.join(" UNION ")
+            )])
+        }
+        // `¬(a ∧ b) ≡ ¬a ∨ ¬b`. A pure-filter conjunction negates to one `FILTER ( … || … )`.
+        Formula::And(fs) => {
+            if let Some(expr) = filter_expr(f, focus, true) {
+                return Ok(vec![format!("FILTER ( {} )", expr?)]);
+            }
+            let mut branches = Vec::with_capacity(fs.len());
+            for x in fs {
+                branches.push(format!("{{ {} }}", lower_negative(x, focus)?.join(" ")));
+            }
+            Ok(vec![branches.join(" UNION ")])
+        }
+        Formula::Iff(..) => Err(proj_err(
+            "a biconditional has no SPARQL constraint-body form",
+        )),
+    }
+}
+
+/// The `rdf:type` IRI — the relation of a class-membership guard atom `rdf:type(this, C)`.
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+/// Is `f` a guard-only selection marker (`directType` / `sparqlTarget`) — a relation that selects
+/// the focus via the `sh:target` clause and has NO data-triple form (so it is stripped from the
+/// violation `WHERE` body)?
+fn is_marker_atom(f: &Formula) -> bool {
+    matches!(f, Formula::Atom { relation: Term::Iri(p), .. }
+        if p == LOGIC_DIRECT_TYPE || p == LOGIC_SPARQL_TARGET)
+}
+
+/// Is `f` the class-membership guard atom `rdf:type(focus, C)` (`C` an IRI)? It derives a
+/// [`ShapeTarget::Class`] `sh:targetClass C`, which ALREADY selects the focus and — unlike a plain
+/// BGP triple — follows `rdfs:subClassOf`. Re-emitting `$this a C` in the violation `WHERE` would
+/// therefore wrongly exclude the subclass instances the `sh:targetClass` selects (e.g. a
+/// `GroupHomomorphism` under a `math:Homomorphism`-targeted constraint), so it is stripped like a
+/// selection marker.
+fn is_class_guard_atom(f: &Formula, focus: &str) -> bool {
+    matches!(f, Formula::Atom { relation: Term::Iri(p), args }
+        if p == RDF_TYPE
+            && args.len() == 2
+            && matches!(&args[0], Term::Var(v) if v == focus)
+            && matches!(&args[1], Term::Iri(_)))
+}
+
+/// Whether `f` is a guard atom that is realized by the `sh:target*` clause and so must NOT be
+/// re-lowered into the violation `WHERE`: a `directType`/`sparqlTarget` marker (no data form) or the
+/// `rdf:type(focus, C)` class-membership atom (subsumed by `sh:targetClass`, which follows
+/// `rdfs:subClassOf`).
+fn is_selector_atom(f: &Formula, focus: &str) -> bool {
+    is_marker_atom(f) || is_class_guard_atom(f, focus)
+}
+
+/// Strip the target-selector atoms from a guard. `None` ⇒ the guard has no selector atom (lower it
+/// unchanged); `Some(None)` ⇒ the guard was ONLY selector atoms (lower nothing); `Some(Some(rest))`
+/// ⇒ the non-selector guard atoms that remain (a conjunction, or a single atom).
+fn strip_direct_type_guard(guard: &Formula, focus: &str) -> Option<Option<Formula>> {
+    match guard {
+        f if is_selector_atom(f, focus) => Some(None),
+        Formula::And(fs) if fs.iter().any(|f| is_selector_atom(f, focus)) => {
+            let rest: Vec<Formula> = fs
+                .iter()
+                .filter(|f| !is_selector_atom(f, focus))
+                .cloned()
+                .collect();
+            Some(match rest.len() {
+                0 => None,
+                1 => Some(rest.into_iter().next().expect("one")),
+                _ => Some(Formula::And(rest)),
+            })
+        }
+        _ => None,
+    }
+}
+
+/// The SPARQL WHERE group-graph-pattern selecting the focus nodes that VIOLATE `constraint`:
+/// `guard(this) ∧ ¬φ(this)`, i.e. the guard lowered positively (binding `$this` and any
+/// guard-scoped variable) followed by the NNF negation of the per-focus condition `φ`.
+fn violation_where(constraint: &ConstraintIr) -> gmeow_errors::Result<String> {
+    let Formula::Forall { vars, body } = &constraint.integrity else {
+        return Err(proj_err(
+            "integrity must be a range-restricted ∀-guarded condition (the top node is not a ∀)",
+        ));
+    };
+    let focus = vars
+        .first()
+        .ok_or_else(|| proj_err("integrity ∀ binds no focus variable"))?;
+    let Formula::Implies(guard, phi) = body.as_ref() else {
+        return Err(proj_err(
+            "integrity ∀ body must be a guarded implication (guard → condition)",
+        ));
+    };
+    // A `directType(this, C)` guard is a selection marker realized by the `sh:SPARQLTarget`
+    // (subclass-excluding), not a data triple — strip it so it never lowers to a triple that
+    // matches nothing. The remaining guard atoms (if any) still lower positively.
+    let mut pats = match strip_direct_type_guard(guard, focus) {
+        Some(rest) => match rest {
+            Some(g) => lower_positive(&g, focus)?,
+            None => Vec::new(),
+        },
+        None => lower_positive(guard, focus)?,
+    };
+    pats.extend(lower_negative(phi, focus)?);
+    Ok(pats.join(" "))
+}
+
+/// Lower an [`AggregateComparison`] to a whole `SELECT $this … GROUP BY $this HAVING(…)` query
+/// selecting the focus nodes that VIOLATE the invariant. The aggregated path binds `?value`; a
+/// property right-hand side binds `?rhs` (added to the `GROUP BY` so it stays available in the
+/// `HAVING`, on the assumption of one right-hand value per focus). Because a `sh:SPARQLConstraint`
+/// `sh:select` returns violations, the `HAVING` uses the comparator's logical negation (`=` ↦
+/// `!=`, `<` ↦ `>=`, …). Reuses the same `GROUP BY` sub-`SELECT` shape as the SHACL-AF reduce-rule
+/// projection rather than a bespoke aggregate lowering.
+fn aggregate_select(agg: &AggregateComparison) -> String {
+    let agg_var = "?value";
+    let inner = if agg.distinct {
+        format!("{}(DISTINCT {agg_var})", agg.function)
+    } else {
+        format!("{}({agg_var})", agg.function)
+    };
+    let path = sparql_predicate(&agg.path);
+    let mut where_pats = vec![format!("$this {path} {agg_var} .")];
+    let mut group_by = String::from("$this");
+    let rhs = match &agg.compare_to {
+        AggregateRhs::Property(p) => {
+            where_pats.push(format!("$this {} ?rhs .", sparql_predicate(p)));
+            group_by.push_str(" ?rhs");
+            "?rhs".to_owned()
+        }
+        AggregateRhs::Literal { lexical, datatype } => {
+            let lit = sparql_literal(lexical);
+            match datatype {
+                Some(dt) => format!("{lit}^^<{dt}>"),
+                None => lit,
+            }
+        }
+    };
+    let op = agg.comparator.negated().as_sparql();
+    format!(
+        "SELECT $this WHERE {{ {} }} GROUP BY {group_by} HAVING ( {inner} {op} {rhs} )",
+        where_pats.join(" ")
+    )
+}
+
+/// The whole `sh:select` query body of a constraint: the aggregate `GROUP BY`/`HAVING` form when
+/// the constraint carries an [`AggregateComparison`] satellite, else the range-restricted
+/// `guard ∧ ¬φ` violation query lowered from the integrity formula.
+fn constraint_select(c: &ConstraintIr) -> gmeow_errors::Result<String> {
+    match &c.aggregate {
+        Some(agg) => Ok(aggregate_select(agg)),
+        None => Ok(format!("SELECT $this WHERE {{ {} }}", violation_where(c)?)),
+    }
+}
+
+/// The `sh:target [ a sh:SPARQLTarget … ]` clause selecting the DIRECT instances of a class: nodes
+/// typed `c` but NOT also typed any proper subclass of `c` (a node with a more-specific type is
+/// validated by that subclass's own shape). `rdfs:subClassOf` is the standard RDFS IRI.
+fn direct_class_target_clause(c: &str) -> String {
+    let ct = iri_term(c);
+    format!(
+        "sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"SELECT ?this WHERE {{ ?this a {ct} . \
+         FILTER NOT EXISTS {{ ?this a ?sub . ?sub \
+         <http://www.w3.org/2000/01/rdf-schema#subClassOf>+ {ct} . FILTER ( ?sub != {ct} ) }} }}\"\"\" ]"
+    )
+}
+
+/// The `sh:target*` clause for a constraint's focus selector.
+fn procedural_target_clause(t: &ShapeTarget) -> String {
+    match t {
+        ShapeTarget::Class(c) => format!("sh:targetClass {}", iri_term(c)),
+        ShapeTarget::SubjectsOf(p) => format!("sh:targetSubjectsOf {}", iri_term(p)),
+        ShapeTarget::ObjectsOf(p) => format!("sh:targetObjectsOf {}", iri_term(p)),
+        ShapeTarget::ValueKeyed { predicate, value } => format!(
+            "sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"SELECT ?this WHERE {{ ?this {} {} }}\"\"\" ]",
+            iri_term(predicate),
+            iri_term(value)
+        ),
+        ShapeTarget::DirectClass(c) => direct_class_target_clause(c),
+        ShapeTarget::Sparql(sel) => {
+            format!("sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"{sel}\"\"\" ]")
+        }
+    }
+}
+
+/// The gmeow-domain term the shape declares it `logic:formalizes` — the constraint's explicit
+/// `formalizes` back-reference when present, else the focus-selector term (the class or
+/// predicate the constraint ranges over), so every projected shape self-identifies its canon.
+fn procedural_formalizes_term(c: &ConstraintIr) -> String {
+    if let Some(f) = &c.formalizes {
+        return f.clone();
+    }
+    match &c.target {
+        ShapeTarget::Class(x)
+        | ShapeTarget::SubjectsOf(x)
+        | ShapeTarget::ObjectsOf(x)
+        | ShapeTarget::DirectClass(x) => x.clone(),
+        ShapeTarget::ValueKeyed { predicate, .. } => predicate.clone(),
+        // A raw-sparql target has no single domain term; a Sparql-targeted constraint always
+        // carries an explicit `logic:formalizes` (handled above), so this falls back to its IRI.
+        ShapeTarget::Sparql(_) => c.iri.clone(),
+    }
+}
+
+/// Try to render one `logic:Constraint` block, or return the reason its integrity exceeds the
+/// range-restricted guarded SPARQL-constraint fragment (so the caller carries it as flagged
+/// residue rather than emitting a broken query).
+fn try_project_block(c: &ConstraintIr) -> gmeow_errors::Result<String> {
+    let select = constraint_select(c)?;
+    let shape = procedural_shape_iri(c);
+    let formalizes = procedural_formalizes_term(c);
+    let sev = c.severity.as_str();
+    let target = procedural_target_clause(&c.target);
+    let message_line = match &c.message {
+        Some(m) => format!("        sh:message \"{}\" ;\n", esc_str(m)),
+        None => String::new(),
+    };
+    Ok(format!(
+        "<{shape}>\n    a sh:NodeShape ;\n    logic:formalizes <{formalizes}> ;\n    {target} ;\n    \
+         sh:sparql [\n        a sh:SPARQLConstraint ;\n        sh:severity sh:{sev} ;\n{message_line}        \
+         sh:select \"\"\"{select}\"\"\" ;\n    ] .\n"
+    ))
+}
+
+/// Project ONE [`ConstraintIr`] to its `sh:SPARQLConstraint` `sh:NodeShape` block (no header).
+/// A constraint whose integrity exceeds the projectable fragment yields the empty string — it
+/// is carried-and-flagged by [`procedural_constraint_residue`] in the loss ledger, never
+/// emitted as a broken query. Reuse [`project_procedural_constraints`] for the whole-program,
+/// header-carrying, byte-deterministic document.
+pub fn project_procedural_constraint(c: &ConstraintIr) -> String {
+    try_project_block(c).unwrap_or_default()
+}
+
+/// Project every [`ConstraintIr`] in `program` to a single whole-program procedural-constraint
+/// Turtle document: the prefix header followed by one IRI-sorted, blank-node-free
+/// `sh:SPARQLConstraint` NodeShape block per projectable constraint. A constraint-free program
+/// (or one whose every constraint exceeds the fragment) yields the header alone, so a
+/// constraint-free corpus stays byte-stable.
+pub fn project_procedural_constraints(program: &LogicProgram) -> String {
+    let mut blocks: Vec<(String, String)> = program
+        .constraints
+        .iter()
+        .filter_map(|c| {
+            try_project_block(c)
+                .ok()
+                .map(|b| (procedural_shape_iri(c), b))
+        })
+        .collect();
+    blocks.sort_by(|a, b| a.0.cmp(&b.0));
+    let mut out = String::from(PROCEDURAL_HEADER);
+    for (_, block) in blocks {
+        out.push('\n');
+        out.push_str(&block);
+    }
+    out
+}
+
+/// The per-constraint SHACL-Core (SPARQL) loss-ledger residue for the `procedural-constraint`
+/// target: one flagged note per `logic:Constraint` whose integrity exceeds the range-restricted
+/// guarded fragment the `sh:SPARQLConstraint` surface can carry (full-FOL / aggregate-comparison
+/// / variadic conditions), tagged with its [`crate::ir::FormulaShape`] set — carried-and-flagged
+/// in the canonical logic: layer, never dropped in silence. A program whose every constraint is
+/// projectable yields an empty vector.
+pub fn procedural_constraint_residue(program: &LogicProgram) -> Vec<String> {
+    program
+        .constraints
+        .iter()
+        .filter_map(|c| match try_project_block(c) {
+            Ok(_) => None,
+            Err(reason) => {
+                let reason = reason.message();
+                let tags = c
+                    .integrity
+                    .shape_tags()
+                    .iter()
+                    .map(|s| s.as_str())
+                    .collect::<Vec<_>>()
+                    .join("+");
+                Some(format!(
+                    "logic:Constraint <{}> [{tags}] exceeds the range-restricted guarded SPARQL \
+                     constraint fragment ({reason}); it is carried in the canonical logic: layer as \
+                     flagged unsupported residue",
+                    c.iri
+                ))
+            }
+        })
+        .collect()
+}
+
+/// The blanket ShEx residue for the `procedural-constraint` target: a `sh:SPARQLConstraint` is
+/// a SPARQL query surface, and ShEx has no SPARQL-constraint form at all, so EVERY projected
+/// procedural constraint is unsupported by ShEx. Emitted once per constraint so the drop is
+/// disclosed and never silent. A constraint-free program yields an empty vector.
+pub fn procedural_constraint_shex_residue(program: &LogicProgram) -> Vec<String> {
+    program
+        .constraints
+        .iter()
+        .map(|c| {
+            format!(
+                "logic:Constraint <{}> projects to a sh:SPARQLConstraint (a SPARQL query); ShEx has \
+                 no SPARQL-constraint form (logic:unsupported), so it is carried in the canonical \
+                 logic: layer",
+                c.iri
+            )
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -780,6 +1619,54 @@ mod tests {
 
     fn shape(iri: &str, class: &str, props: Vec<PropertyConstraintIr>) -> ValidationShapeIr {
         ValidationShapeIr::new(iri, ShapeTarget::Class(class.to_owned()), props, None).unwrap()
+    }
+
+    #[test]
+    fn class_guarded_constraint_strips_the_type_atom_from_the_violation_where() {
+        // A `∀ this. C(this) → ∃v. P(this, v)` constraint targets `sh:targetClass C` (which follows
+        // rdfs:subClassOf). The violation WHERE must therefore NOT re-assert `$this a C` (a plain BGP
+        // triple would wrongly exclude the subclass instances `sh:targetClass` selects); it keeps only
+        // the negated condition.
+        let this = Term::Var("this".into());
+        let integrity = Formula::Forall {
+            vars: vec!["this".into()],
+            body: Box::new(Formula::Implies(
+                Box::new(
+                    Formula::atom(
+                        Term::Iri(RDF_TYPE.into()),
+                        vec![this.clone(), Term::Iri("https://ex/C".into())],
+                    )
+                    .unwrap(),
+                ),
+                Box::new(Formula::Exists {
+                    vars: vec!["v".into()],
+                    body: Box::new(
+                        Formula::atom(
+                            Term::Iri("https://ex/p".into()),
+                            vec![this, Term::Var("v".into())],
+                        )
+                        .unwrap(),
+                    ),
+                }),
+            )),
+        };
+        let c = ConstraintIr::new("https://ex/C1", integrity, ShaclSeverity::Violation, None)
+            .unwrap()
+            .with_formalizes("https://ex/C")
+            .unwrap();
+        let block = project_procedural_constraint(&c);
+        assert!(
+            block.contains("sh:targetClass <https://ex/C>"),
+            "targetClass must select the focus: {block}"
+        );
+        assert!(
+            !block.contains("$this a <https://ex/C>"),
+            "the redundant class-guard triple must be stripped from the WHERE: {block}"
+        );
+        assert!(
+            block.contains("FILTER NOT EXISTS { $this <https://ex/p> ?v"),
+            "the negated existential condition must remain: {block}"
+        );
     }
 
     #[test]
@@ -1575,5 +2462,1295 @@ mod shex_tests {
             "a facet-only constraint must not be prefixed with the `.` any shapeAtom: {shex}"
         );
         assert!(shex.contains("/.*/"), "{shex}");
+    }
+}
+
+#[cfg(test)]
+mod procedural_tests {
+    use super::*;
+    use crate::ir::{Formula, ShaclSeverity, Term};
+
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const WIDGET: &str = "https://ex/Widget";
+
+    fn tvar(n: &str) -> Term {
+        Term::Var(n.to_owned())
+    }
+    fn tiri(n: &str) -> Term {
+        Term::Iri(n.to_owned())
+    }
+    fn atom(rel: &str, a: Term, b: Term) -> Formula {
+        Formula::atom(tiri(rel), vec![a, b]).unwrap()
+    }
+    fn exists(v: &str, body: Formula) -> Formula {
+        Formula::Exists {
+            vars: vec![v.to_owned()],
+            body: Box::new(body),
+        }
+    }
+    fn forall(v: &str, body: Formula) -> Formula {
+        Formula::Forall {
+            vars: vec![v.to_owned()],
+            body: Box::new(body),
+        }
+    }
+
+    /// Wrap a per-focus condition `phi(this)` in the range-restricted guard
+    /// `∀ this. rdf:type(this, ex:Widget) → phi`, and build the constraint.
+    fn guarded(iri: &str, phi: Formula) -> ConstraintIr {
+        let integrity = Formula::Forall {
+            vars: vec!["this".to_owned()],
+            body: Box::new(Formula::Implies(
+                Box::new(atom(RDF_TYPE, tvar("this"), tiri(WIDGET))),
+                Box::new(phi),
+            )),
+        };
+        ConstraintIr::new(iri, integrity, ShaclSeverity::Violation, None).unwrap()
+    }
+
+    fn block(c: &ConstraintIr) -> String {
+        let b = project_procedural_constraint(c);
+        assert!(!b.is_empty(), "constraint {} must project a block", c.iri);
+        b
+    }
+
+    #[test]
+    fn every_block_is_a_sparql_constraint_nodeshape_carrying_formalizes() {
+        let c = guarded(
+            "https://ex/c2",
+            exists("c", atom("https://ex/companion", tvar("this"), tvar("c"))),
+        );
+        let b = block(&c);
+        assert!(b.contains("a sh:NodeShape"), "{b}");
+        assert!(b.contains("a sh:SPARQLConstraint"), "{b}");
+        assert!(b.contains("sh:severity sh:Violation"), "{b}");
+        // Self-identifies its canon: no explicit formalizes → the target class term.
+        assert!(b.contains("logic:formalizes <https://ex/Widget>"), "{b}");
+        assert!(b.contains("sh:targetClass <https://ex/Widget>"), "{b}");
+        assert!(b.contains("SELECT $this WHERE"), "{b}");
+    }
+
+    #[test]
+    fn explicit_formalizes_overrides_the_target_term() {
+        let c = guarded(
+            "https://ex/cF",
+            exists("c", atom("https://ex/companion", tvar("this"), tvar("c"))),
+        )
+        .with_formalizes("https://ex/gmeow/SomeAxiom")
+        .unwrap();
+        assert!(
+            block(&c).contains("logic:formalizes <https://ex/gmeow/SomeAxiom>"),
+            "{}",
+            block(&c)
+        );
+    }
+
+    #[test]
+    fn p1_choice_group_xor_lowers_to_a_union_under_not_exists() {
+        // φ = (∃A ∧ ¬∃B) ∨ (¬∃A ∧ ∃B); ¬φ (both-or-neither) = NOT EXISTS { left UNION right }.
+        let ea = || exists("a", atom("https://ex/hasA", tvar("this"), tvar("a")));
+        let eb = || exists("b", atom("https://ex/hasB", tvar("this"), tvar("b")));
+        let left = Formula::And(vec![ea(), Formula::Not(Box::new(eb()))]);
+        let right = Formula::And(vec![Formula::Not(Box::new(ea())), eb()]);
+        let c = guarded("https://ex/c1", Formula::Or(vec![left, right]));
+        let b = block(&c);
+        assert!(b.contains("FILTER NOT EXISTS"), "{b}");
+        assert!(b.contains("UNION"), "{b}");
+        assert!(
+            b.contains("<https://ex/hasA>") && b.contains("<https://ex/hasB>"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p2_guarded_implication_lowers_to_filter_not_exists_companion() {
+        let c = guarded(
+            "https://ex/c2",
+            exists("c", atom("https://ex/companion", tvar("this"), tvar("c"))),
+        );
+        assert!(
+            block(&c).contains("FILTER NOT EXISTS { $this <https://ex/companion> ?c . }"),
+            "{}",
+            block(&c)
+        );
+    }
+
+    #[test]
+    fn p3_disjunctive_requiredness_lowers_to_not_exists_union() {
+        // φ = ∃A ∨ ∃B; ¬φ = NOT EXISTS { {A} UNION {B} }.
+        let c = guarded(
+            "https://ex/c3",
+            Formula::Or(vec![
+                exists("a", atom("https://ex/hasA", tvar("this"), tvar("a"))),
+                exists("b", atom("https://ex/hasB", tvar("this"), tvar("b"))),
+            ]),
+        );
+        let b = block(&c);
+        assert!(b.contains("FILTER NOT EXISTS {"), "{b}");
+        assert!(b.contains("UNION"), "{b}");
+    }
+
+    #[test]
+    fn p4_path_value_type_membership_lowers_to_a_path_and_not_exists_type() {
+        // φ = ∀v. part(this,v) → Part(v); ¬φ = this part ?v . NOT EXISTS { ?v a Part }.
+        let c = guarded(
+            "https://ex/c4",
+            forall(
+                "v",
+                Formula::Implies(
+                    Box::new(atom("https://ex/part", tvar("this"), tvar("v"))),
+                    Box::new(atom(RDF_TYPE, tvar("v"), tiri("https://ex/Part"))),
+                ),
+            ),
+        );
+        let b = block(&c);
+        assert!(b.contains("$this <https://ex/part> ?v ."), "{b}");
+        assert!(
+            b.contains("FILTER NOT EXISTS { ?v a <https://ex/Part> . }"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p5_cross_node_co_occurrence_lowers_to_a_path_and_nested_not_exists() {
+        // φ = ∀o. linked(this,o) → ∃m. marker(o,m); ¬φ = this linked ?o . NOT EXISTS { ?o marker ?m }.
+        let c = guarded(
+            "https://ex/c5",
+            forall(
+                "o",
+                Formula::Implies(
+                    Box::new(atom("https://ex/linked", tvar("this"), tvar("o"))),
+                    Box::new(exists("m", atom("https://ex/marker", tvar("o"), tvar("m")))),
+                ),
+            ),
+        );
+        let b = block(&c);
+        assert!(b.contains("$this <https://ex/linked> ?o ."), "{b}");
+        assert!(
+            b.contains("FILTER NOT EXISTS { ?o <https://ex/marker> ?m . }"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p7_forbidden_pattern_lowers_to_a_positive_witness_triple() {
+        // φ = ¬∃b. forbidden(this,b); ¬φ = ∃b. forbidden(this,b) = $this <forbidden> ?b .
+        let c = guarded(
+            "https://ex/c7",
+            Formula::Not(Box::new(exists(
+                "b",
+                atom("https://ex/forbidden", tvar("this"), tvar("b")),
+            ))),
+        );
+        assert!(
+            block(&c).contains("$this <https://ex/forbidden> ?b ."),
+            "{}",
+            block(&c)
+        );
+    }
+
+    #[test]
+    fn inverse_atom_places_the_focus_in_object_position() {
+        // An inverse occurrence `rel(?v, $this)` (the focus in ARGUMENT-1 / object position)
+        // lowers with `$this` as the triple object — the grounding "grounded BY a separate
+        // observation" pattern (`observationResult(?obs, $this)`) needs no property-path term,
+        // only the honest argument order.
+        let c = guarded(
+            "https://ex/cInv",
+            exists(
+                "obs",
+                atom("https://ex/observationResult", tvar("obs"), tvar("this")),
+            ),
+        );
+        assert!(
+            block(&c).contains("FILTER NOT EXISTS { ?obs <https://ex/observationResult> $this . }"),
+            "{}",
+            block(&c)
+        );
+    }
+
+    #[test]
+    fn term_distinct_with_a_literal_rhs_lowers_to_an_inequality_filter() {
+        // A forbidden existential whose body pins a bound var to differ from a fixed literal:
+        // φ = ¬∃q. (sigNeg(this,q) ∧ termDistinct(q, "0"^^integer));
+        // ¬φ = ∃q. sigNeg(this,q) ∧ FILTER(?q != 0) — the metric-signature "q = 0" invariant.
+        let xsd_int = "http://www.w3.org/2001/XMLSchema#integer";
+        let body = Formula::And(vec![
+            atom("https://ex/signatureNegative", tvar("this"), tvar("q")),
+            Formula::atom(
+                tiri(LOGIC_TERM_DISTINCT),
+                vec![
+                    tvar("q"),
+                    Term::Literal {
+                        lexical: "0".to_owned(),
+                        datatype: Some(xsd_int.to_owned()),
+                    },
+                ],
+            )
+            .unwrap(),
+        ]);
+        let c = guarded("https://ex/cLit", Formula::Not(Box::new(exists("q", body))));
+        let b = block(&c);
+        assert!(
+            b.contains("$this <https://ex/signatureNegative> ?q ."),
+            "{b}"
+        );
+        assert!(
+            b.contains(&format!("FILTER ( ?q != '0'^^<{xsd_int}> )")),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn term_in_forbidden_membership_lowers_to_an_in_filter() {
+        // φ = ¬∃v. (leak(this,v) ∧ termIn(v, {ex:a, ex:b})); ¬φ = ∃v. leak(this,v) ∧ ?v IN (…).
+        let body = Formula::And(vec![
+            atom("https://ex/leak", tvar("this"), tvar("v")),
+            Formula::atom(
+                tiri(LOGIC_TERM_IN),
+                vec![tvar("v"), tiri("https://ex/a"), tiri("https://ex/b")],
+            )
+            .unwrap(),
+        ]);
+        let c = guarded("https://ex/cIn", Formula::Not(Box::new(exists("v", body))));
+        let b = block(&c);
+        assert!(b.contains("$this <https://ex/leak> ?v ."), "{b}");
+        assert!(
+            b.contains("FILTER ( ?v IN (<https://ex/a>, <https://ex/b>) )"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn term_in_required_membership_lowers_to_a_not_in_filter() {
+        // φ = ∀v. tag(this,v) → termIn(v, {ex:a}); a value outside the set violates → ?v NOT IN (…).
+        let inner = forall(
+            "v",
+            Formula::Implies(
+                Box::new(atom("https://ex/tag", tvar("this"), tvar("v"))),
+                Box::new(
+                    Formula::atom(tiri(LOGIC_TERM_IN), vec![tvar("v"), tiri("https://ex/a")])
+                        .unwrap(),
+                ),
+            ),
+        );
+        let c = guarded("https://ex/cReq", inner);
+        let b = block(&c);
+        assert!(b.contains("$this <https://ex/tag> ?v ."), "{b}");
+        assert!(b.contains("FILTER ( ?v NOT IN (<https://ex/a>) )"), "{b}");
+    }
+
+    #[test]
+    fn term_str_starts_and_regex_lower_to_string_filters() {
+        let lit = |s: &str| Term::Literal {
+            lexical: s.to_owned(),
+            datatype: None,
+        };
+        // Forbidden prefix: ¬∃v. code(this,v) ∧ termStrStarts(v,"gmn:") → FILTER STRSTARTS.
+        let body = Formula::And(vec![
+            atom("https://ex/code", tvar("this"), tvar("v")),
+            Formula::atom(tiri(LOGIC_TERM_STR_STARTS), vec![tvar("v"), lit("gmn:")]).unwrap(),
+        ]);
+        let c = guarded(
+            "https://ex/cPrefix",
+            Formula::Not(Box::new(exists("v", body))),
+        );
+        let b = block(&c);
+        assert!(b.contains("FILTER ( STRSTARTS(STR(?v), 'gmn:') )"), "{b}");
+
+        // Required regex: ∀v. code(this,v) → termRegex(v,"^[a-z]+$") → violation !REGEX.
+        let inner = forall(
+            "v",
+            Formula::Implies(
+                Box::new(atom("https://ex/code", tvar("this"), tvar("v"))),
+                Box::new(
+                    Formula::atom(tiri(LOGIC_TERM_REGEX), vec![tvar("v"), lit("^[a-z]+$")])
+                        .unwrap(),
+                ),
+            ),
+        );
+        let c = guarded("https://ex/cRegex", inner);
+        let b = block(&c);
+        assert!(b.contains("FILTER ( !REGEX(STR(?v), '^[a-z]+$') )"), "{b}");
+    }
+
+    #[test]
+    fn constraint_free_program_yields_a_byte_stable_header_only_doc() {
+        let a = LogicProgram::new(vec![], vec![], vec![], None);
+        let b = LogicProgram::new(vec![], vec![], vec![], None);
+        let da = project_procedural_constraints(&a);
+        let db = project_procedural_constraints(&b);
+        assert_eq!(da, db, "a constraint-free program must be byte-stable");
+        assert!(da.starts_with("# GENERATED"), "{da}");
+        assert!(!da.contains("a sh:NodeShape"), "no shapes expected: {da}");
+        assert!(da.contains("@prefix sh:"), "{da}");
+    }
+
+    #[test]
+    fn whole_program_doc_is_iri_sorted_and_header_carrying() {
+        let c_b = guarded(
+            "https://ex/zeta",
+            exists("c", atom("https://ex/companion", tvar("this"), tvar("c"))),
+        );
+        let c_a = guarded(
+            "https://ex/alpha",
+            exists("c", atom("https://ex/companion", tvar("this"), tvar("c"))),
+        );
+        let prog = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![c_b, c_a]);
+        let doc = project_procedural_constraints(&prog);
+        assert!(doc.starts_with("# GENERATED"), "{doc}");
+        let ai = doc
+            .find("AlphaProceduralConstraintShape")
+            .expect("alpha shape");
+        let zi = doc
+            .find("ZetaProceduralConstraintShape")
+            .expect("zeta shape");
+        assert!(ai < zi, "shapes must be emitted in IRI-sorted order");
+    }
+
+    #[test]
+    fn unsupported_integrity_is_carried_as_flagged_residue_not_emitted() {
+        // A biconditional consequent exceeds the projectable NNF fragment.
+        let c = guarded(
+            "https://ex/cIff",
+            Formula::Iff(
+                Box::new(atom("https://ex/p", tvar("this"), tiri("https://ex/x"))),
+                Box::new(atom("https://ex/q", tvar("this"), tiri("https://ex/y"))),
+            ),
+        );
+        assert!(
+            project_procedural_constraint(&c).is_empty(),
+            "an unsupported constraint must not emit a block"
+        );
+        let prog = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![c]);
+        let residue = procedural_constraint_residue(&prog);
+        assert_eq!(residue.len(), 1, "{residue:?}");
+        assert!(
+            residue[0].contains("exceeds the range-restricted guarded SPARQL constraint fragment"),
+            "{residue:?}"
+        );
+        // The whole-program doc drops it (header-only) — carried in the ledger, never emitted.
+        assert!(
+            !project_procedural_constraints(&prog).contains("a sh:NodeShape"),
+            "the unsupported constraint must not reach the document"
+        );
+    }
+
+    #[test]
+    fn every_constraint_gets_a_blanket_shex_unsupported_note() {
+        let c = guarded(
+            "https://ex/c2",
+            exists("c", atom("https://ex/companion", tvar("this"), tvar("c"))),
+        );
+        let prog = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![c]);
+        let shex = procedural_constraint_shex_residue(&prog);
+        assert_eq!(shex.len(), 1, "{shex:?}");
+        assert!(
+            shex[0].contains("ShEx has no SPARQL-constraint form"),
+            "{shex:?}"
+        );
+    }
+
+    #[test]
+    fn native_engine_flags_planted_violations_and_passes_clean_data() {
+        use purrdf::shapes::engine::validate_graphs;
+
+        // Two constraints over ex:Widget: (A) every widget must have a companion
+        // (guarded implication), (B) a widget must not carry a `forbidden` edge.
+        let a = guarded(
+            "https://ex/mustHaveCompanion",
+            exists("c", atom("https://ex/companion", tvar("this"), tvar("c"))),
+        );
+        let b = guarded(
+            "https://ex/noForbidden",
+            Formula::Not(Box::new(exists(
+                "b",
+                atom("https://ex/forbidden", tvar("this"), tvar("b")),
+            ))),
+        );
+        let prog = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![a, b]);
+        let shapes_ttl = project_procedural_constraints(&prog);
+
+        // N-Triples data: one clean widget, one violating A (no companion), one violating B.
+        let data = "\
+<https://ex/goodW> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://ex/Widget> .\n\
+<https://ex/goodW> <https://ex/companion> <https://ex/c0> .\n\
+<https://ex/badNoCompanion> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://ex/Widget> .\n\
+<https://ex/badForbidden> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://ex/Widget> .\n\
+<https://ex/badForbidden> <https://ex/companion> <https://ex/c1> .\n\
+<https://ex/badForbidden> <https://ex/forbidden> <https://ex/f0> .\n";
+
+        let report = validate_graphs(data, &shapes_ttl).expect("validate");
+        let flagged: Vec<String> = report
+            .results
+            .iter()
+            .map(|r| r.focus_node.to_string())
+            .collect();
+        for bad in ["badNoCompanion", "badForbidden"] {
+            assert!(
+                flagged.iter().any(|f| f.contains(bad)),
+                "the {bad} violation must be flagged; flagged: {flagged:?}"
+            );
+        }
+        assert!(
+            !flagged.iter().any(|f| f.contains("goodW")),
+            "the clean widget must NOT be flagged; flagged: {flagged:?}"
+        );
+    }
+
+    // ── Constraint-sugar expansion (P1–P5, P7) + aggregate (P6) projection ────────
+
+    /// The prefix header for the sugar fixtures.
+    const SUGAR_PREFIXES: &str = "\
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ex: <https://ex/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+";
+
+    /// Parse a sugar fixture (asserting no MALFORMED_CONSTRAINT) and project its single constraint
+    /// to a `sh:SPARQLConstraint` block.
+    fn project_sugar(ttl: &str) -> String {
+        let src = format!("{SUGAR_PREFIXES}{ttl}");
+        let (program, diags) =
+            crate::frontend::parse_logic_str(&src, None).expect("sugar fixture must parse");
+        assert!(
+            !diags.iter().any(|d| d.code == "MALFORMED_CONSTRAINT"),
+            "unexpected MALFORMED_CONSTRAINT diagnostics: {diags:?}"
+        );
+        assert_eq!(
+            program.constraints.len(),
+            1,
+            "expected exactly one constraint"
+        );
+        let block = project_procedural_constraint(&program.constraints[0]);
+        assert!(
+            !block.is_empty(),
+            "the sugar constraint must project a block"
+        );
+        block
+    }
+
+    #[test]
+    fn value_set_membership_required_sugar_projects_a_not_in_filter() {
+        let b = project_sugar(
+            "ex:vsr a logic:ValueSetMembershipConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:valuePath ex:register ;\n\
+             logic:memberValue ex:alpha , ex:beta ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        assert!(b.contains("sh:targetClass <https://ex/Widget>"), "{b}");
+        assert!(b.contains("$this <https://ex/register> ?v ."), "{b}");
+        assert!(
+            b.contains("FILTER ( ?v NOT IN (<https://ex/alpha>, <https://ex/beta>) )"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn value_set_membership_forbidden_sugar_projects_an_in_filter() {
+        let b = project_sugar(
+            "ex:vsf a logic:ValueSetMembershipConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:valuePath ex:leaks ;\n\
+             logic:membershipMode \"forbidden\" ;\n\
+             logic:memberValue ex:secret ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        assert!(b.contains("$this <https://ex/leaks> ?v ."), "{b}");
+        assert!(b.contains("FILTER ( ?v IN (<https://ex/secret>) )"), "{b}");
+    }
+
+    #[test]
+    fn string_pattern_sugar_projects_regex_and_prefix_filters() {
+        let req = project_sugar(
+            "ex:spr a logic:StringPatternConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:valuePath ex:code ;\n\
+             logic:stringOp \"regexRequired\" ;\n\
+             logic:stringPattern \"^[A-Z]+$\" ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        assert!(
+            req.contains("FILTER ( !REGEX(STR(?v), '^[A-Z]+$') )"),
+            "{req}"
+        );
+        let forb = project_sugar(
+            "ex:spf a logic:StringPatternConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:valuePath ex:label ;\n\
+             logic:stringOp \"prefixForbidden\" ;\n\
+             logic:stringPattern \"tmp:\" ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        assert!(
+            forb.contains("FILTER ( STRSTARTS(STR(?v), 'tmp:') )"),
+            "{forb}"
+        );
+    }
+
+    #[test]
+    fn p1_choice_group_sugar_expands_and_projects() {
+        let b = project_sugar(
+            "ex:c1 a logic:ChoiceGroupConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:choicePredicate ex:hasA , ex:hasB ;\n\
+             logic:choiceMode \"exactly-one\" ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        assert!(b.contains("sh:targetClass <https://ex/Widget>"), "{b}");
+        assert!(b.contains("logic:formalizes <https://ex/Widget>"), "{b}");
+        // exactly-one → a UNION of per-predicate branches under FILTER NOT EXISTS.
+        assert!(b.contains("UNION"), "{b}");
+        assert!(
+            b.contains("<https://ex/hasA>") && b.contains("<https://ex/hasB>"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p1_at_most_one_sugar_projects() {
+        let b = project_sugar(
+            "ex:c1b a logic:ChoiceGroupConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:choicePredicate ex:hasA , ex:hasB ;\n\
+             logic:choiceMode \"at-most-one\" ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        // at-most-one over two predicates → the violation is the pair present together.
+        assert!(
+            b.contains("<https://ex/hasA>") && b.contains("<https://ex/hasB>"),
+            "{b}"
+        );
+        assert!(b.contains("SELECT $this WHERE"), "{b}");
+    }
+
+    #[test]
+    fn p2_guarded_implication_sugar_expands_and_projects() {
+        let b = project_sugar(
+            "ex:c2 a logic:GuardedImplicationConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:trigger ex:isActive ;\n\
+             logic:requires ex:companion ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        assert!(b.contains("sh:targetClass <https://ex/Widget>"), "{b}");
+        // Guard: the trigger predicate is a positive triple; the missing companion is the violation.
+        assert!(b.contains("<https://ex/isActive>"), "{b}");
+        assert!(
+            b.contains("FILTER NOT EXISTS") && b.contains("<https://ex/companion>"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p2_guarded_implication_with_trigger_value_projects() {
+        let b = project_sugar(
+            "ex:c2v a logic:GuardedImplicationConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:trigger ex:kind ;\n\
+             logic:triggerValue ex:Special ;\n\
+             logic:requires ex:companion ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        // The pinned trigger value appears in the guard triple's object position.
+        assert!(b.contains("<https://ex/kind> <https://ex/Special>"), "{b}");
+    }
+
+    #[test]
+    fn predicate_presence_guarded_implication_targets_subjects_of_the_trigger() {
+        // With NO logic:onClass the trigger predicate IS the range restriction: the guard is the
+        // bare trigger atom, so the target derives as sh:targetSubjectsOf trigger (the grounding
+        // "subjects of a claim predicate must carry a grounding field" pattern).
+        let b = project_sugar(
+            "ex:pp a logic:GuardedImplicationConstraint ;\n\
+             logic:trigger ex:aboutReading ;\n\
+             logic:requires ex:vantage ;\n\
+             logic:formalizes ex:SomeShape .",
+        );
+        assert!(
+            b.contains("sh:targetSubjectsOf <https://ex/aboutReading>"),
+            "{b}"
+        );
+        assert!(b.contains("logic:formalizes <https://ex/SomeShape>"), "{b}");
+        assert!(b.contains("$this <https://ex/aboutReading> ?t ."), "{b}");
+        assert!(
+            b.contains("FILTER NOT EXISTS") && b.contains("<https://ex/vantage>"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p3_disjunctive_requiredness_sugar_expands_and_projects() {
+        let b = project_sugar(
+            "ex:c3 a logic:DisjunctiveRequirednessConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:anyOf ex:hasA , ex:hasB ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        // ≥1 required → violation is NONE present: FILTER NOT EXISTS { {hasA} UNION {hasB} }.
+        assert!(b.contains("FILTER NOT EXISTS"), "{b}");
+        assert!(b.contains("UNION"), "{b}");
+        assert!(
+            b.contains("<https://ex/hasA>") && b.contains("<https://ex/hasB>"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p4_path_value_type_sugar_expands_and_projects() {
+        let b = project_sugar(
+            "ex:c4 a logic:PathValueTypeConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:valuePath ex:part ;\n\
+             logic:valueClass ex:Part ;\n\
+             logic:formalizes ex:part .",
+        );
+        assert!(b.contains("logic:formalizes <https://ex/part>"), "{b}");
+        // Violation: ∃v. part(this,v) ∧ ¬ Part(v).
+        assert!(b.contains("<https://ex/part>"), "{b}");
+        assert!(
+            b.contains("FILTER NOT EXISTS") && b.contains("<https://ex/Part>"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p4_path_value_fixed_predicate_value_sugar_expands_and_projects() {
+        // The fixed predicate=value variant: every value on the path must carry Q = o.
+        // Violation: ∃v. inducedByForm(this,v) ∧ ¬ definiteness(v, positiveDefinite).
+        let b = project_sugar(
+            "ex:c4f a logic:PathValueTypeConstraint ;\n\
+             logic:onClass ex:Norm ;\n\
+             logic:valuePath ex:inducedByForm ;\n\
+             logic:valuePredicate ex:definiteness ;\n\
+             logic:valueObject ex:positiveDefinite ;\n\
+             logic:formalizes ex:Norm .",
+        );
+        assert!(b.contains("$this <https://ex/inducedByForm> ?v ."), "{b}");
+        assert!(
+            b.contains(
+                "FILTER NOT EXISTS { ?v <https://ex/definiteness> <https://ex/positiveDefinite> . }"
+            ),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p5_cross_node_co_occur_sugar_expands_and_projects() {
+        let b = project_sugar(
+            "ex:c5 a logic:CrossNodeConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:roleA ex:left ;\n\
+             logic:roleB ex:right ;\n\
+             logic:crossMode \"co-occur\" ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        assert!(
+            b.contains("<https://ex/left>") && b.contains("<https://ex/right>"),
+            "{b}"
+        );
+        assert!(b.contains("UNION"), "{b}");
+    }
+
+    #[test]
+    fn p5_cross_node_differ_sugar_projects_an_equality_filter() {
+        let b = project_sugar(
+            "ex:c5d a logic:CrossNodeConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:roleA ex:left ;\n\
+             logic:roleB ex:right ;\n\
+             logic:crossMode \"differ\" ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        // Violation of "roles must differ" = the two roles bind an EQUAL value.
+        assert!(b.contains("FILTER ( ?a = ?b )"), "{b}");
+        assert!(
+            b.contains("<https://ex/left>") && b.contains("<https://ex/right>"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p7_forbidden_pattern_sugar_expands_and_projects() {
+        let b = project_sugar(
+            "ex:c7 a logic:ForbiddenPatternConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:forbiddenPredicate ex:forbidden ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        // A forbidden-pattern violation is the PRESENCE of the pattern: the SHACL
+        // sh:select returns the focus nodes that HAVE the forbidden predicate (a
+        // positive BGP match), not a FILTER NOT EXISTS over its absence.
+        assert!(
+            b.contains("<https://ex/forbidden> ?") && !b.contains("NOT EXISTS"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p6_aggregate_count_distinct_property_rhs_projects_group_by_having() {
+        let b = project_sugar(
+            "ex:agg1 a logic:AggregateConstraint ;\n\
+             logic:onClass ex:Dimensional ;\n\
+             logic:aggFunction \"COUNT\" ;\n\
+             logic:aggDistinct true ;\n\
+             logic:aggPath ex:hasAxis ;\n\
+             logic:aggComparator \"=\" ;\n\
+             logic:aggCompareTo ex:dimensionCount ;\n\
+             logic:formalizes ex:Dimensional .",
+        );
+        assert!(b.contains("sh:targetClass <https://ex/Dimensional>"), "{b}");
+        assert!(b.contains("COUNT(DISTINCT ?value)"), "{b}");
+        // A property RHS binds ?rhs and joins it into the GROUP BY.
+        assert!(b.contains("$this <https://ex/dimensionCount> ?rhs"), "{b}");
+        assert!(b.contains("GROUP BY $this ?rhs"), "{b}");
+        // The invariant is `=`, so the violation-selecting HAVING uses the negation `!=`.
+        assert!(
+            b.contains("HAVING ( COUNT(DISTINCT ?value) != ?rhs )"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p6_aggregate_sum_literal_rhs_projects_group_by_having() {
+        let b = project_sugar(
+            "ex:agg2 a logic:AggregateConstraint ;\n\
+             logic:onClass ex:Portfolio ;\n\
+             logic:aggFunction \"SUM\" ;\n\
+             logic:aggPath ex:weight ;\n\
+             logic:aggComparator \"=\" ;\n\
+             logic:aggCompareTo \"1\"^^xsd:integer ;\n\
+             logic:formalizes ex:Portfolio .",
+        );
+        assert!(b.contains("SUM(?value)"), "{b}");
+        assert!(b.contains("$this <https://ex/weight> ?value"), "{b}");
+        assert!(b.contains("GROUP BY $this"), "{b}");
+        // The literal RHS keeps its datatype in the HAVING comparison.
+        assert!(
+            b.contains("HAVING ( SUM(?value) != '1'^^<http://www.w3.org/2001/XMLSchema#integer> )"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn p6_aggregate_count_distinct_validates_against_a_graph() {
+        // End-to-end: the generated GROUP BY/HAVING SELECT must be valid SPARQL and flag the right
+        // focus nodes. `good` has 2 distinct axes and dimensionCount 2 (conforms); `bad` has 2
+        // distinct axes and dimensionCount 3 (violates COUNT(DISTINCT) = dimensionCount).
+        use purrdf::shapes::engine::validate_graphs;
+        let src = format!(
+            "{SUGAR_PREFIXES}\
+ex:aggv a logic:AggregateConstraint ;\n\
+  logic:onClass ex:Dimensional ;\n\
+  logic:aggFunction \"COUNT\" ;\n\
+  logic:aggDistinct true ;\n\
+  logic:aggPath ex:hasAxis ;\n\
+  logic:aggComparator \"=\" ;\n\
+  logic:aggCompareTo ex:dimensionCount ;\n\
+  logic:formalizes ex:Dimensional ."
+        );
+        let (program, _) = crate::frontend::parse_logic_str(&src, None).expect("parse");
+        let shapes_ttl = project_procedural_constraints(&program);
+        let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+        let data = format!(
+            "<https://ex/good> {ty} <https://ex/Dimensional> .\n\
+<https://ex/good> <https://ex/hasAxis> <https://ex/x> .\n\
+<https://ex/good> <https://ex/hasAxis> <https://ex/y> .\n\
+<https://ex/good> <https://ex/dimensionCount> \"2\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n\
+<https://ex/bad> {ty} <https://ex/Dimensional> .\n\
+<https://ex/bad> <https://ex/hasAxis> <https://ex/x> .\n\
+<https://ex/bad> <https://ex/hasAxis> <https://ex/y> .\n\
+<https://ex/bad> <https://ex/dimensionCount> \"3\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n"
+        );
+        let report = validate_graphs(&data, &shapes_ttl).expect("validate");
+        let flagged: Vec<String> = report
+            .results
+            .iter()
+            .map(|r| r.focus_node.to_string())
+            .collect();
+        assert!(
+            flagged.iter().any(|f| f.contains("bad")),
+            "the count-mismatch node must be flagged; flagged: {flagged:?}"
+        );
+        assert!(
+            !flagged.iter().any(|f| f.contains("good")),
+            "the conforming node must NOT be flagged; flagged: {flagged:?}"
+        );
+    }
+
+    #[test]
+    fn comparison_constraint_lowers_to_an_ordering_filter() {
+        let b = project_sugar(
+            "ex:cmp a logic:ComparisonConstraint ;\n\
+             logic:onClass ex:ScoreScale ;\n\
+             logic:leftPath ex:scaleMin ;\n\
+             logic:rightPath ex:scaleMax ;\n\
+             logic:compareOp \">=\" ;\n\
+             logic:formalizes ex:ScoreScale .",
+        );
+        assert!(b.contains("sh:targetClass <https://ex/ScoreScale>"), "{b}");
+        assert!(b.contains("$this <https://ex/scaleMin> ?l ."), "{b}");
+        assert!(b.contains("$this <https://ex/scaleMax> ?r ."), "{b}");
+        // The FORBIDDEN relation (min >= max) is the violation-selecting FILTER.
+        assert!(b.contains("FILTER ( ?l >= ?r )"), "{b}");
+        assert!(!b.contains("NOT EXISTS"), "{b}");
+    }
+
+    #[test]
+    fn path_node_kind_iri_lowers_to_a_negated_isiri_filter() {
+        // With no onClass the value-path is the range restriction → sh:targetSubjectsOf.
+        let b = project_sugar(
+            "ex:nk a logic:PathNodeKindConstraint ;\n\
+             logic:valuePath ex:hasAboutness ;\n\
+             logic:nodeKind \"IRI\" ;\n\
+             logic:formalizes ex:AboutnessTargetShape .",
+        );
+        assert!(
+            b.contains("sh:targetSubjectsOf <https://ex/hasAboutness>"),
+            "{b}"
+        );
+        assert!(b.contains("$this <https://ex/hasAboutness> ?v ."), "{b}");
+        // The violation is a value that is NOT an IRI.
+        assert!(b.contains("FILTER ( !isIRI(?v) )"), "{b}");
+    }
+
+    #[test]
+    fn path_node_kind_blank_or_iri_on_a_class_target() {
+        let b = project_sugar(
+            "ex:nk2 a logic:PathNodeKindConstraint ;\n\
+             logic:onClass ex:SetBuilderExpression ;\n\
+             logic:valuePath ex:memberCondition ;\n\
+             logic:nodeKind \"BlankNodeOrIRI\" ;\n\
+             logic:formalizes ex:SetBuilderExpression .",
+        );
+        assert!(
+            b.contains("sh:targetClass <https://ex/SetBuilderExpression>"),
+            "{b}"
+        );
+        assert!(
+            b.contains("FILTER ( !( isIRI(?v) || isBlank(?v) ) )"),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn self_join_uniqueness_lowers_to_a_shared_value_self_join() {
+        let b = project_sugar(
+            "ex:sj a logic:SelfJoinUniquenessConstraint ;\n\
+             logic:siblingPredicate ex:argumentSlot ;\n\
+             logic:sharedPredicate ex:slotIndex ;\n\
+             logic:formalizes ex:SlotIndexUniquenessShape .",
+        );
+        assert!(
+            b.contains("sh:targetSubjectsOf <https://ex/argumentSlot>"),
+            "{b}"
+        );
+        assert!(b.contains("$this <https://ex/argumentSlot> ?s1 ."), "{b}");
+        assert!(b.contains("$this <https://ex/argumentSlot> ?s2 ."), "{b}");
+        assert!(b.contains("?s1 <https://ex/slotIndex> ?i ."), "{b}");
+        assert!(b.contains("?s2 <https://ex/slotIndex> ?i ."), "{b}");
+        assert!(b.contains("FILTER ( ?s1 != ?s2 )"), "{b}");
+    }
+
+    #[test]
+    fn inverse_existence_lowers_to_a_typed_inverse_not_exists() {
+        let b = project_sugar(
+            "ex:inv a logic:InverseExistenceConstraint ;\n\
+             logic:onClass ex:FeatureValue ;\n\
+             logic:inversePredicate ex:denotationTarget ;\n\
+             logic:subjectClass ex:Denotation ;\n\
+             logic:formalizes ex:FeatureValue .",
+        );
+        assert!(
+            b.contains("sh:targetClass <https://ex/FeatureValue>"),
+            "{b}"
+        );
+        // Violation = no typed Denotation points back at $this.
+        assert!(b.contains("FILTER NOT EXISTS"), "{b}");
+        assert!(b.contains("?s a <https://ex/Denotation> ."), "{b}");
+        assert!(
+            b.contains("?s <https://ex/denotationTarget> $this ."),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn transitive_reachability_lowers_to_a_subclass_property_path() {
+        let b = project_sugar(
+            "ex:tr a logic:TransitiveReachabilityConstraint ;\n\
+             logic:onClass ex:FlagshipScenario ;\n\
+             logic:viaPredicate ex:enforcesFailureClass ;\n\
+             logic:pathPredicate ex:subClassOf ;\n\
+             logic:reachTarget ex:ConformanceFailure ;\n\
+             logic:formalizes ex:FlagshipScenario .",
+        );
+        assert!(
+            b.contains("sh:targetClass <https://ex/FlagshipScenario>"),
+            "{b}"
+        );
+        assert!(
+            b.contains("$this <https://ex/enforcesFailureClass> ?v ."),
+            "{b}"
+        );
+        // Violation = a failure class that does NOT transitively subclass the root.
+        assert!(
+            b.contains(
+                "FILTER NOT EXISTS { ?v <https://ex/subClassOf>+ <https://ex/ConformanceFailure> . }"
+            ),
+            "{b}"
+        );
+    }
+
+    #[test]
+    fn acyclic_constraint_lowers_to_a_self_reaching_property_path() {
+        let b = project_sugar(
+            "ex:ac a logic:AcyclicConstraint ;\n\
+             logic:onClass ex:FormSlot ;\n\
+             logic:pathPredicate ex:dependsOn ;\n\
+             logic:formalizes ex:FormSlot .",
+        );
+        assert!(b.contains("sh:targetClass <https://ex/FormSlot>"), "{b}");
+        // Violation = the focus reaches itself along one-or-more dependsOn hops.
+        assert!(b.contains("$this <https://ex/dependsOn>+ $this ."), "{b}");
+        assert!(!b.contains("NOT EXISTS"), "{b}");
+    }
+
+    #[test]
+    fn comparison_and_node_kind_constraints_validate_against_a_graph() {
+        use purrdf::shapes::engine::validate_graphs;
+        let src = format!(
+            "{SUGAR_PREFIXES}\
+ex:scaleCmp a logic:ComparisonConstraint ;\n\
+  logic:onClass ex:ScoreScale ;\n\
+  logic:leftPath ex:scaleMin ;\n\
+  logic:rightPath ex:scaleMax ;\n\
+  logic:compareOp \">=\" ;\n\
+  logic:formalizes ex:ScoreScale ."
+        );
+        let (program, _) = crate::frontend::parse_logic_str(&src, None).expect("parse");
+        let shapes_ttl = project_procedural_constraints(&program);
+        let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+        let dec = "^^<http://www.w3.org/2001/XMLSchema#decimal>";
+        let data = format!(
+            "<https://ex/good> {ty} <https://ex/ScoreScale> .\n\
+<https://ex/good> <https://ex/scaleMin> \"0.0\"{dec} .\n\
+<https://ex/good> <https://ex/scaleMax> \"1.0\"{dec} .\n\
+<https://ex/bad> {ty} <https://ex/ScoreScale> .\n\
+<https://ex/bad> <https://ex/scaleMin> \"1.0\"{dec} .\n\
+<https://ex/bad> <https://ex/scaleMax> \"1.0\"{dec} .\n"
+        );
+        let report = validate_graphs(&data, &shapes_ttl).expect("validate");
+        let flagged: Vec<String> = report
+            .results
+            .iter()
+            .map(|r| r.focus_node.to_string())
+            .collect();
+        assert!(
+            flagged.iter().any(|f| f.contains("bad")),
+            "the min>=max scale must be flagged; flagged: {flagged:?}"
+        );
+        assert!(
+            !flagged.iter().any(|f| f.contains("good")),
+            "the well-formed scale must NOT be flagged; flagged: {flagged:?}"
+        );
+    }
+
+    // ── procedural-constraint capabilities (arithmetic BIND, variable predicate,
+    //    direct-instance target, filter disjunction) ─────────────────────────────────
+
+    /// Collect the focus nodes a projected constraint document flags over `data` (N-Triples).
+    fn flagged_over(shapes_ttl: &str, data: &str) -> Vec<String> {
+        use purrdf::shapes::engine::validate_graphs;
+        let report = validate_graphs(data, shapes_ttl).expect("validate");
+        report
+            .results
+            .iter()
+            .map(|r| r.focus_node.to_string())
+            .collect()
+    }
+
+    #[test]
+    fn arithmetic_sum_bind_lowers_and_flags_a_dimension_mismatch() {
+        // ∀this:Widget. ¬∃(p,q,d,s). sigPos(this,p) ∧ sigNeg(this,q) ∧ dim(this,d) ∧
+        //   termSum(s,p,q) ∧ termDistinct(s,d)  — the p+q ≠ dimensionCount invariant.
+        let sum =
+            Formula::atom(tiri(LOGIC_TERM_SUM), vec![tvar("s"), tvar("p"), tvar("q")]).unwrap();
+        let distinct =
+            Formula::atom(tiri(LOGIC_TERM_DISTINCT), vec![tvar("s"), tvar("d")]).unwrap();
+        let body = Formula::And(vec![
+            atom("https://ex/sigPos", tvar("this"), tvar("p")),
+            atom("https://ex/sigNeg", tvar("this"), tvar("q")),
+            atom("https://ex/dim", tvar("this"), tvar("d")),
+            sum,
+            distinct,
+        ]);
+        let c = guarded("https://ex/cSum", Formula::Not(Box::new(exists("p", body))));
+        let b = block(&c);
+        assert!(b.contains("BIND ( ( ?p + ?q ) AS ?s )"), "{b}");
+        // The BIND must precede the FILTER that reads ?s.
+        assert!(
+            b.find("BIND").unwrap() < b.find("FILTER ( ?s != ?d )").unwrap(),
+            "BIND must precede its FILTER: {b}"
+        );
+        let prog = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![c]);
+        let doc = project_procedural_constraints(&prog);
+        let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+        let data = format!(
+            "<https://ex/bad> {ty} <https://ex/Widget> .\n\
+<https://ex/bad> <https://ex/sigPos> \"2\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n\
+<https://ex/bad> <https://ex/sigNeg> \"1\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n\
+<https://ex/bad> <https://ex/dim> \"5\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n\
+<https://ex/good> {ty} <https://ex/Widget> .\n\
+<https://ex/good> <https://ex/sigPos> \"2\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n\
+<https://ex/good> <https://ex/sigNeg> \"1\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n\
+<https://ex/good> <https://ex/dim> \"3\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n"
+        );
+        let flagged = flagged_over(&doc, &data);
+        assert!(flagged.iter().any(|f| f.contains("bad")), "{flagged:?}");
+        assert!(!flagged.iter().any(|f| f.contains("good")), "{flagged:?}");
+    }
+
+    #[test]
+    fn variable_predicate_link_lowers_and_flags_any_edge_to_a_typed_object() {
+        // ∀this:Widget. ¬∃(link,c). linkVia(this,link,c) ∧ type(c, ex:Bad) — any predicate
+        // linking the focus to a Bad-typed object is forbidden.
+        let link = Formula::atom(
+            tiri(LOGIC_LINK_VIA),
+            vec![tvar("this"), tvar("link"), tvar("c")],
+        )
+        .unwrap();
+        let body = Formula::And(vec![
+            link,
+            atom(RDF_TYPE, tvar("c"), tiri("https://ex/Bad")),
+        ]);
+        let c = guarded(
+            "https://ex/cLink",
+            Formula::Not(Box::new(exists("c", body))),
+        );
+        let b = block(&c);
+        assert!(b.contains("$this ?link ?c ."), "{b}");
+        let prog = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![c]);
+        let doc = project_procedural_constraints(&prog);
+        let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+        let data = format!(
+            "<https://ex/bad> {ty} <https://ex/Widget> .\n\
+<https://ex/bad> <https://ex/anyEdge> <https://ex/x> .\n\
+<https://ex/x> {ty} <https://ex/Bad> .\n\
+<https://ex/good> {ty} <https://ex/Widget> .\n\
+<https://ex/good> <https://ex/anyEdge> <https://ex/y> .\n"
+        );
+        let flagged = flagged_over(&doc, &data);
+        assert!(flagged.iter().any(|f| f.contains("bad")), "{flagged:?}");
+        assert!(!flagged.iter().any(|f| f.contains("good")), "{flagged:?}");
+    }
+
+    #[test]
+    fn direct_instance_target_excludes_subclass_typed_nodes() {
+        // ∀this. directType(this, ex:Base) → ¬∃v. required(this, v).
+        let integrity = Formula::Forall {
+            vars: vec!["this".to_owned()],
+            body: Box::new(Formula::Implies(
+                Box::new(
+                    Formula::atom(
+                        tiri(LOGIC_DIRECT_TYPE),
+                        vec![tvar("this"), tiri("https://ex/Base")],
+                    )
+                    .unwrap(),
+                ),
+                Box::new(exists(
+                    "v",
+                    atom("https://ex/required", tvar("this"), tvar("v")),
+                )),
+            )),
+        };
+        let c = ConstraintIr::new(
+            "https://ex/cDirect",
+            integrity,
+            ShaclSeverity::Violation,
+            None,
+        )
+        .unwrap();
+        assert!(matches!(&c.target, ShapeTarget::DirectClass(x) if x == "https://ex/Base"));
+        let b = block(&c);
+        assert!(b.contains("a sh:SPARQLTarget"), "{b}");
+        assert!(b.contains("rdf-schema#subClassOf>+"), "{b}");
+        // The directType marker must NOT leak into the WHERE body as a triple.
+        assert!(!b.contains("directType"), "{b}");
+        let prog = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![c]);
+        let doc = project_procedural_constraints(&prog);
+        let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+        let data = format!(
+            "<https://ex/Sub> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://ex/Base> .\n\
+<https://ex/directBad> {ty} <https://ex/Base> .\n\
+<https://ex/subExcluded> {ty} <https://ex/Base> .\n\
+<https://ex/subExcluded> {ty} <https://ex/Sub> .\n"
+        );
+        let flagged = flagged_over(&doc, &data);
+        // directBad is a bare Base instance missing `required` → flagged.
+        assert!(
+            flagged.iter().any(|f| f.contains("directBad")),
+            "{flagged:?}"
+        );
+        // subExcluded is ALSO a Sub instance → excluded by the direct-instance target.
+        assert!(
+            !flagged.iter().any(|f| f.contains("subExcluded")),
+            "a subclass-typed node must be excluded: {flagged:?}"
+        );
+    }
+
+    #[test]
+    fn filter_disjunction_lowers_to_one_combined_filter_not_a_union() {
+        // ∀this:Widget. ¬∃(b,d). band(this,b) ∧ dec(this,d) ∧
+        //   ( (b = ex:certain ∧ d < 0.9) ∨ (b = ex:unspecified) )
+        let dec_lit = |n: &str| Term::Literal {
+            lexical: n.to_owned(),
+            datatype: Some("http://www.w3.org/2001/XMLSchema#decimal".to_owned()),
+        };
+        let arm1 = Formula::And(vec![
+            Formula::atom(
+                tiri(LOGIC_TERM_EQUAL),
+                vec![tvar("b"), tiri("https://ex/certain")],
+            )
+            .unwrap(),
+            Formula::atom(tiri(LOGIC_TERM_LESS), vec![tvar("d"), dec_lit("0.9")]).unwrap(),
+        ]);
+        let arm2 = Formula::atom(
+            tiri(LOGIC_TERM_EQUAL),
+            vec![tvar("b"), tiri("https://ex/unspecified")],
+        )
+        .unwrap();
+        let bad = Formula::Or(vec![arm1, arm2]);
+        let body = Formula::And(vec![
+            atom("https://ex/band", tvar("this"), tvar("b")),
+            atom("https://ex/dec", tvar("this"), tvar("d")),
+            bad,
+        ]);
+        let c = guarded(
+            "https://ex/cBand",
+            Formula::Not(Box::new(exists("b", body))),
+        );
+        let b = block(&c);
+        assert!(b.contains("FILTER ("), "{b}");
+        assert!(
+            b.contains(" || "),
+            "the disjunction must be one FILTER, not a UNION: {b}"
+        );
+        assert!(!b.contains("UNION"), "{b}");
+        let prog = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![c]);
+        let doc = project_procedural_constraints(&prog);
+        let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+        let data = format!(
+            "<https://ex/bad> {ty} <https://ex/Widget> .\n\
+<https://ex/bad> <https://ex/band> <https://ex/certain> .\n\
+<https://ex/bad> <https://ex/dec> \"0.3\"^^<http://www.w3.org/2001/XMLSchema#decimal> .\n\
+<https://ex/good> {ty} <https://ex/Widget> .\n\
+<https://ex/good> <https://ex/band> <https://ex/certain> .\n\
+<https://ex/good> <https://ex/dec> \"0.95\"^^<http://www.w3.org/2001/XMLSchema#decimal> .\n"
+        );
+        let flagged = flagged_over(&doc, &data);
+        assert!(flagged.iter().any(|f| f.contains("bad")), "{flagged:?}");
+        assert!(!flagged.iter().any(|f| f.contains("good")), "{flagged:?}");
+    }
+
+    #[test]
+    fn consent_exactly_one_and_at_least_one_lowers_without_aggregates() {
+        // The RightsStatement consent invariant, encoded in first-order form (no COUNT): a
+        // consent-governing RightsStatement (a permission whose ruleAction is
+        // processPersonalData) must have EXACTLY ONE data subject and AT LEAST ONE data
+        // controller. "Exactly one subject" is the nested-negation form ∃s. subj(s) ∧
+        // ¬∃s2.(subj(s2) ∧ s2≠s); SHACL pre-binds $this, so the UNION-of-negations arms correlate.
+        let rs = "https://ex/RightsStatement";
+        let action = "https://ex/processPersonalData";
+        let one_subject = exists(
+            "s",
+            Formula::And(vec![
+                atom("https://ex/hasDataSubject", tvar("this"), tvar("s")),
+                Formula::Not(Box::new(exists(
+                    "s2",
+                    Formula::And(vec![
+                        atom("https://ex/hasDataSubject", tvar("this"), tvar("s2")),
+                        Formula::atom(tiri(LOGIC_TERM_DISTINCT), vec![tvar("s2"), tvar("s")])
+                            .unwrap(),
+                    ]),
+                ))),
+            ]),
+        );
+        let at_least_one_controller = exists(
+            "c",
+            atom("https://ex/hasDataController", tvar("this"), tvar("c")),
+        );
+        let guard = || {
+            Formula::And(vec![
+                atom(RDF_TYPE, tvar("this"), tiri(rs)),
+                atom("https://ex/hasPermission", tvar("this"), tvar("perm")),
+                atom("https://ex/ruleAction", tvar("perm"), tiri(action)),
+            ])
+        };
+        // Two peer constraints (both formalizing the same RightsStatement source-term): one guards
+        // the exactly-one-subject condition, one the at-least-one-controller condition. Splitting a
+        // compound `∧` invariant into single-`FILTER NOT EXISTS` peers keeps each violation body a
+        // guarded conjunction (no top-level UNION-of-filters whose arms bind no focus).
+        let mk = |iri: &str, phi: Formula| {
+            let integrity = Formula::Forall {
+                vars: vec!["this".to_owned()],
+                body: Box::new(Formula::Implies(Box::new(guard()), Box::new(phi))),
+            };
+            ConstraintIr::new(iri, integrity, ShaclSeverity::Warning, None)
+                .unwrap()
+                .with_formalizes("https://ex/ConsentWellformednessShape")
+                .unwrap()
+        };
+        let c_subj = mk("https://ex/cConsentSubject", one_subject);
+        let c_ctrl = mk("https://ex/cConsentController", at_least_one_controller);
+        assert!(matches!(&c_subj.target, ShapeTarget::Class(x) if x == rs));
+        let prog =
+            LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![c_subj, c_ctrl]);
+        let doc = project_procedural_constraints(&prog);
+        let ty = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+        // rs2: 1 subject, 0 controller (violates); rs3: 0 subject, 1 controller (violates);
+        // rs4: 2 subjects, 1 controller (violates); rsGood: 1 subject, 1 controller (ok);
+        // rsPlain: NOT consent-governing (perm has no processPersonalData action) — must not fire.
+        let data = format!(
+            "<https://ex/rs2> {ty} <{rs}> .\n\
+<https://ex/rs2> <https://ex/hasDataSubject> <https://ex/alice> .\n\
+<https://ex/rs2> <https://ex/hasPermission> <https://ex/perm2> .\n\
+<https://ex/perm2> <https://ex/ruleAction> <{action}> .\n\
+<https://ex/rs3> {ty} <{rs}> .\n\
+<https://ex/rs3> <https://ex/hasDataController> <https://ex/alice> .\n\
+<https://ex/rs3> <https://ex/hasPermission> <https://ex/perm3> .\n\
+<https://ex/perm3> <https://ex/ruleAction> <{action}> .\n\
+<https://ex/rs4> {ty} <{rs}> .\n\
+<https://ex/rs4> <https://ex/hasDataSubject> <https://ex/alice> .\n\
+<https://ex/rs4> <https://ex/hasDataSubject> <https://ex/bob> .\n\
+<https://ex/rs4> <https://ex/hasDataController> <https://ex/alice> .\n\
+<https://ex/rs4> <https://ex/hasPermission> <https://ex/perm4> .\n\
+<https://ex/perm4> <https://ex/ruleAction> <{action}> .\n\
+<https://ex/rsGood> {ty} <{rs}> .\n\
+<https://ex/rsGood> <https://ex/hasDataSubject> <https://ex/alice> .\n\
+<https://ex/rsGood> <https://ex/hasDataController> <https://ex/acme> .\n\
+<https://ex/rsGood> <https://ex/hasPermission> <https://ex/permG> .\n\
+<https://ex/permG> <https://ex/ruleAction> <{action}> .\n\
+<https://ex/rsPlain> {ty} <{rs}> .\n\
+<https://ex/rsPlain> <https://ex/hasDataSubject> <https://ex/alice> .\n\
+<https://ex/rsPlain> <https://ex/hasDataSubject> <https://ex/bob> .\n\
+<https://ex/rsPlain> <https://ex/hasPermission> <https://ex/permP> .\n"
+        );
+        let flagged = flagged_over(&doc, &data);
+        for bad in ["rs2", "rs3", "rs4"] {
+            assert!(
+                flagged.iter().any(|f| f.contains(bad)),
+                "{bad} must be flagged: {flagged:?}"
+            );
+        }
+        assert!(
+            !flagged.iter().any(|f| f.contains("rsGood")),
+            "the well-formed consent statement must NOT fire: {flagged:?}"
+        );
+        assert!(
+            !flagged.iter().any(|f| f.contains("rsPlain")),
+            "a non-consent statement must NOT fire: {flagged:?}"
+        );
     }
 }

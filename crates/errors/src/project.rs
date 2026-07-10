@@ -29,6 +29,9 @@ impl DiagNode {
         finding.add_location(self.source_ctx.location.clone());
         finding.tags = self.tags.clone();
         finding.attributions = self.attributions.clone();
+        // The documented-term attributions (a SHACL violation's constrained property,
+        // etc.) ride onto the finding for the docs per-term diagnostics join.
+        finding.documented_terms = self.documented_terms.clone();
         // The flat text-only suggestion twin (kept so the existing suggestion
         // renderers are unchanged) AND the faithful structured projection that
         // preserves each advice's standpoint + outward help URI (the lossy step

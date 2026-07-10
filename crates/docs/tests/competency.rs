@@ -228,6 +228,11 @@ fn model_extracts_shapes_competencies_and_stereotypes() {
         "live model must reverse-map competency questions from tests/competency.ttl"
     );
     assert!(
+        !model.loss_targets.is_empty(),
+        "live model must find at least one authored projection-loss-ledger row \
+         (e.g. slices/grounding/logic/examples/projection-loss-ledger.ttl)"
+    );
+    assert!(
         model.terms.iter().any(|t| !t.logic_stereotypes.is_empty()),
         "live model must surface logic stereotypes on at least one term"
     );

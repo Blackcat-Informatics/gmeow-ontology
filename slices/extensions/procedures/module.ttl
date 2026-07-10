@@ -708,3 +708,55 @@ DOCTRINE.
     skos:definition "The GMEOW Procedures Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Migrated procedural constraints (#1194): closed-world Procedures shapes from  #
+# shapes/gmeow-shapes.ttl lifted to logic: (Principle 17).                      #
+# =========================================================================== #
+
+# Projection of gmeow:ExecutionHasPlanShape.
+gmeow:ExecutionHasPlanConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Execution has-plan constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world requiredness constraint: a gmeow:Execution references at least one gmeow:executesProcedure or gmeow:executesStep."@x-gmeow-english ;
+    logic:onClass gmeow:Execution ;
+    logic:anyOf gmeow:executesProcedure , gmeow:executesStep ;
+    logic:formalizes gmeow:Execution ;
+    logic:message "An Execution must reference at least one Procedure (gmeow:executesProcedure) or ProcedureStep (gmeow:executesStep)." .
+
+# Projection of gmeow:BranchHasOutgoingFlowsShape: a stepTypeBranch ProcedureStep
+# must be the flowSource of two distinct ControlFlow relators.
+gmeow:BranchHasOutgoingFlowsConstraint
+    a logic:Constraint ;
+    rdfs:label "Branch outgoing-flows constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ProcedureStep whose gmeow:procedureStepType is gmeow:stepTypeBranch is the gmeow:flowSource of at least two distinct gmeow:ControlFlow relators."@x-gmeow-english ;
+    logic:formalizes gmeow:ProcedureStep ;
+    logic:message "A ProcedureStep of type stepTypeBranch must be the source of at least two ControlFlow relators." ;
+    logic:integrity logic:brofForall .
+logic:brofForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:brofImpl .
+logic:brofImpl a logic:Formula ; logic:antecedent logic:brofGuard ; logic:consequent logic:brofExists .
+logic:brofGuard a logic:Formula ; logic:and logic:brofType , logic:brofBranch .
+logic:brofType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ProcedureStep ] .
+logic:brofBranch a logic:Formula ; logic:relation gmeow:procedureStepType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:stepTypeBranch ] .
+logic:brofExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "flow1" ] , [ logic:termIndex 1 ; logic:termVariable "flow2" ] ;
+    logic:exists logic:brofBody .
+logic:brofBody a logic:Formula ; logic:and logic:brofType1 , logic:brofSrc1 , logic:brofType2 , logic:brofSrc2 , logic:brofDistinct .
+logic:brofType1 a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "flow1" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ControlFlow ] .
+logic:brofSrc1 a logic:Formula ; logic:relation gmeow:flowSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "flow1" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:brofType2 a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "flow2" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ControlFlow ] .
+logic:brofSrc2 a logic:Formula ; logic:relation gmeow:flowSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "flow2" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:brofDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "flow1" ] , [ logic:termIndex 1 ; logic:termVariable "flow2" ] .

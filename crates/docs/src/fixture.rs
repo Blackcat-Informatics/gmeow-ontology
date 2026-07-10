@@ -277,8 +277,11 @@ fn cache_key(root: &Path) -> String {
     hasher.update(b"\x1e");
 
     let mut files: Vec<PathBuf> = Vec::new();
-    // Directory roots discover() walks recursively.
-    for dir in ["slices", "shapes", "i18n"] {
+    // Directory roots discover() walks recursively. `queries` is the shared
+    // repo-root SPARQL tree a `gmeow:cqQueryFile` may resolve into (T2:
+    // `apply_competency_query_text`) alongside the per-slice `.rq` files
+    // already covered by the `slices` walk.
+    for dir in ["slices", "shapes", "i18n", "queries"] {
         collect_files(&root.join(dir), &mut files);
     }
     // Individual files discover() reads directly.

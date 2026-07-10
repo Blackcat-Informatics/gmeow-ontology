@@ -214,6 +214,15 @@ pub struct DiagNode {
     pub remediation: Vec<Remediation>,
     pub labels: Vec<Label>,
     pub tags: Vec<String>,
+    /// The DOCUMENTED ontology terms this witness structurally concerns — payload,
+    /// NOT part of the identity fingerprint (like [`tags`](DiagNode::tags)), so a
+    /// SHACL violation can attribute to its constrained property without perturbing
+    /// its content address. Projected onto
+    /// [`Finding::documented_terms`](crate::model::Finding) for the docs per-term
+    /// diagnostics join. `skip_serializing_if` keeps it out of the node wire form
+    /// when empty so non-attributed nodes are byte-unchanged.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub documented_terms: Vec<String>,
     /// The Belnap knowledge value; [`Belnap::Both`] flags a merged glut.
     pub knowledge: Belnap,
     pub emitted_at: SerLocation,
@@ -471,6 +480,13 @@ impl DiagLedger {
                 slot.tags.push(tag);
             }
         }
+        // Union the documented-term attributions — two witnesses hash-consing onto
+        // one anchor may each concern a distinct documented term; keep them all.
+        for term in incoming.documented_terms {
+            if !slot.documented_terms.contains(&term) {
+                slot.documented_terms.push(term);
+            }
+        }
     }
 
     /// A node must not be its own ancestor — the witness structure is a DAG.
@@ -662,6 +678,7 @@ mod tests {
             remediation: Vec::new(),
             labels: Vec::new(),
             tags: Vec::new(),
+            documented_terms: Vec::new(),
             knowledge: Belnap::Supported,
             emitted_at: SerLocation {
                 file: "x".to_owned(),
@@ -703,6 +720,7 @@ mod tests {
             remediation: Vec::new(),
             labels: Vec::new(),
             tags: Vec::new(),
+            documented_terms: Vec::new(),
             knowledge: Belnap::Supported,
             emitted_at: SerLocation {
                 file: "x".to_owned(),

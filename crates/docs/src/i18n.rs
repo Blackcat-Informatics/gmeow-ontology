@@ -486,6 +486,7 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     // Body chrome (heading / label / caveat / status strings emitted by the
     // Markdown body renderers; localizable via the same override catalog).
     ("body_about", "About"),
+    ("body_academic_surface", "Formal & academic"),
     ("body_advice_avoid_for_consumers", "Avoid for consumers"),
     ("body_advice_avoid_when", "Avoid when"),
     ("body_advice_example", "Example"),
@@ -500,6 +501,7 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_badge_legend", "Badge legend"),
     ("body_box_role", "Box role"),
     ("body_browse", "Browse"),
+    ("body_build_pipeline", "Build pipeline"),
     ("body_by_term_count", "By term count"),
     ("body_canonical_ir", "Canonical IR"),
     (
@@ -537,6 +539,8 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_changelog_added", "Added"),
     ("body_changelog_changed", "Changed"),
     ("body_citation", "Citation"),
+    ("body_cite_this_page", "Cite this page"),
+    ("body_competency_questions", "Competency questions"),
     ("body_compiler_diagnostics", "Compiler diagnostics"),
     ("body_compiler_products", "Compiler products"),
     (
@@ -545,42 +549,63 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ),
     ("body_concern_not_found", "Concern not found."),
     ("body_concerns", "Concerns"),
+    ("body_conformance_examples", "Conformance examples"),
+    ("body_conformance_fixtures", "Conformance fixtures"),
     ("body_constraints", "Constraints"),
     ("body_coverage_by_dimension", "Coverage by dimension"),
     ("body_coverage_by_slice", "Coverage by slice"),
     ("body_definition", "Definition"),
     ("body_dependency_graph", "Dependency graph"),
     ("body_derivation_graph", "Derivation graph"),
+    ("body_developer_surface", "For developers"),
+    (
+        "body_diagnostics_none",
+        "No diagnostics recorded against this term in the current build.",
+    ),
+    (
+        "body_diagnostics_you_might_hit",
+        "Diagnostics you might hit",
+    ),
+    ("body_dl_axioms", "Description-Logic axioms"),
     ("body_documentation_coverage", "Documentation coverage"),
     ("body_documentation_health", "Documentation health"),
     ("body_domain", "Domain"),
     ("body_enforced_constraints", "What GMEOW enforces"),
     ("body_example_files", "Example files"),
+    ("body_example_syntaxes", "Example in multiple syntaxes"),
     ("body_examples", "Examples"),
     ("body_examples_using_this_term", "Examples using this term"),
+    ("body_expected_rows", "Expected rows"),
     ("body_external_ontologies", "External ontologies"),
     ("body_formalized_by", "Formalized by"),
     ("body_framework_distribution", "Framework distribution"),
     ("body_frameworks", "Frameworks"),
     ("body_getting_started", "Getting started"),
+    ("body_glossary", "RDF-to-developer glossary"),
     ("body_goal", "Goal"),
+    ("body_grammar_not_found", "Grammar not found."),
+    ("body_grammar_source", "Grammar source"),
     (
         "body_health_heatmap_legend",
         "Per-slice coverage of each documentation dimension — green ≥ 80%, amber ≥ 50%, \
          red below.",
     ),
+    ("body_i_want_to", "I want to…"),
     ("body_integrity_constraints", "Integrity constraints"),
     ("body_label_added_in", "Added in"),
     ("body_label_alignment_density", "Alignment density"),
     ("body_label_cite_ontology", "Cite the ontology"),
     ("body_label_cite_slice", "Cite the slice"),
     ("body_label_content_address", "Content address"),
+    ("body_label_do", "Do"),
+    ("body_label_dont", "Don't"),
     ("body_label_help_link", "Help link"),
     ("body_label_orphan_terms", "Orphan terms"),
     ("body_label_permalink", "Permalink"),
     ("body_label_rule_code", "Rule code"),
     ("body_label_severity", "Severity"),
     ("body_label_status", "Status"),
+    ("body_label_violation_code", "Violation code"),
     ("body_learning_path_not_found", "Learning path not found."),
     ("body_learning_paths", "Learning paths"),
     ("body_linkage", "Linkage"),
@@ -588,6 +613,14 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_logic_and_reasoning", "Logic & Reasoning"),
     ("body_logic_stereotypes", "Logic stereotypes"),
     ("body_neighborhood", "Neighborhood"),
+    (
+        "body_no_competency_questions",
+        "No competency questions are declared in any slice.",
+    ),
+    (
+        "body_no_conformance_fixtures",
+        "No conformance fixtures are declared in any slice.",
+    ),
     (
         "body_no_enforced_constraints",
         "No validation rules are declared in the constraint catalog.",
@@ -601,6 +634,15 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
         "No logic stereotypes are declared yet.",
     ),
     (
+        "body_no_notation_grammars",
+        "No notation grammars are declared in the lang slice.",
+    ),
+    (
+        "body_no_pipeline",
+        "No build pipeline was discovered for this model.",
+    ),
+    ("body_no_query_text", "No query text available."),
+    (
         "body_no_recipes",
         "No recipes are declared in the guides slice.",
     ),
@@ -608,12 +650,34 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
         "body_no_verify_queries",
         "No verification queries are declared in any slice.",
     ),
+    (
+        "body_no_worked_instances",
+        "No worked math instances are declared in any slice.",
+    ),
+    (
+        "body_no_worked_preservation_examples",
+        "No authored preservation examples are declared in any slice.",
+    ),
+    ("body_notation_grammars", "Notation grammars"),
+    ("body_openapi_fragment", "OpenAPI schema"),
     ("body_other_equivalences", "Other equivalences"),
     ("body_part_of", "Part of"),
+    ("body_pipeline_capabilities", "Capabilities and resources"),
+    ("body_pipeline_consumed_by", "Consumed by"),
+    ("body_pipeline_consumes", "Consumes"),
+    ("body_pipeline_diagram", "Pipeline diagram"),
+    ("body_pipeline_flowing_graphs", "Flowing graphs"),
+    ("body_pipeline_implementation", "Implementation"),
+    ("body_pipeline_stage", "Build-pipeline stage"),
+    ("body_pipeline_stages", "Stages"),
+    ("body_pipeline_success_mode", "Success mode"),
     ("body_preservation_loss_ledger", "Preservation loss ledger"),
     ("body_profiles", "Profiles"),
     ("body_projection_surface", "Projection surface"),
     ("body_projects_toward", "Projects toward"),
+    ("body_provenance", "Provenance"),
+    ("body_query", "Query"),
+    ("body_quickstart", "Quickstart"),
     ("body_range", "Range"),
     ("body_read_next", "Read next"),
     ("body_reasoning", "Reasoning"),
@@ -634,21 +698,41 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
         "**Unsatisfiable** — the native DL reasoner proved this class necessarily empty \
          (`rdfs:subClassOf owl:Nothing`).",
     ),
+    (
+        "body_reasoning_unsatisfiable_because",
+        "Unsatisfiable because",
+    ),
     ("body_recipe_not_found", "Recipe not found."),
     ("body_recipes", "Recipes"),
     ("body_related_terms", "Related terms"),
+    ("body_schema_fragment", "Use this term without RDF"),
     ("body_slice_not_found", "Slice not found."),
     ("body_slices", "Slices"),
     ("body_stability", "Stability"),
     ("body_super_classes", "Super-classes"),
     ("body_super_properties", "Super-properties"),
+    ("body_term_entailments", "Inferred facts"),
     ("body_term_not_found", "Term not found."),
+    (
+        "body_term_projection_degradation",
+        "How this term degrades under projection",
+    ),
+    (
+        "body_term_projection_degradation_none",
+        "Carried exactly by every projection — no per-shape property-path drops are \
+         recorded against this term in the current build.",
+    ),
     ("body_terms_used", "Terms used"),
     ("body_tested_by", "Tested by"),
     ("body_usage_advice", "Usage Advice"),
     ("body_vocabulary_by_category", "Vocabulary by category"),
     ("body_what_is_this", "What is this?"),
     ("body_where_to_go_next", "Where to go next"),
+    ("body_worked_instances", "Worked instances"),
+    (
+        "body_worked_preservation_examples",
+        "Worked preservation examples",
+    ),
     // Category labels
     ("category_class", "Classes"),
     ("category_datatype", "Datatypes"),
@@ -941,9 +1025,9 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 107 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 154 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 167);
+        assert_eq!(UI_TEMPLATES.len(), 214);
     }
 
     #[test]

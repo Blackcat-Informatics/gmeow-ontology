@@ -94,6 +94,46 @@ const GMEOW_FOLLOWS_GUIDE_PATH: &str = "https://blackcatinformatics.ca/gmeow/fol
 /// values under it are surfaced as the term's logic stereotypes.
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
+/// `logic:PathShape` — a named, parametric predicate-path traversal specification
+/// (design/LOGIC-PATHS.md). Its authored INSTANCES are first-class, reusable
+/// by-name terms, so a GMEOW-namespaced subject typed with it is a documented term
+/// (an [`DocTermCategory::Individual`]) whose projection-loss row joins its page.
+const LOGIC_PATH_SHAPE: &str = "https://blackcatinformatics.ca/logic/PathShape";
+/// `logic:preservationKind` — the preservation-polarity vocabulary object a
+/// worked authored-example loss row declares (e.g. `logic:SoundUnderApproximation`,
+/// `logic:ValidationOnly`).
+const LOGIC_PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/preservationKind";
+/// `logic:complexityClass` — the plain-literal complexity-class string a worked
+/// authored-example loss row declares alongside its `logic:preservationKind`.
+const LOGIC_COMPLEXITY_CLASS: &str = "https://blackcatinformatics.ca/logic/complexityClass";
+
+// ── Math grounding: worked ℚ⁷ SI-dimension instances ─────────────────────────
+/// The math-grounding vocabulary namespace (`slices/grounding/math`).
+const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
+/// `math:hasDimension` — the predicate a worked instance's subject (a
+/// `Quantity`/`Integral`/`Measure`/measurable-function/…) declares its
+/// dimension object through. The SUBJECT-discovery predicate for
+/// [`extract_worked_instances`].
+const MATH_HAS_DIMENSION: &str = "https://blackcatinformatics.ca/math/hasDimension";
+/// `math:baseDimensionExponent` — a `math:DerivedDimension`'s edges to its
+/// `math:DimensionExponent` individuals (one per non-trivially-exercised SI
+/// base dimension). Absent (empty) for a dimensionless dimension object (e.g.
+/// `math:dimensionless`) — an honest zero-exponent case, not a hard fail.
+const MATH_BASE_DIMENSION_EXPONENT: &str =
+    "https://blackcatinformatics.ca/math/baseDimensionExponent";
+/// `math:exponentOfDimension` — a `math:DimensionExponent`'s edge to the SI
+/// base-dimension IRI it exercises (e.g. `math:massDimension`).
+const MATH_EXPONENT_OF_DIMENSION: &str = "https://blackcatinformatics.ca/math/exponentOfDimension";
+/// `math:exponentNumerator` — an `xsd:integer` literal (may be negative).
+const MATH_EXPONENT_NUMERATOR: &str = "https://blackcatinformatics.ca/math/exponentNumerator";
+/// `math:exponentDenominator` — an `xsd:integer` literal.
+const MATH_EXPONENT_DENOMINATOR: &str = "https://blackcatinformatics.ca/math/exponentDenominator";
+/// `gmeow:unit` — a worked instance's QUDT unit realization, if it is a
+/// `math:Quantity` (e.g. `<http://qudt.org/vocab/unit/J>`).
+const GMEOW_UNIT: &str = "https://blackcatinformatics.ca/gmeow/unit";
+/// `math:quantityValue` — a worked instance's `xsd:double` literal value, if it
+/// is a `math:Quantity`.
+const MATH_QUANTITY_VALUE: &str = "https://blackcatinformatics.ca/math/quantityValue";
 
 // ── Constraint catalog (gmeow:ValidationRule individuals) ───────────────────────
 /// The class every catalog subject is typed as in
@@ -144,9 +184,65 @@ const SH_MESSAGE: &str = "http://www.w3.org/ns/shacl#message";
 const GMEOW_COMPETENCY_QUESTION: &str = "https://blackcatinformatics.ca/gmeow/CompetencyQuestion";
 const GMEOW_CQ_RATIONALE: &str = "https://blackcatinformatics.ca/gmeow/cqRationale";
 const GMEOW_CQ_QUERY_FILE: &str = "https://blackcatinformatics.ca/gmeow/cqQueryFile";
+/// `gmeow:cqQuery` — the inline SPARQL literal, used instead of
+/// [`GMEOW_CQ_QUERY_FILE`] by a CQ that embeds its query rather than pointing at
+/// a committed `.rq` file. No authored competency question carries both.
+const GMEOW_CQ_QUERY: &str = "https://blackcatinformatics.ca/gmeow/cqQuery";
+/// `gmeow:cqExactRows` — an `xsd:boolean` pinning whether `cqExpectRow` is the
+/// CLOSED result set (`true`) or a floor/subset (`false`/omitted → contains-check).
+const GMEOW_CQ_EXACT_ROWS: &str = "https://blackcatinformatics.ca/gmeow/cqExactRows";
+/// `gmeow:cqExpectRowCount` — an `xsd:integer` pinning an expected row COUNT
+/// (e.g. `0` for a must-be-empty QC query), used instead of an enumerated
+/// `cqExpectRow` list when only the cardinality — not the row content — matters.
+const GMEOW_CQ_EXPECT_ROW_COUNT: &str = "https://blackcatinformatics.ca/gmeow/cqExpectRowCount";
 const GMEOW_CQ_EXPECT_ROW: &str = "https://blackcatinformatics.ca/gmeow/cqExpectRow";
 const GMEOW_ROW_CELL: &str = "https://blackcatinformatics.ca/gmeow/rowCell";
 const GMEOW_CELL_VALUE_IRI: &str = "https://blackcatinformatics.ca/gmeow/cellValueIri";
+/// `gmeow:cellVar` — the SPARQL projection variable name a cell binds (e.g.
+/// `"neighbor"`).
+const GMEOW_CELL_VAR: &str = "https://blackcatinformatics.ca/gmeow/cellVar";
+/// `gmeow:cellValueLiteral` — a cell's expected literal lexical form, used
+/// instead of [`GMEOW_CELL_VALUE_IRI`] when the bound variable is a literal
+/// (e.g. a label or classification string) rather than an IRI.
+const GMEOW_CELL_VALUE_LITERAL: &str = "https://blackcatinformatics.ca/gmeow/cellValueLiteral";
+
+// ── Conformance-fixture Do/Don't binding surface ─────────────────────────────
+// The fixtures themselves (`tests/conformance-fixtures/*.ttl` /
+// `tests/counter-examples/*.ttl`) are pure ABox payloads carrying no
+// `sh:message` or shape reference; the expected outcome / violation code /
+// rationale live in a SEPARATE per-slice `tests/example-conformance.ttl`
+// binding file, joined by slice-relative path (`gmeow:exampleFile`).
+
+const GMEOW_EXAMPLE_CONFORMANCE: &str = "https://blackcatinformatics.ca/gmeow/ExampleConformance";
+const GMEOW_EXAMPLE_FILE: &str = "https://blackcatinformatics.ca/gmeow/exampleFile";
+const GMEOW_EXPECTED_OUTCOME: &str = "https://blackcatinformatics.ca/gmeow/expectedOutcome";
+const GMEOW_EXPECTED_VIOLATION_CODE: &str =
+    "https://blackcatinformatics.ca/gmeow/expectedViolationCode";
+const GMEOW_CONFORMANCE_RATIONALE: &str =
+    "https://blackcatinformatics.ca/gmeow/conformanceRationale";
+
+// ── Build-pipeline DAG surface (slices/core/pipeline/module.ttl) ────────────
+// The dogfooded build graph authored as data: `gmeow:PipelineStage` individuals
+// gathered on the one `gmeow:Pipeline` (`gmeow:pipeline-build`) through
+// `gmeow:hasStage`, wired by bare `gmeow:dataflowConsumes` edges and refined by
+// reified `gmeow:BuildDataFlow` edges that name the flowing named graphs.
+
+const GMEOW_PIPELINE: &str = "https://blackcatinformatics.ca/gmeow/Pipeline";
+const GMEOW_PIPELINE_STAGE: &str = "https://blackcatinformatics.ca/gmeow/PipelineStage";
+const GMEOW_BUILD_DATA_FLOW: &str = "https://blackcatinformatics.ca/gmeow/BuildDataFlow";
+const GMEOW_STAGE_IMPL: &str = "https://blackcatinformatics.ca/gmeow/stageImpl";
+const GMEOW_HAS_CAPABILITY: &str = "https://blackcatinformatics.ca/gmeow/hasCapability";
+const GMEOW_REQUIRES_RESOURCE: &str = "https://blackcatinformatics.ca/gmeow/requiresResource";
+const GMEOW_DATAFLOW_CONSUMES: &str = "https://blackcatinformatics.ca/gmeow/dataflowConsumes";
+const GMEOW_BUILD_FLOW_FROM: &str = "https://blackcatinformatics.ca/gmeow/buildFlowFrom";
+const GMEOW_BUILD_FLOW_TO: &str = "https://blackcatinformatics.ca/gmeow/buildFlowTo";
+const GMEOW_FLOW_ENTITY: &str = "https://blackcatinformatics.ca/gmeow/flowEntity";
+/// `logic:planGoal` — the `gmeow:Goal` the `gmeow:Pipeline` (a `logic:Plan`) is
+/// arranged to reach (the shippable bundle).
+const LOGIC_PLAN_GOAL: &str = "https://blackcatinformatics.ca/logic/planGoal";
+/// `logic:planSuccessMode` — the plan's declared success mode (e.g.
+/// `logic:StrongPlanSuccess`).
+const LOGIC_PLAN_SUCCESS_MODE: &str = "https://blackcatinformatics.ca/logic/planSuccessMode";
 
 /// An error building the documentation model.
 #[derive(Debug)]
@@ -170,6 +266,13 @@ pub enum DocsError {
     /// complete, well-formed manifest, so any of these is a broken invariant, never
     /// an optional input.
     TermManifest(String),
+    /// A competency question declares `gmeow:cqQueryFile` (a repo-root-relative
+    /// `.rq` path) but the file could not be read at that path. `cqQueryFile`
+    /// existing is the ontology's own claim that a resolvable query file exists
+    /// (mirroring the executing competency harness's own
+    /// `crates/slicetest/src/paths.rs::query_file` resolution), so a dangling
+    /// reference is a data bug, never an honest absence to swallow as `None`.
+    CompetencyQuery(String),
 }
 
 impl std::fmt::Display for DocsError {
@@ -179,6 +282,7 @@ impl std::fmt::Display for DocsError {
             DocsError::ConstraintCatalog(msg) => write!(f, "constraint catalog error: {msg}"),
             DocsError::MappingSets(msg) => write!(f, "central mapping-sets error: {msg}"),
             DocsError::TermManifest(msg) => write!(f, "term content manifest error: {msg}"),
+            DocsError::CompetencyQuery(msg) => write!(f, "competency query file error: {msg}"),
         }
     }
 }
@@ -508,6 +612,61 @@ pub struct DocExample {
     pub terms_referenced: Vec<String>,
 }
 
+/// Whether a [`DocFixture`] is a well-formed conformance instance or a
+/// deliberately malformed counter-example.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum DocFixtureKind {
+    /// A `tests/conformance-fixtures/*.ttl` instance that MUST validate.
+    Wellformed,
+    /// A `tests/counter-examples/*.ttl` instance that MUST be rejected.
+    CounterExample,
+}
+
+/// A conformance Do/Don't fixture — a well-formed instance
+/// ([`DocFixtureKind::Wellformed`]) or a deliberately malformed counter-example
+/// ([`DocFixtureKind::CounterExample`]), carried in full (small Turtle text,
+/// not a blob). The fixture file itself is a pure ABox payload with no
+/// `sh:message` or shape reference; the expected outcome, violation code, and
+/// rationale — when the slice authors a binding — are joined in from that
+/// slice's `tests/example-conformance.ttl` (`gmeow:ExampleConformance`) by
+/// slice-relative path.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DocFixture {
+    /// The slice IRI that owns the fixture.
+    pub slice: String,
+    /// The logical path within the slice directory (e.g.
+    /// `tests/counter-examples/plan-missing-successmode.ttl`).
+    pub logical_path: String,
+    /// A human title (an `rdfs:label` if any subject carries one, else derived
+    /// from the filename — mirrors [`DocExample::title`]).
+    pub title: String,
+    /// The Turtle source, carried in full.
+    pub text: String,
+    /// Well-formed instance or counter-example.
+    pub kind: DocFixtureKind,
+    /// GMEOW CURIEs referenced anywhere in the fixture (sorted, deduped) —
+    /// reuses [`DocExample`]'s term-reference extraction exactly.
+    pub terms_referenced: Vec<String>,
+    /// `gmeow:expectedOutcome`'s local name (`"conforms"` | `"violates"`), from
+    /// this slice's `tests/example-conformance.ttl` binding. `None` when the
+    /// fixture carries no authored binding — an honest absence (not every
+    /// fixture is bound today).
+    pub expected_outcome: Option<String>,
+    /// `gmeow:expectedViolationCode` (e.g. `"shacl.MinCountConstraintComponent"`).
+    /// `None` for a well-formed fixture or an unbound counter-example.
+    pub violation_code: Option<String>,
+    /// `gmeow:conformanceRationale` — the human-readable "why" the fixture
+    /// conforms or violates. `None` when unbound.
+    pub rationale: Option<String>,
+    /// The constraint-catalog rule slug [`violation_code`](Self::violation_code)
+    /// resolves to, when a genuine [`ConstraintRule::code`] match exists in
+    /// [`DocsModel::constraint_rules`]. `None` when the fixture is unbound,
+    /// well-formed, or (the common case today) the catalog carries no
+    /// per-constraint-component rule matching the code — NEVER fabricated to
+    /// avoid an absent link.
+    pub catalog_slug: Option<String>,
+}
+
 /// A SHACL node shape, reverse-mapped to the term it constrains. Parsed from a
 /// slice's `shapes.ttl` (`ArtifactRole::Shapes`) and the root `shapes/*.ttl`
 /// files. DISTINCT from the integrity-constraint index (SPARQL verify queries):
@@ -527,21 +686,204 @@ pub struct DocShape {
 }
 
 /// A competency question (`gmeow:CompetencyQuestion`) reverse-mapped to the terms
-/// it exercises, so each term page can surface a "Tested by" block. Parsed from
-/// each slice's `tests/competency.ttl`.
+/// it exercises, so each term page can surface a "Tested by" block, and to a
+/// full copy-paste-runnable SPARQL query + its expected result, so
+/// `Page::CompetencyIndex` can render the whole question standalone. Parsed
+/// from each slice's `tests/competency.ttl`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct DocCompetency {
     /// The competency-question IRI.
     pub iri: String,
     /// `gmeow:cqRationale` — why the ontology must answer this.
     pub rationale: Option<String>,
-    /// `gmeow:cqQueryFile` — the slice-relative SPARQL query path.
+    /// `gmeow:cqQueryFile` — the REPO-ROOT-RELATIVE SPARQL query path, as
+    /// authored (kept verbatim for citation/display even once resolved). Some
+    /// slices author their own `.rq` under `slices/<group>/<name>/queries/…`;
+    /// others point at the shared `queries/competency/…` (or `queries/qc/…`)
+    /// tree at the repo root — both are legitimate repo-root-relative paths
+    /// (mirrors `crates/slicetest/src/paths.rs::query_file`, the executing
+    /// harness's own resolution contract). `None` when the CQ instead embeds
+    /// its query inline via `gmeow:cqQuery`.
     pub query_file: Option<String>,
+    /// The resolved SPARQL query body: `gmeow:cqQuery`'s inline literal when
+    /// present, or the text read from [`query_file`](Self::query_file) via
+    /// [`DocsModel::discover`]'s `apply_competency_query_text` pass (needs the
+    /// repo root, so `extract_competency` cannot resolve it itself). `None`
+    /// only when the CQ carries neither predicate (never happens for a
+    /// well-formed `competency.ttl`, but is not asserted here — `dsl::load_spec`
+    /// is the enforcement point for the harness; this is a docs *read*, not a
+    /// re-validation of the DSL). A `query_file` that fails to resolve to an
+    /// existing file is a hard fail (see `DocsError::CompetencyQuery`), never a
+    /// silent `None`.
+    pub query_text: Option<String>,
+    /// `gmeow:cqExactRows` — `Some(true)` when `expected_rows` is the CLOSED
+    /// result set, `Some(false)` when it is a floor/subset (contains-check),
+    /// `None` when the CQ declares neither (most common for a subset check).
+    pub exact_rows: Option<bool>,
+    /// `gmeow:cqExpectRowCount` — an expected row COUNT (e.g. `0` for a
+    /// must-be-empty QC query), used instead of an enumerated `expected_rows`
+    /// list when only cardinality matters. `None` for a CQ that enumerates rows.
+    pub expected_row_count: Option<i64>,
+    /// The enumerated expected rows (`gmeow:cqExpectRow` → `gmeow:rowCell`),
+    /// each a set of variable/value bindings, in [`GMEOW_CQ_EXPECT_ROW`]'s
+    /// deterministic (row-IRI-sorted) order. Empty when the CQ instead pins
+    /// [`expected_row_count`](Self::expected_row_count) or neither.
+    pub expected_rows: Vec<DocExpectedRow>,
     /// The term IRIs this CQ exercises, reached via
     /// `gmeow:cqExpectRow → gmeow:rowCell → gmeow:cellValueIri` (sorted/deduped).
     pub exercises: Vec<String>,
     /// The slice IRI that owns the competency artifact.
     pub owner_slice: String,
+}
+
+/// One expected result row of a competency question (`gmeow:ExpectedRow`): the
+/// set of per-variable cell bindings, sorted by `(var, value_iri, value_literal)`
+/// for deterministic rendering (blank-node cell order is not itself meaningful).
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
+pub struct DocExpectedRow {
+    /// The row's cell bindings, one per projected SPARQL variable.
+    pub cells: Vec<DocExpectedCell>,
+}
+
+/// One expected cell binding (`gmeow:ExpectedCell`) within an expected row.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, Default)]
+pub struct DocExpectedCell {
+    /// `gmeow:cellVar` — the SPARQL projection variable this cell binds.
+    pub var: Option<String>,
+    /// `gmeow:cellValueIri` — the expected IRI binding, when the variable binds
+    /// a resource.
+    pub value_iri: Option<String>,
+    /// `gmeow:cellValueLiteral` — the expected literal lexical form, when the
+    /// variable binds a literal.
+    pub value_literal: Option<String>,
+}
+
+/// A first-class rendering of one of the project's `lang:Grammar` individuals:
+/// the GMN / GTS / Turtle surface-syntax productions authored in full, plain
+/// W3C EBNF text under `slices/grounding/lang/grammars/*.ebnf` (one file per
+/// notation), carried verbatim — never a second parser, just the notation
+/// exhibit the grammar object itself carries the normative claims for.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DocGrammar {
+    /// The filename stem (e.g. `"gmn"`, `"gts"`, `"turtle"`), used as the page
+    /// slug.
+    pub slug: String,
+    /// A human title. Derived from the file's leading `#`-commented header
+    /// description (its first sentence, once the wrapped comment lines are
+    /// joined) rather than a mechanically humanized filename: the header prose
+    /// (e.g. "The GMN-1 (GMEOW Model Notation) surface grammar in W3C EBNF, one
+    /// production per line") is materially more informative than a naive
+    /// `Gmn`/`Gts`/`Turtle` filename split would be, and joining a handful of
+    /// `#` lines is no harder to implement correctly than that split — see
+    /// [`extract_grammar`].
+    pub title: String,
+    /// The full W3C EBNF source, carried in full.
+    pub source: String,
+    /// The `SPDX-License-Identifier` header value (e.g. `"AGPL-3.0-only"` for
+    /// the authored GMN/GTS grammars, `"W3C-20150513"` for the Turtle
+    /// transcription).
+    pub license: String,
+}
+
+/// One authored, worked projection-loss-ledger row: a `gmeow:InformationObject`
+/// individual (in ANY slice's `examples/*.ttl`) that carries BOTH
+/// `logic:preservationKind` and `logic:complexityClass` — the pedagogical,
+/// concrete-artifact twin of the compiler-emitted static whole-program ledger
+/// (`gmeow_logic_compile::projections::projection_ledger_rows`, rendered by
+/// `render.rs::md_logic_loss_ledger`'s existing table). Discovered generically:
+/// ANY example subject authoring both predicates becomes a row, not just the
+/// individuals in `slices/grounding/logic/examples/projection-loss-ledger.ttl`
+/// (today's only author).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DocLossTarget {
+    /// The subject IRI's local name (e.g. `"elProjectionReport"`) — a stable,
+    /// code-like identifier mirroring the compiler ledger's `target` column
+    /// (which shows a target code, not prose). The human-readable
+    /// [`label`](Self::label) carries the prose description separately, so
+    /// this field stays a terse, sortable/citable id rather than duplicating
+    /// the label.
+    pub target: String,
+    /// `rdfs:label`, when the subject carries one (every authored row does
+    /// today, but this is a documentation READ, not a re-validation of the
+    /// authoring convention — so it stays `Option`).
+    pub label: Option<String>,
+    /// The local name of the `logic:preservationKind` object IRI (e.g.
+    /// `"SoundUnderApproximation"`, `"ValidationOnly"`).
+    pub preservation_kind: String,
+    /// `logic:complexityClass`'s literal value.
+    pub complexity_class: String,
+    /// The slice IRI that owns the example artifact this row was parsed from.
+    pub slice: String,
+}
+
+/// One SI base-dimension exponent (`math:DimensionExponent`) within a
+/// `math:DerivedDimension`'s `math:baseDimensionExponent` set — one ℚ
+/// coordinate of the ℚ⁷ dimension vector (mass, length, time, electric
+/// current, temperature, amount of substance, luminous intensity), though only
+/// the base dimensions actually exercised by a given derived dimension are
+/// authored (a dimension with a zero exponent on an axis carries no
+/// [`DocDimExponent`] for it — sparse by construction, matching the source
+/// data).
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct DocDimExponent {
+    /// The local name of the SI base-dimension IRI this exponent is over
+    /// (e.g. `"massDimension"`, `"lengthDimension"`, `"timeDimension"`).
+    pub base_dimension: String,
+    /// `math:exponentNumerator` (may be negative, e.g. `-2`).
+    pub numerator: i64,
+    /// `math:exponentDenominator`.
+    pub denominator: i64,
+}
+
+/// One worked math instance: a subject (in any slice's `examples/*.ttl`)
+/// carrying `math:hasDimension`, with its dimension resolved down to the ℚ⁷
+/// SI base-dimension exponent vector when the dimension object is a
+/// `math:DerivedDimension` — or an honest empty exponent vector when it is a
+/// dimensionless object (e.g. `math:dimensionless`) that carries no
+/// `math:baseDimensionExponent` breakdown. Discovered generically, in the SAME
+/// `examples/*.ttl` scan [`extract_loss_targets`] uses — any example subject
+/// declaring `math:hasDimension` becomes a row, not just the individuals in
+/// `slices/grounding/math/examples/measure-and-dimension.ttl` (today's only
+/// author).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DocWorkedInstance {
+    /// The slice IRI that owns the example artifact this instance was parsed
+    /// from.
+    pub slice: String,
+    /// The logical path within the slice directory (e.g.
+    /// `examples/measure-and-dimension.ttl`).
+    pub logical_path: String,
+    /// The local name of the dimensioned subject (e.g. `"expectedEnergy"`).
+    pub subject: String,
+    /// The local names of the subject's `rdf:type` values (sorted, deduped) —
+    /// e.g. `["Integral"]` for `ex:expectedEnergy` (a `math:Integral`).
+    pub types: Vec<String>,
+    /// `rdfs:label`, when the subject carries one.
+    pub label: Option<String>,
+    /// `rdfs:label` of the resolved dimension object (the `math:hasDimension`
+    /// target), when it carries one. `None` for `math:dimensionless` in the
+    /// current data (it authors no local label in this file) — an honest
+    /// absence, not a fabricated string.
+    pub dimension_label: Option<String>,
+    /// The ℚ⁷ SI base-dimension exponent vector, sorted by
+    /// [`base_dimension`](DocDimExponent::base_dimension). Empty when the
+    /// dimension object carries no `math:baseDimensionExponent` (the
+    /// dimensionless case) — an honest zero-exponent case, not a hard fail.
+    pub dimension_exponents: Vec<DocDimExponent>,
+    /// `gmeow:unit` — the QUDT unit object IRI, when the subject is a
+    /// `math:Quantity` realizing one (e.g.
+    /// `<http://qudt.org/vocab/unit/J>`).
+    pub unit: Option<String>,
+    /// `math:quantityValue`'s literal lexical form, when the subject is a
+    /// `math:Quantity` carrying one (e.g. `"8.187e-14"`).
+    pub quantity_value: Option<String>,
+    /// A small, deterministic, copy-paste-runnable Turtle block reconstructed
+    /// from the extracted fields (never a byte-slice of the source file — see
+    /// [`render_worked_instance_turtle`] for why). Carries the subject's own
+    /// triples and, when the dimension resolves to a `math:DerivedDimension`,
+    /// that dimension's `math:baseDimensionExponent` breakdown as anonymous
+    /// blank-node objects.
+    pub turtle: String,
 }
 
 /// A documentation concern (`gmeow:DocumentationConcern`) and the terms that
@@ -619,6 +961,73 @@ pub struct DocLearningPath {
     pub adoption_targets: Vec<String>,
 }
 
+/// One `gmeow:PipelineStage` individual of the dogfooded build DAG
+/// (`slices/core/pipeline/module.ttl`): a typed unit of build work bound to a
+/// Rust `Stage` implementation through [`stage_impl`](DocStage::stage_impl).
+/// Sorted collections keep the serialized model byte-reproducible.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct DocStage {
+    /// The full stage IRI (e.g. `.../stage-gts-sink`). Also a documented term,
+    /// so the enriched stage section on its term page links back to the DAG.
+    pub iri: String,
+    /// `rdfs:label`.
+    pub label: Option<String>,
+    /// `skos:definition`.
+    pub definition: Option<String>,
+    /// `gmeow:stageImpl` — the registry key binding the stage to its Rust `Stage`
+    /// implementation (`crates/pipeline/src/stages/<impl>.rs`).
+    pub stage_impl: Option<String>,
+    /// `gmeow:hasCapability` value CURIEs (e.g. `gmeow:sinkCapability`,
+    /// `gmeow:sourceOrigin`), sorted/deduped. Empty for a plain transform leaf.
+    pub capabilities: Vec<String>,
+    /// `gmeow:requiresResource` value CURIEs (e.g. `gmeow:engineResource`),
+    /// sorted/deduped. Empty when the stage holds no shared resource.
+    pub resources: Vec<String>,
+    /// `gmeow:graphBoxRole` — the lowest-sorted four-boxes role CURIE, if any.
+    pub box_role: Option<String>,
+    /// `gmeow:dataflowConsumes` — the producer stage IRIs this stage reads,
+    /// sorted/deduped.
+    pub consumes: Vec<String>,
+}
+
+/// One dataflow edge of the build DAG: the union of a bare
+/// `gmeow:dataflowConsumes` dependency (consumer reads the producer's whole
+/// product) with any reified `gmeow:BuildDataFlow` refinement that names the
+/// specific flowing named graphs. [`flow_entities`](DocFlowEdge::flow_entities)
+/// is populated ONLY from a reified edge — a missing label is honest
+/// computed-absence (no reified edge authored), never a failure or placeholder.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct DocFlowEdge {
+    /// The producer stage IRI (`gmeow:buildFlowFrom` / the `dataflowConsumes`
+    /// object).
+    pub from: String,
+    /// The consumer stage IRI (`gmeow:buildFlowTo` / the `dataflowConsumes`
+    /// subject).
+    pub to: String,
+    /// The named-graph IRIs that flow on this edge (`gmeow:flowEntity`),
+    /// sorted/deduped. Empty unless a reified `gmeow:BuildDataFlow` authors them.
+    pub flow_entities: Vec<String>,
+}
+
+/// The dogfooded build pipeline as a first-class documentation surface: the
+/// `gmeow:PipelineStage` node set, the dataflow edge set (bare consumes unioned
+/// with reified `gmeow:BuildDataFlow` flow-entity refinements), and the
+/// `gmeow:Pipeline` plan's goal + success mode. A source-lane projection of
+/// `slices/core/pipeline/module.ttl` (read as authored input, PIPELINE_SPINE
+/// §3.1 — never a `generated/` disk read).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct DocPipeline {
+    /// Every `gmeow:PipelineStage`, sorted by IRI.
+    pub stages: Vec<DocStage>,
+    /// Every dataflow edge, sorted by `(from, to)`. Flow-entity labels are
+    /// present only where a reified `gmeow:BuildDataFlow` authors them.
+    pub edges: Vec<DocFlowEdge>,
+    /// `logic:planGoal` of the `gmeow:Pipeline` (a CURIE), if authored.
+    pub goal: Option<String>,
+    /// `logic:planSuccessMode` of the `gmeow:Pipeline` (a CURIE), if authored.
+    pub success_mode: Option<String>,
+}
+
 /// The complete typed documentation model — one source of truth for every
 /// renderer. All collections are sorted by a stable key.
 ///
@@ -642,12 +1051,34 @@ pub struct DocsModel {
     pub linkages: Vec<DocLinkage>,
     /// All worked examples (sorted by slice/logical-path).
     pub examples: Vec<DocExample>,
+    /// All conformance Do/Don't fixtures — well-formed instances and
+    /// deliberately malformed counter-examples, joined to their owning slice's
+    /// `tests/example-conformance.ttl` binding when one exists (sorted by
+    /// slice then logical path).
+    pub fixtures: Vec<DocFixture>,
     /// All SHACL node shapes reverse-mapped to the terms they constrain
     /// (sorted by target term then shape IRI).
     pub shapes: Vec<DocShape>,
     /// All competency questions reverse-mapped to the terms they exercise
     /// (sorted by IRI).
     pub competencies: Vec<DocCompetency>,
+    /// All notation grammars — first-class W3C EBNF renderings of the
+    /// project's own serialization surface syntaxes (GMN, GTS, Turtle),
+    /// discovered from every slice's `grammars/*.ebnf` artifacts (sorted by
+    /// slug).
+    pub grammars: Vec<DocGrammar>,
+    /// All authored, worked projection-loss-ledger rows — every example
+    /// subject (in any slice) carrying both `logic:preservationKind` and
+    /// `logic:complexityClass` (sorted by slice then target). Distinct from
+    /// the compiler-emitted static ledger already rendered from
+    /// `gmeow_logic_compile::projections::projection_ledger_rows()`; this is
+    /// the pedagogical, concrete-artifact companion table.
+    pub loss_targets: Vec<DocLossTarget>,
+    /// All worked math instances — every example subject (in any slice)
+    /// carrying `math:hasDimension`, with its ℚ⁷ SI base-dimension exponent
+    /// vector when resolvable (sorted by slice then subject). See
+    /// [`DocWorkedInstance`].
+    pub worked_instances: Vec<DocWorkedInstance>,
     /// All documentation concerns (sorted by IRI).
     pub concerns: Vec<DocConcern>,
     /// All external (non-GMEOW) terms referenced (sorted by IRI).
@@ -670,6 +1101,15 @@ pub struct DocsModel {
     /// the per-term citation block's "cite the ontology" line. `None`
     /// when the metadata file is absent.
     pub concept_doi: Option<String>,
+    /// The dogfooded build pipeline DAG (`slices/core/pipeline/module.ttl`): the
+    /// `gmeow:PipelineStage` node set, the dataflow edges, and the plan goal +
+    /// success mode. A REGULAR serialized field (source lane — discovered from an
+    /// authored module, so it belongs in the model JSON). `None` only for a bare
+    /// hand-built unit-test model whose catalog carries no pipeline module; the
+    /// full `discover`/`from_catalog` path always populates it. Drives
+    /// [`Page::PipelineDag`](crate::render), the per-stage enriched term section,
+    /// and the per-page provenance footer.
+    pub pipeline: Option<DocPipeline>,
     /// Available documentation languages: the English carrier (`"english"`)
     /// first, then the BCP-47 codes (`fr`, `zh`) of every slice translation
     /// catalog, sorted. Deterministic.
@@ -706,6 +1146,43 @@ pub struct DocsModel {
     /// `#[serde(skip)]` so the source-model JSON golden is unaffected.
     #[serde(skip)]
     pub reasoning: Option<ReasoningVerdict>,
+    /// The diagnostics→term join, attached AFTER source discovery by the production
+    /// build from the already-materialized `stage-validate` + `stage-compile-logic`
+    /// products (never a re-run of SHACL or the logic compiler — reason/validate-once).
+    /// `None` in source-only contexts (unit tests, a bare `discover`): the per-term
+    /// "Diagnostics you might hit" section and any `gmeow:doc*` diagnostics projection
+    /// render ONLY when a digest is attached, so an unevaluated model never fabricates a
+    /// "no diagnostics" claim. The production path attaches it (or hard-fails on a
+    /// missing declared upstream product), never silently skips it. `#[serde(skip)]` so
+    /// the source-model JSON golden is unaffected.
+    #[serde(skip)]
+    pub diagnostics: Option<DiagnosticsDigest>,
+    /// The dynamic per-term projection-loss join, attached AFTER source discovery
+    /// by the production build from the already-materialized `stage-mappings`
+    /// product's live `GRAPH_PROJECTION_LEDGER` graph (never a re-run of the logic
+    /// compiler — reason/compile-once). `None` in source-only contexts (unit
+    /// tests, a bare `discover`): the per-term "how this term degrades under
+    /// projection" section renders ONLY when a digest is attached, so an
+    /// unevaluated model never fabricates a "carried exactly" claim. The
+    /// production path attaches it (or hard-fails on a missing `stage-mappings`
+    /// upstream product), never silently skips it. `#[serde(skip)]` so the
+    /// source-model JSON golden is unaffected.
+    #[serde(skip)]
+    pub term_loss: Option<TermLossDigest>,
+    /// The per-term JSON Schema / OpenAPI fragment join, attached AFTER source
+    /// discovery by the production build from the already-materialized
+    /// `stage-export-json-schema` product (the same `gmeow.schema.json` /
+    /// `gmeow.openapi.json` bytes the carrier folds into the packed
+    /// `schemas-archive`, read in-memory — never a `generated/` disk read). Each
+    /// entry is the pretty-printed JSON Schema `$defs` (respectively OpenAPI
+    /// `components/schemas`) fragment for a documented class whose emitter def key
+    /// resolves it. `None` in source-only contexts (unit tests, a bare
+    /// `discover`): the per-term "use this term without RDF" JSON-Schema panel and
+    /// the OpenAPI tab render ONLY when the digest is attached, so an unevaluated
+    /// model never fabricates a schema fragment. `#[serde(skip)]` so the
+    /// source-model JSON golden is unaffected.
+    #[serde(skip)]
+    pub schema_fragments: Option<SchemaFragmentDigest>,
 }
 
 /// The native reasoner's consistency verdict, attached to a [`DocsModel`] by the
@@ -760,12 +1237,153 @@ pub struct ConstraintRule {
     pub formalizes: Option<String>,
 }
 
+/// One diagnostic (`gmeow_errors::DiagNode`) projected for docs rendering: the
+/// display-ready severity/category, the first observation's human message (a
+/// `DiagNode` carries no dedicated `message` field — the message lives on its
+/// first [`Observation`](gmeow_errors::Observation)), the primary attribution's
+/// slice IRI when one is recorded, and a `help_uri` ONLY when the finding's
+/// `code` genuinely resolves against the constraint catalog
+/// (`DocsModel::constraint_rules`) — never a fabricated link.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DocDiagFinding {
+    /// The stable diagnostic code (`DiagNode::code`, e.g. `shacl.MinCountConstraintComponent`
+    /// or `logic-compile.UNKNOWN_PROFILE`).
+    pub code: String,
+    /// The display spelling of `DiagNode::grade.severity` (`Severity::as_str()`).
+    pub severity: String,
+    /// The display spelling of `DiagNode::grade.category` (`FindingCategory::as_str()`).
+    pub category: String,
+    /// The human message: the first observation's `message`, when the node carries
+    /// one, else the code itself (a `DiagNode` always carries at least one
+    /// observation in practice, but the fallback keeps this a total function).
+    pub message: String,
+    /// The primary (first) attribution's slice IRI, when the node carries one.
+    pub slice_iri: Option<String>,
+    /// The constraint-catalog rule's absolute help URI, resolved by exact `code`
+    /// match against `DocsModel::constraint_rules`. `None` when no rule shares this
+    /// exact code (an honest absence — never a fabricated deep link).
+    pub help_uri: Option<String>,
+}
+
+/// The diagnostics→term join folded from the `stage-validate` + `stage-compile-logic`
+/// products' `diagnostics:nodes` blobs — the carrier-lane digest attached to a
+/// [`DocsModel`] AFTER source discovery (never a re-run of SHACL or the logic
+/// compiler). Keys on the diagnostic's `source_ctx.location.logical` string (the
+/// SHACL focus-node bare IRI / the logic-compile diagnostic `subject`), matched by
+/// EXACT string equality against a known [`DocTerm::iri`] — a diagnostic whose
+/// location doesn't name a known term simply has no `by_term` entry (honest, not a
+/// bug). `by_slice` is keyed on every recorded [`DiagnosticAttribution::slice_iri`](
+/// gmeow_errors::DiagnosticAttribution) instead — a coarser, always-available join.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct DiagnosticsDigest {
+    /// Findings keyed by the exact term IRI their location names (sorted keys; each
+    /// finding list is in stable, deterministic node order).
+    pub by_term: BTreeMap<String, Vec<DocDiagFinding>>,
+    /// Findings keyed by every attributed slice IRI (sorted keys; each finding list
+    /// is in stable, deterministic node order).
+    pub by_slice: BTreeMap<String, Vec<DocDiagFinding>>,
+    /// The total number of diagnostic nodes folded from both upstream products
+    /// (before any term/slice join — the raw union count).
+    pub total: usize,
+}
+
+/// One row of the per-term dynamic projection-loss join: a single
+/// `logic:ProjectionTarget` from the live `GRAPH_PROJECTION_LEDGER` graph whose
+/// `rdfs:label` carries the `property-path:<shape-iri>` prefix and resolved to a
+/// documented term (see [`TermLossDigest`]).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct TermLossRow {
+    /// The FULL `rdfs:label` value carried by the `logic:ProjectionTarget`
+    /// (e.g. `property-path:https://.../nearbyOrgs`), kept whole (not stripped
+    /// of its prefix) so the row is traceable back to its exact ledger entry.
+    pub target: String,
+    /// The local name of the `logic:preservationKind` object IRI (e.g.
+    /// `SoundUnderApproximation`, `ExactPreservation`).
+    pub preservation_kind: String,
+    /// The `logic:complexityClass` plain-string literal.
+    pub complexity_class: String,
+    /// The `gmeow:lossyDrop` plain-string literals, sorted and deduped.
+    pub lossy_drops: Vec<String>,
+}
+
+/// The dynamic per-term projection-loss join, folded from the LIVE
+/// `GRAPH_PROJECTION_LEDGER` named graph — `stage-mappings`'s committed
+/// projection report, attached AFTER source discovery (never a re-run of the
+/// logic compiler; reason/compile-once). DISTINCT from the STATIC whole-program
+/// rows already rendered on `Page::LogicLossLedger`
+/// (`gmeow_logic_compile::projections::projection_ledger_rows`, e.g. `owl-dl`,
+/// `datalog`) and from the authored worked examples
+/// ([`DocsModel::loss_targets`], A4): this digest carries ONLY the per-shape
+/// `property-path:<shape-iri>` rows the ledger emits when a concrete
+/// `logic:PathShape` is compiled, joined to a documented term via
+/// [`DocShape::shape_iri`] → [`DocShape::target_term`] (falling back to an
+/// exact match of the bare shape IRI against a [`DocTerm::iri`] when no
+/// `DocShape` claims it). Whole-program rows never enter `by_term` — they
+/// apply project-wide, not per-term, and stay on the static ledger page. A
+/// property-path row that resolves to no documented term is honestly absent
+/// from `by_term` (never forced) — see [`total_property_path_rows`](
+/// Self::total_property_path_rows) for the raw pre-join count, so a real-repo
+/// non-vacuity assertion can distinguish "the ledger genuinely has no
+/// property-path content" from "content exists but nothing joined a term".
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct TermLossDigest {
+    /// Rows keyed by the exact documented term IRI they joined to (sorted keys;
+    /// each row list sorted by `target`).
+    pub by_term: BTreeMap<String, Vec<TermLossRow>>,
+    /// The total count of `property-path:`-prefixed `logic:ProjectionTarget`
+    /// rows found in the live ledger, whether or not they joined to a
+    /// documented term.
+    pub total_property_path_rows: usize,
+}
+
+/// The per-term JSON Schema / OpenAPI fragment join for the term-page
+/// "use this term without RDF" panel + OpenAPI tab.
+///
+/// Both maps are keyed by the exact documented term IRI; each value is the
+/// pretty-printed, deterministic JSON text of that class's `$defs` (respectively
+/// `components/schemas`) fragment, extracted from the generated
+/// `gmeow.schema.json` / `gmeow.openapi.json`. Only documented classes whose
+/// emitter def key (`purrdf::shapes::json_schema::Namespaces::def_key`: a bare
+/// local name for a primary-namespace class, a CURIE otherwise) resolves an
+/// entry appear — a term with no schema fragment is honestly absent, never a
+/// fabricated stub.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct SchemaFragmentDigest {
+    /// The JSON Schema `$defs` fragment text keyed by documented term IRI.
+    pub schema_by_term: BTreeMap<String, String>,
+    /// The OpenAPI `components/schemas` fragment text keyed by documented term IRI.
+    pub openapi_by_term: BTreeMap<String, String>,
+}
+
 impl DocsModel {
     /// Attach the native reasoner's consistency verdict to this model (the
     /// production build's post-discovery step). Idempotent: overwrites any prior
     /// verdict.
     pub fn attach_reasoning(&mut self, verdict: ReasoningVerdict) {
         self.reasoning = Some(verdict);
+    }
+
+    /// Attach the diagnostics→term join digest to this model (the production
+    /// build's post-discovery step, mirroring [`attach_reasoning`](Self::attach_reasoning)).
+    /// Idempotent: overwrites any prior digest.
+    pub fn attach_diagnostics(&mut self, digest: DiagnosticsDigest) {
+        self.diagnostics = Some(digest);
+    }
+
+    /// Attach the dynamic per-term projection-loss digest to this model (the
+    /// production build's post-discovery step, mirroring
+    /// [`attach_diagnostics`](Self::attach_diagnostics)). Idempotent: overwrites
+    /// any prior digest.
+    pub fn attach_term_loss(&mut self, digest: TermLossDigest) {
+        self.term_loss = Some(digest);
+    }
+
+    /// Attach the per-term JSON Schema / OpenAPI fragment digest to this model
+    /// (the production build's post-discovery step, mirroring
+    /// [`attach_term_loss`](Self::attach_term_loss)). Idempotent: overwrites any
+    /// prior digest.
+    pub fn attach_schema_fragments(&mut self, digest: SchemaFragmentDigest) {
+        self.schema_fragments = Some(digest);
     }
 
     /// Resolve a UI-chrome string for `key` in this model's target [`lang`], using
@@ -781,7 +1399,34 @@ impl DocsModel {
 
 impl DocsModel {
     /// The model schema version. Bump when the serialized shape changes.
-    pub const VERSION: &'static str = "7";
+    ///
+    /// v8: adds [`fixtures`](DocsModel::fixtures) — conformance Do/Don't
+    /// fixtures joined to their slice's `tests/example-conformance.ttl`
+    /// binding.
+    ///
+    /// v9: [`DocCompetency`] grows `query_text` (resolved `.rq` body / inline
+    /// `cqQuery`), `exact_rows`, `expected_row_count`, and structured
+    /// `expected_rows` (`DocExpectedRow`/`DocExpectedCell`) — the full
+    /// copy-paste-runnable competency-question surface for `Page::CompetencyIndex`.
+    ///
+    /// v10: adds [`grammars`](DocsModel::grammars) — first-class W3C EBNF
+    /// notation exhibits discovered from every slice's `grammars/*.ebnf`.
+    ///
+    /// v11: adds [`loss_targets`](DocsModel::loss_targets) — authored, worked
+    /// projection-loss-ledger rows discovered generically from every example
+    /// subject (in any slice) carrying both `logic:preservationKind` and
+    /// `logic:complexityClass`.
+    ///
+    /// v12: adds [`worked_instances`](DocsModel::worked_instances) — worked
+    /// math ℚ⁷ SI-dimension instances discovered generically from every
+    /// example subject (in any slice) carrying `math:hasDimension`, resolved
+    /// down to a labeled base-dimension exponent table plus a copy-paste
+    /// Turtle block.
+    ///
+    /// v14: lifts every `gmeow:PipelineStage` individual into a documented term,
+    /// so each stage's term page renders the enriched build-pipeline section
+    /// (`stageImpl` link, consumes / consumed-by tables, flowing graphs).
+    pub const VERSION: &'static str = "14";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -820,6 +1465,32 @@ impl DocsModel {
                 });
                 terms.extend(extract_terms(&store, owner, record.manifest.tier.as_ref()));
                 formalizes_edges.extend(extract_formalizes(&store));
+            }
+        }
+
+        // ── PathShape example terms (design/LOGIC-PATHS.md) ─────────────────
+        // A `logic:PathShape` is a first-class reusable by-name term, but its
+        // authored INSTANCES live in worked-example artifacts, not module.ttl, so
+        // the module-only scan above misses them. Lift them here — BEFORE the
+        // related-terms / profile-membership passes below — so an example
+        // PathShape term participates in those passes exactly like a module term
+        // (and its `property-path:<iri>` projection-loss row joins its page). This
+        // is a small independent parse of each Example artifact; the reuse loop
+        // further down re-parses for the DocExample / loss / worked-instance scans.
+        for record in catalog.records() {
+            let owner = &record.manifest.slice_iri;
+            for artifact in &record.artifacts {
+                if artifact.role != ArtifactRole::Example {
+                    continue;
+                }
+                let Ok(store) = parse_turtle_lenient(&artifact.content) else {
+                    continue;
+                };
+                terms.extend(extract_path_shape_terms(
+                    &store,
+                    owner,
+                    record.manifest.tier.as_ref(),
+                ));
             }
         }
         terms.sort_by(|a, b| a.iri.cmp(&b.iri));
@@ -978,17 +1649,79 @@ impl DocsModel {
         });
 
         // ── Examples (carried in full from each slice's Example artifacts) ──────
+        // Each example artifact's Turtle is parsed exactly ONCE here and reused for
+        // `DocExample` extraction, the generic authored projection-loss-ledger scan
+        // (`DocLossTarget`), and the generic worked-math-instance scan
+        // (`DocWorkedInstance`) — no artifact is re-parsed.
         let mut examples: Vec<DocExample> = Vec::new();
+        let mut loss_targets: Vec<DocLossTarget> = Vec::new();
+        let mut worked_instances: Vec<DocWorkedInstance> = Vec::new();
         for record in catalog.records() {
             let owner = &record.manifest.slice_iri;
             for artifact in &record.artifacts {
                 if artifact.role != ArtifactRole::Example {
                     continue;
                 }
-                examples.push(extract_example(artifact, owner));
+                let parsed = parse_turtle_lenient(&artifact.content).ok();
+                examples.push(extract_example_from(artifact, owner, parsed.as_ref()));
+                if let Some(store) = &parsed {
+                    loss_targets.extend(extract_loss_targets(store, owner));
+                    worked_instances.extend(extract_worked_instances(store, artifact, owner));
+                }
             }
         }
         examples.sort_by(|a, b| {
+            a.slice
+                .cmp(&b.slice)
+                .then_with(|| a.logical_path.cmp(&b.logical_path))
+        });
+        loss_targets.sort_by(|a, b| a.slice.cmp(&b.slice).then_with(|| a.target.cmp(&b.target)));
+        worked_instances.sort_by(|a, b| {
+            a.slice
+                .cmp(&b.slice)
+                .then_with(|| a.subject.cmp(&b.subject))
+        });
+
+        // ── Conformance fixtures (Do/Don't pairs, joined to example-conformance.ttl) ─
+        let mut fixtures: Vec<DocFixture> = Vec::new();
+        for record in catalog.records() {
+            let owner = &record.manifest.slice_iri;
+            // This slice's `tests/example-conformance.ttl` bindings, keyed by the
+            // slice-relative fixture path each `gmeow:exampleFile` pins. Empty when
+            // the slice authors no bindings — fixtures then join to nothing (an
+            // honest absence, not an error).
+            let mut bindings: BTreeMap<String, FixtureBinding> = BTreeMap::new();
+            for artifact in &record.artifacts {
+                // The binding overlay lives under tests/example-conformance.ttl,
+                // carried as a TestDsl artifact (same role as competency.ttl;
+                // discriminated by filename suffix).
+                if artifact.role != ArtifactRole::TestDsl
+                    || !artifact.logical_path.ends_with("example-conformance.ttl")
+                {
+                    continue;
+                }
+                let store = parse_turtle_lenient(&artifact.content).unwrap_or_else(|e| {
+                    panic!("example-conformance.ttl for slice {owner} failed to parse: {e}")
+                });
+                bindings.extend(extract_fixture_bindings(&store));
+            }
+            for artifact in &record.artifacts {
+                let kind = match artifact.role {
+                    ArtifactRole::TestDsl
+                        if artifact
+                            .logical_path
+                            .starts_with("tests/conformance-fixtures/") =>
+                    {
+                        DocFixtureKind::Wellformed
+                    }
+                    ArtifactRole::CounterExample => DocFixtureKind::CounterExample,
+                    _ => continue,
+                };
+                let binding = bindings.get(&artifact.logical_path);
+                fixtures.push(extract_fixture(artifact, owner, kind, binding));
+            }
+        }
+        fixtures.sort_by(|a, b| {
             a.slice
                 .cmp(&b.slice)
                 .then_with(|| a.logical_path.cmp(&b.logical_path))
@@ -1031,8 +1764,30 @@ impl DocsModel {
         competencies.sort_by(|a, b| a.iri.cmp(&b.iri));
         competencies.dedup_by(|a, b| a.iri == b.iri);
 
+        // ── Notation grammars (W3C EBNF renderings under grammars/*.ebnf) ───────
+        // `.ebnf` files under a slice's `grammars/` directory fall through
+        // `purrdf-slice`'s artifact classifier to the open `ArtifactRole::Other`
+        // variant (no dedicated role exists for them); matched here by the
+        // slice-relative path it carries rather than a bare unit-variant match.
+        let mut grammars: Vec<DocGrammar> = Vec::new();
+        for record in catalog.records() {
+            for artifact in &record.artifacts {
+                let ArtifactRole::Other(path) = &artifact.role else {
+                    continue;
+                };
+                if !(path.starts_with("grammars/") && path.ends_with(".ebnf")) {
+                    continue;
+                }
+                grammars.push(extract_grammar(artifact));
+            }
+        }
+        grammars.sort_by(|a, b| a.slug.cmp(&b.slug));
+
         // ── Concerns (collected from module graphs via gmeow:docsConcern) ──────
         let concerns = extract_concerns(catalog);
+
+        // ── Build-pipeline DAG (the dogfooded build graph authored as data) ────
+        let pipeline = extract_pipeline(catalog);
 
         // ── External terms (linkage objects + non-GMEOW term edges) ────────────
         let external_terms = extract_external_terms(&terms, &linkages);
@@ -1053,8 +1808,12 @@ impl DocsModel {
             mapping_sets,
             linkages,
             examples,
+            fixtures,
             shapes,
             competencies,
+            grammars,
+            loss_targets,
+            worked_instances,
             concerns,
             external_terms,
             recipes,
@@ -1062,10 +1821,14 @@ impl DocsModel {
             constraint_rules: Vec::new(),
             four_boxes: None,
             concept_doi: None,
+            pipeline,
             available_languages,
             translations,
             ui_catalog: UiCatalog::default(),
             reasoning: None,
+            diagnostics: None,
+            term_loss: None,
+            schema_fragments: None,
             lang: String::new(),
         }
     }
@@ -1096,6 +1859,15 @@ impl DocsModel {
         // artifact is a broken invariant on a regenerated tree, not an optional
         // input — hard-fail rather than render an empty-state page.
         model.constraint_rules = read_constraint_catalog(root)?;
+        // Resolve each fixture's catalog_slug now that constraint_rules is
+        // populated (from_catalog runs before the catalog is read, so every
+        // fixture starts with catalog_slug: None).
+        apply_fixture_catalog_slugs(&mut model);
+        // Resolve each competency question's declared `cqQueryFile` to its
+        // repo-root-relative `.rq` file text (`extract_competency` only fills
+        // `query_text` from an inline `cqQuery`, since it never sees the repo
+        // root). Hard-fails on a dangling `cqQueryFile` — see `DocsError::CompetencyQuery`.
+        apply_competency_query_text(&mut model, root)?;
         // The per-term content-address manifest, read from the committed N-Quads
         // fanout artifact. It sets each documented term's content digest and
         // first-seen version and unions the computed changelog into the authored
@@ -1238,6 +2010,64 @@ fn apply_term_manifest(model: &mut DocsModel, root: &Path) -> Result<(), DocsErr
         merged.sort();
         merged.dedup();
         term.changelog = merged;
+    }
+    Ok(())
+}
+
+/// Resolve each fixture's [`DocFixture::catalog_slug`] from its
+/// [`violation_code`](DocFixture::violation_code) against
+/// `model.constraint_rules`, once the catalog is populated (`from_catalog` runs
+/// before the committed catalog is read, so every fixture starts with
+/// `catalog_slug: None`). Only sets a slug when a genuine
+/// [`ConstraintRule::code`] match exists — the catalog's `shacl.*` codes are
+/// currently generic (`shacl.nonconforming`), not per-constraint-component, so
+/// a fixture's `shacl.<ConstraintComponent>` code has no match today; that is
+/// an honest absence, never a fabricated link.
+fn apply_fixture_catalog_slugs(model: &mut DocsModel) {
+    let by_code: BTreeMap<String, String> = model
+        .constraint_rules
+        .iter()
+        .map(|r| (r.code.clone(), r.slug.clone()))
+        .collect();
+    for fixture in &mut model.fixtures {
+        fixture.catalog_slug = fixture
+            .violation_code
+            .as_ref()
+            .and_then(|code| by_code.get(code))
+            .cloned();
+    }
+}
+
+/// Resolve each [`DocCompetency::query_file`] to its [`DocCompetency::query_text`]
+/// by reading the repo-root-relative `.rq` path. `query_file` is
+/// REPO-ROOT-RELATIVE regardless of whether it happens to start with
+/// `slices/<group>/<name>/…` (a slice's own committed query) or
+/// `queries/competency/…` / `queries/qc/…` (the shared root-level query tree) —
+/// this is exactly `crates/slicetest/src/paths.rs::query_file`'s own resolution
+/// contract (`repo_root().join(rel)`), the single source of truth the executing
+/// competency harness already uses, so docs reuses it rather than guessing at a
+/// slice-relative convention that does not exist in the data.
+///
+/// A CQ with `query_text` already set (an inline `gmeow:cqQuery`) is left alone.
+/// A CQ with `query_file` set but no readable file at that path is a hard
+/// fail — `cqQueryFile` existing is the ontology's own claim that the file
+/// resolves; a dangling reference is a data bug, not an honest absence.
+fn apply_competency_query_text(model: &mut DocsModel, root: &Path) -> Result<(), DocsError> {
+    for cq in &mut model.competencies {
+        if cq.query_text.is_some() {
+            continue;
+        }
+        let Some(rel) = &cq.query_file else { continue };
+        let path = root.join(rel);
+        let text = std::fs::read_to_string(&path).map_err(|e| {
+            DocsError::CompetencyQuery(format!(
+                "competency question <{}> declares gmeow:cqQueryFile {rel:?} but the file could \
+                 not be read at {}: {e}",
+                cq.iri,
+                path.display()
+            ))
+        })?;
+        cq.query_text = Some(text);
     }
     Ok(())
 }
@@ -1393,7 +2223,57 @@ fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> 
         }
     }
 
-    // Second pass: build a DocTerm per discovered subject.
+    build_doc_terms(store, categories, owner_slice, tier)
+}
+
+/// Lift every GMEOW-namespaced `a logic:PathShape` subject in an EXAMPLE store as a
+/// documented [`DocTermCategory::Individual`] term. A `logic:PathShape` is, by
+/// canonical design (`design/LOGIC-PATHS.md`), "a first-class, reusable, by-name
+/// term", but the only authored PathShape INSTANCES live in worked-example
+/// artifacts (e.g. `slices/grounding/logic/examples/predicate-paths.ttl`), never a
+/// `module.ttl` — so the module-only [`extract_terms`] scan never sees them and
+/// their `property-path:<iri>` projection-loss rows joined no term page
+/// (`TermLossDigest.by_term` was vacuous). This focused scan admits ONLY the
+/// `logic:PathShape` type: an example's demonstrative ABox (its
+/// `owl:NamedIndividual` / class instances) is NOT lifted — that stays example
+/// payload, not documented vocabulary. The full-IRI subject is what the ledger
+/// row's `property-path:<iri>` label strips to, so the resulting `DocTerm.iri` is
+/// byte-identical to the join key.
+fn extract_path_shape_terms(
+    store: &Store,
+    owner_slice: &str,
+    tier: Option<&SliceTier>,
+) -> Vec<DocTerm> {
+    let mut categories: BTreeMap<String, DocTermCategory> = BTreeMap::new();
+    for (subject, object) in store.pattern_subjects_objects(RDF_TYPE) {
+        let Some(subject) = subject.as_named() else {
+            continue;
+        };
+        if !subject.starts_with(GMEOW_NS) {
+            continue;
+        }
+        let Object::Named(type_node) = &object else {
+            continue;
+        };
+        if type_node.as_str() != LOGIC_PATH_SHAPE {
+            continue;
+        }
+        categories
+            .entry(subject.to_string())
+            .or_insert(DocTermCategory::Individual);
+    }
+    build_doc_terms(store, categories, owner_slice, tier)
+}
+
+/// Build one [`DocTerm`] per `(iri, category)` in `categories`, reading its label /
+/// definition / relations / lifecycle off `store`. Shared by the module-wide
+/// [`extract_terms`] scan and the example-only [`extract_path_shape_terms`] scan.
+fn build_doc_terms(
+    store: &Store,
+    categories: BTreeMap<String, DocTermCategory>,
+    owner_slice: &str,
+    tier: Option<&SliceTier>,
+) -> Vec<DocTerm> {
     let mut terms = Vec::new();
     for (iri, category) in categories {
         let label = first_literal(store, &iri, RDFS_LABEL);
@@ -1672,21 +2552,54 @@ fn shape_messages(store: &Store, start: &Node) -> Vec<String> {
 
 /// Extract competency questions reverse-mapped to the terms they exercise. The
 /// terms are reached via `gmeow:cqExpectRow → gmeow:rowCell → gmeow:cellValueIri`.
+///
+/// `query_text` is only filled in here for an inline `gmeow:cqQuery`; a
+/// `gmeow:cqQueryFile` reference needs the repo root to resolve (this function
+/// only sees one slice's parsed store), so that half is completed afterwards by
+/// `apply_competency_query_text` in [`DocsModel::discover`].
 fn extract_competency(store: &Store, owner_slice: &str) -> Vec<DocCompetency> {
     let mut out = Vec::new();
     for cq in subjects_of_type(store, GMEOW_COMPETENCY_QUESTION) {
         let rationale = first_literal(store, &cq, GMEOW_CQ_RATIONALE);
         let query_file = first_literal(store, &cq, GMEOW_CQ_QUERY_FILE);
+        // No authored CQ carries both `cqQuery` and `cqQueryFile` (verified
+        // across all `slices/*/*/tests/competency.ttl`), so filling `query_text`
+        // from the inline literal here never collides with the file-based
+        // resolution `apply_competency_query_text` performs afterwards.
+        let query_text = first_literal(store, &cq, GMEOW_CQ_QUERY);
+        let exact_rows = first_literal(store, &cq, GMEOW_CQ_EXACT_ROWS).map(|v| v == "true");
+        let expected_row_count = first_literal(store, &cq, GMEOW_CQ_EXPECT_ROW_COUNT).map(|v| {
+            v.parse::<i64>().unwrap_or_else(|e| {
+                panic!(
+                    "competency question <{cq}> gmeow:cqExpectRowCount {v:?} is not a valid \
+                     xsd:integer: {e}"
+                )
+            })
+        });
         let mut exercises: Vec<String> = Vec::new();
+        // `named_objects` returns rows sorted/deduped by row-subject IRI, which is
+        // already deterministic — no further row-level sort is needed.
+        let mut expected_rows: Vec<DocExpectedRow> = Vec::new();
         for row in named_objects(store, &cq, GMEOW_CQ_EXPECT_ROW) {
+            let mut cells: Vec<DocExpectedCell> = Vec::new();
             for cell in blank_objects(store, &row, GMEOW_ROW_CELL) {
                 let cell_node = Node::Blank(cell);
-                for object in store.objects_of_node(&cell_node, GMEOW_CELL_VALUE_IRI) {
-                    if let Object::Named(v) = object {
-                        exercises.push(v);
-                    }
+                let var = store.first_literal_of(&cell_node, GMEOW_CELL_VAR);
+                let value_iri = first_named_of_node(store, &cell_node, GMEOW_CELL_VALUE_IRI);
+                let value_literal = store.first_literal_of(&cell_node, GMEOW_CELL_VALUE_LITERAL);
+                if let Some(v) = &value_iri {
+                    exercises.push(v.clone());
                 }
+                cells.push(DocExpectedCell {
+                    var,
+                    value_iri,
+                    value_literal,
+                });
             }
+            // Cell blank-node discovery order is not itself meaningful; sort by
+            // content for deterministic column order in the rendered table.
+            cells.sort();
+            expected_rows.push(DocExpectedRow { cells });
         }
         exercises.sort();
         exercises.dedup();
@@ -1694,11 +2607,29 @@ fn extract_competency(store: &Store, owner_slice: &str) -> Vec<DocCompetency> {
             iri: cq,
             rationale,
             query_file,
+            query_text,
+            exact_rows,
+            expected_row_count,
+            expected_rows,
             exercises,
             owner_slice: owner_slice.to_string(),
         });
     }
     out
+}
+
+/// The lowest-sorted named-node object of `<node> <pred> ?o`, or `None` — the
+/// blank-node-subject twin of a named-object read, used for per-cell
+/// `gmeow:cellValueIri` lookups where the cell is itself a blank node.
+fn first_named_of_node(store: &Store, node: &Node, pred: &str) -> Option<String> {
+    store
+        .objects_of_node(node, pred)
+        .into_iter()
+        .filter_map(|o| match o {
+            Object::Named(v) => Some(v),
+            _ => None,
+        })
+        .min()
 }
 
 /// All blank-node object labels of `subject predicate ?o` in the default graph.
@@ -1764,16 +2695,27 @@ fn extract_mappings(store: &Store, owner_slice: &str) -> (Vec<DocMappingSet>, Ve
     (sets, links)
 }
 
-/// Extract a single example, carrying its Turtle source in full.
+/// Extract a single example, carrying its Turtle source in full. Parses the
+/// artifact itself; use [`extract_example_from`] when a store is already
+/// parsed (the `examples/*.ttl` discovery loop reuses one parse for both
+/// [`DocExample`] and [`DocLossTarget`] extraction).
 fn extract_example(artifact: &ArtifactRecord, owner_slice: &str) -> DocExample {
+    let parsed = parse_turtle_lenient(&artifact.content).ok();
+    extract_example_from(artifact, owner_slice, parsed.as_ref())
+}
+
+/// Extract a single example from an already-parsed `store` (or `None` when
+/// the artifact failed to parse), carrying its Turtle source in full.
+fn extract_example_from(
+    artifact: &ArtifactRecord,
+    owner_slice: &str,
+    parsed: Option<&Store>,
+) -> DocExample {
     let text = String::from_utf8_lossy(&artifact.content).into_owned();
     let logical_path = artifact.logical_path.clone();
 
-    let parsed = parse_turtle_lenient(&artifact.content).ok();
-
     // Title: lexically-lowest rdfs:label literal on any subject, else the stem.
     let title = parsed
-        .as_ref()
         .and_then(|store| {
             let mut labels: Vec<String> = Vec::new();
             store.for_each_quad(|_s, p, o| {
@@ -1789,7 +2731,6 @@ fn extract_example(artifact: &ArtifactRecord, owner_slice: &str) -> DocExample {
 
     // Terms referenced: every gmeow: CURIE appearing as a NamedNode anywhere.
     let mut terms_referenced: Vec<String> = parsed
-        .as_ref()
         .map(|store| {
             let mut set: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
             store.for_each_quad(|s, _p, o| {
@@ -1816,6 +2757,362 @@ fn extract_example(artifact: &ArtifactRecord, owner_slice: &str) -> DocExample {
         title,
         text,
         terms_referenced,
+    }
+}
+
+/// Extract every authored projection-loss-ledger row from an already-parsed
+/// example `store`: ANY subject carrying BOTH `logic:preservationKind` and
+/// `logic:complexityClass` is a worked preservation example.
+/// Generic across every `examples/*.ttl` artifact in every slice — NOT
+/// special-cased to `projection-loss-ledger.ttl` — so any future authored
+/// example declaring a loss row the same way is picked up automatically. A
+/// subject typed `gmeow:InformationObject` that carries only ONE of the two
+/// predicates (like this file's `ex:mortalityRuleSet` / `ex:derivation-
+/// socratesMortal`, which are unrelated pedagogical individuals) is correctly
+/// skipped — it is not a loss-ledger row.
+fn extract_loss_targets(store: &Store, owner_slice: &str) -> Vec<DocLossTarget> {
+    let mut out = Vec::new();
+    for subject in subjects_with_predicate(store, LOGIC_PRESERVATION_KIND) {
+        // Deterministic even if a subject somehow declared more than one
+        // `logic:preservationKind` object: the lexically-lowest IRI wins.
+        let Some(kind_iri) = named_objects(store, &subject, LOGIC_PRESERVATION_KIND)
+            .into_iter()
+            .min()
+        else {
+            continue;
+        };
+        let Some(complexity_class) = first_literal(store, &subject, LOGIC_COMPLEXITY_CLASS) else {
+            // Carries `preservationKind` but no `complexityClass` — not a
+            // loss-ledger row by this surface's definition (both required).
+            continue;
+        };
+        let label = first_literal(store, &subject, RDFS_LABEL);
+        out.push(DocLossTarget {
+            target: local_name(&subject).to_string(),
+            label,
+            preservation_kind: local_name(&kind_iri).to_string(),
+            complexity_class,
+            slice: owner_slice.to_string(),
+        });
+    }
+    out
+}
+
+/// Extract every worked math instance from an already-parsed example `store`:
+/// ANY subject carrying `math:hasDimension`. Generic across every
+/// `examples/*.ttl` artifact in every slice — NOT special-cased to
+/// `measure-and-dimension.ttl` — so any future authored example declaring a
+/// dimensioned quantity the same way is picked up automatically. A dimension
+/// object with no `math:baseDimensionExponent` breakdown (e.g.
+/// `math:dimensionless`) yields an honest empty [`DocDimExponent`] vector, not
+/// a hard fail — a dimensionless quantity is a real, well-formed zero-exponent
+/// case, not a data error.
+fn extract_worked_instances(
+    store: &Store,
+    artifact: &ArtifactRecord,
+    owner_slice: &str,
+) -> Vec<DocWorkedInstance> {
+    let mut out = Vec::new();
+    for subject in subjects_with_predicate(store, MATH_HAS_DIMENSION) {
+        // Deterministic even if a subject somehow declared more than one
+        // `math:hasDimension` object: the lexically-lowest IRI wins.
+        let Some(dimension_iri) = named_objects(store, &subject, MATH_HAS_DIMENSION)
+            .into_iter()
+            .min()
+        else {
+            continue;
+        };
+
+        let mut type_iris = named_objects(store, &subject, RDF_TYPE);
+        type_iris.sort();
+        type_iris.dedup();
+        let types: Vec<String> = type_iris
+            .iter()
+            .map(|t| local_name(t).to_string())
+            .collect();
+
+        let label = first_literal(store, &subject, RDFS_LABEL);
+        let dimension_label = first_literal(store, &dimension_iri, RDFS_LABEL);
+
+        // The ℚ⁷ SI base-dimension exponent vector: empty when the dimension
+        // object carries no `math:baseDimensionExponent` breakdown (the
+        // dimensionless case) — an honest zero-exponent case, not a hard fail.
+        // Exponent individuals are always named in the authored data (never
+        // blank nodes), so the default-graph named-object walk is exhaustive.
+        let mut dimension_exponents: Vec<DocDimExponent> = Vec::new();
+        for exponent in named_objects(store, &dimension_iri, MATH_BASE_DIMENSION_EXPONENT) {
+            let Some(base_iri) = named_objects(store, &exponent, MATH_EXPONENT_OF_DIMENSION)
+                .into_iter()
+                .min()
+            else {
+                continue;
+            };
+            let Some(numerator) = first_literal(store, &exponent, MATH_EXPONENT_NUMERATOR)
+                .and_then(|v| v.parse::<i64>().ok())
+            else {
+                continue;
+            };
+            let Some(denominator) = first_literal(store, &exponent, MATH_EXPONENT_DENOMINATOR)
+                .and_then(|v| v.parse::<i64>().ok())
+            else {
+                continue;
+            };
+            dimension_exponents.push(DocDimExponent {
+                base_dimension: local_name(&base_iri).to_string(),
+                numerator,
+                denominator,
+            });
+        }
+        dimension_exponents.sort();
+        dimension_exponents.dedup();
+
+        let unit = named_objects(store, &subject, GMEOW_UNIT).into_iter().min();
+        let quantity_value = first_literal(store, &subject, MATH_QUANTITY_VALUE);
+
+        let turtle = render_worked_instance_turtle(
+            &subject,
+            &type_iris,
+            label.as_deref(),
+            &dimension_iri,
+            dimension_label.as_deref(),
+            &dimension_exponents,
+            unit.as_deref(),
+            quantity_value.as_deref(),
+        );
+
+        out.push(DocWorkedInstance {
+            slice: owner_slice.to_string(),
+            logical_path: artifact.logical_path.clone(),
+            subject: local_name(&subject).to_string(),
+            types,
+            label,
+            dimension_label,
+            dimension_exponents,
+            unit,
+            quantity_value,
+            turtle,
+        });
+    }
+    out
+}
+
+/// Render an IRI for the reconstructed worked-instance Turtle block: a CURIE
+/// for a handful of well-known vocabulary namespaces (`rdf:`, `rdfs:`,
+/// `math:`, `gmeow:`), a full `<...>` IRI otherwise. The example's own subject
+/// / dimension IRIs (an `ex:`-style namespace whose prefix binding is
+/// per-file, not carried by the extracted model) and any external IRI (a QUDT
+/// unit) fall through to the `<...>` form — always syntactically valid
+/// Turtle, regardless of which example file the instance was parsed from.
+fn turtle_iri(iri: &str) -> String {
+    const PREFIXES: &[(&str, &str)] = &[
+        ("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "rdf"),
+        ("http://www.w3.org/2000/01/rdf-schema#", "rdfs"),
+        (MATH_NS, "math"),
+        (GMEOW_NS, "gmeow"),
+    ];
+    for (ns, prefix) in PREFIXES {
+        if let Some(local) = iri.strip_prefix(ns)
+            // A Turtle PN_LOCAL cannot contain an unescaped `/` or `#` — an
+            // example's own subject namespace (e.g.
+            // `https://blackcatinformatics.ca/gmeow/examples/math/`) is
+            // itself nested UNDER `GMEOW_NS`, so a naive prefix strip would
+            // mint an invalid CURIE like `gmeow:examples/math/energyDensityFn`.
+            // Falling through to the full `<...>` form for any such nested
+            // namespace keeps every rendered CURIE syntactically valid.
+            && !local.is_empty()
+            && !local.contains(['/', '#'])
+        {
+            return format!("{prefix}:{local}");
+        }
+    }
+    format!("<{iri}>")
+}
+
+/// Render `value` as a Turtle short-form string literal (backslash/quote/
+/// control-character escaped).
+fn turtle_string_literal(value: &str) -> String {
+    let mut out = String::with_capacity(value.len() + 2);
+    out.push('"');
+    for ch in value.chars() {
+        match ch {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            _ => out.push(ch),
+        }
+    }
+    out.push('"');
+    out
+}
+
+/// Render a subject's predicate list (each entry already a complete
+/// `predicate object` clause, no trailing punctuation) as
+/// `    predicate object ;\n` … `    predicate object .\n` — the project's own
+/// 4-space-indent, trailing-`.` Turtle authoring convention.
+fn push_turtle_predicate_lines(out: &mut String, lines: &[String]) {
+    for (i, line) in lines.iter().enumerate() {
+        let terminator = if i + 1 == lines.len() { '.' } else { ';' };
+        out.push_str("    ");
+        out.push_str(line);
+        out.push(' ');
+        out.push(terminator);
+        out.push('\n');
+    }
+}
+
+/// Reconstruct a small, deterministic, copy-paste-runnable Turtle block for
+/// one worked instance FROM ITS EXTRACTED FIELDS — never a byte-slice of the
+/// source artifact. A byte-slice risks incompleteness (the source file may
+/// interleave unrelated subjects between the instance and its dimension) and
+/// non-determinism (comment/whitespace drift is not part of the model); hand
+/// -rendering from the same typed fields the model already carries is no
+/// harder to get right and stays exactly as informative as the model itself.
+/// Renders the subject's own triples, then — only when
+/// `dimension_exponents` is non-empty — a second stanza for the resolved
+/// `math:DerivedDimension`'s `math:baseDimensionExponent` breakdown (each
+/// exponent as an anonymous `[ … ]` blank-node object, matching the project's
+/// own authoring convention in `measure-and-dimension.ttl`). The dimensionless
+/// case (empty `dimension_exponents`) renders only the subject stanza — honest,
+/// not a fabricated breakdown.
+#[allow(clippy::too_many_arguments)]
+fn render_worked_instance_turtle(
+    subject_iri: &str,
+    type_iris: &[String],
+    label: Option<&str>,
+    dimension_iri: &str,
+    dimension_label: Option<&str>,
+    dimension_exponents: &[DocDimExponent],
+    unit: Option<&str>,
+    quantity_value: Option<&str>,
+) -> String {
+    let mut out = String::new();
+
+    // ── The dimensioned subject's own triples ──────────────────────────────
+    out.push_str(&turtle_iri(subject_iri));
+    out.push('\n');
+    let mut lines: Vec<String> = Vec::new();
+    for type_iri in type_iris {
+        lines.push(format!("a {}", turtle_iri(type_iri)));
+    }
+    if let Some(label) = label {
+        lines.push(format!("rdfs:label {}", turtle_string_literal(label)));
+    }
+    lines.push(format!("math:hasDimension {}", turtle_iri(dimension_iri)));
+    if let Some(unit) = unit {
+        lines.push(format!("gmeow:unit {}", turtle_iri(unit)));
+    }
+    if let Some(value) = quantity_value {
+        lines.push(format!(
+            "math:quantityValue {}^^xsd:double",
+            turtle_string_literal(value)
+        ));
+    }
+    push_turtle_predicate_lines(&mut out, &lines);
+
+    // ── The resolved dimension's own base-dimension-exponent breakdown ─────
+    if !dimension_exponents.is_empty() {
+        out.push('\n');
+        out.push_str(&turtle_iri(dimension_iri));
+        out.push('\n');
+        let mut dim_lines: Vec<String> = vec!["a math:DerivedDimension".to_string()];
+        if let Some(label) = dimension_label {
+            dim_lines.push(format!("rdfs:label {}", turtle_string_literal(label)));
+        }
+        let exponent_blanks: Vec<String> = dimension_exponents
+            .iter()
+            .map(|e| {
+                format!(
+                    "[ math:exponentOfDimension math:{} ; math:exponentNumerator {} ; \
+                     math:exponentDenominator {} ]",
+                    e.base_dimension, e.numerator, e.denominator
+                )
+            })
+            .collect();
+        dim_lines.push(format!(
+            "math:baseDimensionExponent {}",
+            exponent_blanks.join(" ,\n        ")
+        ));
+        push_turtle_predicate_lines(&mut out, &dim_lines);
+    }
+
+    out
+}
+
+/// One `gmeow:ExampleConformance` binding read from a slice's
+/// `tests/example-conformance.ttl`: the expected outcome / violation code /
+/// rationale it asserts for the fixture path its `gmeow:exampleFile` pins.
+struct FixtureBinding {
+    /// `gmeow:expectedOutcome`'s local name (`"conforms"` | `"violates"`).
+    expected_outcome: Option<String>,
+    /// `gmeow:expectedViolationCode`.
+    violation_code: Option<String>,
+    /// `gmeow:conformanceRationale`.
+    rationale: Option<String>,
+}
+
+/// Extract the per-fixture-path conformance bindings from a slice's
+/// `tests/example-conformance.ttl` store, keyed by the slice-relative
+/// `gmeow:exampleFile` path each `gmeow:ExampleConformance` cell pins.
+fn extract_fixture_bindings(store: &Store) -> BTreeMap<String, FixtureBinding> {
+    let mut out = BTreeMap::new();
+    for cell in subjects_of_type(store, GMEOW_EXAMPLE_CONFORMANCE) {
+        let Some(file) = first_literal(store, &cell, GMEOW_EXAMPLE_FILE) else {
+            continue;
+        };
+        // The lowest-sorted object IRI's local name — deterministic even if a
+        // cell were ever multiply asserted.
+        let expected_outcome = named_objects(store, &cell, GMEOW_EXPECTED_OUTCOME)
+            .into_iter()
+            .min()
+            .map(|iri| local_name(&iri).to_string());
+        let violation_code = first_literal(store, &cell, GMEOW_EXPECTED_VIOLATION_CODE);
+        let rationale = first_literal(store, &cell, GMEOW_CONFORMANCE_RATIONALE);
+        out.insert(
+            file,
+            FixtureBinding {
+                expected_outcome,
+                violation_code,
+                rationale,
+            },
+        );
+    }
+    out
+}
+
+/// Extract a single conformance fixture, reusing [`extract_example`]'s title /
+/// text / term-reference extraction verbatim (the fixture files are structured
+/// identically to worked examples) and joining `binding` — this slice's
+/// `tests/example-conformance.ttl` entry for this fixture's path, if any.
+/// `catalog_slug` starts `None`; [`apply_fixture_catalog_slugs`] resolves it
+/// once `constraint_rules` is populated in `discover()`.
+fn extract_fixture(
+    artifact: &ArtifactRecord,
+    owner_slice: &str,
+    kind: DocFixtureKind,
+    binding: Option<&FixtureBinding>,
+) -> DocFixture {
+    let example = extract_example(artifact, owner_slice);
+    let (expected_outcome, violation_code, rationale) = match binding {
+        Some(b) => (
+            b.expected_outcome.clone(),
+            b.violation_code.clone(),
+            b.rationale.clone(),
+        ),
+        None => (None, None, None),
+    };
+    DocFixture {
+        slice: example.slice,
+        logical_path: example.logical_path,
+        title: example.title,
+        text: example.text,
+        kind,
+        terms_referenced: example.terms_referenced,
+        expected_outcome,
+        violation_code,
+        rationale,
+        catalog_slug: None,
     }
 }
 
@@ -1846,6 +3143,85 @@ fn filename_title(logical_path: &str) -> String {
     } else {
         out
     }
+}
+
+/// Extract a single [`DocGrammar`] from a `grammars/*.ebnf` artifact: the slug
+/// is the filename stem, the title is the header comment's first sentence
+/// (see [`DocGrammar::title`]), and the license is the file's
+/// `SPDX-License-Identifier` header line. Every grammar file in this
+/// repository is required to carry both a descriptive header and an SPDX
+/// license line — their absence is a broken authoring invariant, not an
+/// optional input, so a malformed header is a hard fail rather than a silent
+/// placeholder.
+fn extract_grammar(artifact: &ArtifactRecord) -> DocGrammar {
+    let source = String::from_utf8_lossy(&artifact.content).into_owned();
+    let filename = artifact
+        .logical_path
+        .rsplit('/')
+        .next()
+        .unwrap_or(&artifact.logical_path);
+    // `strip_suffix` removes the extension exactly once (never mid-name characters,
+    // unlike `trim_end_matches`), falling back to the bare filename when absent.
+    let slug = filename
+        .strip_suffix(".ebnf")
+        .unwrap_or(filename)
+        .to_string();
+    let title = grammar_title(&source).unwrap_or_else(|| {
+        panic!(
+            "{}: missing a `#`-commented header description to derive a title from",
+            artifact.logical_path
+        )
+    });
+    let license = grammar_license(&source).unwrap_or_else(|| {
+        panic!(
+            "{}: missing an `SPDX-License-Identifier:` header line",
+            artifact.logical_path
+        )
+    });
+    DocGrammar {
+        slug,
+        title,
+        source,
+        license,
+    }
+}
+
+/// Join a grammar file's leading `#`-commented header lines (skipping the
+/// blank comment separators) into one string, then take the first sentence
+/// (up to the first `". "`, or the whole joined string when it contains no
+/// internal sentence break) as the title. Stops at the first line that is not
+/// a `#` comment (the header always precedes the first production line).
+/// `None` when the file carries no descriptive header comment at all.
+fn grammar_title(source: &str) -> Option<String> {
+    let mut body = String::new();
+    for raw_line in source.lines() {
+        let Some(rest) = raw_line.trim_start().strip_prefix('#') else {
+            break;
+        };
+        let content = rest.trim();
+        if content.is_empty() || content.starts_with("SPDX-") {
+            continue;
+        }
+        if !body.is_empty() {
+            body.push(' ');
+        }
+        body.push_str(content);
+    }
+    if body.is_empty() {
+        return None;
+    }
+    let sentence = body.split(". ").next().unwrap_or(&body);
+    Some(sentence.trim_end_matches('.').to_string())
+}
+
+/// Parse a grammar file's `SPDX-License-Identifier:` header comment line.
+fn grammar_license(source: &str) -> Option<String> {
+    source.lines().find_map(|raw_line| {
+        let content = raw_line.trim_start().trim_start_matches('#').trim();
+        content
+            .strip_prefix("SPDX-License-Identifier:")
+            .map(|v| v.trim().to_string())
+    })
 }
 
 /// Collect documentation concerns from every module graph: the concern
@@ -1921,6 +3297,121 @@ fn extract_concerns(catalog: &SliceCatalog) -> Vec<DocConcern> {
         .collect();
     concerns.sort_by(|a, b| a.iri.cmp(&b.iri));
     concerns
+}
+
+/// Extract the dogfooded build-pipeline DAG from every module graph that carries
+/// `gmeow:PipelineStage` individuals (the pipeline slice today). Scans module
+/// stores exactly as [`extract_concerns`] does — a source-lane read of authored
+/// `module.ttl`, never a `generated/` artifact. Returns `None` when no module
+/// authors a stage (a bare unit-test catalog); the whole-repo `discover` path
+/// always finds `slices/core/pipeline/module.ttl` and populates it.
+///
+/// Edges are the union of bare `gmeow:dataflowConsumes` dependencies (added with
+/// no flow entities) and reified `gmeow:BuildDataFlow` refinements (whose
+/// `gmeow:flowEntity` named-graph IRIs decorate the matching edge). A
+/// `BuildDataFlow` whose `(from, to)` names no bare consumes edge still yields an
+/// edge — it is a genuine authored dependency.
+fn extract_pipeline(catalog: &SliceCatalog) -> Option<DocPipeline> {
+    let mut stages: Vec<DocStage> = Vec::new();
+    let mut seen_stage: BTreeSet<String> = BTreeSet::new();
+    // (producer, consumer) → flowing named-graph IRIs (BTreeSet keeps them sorted
+    // and the outer BTreeMap keeps the edge order deterministic).
+    let mut edges: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
+    let mut goal: Option<String> = None;
+    let mut success_mode: Option<String> = None;
+
+    for record in catalog.records() {
+        for artifact in &record.artifacts {
+            if artifact.role != ArtifactRole::Module {
+                continue;
+            }
+            let Ok(store) = parse_turtle_lenient(&artifact.content) else {
+                continue;
+            };
+
+            // Stages + their bare dataflowConsumes edges.
+            for iri in subjects_of_type(&store, GMEOW_PIPELINE_STAGE) {
+                if !seen_stage.insert(iri.clone()) {
+                    continue;
+                }
+                let mut consumes = named_objects(&store, &iri, GMEOW_DATAFLOW_CONSUMES);
+                consumes.sort();
+                consumes.dedup();
+                let capabilities = curie_objects(&store, &iri, GMEOW_HAS_CAPABILITY);
+                let resources = curie_objects(&store, &iri, GMEOW_REQUIRES_RESOURCE);
+                // The lowest-sorted box-role CURIE (mirrors the per-term surface).
+                let box_role = curie_objects(&store, &iri, GMEOW_GRAPH_BOX_ROLE)
+                    .into_iter()
+                    .next();
+                for producer in &consumes {
+                    edges.entry((producer.clone(), iri.clone())).or_default();
+                }
+                stages.push(DocStage {
+                    label: first_literal(&store, &iri, RDFS_LABEL),
+                    definition: first_literal(&store, &iri, SKOS_DEFINITION),
+                    stage_impl: first_literal(&store, &iri, GMEOW_STAGE_IMPL),
+                    capabilities,
+                    resources,
+                    box_role,
+                    consumes,
+                    iri,
+                });
+            }
+
+            // Reified BuildDataFlow edges: decorate the matching edge with the
+            // flowing named-graph IRIs (honest computed-absence where none exist).
+            for edge_iri in subjects_of_type(&store, GMEOW_BUILD_DATA_FLOW) {
+                let from = named_objects(&store, &edge_iri, GMEOW_BUILD_FLOW_FROM)
+                    .into_iter()
+                    .next();
+                let to = named_objects(&store, &edge_iri, GMEOW_BUILD_FLOW_TO)
+                    .into_iter()
+                    .next();
+                let (Some(from), Some(to)) = (from, to) else {
+                    continue;
+                };
+                let entry = edges.entry((from, to)).or_default();
+                for graph in named_objects(&store, &edge_iri, GMEOW_FLOW_ENTITY) {
+                    entry.insert(graph);
+                }
+            }
+
+            // The Pipeline plan's goal + success mode.
+            for pipeline_iri in subjects_of_type(&store, GMEOW_PIPELINE) {
+                if goal.is_none() {
+                    goal = named_objects(&store, &pipeline_iri, LOGIC_PLAN_GOAL)
+                        .into_iter()
+                        .next()
+                        .map(|iri| to_curie(&iri));
+                }
+                if success_mode.is_none() {
+                    success_mode = named_objects(&store, &pipeline_iri, LOGIC_PLAN_SUCCESS_MODE)
+                        .into_iter()
+                        .next()
+                        .map(|iri| to_curie(&iri));
+                }
+            }
+        }
+    }
+
+    if stages.is_empty() {
+        return None;
+    }
+    stages.sort_by(|a, b| a.iri.cmp(&b.iri));
+    let edges: Vec<DocFlowEdge> = edges
+        .into_iter()
+        .map(|((from, to), flow)| DocFlowEdge {
+            from,
+            to,
+            flow_entities: flow.into_iter().collect(),
+        })
+        .collect();
+    Some(DocPipeline {
+        stages,
+        edges,
+        goal,
+        success_mode,
+    })
 }
 
 /// Derive the external-term overview: every non-GMEOW IRI referenced by a
@@ -2134,6 +3625,12 @@ fn subjects_of_type(store: &Store, type_iri: &str) -> Vec<String> {
     store.subjects_of_type(type_iri)
 }
 
+/// Every distinct named subject carrying `?s <predicate> ?o` in the default
+/// graph (sorted, deduped).
+fn subjects_with_predicate(store: &Store, predicate: &str) -> Vec<String> {
+    store.subjects_with_predicate(predicate)
+}
+
 /// Map an `rdf:type` object IRI to a documented term category.
 fn category_for_type(type_iri: &str) -> Option<DocTermCategory> {
     match type_iri {
@@ -2143,6 +3640,22 @@ fn category_for_type(type_iri: &str) -> Option<DocTermCategory> {
         }
         OWL_NAMED_INDIVIDUAL => Some(DocTermCategory::Individual),
         RDFS_DATATYPE => Some(DocTermCategory::Datatype),
+        // A `logic:PathShape` INSTANCE is an OWL individual (an instance of the
+        // `logic:PathShape` class), not a TBox class/property/datatype — so
+        // `Individual` is its definitionally-honest category. Its low
+        // `category_rank` (Individual = 1) is deliberate: a domain property that
+        // is ALSO grounded as a PathShape keeps its stronger `Property` category.
+        LOGIC_PATH_SHAPE => Some(DocTermCategory::Individual),
+        // A `gmeow:PipelineStage` INSTANCE (each `gmeow:stage-*` node of the
+        // dogfooded build DAG, authored in `slices/core/pipeline/module.ttl`) is
+        // an OWL individual, so `Individual` is its honest category — and, unlike
+        // `logic:PathShape`, its instances live in a `module.ttl`, so the
+        // module-wide `extract_terms` scan lifts them here directly (no separate
+        // example scan). Making each stage a documented term is what gives it a
+        // term page, which is the surface `render::append_stage_section` enriches
+        // with the stage's Rust `stageImpl` binding and consumes / consumed-by /
+        // flowing-graph dataflow tables read back from `DocPipeline`.
+        GMEOW_PIPELINE_STAGE => Some(DocTermCategory::Individual),
         _ => None,
     }
 }
@@ -2187,11 +3700,17 @@ fn named_objects(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
 }
 
 /// Compute the compact CURIE for an IRI: `gmeow:Local` for GMEOW-namespaced
-/// IRIs, otherwise the IRI unchanged.
+/// IRIs, otherwise the IRI unchanged. A GMEOW-nested example namespace (e.g.
+/// `https://blackcatinformatics.ca/gmeow/examples/logic/nearbyOrgs`) has a local
+/// part carrying `/` — an invalid Turtle PN_LOCAL — so it falls through to the
+/// full IRI rather than minting a broken `gmeow:examples/logic/nearbyOrgs` CURIE
+/// (the same invariant [`turtle_iri`] already enforces).
 fn to_curie(iri: &str) -> String {
     match iri.strip_prefix(GMEOW_NS) {
-        Some(local) => format!("gmeow:{local}"),
-        None => iri.to_string(),
+        Some(local) if !local.is_empty() && !local.contains(['/', '#']) => {
+            format!("gmeow:{local}")
+        }
+        _ => iri.to_string(),
     }
 }
 
@@ -2360,6 +3879,158 @@ gmeow:Thing a owl:Class ;
                     note: Some("Widened range.".to_string()),
                 },
             ]
+        );
+    }
+
+    /// [`extract_loss_targets`] is generic: it finds every subject carrying
+    /// BOTH `logic:preservationKind` and `logic:complexityClass` — not just a
+    /// hardcoded filename's individuals — and correctly skips a subject that
+    /// carries only one of the two predicates (an unrelated pedagogical
+    /// individual, mirroring `ex:mortalityRuleSet` in the real
+    /// `projection-loss-ledger.ttl`).
+    #[test]
+    fn extract_loss_targets_finds_rows_and_skips_partial_subjects() {
+        let ttl = r#"
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/demo/> .
+
+ex:notARow a gmeow:InformationObject ;
+    rdfs:label "carries only preservationKind, not a loss row"@x-gmeow-english ;
+    logic:preservationKind logic:ValidationOnly .
+
+ex:elProjectionReport a gmeow:InformationObject ;
+    rdfs:label "OWL-EL projection of the demo rule set"@x-gmeow-english ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:complexityClass "EL -> PTIME" .
+"#;
+        let store = store_from(ttl);
+        let rows = extract_loss_targets(&store, "https://example.org/slice/demo");
+        assert_eq!(rows.len(), 1, "only the fully-attributed subject is a row");
+        let row = &rows[0];
+        assert_eq!(row.target, "elProjectionReport");
+        assert_eq!(
+            row.label.as_deref(),
+            Some("OWL-EL projection of the demo rule set")
+        );
+        assert_eq!(row.preservation_kind, "SoundUnderApproximation");
+        assert_eq!(row.complexity_class, "EL -> PTIME");
+        assert_eq!(row.slice, "https://example.org/slice/demo");
+    }
+
+    /// Build a bare in-memory [`ArtifactRecord`] for a Turtle example, mirroring
+    /// the shape [`extract_worked_instances`] reads (`logical_path` is the only
+    /// field it consults; the rest are filler).
+    fn example_artifact(logical_path: &str, ttl: &str) -> ArtifactRecord {
+        ArtifactRecord {
+            role: ArtifactRole::Example,
+            logical_path: logical_path.to_string(),
+            media_type: "text/turtle".to_string(),
+            raw_digest: String::new(),
+            semantic_digest: None,
+            content: ttl.as_bytes().to_vec(),
+        }
+    }
+
+    /// [`extract_worked_instances`] is generic: it finds every subject carrying
+    /// `math:hasDimension` — not just the individuals in the real
+    /// `measure-and-dimension.ttl` — resolves a `math:DerivedDimension`'s ℚ⁷
+    /// SI base-dimension exponent vector (sorted, negative numerators handled),
+    /// and honestly emits an EMPTY exponent vector (not a hard fail) for a
+    /// dimensionless subject whose dimension object carries no
+    /// `math:baseDimensionExponent` breakdown.
+    #[test]
+    fn extract_worked_instances_resolves_exponents_and_honest_dimensionless() {
+        let ttl = r#"
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/demo/> .
+
+ex:restEnergy a math:Quantity ;
+    rdfs:label "rest energy"@x-gmeow-english ;
+    math:hasDimension ex:energyDimension ;
+    gmeow:unit <http://qudt.org/vocab/unit/J> ;
+    math:quantityValue "8.187e-14"^^xsd:double .
+
+ex:energyDimension a math:DerivedDimension ;
+    rdfs:label "energy dimension (M*L^2*T^-2)"@x-gmeow-english ;
+    math:baseDimensionExponent ex:eMass1 , ex:eTimeMinus2 .
+
+ex:eMass1 a math:DimensionExponent ;
+    math:exponentOfDimension math:massDimension ;
+    math:exponentNumerator 1 ; math:exponentDenominator 1 .
+ex:eTimeMinus2 a math:DimensionExponent ;
+    math:exponentOfDimension math:timeDimension ;
+    math:exponentNumerator -2 ; math:exponentDenominator 1 .
+
+ex:uniformProbability a math:ProbabilityMeasure ;
+    rdfs:label "uniform probability measure"@x-gmeow-english ;
+    math:hasDimension math:dimensionless .
+"#;
+        let store = store_from(ttl);
+        let artifact = example_artifact("examples/demo.ttl", ttl);
+        let mut rows =
+            extract_worked_instances(&store, &artifact, "https://example.org/slice/demo");
+        rows.sort_by(|a, b| a.subject.cmp(&b.subject));
+        assert_eq!(rows.len(), 2, "both dimensioned subjects are picked up");
+
+        let rest_energy = &rows[0];
+        assert_eq!(rest_energy.subject, "restEnergy");
+        assert_eq!(rest_energy.logical_path, "examples/demo.ttl");
+        assert_eq!(rest_energy.slice, "https://example.org/slice/demo");
+        assert_eq!(rest_energy.types, vec!["Quantity".to_string()]);
+        assert_eq!(rest_energy.label.as_deref(), Some("rest energy"));
+        assert_eq!(
+            rest_energy.dimension_label.as_deref(),
+            Some("energy dimension (M*L^2*T^-2)")
+        );
+        assert_eq!(
+            rest_energy.unit.as_deref(),
+            Some("http://qudt.org/vocab/unit/J")
+        );
+        assert_eq!(rest_energy.quantity_value.as_deref(), Some("8.187e-14"));
+        assert_eq!(
+            rest_energy.dimension_exponents,
+            vec![
+                DocDimExponent {
+                    base_dimension: "massDimension".to_string(),
+                    numerator: 1,
+                    denominator: 1,
+                },
+                DocDimExponent {
+                    base_dimension: "timeDimension".to_string(),
+                    numerator: -2,
+                    denominator: 1,
+                },
+            ],
+            "sorted by base_dimension local name; negative numerator preserved"
+        );
+        assert!(rest_energy.turtle.contains("math:exponentNumerator -2"));
+        assert!(
+            rest_energy
+                .turtle
+                .contains("gmeow:unit <http://qudt.org/vocab/unit/J>")
+        );
+
+        let uniform = &rows[1];
+        assert_eq!(uniform.subject, "uniformProbability");
+        assert_eq!(
+            uniform.dimension_exponents,
+            Vec::new(),
+            "dimensionless subject honestly renders an EMPTY exponent vector, not a hard fail"
+        );
+        assert_eq!(
+            uniform.dimension_label, None,
+            "math:dimensionless carries no local label in this file — an honest absence"
+        );
+        assert!(uniform.unit.is_none());
+        assert!(uniform.quantity_value.is_none());
+        assert!(
+            !uniform.turtle.contains("baseDimensionExponent"),
+            "no fabricated exponent breakdown for the dimensionless case"
         );
     }
 }
