@@ -10,6 +10,13 @@
     },
     {
       "severity": "warning",
+      "code": "slice-quality.gmn1-coverage.no-repo-root",
+      "message": "the slice directory carries no resolvable slices/ path prefix — GMN-1 coverage cannot be measured (vacuous 1.0).",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
       "code": "slice-quality.linkage.no-calculus-eligible-correspondence",
       "message": "the slice authors no identity-strength correspondence (none, or only lossy closeMatch-class alignments the lens calculus cannot carry) — the correspondence-calculus adoption axis is not applicable (vacuous 1.0), not a full-adoption pass.",
       "tool": "slice-quality",
@@ -47,6 +54,13 @@
       "severity": "info",
       "code": "slice-quality.grade",
       "message": "axisFlagshipCounterExampleDepth: Maximal (score 1.00)",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
+      "message": "axisGmn1Coverage: Maximal (score 1.00)",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
@@ -132,6 +146,11 @@
     {
       "id": "slice-quality.documentation.no-docs",
       "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-documentation-no-docs",
+      "default_severity": "warning"
+    },
+    {
+      "id": "slice-quality.gmn1-coverage.no-repo-root",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-gmn1-coverage-no-repo-root",
       "default_severity": "warning"
     },
     {

@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# Counter-example: a gmeow:GmnSecurityRing whose authored lattice
+# coordinates are malformed — it carries NO gmeow:gmnRingLevel at all, so it cannot be
+# placed in the Denning product-order lattice. sh:minCount 1 on the gmeow:gmnRingLevel
+# property of lang:GmnRingLatticeWellFormedShape fires shacl.MinCountConstraintComponent
+# (lang:GmnRingLatticeMalformed). This gates the AUTHORED coordinate, never the derived
+# gmeow:gmnRingWithin relation (gating the derived relation would be a tautology).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/lang/> .
+
+ex:ringMissingLevel a gmeow:GmnSecurityRing ;
+    rdfs:label "ring missing its level coordinate" .

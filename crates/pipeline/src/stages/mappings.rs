@@ -1444,7 +1444,8 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             .expect("committed projection report");
         // The non-logic target prefixes: the four alignment dialects, the EmotionML
         // lowering, and the lang: projection targets (grammar/lexicon/treebank emissions
-        // plus the TEI document, NIF anchor, and SemAF/AMR denotation emissions).
+        // plus the TEI document, NIF anchor, SemAF/AMR denotation, and GMN-1 codec
+        // round-trip emissions).
         let non_logic = [
             "/target/sssom:",
             "/target/fno:",
@@ -1458,6 +1459,9 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             "/target/nif:",
             "/target/semaf:",
             "/target/bcp47:",
+            // The GMN-1 codec's own projection-seam rows: each
+            // grounding/non-grounding `lang_models` source's measured round-trip emission.
+            "/target/gmn1:",
             "/target/lang-projection:",
             // The docs-tree re-typing rows: per-page rendering + translation roll-ups and the
             // exec-docs English-only boundary gap (folded from `lang_docs_rendering`).

@@ -164,6 +164,28 @@ resources in the current slices-first, Rust-native repository.
   naming its canonical `logic:` source — the form the blanket projection-purity gate
   legalizes. `docs/SLICE_GUIDE.md` §9 is the reference.
 
+- **Raise the slice's GMN-1 coverage (touch this whenever you extend a slice's vocabulary)**:
+  The **GMN-1 Coverage** slice-quality axis (`axisGmn1Coverage`) reports the fraction of a
+  slice's own GMN-0 normal-form vocabulary (`module.ttl` + `examples/*.ttl`) the GMN-1 codec
+  (`crates/lang-bridge/src/gmn1_codec.rs`) can losslessly round-trip
+  (`slice-quality.gmn1-coverage.uncovered`). It realizes `gmeow:gmnCorrNormalToGmn`'s
+  `logic:mnemomorphic true` claim, whose declared domain is ALL of GMN-0: the grounding
+  slices (`slices/grounding/{logic,lang,math}`) are hard-gated at a committed floor of `1.0`;
+  every other slice is floor-gated at its own committed score in
+  `governance/slice-quality-axis-floors.tsv`, with **monotonic non-regression** — the gate
+  forbids falling below the committed floor, it does not force ascent toward `1.0`.
+
+  ```bash
+  gmeow-dev slice-quality slices/<g>/<s>      # names every uncovered GMN-0 quad
+  gmeow-dev slice-quality-gate                # the per-axis floor gate (make slice-quality-gate)
+  ```
+
+  Round-trip each named construct by extending the codec's covered fragment, or file a
+  named codec-coverage gap against `LANG-GMN.md` if it is genuinely out of scope. Raising this
+  slice's committed floor in `governance/slice-quality-axis-floors.tsv` is a separate,
+  deliberate commit made once the measured score has genuinely risen — never bump the floor
+  ahead of a real uplift.
+
 - **Run ontology reasoning and verification**:
 
   ```bash

@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:PersistenceLifetimeShape: a math:PersistenceLifetime naming its
+# math:overFiltration (a well-formed one-stage filtration), its math:persistenceFeature (a
+# fully-framed math:HomologyGroup), and its math:bornAt, but omitting math:diesAt ENTIRELY —
+# not even math:PositiveInfinity (sh:minCount 1). A lifetime is the interval death − birth;
+# one missing its death has no persistence value and is ill-formed. Every other role is
+# present and its referents are well-formed, so ONLY the missing-death violation fires.
+# Validation MUST emit shacl.MinCountConstraintComponent and NO other finding
+# (math:UnderspecifiedPersistenceLifetime). Bound by ex:ecPersistenceLifetimeNoDeath.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:deathlessLifetime a math:PersistenceLifetime ;
+    math:overFiltration ex:filt ;
+    math:persistenceFeature ex:feature ;
+    math:bornAt ex:birthThreshold .
+
+# A well-formed one-stage filtration so the math:overFiltration referent raises no finding.
+ex:filt a math:Filtration ;
+    math:hasFiltrationStage ex:stage .
+ex:stage a math:FiltrationStage ;
+    math:filtrationThreshold ex:birthThreshold ;
+    math:stageStructure ex:structure .
+ex:structure a math:TopologicalSpace .
+ex:birthThreshold a math:MathematicalObject .
+
+# A fully-framed math:HomologyGroup so the math:persistenceFeature referent raises no finding.
+ex:feature a math:HomologyGroup ;
+    math:underlyingSet ex:featureCarrier ;
+    math:structureOperation ex:featureAddition ;
+    math:satisfiesAxiom ex:featureCommutativityAxiom .
+ex:featureCarrier a math:Set .
+ex:featureAddition a math:Operation .

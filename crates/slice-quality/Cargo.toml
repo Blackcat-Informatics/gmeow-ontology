@@ -37,6 +37,11 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # closure gives inferential density, and leave-one-out over the closure proves
 # closure-redundant authored triples (Principles 8/12/18).
 gmeow-logic = { path = "../logic" }
+# The GMN-1 codec's own coverage-measurement primitive (`measure_coverage`) — the
+# gmn1_coverage_axis composes it directly rather than duplicating the codec's term
+# encoder. A leaf crate with no reasoning-runtime or pipeline deps (lang-bridge does
+# NOT depend on slice-quality), so no dependency cycle.
+gmeow-lang-bridge = { path = "../lang-bridge" }
 
 [dev-dependencies]
 pretty_assertions = "1"

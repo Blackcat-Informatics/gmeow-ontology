@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:FiltrationShape: a math:Filtration naming its ambient object
+# and its index kind but declaring no math:hasFiltrationStage (sh:minCount 1). A filtration
+# is a family of substructures indexed by a threshold; one with no stages is ill-formed.
+# Every other role is present, so ONLY the missing-stage violation fires. Validation MUST
+# emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedFiltration).
+# Bound by ex:ecFiltrationNoStages.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:emptyFiltration a math:Filtration ;
+    math:filtrationAmbient ex:ambient ;
+    math:filtrationIndexKind math:lengthDimension .
+
+ex:ambient a math:MathematicalObject .

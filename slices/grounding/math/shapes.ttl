@@ -1216,6 +1216,126 @@ math:WeightTensorShape
         sh:message "A math:WeightTensor must name the math:ParameterSpace it lives in through math:inParameterSpace." ;
     ] .
 
+# Rule — a filtration declares stages, each with a threshold and a structure.
+math:FiltrationShape
+    a sh:NodeShape ;
+    rdfs:label "Filtration structural-presence shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:Filtration and its stages: a filtration declares at least one math:hasFiltrationStage, and every math:FiltrationStage names exactly one math:filtrationThreshold (a gmeow:Quantity, the ε it sits at) and exactly one math:stageStructure (a math:TopologicalSpace, the substructure present at ε). This is a STRUCTURAL PRESENCE gate only — it does NOT encode monotonicity (ε₁ ≤ ε₂ ⇒ containment), which is carried by the first-order law math:filtrationMonotonicityLaw, not by a shape. A filtration with no stages, or a stage missing its threshold or structure, is ill-formed (math:UnderspecifiedFiltration)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:UnderspecifiedFiltration ;
+    sh:targetClass math:Filtration ;
+    sh:property [
+        sh:path math:hasFiltrationStage ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:FiltrationStage ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Filtration must declare at least one math:hasFiltrationStage naming a math:FiltrationStage; a filtration with no stages is ill-formed (math:UnderspecifiedFiltration)." ;
+    ] .
+
+math:FiltrationStageShape
+    a sh:NodeShape ;
+    rdfs:label "Filtration-stage threshold/structure shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:FiltrationStage: it names exactly one math:filtrationThreshold (the gmeow:Quantity ε it sits at) and exactly one math:stageStructure (the math:TopologicalSpace present at that threshold). A stage that names neither where it sits nor what is present there is ill-formed (math:UnderspecifiedFiltration)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:UnderspecifiedFiltration ;
+    sh:targetClass math:FiltrationStage ;
+    sh:property [
+        sh:path math:filtrationThreshold ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:FiltrationStage must name exactly one math:filtrationThreshold — the gmeow:Quantity ε it sits at; a stage without its threshold is ill-formed (math:UnderspecifiedFiltration)." ;
+    ] ;
+    sh:property [
+        sh:path math:stageStructure ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:TopologicalSpace ;
+        sh:severity sh:Violation ;
+        sh:message "A math:FiltrationStage must name exactly one math:stageStructure, and it must be a math:TopologicalSpace — the substructure Kε present at its threshold; a stage without its structure is ill-formed (math:UnderspecifiedFiltration)." ;
+    ] .
+
+# Rule — a persistence lifetime declares both endpoints of its birth–death interval.
+math:PersistenceLifetimeShape
+    a sh:NodeShape ;
+    rdfs:label "Persistence-lifetime birth/death shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:PersistenceLifetime: it names exactly one math:bornAt (the gmeow:Quantity threshold the feature appears at) and at least one math:diesAt (the threshold it disappears at — a finite gmeow:Quantity, or the individual math:PositiveInfinity for an essential feature that never dies within the filtration). A lifetime missing either endpoint has no persistence value (death − birth) and is ill-formed (math:UnderspecifiedPersistenceLifetime); an essential feature must state math:PositiveInfinity, never omit the death. The presence of math:overFiltration and math:persistenceFeature is required so the lifetime is anchored to its filtration and the math:HomologyGroup generator it tracks."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:UnderspecifiedPersistenceLifetime ;
+    sh:targetClass math:PersistenceLifetime ;
+    sh:property [
+        sh:path math:overFiltration ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Filtration ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PersistenceLifetime must name exactly one math:overFiltration — the math:Filtration it is read over; a lifetime not anchored to a filtration is ill-formed (math:UnderspecifiedPersistenceLifetime)." ;
+    ] ;
+    sh:property [
+        sh:path math:persistenceFeature ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:HomologyGroup ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PersistenceLifetime must name exactly one math:persistenceFeature — the math:HomologyGroup generator whose survival it tracks; a lifetime without its feature is ill-formed (math:UnderspecifiedPersistenceLifetime)." ;
+    ] ;
+    sh:property [
+        sh:path math:bornAt ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PersistenceLifetime must name exactly one math:bornAt — the gmeow:Quantity threshold the feature appears at; a lifetime without its birth is ill-formed (math:UnderspecifiedPersistenceLifetime)." ;
+    ] ;
+    sh:property [
+        sh:path math:diesAt ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PersistenceLifetime must name exactly one math:diesAt — the finite gmeow:Quantity death threshold, or math:PositiveInfinity for an essential feature; omitting the death entirely is ill-formed (math:UnderspecifiedPersistenceLifetime)." ;
+    ] .
+
+# Rule — a stability calibration record carries evidence, derivation kind, and guarantee.
+math:StabilityCalibrationRecordShape
+    a sh:NodeShape ;
+    rdfs:label "Stability-calibration grounding shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:StabilityCalibrationRecord: it names its math:calibrationEvidence (at least one math:PersistenceLifetime whose persistence produced the credence), exactly one math:credenceDerivationKind (which signal the credence derives from), and exactly one math:stabilityGuarantee (the math:Theorem bounding how far the persistence — and hence the credence — can move under perturbation). A record missing its evidence, derivation kind, or guarantee is an unwarranted number rather than a calibrated one and is ill-formed (math:UngroundedStabilityCalibration)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:UngroundedStabilityCalibration ;
+    sh:targetClass math:StabilityCalibrationRecord ;
+    sh:property [
+        sh:path math:calibrationEvidence ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:PersistenceLifetime ;
+        sh:severity sh:Violation ;
+        sh:message "A math:StabilityCalibrationRecord must name at least one math:calibrationEvidence, and it must be a math:PersistenceLifetime — the persistence evidence the credence rests on; a record with no evidence is ill-formed (math:UngroundedStabilityCalibration)." ;
+    ] ;
+    sh:property [
+        sh:path math:credenceDerivationKind ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:CredenceDerivationKind ;
+        sh:severity sh:Violation ;
+        sh:message "A math:StabilityCalibrationRecord must name exactly one math:credenceDerivationKind — the math:CredenceDerivationKind the credence derives from; a record without it is ill-formed (math:UngroundedStabilityCalibration)." ;
+    ] ;
+    sh:property [
+        sh:path math:stabilityGuarantee ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:Theorem ;
+        sh:severity sh:Violation ;
+        sh:message "A math:StabilityCalibrationRecord must name exactly one math:stabilityGuarantee, and it must be a math:Theorem — the stability result underwriting the calibration; a record without it is ill-formed (math:UngroundedStabilityCalibration)." ;
+    ] .
+
 # =========================================================================== #
 # Numeric-layer hard-rule gates (LINEAR-ALGEBRA-AND-LEARNING charter)          #
 #                                                                              #
