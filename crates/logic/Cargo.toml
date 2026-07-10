@@ -111,6 +111,18 @@ insta = { version = "1.48", features = ["json"] }
 # plotters/rayon defaults are off so `make bench` builds fast; the cargo-bench
 # stdout summary is all the baseline needs.
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+# iai-callgrind: the DETERMINISTIC instruction-count backend for the engine bench
+# (benches/engines_iai.rs). It counts retired instructions under Valgrind Callgrind
+# — a machine-independent, run-to-run stable metric — as external corroboration for
+# the on-gate steps+alloc+peak-live cost gate. MAINT-ONLY: it needs the `valgrind`
+# binary and the out-of-tree `iai-callgrind-runner` (installed via
+# `cargo install iai-callgrind-runner --version 0.16.1`, which MUST match this pin),
+# so it is wired only into `make maint-bench-instructions`, never `make check`.
+# Default features only (the `#[library_benchmark]` / `main!` surface, which the
+# crate gates behind its `default` feature): the heavier `client_requests` /
+# `cachegrind` sets stay off, so the dev-dep surface (and its build RAM) is minimal
+# — same build-RAM rationale as the criterion pin above.
+iai-callgrind = "0.16.1"
 
 [[bench]]
 name = "foundation"
@@ -130,4 +142,8 @@ harness = false
 
 [[bench]]
 name = "reason"
+harness = false
+
+[[bench]]
+name = "engines_iai"
 harness = false

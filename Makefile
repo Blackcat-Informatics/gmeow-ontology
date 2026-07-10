@@ -86,7 +86,7 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
-	maint-compliance-report-full maint-bench-baseline maint-rust-heavy \
+	maint-compliance-report-full maint-bench-baseline maint-bench-instructions maint-rust-heavy \
 	maint-external-corpora maint-tptp-corpus maint-lang-selfhost
 
 ##@ Core Workflows
@@ -500,6 +500,28 @@ maint-bench-baseline: ## (maintainer) Refresh bench/baseline.json from a fresh c
 	$(MAKE) bench
 	cargo run -q -p gmeow-pipeline --bin bench-compare -- --emit-baseline > bench/baseline.json
 	@echo "wrote bench/baseline.json ($$(wc -c < bench/baseline.json) bytes) — regenerate + commit"
+
+maint-bench-instructions: ## (maintainer) Deterministic retired-instruction counts for the engines via iai-callgrind under Valgrind (off-gate corroboration; NOT wired into `make check`).
+	@# iai-callgrind measures RETIRED INSTRUCTIONS under Valgrind Callgrind — a
+	@# machine-independent, run-to-run stable metric that corroborates the on-gate
+	@# steps+alloc+peak-live cost gate. It is off-gate because it needs Valgrind and
+	@# the out-of-tree runner; per the measurement doctrine, instruction-count is
+	@# CORROBORATION, not the gate. HARD FAIL (no silent skip) if either tool is
+	@# absent — the version below MUST match the iai-callgrind dev-dep in
+	@# crates/logic/Cargo.toml.
+	@command -v valgrind >/dev/null 2>&1 || { \
+	  echo "ERROR: valgrind not found — it is REQUIRED for maint-bench-instructions (iai-callgrind drives Valgrind Callgrind)."; \
+	  echo "  Install it, e.g.: Arch: 'sudo pacman -S valgrind'; Debian/Ubuntu: 'sudo apt-get install valgrind'; Fedora: 'sudo dnf install valgrind'."; \
+	  exit 1; }
+	@command -v iai-callgrind-runner >/dev/null 2>&1 || { \
+	  echo "ERROR: iai-callgrind-runner not found — it is REQUIRED for maint-bench-instructions and must match the pinned iai-callgrind dev-dep."; \
+	  echo "  Install it with: cargo install iai-callgrind-runner --version 0.16.1"; \
+	  exit 1; }
+	@# Give Valgrind line tables to symbolize WITHOUT touching the committed
+	@# no-debug-symbol profiles: override strip/debug for THIS invocation only via
+	@# env, so DWARF is not persisted into the checked-in bench profile.
+	CARGO_PROFILE_BENCH_STRIP=none CARGO_PROFILE_BENCH_DEBUG=line-tables-only \
+	  cargo bench -p gmeow-logic --bench engines_iai
 
 # The bounded ORE subset cap: the ORE 2015 sample corpus is ~725 MB / 1920
 # ontologies. Grading all of them is intractable for a maint lane, so we cap to
