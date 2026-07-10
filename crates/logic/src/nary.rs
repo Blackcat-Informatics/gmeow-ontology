@@ -574,12 +574,24 @@ pub fn run_nemo_nary_forward(edb: &[NaryTuple], rls: &str) -> gmeow_errors::Resu
 
 // ── Null-blind canonicalization (colour refinement) ───────────────────────────
 
+/// Whether a term's rendered display string is an invented null: a native chase Skolem IRI
+/// (`…/skolem/…`) or a Nemo labeled null (`urn:gmeow:nemo-null:…`). Split out from [`is_null`]
+/// so callers that already hold the rendered string (e.g. a pre-rendered display cache) can
+/// test it without re-running `term_display`.
+fn is_null_display(d: &str) -> bool {
+    d.contains("/skolem/") || d.contains("nemo-null:")
+}
+
 /// Whether a term is an invented null: a native chase Skolem IRI (`…/skolem/…`) or a Nemo
 /// labeled null (`urn:gmeow:nemo-null:…`). Both engines mint fresh witnesses whose surface
 /// identifiers legitimately differ, so a cross-engine comparison canonicalizes them away.
+///
+/// `canonical_null_blind_multiset` itself now pre-renders `term_display` once per argument
+/// and tests [`is_null_display`] against the cached string, so this `TermValue`-taking form
+/// is test-only (kept for parity assertions in `nary::tests` that inspect raw tuple args).
+#[cfg(test)]
 fn is_null(t: &TermValue) -> bool {
-    let d = term_display(t);
-    d.contains("/skolem/") || d.contains("nemo-null:")
+    is_null_display(&term_display(t))
 }
 
 /// Canonicalize an n-ary tuple set to a null-blind MULTISET by colour refinement of the
@@ -594,25 +606,35 @@ fn is_null(t: &TermValue) -> bool {
 pub fn canonical_null_blind_multiset(
     tuples: &[NaryTuple],
 ) -> BTreeMap<(String, Vec<String>), usize> {
-    let nulls: std::collections::BTreeSet<String> = tuples
+    // Pre-render every tuple's per-argument display string (and its null-ness) exactly ONCE.
+    // The colour-refinement fixpoint below re-scans every tuple's arguments once per null per
+    // iteration; without this cache that re-ran `term_display` O(iterations × N × T × A) times.
+    // `disp[ti][ai]` / `isnull[ti][ai]` are indexed identically to `tuples[ti].args[ai]`, so
+    // every lookup below reads the SAME string `term_display` would have produced in place.
+    let disp: Vec<Vec<String>> = tuples
         .iter()
-        .flat_map(|t| t.args.iter())
-        .filter(|a| is_null(a))
-        .map(term_display)
+        .map(|t| t.args.iter().map(term_display).collect())
+        .collect();
+    let isnull: Vec<Vec<bool>> = disp
+        .iter()
+        .map(|row| row.iter().map(|s| is_null_display(s)).collect())
+        .collect();
+
+    let nulls: std::collections::BTreeSet<String> = disp
+        .iter()
+        .zip(&isnull)
+        .flat_map(|(row, nrow)| row.iter().zip(nrow))
+        .filter(|&(_, &n)| n)
+        .map(|(s, _)| s.clone())
         .collect();
 
     // Seed colours: a named term anchors on its own surface; a null starts uniform.
     let mut colour: BTreeMap<String, String> = BTreeMap::new();
-    for t in tuples {
-        for a in &t.args {
-            let s = term_display(a);
-            colour.entry(s.clone()).or_insert_with(|| {
-                if is_null(a) {
-                    "\u{0}".to_owned()
-                } else {
-                    s.clone()
-                }
-            });
+    for (row, nrow) in disp.iter().zip(&isnull) {
+        for (s, &n) in row.iter().zip(nrow) {
+            colour
+                .entry(s.clone())
+                .or_insert_with(|| if n { "\u{0}".to_owned() } else { s.clone() });
         }
     }
 
@@ -622,14 +644,10 @@ pub fn canonical_null_blind_multiset(
             let mut changed = false;
             for n in &nulls {
                 let mut sig: Vec<String> = Vec::new();
-                for t in tuples {
-                    let ctx: Vec<String> = t
-                        .args
-                        .iter()
-                        .map(|a| colour[&term_display(a)].clone())
-                        .collect();
-                    for (p, a) in t.args.iter().enumerate() {
-                        if term_display(a) == *n {
+                for (ti, t) in tuples.iter().enumerate() {
+                    let ctx: Vec<String> = disp[ti].iter().map(|s| colour[s].clone()).collect();
+                    for (p, s) in disp[ti].iter().enumerate() {
+                        if s == n {
                             sig.push(format!(
                                 "{}\u{1f}{p}\u{1f}{}",
                                 t.relation,
@@ -661,16 +679,15 @@ pub fn canonical_null_blind_multiset(
         .collect();
 
     let mut ms: BTreeMap<(String, Vec<String>), usize> = BTreeMap::new();
-    for t in tuples {
-        let args: Vec<String> = t
-            .args
+    for (ti, t) in tuples.iter().enumerate() {
+        let args: Vec<String> = disp[ti]
             .iter()
-            .map(|a| {
-                let s = term_display(a);
-                if is_null(a) {
-                    token[&colour[&s]].clone()
+            .zip(&isnull[ti])
+            .map(|(s, &n)| {
+                if n {
+                    token[&colour[s]].clone()
                 } else {
-                    s
+                    s.clone()
                 }
             })
             .collect();
