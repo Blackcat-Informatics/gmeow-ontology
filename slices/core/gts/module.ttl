@@ -468,6 +468,84 @@ REUSE (no parallel mechanisms — GTS transport design).
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
+# =========================================================================== #
+# Declarative constraint axioms (core slices) — the closed-world
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). A restriction carrying both owl:*Cardinality and
+# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# sh:datatype property shape. The cross-node / value-range / disjunctive
+# (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL
+# antecedent and remain the procedural fragment .
+# =========================================================================== #
+
+gmeow:OpaqueFrame rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:opacityReason ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:OpacityReason ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:opaqueFrameIn ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:GTSSegment ] .
+
+gmeow:GTSSegment rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:gtsHeadId ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:gtsSegmentIndex ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:nonNegativeInteger ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:gtsProfile ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:GTSProfile ] .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+<https://blackcatinformatics.ca/gmeow/OpaqueFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/opacityReason> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/OpacityReason> ] .
+<https://blackcatinformatics.ca/gmeow/OpaqueFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/opaqueFrameIn> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/GTSSegment> ] .
+<https://blackcatinformatics.ca/gmeow/GTSSegment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/gtsHeadId> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/gmeow/GTSSegment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/gtsSegmentIndex> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
+<https://blackcatinformatics.ca/gmeow/GTSSegment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/gtsProfile> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/GTSProfile> ] .
+
+# =========================================================================== #
+# Migrated procedural constraints (#1194): closed-world SHACL sparql shapes    #
+# from slices/core/gts/shapes.ttl, re-expressed as canonical logic:Constraints #
+# (Principle 17). The authored shapes stay (additive).                         #
+# =========================================================================== #
+
+logic:SealedFrameRecipientConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:label "Sealed-frame recipient constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a missing-key gmeow:OpaqueFrame names at least one gmeow:sealedRecipient — opacity is vantage-relative, so sealed content carries a declared audience (GTS spec §9.3)."@x-gmeow-english ;
+    logic:onClass gmeow:OpaqueFrame ;
+    logic:trigger gmeow:opacityReason ;
+    logic:triggerValue gmeow:opacityMissingKey ;
+    logic:requires gmeow:sealedRecipient ;
+    logic:formalizes gmeow:OpaqueFrame ;
+    logic:message "A missing-key opaque frame must name at least one gmeow:sealedRecipient — sealed content has a declared audience." .
+
+logic:EvidenceCompactionConstraint
+    a logic:Constraint ;
+    rdfs:label "Evidence-profile compaction constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity warning: an evidence-profile gmeow:GTSDocument should not be generated by a gmeow:GTSCompaction — compaction re-authors the segment ordering and detaches the third-party transport attestation (GTS spec §12.1)."@x-gmeow-english ;
+    logic:severity "Warning" ;
+    logic:formalizes gmeow:GTSDocument ;
+    logic:message "An evidence-profile GTS document should not be generated by a GTSCompaction — compaction re-authors the ordering and detaches third-party transport attestation." ;
+    logic:integrity logic:evcForall .
+logic:evcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:evcImpl .
+logic:evcImpl a logic:Formula ; logic:antecedent logic:evcGuard ; logic:consequent logic:evcNot .
+logic:evcGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:GTSDocument ] .
+logic:evcNot a logic:Formula ; logic:not logic:evcEx .
+logic:evcEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "segment" ] , [ logic:termIndex 1 ; logic:termVariable "activity" ] ;
+    logic:exists logic:evcBody .
+logic:evcBody a logic:Formula ; logic:and logic:evcSegOf , logic:evcProfile , logic:evcGenBy , logic:evcCompaction .
+logic:evcSegOf a logic:Formula ; logic:relation gmeow:gtsSegmentOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "segment" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:evcProfile a logic:Formula ; logic:relation gmeow:gtsProfile ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "segment" ] , [ logic:termIndex 1 ; logic:termIri gmeow:gtsProfileEvidence ] .
+logic:evcGenBy a logic:Formula ; logic:relation gmeow:wasGeneratedBy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "activity" ] .
+logic:evcCompaction a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "activity" ] , [ logic:termIndex 1 ; logic:termIri gmeow:GTSCompaction ] .
+
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gtsHeadId> ; owl:someValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/gmeow/GTSSegment> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/gtsProfile> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/GTSProfile> ] .

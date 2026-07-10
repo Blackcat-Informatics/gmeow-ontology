@@ -58,6 +58,10 @@ pub mod report;
 // emitted, never bolted onto SHACL (Principle 17).
 pub mod shacl_af;
 pub mod shapes;
+// Shared low-level SPARQL token / escaping primitives, reused by the SHACL-AF rule
+// projection (shacl_af) and the procedural-constraint projection (shapes) so the two
+// SPARQL surfaces render terms/predicates/literals identically and cannot drift.
+pub(crate) mod sparql_lower;
 // The shape-component subsumption engine: enforcement-key equivalence (`≡`) and a sound
 // under-approximation of the enforcement pre-order (`⊑`) over closed-world validation shapes.
 pub mod subsumption;
@@ -299,6 +303,28 @@ pub fn compile_program(
         complexity: sx_compl.to_owned(),
     });
 
+    // The procedural-constraint surface: the closed-world SPARQL-constraint projection of every
+    // logic:Constraint (the validation twin of the SHACL-AF rule surface — those DERIVE, these
+    // VALIDATE). Emitted as a whole-program document so the pipeline writes
+    // generated/shapes/procedural-constraints.ttl; a constraint-free program yields the
+    // header-only document and only the structural ledger row (no per-constraint residue), so
+    // the corpus is byte-stable until constraints are authored. The concrete per-constraint
+    // residue is the union of the SPARQL-fragment residue (constraints exceeding the
+    // range-restricted guarded fragment, carried-and-flagged) and the blanket ShEx-unsupported
+    // note (a sh:SPARQLConstraint has no ShEx form at all).
+    let mut pc_residue = shapes::procedural_constraint_residue(program);
+    pc_residue.extend(shapes::procedural_constraint_shex_residue(program));
+    let (pc_kind, pc_compl, pc_struct) = target_meta("procedural-constraint");
+    let pc_struct: Vec<String> = pc_struct.into_iter().map(str::to_owned).collect();
+    loss.record_projection_drops("procedural-constraint", pc_kind, &pc_struct, &pc_residue);
+    owned.push(ProjectionResult {
+        target: "procedural-constraint".to_owned(),
+        content: shapes::project_procedural_constraints(program),
+        is_rdf: false,
+        preservation: pc_kind,
+        complexity: pc_compl.to_owned(),
+    });
+
     // Teleology-specific lossy disclosure.  When the program carries the flat
     // gmeow:satisfiedBy edge generated from a factored logic:GoalEvaluation, the
     // OWL/flat surfaces cannot represent the factored axes (satisfaction /
@@ -499,11 +525,37 @@ pub struct ProjectionResult {
 /// concrete per-correspondence drops are interned into `ledger` under the row's target
 /// focus; the report reads them back as `gmeow:lossyDrop`. The returned row carries only
 /// the identity/judgment — the drops live in the single loss store.
+/// The GMEOW endpoint of an alignment cell — the documented `gmeow:` term the
+/// correspondence's projection loss attributes to. GMEOW is always the source `S` of a
+/// `logic:Correspondence` lens, but an authored cell may carry the gmeow term as either the
+/// subject or the object, so prefer a gmeow subject, then a gmeow object; a cell with no
+/// gmeow endpoint (a purely external↔external crossing) yields `None` — never fabricated onto
+/// a term.
+pub(crate) fn gmeow_endpoint(subject: &str, object: &str) -> Option<String> {
+    if subject.starts_with(GMEOW_NS) {
+        Some(subject.to_owned())
+    } else if object.starts_with(GMEOW_NS) {
+        Some(object.to_owned())
+    } else {
+        None
+    }
+}
+
+/// A single IRI as a DOCUMENTED gmeow: source term — `Some(iri)` when GMEOW-namespaced (so a
+/// funnel drop naming it, e.g. a rule head whose predicate is a gmeow: property with no OWL-DL
+/// / SHACL-AF derivation form, attributes to that term's page), else `None` (a `logic:`-NS
+/// construct — no term page yet — or an external IRI stays whole-program; honest computed
+/// absence, never fabricated onto a term).
+pub(crate) fn gmeow_term(iri: &str) -> Option<String> {
+    iri.starts_with(GMEOW_NS).then(|| iri.to_owned())
+}
+
 pub(crate) fn correspondence_result(
     ledger: &mut crate::loss_ledger::LossLedger,
     dialect: &str,
     key: &str,
     residue: Vec<String>,
+    source_term: Option<String>,
 ) -> ProjectionResult {
     use sha2::{Digest, Sha256};
 
@@ -520,7 +572,16 @@ pub(crate) fn correspondence_result(
     let mut actual_drops = Vec::with_capacity(residue.len() + 1);
     actual_drops.push(format!("correspondence: {key}"));
     actual_drops.extend(residue);
-    ledger.record_projection_drops(&target, kind, &structural, &actual_drops);
+    // Attribute this correspondence cell's residue to its DOCUMENTED source term (the GMEOW
+    // endpoint of the alignment) when one is supplied: the whole cell's drops concern that
+    // term projected DOWN to the external vocabulary (Principle 17), so its projection-loss
+    // row lands on that term's page. `None` (a non-gmeow / undocumented endpoint) leaves the
+    // drops whole-program — never fabricated onto a term.
+    let attributed: Vec<(String, Option<String>)> = actual_drops
+        .into_iter()
+        .map(|note| (note, source_term.clone()))
+        .collect();
+    ledger.record_projection_drops_attributed(&target, kind, &structural, &attributed);
     ProjectionResult {
         target,
         // The legal output is the dialect artifact itself (written elsewhere); the row
@@ -802,6 +863,35 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                  logic: layer",
             ],
         ),
+        "procedural-constraint" => (
+            PreservationKind::ValidationOnly,
+            "closed-world SPARQL constraint (SHACL Core)",
+            vec![
+                "a sh:SPARQLConstraint surface validates but does not entail (ValidationOnly)",
+                "the projectable fragment is a range-restricted, ∀-guarded integrity condition \
+                 (guard(this) → φ(this)) whose per-focus condition φ is a Horn / NNF tree of \
+                 binary atoms, existentials, disjunctions and (path-)universals: it lowers to a \
+                 SELECT $this WHERE { guard ∧ ¬φ } via BGP + FILTER NOT EXISTS + UNION",
+                "full-FOL, standpoint/world/time-indexed, and aggregate-comparison (COUNT/SUM \
+                 threshold) integrity conditions exceed that fragment; there is no formula-level \
+                 aggregate term, so an aggregate comparison cannot be expressed as a genuine \
+                 GROUP BY sub-SELECT and is carried-and-flagged, not projected",
+                "the surface is emit-only: there is no parse-back from a sh:SPARQLConstraint into \
+                 a logic:Constraint (the logic: canon is the authoring ground, Principle 4)",
+                "a sh:SPARQLConstraint has no ShEx form at all (logic:unsupported); every \
+                 projected constraint is disclosed as a ShEx drop, carried in the canonical \
+                 logic: layer",
+                "a hand-authored CLOSED-WORLD lint whose finding is SUPERSEDED by RDFS/OWL \
+                 entailment is not projected as a logic:Constraint: e.g. gmeow:CoreObservationMethodShape \
+                 flags a gmeow:TemporalMeasurement carrying only gmeow:measurementMethod for a \
+                 missing gmeow:observationMethod, but gmeow:measurementMethod rdfs:subPropertyOf \
+                 gmeow:observationMethod entails the method, so the canonical logic: reasoning layer \
+                 proves the datum well-formed — a faithful closed-world projection cannot reproduce \
+                 that finding without contradicting the entailment (it would over-claim), so the \
+                 finding is a reasoning artifact carried in the canonical logic: layer and its \
+                 hand-authored shape is retained as a closed-world lint (dating1 residue)",
+            ],
+        ),
         "shex" => (
             PreservationKind::ValidationOnly,
             "closed-world shape validation (ShEx, strictly narrower than SHACL Core)",
@@ -859,7 +949,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
 /// standard targets [`compile_program`] runs (the per-shape `property-path:<iri>`
 /// rows are program-dependent and so are NOT part of this static surface; the
 /// generic `property-path` row IS).
-const LEDGER_TARGETS: [&str; 19] = [
+const LEDGER_TARGETS: [&str; 20] = [
     "owl-dl",
     "owl-el",
     "datalog",
@@ -881,10 +971,12 @@ const LEDGER_TARGETS: [&str; 19] = [
     // The EmotionML XML lowering: a many-to-one, lossy-by-construction emitter of the
     // affect category + dimension vocabularies (its residue names the collapsed families).
     "emotionml",
-    // The closed-world validation-shape surfaces (SHACL Core + ShEx), each carrying its own
-    // per-target preservation judgment in the same loss ledger.
+    // The closed-world validation-shape surfaces (SHACL Core + ShEx + the SPARQL-constraint
+    // projection of every logic:Constraint), each carrying its own per-target preservation
+    // judgment in the same loss ledger.
     "shacl-core",
     "shex",
+    "procedural-constraint",
 ];
 
 /// One row of the preservation loss ledger as a public, owned value: a projection
@@ -1058,18 +1150,25 @@ pub(crate) fn contract_drop_notes(
 /// One drop note per stratified-aggregation (reduce) rule, for a target that cannot represent
 /// aggregation (Datalog / N3 / Nemo). Carried-and-flagged, never silent; an aggregation-free
 /// program adds nothing, so its ledger is byte-unchanged.
-pub(crate) fn aggregation_drop_notes(program: &LogicProgram, target_label: &str) -> Vec<String> {
+/// Each note paired with the DOCUMENTED gmeow: source term it concerns — the aggregation
+/// rule's head predicate when it is a gmeow: property (so a `gmeow:` aggregation whose reduce
+/// form Datalog/N3/Nemo cannot carry lands on that term's page), else `None` (whole-program).
+pub(crate) fn aggregation_drop_notes(
+    program: &LogicProgram,
+    target_label: &str,
+) -> Vec<(String, Option<String>)> {
     program
         .rules
         .iter()
         .filter(|r| r.aggregation.is_some())
         .map(|r| {
-            format!(
+            let note = format!(
                 "rule deriving <{}> uses stratified aggregation (reduce/GROUP BY), which \
                  {target_label} does not represent; it is carried in the canonical logic: layer \
                  and projected to the SHACL-AF reduce surface",
                 r.head.predicate
-            )
+            );
+            (note, gmeow_term(&r.head.predicate))
         })
         .collect()
 }

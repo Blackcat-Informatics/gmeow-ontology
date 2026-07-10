@@ -349,3 +349,77 @@ CRediT, PROV-O, and PAV by reference (Principle 5)."""@x-gmeow-english ;
     skos:definition "The GMEOW Citations Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Migrated evidential constraints (#1194): closed-world citation/evidence shapes #
+# from shapes/gmeow-shapes.ttl lifted to logic: (Principle 17).                 #
+# =========================================================================== #
+
+# Projection of gmeow:NotabilityRequirementShape: supportsNotability true requires
+# the full WP:GNG triad (independent + secondary + significant coverage).
+gmeow:NotabilityRequirementConstraint
+    a logic:Constraint ;
+    rdfs:label "Notability requirement constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:CitationAct asserting gmeow:supportsNotability true carries sourceIndependence independent, sourceTier secondary, and coverageDepth significantCoverage."@x-gmeow-english ;
+    logic:formalizes gmeow:CitationAct ;
+    logic:message "A citation with supportsNotability true must have sourceIndependence independent, sourceTier secondary, and coverageDepth significantCoverage (WP:GNG triad)." ;
+    logic:integrity logic:notrForall .
+logic:notrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:notrImpl .
+logic:notrImpl a logic:Formula ; logic:antecedent logic:notrGuard ; logic:consequent logic:notrTriad .
+logic:notrGuard a logic:Formula ; logic:and logic:notrType , logic:notrNotable .
+logic:notrType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:CitationAct ] .
+logic:notrNotable a logic:Formula ; logic:relation gmeow:supportsNotability ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype <http://www.w3.org/2001/XMLSchema#boolean> ] .
+logic:notrTriad a logic:Formula ; logic:and logic:notrIndep , logic:notrTier , logic:notrCoverage .
+logic:notrIndep a logic:Formula ; logic:relation gmeow:sourceIndependence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:sourceIndependenceIndependent ] .
+logic:notrTier a logic:Formula ; logic:relation gmeow:sourceTier ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:sourceTierSecondary ] .
+logic:notrCoverage a logic:Formula ; logic:relation gmeow:coverageDepth ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:coverageDepthSignificantCoverage ] .
+
+# Projection of gmeow:SelfPrivateEvidenceWarningShape (Warning): a citation whose
+# only evidence classes are SELF/PrivateScan and whose source is self/issuer
+# originated is eligible for projection suppression (Principle 10).
+gmeow:SelfPrivateEvidenceWarningConstraint
+    a logic:Constraint ;
+    rdfs:label "Self/private-only evidence warning constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: no gmeow:CitationAct relies solely on gmeow:evidenceSELF/gmeow:evidencePrivateScan evidence from a gmeow:sourceIndependenceSelfOrIssuerOriginated source."@x-gmeow-english ;
+    logic:formalizes gmeow:CitationAct ;
+    logic:severity "Warning" ;
+    logic:message "This citation relies solely on self-asserted or private evidence from a self/issuer-originated source — consider suppressing it from public projections (Principle 10)." ;
+    logic:integrity logic:speForall .
+logic:speForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:speImpl .
+logic:speImpl a logic:Formula ; logic:antecedent logic:speType ; logic:consequent logic:speNot .
+logic:speType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:CitationAct ] .
+logic:speNot a logic:Formula ; logic:not logic:speExists .
+logic:speExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ec" ] ;
+    logic:exists logic:speBody .
+logic:speBody a logic:Formula ; logic:and logic:speEvidence , logic:speInSet , logic:speSource , logic:speNoOther .
+logic:speEvidence a logic:Formula ; logic:relation gmeow:hasEvidenceClass ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ec" ] .
+logic:speInSet a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ec" ] , [ logic:termIndex 1 ; logic:termIri gmeow:evidenceSELF ] , [ logic:termIndex 2 ; logic:termIri gmeow:evidencePrivateScan ] .
+logic:speSource a logic:Formula ; logic:relation gmeow:sourceIndependence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:sourceIndependenceSelfOrIssuerOriginated ] .
+logic:speNoOther a logic:Formula ; logic:not logic:speOtherExists .
+logic:speOtherExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "other" ] ;
+    logic:exists logic:speOtherBody .
+logic:speOtherBody a logic:Formula ; logic:and logic:speOtherEvidence , logic:speOtherNotInSet .
+logic:speOtherEvidence a logic:Formula ; logic:relation gmeow:hasEvidenceClass ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] .
+logic:speOtherNotInSet a logic:Formula ; logic:not logic:speOtherIn .
+logic:speOtherIn a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termIri gmeow:evidenceSELF ] , [ logic:termIndex 2 ; logic:termIri gmeow:evidencePrivateScan ] .

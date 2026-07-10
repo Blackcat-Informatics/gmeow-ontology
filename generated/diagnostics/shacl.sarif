@@ -311,7 +311,7 @@
             "gmeowFindingHash/v2": "684e141c8d284a7d"
           },
           "properties": {
-            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseConstraintProceduralConstraintShape",
             "gmeow.category": "data-shape-violation"
           },
           "relatedLocations": [
@@ -374,7 +374,7 @@
             "gmeowFindingHash/v2": "085e260819763d20"
           },
           "properties": {
-            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseConstraintProceduralConstraintShape",
             "gmeow.category": "data-shape-violation"
           },
           "relatedLocations": [
@@ -437,7 +437,7 @@
             "gmeowFindingHash/v2": "cd3858d5f534d09a"
           },
           "properties": {
-            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseConstraintProceduralConstraintShape",
             "gmeow.category": "data-shape-violation"
           },
           "relatedLocations": [
@@ -500,7 +500,7 @@
             "gmeowFindingHash/v2": "8ed6b7dbd0218047"
           },
           "properties": {
-            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseConstraintProceduralConstraintShape",
             "gmeow.category": "data-shape-violation"
           },
           "relatedLocations": [
@@ -563,7 +563,7 @@
             "gmeowFindingHash/v2": "2554f5309329451f"
           },
           "properties": {
-            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseConstraintProceduralConstraintShape",
             "gmeow.category": "data-shape-violation"
           },
           "relatedLocations": [
@@ -626,7 +626,7 @@
             "gmeowFindingHash/v2": "e9ddd09893396530"
           },
           "properties": {
-            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+            "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseConstraintProceduralConstraintShape",
             "gmeow.category": "data-shape-violation"
           },
           "relatedLocations": [

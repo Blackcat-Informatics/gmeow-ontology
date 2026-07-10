@@ -517,6 +517,61 @@ gmeow:writingSystemAsNotation
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
 
+# =========================================================================== #
+# Declarative constraint axioms (core slices) — the closed-world
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). A restriction carrying both owl:*Cardinality and
+# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# sh:datatype property shape. The cross-node / value-range / disjunctive
+# (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL
+# antecedent and remain the procedural fragment .
+# =========================================================================== #
+
+gmeow:NotationProjectionProfile rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:notationSystemOf ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:NotationSystem ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:projectionFunction ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+gmeow:NotationSystem rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:smuflCodepoint ; owl:allValuesFrom xsd:string ] .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+<https://blackcatinformatics.ca/gmeow/NotationProjectionProfile> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/notationSystemOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/NotationSystem> ] .
+
+# =========================================================================== #
+# Migrated procedural constraint (#1194): the closed-world no-subclass shape   #
+# from slices/core/notation/shapes.ttl, re-expressed as a canonical           #
+# logic:Constraint (Principle 17). The authored shape stays (additive).        #
+# =========================================================================== #
+
+gmeow:ProjectionLossNoSubclassConstraint
+    a logic:Constraint ;
+    rdfs:label "ProjectionLoss no-subclass constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: gmeow:ProjectionLoss is a value vocabulary and must not be subclassed (Principle 9)."@x-gmeow-english ;
+    logic:formalizes gmeow:ProjectionLoss ;
+    logic:message "ProjectionLoss must not be subclassed (Principle 9)." ;
+    logic:integrity logic:plnsForall .
+logic:plnsForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:plnsImpl .
+logic:plnsImpl a logic:Formula ; logic:antecedent logic:plnsTarget ; logic:consequent logic:plnsPhi .
+logic:plnsTarget a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                   [ logic:termIndex 1 ; logic:termLiteral "SELECT ?this WHERE { VALUES ?this { <https://blackcatinformatics.ca/gmeow/ProjectionLoss> } }" ] .
+logic:plnsPhi a logic:Formula ; logic:not logic:plnsEx .
+logic:plnsEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sub" ] ;
+    logic:exists logic:plnsBody .
+logic:plnsBody a logic:Formula ; logic:and logic:plnsEdge , logic:plnsDistinct .
+logic:plnsEdge a logic:Formula ; logic:relation <http://www.w3.org/2000/01/rdf-schema#subClassOf> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:plnsDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/NotationProjectionProfile> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/notationSystemOf> ; owl:someValuesFrom <https://blackcatinformatics.ca/gmeow/NotationSystem> ] .
 <https://blackcatinformatics.ca/gmeow/NotationProjectionProfile> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/projectionFunction> ; owl:someValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .

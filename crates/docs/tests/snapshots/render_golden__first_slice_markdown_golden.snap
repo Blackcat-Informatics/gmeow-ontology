@@ -42,7 +42,7 @@ expression: "to_markdown(&model, &Page::Slice(slug))"
 
 | Path | Media type | Digest |
 | --- | --- | --- |
-| `module.ttl` | `text/turtle` | `f92829a3a938` |
+| `module.ttl` | `text/turtle` | `42a00e09c34a` |
 
 ### Tests
 
@@ -120,3 +120,8 @@ ex:assertion a gmeow:AccessibilityAssertion ;
     gmeow:assertionFacet    gmeow:facetStepFree ;
     gmeow:assertionPolarity gmeow:polarityFeature .
 ```
+
+---
+
+**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic`
+Rendered from `gmeow.gts` by the dogfooded build pipeline.

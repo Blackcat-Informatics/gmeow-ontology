@@ -14,6 +14,31 @@ expression: "to_markdown(&model, &Page::LearningPath(slug))"
 
 Connect generated claims to source chunks, evidence spans, tools, model context, and provenance before consumers see them\.
 
+## Quickstart
+
+```turtle
+# gmeow:Chunk
+<subject> a gmeow:Chunk ;
+    gmeow:chunkOf <...> .  # gmeow:InformationObject
+
+# gmeow:Dataset
+<subject> a gmeow:Dataset ;
+    gmeow:citeAs "..." ;  # rdfs:Literal
+    gmeow:version "..." .  # xsd:string
+
+# gmeow:EvidenceSpan
+<subject> a gmeow:EvidenceSpan ;
+    gmeow:spanOfChunk <...> ;  # gmeow:Chunk
+    gmeow:supportPolarity <...> .  # gmeow:SupportPolarity
+
+# gmeow:ExtractedEntity
+<subject> a gmeow:ExtractedEntity .
+
+# gmeow:usedModel
+<subject> a gmeow:ModelInvocation ;
+    gmeow:usedModel <...> .  # gmeow:SoftwareAgent
+```
+
 ## Recipes
 
 - [Model Graph\-RAG Dataset Lineage](../../recipes/graph-rag-dataset-lineage/index.md)
@@ -36,3 +61,8 @@ Connect generated claims to source chunks, evidence spans, tools, model context,
 ## Projects toward
 
 `dcat`, `prov`, `schema`
+
+---
+
+**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic`
+Rendered from `gmeow.gts` by the dogfooded build pipeline.

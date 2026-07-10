@@ -616,6 +616,23 @@ fn analyze(shape: &ValidationShapeIr) -> Analysis {
                  antecedent; the whole shape is carried in the canonical logic: layer"
             ));
         }
+        ShapeTarget::DirectClass(k) => {
+            // A direct-class target is a subclass-excluding sh:SPARQLTarget; the plain
+            // `owl:Class` antecedent a bare class target inverts to cannot capture the
+            // `FILTER NOT EXISTS` subclass refinement, so the whole shape is residue.
+            residue.insert(format!(
+                "direct-class target ({k}) is a subclass-excluding sh:SPARQLTarget with no OWL/RDFS \
+                 antecedent; the whole shape is carried in the canonical logic: layer"
+            ));
+        }
+        ShapeTarget::Sparql(select) => {
+            // A raw SPARQL-select target has no class / domain / range form, so it has no OWL/RDFS
+            // antecedent at all; the entire shape is residue.
+            residue.insert(format!(
+                "raw sh:SPARQLTarget ({select}) has no OWL/RDFS antecedent; the whole shape is \
+                 carried in the canonical logic: layer"
+            ));
+        }
     }
 
     // The forward derive is standpoint-blind, so the core carries no standpoint (the scope is

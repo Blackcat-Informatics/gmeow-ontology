@@ -36,14 +36,16 @@ mod store;
 pub mod svg;
 
 pub use describe::{DescribeGraph, build_card, describe, resolve_term};
-pub use exec::{ExecutableDocsData, InferenceDiff, example_key};
+pub use exec::{Entailment, ExecutableDocsData, InferenceDiff, example_key};
 pub use i18n::{Translations, UiCatalog, available_languages, ui_string};
 pub use lint::lint;
 pub use llms::{GMEOW_SUMMARY, LLMS_NOTE_CAP};
 pub use model::{
-    ConstraintRule, DocArtifact, DocCompetency, DocConcern, DocDependencyEdge, DocExample,
-    DocExternalTerm, DocLearningPath, DocLinkage, DocMappingSet, DocRecipe, DocShape, DocSlice,
-    DocTerm, DocTermCategory, DocsError, DocsModel,
+    ConstraintRule, DiagnosticsDigest, DocArtifact, DocCompetency, DocConcern, DocDependencyEdge,
+    DocDiagFinding, DocExample, DocExpectedCell, DocExpectedRow, DocExternalTerm, DocFixture,
+    DocFixtureKind, DocFlowEdge, DocLearningPath, DocLinkage, DocLossTarget, DocMappingSet,
+    DocPipeline, DocRecipe, DocShape, DocSlice, DocStage, DocTerm, DocTermCategory, DocsError,
+    DocsModel, TermLossDigest, TermLossRow,
 };
 pub use rdf::to_gmeow_rdf;
 pub use render::{

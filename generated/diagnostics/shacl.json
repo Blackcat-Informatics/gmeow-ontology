@@ -39,7 +39,10 @@
       "anchor_non_trivial": true,
       "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
       "category": "data-shape-violation",
-      "standpoint": "perspectival"
+      "standpoint": "perspectival",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+      ]
     },
     {
       "severity": "warning",
@@ -79,7 +82,10 @@
       "anchor_non_trivial": true,
       "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
       "category": "data-shape-violation",
-      "standpoint": "perspectival"
+      "standpoint": "perspectival",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+      ]
     },
     {
       "severity": "warning",
@@ -119,7 +125,10 @@
       "anchor_non_trivial": true,
       "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
       "category": "data-shape-violation",
-      "standpoint": "perspectival"
+      "standpoint": "perspectival",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+      ]
     },
     {
       "severity": "warning",
@@ -159,7 +168,10 @@
       "anchor_non_trivial": true,
       "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
       "category": "data-shape-violation",
-      "standpoint": "perspectival"
+      "standpoint": "perspectival",
+      "documented_terms": [
+        "https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+      ]
     },
     {
       "severity": "warning",
@@ -197,7 +209,7 @@
       "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/fbd9c9f1fee1dfd8c3103db1f15d375f",
       "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/56ec03eee69b938892909fb1be75c516",
       "anchor_non_trivial": true,
-      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseConstraintProceduralConstraintShape",
       "category": "data-shape-violation",
       "standpoint": "perspectival"
     },
@@ -237,7 +249,7 @@
       "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/0435f47ce362bf5abbcf2d12240dd416",
       "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/19c4e9d1a6d37280084012901ae9845e",
       "anchor_non_trivial": true,
-      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseConstraintProceduralConstraintShape",
       "category": "data-shape-violation",
       "standpoint": "perspectival"
     },
@@ -277,7 +289,7 @@
       "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/6475d5fe21705869fa77810bd5c378de",
       "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/8654d339f0312edbd1e38f5ad567b2b6",
       "anchor_non_trivial": true,
-      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseConstraintProceduralConstraintShape",
       "category": "data-shape-violation",
       "standpoint": "perspectival"
     },
@@ -317,7 +329,7 @@
       "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/58324273900a66693c8741f46aacd54e",
       "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/c9be44cb9db5239200ecbf11b661596a",
       "anchor_non_trivial": true,
-      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseConstraintProceduralConstraintShape",
       "category": "data-shape-violation",
       "standpoint": "perspectival"
     },
@@ -357,7 +369,7 @@
       "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/b7084e45cc71efabe8d4e433551c21a7",
       "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/071633e3706d917a90ebcf3e615d87cd",
       "anchor_non_trivial": true,
-      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseConstraintProceduralConstraintShape",
       "category": "data-shape-violation",
       "standpoint": "perspectival"
     },
@@ -397,7 +409,7 @@
       "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/baa9e4cba9d919f5ff87d4cc8bfdd2bf",
       "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/4673fa02df38a7c65209864a2cc9e2d4",
       "anchor_non_trivial": true,
-      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseShape",
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseConstraintProceduralConstraintShape",
       "category": "data-shape-violation",
       "standpoint": "perspectival"
     }
@@ -407,7 +419,7 @@
     "shaclConforms": false,
     "shaclErrorCount": 0,
     "shaclGatePassed": true,
-    "shaclResultCount": 10,
+    "shaclResultCount": 16,
     "shaclWarningCount": 10,
     "stage": "stage-validate"
   }

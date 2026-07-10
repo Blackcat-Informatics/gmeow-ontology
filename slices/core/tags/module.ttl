@@ -246,3 +246,39 @@ gmeow:taggingTagger
     skos:definition "The GMEOW Tags Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Suppression constraint (#1194) — projection of RetractedTagSuppressionShape.  #
+# A retracted/superseded tagging (whose gmeow:taggingInterval has ended, i.e.   #
+# carries gmeow:endedAtTime) that is not suppressed (gmeow:displayable false) is #
+# a Warning — a source may lag the flag.                                        #
+# =========================================================================== #
+
+gmeow:RetractedTaggingSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Retracted tagging suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a retracted or superseded gmeow:Tagging (one whose gmeow:taggingInterval carries a gmeow:endedAtTime) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
+    logic:formalizes gmeow:Tagging ;
+    logic:severity "Warning" ;
+    logic:message "A retracted or superseded tagging (one whose interval has ended) should set gmeow:displayable false — suppressed from display, never deleted." ;
+    logic:integrity logic:supTgForall .
+logic:supTgForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:supTgImpl .
+logic:supTgImpl a logic:Formula ; logic:antecedent logic:supTgGuard ; logic:consequent logic:supTgPhi .
+logic:supTgGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Tagging ] .
+logic:supTgPhi a logic:Formula ; logic:not logic:supTgEx .
+logic:supTgEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "iv" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] ;
+    logic:exists logic:supTgBody .
+logic:supTgBody a logic:Formula ; logic:and logic:supTgInterval , logic:supTgEnded , logic:supTgNotSuppressed .
+logic:supTgInterval a logic:Formula ; logic:relation gmeow:taggingInterval ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "iv" ] .
+logic:supTgEnded a logic:Formula ; logic:relation gmeow:endedAtTime ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "iv" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] .
+logic:supTgNotSuppressed a logic:Formula ; logic:not logic:supTgDisp .
+logic:supTgDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype <http://www.w3.org/2001/XMLSchema#boolean> ] .

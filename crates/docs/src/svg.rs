@@ -39,6 +39,25 @@ fn xml_escape(text: &str) -> String {
     out
 }
 
+/// A deterministic placeholder emitted in place of a rendered diagram while
+/// diagram SVG generation is DEFERRED pending purrdf's high-quality SVG graph
+/// library. The hand-rolled renderers above carry a latent cross-process
+/// ordering non-determinism (two renders of the same model can differ byte-wise);
+/// rather than chase it, the emit sites route through this constant-shape
+/// placeholder so the site render is byte-stable. AUTHORIZED DEFERRAL (paudley) —
+/// restore the `*_svg` calls at the emit sites when the purrdf SVG lib lands.
+/// Pure function of its title (which the callers derive from sorted model data).
+pub fn deferred_diagram_svg(title: &str) -> String {
+    format!(
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"480\" height=\"72\" role=\"img\" \
+         aria-label=\"{t}\">\n  \
+         <rect width=\"480\" height=\"72\" fill=\"#f5f6f8\" stroke=\"#d0d5dd\" />\n  \
+         <text x=\"240\" y=\"40\" text-anchor=\"middle\" font-family=\"sans-serif\" \
+         font-size=\"13\" fill=\"#6b7280\">{t} — diagram pending</text>\n</svg>\n",
+        t = xml_escape(title)
+    )
+}
+
 /// Render the slice dependency DAG as a deterministic grid-layout SVG.
 ///
 /// Nodes are the slices referenced by `model.dependency_edges` (plus every slice
@@ -106,6 +125,130 @@ pub fn slice_dependency_svg(model: &DocsModel) -> String {
              fill=\"#eef2f8\" stroke=\"#33425b\" stroke-width=\"1\" />\n    \
              <text x=\"{tx}\" y=\"{ty}\" text-anchor=\"middle\" font-family=\"sans-serif\" \
              font-size=\"13\" fill=\"#1b2436\">{label}</text>\n  </g>\n",
+            tx = x + BOX_W / 2,
+            ty = y + BOX_H / 2 + 4,
+        ));
+    }
+
+    out.push_str("</svg>\n");
+    out
+}
+
+/// Render the dogfooded build-pipeline DAG (`model.pipeline`) as a deterministic
+/// grid-layout SVG, modeled exactly on [`slice_dependency_svg`].
+///
+/// Nodes are the `gmeow:PipelineStage` individuals (already IRI-sorted in the
+/// model), placed in a fixed grid; every coordinate derives from the sorted index
+/// (integers only — no floats / locale formatting), so the bytes are reproducible.
+/// Nodes are colored by a small deterministic capability/resource map:
+/// the single `gmeow:sinkCapability` holder (`stage-gts-sink`) is highlighted as
+/// the narrow-waist exit, the `gmeow:sourceOrigin` loader and any
+/// resource-holding stage each get a distinct fill, and everything else is a
+/// plain transform node. Edges are drawn from `model.pipeline.edges`; an edge that
+/// carries reified `gmeow:flowEntity` graphs is labelled with their local names
+/// (a missing label is honest computed-absence, never a placeholder). A model
+/// with no pipeline renders a valid empty diagram.
+pub fn pipeline_dag_svg(model: &DocsModel) -> String {
+    let Some(pipeline) = &model.pipeline else {
+        let mut out = String::new();
+        svg_open(&mut out, 320, 80, "Build pipeline DAG");
+        out.push_str(
+            "  <text x=\"160\" y=\"44\" text-anchor=\"middle\" font-family=\"sans-serif\" \
+             font-size=\"13\" fill=\"#1b2436\">no pipeline authored</text>\n",
+        );
+        out.push_str("</svg>\n");
+        return out;
+    };
+
+    let nodes: Vec<&str> = pipeline.stages.iter().map(|s| s.iri.as_str()).collect();
+
+    // Grid geometry (mirrors `slice_dependency_svg`; wider cells for stage labels).
+    const COLS: usize = 4;
+    const BOX_W: i64 = 220;
+    const BOX_H: i64 = 44;
+    const GAP_X: i64 = 70;
+    const GAP_Y: i64 = 56;
+    const MARGIN: i64 = 24;
+    let cell_w = BOX_W + GAP_X;
+    let cell_h = BOX_H + GAP_Y;
+
+    let pos = |i: usize| -> (i64, i64) {
+        let col = (i % COLS) as i64;
+        let row = (i / COLS) as i64;
+        (MARGIN + col * cell_w, MARGIN + row * cell_h)
+    };
+    let center = |i: usize| -> (i64, i64) {
+        let (x, y) = pos(i);
+        (x + BOX_W / 2, y + BOX_H / 2)
+    };
+    let index_of = |iri: &str| -> Option<usize> { nodes.iter().position(|n| *n == iri) };
+
+    let rows = nodes.len().div_ceil(COLS).max(1) as i64;
+    let width = MARGIN * 2 + (COLS as i64) * cell_w - GAP_X;
+    let height = MARGIN * 2 + rows * cell_h - GAP_Y;
+
+    let mut out = String::new();
+    svg_open(&mut out, width, height, "Build pipeline DAG");
+    arrow_marker(&mut out);
+
+    // Edges first (drawn under the boxes). `pipeline.edges` is already sorted.
+    out.push_str("  <g stroke=\"#7a8aa0\" stroke-width=\"1.5\" fill=\"none\">\n");
+    for edge in &pipeline.edges {
+        let (Some(fi), Some(ti)) = (index_of(&edge.from), index_of(&edge.to)) else {
+            continue;
+        };
+        if fi == ti {
+            continue;
+        }
+        let (x1, y1) = center(fi);
+        let (x2, y2) = center(ti);
+        out.push_str(&format!(
+            "    <line x1=\"{x1}\" y1=\"{y1}\" x2=\"{x2}\" y2=\"{y2}\" marker-end=\"url(#arrow)\" />\n"
+        ));
+        // Flow-entity label at the edge midpoint (only where a reified edge names
+        // the flowing graphs — otherwise nothing, an honest computed-absence).
+        if !edge.flow_entities.is_empty() {
+            let label = edge
+                .flow_entities
+                .iter()
+                .map(|g| local_name(g))
+                .collect::<Vec<_>>()
+                .join(" · ");
+            out.push_str(&format!(
+                "    <text x=\"{mx}\" y=\"{my}\" text-anchor=\"middle\" \
+                 font-family=\"sans-serif\" font-size=\"10\" fill=\"#4a5568\">{}</text>\n",
+                xml_escape(&label),
+                mx = (x1 + x2) / 2,
+                my = (y1 + y2) / 2 - 3,
+            ));
+        }
+    }
+    out.push_str("  </g>\n");
+
+    // Nodes, colored by capability/resource.
+    for (i, stage) in pipeline.stages.iter().enumerate() {
+        let (x, y) = pos(i);
+        let is_sink = stage
+            .capabilities
+            .iter()
+            .any(|c| c == "gmeow:sinkCapability");
+        let is_source = stage.capabilities.iter().any(|c| c == "gmeow:sourceOrigin");
+        // (fill, stroke, stroke-width) — the narrow-waist sink is highlighted.
+        let (fill, stroke, sw) = if is_sink {
+            ("#ffe6b3", "#b8860b", 2)
+        } else if is_source {
+            ("#d6f5d6", "#2f855a", 1)
+        } else if !stage.resources.is_empty() {
+            ("#f5d6e6", "#a03060", 1)
+        } else {
+            ("#eef2f8", "#33425b", 1)
+        };
+        let label = xml_escape(local_name(&stage.iri));
+        out.push_str(&format!(
+            "  <g>\n    <rect x=\"{x}\" y=\"{y}\" width=\"{BOX_W}\" height=\"{BOX_H}\" rx=\"6\" \
+             fill=\"{fill}\" stroke=\"{stroke}\" stroke-width=\"{sw}\" />\n    \
+             <text x=\"{tx}\" y=\"{ty}\" text-anchor=\"middle\" font-family=\"sans-serif\" \
+             font-size=\"12\" fill=\"#1b2436\">{label}</text>\n  </g>\n",
             tx = x + BOX_W / 2,
             ty = y + BOX_H / 2 + 4,
         ));

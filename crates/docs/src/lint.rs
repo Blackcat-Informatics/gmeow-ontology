@@ -283,8 +283,12 @@ mod tests {
             mapping_sets: Vec::new(),
             linkages: Vec::new(),
             examples: Vec::new(),
+            fixtures: Vec::new(),
             shapes: Vec::new(),
             competencies: Vec::new(),
+            grammars: Vec::new(),
+            loss_targets: Vec::new(),
+            worked_instances: Vec::new(),
             concerns: Vec::new(),
             external_terms: Vec::new(),
             recipes: Vec::new(),
@@ -292,6 +296,7 @@ mod tests {
             constraint_rules: Vec::new(),
             four_boxes: None,
             concept_doi: None,
+            pipeline: None,
 
             available_languages: vec!["english".to_string()],
 
@@ -299,6 +304,9 @@ mod tests {
 
             ui_catalog: crate::i18n::UiCatalog::default(),
             reasoning: None,
+            diagnostics: None,
+            term_loss: None,
+            schema_fragments: None,
             lang: String::new(),
         }
     }

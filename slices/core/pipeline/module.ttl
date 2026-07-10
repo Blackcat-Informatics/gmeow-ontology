@@ -485,13 +485,16 @@ gmeow:stage-docs-render
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "docs render"@x-gmeow-english ;
-    skos:definition "Render the typed documentation model (crates/docs) over the composed dataset and fold the doc artifacts into the bundle. Consumes gmeow:stage-reason so the projected documentation graph carries the per-term native-reasoner status (gmeow:docReasoningStatus)."@x-gmeow-english ;
+    skos:definition "Render the typed documentation model (crates/docs) over the composed dataset and fold the doc artifacts into the bundle. Consumes gmeow:stage-reason so the projected documentation graph carries the per-term native-reasoner status (gmeow:docReasoningStatus), gmeow:stage-validate + gmeow:stage-compile-logic so the model carries the diagnostics-to-term join digest driving the per-term 'Diagnostics you might hit' surface, and gmeow:stage-mappings so the model carries the dynamic per-term projection-loss join digest driving the per-term 'how this term degrades under projection' surface."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "docs_render" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ,
-        gmeow:stage-reason .
+    gmeow:dataflowConsumes gmeow:stage-compile-logic ,
+        gmeow:stage-gts-compose ,
+        gmeow:stage-mappings ,
+        gmeow:stage-reason ,
+        gmeow:stage-validate .
 
 gmeow:stage-constraint-catalog
     a gmeow:PipelineStage ;
@@ -831,3 +834,28 @@ gmeow:stage-gts-sink
         gmeow:stage-reason ,
         gmeow:stage-statements ,
         gmeow:stage-validate .
+
+# =========================================================================== #
+# Declarative constraint axioms (core slices) — the closed-world
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). A restriction carrying both owl:*Cardinality and
+# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# sh:datatype property shape. The cross-node / value-range / disjunctive
+# (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL
+# antecedent and remain the procedural fragment .
+# =========================================================================== #
+
+gmeow:PipelineStage rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:hasCapability ; owl:allValuesFrom gmeow:StageCapability ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:stageImpl ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:requiresResource ; owl:allValuesFrom gmeow:Resource ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:dataflowConsumes ; owl:allValuesFrom gmeow:PipelineStage ] .
+
+gmeow:Pipeline rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:hasStage ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:PipelineStage ] .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+<https://blackcatinformatics.ca/gmeow/PipelineStage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/stageImpl> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
