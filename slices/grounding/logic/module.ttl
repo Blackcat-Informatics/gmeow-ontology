@@ -4326,6 +4326,16 @@ logic:linkNextAcyclicity
     logic:characteristicSort logic:acyclicProperty ;
     logic:formalizes gmeow:linkNext .
 
+logic:competesWithIrreflexivity
+    a owl:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "competesWith is irreflexive"@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:competesWith is irreflexive: a rival standpoint claim never competes with itself, as its skos:definition states. gmeow:competesWith is symmetric (owl:SymmetricProperty) but irreflexive; irreflexivity is enforced here on the canonical carrier — kept out of OWL to hold the reasoned profile within OWL 2 DL (the deception discipline) — and the native coherence gate raises a violation for a claim asserted to compete with itself; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    logic:characterizes gmeow:competesWith ;
+    logic:characteristicSort logic:irreflexiveProperty ;
+    logic:formalizes gmeow:competesWith .
+
 # ── Relatum-distinctness assertions (a relator's two roles must bind distinct values) ──
 # The canonical carrier for a mutual-inequality integrity condition on a relator: two
 # named roles on one focus node must bind DISTINCT values. OWL functionality of each role
@@ -4395,6 +4405,241 @@ logic:causalLinkDistinctness
     logic:distinctnessTarget gmeow:CausalLink ;
     logic:distinctnessRole gmeow:linkAntecedent , gmeow:linkConsequent ;
     logic:formalizes gmeow:linkAntecedent .
+
+logic:inferencePremiseConclusionDistinctness
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an inference commitment's premise and conclusion are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:InferenceCommitment's gmeow:premise and gmeow:conclusion must be distinct: an argument cannot assume what it proves — no premise is also the conclusion. The native coherence gate raises a violation when a premise coincides with the conclusion; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:InferenceCommitment ;
+    logic:distinctnessRole gmeow:premise , gmeow:conclusion ;
+    logic:formalizes gmeow:premise .
+
+logic:attackSelfAttackExclusion
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a typed attack's source and target are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Attack's gmeow:attackSource and gmeow:attackTarget must be distinct: conflict is irreflexive — nothing attacks itself. The native coherence gate raises a violation when they coincide; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:Attack ;
+    logic:distinctnessRole gmeow:attackSource , gmeow:attackTarget ;
+    logic:formalizes gmeow:attackSource .
+
+logic:supportSelfSupportExclusion
+    a owl:NamedIndividual ,
+        logic:RelatumDistinctnessAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a support's source and target are distinct"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Support's gmeow:supportSource and gmeow:supportTarget must be distinct: support is irreflexive — a structure does not support itself. The native coherence gate raises a violation when they coincide; the generated SHACL constraint surface is its projection."@x-gmeow-english ;
+    logic:distinctnessTarget gmeow:Support ;
+    logic:distinctnessRole gmeow:supportSource , gmeow:supportTarget ;
+    logic:formalizes gmeow:supportSource .
+
+# ── Conditional-range assertions (a discriminant value fixes a relatum's type) ────────
+# The canonical carrier for a value-conditioned range integrity condition on a relator: on
+# a target class, a discriminant property bound to a NAMED value forces the value bound by a
+# second property to be an instance of a required type. OWL cannot state a value-conditioned
+# range without nominals it deliberately keeps out of the DL profile; the native coherence
+# gate joins logic:conditionalRangeTarget + selector/value + required type to raise a
+# violation when the discriminant matches but the required type is absent, and the generated
+# SHACL constraint surface is its projection.
+
+logic:ConditionalRangeAssertion
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conditional range assertion"@x-gmeow-english ;
+    skos:definition "A central record asserting that, on a target class, a focus node whose gmeow:-selector property carries a NAMED value must bind — through a second value property — an instance of a required type. It names the class with logic:conditionalRangeTarget, the discriminant property with logic:conditionalRangeSelector and its triggering value with logic:conditionalRangeSelectorValue, the constrained property with logic:conditionalRangeValue, and the demanded type with logic:conditionalRangeRequiredType; the native coherence gate joins them to raise a violation when the selector matches yet the value is not of the required type. Carries a logic:formalizes back-reference to the domain property whose prose it encodes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:conditionalRangeTarget
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conditional range target"@x-gmeow-english ;
+    skos:definition "Relates a logic:ConditionalRangeAssertion to the class whose focus nodes it constrains. Domain logic:ConditionalRangeAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:conditionalRangeSelector
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conditional range selector"@x-gmeow-english ;
+    skos:definition "Relates a logic:ConditionalRangeAssertion to the discriminant property whose value triggers the condition. Read together with logic:conditionalRangeSelectorValue. Domain logic:ConditionalRangeAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:conditionalRangeSelectorValue
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conditional range selector value"@x-gmeow-english ;
+    skos:definition "Relates a logic:ConditionalRangeAssertion to the named value of the discriminant property that triggers the required-type condition. Domain logic:ConditionalRangeAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:conditionalRangeValue
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conditional range value"@x-gmeow-english ;
+    skos:definition "Relates a logic:ConditionalRangeAssertion to the property whose bound value must satisfy the required type when the selector matches. Domain logic:ConditionalRangeAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:conditionalRangeRequiredType
+    a owl:ObjectProperty ;
+    rdfs:domain logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "conditional range required type"@x-gmeow-english ;
+    skos:definition "Relates a logic:ConditionalRangeAssertion to the class the constrained value must instantiate when the selector matches. Domain logic:ConditionalRangeAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:attackUndermineTargetsPremiseUse
+    a owl:NamedIndividual ,
+        logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an undermining attack targets a premise use"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Attack whose gmeow:attackKind is gmeow:attackUndermine must aim its gmeow:attackTarget at a gmeow:PremiseUse — undermining is premise-directed. The native coherence gate raises a violation when the kind is undermine but the target is not a premise use."@x-gmeow-english ;
+    logic:conditionalRangeTarget gmeow:Attack ;
+    logic:conditionalRangeSelector gmeow:attackKind ;
+    logic:conditionalRangeSelectorValue gmeow:attackUndermine ;
+    logic:conditionalRangeValue gmeow:attackTarget ;
+    logic:conditionalRangeRequiredType gmeow:PremiseUse ;
+    logic:formalizes gmeow:attackKind .
+
+logic:attackUndercutTargetsInferenceApplication
+    a owl:NamedIndividual ,
+        logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an undercutting attack targets an inference application"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Attack whose gmeow:attackKind is gmeow:attackUndercut must aim its gmeow:attackTarget at a gmeow:InferenceApplication — undercutting attacks the warrant / inferential link. The native coherence gate raises a violation when the kind is undercut but the target is not an inference application."@x-gmeow-english ;
+    logic:conditionalRangeTarget gmeow:Attack ;
+    logic:conditionalRangeSelector gmeow:attackKind ;
+    logic:conditionalRangeSelectorValue gmeow:attackUndercut ;
+    logic:conditionalRangeValue gmeow:attackTarget ;
+    logic:conditionalRangeRequiredType gmeow:InferenceApplication ;
+    logic:formalizes gmeow:attackKind .
+
+logic:attackRebutTargetsStandpointClaim
+    a owl:NamedIndividual ,
+        logic:ConditionalRangeAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "a rebutting attack targets a standpoint claim"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Attack whose gmeow:attackKind is gmeow:attackRebut must aim its gmeow:attackTarget at a conclusion gmeow:StandpointClaim — rebutting attacks the conclusion. The native coherence gate raises a violation when the kind is rebut but the target is not a standpoint claim."@x-gmeow-english ;
+    logic:conditionalRangeTarget gmeow:Attack ;
+    logic:conditionalRangeSelector gmeow:attackKind ;
+    logic:conditionalRangeSelectorValue gmeow:attackRebut ;
+    logic:conditionalRangeValue gmeow:attackTarget ;
+    logic:conditionalRangeRequiredType gmeow:StandpointClaim ;
+    logic:formalizes gmeow:attackKind .
+
+# ── Role-composition-exclusion assertions (a relator's two roles are not whole/part) ──
+# The canonical carrier for a compositional irreflexivity on a relator: on a target class,
+# the value bound by a WHOLE role must not stand as the value bound by a PART role reached
+# from it through any of a set of composition properties. It names the class with
+# logic:compositionExclusionTarget, the two roles with logic:compositionExclusionWhole /
+# logic:compositionExclusionPart, and the composition steps with logic:compositionExclusionVia;
+# the native coherence gate raises a violation when the part role coincides with a component of
+# the whole role, and the generated SHACL constraint surface is its projection.
+
+logic:RoleCompositionExclusionAssertion
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "role composition exclusion assertion"@x-gmeow-english ;
+    skos:definition "A central record asserting that, on a target class, the value bound by a whole role must not also be — via any of a set of composition properties — the value bound by a part role on the same focus node: a relator whose one relatum composes the other is ill-formed (an argument does not attack its own component). It names the class with logic:compositionExclusionTarget, the whole and part roles with logic:compositionExclusionWhole and logic:compositionExclusionPart, and the composition steps with logic:compositionExclusionVia; the native coherence gate joins them to raise a violation. Carries a logic:formalizes back-reference to the domain property whose prose it encodes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:compositionExclusionTarget
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RoleCompositionExclusionAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "composition exclusion target"@x-gmeow-english ;
+    skos:definition "Relates a logic:RoleCompositionExclusionAssertion to the class whose focus nodes it constrains. Domain logic:RoleCompositionExclusionAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:compositionExclusionWhole
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RoleCompositionExclusionAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "composition exclusion whole role"@x-gmeow-english ;
+    skos:definition "Relates a logic:RoleCompositionExclusionAssertion to the role binding the WHOLE whose components the part role must not coincide with. Domain logic:RoleCompositionExclusionAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:compositionExclusionPart
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RoleCompositionExclusionAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "composition exclusion part role"@x-gmeow-english ;
+    skos:definition "Relates a logic:RoleCompositionExclusionAssertion to the role whose bound value must not be a component of the whole role's value. Domain logic:RoleCompositionExclusionAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:compositionExclusionVia
+    a owl:ObjectProperty ;
+    rdfs:domain logic:RoleCompositionExclusionAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "composition exclusion via"@x-gmeow-english ;
+    skos:definition "Relates a logic:RoleCompositionExclusionAssertion to a composition property linking the whole role's value to a component. Each asserted value is one step the exclusion ranges over; the native coherence gate raises a violation when the part role coincides with a component reached through any of them. Domain logic:RoleCompositionExclusionAssertion; multi-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:attackComponentSelfExclusion
+    a owl:NamedIndividual ,
+        logic:RoleCompositionExclusionAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an argument does not attack its own component"@x-gmeow-english ;
+    skos:definition "Asserts that a gmeow:Attack's gmeow:attackSource (a gmeow:Argument) must not aim its gmeow:attackTarget at one of its own components — its conclusion (gmeow:argumentConclusion), a premise use (gmeow:hasPremiseUse), or an inference application (gmeow:hasInferenceApplication): an argument does not attack a part of itself. The native coherence gate raises a violation when the target is a component of the source."@x-gmeow-english ;
+    logic:compositionExclusionTarget gmeow:Attack ;
+    logic:compositionExclusionWhole gmeow:attackSource ;
+    logic:compositionExclusionPart gmeow:attackTarget ;
+    logic:compositionExclusionVia gmeow:argumentConclusion , gmeow:hasPremiseUse , gmeow:hasInferenceApplication ;
+    logic:formalizes gmeow:attackSource .
+
+# ── Mediated-property-requirement assertions (a mediated value must carry a property) ──
+# The canonical carrier for a Principle-11-style requirement that the value a focus node
+# reaches through a mediating property must itself declare a required property. It names the
+# class with logic:mediatedRequirementTarget, the mediating property with
+# logic:mediatedRequirementVia, and the required property with logic:mediatedRequirementProperty;
+# the native coherence gate raises a violation when a mediated value lacks the required
+# property, and the generated SHACL constraint surface is its projection.
+
+logic:MediatedPropertyRequirementAssertion
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "mediated property requirement assertion"@x-gmeow-english ;
+    skos:definition "A central record asserting that, on a target class, every value a focus node reaches through a mediating property must itself declare at least one value of a required property — the interval that scopes a situation must carry its temporal frame (Principle 11). It names the class with logic:mediatedRequirementTarget, the mediating property with logic:mediatedRequirementVia, and the demanded property with logic:mediatedRequirementProperty; the native coherence gate joins them to raise a violation when a mediated value lacks the required property. Carries a logic:formalizes back-reference to the domain property whose prose it encodes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:mediatedRequirementTarget
+    a owl:ObjectProperty ;
+    rdfs:domain logic:MediatedPropertyRequirementAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "mediated requirement target"@x-gmeow-english ;
+    skos:definition "Relates a logic:MediatedPropertyRequirementAssertion to the class whose focus nodes it constrains. Domain logic:MediatedPropertyRequirementAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:mediatedRequirementVia
+    a owl:ObjectProperty ;
+    rdfs:domain logic:MediatedPropertyRequirementAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "mediated requirement via"@x-gmeow-english ;
+    skos:definition "Relates a logic:MediatedPropertyRequirementAssertion to the mediating property whose values must carry the required property. Domain logic:MediatedPropertyRequirementAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:mediatedRequirementProperty
+    a owl:ObjectProperty ;
+    rdfs:domain logic:MediatedPropertyRequirementAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "mediated requirement property"@x-gmeow-english ;
+    skos:definition "Relates a logic:MediatedPropertyRequirementAssertion to the property each mediated value must declare at least once. Domain logic:MediatedPropertyRequirementAssertion; single-valued."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:inhabitationIntervalFrameRequirement
+    a owl:NamedIndividual ,
+        logic:MediatedPropertyRequirementAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "an inhabitation tenure's interval carries its temporal frame"@x-gmeow-english ;
+    skos:definition "Asserts that every gmeow:TimeInterval a gmeow:InhabitationTenure scopes via gmeow:duringInterval must declare at least one gmeow:hasTemporalFrame — an interval asserted without its frame is ill-formed (Principle 11: the interval carries its frame). The native coherence gate raises a violation when a scoping interval lacks a frame."@x-gmeow-english ;
+    logic:mediatedRequirementTarget gmeow:InhabitationTenure ;
+    logic:mediatedRequirementVia gmeow:duringInterval ;
+    logic:mediatedRequirementProperty gmeow:hasTemporalFrame ;
+    logic:formalizes gmeow:hasTemporalFrame .
 
 # ── A NET-NEW harvested integrity constraint (prose → enforced axiom) ─────────────
 # The harvest mechanism run on a constraint that did NOT exist as an axiom before:
@@ -9456,3 +9701,145 @@ logic:crwExists a logic:Formula ;
     logic:exists logic:crwAtom .
 logic:crwAtom a logic:Formula ; logic:relation logic:conjectureRefutationWitness ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] .
+
+# =========================================================================== #
+# Flagship acceptance — the typed conformance-failure lattice and the five
+# scenario acceptance witnesses.
+#
+# The logic grounding layer's depth bar is defined by five flagship acceptance
+# scenarios (design/LOGIC-CONFORMANCE.md, LOGIC-CORRESPONDENCE.md,
+# LOGIC-SEMANTICS.md, LOGIC-CONTRACT.md, LOGIC-RUNTIME.md), each realized by a
+# worked example, pinned by a competency question, emitted by a native producer,
+# and guarded by a counter-example that raises a named failure class. This section
+# mints that failure lattice — logic:LogicConformanceFailure and its subclasses —
+# and the five acceptance-witness classes whose single required carrier the thin
+# per-scenario shapes enforce, so every acceptance malformation is a typed,
+# queryable object rather than a silent gap.
+# =========================================================================== #
+
+logic:LogicConformanceFailure
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Logic Conformance Failure"@x-gmeow-english ;
+    skos:definition "The root of the logic grounding layer's typed conformance-failure lattice: every well-formedness violation the logic: slice detects is an instance of one of its subclasses, so a failure is a first-class queryable object rather than an out-of-band error string. Its five bedrock subclasses cover the flagship acceptance scenarios — an incomplete EL/RL/DL closure, a violated correspondence section obligation, an unentrenched counterfactual, an unwitnessed refutation, and an uncertified chase — plus logic:UnwiredFlagshipScenario for an acceptance scenario that does not bind all its realizing/enforcing artifacts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:IncompleteClosure
+    a owl:Class ;
+    rdfs:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Incomplete Closure"@x-gmeow-english ;
+    skos:definition "The failure raised when a logic:ClosureAcceptanceWitness — the acceptance record of an EL→RL→DL reasoning closure — declares no logic:closureEntailedAtom, i.e. names no atom the closure entails beyond its asserted EDB. A closure that adds nothing is either trivial or truncated; the flagship's guarantee is that the native reason_all closure genuinely derives new entailed atoms, so a witness carrying none is ill-formed and the gate rejects it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:SectionObligationViolated
+    a owl:Class ;
+    rdfs:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Section Obligation Violated"@x-gmeow-english ;
+    skos:definition "The failure raised when a logic:SectionAcceptanceWitness — the acceptance record of a correspondence section-law discharge — names no logic:dischargesSectionObligation edge, i.e. claims a get/put leg pair round-trips without pointing at the section obligation it discharges. The section law (put ∘ get = identity) is the correspondence's teeth; a witness that discharges no obligation is unfalsifiable, so the gate rejects it (LOGIC-CORRESPONDENCE.md)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:UnentrenchedCounterfactual
+    a owl:Class ;
+    rdfs:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unentrenched Counterfactual"@x-gmeow-english ;
+    skos:definition "The failure raised when a logic:CounterfactualAcceptanceWitness — the acceptance record of a Stratum-C counterfactual resolution — names no logic:selectedByEntrenchment outcome, i.e. resolves an antecedent without recording the entrenchment-ranked selection that made the result deterministic. A counterfactual whose outcome is not tied to an entrenchment ordering is a silent, arbitrary choice; the flagship's guarantee is a deterministic entrenchment-ranked selection, so a witness with none is ill-formed (LOGIC-SEMANTICS.md)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:UnwitnessedRefutation
+    a owl:Class ;
+    rdfs:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unwitnessed Refutation"@x-gmeow-english ;
+    skos:definition "The failure raised when a logic:RefutationAcceptanceWitness — the acceptance record of a symmetric φ/¬φ conjecture test whose verdict is a refutation — names no logic:namesContradictionWitness, i.e. claims the conjecture was refuted without pointing at the concrete logic:ContradictionWitness that carries the clash. A refutation with no replayable witness is an assertion, not a proof; the flagship's guarantee is that conjecture_test returns a concrete witness on a refutation, so a witness-less refutation record is ill-formed (LOGIC-CONTRACT.md)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:UncertifiedChase
+    a owl:Class ;
+    rdfs:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Uncertified Chase"@x-gmeow-english ;
+    skos:definition "The failure raised when a logic:ChaseAcceptanceWitness — the acceptance record of an existential-rule chase materialization — carries no logic:carriesTerminationCertificate, i.e. reports a materialized closure without the weak-acyclicity termination certificate that admits it. An uncertified chase may not terminate; the flagship's guarantee is that materialize_routed surfaces the ChaseAdmission termination certificate as a first-class gmeow:Finding, so a chase acceptance record with no certificate is ill-formed (LOGIC-RUNTIME.md)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:UnwiredFlagshipScenario
+    a owl:Class ;
+    rdfs:subClassOf logic:LogicConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unwired Flagship Scenario"@x-gmeow-english ;
+    skos:definition "The failure raised when a gmeow:FlagshipScenario in the logic grounding layer is not fully wired: it is missing its worked example (gmeow:demonstratedByExample), its competency question (gmeow:demonstratedByCompetency), its producer (gmeow:demonstratedByProducer), its counter-example (gmeow:guardedByCounterExample), or its enforcing failure class (gmeow:enforcesFailureClass); or the class it names as enforcing is not a logic:LogicConformanceFailure subclass. The depth bar is a contract, not a suggestion: an acceptance scenario that does not bind all realizing/enforcing artifacts cannot claim the scenario is met, and the gate rejects it. This layer's concrete realization of the shared gmeow:UnwiredFlagshipScenario marker (enforced uniformly by the shared gmeow:FlagshipScenarioShape); it subclasses ONLY the slice failure root (never the spec-layer gmeow:UnwiredFlagshipScenario marker), so it is a typed, queryable object in this layer's own failure lattice."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- The five scenario acceptance-witness classes and their carriers -------- #
+
+logic:ClosureAcceptanceWitness
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Closure Acceptance Witness"@x-gmeow-english ;
+    skos:definition "The acceptance record that an EL→RL→DL reasoning closure (gmeow_logic::reason::reason_all) genuinely entailed new atoms: it names, through logic:closureEntailedAtom, at least one atom the closure derived beyond its asserted EDB. The flagship producer runs the native closure and pins that a designated entailed atom is present and absent from the EDB; this witness is the ontological twin the thin logic:ClosureAcceptanceWitnessShape gates."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:closureEntailedAtom
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "closure entailed atom"@x-gmeow-english ;
+    skos:definition "Relates a logic:ClosureAcceptanceWitness to a serialized atom (xsd:string, e.g. `A subClassOf C`) that the EL→RL→DL closure entails but the asserted EDB does not contain. Domain logic:ClosureAcceptanceWitness (stated in prose). At least one is required: a closure witness that entails nothing beyond its input demonstrates no reasoning."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:SectionAcceptanceWitness
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Section Acceptance Witness"@x-gmeow-english ;
+    skos:definition "The acceptance record that a correspondence get/put leg pair discharges its section law (put ∘ get = identity), executed natively by gmeow_logic::correspondence_exec::leg_pair_verdict. It names, through logic:dischargesSectionObligation, the section obligation the executed round-trip discharges. The flagship producer runs the native discharge and pins that a genuine inverse yields DischargeVerdict::ObligationDischarged while a broken section does not; this witness is the ontological twin the thin logic:SectionAcceptanceWitnessShape gates."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:dischargesSectionObligation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "discharges section obligation"@x-gmeow-english ;
+    skos:definition "Relates a logic:SectionAcceptanceWitness to the section obligation (an IRI) its executed get/put round-trip discharges. Domain logic:SectionAcceptanceWitness (stated in prose). Exactly the edge whose absence makes the discharge unfalsifiable: a section witness that names no obligation asserts a round-trip without saying which law it satisfies."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:CounterfactualAcceptanceWitness
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Counterfactual Acceptance Witness"@x-gmeow-english ;
+    skos:definition "The acceptance record that a Stratum-C counterfactual world was constructed and resolved to a deterministic outcome, executed natively by gmeow_logic::counterfactual::construct_and_resolve over the entrenchment ordering. It names, through logic:selectedByEntrenchment, the outcome the entrenchment ranking selected. The flagship producer runs the native resolution and pins the deterministic selected binding; this witness is the ontological twin the thin logic:CounterfactualAcceptanceWitnessShape gates."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:selectedByEntrenchment
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "selected by entrenchment"@x-gmeow-english ;
+    skos:definition "Relates a logic:CounterfactualAcceptanceWitness to the outcome (an IRI) the entrenchment ranking deterministically selected when resolving the counterfactual antecedent. Domain logic:CounterfactualAcceptanceWitness (stated in prose). Its absence marks an unentrenched, arbitrary counterfactual: an outcome chosen without a recorded ordering is a silent guess."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:RefutationAcceptanceWitness
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Refutation Acceptance Witness"@x-gmeow-english ;
+    skos:definition "The acceptance record that a symmetric φ/¬φ conjecture test resolved to a refutation carrying a concrete contradiction witness, executed natively by gmeow_logic::conjecture::conjecture_test. It names, through logic:namesContradictionWitness, the logic:ContradictionWitness the refutation rests on. The flagship producer runs the native test and pins that a refutation case yields Some(witness) while a corroboration case yields None; this witness is the ontological twin the thin logic:RefutationAcceptanceWitnessShape gates."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:namesContradictionWitness
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "names contradiction witness"@x-gmeow-english ;
+    skos:definition "Relates a logic:RefutationAcceptanceWitness to the concrete logic:ContradictionWitness (an IRI) its refutation rests on — the individual forced to owl:Nothing and the jointly-inconsistent premises. Domain logic:RefutationAcceptanceWitness (stated in prose). A refutation naming no witness is an unreplayable assertion, not a proof."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:ChaseAcceptanceWitness
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Chase Acceptance Witness"@x-gmeow-english ;
+    skos:definition "The acceptance record that an existential-rule chase materialization terminated under a weak-acyclicity certificate, executed natively by gmeow_logic::materialize::materialize_routed, which surfaces the ChaseAdmission termination certificate as a first-class gmeow:Finding. It carries, through logic:carriesTerminationCertificate, the certificate evidence. The flagship producer runs the native chase and pins that the surfaced Finding is non-empty and that the derivation carries an explain trace passing gmeow_logic::explain::assert_faithful; this witness is the ontological twin the thin logic:ChaseAcceptanceWitnessShape gates."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:carriesTerminationCertificate
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "carries termination certificate"@x-gmeow-english ;
+    skos:definition "Relates a logic:ChaseAcceptanceWitness to the weak-acyclicity termination-certificate evidence (xsd:string, the ChaseAdmission::WeaklyAcyclic evidence summary) that admits its chase. Domain logic:ChaseAcceptanceWitness (stated in prose). A chase acceptance record with no certificate reports a closure that may never terminate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .

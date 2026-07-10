@@ -37,10 +37,12 @@ pub fn resolve(producer: &str) -> Option<Primitive> {
         "provenance_honesty" => Some(provenance_honesty),
         "linkage_axis" => Some(linkage_axis),
         "projection_axis" => Some(projection_axis),
+        "shape_migration_axis" => Some(shape_migration_axis),
         "testing_axis" => Some(testing_axis),
         "documentation_axis" => Some(documentation_axis),
         "translation_axis" => Some(translation_axis),
         "reasoner_axis" => Some(crate::reasoner::reasoner_axis),
+        "flagship_counterexample_depth_axis" => Some(flagship_counterexample_depth_axis),
         _ => None,
     }
 }
@@ -54,10 +56,12 @@ pub const IMPLEMENTED: &[&str] = &[
     "provenance_honesty",
     "linkage_axis",
     "projection_axis",
+    "shape_migration_axis",
     "testing_axis",
     "documentation_axis",
     "translation_axis",
     "reasoner_axis",
+    "flagship_counterexample_depth_axis",
 ];
 
 // ── Axis 1: Maximal grounding ─────────────────────────────────────────────
@@ -803,6 +807,73 @@ fn projection_axis(ctx: &ScoreContext) -> AxisScore {
     AxisScore { score, findings }
 }
 
+// ── Axis: Shape migration (authored shapes → logic: projection) ─────────────
+
+/// The SHACL shape types and the `logic:formalizes` back-reference the blanket
+/// projection-purity gate keys on.
+const SH_NODESHAPE: &str = "http://www.w3.org/ns/shacl#NodeShape";
+const SH_PROPERTYSHAPE: &str = "http://www.w3.org/ns/shacl#PropertyShape";
+const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
+
+/// Shape migration: the fraction of a slice's hand-authored `shapes.ttl`
+/// `sh:NodeShape` / `sh:PropertyShape` blocks that are GROUNDED — carry a
+/// `logic:formalizes` back-reference (the same criterion the blanket
+/// projection-purity gate enforces).
+///
+/// A hand-authored validation shape without `logic:formalizes` is a second source of truth: the
+/// SHACL / ShEx surfaces are generated lossy projections of the `logic:` canon (Principle 17),
+/// not a place to hand-author constraints. Each un-backed shape is named as a migration target —
+/// author its cardinality / class / datatype obligation in the owning `module.ttl` (reasoner-safe:
+/// `owl:FunctionalProperty` for at-most-one, `owl:someValuesFrom` for existence, NEVER
+/// `owl:cardinality`, which reds `reason-verify`) so the projector reproduces it and the block is
+/// deleted; a genuine ValidationOnly residue (exactly-N cardinality, node-level `sh:or`, a
+/// cross-node `sh:sparql`) instead carries `logic:formalizes` naming its canonical `logic:` source
+/// (`docs/SLICE_GUIDE.md` §grounding a shape).
+fn shape_migration_axis(ctx: &ScoreContext) -> AxisScore {
+    let shapes_path = ctx.slice_dir.join("shapes.ttl");
+    if !shapes_path.is_file() {
+        return AxisScore::clean(1.0); // no authored shape surface → nothing to migrate
+    }
+    let Ok(bytes) = std::fs::read(&shapes_path) else {
+        return AxisScore::clean(1.0);
+    };
+    let Ok(ds) = purrdf::parse_dataset(&bytes, "text/turtle", None) else {
+        // A malformed shapes.ttl surfaces as a validation error on another gate, not here.
+        return AxisScore::clean(1.0);
+    };
+    let mut authored: Vec<String> = instances_of(&ds, SH_NODESHAPE);
+    authored.extend(instances_of(&ds, SH_PROPERTYSHAPE));
+    authored.sort();
+    authored.dedup();
+    if authored.is_empty() {
+        return AxisScore::clean(1.0);
+    }
+    let formalizes = id(&ds, LOGIC_FORMALIZES);
+    let mut findings = Vec::new();
+    let mut grounded = 0usize;
+    for shape in &authored {
+        let backed = formalizes
+            .zip(id(&ds, shape))
+            .is_some_and(|(p, s)| graph::has_any(&ds, s, p));
+        if backed {
+            grounded += 1;
+        } else {
+            findings.push(advisory(
+                "slice-quality.projection.ungrounded-shape",
+                format!(
+                    "hand-authored validation shape <{shape}> carries no logic:formalizes: migrate \
+                     its obligation into module.ttl (owl:FunctionalProperty / owl:someValuesFrom — \
+                     never owl:cardinality) so the projector reproduces it and the block is deleted, \
+                     or back a genuine ValidationOnly residue with logic:formalizes (SLICE_GUIDE.md)."
+                ),
+            ));
+        }
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = grounded as f64 / authored.len() as f64;
+    AxisScore { score, findings }
+}
+
 // ── Axis 6: Optimal testing ────────────────────────────────────────────────
 
 /// Concatenated text of every `.ttl`/`.rq` under `tests/` and `queries/`.
@@ -962,6 +1033,75 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
     }
     #[allow(clippy::cast_precision_loss)]
     let score = lang_cov.iter().sum::<f64>() / lang_cov.len() as f64;
+    AxisScore { score, findings }
+}
+
+// ── Axis 11: Flagship counter-example reasoner-depth ───────────────────────
+
+/// The `gmeow:counterExampleDischarge` marker local name and its reasoner-driven
+/// value local name — the honest per-scenario classification the axis reads.
+const COUNTEREXAMPLE_DISCHARGE: &str = "counterExampleDischarge";
+const REASONER_DRIVEN_DISCHARGE: &str = "reasonerDrivenDischarge";
+
+/// Flagship counter-example reasoner-depth: the fraction of the slice's own
+/// `gmeow:FlagshipScenario` individuals whose guarding counter-example is
+/// reasoner-driven (drives the native solver to observe the missing entailment at
+/// reasoning-runtime) rather than discharged by a structural/SHACL well-formedness
+/// proxy.
+///
+/// The signal is read from the honest `gmeow:counterExampleDischarge` marker each
+/// scenario carries (authored in `examples/flagship-acceptance.ttl`):
+/// `gmeow:reasonerDrivenDischarge` counts toward the numerator;
+/// `gmeow:structuralDischarge` — and any scenario with no marker — does not. The
+/// measure is an intrinsically bounded fraction (`1.0` = definitionally maximal:
+/// every flagship counter-example reasoner-driven), so there is nothing to
+/// calibrate; the structural proxy is the floor and the reasoner-driven
+/// counter-example is the depth target (see `LOGIC-CONFORMANCE.md`, Tests as
+/// ontology data; Principle 17/18).
+///
+/// Only the slice's OWN acceptance manifest is measured: `gmeow:`-namespaced
+/// `gmeow:FlagshipScenario` individuals (the manifest lives under
+/// `gmeow:examples/<slice>/acceptance/`). The `ex:`-namespaced FlagshipScenario
+/// FIXTURES under `tests/` exercise the wiring SHACL shape, not the acceptance bar,
+/// so they are excluded. A slice with no flagship scenarios scores vacuously `1.0`.
+fn flagship_counterexample_depth_axis(ctx: &ScoreContext) -> AxisScore {
+    let ds = ctx.graph;
+    let discharge_p = id(ds, &g(COUNTEREXAMPLE_DISCHARGE));
+    let reasoner_driven = id(ds, &g(REASONER_DRIVEN_DISCHARGE));
+
+    let scenarios: Vec<String> = instances_of(ds, &g("FlagshipScenario"))
+        .into_iter()
+        .filter(|iri| iri.starts_with(GMEOW_NS))
+        .collect();
+    if scenarios.is_empty() {
+        // No flagship acceptance manifest → no counter-examples to deepen; the axis
+        // is not applicable, so it takes the vacuous 1.0 (never silently "deep").
+        return AxisScore::clean(1.0);
+    }
+
+    let mut reasoner_backed = 0usize;
+    let mut findings = Vec::new();
+    for scenario in &scenarios {
+        let Some(sid) = id(ds, scenario) else {
+            continue;
+        };
+        let is_reasoner_driven = matches!(
+            (discharge_p, reasoner_driven),
+            (Some(p), Some(rd)) if graph::has(ds, sid, p, rd)
+        );
+        if is_reasoner_driven {
+            reasoner_backed += 1;
+        } else {
+            findings.push(advisory(
+                "slice-quality.flagship.counterexample-structural-only",
+                format!(
+                    "flagship scenario {scenario} discharges its guarding counter-example with a structural/SHACL well-formedness proxy, not a reasoner-driven counter-example — raise it so the native solver observes the missing entailment at reasoning-runtime, marking it gmeow:reasonerDrivenDischarge (LOGIC-CONFORMANCE.md, Tests as ontology data; Principle 17/18)."
+                ),
+            ));
+        }
+    }
+    #[allow(clippy::cast_precision_loss)]
+    let score = reasoner_backed as f64 / scenarios.len() as f64;
     AxisScore { score, findings }
 }
 

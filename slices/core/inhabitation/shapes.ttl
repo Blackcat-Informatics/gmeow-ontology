@@ -1,12 +1,28 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# SHACL well-formedness shapes for the inhabitation slice. These constrain
-# INSTANCE data (the ABox); the stereotype / TBox invariants live in
-# tests/structural.ttl. The gates realise the design's named shapes
-# (INHABITED-CONSUMER.md anatomy): tenure role-filler cardinality + ranges,
-# embodiment-assignment well-formedness, the two assessment layers, and the
-# Principle 11 interval-carries-frame requirement on a tenure's interval.
+# Residual closed-world shapes of the inhabitation slice.
+#
+# Under equivalence-before-deletion (design/LOGIC-VALIDATION.md), the role-filler
+# cardinality + range obligations that the projector CAN reproduce have been lifted
+# into the canon as OWL restrictions in module.ttl (projected to
+# generated/shapes/validation-shapes.ttl): EmbodimentAssignment, InhabitationConfiguration,
+# InhabitationTenure, ControlAssessment, IdentityContinuityAssessment, ContinuityDetermination,
+# and DigitalSubjectTenure. The InhabitationTenure interval-frame obligation (Principle 11 — the
+# gmeow:duringInterval it carries must declare a gmeow:hasTemporalFrame) is authored as a logic:
+# MediatedPropertyRequirementAssertion in slices/grounding/logic/module.ttl → a
+# sh:SPARQLConstraint in generated/shapes/constraint-shapes.ttl carrying logic:formalizes. The
+# former hand-authored InhabitationTenureShape and its sh:node helper FramedIntervalShape were
+# deleted once `gmeow-dev shape-equivalence --path slices/core/inhabitation` proved the projection
+# is enforcement-equivalent.
+#
+# The block BELOW remains hand-authored:
+#   * InhabitationConfigurationShape — its role-filler obligations ARE proven EQUIV to the
+#     projected gmeow:InhabitationConfiguration-shape (module.ttl OWL restrictions) and are
+#     enforced in production by that projection; the block is retained here only because the
+#     slice's own example-conformance corpus (tests/example-conformance.ttl,
+#     ecConfigTwoEmbodiments) exercises it against the SLICE-LOCAL shapes surface. It is
+#     removed once that conformance cell is re-homed onto the projection lane.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
@@ -14,82 +30,8 @@
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 
 # =========================================================================== #
-# Inhabitation tenure — one subject, one host, one locus; framed interval (P11)
-# =========================================================================== #
-
-gmeow:InhabitationTenureShape
-    a sh:NodeShape ;
-    rdfs:label "InhabitationTenure well-formedness shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for gmeow:InhabitationTenure: at most one gmeow:inhabitationSubject (an Agent), one gmeow:inhabitedHost (an Entity), and one gmeow:inhabitationLocusKind; and every gmeow:duringInterval it carries must itself declare a gmeow:hasTemporalFrame (Principle 11 — the interval carries its frame)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
-    sh:targetClass gmeow:InhabitationTenure ;
-    sh:property [
-        sh:path gmeow:inhabitationSubject ;
-        sh:maxCount 1 ;
-        sh:class gmeow:Agent ;
-        sh:severity sh:Violation ;
-        sh:message "An InhabitationTenure has at most one gmeow:inhabitationSubject, and it must be a gmeow:Agent." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:inhabitedHost ;
-        sh:maxCount 1 ;
-        sh:class gmeow:Entity ;
-        sh:severity sh:Violation ;
-        sh:message "An InhabitationTenure has at most one gmeow:inhabitedHost, and it must be a gmeow:Entity." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:inhabitationLocusKind ;
-        sh:maxCount 1 ;
-        sh:class gmeow:InhabitationLocusKind ;
-        sh:severity sh:Violation ;
-        sh:message "An InhabitationTenure has at most one gmeow:inhabitationLocusKind, and it must be a gmeow:InhabitationLocusKind value." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:duringInterval ;
-        sh:node gmeow:FramedIntervalShape ;
-        sh:severity sh:Violation ;
-        sh:message "An InhabitationTenure's gmeow:duringInterval must declare a gmeow:hasTemporalFrame (Principle 11)." ;
-    ] .
-
-gmeow:FramedIntervalShape
-    a sh:NodeShape ;
-    rdfs:label "framed-interval shape (P11)"@x-gmeow-english ;
-    skos:definition "A gmeow:TimeInterval used to scope an inhabitation situation must carry at least one gmeow:hasTemporalFrame — a value asserted without its frame is ill-formed (Principle 11)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
-    sh:property [
-        sh:path gmeow:hasTemporalFrame ;
-        sh:minCount 1 ;
-        sh:severity sh:Violation ;
-        sh:message "An interval scoping an inhabitation situation must declare a gmeow:hasTemporalFrame (Principle 11)." ;
-    ] .
-
-# =========================================================================== #
-# Embodiment assignment — subject × carrier
-# =========================================================================== #
-
-gmeow:EmbodimentAssignmentShape
-    a sh:NodeShape ;
-    rdfs:label "EmbodimentAssignment well-formedness shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for gmeow:EmbodimentAssignment: at most one gmeow:assignmentSubject (an Agent) and one gmeow:assignmentCarrier (a gmeow:EmbodimentCarrierRole) — the subject × carrier × interval × capabilities fact."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
-    sh:targetClass gmeow:EmbodimentAssignment ;
-    sh:property [
-        sh:path gmeow:assignmentSubject ;
-        sh:maxCount 1 ;
-        sh:class gmeow:Agent ;
-        sh:severity sh:Violation ;
-        sh:message "An EmbodimentAssignment has at most one gmeow:assignmentSubject, and it must be a gmeow:Agent." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:assignmentCarrier ;
-        sh:maxCount 1 ;
-        sh:class gmeow:EmbodimentCarrierRole ;
-        sh:severity sh:Violation ;
-        sh:message "An EmbodimentAssignment has at most one gmeow:assignmentCarrier, and it must be a gmeow:EmbodimentCarrierRole." ;
-    ] .
-
-# =========================================================================== #
-# Inhabitation configuration — bound to exactly one tenure
+# Inhabitation configuration — retained for the slice-local conformance corpus
+# (see the header note): proven EQUIV to the projected InhabitationConfiguration-shape.
 # =========================================================================== #
 
 gmeow:InhabitationConfigurationShape
@@ -119,127 +61,4 @@ gmeow:InhabitationConfigurationShape
         sh:class gmeow:EmbodimentAssignment ;
         sh:severity sh:Violation ;
         sh:message "A configuration holds AT MOST ONE gmeow:configurationEmbodiment (a gmeow:EmbodimentAssignment) — the constant-configuration invariant: if the embodiment facet changes, open a new gmeow:InhabitationConfiguration rather than adding a second embodiment to this one." ;
-    ] .
-
-# =========================================================================== #
-# Control assessment — attributed control, not deception
-# =========================================================================== #
-
-gmeow:ControlAssessmentShape
-    a sh:NodeShape ;
-    rdfs:label "ControlAssessment well-formedness shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for gmeow:ControlAssessment: at most one gmeow:controlAgent (an Agent), one gmeow:controlLevel (a gmeow:ControlLevel value), and one gmeow:controlInterval (a gmeow:TimeInterval)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
-    sh:targetClass gmeow:ControlAssessment ;
-    sh:property [
-        sh:path gmeow:controlAgent ;
-        sh:maxCount 1 ;
-        sh:class gmeow:Agent ;
-        sh:severity sh:Violation ;
-        sh:message "A ControlAssessment attributes control to at most one gmeow:controlAgent, and it must be a gmeow:Agent." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:controlLevel ;
-        sh:maxCount 1 ;
-        sh:class gmeow:ControlLevel ;
-        sh:severity sh:Violation ;
-        sh:message "A ControlAssessment carries at most one gmeow:controlLevel, and it must be a gmeow:ControlLevel value (never a bare literal)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:controlInterval ;
-        sh:maxCount 1 ;
-        sh:class gmeow:TimeInterval ;
-        sh:severity sh:Violation ;
-        sh:message "A ControlAssessment holds over at most one gmeow:controlInterval, and it must be a gmeow:TimeInterval." ;
-    ] .
-
-# =========================================================================== #
-# Continuity — descriptive assessment and its decisional specialisation
-# =========================================================================== #
-
-gmeow:IdentityContinuityAssessmentShape
-    a sh:NodeShape ;
-    rdfs:label "IdentityContinuityAssessment well-formedness shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for gmeow:IdentityContinuityAssessment: the two compared stages are gmeow:SubjectStage individuals, at most one each, and the gmeow:continuityVerdict (at most one) is a gmeow:ContinuityVerdict value."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
-    sh:targetClass gmeow:IdentityContinuityAssessment ;
-    sh:property [
-        sh:path gmeow:assessmentFromStage ;
-        sh:maxCount 1 ;
-        sh:class gmeow:SubjectStage ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:assessmentFromStage references at most one gmeow:SubjectStage." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:assessmentToStage ;
-        sh:maxCount 1 ;
-        sh:class gmeow:SubjectStage ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:assessmentToStage references at most one gmeow:SubjectStage." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:continuityVerdict ;
-        sh:maxCount 1 ;
-        sh:class gmeow:ContinuityVerdict ;
-        sh:severity sh:Violation ;
-        sh:message "gmeow:continuityVerdict carries at most one gmeow:ContinuityVerdict value (same / different / indeterminate)." ;
-    ] .
-
-gmeow:ContinuityDeterminationShape
-    a sh:NodeShape ;
-    rdfs:label "ContinuityDetermination well-formedness shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for gmeow:ContinuityDetermination (the decisional layer): at most one gmeow:determiningAuthority (an Agent — the vantage that IS the authority), one gmeow:determinationForce (a gmeow:DeterminationForce value), and one gmeow:determinationValidity (a gmeow:TimeInterval)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
-    sh:targetClass gmeow:ContinuityDetermination ;
-    sh:property [
-        sh:path gmeow:determiningAuthority ;
-        sh:maxCount 1 ;
-        sh:class gmeow:Agent ;
-        sh:severity sh:Violation ;
-        sh:message "A ContinuityDetermination is made by at most one gmeow:determiningAuthority, and it must be a gmeow:Agent." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:determinationForce ;
-        sh:maxCount 1 ;
-        sh:class gmeow:DeterminationForce ;
-        sh:severity sh:Violation ;
-        sh:message "A ContinuityDetermination carries at most one gmeow:determinationForce (binding / advisory / provisional)." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:determinationValidity ;
-        sh:maxCount 1 ;
-        sh:class gmeow:TimeInterval ;
-        sh:severity sh:Violation ;
-        sh:message "A ContinuityDetermination is in force over at most one gmeow:determinationValidity interval." ;
-    ] .
-
-# =========================================================================== #
-# Digital-subject tenure — the supported-not-entailed status bearing
-# =========================================================================== #
-
-gmeow:DigitalSubjectTenureShape
-    a sh:NodeShape ;
-    rdfs:label "DigitalSubjectTenure well-formedness shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for gmeow:DigitalSubjectTenure: at most one gmeow:tenureSubjectAgent (an Agent) and one gmeow:tenureVantage (an Agent); any gmeow:tenureSupportedBy is a gmeow:Observation (the self-assertion claim)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ;
-    sh:targetClass gmeow:DigitalSubjectTenure ;
-    sh:property [
-        sh:path gmeow:tenureSubjectAgent ;
-        sh:maxCount 1 ;
-        sh:class gmeow:Agent ;
-        sh:severity sh:Violation ;
-        sh:message "A DigitalSubjectTenure has at most one gmeow:tenureSubjectAgent, and it must be a gmeow:Agent." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:tenureVantage ;
-        sh:maxCount 1 ;
-        sh:class gmeow:Agent ;
-        sh:severity sh:Violation ;
-        sh:message "A DigitalSubjectTenure holds according to at most one gmeow:tenureVantage, and it must be a gmeow:Agent." ;
-    ] ;
-    sh:property [
-        sh:path gmeow:tenureSupportedBy ;
-        sh:class gmeow:Observation ;
-        sh:severity sh:Violation ;
-        sh:message "If present, gmeow:tenureSupportedBy must reference a gmeow:Observation (the supporting self-assertion claim)." ;
     ] .

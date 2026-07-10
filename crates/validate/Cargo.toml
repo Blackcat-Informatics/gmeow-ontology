@@ -77,6 +77,11 @@ gmeow-license = { path = "../license" }
 # is built once for the workspace, so this edge is link-only marginal cost; no cycle
 # (logic does not depend on validate).
 gmeow-logic = { path = "../logic" }
+# The Nemo-free canonical validation-shape IR + the shape-subsumption enforcement
+# pre-order (equivalent/subsumes/residue_normal_form): the equivalence ORACLE
+# (`shape_oracle`) inverts the SHACL emitter over this IR and decides equivalence via
+# the subsumption lattice. Comparison-only; never wired into a slices/** writer.
+gmeow-logic-compile = { path = "../logic-compile" }
 # The reusable exact-rational geometry engine: the native math: dimension gate
 # reuses its exact `Rational` (the single source of truth, no duplicate rational
 # type), and the math:Norm conformance gate computes a norm/distance THROUGH its

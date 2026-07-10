@@ -2142,6 +2142,7 @@ version = "0.1.0"
 dependencies = [
  "assert_cmd",
  "clap",
+ "ed25519-dalek",
  "gmeow-affect",
  "gmeow-affect-ingest",
  "gmeow-cli-core",
@@ -2377,6 +2378,7 @@ dependencies = [
  "gmeow-lang-form",
  "gmeow-logic",
  "gmeow-logic-compile",
+ "gmeow-math",
  "gmeow-slice-quality",
  "gmeow-validate",
  "insta",
@@ -2442,6 +2444,7 @@ dependencies = [
  "gmeow-errors",
  "gmeow-license",
  "gmeow-logic",
+ "gmeow-logic-compile",
  "gmeow-math",
  "insta",
  "jsonschema",

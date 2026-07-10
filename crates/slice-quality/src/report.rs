@@ -47,6 +47,7 @@ pub const FINDING_CODES: &[&str] = &[
     "slice-quality.documentation.thin-thesis",
     "slice-quality.documentation.no-docs",
     "slice-quality.translation.incomplete",
+    "slice-quality.flagship.counterexample-structural-only",
 ];
 
 /// Seed every slice-quality finding code into the process-wide code registry

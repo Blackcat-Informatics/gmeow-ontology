@@ -28,7 +28,7 @@ use std::process::Command;
 
 use purrdf::{RdfLiteral, RdfQuad, RdfTerm, SerializeGraph};
 
-use crate::projections::{MaximalInputs, gts_base_graph};
+use crate::projections::{MaximalInputs, TagMap, gts_base_graph};
 use crate::transform::{TransformReportNative, transform_nt};
 
 /// The `okf:` profile namespace the external `gts` primitive folds to.
@@ -288,7 +288,9 @@ pub fn lift_okf_graph(source: &[RdfQuad]) -> (Vec<RdfQuad>, OkfLiftReport) {
 /// draft is produced, then `MAXIMAL(G) = G + E(G) + P(G)` is run over it via
 /// [`transform_nt`]. `maximal` carries the repo/bundle-derived inputs the back-half
 /// needs (ontology, cells, denied set, projection queries), passed in so this driver
-/// stays consumer-safe.
+/// stays consumer-safe. `tag_map` is the internal→public BCP-47 language-tag remap
+/// applied at the MAXIMAL(G) output boundary (empty = no-op) — see
+/// [`transform_nt`]'s doc comment for why this is load-bearing, not cosmetic.
 ///
 /// # Errors
 ///
@@ -298,6 +300,7 @@ pub fn lift_okf_graph(source: &[RdfQuad]) -> (Vec<RdfQuad>, OkfLiftReport) {
 pub fn transpile_okf(
     okf_dir: &Path,
     maximal: &MaximalInputs,
+    tag_map: &TagMap,
     gts_bin: Option<&Path>,
     sibling_base: Option<&Path>,
 ) -> Result<OkfTranspileReport, gmeow_errors::Diag> {
@@ -316,6 +319,7 @@ pub fn transpile_okf(
         &maximal.cells,
         &maximal.denied,
         &maximal.projection_queries,
+        tag_map,
     )
     .map_err(|e| stage_err(e.to_string()))?;
     Ok(OkfTranspileReport {

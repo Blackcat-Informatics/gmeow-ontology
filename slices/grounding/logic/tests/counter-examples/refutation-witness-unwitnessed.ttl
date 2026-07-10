@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the symmetricConjecture flagship: a
+# logic:RefutationAcceptanceWitness naming NO logic:namesContradictionWitness — a
+# refutation with no concrete witness is an unreplayable assertion. Trips
+# logic:RefutationAcceptanceWitnessShape (sh:minCount 1) →
+# shacl.MinCountConstraintComponent (logic:UnwitnessedRefutation), and no other
+# finding. Bound by ex:ecRefutationUnwitnessed.
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/logic/> .
+
+ex:refutationWitness a logic:RefutationAcceptanceWitness .

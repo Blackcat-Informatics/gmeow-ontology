@@ -1,0 +1,11 @@
+# Competency question (counterfactualStratumC flagship): "Which outcome did the
+# entrenchment ranking select for the resolved counterfactual?"  Over the worked
+# witness the answer is exactly the deterministic entrenchment-ranked selection;
+# dropping logic:selectedByEntrenchment empties the result.
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?outcome WHERE {
+    ?w a logic:CounterfactualAcceptanceWitness ;
+       logic:selectedByEntrenchment ?outcome .
+}
+ORDER BY ?outcome

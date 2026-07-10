@@ -61,9 +61,12 @@ pub(crate) use seminaive::{
 // consumed by `materialize::materialize_routed`.
 #[allow(unused_imports)]
 pub(crate) use chase::{
-    ChaseAdmission, ExistentialRule, chase_materialize, chase_world, parse_existential_rules,
-    route_chase,
+    ExistentialRule, chase_materialize, chase_world, parse_existential_rules, route_chase,
 };
+// The termination certificate is surfaced PUBLICLY (re-exported through the public
+// `materialize` module below) so callers can read the chase's weak-acyclicity certificate
+// and its `to_finding()` gmeow:Finding off a `materialize_routed` result.
+pub use chase::ChaseAdmission;
 
 // The backward native evaluator: magic-sets demand transformation +
 // `resolve_native`, the oracle-parity sibling of `reference_resolver::resolve`. The primary

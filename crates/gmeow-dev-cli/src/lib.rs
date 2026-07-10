@@ -21,6 +21,7 @@ mod dev_i18n;
 mod dev_logic;
 mod dev_project;
 mod dev_reason;
+mod dev_shapes;
 mod dev_slice_quality;
 mod dev_targets;
 mod dev_transpile;
@@ -410,6 +411,39 @@ pub enum Commands {
         force: bool,
         #[arg(long = "lang", short = 'l')]
         lang: Option<String>,
+    },
+    /// Prove legacy `shapes.ttl` blocks are reproduced by the projected validation shapes.
+    #[command(name = "shape-equivalence")]
+    ShapeEquivalence {
+        /// Restrict the scan (and the exit code) to legacy `shapes.ttl` under this directory
+        /// (repo-relative or absolute); default scans every slice.
+        #[arg(long = "path")]
+        path: Option<PathBuf>,
+    },
+    /// Propose (and certify) the OWL antecedent that would ground each legacy `shapes.ttl` block.
+    #[command(name = "shape-lift")]
+    ShapeLift {
+        /// Restrict the scan (and the exit code) to legacy `shapes.ttl` under this directory
+        /// (repo-relative or absolute); default scans every slice.
+        #[arg(long = "path")]
+        path: Option<PathBuf>,
+    },
+    /// Automated shape migration: inject the lifted OWL grounding into each class's module.ttl
+    /// (`--apply`), then delete the now-equivalent `shapes.ttl` blocks (`--prune`, after a
+    /// regenerate). Default is a dry-run report.
+    #[command(name = "shape-migrate")]
+    ShapeMigrate {
+        /// Restrict the scan to legacy `shapes.ttl` under this directory (repo-relative or absolute);
+        /// default scans every slice.
+        #[arg(long = "path")]
+        path: Option<PathBuf>,
+        /// Write the changes (inject axioms, or delete blocks under `--prune`); default is dry-run.
+        #[arg(long = "apply")]
+        apply: bool,
+        /// Prune phase: delete `shapes.ttl` blocks the projector already reproduces (run after a
+        /// regenerate) instead of injecting grounding.
+        #[arg(long = "prune")]
+        prune: bool,
     },
     /// Print the documentation page for one GMEOW term from a GTS snapshot.
     #[command(name = "docs-on")]
@@ -850,6 +884,15 @@ pub fn run() -> i32 {
             force,
             lang.as_deref(),
         ),
+        Commands::ShapeEquivalence { path } => dev_shapes::shape_equivalence(path.as_deref()),
+        Commands::ShapeLift { path } => dev_shapes::shape_lift(path.as_deref()),
+        Commands::ShapeMigrate { path, apply, prune } => {
+            if prune {
+                dev_shapes::shape_prune(path.as_deref(), apply)
+            } else {
+                dev_shapes::shape_migrate(path.as_deref(), apply)
+            }
+        }
         Commands::DocsOn {
             term,
             card,

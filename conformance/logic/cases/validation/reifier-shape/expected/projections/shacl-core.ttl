@@ -1,0 +1,10 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/provenance/Endorsement-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/provenance/Endorsement> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/provenance/endorsedBy> ; sh:class <https://blackcatinformatics.ca/gmeow/provenance/Agent> ] .
+
+<https://blackcatinformatics.ca/gmeow/provenance/Record-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/provenance/Record> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/provenance/asserts> ; sh:reifierShape <https://blackcatinformatics.ca/gmeow/provenance/Endorsement-shape> ; sh:reificationRequired true ] .
