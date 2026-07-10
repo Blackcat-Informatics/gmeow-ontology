@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Dense `u64`-word bitset over [`RowId`]s (issue 1418, item 5).
+//! Dense `u64`-word bitset over [`RowId`]s.
 //!
 //! # Why a bitset, not a hash set
 //!

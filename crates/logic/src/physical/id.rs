@@ -137,7 +137,7 @@ pub(crate) type TermId = Id<Term>;
 ///
 /// It is ALWAYS an atomic interned [`TermId`] — a single wrapping variant, a plain
 /// newtype, NOT a two-variant enum.  It is the **seam** the structured-term DAG work
-/// (issue 1307) extends: when function-symbol / proof-object terms land, a second
+/// extends: when function-symbol / proof-object terms land, a second
 /// variant (a DAG-node offset into the persistent term arena) is *added here*, so the
 /// row-tuple substrate is additive to that future work rather than a rewrite.
 ///
@@ -156,7 +156,7 @@ impl TermRef {
 
     /// The interned [`TermId`] this handle addresses.
     ///
-    /// Total today (the newtype has one variant); when issue 1307's DAG-offset
+    /// Total today (the newtype has one variant); when a future DAG-offset
     /// variant lands this becomes the atomic-term projection.
     #[inline]
     pub(crate) fn id(self) -> TermId {

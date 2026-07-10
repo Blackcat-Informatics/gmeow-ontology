@@ -16,18 +16,18 @@
 //! that would be unwound the next rung.
 #![allow(dead_code)]
 
-// The phase-scoped row/tuple bump arena (issue 1418, item 3): a genuinely resettable
+// The phase-scoped row/tuple bump arena: a genuinely resettable
 // per-round argument-tuple buffer, distinct from the persistent term arena
 // (`facts::TermInterner`). Consumed by the semi-naive fixpoint (`seminaive`).
 mod arena;
 mod binding_pattern;
-// The dense `u64`-word delta bitset (issue 1418, item 5): row-id membership over the
+// The dense `u64`-word delta bitset: row-id membership over the
 // phase-scoped value column. It is the delta probe of the semi-naive fixpoint
 // (`seminaive`) — one word test per selected row, no hashing.
 mod bitset;
 mod builtin_eval;
 mod chase;
-// The arrangement's native galloping lending cursor (issue 1418, item 6): a sealed
+// The arrangement's native galloping lending cursor: a sealed
 // GAT `LendingIterator` over row-id-ordered runs, replacing the materialized per-stage
 // `Vec<(TermId, TermId, RowId)>` on the semi-naive join hot path (`seminaive`, `chase`).
 mod cursor;
@@ -39,7 +39,7 @@ pub(crate) mod id;
 mod magic;
 mod magic_generic;
 mod parity;
-// The consuming type-state plan pipeline (issue 1418, item 7): `Parsed → Stratified →
+// The consuming type-state plan pipeline: `Parsed → Stratified →
 // Planned → Executable`. Makes an unstratified/unplanned program unrepresentable at the
 // semi-naive executor boundary and memoizes the stratification + per-rule join partition.
 mod plan;
