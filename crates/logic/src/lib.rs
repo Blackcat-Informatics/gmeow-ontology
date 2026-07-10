@@ -85,6 +85,11 @@ pub mod seam;
 pub mod slme;
 pub mod stablemodel;
 pub mod store;
+/// Synthetic relational-core Datalog generators (transitive closure, SCC, same
+/// generation, reachability) for the engine benchmark harness: each returns
+/// `(rules, edb, expected_rows)` with an analytically-known golden. Shared by the
+/// in-crate benches and the `gmeow-conformance` bench-corpus loader.
+pub mod synth_corpus;
 pub mod teleology;
 pub mod transaction;
 pub mod transition;

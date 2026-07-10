@@ -1,0 +1,6 @@
+#[name("https://example.org/bench/rules/deep-r1")]
+<https://example.org/bench/e1>(?x, !y, ?w) :- <https://example.org/bench/seed>(?x, ?o, ?w) .
+#[name("https://example.org/bench/rules/deep-r2")]
+<https://example.org/bench/e2>(?y, !z, ?w) :- <https://example.org/bench/e1>(?x, ?y, ?w) .
+#[name("https://example.org/bench/rules/deep-r3")]
+<https://example.org/bench/e3>(?z, !u, ?w) :- <https://example.org/bench/e2>(?y, ?z, ?w) .
