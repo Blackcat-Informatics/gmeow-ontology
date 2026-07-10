@@ -45160,7 +45160,15 @@
               "anyOf": [
                 {
                   "$comment": "external class https://blackcatinformatics.ca/math/FiltrationStage",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 {
                   "properties": {
@@ -45180,7 +45188,15 @@
                 "anyOf": [
                   {
                     "$comment": "external class https://blackcatinformatics.ca/math/FiltrationStage",
-                    "type": "string"
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   },
                   {
                     "properties": {
@@ -45242,7 +45258,15 @@
           "anyOf": [
             {
               "$comment": "external class https://blackcatinformatics.ca/math/TopologicalSpace",
-              "type": "string"
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
             },
             {
               "properties": {
@@ -46678,7 +46702,15 @@
           "anyOf": [
             {
               "$comment": "external class https://blackcatinformatics.ca/math/Filtration",
-              "type": "string"
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
             },
             {
               "properties": {
@@ -46697,7 +46729,15 @@
           "anyOf": [
             {
               "$comment": "external class https://blackcatinformatics.ca/math/HomologyGroup",
-              "type": "string"
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
             },
             {
               "properties": {
@@ -47226,7 +47266,15 @@
               "anyOf": [
                 {
                   "$comment": "external class https://blackcatinformatics.ca/math/PersistenceLifetime",
-                  "type": "string"
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 {
                   "properties": {
@@ -47246,7 +47294,15 @@
                 "anyOf": [
                   {
                     "$comment": "external class https://blackcatinformatics.ca/math/PersistenceLifetime",
-                    "type": "string"
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   },
                   {
                     "properties": {
@@ -47270,7 +47326,15 @@
           "anyOf": [
             {
               "$comment": "external class https://blackcatinformatics.ca/math/CredenceDerivationKind",
-              "type": "string"
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
             },
             {
               "properties": {
@@ -47289,7 +47353,15 @@
           "anyOf": [
             {
               "$comment": "external class https://blackcatinformatics.ca/math/Theorem",
-              "type": "string"
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
             },
             {
               "properties": {
