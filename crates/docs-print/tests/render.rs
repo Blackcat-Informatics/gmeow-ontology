@@ -8,10 +8,11 @@
 
 use std::collections::BTreeMap;
 
-use docs_print::{compile_pdf, embedded_font_digest, render_typ};
+use docs_print::{compile_pdf, embedded_font_digest, pdf_text_layer, render_typ};
 use gmeow_docs::formats::{DocFormat, format_capabilities};
 use gmeow_docs::model::{
-    DocCompetency, DocLinkage, DocSlice, DocTerm, DocTermCategory, DocsModel, ReasoningVerdict,
+    DocCompetency, DocFlowEdge, DocLinkage, DocPipeline, DocSlice, DocStage, DocTerm,
+    DocTermCategory, DocsModel, ReasoningVerdict,
 };
 
 /// The per-format capability partitions for every format (the loss appendix
@@ -133,6 +134,47 @@ fn fixture_bib() -> Vec<u8> {
     b"@article{gmeow2026,\n  title = {The GMEOW Ontology},\n  author = {Audley, Patrick},\n  year = {2026},\n  journal = {Journal of Ontology},\n}\n".to_vec()
 }
 
+/// A two-stage build pipeline (`stage-source-load` → `stage-docs-render`), the
+/// minimal fixture that exercises the methodology section's provenance-chain
+/// walk (issue 1404, gap G5). Without a `model.pipeline`, `section_methodology`
+/// emits no provenance paragraph at all (honest absence) — this is the fixture
+/// that turns that paragraph ON so the PDF gate has something real to grep.
+fn demo_pipeline() -> DocPipeline {
+    const SOURCE: &str = "https://blackcatinformatics.ca/gmeow/stage-source-load";
+    const RENDER: &str = "https://blackcatinformatics.ca/gmeow/stage-docs-render";
+    DocPipeline {
+        stages: vec![
+            DocStage {
+                iri: SOURCE.to_string(),
+                consumes: Vec::new(),
+                ..Default::default()
+            },
+            DocStage {
+                iri: RENDER.to_string(),
+                consumes: vec![SOURCE.to_string()],
+                ..Default::default()
+            },
+        ],
+        edges: vec![DocFlowEdge {
+            from: SOURCE.to_string(),
+            to: RENDER.to_string(),
+            flow_entities: Vec::new(),
+        }],
+        goal: None,
+        success_mode: None,
+    }
+}
+
+/// [`fixture_model`] plus a [`demo_pipeline`] — kept separate from
+/// `fixture_model()` so the existing `render_typ_is_golden` snapshot (built over
+/// a bare, pipeline-free model) stays untouched.
+fn fixture_model_with_pipeline() -> DocsModel {
+    DocsModel {
+        pipeline: Some(demo_pipeline()),
+        ..fixture_model()
+    }
+}
+
 #[test]
 fn render_typ_is_golden() {
     let model = fixture_model();
@@ -226,6 +268,66 @@ fn empty_bib_still_produces_a_valid_pdf() {
     assert!(!typ.contains("#bibliography("));
     let pdf = compile_pdf(&typ, &[]).expect("empty-bib compile ok");
     assert!(pdf.starts_with(b"%PDF"));
+}
+
+/// GAP G5 (issue 1404): the PDF must carry the same provenance chain the
+/// HTML/mdbook site footer does — not just in the Typst SOURCE (which trivially
+/// contains anything the source author wrote), but in the compiled PDF's TEXT
+/// LAYER, i.e. what a PDF text-extraction tool or copy-paste actually recovers.
+///
+/// This is the falsifiable gate: it greps [`pdf_text_layer`], which walks the
+/// SAME frame tree `compile_pdf` hands to `typst-pdf` for serialization. If
+/// `section_methodology`'s provenance paragraph were ever dropped (or only
+/// written to the Typst source without actually laying out), this test reds.
+#[test]
+fn pdf_text_layer_carries_provenance_chain() {
+    let model = fixture_model_with_pipeline();
+    let typ = render_typ(&model, &fixture_axioms(), &fixture_bib(), &losses());
+
+    // Sanity: the Typst SOURCE carries the chain (both stage local names, and
+    // the coarse-grain-provenance framing sentence).
+    assert!(
+        typ.contains("stage-docs-render") && typ.contains("stage-source-load"),
+        "Typst source missing the provenance chain stage names"
+    );
+    assert!(
+        typ.contains("provenance chain"),
+        "Typst source missing the provenance-chain framing sentence"
+    );
+
+    // The gate: the same two stage identifiers must survive all the way to the
+    // compiled PDF's extractable text layer, not just the source.
+    let text = pdf_text_layer(&typ, &fixture_bib()).expect("pdf text layer extraction must work");
+    assert!(
+        text.contains("stage-docs-render"),
+        "PDF text layer missing 'stage-docs-render'; provenance chain did not survive \
+         compilation:\n{text}"
+    );
+    assert!(
+        text.contains("stage-source-load"),
+        "PDF text layer missing 'stage-source-load'; provenance chain did not survive \
+         compilation:\n{text}"
+    );
+}
+
+/// A bare model without a `pipeline` (e.g. [`fixture_model`]) is an HONEST
+/// absence, not a bug: `section_methodology` emits no provenance paragraph, and
+/// neither the Typst source nor the compiled PDF text layer carries the stage
+/// chain. Pinned here so a future change that starts fabricating a chain out of
+/// nothing (rather than reading the real `model.pipeline`) is caught.
+#[test]
+fn pdf_text_layer_omits_provenance_chain_without_a_pipeline() {
+    let model = fixture_model();
+    assert!(
+        model.pipeline.is_none(),
+        "fixture_model must stay pipeline-free"
+    );
+    let typ = render_typ(&model, &fixture_axioms(), &fixture_bib(), &losses());
+    let text = pdf_text_layer(&typ, &fixture_bib()).expect("pdf text layer extraction must work");
+    assert!(
+        !text.contains("provenance chain"),
+        "a pipeline-free model must not fabricate a provenance-chain paragraph"
+    );
 }
 
 #[test]
