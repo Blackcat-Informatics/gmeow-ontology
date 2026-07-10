@@ -60,6 +60,13 @@
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:provenance on <https://example.org/derivation/org-membership-propagation/ruleOrgMembershipPropagation> has no gUFO bridge equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: rdf:type logic:Rule on <https://example.org/derivation/org-membership-propagation/ruleOrgMembershipPropagation> has no gUFO equivalent" .
 <https://blackcatinformatics.ca/logic/target/gufo> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: rule head <?agent> dropped (gUFO bridge has no rule surface)" .
+<https://blackcatinformatics.ca/logic/target/gufo/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TermProjectionLoss> .
+<https://blackcatinformatics.ca/logic/target/gufo/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <http://www.w3.org/2000/01/rdf-schema#label> "gufo" .
+<https://blackcatinformatics.ca/logic/target/gufo/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ValidationOnly> .
+<https://blackcatinformatics.ca/logic/target/gufo/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <https://blackcatinformatics.ca/logic/complexityClass> "PTIME" .
+<https://blackcatinformatics.ca/logic/target/gufo/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <https://blackcatinformatics.ca/gmeow/lossyDrop> "rule head <?agent> dropped (gUFO bridge has no rule surface)" .
+<https://blackcatinformatics.ca/logic/target/gufo/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <https://blackcatinformatics.ca/logic/lossOfTarget> <https://blackcatinformatics.ca/logic/target/gufo> .
+<https://blackcatinformatics.ca/logic/target/gufo/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <https://blackcatinformatics.ca/gmeow/lossySourceTerm> <https://blackcatinformatics.ca/gmeow/memberOf> .
 <https://blackcatinformatics.ca/logic/target/n3> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
 <https://blackcatinformatics.ca/logic/target/n3> <http://www.w3.org/2000/01/rdf-schema#label> "n3" .
 <https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/CompleteOverApproximation> .
@@ -84,6 +91,13 @@
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://example.org/derivation/org-membership-propagation/ruleOrgMembershipPropagation> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:provenance on <https://example.org/derivation/org-membership-propagation/ruleOrgMembershipPropagation> has no OWL DL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: rule head <?agent> 'https://blackcatinformatics.ca/gmeow/memberOf' not expressible in OWL DL (body complexity)" .
+<https://blackcatinformatics.ca/logic/target/owl-dl/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TermProjectionLoss> .
+<https://blackcatinformatics.ca/logic/target/owl-dl/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <http://www.w3.org/2000/01/rdf-schema#label> "owl-dl" .
+<https://blackcatinformatics.ca/logic/target/owl-dl/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
+<https://blackcatinformatics.ca/logic/target/owl-dl/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <https://blackcatinformatics.ca/logic/complexityClass> "decidable/N2EXPTIME" .
+<https://blackcatinformatics.ca/logic/target/owl-dl/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <https://blackcatinformatics.ca/gmeow/lossyDrop> "rule head <?agent> 'https://blackcatinformatics.ca/gmeow/memberOf' not expressible in OWL DL (body complexity)" .
+<https://blackcatinformatics.ca/logic/target/owl-dl/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <https://blackcatinformatics.ca/logic/lossOfTarget> <https://blackcatinformatics.ca/logic/target/owl-dl> .
+<https://blackcatinformatics.ca/logic/target/owl-dl/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <https://blackcatinformatics.ca/gmeow/lossySourceTerm> <https://blackcatinformatics.ca/gmeow/memberOf> .
 <https://blackcatinformatics.ca/logic/target/owl-el> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
 <https://blackcatinformatics.ca/logic/target/owl-el> <http://www.w3.org/2000/01/rdf-schema#label> "owl-el" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
@@ -97,6 +111,13 @@
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:head on <https://example.org/derivation/org-membership-propagation/ruleOrgMembershipPropagation> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: logic:provenance on <https://example.org/derivation/org-membership-propagation/ruleOrgMembershipPropagation> has no EL equivalent" .
 <https://blackcatinformatics.ca/logic/target/owl-el> <https://blackcatinformatics.ca/gmeow/lossyDrop> "actual: rule head <?agent> dropped (EL has no rule surface)" .
+<https://blackcatinformatics.ca/logic/target/owl-el/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/TermProjectionLoss> .
+<https://blackcatinformatics.ca/logic/target/owl-el/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <http://www.w3.org/2000/01/rdf-schema#label> "owl-el" .
+<https://blackcatinformatics.ca/logic/target/owl-el/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
+<https://blackcatinformatics.ca/logic/target/owl-el/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <https://blackcatinformatics.ca/logic/complexityClass> "PTIME" .
+<https://blackcatinformatics.ca/logic/target/owl-el/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <https://blackcatinformatics.ca/gmeow/lossyDrop> "rule head <?agent> dropped (EL has no rule surface)" .
+<https://blackcatinformatics.ca/logic/target/owl-el/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <https://blackcatinformatics.ca/logic/lossOfTarget> <https://blackcatinformatics.ca/logic/target/owl-el> .
+<https://blackcatinformatics.ca/logic/target/owl-el/termloss/https://blackcatinformatics.ca/gmeow/memberOf> <https://blackcatinformatics.ca/gmeow/lossySourceTerm> <https://blackcatinformatics.ca/gmeow/memberOf> .
 <https://blackcatinformatics.ca/logic/target/shacl-af> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
 <https://blackcatinformatics.ca/logic/target/shacl-af> <http://www.w3.org/2000/01/rdf-schema#label> "shacl-af" .
 <https://blackcatinformatics.ca/logic/target/shacl-af> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .
