@@ -1156,6 +1156,67 @@ fn parse_tabular_row(cols: &[String], line: &str) -> Result<Record, Gmn1Error> {
     })
 }
 
+// ── Coverage measurement (the axis primitive, distinct from the round-trip gate) ───
+
+/// A per-construct coverage measurement over a [`Gmn0Model`] — the fraction of
+/// `model`'s quads whose subject, predicate, and object each encode losslessly to a
+/// GMN-1 token, WITHOUT hard-failing the whole model on the first uncovered quad.
+///
+/// This is deliberately NOT [`round_trip_check`]: the round-trip gate (Task 6,
+/// `crates/pipeline/src/stages/gmn1_gate.rs`) is total-or-hard-fail over the
+/// grounding slices' GMN-0 (no optionality within that domain); this report is the
+/// MEASUREMENT primitive `gmeow-slice-quality`'s `gmn1_coverage_axis` composes over
+/// every OTHER slice's GMN-0 vocabulary (Task 7's convergence-contract axis) — a
+/// bounded `[0,1]` fraction, never an unbounded ratio.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct CoverageReport {
+    /// Quads whose subject, predicate, and object each encode losslessly.
+    pub covered: usize,
+    /// Every quad measured (the report's denominator).
+    pub total: usize,
+}
+
+impl CoverageReport {
+    /// The bounded `[0,1]` coverage fraction. The vacuous empty model (no quads to
+    /// cover) scores `1.0` — nothing uncovered is trivially fully covered, mirroring
+    /// every other vacuous-slice convention in the slice-quality rubric.
+    #[must_use]
+    pub fn fraction(&self) -> f64 {
+        if self.total == 0 {
+            1.0
+        } else {
+            #[allow(clippy::cast_precision_loss)]
+            let f = self.covered as f64 / self.total as f64;
+            f
+        }
+    }
+}
+
+/// Measure [`CoverageReport`] over every quad in `model` against `dict`, reusing the
+/// SAME `encode_reference`/`encode_object` term codec [`gmn1_write`] calls — never a
+/// second, duplicated notion of "coverable". A named-graph-scoped quad is uncovered
+/// (the same fragment boundary [`quads_to_records`] enforces for the writer), counted
+/// in the denominator but never the numerator.
+#[must_use]
+pub fn measure_coverage(model: &Gmn0Model, dict: &GmnDictionary) -> CoverageReport {
+    let ns_to_prefix = ns_to_prefix_table();
+    let mut refs = BTreeMap::new();
+    let mut covered = 0usize;
+    for q in &model.quads {
+        let ok = q.graph_name.is_none()
+            && encode_reference(&q.subject, dict, &ns_to_prefix).is_ok()
+            && encode_reference(&RdfTerm::Iri(q.predicate.clone()), dict, &ns_to_prefix).is_ok()
+            && encode_object(&q.object, dict, &ns_to_prefix, &mut refs).is_ok();
+        if ok {
+            covered += 1;
+        }
+    }
+    CoverageReport {
+        covered,
+        total: model.quads.len(),
+    }
+}
+
 // ── The round-trip check (the codec's own pure gate primitive) ─────────────────────
 
 /// Run `gmn1_read(gmn1_write(model))` and assert canonical equality via
@@ -1274,5 +1335,54 @@ mod tests {
     fn boundary_predicate_uses_the_logic_namespace() {
         // Sanity: the constant matches the real logic: namespace, not a typo.
         assert!(PRED_OCCURRENT_BOUNDARY.starts_with("https://blackcatinformatics.ca/logic/"));
+    }
+
+    #[test]
+    fn coverage_report_fraction_is_vacuously_full_on_empty_model() {
+        let report = CoverageReport {
+            covered: 0,
+            total: 0,
+        };
+        assert_eq!(report.fraction(), 1.0, "nothing to cover is vacuously 1.0");
+    }
+
+    #[test]
+    fn measure_coverage_is_full_over_a_covered_model() {
+        let mut b = RdfDatasetBuilder::new();
+        let s = b.intern_iri(&format!("{GMEOW_NS}gate1"));
+        let p = b.intern_iri(&format!("{GMEOW_NS}hasState"));
+        let o = b.intern_iri(&format!("{GMEOW_NS}doorGate1"));
+        b.push_quad(s, p, o, None);
+        let ds = b.freeze().expect("freeze");
+        let model = Gmn0Model::from_dataset(&ds);
+        let dict = empty_dict();
+        let report = measure_coverage(&model, &dict);
+        assert_eq!(report.total, 1);
+        assert_eq!(report.covered, 1);
+        assert_eq!(report.fraction(), 1.0);
+    }
+
+    #[test]
+    fn measure_coverage_counts_an_uncovered_quad_without_hard_failing() {
+        let mut b = RdfDatasetBuilder::new();
+        let s1 = b.intern_iri(&format!("{GMEOW_NS}gate1"));
+        let p1 = b.intern_iri(&format!("{GMEOW_NS}hasState"));
+        let o1 = b.intern_iri(&format!("{GMEOW_NS}doorGate1"));
+        b.push_quad(s1, p1, o1, None);
+        // A second, deliberately uncovered quad: an IRI under no registered namespace.
+        let s2 = b.intern_iri("https://not-registered.example/subject");
+        let p2 = b.intern_iri(&format!("{GMEOW_NS}hasState"));
+        let o2 = b.intern_iri(&format!("{GMEOW_NS}doorGate1"));
+        b.push_quad(s2, p2, o2, None);
+        let ds = b.freeze().expect("freeze");
+        let model = Gmn0Model::from_dataset(&ds);
+        let dict = empty_dict();
+        let report = measure_coverage(&model, &dict);
+        assert_eq!(report.total, 2, "both quads are measured");
+        assert_eq!(
+            report.covered, 1,
+            "only the registered-namespace quad is covered"
+        );
+        assert!((report.fraction() - 0.5).abs() < f64::EPSILON);
     }
 }

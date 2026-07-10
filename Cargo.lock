@@ -2401,6 +2401,7 @@ version = "0.1.0"
 dependencies = [
  "gmeow-docs",
  "gmeow-errors",
+ "gmeow-lang-bridge",
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-validate",
