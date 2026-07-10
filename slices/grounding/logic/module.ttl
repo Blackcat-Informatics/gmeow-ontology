@@ -9303,3 +9303,156 @@ logic:sbeB3 a logic:Formula ; logic:relation logic:satisfactionStatus ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "eval" ] , [ logic:termIndex 1 ; logic:termIri logic:Satisfied ] .
 logic:sbeB4 a logic:Formula ; logic:relation logic:goalEvaluationStatus ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "eval" ] , [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluationCompleted ] .
+
+# =========================================================================== #
+# Procedural constraints (#1194) — FreshnessGuard and Conjecture well-formedness
+# shapes from slices/grounding/logic/shapes.ttl, authored as raw logic:Formula
+# integrity trees (Principle 17). The authored SHACL shapes stay; these are the
+# canonical logic: projection.
+# =========================================================================== #
+
+# A logic:FreshnessGuard must guard EXACTLY ONE logic:precondition through
+# logic:guardsPrecondition: there is a guarded precondition, and no distinct
+# second one — a raw exactly-one uniqueness formula.
+logic:FreshnessGuardPreconditionCardinalityConstraint
+    a logic:Constraint ;
+    rdfs:label "FreshnessGuard precondition cardinality constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a logic:FreshnessGuard guards exactly one logic:precondition through logic:guardsPrecondition (the situation whose supporting datum must be current)."@x-gmeow-english ;
+    logic:formalizes logic:FreshnessGuard ;
+    logic:severity "Violation" ;
+    logic:message "A FreshnessGuard must guard exactly one logic:precondition (via logic:guardsPrecondition)." ;
+    logic:integrity logic:fgpForall .
+logic:fgpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:fgpImpl .
+logic:fgpImpl a logic:Formula ; logic:antecedent logic:fgpGuard ; logic:consequent logic:fgpExists .
+logic:fgpGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:FreshnessGuard ] .
+logic:fgpExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:exists logic:fgpBody .
+logic:fgpBody a logic:Formula ; logic:and logic:fgpHas , logic:fgpUniq .
+logic:fgpHas a logic:Formula ; logic:relation logic:guardsPrecondition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
+logic:fgpUniq a logic:Formula ; logic:not logic:fgpOther .
+logic:fgpOther a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y" ] ;
+    logic:exists logic:fgpOtherBody .
+logic:fgpOtherBody a logic:Formula ; logic:and logic:fgpHasY , logic:fgpDistinct .
+logic:fgpHasY a logic:Formula ; logic:relation logic:guardsPrecondition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+logic:fgpDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "y" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
+
+# A logic:FreshnessGuard that declares a logic:freshnessWindow must carry BOTH a
+# logic:freshnessWindowStart AND a logic:freshnessWindowEnd (the closed interval
+# bounds). Violation: a window present with either bound absent — a raw formula
+# whose two co-occur arms each re-bind the focus through the window predicate.
+logic:FreshnessGuardWindowBoundsConstraint
+    a logic:Constraint ;
+    rdfs:label "FreshnessGuard window-bounds constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a logic:FreshnessGuard declaring a logic:freshnessWindow carries both a logic:freshnessWindowStart and a logic:freshnessWindowEnd — a half-declared window gates on an ill-defined interval."@x-gmeow-english ;
+    logic:formalizes logic:FreshnessGuard ;
+    logic:severity "Violation" ;
+    logic:message "A FreshnessGuard that declares a logic:freshnessWindow must carry BOTH a logic:freshnessWindowStart AND a logic:freshnessWindowEnd (the closed interval bounds); the property shapes already cap each bound at one." ;
+    logic:integrity logic:fgwForall .
+logic:fgwForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:fgwImpl .
+logic:fgwImpl a logic:Formula ; logic:antecedent logic:fgwGuard ; logic:consequent logic:fgwPhi .
+logic:fgwGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:FreshnessGuard ] .
+logic:fgwPhi a logic:Formula ; logic:not logic:fgwBad .
+logic:fgwBad a logic:Formula ; logic:or logic:fgwBadStart , logic:fgwBadEnd .
+logic:fgwBadStart a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w" ] ;
+    logic:exists logic:fgwStartBody .
+logic:fgwStartBody a logic:Formula ; logic:and logic:fgwStartWin , logic:fgwNoStart .
+logic:fgwStartWin a logic:Formula ; logic:relation logic:freshnessWindow ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] .
+logic:fgwNoStart a logic:Formula ; logic:not logic:fgwStartEx .
+logic:fgwStartEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] ;
+    logic:exists logic:fgwStartAtom .
+logic:fgwStartAtom a logic:Formula ; logic:relation logic:freshnessWindowStart ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+logic:fgwBadEnd a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w2" ] ;
+    logic:exists logic:fgwEndBody .
+logic:fgwEndBody a logic:Formula ; logic:and logic:fgwEndWin , logic:fgwNoEnd .
+logic:fgwEndWin a logic:Formula ; logic:relation logic:freshnessWindow ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w2" ] .
+logic:fgwNoEnd a logic:Formula ; logic:not logic:fgwEndEx .
+logic:fgwEndEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "e" ] ;
+    logic:exists logic:fgwEndAtom .
+logic:fgwEndAtom a logic:Formula ; logic:relation logic:freshnessWindowEnd ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
+
+# A logic:Conjecture must have EXACTLY ONE logic:conjectureFormula (the alpha-
+# normalized content_key identity of the conjectured formula) — a raw exactly-one
+# uniqueness formula.
+logic:ConjectureFormulaCardinalityConstraint
+    a logic:Constraint ;
+    rdfs:label "Conjecture formula cardinality constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a logic:Conjecture carries exactly one logic:conjectureFormula — the alpha-normalized content_key identity of the conjectured formula."@x-gmeow-english ;
+    logic:formalizes logic:Conjecture ;
+    logic:severity "Violation" ;
+    logic:message "A Conjecture must have exactly one logic:conjectureFormula (the alpha-normalized xsd:string content_key identity of the conjectured formula)." ;
+    logic:integrity logic:cfcForall .
+logic:cfcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:cfcImpl .
+logic:cfcImpl a logic:Formula ; logic:antecedent logic:cfcGuard ; logic:consequent logic:cfcExists .
+logic:cfcGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:Conjecture ] .
+logic:cfcExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:exists logic:cfcBody .
+logic:cfcBody a logic:Formula ; logic:and logic:cfcHas , logic:cfcUniq .
+logic:cfcHas a logic:Formula ; logic:relation logic:conjectureFormula ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
+logic:cfcUniq a logic:Formula ; logic:not logic:cfcOther .
+logic:cfcOther a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y" ] ;
+    logic:exists logic:cfcOtherBody .
+logic:cfcOtherBody a logic:Formula ; logic:and logic:cfcHasY , logic:cfcDistinct .
+logic:cfcHasY a logic:Formula ; logic:relation logic:conjectureFormula ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+logic:cfcDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "y" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
+
+# A logic:Conjecture whose logic:conjectureLifecycleState is
+# logic:ConjectureRefutedInStandpoint must name at least one
+# logic:conjectureRefutationWitness (a concrete logic:ContradictionWitness); a
+# refutation with no witness is a hard error — a raw guarded-existence formula.
+logic:ConjectureRefutationWitnessConstraint
+    a logic:Constraint ;
+    rdfs:label "Conjecture refutation-witness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a logic:Conjecture in logic:ConjectureRefutedInStandpoint names at least one logic:conjectureRefutationWitness — the concrete logic:ContradictionWitness backing the refutation."@x-gmeow-english ;
+    logic:formalizes logic:Conjecture ;
+    logic:severity "Violation" ;
+    logic:message "A Conjecture in logic:ConjectureRefutedInStandpoint must name at least one logic:conjectureRefutationWitness (the concrete logic:ContradictionWitness); a refutation with no witness is a hard error." ;
+    logic:integrity logic:crwForall .
+logic:crwForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:crwImpl .
+logic:crwImpl a logic:Formula ; logic:antecedent logic:crwGuard ; logic:consequent logic:crwExists .
+logic:crwGuard a logic:Formula ; logic:and logic:crwType , logic:crwRefuted .
+logic:crwType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:Conjecture ] .
+logic:crwRefuted a logic:Formula ; logic:relation logic:conjectureLifecycleState ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ConjectureRefutedInStandpoint ] .
+logic:crwExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w" ] ;
+    logic:exists logic:crwAtom .
+logic:crwAtom a logic:Formula ; logic:relation logic:conjectureRefutationWitness ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] .

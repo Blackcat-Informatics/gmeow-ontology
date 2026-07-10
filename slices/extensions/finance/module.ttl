@@ -1028,3 +1028,90 @@ DOCTRINE.
     skos:definition "The GMEOW Finance Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Suppression constraints (#1194) — projections of the finance Phase B–D        #
+# suppression shapes. A reversed/cancelled record that is not suppressed        #
+# (gmeow:displayable false) is a Warning — a source may lag on setting the flag. #
+# =========================================================================== #
+
+gmeow:ReversedTransactionSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Reversed transaction suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a reversed gmeow:FinancialTransaction (one whose gmeow:transactionStatus is transactionStatusReversed) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
+    logic:formalizes gmeow:FinancialTransaction ;
+    logic:severity "Warning" ;
+    logic:message "A reversed transaction should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)." ;
+    logic:integrity logic:supTxForall .
+logic:supTxForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:supTxImpl .
+logic:supTxImpl a logic:Formula ; logic:antecedent logic:supTxGuard ; logic:consequent logic:supTxPhi .
+logic:supTxGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:FinancialTransaction ] .
+logic:supTxPhi a logic:Formula ; logic:not logic:supTxEx .
+logic:supTxEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:exists logic:supTxBody .
+logic:supTxBody a logic:Formula ; logic:and logic:supTxStatus , logic:supTxNotSuppressed .
+logic:supTxStatus a logic:Formula ; logic:relation gmeow:transactionStatus ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:transactionStatusReversed ] .
+logic:supTxNotSuppressed a logic:Formula ; logic:not logic:supTxDisp .
+logic:supTxDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
+
+gmeow:CancelledInvoiceSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Cancelled invoice suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a cancelled gmeow:Invoice (one whose gmeow:invoiceStatus is invoiceStatusCancelled) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
+    logic:formalizes gmeow:Invoice ;
+    logic:severity "Warning" ;
+    logic:message "A cancelled invoice should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)." ;
+    logic:integrity logic:supInvForall .
+logic:supInvForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:supInvImpl .
+logic:supInvImpl a logic:Formula ; logic:antecedent logic:supInvGuard ; logic:consequent logic:supInvPhi .
+logic:supInvGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Invoice ] .
+logic:supInvPhi a logic:Formula ; logic:not logic:supInvEx .
+logic:supInvEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:exists logic:supInvBody .
+logic:supInvBody a logic:Formula ; logic:and logic:supInvStatus , logic:supInvNotSuppressed .
+logic:supInvStatus a logic:Formula ; logic:relation gmeow:invoiceStatus ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:invoiceStatusCancelled ] .
+logic:supInvNotSuppressed a logic:Formula ; logic:not logic:supInvDisp .
+logic:supInvDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
+
+gmeow:CancelledOrderSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Cancelled order suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a cancelled gmeow:Order (one whose gmeow:orderStatus is orderStatusCancelled) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
+    logic:formalizes gmeow:Order ;
+    logic:severity "Warning" ;
+    logic:message "A cancelled order should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)." ;
+    logic:integrity logic:supOrdForall .
+logic:supOrdForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:supOrdImpl .
+logic:supOrdImpl a logic:Formula ; logic:antecedent logic:supOrdGuard ; logic:consequent logic:supOrdPhi .
+logic:supOrdGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Order ] .
+logic:supOrdPhi a logic:Formula ; logic:not logic:supOrdEx .
+logic:supOrdEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:exists logic:supOrdBody .
+logic:supOrdBody a logic:Formula ; logic:and logic:supOrdStatus , logic:supOrdNotSuppressed .
+logic:supOrdStatus a logic:Formula ; logic:relation gmeow:orderStatus ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:orderStatusCancelled ] .
+logic:supOrdNotSuppressed a logic:Formula ; logic:not logic:supOrdDisp .
+logic:supOrdDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .

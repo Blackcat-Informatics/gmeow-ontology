@@ -6022,29 +6022,41 @@
         "gmeow:flowSource": {
           "anyOf": [
             {
-              "$comment": "gmeow:ProcedureStep has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ProcedureStep"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              ]
             },
             {
               "items": {
-                "$comment": "gmeow:ProcedureStep has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ProcedureStep"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               "type": "array"
             }
@@ -6053,29 +6065,41 @@
         "gmeow:flowTarget": {
           "anyOf": [
             {
-              "$comment": "gmeow:ProcedureStep has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ProcedureStep"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              ]
             },
             {
               "items": {
-                "$comment": "gmeow:ProcedureStep has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ProcedureStep"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               "type": "array"
             }
@@ -6956,29 +6980,41 @@
         "gmeow:dataFlowSource": {
           "anyOf": [
             {
-              "$comment": "gmeow:ProcedureStep has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ProcedureStep"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              ]
             },
             {
               "items": {
-                "$comment": "gmeow:ProcedureStep has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ProcedureStep"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               "type": "array"
             }
@@ -6987,29 +7023,41 @@
         "gmeow:dataFlowTarget": {
           "anyOf": [
             {
-              "$comment": "gmeow:ProcedureStep has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ProcedureStep"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              ]
             },
             {
               "items": {
-                "$comment": "gmeow:ProcedureStep has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ProcedureStep"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               "type": "array"
             }
@@ -9343,29 +9391,41 @@
         "gmeow:executesStep": {
           "anyOf": [
             {
-              "$comment": "gmeow:ProcedureStep has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ProcedureStep"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              ]
             },
             {
               "items": {
-                "$comment": "gmeow:ProcedureStep has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ProcedureStep"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               "type": "array"
             }
@@ -23840,6 +23900,31 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "gmeow:ProcedureStep"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:ProcedureStep"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ProcedureStep"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "gmeow:Profile"
                   },
                   {
@@ -34054,29 +34139,66 @@
         "gmeow:hasProcedureStep": {
           "anyOf": [
             {
-              "$comment": "gmeow:ProcedureStep has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ProcedureStep"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              ]
             },
             {
               "items": {
-                "$comment": "gmeow:ProcedureStep has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ProcedureStep"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "ProcedureStep": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
               },
               "type": "array"
             }
@@ -41085,73 +41207,8 @@
               "type": "array"
             }
           ]
-        },
-        "lang:translationMethod": {
-          "anyOf": [
-            {
-              "anyOf": [
-                {
-                  "$comment": "external class https://blackcatinformatics.ca/lang/TranslationMethod",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                }
-              ]
-            },
-            {
-              "items": {
-                "anyOf": [
-                  {
-                    "$comment": "external class https://blackcatinformatics.ca/lang/TranslationMethod",
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
-              },
-              "minItems": 1,
-              "type": "array"
-            }
-          ]
         }
       },
-      "required": [
-        "lang:translationMethod"
-      ],
       "type": "object"
     },
     "lang:TransliterationMap": {

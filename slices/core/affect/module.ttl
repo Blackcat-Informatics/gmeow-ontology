@@ -2422,3 +2422,30 @@ logic:advValExists a logic:Formula ;
     logic:exists logic:advValAtom2 .
 logic:advValAtom2 a logic:Formula ; logic:relation gmeow:appraisalValue ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v2" ] .
+
+# =========================================================================== #
+# Migrated procedural constraints (#1194): the closed-world Emotion              #
+# well-formedness shapes from shapes/gmeow-shapes.ttl (Principle 17).            #
+# =========================================================================== #
+
+gmeow:EmotionTypeConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Emotion type-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Emotion carries a gmeow:emotionType."@x-gmeow-english ;
+    logic:onClass gmeow:Emotion ;
+    logic:anyOf gmeow:emotionType ;
+    logic:formalizes gmeow:Emotion ;
+    logic:message "An Emotion must carry at least one gmeow:emotionType (an IRI — the vocabulary is OPEN per Principle 9: blended emotions and rival traditions coexist)." .
+
+gmeow:EmotionBearerConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Emotion bearer-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Emotion inheres in a gmeow:emotionBearer."@x-gmeow-english ;
+    logic:onClass gmeow:Emotion ;
+    logic:anyOf gmeow:emotionBearer ;
+    logic:formalizes gmeow:Emotion ;
+    logic:message "An Emotion must inhere in exactly one gmeow:emotionBearer (an intrinsic mode has exactly one bearer)." .

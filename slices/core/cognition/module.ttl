@@ -400,3 +400,45 @@ gmeow:KnowledgeProficiencyLevelRequiredConstraint
     logic:anyOf gmeow:knowledgeProficiencyLevel ;
     logic:formalizes gmeow:KnowledgeProficiency ;
     logic:message "A KnowledgeProficiency must carry a KnowledgeLevel (gmeow:knowledgeProficiencyLevel)." .
+
+# =========================================================================== #
+# Migrated procedural constraints (#1194): the closed-world KnowledgeProficiency #
+# well-formedness shapes from shapes/cognition-shapes.ttl, re-authored as        #
+# compact logic: constraint-sugar records (Principle 17).                        #
+# =========================================================================== #
+
+gmeow:KnowledgeProficiencySubjectConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "KnowledgeProficiency subject-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:KnowledgeProficiency references a gmeow:knowledgeProficiencySubject."@x-gmeow-english ;
+    logic:onClass gmeow:KnowledgeProficiency ;
+    logic:anyOf gmeow:knowledgeProficiencySubject ;
+    logic:formalizes gmeow:KnowledgeProficiency ;
+    logic:message "A KnowledgeProficiency must reference exactly one subject (gmeow:knowledgeProficiencySubject)." .
+
+gmeow:KnowledgeProficiencyLevelConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "KnowledgeProficiency level-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:KnowledgeProficiency carries a gmeow:knowledgeProficiencyLevel."@x-gmeow-english ;
+    logic:onClass gmeow:KnowledgeProficiency ;
+    logic:anyOf gmeow:knowledgeProficiencyLevel ;
+    logic:formalizes gmeow:KnowledgeProficiency ;
+    logic:message "A KnowledgeProficiency must carry exactly one KnowledgeLevel (gmeow:knowledgeProficiencyLevel)." .
+
+gmeow:KnowledgeProficiencyScaleCardinalityConstraint
+    a logic:AggregateConstraint ;
+    rdfs:label "KnowledgeProficiency scale at-most-one constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:KnowledgeProficiency binds at most one gmeow:knowledgeProficiencyScale."@x-gmeow-english ;
+    logic:onClass gmeow:KnowledgeProficiency ;
+    logic:aggFunction "COUNT" ;
+    logic:aggPath gmeow:knowledgeProficiencyScale ;
+    logic:aggComparator "<=" ;
+    logic:aggCompareTo "1"^^<http://www.w3.org/2001/XMLSchema#integer> ;
+    logic:formalizes gmeow:KnowledgeProficiency ;
+    logic:message "A KnowledgeProficiency has at most one scale (gmeow:knowledgeProficiencyScale)." .

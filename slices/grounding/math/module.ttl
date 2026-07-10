@@ -5470,3 +5470,150 @@ math:msA6 a logic:Formula ; logic:relation logic:termSum ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] , [ logic:termIndex 2 ; logic:termVariable "q" ] .
 math:msA7 a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "md" ] .
+
+# =========================================================================== #
+# Procedural constraints (#1194) — geometry dimension-consistency and formal-
+# verification grounding shapes from slices/grounding/math/shapes.ttl, authored
+# as raw logic:Formula integrity trees (Principle 17). The authored SHACL shapes
+# stay; these are the canonical logic: projection.
+# =========================================================================== #
+
+# A math:TangentSpace's math:spaceDimension must equal its manifold's
+# math:manifoldDimension; a tangent space of the wrong dimension is a
+# math:DimensionMismatch. A cross-node numeric inequality — a raw formula.
+math:TangentSpaceDimensionConstraint
+    a logic:Constraint ;
+    rdfs:label "Tangent-space dimension-match constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a math:TangentSpace's math:spaceDimension equals its manifold's math:manifoldDimension. A tangent space of the wrong dimension is ill-formed (math:DimensionMismatch)."@x-gmeow-english ;
+    logic:formalizes math:TangentSpace ;
+    logic:severity "Violation" ;
+    logic:message "A math:TangentSpace's dimension does not equal its manifold's dimension (math:DimensionMismatch)." ;
+    logic:integrity math:tsdForall .
+math:tsdForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:tsdImpl .
+math:tsdImpl a logic:Formula ; logic:antecedent math:tsdGuard ; logic:consequent math:tsdNot .
+math:tsdGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:TangentSpace ] .
+math:tsdNot a logic:Formula ; logic:not math:tsdExists .
+math:tsdExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "md" ] , [ logic:termIndex 2 ; logic:termVariable "sd" ] ;
+    logic:exists math:tsdBody .
+math:tsdBody a logic:Formula ; logic:and math:tsdA1 , math:tsdA2 , math:tsdA3 , math:tsdA4 .
+math:tsdA1 a logic:Formula ; logic:relation math:tangentSpaceOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "m" ] .
+math:tsdA2 a logic:Formula ; logic:relation math:manifoldDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "md" ] .
+math:tsdA3 a logic:Formula ; logic:relation math:spaceDimension ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sd" ] .
+math:tsdA4 a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "md" ] , [ logic:termIndex 1 ; logic:termVariable "sd" ] .
+
+# A math:lorentzianStructure manifold's math:MetricSignature must have exactly one
+# timelike direction: math:signaturePositive = 1 OR math:signatureNegative = 1.
+# Its negation (neither equals 1) over the metricSignature/metricTensor/structure-
+# kind join is the violation — a raw formula preserving the disjunction.
+math:LorentzianSignatureConstraint
+    a logic:Constraint ;
+    rdfs:label "Lorentzian metric-signature timelike-direction constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a math:lorentzianStructure manifold's math:MetricSignature has exactly one timelike direction — math:signaturePositive = 1 or math:signatureNegative = 1. A Lorentzian signature having neither is ill-formed (math:DimensionMismatch)."@x-gmeow-english ;
+    logic:formalizes math:MetricSignature ;
+    logic:severity "Violation" ;
+    logic:message "A math:lorentzianStructure manifold's math:MetricSignature does not have exactly one timelike direction (math:signaturePositive = 1 or math:signatureNegative = 1) (math:DimensionMismatch)." ;
+    logic:integrity math:lorForall .
+math:lorForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:lorImpl .
+math:lorImpl a logic:Formula ; logic:antecedent math:lorGuard ; logic:consequent math:lorNot .
+math:lorGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:MetricSignature ] .
+math:lorNot a logic:Formula ; logic:not math:lorExists .
+math:lorExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "mt" ] , [ logic:termIndex 1 ; logic:termVariable "m" ] , [ logic:termIndex 2 ; logic:termVariable "p" ] , [ logic:termIndex 3 ; logic:termVariable "q" ] ;
+    logic:exists math:lorBody .
+math:lorBody a logic:Formula ; logic:and math:lorA1 , math:lorA2 , math:lorA3 , math:lorA4 , math:lorA5 , math:lorA6 .
+math:lorA1 a logic:Formula ; logic:relation math:metricSignature ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mt" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+math:lorA2 a logic:Formula ; logic:relation math:metricTensor ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "mt" ] .
+math:lorA3 a logic:Formula ; logic:relation math:manifoldStructureKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termIri math:lorentzianStructure ] .
+math:lorA4 a logic:Formula ; logic:relation math:signaturePositive ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+math:lorA5 a logic:Formula ; logic:relation math:signatureNegative ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] .
+math:lorA6 a logic:Formula ; logic:not math:lorDisj .
+math:lorDisj a logic:Formula ; logic:or math:lorEqP , math:lorEqQ .
+math:lorEqP a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termLiteral "1" ; logic:termLiteralDatatype xsd:integer ] .
+math:lorEqQ a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termLiteral "1" ; logic:termLiteralDatatype xsd:integer ] .
+
+# A math:riemannianStructure manifold's math:MetricSignature must be positive-
+# definite: math:signatureNegative = 0. A non-zero negative count over the
+# metricSignature/metricTensor/structure-kind join is the violation — a raw formula.
+math:RiemannianSignatureConstraint
+    a logic:Constraint ;
+    rdfs:label "Riemannian metric-signature positive-definite constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a math:riemannianStructure manifold's math:MetricSignature is positive-definite — math:signatureNegative = 0. A Riemannian signature with a non-zero negative count is ill-formed (math:DimensionMismatch)."@x-gmeow-english ;
+    logic:formalizes math:MetricSignature ;
+    logic:severity "Violation" ;
+    logic:message "A math:riemannianStructure manifold's math:MetricSignature is not positive-definite (math:signatureNegative = 0) (math:DimensionMismatch)." ;
+    logic:integrity math:rieForall .
+math:rieForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:rieImpl .
+math:rieImpl a logic:Formula ; logic:antecedent math:rieGuard ; logic:consequent math:rieNot .
+math:rieGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:MetricSignature ] .
+math:rieNot a logic:Formula ; logic:not math:rieExists .
+math:rieExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "mt" ] , [ logic:termIndex 1 ; logic:termVariable "m" ] , [ logic:termIndex 2 ; logic:termVariable "q" ] ;
+    logic:exists math:rieBody .
+math:rieBody a logic:Formula ; logic:and math:rieA1 , math:rieA2 , math:rieA3 , math:rieA4 , math:rieA5 .
+math:rieA1 a logic:Formula ; logic:relation math:metricSignature ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "mt" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+math:rieA2 a logic:Formula ; logic:relation math:metricTensor ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "mt" ] .
+math:rieA3 a logic:Formula ; logic:relation math:manifoldStructureKind ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termIri math:riemannianStructure ] .
+math:rieA4 a logic:Formula ; logic:relation math:signatureNegative ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] .
+math:rieA5 a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "q" ] , [ logic:termIndex 1 ; logic:termLiteral "0" ; logic:termLiteralDatatype xsd:integer ] .
+
+# A math:FormalVerificationResult must be grounded BY a gmeow:Observation that
+# names it through gmeow:observationResult AND carries a gmeow:vantage (the
+# checker's standpoint); an unheld result is ill-formed. This strengthens the
+# inverse-existence math:FormalVerificationResultGroundingConstraint by also
+# requiring the grounding observation to carry a vantage — a raw formula.
+math:FormalVerificationResultVantageGroundingConstraint
+    a logic:Constraint ;
+    rdfs:label "Formal-verification-result vantage-grounding constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a math:FormalVerificationResult is grounded by a gmeow:Observation that names it through gmeow:observationResult and carries a gmeow:vantage. A verification result stated as unconditional truth rather than a vantage-held verdict is ill-formed (math:UngroundedVerificationResult)."@x-gmeow-english ;
+    logic:formalizes math:FormalVerificationResult ;
+    logic:severity "Violation" ;
+    logic:message "A math:FormalVerificationResult must be grounded by a gmeow:Observation that names it through gmeow:observationResult and carries a gmeow:vantage; an unheld result is ill-formed (math:UngroundedVerificationResult)." ;
+    logic:integrity math:fvrForall .
+math:fvrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:fvrImpl .
+math:fvrImpl a logic:Formula ; logic:antecedent math:fvrGuard ; logic:consequent math:fvrExists .
+math:fvrGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:FormalVerificationResult ] .
+math:fvrExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "obs" ] , [ logic:termIndex 1 ; logic:termVariable "vantage" ] ;
+    logic:exists math:fvrBody .
+math:fvrBody a logic:Formula ; logic:and math:fvrA1 , math:fvrA2 .
+math:fvrA1 a logic:Formula ; logic:relation gmeow:observationResult ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "obs" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+math:fvrA2 a logic:Formula ; logic:relation gmeow:vantage ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "obs" ] , [ logic:termIndex 1 ; logic:termVariable "vantage" ] .

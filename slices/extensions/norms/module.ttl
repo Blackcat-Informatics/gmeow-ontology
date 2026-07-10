@@ -1460,7 +1460,7 @@ gmeow:NormIssuerPresenceConstraint
     logic:trigger gmeow:deonticModality ;
     logic:requires gmeow:normIssuer ;
     logic:formalizes gmeow:Norm ;
-    logic:message "A gmeow:Norm that carries a gmeow:deonticModality must name its gmeow:normIssuer; an anonymous ought is ill-formed." .
+    logic:message "A norm carrying a deontic modality must name at least one gmeow:normIssuer — there is no ought, only ought-according-to (no anonymous oughts, Principles 1/9)." .
 
 # A gmeow:Permission's gmeow:deonticModality must be gmeow:deonticPermission — a permission
 # whose modality is an obligation or prohibition is grafted incoherently (a value-set membership:
@@ -1488,7 +1488,7 @@ gmeow:AssessmentMethodConstraint
     logic:onClass gmeow:Assessment ;
     logic:anyOf gmeow:assessmentCriterion , gmeow:assessmentRubric ;
     logic:formalizes gmeow:Assessment ;
-    logic:message "A gmeow:Assessment must name at least one of gmeow:assessmentCriterion or gmeow:assessmentRubric; a methodless score is ill-formed." .
+    logic:message "An Assessment must name what it applies: a gmeow:assessmentCriterion, a gmeow:assessmentRubric, or both." .
 
 # A gmeow:ConditionParameter binds EXACTLY one of gmeow:parameterValue (a literal)
 # or gmeow:parameterEntity (a resource), never both and never neither (a choice group).
@@ -1502,7 +1502,7 @@ gmeow:ConditionParameterMutexConstraint
     logic:choicePredicate gmeow:parameterValue , gmeow:parameterEntity ;
     logic:choiceMode "exactly-one" ;
     logic:formalizes gmeow:ConditionParameter ;
-    logic:message "A gmeow:ConditionParameter must bind exactly one of gmeow:parameterValue or gmeow:parameterEntity, never both." .
+    logic:message "A ConditionParameter binds exactly one of gmeow:parameterValue (literal) or gmeow:parameterEntity (IRI)." .
 
 # A gmeow:ScoreScale's gmeow:scaleMin must be strictly below its gmeow:scaleMax —
 # an inverted or degenerate scale is ill-formed (a comparison constraint: min >= max
@@ -1518,7 +1518,7 @@ gmeow:ScoreScaleOrderConstraint
     logic:rightPath gmeow:scaleMax ;
     logic:compareOp ">=" ;
     logic:formalizes gmeow:ScoreScale ;
-    logic:message "A gmeow:ScoreScale's gmeow:scaleMin must be strictly below its gmeow:scaleMax; an inverted or degenerate scale is ill-formed." .
+    logic:message "A ScoreScale's minimum must be strictly below its maximum." .
 
 # A gmeow:Persona's gmeow:personaRegister must be an IRI (a register individual), not
 # a free literal (a path node-kind constraint).
@@ -1532,7 +1532,7 @@ gmeow:PersonaRegisterNodeKindConstraint
     logic:valuePath gmeow:personaRegister ;
     logic:nodeKind "IRI" ;
     logic:formalizes gmeow:Persona ;
-    logic:message "A gmeow:Persona's gmeow:personaRegister must name a register individual (an IRI), not a free literal." .
+    logic:message "A Persona must express in at least one gmeow:personaRegister (an IRI — the Register vocabulary is OPEN per Principle 9, so no sh:class/sh:in: the aboutness-guard convention)." .
 
 # =========================================================================== #
 # Procedural constraints authored as raw logic:Formula integrity trees —        #
@@ -1709,3 +1709,209 @@ logic:sarBelow a logic:Formula ; logic:relation logic:termLess ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "amin" ] , [ logic:termIndex 1 ; logic:termVariable "smin" ] .
 logic:sarAbove a logic:Formula ; logic:relation logic:termGreater ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "amax" ] , [ logic:termIndex 1 ; logic:termVariable "smax" ] .
+
+# =========================================================================== #
+# Migrated procedural constraints (#1194): the remaining closed-world norms /    #
+# rubrics well-formedness shapes from shapes/gmeow-shapes.ttl (Principle 17).    #
+# =========================================================================== #
+
+gmeow:ConditionGroupMemberCountConstraint
+    a logic:AggregateConstraint ;
+    rdfs:label "ConditionGroup member-count constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ConditionGroup has at least two gmeow:groupMember conditions."@x-gmeow-english ;
+    logic:onClass gmeow:ConditionGroup ;
+    logic:aggFunction "COUNT" ;
+    logic:aggPath gmeow:groupMember ;
+    logic:aggComparator ">=" ;
+    logic:aggCompareTo "2"^^<http://www.w3.org/2001/XMLSchema#integer> ;
+    logic:formalizes gmeow:ConditionGroup ;
+    logic:message "A ConditionGroup must have at least two gmeow:groupMember conditions — a one-member group is just the member." .
+
+gmeow:ConditionGroupOperatorConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ConditionGroup operator-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ConditionGroup declares a gmeow:groupOperator."@x-gmeow-english ;
+    logic:onClass gmeow:ConditionGroup ;
+    logic:anyOf gmeow:groupOperator ;
+    logic:formalizes gmeow:ConditionGroup ;
+    logic:message "A ConditionGroup must declare exactly one gmeow:groupOperator (all / any / none — a CLOSED vocabulary, hence sh:in)." .
+
+gmeow:ConditionEvaluationVerdictConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ConditionEvaluation verdict-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ConditionEvaluation carries a gmeow:evaluationVerdict."@x-gmeow-english ;
+    logic:onClass gmeow:ConditionEvaluation ;
+    logic:anyOf gmeow:evaluationVerdict ;
+    logic:formalizes gmeow:ConditionEvaluation ;
+    logic:message "A ConditionEvaluation must carry exactly one gmeow:evaluationVerdict." .
+
+gmeow:PrecedenceTenureScopeConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "PrecedenceTenure scope-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:PrecedenceTenure is scoped to a gmeow:precedenceScope."@x-gmeow-english ;
+    logic:onClass gmeow:PrecedenceTenure ;
+    logic:anyOf gmeow:precedenceScope ;
+    logic:formalizes gmeow:PrecedenceTenure ;
+    logic:message "A PrecedenceTenure must be scoped to exactly one gmeow:precedenceScope normative system — precedence is always scoped." .
+
+gmeow:NormDeonticModalityCardinalityConstraint
+    a logic:AggregateConstraint ;
+    rdfs:label "Norm deontic-modality at-most-one constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Norm states at most one gmeow:deonticModality."@x-gmeow-english ;
+    logic:onClass gmeow:Norm ;
+    logic:aggFunction "COUNT" ;
+    logic:aggPath gmeow:deonticModality ;
+    logic:aggComparator "<=" ;
+    logic:aggCompareTo "1"^^<http://www.w3.org/2001/XMLSchema#integer> ;
+    logic:formalizes gmeow:Norm ;
+    logic:message "A Norm states at most one gmeow:deonticModality — a rule that both permits and obliges is two norms (functional, closed-world)." .
+
+gmeow:CriterionRewardPoleConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Criterion reward-pole constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Criterion names a gmeow:rewardPole."@x-gmeow-english ;
+    logic:onClass gmeow:Criterion ;
+    logic:anyOf gmeow:rewardPole ;
+    logic:formalizes gmeow:Criterion ;
+    logic:message "A Criterion must name exactly one gmeow:rewardPole, a CriterionPole — the named-poles contract: no poles is no axis." .
+
+gmeow:CriterionPenaltyPoleConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Criterion penalty-pole constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Criterion names a gmeow:penaltyPole."@x-gmeow-english ;
+    logic:onClass gmeow:Criterion ;
+    logic:anyOf gmeow:penaltyPole ;
+    logic:formalizes gmeow:Criterion ;
+    logic:message "A Criterion must name exactly one gmeow:penaltyPole, a CriterionPole — the named-poles contract: no poles is no axis." .
+
+gmeow:ScoreAnchorMeaningConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ScoreAnchor meaning-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ScoreAnchor carries a gmeow:anchorMeaning."@x-gmeow-english ;
+    logic:onClass gmeow:ScoreAnchor ;
+    logic:anyOf gmeow:anchorMeaning ;
+    logic:formalizes gmeow:ScoreAnchor ;
+    logic:message "A ScoreAnchor must carry at least one gmeow:anchorMeaning, at most one per language tag — an anchor without a meaning is just an interval (localizable prose, PR #376 review)." .
+
+gmeow:ScoreAnchorRangeMinConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ScoreAnchor range-min-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ScoreAnchor pins a gmeow:anchorRangeMin."@x-gmeow-english ;
+    logic:onClass gmeow:ScoreAnchor ;
+    logic:anyOf gmeow:anchorRangeMin ;
+    logic:formalizes gmeow:ScoreAnchor ;
+    logic:message "A ScoreAnchor must pin exactly one decimal gmeow:anchorRangeMin — an anchor IS a pinned range." .
+
+gmeow:ScoreAnchorRangeMaxConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "ScoreAnchor range-max-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ScoreAnchor pins a gmeow:anchorRangeMax."@x-gmeow-english ;
+    logic:onClass gmeow:ScoreAnchor ;
+    logic:anyOf gmeow:anchorRangeMax ;
+    logic:formalizes gmeow:ScoreAnchor ;
+    logic:message "A ScoreAnchor must pin exactly one decimal gmeow:anchorRangeMax — an anchor IS a pinned range." .
+
+gmeow:ScoreAnchorRangeOrderConstraint
+    a logic:ComparisonConstraint ;
+    rdfs:label "ScoreAnchor range-order constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ScoreAnchor's gmeow:anchorRangeMin does not exceed its gmeow:anchorRangeMax."@x-gmeow-english ;
+    logic:onClass gmeow:ScoreAnchor ;
+    logic:leftPath gmeow:anchorRangeMin ;
+    logic:rightPath gmeow:anchorRangeMax ;
+    logic:compareOp ">" ;
+    logic:formalizes gmeow:ScoreAnchor ;
+    logic:message "A ScoreAnchor's range minimum must not exceed its range maximum." .
+
+gmeow:ExemplarPolarityConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Exemplar polarity-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Exemplar states a gmeow:exemplarPolarity."@x-gmeow-english ;
+    logic:onClass gmeow:Exemplar ;
+    logic:anyOf gmeow:exemplarPolarity ;
+    logic:formalizes gmeow:Exemplar ;
+    logic:message "An Exemplar must state exactly one gmeow:exemplarPolarity (positive / negative / cautionary — a CLOSED vocabulary, hence sh:in)." .
+
+# Registers (#355): Persona/StyleGuide presence halves of the closed-world shapes
+# (the nodeKind half is gmeow:PersonaRegisterNodeKindConstraint above).
+gmeow:PersonaBearerConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Persona bearer-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Persona has a gmeow:personaBearer."@x-gmeow-english ;
+    logic:onClass gmeow:Persona ;
+    logic:anyOf gmeow:personaBearer ;
+    logic:formalizes gmeow:Persona ;
+    logic:message "A Persona must have exactly one gmeow:personaBearer — one persona, one agent; an agent bears many co-equal personas." .
+
+gmeow:PersonaRegisterPresenceConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Persona register-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Persona expresses in a gmeow:personaRegister."@x-gmeow-english ;
+    logic:onClass gmeow:Persona ;
+    logic:anyOf gmeow:personaRegister ;
+    logic:formalizes gmeow:Persona ;
+    logic:message "A Persona must express in at least one gmeow:personaRegister (an IRI — the Register vocabulary is OPEN per Principle 9, so no sh:class/sh:in: the aboutness-guard convention)." .
+
+gmeow:StyleGuideForConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "StyleGuide target-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:StyleGuide voices at least one gmeow:styleGuideFor target."@x-gmeow-english ;
+    logic:onClass gmeow:StyleGuide ;
+    logic:anyOf gmeow:styleGuideFor ;
+    logic:formalizes gmeow:StyleGuide ;
+    logic:message "A StyleGuide must voice at least one gmeow:styleGuideFor target (a Persona or a Register) — a style guide for nothing is just a document." .
+
+# Migrated (#1194): the deontic subkind fixes the modality (#352) — projections
+# of gmeow:GraftProhibitionModalityShape / gmeow:GraftDutyModalityShape.
+gmeow:ProhibitionModalityConstraint
+    a logic:ValueSetMembershipConstraint ;
+    rdfs:label "Prohibition modality invariant constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world value constraint: a gmeow:Prohibition's stated gmeow:deonticModality is gmeow:deonticProhibition."@x-gmeow-english ;
+    logic:onClass gmeow:Prohibition ;
+    logic:formalizes gmeow:Prohibition ;
+    logic:valuePath gmeow:deonticModality ;
+    logic:memberValue gmeow:deonticProhibition ;
+    logic:message "A Prohibition's deontic modality, when stated, must be gmeow:deonticProhibition — the subkind fixes the modality (#352)." .
+
+gmeow:DutyModalityConstraint
+    a logic:ValueSetMembershipConstraint ;
+    rdfs:label "Duty modality invariant constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world value constraint: a gmeow:Duty's stated gmeow:deonticModality is gmeow:deonticObligation."@x-gmeow-english ;
+    logic:onClass gmeow:Duty ;
+    logic:formalizes gmeow:Duty ;
+    logic:valuePath gmeow:deonticModality ;
+    logic:memberValue gmeow:deonticObligation ;
+    logic:message "A Duty's deontic modality, when stated, must be gmeow:deonticObligation — the subkind fixes the modality (#352)." .

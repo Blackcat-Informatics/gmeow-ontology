@@ -931,3 +931,39 @@ gmeow:StandpointClaim rdfs:subClassOf
 <https://blackcatinformatics.ca/gmeow/KnowledgeAttribution> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/attributedKnower> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Agent> ] .
 <https://blackcatinformatics.ca/gmeow/KnowledgeAttribution> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/attributedProposition> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Proposition> ] .
 <https://blackcatinformatics.ca/gmeow/StandpointClaim> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationMethod> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
+
+# =========================================================================== #
+# Suppression constraint (#1194) — projection of WithdrawnDoxasticTenureSuppressionShape.
+# A withdrawn belief (a DoxasticTenure whose gmeow:duringInterval has ended,     #
+# i.e. carries gmeow:endedAtTime) that is not suppressed (gmeow:displayable      #
+# false) is a Warning — a source may lag the flag.                              #
+# =========================================================================== #
+
+gmeow:WithdrawnDoxasticTenureSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Withdrawn doxastic-tenure suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a withdrawn belief (a gmeow:DoxasticTenure whose gmeow:duringInterval carries a gmeow:endedAtTime) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
+    logic:formalizes gmeow:DoxasticTenure ;
+    logic:severity "Warning" ;
+    logic:message "A withdrawn belief (a DoxasticTenure whose interval has ended) should set gmeow:displayable false — suppressed from display, never deleted." ;
+    logic:integrity logic:supDxForall .
+logic:supDxForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:supDxImpl .
+logic:supDxImpl a logic:Formula ; logic:antecedent logic:supDxGuard ; logic:consequent logic:supDxPhi .
+logic:supDxGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:DoxasticTenure ] .
+logic:supDxPhi a logic:Formula ; logic:not logic:supDxEx .
+logic:supDxEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "iv" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] ;
+    logic:exists logic:supDxBody .
+logic:supDxBody a logic:Formula ; logic:and logic:supDxInterval , logic:supDxEnded , logic:supDxNotSuppressed .
+logic:supDxInterval a logic:Formula ; logic:relation gmeow:duringInterval ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "iv" ] .
+logic:supDxEnded a logic:Formula ; logic:relation gmeow:endedAtTime ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "iv" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] .
+logic:supDxNotSuppressed a logic:Formula ; logic:not logic:supDxDisp .
+logic:supDxDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
