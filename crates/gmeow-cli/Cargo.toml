@@ -54,3 +54,7 @@ assert_cmd = "2"
 trycmd = "0.15"
 predicates = "3"
 serde_json = "1"
+# Mints an ephemeral Ed25519 signing key for the bundle_smoke.rs positive/negative
+# real-crypto verify test, in-process — never a production dependency, `purrdf`
+# (already a normal dependency above) is what `gmeow verify` actually uses.
+ed25519-dalek = "2"
