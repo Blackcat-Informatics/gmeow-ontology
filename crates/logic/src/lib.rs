@@ -57,6 +57,11 @@ pub mod logic_diagnostics;
 // so it stays in the runtime crate, not the wasm-able gmeow-logic-compile crate.
 pub mod lower;
 pub mod materialize;
+// Fixed-arity n-ary predication → reified-binary lowering + the native n-ary
+// forward-chase ingestion entry. The reified encoding (`logic:instanceOf` /
+// `logic:naryArg{i}` over a content-addressed reifier) keeps `EvalAtom` binary,
+// per LOGIC-IR.md §RelationalCore.
+pub mod nary;
 pub mod obligations;
 // Path-projection runtime tests: they run the projected Datalog through
 // crate::rule_ir (Nemo), so they live runtime-side as an in-crate test module.
