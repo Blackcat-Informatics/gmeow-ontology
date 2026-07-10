@@ -336,3 +336,38 @@ Consistency with the release-as-evidence principle: perf **timings** remain carr
 never as a gate — they are advisory here. What gates is a deterministic **count**, a different
 kind of observation entirely: reproducible bit-for-bit, independent of the machine and the
 scheduler, and therefore admissible as a checkable claim rather than a leaderboard verdict.
+
+## Perf ledger — recorded fragments
+
+Every deliberately non-incremental, refused, or demoted fragment is recorded here as a ledger
+entry, each carrying a named forward path. A named forward path is not a deferral — it is what
+keeps "not yet fast" or "not yet reachable" honest instead of silently reading as "fast" or
+"done".
+
+- **Native full-scale EL/Galen non-completion.** The native n-ary reified chase is *correct* —
+  native↔Nemo parity is proven on small recursive CURIE programs and an EL-shaped multi-arity
+  recursion, and native actively derives on the real EL/Galen corpus — but the naive,
+  non-incremental restricted chase (`crates/logic/src/physical/chase.rs` re-derives against the
+  full store every round) does not reach the ~2,025,426-tuple EL/Galen fixpoint within a
+  practical time/memory window. The engine-vs-engine CORRECTNESS is demonstrated; the at-scale
+  PERFORMANCE is not yet there. Forward path: incremental / semi-naive maintenance (the
+  perf-lever program), orthogonal to the n-ary correctness work.
+- **ChaseBench upstream is unlicensed.** dbunibas/chasebench carries no license, so its fetch
+  lane (`maint-chasebench-corpus`) fetches then HARD-FAILS on the missing license (honest
+  no-optionality). The same ChaseBench-family scenarios run under the Apache-2.0
+  knowsys/nemo-examples packaging via `maint-nemo-kr2024-corpus`.
+- **Published-scenario native-fragment gap.** The native fixed-arity positive-existential
+  fragment refuses negation-as-failure, arithmetic/comparison builtins, aggregates, and
+  Skolem-FUNCTION existentials — so the published ChaseBench deep/doctors/lubm/ontology-256
+  scenarios and most nemo-examples programs cannot run natively engine-vs-engine on-gate.
+  Committed on-gate coverage therefore uses license-clean, native-completing scenarios that
+  mirror those families' shapes; the one clean + native-completing published set (the EL-Galen
+  owl-el example, ~45k-row EDB) is too large for an on-gate committed corpus and stays the
+  off-gate `maint-nemo-kr2024-corpus` lane.
+- **Allocation gate is a tolerance band, not exact match.** The native forward core exhibits a
+  genuine residual ~0.059% per-run allocation jitter (a single quantized ±14-alloc event deep in
+  the forward core; the engine already fixed-seeds its hashers) that neither process-global
+  counting nor fully-serial execution eliminates. `alloc_bytes`/`alloc_count` therefore gate
+  through a one-sided band (`fresh ≤ baseline·(1+ε)`, ε = 1%, ~17× the measured floor);
+  `peak_live_bytes` gates by exact drift-match. Forward path: de-randomize the residual
+  allocating structure in the forward core to restore exact-match allocation gating.
