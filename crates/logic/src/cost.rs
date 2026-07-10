@@ -183,6 +183,12 @@ impl CostVector {
     /// Attach the deterministically-measured allocation scalars (the remaining
     /// scalar projections of the cost semiring). The later allocation-measurement
     /// pass calls this once; the derivation counts are never touched.
+    ///
+    /// The argument order `(alloc_bytes, alloc_count, peak_live_bytes)` matches the
+    /// `(bytes, count, peak_live)` field shape of the harness-scoped allocation
+    /// sample, so a harness plugs a measured sample straight in field-for-field —
+    /// intentionally by value (three `u64`s), never by depending on the measurement
+    /// crate here (its `#[global_allocator]` must never reach this crate or the CLI).
     pub fn set_allocation(&mut self, alloc_bytes: u64, alloc_count: u64, peak_live_bytes: u64) {
         self.alloc_bytes = alloc_bytes;
         self.alloc_count = alloc_count;

@@ -2192,6 +2192,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-cost-measure"
+version = "0.1.0"
+
+[[package]]
 name = "gmeow-dev-cli"
 version = "0.1.0"
 dependencies = [

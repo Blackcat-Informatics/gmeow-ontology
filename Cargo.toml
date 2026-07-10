@@ -11,6 +11,10 @@ members = [
     "crates/cli-core",
     # Native logic-conformance harness (#785): datatest-stable over the corpus.
     "crates/conformance",
+    # Harness-scoped deterministic allocation-measurement allocator + measure()
+    # helper. Depended on ONLY by bench targets / the future maint harness bin —
+    # NEVER by gmeow-cli, since its #[global_allocator] is process-global.
+    "crates/cost-measure",
     "crates/errors",
     # Rust-owned typed documentation model built from the slice catalog (#853).
     "crates/docs",
