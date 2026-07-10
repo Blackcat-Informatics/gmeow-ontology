@@ -98,10 +98,10 @@ pub fn render_typ(
     axiom_chapter(&mut out, axioms);
 
     section_metrics(&mut out, model);
-    section_methodology(&mut out);
+    section_methodology(&mut out, model);
     section_fair(&mut out);
     section_comparisons(&mut out, model);
-    section_pipeline_dag(&mut out);
+    section_pipeline_dag(&mut out, model);
     section_loss_appendix(&mut out, losses);
 
     bibliography(&mut out, bib);
@@ -374,7 +374,7 @@ fn competency_coverage(model: &DocsModel) -> (usize, usize, String) {
     (model.competencies.len(), covered, pct)
 }
 
-fn section_methodology(out: &mut String) {
+fn section_methodology(out: &mut String, model: &DocsModel) {
     out.push_str("// <<section:methodology>>\n");
     out.push_str("= Methodology and reproducibility\n\n");
     out.push_str(
@@ -397,6 +397,74 @@ fn section_methodology(out: &mut String) {
          consumer can verify that a downloaded artifact is exactly the one the \
          pipeline produced.\n\n",
     );
+
+    // Provenance chain (Task 12 / issue 1404): this PDF is one projection of the
+    // documentation render, itself the product of the build DAG. Render the
+    // coarse-grain producing-stage chain walked backward over
+    // `gmeow:dataflowConsumes` from `stage-docs-render`, so the PDF carries the
+    // same provenance the site footer does. Absent only for a bare model whose
+    // catalog has no pipeline (honest absence).
+    if let Some(pipeline) = &model.pipeline {
+        let chain = provenance_spine(pipeline, "stage-docs-render");
+        if !chain.is_empty() {
+            let rendered = chain.join(" ← ");
+            out.push_str(&format!(
+                "This document is a projection of the documentation render, itself a \
+                 product of the dogfooded build pipeline. Its provenance chain, walked \
+                 backward over the authored `gmeow:dataflowConsumes` dataflow, is: this \
+                 document ← {rendered}.\n\n",
+            ));
+        }
+    }
+}
+
+/// The coarse-grain provenance chain for the PDF's methodology + DAG figure: the
+/// producing-stage path walked BACKWARD over `gmeow:dataflowConsumes` from the
+/// stage whose local name is `start_local` (default `stage-docs-render`),
+/// following the lexicographically-smallest consumed producer at each step until a
+/// source-reading stage is reached. Cycle-safe; returns stage local names in
+/// consumer→producer order. Mirrors `gmeow_docs`'s site-footer walk so the PDF and
+/// the HTML site report the SAME provenance chain.
+fn provenance_spine(pipeline: &gmeow_docs::model::DocPipeline, start_local: &str) -> Vec<String> {
+    use std::collections::{BTreeMap, BTreeSet};
+    let by_iri: BTreeMap<&str, &gmeow_docs::model::DocStage> = pipeline
+        .stages
+        .iter()
+        .map(|s| (s.iri.as_str(), s))
+        .collect();
+    let Some(mut current) = pipeline
+        .stages
+        .iter()
+        .find(|s| stage_local_name(&s.iri) == start_local)
+    else {
+        return Vec::new();
+    };
+    let mut chain = vec![stage_local_name(&current.iri).to_string()];
+    let mut visited: BTreeSet<&str> = BTreeSet::new();
+    visited.insert(current.iri.as_str());
+    // Owned `next_iri` so the borrow of `current.consumes` ends before `current`
+    // is reassigned in the body.
+    while let Some(next_iri) = current
+        .consumes
+        .iter()
+        .filter(|p| !visited.contains(p.as_str()))
+        .min()
+        .cloned()
+    {
+        let Some(next) = by_iri.get(next_iri.as_str()) else {
+            break;
+        };
+        chain.push(stage_local_name(&next.iri).to_string());
+        visited.insert(next.iri.as_str());
+        current = *next;
+    }
+    chain
+}
+
+/// The local name of a stage IRI: the tail after the last `/` or `#`.
+fn stage_local_name(iri: &str) -> &str {
+    let cut = iri.rfind(['/', '#']).map(|i| i + 1).unwrap_or(0);
+    &iri[cut..]
 }
 
 fn section_fair(out: &mut String) {
@@ -482,11 +550,46 @@ fn local_predicate(pred: &str) -> String {
 /// figure. These are text/box stages, NOT the rich SVG diagrams the loss table
 /// declares dropped (search / four-boxes / dependency SVGs); a simple labelled
 /// flow is not one of those interactive diagram surfaces.
-fn section_pipeline_dag(out: &mut String) {
+fn section_pipeline_dag(out: &mut String, model: &DocsModel) {
     out.push_str("// <<section:pipeline-dag>>\n");
     out.push_str("= Pipeline DAG\n\n");
 
-    let stages = ["slices", "compose", "reason", "project", "gmeow.gts"];
+    // The genuine authored build DAG (`model.pipeline`, from
+    // `slices/core/pipeline/module.ttl`). The figure is the deterministic
+    // provenance SPINE (source-reading root → … → the narrow-waist sink) computed
+    // from the real dataflow, NOT a hand-written sketch. A model without a
+    // pipeline falls back to the conceptual spine so the figure is never empty.
+    let stages: Vec<String> = match &model.pipeline {
+        Some(pipeline) => {
+            // The provenance chain runs consumer→producer from the sink; reverse it
+            // so the figure reads left-to-right in build (producer→consumer) order.
+            let mut spine = provenance_spine(pipeline, "stage-gts-sink");
+            spine.reverse();
+            if spine.is_empty() {
+                Vec::new()
+            } else {
+                out.push_str(&format!(
+                    "The dogfooded build graph is authored as data: {} typed \
+                     `gmeow:PipelineStage` nodes wired by the `gmeow:dataflowConsumes` \
+                     dataflow, with exactly one narrow-waist `gmeow:sinkCapability` \
+                     serialization exit. The figure shows the provenance spine from a \
+                     source-reading root to that sink.\n\n",
+                    pipeline.stages.len(),
+                ));
+                spine
+            }
+        }
+        None => Vec::new(),
+    };
+    let stages: Vec<String> = if stages.is_empty() {
+        ["slices", "compose", "reason", "project", "gmeow.gts"]
+            .iter()
+            .map(|s| (*s).to_string())
+            .collect()
+    } else {
+        stages
+    };
+
     out.push_str("#figure(\n  caption: [The regeneration pipeline spine.],\n");
     out.push_str("  grid(\n    columns: (auto,) * ");
     out.push_str(&(stages.len() * 2 - 1).to_string());

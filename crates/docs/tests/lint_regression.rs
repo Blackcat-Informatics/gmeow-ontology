@@ -104,6 +104,7 @@ fn model_with_terms(terms: Vec<DocTerm>) -> DocsModel {
         constraint_rules: Vec::new(),
         four_boxes: None,
         concept_doi: None,
+        pipeline: None,
         available_languages: vec!["english".to_string()],
         translations: Default::default(),
         ui_catalog: Default::default(),

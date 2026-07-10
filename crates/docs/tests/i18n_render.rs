@@ -96,6 +96,7 @@ fn bilingual_model() -> DocsModel {
         constraint_rules: Vec::new(),
         four_boxes: None,
         concept_doi: None,
+        pipeline: None,
         available_languages: vec!["english".to_string(), "fr".to_string(), "zh".to_string()],
         translations,
         ui_catalog: Default::default(),

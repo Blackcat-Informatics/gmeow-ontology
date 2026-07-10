@@ -108,6 +108,7 @@ fn small_model() -> DocsModel {
         constraint_rules: Vec::new(),
         four_boxes: None,
         concept_doi: None,
+        pipeline: None,
         available_languages: vec!["english".to_string()],
         translations: Translations::default(),
         ui_catalog: UiCatalog::default(),
