@@ -519,7 +519,7 @@ pub fn slice_quality_gate() -> i32 {
         .map(|a| axis_local_name(&a.iri).to_owned())
         .collect();
     let mono_failures = match resolve_base_ref(&root) {
-        BaseRef::Unresolvable(reason) => {
+        BaseRef::NoUpstream(reason) => {
             note(
                 "gmeow-dev.slice-quality.gate",
                 format!(
@@ -527,6 +527,11 @@ pub fn slice_quality_gate() -> i32 {
                 ),
             );
             0
+        }
+        BaseRef::Unresolvable(reason) => {
+            return fail(format!(
+                "slice-quality-gate: cannot verify floor monotonicity — {reason} (the committed floor comparand could not be obtained)"
+            ));
         }
         BaseRef::Resolved(base) => {
             let mut mono: Vec<String> = Vec::new();
@@ -595,22 +600,56 @@ pub fn slice_quality_gate() -> i32 {
 }
 
 /// The merge-base resolution outcome for the floor-monotonicity check.
+///
+/// This is a COMPARISON gate: its comparand is `git show <merge-base
+/// HEAD origin/main>:<floor-file>`. That comparand is only LEGITIMATELY empty
+/// when `origin/main` itself is not a reachable ref (a bare local clone that
+/// never fetched it) — there, "may only be raised" is vacuously satisfied and
+/// [`BaseRef::NoUpstream`] is a correct, loud skip. Every OTHER failure to
+/// obtain the comparand (the ref exists but `merge-base` errors or resolves
+/// empty, or git itself cannot run) means the gate cannot perform the
+/// comparison it is defined to perform; passing there would let a lowered
+/// floor slip through unseen, so [`BaseRef::Unresolvable`] HARD-FAILS the
+/// gate instead of skipping it.
 enum BaseRef {
     /// The resolved merge-base commit the working floor files are diffed against.
     Resolved(String),
-    /// No base could be resolved (no `origin/main`, detached/shallow with no common
-    /// ancestor, or git absent) — a LOUD skip, never a crash and never a silent
-    /// pass. Carries the human reason.
+    /// `origin/main` genuinely does not exist as a ref in this checkout — the
+    /// only case where "no prior committed state is reachable" is expected
+    /// rather than broken. A loud SKIP, never a silent pass.
+    NoUpstream(String),
+    /// `origin/main` exists (or ref existence couldn't be checked) but the
+    /// comparand could not be obtained — mis-provisioned checkout, git error,
+    /// empty merge-base, or git binary absent. HARD FAIL: the gate cannot
+    /// verify the invariant it is defined to enforce.
     Unresolvable(String),
 }
 
 /// Resolve `git merge-base HEAD origin/main` LOCALLY (no network). CI builds the PR
-/// merged into `main`, so `origin/main` is present there; a developer clone without
-/// it (or a shallow/detached checkout with no common ancestor) yields
-/// [`BaseRef::Unresolvable`] so the gate skips loudly rather than crashing.
+/// merged into `main`, so `origin/main` is present there. A clone that never
+/// fetched `origin/main` yields [`BaseRef::NoUpstream`] (legitimate skip); any
+/// other failure to resolve the merge-base yields [`BaseRef::Unresolvable`]
+/// (hard fail — see the enum doc-comment).
 fn resolve_base_ref(root: &Path) -> BaseRef {
     match std::process::Command::new("git")
         .current_dir(root)
+        .env("LC_ALL", "C")
+        .args(["rev-parse", "--verify", "--quiet", "origin/main"])
+        .output()
+    {
+        Ok(out) if out.status.success() => {}
+        Ok(_) => {
+            return BaseRef::NoUpstream(
+                "`origin/main` does not exist as a ref in this checkout (no upstream fetched)"
+                    .to_owned(),
+            );
+        }
+        Err(e) => return BaseRef::Unresolvable(format!("could not run git: {e}")),
+    }
+
+    match std::process::Command::new("git")
+        .current_dir(root)
+        .env("LC_ALL", "C")
         .args(["merge-base", "HEAD", "origin/main"])
         .output()
     {
@@ -652,6 +691,7 @@ fn git_show_base(root: &Path, base: &str, rel: &str) -> BaseFile {
     let spec = format!("{base}:{rel}");
     match std::process::Command::new("git")
         .current_dir(root)
+        .env("LC_ALL", "C")
         .args(["show", &spec])
         .output()
     {
