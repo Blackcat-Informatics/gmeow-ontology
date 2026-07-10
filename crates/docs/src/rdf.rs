@@ -554,6 +554,188 @@ fn local_name(iri: &str) -> &str {
     &iri[cut..]
 }
 
+// ── Read-back projection of graph/documentation ─────────────────────────────────
+//
+// The health page and the coverage heatmap are PURE projections of the emitted
+// `graph/documentation` incidence — not a parallel recompute from [`crate::coverage`].
+// Both parse the SAME N-Quads [`to_gmeow_rdf`] produces (via [`documentation_graph`])
+// and render from THAT, so the published dashboard and the reasoned graph can never
+// silently disagree: they are the same bytes read two ways.
+
+use std::collections::{BTreeMap, BTreeSet};
+
+/// The per-term facts read back from `graph/documentation`: which dimensions the
+/// record `gmeow:docCoversDimension`, its owning slice, and the real term IRI.
+#[derive(Debug, Clone)]
+pub struct DocTermFacts {
+    /// The documentation-entry subject IRI (`documentation/term/{slug}`).
+    pub subject: String,
+    /// The real term IRI the record `gmeow:documents`.
+    pub documents: String,
+    /// The owning slice IRI (`gmeow:docOwnerSlice`).
+    pub owner_slice: String,
+    /// The per-term `gmeow:DocCoverageDimension` local names the record COVERS.
+    pub covers: BTreeSet<String>,
+}
+
+/// The per-slice facts read back from `graph/documentation`: the slice's
+/// covered-dimension set, its bounded `gmeow:coverageFraction`, the projected
+/// `gmeow:docEarnedMaturity` floor, and any asserted `gmeow:sliceDocMaturity`.
+#[derive(Debug, Clone)]
+pub struct DocSliceFacts {
+    /// The documentation-entry subject IRI (`documentation/slice/{slug}`).
+    pub subject: String,
+    /// The real slice IRI the record `gmeow:documents`.
+    pub documents: String,
+    /// The `gmeow:DocCoverageDimension` local names the slice COVERS.
+    pub covers: BTreeSet<String>,
+    /// The bounded coverage fraction (`gmeow:coverageFraction` ∈ [0,1]).
+    pub coverage_fraction: f64,
+    /// The projected earned-maturity anchor local name (`gmeow:docEarnedMaturity`),
+    /// absent when the slice earns no anchor.
+    pub earned: Option<String>,
+    /// The asserted maturity anchor local name (`gmeow:sliceDocMaturity`), absent
+    /// when the slice claims none (the projection then reports the earned floor).
+    pub asserted: Option<String>,
+}
+
+/// The read-back projection of the emitted `graph/documentation` incidence — the
+/// facts the health page and the coverage heatmap render, parsed from the SAME
+/// N-Quads [`to_gmeow_rdf`] emits. Terms and slices arrive in the emitter's
+/// deterministic IRI-sorted order.
+#[derive(Debug, Clone)]
+pub struct DocGraph {
+    /// Every `gmeow:DocumentedTerm` record, in subject-IRI order.
+    pub terms: Vec<DocTermFacts>,
+    /// Every `gmeow:DocumentedSlice` record, in subject-IRI order.
+    pub slices: Vec<DocSliceFacts>,
+}
+
+/// Split `<iri> …` into `(iri, rest)` where `rest` is the remainder after the
+/// closing `>` with leading whitespace trimmed. `None` when `s` is not an
+/// angle-bracket IRI token.
+fn take_iri(s: &str) -> Option<(&str, &str)> {
+    let s = s.strip_prefix('<')?;
+    let end = s.find('>')?;
+    Some((&s[..end], s[end + 1..].trim_start()))
+}
+
+/// Parse the `graph/documentation` N-Quads [`to_gmeow_rdf`] emits into the typed
+/// [`DocGraph`] read-back. Every line has the fixed shape `<s> <p> o <graph> .`;
+/// only the predicates the health surface reads are decoded (all IRI-valued except
+/// `gmeow:coverageFraction`), so a literal-object line for an unrelated predicate is
+/// skipped without a full N-Quads parser.
+pub fn documentation_graph(model: &DocsModel) -> DocGraph {
+    let nquads = to_gmeow_rdf(model);
+    let graph_suffix = format!(" <{DOCUMENTATION_GRAPH}> .");
+
+    let documents_p = format!("{GMEOW}documents");
+    let owner_p = format!("{GMEOW}docOwnerSlice");
+    let covers_p = format!("{GMEOW}docCoversDimension");
+    let fraction_p = format!("{GMEOW}coverageFraction");
+    let earned_p = format!("{GMEOW}docEarnedMaturity");
+    let asserted_p = format!("{GMEOW}sliceDocMaturity");
+    let term_type = format!("{GMEOW}DocumentedTerm");
+    let slice_type = format!("{GMEOW}DocumentedSlice");
+
+    // Per-subject accumulators, keyed by the documentation-entry subject IRI.
+    #[derive(Default)]
+    struct Row {
+        is_term: bool,
+        is_slice: bool,
+        documents: Option<String>,
+        owner: Option<String>,
+        covers: BTreeSet<String>,
+        fraction: Option<f64>,
+        earned: Option<String>,
+        asserted: Option<String>,
+    }
+    let mut rows: BTreeMap<String, Row> = BTreeMap::new();
+
+    for line in nquads.lines() {
+        let Some(body) = line.trim().strip_suffix(&graph_suffix) else {
+            continue;
+        };
+        let Some((subject, rest)) = take_iri(body) else {
+            continue;
+        };
+        let Some((predicate, object)) = take_iri(rest) else {
+            continue;
+        };
+        // The IRI-valued object (present for every predicate here except the
+        // decimal `coverageFraction`); its bare local name for the value vocab.
+        let obj_iri = take_iri(object).map(|(iri, _)| iri);
+
+        let row = rows.entry(subject.to_owned()).or_default();
+        match predicate {
+            RDF_TYPE => match obj_iri {
+                Some(t) if t == term_type => row.is_term = true,
+                Some(t) if t == slice_type => row.is_slice = true,
+                _ => {}
+            },
+            p if p == documents_p => {
+                if let Some(iri) = obj_iri {
+                    row.documents = Some(iri.to_owned());
+                }
+            }
+            p if p == owner_p => {
+                if let Some(iri) = obj_iri {
+                    row.owner = Some(iri.to_owned());
+                }
+            }
+            p if p == covers_p => {
+                if let Some(iri) = obj_iri {
+                    row.covers.insert(local_name(iri).to_owned());
+                }
+            }
+            p if p == earned_p => {
+                if let Some(iri) = obj_iri {
+                    row.earned = Some(local_name(iri).to_owned());
+                }
+            }
+            p if p == asserted_p => {
+                if let Some(iri) = obj_iri {
+                    row.asserted = Some(local_name(iri).to_owned());
+                }
+            }
+            p if p == fraction_p => {
+                // `"0.5000"^^<…decimal>` → the lexical value between the quotes.
+                if let Some(value) = object
+                    .strip_prefix('"')
+                    .and_then(|s| s.split('"').next())
+                    .and_then(|s| s.parse::<f64>().ok())
+                {
+                    row.fraction = Some(value);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let mut terms = Vec::new();
+    let mut slices = Vec::new();
+    for (subject, row) in rows {
+        if row.is_term {
+            terms.push(DocTermFacts {
+                subject,
+                documents: row.documents.unwrap_or_default(),
+                owner_slice: row.owner.unwrap_or_default(),
+                covers: row.covers,
+            });
+        } else if row.is_slice {
+            slices.push(DocSliceFacts {
+                subject,
+                documents: row.documents.unwrap_or_default(),
+                covers: row.covers,
+                coverage_fraction: row.fraction.unwrap_or(0.0),
+                earned: row.earned,
+                asserted: row.asserted,
+            });
+        }
+    }
+    DocGraph { terms, slices }
+}
+
 /// One uniform `gmeow:DocEvidence` node the projection emits for a documented
 /// term. Every kind carries the SAME shape — a claim, its mandatory
 /// `gmeow:docGroundedBy` carrier truthmaker(s), typed count/string properties,

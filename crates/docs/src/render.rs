@@ -20,7 +20,7 @@
 //! key, and no `HashMap` iteration reaches the output. Rendering the same model
 //! twice is byte-identical.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::OnceLock;
 
 use minijinja::{Environment, context};
@@ -1077,10 +1077,79 @@ fn md_landing(model: &DocsModel) -> String {
     out
 }
 
-/// The documentation-health dashboard: per-dimension coverage of the vocabulary
-/// surface and a completeness distribution. Reads the shared coverage source, so
-/// its per-dimension *covered* counts are the exact complement of the
-/// `docs/missing-*` lint counts.
+/// The number of PER-TERM coverage dimensions a projected term record covers —
+/// counted over the canonical [`crate::coverage::DIMENSIONS`] set so a stray
+/// local name in the read-back can never inflate the completeness distribution.
+fn present_dimension_count(term: &crate::rdf::DocTermFacts) -> usize {
+    crate::coverage::DIMENSIONS
+        .iter()
+        .filter(|dim| term.covers.contains(dim.dimension.local_name()))
+        .count()
+}
+
+/// The short human title of a maturity anchor (`Minimal` / `Basic` / `Full` /
+/// `Maximal`) for the health dashboard.
+fn anchor_title(anchor: crate::maturity::MaturityAnchor) -> String {
+    use crate::maturity::MaturityAnchor::*;
+    match anchor {
+        Minimal => "Minimal",
+        Basic => "Basic",
+        Full => "Full",
+        Maximal => "Maximal",
+    }
+    .to_owned()
+}
+
+/// The gap-to-next-tier burn-down for a slice: the next anchor up the derived
+/// ladder and the dimensions its intent requires that the slice's covered set
+/// (`covers`, read back from `gmeow:docCoversDimension`) does not yet carry. At
+/// the ceiling (earns `Maximal`) there is no next tier.
+fn maturity_gap(
+    earned: Option<crate::maturity::MaturityAnchor>,
+    covers: &BTreeSet<String>,
+) -> String {
+    use crate::maturity::MaturityAnchor;
+    // The next tier above the earned floor; when nothing is earned yet the first
+    // rung (Minimal) is the target.
+    let next = match earned {
+        Some(a) => a.next(),
+        None => Some(MaturityAnchor::Minimal),
+    };
+    let Some(next) = next else {
+        return "at ceiling (Maximal)".to_owned();
+    };
+    let missing: Vec<String> = next
+        .intent()
+        .iter()
+        .filter(|dim| !covers.contains(dim.local_name()))
+        .map(|dim| dimension_label(*dim))
+        .collect();
+    if missing.is_empty() {
+        // The intent is already covered — the slice is one closure step from the
+        // next tier (the emitter reports the largest satisfied anchor as earned).
+        format!("→ {}", anchor_title(next))
+    } else {
+        format!("→ {}: missing {}", anchor_title(next), missing.join(", "))
+    }
+}
+
+/// The human display label for a coverage dimension, resolved from the single
+/// [`crate::coverage`] label authority (per-term and slice-scoped dimensions).
+fn dimension_label(dim: crate::maturity::Dimension) -> String {
+    crate::coverage::DIMENSIONS
+        .iter()
+        .chain(crate::coverage::SLICE_DIMENSIONS.iter())
+        .find(|d| d.dimension == dim)
+        .map_or_else(|| dim.local_name().to_owned(), |d| d.label.to_owned())
+}
+
+/// The documentation-health dashboard, a PURE projection of the emitted
+/// `graph/documentation` incidence: per-dimension coverage of the vocabulary
+/// surface, a completeness distribution, and the per-slice earned-maturity floor
+/// with a gap-to-next-tier burn-down. Every coverage number is read back from
+/// `gmeow:docCoversDimension` / `gmeow:coverageFraction` / `gmeow:docEarnedMaturity`
+/// (never a second recompute from `crate::coverage`), so the dashboard and the
+/// reasoned graph cannot silently disagree.
 fn md_health(model: &DocsModel) -> String {
     let mut out = String::new();
     heading(&mut out, 1, model.ui("body_documentation_health"));
@@ -1097,20 +1166,28 @@ fn md_health(model: &DocsModel) -> String {
     );
 
     let aligned = crate::coverage::alignment_subjects(model);
-    let ctx = crate::coverage::CoverageContext::new(model);
-    let coverages: Vec<crate::coverage::TermCoverage> = model
-        .terms
-        .iter()
-        .map(|t| crate::coverage::term_coverage(t, &ctx))
-        .collect();
-    let total = coverages.len();
 
-    // Per-dimension coverage — covered count = total − (the docs/missing-* count).
+    // PURE PROJECTION: the health dashboard reads its coverage numbers back from
+    // the emitted `graph/documentation` incidence (`gmeow:docCoversDimension` per
+    // record), NEVER a second recompute from `crate::coverage`. The page and the
+    // reasoned graph are therefore the same bytes read two ways — they cannot
+    // silently diverge.
+    let graph = crate::rdf::documentation_graph(model);
+    let total = graph.terms.len();
+
+    // Per-dimension coverage — covered count = the number of documented terms whose
+    // projected incidence COVERS the dimension (the complement of the
+    // `docs/missing-*` gap).
     heading(&mut out, 2, model.ui("body_coverage_by_dimension"));
     push_line(&mut out, "| Dimension | Covered | Total | % |");
     push_line(&mut out, "| --- | --- | --- | --- |");
-    for (i, dim) in crate::coverage::DIMENSIONS.iter().enumerate() {
-        let covered = coverages.iter().filter(|c| c.flags()[i]).count();
+    for dim in crate::coverage::DIMENSIONS.iter() {
+        let local = dim.dimension.local_name();
+        let covered = graph
+            .terms
+            .iter()
+            .filter(|t| t.covers.contains(local))
+            .count();
         let pct = (covered * 100).checked_div(total).unwrap_or(0);
         push_line(
             &mut out,
@@ -1119,16 +1196,70 @@ fn md_health(model: &DocsModel) -> String {
     }
     blank(&mut out);
 
-    // Completeness distribution: how many terms carry exactly k of the dimensions.
+    // Completeness distribution: how many terms carry exactly k of the dimensions,
+    // counted from the projected per-term covered set.
     heading(&mut out, 2, model.ui("body_completeness_distribution"));
     push_line(&mut out, "| Dimensions present | Terms |");
     push_line(&mut out, "| --- | --- |");
     let dims_total = crate::coverage::TermCoverage::TOTAL;
     for k in (0..=dims_total).rev() {
-        let count = coverages.iter().filter(|c| c.present_count() == k).count();
+        let count = graph
+            .terms
+            .iter()
+            .filter(|t| present_dimension_count(t) == k)
+            .count();
         push_line(&mut out, &format!("| {k} / {dims_total} | {count} |"));
     }
     blank(&mut out);
+
+    // ── Maturity by slice (earned floor + gap-to-next-tier burn-down) ────────────
+    // Projected from the per-slice incidence: `gmeow:docEarnedMaturity` (the FCA
+    // floor), `gmeow:coverageFraction`, and any asserted `gmeow:sliceDocMaturity`.
+    // The gap column names the exact dimensions standing between the slice and its
+    // next tier — the burn-down a slice author reads straight off the dashboard.
+    if !graph.slices.is_empty() {
+        heading(&mut out, 2, model.ui("body_maturity_by_slice"));
+        line(&mut out, model.ui("body_maturity_legend"));
+        push_line(
+            &mut out,
+            "| Slice | Earns | Coverage | Claims | Gap to next tier |",
+        );
+        push_line(&mut out, "| --- | --- | --- | --- | --- |");
+        for slice in &graph.slices {
+            let earned = slice
+                .earned
+                .as_deref()
+                .and_then(crate::maturity::MaturityAnchor::from_local);
+            let asserted = slice
+                .asserted
+                .as_deref()
+                .and_then(crate::maturity::MaturityAnchor::from_local);
+            let earned_label = earned.map_or("—".to_owned(), anchor_title);
+            // The claim column flags an over-claim inline: a slice that asserts a
+            // tier above the earned floor trips the `asserted ⊄ earned` gate.
+            let claim_label = match asserted {
+                None => "—".to_owned(),
+                Some(a) => {
+                    let over = crate::maturity::asserted_exceeds_earned(a, earned);
+                    if over {
+                        format!("⚠ {} (unsupported)", anchor_title(a))
+                    } else {
+                        anchor_title(a)
+                    }
+                }
+            };
+            let gap = maturity_gap(earned, &slice.covers);
+            push_line(
+                &mut out,
+                &format!(
+                    "| `{}` | {earned_label} | {}% | {claim_label} | {gap} |",
+                    code_escape(local_name(&slice.documents)),
+                    (slice.coverage_fraction * 100.0).round() as i64,
+                ),
+            );
+        }
+        blank(&mut out);
+    }
 
     // ── Reasoning (present only when the native-reasoner verdict is attached) ────
     if let Some(verdict) = &model.reasoning {

@@ -25,12 +25,13 @@
 //! # One truthmaker with the evidence DAG
 //!
 //! The proof-carrying `gmeow:DocEvidence` DAG ([`crate::rdf`]'s `term_evidence`)
-//! and the coverage incidence read the SAME model fields with the SAME reference
-//! predicates: `dimFixturePair` / `dimWorkedInstance` / `dimLossLedgerRow` /
-//! `dimCompetencyRationale` are projections of the fixture / example / loss /
-//! competency joins the evidence nodes are grounded in, and `dimTranslationCoverage`
-//! reads the same [`crate::i18n::Translations`] index the renderer resolves labels
-//! through — never a second, divergent detection.
+//! and the coverage incidence read the SAME model fields: `dimFixturePair` /
+//! `dimLossLedgerRow` / `dimCompetencyRationale` are projections of the fixture /
+//! loss / competency joins the evidence nodes are grounded in; `dimWorkedInstance`
+//! reads the same `model.examples` the renderer resolves worked scenes through
+//! (single-sourced, though examples are not one of the five `DocEvidence` kinds);
+//! and `dimTranslationCoverage` reads the same [`crate::i18n::Translations`] index
+//! the renderer resolves labels through — never a second, divergent detection.
 
 use std::collections::{HashMap, HashSet};
 

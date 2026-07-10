@@ -480,28 +480,33 @@ pub fn concern_overview_svg(model: &DocsModel) -> String {
 /// Deterministic and structural: slices are taken in the model's IRI order and
 /// every coordinate derives from that order; every label is XML-escaped.
 pub fn coverage_heatmap_svg(model: &DocsModel) -> String {
-    use crate::coverage::{CoverageContext, DIMENSIONS, TermCoverage, term_coverage};
+    use crate::coverage::{DIMENSIONS, TermCoverage};
 
-    let ctx = CoverageContext::new(model);
-    let mut rows: Vec<(String, usize, [usize; TermCoverage::TOTAL])> = Vec::new();
-    for slice in &model.slices {
-        let terms: Vec<&DocTerm> = model
-            .terms
-            .iter()
-            .filter(|t| t.owner_slice == slice.iri)
-            .collect();
-        if terms.is_empty() {
-            continue;
-        }
-        let mut covered = [0usize; TermCoverage::TOTAL];
-        for t in &terms {
-            for (i, present) in term_coverage(t, &ctx).flags().iter().enumerate() {
-                if *present {
-                    covered[i] += 1;
-                }
+    // Pure projection: group the emitted per-term `gmeow:docCoversDimension`
+    // incidence by owning slice — NEVER a second coverage recompute. Each cell is
+    // the count of the slice's documented terms that COVER a dimension, read back
+    // from `graph/documentation`.
+    let graph = crate::rdf::documentation_graph(model);
+    let mut per_slice: std::collections::BTreeMap<String, (usize, [usize; TermCoverage::TOTAL])> =
+        std::collections::BTreeMap::new();
+    for term in &graph.terms {
+        let entry = per_slice
+            .entry(term.owner_slice.clone())
+            .or_insert((0, [0usize; TermCoverage::TOTAL]));
+        entry.0 += 1;
+        for (i, dim) in DIMENSIONS.iter().enumerate() {
+            if term.covers.contains(dim.dimension.local_name()) {
+                entry.1[i] += 1;
             }
         }
-        rows.push((local_name(&slice.iri).to_string(), terms.len(), covered));
+    }
+    // Slices in the model's IRI order, keeping only those that own documented terms
+    // (matching the prior behaviour; the projection carries only owned terms).
+    let mut rows: Vec<(String, usize, [usize; TermCoverage::TOTAL])> = Vec::new();
+    for slice in &model.slices {
+        if let Some((n, covered)) = per_slice.get(&slice.iri) {
+            rows.push((local_name(&slice.iri).to_string(), *n, *covered));
+        }
     }
 
     const LABEL_W: i64 = 220;
