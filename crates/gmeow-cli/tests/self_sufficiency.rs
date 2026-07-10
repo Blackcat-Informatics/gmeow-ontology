@@ -23,7 +23,8 @@ use std::process::{Command as StdCommand, Output};
 
 use gmeow_validate::language_tags::is_internal_tag;
 
-// ── shared helpers (mirrors the `cli.rs` `scratch()`/`fixture()` conventions) ─
+// ── shared helpers (mirrors the `cli.rs` `fixture()` convention; scratch dirs
+// are owned `tempfile::TempDir`s, panic-safe via `Drop`) ─────────────────────
 
 /// The repo-root path of a committed validate fixture.
 fn fixture(name: &str) -> PathBuf {
@@ -40,23 +41,6 @@ fn repo_root() -> PathBuf {
     let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     path.canonicalize()
         .unwrap_or_else(|e| panic!("canonicalize repo root {}: {e}", path.display()))
-}
-
-/// A fresh, unique, empty scratch directory under the system temp dir — NOT
-/// inside the repo tree, so no repo is discoverable above it (the "blinded"
-/// leg of the parity harness, and the default scratch CWD/output dir).
-fn scratch(tag: &str) -> PathBuf {
-    let mut dir = std::env::temp_dir();
-    dir.push(format!(
-        "gmeow-cli-selfsuff-{tag}-{}-{}",
-        std::process::id(),
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos()
-    ));
-    std::fs::create_dir_all(&dir).expect("create scratch dir");
-    dir
 }
 
 /// The built `gmeow` binary's absolute path.
@@ -115,17 +99,17 @@ fn snapshot_files(dir: &Path) -> BTreeMap<PathBuf, Vec<u8>> {
 /// `x-gmeow-*` tag survives into the consumer-facing folded graph.
 #[test]
 fn transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak() {
-    let blind_cwd = scratch("transpile-blind-cwd");
-    let out = scratch("transpile-blind-out");
+    let blind_cwd = tempfile::TempDir::new().expect("create temp dir");
+    let out = tempfile::TempDir::new().expect("create temp dir");
     let src = fixture("selfsuff-transpile.ttl");
 
     let output = run_subcommand_in(
-        &blind_cwd,
+        blind_cwd.path(),
         &[
             "transpile",
             src.to_str().expect("utf8 path"),
             "--out",
-            out.to_str().expect("utf8 path"),
+            out.path().to_str().expect("utf8 path"),
         ],
     );
     assert!(
@@ -135,8 +119,8 @@ fn transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let nt_path = out.join("selfsuff-transpile.gmeow.nt");
-    let gts_path = out.join("selfsuff-transpile.gts");
+    let nt_path = out.path().join("selfsuff-transpile.gmeow.nt");
+    let gts_path = out.path().join("selfsuff-transpile.gts");
     assert!(nt_path.exists(), "{} must exist", nt_path.display());
     assert!(gts_path.exists(), "{} must exist", gts_path.display());
 
@@ -172,17 +156,15 @@ fn transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak() {
         leaked.is_empty(),
         "internal x-gmeow-* tag(s) leaked into consumer transpile output: {leaked:?}"
     );
-
-    std::fs::remove_dir_all(&blind_cwd).ok();
-    std::fs::remove_dir_all(&out).ok();
 }
 
 // ── 4: wheel-mode == repo-mode (parity harness) ──────────────────────────────
 
 /// Run `build_args(out_dir)` once from a blinded scratch cwd (no repo above
 /// it) and once from the real repo root, feeding the SAME absolute `out_dir`
-/// to both invocations (so only cwd varies and the printed "wrote …" lines
-/// are byte-identical across legs by construction). Asserts:
+/// (a fresh `TempDir` this function creates and owns) to both invocations
+/// (so only cwd varies and the printed "wrote …" lines are byte-identical
+/// across legs by construction). Asserts:
 /// - both legs succeed with byte-identical stdout,
 /// - any files the command wrote under `out_dir` are byte-identical across
 ///   legs (captured via a full snapshot after the first leg, before the
@@ -190,14 +172,16 @@ fn transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak() {
 /// - neither leg's stdout contains either cwd's absolute path substring
 ///   (rules out a subtler cwd-derived-content bug masking as accidental
 ///   byte-parity).
-fn assert_cwd_parity(tag: &str, out_dir: &Path, build_args: impl Fn(&Path) -> Vec<String>) {
-    let blind_cwd = scratch(&format!("{tag}-blind-cwd"));
+fn assert_cwd_parity(tag: &str, build_args: impl Fn(&Path) -> Vec<String>) {
+    let blind_cwd = tempfile::TempDir::new().expect("create temp dir");
+    let out = tempfile::TempDir::new().expect("create temp dir");
+    let out_dir = out.path();
     let repo_cwd = repo_root();
 
     let args_owned = build_args(out_dir);
     let args: Vec<&str> = args_owned.iter().map(String::as_str).collect();
 
-    let blind_output = run_subcommand_in(&blind_cwd, &args);
+    let blind_output = run_subcommand_in(blind_cwd.path(), &args);
     assert!(
         blind_output.status.success(),
         "{tag}: blinded-cwd leg must succeed: stderr={}",
@@ -228,7 +212,7 @@ fn assert_cwd_parity(tag: &str, out_dir: &Path, build_args: impl Fn(&Path) -> Ve
     );
 
     // Neither cwd's absolute path may leak into stdout or any artifact.
-    let blind_cwd_str = blind_cwd.to_string_lossy().into_owned();
+    let blind_cwd_str = blind_cwd.path().to_string_lossy().into_owned();
     let repo_cwd_str = repo_cwd.to_string_lossy().into_owned();
     for (leg, out) in [("blind", &blind_output), ("repo", &repo_output)] {
         let stdout = String::from_utf8_lossy(&out.stdout);
@@ -254,16 +238,12 @@ fn assert_cwd_parity(tag: &str, out_dir: &Path, build_args: impl Fn(&Path) -> Ve
             rel.display()
         );
     }
-
-    std::fs::remove_dir_all(&blind_cwd).ok();
-    std::fs::remove_dir_all(out_dir).ok();
 }
 
 #[test]
 fn transpile_wheel_mode_equals_repo_mode() {
     let src = fixture("selfsuff-transpile.ttl");
-    let out = scratch("transpile-parity-out");
-    assert_cwd_parity("transpile", &out, |out_dir| {
+    assert_cwd_parity("transpile", |out_dir| {
         vec![
             "transpile".to_owned(),
             src.to_string_lossy().into_owned(),
@@ -281,8 +261,7 @@ fn project_wheel_mode_equals_repo_mode() {
     // exercises the "nothing for source but nothing repo-derived either"
     // consumer surface (the bundled ontology is embedded, never read from
     // the repo tree).
-    let out = scratch("project-parity-out");
-    assert_cwd_parity("project", &out, |out_dir| {
+    assert_cwd_parity("project", |out_dir| {
         vec![
             "project".to_owned(),
             "--profile".to_owned(),
@@ -297,8 +276,7 @@ fn project_wheel_mode_equals_repo_mode() {
 fn describe_wheel_mode_equals_repo_mode() {
     // `Entity` is the known-stable kernel term already proven live by
     // `cli.rs::describe_known_term_renders_prose`.
-    let out = scratch("describe-parity-out"); // unused (describe writes no files)
-    assert_cwd_parity("describe", &out, |_out_dir| {
+    assert_cwd_parity("describe", |_out_dir| {
         vec!["describe".to_owned(), "Entity".to_owned()]
     });
 }
@@ -308,8 +286,7 @@ fn validate_wheel_mode_equals_repo_mode() {
     // Reuses the same `clean.ttl` fixture `cli.rs::validate_clean_file_passes`
     // already proves live: zero findings, so "validation passed" on stdout.
     let clean = fixture("clean.ttl");
-    let out = scratch("validate-parity-out"); // unused (validate writes no files)
-    assert_cwd_parity("validate", &out, |_out_dir| {
+    assert_cwd_parity("validate", |_out_dir| {
         vec!["validate".to_owned(), clean.to_string_lossy().into_owned()]
     });
 }
