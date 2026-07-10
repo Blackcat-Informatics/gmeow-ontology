@@ -1,0 +1,4 @@
+<https://example.org/bench/a> <https://example.org/bench/addressOf> <https://example.org/bench/mem1> <https://example.org/bench/world> .
+<https://example.org/bench/b> <https://example.org/bench/addressOf> <https://example.org/bench/mem2> <https://example.org/bench/world> .
+<https://example.org/bench/c> <https://example.org/bench/assign> <https://example.org/bench/a> <https://example.org/bench/world> .
+<https://example.org/bench/d> <https://example.org/bench/assign> <https://example.org/bench/c> <https://example.org/bench/world> .

@@ -1,0 +1,4 @@
+#[name("https://example.org/bench/rules/nltc-base")]
+<https://example.org/bench/path>(?s, ?o, ?w) :- <https://example.org/bench/edge>(?s, ?o, ?w) .
+#[name("https://example.org/bench/rules/nltc-join")]
+<https://example.org/bench/path>(?s, ?o, ?w) :- <https://example.org/bench/path>(?s, ?m, ?w), <https://example.org/bench/path>(?m, ?o, ?w) .
