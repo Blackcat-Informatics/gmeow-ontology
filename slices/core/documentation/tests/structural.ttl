@@ -1,0 +1,121 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the documentation slice — the
+# slice-resident test-DSL twin of the asserted-TBox MUST invariants for the
+# gmeow:doc* projection vocabulary. Each assertion runs as a SPARQL ASK over the
+# documentation module graph (gmeow:scopeModule) — or module+examples for the
+# grounding invariant — under the native Rust harness (crates/slicetest).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/documentation/tests/> .
+
+# --- 1. The documentation-entry record classes are owl:Class in the TBox (MUST) ---
+ex:saRecordClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:DocumentedTerm       a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:DocumentedSlice      a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:DocumentedConcern    a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:DocumentedMappingSet a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:DocEvidence          a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+}""" ;
+    gmeow:saRationale "The five documentation-entry record classes MUST be owl:Class carrying the gmeow:boxTBox role — every gmeow: term the documentation projection materializes as rdf:type must have a TBox declaration, or the emitted graph names an ownerless orphan the reader cannot resolve." .
+
+# --- 2. DocEvidence is an InformationObject reified evidence node (MUST) ------
+ex:saDocEvidenceIsInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:DocEvidence a owl:Class , logic:Kind ;
+        rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "gmeow:DocEvidence MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject — a reified 'claim with its grounds' unit is a first-class information object. Its grounding obligation is NOT stated as an owl:minCardinality restriction (gmeow:docGroundedBy is an owl:AnnotationProperty carrying mixed IRI/literal objects, so a cardinality restriction on it would leave OWL 2 DL); it is enforced by the SHACL grounding shape and the live Rust invariant instead." .
+
+# --- 3. The DocEvidenceKind value vocabulary and its five seeds exist (MUST) --
+ex:saDocEvidenceKindVocabulary a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:DocEvidenceKind a owl:Class ;
+        rdfs:subClassOf logic:QualityValue .
+    gmeow:docEvidenceKindCompetency  a gmeow:DocEvidenceKind .
+    gmeow:docEvidenceKindDiagnostics a gmeow:DocEvidenceKind .
+    gmeow:docEvidenceKindFixture     a gmeow:DocEvidenceKind .
+    gmeow:docEvidenceKindLoss        a gmeow:DocEvidenceKind .
+    gmeow:docEvidenceKindProvenance  a gmeow:DocEvidenceKind .
+}""" ;
+    gmeow:saRationale "gmeow:DocEvidenceKind MUST be a logic:QualityValue value vocabulary with all five seed individuals (competency, diagnostics, fixture, loss, provenance) present — the kind is a first-class join-able value so a new evidence source enters as a new individual, never a new predicate family." .
+
+# --- 4. The IRI/literal-pointing projection predicates are annotation properties (MUST) ---
+ex:saAnnotationPredicates a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:documents     a owl:AnnotationProperty .
+    gmeow:docOwnerSlice a owl:AnnotationProperty .
+    gmeow:docGroundedBy a owl:AnnotationProperty .
+}""" ;
+    gmeow:saRationale "gmeow:documents / gmeow:docOwnerSlice / gmeow:docGroundedBy MUST be owl:AnnotationProperty — they point at TBox classes/properties or slice/ontology nodes (which a logical object property would pun) or mix IRI and literal objects (which no single object/datatype property could hold), so the annotation form keeps the generated OWL in OWL 2 DL (Principle 3)." .
+
+# --- 5. docEvidenceKind is an object property into the value vocabulary (MUST) ---
+ex:saDocEvidenceKindProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:docEvidenceKind a owl:ObjectProperty ;
+        rdfs:domain gmeow:DocEvidence ;
+        rdfs:range gmeow:DocEvidenceKind .
+}""" ;
+    gmeow:saRationale "gmeow:docEvidenceKind MUST be an owl:ObjectProperty from gmeow:DocEvidence to gmeow:DocEvidenceKind — the instance-level classifier that joins an evidence node to its kind value is the single join key the uniform evidence shape turns on." .
+
+# --- 6. The typed measure predicates are datatype properties (MUST) ----------
+ex:saDatatypeMeasurePredicates a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:docCategory        a owl:DatatypeProperty ; rdfs:range xsd:string .
+    gmeow:docHasDefinition   a owl:DatatypeProperty ; rdfs:range xsd:boolean .
+    gmeow:docUrl             a owl:DatatypeProperty ; rdfs:range xsd:string .
+    gmeow:docReasoningStatus a owl:DatatypeProperty ; rdfs:range xsd:string .
+    gmeow:docClaim           a owl:DatatypeProperty ; rdfs:range xsd:string .
+    gmeow:docProducedByChain a owl:DatatypeProperty ; rdfs:range xsd:string .
+    gmeow:docJudgment        a owl:DatatypeProperty ; rdfs:range xsd:string .
+    gmeow:docCompetencyCount a owl:DatatypeProperty ; rdfs:range xsd:integer .
+    gmeow:docCompetencyQueryDigest a owl:DatatypeProperty ; rdfs:range xsd:string .
+    gmeow:docFindingCount    a owl:DatatypeProperty ; rdfs:range xsd:integer .
+    gmeow:docFixtureCount    a owl:DatatypeProperty ; rdfs:range xsd:integer .
+    gmeow:docLossRowCount    a owl:DatatypeProperty ; rdfs:range xsd:integer .
+    gmeow:docProvenanceDepth a owl:DatatypeProperty ; rdfs:range xsd:integer .
+}""" ;
+    gmeow:saRationale "The typed measure predicates MUST be owl:DatatypeProperty with ranges matching the literals the projection emits (xsd:string / xsd:boolean / xsd:integer) — declaring the exact emitted datatype keeps the folded documentation graph datatype-consistent and lets a reader trust the counts and flags as typed values." .
+
+# --- 7. Every gmeow:DocEvidence in the worked scene is grounded (MUST-NOT) ----
+ex:saNoUngroundedEvidence a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?e a gmeow:DocEvidence .
+    FILTER NOT EXISTS { ?e gmeow:docGroundedBy ?g }
+}""" ;
+    gmeow:saRationale "No gmeow:DocEvidence node in the module+examples scene may lack a gmeow:docGroundedBy truthmaker — the grounding invariant enforced over authored data: a claim without its grounds is a DARK finding, and the worked example must demonstrate the grounded discipline downstream authors copy." .

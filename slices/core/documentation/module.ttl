@@ -1,0 +1,431 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The gmeow:doc* projection vocabulary — the TBox for the self-hosting
+# documentation projection (crates/docs/src/rdf.rs::to_gmeow_rdf). That emitter
+# dogfoods the doc model into the gmeow:graph/documentation named graph as
+# generated A-Box instance data; this module owns the classes, predicates, and
+# value individuals it materializes, so every projected term carries a
+# declaration (the orphan-zero contract enforced by
+# crates/docs/tests/vocabulary_ownership.rs).
+#
+# The projected instances are generated A-Box (gmeow:boxABox individuals in a
+# downstream named graph); the vocabulary HERE is TBox. The per-instance
+# provenance predicates the projection reuses — gmeow:addedInVersion,
+# gmeow:definitionDigest, gmeow:hasChangelogEntry, gmeow:entryVersion,
+# gmeow:entryNote, gmeow:ChangelogEntry — are owned by slices/core/versions and
+# are NOT redeclared here.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# ── Documentation-entry record classes ───────────────────────────────────────
+# One reified record per documented artifact. Each is a first-class information
+# object (a page's worth of documentation projected as RDF), so it can carry a
+# stable IRI, provenance, and its evidence DAG.
+
+gmeow:DocumentedTerm
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "Documented Term"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "The documentation-projection record for one vocabulary term (a class, property, individual, or datatype). It is the RDF twin of the term's docs page: it gmeow:documents the real term IRI and carries the page's derived facts (gmeow:docCategory, gmeow:docHasDefinition, gmeow:docUrl, gmeow:docOwnerSlice, gmeow:docReasoningStatus). It is NOT the term itself — the term keeps its own IRI in its owning slice; this record is a separate, downstream information object minted per term by the docs projection."@x-gmeow-english ;
+    skos:example "ex:entryCat a gmeow:DocumentedTerm ; gmeow:documents gmeow:Cat ; gmeow:docCategory \"Class\" ; gmeow:docOwnerSlice ex:sliceZoo ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating it with the documented term itself (they are distinct IRIs — the record documents the term) and avoid authoring it by hand: it is a generated projection of the doc model, regenerated from the slice sources."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Let the docs projection mint one per documented term; read it to query the documentation surface as RDF — follow gmeow:documents to the term and gmeow:docOwnerSlice to its slice, and join gmeow:DocEvidence nodes for its proof-carrying panels."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the RDF record standing for a term's documentation page, so the documentation surface is itself SPARQL-queryable RDF folded into gmeow.gts beside the ontology it describes (Principle 4)."@x-gmeow-english .
+
+gmeow:DocumentedSlice
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "Documented Slice"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "The documentation-projection record for one slice's manifest-level page. It gmeow:documents the real slice IRI and carries its gmeow:docUrl. Distinct from the slice itself (a gmeow:Slice declared in that slice's manifest): this record is the downstream information object standing for the slice's rendered documentation, minted by the docs projection."@x-gmeow-english ;
+    skos:example "ex:entrySliceTags a gmeow:DocumentedSlice ; gmeow:documents ex:sliceTags ; gmeow:docUrl \"slices/tags/index.html\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it in place of the gmeow:Slice manifest node it documents, and avoid hand-authoring it: it is a regenerated projection of the slice catalog."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Let the docs projection mint one per discovered slice; follow gmeow:documents to the slice manifest and gmeow:docUrl to its rendered page."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the RDF record for a slice's documentation page when querying the documentation surface for which slices are documented and where their pages live."@x-gmeow-english .
+
+gmeow:DocumentedConcern
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "Documented Concern"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "The documentation-projection record for one cross-cutting documentation concern (a gmeow:DocumentationConcern grouping terms by theme). It gmeow:documents the real concern IRI and carries its gmeow:docUrl. The concern itself stays owned by slices/core/kernel; this is the downstream record standing for the concern's rendered page."@x-gmeow-english ;
+    skos:example "ex:entryConcernProvenance a gmeow:DocumentedConcern ; gmeow:documents ex:concernProvenance ; gmeow:docUrl \"concerns/provenance/index.html\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with the gmeow:DocumentationConcern it documents, and avoid authoring it by hand: it is regenerated from the concern annotations across the slices."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Let the docs projection mint one per documentation concern; follow gmeow:documents to the concern and gmeow:docUrl to its rendered overview page."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the RDF record for a documentation concern's page when querying which concerns are documented and where their overview pages live."@x-gmeow-english .
+
+gmeow:DocumentedMappingSet
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "Documented Mapping Set"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "The documentation-projection record for one cross-vocabulary mapping set (a gmeow:MappingSet compiled from a slice's mappings/ artifact). It gmeow:documents the real mapping-set IRI and links (via gmeow:docUrl) to the shared linkages index page. Distinct from the gmeow:MappingSet it documents: this is the downstream record for that set's rendered documentation."@x-gmeow-english ;
+    skos:example "ex:entryMappingSet1 a gmeow:DocumentedMappingSet ; gmeow:documents ex:mappingSet1 ; gmeow:docUrl \"linkages/index.html\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it in place of the gmeow:MappingSet it documents, and avoid hand-authoring it: it is regenerated from the compiled mapping artifacts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Let the docs projection mint one per compiled mapping set; follow gmeow:documents to the set and gmeow:docUrl to the linkages index."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the RDF record for a mapping set's documentation when querying which mapping sets are documented on the linkages surface."@x-gmeow-english .
+
+gmeow:DocEvidence
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "Doc Evidence"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "One uniform proof-carrying evidence node in a documented term's justification DAG: a claim (gmeow:docClaim) held together WITH its grounds (one or more MANDATORY gmeow:docGroundedBy carrier truthmakers), classified by exactly one gmeow:DocEvidenceKind (competency, diagnostics, fixture, loss, provenance) via gmeow:docEvidenceKind. Every kind carries the SAME shape — claim, grounding, typed counts, optional judgment — so a future evidence source plugs in as a new kind, not a new predicate family. An ungrounded DocEvidence node is the doc-layer analogue of a DARK finding and is forbidden by construction: the grounding obligation is enforced by the SHACL gmeow:DocEvidenceGroundingShape (shapes.ttl) and, over the live projection, by crates/docs/tests/doc_evidence.rs — NOT by an owl:minCardinality restriction, because gmeow:docGroundedBy carries both IRI and literal objects and so is an owl:AnnotationProperty (a cardinality restriction on it would leave OWL 2 DL). It is emitted ONLY when the term genuinely carries that evidence — never a vacuous node."@x-gmeow-english ;
+    skos:example "ex:evCatCompetency a gmeow:DocEvidence ; gmeow:documents gmeow:Cat ; gmeow:docEvidenceKind gmeow:docEvidenceKindCompetency ; gmeow:docClaim \"exercised by 1 competency question\" ; gmeow:docGroundedBy ex:cqCatsAreAnimals ; gmeow:docCompetencyCount 1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting one without a gmeow:docGroundedBy truthmaker (an ungrounded evidence node is a DARK claim), avoid a vacuous node for a kind the term does not carry, and avoid splitting the kinds into parallel predicate families — the uniform shape is the point."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Let the docs projection mint one per (documented term, evidence kind) actually present; read gmeow:docEvidenceKind for the kind, gmeow:docGroundedBy for its carrier grounds, gmeow:docClaim for the human claim, and the typed count/digest/judgment predicates for the kind-specific measures."@x-gmeow-english ;
+    gmeow:useWhen "Use to name a single grounded justification node for a documented term — the reified 'claim with its grounds' unit the documentation surface renders as a proof-carrying evidence panel."@x-gmeow-english .
+
+# ── The evidence-kind value vocabulary ───────────────────────────────────────
+# The kind of a gmeow:DocEvidence node is a first-class, join-able resource — an
+# enumerated individual chosen over a string literal so the documentation TBox
+# can subclass or extend it (mirrors gmeow:VersionRole's QualityValue discipline).
+
+gmeow:DocEvidenceKind
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "Doc Evidence Kind"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The kind of evidence a gmeow:DocEvidence node carries — a VALUE, never an Entity subclass. The seed list (competency, diagnostics, fixture, loss, provenance) is an anchor, not a fence: a new evidence source enters as a fresh gmeow:DocEvidenceKind individual referenced by gmeow:docEvidenceKind, so the uniform evidence shape absorbs it without a new predicate family."@x-gmeow-english ;
+    skos:example "gmeow:docEvidenceKindProvenance a gmeow:DocEvidenceKind ; rdfs:label \"provenance\"@x-gmeow-english ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-kind Entity subclasses or typing an evidence node directly with a kind class; the kind is an individual value referenced through gmeow:docEvidenceKind, not an essential type."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference the seeded individuals from gmeow:docEvidenceKind, and extend the anchor list with a new gmeow:DocEvidenceKind individual (label only) when a new evidence source is added."@x-gmeow-english ;
+    gmeow:useWhen "Use as the open value vocabulary for evidence kinds — the named kinds (competency, diagnostics, fixture, loss, provenance) a gmeow:DocEvidence node is classified by, and the place to mint a new kind."@x-gmeow-english .
+
+gmeow:docEvidenceKindCompetency
+    a gmeow:DocEvidenceKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "competency"@x-gmeow-english ;
+    skos:definition "The competency evidence kind — the documented term is exercised by one or more competency questions; the node is grounded by each competency-question IRI and carries the count and query digest."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:docEvidenceKindDiagnostics
+    a gmeow:DocEvidenceKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "diagnostics"@x-gmeow-english ;
+    skos:definition "The diagnostics evidence kind — the documented term is the key in a diagnostics-to-term join; the node is grounded by each finding code and carries the finding count."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:docEvidenceKindFixture
+    a gmeow:DocEvidenceKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "fixture"@x-gmeow-english ;
+    skos:definition "The fixture evidence kind — the documented term is referenced by one or more conformance fixtures / counter-examples; the node is grounded by each minted fixture IRI and carries the fixture count."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:docEvidenceKindLoss
+    a gmeow:DocEvidenceKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "loss"@x-gmeow-english ;
+    skos:definition "The loss evidence kind — the documented term degrades under one or more projections; the node is grounded by each ledger-row / loss-target identifier, carries the row count, and records the distinct preservation kinds as its gmeow:docJudgment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:docEvidenceKindProvenance
+    a gmeow:DocEvidenceKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "provenance"@x-gmeow-english ;
+    skos:definition "The provenance evidence kind — the documented term is produced by the docs render chain; the node is grounded by the stage-docs-render IRI and carries the backward stage-walk depth."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# ── Projection predicates that point AT other resources ──────────────────────
+# gmeow:documents / gmeow:docOwnerSlice point at TBox terms and slice/ontology
+# nodes; gmeow:docGroundedBy carries BOTH IRI truthmakers (competency, stage,
+# fixture IRIs) and code literals (finding codes, loss-target ids). All three are
+# owl:AnnotationProperty (the gmeow:accordingTo pattern, Principle 3) so the
+# generated OWL stays in OWL 2 DL despite pointing at classes/properties (which a
+# logical object property would pun as individuals) or mixing IRI and literal
+# objects (which no single owl:ObjectProperty / owl:DatatypeProperty could hold).
+
+gmeow:documents
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "documents"@x-gmeow-english ;
+    skos:definition "Links a documentation-projection record (gmeow:DocumentedTerm / gmeow:DocumentedSlice / gmeow:DocumentedConcern / gmeow:DocumentedMappingSet / gmeow:DocEvidence) to the real subject IRI it documents — the term, slice, concern, or mapping set. An owl:AnnotationProperty (Principle 3) because its object is frequently a TBox class or property, which a logical object property would pun as an individual; the annotation form keeps the generated OWL in OWL 2 DL."@x-gmeow-english ;
+    skos:example "ex:entryCat gmeow:documents gmeow:Cat ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at the documentation record itself (it points AT the documented subject, not back at the record) and avoid using it as a logical object property — its object is often a class or property, so it stays an annotation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:documents on each documentation record, pointing at the real IRI the record is about; walk it to move from the documentation surface back to the documented vocabulary."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the subject a documentation record is about — the bridge from the documentation graph back to the term, slice, concern, or mapping set it describes."@x-gmeow-english .
+
+gmeow:docOwnerSlice
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc owner slice"@x-gmeow-english ;
+    skos:definition "Names the slice that owns the term a gmeow:DocumentedTerm documents — the slice whose module.ttl defines the term (its rdfs:isDefinedBy). An owl:AnnotationProperty because its object is a slice node that is simultaneously an owl:Ontology, which a logical object property would pun; the annotation form keeps the generated OWL in OWL 2 DL."@x-gmeow-english ;
+    skos:example "ex:entryCat gmeow:docOwnerSlice ex:sliceZoo ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at anything but the term's OWNING slice (the one whose module defines it), and avoid deriving ownership from where a term is merely referenced — ownership is the single rdfs:isDefinedBy slice."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set one gmeow:docOwnerSlice on each gmeow:DocumentedTerm, the IRI of the slice that defines the term; group documented terms by it to render per-slice term listings."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which slice a documented term belongs to, so the documentation surface can group terms by owning slice and link a term back to its slice page."@x-gmeow-english .
+
+gmeow:docGroundedBy
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc grounded by"@x-gmeow-english ;
+    skos:definition "The MANDATORY carrier truthmaker(s) that ground a gmeow:DocEvidence claim — the reason the claim is asserted. Its object is EITHER an IRI (a competency-question IRI, the stage-docs-render IRI, a minted fixture IRI) OR a code literal (a diagnostic finding code, a loss-target identifier), depending on the evidence kind. Because it mixes IRI and literal objects — which no single owl:ObjectProperty or owl:DatatypeProperty could carry — it is an owl:AnnotationProperty. Every gmeow:DocEvidence node MUST carry at least one (the fail-fast grounding invariant); an ungrounded node is the doc-layer analogue of a DARK finding."@x-gmeow-english ;
+    skos:example "ex:evCatCompetency gmeow:docGroundedBy ex:cqCatsAreAnimals ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid emitting a gmeow:DocEvidence node without one (an ungrounded claim is DARK), and avoid inventing a truthmaker to satisfy the invariant — ground it in the real carrier fact or do not emit the node."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Attach one gmeow:docGroundedBy per real truthmaker on every gmeow:DocEvidence node — an IRI for competency/fixture/provenance kinds, a code literal for diagnostics/loss kinds; never leave a node ungrounded."@x-gmeow-english ;
+    gmeow:useWhen "Use to record what makes a documentation evidence claim true — the competency IRI, stage IRI, fixture IRI, finding code, or loss-target id that grounds it."@x-gmeow-english .
+
+# ── The evidence-kind classifier (instance → value) ──────────────────────────
+
+gmeow:docEvidenceKind
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:DocEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc evidence kind"@x-gmeow-english ;
+    rdfs:range gmeow:DocEvidenceKind ;
+    skos:definition "Classifies a gmeow:DocEvidence node by exactly one gmeow:DocEvidenceKind value (competency, diagnostics, fixture, loss, provenance). An instance-level owl:ObjectProperty from an evidence node to an enumerated kind individual — the join key that lets the uniform evidence shape absorb a new source as a new kind rather than a new predicate family."@x-gmeow-english ;
+    skos:example "ex:evCatLoss gmeow:docEvidenceKind gmeow:docEvidenceKindLoss ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a string literal (the kind is a first-class join-able individual, not a label) and avoid asserting more than one kind per node — a node is one kind's evidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:docEvidenceKind on each gmeow:DocEvidence node, referencing a seeded gmeow:DocEvidenceKind individual; group or facet evidence nodes by it."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which kind of evidence a gmeow:DocEvidence node carries, so the documentation surface can group a term's evidence by kind."@x-gmeow-english .
+
+# ── Typed datatype predicates on the projection records ──────────────────────
+
+gmeow:docCategory
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocumentedTerm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc category"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The stable vocabulary-category label of a documented term — one of \"Class\", \"Property\", \"Individual\", \"Datatype\", \"Other\", derived from the term's rdf:type. A display token, distinct from the term's logic stereotype; it drives the category badge and grouping on the term surface."@x-gmeow-english ;
+    skos:example "ex:entryCat gmeow:docCategory \"Class\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as the term's logic stereotype (that is a logic: type, not this display token) and avoid values outside the fixed set."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection derive it from the term's rdf:type; read it to badge and group documented terms by category."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the coarse vocabulary category of a documented term for display and grouping on the documentation surface."@x-gmeow-english .
+
+gmeow:docHasDefinition
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocumentedTerm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc has definition"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "Whether the documented term carries a skos:definition (true) or none (false) — the completeness flag the documentation surface uses to flag undefined terms. A derived boolean, not authored on the term."@x-gmeow-english ;
+    skos:example "ex:entryCat gmeow:docHasDefinition true ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid authoring it by hand or using it as the definition text (it is a boolean presence flag, not the prose) — it is derived from whether the term has a skos:definition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection set it from the term's definition presence; query gmeow:docHasDefinition false to find terms missing a definition."@x-gmeow-english ;
+    gmeow:useWhen "Use to record whether a documented term has a definition, so the documentation surface can surface definition-completeness at a glance."@x-gmeow-english .
+
+gmeow:docUrl
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc url"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The site-relative path of a documentation record's rendered page (e.g. \"terms/{slug}/index.html\", \"slices/{slug}/index.html\", \"linkages/index.html\"). A relative path string, not an absolute IRI, so the rendered site is relocatable. Carried by every documentation-entry record (gmeow:DocumentedTerm / gmeow:DocumentedSlice / gmeow:DocumentedConcern / gmeow:DocumentedMappingSet)."@x-gmeow-english ;
+    skos:example "ex:entryCat gmeow:docUrl \"terms/cat/index.html\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid storing an absolute URL (the path is site-relative so the site can be relocated) and avoid using it for anything but the record's own rendered page."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection set the site-relative page path on each documentation record; resolve it against the site root to build a link."@x-gmeow-english ;
+    gmeow:useWhen "Use to record where a documentation record's page lives on the rendered site, so the documentation graph can link to its own HTML."@x-gmeow-english .
+
+gmeow:docReasoningStatus
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocumentedTerm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc reasoning status"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The per-term native-reasoner verdict, projected ONLY when a reasoning verdict is attached — one of \"satisfiable\", \"unsatisfiable\" (a class proven to entail owl:Nothing), or \"not-evaluated\" (a property, individual, or datatype the reasoner decides no satisfiability for). Absent rather than fabricated when no verdict is attached: the documentation surface never carries an unfounded satisfiability claim."@x-gmeow-english ;
+    skos:example "ex:entryCat gmeow:docReasoningStatus \"satisfiable\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid emitting it without a real reasoner verdict (an unfounded satisfiability claim is worse than an honest absence) and avoid reading \"not-evaluated\" as \"satisfiable\" — the two never collapse."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection derive it from the native reasoner's consistency verdict; light a term page red on \"unsatisfiable\"."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a documented class's satisfiability under the native reasoner, so the documentation surface can flag an inconsistent term."@x-gmeow-english .
+
+gmeow:docClaim
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc claim"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The short human claim a gmeow:DocEvidence node asserts (e.g. \"exercised by 3 competency question(s)\", \"has 2 projection-loss row(s)\") — the one-line summary the evidence panel renders. The claim WITHOUT its grounds would be a bare assertion; it always travels with at least one gmeow:docGroundedBy truthmaker."@x-gmeow-english ;
+    skos:example "ex:evCatCompetency gmeow:docClaim \"exercised by 1 competency question\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid packing multiple claims into one string, and avoid asserting a claim without its gmeow:docGroundedBy grounds — a claim without grounds is DARK."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection derive one terse claim per evidence node from the kind's measure; render it as the evidence panel's headline."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the one-line human summary of what a documentation evidence node asserts about its term."@x-gmeow-english .
+
+gmeow:docProducedByChain
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc produced by chain"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The build-stage chain that produced a gmeow:DocEvidence node, rendered as the stage-docs-render lineage walked backward over gmeow:dataflowConsumes (e.g. \"stage-docs-render <- stage-validate <- stage-source-load\"). A human-readable provenance string that rides every evidence node when the model carries the pipeline; absent (an honest absence) when it does not."@x-gmeow-english ;
+    skos:example "ex:evCatProvenance gmeow:docProducedByChain \"stage-docs-render <- stage-source-load\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating a chain when the model carries no pipeline (leave it absent) and avoid treating the string as a machine edge — the machine edge is gmeow:dataflowConsumes; this is its rendered summary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection derive it from the pipeline's backward gmeow:dataflowConsumes walk from stage-docs-render; render it as the evidence panel's provenance line."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the human-readable build lineage that produced a documentation evidence node, so a reader can trace which stages made it."@x-gmeow-english .
+
+gmeow:docJudgment
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc judgment"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The optional preservation / confidence judgment a gmeow:DocEvidence node carries when its kind has one — e.g. the distinct projection-loss preservation kinds (\"SoundUnderApproximation, ValidationOnly\") on a loss node. Absent when the kind carries no judgment; never a placeholder."@x-gmeow-english ;
+    skos:example "ex:evCatLoss gmeow:docJudgment \"SoundUnderApproximation\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a judgment for a kind that has none (leave it absent) and avoid overloading it with the claim text — it is the preservation/confidence verdict, not the summary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection set it from the kind's preservation verdict (today, the distinct loss preservation kinds); render it beside the claim on the evidence panel."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a preservation or confidence verdict on a documentation evidence node, where the kind supplies one."@x-gmeow-english .
+
+gmeow:docCompetencyCount
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc competency count"@x-gmeow-english ;
+    rdfs:range xsd:integer ;
+    skos:definition "The number of competency questions that exercise the documented term, carried on its competency gmeow:DocEvidence node. A typed count travelling beside the gmeow:docGroundedBy competency IRIs it summarizes."@x-gmeow-english ;
+    skos:example "ex:evCatCompetency gmeow:docCompetencyCount 3 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it on a non-competency evidence node, and avoid a count that disagrees with the gmeow:docGroundedBy competency IRIs it summarizes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection derive it from the competency-to-term join; render it as the competency panel's count."@x-gmeow-english ;
+    gmeow:useWhen "Use to record how many competency questions exercise a documented term on its competency evidence node."@x-gmeow-english .
+
+gmeow:docCompetencyQueryDigest
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc competency query digest"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The blake3 content-address (\"blake3:...\") of the concatenated competency-query bodies that exercise the documented term — the query fingerprint carried on its competency gmeow:DocEvidence node. Lets a reader detect when the exercising queries changed, without embedding the query text in the graph."@x-gmeow-english ;
+    skos:example "ex:evCatCompetency gmeow:docCompetencyQueryDigest \"blake3:1a2b3c\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid authoring it by hand (it is computed from the query bodies) and avoid treating it as the query text — it is a content-address fingerprint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection compute it as the blake3 of the joined competency query bodies; compare it across releases to detect query drift."@x-gmeow-english ;
+    gmeow:useWhen "Use to fingerprint the competency queries that exercise a documented term, so query drift is detectable from the documentation graph alone."@x-gmeow-english .
+
+gmeow:docFindingCount
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc finding count"@x-gmeow-english ;
+    rdfs:range xsd:integer ;
+    skos:definition "The number of diagnostic findings that structurally concern the documented term, carried on its diagnostics gmeow:DocEvidence node. A typed count travelling beside the gmeow:docGroundedBy finding codes it summarizes."@x-gmeow-english ;
+    skos:example "ex:evCatDiagnostics gmeow:docFindingCount 2 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it on a non-diagnostics evidence node, and avoid a count that disagrees with the grounding finding codes it summarizes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection derive it from the diagnostics-to-term join; render it as the diagnostics panel's count."@x-gmeow-english ;
+    gmeow:useWhen "Use to record how many diagnostic findings concern a documented term on its diagnostics evidence node."@x-gmeow-english .
+
+gmeow:docFixtureCount
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc fixture count"@x-gmeow-english ;
+    rdfs:range xsd:integer ;
+    skos:definition "The number of conformance fixtures / counter-examples that reference the documented term, carried on its fixture gmeow:DocEvidence node. A typed count travelling beside the gmeow:docGroundedBy fixture IRIs it summarizes."@x-gmeow-english ;
+    skos:example "ex:evCatFixture gmeow:docFixtureCount 1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it on a non-fixture evidence node, and avoid a count that disagrees with the grounding fixture IRIs it summarizes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection derive it from the fixture-to-term join; render it as the fixture panel's count."@x-gmeow-english ;
+    gmeow:useWhen "Use to record how many conformance fixtures reference a documented term on its fixture evidence node."@x-gmeow-english .
+
+gmeow:docLossRowCount
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc loss row count"@x-gmeow-english ;
+    rdfs:range xsd:integer ;
+    skos:definition "The number of projection-loss ledger rows / loss targets under which the documented term degrades, carried on its loss gmeow:DocEvidence node. A typed count travelling beside the gmeow:docGroundedBy ledger-row identifiers it summarizes."@x-gmeow-english ;
+    skos:example "ex:evCatLoss gmeow:docLossRowCount 2 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it on a non-loss evidence node, and avoid a count that disagrees with the grounding ledger-row identifiers it summarizes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection derive it from the per-term projection-loss join; render it as the loss panel's count."@x-gmeow-english ;
+    gmeow:useWhen "Use to record how many projection-loss rows a documented term incurs on its loss evidence node."@x-gmeow-english .
+
+gmeow:docProvenanceDepth
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocEvidence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc provenance depth"@x-gmeow-english ;
+    rdfs:range xsd:integer ;
+    skos:definition "The number of build stages in the backward gmeow:dataflowConsumes walk from stage-docs-render that produced the documented term, carried on its provenance gmeow:DocEvidence node. A typed depth summarizing the gmeow:docProducedByChain string on the same node."@x-gmeow-english ;
+    skos:example "ex:evCatProvenance gmeow:docProvenanceDepth 2 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it on a non-provenance evidence node, and avoid a depth that disagrees with the gmeow:docProducedByChain it summarizes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection derive it as the length of the backward stage walk from stage-docs-render; render it beside the provenance chain."@x-gmeow-english ;
+    gmeow:useWhen "Use to record how many build stages produced a documented term on its provenance evidence node."@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/slices/documentation>
+    a owl:Ontology ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment "The TBox for the self-hosting documentation projection: the gmeow:doc* vocabulary that crates/docs projects into the gmeow:graph/documentation named graph as generated A-Box, so the documentation surface is itself SPARQL-queryable RDF folded into gmeow.gts beside the ontology it describes (Principle 4). The record classes (gmeow:DocumentedTerm / gmeow:DocumentedSlice / gmeow:DocumentedConcern / gmeow:DocumentedMappingSet) reify per-artifact documentation pages; the uniform gmeow:DocEvidence node reifies one grounded 'claim with its grounds' unit per (term, gmeow:DocEvidenceKind), so a new evidence source enters as a new kind rather than a new predicate family. The per-instance provenance predicates the projection reuses (gmeow:addedInVersion, gmeow:definitionDigest, gmeow:hasChangelogEntry, gmeow:entryVersion, gmeow:entryNote, gmeow:ChangelogEntry) stay owned by slices/core/versions."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "GMEOW Documentation Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Documentation Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .
