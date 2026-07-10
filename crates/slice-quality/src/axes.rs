@@ -743,6 +743,24 @@ fn projection_axis(ctx: &ScoreContext) -> AxisScore {
     let mut present = 0usize;
     let mut findings = Vec::new();
 
+    // Principle-17 migration debt (advisory): a hand-authored `shapes.ttl` is a SECOND source of
+    // truth. Validation must be authored in `logic:` (a `logic:Constraint` or the OWL/RDFS axioms
+    // the declarative shapes derive from) and PROJECTED to `generated/shapes/*`, never carried as a
+    // parallel hand-authored SHACL surface. A slice still shipping a hand-authored `shapes.ttl`
+    // carries per-slice migration debt for a future quality pass to discharge. This is advisory —
+    // the shapes stay live/enforced until the slice's constraints are migrated (equivalence before
+    // deletion); the finding is the tracked pressure, not a gate.
+    if ctx.slice_dir.join("shapes.ttl").is_file() {
+        findings.push(advisory(
+            "slice-quality.projection.hand-authored-shapes",
+            "this slice ships a hand-authored shapes.ttl (a second source of truth): migrate its \
+             constraints to logic: (a logic:Constraint or the backing OWL/RDFS axioms in \
+             module.ttl) so they PROJECT to generated/shapes/* (Principle 17), then retire the \
+             hand-authored file. See docs/MIGRATING-SHAPES-TO-LOGIC.md."
+                .to_owned(),
+        ));
+    }
+
     // A slice with owl:Restriction / disjointness should source SHACL from logic:.
     let has_constraints = id(ds, "http://www.w3.org/2002/07/owl#Restriction")
         .is_some_and(|c| id(ds, graph::RDF_TYPE).is_some_and(|t| graph::has_any_object(ds, t, c)))
