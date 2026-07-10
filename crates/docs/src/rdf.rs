@@ -14,7 +14,7 @@
 //! already-sorted model collections, and a trailing newline.
 
 use crate::model::DocsModel;
-use crate::render::{concern_slug, slice_slug, term_slug};
+use crate::render::{concern_slug, provenance_chain, slice_slug, term_slug};
 
 /// The GMEOW namespace IRI prefix.
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -25,6 +25,7 @@ const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
 const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
 const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
+const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 const GMEOW_DEFINITION_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/definitionDigest";
 const GMEOW_ADDED_IN_VERSION: &str = "https://blackcatinformatics.ca/gmeow/addedInVersion";
 const GMEOW_HAS_CHANGELOG_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/hasChangelogEntry";
@@ -53,6 +54,23 @@ const GMEOW_CHANGELOG_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/Change
 /// - each mapping set → `gmeow:documentation/mapping-set/{n}` `a
 ///   gmeow:DocumentedMappingSet`, `gmeow:documents <set-iri>`, `gmeow:docUrl
 ///   "linkages/index.html"`.
+/// - each documented term that carries an enrichment fact → one uniform
+///   `gmeow:documentation/evidence/{term-slug}/{kind}` `a gmeow:DocEvidence`
+///   node PER evidence-kind (`competency`, `diagnostics`, `fixture`, `loss`,
+///   `provenance`), each with `gmeow:docEvidenceKind
+///   gmeow:docEvidenceKind{Kind}` (an enumerated individual IRI — chosen over a
+///   string literal so the kind is a first-class, join-able resource the
+///   documentation-slice TBox can subclass), `gmeow:documents <term-iri>`,
+///   `gmeow:docClaim`, one or
+///   more MANDATORY `gmeow:docGroundedBy` carrier-truthmaker edges,
+///   `gmeow:docProducedByChain` (the build stage chain, when a pipeline is
+///   attached), an optional `gmeow:docJudgment`, and typed count/digest
+///   properties (`gmeow:docFixtureCount`, `gmeow:docCompetencyCount`,
+///   `gmeow:docCompetencyQueryDigest`, `gmeow:docFindingCount`,
+///   `gmeow:docLossRowCount`, `gmeow:docProvenanceDepth`). A node is emitted
+///   ONLY when the term genuinely carries that evidence, and is grounded by
+///   construction (an ungrounded evidence node is the doc-layer analogue of a
+///   DARK finding — enforced by `tests/doc_evidence.rs`).
 ///
 /// Output is deterministic: the model collections are already sorted by IRI, and
 /// every subject's triples are emitted in a fixed order.
@@ -84,6 +102,26 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
             lines,
         );
     };
+
+    // The coarse-grain provenance shared by every documented term's
+    // `gmeow:DocEvidence` provenance node: the producing `stage-docs-render` IRI
+    // (the `gmeow:docGroundedBy` truthmaker) and the stage chain walked backward
+    // over `gmeow:dataflowConsumes` (the same single relation Task 12's page
+    // footer renders). Present ONLY when the model carries the pipeline — the
+    // production docs-graph stage does; a bare unit-test model without a pipeline
+    // emits no provenance evidence, an honest absence rather than a fabricated
+    // chain.
+    let provenance: Option<(String, String)> = model.pipeline.as_ref().and_then(|pipeline| {
+        let stage = pipeline
+            .stages
+            .iter()
+            .find(|s| local_name(&s.iri) == "stage-docs-render")?;
+        let chain = provenance_chain(pipeline, "stage-docs-render");
+        if chain.is_empty() {
+            return None;
+        }
+        Some((stage.iri.clone(), chain.join(" <- ")))
+    });
 
     // Terms (model.terms is IRI-sorted).
     for term in &model.terms {
@@ -213,6 +251,97 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
                 triple(&entry_iri, GMEOW_ENTRY_NOTE, &literal(note), &mut lines);
             }
         }
+
+        // Uniform `gmeow:DocEvidence` layer (issue 1404, transformational #1): one
+        // node per (term, evidence-kind) carrying the same shape for every kind —
+        // a claim, its MANDATORY carrier grounding (`gmeow:docGroundedBy`), the
+        // build provenance chain, and (where one exists) a preservation judgment —
+        // so the seven evidence sources are views of a single per-term
+        // justification DAG rather than parallel predicate families. Each node is
+        // emitted ONLY when the term genuinely carries that evidence, and is
+        // grounded BY CONSTRUCTION (an ungrounded evidence node is the doc-layer
+        // analogue of a DARK finding). Kinds are pushed in a fixed alphabetical
+        // order for deterministic output. Every node runs through `annotate` like
+        // the surrounding per-term subjects so it satisfies the A-Box-tier
+        // validation contract.
+        for ev in term_evidence(model, term, provenance.as_ref()) {
+            let ev_iri = format!("<{GMEOW}documentation/evidence/{slug}/{}>", ev.kind);
+            triple(
+                &ev_iri,
+                RDF_TYPE,
+                &format!("<{GMEOW}DocEvidence>"),
+                &mut lines,
+            );
+            triple(
+                &ev_iri,
+                &format!("{GMEOW}docEvidenceKind"),
+                &format!("<{GMEOW}docEvidenceKind{}>", ev.kind_suffix),
+                &mut lines,
+            );
+            triple(
+                &ev_iri,
+                &format!("{GMEOW}documents"),
+                &format!("<{}>", term.iri),
+                &mut lines,
+            );
+            triple(
+                &ev_iri,
+                &format!("{GMEOW}docClaim"),
+                &literal(&ev.claim),
+                &mut lines,
+            );
+            // The grounding edge is mandatory and never empty — the fail-fast
+            // grounding invariant (see `tests/doc_evidence.rs`).
+            for grounded in &ev.grounded {
+                triple(
+                    &ev_iri,
+                    &format!("{GMEOW}docGroundedBy"),
+                    grounded,
+                    &mut lines,
+                );
+            }
+            if let Some((_, chain)) = &provenance {
+                triple(
+                    &ev_iri,
+                    &format!("{GMEOW}docProducedByChain"),
+                    &literal(chain),
+                    &mut lines,
+                );
+            }
+            if let Some(judgment) = &ev.judgment {
+                triple(
+                    &ev_iri,
+                    &format!("{GMEOW}docJudgment"),
+                    &literal(judgment),
+                    &mut lines,
+                );
+            }
+            for (predicate, value) in &ev.int_props {
+                triple(
+                    &ev_iri,
+                    &format!("{GMEOW}{predicate}"),
+                    &integer(*value),
+                    &mut lines,
+                );
+            }
+            for (predicate, value) in &ev.str_props {
+                triple(
+                    &ev_iri,
+                    &format!("{GMEOW}{predicate}"),
+                    &literal(value),
+                    &mut lines,
+                );
+            }
+            annotate(
+                &ev_iri,
+                &format!("Doc evidence ({}): {}", ev.kind, term.curie),
+                &format!(
+                    "{} documentation evidence for {} — {}.",
+                    ev.kind, term.iri, ev.claim
+                ),
+                &mut lines,
+            );
+        }
     }
 
     // Slices (model.slices is IRI-sorted).
@@ -328,6 +457,208 @@ fn category_name(category: crate::model::DocTermCategory) -> &'static str {
 /// An `xsd:boolean`-typed N-Quads literal object.
 fn boolean(value: bool) -> String {
     format!("\"{value}\"^^<{XSD_BOOLEAN}>")
+}
+
+/// An `xsd:integer`-typed N-Quads literal object.
+fn integer(value: i64) -> String {
+    format!("\"{value}\"^^<{XSD_INTEGER}>")
+}
+
+/// The local name of an IRI: the tail after the last `/` or `#`.
+fn local_name(iri: &str) -> &str {
+    let cut = iri.rfind(['/', '#']).map(|i| i + 1).unwrap_or(0);
+    &iri[cut..]
+}
+
+/// One uniform `gmeow:DocEvidence` node the projection emits for a documented
+/// term. Every kind carries the SAME shape — a claim, its mandatory
+/// `gmeow:docGroundedBy` carrier truthmaker(s), typed count/string properties,
+/// and (where one exists) a preservation/confidence judgment — so a future
+/// evidence source plugs in as a new `docEvidenceKind`, not a new predicate
+/// family (issue 1404, transformational #1).
+struct Evidence {
+    /// The URL-slug kind segment used in the node IRI (`fixture`, `competency`,
+    /// `diagnostics`, `loss`, `provenance`).
+    kind: &'static str,
+    /// The `gmeow:docEvidenceKind{Suffix}` enumerated-individual suffix.
+    kind_suffix: &'static str,
+    /// The short human claim string (`gmeow:docClaim`).
+    claim: String,
+    /// Pre-formatted N-Quad `gmeow:docGroundedBy` objects (an IRI `<…>` or an
+    /// escaped literal `"…"`). NEVER empty — every evidence node is grounded by
+    /// construction, the fail-fast grounding invariant.
+    grounded: Vec<String>,
+    /// The optional preservation/confidence judgment (`gmeow:docJudgment`).
+    judgment: Option<String>,
+    /// Typed `xsd:integer` count properties (predicate local name → value).
+    int_props: Vec<(&'static str, i64)>,
+    /// Typed string properties (predicate local name → literal value).
+    str_props: Vec<(&'static str, String)>,
+}
+
+/// Build the uniform evidence nodes for one documented term, in a fixed
+/// alphabetical kind order (`competency`, `diagnostics`, `fixture`, `loss`,
+/// `provenance`) so the projection stays deterministic. A kind is included ONLY
+/// when the term genuinely carries that evidence — never a vacuous node — and
+/// every returned node carries at least one grounding object.
+fn term_evidence(
+    model: &DocsModel,
+    term: &crate::model::DocTerm,
+    provenance: Option<&(String, String)>,
+) -> Vec<Evidence> {
+    let mut out: Vec<Evidence> = Vec::new();
+
+    // competency — the term is exercised by one or more competency questions.
+    // Grounded by each competency IRI; the joined query digest travels as a
+    // typed property so the evidence node carries the query fingerprint the
+    // issue's completeness contract lists.
+    let comps: Vec<&crate::model::DocCompetency> = model
+        .competencies
+        .iter()
+        .filter(|c| c.exercises.iter().any(|iri| iri == &term.iri))
+        .collect();
+    if !comps.is_empty() {
+        let grounded = comps.iter().map(|c| format!("<{}>", c.iri)).collect();
+        let mut str_props: Vec<(&'static str, String)> = Vec::new();
+        let queries: String = comps
+            .iter()
+            .filter_map(|c| c.query_text.as_deref())
+            .collect::<Vec<_>>()
+            .join("\n");
+        if !queries.is_empty() {
+            str_props.push((
+                "docCompetencyQueryDigest",
+                format!("blake3:{}", blake3::hash(queries.as_bytes()).to_hex()),
+            ));
+        }
+        out.push(Evidence {
+            kind: "competency",
+            kind_suffix: "Competency",
+            claim: format!("exercised by {} competency question(s)", comps.len()),
+            grounded,
+            judgment: None,
+            int_props: vec![("docCompetencyCount", comps.len() as i64)],
+            str_props,
+        });
+    }
+
+    // diagnostics — the term is a key in the diagnostics-to-term join. Grounded
+    // by each finding code (the finding's stable identifier). On the real repo
+    // `by_term` is currently empty, so this kind emits for zero terms today —
+    // an honest absence proven correct by the synthetic-digest unit test.
+    if let Some(findings) = model
+        .diagnostics
+        .as_ref()
+        .and_then(|d| d.by_term.get(&term.iri))
+        .filter(|f| !f.is_empty())
+    {
+        let grounded = findings.iter().map(|f| literal_object(&f.code)).collect();
+        out.push(Evidence {
+            kind: "diagnostics",
+            kind_suffix: "Diagnostics",
+            claim: format!("has {} diagnostic finding(s)", findings.len()),
+            grounded,
+            judgment: None,
+            int_props: vec![("docFindingCount", findings.len() as i64)],
+            str_props: Vec::new(),
+        });
+    }
+
+    // fixture — the term is referenced by one or more conformance fixtures /
+    // counter-examples. Grounded by a deterministically-minted fixture IRI per
+    // fixture (slice-scoped so two slices' same-named fixtures never collide).
+    let fixtures: Vec<&crate::model::DocFixture> = model
+        .fixtures
+        .iter()
+        .filter(|f| f.terms_referenced.iter().any(|c| c == &term.curie))
+        .collect();
+    if !fixtures.is_empty() {
+        let grounded = fixtures
+            .iter()
+            .map(|f| {
+                format!(
+                    "<{GMEOW}documentation/fixture/{}-{}>",
+                    set_slug(local_name(&f.slice)),
+                    set_slug(&f.logical_path)
+                )
+            })
+            .collect();
+        out.push(Evidence {
+            kind: "fixture",
+            kind_suffix: "Fixture",
+            claim: format!("has {} conformance fixture(s)", fixtures.len()),
+            grounded,
+            judgment: None,
+            int_props: vec![("docFixtureCount", fixtures.len() as i64)],
+            str_props: Vec::new(),
+        });
+    }
+
+    // loss — the term degrades under one or more projections: the dynamic
+    // per-term ledger rows (`TermLossDigest`) and/or a static authored
+    // projection-loss target (`DocLossTarget`) whose subject local name is this
+    // term. Grounded by each ledger-row / loss-target identifier; the distinct
+    // preservation kinds are the evidence judgment.
+    let mut loss_grounded: Vec<String> = Vec::new();
+    let mut preservation_kinds: Vec<String> = Vec::new();
+    if let Some(rows) = model
+        .term_loss
+        .as_ref()
+        .and_then(|d| d.by_term.get(&term.iri))
+    {
+        for row in rows {
+            loss_grounded.push(literal_object(&row.target));
+            preservation_kinds.push(row.preservation_kind.clone());
+        }
+    }
+    let term_local = local_name(&term.iri);
+    for lt in model
+        .loss_targets
+        .iter()
+        .filter(|lt| lt.target == term_local)
+    {
+        loss_grounded.push(literal_object(&lt.target));
+        preservation_kinds.push(lt.preservation_kind.clone());
+    }
+    if !loss_grounded.is_empty() {
+        preservation_kinds.sort();
+        preservation_kinds.dedup();
+        out.push(Evidence {
+            kind: "loss",
+            kind_suffix: "Loss",
+            claim: format!("has {} projection-loss row(s)", loss_grounded.len()),
+            int_props: vec![("docLossRowCount", loss_grounded.len() as i64)],
+            grounded: loss_grounded,
+            judgment: Some(preservation_kinds.join(", ")),
+            str_props: Vec::new(),
+        });
+    }
+
+    // provenance — every documented term is produced by the docs render chain,
+    // grounded by the `stage-docs-render` IRI, with the backward stage-walk
+    // depth as a typed property. Present only when the model carries the
+    // pipeline (see the caller); the shared chain string rides every evidence
+    // node as `gmeow:docProducedByChain`, emitted by the caller.
+    if let Some((stage_iri, chain)) = provenance {
+        let depth = chain.split(" <- ").count() as i64;
+        out.push(Evidence {
+            kind: "provenance",
+            kind_suffix: "Provenance",
+            claim: format!("rendered by the docs build pipeline ({depth} stage(s))"),
+            grounded: vec![format!("<{stage_iri}>")],
+            judgment: None,
+            int_props: vec![("docProvenanceDepth", depth)],
+            str_props: Vec::new(),
+        });
+    }
+
+    out
+}
+
+/// An escaped N-Quads string-literal object for a grounding identifier that is a
+/// stable code, not an IRI (a diagnostic code, a ledger-row target).
+fn literal_object(value: &str) -> String {
+    format!("\"{}\"", nq_escape(value))
 }
 
 /// A filesystem-safe slug from a mapping-set IRI's local name (tail after the

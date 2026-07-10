@@ -4241,7 +4241,10 @@ fn append_stage_section(out: &mut String, model: &DocsModel, term: &DocTerm, fro
 /// stage (one that consumes nothing in-DAG) is reached. Cycle-safe (visited set).
 /// Returns the stage local names in consumer→producer order, or empty when the
 /// start stage is absent.
-fn provenance_chain(pipeline: &crate::model::DocPipeline, start_local: &str) -> Vec<String> {
+pub(crate) fn provenance_chain(
+    pipeline: &crate::model::DocPipeline,
+    start_local: &str,
+) -> Vec<String> {
     use std::collections::BTreeSet;
     let by_iri: BTreeMap<&str, &crate::model::DocStage> = pipeline
         .stages

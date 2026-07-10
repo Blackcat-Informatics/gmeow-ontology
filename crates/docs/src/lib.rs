@@ -41,10 +41,11 @@ pub use i18n::{Translations, UiCatalog, available_languages, ui_string};
 pub use lint::lint;
 pub use llms::{GMEOW_SUMMARY, LLMS_NOTE_CAP};
 pub use model::{
-    ConstraintRule, DocArtifact, DocCompetency, DocConcern, DocDependencyEdge, DocExample,
-    DocExpectedCell, DocExpectedRow, DocExternalTerm, DocFixture, DocFixtureKind, DocLearningPath,
-    DocLinkage, DocMappingSet, DocRecipe, DocShape, DocSlice, DocTerm, DocTermCategory, DocsError,
-    DocsModel,
+    ConstraintRule, DiagnosticsDigest, DocArtifact, DocCompetency, DocConcern, DocDependencyEdge,
+    DocDiagFinding, DocExample, DocExpectedCell, DocExpectedRow, DocExternalTerm, DocFixture,
+    DocFixtureKind, DocFlowEdge, DocLearningPath, DocLinkage, DocLossTarget, DocMappingSet,
+    DocPipeline, DocRecipe, DocShape, DocSlice, DocStage, DocTerm, DocTermCategory, DocsError,
+    DocsModel, TermLossDigest, TermLossRow,
 };
 pub use rdf::to_gmeow_rdf;
 pub use render::{

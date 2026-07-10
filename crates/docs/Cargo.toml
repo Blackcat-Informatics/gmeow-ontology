@@ -21,6 +21,12 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 regex = "1"
 sha1 = "0.10"
+# The project's canonical content-digest. Two uses: the vendored purrdf wasm
+# anti-rot gate recomputes the BLAKE3 of each vendored file against the committed
+# manifest, and the uniform `gmeow:DocEvidence` projection fingerprints each
+# term's competency query text as a `blake3:<hex>` grounding property (matching
+# the term content manifest's own `blake3:` digests). Pure-Rust and wasm-clean.
+blake3 = "1"
 purrdf = "0.4"
 # Pure-Rust catalog only: we consume the Rust SliceCatalog/ownership surface.
 gmeow-errors = { path = "../errors" }
@@ -45,7 +51,3 @@ pulldown-cmark = { version = "0.13", default-features = false, features = ["html
 # `use pretty_assertions::assert_eq;` per test file; identical on pass.
 pretty_assertions = "1"
 insta = { version = "1.48", features = ["json"] }
-# Content-digest manifest for the vendored purrdf wasm anti-rot gate: recompute
-# the BLAKE3 of each vendored file and compare to the committed manifest so a
-# stale-but-still-functional re-vendor cannot slip past the structural checks.
-blake3 = "1"
