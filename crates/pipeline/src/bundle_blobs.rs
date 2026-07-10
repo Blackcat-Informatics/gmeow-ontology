@@ -24,7 +24,7 @@
 //! the retired Python `REP_*` constants EXACTLY — a drifted label silently
 //! resolves to an empty archive, shipping the bundle without that surface.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::path::Path;
 
 use purrdf::gts::reader::read;
@@ -521,19 +521,32 @@ impl Bundle {
         // Referenced digests per predicate: every property whose local name
         // ends in `Blob` — the ontology's documented content-addressed
         // blob-reference convention (see the doc comment above).
+        //
+        // The bundle graph carries far more quads than distinct predicate
+        // terms, so resolve "is this a `*Blob` predicate?" ONCE per distinct
+        // term index by pre-scanning `graph.terms` into a `term-index ->
+        // predicate IRI` map; the per-quad loop below then does a cheap
+        // numeric `HashMap` lookup instead of re-resolving `graph.terms` and
+        // re-running `ends_with` for every quad in the bundle.
+        let blob_predicates: HashMap<usize, &str> = graph
+            .terms
+            .iter()
+            .enumerate()
+            .filter_map(|(idx, term)| {
+                let value = term.value.as_deref()?;
+                value.ends_with("Blob").then_some((idx, value))
+            })
+            .collect();
         let mut referenced: BTreeMap<String, Vec<String>> = BTreeMap::new();
         for (_s, p, o, _g) in &graph.quads {
-            let Some(pred) = graph.terms.get(*p).and_then(|t| t.value.as_deref()) else {
+            let Some(pred) = blob_predicates.get(p) else {
                 continue;
             };
-            if !pred.ends_with("Blob") {
-                continue;
-            }
             let Some(text) = graph.terms.get(*o).and_then(|t| t.value.as_deref()) else {
                 continue;
             };
             referenced
-                .entry(pred.to_owned())
+                .entry((*pred).to_owned())
                 .or_default()
                 .push(text.to_owned());
         }
