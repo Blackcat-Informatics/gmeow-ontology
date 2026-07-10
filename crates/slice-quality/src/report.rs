@@ -221,12 +221,16 @@ pub fn score_slice_with_rubric(
 
     let assessment = lattice::assess(&slice_iri, &scores, &rubric);
 
-    // Rank advice: heaviest axis first, then the axis-level template item ahead of
-    // that axis's per-term findings (`advice_kind`), then finding code, then message
-    // — a deterministic total order (no derived Ord over the float; explicit key).
+    // Rank advice: heaviest axis first, then group all advisories for the same axis
+    // together (axis IRI tiebreak — otherwise two same-weight axes interleave and a
+    // template can land ahead of a *different* axis's per-term findings), then within
+    // an axis the axis-level template item ahead of that axis's per-term findings
+    // (`advice_kind`), then finding code, then message — a deterministic total order
+    // (no derived Ord over the float; explicit key).
     advisories.sort_by(|a, b| {
         b.1.partial_cmp(&a.1)
             .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.0.cmp(&b.0))
             .then_with(|| a.2.cmp(&b.2))
             .then_with(|| a.3.code.cmp(&b.3.code))
             .then_with(|| a.3.message.cmp(&b.3.message))
