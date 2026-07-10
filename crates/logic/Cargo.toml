@@ -36,6 +36,26 @@ gmeow-errors = { path = "../errors" }
 gmeow-logic-compile = { path = "../logic-compile" }
 serde_json = "1"
 blake3 = "1"
+# foldhash: a fast, FIXED-seed hasher (`foldhash::fast::FixedState`) for the
+# engine's lookup-only maps — replacing std's SipHash on the hot join/dedup plane
+# (no std SipHash on hot paths). A required, always-on dependency (NOT optionality): determinism
+# never comes from hasher order (it stays at the sorted round commit), so the seed
+# is fixed and never persisted. Version matches the copy already resolved in the
+# workspace lock (pulled transitively by hashbrown 0.15) so no re-resolution.
+foldhash = "0.1"
+# hashbrown: the raw-entry / `HashTable` + `entry_ref` borrowed-key probe surface
+# so the interner dedup and relation-store inserts never clone an owned key per
+# probe (the borrowed-key raw-entry probe requirement — mechanical-sympathy
+# doctrine). Direct, always-on dependency; version matches the copy
+# petgraph already pins in the workspace lock.
+hashbrown = "0.15"
+# smallvec: the inline form the phase-scoped arena's inline small-vec requirement
+# sanctions. A per-round argument tuple that fits inline (arity ≤ 4 — the
+# binary engine's common case) stays on the stack; a larger n-ary tuple spills into
+# the arena's contiguous backing buffer, truncated at each round boundary. Direct,
+# always-on dependency; version matches the copy already resolved in the workspace
+# lock.
+smallvec = "1"
 # petgraph: cycle detection (tarjan_scc) for the DAG-workflow profile certifier
 # (crate::dag_profile), the single shared acyclicity certifier crates/pipeline's
 # stage graph delegates to. default-features off — only the core graph + algo are

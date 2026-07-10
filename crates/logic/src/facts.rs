@@ -37,13 +37,50 @@
 //! engine only ever joins over IRIs and literals.  Skolemization is a semantic
 //! operation of the bridge, not a codec concern — it lives here.
 
-use std::collections::{HashMap, HashSet};
-use std::num::NonZeroU32;
+use std::hash::{BuildHasher, Hash, Hasher};
 
+use hashbrown::HashTable;
 use purrdf::TermValue;
 use sha1::{Digest, Sha1};
 
 use crate::provenance::term_display;
+
+/// The engine's branded per-interner term handle.
+///
+/// `TermId` is the [`Term`](crate::physical::id::Term)-branded [`Id`](crate::physical::id::Id):
+/// ONE definition of the niche-ID lives in [`crate::physical::id`], and this
+/// re-export is the crate-wide name the interner/store address terms by (greenfield
+/// — there is no second, ad-hoc `TermId` here).
+pub(crate) use crate::physical::id::TermId;
+
+/// The engine's branded per-store predicate-IRI handle.
+///
+/// `PredId` is the [`Pred`](crate::physical::id::Pred)-branded
+/// [`Id`](crate::physical::id::Id) — the dense key a [`crate::physical::store::RelationStore`]
+/// / [`crate::rule_ir::FactStore`] addresses relations by instead of the owned predicate
+/// `String`.  Interned once at first insert; resolved back to its IRI surface only at
+/// emission / diagnostic edges (a sorted sweep resolves each `PredId` to its string and
+/// sorts LEXICALLY — never by `PredId` mint order).
+pub(crate) use crate::physical::id::PredId;
+
+/// Fixed-seed hash of a display surface, for the interner's borrowed-key probe.
+///
+/// The seed is fixed (`FixedState::default()`) and never persisted — determinism
+/// comes from insertion order and the sorted commit, never from this hash.
+#[inline]
+fn display_hash(display: &str) -> u64 {
+    foldhash::fast::FixedState::default().hash_one(display)
+}
+
+/// Fixed-seed hash of a `(predicate, args)` dedup key, for [`TypedFactSet`]'s
+/// borrowed-key probe (never clones the key to hash it).
+#[inline]
+fn fact_key_hash(predicate: &str, args: &[TermId]) -> u64 {
+    let mut hasher = foldhash::fast::FixedState::default().build_hasher();
+    predicate.hash(&mut hasher);
+    args.hash(&mut hasher);
+    hasher.finish()
+}
 
 // ── Skolemization primitives ─────────────────────────────────────────────────
 
@@ -76,35 +113,6 @@ fn skolemize(term: &TermValue) -> std::borrow::Cow<'_, TermValue> {
     }
 }
 
-// ── TermId ────────────────────────────────────────────────────────────────────
-
-/// A dense per-set term handle minted by a [`TermInterner`].
-///
-/// `TermId`s are assigned in insertion order within ONE interner and carry no
-/// meaning outside it.  They are never serialized and never hashed for
-/// provenance — content-addressed IDs are always minted from the `TermValue`
-/// surfaces (see [`crate::provenance`]).
-///
-/// `NonZeroU32` keeps `Option<TermId>` pointer-width for free.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(crate) struct TermId(NonZeroU32);
-
-impl TermId {
-    /// The zero-based slot index this id addresses in its interner.
-    #[inline]
-    fn index(self) -> usize {
-        (self.0.get() - 1) as usize
-    }
-
-    /// Mint the id for zero-based slot `index` (interner-internal).
-    #[inline]
-    fn from_index(index: usize) -> Self {
-        let raw = u32::try_from(index + 1)
-            .expect("TermInterner overflow: more than u32::MAX - 1 distinct terms in one set");
-        Self(NonZeroU32::new(raw).expect("index + 1 is nonzero by construction"))
-    }
-}
-
 // ── TermInterner ──────────────────────────────────────────────────────────────
 
 /// A per-set term dictionary: display surface → dense [`TermId`].
@@ -115,10 +123,17 @@ impl TermId {
 #[derive(Debug, Clone, Default)]
 pub(crate) struct TermInterner {
     /// Display surface → id, for O(1) intern/lookup.
-    by_display: HashMap<String, TermId>,
+    ///
+    /// A hashbrown [`HashTable`] storing the [`TermId`] ONLY: the display bytes
+    /// live once in `displays` (the side arena), so a borrowed-key (`&str`) probe
+    /// resolves an entry with a cheap `displays[id.index()]` slice read — the
+    /// eq/hash closure NEVER re-renders `term_display`, and `intern` never stores
+    /// the display `String` twice.
+    by_display: HashTable<TermId>,
     /// First-seen `TermValue` per id, in insertion order (slot = id index).
     terms: Vec<TermValue>,
-    /// Cached display surface per id, in lockstep with `terms`.
+    /// Cached display surface per id, in lockstep with `terms` — the side arena the
+    /// [`by_display`](Self::by_display) probe resolves against.
     displays: Vec<String>,
 }
 
@@ -132,13 +147,23 @@ impl TermInterner {
     /// its display surface is new, else the existing id (first-seen value wins).
     pub(crate) fn intern(&mut self, term: &TermValue) -> TermId {
         let display = term_display(term);
-        if let Some(&id) = self.by_display.get(&display) {
+        let hash = display_hash(&display);
+        // Borrowed-key probe: resolve each candidate id to its display slice in the
+        // side arena — no re-render, no owned-key clone.
+        let displays = &self.displays;
+        if let Some(&id) = self
+            .by_display
+            .find(hash, |&id| displays[id.index()] == display)
+        {
             return id;
         }
         let id = TermId::from_index(self.terms.len());
         self.terms.push(term.clone());
-        self.displays.push(display.clone());
-        self.by_display.insert(display, id);
+        // Move the display bytes into the side arena ONCE (never stored twice).
+        self.displays.push(display);
+        let displays = &self.displays;
+        self.by_display
+            .insert_unique(hash, id, |&id| display_hash(&displays[id.index()]));
         id
     }
 
@@ -149,7 +174,10 @@ impl TermInterner {
     /// surface-keyed lookup is the primitive — probes that hold a `TermValue`
     /// pass `&term_display(term)`.
     pub(crate) fn lookup(&self, display: &str) -> Option<TermId> {
-        self.by_display.get(display).copied()
+        let hash = display_hash(display);
+        self.by_display
+            .find(hash, |&id| self.displays[id.index()] == display)
+            .copied()
     }
 
     /// The first-seen `TermValue` for `id`.
@@ -190,6 +218,68 @@ impl TermInterner {
     }
 }
 
+// ── PredInterner ────────────────────────────────────────────────────────────────
+
+/// A per-store predicate-IRI dictionary: predicate surface → dense [`PredId`].
+///
+/// The columnar [`crate::physical::store::RelationStore`] and the ternary
+/// [`crate::rule_ir::FactStore`] key their relations / predicate buckets by `PredId`
+/// (a `Copy` niche integer) instead of an owned predicate `String`, so a lookup /
+/// insert never clones the IRI to probe.  IDs are assigned in first-seen insertion
+/// order; the surface is resolved back only at emission / diagnostic edges, where the
+/// resolved strings are sorted LEXICALLY (never by `PredId` mint order).
+///
+/// Mirrors [`TermInterner`]'s borrowed-key discipline: the surface bytes live once in
+/// `names` (the side arena), and a `&str` probe resolves a candidate id to its slice —
+/// the eq/hash closure never re-allocates.
+#[derive(Debug, Clone, Default)]
+pub(crate) struct PredInterner {
+    /// Predicate surface → id, for O(1) intern/lookup (holds the `PredId` only).
+    by_name: HashTable<PredId>,
+    /// First-seen predicate IRI per id, in insertion order (slot = id index) — the
+    /// side arena the [`by_name`](Self::by_name) probe resolves against.
+    names: Vec<String>,
+}
+
+impl PredInterner {
+    /// A fresh, empty predicate interner.
+    pub(crate) fn new() -> Self {
+        Self::default()
+    }
+
+    /// Intern `name`, returning its id — minting a new insertion-ordered id if the
+    /// predicate surface is new, else the existing id.
+    pub(crate) fn intern(&mut self, name: &str) -> PredId {
+        let hash = display_hash(name);
+        let names = &self.names;
+        if let Some(&id) = self.by_name.find(hash, |&id| names[id.index()] == name) {
+            return id;
+        }
+        let id = PredId::from_index(self.names.len());
+        self.names.push(name.to_owned());
+        let names = &self.names;
+        self.by_name
+            .insert_unique(hash, id, |&id| display_hash(&names[id.index()]));
+        id
+    }
+
+    /// The id of the predicate with this surface, if already interned; never inserts.
+    pub(crate) fn lookup(&self, name: &str) -> Option<PredId> {
+        let hash = display_hash(name);
+        self.by_name
+            .find(hash, |&id| self.names[id.index()] == name)
+            .copied()
+    }
+
+    /// Every interned predicate surface, in mint order (slot order).
+    ///
+    /// Callers that need a deterministic sweep resolve + sort LEXICALLY; this returns
+    /// the raw mint-ordered names, never itself an emission-order source.
+    pub(crate) fn names(&self) -> &[String] {
+        &self.names
+    }
+}
+
 // ── TypedFact ─────────────────────────────────────────────────────────────────
 
 /// One typed fact: a relation name applied to interned term arguments.
@@ -220,8 +310,13 @@ pub(crate) struct TypedFactSet {
     interner: TermInterner,
     /// Facts in insertion order.
     facts: Vec<TypedFact>,
-    /// Dedup keys `(predicate, args)` for O(1) membership.
-    keys: HashSet<(String, Vec<TermId>)>,
+    /// Dedup index for O(1) membership on `(predicate, args)`.
+    ///
+    /// A hashbrown [`HashTable`] holding the ROW INDEX into `facts`: the key
+    /// `(predicate, args)` lives once in the fact itself, so a borrowed-key probe
+    /// resolves via `facts[i]` and no owned `(String, Vec<TermId>)` key is ever
+    /// cloned — an owned key would double every fact's storage.
+    keys: HashTable<usize>,
 }
 
 impl TypedFactSet {
@@ -239,14 +334,30 @@ impl TypedFactSet {
     ///
     /// `args` must be ids minted by THIS set's interner.
     pub(crate) fn push_fact(&mut self, predicate: &str, args: Vec<TermId>) -> bool {
-        let key = (predicate.to_owned(), args.clone());
-        if self.keys.contains(&key) {
+        let hash = fact_key_hash(predicate, &args);
+        // Borrowed-key membership probe: compare against the stored fact in place,
+        // allocating NOTHING on a hit.
+        let facts = &self.facts;
+        if self
+            .keys
+            .find(hash, |&i| {
+                let f = &facts[i];
+                f.predicate == predicate && f.args == args
+            })
+            .is_some()
+        {
             return false;
         }
-        self.keys.insert(key);
+        // Miss: own the key exactly once, as the fact itself.
+        let idx = self.facts.len();
         self.facts.push(TypedFact {
             predicate: predicate.to_owned(),
             args,
+        });
+        let facts = &self.facts;
+        self.keys.insert_unique(hash, idx, |&i| {
+            let f = &facts[i];
+            fact_key_hash(&f.predicate, &f.args)
         });
         true
     }
