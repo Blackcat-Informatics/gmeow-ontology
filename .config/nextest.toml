@@ -163,7 +163,7 @@
 #     contention can no longer push it over budget.
 #   - gmeow-pipeline release_verify_roundtrip binary:
 #     ~75 s per test locally. `fold_release_bundle`/`verify_release_bundle` each
-#     replay the WHOLE committed ~48 MB `generated/dist/gmeow.gts` (#1458) — the
+#     replay the WHOLE committed ~48 MB `generated/dist/gmeow.gts` — the
 #     identical "whole committed bundle" cost class as `fold_parity`/
 #     `fanout_parity`/`end_to_end` above, irreducibly O(bundle size). Coverage
 #     stays: the real crypto-through-the-built-binary requirement (accept a
