@@ -141,12 +141,24 @@ pub fn run_competency_file(path: &Path) -> Result<()> {
 pub fn run_structural_file(path: &Path) -> Result<()> {
     let spec = dsl::load_spec(path)?;
     let slice_dir = paths::slice_dir(path);
+    // Every cell in a spec file draws its dataset from one of exactly two scopes
+    // (`gmeow:scopeModule` or `gmeow:scopeModuleAndExamples`), and a large rubric
+    // module can carry many structural cells over the SAME scope. Build each
+    // scoped dataset at most once per file and reuse it across cells (the same
+    // lazy-cache-across-cells shape `run_competency_file` already uses for its
+    // RDFS/native closures above) rather than re-unioning + re-planning the
+    // identical dataset once per cell.
+    let mut module_only: Option<Arc<RdfDataset>> = None;
+    let mut module_and_examples: Option<Arc<RdfDataset>> = None;
     aggregate(
         path,
         "structural",
-        spec.structural
-            .iter()
-            .map(|sa| (sa.iri.as_str(), run_structural_cell(sa, &slice_dir))),
+        spec.structural.iter().map(|sa| {
+            (
+                sa.iri.as_str(),
+                run_structural_cell(sa, &slice_dir, &mut module_only, &mut module_and_examples),
+            )
+        }),
     )
 }
 
@@ -476,7 +488,12 @@ fn load_query(cq: &CompetencyQuestion) -> Result<String> {
 
 // ── Structural ──────────────────────────────────────────────────────────────────
 
-fn run_structural_cell(sa: &StructuralAssertion, slice_dir: &Path) -> Result<()> {
+fn run_structural_cell(
+    sa: &StructuralAssertion,
+    slice_dir: &Path,
+    module_only: &mut Option<Arc<RdfDataset>>,
+    module_and_examples: &mut Option<Arc<RdfDataset>>,
+) -> Result<()> {
     let pattern = match (&sa.pattern, &sa.shape) {
         (Some(p), None) => p,
         (None, Some(shape)) => {
@@ -500,15 +517,26 @@ fn run_structural_cell(sa: &StructuralAssertion, slice_dir: &Path) -> Result<()>
         }
     };
 
-    let mut sources = vec![paths::module_file(slice_dir)];
-    if sa.scope == Scope::ModuleAndExamples {
-        sources.extend(example_ttls(&paths::examples_dir(slice_dir))?);
-    }
-    let store = native_query::dataset_from_files(&sources).map_err(|e| {
-        Diag::of_kind(DatasetRead {
-            detail: format!("building scoped dataset for structural assertion: {e}"),
-        })
-    })?;
+    let cache = match sa.scope {
+        Scope::Module => &mut *module_only,
+        Scope::ModuleAndExamples => &mut *module_and_examples,
+    };
+    let store = match cache {
+        Some(store) => Arc::clone(store),
+        None => {
+            let mut sources = vec![paths::module_file(slice_dir)];
+            if sa.scope == Scope::ModuleAndExamples {
+                sources.extend(example_ttls(&paths::examples_dir(slice_dir))?);
+            }
+            let built = native_query::dataset_from_files(&sources).map_err(|e| {
+                Diag::of_kind(DatasetRead {
+                    detail: format!("building scoped dataset for structural assertion: {e}"),
+                })
+            })?;
+            *cache = Some(Arc::clone(&built));
+            built
+        }
+    };
     let holds = run_ask(&store, pattern)?;
 
     match (sa.polarity, holds) {

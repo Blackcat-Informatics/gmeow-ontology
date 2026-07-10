@@ -388,6 +388,18 @@ whole-committed-bundle class as the `build_writes_serializations` / export /
 its fixture-scale reject/parity coverage on-gate in the same binaries, the
 serializations stay drift-gated via `make check-generated`, and all three stay
 on-gate on `maint-heavy`).
+A new GMN-1 Coverage quality axis grew
+`slices/core/slice-quality-rubric/module.ttl` — already the largest, most prose-dense
+module in the repo, being the self-describing quality rubric itself — to a 13th axis,
+nudging its `structural.ttl` datatest case past budget on this shared dev box:
+`gmeow-slicetest::run_structural_file::core/slice-quality-rubric/tests/structural.ttl`
+(19–42 s depending on contention; a same-scope dataset cache landed in
+`run_structural_cell` first, halving the standalone cost, but the module-size x
+cell-count product is still irreducibly over budget under contention). No coverage
+leaves the gate: the assertions still run on `make maint-rust-heavy`, every other
+slice's `structural.ttl` stays on-gate (only this one file's datatest case is
+excluded), and the rubric's axis-shape invariants stay drift-gated via
+`make check-generated`.
 The self-sufficiency parity harness added four more whole-bundle CLI tests —
 `gmeow-cli::self_sufficiency::transpile_wheel_mode_equals_repo_mode`,
 `::transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak`,

@@ -360,6 +360,10 @@ enum AxisThresholdEnum {
   thrFlagshipDepthLinked
   thrFlagshipDepthMaximal
   thrFlagshipDepthRegistered
+  thrGmn1CoverageExemplified
+  thrGmn1CoverageGrounded
+  thrGmn1CoverageLinked
+  thrGmn1CoverageMaximal
   thrGroundingExemplified
   thrGroundingGrounded
   thrGroundingLinked
@@ -1265,6 +1269,33 @@ enum GmnCodebookEnum {
   gmnCodebookCurrent
 }
 
+enum GmnCompartmentEnum {
+  gmnCompartmentNato
+  gmnCompartmentPartner
+}
+
+enum GmnDictionaryEntryEnum {
+  gmnDictV1EntryBoundaryClosed
+  gmnDictV1EntryBoundaryOpen
+  gmnDictV1EntryCodebook
+  gmnDictV1EntryEnvelope
+  gmnDictV1EntryEvKindComputational
+  gmnDictV1EntryEvKindDirect
+  gmnDictV1EntryEvKindExpert
+  gmnDictV1EntryEvKindInstrumental
+  gmnDictV1EntryEvKindRemote
+  gmnDictV1EntryEvKindStreaming
+  gmnDictV1EntryEvKindSurvey
+  gmnDictV1EntryModalActual
+  gmnDictV1EntryModalCounterfactual
+  gmnDictV1EntryModalNecessary
+  gmnDictV1EntryModalPossible
+}
+
+enum GmnDictionaryEnum {
+  gmnDictV1
+}
+
 enum GmnFixityEnum {
   gmnFixityBracketing
   gmnFixityInfix
@@ -1272,8 +1303,24 @@ enum GmnFixityEnum {
   gmnFixityPrefix
 }
 
+enum GmnRingCriterionEnum {
+  gmnCriterionAutomatedUnreviewed
+  gmnCriterionHumanReviewed
+}
+
+enum GmnRingLevelEnum {
+  gmnLevelCore
+  gmnLevelRestricted
+  gmnLevelTrusted
+}
+
+enum GmnRingPresetEnum {
+  gmnRingPresetDefault
+}
+
 enum GmnSecurityRingEnum {
   gmnRingCore
+  gmnRingNato
   gmnRingRestricted
   gmnRingTrusted
 }
@@ -1713,14 +1760,17 @@ enum MemoryKindEnum {
 enum MentalProcessTypeEnum {
   processAffectiveExperience
   processAttention
+  processAudit
   processDeliberation
   processDreaming
+  processExport
   processImagining
   processLearning
   processMindWandering
   processPerception
   processReasoning
   processRecollection
+  processTraining
 }
 
 enum MentalReferenceFrameEnum {
@@ -2599,6 +2649,7 @@ enum PronounSetEnum {
 enum QualityAxisEnum {
   axisDocumentation
   axisFlagshipCounterExampleDepth
+  axisGmn1Coverage
   axisMaximalGrounding
   axisMaximalInformation
   axisMaximalLinkage
@@ -5516,6 +5567,24 @@ type GmnCompaction {
   iri: String
 }
 
+type GmnCompartment {
+  id: String
+  iri: String
+}
+
+type GmnDictionary {
+  id: String
+  iri: String
+  gmnDictionaryEntry: [GmnDictionaryEntry!]
+}
+
+type GmnDictionaryEntry {
+  id: String
+  iri: String
+  gmnDictionaryEntryAlias: String
+  gmnDictionaryEntryTerm: String
+}
+
 type GmnEnvelope {
   id: String
   iri: String
@@ -5526,9 +5595,31 @@ type GmnFixity {
   iri: String
 }
 
+type GmnRingCriterion {
+  id: String
+  iri: String
+}
+
+type GmnRingLevel {
+  id: String
+  iri: String
+  gmnRingLevelDominates: [GmnRingLevel!]
+}
+
+type GmnRingPreset {
+  id: String
+  iri: String
+  gmnRingPresetMember: [GmnSecurityRing!]
+}
+
 type GmnSecurityRing {
   id: String
   iri: String
+  gmnRingAdmits: [GmnRingCriterion!]
+  gmnRingCompartment: [GmnCompartment!]
+  gmnRingCompartmentGap: [GmnSecurityRing!]
+  gmnRingExcludes: [GmnRingCriterion!]
+  gmnRingLevel: GmnRingLevel
 }
 
 type GmnSigilRole {

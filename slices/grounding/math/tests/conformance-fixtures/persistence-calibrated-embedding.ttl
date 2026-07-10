@@ -1,0 +1,138 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: the topological read of an embedding. A math:Embedding maps a corpus
+# into a math:LatentSpace; a math:Filtration over the embedded image runs four
+# math:FiltrationStages at increasing thresholds, each carrying a math:TopologicalSpace
+# structure nested under the EXISTING transitive math:subsetOf. Two math:PersistenceLifetimes
+# exercise both branches of the extended-real death range: an H1 loop that dies at a finite
+# threshold (a gmeow:Quantity) and an essential H0 component that never dies (math:diesAt
+# math:PositiveInfinity). A math:StabilityCalibrationRecord ties the persistence evidence,
+# math:persistenceDerivedCredence, and the math:bottleneckStabilityTheorem together, and the
+# produced credence lands as logic:confidence on a math:ResidualInterpretationClaim about a
+# latent dimension, which references the record through gmeow:wasDerivedFrom so the credence
+# traces back to the filtration, the birth/death thresholds, and the stability guarantee.
+#
+# Conforms to math:EmbeddingShape, math:FiltrationShape, math:FiltrationStageShape,
+# math:PersistenceLifetimeShape, math:StabilityCalibrationRecordShape,
+# math:ResidualInterpretationClaimShape, math:AlgebraicStructureShape (the latent space and
+# the homology groups carry their algebra frame), and the gmeow: quantity shape.
+# Bound by ex:ecPersistenceCalibratedEmbedding.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/math/> .
+
+# --- The embedding into a latent space -------------------------------------- #
+
+ex:emb a math:Embedding ;
+    math:domain ex:corpusSet ;
+    math:codomain ex:latentSet ;
+    math:embeddingSource ex:corpus ;
+    math:targetSpace ex:latent ;
+    math:embeddingFunction ex:embFn ;
+    math:embeddingModel ex:model .
+
+ex:corpusSet a math:Set .
+ex:latentSet a math:Set .
+ex:corpus a math:MathematicalObject .
+ex:embFn a math:Function ;
+    math:domain ex:corpusSet ;
+    math:codomain ex:latentSet .
+ex:model a math:LearnedModel .
+
+# The latent space is a math:VectorSpace subclass, so it carries the algebra frame.
+ex:latent a math:LatentSpace ;
+    math:underlyingSet ex:latentSet ;
+    math:structureOperation ex:latentVectorAddition ;
+    math:satisfiesAxiom ex:latentVectorSpaceAxiom .
+ex:latentVectorAddition a math:Operation .
+
+# --- The filtration over the embedded image --------------------------------- #
+
+ex:persistenceFiltration a math:Filtration ;
+    math:filtrationAmbient ex:latent ;
+    math:filtrationIndexKind math:lengthDimension ;
+    math:hasFiltrationStage ex:stageEps1 , ex:stageEps2 , ex:stageEps3 , ex:stageEps4 .
+
+ex:stageEps1 a math:FiltrationStage ;
+    math:filtrationThreshold ex:eps1 ;
+    math:stageStructure ex:cx1 .
+ex:stageEps2 a math:FiltrationStage ;
+    math:filtrationThreshold ex:eps2 ;
+    math:stageStructure ex:cx2 .
+ex:stageEps3 a math:FiltrationStage ;
+    math:filtrationThreshold ex:eps3 ;
+    math:stageStructure ex:cx3 .
+ex:stageEps4 a math:FiltrationStage ;
+    math:filtrationThreshold ex:eps4 ;
+    math:stageStructure ex:cx4 .
+
+# The substructures nest monotonically under the EXISTING transitive math:subsetOf:
+# cx1 ⊆ cx2 ⊆ cx3 ⊆ cx4 (transitivity gives the full chain).
+ex:cx1 a math:TopologicalSpace ; math:subsetOf ex:cx2 .
+ex:cx2 a math:TopologicalSpace ; math:subsetOf ex:cx3 .
+ex:cx3 a math:TopologicalSpace ; math:subsetOf ex:cx4 .
+ex:cx4 a math:TopologicalSpace .
+
+# The thresholds ε₁ < ε₂ < ε₃ < ε₄ as dimensioned quantities (a latent-space scale).
+ex:eps1 a gmeow:Quantity ; gmeow:quantityValue "0.10"^^xsd:decimal ; gmeow:unit ex:latentScaleUnit .
+ex:eps2 a gmeow:Quantity ; gmeow:quantityValue "0.25"^^xsd:decimal ; gmeow:unit ex:latentScaleUnit .
+ex:eps3 a gmeow:Quantity ; gmeow:quantityValue "0.50"^^xsd:decimal ; gmeow:unit ex:latentScaleUnit .
+ex:eps4 a gmeow:Quantity ; gmeow:quantityValue "0.90"^^xsd:decimal ; gmeow:unit ex:latentScaleUnit .
+
+# --- Two persistence lifetimes — both branches of the extended-real death ---- #
+
+# A non-essential H1 loop born at ε₂ and dying at a finite threshold ε₄ (persistence
+# 0.65 — long-lived, so signal rather than noise): math:diesAt is a finite gmeow:Quantity.
+ex:loopLifetime a math:PersistenceLifetime ;
+    math:overFiltration ex:persistenceFiltration ;
+    math:persistenceFeature ex:h1Loop ;
+    math:bornAt ex:eps2 ;
+    math:diesAt ex:eps4 .
+
+# An essential H0 connected component born at ε₁ and never dying within the filtration:
+# math:diesAt is the individual math:PositiveInfinity, not a finite threshold.
+ex:componentLifetime a math:PersistenceLifetime ;
+    math:overFiltration ex:persistenceFiltration ;
+    math:persistenceFeature ex:h0Component ;
+    math:bornAt ex:eps1 ;
+    math:diesAt math:PositiveInfinity .
+
+# The tracked features are math:HomologyGroup generators; because math:HomologyGroup is a
+# math:AbelianGroup, each carries the algebraic-structure frame.
+ex:h1Loop a math:HomologyGroup ;
+    math:underlyingSet ex:h1Carrier ;
+    math:structureOperation ex:h1Addition ;
+    math:satisfiesAxiom ex:h1CommutativityAxiom .
+ex:h1Carrier a math:Set .
+ex:h1Addition a math:Operation .
+
+ex:h0Component a math:HomologyGroup ;
+    math:underlyingSet ex:h0Carrier ;
+    math:structureOperation ex:h0Addition ;
+    math:satisfiesAxiom ex:h0CommutativityAxiom .
+ex:h0Carrier a math:Set .
+ex:h0Addition a math:Operation .
+
+# --- The stability-calibration record --------------------------------------- #
+
+ex:calibration a math:StabilityCalibrationRecord ;
+    math:calibrationEvidence ex:loopLifetime , ex:componentLifetime ;
+    math:credenceDerivationKind math:persistenceDerivedCredence ;
+    math:stabilityGuarantee math:bottleneckStabilityTheorem .
+
+# --- The held latent-meaning claim carrying the calibrated credence --------- #
+
+ex:latentMeaningClaim a math:ResidualInterpretationClaim ;
+    gmeow:vantage ex:topologyAnalystFrame ;
+    gmeow:observedFeature ex:sentimentAxis ;
+    gmeow:observationResult ex:sentimentMeaningFormula ;
+    gmeow:wasDerivedFrom ex:calibration ;
+    logic:confidence "0.82"^^xsd:decimal .
+
+ex:sentimentAxis a math:EmbeddingDimension ;
+    math:latentDimensionOf ex:latent .
+ex:topologyAnalystFrame a gmeow:Standpoint .
+ex:sentimentMeaningFormula a logic:MetaLevelFormula .

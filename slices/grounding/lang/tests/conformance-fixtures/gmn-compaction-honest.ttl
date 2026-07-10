@@ -1,15 +1,19 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
-# Conforming GMN fixture: an honest GMN-2 compaction plus the canonical GMN-1 drop-list
-# emission. The gmeow:GmnCompaction names both sources it condenses through
-# gmeow:gmnCompacts and its holding standpoint through gmeow:vantage (satisfying
+# Conforming GMN fixture: an honest GMN-2 compaction plus the canonical GMN-1 emission.
+# The gmeow:GmnCompaction names both sources it condenses through gmeow:gmnCompacts and
+# its holding standpoint through gmeow:vantage (satisfying
 # lang:GmnCompactionProvenanceShape), and its correspondence carries the honest weak
 # judgment — logic:ValidationOnly, logic:mnemomorphic false — so
-# lang:GmnCompactionOverclaimShape stays quiet. Alongside it, the canonical
-# lang:ProjectionEmission of the GMN-0 → GMN-1 crossing enumerates the categorical drop
-# list as lang:unsupportedConstruct entries (satisfying
-# lang:ProjectionEmissionDeclaredShape and the native lossy-emission gates: a declared
-# preservation kind and an enumerated drop list).
+# lang:GmnCompactionOverclaimShape stays quiet (GMN-2 compaction is a NEW claim about
+# older claims and stays honestly weak; it is NOT the GMN-0 -> GMN-1 crossing). Alongside
+# it, the canonical lang:ProjectionEmission of the GMN-0 → GMN-1 crossing now mirrors
+# gmeow:gmnCorrNormalToGmn's section/retraction judgment: logic:ExactPreservation, an
+# EMPTY lang:unsupportedConstruct set (the prior alias/annotation/confidence drop list is
+# eliminated, not merely reduced), and lang:roundTripHolds true — satisfying
+# lang:ProjectionEmissionDeclaredShape and the native lossy-emission gates (an
+# ExactPreservation emission is exempt from the undeclared-unsupported-construct check,
+# and its roundTripHolds is not refuted).
 
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -40,12 +44,9 @@ ex:compactionDoorWeek a gmeow:GmnCompaction ;
     gmeow:vantage ex:summarizerStandpoint ;
     lang:translationCorrespondence ex:corrCompaction .
 
-# ── The canonical GMN-0 → GMN-1 drop-list emission ───────────────────────────
+# ── The canonical GMN-0 → GMN-1 emission (section/retraction, exact) ─────────
 ex:emGmnSurface a lang:ProjectionEmission ;
     lang:projectionTargetName "GMN-1" ;
     lang:projectsSource gmeow:gmnNormalForm ;
-    logic:preservationKind logic:SoundUnderApproximation ;
-    lang:unsupportedConstruct "full IRIs replaced by aliases" ,
-        "annotation properties elided from the compact surface" ,
-        "numeric confidence rounded to two fractional digits" ;
-    lang:roundTripHolds false .
+    logic:preservationKind logic:ExactPreservation ;
+    lang:roundTripHolds true .

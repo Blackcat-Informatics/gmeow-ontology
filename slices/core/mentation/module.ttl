@@ -48,7 +48,7 @@ gmeow:MentalProcessType
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "Mental Process Type"@x-gmeow-english ;
     rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The kind of a mental process — a closed-but-open value vocabulary (individuals, never subclasses; the gmeow:EventType idiom): gmeow:processPerception, gmeow:processAttention, gmeow:processReasoning, gmeow:processImagining, gmeow:processDeliberation, gmeow:processRecollection, gmeow:processMindWandering, gmeow:processDreaming, gmeow:processLearning. New kinds are minted as individuals, never as subclasses of gmeow:MentalProcess (Principle 9: no overtyping)."@x-gmeow-english ;
+    skos:definition "The kind of a mental process — a closed-but-open value vocabulary (individuals, never subclasses; the gmeow:EventType idiom): gmeow:processPerception, gmeow:processAttention, gmeow:processReasoning, gmeow:processImagining, gmeow:processDeliberation, gmeow:processRecollection, gmeow:processMindWandering, gmeow:processDreaming, gmeow:processLearning, gmeow:processTraining, gmeow:processAudit, gmeow:processExport. New kinds are minted as individuals, never as subclasses of gmeow:MentalProcess (Principle 9: no overtyping)."@x-gmeow-english ;
     skos:example "gmeow:processReasoning a gmeow:MentalProcessType ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid expressing the kind as a subclass of gmeow:MentalProcess (kinds are individuals of this class, never subclasses — Principle 9, no overtyping) and avoid using it for the phenomenal/sub-personal distinction, which is the gmeow:Experience subclass."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -89,6 +89,13 @@ gmeow:processAttention
     skos:definition "An episode of selective attention — focusing cognitive resources on a subject, sensation, or task while backgrounding the rest."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
+gmeow:processAudit
+    a gmeow:MentalProcessType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
+    rdfs:label "audit"@x-gmeow-english ;
+    skos:definition "A metacognitive assessment episode as it unfolds in time — an agent reviewing one or more of its own past mental processes (a training run, an export, a prior reasoning episode) for correctness, calibration, or consequence. The monitor member of the mentation ingest/emit/monitor triple over an information-flow-controlled agent's timeline: gmeow:processTraining ingests, gmeow:processExport emits at a flow label, gmeow:processAudit verifies non-interference over past crossings — a declassification (a crossing that deliberately lowers a flow label to make content disclosable that was not before) is itself an audited act, never a silent one. Principle-4 boundary: this type covers the assessment as it UNFOLDS, an occurrent episode; the metacognition slice's gmeow:eventTypeReflection types the reviewable ACT of reviewing one's own reasoning — use one, not both, for the same individual (mirroring gmeow:eventTypeReflection's own documented boundary)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:processDeliberation
     a gmeow:MentalProcessType ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
@@ -101,6 +108,13 @@ gmeow:processDreaming
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "dreaming"@x-gmeow-english ;
     skos:definition "A dreaming episode — an offline, typically sleep-bound gmeow:Experience of imagined content; composed into the dreaming extension with awareness mode and content-origin."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:processExport
+    a gmeow:MentalProcessType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
+    rdfs:label "export"@x-gmeow-english ;
+    skos:definition "An externalization/communication episode — an agent's mental content crossing outward into a serialized, communicable form (a report, a message, a saved artifact). The emit member of the mentation ingest/emit/monitor triple: it emits content AT a flow label, exactly as gmeow:processTraining ingests and gmeow:processAudit monitors past crossings for non-interference. When an export crosses a serialization boundary its disclosure semantics are governed by the boundary ring the resulting envelope was admitted under (gmeow:GmnSecurityRing, lang slice) — named here by reference only (Principle 5): this slice gains no structural edge on lang, and the binding is exercised by lang's own competency gate over the gmeow:wasGeneratedBy hook already in the envelope's contract."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:processImagining
@@ -143,6 +157,13 @@ gmeow:processRecollection
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "recollection"@x-gmeow-english ;
     skos:definition "A recollection episode — retrieving a stored memory into present awareness (the act, not the stored content). Forgetting is modelled as suppression elsewhere, not as a process here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:processTraining
+    a gmeow:MentalProcessType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
+    rdfs:label "training"@x-gmeow-english ;
+    skos:definition "The parametric self-modification episode — the occurrent of training a model: a parameter-tensor update over inputs and outputs that changes the machine substrate realizing the agent's faculties (docs/mentation-architecture.md's implementationSubstrate bridge-property concept names this substrate — the trained parameter tensor, as distinct from a context-window or RAG-index substrate). The ingest member of the mentation ingest/emit/monitor triple: training ingests content into the substrate and must not leak a higher flow label into a lower-label parameter tensor, exactly as gmeow:processExport emits and gmeow:processAudit monitors. Principle-4 boundary vs gmeow:processLearning: training is the machine-substrate parametric-update episode specifically; learning is the general knowledge-or-skill state transition (acquisition, being-taught, consolidation, transfer, unlearning) any agent undergoes, biological or machine. Not a redundant second marker — a training run MAY also carry gmeow:processLearning when it is at once the general knowledge-transition episode, but the substrate-specific parametric-update fact is carried only here."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:producesMentalMoment

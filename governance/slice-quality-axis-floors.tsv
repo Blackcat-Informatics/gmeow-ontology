@@ -1,0 +1,100 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# The committed PER-AXIS slice-quality floor: the minimum score
+# each named axis must MEASURE for each named slice, gated additionally to (never
+# instead of) the roll-up-tier ratchet in slice-quality-floors.tsv. A slice's
+# measured score for the named axis may RISE above its floor freely; falling below
+# the floor recorded here fails `make slice-quality-gate`. Raising a floor is a
+# deliberate, reviewed commit that pins a new, higher guarantee — the gate enforces
+# MONOTONIC NON-REGRESSION at the committed floor, never forced ascent.
+#
+# Every slice under slices/grounding/ (logic, lang, math) is HARD-gated at floor
+# 1.0 for axisGmn1Coverage regardless of what this file says (the loader also
+# defaults an absent grounding row to 1.0) — grounding coverage is total
+# and non-negotiable, never silently unfloored. Every other slice is
+# seeded here at its actual measured score, so
+# the ratchet starts live, not vacuous.
+#
+# Format: <slice-iri>\t<axis-local-name>\t<floor:f64>
+https://blackcatinformatics.ca/gmeow/slices/accessibility	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/accounts	axisGmn1Coverage	0.9954337899543378
+https://blackcatinformatics.ca/gmeow/slices/affect	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/agent-runtime	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/agentic	axisGmn1Coverage	0.9759450171821306
+https://blackcatinformatics.ca/gmeow/slices/aggregation	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/agreements	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/ai	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/attestation	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/awareness	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/calendar	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/citations	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/cognition	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/concepts	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/connectivity	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/contacts	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/coreference	axisGmn1Coverage	0.9826086956521739
+https://blackcatinformatics.ca/gmeow/slices/creative-works	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/deception	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/diagnostics	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/documents	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/dreaming	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/email	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/employment	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/entities	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/epistemics	axisGmn1Coverage	0.9403973509933775
+https://blackcatinformatics.ca/gmeow/slices/events	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/evidence	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/expertise	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/finance	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/gender	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/genealogy	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/graphrag	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/gts	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/guides	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/images	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/imagination	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/inference	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/inhabitation	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/inquiry	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/kernel	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/lang	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/language	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/languages	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/learning	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/lexicon	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/lifecycle	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/logic	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/math	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/mentation	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/metacognition	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/model-serving	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/music	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/names	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/narrative	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/norms	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/notation	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/notes	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/observations	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/organization	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/pipeline	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/places	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/procedures	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/profiles	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/provenance	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/quality	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/rights	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/risk	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/sensory	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/sensory-environment	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/sexuality	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/software	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/sources	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/standpoint	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/tags	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/teleology	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/temporal	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/trust	axisGmn1Coverage	1.0
+https://blackcatinformatics.ca/gmeow/slices/versions	axisGmn1Coverage	1.0

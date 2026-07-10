@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:StabilityCalibrationRecordShape: a math:StabilityCalibrationRecord
+# naming its math:credenceDerivationKind and its math:stabilityGuarantee but omitting
+# math:calibrationEvidence (sh:minCount 1) — the math:PersistenceLifetime whose persistence
+# produced the credence. A calibrated credence with no persistence evidence is an unwarranted
+# number. Both other roles are present and reference well-formed module individuals
+# (math:persistenceDerivedCredence, math:bottleneckStabilityTheorem), so ONLY the missing-
+# evidence violation fires. Validation MUST emit shacl.MinCountConstraintComponent and NO
+# other finding (math:UngroundedStabilityCalibration). Bound by ex:ecStabilityCalibrationNoEvidence.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:evidencelessCalibration a math:StabilityCalibrationRecord ;
+    math:credenceDerivationKind math:persistenceDerivedCredence ;
+    math:stabilityGuarantee math:bottleneckStabilityTheorem .

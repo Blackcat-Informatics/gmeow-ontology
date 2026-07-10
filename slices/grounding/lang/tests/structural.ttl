@@ -183,6 +183,8 @@ ASK {
     lang:GmnConfusableGlyph            rdfs:subClassOf lang:LangConformanceFailure .
     lang:GmnGlyphCollision             rdfs:subClassOf lang:LangConformanceFailure .
     lang:GmnMissingEnvelopeField       rdfs:subClassOf lang:LangConformanceFailure .
+    lang:GmnDictionaryAliasCollision   rdfs:subClassOf lang:LangConformanceFailure .
+    lang:GmnRingLatticeMalformed       rdfs:subClassOf lang:LangConformanceFailure .
     lang:GmnVersionOverclaim           rdfs:subClassOf lang:LangConformanceFailure .
     lang:GmnCompactionWithoutProvenance rdfs:subClassOf lang:LangConformanceFailure .
     lang:GmnCompactionOverclaim        rdfs:subClassOf lang:LangConformanceFailure .
@@ -192,7 +194,7 @@ ASK {
     lang:GmnUndeclaredDialectVersion   rdfs:subClassOf lang:LangConformanceFailure .
     lang:GmnNonDecodableGrammar        rdfs:subClassOf lang:LangConformanceFailure .
 }""" ;
-    gmeow:saRationale "Each of the twelve GMN dialect failures MUST be a subclass of lang:LangConformanceFailure — the seven SHACL-gated rules (codepoints, confusables, collisions, the envelope contract, version overclaims, compaction provenance, compaction overclaims) and the five GMN parser/writer-tier rules (uncovered terms, canonical order, malformed numbers, undeclared dialect versions, grammar decodability) — so a GMN violation is a typed, queryable object like every other lang: failure." .
+    gmeow:saRationale "Each of the fourteen GMN dialect failures MUST be a subclass of lang:LangConformanceFailure — the nine SHACL-gated rules (codepoints, confusables, collisions, the envelope contract, dictionary alias injectivity, the ring lattice, version overclaims, compaction provenance, compaction overclaims) and the five GMN parser/writer-tier rules (uncovered terms, canonical order, malformed numbers, undeclared dialect versions, grammar decodability) — so a GMN violation is a typed, queryable object like every other lang: failure." .
 
 # --- 12. The unwired-flagship failure subclasses lang:LangConformanceFailure (MUST) - #
 ex:saFlagshipFailureTyped a gmeow:StructuralAssertion ;
@@ -228,3 +230,13 @@ ASK {
     FILTER(isLiteral(?ex) && isIRI(?cq) && isLiteral(?prod) && isLiteral(?ce) && isIRI(?fc))
 }""" ;
     gmeow:saRationale "This layer's five flagship acceptance scenarios MUST each be present as a gmeow:FlagshipScenario binding its worked example, competency question, native producer, counter-example, and a real lang:LangConformanceFailure subclass. If any of the five is absent or missing a link, the acceptance bar is not met and this assertion fails — the depth bar is a contract, not prose." .
+
+# --- 14. No authored gmeow:gmnRingWithin triple exists in the carrier (MUST-NOT) - #
+ex:saNoAuthoredRingWithin a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?x gmeow:gmnRingWithin ?y .
+}""" ;
+    gmeow:saRationale "gmeow:gmnRingWithin is a DERIVED relation (gmeow:ruleGmnRingWithinDerive, a logic:Rule materialized by the native reasoner from a ring's gmeow:gmnRingLevel / gmeow:gmnRingCompartment coordinates) — it MUST NOT appear as an authored source triple anywhere in the module or examples graph. This assertion is a SEPARATE, machine-checked gate from the migration-equivalence witness competency question: a leftover hand-authored edge (e.g. reintroducing the retired core-within-trusted-within-restricted chain) could reproduce the same computed order and so pass an equality check, but it must still fail the build, because the predicate is populated ONLY at reason time (GREENFIELD, no duplicate of the derivation)." .

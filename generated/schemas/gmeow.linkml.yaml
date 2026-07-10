@@ -1846,6 +1846,22 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnCompaction
     title: GMN Compaction
     is_a: StandpointClaim
+  GmnCompartment:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnCompartment
+    title: GMN Compartment
+  GmnDictionary:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnDictionary
+    title: GMN Dictionary
+    is_a: InformationObject
+    slots:
+    - gmnDictionaryEntry
+  GmnDictionaryEntry:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnDictionaryEntry
+    title: GMN Dictionary Entry
+    is_a: InformationObject
+    slots:
+    - gmnDictionaryEntryAlias
+    - gmnDictionaryEntryTerm
   GmnEnvelope:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnEnvelope
     title: GMN Envelope
@@ -1853,9 +1869,29 @@ classes:
   GmnFixity:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnFixity
     title: GMN Fixity
+  GmnRingCriterion:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnRingCriterion
+    title: GMN Ring Criterion
+  GmnRingLevel:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnRingLevel
+    title: GMN Ring Level
+    slots:
+    - gmnRingLevelDominates
+  GmnRingPreset:
+    class_uri: https://blackcatinformatics.ca/gmeow/GmnRingPreset
+    title: GMN Ring Preset
+    is_a: InformationObject
+    slots:
+    - gmnRingPresetMember
   GmnSecurityRing:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnSecurityRing
     title: GMN Security Ring
+    slots:
+    - gmnRingAdmits
+    - gmnRingCompartment
+    - gmnRingCompartmentGap
+    - gmnRingExcludes
+    - gmnRingLevel
   GmnSigilRole:
     class_uri: https://blackcatinformatics.ca/gmeow/GmnSigilRole
     title: GMN Sigil Role
@@ -8281,6 +8317,24 @@ slots:
     title: gmn determinism class
     range: string
     multivalued: true
+  gmnDictionaryEntry:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnDictionaryEntry
+    title: gmn dictionary entry
+    range: GmnDictionaryEntry
+    domain: GmnDictionary
+    multivalued: true
+  gmnDictionaryEntryAlias:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias
+    title: gmn dictionary entry alias
+    range: string
+    domain: GmnDictionaryEntry
+    multivalued: false
+  gmnDictionaryEntryTerm:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryTerm
+    title: gmn dictionary entry term
+    range: uriorcurie
+    domain: GmnDictionaryEntry
+    multivalued: false
   gmnDictionaryVersion:
     slot_uri: https://blackcatinformatics.ca/gmeow/gmnDictionaryVersion
     title: gmn dictionary version
@@ -8325,6 +8379,48 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/gmnPrecedence
     title: gmn precedence
     range: string
+    multivalued: true
+  gmnRingAdmits:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingAdmits
+    title: gmn ring admits
+    range: GmnRingCriterion
+    domain: GmnSecurityRing
+    multivalued: true
+  gmnRingCompartment:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingCompartment
+    title: gmn ring compartment
+    range: GmnCompartment
+    domain: GmnSecurityRing
+    multivalued: true
+  gmnRingCompartmentGap:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingCompartmentGap
+    title: gmn ring compartment gap
+    range: GmnSecurityRing
+    domain: GmnSecurityRing
+    multivalued: true
+  gmnRingExcludes:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingExcludes
+    title: gmn ring excludes
+    range: GmnRingCriterion
+    domain: GmnSecurityRing
+    multivalued: true
+  gmnRingLevel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingLevel
+    title: gmn ring level
+    range: GmnRingLevel
+    domain: GmnSecurityRing
+    multivalued: false
+  gmnRingLevelDominates:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingLevelDominates
+    title: gmn ring level dominates
+    range: GmnRingLevel
+    domain: GmnRingLevel
+    multivalued: true
+  gmnRingPresetMember:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingPresetMember
+    title: gmn ring preset member
+    range: GmnSecurityRing
+    domain: GmnRingPreset
     multivalued: true
   gmnRingWithin:
     slot_uri: https://blackcatinformatics.ca/gmeow/gmnRingWithin
@@ -15811,6 +15907,18 @@ enums:
       thrFlagshipDepthRegistered:
         meaning: https://blackcatinformatics.ca/gmeow/thrFlagshipDepthRegistered
         title: flagship-depth floor — Registered
+      thrGmn1CoverageExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrGmn1CoverageExemplified
+        title: GMN-1-coverage floor — Exemplified
+      thrGmn1CoverageGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrGmn1CoverageGrounded
+        title: GMN-1-coverage floor — Grounded
+      thrGmn1CoverageLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrGmn1CoverageLinked
+        title: GMN-1-coverage floor — Linked
+      thrGmn1CoverageMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrGmn1CoverageMaximal
+        title: GMN-1-coverage floor — Maximal
       thrGroundingExemplified:
         meaning: https://blackcatinformatics.ca/gmeow/thrGroundingExemplified
         title: grounding floor — Exemplified
@@ -18022,6 +18130,69 @@ enums:
       gmnCodebookCurrent:
         meaning: https://blackcatinformatics.ca/gmeow/gmnCodebookCurrent
         title: GMN codebook (current)
+  GmnCompartmentEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnCompartment
+    permissible_values:
+      gmnCompartmentNato:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCompartmentNato
+        title: 'compartment: NATO'
+      gmnCompartmentPartner:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCompartmentPartner
+        title: 'compartment: partner'
+  GmnDictionaryEntryEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnDictionaryEntry
+    permissible_values:
+      gmnDictV1EntryBoundaryClosed:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryBoundaryClosed
+        title: 'dict-v1 entry: logic:Closed → closed'
+      gmnDictV1EntryBoundaryOpen:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryBoundaryOpen
+        title: 'dict-v1 entry: logic:Open → open'
+      gmnDictV1EntryCodebook:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryCodebook
+        title: 'dict-v1 entry: gmeow:GmnCodebook → gcb'
+      gmnDictV1EntryEnvelope:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEnvelope
+        title: 'dict-v1 entry: gmeow:GmnEnvelope → genv'
+      gmnDictV1EntryEvKindComputational:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEvKindComputational
+        title: 'dict-v1 entry: gmeow:methodComputationalModel → cmp'
+      gmnDictV1EntryEvKindDirect:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEvKindDirect
+        title: 'dict-v1 entry: gmeow:methodDirectObservation → dir'
+      gmnDictV1EntryEvKindExpert:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEvKindExpert
+        title: 'dict-v1 entry: gmeow:methodExpertJudgement → exj'
+      gmnDictV1EntryEvKindInstrumental:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEvKindInstrumental
+        title: 'dict-v1 entry: gmeow:methodInstrumentalReading → inst'
+      gmnDictV1EntryEvKindRemote:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEvKindRemote
+        title: 'dict-v1 entry: gmeow:methodRemoteSensing → rmt'
+      gmnDictV1EntryEvKindStreaming:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEvKindStreaming
+        title: 'dict-v1 entry: gmeow:methodStreaming → strm'
+      gmnDictV1EntryEvKindSurvey:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryEvKindSurvey
+        title: 'dict-v1 entry: gmeow:methodSurvey → srv'
+      gmnDictV1EntryModalActual:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryModalActual
+        title: 'dict-v1 entry: gmeow:modalForceActual → act'
+      gmnDictV1EntryModalCounterfactual:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryModalCounterfactual
+        title: 'dict-v1 entry: gmeow:modalForceCounterfactual → cf'
+      gmnDictV1EntryModalNecessary:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryModalNecessary
+        title: 'dict-v1 entry: gmeow:modalForceNecessary → nec'
+      gmnDictV1EntryModalPossible:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1EntryModalPossible
+        title: 'dict-v1 entry: gmeow:modalForcePossible → poss'
+  GmnDictionaryEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnDictionary
+    permissible_values:
+      gmnDictV1:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnDictV1
+        title: GMN dictionary (version 1)
   GmnFixityEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GmnFixity
     permissible_values:
@@ -18037,12 +18208,42 @@ enums:
       gmnFixityPrefix:
         meaning: https://blackcatinformatics.ca/gmeow/gmnFixityPrefix
         title: prefix
+  GmnRingCriterionEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnRingCriterion
+    permissible_values:
+      gmnCriterionAutomatedUnreviewed:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCriterionAutomatedUnreviewed
+        title: 'criterion: automated, unreviewed'
+      gmnCriterionHumanReviewed:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnCriterionHumanReviewed
+        title: 'criterion: human-reviewed'
+  GmnRingLevelEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnRingLevel
+    permissible_values:
+      gmnLevelCore:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnLevelCore
+        title: 'level: core'
+      gmnLevelRestricted:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnLevelRestricted
+        title: 'level: restricted'
+      gmnLevelTrusted:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnLevelTrusted
+        title: 'level: trusted'
+  GmnRingPresetEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/GmnRingPreset
+    permissible_values:
+      gmnRingPresetDefault:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnRingPresetDefault
+        title: default ring preset
   GmnSecurityRingEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/GmnSecurityRing
     permissible_values:
       gmnRingCore:
         meaning: https://blackcatinformatics.ca/gmeow/gmnRingCore
         title: core ring
+      gmnRingNato:
+        meaning: https://blackcatinformatics.ca/gmeow/gmnRingNato
+        title: NATO-eyes-only ring
       gmnRingRestricted:
         meaning: https://blackcatinformatics.ca/gmeow/gmnRingRestricted
         title: restricted ring
@@ -19090,12 +19291,18 @@ enums:
       processAttention:
         meaning: https://blackcatinformatics.ca/gmeow/processAttention
         title: attention
+      processAudit:
+        meaning: https://blackcatinformatics.ca/gmeow/processAudit
+        title: audit
       processDeliberation:
         meaning: https://blackcatinformatics.ca/gmeow/processDeliberation
         title: deliberation
       processDreaming:
         meaning: https://blackcatinformatics.ca/gmeow/processDreaming
         title: dreaming
+      processExport:
+        meaning: https://blackcatinformatics.ca/gmeow/processExport
+        title: export
       processImagining:
         meaning: https://blackcatinformatics.ca/gmeow/processImagining
         title: imagining
@@ -19114,6 +19321,9 @@ enums:
       processRecollection:
         meaning: https://blackcatinformatics.ca/gmeow/processRecollection
         title: recollection
+      processTraining:
+        meaning: https://blackcatinformatics.ca/gmeow/processTraining
+        title: training
   MentalReferenceFrameEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/MentalReferenceFrame
     permissible_values:
@@ -21268,6 +21478,9 @@ enums:
       axisFlagshipCounterExampleDepth:
         meaning: https://blackcatinformatics.ca/gmeow/axisFlagshipCounterExampleDepth
         title: Flagship Counter-Example Depth
+      axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/axisGmn1Coverage
+        title: GMN-1 Coverage
       axisMaximalGrounding:
         meaning: https://blackcatinformatics.ca/gmeow/axisMaximalGrounding
         title: Maximal Grounding
