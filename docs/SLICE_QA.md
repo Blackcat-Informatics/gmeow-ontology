@@ -174,3 +174,20 @@ deletes the matching `docs/test-retention/<name>.md`. Every removal issue must
 carry this in its acceptance criteria: *delete the pytest, delete its dossier(s),
 redirect any constitution citation* — all in the one change. A dossier left behind
 after its test is gone is itself a lint failure waiting to happen.
+
+## Migrating a slice's hand-authored `shapes.ttl` to `logic:`
+
+The slice-local `shapes.ttl` in the anatomy above is **transitional**. Under
+Principle 17 the only authored validation form is `logic:`; SHACL is a generated
+projection. A slice still shipping a hand-authored `shapes.ttl` (or contributing to
+a root `shapes/*.ttl`) carries per-slice migration debt, surfaced by the
+`slice-quality` projection axis as `slice-quality.projection.hand-authored-shapes`.
+
+Discharge it one slice at a time, under equivalence-before-deletion: re-express each
+shape as a `logic:Constraint` (procedural) or an OWL/RDFS axiom (declarative) in
+`module.ttl` so it PROJECTS to `generated/shapes/*`, prove the slice's
+counter-examples still fail identically against the projected union, **then** retire
+the hand-authored shape. Never delete a shape whose check the projection does not yet
+reproduce — that drops live enforcement. Full procedure, idioms, and the
+reasoner-safety rules for cardinality:
+[`docs/MIGRATING-SHAPES-TO-LOGIC.md`](./MIGRATING-SHAPES-TO-LOGIC.md).
