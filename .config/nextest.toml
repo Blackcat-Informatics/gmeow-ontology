@@ -151,6 +151,19 @@
 #     the folded `generated/quality/gmeow.quality-assessment.nt` is drift-gated on every
 #     `make check` via `make check-generated`, and the exhaustive real-carrier proof
 #     stays on-gate on `maint-heavy`.
+#   - gmeow-pipeline stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo
+#     (F1, issue 1404): ~100 s locally. Proves the B3 entailment join is non-vacuous
+#     against the REAL ontology by running the real `source_load` → `statements` /
+#     `compile_logic` → `mappings` → `reason` stage chain (a full native-chase
+#     reasoning pass over the whole EDB) and asserting `term_entailments` is
+#     genuinely non-empty — irreducibly O(bundle size), the same whole-repo class
+#     as `end_to_end`/`quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate`.
+#     Coverage stays: the join logic itself (reifier-bound quoted-triple resolution,
+#     term matching, hard-fail-on-missing-artifact) is proven on-gate by the fast
+#     fixture-only siblings
+#     `term_entailments_from_explanations_populates_matching_term_only` and
+#     `term_entailments_from_upstream_joins_and_hard_fails_on_missing_artifact` in the
+#     same module, and the real-repo non-vacuity proof stays on-gate on `maint-heavy`.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -168,6 +181,7 @@ default-filter = '''
     | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter) | test(project_unknown_view_fails) | test(describe_env_language_rejected_if_unknown)))
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(rendered_tree_is_disk_faithful))
     | (package(gmeow-pipeline) & test(/quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate/))
+    | (package(gmeow-pipeline) & test(/stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo/))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
@@ -307,6 +321,17 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 filter = 'package(gmeow-pipeline) & test(/stages::carrier::docs_try_it_golden/)'
 test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
+# The B3 real-repo non-vacuity proof (F1, issue 1404) drives a full native-chase
+# reasoning pass over the WHOLE object-level EDB via the real `ReasonStage`. It is
+# off-gated via `default-filter` (runs only on `maint-heavy`), but the override
+# still applies there: serialize under the `engine` memory group so it does not
+# OOM-thrash alongside other chases, with a runaway-cliff timeout well over its
+# measured ~100 s.
+filter = 'package(gmeow-pipeline) & test(/stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo/)'
+test-group = 'engine'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
 # Mapping-stage integration tests run the full `compile_mappings` registry check.

@@ -675,6 +675,10 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
         "**Unsatisfiable** — the native DL reasoner proved this class necessarily empty \
          (`rdfs:subClassOf owl:Nothing`).",
     ),
+    (
+        "body_reasoning_unsatisfiable_because",
+        "Unsatisfiable because",
+    ),
     ("body_recipe_not_found", "Recipe not found."),
     ("body_recipes", "Recipes"),
     ("body_related_terms", "Related terms"),
@@ -683,6 +687,7 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_stability", "Stability"),
     ("body_super_classes", "Super-classes"),
     ("body_super_properties", "Super-properties"),
+    ("body_term_entailments", "Inferred facts"),
     ("body_term_not_found", "Term not found."),
     (
         "body_term_projection_degradation",
@@ -996,9 +1001,9 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 131 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 133 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 191);
+        assert_eq!(UI_TEMPLATES.len(), 193);
     }
 
     #[test]

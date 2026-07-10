@@ -36,7 +36,7 @@ mod store;
 pub mod svg;
 
 pub use describe::{DescribeGraph, build_card, describe, resolve_term};
-pub use exec::{ExecutableDocsData, InferenceDiff, example_key};
+pub use exec::{Entailment, ExecutableDocsData, InferenceDiff, example_key};
 pub use i18n::{Translations, UiCatalog, available_languages, ui_string};
 pub use lint::lint;
 pub use llms::{GMEOW_SUMMARY, LLMS_NOTE_CAP};
