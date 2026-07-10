@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions authored as slice-resident test-DSL data,
+# executed by the native Rust slice-test harness (crates/slicetest), asserted
+# lane. The two cells pin the questions the documentation slice exists to answer:
+# which slice owns a documented term (the record→slice bridge), and is every
+# gmeow:DocEvidence node grounded (the fail-fast grounding invariant). Both run
+# over the self-describing gmeow:cqDataFile overlay scene.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/documentation/tests/> .
+
+# --- 1. Which slice owns a documented term? (RowsContains + overlay) ----------
+# A gmeow:DocumentedTerm names exactly one owning slice; the documentation slice's
+# own worked scene documents gmeow:DocEvidence, owned by the documentation slice, so
+# that slice IRI is the guaranteed witness. RowsContains keeps the cell stable if the
+# scene later documents further terms owned by other slices.
+ex:cqDocumentedTermOwner a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/documentation/queries/competency/documented-term-owner.rq" ;
+    gmeow:cqDataFile "examples/documented-term.ttl" ;
+    gmeow:cqRationale "The documentation surface MUST be able to bridge from a term's documentation record back to the slice that owns the term: gmeow:docOwnerSlice is the record→slice edge that lets the docs group terms by slice and link a term to its slice page. Without it the documentation graph would name records with no path back to the owning vocabulary. The self-describing scene documents gmeow:DocEvidence, owned by the documentation slice, so the documentation slice IRI is the witness." ;
+    gmeow:cqResultShape ex:cqDocumentedTermOwnerShape ;
+    gmeow:cqExpectRow ex:cqOwnerRowDocumentation .
+
+ex:cqDocumentedTermOwnerShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "owner" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ex:cqOwnerRowDocumentation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "owner" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/slices/documentation> ] .
+
+# --- 2. Is a gmeow:DocEvidence node grounded? (ASK + overlay) -----------------
+# The fail-fast grounding invariant, asked positively: the scene MUST demonstrate a
+# gmeow:DocEvidence node that carries both a gmeow:docEvidenceKind and at least one
+# gmeow:docGroundedBy truthmaker — the grounded discipline downstream authors copy.
+ex:cqDocEvidenceGrounded a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/documentation/queries/competency/doc-evidence-grounded.rq" ;
+    gmeow:cqDataFile "examples/documented-term.ttl" ;
+    gmeow:cqRationale "Proof-carrying documentation demands that every gmeow:DocEvidence node be a claim WITH its grounds: a kind (gmeow:docEvidenceKind) and at least one carrier truthmaker (gmeow:docGroundedBy). An ungrounded evidence node is the doc-layer analogue of a DARK finding. The ASK witnesses that the worked scene holds together as a grounded evidence node." ;
+    gmeow:cqExpectAsk true .

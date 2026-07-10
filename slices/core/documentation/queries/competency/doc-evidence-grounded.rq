@@ -1,0 +1,13 @@
+# Competency question: is a gmeow:DocEvidence node a claim held together WITH its
+# grounds? Every evidence node carries at least one gmeow:docGroundedBy carrier
+# truthmaker — an ungrounded node would be the doc-layer analogue of a DARK finding.
+# The ASK witnesses that the scene demonstrates a grounded evidence node. Asserted
+# lane; the gmeow:cqDataFile overlay supplies the self-describing scene.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+ASK {
+    ?evidence a gmeow:DocEvidence ;
+        gmeow:docEvidenceKind ?kind ;
+        gmeow:docGroundedBy ?truthmaker .
+}
