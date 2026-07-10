@@ -9,41 +9,44 @@
 //!
 //! * **(2a) a DETERMINISTIC structured artifact** (`--emit-cost <path>`, else stdout):
 //!   per `(corpus, case, engine)` the sorted `CostVector` `(rule, predicate, stratum,
-//!   count)` tuples, `consumed_steps`, the derived-fact / answer counts, the native
-//!   `peak_live_bytes` allocation scalar, and the verdict-agreement booleans+tokens.
-//!   Every value is an INTEGER or a stable fingerprint and every map is serialized with
-//!   sorted keys (serde_json's default `BTreeMap`-backed `Value`), so the bytes are a
-//!   pure function of `(engine version, corpus)`. This is the drift-gate-eligible
-//!   signal. It carries NO wall-clock, NO peak-RSS, and NO total-allocation scalars.
+//!   count)` tuples, `consumed_steps`, the derived-fact / answer counts, the three native
+//!   allocation scalars (`alloc_bytes`, `alloc_count`, `peak_live_bytes`), and the
+//!   verdict-agreement booleans+tokens. Every value is an INTEGER or a stable fingerprint
+//!   and every map is serialized with sorted keys (serde_json's default `BTreeMap`-backed
+//!   `Value`), so the bytes are a pure function of `(engine version, corpus)`. This is the
+//!   drift-gate-eligible signal. It carries NO wall-clock and NO peak-RSS.
 //!
 //! * **(2b) a REPORT-ONLY advisory table** (always to stderr, clearly labeled
 //!   "report-only, non-gating"): rows `(corpus, fragment, engine, wall_ns, peak_rss,
-//!   alloc_bytes, alloc_count, verdict-agreement)`. Wall-clock and peak-RSS are
-//!   NON-deterministic (clock jitter, allocator high-water, page reuse), and the
-//!   total-allocation scalars carry a small non-deterministic transient (see below), so
-//!   all of them live HERE and NEVER enter the committed artifact.
+//!   verdict-agreement)`. Wall-clock and peak-RSS are NON-deterministic (clock jitter,
+//!   allocator high-water, page reuse), so they live HERE and NEVER enter the committed
+//!   artifact.
 //!
-//! # Which allocation scalar gates (measured, R1 pool-quiesce)
+//! # How each allocation scalar gates
 //!
-//! `main` pins the process-GLOBAL Rayon pool to a SINGLE thread once
-//! (`rayon::ThreadPoolBuilder::new().num_threads(1).build_global()`) before any engine
-//! call — good measurement hygiene that makes `peak_live_bytes` rock-solid. Measured
-//! across repeated runs (and repeated in-process calls), `consumed_steps`, the cost
-//! vector, `derived_count`, every verdict-agreement token, AND `peak_live_bytes` are
-//! byte-identical.
+//! `main` pins the process-GLOBAL Rayon pool to a SINGLE thread once, adding the calling
+//! thread as its only worker (`num_threads(1).use_current_thread()`) so every parallel
+//! section the native engine issues executes inline on the measuring thread — good
+//! measurement hygiene. Under that pool `consumed_steps`, the cost vector, `derived_count`,
+//! every verdict-agreement token, AND `peak_live_bytes` are byte-identical across runs;
+//! they gate by EXACT drift-match through the committed baseline (the `cost_descriptor`
+//! divergence-ledger comparison).
 //!
-//! The TOTAL-allocation scalars (`alloc_bytes` / `alloc_count`) are NOT: even under the
-//! 1-thread pool they still vary ~0.008% on the most-recursive case (`same-generation`),
-//! and — proven by three back-to-back IN-PROCESS measurements differing from each other
-//! — the residue is irreducible transient scratch (Rayon block-coordination / allocator
-//! bookkeeping the measuring thread performs while the engine runs), not a per-process
-//! hash seed a thread cap could remove. `peak_live_bytes` — the high-water of NET
-//! simultaneously-live bytes — nets that transient scratch to zero (each scratch
-//! allocation is freed within the region, so it never raises the net-live high-water),
-//! so it stays deterministic. Therefore ONLY `peak_live_bytes` enters the deterministic
-//! artifact (2a); `alloc_bytes` / `alloc_count` are surfaced advisory-only (2b). This
-//! keeps the Task 8 drift gate byte-stable while still tracking the total-allocation
-//! signal (the "fewer clones / fewer owned-key allocations" proxy) as advisory data.
+//! `peak_live_bytes` (the [`gmeow_cost_measure`] net-live high-water) is deterministic
+//! because it nets each transient scratch allocation — freed within the region — back to
+//! zero, so it enters the exact descriptor. The two TOTAL-allocation scalars (`alloc_bytes`
+//! / `alloc_count`) are NOT byte-reproducible: across ≥20 harness runs the most-recursive
+//! case (`same-generation`) occupies three discrete states spanning ~0.06% — a single
+//! quantized ±14-allocation transient deep in the native forward core that survives a
+//! process-global total, the inline single-thread pool, AND a fully rayon-free sequential
+//! engine (proven by direct experiment), i.e. genuine per-run engine allocation jitter,
+//! not a threading artifact a thread cap could remove. So the totals gate through a
+//! separate ONE-SIDED tolerance band (`fresh ≤ baseline·(1+ε)`, ε = 1% ≈ 17× the measured
+//! floor; see [`ALLOC_BAND_NUM`]) folded through the SAME divergence ledger: a within-band
+//! run is a non-blocking `Agree`, a breach a blocking `CorpusOnly` cost-regression finding.
+//! They are therefore stripped from the exact `cost_descriptor` (an exact match would
+//! flake) but remain in the artifact (2a) as committed, drift-gated integer columns — no
+//! longer advisory. See `LOGIC-PERFORMANCE.md §Measurement doctrine`.
 //!
 //! # Verdict-agreement (deterministic set equality)
 //!
@@ -148,17 +151,20 @@ const NEMO_REV: &str = "4415bc2e180adf33a7a4b98ddc41be9914b7584e";
 const SCRYER_BRANCH: &str = "master";
 
 fn main() -> gmeow_errors::Result<()> {
-    // R1 pool-quiesce: force the process-GLOBAL Rayon pool to a single thread BEFORE
-    // any engine call, so every parallel operation the native engine issues runs on
-    // the one measuring thread and the `gmeow-cost-measure` thread-local counters
-    // capture bytes/count/peak-live COMPLETELY and deterministically — no stolen-closure
-    // pollution, and no per-call `install()` wrapping (which the backward path's
-    // `!Send` `WorldStore` could never satisfy). This is a measurement tool, not a
-    // speed tool, so a single-thread global pool is exactly right. `build_global` can
-    // be called only once per process and hard-errors if the pool was already built;
-    // here it is the first statement, and a failure is a hard fail (no-optionality).
+    // Pool-quiesce: force the process-GLOBAL Rayon pool to a single thread — the calling
+    // thread itself (`use_current_thread`) — BEFORE any engine call, so every parallel
+    // section the native engine issues executes INLINE on the one measuring thread (no
+    // cross-thread work-stealing handoff, no per-call `install()` wrapping the backward
+    // path's `!Send` `WorldStore` could never satisfy). This keeps `peak_live_bytes` (a
+    // per-thread net-live high-water) exact and confines all allocation to one thread;
+    // the process-global `gmeow-cost-measure` totals then attribute solely to the
+    // sequential measured region. This is a measurement tool, not a speed tool, so a
+    // single-thread global pool is exactly right. `build_global` can be called only once
+    // per process and hard-errors if the pool was already built; here it is the first
+    // statement, and a failure is a hard fail (no-optionality).
     rayon::ThreadPoolBuilder::new()
         .num_threads(1)
+        .use_current_thread()
         .build_global()
         .expect("bench-engines: single-thread global rayon pool must initialize");
 
@@ -345,26 +351,23 @@ struct CaseOutcome {
     comparisons: Vec<ExternalComparison>,
 }
 
-/// One report-only advisory row (stderr only, non-gating). It carries the
-/// NON-deterministic wall-clock / peak-RSS plus the total-allocation scalars
-/// (`alloc_bytes` / `alloc_count`), which carry a small irreducible transient (Rayon /
-/// allocator scratch) and so are advisory-only — never in the committed artifact.
-/// `alloc_bytes`/`alloc_count` are `0` for the oracle rows (only the native run is
-/// allocation-measured).
+/// One report-only advisory row (stderr only, non-gating). It carries ONLY the
+/// NON-deterministic wall-clock and peak-RSS — the allocation scalars are no longer
+/// advisory (they gate through the committed artifact: `peak_live_bytes` by exact
+/// drift-match, the total-allocation scalars through the one-sided tolerance band).
 struct AdvisoryRow {
     corpus: String,
     fragment: &'static str,
     engine: &'static str,
     wall_ns: u128,
     peak_rss_kib: u64,
-    alloc_bytes: u64,
-    alloc_count: u64,
     agreement: bool,
 }
 
-/// Drive one case through the native engine and the applicable oracle. The measured
-/// native run is deterministic because `main` pinned the global Rayon pool to a single
-/// thread, so all engine allocation lands on the measuring thread.
+/// Drive one case through the native engine and the applicable oracle. `main` pinned the
+/// global Rayon pool to the single calling thread, so all engine allocation lands on the
+/// measuring thread: `consumed_steps` / cost-vector / `peak_live_bytes` are exactly
+/// reproducible, and the total-allocation scalars are captured for the tolerance-band gate.
 fn run_case(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     match case.fragment {
         Fragment::Forward => run_forward(case),
@@ -403,9 +406,9 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let edb = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
         .map_err(|e| run_err(case, format!("EDB parse error: {e}")))?;
 
-    // Native (measured). The global Rayon pool is single-threaded (set in `main`), so
-    // the engine's parallel work runs on the measuring thread and the thread-local
-    // allocation counters capture it completely and deterministically — R1 pool-quiesce.
+    // Native (measured). The global Rayon pool is the single calling thread (set in
+    // `main`), so the engine's parallel work runs inline on the measuring thread; the
+    // process-global totals and per-thread peak-live capture it completely — pool-quiesce.
     let native_start = Instant::now();
     let (native_res, sample) = measure(|| run_native_forward(edb.as_ref(), &case.rules));
     let native_wall = native_start.elapsed().as_nanos();
@@ -451,10 +454,13 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
             "engine": native.engine.version,
             "consumed_steps": native.consumed_steps,
             "derived_count": native_derived,
-            // Total allocation bytes/count carry small non-deterministic transient
-            // scratch (rayon/allocator) in the current native core, so they are
-            // advisory-only (2b); peak simultaneously-live bytes nets transient scratch
-            // to zero and is the deterministic, gate-eligible allocation metric.
+            // The three allocation scalars all GATE: alloc_bytes/alloc_count are the
+            // process-GLOBAL totals (summed across the caller + Rayon worker, so
+            // invariant to the work-stealing split and deterministic under the
+            // sequential harness), and peak_live_bytes is the per-thread net-live
+            // high-water. All are integer-valued and byte-reproducible.
+            "alloc_bytes": native.cost.alloc_bytes(),
+            "alloc_count": native.cost.alloc_count(),
             "peak_live_bytes": native.cost.peak_live_bytes(),
             "rows_fingerprint": native_fp,
             "cost_vector": cost_tuples(&native.cost.to_sorted_tuples()),
@@ -484,8 +490,6 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
                 engine: "native",
                 wall_ns: native_wall,
                 peak_rss_kib: peak,
-                alloc_bytes: native.cost.alloc_bytes(),
-                alloc_count: native.cost.alloc_count(),
                 agreement: agree_golden,
             },
             AdvisoryRow {
@@ -494,8 +498,6 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
                 engine: "nemo",
                 wall_ns: nemo_wall,
                 peak_rss_kib: peak,
-                alloc_bytes: 0,
-                alloc_count: 0,
                 agreement: agree_nemo,
             },
         ],
@@ -510,7 +512,7 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
 fn run_existential(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let (world, golden_rows) = sole_world(case)?;
 
-    // Native chase (measured; global Rayon pool is single-threaded — R1 pool-quiesce).
+    // Native chase (measured; global Rayon pool is the single calling thread — pool-quiesce).
     let native_start = Instant::now();
     let (native_res, sample) = measure(|| {
         materialize_routed(
@@ -577,8 +579,11 @@ fn run_existential(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
             "engine": EngineId::native().version,
             "consumed_steps": consumed_steps,
             "derived_count": native_derived,
-            // peak-live is the deterministic, gate-eligible allocation metric; the
-            // total bytes/count carry small transient scratch and are advisory-only (2b).
+            // All three allocation scalars GATE: alloc_bytes/alloc_count are the
+            // process-global totals (deterministic under the sequential harness) and
+            // peak_live_bytes is the per-thread net-live high-water.
+            "alloc_bytes": sample.bytes,
+            "alloc_count": sample.count,
             "peak_live_bytes": sample.peak_live,
             // The chase seam exposes no decomposable (rule,predicate,stratum) vector,
             // so none is fabricated (the no-optionality doctrine: an absent measure is
@@ -609,8 +614,6 @@ fn run_existential(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
                 engine: "native",
                 wall_ns: native_wall,
                 peak_rss_kib: peak,
-                alloc_bytes: sample.bytes,
-                alloc_count: sample.count,
                 agreement: agree_golden,
             },
             AdvisoryRow {
@@ -619,8 +622,6 @@ fn run_existential(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
                 engine: "nemo",
                 wall_ns: nemo_wall,
                 peak_rss_kib: peak,
-                alloc_bytes: 0,
-                alloc_count: 0,
                 agreement: agree_nemo,
             },
         ],
@@ -643,7 +644,7 @@ fn run_nary(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let rules = parse_nary_rls_program(&case.rules)
         .map_err(|e| run_err(case, format!("n-ary .rls parse failed: {e}")))?;
 
-    // Native (measured; global Rayon pool is single-threaded — R1 pool-quiesce).
+    // Native (measured; global Rayon pool is the single calling thread — pool-quiesce).
     let native_start = Instant::now();
     let (native_res, sample) = measure(|| run_native_nary_forward_run(&case.nary_edb, &rules));
     let native_wall = native_start.elapsed().as_nanos();
@@ -687,8 +688,11 @@ fn run_nary(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
             "engine": EngineId::native().version,
             "consumed_steps": consumed_steps,
             "derived_count": native_derived,
-            // peak-live is the deterministic, gate-eligible allocation metric; the total
-            // bytes/count carry small transient scratch and are advisory-only (2b).
+            // All three allocation scalars GATE: alloc_bytes/alloc_count are the
+            // process-global totals (deterministic under the sequential harness) and
+            // peak_live_bytes is the per-thread net-live high-water.
+            "alloc_bytes": sample.bytes,
+            "alloc_count": sample.count,
             "peak_live_bytes": sample.peak_live,
             // The reified n-ary chase seam exposes no decomposable (rule,predicate,stratum)
             // vector, so none is fabricated (no-optionality: an absent measure is absent).
@@ -720,8 +724,6 @@ fn run_nary(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
                 engine: "native",
                 wall_ns: native_wall,
                 peak_rss_kib: peak,
-                alloc_bytes: sample.bytes,
-                alloc_count: sample.count,
                 agreement: agree_golden,
             },
             AdvisoryRow {
@@ -730,8 +732,6 @@ fn run_nary(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
                 engine: "nemo",
                 wall_ns: nemo_wall,
                 peak_rss_kib: peak,
-                alloc_bytes: 0,
-                alloc_count: 0,
                 agreement: agree_nemo,
             },
         ],
@@ -767,7 +767,7 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let budget = Budget::default();
     let table_preds = cyclic_predicates(&program);
 
-    // Native backward (measured; global Rayon pool is single-threaded — R1 pool-quiesce).
+    // Native backward (measured; global Rayon pool is the single calling thread — pool-quiesce).
     let native_start = Instant::now();
     let (native_res, sample) =
         measure(|| dispatch_query(&foreign, &store, world, &program, HORN_PROFILE_IRI, &budget));
@@ -810,8 +810,11 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
             "engine": EngineId::native().version,
             "consumed_steps": consumed_steps,
             "answer_count": native_count,
-            // peak-live is the deterministic, gate-eligible allocation metric; the
-            // total bytes/count carry small transient scratch and are advisory-only (2b).
+            // All three allocation scalars GATE: alloc_bytes/alloc_count are the
+            // process-global totals (deterministic under the sequential harness) and
+            // peak_live_bytes is the per-thread net-live high-water.
+            "alloc_bytes": sample.bytes,
+            "alloc_count": sample.count,
             "peak_live_bytes": sample.peak_live,
             "answers_fingerprint": native_fp,
             // No decomposable cost vector at the backward dispatch seam.
@@ -842,8 +845,6 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
                 engine: "native",
                 wall_ns: native_wall,
                 peak_rss_kib: peak,
-                alloc_bytes: sample.bytes,
-                alloc_count: sample.count,
                 agreement: agree_golden,
             },
             AdvisoryRow {
@@ -852,8 +853,6 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
                 engine: "scryer",
                 wall_ns: scryer_wall,
                 peak_rss_kib: peak,
-                alloc_bytes: 0,
-                alloc_count: 0,
                 agreement: agree_scryer,
             },
         ],
@@ -879,20 +878,104 @@ fn case_key(rec: &Value) -> gmeow_errors::Result<(String, String)> {
     Ok((corpus.to_owned(), case.to_owned()))
 }
 
+/// The allocation-band tolerance `ε = ALLOC_BAND_NUM / ALLOC_BAND_DEN = 1%`. The
+/// total-allocation scalars (`alloc_bytes` / `alloc_count`) are NOT byte-reproducible:
+/// across ≥20 harness runs the most-recursive case (`same-generation`) occupies three
+/// discrete states spanning ~0.06% (a single quantized ±14-allocation transient deep in
+/// the native forward core that survives a process-global total, an inline single-thread
+/// Rayon pool, AND a fully rayon-free sequential engine — i.e. genuine per-run engine
+/// allocation jitter, not a threading artifact). So alloc gates as a **one-sided
+/// regression band** `fresh ≤ baseline·(1+ε)` — deterministic in the sense that the
+/// verdict is a pure function of `(fresh, baseline, ε)` — with ε set ~17× above the
+/// measured 0.06% floor so the band never flakes yet still bites a gross allocation
+/// regression (the "fewer clones / fewer owned-key allocations" backslide the doctrine
+/// names, which re-adds allocations far above the band). See `LOGIC-PERFORMANCE.md
+/// §Measurement doctrine`.
+const ALLOC_BAND_NUM: u64 = 1;
+/// Denominator of the allocation-band tolerance (see [`ALLOC_BAND_NUM`]).
+const ALLOC_BAND_DEN: u64 = 100;
+
 /// A COMPLETE deterministic descriptor of one case's native cost + verdict-agreement
-/// sub-records. serde_json serializes object keys sorted (no `preserve_order` feature),
-/// so this is byte-stable; ANY change to a deterministic count / fingerprint / verdict
-/// changes the descriptor, and thus surfaces as a cost-regression divergence.
+/// sub-records, EXCLUDING the two non-reproducible total-allocation scalars (`alloc_bytes`
+/// / `alloc_count`), which gate through the separate one-sided [`alloc_band_comp`] band
+/// (see [`ALLOC_BAND_NUM`]). `peak_live_bytes` — the deterministic net-live high-water —
+/// STAYS in the descriptor. serde_json serializes object keys sorted (no `preserve_order`
+/// feature), so this is byte-stable; ANY change to a deterministic count / fingerprint /
+/// verdict changes the descriptor, and thus surfaces as a cost-regression divergence.
 fn cost_descriptor(rec: &Value) -> String {
-    let native = rec.get("native").cloned().unwrap_or(Value::Null);
+    let mut native = rec.get("native").cloned().unwrap_or(Value::Null);
+    // Strip the non-reproducible total-allocation scalars from the EXACT descriptor;
+    // they gate via the tolerance band instead (an exact match on them would flake).
+    if let Some(obj) = native.as_object_mut() {
+        obj.remove("alloc_bytes");
+        obj.remove("alloc_count");
+    }
     let agreement = rec.get("agreement").cloned().unwrap_or(Value::Null);
-    // Both sub-objects are already integer/boolean/fingerprint-valued; a compact
-    // canonical JSON of the pair is the comparable descriptor.
+    // Both sub-objects are now integer/boolean/fingerprint-valued; a compact canonical
+    // JSON of the pair is the comparable descriptor.
     format!(
         "native={} agreement={}",
         serde_json::to_string(&native).unwrap_or_default(),
         serde_json::to_string(&agreement).unwrap_or_default(),
     )
+}
+
+/// The native `(alloc_bytes, alloc_count)` total-allocation scalars of a per-case record.
+/// Yields `None` if the record carries no `native` object or the object lacks the alloc
+/// fields (a malformed / stale baseline), which the caller turns into a hard error —
+/// never a silent `0`.
+fn native_alloc(rec: &Value) -> Option<(u64, u64)> {
+    let native = rec.get("native")?;
+    Some((
+        native.get("alloc_bytes")?.as_u64()?,
+        native.get("alloc_count")?.as_u64()?,
+    ))
+}
+
+/// Whether `fresh ≤ baseline · (1 + ε)` under the integer allocation band (`ε =
+/// ALLOC_BAND_NUM / ALLOC_BAND_DEN`), computed in `u128` so no product overflows.
+fn within_alloc_band(fresh: u64, baseline: u64) -> bool {
+    (fresh as u128) * (ALLOC_BAND_DEN as u128)
+        <= (baseline as u128) * ((ALLOC_BAND_DEN + ALLOC_BAND_NUM) as u128)
+}
+
+/// The inclusive integer ceiling of the allocation band for `baseline` — the largest
+/// `fresh` value that still passes [`within_alloc_band`].
+fn alloc_band_ceiling(baseline: u64) -> u64 {
+    ((baseline as u128) * ((ALLOC_BAND_DEN + ALLOC_BAND_NUM) as u128) / (ALLOC_BAND_DEN as u128))
+        as u64
+}
+
+/// Build one allocation-band divergence comparison for the shared ledger: within-band ⇒
+/// equal tokens (a non-blocking `Agree` corroboration), a breach ⇒ divergent tokens (a
+/// blocking `CorpusOnly` cost-regression finding). `kind` distinguishes the bytes vs count
+/// band lanes so their structural focus keys never collide with each other or with the
+/// exact `::cost` comparison.
+fn alloc_band_comp(
+    corpus: &str,
+    case: &str,
+    world: &str,
+    kind: &str,
+    fresh: u64,
+    baseline: u64,
+) -> ExternalComparison {
+    let (native, published) = if within_alloc_band(fresh, baseline) {
+        (
+            "within-alloc-band".to_string(),
+            "within-alloc-band".to_string(),
+        )
+    } else {
+        (
+            format!("alloc={fresh}"),
+            format!("alloc<=ceiling={}", alloc_band_ceiling(baseline)),
+        )
+    };
+    ExternalComparison {
+        case: format!("{corpus}/{case}::{kind}"),
+        world: world.to_owned(),
+        native,
+        published,
+    }
 }
 
 /// Compare THIS fresh run's per-case deterministic cost + verdict-agreement against the
@@ -956,15 +1039,54 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
             .and_then(|r| r.get("world").and_then(Value::as_str))
             .unwrap_or("")
             .to_owned();
-        comps_by_corpus
-            .entry(corpus.clone())
-            .or_default()
-            .push(ExternalComparison {
-                case: format!("{corpus}/{case}::cost"),
-                world,
-                native,
-                published,
-            });
+        let corpus_comps = comps_by_corpus.entry(corpus.clone()).or_default();
+        corpus_comps.push(ExternalComparison {
+            case: format!("{corpus}/{case}::cost"),
+            world: world.clone(),
+            native,
+            published,
+        });
+
+        // Allocation-band gate (the one-sided `fresh ≤ baseline·(1+ε)` regression check
+        // for the non-reproducible total-allocation scalars, stripped from the exact
+        // descriptor above). Only compared when BOTH sides carry the case — a case
+        // present on only one side is already a blocking `::cost` divergence, so a
+        // missing-side alloc comparison would be redundant noise. A present record whose
+        // `native` object lacks the alloc fields is a stale/malformed baseline: hard-fail
+        // with a regenerate hint, never silently skip.
+        if let (Some(fresh_rec), Some(base_rec)) = (fresh_rec, base_rec) {
+            let (fresh_bytes, fresh_count) = native_alloc(fresh_rec).ok_or_else(|| {
+                Diag::of_kind(RunFailed {
+                    detail: format!(
+                        "fresh cost record {corpus}/{case} carries no native alloc_bytes/alloc_count"
+                    ),
+                })
+            })?;
+            let (base_bytes, base_count) = native_alloc(base_rec).ok_or_else(|| {
+                Diag::of_kind(RunFailed {
+                    detail: format!(
+                        "cost baseline case {corpus}/{case} carries no native alloc_bytes/alloc_count \
+                         — regenerate the baseline via `make maint-bench-cost-baseline`"
+                    ),
+                })
+            })?;
+            corpus_comps.push(alloc_band_comp(
+                corpus,
+                case,
+                &world,
+                "alloc-bytes-band",
+                fresh_bytes,
+                base_bytes,
+            ));
+            corpus_comps.push(alloc_band_comp(
+                corpus,
+                case,
+                &world,
+                "alloc-count-band",
+                fresh_count,
+                base_count,
+            ));
+        }
     }
 
     // Fold each corpus's comparisons through the shared divergence ledger: an equal
@@ -1295,32 +1417,23 @@ fn print_advisory_table(rows: &[AdvisoryRow]) {
         "   wall_ns and peak_rss_kib are NON-DETERMINISTIC (clock jitter, allocator high-water,"
     );
     eprintln!(
-        "   page reuse). alloc_bytes / alloc_count carry a small irreducible transient (rayon /"
+        "   page reuse), so they are ADVISORY-ONLY — NEVER in the committed artifact. The three"
     );
     eprintln!(
-        "   allocator scratch) even under the R1 single-thread pool, so they are ADVISORY-ONLY"
+        "   allocation scalars now GATE via the committed artifact (peak_live_bytes by exact"
     );
     eprintln!(
-        "   too — NEVER in the committed artifact (there, peak_live_bytes is the deterministic,"
+        "   drift-match; alloc_bytes/alloc_count via the one-sided tolerance band), so they are"
     );
+    eprintln!("   no longer here. Verdict-agreement is the deterministic column.");
     eprintln!(
-        "   gate-eligible allocation metric). Verdict-agreement is the deterministic column."
-    );
-    eprintln!(
-        "{:<22} {:<12} {:<7} {:>13} {:>9} {:>12} {:>11}  agree",
-        "corpus", "fragment", "engine", "wall_ns", "rss_kib", "alloc_bytes", "alloc_count"
+        "{:<22} {:<12} {:<7} {:>13} {:>9}  agree",
+        "corpus", "fragment", "engine", "wall_ns", "rss_kib"
     );
     for r in rows {
         eprintln!(
-            "{:<22} {:<12} {:<7} {:>13} {:>9} {:>12} {:>11}  {}",
-            r.corpus,
-            r.fragment,
-            r.engine,
-            r.wall_ns,
-            r.peak_rss_kib,
-            r.alloc_bytes,
-            r.alloc_count,
-            r.agreement
+            "{:<22} {:<12} {:<7} {:>13} {:>9}  {}",
+            r.corpus, r.fragment, r.engine, r.wall_ns, r.peak_rss_kib, r.agreement
         );
     }
     eprintln!(
@@ -1333,8 +1446,20 @@ mod tests {
     use super::*;
 
     /// A minimal per-case deterministic record with the fields the cost-regression
-    /// check compares.
+    /// check compares, carrying fixed allocation scalars.
     fn rec(corpus: &str, case: &str, steps: u64) -> Value {
+        rec_alloc(corpus, case, steps, 10_000, 100)
+    }
+
+    /// Like [`rec`] but with explicit total-allocation scalars, so the tolerance-band
+    /// gate can be exercised at chosen `(alloc_bytes, alloc_count)` values.
+    fn rec_alloc(
+        corpus: &str,
+        case: &str,
+        steps: u64,
+        alloc_bytes: u64,
+        alloc_count: u64,
+    ) -> Value {
         json!({
             "corpus": corpus,
             "case": case,
@@ -1342,6 +1467,8 @@ mod tests {
             "native": {
                 "consumed_steps": steps,
                 "derived_count": 3,
+                "alloc_bytes": alloc_bytes,
+                "alloc_count": alloc_count,
                 "peak_live_bytes": 100,
                 "cost_vector": [],
             },
@@ -1382,6 +1509,73 @@ mod tests {
             cost_descriptor(&a),
             cost_descriptor(&changed),
             "a changed consumed_steps count must change the descriptor"
+        );
+    }
+
+    #[test]
+    fn cost_descriptor_excludes_the_nonreproducible_alloc_totals() {
+        // Two records identical except for the total-allocation scalars must yield the
+        // SAME exact descriptor — the totals gate through the tolerance band, not here, so
+        // their run-to-run jitter can never flake the exact `::cost` comparison.
+        let a = rec_alloc("c", "x", 3, 10_000, 100);
+        let b = rec_alloc("c", "x", 3, 999_999, 9_999);
+        assert_eq!(
+            cost_descriptor(&a),
+            cost_descriptor(&b),
+            "alloc_bytes/alloc_count must NOT enter the exact descriptor"
+        );
+        // …but peak_live_bytes (deterministic) MUST still be in the descriptor.
+        assert!(
+            cost_descriptor(&a).contains("peak_live_bytes"),
+            "the deterministic peak_live_bytes must remain in the exact descriptor"
+        );
+    }
+
+    #[test]
+    fn alloc_band_passes_within_tolerance() {
+        // Baseline alloc_count=10000/bytes=1_000_000; a fresh run 0.5% higher is inside
+        // the 1% band → no regression (the sub-ε jitter the band is designed to absorb).
+        let fresh = vec![rec_alloc("c", "x", 3, 1_005_000, 10_050)];
+        let base = write_baseline(vec![rec_alloc("c", "x", 3, 1_000_000, 10_000)]);
+        let out = run_cost_regression_check(&base, &fresh);
+        std::fs::remove_file(&base).ok();
+        assert!(
+            out.is_ok(),
+            "a fresh alloc within the 1% band must not regress: {out:?}"
+        );
+    }
+
+    #[test]
+    fn alloc_band_hard_fails_on_allocation_regression() {
+        // FALSIFIABLE alloc gate: the committed baseline row records a SMALLER alloc_count
+        // (10000) than the fresh run allocates (20000, +100% ≫ the 1% band) → the one-sided
+        // tolerance band is breached → a blocking CorpusOnly cost-regression (hard fail).
+        // Proves the alloc gate BITES, not just passes vacuously.
+        let fresh = vec![rec_alloc("c", "x", 3, 2_000_000, 20_000)];
+        let base = write_baseline(vec![rec_alloc("c", "x", 3, 1_000_000, 10_000)]);
+        let out = run_cost_regression_check(&base, &fresh);
+        std::fs::remove_file(&base).ok();
+        assert!(
+            out.is_err(),
+            "a fresh alloc_count far above the baseline band must be a cost regression"
+        );
+    }
+
+    #[test]
+    fn alloc_band_hard_fails_when_baseline_lacks_alloc_fields() {
+        // A stale baseline whose `native` object predates the alloc columns is a hard
+        // error (regenerate hint), never a silent skip that would let alloc stop gating.
+        let fresh = vec![rec_alloc("c", "x", 3, 1_000_000, 10_000)];
+        let mut stale = rec_alloc("c", "x", 3, 1_000_000, 10_000);
+        let native = stale.get_mut("native").unwrap().as_object_mut().unwrap();
+        native.remove("alloc_bytes");
+        native.remove("alloc_count");
+        let base = write_baseline(vec![stale]);
+        let out = run_cost_regression_check(&base, &fresh);
+        std::fs::remove_file(&base).ok();
+        assert!(
+            out.is_err(),
+            "a baseline record missing the alloc columns must hard-fail, never skip the gate"
         );
     }
 

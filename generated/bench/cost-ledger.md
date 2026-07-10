@@ -4,26 +4,28 @@
 
 Committed engine-vs-engine cost/agreement baseline (`bench/cost-baseline.json`),
 refreshed via `make maint-bench-cost-baseline`. Every value is an integer count
-or a boolean verdict — NO wall-clock, NO peak-RSS, NO total-allocation scalars
-(those are report-only in the harness). This is a drift-gated projection of the
-deterministic cost artifact; `check-generated` reproduces it byte-for-byte from
-the committed baseline without ever running a benchmark.
+or a boolean verdict — NO wall-clock, NO peak-RSS (those are report-only in the
+harness). The three allocation scalars GATE: `peak_live_bytes` by exact drift-match,
+and `alloc_bytes`/`alloc_count` (the total-allocation scalars, which jitter ~0.06%
+run-to-run) through a one-sided tolerance band `fresh ≤ baseline·(1+ε)`, ε = 1%. This
+is a drift-gated projection of the deterministic cost artifact; `check-generated`
+reproduces it byte-for-byte from the committed baseline without running a benchmark.
 
 Engine pins: native `gmeow-logic/0.1.0+nemo+scryer`, nemo `4415bc2e180adf33a7a4b98ddc41be9914b7584e`, scryer `master`.
 
 ## Per-case deterministic cost + verdict-agreement
 
-| corpus | case | fragment | consumed_steps | derived | peak_live_bytes | native_vs_golden | native_vs_oracle |
-|---|---|---|---|---|---|---|---|
-| chasebench-mini | deep-linear | existential | 3 | 3 | 34937 | true | true |
-| nary-mini | co-witness | nary-existential | 16 | 6 | 102307 | true | true |
-| nary-mini | split-null | nary-existential | 14 | 6 | 88846 | true | true |
-| nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 25492 | true | true |
-| nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 37822 | true | true |
-| relational-core-mini | reachability | forward | 2 | 2 | 36685 | true | true |
-| relational-core-mini | same-generation | forward | 8 | 8 | 54978 | true | true |
-| relational-core-mini | scc | forward | 8 | 8 | 53796 | true | true |
-| relational-core-mini | transitive-closure | forward | 3 | 3 | 37785 | true | true |
+| corpus | case | fragment | consumed_steps | derived | alloc_bytes | alloc_count | peak_live_bytes | native_vs_golden | native_vs_oracle |
+|---|---|---|---|---|---|---|---|---|---|
+| chasebench-mini | deep-linear | existential | 3 | 3 | 4752910 | 40138 | 34937 | true | true |
+| nary-mini | co-witness | nary-existential | 16 | 6 | 571879 | 5768 | 102307 | true | true |
+| nary-mini | split-null | nary-existential | 14 | 6 | 464762 | 4760 | 88846 | true | true |
+| nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 164797 | 2086 | 25492 | true | true |
+| nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3911672 | 33198 | 37822 | true | true |
+| relational-core-mini | reachability | forward | 2 | 2 | 3711272 | 31284 | 36685 | true | true |
+| relational-core-mini | same-generation | forward | 8 | 8 | 5459892 | 47655 | 54978 | true | true |
+| relational-core-mini | scc | forward | 8 | 8 | 6169418 | 52906 | 53796 | true | true |
+| relational-core-mini | transitive-closure | forward | 3 | 3 | 3911843 | 33222 | 37785 | true | true |
 
 ## Decomposable cost vectors (rule × predicate × stratum)
 
