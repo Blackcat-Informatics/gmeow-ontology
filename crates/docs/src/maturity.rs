@@ -107,6 +107,17 @@ impl Dimension {
         Dimension::LossJudgmentSound,
     ];
 
+    /// The dimension whose TBox `gmeow:dim*` individual carries `local`, if any —
+    /// the inverse of [`Dimension::local_name`]. Used to lift a dimension local
+    /// name read back from the emitted `graph/documentation` incidence into the
+    /// typed enum (the health page reads projected facts, then names them).
+    pub fn from_local(local: &str) -> Option<Dimension> {
+        Dimension::ALL
+            .iter()
+            .copied()
+            .find(|d| d.local_name() == local)
+    }
+
     /// The `gmeow:` local name of the dimension's TBox individual in
     /// `module.ttl` — the join key that ties this Rust twin to the ontology.
     pub fn local_name(self) -> &'static str {
@@ -188,6 +199,28 @@ impl MaturityAnchor {
             MaturityAnchor::Full => "docMaturityFull",
             MaturityAnchor::Maximal => "docMaturityMaximal",
         }
+    }
+
+    /// The anchor whose `gmeow:docMaturity*` individual carries `local`, if any —
+    /// the inverse of [`MaturityAnchor::local_name`], lifting an anchor read back
+    /// from the emitted `gmeow:docEarnedMaturity` / `gmeow:sliceDocMaturity`
+    /// incidence into the typed enum.
+    pub fn from_local(local: &str) -> Option<MaturityAnchor> {
+        MaturityAnchor::ALL
+            .iter()
+            .copied()
+            .find(|a| a.local_name() == local)
+    }
+
+    /// The next anchor up the derived ladder (`Minimal → Basic → Full → Maximal`),
+    /// or `None` at the top. The target of the health page's gap-to-next-tier
+    /// burn-down: the dimensions in `self.next()`'s intent a record does not yet
+    /// cover are exactly what stands between it and the next tier.
+    pub fn next(self) -> Option<MaturityAnchor> {
+        MaturityAnchor::ALL
+            .iter()
+            .copied()
+            .find(|a| a.rank() == self.rank() + 1)
     }
 
     /// The anchor's INTENT — the set of dimensions it requires. This is the single
@@ -354,6 +387,25 @@ mod tests {
         let frac = coverage_fraction(&all, &full_intent);
         assert!((0.0..=1.0).contains(&frac));
         assert_eq!(frac, 1.0);
+    }
+
+    #[test]
+    fn from_local_and_next_round_trip_the_ladder() {
+        // from_local is the inverse of local_name for every anchor and dimension.
+        for a in MaturityAnchor::ALL {
+            assert_eq!(MaturityAnchor::from_local(a.local_name()), Some(a));
+        }
+        for d in Dimension::ALL {
+            assert_eq!(Dimension::from_local(d.local_name()), Some(d));
+        }
+        assert_eq!(MaturityAnchor::from_local("docMaturityNope"), None);
+        assert_eq!(Dimension::from_local("dimNope"), None);
+
+        // next climbs the derived ladder and stops at the ceiling.
+        assert_eq!(MaturityAnchor::Minimal.next(), Some(MaturityAnchor::Basic));
+        assert_eq!(MaturityAnchor::Basic.next(), Some(MaturityAnchor::Full));
+        assert_eq!(MaturityAnchor::Full.next(), Some(MaturityAnchor::Maximal));
+        assert_eq!(MaturityAnchor::Maximal.next(), None);
     }
 
     #[test]

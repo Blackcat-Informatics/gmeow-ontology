@@ -612,6 +612,14 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_linkages", "Linkages"),
     ("body_logic_and_reasoning", "Logic & Reasoning"),
     ("body_logic_stereotypes", "Logic stereotypes"),
+    ("body_maturity_by_slice", "Maturity by slice"),
+    (
+        "body_maturity_legend",
+        "Each slice's earned documentation-maturity floor (projected from its \
+         coverage), the bounded coverage fraction against the FULL intent, any \
+         claimed tier, and the dimensions still standing between it and the next \
+         tier.",
+    ),
     ("body_neighborhood", "Neighborhood"),
     (
         "body_no_competency_questions",
@@ -1025,9 +1033,9 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 154 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 156 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 214);
+        assert_eq!(UI_TEMPLATES.len(), 216);
     }
 
     #[test]

@@ -16,6 +16,8 @@
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/lang> ,
         <https://blackcatinformatics.ca/gmeow/slices/logic> ,
+        <https://blackcatinformatics.ca/gmeow/slices/math> ,
         <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     gmeow:sliceConsumer "The self-hosting documentation projection (crates/docs — to_gmeow_rdf) that dogfoods the doc model into RDF, so the documentation surface is itself a SPARQL-queryable graph folded into gmeow.gts beside the ontology it describes; the ontology-docs site generator that renders every term / slice / concern / mapping-set page and its proof-carrying evidence panels; and the orphan-zero vocabulary-ownership gate that hard-fails if the projection ever emits a gmeow: term this TBox does not declare."@x-gmeow-english .

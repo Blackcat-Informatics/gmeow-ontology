@@ -3,10 +3,14 @@
 #
 # Declarative competency questions authored as slice-resident test-DSL data,
 # executed by the native Rust slice-test harness (crates/slicetest), asserted
-# lane. The two cells pin the questions the documentation slice exists to answer:
-# which slice owns a documented term (the record→slice bridge), and is every
-# gmeow:DocEvidence node grounded (the fail-fast grounding invariant). Both run
-# over the self-describing gmeow:cqDataFile overlay scene.
+# lane. The cells pin the questions the documentation slice exists to answer:
+# which slice owns a documented term (the record→slice bridge); is every
+# gmeow:DocEvidence node grounded (the fail-fast grounding invariant); is the
+# maturity ladder a proper chain (Full ⊂ Maximal); does any slice CLAIM a maturity
+# its coverage does not support (the HEADLINE GATE — must be empty); and which
+# grounding-slice terms still lack a grounding-tier dimension (the burn-down that
+# drives the grounding lift). Each runs over a self-describing gmeow:cqDataFile
+# overlay scene, or the module base graph where its anchors live.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
@@ -62,3 +66,52 @@ ex:cqMaturityLatticeShape a logic:ResultShape ;
 
 ex:cqMaturityLatticeRowAnnotationCoat a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dim" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/dimAnnotationCoat> ] .
+
+# --- 4. Does any slice CLAIM a maturity its coverage does not support? (RowsCount 0) ---
+# The HEADLINE GATE: gmeow:sliceDocMaturity (asserted) ⊄ gmeow:docEarnedMaturity
+# (projected), expressed by intent inclusion — a slice violates iff some dimension its
+# claimed anchor REQUIRES is NOT among the dimensions its documentation record COVERS.
+# The worked overlay carries a SUPPORTED slice (claims gmeow:docMaturityMinimal and
+# covers that anchor's whole intent), so the gate holds and the query is EMPTY. The
+# claim rides on the real slice IRI while the coverage rides on the gmeow:DocumentedSlice
+# record, so the query bridges the two by gmeow:documents — the faithful structure over
+# the regenerated bundle. cqExpectRowCount 0 pins the "no over-claim" invariant.
+ex:cqMaturityNotSupported a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/documentation/queries/competency/maturity-not-supported.rq" ;
+    gmeow:cqDataFile "tests/fixtures/maturity-projection.ttl" ;
+    gmeow:cqRationale "The whole documentation standard turns on ONE gate: a slice must never CLAIM a documentation-maturity tier its coverage does not support. gmeow:sliceDocMaturity is the claim; the earned floor is the largest anchor whose intent (its gmeow:maturityRequiresDimension set) is covered. Because the anchor intents nest, asserted ⊄ earned is exactly 'some dimension the claimed anchor requires is uncovered', so the query needs no rank predicate — it reads the intent-inclusion directly off gmeow:maturityRequiresDimension and gmeow:docCoversDimension, bridging the claim (on the slice IRI) to the coverage (on the gmeow:DocumentedSlice record) via gmeow:documents. It MUST return the empty set: a non-empty result is a slice claiming a maturity it has not earned." ;
+    gmeow:cqResultShape ex:cqMaturityNotSupportedShape ;
+    gmeow:cqExpectRowCount 0 .
+
+ex:cqMaturityNotSupportedShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "slice" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsCount ;
+    logic:shapeRowCount 0 .
+
+# --- 5. Which grounding-slice terms lack a grounding-tier dimension? (RowsContains) ---
+# The BURN-DOWN that drives the grounding lift: grounding-slice (math/logic/lang) terms
+# MISSING a counter-example fixture pair, a worked instance, or a competency rationale
+# (gmeow:docMissesDimension to gmeow:dimFixturePair / gmeow:dimWorkedInstance /
+# gmeow:dimCompetencyRationale). Unlike the headline gate this is NOT expected empty —
+# it is the work queue. The overlay demonstrates a logic-owned term missing all three,
+# so the (term, dim) witness pair is guaranteed; RowsContains keeps the cell stable as
+# the lift closes gaps.
+ex:cqGroundingGaps a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/documentation/queries/competency/grounding-gaps.rq" ;
+    gmeow:cqDataFile "tests/fixtures/maturity-projection.ttl" ;
+    gmeow:cqRationale "A grounding slice earns its documentation maturity only when every term it owns carries the grounding-tier evidence: a counter-example fixture pair (a rule with no negative fixture is not enforced), a worked instance, and a competency question WITH a rationale. This query enumerates the exact per-term, per-dimension gaps for the three grounding slices (math, logic, lang) from the gmeow:docMissesDimension incidence, giving the grounding lift a precise, gate-derived work queue rather than an authored checklist. A non-empty result is expected while gaps remain; each closed gap drops a row." ;
+    gmeow:cqResultShape ex:cqGroundingGapsShape ;
+    gmeow:cqExpectRow ex:cqGroundingGapsRowFixturePair .
+
+ex:cqGroundingGapsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "term" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:declaresColumn
+        [ logic:columnVariable "dim" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsContains .
+
+ex:cqGroundingGapsRowFixturePair a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "term" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/examples/documentation/tests/logicTermUnderDocumented> ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "dim" ; gmeow:cellValueIri <https://blackcatinformatics.ca/gmeow/dimFixturePair> ] .
