@@ -384,28 +384,7 @@ pub fn run_native_nary_forward(
     edb: &[NaryTuple],
     rules: &[NaryRule],
 ) -> gmeow_errors::Result<Vec<NaryTuple>> {
-    let admission = certify_nary_termination(rules)?;
-    if !admission.admits_native() {
-        return Err(nary_err(format!(
-            "run_native_nary_forward: n-ary program is not certified terminating (weak \
-             acyclicity); refusing to chase unbudgeted rather than risk non-termination: {}",
-            admission.to_finding().message
-        )));
-    }
-
-    let edb_facts = lower_nary_edb(edb)?;
-    let reified_rules = lower_nary_rules(rules)?;
-    let outcome = chase_world(NARY_WORLD, &edb_facts, &reified_rules, None)?;
-    let rows = match outcome {
-        NativeOutcome::Decided(budgeted) => budgeted.rows,
-        NativeOutcome::Unsupported(kind) => {
-            return Err(nary_err(format!(
-                "run_native_nary_forward: native chase declined the reified program \
-                 ({kind:?}) — a certified-terminating program must be decidable natively"
-            )));
-        }
-    };
-    dereify_rows(&rows)
+    Ok(run_native_nary_forward_run(edb, rules)?.tuples)
 }
 
 /// Re-assemble the chase's derived reified triples back into n-ary tuples.
@@ -499,6 +478,233 @@ fn tuple_sort_key(t: &NaryTuple) -> (String, Vec<String>) {
         t.relation.clone(),
         t.args.iter().map(term_display).collect(),
     )
+}
+
+// ── Steps-carrying ingestion entry ────────────────────────────────────────────
+
+/// The de-reified n-ary closure plus the chase's consumed step count — the decomposable
+/// signal a benchmark harness folds into its deterministic artifact next to the
+/// verdict-agreement token (mirroring the ternary [`crate::cost::NativeForwardRun`]).
+#[derive(Debug, Clone, PartialEq)]
+pub struct NativeNaryRun {
+    /// The closure (asserted EDB ∪ derived tuples), de-reified back to n-ary tuples,
+    /// in the canonical `(relation, arg-displays)` order.
+    pub tuples: Vec<NaryTuple>,
+    /// The restricted chase's committed-derivation count (the single deterministic
+    /// counting point — one charge per committed reified fact).
+    pub consumed_steps: u64,
+}
+
+/// Run the native restricted chase over an n-ary EDB + program like
+/// [`run_native_nary_forward`], but ALSO surface the chase's `consumed_steps` — the
+/// decomposable cost signal the engine-bench harness records alongside the closure.
+///
+/// # Errors
+///
+/// Identical to [`run_native_nary_forward`]: an uncertified program, a lowering refusal,
+/// a declined rule set, or a de-reification failure.
+pub fn run_native_nary_forward_run(
+    edb: &[NaryTuple],
+    rules: &[NaryRule],
+) -> gmeow_errors::Result<NativeNaryRun> {
+    let admission = certify_nary_termination(rules)?;
+    if !admission.admits_native() {
+        return Err(nary_err(format!(
+            "run_native_nary_forward: n-ary program is not certified terminating (weak \
+             acyclicity); refusing to chase unbudgeted rather than risk non-termination: {}",
+            admission.to_finding().message
+        )));
+    }
+
+    let edb_facts = lower_nary_edb(edb)?;
+    let reified_rules = lower_nary_rules(rules)?;
+    let outcome = chase_world(NARY_WORLD, &edb_facts, &reified_rules, None)?;
+    let budgeted = match outcome {
+        NativeOutcome::Decided(budgeted) => budgeted,
+        NativeOutcome::Unsupported(kind) => {
+            return Err(nary_err(format!(
+                "run_native_nary_forward: native chase declined the reified program \
+                 ({kind:?}) — a certified-terminating program must be decidable natively"
+            )));
+        }
+    };
+    let consumed_steps = budgeted.consumed_steps;
+    let tuples = dereify_rows(&budgeted.rows)?;
+    Ok(NativeNaryRun {
+        tuples,
+        consumed_steps,
+    })
+}
+
+// ── Nemo n-ary oracle seam ────────────────────────────────────────────────────
+
+/// Drive the demoted Nemo bootstrap oracle over the SAME n-ary EDB + n-ary multi-head
+/// existential `.rls` program the native path runs, returning the closure DE-DECODED into
+/// n-ary tuples (asserted EDB ∪ derived), for a native↔Nemo n-ary parity comparison.
+///
+/// This is the n-ary sibling of [`crate::cost::run_nemo_forward_facts_only`]: the
+/// arity-4+ EDB cannot be carried through the binary `RdfDataset` seam that function
+/// takes, so the tuples are interned into a [`crate::facts::TypedFactSet`] at full arity
+/// and run through the facts-only typed chase ([`crate::nemo_engine::run_chase_typed_facts_only`]) —
+/// exactly the path the native↔Nemo n-ary parity test drives. The chase invents fresh
+/// labeled nulls whose identifiers legitimately differ per engine, so a caller compares
+/// the closures NULL-BLIND ([`nary_closures_agree`] / [`nary_canonical_fingerprint`]),
+/// never by raw null identifier.
+///
+/// # Errors
+///
+/// Returns `Err` if the Nemo facts-only chase fails to parse/validate/evaluate/decode.
+pub fn run_nemo_nary_forward(edb: &[NaryTuple], rls: &str) -> gmeow_errors::Result<Vec<NaryTuple>> {
+    use crate::facts::TypedFactSet;
+
+    let mut typed = TypedFactSet::new();
+    for tuple in edb {
+        let ids: Vec<_> = tuple.args.iter().map(|a| typed.intern(a)).collect();
+        typed.push_fact(&tuple.relation, ids);
+    }
+    let rows = crate::nemo_engine::run_chase_typed_facts_only(&typed, rls)?;
+    Ok(rows
+        .into_iter()
+        .map(|row| NaryTuple {
+            relation: row.predicate,
+            args: row.args,
+        })
+        .collect())
+}
+
+// ── Null-blind canonicalization (colour refinement) ───────────────────────────
+
+/// Whether a term is an invented null: a native chase Skolem IRI (`…/skolem/…`) or a Nemo
+/// labeled null (`urn:gmeow:nemo-null:…`). Both engines mint fresh witnesses whose surface
+/// identifiers legitimately differ, so a cross-engine comparison canonicalizes them away.
+fn is_null(t: &TermValue) -> bool {
+    let d = term_display(t);
+    d.contains("/skolem/") || d.contains("nemo-null:")
+}
+
+/// Canonicalize an n-ary tuple set to a null-blind MULTISET by colour refinement of the
+/// null-labeled tuple hypergraph: a null's colour is the fixpoint of the multiset of
+/// `(relation, its position, the colours of every argument)` contexts it occurs in,
+/// grounded in the named terms. Isomorphic null structures converge to equal colours
+/// across engines; non-isomorphic ones never do, and witness MULTIPLICITY is preserved by
+/// the count. This is the SAME canonicalization the native↔Nemo n-ary parity test uses,
+/// promoted here so the engine-bench harness computes a stable cross-engine agreement
+/// verdict without re-implementing it.
+#[must_use]
+pub fn canonical_null_blind_multiset(
+    tuples: &[NaryTuple],
+) -> BTreeMap<(String, Vec<String>), usize> {
+    let nulls: std::collections::BTreeSet<String> = tuples
+        .iter()
+        .flat_map(|t| t.args.iter())
+        .filter(|a| is_null(a))
+        .map(term_display)
+        .collect();
+
+    // Seed colours: a named term anchors on its own surface; a null starts uniform.
+    let mut colour: BTreeMap<String, String> = BTreeMap::new();
+    for t in tuples {
+        for a in &t.args {
+            let s = term_display(a);
+            colour.entry(s.clone()).or_insert_with(|| {
+                if is_null(a) {
+                    "\u{0}".to_owned()
+                } else {
+                    s.clone()
+                }
+            });
+        }
+    }
+
+    if !nulls.is_empty() {
+        for _ in 0..=nulls.len() {
+            let mut next = colour.clone();
+            let mut changed = false;
+            for n in &nulls {
+                let mut sig: Vec<String> = Vec::new();
+                for t in tuples {
+                    let ctx: Vec<String> = t
+                        .args
+                        .iter()
+                        .map(|a| colour[&term_display(a)].clone())
+                        .collect();
+                    for (p, a) in t.args.iter().enumerate() {
+                        if term_display(a) == *n {
+                            sig.push(format!(
+                                "{}\u{1f}{p}\u{1f}{}",
+                                t.relation,
+                                ctx.join("\u{1f}")
+                            ));
+                        }
+                    }
+                }
+                sig.sort();
+                let refined = crate::provenance::sha1_hex(&sig.join("\u{1e}"));
+                if next[n] != refined {
+                    changed = true;
+                    next.insert(n.clone(), refined);
+                }
+            }
+            colour = next;
+            if !changed {
+                break;
+            }
+        }
+    }
+
+    let distinct: std::collections::BTreeSet<String> =
+        nulls.iter().map(|n| colour[n].clone()).collect();
+    let token: BTreeMap<String, String> = distinct
+        .into_iter()
+        .enumerate()
+        .map(|(i, c)| (c, format!("gmeow:null#{i}")))
+        .collect();
+
+    let mut ms: BTreeMap<(String, Vec<String>), usize> = BTreeMap::new();
+    for t in tuples {
+        let args: Vec<String> = t
+            .args
+            .iter()
+            .map(|a| {
+                let s = term_display(a);
+                if is_null(a) {
+                    token[&colour[&s]].clone()
+                } else {
+                    s
+                }
+            })
+            .collect();
+        *ms.entry((t.relation.clone(), args)).or_insert(0) += 1;
+    }
+    ms
+}
+
+/// A deterministic, null-blind fingerprint of an n-ary closure — the stable verdict token
+/// two engines' closures compare EQUAL on iff they agree up to a structure-respecting
+/// renaming of invented nulls (and preserved multiplicity). Built from
+/// [`canonical_null_blind_multiset`] and hashed via the shared SHA-1 hex digest, so it is
+/// a pure function of the closure and drift-gate-stable.
+#[must_use]
+pub fn nary_canonical_fingerprint(tuples: &[NaryTuple]) -> String {
+    let ms = canonical_null_blind_multiset(tuples);
+    let mut payload = String::new();
+    for ((relation, args), count) in &ms {
+        payload.push_str(relation);
+        payload.push('\u{1f}');
+        payload.push_str(&args.join("\u{1f}"));
+        payload.push('\u{1f}');
+        payload.push_str(&count.to_string());
+        payload.push('\u{1e}');
+    }
+    crate::provenance::sha1_hex(&payload)
+}
+
+/// Whether two n-ary closures AGREE null-blind: their null-canonicalized multisets are
+/// equal (isomorphic null structure, identical named-tuple support, preserved
+/// multiplicity). The sound cross-engine invariant for a value-inventing n-ary chase.
+#[must_use]
+pub fn nary_closures_agree(native: &[NaryTuple], nemo: &[NaryTuple]) -> bool {
+    canonical_null_blind_multiset(native) == canonical_null_blind_multiset(nemo)
 }
 
 #[cfg(test)]

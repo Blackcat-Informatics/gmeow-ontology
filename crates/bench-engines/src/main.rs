@@ -113,6 +113,10 @@ use gmeow_logic::cost::{
 };
 use gmeow_logic::dispatch::{cyclic_predicates, dispatch_query};
 use gmeow_logic::materialize::materialize_routed;
+use gmeow_logic::nary::{
+    nary_canonical_fingerprint, run_native_nary_forward_run, run_nemo_nary_forward,
+};
+use gmeow_logic::nary_rls::parse_nary_rls_program;
 use gmeow_logic::provenance::{ASSERT_RULE_IRI, term_display};
 use gmeow_logic::query_ir::{AnswerSet, Budget, parse_query_program};
 use gmeow_logic::reason::{
@@ -334,6 +338,7 @@ fn run_case(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         Fragment::Forward => run_forward(case),
         Fragment::Existential => run_existential(case),
         Fragment::Backward => run_backward(case),
+        Fragment::NaryExistential => run_nary(case),
     }
 }
 
@@ -579,6 +584,117 @@ fn run_existential(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
             AdvisoryRow {
                 corpus: case.corpus.clone(),
                 fragment: "existential",
+                engine: "nemo",
+                wall_ns: nemo_wall,
+                peak_rss_kib: peak,
+                alloc_bytes: 0,
+                alloc_count: 0,
+                agreement: agree_nemo,
+            },
+        ],
+        comparisons,
+    })
+}
+
+/// NARY-EXISTENTIAL fragment: the native reified-binary n-ary chase
+/// (`run_native_nary_forward_run`) vs the Nemo n-ary oracle (`run_nemo_nary_forward`) over
+/// the SAME n-ary `.rls` program + delimited (`data/<rel>.csv`) EDB. Both engines invent
+/// fresh nulls whose identifiers legitimately differ per engine, so the native↔nemo verdict
+/// is a NULL-BLIND canonical fingerprint (`nary_canonical_fingerprint`, colour refinement),
+/// not a raw row fingerprint — the sound cross-engine invariant for a value-inventing
+/// n-ary chase. The native closure's tuple COUNT drives the native↔golden comparison.
+fn run_nary(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
+    let (world, golden_rows) = sole_world(case)?;
+
+    // Parse the n-ary `.rls` ONCE; the SAME program drives native (via the reified lowering)
+    // and Nemo (verbatim). A genuinely-unsupported construct hard-fails here (named).
+    let rules = parse_nary_rls_program(&case.rules)
+        .map_err(|e| run_err(case, format!("n-ary .rls parse failed: {e}")))?;
+
+    // Native (measured; global Rayon pool is single-threaded — R1 pool-quiesce).
+    let native_start = Instant::now();
+    let (native_res, sample) = measure(|| run_native_nary_forward_run(&case.nary_edb, &rules));
+    let native_wall = native_start.elapsed().as_nanos();
+    let native =
+        native_res.map_err(|e| run_err(case, format!("native n-ary chase failed: {e}")))?;
+    let native_derived = native.tuples.len() as u64;
+    let consumed_steps = native.consumed_steps;
+    let native_fp = nary_canonical_fingerprint(&native.tuples);
+
+    // Nemo n-ary oracle over the SAME EDB + program (facts-only typed chase at full arity).
+    let nemo_start = Instant::now();
+    let nemo = run_nemo_nary_forward(&case.nary_edb, &case.rules)
+        .map_err(|e| run_err(case, format!("nemo n-ary chase failed: {e}")))?;
+    let nemo_wall = nemo_start.elapsed().as_nanos();
+    let nemo_fp = nary_canonical_fingerprint(&nemo);
+
+    // native ↔ golden by de-reified closure count; native ↔ nemo by null-blind fingerprint.
+    let native_golden_tok = count_token(native_derived);
+    let golden_tok = count_token(golden_rows);
+    let agree_golden = native_golden_tok == golden_tok;
+    let agree_nemo = native_fp == nemo_fp;
+
+    let comparisons = vec![
+        comp(
+            case,
+            &world,
+            "native-vs-golden",
+            &native_golden_tok,
+            &golden_tok,
+        ),
+        comp(case, &world, "native-vs-nemo", &native_fp, &nemo_fp),
+    ];
+
+    let record = json!({
+        "corpus": case.corpus,
+        "case": case.name,
+        "fragment": "nary-existential",
+        "world": world,
+        "golden_rows": golden_rows,
+        "native": {
+            "engine": EngineId::native().version,
+            "consumed_steps": consumed_steps,
+            "derived_count": native_derived,
+            // peak-live is the deterministic, gate-eligible allocation metric; the total
+            // bytes/count carry small transient scratch and are advisory-only (2b).
+            "peak_live_bytes": sample.peak_live,
+            // The reified n-ary chase seam exposes no decomposable (rule,predicate,stratum)
+            // vector, so none is fabricated (no-optionality: an absent measure is absent).
+            "cost_vector": Value::Array(Vec::new()),
+            "closure_fingerprint": native_fp,
+        },
+        "oracle": {
+            "engine": "nemo",
+            "closure_count": nemo.len(),
+            "closure_fingerprint": nemo_fp,
+        },
+        "agreement": {
+            "native_vs_golden": agree_golden,
+            "native_vs_oracle": agree_nemo,
+            "native_golden_token": native_golden_tok,
+            "golden_token": golden_tok,
+            "native_oracle_token": native_fp,
+            "oracle_token": nemo_fp,
+        },
+    });
+
+    let peak = peak_rss_kib();
+    Ok(CaseOutcome {
+        record,
+        advisory: vec![
+            AdvisoryRow {
+                corpus: case.corpus.clone(),
+                fragment: "nary-existential",
+                engine: "native",
+                wall_ns: native_wall,
+                peak_rss_kib: peak,
+                alloc_bytes: sample.bytes,
+                alloc_count: sample.count,
+                agreement: agree_golden,
+            },
+            AdvisoryRow {
+                corpus: case.corpus.clone(),
+                fragment: "nary-existential",
                 engine: "nemo",
                 wall_ns: nemo_wall,
                 peak_rss_kib: peak,

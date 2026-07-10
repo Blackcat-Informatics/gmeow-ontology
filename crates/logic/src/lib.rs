@@ -62,6 +62,7 @@ pub mod materialize;
 // `logic:naryArg{i}` over a content-addressed reifier) keeps `EvalAtom` binary,
 // per LOGIC-IR.md §RelationalCore.
 pub mod nary;
+pub mod nary_rls;
 pub mod obligations;
 // Path-projection runtime tests: they run the projected Datalog through
 // crate::rule_ir (Nemo), so they live runtime-side as an in-crate test module.

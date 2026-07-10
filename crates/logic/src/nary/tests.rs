@@ -3,13 +3,13 @@
 
 //! Unit + native↔Nemo parity coverage for the reified n-ary lowering.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 
 use purrdf::TermValue;
 
 use super::{
-    NaryArg, NaryAtom, NaryRule, NaryTuple, certify_nary_termination, lower_nary_fact,
-    lower_nary_rules, run_native_nary_forward,
+    NaryArg, NaryAtom, NaryRule, NaryTuple, canonical_null_blind_multiset,
+    certify_nary_termination, is_null, lower_nary_fact, lower_nary_rules, run_native_nary_forward,
 };
 use crate::physical::ChaseAdmission;
 use crate::provenance::{instance_of_iri, mint_nary_reifier, nary_arg_predicate, term_display};
@@ -185,8 +185,8 @@ fn native_reified_nary_forward_agrees_with_nemo_on_a_multi_head_program() {
     // PARITY: the de-reified native tuple set EQUALS Nemo's, null-blind (invented nulls are
     // named per-engine — native mints a Skolem IRI, Nemo a labeled null — so they compare
     // up to a consistent, structure-respecting renaming via colour refinement).
-    let native_ms = canonical_multiset(&native);
-    let nemo_ms = canonical_multiset(&nemo);
+    let native_ms = canonical_null_blind_multiset(&native);
+    let nemo_ms = canonical_null_blind_multiset(&nemo);
     assert_eq!(
         native_ms, nemo_ms,
         "native reified n-ary chase must AGREE with Nemo's n-ary chase null-blind.\n\
@@ -252,100 +252,8 @@ fn assert_shared_null_structure(tuples: &[NaryTuple]) {
 }
 
 // ── Null-blind canonicalization (colour refinement) ───────────────────────────
-
-/// Whether a term is an invented null: a native chase Skolem IRI (`…/skolem/…`) or a Nemo
-/// labeled null (`urn:gmeow:nemo-null:…`).
-fn is_null(t: &TermValue) -> bool {
-    let d = term_display(t);
-    d.contains("/skolem/") || d.contains("nemo-null:")
-}
-
-/// Canonicalize an n-ary tuple set to a null-blind MULTISET by colour refinement of the
-/// null-labeled tuple hypergraph: a null's colour is the fixpoint of the multiset of
-/// `(relation, its position, the colours of every argument)` contexts it occurs in, grounded
-/// in the named terms. Isomorphic null structures converge to equal colours across engines;
-/// non-isomorphic ones never do, and witness MULTIPLICITY is preserved by the count.
-fn canonical_multiset(tuples: &[NaryTuple]) -> BTreeMap<(String, Vec<String>), usize> {
-    let nulls: BTreeSet<String> = tuples
-        .iter()
-        .flat_map(|t| t.args.iter())
-        .filter(|a| is_null(a))
-        .map(term_display)
-        .collect();
-
-    // Seed colours: a named term anchors on its own surface; a null starts uniform.
-    let mut colour: BTreeMap<String, String> = BTreeMap::new();
-    for t in tuples {
-        for a in &t.args {
-            let s = term_display(a);
-            colour.entry(s.clone()).or_insert_with(|| {
-                if is_null(a) {
-                    "\u{0}".to_owned()
-                } else {
-                    s.clone()
-                }
-            });
-        }
-    }
-
-    if !nulls.is_empty() {
-        for _ in 0..=nulls.len() {
-            let mut next = colour.clone();
-            let mut changed = false;
-            for n in &nulls {
-                let mut sig: Vec<String> = Vec::new();
-                for t in tuples {
-                    let ctx: Vec<String> = t
-                        .args
-                        .iter()
-                        .map(|a| colour[&term_display(a)].clone())
-                        .collect();
-                    for (p, a) in t.args.iter().enumerate() {
-                        if term_display(a) == *n {
-                            sig.push(format!(
-                                "{}\u{1f}{p}\u{1f}{}",
-                                t.relation,
-                                ctx.join("\u{1f}")
-                            ));
-                        }
-                    }
-                }
-                sig.sort();
-                let refined = crate::provenance::sha1_hex(&sig.join("\u{1e}"));
-                if next[n] != refined {
-                    changed = true;
-                    next.insert(n.clone(), refined);
-                }
-            }
-            colour = next;
-            if !changed {
-                break;
-            }
-        }
-    }
-
-    let distinct: BTreeSet<String> = nulls.iter().map(|n| colour[n].clone()).collect();
-    let token: BTreeMap<String, String> = distinct
-        .into_iter()
-        .enumerate()
-        .map(|(i, c)| (c, format!("gmeow:null#{i}")))
-        .collect();
-
-    let mut ms: BTreeMap<(String, Vec<String>), usize> = BTreeMap::new();
-    for t in tuples {
-        let args: Vec<String> = t
-            .args
-            .iter()
-            .map(|a| {
-                let s = term_display(a);
-                if is_null(a) {
-                    token[&colour[&s]].clone()
-                } else {
-                    s
-                }
-            })
-            .collect();
-        *ms.entry((t.relation.clone(), args)).or_insert(0) += 1;
-    }
-    ms
-}
+//
+// The `is_null` predicate and the `canonical_null_blind_multiset` colour-refinement
+// canonicalization this parity test relies on now live in the parent module (promoted so
+// the engine-bench harness computes the SAME cross-engine agreement verdict); they are
+// imported above and exercised here as the load-bearing parity oracle.
