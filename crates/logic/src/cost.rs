@@ -334,6 +334,39 @@ pub fn run_nemo_forward(edb: &RdfDataset, rules: &str) -> gmeow_errors::Result<F
     Ok(ForwardRows::from_chase(&chase))
 }
 
+/// Drive the DEMOTED Nemo bootstrap oracle over `edb` under a VALUE-INVENTING
+/// (existential-rule) `rules` set via the FACTS-ONLY chase, returning its
+/// deterministically-ordered [`ForwardRows`].
+///
+/// This is the existential sibling of [`run_nemo_forward`]. The provenance-carrying
+/// [`crate::oracle::nemo_forward_oracle`] that [`run_nemo_forward`] uses hard-errors
+/// on a chase that invents fresh labeled nulls ("no trace tree for derived fact") —
+/// an architectural fact of the trace reconstruction, NOT an optional degradation —
+/// so an existential program is materialized through the facts-only
+/// [`crate::oracle::NemoFactsOracle`] instead, exactly as the `materialize_routed`
+/// existential fallback (`demote_existential_to_facts_only`) does. The facts-only
+/// closure carries no provenance (it attributes nothing), which is why no cost vector
+/// is fabricated for it — the row set is the sound, comparable signal (the invented
+/// nulls are labeled per-engine, so a benchmark compares the DERIVED COUNT across
+/// engines, never the null identifiers).
+///
+/// It reuses the SAME [`crate::reason::build_edb_facts`] EDB construction as the
+/// native chase seam, so both engines see a byte-identical fact set.
+///
+/// # Errors
+///
+/// Returns `Err` if the EDB cannot be built or if the Nemo facts-only chase fails to
+/// parse/validate/evaluate/decode.
+pub fn run_nemo_forward_facts_only(
+    edb: &RdfDataset,
+    rules: &str,
+) -> gmeow_errors::Result<ForwardRows> {
+    let facts = crate::reason::build_edb_facts(edb)?;
+    let chase =
+        crate::oracle::NemoFactsOracle.materialize(&facts, rules, &ForwardBudget::UNBOUNDED)?;
+    Ok(ForwardRows::from_chase(&chase))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -440,6 +473,48 @@ mod tests {
         assert!(
             !nemo.is_empty(),
             "the Nemo seam must materialize a non-empty row set for the same program"
+        );
+    }
+
+    /// The facts-only Nemo seam materializes a value-inventing (existential-rule)
+    /// program the provenance-carrying seam cannot: [`run_nemo_forward`] hard-errors on
+    /// its invented labeled nulls ("no trace tree for derived fact"), while
+    /// [`run_nemo_forward_facts_only`] returns a non-empty, deterministic closure. This
+    /// is the seam the benchmark harness drives the existential fragment's Nemo side
+    /// through.
+    #[test]
+    fn nemo_facts_only_materializes_an_existential_program() {
+        // `e1(?x, !y, ?w) :- edge(?x, ?o, ?w) .` — a single existential (value-inventing)
+        // TGD over the ternary forward surface (`!y` is a fresh labeled null per binding).
+        let rules = format!(
+            "#[name(\"http://example.org/rules/e1\")]\n\
+             <{PATH}>(?x, !y, ?w) :- <{EDGE}>(?x, ?o, ?w) .\n"
+        );
+        let edb = two_edge_edb();
+
+        // The provenance-carrying forward seam refuses the invented nulls (an
+        // architectural fact, not an optional degradation).
+        assert!(
+            run_nemo_forward(edb.as_ref(), &rules).is_err(),
+            "the provenance-carrying Nemo forward seam must refuse invented nulls"
+        );
+
+        // The facts-only seam materializes them: a non-empty, deterministic closure.
+        let a = run_nemo_forward_facts_only(edb.as_ref(), &rules).expect("facts-only run a");
+        let b = run_nemo_forward_facts_only(edb.as_ref(), &rules).expect("facts-only run b");
+        assert!(
+            !a.is_empty(),
+            "the facts-only seam must materialize a non-empty existential closure"
+        );
+        assert_eq!(
+            a, b,
+            "the facts-only row set must be deterministic across runs"
+        );
+
+        // Each input edge invents one `path` head, so a derived `path` row is present.
+        assert!(
+            a.rows.iter().any(|r| r.predicate == PATH),
+            "the facts-only closure must carry the invented existential head `path`"
         );
     }
 }
