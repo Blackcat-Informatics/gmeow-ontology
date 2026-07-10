@@ -1164,6 +1164,20 @@ pub struct DocsModel {
     /// source-model JSON golden is unaffected.
     #[serde(skip)]
     pub term_loss: Option<TermLossDigest>,
+    /// The per-term JSON Schema / OpenAPI fragment join, attached AFTER source
+    /// discovery by the production build from the already-materialized
+    /// `stage-export-json-schema` product (the same `gmeow.schema.json` /
+    /// `gmeow.openapi.json` bytes the carrier folds into the packed
+    /// `schemas-archive`, read in-memory — never a `generated/` disk read). Each
+    /// entry is the pretty-printed JSON Schema `$defs` (respectively OpenAPI
+    /// `components/schemas`) fragment for a documented class whose emitter def key
+    /// resolves it. `None` in source-only contexts (unit tests, a bare
+    /// `discover`): the per-term "use this term without RDF" JSON-Schema panel and
+    /// the OpenAPI tab render ONLY when the digest is attached, so an unevaluated
+    /// model never fabricates a schema fragment. `#[serde(skip)]` so the
+    /// source-model JSON golden is unaffected.
+    #[serde(skip)]
+    pub schema_fragments: Option<SchemaFragmentDigest>,
 }
 
 /// The native reasoner's consistency verdict, attached to a [`DocsModel`] by the
@@ -1317,6 +1331,25 @@ pub struct TermLossDigest {
     pub total_property_path_rows: usize,
 }
 
+/// The per-term JSON Schema / OpenAPI fragment join for the term-page
+/// "use this term without RDF" panel + OpenAPI tab.
+///
+/// Both maps are keyed by the exact documented term IRI; each value is the
+/// pretty-printed, deterministic JSON text of that class's `$defs` (respectively
+/// `components/schemas`) fragment, extracted from the generated
+/// `gmeow.schema.json` / `gmeow.openapi.json`. Only documented classes whose
+/// emitter def key (`purrdf::shapes::json_schema::Namespaces::def_key`: a bare
+/// local name for a primary-namespace class, a CURIE otherwise) resolves an
+/// entry appear — a term with no schema fragment is honestly absent, never a
+/// fabricated stub.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct SchemaFragmentDigest {
+    /// The JSON Schema `$defs` fragment text keyed by documented term IRI.
+    pub schema_by_term: BTreeMap<String, String>,
+    /// The OpenAPI `components/schemas` fragment text keyed by documented term IRI.
+    pub openapi_by_term: BTreeMap<String, String>,
+}
+
 impl DocsModel {
     /// Attach the native reasoner's consistency verdict to this model (the
     /// production build's post-discovery step). Idempotent: overwrites any prior
@@ -1338,6 +1371,14 @@ impl DocsModel {
     /// any prior digest.
     pub fn attach_term_loss(&mut self, digest: TermLossDigest) {
         self.term_loss = Some(digest);
+    }
+
+    /// Attach the per-term JSON Schema / OpenAPI fragment digest to this model
+    /// (the production build's post-discovery step, mirroring
+    /// [`attach_term_loss`](Self::attach_term_loss)). Idempotent: overwrites any
+    /// prior digest.
+    pub fn attach_schema_fragments(&mut self, digest: SchemaFragmentDigest) {
+        self.schema_fragments = Some(digest);
     }
 
     /// Resolve a UI-chrome string for `key` in this model's target [`lang`], using
@@ -1752,6 +1793,7 @@ impl DocsModel {
             reasoning: None,
             diagnostics: None,
             term_loss: None,
+            schema_fragments: None,
             lang: String::new(),
         }
     }

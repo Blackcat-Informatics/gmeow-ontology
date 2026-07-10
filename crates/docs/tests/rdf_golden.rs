@@ -115,6 +115,7 @@ fn small_model() -> DocsModel {
         reasoning: None,
         diagnostics: None,
         term_loss: None,
+        schema_fragments: None,
         lang: String::new(),
     }
 }

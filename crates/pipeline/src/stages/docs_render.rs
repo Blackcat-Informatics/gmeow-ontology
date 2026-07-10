@@ -390,6 +390,90 @@ pub(crate) fn term_loss_digest_from_upstream(
     })
 }
 
+/// Fold the per-term JSON Schema / OpenAPI fragment digest
+/// [`gmeow_docs::model::SchemaFragmentDigest`] from the LIVE
+/// `stage-export-json-schema` product's committed `gmeow.schema.json` /
+/// `gmeow.openapi.json` artifacts ([`crate::stages::json_schema::JSON_SCHEMA_PATH`]
+/// / [`crate::stages::json_schema::OPENAPI_PATH`]) — the SAME bytes the carrier
+/// folds into the packed `schemas-archive`, read in-memory off the already-emitted
+/// product (never a re-run of the emitter, never a `generated/` disk read). Each
+/// documented CLASS whose emitter def key
+/// ([`Namespaces::def_key`](purrdf::shapes::json_schema::Namespaces::def_key): a
+/// bare local name for a primary-namespace class, a CURIE otherwise) names a
+/// `$defs` (respectively `components/schemas`) entry gets that fragment,
+/// pretty-printed deterministically. A class with no matching entry is honestly
+/// absent (no fabricated stub); the emitter's synthetic `Node`/`Annotation` keys
+/// (a whole-schema discriminator + the RDF-1.2 reifier-metadata fragment) are
+/// never joined. Hard-fails when the declared `stage-export-json-schema` product /
+/// artifact is absent or its bytes fail to parse as JSON (never a silently empty
+/// digest).
+pub(crate) fn schema_fragments_from_upstream(
+    upstream: &BTreeMap<String, StageProduct>,
+    terms: &[gmeow_docs::model::DocTerm],
+) -> Result<gmeow_docs::model::SchemaFragmentDigest, gmeow_errors::Diag> {
+    let product = upstream.get("stage-export-json-schema").ok_or_else(|| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-docs-render".to_string(),
+            message: "missing stage-export-json-schema product for the schema-fragment digest"
+                .to_string(),
+        })
+    })?;
+    let read_json = |path: &str| -> Result<serde_json::Value, gmeow_errors::Diag> {
+        let bytes = product.artifact(path).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-docs-render".to_string(),
+                message: format!(
+                    "missing stage-export-json-schema artifact {path} for the schema-fragment digest"
+                ),
+            })
+        })?;
+        serde_json::from_slice(bytes).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-docs-render".to_string(),
+                message: format!("parse {path} JSON for the schema-fragment digest: {e}"),
+            })
+        })
+    };
+    let schema = read_json(crate::stages::json_schema::JSON_SCHEMA_PATH)?;
+    let openapi = read_json(crate::stages::json_schema::OPENAPI_PATH)?;
+    let defs = schema.get("$defs").and_then(|v| v.as_object());
+    let components = openapi
+        .pointer("/components/schemas")
+        .and_then(|v| v.as_object());
+
+    let ns = crate::gmeow_ns::gmeow_json_schema_namespaces();
+    // The emitter's synthetic def keys (a whole-schema discriminator + the RDF-1.2
+    // reifier-metadata fragment) are NOT per-term schemas — never join them.
+    const SYNTHETIC_KEYS: &[&str] = &["Node", "Annotation"];
+
+    let mut schema_by_term: BTreeMap<String, String> = BTreeMap::new();
+    let mut openapi_by_term: BTreeMap<String, String> = BTreeMap::new();
+    for term in terms {
+        if term.category != gmeow_docs::model::DocTermCategory::Class {
+            continue;
+        }
+        let key = ns.def_key(&term.iri);
+        if SYNTHETIC_KEYS.contains(&key.as_str()) {
+            continue;
+        }
+        if let Some(frag) = defs.and_then(|d| d.get(&key))
+            && let Ok(text) = serde_json::to_string_pretty(frag)
+        {
+            schema_by_term.insert(term.iri.clone(), text);
+        }
+        if let Some(frag) = components.and_then(|c| c.get(&key))
+            && let Ok(text) = serde_json::to_string_pretty(frag)
+        {
+            openapi_by_term.insert(term.iri.clone(), text);
+        }
+    }
+
+    Ok(gmeow_docs::model::SchemaFragmentDigest {
+        schema_by_term,
+        openapi_by_term,
+    })
+}
+
 /// Discover the docs model under `root`, attach the native-reasoner `verdict`, the
 /// diagnostics→term join digest, and the dynamic per-term projection-loss join
 /// digest (all from `upstream`), and project it to the documentation named graph

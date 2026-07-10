@@ -271,6 +271,17 @@ pub(crate) fn serialize_carrier_snapshot(
         &docs_model.terms,
     )?;
     docs_model.attach_term_loss(term_loss_digest);
+    // The per-term JSON Schema / OpenAPI fragment digest for the term-page
+    // "use this term without RDF" panel + OpenAPI tab, folded from THIS run's
+    // `stage-export-json-schema` product (the same bytes packed into the
+    // `schemas-archive` below) — an in-memory product read, never a `generated/`
+    // disk read. `stage-gts-sink` already consumes `stage-export-json-schema`, so
+    // no new dataflow edge is needed. Attached here (the site-render path) only;
+    // the schema fragment is a render-time `#[serde(skip)]` digest, not projected
+    // to the documentation RDF graph, so `render_docs_graph` does not attach it.
+    let schema_fragments =
+        crate::stages::docs_render::schema_fragments_from_upstream(upstream, &docs_model.terms)?;
+    docs_model.attach_schema_fragments(schema_fragments);
     serialize_carrier_snapshot_with_docs_model(root, upstream, carrier, &docs_model)
 }
 
