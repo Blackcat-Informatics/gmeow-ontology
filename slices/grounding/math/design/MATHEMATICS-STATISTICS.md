@@ -135,6 +135,18 @@ Comparing and calibrating models is first-class: `math:ModelComparison`,
 `math:CalibrationDiagnostic`, so "which model, and how well calibrated" is answerable rather than
 implicit.
 
+Two senses of "calibration" must not be conflated. `math:CalibrationDiagnostic` — designed in this
+charter, not yet minted in `module.ttl` — is the **statistical** sense: how well a fitted model's
+predicted probabilities match observed frequencies (reliability curves, Brier decomposition, expected
+calibration error) over held-out data. `math:StabilityCalibrationRecord`
+([`MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md`](MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md)) is the
+**topological** sense: the derivation record turning the persistence of a feature into a warranted
+`logic:confidence` on a latent-meaning claim, underwritten by the bottleneck stability theorem. The
+first calibrates a *model's probabilities against data*; the second calibrates a *credence against a
+stability bound*. They share the word and nothing else: one is a `gmeow:Activity`/diagnostic over a
+`math:FittedModel`, the other a `math:MathematicalObject` over a `math:PersistenceLifetime`, and a
+consumer must select on the specific class, never on the shared token "calibration".
+
 ## Design and integrity
 
 Core classes: `math:ExperimentalDesign`, `math:RandomizationScheme`,
