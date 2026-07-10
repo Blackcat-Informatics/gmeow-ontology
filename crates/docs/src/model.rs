@@ -216,6 +216,29 @@ const GMEOW_EXPECTED_VIOLATION_CODE: &str =
 const GMEOW_CONFORMANCE_RATIONALE: &str =
     "https://blackcatinformatics.ca/gmeow/conformanceRationale";
 
+// ── Build-pipeline DAG surface (slices/core/pipeline/module.ttl) ────────────
+// The dogfooded build graph authored as data: `gmeow:PipelineStage` individuals
+// gathered on the one `gmeow:Pipeline` (`gmeow:pipeline-build`) through
+// `gmeow:hasStage`, wired by bare `gmeow:dataflowConsumes` edges and refined by
+// reified `gmeow:BuildDataFlow` edges that name the flowing named graphs.
+
+const GMEOW_PIPELINE: &str = "https://blackcatinformatics.ca/gmeow/Pipeline";
+const GMEOW_PIPELINE_STAGE: &str = "https://blackcatinformatics.ca/gmeow/PipelineStage";
+const GMEOW_BUILD_DATA_FLOW: &str = "https://blackcatinformatics.ca/gmeow/BuildDataFlow";
+const GMEOW_STAGE_IMPL: &str = "https://blackcatinformatics.ca/gmeow/stageImpl";
+const GMEOW_HAS_CAPABILITY: &str = "https://blackcatinformatics.ca/gmeow/hasCapability";
+const GMEOW_REQUIRES_RESOURCE: &str = "https://blackcatinformatics.ca/gmeow/requiresResource";
+const GMEOW_DATAFLOW_CONSUMES: &str = "https://blackcatinformatics.ca/gmeow/dataflowConsumes";
+const GMEOW_BUILD_FLOW_FROM: &str = "https://blackcatinformatics.ca/gmeow/buildFlowFrom";
+const GMEOW_BUILD_FLOW_TO: &str = "https://blackcatinformatics.ca/gmeow/buildFlowTo";
+const GMEOW_FLOW_ENTITY: &str = "https://blackcatinformatics.ca/gmeow/flowEntity";
+/// `logic:planGoal` — the `gmeow:Goal` the `gmeow:Pipeline` (a `logic:Plan`) is
+/// arranged to reach (the shippable bundle).
+const LOGIC_PLAN_GOAL: &str = "https://blackcatinformatics.ca/logic/planGoal";
+/// `logic:planSuccessMode` — the plan's declared success mode (e.g.
+/// `logic:StrongPlanSuccess`).
+const LOGIC_PLAN_SUCCESS_MODE: &str = "https://blackcatinformatics.ca/logic/planSuccessMode";
+
 /// An error building the documentation model.
 #[derive(Debug)]
 pub enum DocsError {
@@ -933,6 +956,73 @@ pub struct DocLearningPath {
     pub adoption_targets: Vec<String>,
 }
 
+/// One `gmeow:PipelineStage` individual of the dogfooded build DAG
+/// (`slices/core/pipeline/module.ttl`): a typed unit of build work bound to a
+/// Rust `Stage` implementation through [`stage_impl`](DocStage::stage_impl).
+/// Sorted collections keep the serialized model byte-reproducible.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct DocStage {
+    /// The full stage IRI (e.g. `.../stage-gts-sink`). Also a documented term,
+    /// so the enriched stage section on its term page links back to the DAG.
+    pub iri: String,
+    /// `rdfs:label`.
+    pub label: Option<String>,
+    /// `skos:definition`.
+    pub definition: Option<String>,
+    /// `gmeow:stageImpl` — the registry key binding the stage to its Rust `Stage`
+    /// implementation (`crates/pipeline/src/stages/<impl>.rs`).
+    pub stage_impl: Option<String>,
+    /// `gmeow:hasCapability` value CURIEs (e.g. `gmeow:sinkCapability`,
+    /// `gmeow:sourceOrigin`), sorted/deduped. Empty for a plain transform leaf.
+    pub capabilities: Vec<String>,
+    /// `gmeow:requiresResource` value CURIEs (e.g. `gmeow:engineResource`),
+    /// sorted/deduped. Empty when the stage holds no shared resource.
+    pub resources: Vec<String>,
+    /// `gmeow:graphBoxRole` — the lowest-sorted four-boxes role CURIE, if any.
+    pub box_role: Option<String>,
+    /// `gmeow:dataflowConsumes` — the producer stage IRIs this stage reads,
+    /// sorted/deduped.
+    pub consumes: Vec<String>,
+}
+
+/// One dataflow edge of the build DAG: the union of a bare
+/// `gmeow:dataflowConsumes` dependency (consumer reads the producer's whole
+/// product) with any reified `gmeow:BuildDataFlow` refinement that names the
+/// specific flowing named graphs. [`flow_entities`](DocFlowEdge::flow_entities)
+/// is populated ONLY from a reified edge — a missing label is honest
+/// computed-absence (no reified edge authored), never a failure or placeholder.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct DocFlowEdge {
+    /// The producer stage IRI (`gmeow:buildFlowFrom` / the `dataflowConsumes`
+    /// object).
+    pub from: String,
+    /// The consumer stage IRI (`gmeow:buildFlowTo` / the `dataflowConsumes`
+    /// subject).
+    pub to: String,
+    /// The named-graph IRIs that flow on this edge (`gmeow:flowEntity`),
+    /// sorted/deduped. Empty unless a reified `gmeow:BuildDataFlow` authors them.
+    pub flow_entities: Vec<String>,
+}
+
+/// The dogfooded build pipeline as a first-class documentation surface: the
+/// `gmeow:PipelineStage` node set, the dataflow edge set (bare consumes unioned
+/// with reified `gmeow:BuildDataFlow` flow-entity refinements), and the
+/// `gmeow:Pipeline` plan's goal + success mode. A source-lane projection of
+/// `slices/core/pipeline/module.ttl` (read as authored input, PIPELINE_SPINE
+/// §3.1 — never a `generated/` disk read).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct DocPipeline {
+    /// Every `gmeow:PipelineStage`, sorted by IRI.
+    pub stages: Vec<DocStage>,
+    /// Every dataflow edge, sorted by `(from, to)`. Flow-entity labels are
+    /// present only where a reified `gmeow:BuildDataFlow` authors them.
+    pub edges: Vec<DocFlowEdge>,
+    /// `logic:planGoal` of the `gmeow:Pipeline` (a CURIE), if authored.
+    pub goal: Option<String>,
+    /// `logic:planSuccessMode` of the `gmeow:Pipeline` (a CURIE), if authored.
+    pub success_mode: Option<String>,
+}
+
 /// The complete typed documentation model — one source of truth for every
 /// renderer. All collections are sorted by a stable key.
 ///
@@ -1006,6 +1096,15 @@ pub struct DocsModel {
     /// the per-term citation block's "cite the ontology" line. `None`
     /// when the metadata file is absent.
     pub concept_doi: Option<String>,
+    /// The dogfooded build pipeline DAG (`slices/core/pipeline/module.ttl`): the
+    /// `gmeow:PipelineStage` node set, the dataflow edges, and the plan goal +
+    /// success mode. A REGULAR serialized field (source lane — discovered from an
+    /// authored module, so it belongs in the model JSON). `None` only for a bare
+    /// hand-built unit-test model whose catalog carries no pipeline module; the
+    /// full `discover`/`from_catalog` path always populates it. Drives
+    /// [`Page::PipelineDag`](crate::render), the per-stage enriched term section,
+    /// and the per-page provenance footer.
+    pub pipeline: Option<DocPipeline>,
     /// Available documentation languages: the English carrier (`"english"`)
     /// first, then the BCP-47 codes (`fr`, `zh`) of every slice translation
     /// catalog, sorted. Deterministic.
@@ -1277,7 +1376,7 @@ impl DocsModel {
     /// example subject (in any slice) carrying `math:hasDimension`, resolved
     /// down to a labeled base-dimension exponent table plus a copy-paste
     /// Turtle block.
-    pub const VERSION: &'static str = "12";
+    pub const VERSION: &'static str = "13";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -1611,6 +1710,9 @@ impl DocsModel {
         // ── Concerns (collected from module graphs via gmeow:docsConcern) ──────
         let concerns = extract_concerns(catalog);
 
+        // ── Build-pipeline DAG (the dogfooded build graph authored as data) ────
+        let pipeline = extract_pipeline(catalog);
+
         // ── External terms (linkage objects + non-GMEOW term edges) ────────────
         let external_terms = extract_external_terms(&terms, &linkages);
 
@@ -1643,6 +1745,7 @@ impl DocsModel {
             constraint_rules: Vec::new(),
             four_boxes: None,
             concept_doi: None,
+            pipeline,
             available_languages,
             translations,
             ui_catalog: UiCatalog::default(),
@@ -3066,6 +3169,121 @@ fn extract_concerns(catalog: &SliceCatalog) -> Vec<DocConcern> {
         .collect();
     concerns.sort_by(|a, b| a.iri.cmp(&b.iri));
     concerns
+}
+
+/// Extract the dogfooded build-pipeline DAG from every module graph that carries
+/// `gmeow:PipelineStage` individuals (the pipeline slice today). Scans module
+/// stores exactly as [`extract_concerns`] does — a source-lane read of authored
+/// `module.ttl`, never a `generated/` artifact. Returns `None` when no module
+/// authors a stage (a bare unit-test catalog); the whole-repo `discover` path
+/// always finds `slices/core/pipeline/module.ttl` and populates it.
+///
+/// Edges are the union of bare `gmeow:dataflowConsumes` dependencies (added with
+/// no flow entities) and reified `gmeow:BuildDataFlow` refinements (whose
+/// `gmeow:flowEntity` named-graph IRIs decorate the matching edge). A
+/// `BuildDataFlow` whose `(from, to)` names no bare consumes edge still yields an
+/// edge — it is a genuine authored dependency.
+fn extract_pipeline(catalog: &SliceCatalog) -> Option<DocPipeline> {
+    let mut stages: Vec<DocStage> = Vec::new();
+    let mut seen_stage: BTreeSet<String> = BTreeSet::new();
+    // (producer, consumer) → flowing named-graph IRIs (BTreeSet keeps them sorted
+    // and the outer BTreeMap keeps the edge order deterministic).
+    let mut edges: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
+    let mut goal: Option<String> = None;
+    let mut success_mode: Option<String> = None;
+
+    for record in catalog.records() {
+        for artifact in &record.artifacts {
+            if artifact.role != ArtifactRole::Module {
+                continue;
+            }
+            let Ok(store) = parse_turtle_lenient(&artifact.content) else {
+                continue;
+            };
+
+            // Stages + their bare dataflowConsumes edges.
+            for iri in subjects_of_type(&store, GMEOW_PIPELINE_STAGE) {
+                if !seen_stage.insert(iri.clone()) {
+                    continue;
+                }
+                let mut consumes = named_objects(&store, &iri, GMEOW_DATAFLOW_CONSUMES);
+                consumes.sort();
+                consumes.dedup();
+                let capabilities = curie_objects(&store, &iri, GMEOW_HAS_CAPABILITY);
+                let resources = curie_objects(&store, &iri, GMEOW_REQUIRES_RESOURCE);
+                // The lowest-sorted box-role CURIE (mirrors the per-term surface).
+                let box_role = curie_objects(&store, &iri, GMEOW_GRAPH_BOX_ROLE)
+                    .into_iter()
+                    .next();
+                for producer in &consumes {
+                    edges.entry((producer.clone(), iri.clone())).or_default();
+                }
+                stages.push(DocStage {
+                    label: first_literal(&store, &iri, RDFS_LABEL),
+                    definition: first_literal(&store, &iri, SKOS_DEFINITION),
+                    stage_impl: first_literal(&store, &iri, GMEOW_STAGE_IMPL),
+                    capabilities,
+                    resources,
+                    box_role,
+                    consumes,
+                    iri,
+                });
+            }
+
+            // Reified BuildDataFlow edges: decorate the matching edge with the
+            // flowing named-graph IRIs (honest computed-absence where none exist).
+            for edge_iri in subjects_of_type(&store, GMEOW_BUILD_DATA_FLOW) {
+                let from = named_objects(&store, &edge_iri, GMEOW_BUILD_FLOW_FROM)
+                    .into_iter()
+                    .next();
+                let to = named_objects(&store, &edge_iri, GMEOW_BUILD_FLOW_TO)
+                    .into_iter()
+                    .next();
+                let (Some(from), Some(to)) = (from, to) else {
+                    continue;
+                };
+                let entry = edges.entry((from, to)).or_default();
+                for graph in named_objects(&store, &edge_iri, GMEOW_FLOW_ENTITY) {
+                    entry.insert(graph);
+                }
+            }
+
+            // The Pipeline plan's goal + success mode.
+            for pipeline_iri in subjects_of_type(&store, GMEOW_PIPELINE) {
+                if goal.is_none() {
+                    goal = named_objects(&store, &pipeline_iri, LOGIC_PLAN_GOAL)
+                        .into_iter()
+                        .next()
+                        .map(|iri| to_curie(&iri));
+                }
+                if success_mode.is_none() {
+                    success_mode = named_objects(&store, &pipeline_iri, LOGIC_PLAN_SUCCESS_MODE)
+                        .into_iter()
+                        .next()
+                        .map(|iri| to_curie(&iri));
+                }
+            }
+        }
+    }
+
+    if stages.is_empty() {
+        return None;
+    }
+    stages.sort_by(|a, b| a.iri.cmp(&b.iri));
+    let edges: Vec<DocFlowEdge> = edges
+        .into_iter()
+        .map(|((from, to), flow)| DocFlowEdge {
+            from,
+            to,
+            flow_entities: flow.into_iter().collect(),
+        })
+        .collect();
+    Some(DocPipeline {
+        stages,
+        edges,
+        goal,
+        success_mode,
+    })
 }
 
 /// Derive the external-term overview: every non-GMEOW IRI referenced by a

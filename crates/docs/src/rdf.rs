@@ -443,6 +443,7 @@ mod tests {
             constraint_rules: Vec::new(),
             four_boxes: None,
             concept_doi: None,
+            pipeline: None,
 
             available_languages: vec!["english".to_string()],
 
@@ -502,6 +503,7 @@ mod tests {
             constraint_rules: Vec::new(),
             four_boxes: None,
             concept_doi: None,
+            pipeline: None,
 
             available_languages: vec!["english".to_string()],
 

@@ -500,6 +500,7 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_badge_legend", "Badge legend"),
     ("body_box_role", "Box role"),
     ("body_browse", "Browse"),
+    ("body_build_pipeline", "Build pipeline"),
     ("body_by_term_count", "By term count"),
     ("body_canonical_ir", "Canonical IR"),
     (
@@ -629,6 +630,10 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
         "body_no_notation_grammars",
         "No notation grammars are declared in the lang slice.",
     ),
+    (
+        "body_no_pipeline",
+        "No build pipeline was discovered for this model.",
+    ),
     ("body_no_query_text", "No query text available."),
     (
         "body_no_recipes",
@@ -649,10 +654,20 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_notation_grammars", "Notation grammars"),
     ("body_other_equivalences", "Other equivalences"),
     ("body_part_of", "Part of"),
+    ("body_pipeline_capabilities", "Capabilities and resources"),
+    ("body_pipeline_consumed_by", "Consumed by"),
+    ("body_pipeline_consumes", "Consumes"),
+    ("body_pipeline_diagram", "Pipeline diagram"),
+    ("body_pipeline_flowing_graphs", "Flowing graphs"),
+    ("body_pipeline_implementation", "Implementation"),
+    ("body_pipeline_stage", "Build-pipeline stage"),
+    ("body_pipeline_stages", "Stages"),
+    ("body_pipeline_success_mode", "Success mode"),
     ("body_preservation_loss_ledger", "Preservation loss ledger"),
     ("body_profiles", "Profiles"),
     ("body_projection_surface", "Projection surface"),
     ("body_projects_toward", "Projects toward"),
+    ("body_provenance", "Provenance"),
     ("body_query", "Query"),
     ("body_quickstart", "Quickstart"),
     ("body_range", "Range"),
@@ -1001,9 +1016,9 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 133 `body_*` chrome
+        // 60 legacy nav/page/section/category/footer keys + 145 `body_*` chrome
         // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 193);
+        assert_eq!(UI_TEMPLATES.len(), 205);
     }
 
     #[test]
