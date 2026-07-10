@@ -1204,4 +1204,65 @@ mod tests {
         // A missing stage-reason product hard-fails (never a silent default).
         assert!(reasoning_verdict_from_reason(&BTreeMap::new()).is_err());
     }
+
+    /// B1 (real-repo non-vacuity, symmetric with the B3 F1 entailments proof in
+    /// `carrier.rs`): the diagnostics→term digest folded from the REAL
+    /// `stage-validate` + `stage-compile-logic` products over the whole ontology
+    /// must carry a non-zero raw finding total — the docs "Diagnostics you might
+    /// hit" surface must never ship vacuous. `by_term` / `by_slice` are NOT
+    /// asserted non-empty: today's real findings genuinely name no documented-term
+    /// location, so an empty `by_term` is honest data, not a bug (the term/slice
+    /// join mechanism is proven by the synthetic
+    /// `diagnostics_digest_joins_term_and_slice_and_hard_fails_on_missing_upstream`
+    /// test above). Runs the real source-load → validate / compile-logic chain
+    /// directly (each `Stage::run` is pure in-memory — the committed `generated/`
+    /// tree is untouched), mirroring the B3 real-repo chaining.
+    #[test]
+    fn diagnostics_digest_total_is_non_vacuous_on_the_real_repo() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .unwrap();
+        let empty: BTreeMap<String, StageProduct> = BTreeMap::new();
+
+        let source_load = crate::stages::source_load::SourceLoadStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &empty,
+            })
+            .expect("real source-load");
+        let mut with_source: BTreeMap<String, StageProduct> = BTreeMap::new();
+        with_source.insert("stage-source-load".to_string(), source_load.product);
+
+        let validate = crate::stages::validate::ValidateStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &with_source,
+            })
+            .expect("real validate");
+
+        let compile = crate::stages::compile_logic::CompileLogicStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &empty,
+            })
+            .expect("real compile-logic");
+
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert("stage-validate".to_string(), validate.product);
+        upstream.insert("stage-compile-logic".to_string(), compile.product);
+
+        let model = DocsModel::discover(&root).expect("real docs model discovery");
+        let known_term_iris: BTreeSet<String> = model.terms.iter().map(|t| t.iri.clone()).collect();
+        let digest =
+            diagnostics_digest_from_upstream(&upstream, &known_term_iris, &model.constraint_rules)
+                .expect("real diagnostics digest folds from validate + compile-logic products");
+
+        assert!(
+            digest.total > 0,
+            "the diagnostics digest total must be non-vacuous on the real repo (B1) — the docs \
+             diagnostics surface must never ship with zero folded findings"
+        );
+    }
 }

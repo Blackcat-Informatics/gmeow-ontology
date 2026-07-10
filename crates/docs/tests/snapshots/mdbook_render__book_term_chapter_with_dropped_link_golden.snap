@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/mdbook_render.rs
-assertion_line: 244
 expression: head
 ---
 # Acquaintance Relationship
@@ -20,6 +19,6 @@ expression: head
 
 An interpersonal relationship of social acquaintance — agents who have met and know one another \(the reified form of hasMet\)\.
 
-## Quickstart
+## For developers
 
-```turtle
+## Quickstart

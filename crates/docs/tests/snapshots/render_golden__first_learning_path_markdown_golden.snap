@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 642
 expression: "to_markdown(&model, &Page::LearningPath(slug))"
 ---
 # Audit AI and Graph\-RAG Pipelines
@@ -62,3 +61,8 @@ Connect generated claims to source chunks, evidence spans, tools, model context,
 ## Projects toward
 
 `dcat`, `prov`, `schema`
+
+---
+
+**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic`
+Rendered from `gmeow.gts` by the dogfooded build pipeline.

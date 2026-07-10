@@ -164,6 +164,15 @@
 #     `term_entailments_from_explanations_populates_matching_term_only` and
 #     `term_entailments_from_upstream_joins_and_hard_fails_on_missing_artifact` in the
 #     same module, and the real-repo non-vacuity proof stays on-gate on `maint-heavy`.
+#   - gmeow-pipeline stages::docs_render::tests::diagnostics_digest_total_is_non_vacuous_on_the_real_repo
+#     (B1, issue 1404): ~105 s locally. The symmetric real-repo non-vacuity proof for
+#     the diagnostics digest — runs the real `source_load` → `validate` /
+#     `compile_logic` chain (whole-ontology SHACL validation + logic compile) and
+#     asserts the folded finding `total` is non-zero, the same whole-repo cost class
+#     as the conformance-union binaries above. Coverage stays: the term/slice join +
+#     hard-fail-on-missing-upstream mechanism is proven on-gate by the fast synthetic
+#     sibling `diagnostics_digest_joins_term_and_slice_and_hard_fails_on_missing_upstream`
+#     in the same module, and the real-repo non-vacuity proof stays on-gate on `maint-heavy`.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -182,6 +191,7 @@ default-filter = '''
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(rendered_tree_is_disk_faithful))
     | (package(gmeow-pipeline) & test(/quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate/))
     | (package(gmeow-pipeline) & test(/stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo/))
+    | (package(gmeow-pipeline) & test(/stages::docs_render::tests::diagnostics_digest_total_is_non_vacuous_on_the_real_repo/))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
@@ -331,6 +341,15 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 # measured ~100 s.
 filter = 'package(gmeow-pipeline) & test(/stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo/)'
 test-group = 'engine'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
+# The B1 real-repo non-vacuity proof (issue 1404) runs the whole-ontology SHACL
+# validate + logic-compile chain (no Nemo chase, so no `engine` memory group — the
+# same class as the off-gate `conformance_*` validate binaries). It is off-gated via
+# `default-filter` (runs only on `maint-heavy`); grant a runaway cliff well over its
+# measured ~105 s so CI jitter never trips the terminate backstop.
+filter = 'package(gmeow-pipeline) & test(/stages::docs_render::tests::diagnostics_digest_total_is_non_vacuous_on_the_real_repo/)'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]

@@ -1,0 +1,9 @@
+---
+source: crates/docs/tests/enrichment_golden.rs
+expression: "section(&md, \"Diagnostics you might hit\")"
+---
+## Diagnostics you might hit
+
+- **Severity:** 1 error · 1 warning
+- [`shacl.MinCountConstraintComponent`](https://blackcatinformatics.ca/gmeow/docs/integrity-constraints/index.md#shacl-mincountconstraintcomponent) (Constraint): a required property is missing on this focus node
+- `logic-compile.LOSSY_DROP` (Projection): an axiom shape is dropped under the OWL\-DL projection
