@@ -281,29 +281,32 @@ pub(crate) struct Relation {
 
 impl Relation {
     /// Insert `(subject, object)` if its interned key is new, stamping it with the
-    /// store-assigned `row_id`; return `true` if inserted.
+    /// store-assigned `row_id`; return `Some((subject_id, object_id))` with the terms'
+    /// interned ids if the row was newly inserted, or `None` if the key was already
+    /// present (dedup miss).
     ///
     /// On a successful insert the new row index is appended to BOTH indexes in
     /// lockstep with `rows` (so each bucket's order equals insertion order), and the
-    /// store-global [`RowId`] is recorded parallel to the row.
+    /// store-global [`RowId`] is recorded parallel to the row.  Returning the interned
+    /// ids lets the caller thread them onward without a second interner lookup.
     fn insert(
         &mut self,
         interner: &mut TermInterner,
         subject: &TermValue,
         object: &TermValue,
         row_id: RowId,
-    ) -> bool {
+    ) -> Option<(TermId, TermId)> {
         let s_id = interner.intern(subject);
         let o_id = interner.intern(object);
         if !self.keys.insert((s_id, o_id)) {
-            return false;
+            return None;
         }
         let idx = self.rows.len();
         self.rows.push((s_id, o_id));
         self.row_ids.push(row_id);
         self.by_subject.entry(s_id).or_default().push(idx);
         self.by_object.entry(o_id).or_default().push(idx);
-        true
+        Some((s_id, o_id))
     }
 
     /// Whether a tuple with these interned terms is present.
@@ -413,7 +416,8 @@ impl RelationStore {
         }
     }
 
-    /// Insert `(subject, object)` under `predicate`; return `Some(row_id)` with the
+    /// Insert `(subject, object)` under `predicate`; return
+    /// `Some((subject_id, object_id, row_id))` with the terms' interned ids and the
     /// newly-assigned store-global [`RowId`] if the tuple was newly inserted, or `None`
     /// if it was already present (dedup).
     ///
@@ -421,13 +425,15 @@ impl RelationStore {
     /// owned-key clone per call); the tuple is deduped on its interned id key per
     /// relation, and both secondary indexes are maintained in lockstep.  A successful
     /// insert stamps the row with the next dense RowId (insertion order across the whole
-    /// store) — the identity the semi-naive delta bitset is keyed on.
+    /// store) — the identity the semi-naive delta bitset is keyed on.  The interned
+    /// subject/object ids are returned alongside the row id so the commit-path caller
+    /// threads them onward without a redundant second interner lookup.
     pub(crate) fn insert(
         &mut self,
         predicate: &str,
-        subject: TermValue,
-        object: TermValue,
-    ) -> Option<RowId> {
+        subject: &TermValue,
+        object: &TermValue,
+    ) -> Option<(TermId, TermId, RowId)> {
         let idx = self.predicates.intern(predicate).index();
         if idx >= self.relations.len() {
             // A newly-minted PredId's slot is always the current length (dense mint),
@@ -435,12 +441,12 @@ impl RelationStore {
             self.relations.resize_with(idx + 1, Relation::default);
         }
         let row_id = RowId::from_index(self.row_count);
-        if self.relations[idx].insert(&mut self.interner, &subject, &object, row_id) {
-            self.row_count += 1;
-            Some(row_id)
-        } else {
-            None
-        }
+        self.relations[idx]
+            .insert(&mut self.interner, subject, object, row_id)
+            .map(|(s_id, o_id)| {
+                self.row_count += 1;
+                (s_id, o_id, row_id)
+            })
     }
 
     /// The number of rows currently in the store across all relations — equivalently,
@@ -542,7 +548,7 @@ impl RelationStore {
 pub(crate) fn extract_edb(foreign: &dyn ScryerForeign, world: &str) -> RelationStore {
     let mut store = RelationStore::new();
     for dq in foreign.in_world(world, None, None, None) {
-        store.insert(&dq.predicate, dq.subject.clone(), dq.object.clone());
+        store.insert(&dq.predicate, &dq.subject, &dq.object);
     }
     store
 }
@@ -605,19 +611,19 @@ mod tests {
         let likes = "http://ex/likes";
         let mut s = RelationStore::new();
         assert!(
-            s.insert(knows, term("http://ex/a"), term("http://ex/b"))
+            s.insert(knows, &term("http://ex/a"), &term("http://ex/b"))
                 .is_some()
         );
         assert!(
-            s.insert(knows, term("http://ex/a"), term("http://ex/c"))
+            s.insert(knows, &term("http://ex/a"), &term("http://ex/c"))
                 .is_some()
         );
         assert!(
-            s.insert(knows, term("http://ex/b"), term("http://ex/c"))
+            s.insert(knows, &term("http://ex/b"), &term("http://ex/c"))
                 .is_some()
         );
         assert!(
-            s.insert(likes, term("http://ex/a"), term("http://ex/c"))
+            s.insert(likes, &term("http://ex/a"), &term("http://ex/c"))
                 .is_some()
         );
         s
@@ -687,12 +693,12 @@ mod tests {
         let knows = "http://ex/knows";
         let mut s = RelationStore::new();
         assert!(
-            s.insert(knows, term("http://ex/a"), term("http://ex/b"))
+            s.insert(knows, &term("http://ex/a"), &term("http://ex/b"))
                 .is_some()
         );
         // Re-inserting the same (s,p,o) is a no-op that reports None (no new row id).
         assert!(
-            s.insert(knows, term("http://ex/a"), term("http://ex/b"))
+            s.insert(knows, &term("http://ex/a"), &term("http://ex/b"))
                 .is_none()
         );
         assert_eq!(s.len_for("http://ex/knows"), 1);
@@ -712,9 +718,15 @@ mod tests {
         let likes = "http://ex/likes";
         let mut s = RelationStore::new();
         // Interleave predicates so a per-relation index would NOT match the global RowId.
-        let r0 = s.insert(knows, term("http://ex/a"), term("http://ex/b"));
-        let r1 = s.insert(likes, term("http://ex/a"), term("http://ex/c"));
-        let r2 = s.insert(knows, term("http://ex/a"), term("http://ex/c"));
+        let r0 = s
+            .insert(knows, &term("http://ex/a"), &term("http://ex/b"))
+            .map(|(_, _, r)| r);
+        let r1 = s
+            .insert(likes, &term("http://ex/a"), &term("http://ex/c"))
+            .map(|(_, _, r)| r);
+        let r2 = s
+            .insert(knows, &term("http://ex/a"), &term("http://ex/c"))
+            .map(|(_, _, r)| r);
         assert_eq!(r0, Some(RowId::from_index(0)));
         assert_eq!(r1, Some(RowId::from_index(1)));
         assert_eq!(
@@ -724,7 +736,7 @@ mod tests {
         );
         // A dedup consumes no RowId — the space stays dense and `row_count` is exact.
         assert_eq!(
-            s.insert(knows, term("http://ex/a"), term("http://ex/b")),
+            s.insert(knows, &term("http://ex/a"), &term("http://ex/b")),
             None
         );
         assert_eq!(s.row_count(), 3, "three distinct rows ⇒ RowIds 0..3");
@@ -763,8 +775,12 @@ mod tests {
         for i in 0..6 {
             let pred = if i % 2 == 0 { p } else { q };
             assert!(
-                s.insert(pred, term("http://ex/s"), term(&format!("http://ex/o{i}")))
-                    .is_some()
+                s.insert(
+                    pred,
+                    &term("http://ex/s"),
+                    &term(&format!("http://ex/o{i}"))
+                )
+                .is_some()
             );
         }
         // Every relation's parallel `row_ids` is strictly increasing in the row index —
@@ -837,7 +853,7 @@ mod tests {
         // Insert in reverse-lexical order; a raw hash-map sweep would not be sorted.
         for pred in ["http://ex/zeta", "http://ex/mu", "http://ex/alpha"] {
             assert!(
-                s.insert(pred, term("http://ex/x"), term("http://ex/y"))
+                s.insert(pred, &term("http://ex/x"), &term("http://ex/y"))
                     .is_some()
             );
         }
