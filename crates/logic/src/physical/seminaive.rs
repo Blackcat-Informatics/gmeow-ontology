@@ -58,6 +58,7 @@
 use std::borrow::Cow;
 use std::collections::{BTreeSet, HashMap};
 
+use hashbrown::HashTable;
 use rayon::prelude::*;
 
 use crate::physical::arena::{RowArena, RowTuple};
@@ -70,8 +71,8 @@ use crate::physical::store::{Bound, RelationStore};
 use crate::provenance::mint_derivation_id;
 use crate::query_ir::QBuiltin;
 use crate::rule_ir::{
-    DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactKeyMap, FactStore, Provenance,
-    RuleRoundCandidate, Solution, distinct_pairs_satisfied, echo_asserted, ground, ground_head,
+    DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, Provenance, RuleRoundCandidate,
+    Solution, distinct_pairs_satisfied, echo_asserted, fact_key_hash, ground, ground_head,
     match_atom, sort_rows, world_edb_facts,
 };
 use crate::seam::BudgetStatus;
@@ -830,7 +831,10 @@ fn eval_world_stratified(
     // (world_edb_facts already sorted), so seeding matches the reference.
     let mut store = FactStore::new();
     let mut rel = RelationStore::new();
-    let mut depth: FactKeyMap<u32> = FactKeyMap::default();
+    // Per-fact derivation-depth column, indexed by `store`'s insertion-order row (pushed
+    // in lockstep with `store.insert`).  Depth feeds ONLY the Record-mode tiebreak; the
+    // Skip lane never writes it, so it stays empty there (asserted below in `evaluate`).
+    let mut depth: Vec<u32> = Vec::new();
 
     // A PURE-EDB predicate (never a rule head) is settled from the seed; a predicate that
     // is also a rule head is settled only when its stratum completes (below), so exclude
@@ -844,12 +848,14 @@ fn eval_world_stratified(
         .collect();
 
     for f in edb_facts {
-        // Depth 0 for the asserted seed feeds only the Record-mode tiebreak; Skip omits it.
-        if let ProvenanceMode::Record = mode {
-            depth.insert(f.key(), 0);
-        }
-        if store.insert(f.clone()) {
+        // Insert into both stores in lockstep; under Record push the depth-0 seed slot
+        // so `depth` tracks `store`'s rows exactly (Skip omits depth entirely).
+        if let Some(idx) = store.insert(f.clone()) {
             rel.insert(&f.predicate, &f.subject, &f.object);
+            if let ProvenanceMode::Record = mode {
+                debug_assert_eq!(idx, depth.len(), "depth/store lockstep on the EDB seed");
+                depth.push(0); // EDB facts have depth 0
+            }
         }
     }
 
@@ -920,7 +926,7 @@ fn eval_world_stratified(
 struct FixpointState<'a> {
     store: &'a mut FactStore,
     rel: &'a mut RelationStore,
-    depth: &'a mut FactKeyMap<u32>,
+    depth: &'a mut Vec<u32>,
     derivations: &'a mut Vec<DerivedRow>,
     builtin_gap: &'a mut bool,
 }
@@ -976,7 +982,13 @@ fn eval_stratum_fixpoint(
     let mut arena = RowArena::new();
 
     loop {
-        let mut round: FactKeyMap<RuleRoundCandidate> = FactKeyMap::default();
+        // Per-round canonical-winner map: a borrowed-key `HashTable<usize>` into a side
+        // `Vec<(FactKey, RuleRoundCandidate)>` (mirrors `FactStore`'s cached-surface
+        // probe) — no owned-key clone per candidate, and the cached `FactKey` is reused
+        // at commit for the sort.  Identical selection semantics to
+        // `least_model_of_reduct`'s round map.
+        let mut round_entries: Vec<(FactKey, RuleRoundCandidate)> = Vec::new();
+        let mut round_index: HashTable<usize> = HashTable::new();
 
         for (rule, plan) in exe.stratum_entries(stratum) {
             for sol in join_body_indexed(rule, plan, rel, rel, &delta, builtin_gap) {
@@ -997,7 +1009,11 @@ fn eval_stratum_fixpoint(
                         let mut sum_sd: u64 = 0;
                         for sf in &sol.source_facts {
                             sources.push(sf.reifier()?);
-                            let d = *depth.get(&sf.key()).unwrap_or(&0);
+                            let d = store
+                                .row_index(&sf.key())
+                                .and_then(|i| depth.get(i))
+                                .copied()
+                                .unwrap_or(0);
                             max_sd = max_sd.max(d);
                             sum_sd = sum_sd.saturating_add(u64::from(d));
                         }
@@ -1008,7 +1024,6 @@ fn eval_stratum_fixpoint(
 
                         let candidate = RuleRoundCandidate {
                             head,
-                            key: key.clone(),
                             prov: Some(Provenance {
                                 sources,
                                 sorted_sources,
@@ -1019,14 +1034,21 @@ fn eval_stratum_fixpoint(
                                 sum_src_depth: sum_sd,
                             }),
                         };
-                        round
-                            .entry(key)
-                            .and_modify(|existing| {
-                                if candidate.tiebreak_key() < existing.tiebreak_key() {
-                                    *existing = candidate.clone();
+                        let hash = fact_key_hash(&key);
+                        match round_index.find(hash, |&i| round_entries[i].0 == key) {
+                            Some(&i) => {
+                                if candidate.tiebreak_key() < round_entries[i].1.tiebreak_key() {
+                                    round_entries[i].1 = candidate;
                                 }
-                            })
-                            .or_insert(candidate);
+                            }
+                            None => {
+                                let idx = round_entries.len();
+                                round_entries.push((key, candidate));
+                                let entries = &round_entries;
+                                round_index
+                                    .insert_unique(hash, idx, |&i| fact_key_hash(&entries[i].0));
+                            }
+                        }
                     }
                     ProvenanceMode::Skip => {
                         // Facts-only: no `reifier()` minting, no derivation id, no depth read,
@@ -1034,18 +1056,22 @@ fn eval_stratum_fixpoint(
                         // (the key is content-derived from the head), so first-seen wins and the
                         // committed fact is invariant to the choice.  `prov: None` makes the
                         // absence of provenance a type-enforced fact, not a sentinel-filled struct.
-                        let cand = RuleRoundCandidate {
-                            head,
-                            key: key.clone(),
-                            prov: None,
-                        };
-                        round.entry(key).or_insert(cand);
+                        let hash = fact_key_hash(&key);
+                        if round_index
+                            .find(hash, |&i| round_entries[i].0 == key)
+                            .is_none()
+                        {
+                            let idx = round_entries.len();
+                            round_entries.push((key, RuleRoundCandidate { head, prov: None }));
+                            let entries = &round_entries;
+                            round_index.insert_unique(hash, idx, |&i| fact_key_hash(&entries[i].0));
+                        }
                     }
                 }
             }
         }
 
-        if round.is_empty() {
+        if round_entries.is_empty() {
             break; // stratum fixpoint
         }
 
@@ -1058,14 +1084,15 @@ fn eval_stratum_fixpoint(
         // the FactKey-sorted commit order.  The arena is the arrangement's contiguous
         // value column; the delta bitset built after the loop is row-id membership over
         // exactly this column.
-        let mut committed: Vec<(RowTuple, RowId)> = Vec::with_capacity(round.len());
+        let round_len = round_entries.len();
+        let mut committed: Vec<(RowTuple, RowId)> = Vec::with_capacity(round_len);
         // Commit winners in RESOLVED LEXICAL FactKey order — NOT any id/mint order — so
         // store/index insertion order AND the per-winner `governor.charge()` sequence
         // stay byte-deterministic.  RowId assignment is a purely ADDITIVE side effect of
         // the lockstep `rel.insert` inside this sorted loop; it never orders the commit
         // or the budget charge (mint order ≠ lexical order).  This is the columnar-store
         // determinism doctrine, matching `least_model_of_reduct`'s commit discipline.
-        let mut winners: Vec<(FactKey, RuleRoundCandidate)> = round.into_iter().collect();
+        let mut winners: Vec<(FactKey, RuleRoundCandidate)> = round_entries;
         winners.sort_by(|(a, _), (b, _)| a.cmp(b));
         for (_key, winner) in winners {
             // The step/derivation budget is charged HERE — one step per committed
@@ -1077,22 +1104,16 @@ fn eval_stratum_fixpoint(
             if governor.spent() {
                 return Ok(FixpointStatus::Exhausted);
             }
-            // Depth bookkeeping feeds ONLY the provenance tiebreak; the facts-only lane carries
-            // `prov: None`, so it is not maintained there (keeping the `depth` map empty under
-            // Skip — the `assert!` in `evaluate` locks that invariant in release builds too).
-            if let Some(prov) = &winner.prov {
-                let winner_depth = prov.max_src_depth.saturating_add(1);
-                depth.insert(winner.key.clone(), winner_depth);
-            }
             // Insert into both stores in lockstep so the columnar index order tracks the
-            // ternary store's insertion order exactly, capturing the store-global dense
-            // RowId the `RelationStore` stamps on the new row.  This — and the
-            // FactKey-sorted commit order, the delta, and the per-winner budget charge —
-            // are provenance-independent, so the committed fact set is byte-identical
-            // across modes.  A winner is always a genuinely-new fact (heads already
-            // present are skipped above via `store.contains_key`), so the lockstep insert
-            // returns `Some(...)`.
-            let ids = if store.insert(winner.head.clone()) {
+            // ternary store's insertion order exactly, capturing the store row index (for
+            // the Record-mode depth push) and the store-global dense RowId the
+            // `RelationStore` stamps on the new row.  This — and the FactKey-sorted commit
+            // order, the delta, and the per-winner budget charge — are provenance-
+            // independent, so the committed fact set is byte-identical across modes.  A
+            // winner is always a genuinely-new fact (heads already present are skipped
+            // above via `store.contains_key`), so the lockstep insert returns `Some(...)`.
+            let store_idx = store.insert(winner.head.clone());
+            let ids = if store_idx.is_some() {
                 rel.insert(
                     &winner.head.predicate,
                     &winner.head.subject,
@@ -1101,6 +1122,21 @@ fn eval_stratum_fixpoint(
             } else {
                 None
             };
+            // Depth bookkeeping feeds ONLY the provenance tiebreak; the facts-only lane
+            // carries `prov: None`, so it is not maintained there (keeping the `depth` Vec
+            // empty under Skip — the `assert!` in `evaluate` locks that invariant in
+            // release builds too).  Pushed in lockstep with the store row just added, so
+            // `depth[i]` stays the depth of the store's row `i`.
+            if let (Some(idx), Some(prov)) = (store_idx, winner.prov.as_ref()) {
+                let winner_depth = prov.max_src_depth.saturating_add(1);
+                assert_eq!(
+                    idx,
+                    depth.len(),
+                    "depth/store index desync: `depth` and the `FactStore` rows must stay \
+                     in lockstep under Record (each committed row pushes one depth slot)"
+                );
+                depth.push(winner_depth);
+            }
             // Stage the committed argument tuple into the phase-scoped value column
             // (arena), paired with its RowId; the read-back below turns the column into
             // the next round's delta bitset.  The subject/object term ids come straight
@@ -1207,7 +1243,9 @@ pub(crate) fn evaluate(
     // Run the stratified fixpoint, accumulating into a shared FactStore/RelationStore.
     let mut store = FactStore::new();
     let mut rel = RelationStore::new();
-    let mut depth: FactKeyMap<u32> = FactKeyMap::default();
+    // Depth column (row-indexed, like the forward leg).  This Skip-mode leg never records
+    // provenance, so it is never written — it stays empty, asserted below.
+    let mut depth: Vec<u32> = Vec::new();
 
     // A PURE-EDB predicate (never a rule head) is settled from the seed; a self-recursive
     // or otherwise IDB-derived predicate becomes settled only when its stratum completes
@@ -1226,7 +1264,7 @@ pub(crate) fn evaluate(
     // memory a closure-only lane must not pay).  The seed therefore also skips the
     // provenance-only `depth` bookkeeping.
     for f in &edb_facts {
-        if store.insert(f.clone()) {
+        if store.insert(f.clone()).is_some() {
             rel.insert(&f.predicate, &f.subject, &f.object);
         }
     }
