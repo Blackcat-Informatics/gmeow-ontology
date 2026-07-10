@@ -764,3 +764,45 @@ DESIGN PRINCIPLES.
     skos:definition "The GMEOW Calendar and Scheduling Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Suppression constraint (#1194) — projection of CancelledOccurrenceSuppressionShape.
+# A cancelled Event occurrence — one whose eventTime matches a ScheduleException #
+# of gmeow:exceptionType exceptionTypeCancellation on a schedule that occurs it  #
+# — that is not suppressed (gmeow:displayable false) is a Warning.               #
+# =========================================================================== #
+
+gmeow:CancelledOccurrenceSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Cancelled occurrence suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a cancelled gmeow:Event occurrence (one with a ScheduleException of gmeow:exceptionType exceptionTypeCancellation whose original date matches the event's gmeow:eventTime) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
+    logic:formalizes gmeow:Event ;
+    logic:severity "Warning" ;
+    logic:message "A cancelled occurrence (one with a ScheduleException of type exceptionTypeCancellation) should set gmeow:displayable false — suppressed from display, never deleted." ;
+    logic:integrity logic:supEvForall .
+logic:supEvForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:supEvImpl .
+logic:supEvImpl a logic:Formula ; logic:antecedent logic:supEvGuard ; logic:consequent logic:supEvPhi .
+logic:supEvGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Event ] .
+logic:supEvPhi a logic:Formula ; logic:not logic:supEvEx .
+logic:supEvEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "exception" ] , [ logic:termIndex 1 ; logic:termVariable "schedule" ] , [ logic:termIndex 2 ; logic:termVariable "date" ] ;
+    logic:exists logic:supEvBody .
+logic:supEvBody a logic:Formula ; logic:and logic:supEvType , logic:supEvSchedule , logic:supEvOrigDate , logic:supEvOccurrence , logic:supEvTime , logic:supEvNotSuppressed .
+logic:supEvType a logic:Formula ; logic:relation gmeow:exceptionType ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "exception" ] , [ logic:termIndex 1 ; logic:termIri gmeow:exceptionTypeCancellation ] .
+logic:supEvSchedule a logic:Formula ; logic:relation gmeow:exceptionSchedule ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "exception" ] , [ logic:termIndex 1 ; logic:termVariable "schedule" ] .
+logic:supEvOrigDate a logic:Formula ; logic:relation gmeow:exceptionOriginalDate ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "exception" ] , [ logic:termIndex 1 ; logic:termVariable "date" ] .
+logic:supEvOccurrence a logic:Formula ; logic:relation gmeow:scheduleOccurrence ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "schedule" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:supEvTime a logic:Formula ; logic:relation gmeow:eventTime ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "date" ] .
+logic:supEvNotSuppressed a logic:Formula ; logic:not logic:supEvDisp .
+logic:supEvDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .

@@ -1543,3 +1543,24 @@ DOCTRINE.
     skos:definition "The GMEOW Creative Works Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# FRBR spine integrity (issue #1194): every gmeow:Manifestation embodies at    #
+# least one gmeow:Expression. Migrated from the hand-authored                  #
+# gmeow:ManifestationEmbodiesExpressionShape gmeow:embodies min-count property #
+# constraint to a compact logic: disjunctive-requiredness record, projected to #
+# a sh:SPARQLConstraint keyed onto gmeow:Manifestation (its sh:targetClass      #
+# follows rdfs:subClassOf, so a subclass instance — a gmeow:MediaObject — is    #
+# selected too).                                                                #
+# =========================================================================== #
+
+gmeow:ManifestationEmbodiesRequiredConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Manifestation embodies requiredness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world FRBR spine-integrity constraint: every gmeow:Manifestation must embody at least one gmeow:Expression through gmeow:embodies."@x-gmeow-english ;
+    logic:onClass gmeow:Manifestation ;
+    logic:anyOf gmeow:embodies ;
+    logic:formalizes gmeow:Manifestation ;
+    logic:message "Every Manifestation must embody at least one Expression (gmeow:embodies)." .

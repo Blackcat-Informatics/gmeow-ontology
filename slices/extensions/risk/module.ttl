@@ -368,3 +368,125 @@ DOCTRINE.
     skos:definition "The GMEOW Risk Module — hazards, type-level causation, cascades, and mitigations."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# Closed-world cardinality/value axioms backing the hand-authored SHACL
+# well-formedness shapes.
+gmeow:Hazard rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:hazardBearer ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:manifestedAsType ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:EventType ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:hazardSeverity ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+gmeow:Cascade rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:cascadeFirstLink ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:CausalLink ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:cascadeSeverity ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+gmeow:Mitigation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:mitigationMeasure ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:mitigationCounters ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:mitigationStatus ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+<https://blackcatinformatics.ca/gmeow/Hazard> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/hazardBearer> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/Cascade> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/cascadeFirstLink> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/CausalLink> ] .
+<https://blackcatinformatics.ca/gmeow/Cascade> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/cascadeSeverity> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+
+# =========================================================================== #
+# Migrated procedural constraints (#1194): the closed-world risk well-formedness #
+# shapes from shapes/gmeow-shapes.ttl (Principle 17).                            #
+# =========================================================================== #
+
+gmeow:HazardBearerConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Hazard bearer-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Hazard inheres in a gmeow:hazardBearer."@x-gmeow-english ;
+    logic:onClass gmeow:Hazard ;
+    logic:anyOf gmeow:hazardBearer ;
+    logic:formalizes gmeow:Hazard ;
+    logic:message "A Hazard must inhere in exactly one gmeow:hazardBearer — the same danger borne by two systems is two hazards." .
+
+gmeow:HazardManifestedConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Hazard feared-type-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Hazard names a feared gmeow:manifestedAsType."@x-gmeow-english ;
+    logic:onClass gmeow:Hazard ;
+    logic:anyOf gmeow:manifestedAsType ;
+    logic:formalizes gmeow:Hazard ;
+    logic:message "A Hazard must name at least one feared gmeow:manifestedAsType, an EventType — the type level is where counterfactuals live without machinery." .
+
+gmeow:CausalLinkModalityConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "CausalLink modality-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:CausalLink states a gmeow:causalModality."@x-gmeow-english ;
+    logic:onClass gmeow:CausalLink ;
+    logic:anyOf gmeow:causalModality ;
+    logic:formalizes gmeow:CausalLink ;
+    logic:message "A CausalLink must state exactly one gmeow:causalModality (an IRI — the vocabulary is OPEN per Principle 9): if you reified, you had a reason." .
+
+gmeow:CascadeSeverityConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Cascade severity-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Cascade carries a gmeow:cascadeSeverity."@x-gmeow-english ;
+    logic:onClass gmeow:Cascade ;
+    logic:anyOf gmeow:cascadeSeverity ;
+    logic:formalizes gmeow:Cascade ;
+    logic:message "A Cascade must carry exactly one gmeow:cascadeSeverity (an IRI) — an ungraded cascade is just a story." .
+
+gmeow:MitigationMeasureConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Mitigation measure-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Mitigation binds a gmeow:mitigationMeasure."@x-gmeow-english ;
+    logic:onClass gmeow:Mitigation ;
+    logic:anyOf gmeow:mitigationMeasure ;
+    logic:formalizes gmeow:Mitigation ;
+    logic:message "A Mitigation must bind at least one gmeow:mitigationMeasure (an IRI — the range is deliberately open across the deontic and procedural worlds, P16)." .
+
+gmeow:MitigationCountersPresenceConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:label "Mitigation counters-present constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:Mitigation counters at least one risk factor via gmeow:mitigationCounters."@x-gmeow-english ;
+    logic:onClass gmeow:Mitigation ;
+    logic:anyOf gmeow:mitigationCounters ;
+    logic:formalizes gmeow:Mitigation ;
+    logic:message "A Mitigation must counter at least one risk factor — a CausalLink (barrier on the chain) or a Hazard (control at the source). sh:or over the concrete classes, not sh:class RiskFactor: data graphs type instances concretely and raw-graph SHACL does no subclass inference." .
+
+# Every gmeow:mitigationCounters value is a CausalLink OR a Hazard (disjunctive
+# value-type — no single-class sugar, so a raw logic:Formula integrity tree).
+gmeow:MitigationCountersTypeConstraint
+    a logic:Constraint ;
+    rdfs:label "Mitigation counters value-type constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:mitigationCounters value is a gmeow:CausalLink or a gmeow:Hazard."@x-gmeow-english ;
+    logic:formalizes gmeow:Mitigation ;
+    logic:message "A Mitigation must counter at least one risk factor — a CausalLink (barrier on the chain) or a Hazard (control at the source). sh:or over the concrete classes, not sh:class RiskFactor: data graphs type instances concretely and raw-graph SHACL does no subclass inference." ;
+    logic:integrity logic:mictForall .
+logic:mictForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:mictImpl .
+logic:mictImpl a logic:Formula ; logic:antecedent logic:mictGuard ; logic:consequent logic:mictInner .
+logic:mictGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Mitigation ] .
+logic:mictInner a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ;
+    logic:forall logic:mictVImpl .
+logic:mictVImpl a logic:Formula ; logic:antecedent logic:mictHas ; logic:consequent logic:mictOr .
+logic:mictHas a logic:Formula ; logic:relation gmeow:mitigationCounters ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+logic:mictOr a logic:Formula ; logic:or logic:mictIsLink , logic:mictIsHazard .
+logic:mictIsLink a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri gmeow:CausalLink ] .
+logic:mictIsHazard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Hazard ] .

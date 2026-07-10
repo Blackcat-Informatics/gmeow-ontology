@@ -1631,3 +1631,77 @@ lime:language
 
 ontolex:LexicalEntry
     a owl:Class .
+
+# =========================================================================== #
+# Suppression constraint (#1194) — projection of DeadnameSuppressionShape.     #
+# A superseded name or deadname (namePurpose in {deadname, superseded}) that   #
+# is not suppressed (gmeow:displayable false) is a Warning — a source may lag. #
+# =========================================================================== #
+
+gmeow:SupersededNameSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Superseded name / deadname suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a superseded gmeow:PersonName or deadname (one whose gmeow:namePurpose is namePurposeDeadname or namePurposeSuperseded) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
+    logic:formalizes gmeow:PersonName ;
+    logic:severity "Warning" ;
+    logic:message "A superseded name or deadname should set gmeow:displayable false." ;
+    logic:integrity logic:supNmForall .
+logic:supNmForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:supNmImpl .
+logic:supNmImpl a logic:Formula ; logic:antecedent logic:supNmGuard ; logic:consequent logic:supNmPhi .
+logic:supNmGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PersonName ] .
+logic:supNmPhi a logic:Formula ; logic:not logic:supNmEx .
+logic:supNmEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ;
+    logic:exists logic:supNmBody .
+logic:supNmBody a logic:Formula ; logic:and logic:supNmPurpose , logic:supNmValueOr , logic:supNmNotSuppressed .
+logic:supNmPurpose a logic:Formula ; logic:relation gmeow:namePurpose ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+logic:supNmValueOr a logic:Formula ; logic:or logic:supNmDead , logic:supNmSup .
+logic:supNmDead a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termIri gmeow:namePurposeDeadname ] .
+logic:supNmSup a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termIri gmeow:namePurposeSuperseded ] .
+logic:supNmNotSuppressed a logic:Formula ; logic:not logic:supNmDisp .
+logic:supNmDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
+
+# Migrated (#1194): projection of gmeow:PlaceNamingHasPlayersShape — a NameUsage
+# that names a gmeow:Place must bind a gmeow:PlaceName appellation (Principle 17).
+gmeow:PlaceNamingHasPlayersConstraint
+    a logic:Constraint ;
+    rdfs:label "Place-naming player-binding constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:NameUsage whose gmeow:usageNamed is a gmeow:Place binds a gmeow:PlaceName via gmeow:usageAppellation."@x-gmeow-english ;
+    logic:formalizes gmeow:NameUsage ;
+    logic:message "A name-usage that names a gmeow:Place must bind a gmeow:PlaceName via gmeow:usageAppellation." ;
+    logic:integrity logic:pnhpForall .
+logic:pnhpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:pnhpImpl .
+logic:pnhpImpl a logic:Formula ; logic:antecedent logic:pnhpType ; logic:consequent logic:pnhpNot .
+logic:pnhpType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:NameUsage ] .
+logic:pnhpNot a logic:Formula ; logic:not logic:pnhpExists .
+logic:pnhpExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "place" ] ;
+    logic:exists logic:pnhpBody .
+logic:pnhpBody a logic:Formula ; logic:and logic:pnhpNamed , logic:pnhpPlace , logic:pnhpNoApp .
+logic:pnhpNamed a logic:Formula ; logic:relation gmeow:usageNamed ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "place" ] .
+logic:pnhpPlace a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "place" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Place ] .
+logic:pnhpNoApp a logic:Formula ; logic:not logic:pnhpAppExists .
+logic:pnhpAppExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "app" ] ;
+    logic:exists logic:pnhpAppBody .
+logic:pnhpAppBody a logic:Formula ; logic:and logic:pnhpAppatom , logic:pnhpAppType .
+logic:pnhpAppatom a logic:Formula ; logic:relation gmeow:usageAppellation ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "app" ] .
+logic:pnhpAppType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "app" ] , [ logic:termIndex 1 ; logic:termIri gmeow:PlaceName ] .

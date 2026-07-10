@@ -5343,3 +5343,119 @@ CADASTRAL / LAND ADMINISTRATION REALM — LADM / INSPIRE (cadastral design). Par
 _:b0
     a owl:AllDisjointProperties ;
     owl:members ( gmeow:rcc8dc gmeow:rcc8ec gmeow:rcc8po gmeow:rcc8tpp gmeow:rcc8ntpp gmeow:rcc8tppi gmeow:rcc8ntppi gmeow:rcc8eq ) .
+
+# Closed-world cardinality/value axioms backing the hand-authored SHACL
+# well-formedness shapes.
+gmeow:ProximityMeasurement rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:proximityTo ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+<https://blackcatinformatics.ca/gmeow/ProximityMeasurement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observedFeature> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ProximityMeasurement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/proximityTo> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/gmeow/ProximityMeasurement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationResult> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+
+# =========================================================================== #
+# Reference-frame profile constraints (#1194): the procedural fragment of the   #
+# hand-authored gmeow:FrameProfileShape, migrated to compact logic: records     #
+# projected to sh:SPARQLConstraint keyed (via logic:formalizes) onto            #
+# gmeow:ReferenceFrame. The declarative cardinality/presence fragment is the     #
+# frame realm/kind/axis stack; these two carry the value-typing of hasAxis and   #
+# the dimension-count agreement the shape enforced procedurally.                 #
+# =========================================================================== #
+
+# Every gmeow:hasAxis value of a gmeow:ReferenceFrame is a gmeow:Axis — a
+# coordinate axis reference that is not a typed axis is ill-formed.
+gmeow:FrameAxisTypeConstraint
+    a logic:PathValueTypeConstraint ;
+    rdfs:label "Reference-frame axis type constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every gmeow:hasAxis value of a gmeow:ReferenceFrame is a gmeow:Axis (a coordinate axis)."@x-gmeow-english ;
+    logic:onClass gmeow:ReferenceFrame ;
+    logic:valuePath gmeow:hasAxis ;
+    logic:valueClass gmeow:Axis ;
+    logic:formalizes gmeow:ReferenceFrame ;
+    logic:message "A reference frame's coordinate axis (gmeow:hasAxis) must be a gmeow:Axis." .
+
+# A reference frame's declared gmeow:dimensionCount must equal the number of
+# distinct coordinate axes it carries through gmeow:hasAxis (an aggregate
+# COUNT(DISTINCT) agreement).
+gmeow:FrameDimensionCountConstraint
+    a logic:AggregateConstraint ;
+    rdfs:label "Reference-frame dimension-count constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ReferenceFrame's gmeow:dimensionCount equals the number of distinct gmeow:hasAxis coordinate axes it carries."@x-gmeow-english ;
+    logic:onClass gmeow:ReferenceFrame ;
+    logic:aggFunction "COUNT" ;
+    logic:aggDistinct true ;
+    logic:aggPath gmeow:hasAxis ;
+    logic:aggComparator "=" ;
+    logic:aggCompareTo gmeow:dimensionCount ;
+    logic:formalizes gmeow:ReferenceFrame ;
+    logic:message "A reference frame's dimension count (gmeow:dimensionCount) must equal its number of coordinate axes (gmeow:hasAxis)." .
+
+# =========================================================================== #
+# Suppression constraint (#1194) — projection of SupersededPlaceSuppressionShape.
+# A superseded place (one carrying gmeow:placeSupersededBy) that is not          #
+# suppressed (gmeow:displayable false) is a Warning — a source may lag the flag. #
+# =========================================================================== #
+
+gmeow:SupersededPlaceSuppressionConstraint
+    a logic:Constraint ;
+    rdfs:label "Superseded place suppression constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a superseded gmeow:Place (one carrying gmeow:placeSupersededBy) should set gmeow:displayable false — suppressed from display, never deleted (Principle 10)."@x-gmeow-english ;
+    logic:formalizes gmeow:Place ;
+    logic:severity "Warning" ;
+    logic:message "A superseded place (one with gmeow:placeSupersededBy) should set gmeow:displayable false — suppressed from display, never deleted." ;
+    logic:integrity logic:supPlForall .
+logic:supPlForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:supPlImpl .
+logic:supPlImpl a logic:Formula ; logic:antecedent logic:supPlGuard ; logic:consequent logic:supPlPhi .
+logic:supPlGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Place ] .
+logic:supPlPhi a logic:Formula ; logic:not logic:supPlEx .
+logic:supPlEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] ;
+    logic:exists logic:supPlBody .
+logic:supPlBody a logic:Formula ; logic:and logic:supPlSuc , logic:supPlNotSuppressed .
+logic:supPlSuc a logic:Formula ; logic:relation gmeow:placeSupersededBy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+logic:supPlNotSuppressed a logic:Formula ; logic:not logic:supPlDisp .
+logic:supPlDisp a logic:Formula ; logic:relation gmeow:displayable ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
+
+# =========================================================================== #
+# Migrated procedural constraint (#1194): coarsenTo target-level reachability   #
+# (Principle 10 disclosure control), from gmeow:CoarsenToShape (Warning).        #
+# =========================================================================== #
+gmeow:CoarsenToReachabilityConstraint
+    a logic:Constraint ;
+    rdfs:label "coarsenTo target-level reachability constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world reachability constraint: for every gmeow:coarsenTo target level, some gmeow:containedInPlace+ ancestor carries a matching gmeow:hasGranularity, so the coarsened value has a replacement."@x-gmeow-english ;
+    logic:formalizes gmeow:coarsenTo ;
+    logic:severity "Warning" ;
+    logic:message "A gmeow:coarsenTo target level is not reachable: no gmeow:containedInPlace+ ancestor carries a matching gmeow:hasGranularity, so the value would be suppressed with no coarser replacement." ;
+    logic:integrity logic:ctrForall .
+logic:ctrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "lvl" ] ;
+    logic:forall logic:ctrImpl .
+logic:ctrImpl a logic:Formula ; logic:antecedent logic:ctrGuard ; logic:consequent logic:ctrPhi .
+logic:ctrGuard a logic:Formula ; logic:relation gmeow:coarsenTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "lvl" ] .
+logic:ctrPhi a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ancestor" ] ;
+    logic:exists logic:ctrBody .
+logic:ctrBody a logic:Formula ; logic:and logic:ctrReach , logic:ctrGran .
+logic:ctrReach a logic:Formula ; logic:relation logic:transitiveReach ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:containedInPlace ] , [ logic:termIndex 2 ; logic:termVariable "ancestor" ] .
+logic:ctrGran a logic:Formula ; logic:relation gmeow:hasGranularity ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "ancestor" ] , [ logic:termIndex 1 ; logic:termVariable "lvl" ] .

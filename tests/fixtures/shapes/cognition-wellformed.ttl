@@ -7,6 +7,9 @@
 ex:sam a gmeow:Agent .
 ex:topic a gmeow:Entity .
 
+gmeow:knowledgeUnderstands a gmeow:KnowledgeLevel .
+gmeow:scaleKnowledgeDepth a gmeow:ProficiencyScale .
+
 ex:samProficiency a gmeow:KnowledgeProficiency ;
     gmeow:knowledgeProficiencyAgent   ex:sam ;
     gmeow:knowledgeProficiencySubject ex:topic ;

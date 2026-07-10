@@ -1448,3 +1448,32 @@ gmeow:validUntil
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# =========================================================================== #
+# Declarative constraint axioms (core slices) — the closed-world
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). A restriction carrying both owl:*Cardinality and
+# owl:allValuesFrom lowers to the paired sh:minCount/maxCount + sh:class /
+# sh:datatype property shape. The cross-node / value-range / disjunctive
+# (sh:sparql, sh:or, numeric range, node-shape) conditions have no OWL
+# antecedent and remain the procedural fragment .
+# =========================================================================== #
+
+gmeow:TemporalFrame rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:frameTimeScale ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:TimeScale ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:frameRealm ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:FrameRealm ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:frameKind ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:FrameKind ] .
+
+# Closed-world cardinality axiom backing the hand-authored core observation
+# method well-formedness shape (a temporal measurement records exactly one method).
+gmeow:TemporalMeasurement rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:observationMethod ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:ObservationMethod ] .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+<https://blackcatinformatics.ca/gmeow/TemporalMeasurement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/observationMethod> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/ObservationMethod> ] .
+<https://blackcatinformatics.ca/gmeow/TemporalFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/frameTimeScale> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/TimeScale> ] .
+<https://blackcatinformatics.ca/gmeow/TemporalFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/frameRealm> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/FrameRealm> ] .
+<https://blackcatinformatics.ca/gmeow/TemporalFrame> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/gmeow/frameKind> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/FrameKind> ] .

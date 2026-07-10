@@ -7,6 +7,7 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix vann: <http://purl.org/vocab/vann/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 
 <https://blackcatinformatics.ca/gmeow/slices/logic>
     a owl:Ontology ;
@@ -7387,6 +7388,263 @@ logic:hasFormula
     skos:definition "Relates a program or container to a top-level logic:Formula it asserts. Top-level formulae are reached by this property; sub-formulae are reached by the connective and quantifier properties, so a formula referenced as another's component is not also a top-level assertion."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:integrity
+    a owl:ObjectProperty ;
+    rdfs:domain logic:Constraint ;
+    rdfs:range logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "integrity"@x-gmeow-english ;
+    skos:definition "Relates a logic:Constraint to its closed-world integrity condition: the reified logic:Formula whose violation is a finding, not a derivation. Reuses the realized full-FOL formula core verbatim — the condition is an outer range-restricted universal (logic:forall over a bound focus) whose logic:antecedent guard names the class or predicate the focus ranges over and whose logic:consequent is the per-focus condition — so a constraint needs no bespoke shape DSL. The focus target (a class, or the subjects/objects of a predicate) is derived from that guard, never authored twice."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:severity
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:Constraint ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "severity"@x-gmeow-english ;
+    skos:definition "The severity a logic:Constraint violation reports at, as one of the SHACL local names 'Violation', 'Warning', or 'Info'. Absent means the SHACL default 'Violation'. Carried on the canonical constraint so the projected sh:SPARQLConstraint reproduces the authored sh:severity rather than re-deriving one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:message
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:Constraint ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "message"@x-gmeow-english ;
+    skos:definition "The advisory human-readable message a logic:Constraint violation attaches (projected to sh:message). Presentation-only and load-bearing-false: it carries no identity, so two constraints differing only in their message are the same constraint. Absent means no message."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --------------------------------------------------------------------------- #
+# Compact constraint-sugar records + the aggregate-comparison satellite.
+#
+# A few authoring shortcuts the compiler EXPANDS into a canonical logic:Constraint
+# + integrity logic:Formula, so an author never hand-writes a formula tree for the
+# common closed-world patterns. Sugar is frontend-only: each record expands to
+# exactly one logic:Constraint (carrying an honest reified FOL integrity + a
+# required logic:formalizes), so there is one canonical home per authored
+# constraint. The aggregate satellite carries a reduce-style comparison the
+# realized FOL formula core has no node for, lowered to a GROUP BY/HAVING
+# sh:SPARQLConstraint (design/LOGIC-VALIDATION.md).
+# --------------------------------------------------------------------------- #
+
+logic:ChoiceGroupConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Choice Group Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a choice-group cardinality constraint (P1): a logic:onClass target, a set of logic:choicePredicate predicates, and a logic:choiceMode ('exactly-one', 'at-most-one', or the 'exactly-one-of-N' alias of 'exactly-one'). The compiler expands it into a canonical logic:Constraint whose integrity is the XOR / at-most formula over the ∃-requiredness of each predicate. Frontend-only: it is not a new node kind, only an authoring shortcut."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:GuardedImplicationConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Guarded Implication Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a guarded-implication constraint (P2): a logic:onClass target, a logic:trigger predicate (optionally pinned to a logic:triggerValue), and one or more logic:requires companion predicates. Expands to a canonical logic:Constraint ∀this. C(this) ∧ trigger(this, …) → ∃ companion. Frontend-only authoring shortcut."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DisjunctiveRequirednessConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Disjunctive Requiredness Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a disjunctive-requiredness constraint (P3): a logic:onClass target and a set of logic:anyOf predicates, at least one of which is required. Expands to a canonical logic:Constraint ∀this. C(this) → (∃p1 ∨ … ∨ ∃pn). Frontend-only authoring shortcut."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:PathValueTypeConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Path Value Type Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a path-value type-membership constraint (P4): a logic:onClass target, a logic:valuePath predicate, and a required logic:valueClass. Expands to a canonical logic:Constraint ∀this. C(this) → ∀v. P(this,v) → D(v). Frontend-only authoring shortcut."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:CrossNodeConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Cross Node Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a cross-node co-occurrence / inequality constraint (P5): a logic:onClass target and two roles (logic:roleA, logic:roleB) that must, per logic:crossMode, either 'co-occur' (be present together) or 'differ' (never bind the same value). Expands to a canonical logic:Constraint whose integrity is the bi-implication (co-occur) or the join + inequality (differ, via the logic:termEqual filter relation). Frontend-only authoring shortcut."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ForbiddenPatternConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Forbidden Pattern Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a forbidden-pattern constraint (P7): a logic:onClass target and a logic:forbiddenPredicate (optionally pinned to a logic:forbiddenValue). Expands to a canonical logic:Constraint ∀this. C(this) → ¬∃b. forbidden(this,b) (or the pinned-value form ¬ forbidden(this, value)). Frontend-only authoring shortcut."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:AggregateConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Aggregate Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for an aggregate-comparison constraint (P6): a logic:onClass target, an aggregate over a path (logic:aggFunction, optional logic:aggDistinct, logic:aggPath), a logic:aggComparator, and a logic:aggCompareTo right-hand side (a compared property IRI, or a literal). Expands to a canonical logic:Constraint carrying both the honest reified FOL integrity and a structured aggregate satellite, lowered to a SELECT $this … GROUP BY $this HAVING(…) sh:SPARQLConstraint. Frontend-only authoring shortcut."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:onClass
+    a owl:ObjectProperty ;
+    rdfs:range owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "on class"@x-gmeow-english ;
+    skos:definition "The target class of a compact constraint-sugar record: the focus nodes the expanded logic:Constraint ranges over (rdf:type(this, C) becomes the range-restricting ∀ guard, from which the shape target is derived)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:choicePredicate
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "choice predicate"@x-gmeow-english ;
+    skos:definition "A member predicate of a logic:ChoiceGroupConstraint's choice group. Multi-valued (at least two); the ∃-requiredness of each is combined per logic:choiceMode."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:choiceMode
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "choice mode"@x-gmeow-english ;
+    skos:definition "The cardinality mode of a logic:ChoiceGroupConstraint: 'exactly-one', 'at-most-one', or 'exactly-one-of-N' (an alias of 'exactly-one')."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:trigger
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "trigger"@x-gmeow-english ;
+    skos:definition "The trigger predicate of a logic:GuardedImplicationConstraint: the antecedent condition (optionally pinned to a logic:triggerValue) that, together with the target class, guards the required companion."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:triggerValue
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "trigger value"@x-gmeow-english ;
+    skos:definition "An optional fixed object value that pins a logic:GuardedImplicationConstraint's trigger to trigger(this, value) rather than the mere presence of the trigger predicate. An IRI or a literal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:requires
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "requires"@x-gmeow-english ;
+    skos:definition "A required companion predicate of a logic:GuardedImplicationConstraint: when the guard holds, ∃ a value on this predicate is required. Multi-valued (a conjunction of existentials)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:anyOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "any of"@x-gmeow-english ;
+    skos:definition "A member predicate of a logic:DisjunctiveRequirednessConstraint: at least one of the logic:anyOf predicates must have a value on the focus (a disjunction of existentials)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:valuePath
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "value path"@x-gmeow-english ;
+    skos:definition "The path predicate of a logic:PathValueTypeConstraint: every value the focus carries on this predicate must be an instance of logic:valueClass."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:valueClass
+    a owl:ObjectProperty ;
+    rdfs:range owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "value class"@x-gmeow-english ;
+    skos:definition "The required value class of a logic:PathValueTypeConstraint: the class every value on logic:valuePath must belong to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:roleA
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "role A"@x-gmeow-english ;
+    skos:definition "The first role predicate of a logic:CrossNodeConstraint (paired with logic:roleB under logic:crossMode)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:roleB
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "role B"@x-gmeow-english ;
+    skos:definition "The second role predicate of a logic:CrossNodeConstraint (paired with logic:roleA under logic:crossMode)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:crossMode
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "cross mode"@x-gmeow-english ;
+    skos:definition "The mode of a logic:CrossNodeConstraint: 'co-occur' (the two roles must be present together) or 'differ' (the two roles must never bind the same value)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:forbiddenPredicate
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "forbidden predicate"@x-gmeow-english ;
+    skos:definition "The forbidden predicate of a logic:ForbiddenPatternConstraint: the focus must carry no value on this predicate (or, when logic:forbiddenValue is present, not that specific value)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:forbiddenValue
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "forbidden value"@x-gmeow-english ;
+    skos:definition "An optional fixed object value that narrows a logic:ForbiddenPatternConstraint to forbid only forbiddenPredicate(this, value) rather than any value on the predicate. An IRI or a literal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:aggFunction
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate (constraint) function"@x-gmeow-english ;
+    skos:definition "The aggregate function of a logic:AggregateConstraint (COUNT, SUM, MIN, MAX) applied over logic:aggPath. Distinct from logic:aggregateFunction, which carries a reduce RULE's head aggregation; this drives a constraint's GROUP BY/HAVING violation SELECT."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:aggDistinct
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:boolean ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate distinct"@x-gmeow-english ;
+    skos:definition "Whether a logic:AggregateConstraint aggregates over DISTINCT values (COUNT(DISTINCT ?x)). Absent means false."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:aggPath
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate path"@x-gmeow-english ;
+    skos:definition "The predicate a logic:AggregateConstraint aggregates over the focus: the objects of $this <aggPath> ?x are the values logic:aggFunction is applied to."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:aggComparator
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate comparator"@x-gmeow-english ;
+    skos:definition "The relational comparator of a logic:AggregateConstraint's invariant (=, !=, <, <=, >, >=; the Unicode ≠/≤/≥ are accepted). The projected sh:SPARQLConstraint HAVING uses the negation of this operator, because a sh:select returns the VIOLATING focus nodes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:aggCompareTo
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate compare to"@x-gmeow-english ;
+    skos:definition "The right-hand side a logic:AggregateConstraint's aggregate is compared to: an IRI object is a compared PROPERTY of the focus ($this <prop> ?rhs), and a literal is a fixed comparison value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:termEqual
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "term equal"@x-gmeow-english ;
+    skos:definition "A comparison relation the procedural-constraint SPARQL fragment lowers to a FILTER ( ?a = ?b ) over two already-bound terms (rather than a triple pattern). Used by the cross-node inequality expansion; it binds nothing, only tests equality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:termDistinct
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "term distinct"@x-gmeow-english ;
+    skos:definition "A comparison relation the procedural-constraint SPARQL fragment lowers to a FILTER ( ?a != ?b ) over two already-bound terms (rather than a triple pattern). The inequality peer of logic:termEqual; it binds nothing, only tests inequality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:aggregateComparison
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "aggregate comparison"@x-gmeow-english ;
+    skos:definition "The reified relation an expanded logic:AggregateConstraint carries as its honest FOL integrity: aggregateComparison(this, function, distinct, path, comparator, rhs). The realized FOL formula core has no aggregate node, so this predication makes the aggregate meaning complete in the FOL canon while the structured satellite drives the real GROUP BY/HAVING SPARQL projection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 logic:forall
     a owl:ObjectProperty ;
     rdfs:domain logic:Formula ;
@@ -9111,6 +9369,338 @@ logic:candidateNoOverTyping
     logic:candidateSemanticRisk logic:RiskCoreContaminating ;
     logic:candidateFormalizes logic:MixIden ;
     logic:candidateSourceField logic:ProseFieldDefinition .
+
+# =========================================================================== #
+# Declarative constraint axioms (grounding slices) — the closed-world presence /
+# cardinality / class / datatype obligations the hand-authored shapes.ttl
+# NodeShapes state, authored here once as OWL restriction axioms and PROJECTED
+# to generated/shapes/validation-shapes.ttl by derive_validation_shapes
+# (Principle 17). A restriction carrying both owl:*Cardinality and
+# owl:allValuesFrom lowers to the paired sh:minCount/maxCount +
+# sh:class/sh:datatype property shape. The vantage-scoped dual-authority and
+# conditional-witness conditions have no OWL antecedent and remain the
+# procedural sh:sparql constraint fragment.
+# =========================================================================== #
+
+logic:FormalizationCandidate rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:candidateSourceHash ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateExtractionProvenance ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateScope ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateContract ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:ReasoningContract ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateCategory ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:FormalizationCategory ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateLifecycle ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:CandidateLifecycleState ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateProjectionBehavior ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:PreservationKind ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateSemanticRisk ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:SemanticRiskClass ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateFormalizes ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:candidateSourceField ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:ProseField ] .
+
+logic:Plan rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:planGoal ; owl:maxQualifiedCardinality 1 ; owl:onClass gmeow:Goal ] ,
+    [ a owl:Restriction ; owl:onProperty logic:planSuccessMode ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:PlanSuccessMode ] .
+
+logic:GoalEvaluation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:satisfactionStatus ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:SatisfactionStatus ] ,
+    [ a owl:Restriction ; owl:onProperty logic:feasibilityStatus ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:FeasibilityStatus ] ,
+    [ a owl:Restriction ; owl:onProperty logic:lifecycleStatus ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:LifecycleStatus ] ,
+    [ a owl:Restriction ; owl:onProperty logic:goalEvaluationStatus ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:GoalEvaluationStatus ] ,
+    [ a owl:Restriction ; owl:onProperty logic:evaluatesGoal ; owl:minQualifiedCardinality 1 ; owl:onClass gmeow:Goal ] ,
+    [ a owl:Restriction ; owl:onProperty logic:satisfactionDegree ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:objectiveValue ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:utility ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+logic:ActionSchema rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:precondition ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:capability ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:effect ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:invariant ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:observation ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:actionResource ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+logic:McpActionSchema rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:capability ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:precondition ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:compensation ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+logic:NotificationWaitSchema rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:awaitsSignal ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+logic:FreshnessGuard rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:guardsPrecondition ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:freshnessHorizon ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:duration ] ,
+    [ a owl:Restriction ; owl:onProperty logic:freshnessWindowStart ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:dateTime ] ,
+    [ a owl:Restriction ; owl:onProperty logic:freshnessWindowEnd ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:dateTime ] .
+
+logic:NonEntailmentObligation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:obligationForbiddenPredicate ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:anyURI ] ,
+    [ a owl:Restriction ; owl:onProperty logic:obligationDischargeCondition ; owl:someValuesFrom logic:DischargeCondition ] .
+
+logic:Conjecture rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:conjectureFormula ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:conjectureStandpoint ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty logic:conjectureLifecycleState ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:ConjectureLifecycleState ] ,
+    [ a owl:Restriction ; owl:onProperty logic:verdictProvenance ; owl:maxQualifiedCardinality 1 ; owl:onClass logic:VerdictProvenanceKind ] .
+
+logic:ContradictionWitness rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty logic:witnessIndividual ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:witnessWorld ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
+    [ a owl:Restriction ; owl:onProperty logic:witnessPremise ; owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:string ] .
+
+# =========================================================================== #
+# Authored procedural-constraint records (grounding slices). Each compact
+# logic:Constraint sugar record is compiled here (the canonical logic: terminal)
+# and PROJECTED to generated/shapes/procedural-constraints.ttl as a
+# sh:SPARQLConstraint carrying logic:formalizes the grounding term it enforces
+# (Principle 17 — logic: is canonical, SHACL is the projection). Only the
+# forward-from-focus fragment (P1-P7 / aggregate) is expressible here; genuinely
+# cross-node / arithmetic / inverse-path / property-path grounding conditions have
+# no range-restricted guarded SPARQL-constraint form and stay as the hand-authored
+# sh:sparql shapes in each slice's shapes.ttl.
+# =========================================================================== #
+
+# math:RationalValue — a zero math:denominator is not a rational value (p/0 is
+# undefined; math:ZeroDenominator). A forbidden-pattern constraint pinned to the
+# value 0: the projected sh:SPARQLConstraint selects any rational carrying
+# math:denominator 0.
+logic:RationalValueNonZeroDenominatorConstraint
+    a logic:ForbiddenPatternConstraint ;
+    logic:onClass math:RationalValue ;
+    logic:forbiddenPredicate math:denominator ;
+    logic:forbiddenValue 0 ;
+    logic:formalizes math:RationalValue ;
+    logic:message "A math:RationalValue must declare a non-zero math:denominator; a zero denominator is not a rational value (math:ZeroDenominator)." .
+
+logic:valuePredicate
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "value predicate"@x-gmeow-english ;
+    skos:definition "The fixed check predicate of a logic:PathValueTypeConstraint's fixed-value variant: every value the focus carries on logic:valuePath must itself carry this predicate with object logic:valueObject (Q(v, o)), rather than being an instance of a logic:valueClass. Paired with logic:valueObject; mutually exclusive with logic:valueClass."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:valueObject
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "value object"@x-gmeow-english ;
+    skos:definition "The fixed object of a logic:PathValueTypeConstraint's fixed-value variant: the required object (an IRI or a literal) of logic:valuePredicate on every value reached by logic:valuePath."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
+<https://blackcatinformatics.ca/logic/FormalizationCandidate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/candidateSourceHash> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/logic/FormalizationCandidate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/logic/FormalizationCandidate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/candidateScope> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/logic/FormalizationCandidate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/candidateContract> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/logic/ReasoningContract> ] .
+<https://blackcatinformatics.ca/logic/FormalizationCandidate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/candidateCategory> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/logic/FormalizationCategory> ] .
+<https://blackcatinformatics.ca/logic/FormalizationCandidate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/candidateLifecycle> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/logic/CandidateLifecycleState> ] .
+<https://blackcatinformatics.ca/logic/FormalizationCandidate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/logic/PreservationKind> ] .
+<https://blackcatinformatics.ca/logic/FormalizationCandidate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/candidateSemanticRisk> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/logic/SemanticRiskClass> ] .
+<https://blackcatinformatics.ca/logic/Plan> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/planGoal> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/gmeow/Goal> ] .
+<https://blackcatinformatics.ca/logic/Plan> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/planSuccessMode> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/logic/PlanSuccessMode> ] .
+<https://blackcatinformatics.ca/logic/GoalEvaluation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/satisfactionStatus> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/logic/SatisfactionStatus> ] .
+<https://blackcatinformatics.ca/logic/GoalEvaluation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/feasibilityStatus> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/logic/FeasibilityStatus> ] .
+<https://blackcatinformatics.ca/logic/GoalEvaluation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/lifecycleStatus> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/logic/LifecycleStatus> ] .
+<https://blackcatinformatics.ca/logic/GoalEvaluation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/goalEvaluationStatus> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/logic/GoalEvaluationStatus> ] .
+<https://blackcatinformatics.ca/logic/FreshnessGuard> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/guardsPrecondition> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/logic/NonEntailmentObligation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#anyURI> ] .
+<https://blackcatinformatics.ca/logic/Conjecture> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/conjectureFormula> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/logic/Conjecture> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/conjectureStandpoint> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/logic/Conjecture> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/conjectureLifecycleState> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/logic/ConjectureLifecycleState> ] .
+<https://blackcatinformatics.ca/logic/Conjecture> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/verdictProvenance> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/logic/VerdictProvenanceKind> ] .
+<https://blackcatinformatics.ca/logic/ContradictionWitness> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/witnessIndividual> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/logic/ContradictionWitness> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/logic/witnessWorld> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
+
+# =========================================================================== #
+# Procedural constraint authored as a raw logic:Formula integrity tree —        #
+# projected to a sh:SPARQLConstraint. logic:formalizes keys the projected twin  #
+# onto gmeow:Goal, the source-term of the hand-authored SHACL it replaces.      #
+# =========================================================================== #
+
+# A conclusive gmeow:satisfiedBy(goal, situation) edge must be backed by at least
+# one logic:GoalEvaluation under SOME vantage whose logic:evaluatesGoal is the
+# goal, logic:evaluatedAgainst is the situation, logic:satisfactionStatus is
+# logic:Satisfied, and logic:goalEvaluationStatus is logic:GoalEvaluationCompleted.
+logic:SatisfiedByBackedByEvaluationConstraint
+    a logic:Constraint ;
+    rdfs:label "satisfiedBy backed-by-evaluation constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a conclusive gmeow:satisfiedBy edge is backed by a vantage-scoped logic:GoalEvaluation that evaluatesGoal this goal, was evaluatedAgainst the situation, and is Satisfied and completed."@x-gmeow-english ;
+    logic:formalizes gmeow:Goal ;
+    logic:message "A conclusive gmeow:satisfiedBy edge must be backed by a vantage-scoped logic:GoalEvaluation (evaluatesGoal = this goal, evaluatedAgainst = the situation, satisfactionStatus = logic:Satisfied, goalEvaluationStatus = logic:GoalEvaluationCompleted). No backing evaluation under any vantage was found." ;
+    logic:integrity logic:sbeForall .
+logic:sbeForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "situation" ] ;
+    logic:forall logic:sbeImpl .
+logic:sbeImpl a logic:Formula ; logic:antecedent logic:sbeGuard ; logic:consequent logic:sbeExists .
+logic:sbeGuard a logic:Formula ; logic:and logic:sbeType , logic:sbeSat .
+logic:sbeType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Goal ] .
+logic:sbeSat a logic:Formula ; logic:relation gmeow:satisfiedBy ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "situation" ] .
+logic:sbeExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "eval" ] ;
+    logic:exists logic:sbeBody .
+logic:sbeBody a logic:Formula ; logic:and logic:sbeB1 , logic:sbeB2 , logic:sbeB3 , logic:sbeB4 .
+logic:sbeB1 a logic:Formula ; logic:relation logic:evaluatesGoal ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "eval" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:sbeB2 a logic:Formula ; logic:relation logic:evaluatedAgainst ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "eval" ] , [ logic:termIndex 1 ; logic:termVariable "situation" ] .
+logic:sbeB3 a logic:Formula ; logic:relation logic:satisfactionStatus ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "eval" ] , [ logic:termIndex 1 ; logic:termIri logic:Satisfied ] .
+logic:sbeB4 a logic:Formula ; logic:relation logic:goalEvaluationStatus ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "eval" ] , [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluationCompleted ] .
+
+# =========================================================================== #
+# Procedural constraints (#1194) — FreshnessGuard and Conjecture well-formedness
+# shapes from slices/grounding/logic/shapes.ttl, authored as raw logic:Formula
+# integrity trees (Principle 17). The authored SHACL shapes stay; these are the
+# canonical logic: projection.
+# =========================================================================== #
+
+# A logic:FreshnessGuard must guard EXACTLY ONE logic:precondition through
+# logic:guardsPrecondition: there is a guarded precondition, and no distinct
+# second one — a raw exactly-one uniqueness formula.
+logic:FreshnessGuardPreconditionCardinalityConstraint
+    a logic:Constraint ;
+    rdfs:label "FreshnessGuard precondition cardinality constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a logic:FreshnessGuard guards exactly one logic:precondition through logic:guardsPrecondition (the situation whose supporting datum must be current)."@x-gmeow-english ;
+    logic:formalizes logic:FreshnessGuard ;
+    logic:severity "Violation" ;
+    logic:message "A FreshnessGuard must guard exactly one logic:precondition (via logic:guardsPrecondition)." ;
+    logic:integrity logic:fgpForall .
+logic:fgpForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:fgpImpl .
+logic:fgpImpl a logic:Formula ; logic:antecedent logic:fgpGuard ; logic:consequent logic:fgpExists .
+logic:fgpGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:FreshnessGuard ] .
+logic:fgpExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:exists logic:fgpBody .
+logic:fgpBody a logic:Formula ; logic:and logic:fgpHas , logic:fgpUniq .
+logic:fgpHas a logic:Formula ; logic:relation logic:guardsPrecondition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
+logic:fgpUniq a logic:Formula ; logic:not logic:fgpOther .
+logic:fgpOther a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y" ] ;
+    logic:exists logic:fgpOtherBody .
+logic:fgpOtherBody a logic:Formula ; logic:and logic:fgpHasY , logic:fgpDistinct .
+logic:fgpHasY a logic:Formula ; logic:relation logic:guardsPrecondition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+logic:fgpDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "y" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
+
+# A logic:FreshnessGuard that declares a logic:freshnessWindow must carry BOTH a
+# logic:freshnessWindowStart AND a logic:freshnessWindowEnd (the closed interval
+# bounds). Violation: a window present with either bound absent — a raw formula
+# whose two co-occur arms each re-bind the focus through the window predicate.
+logic:FreshnessGuardWindowBoundsConstraint
+    a logic:Constraint ;
+    rdfs:label "FreshnessGuard window-bounds constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a logic:FreshnessGuard declaring a logic:freshnessWindow carries both a logic:freshnessWindowStart and a logic:freshnessWindowEnd — a half-declared window gates on an ill-defined interval."@x-gmeow-english ;
+    logic:formalizes logic:FreshnessGuard ;
+    logic:severity "Violation" ;
+    logic:message "A FreshnessGuard that declares a logic:freshnessWindow must carry BOTH a logic:freshnessWindowStart AND a logic:freshnessWindowEnd (the closed interval bounds); the property shapes already cap each bound at one." ;
+    logic:integrity logic:fgwForall .
+logic:fgwForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:fgwImpl .
+logic:fgwImpl a logic:Formula ; logic:antecedent logic:fgwGuard ; logic:consequent logic:fgwPhi .
+logic:fgwGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:FreshnessGuard ] .
+logic:fgwPhi a logic:Formula ; logic:not logic:fgwBad .
+logic:fgwBad a logic:Formula ; logic:or logic:fgwBadStart , logic:fgwBadEnd .
+logic:fgwBadStart a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w" ] ;
+    logic:exists logic:fgwStartBody .
+logic:fgwStartBody a logic:Formula ; logic:and logic:fgwStartWin , logic:fgwNoStart .
+logic:fgwStartWin a logic:Formula ; logic:relation logic:freshnessWindow ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] .
+logic:fgwNoStart a logic:Formula ; logic:not logic:fgwStartEx .
+logic:fgwStartEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] ;
+    logic:exists logic:fgwStartAtom .
+logic:fgwStartAtom a logic:Formula ; logic:relation logic:freshnessWindowStart ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+logic:fgwBadEnd a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w2" ] ;
+    logic:exists logic:fgwEndBody .
+logic:fgwEndBody a logic:Formula ; logic:and logic:fgwEndWin , logic:fgwNoEnd .
+logic:fgwEndWin a logic:Formula ; logic:relation logic:freshnessWindow ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w2" ] .
+logic:fgwNoEnd a logic:Formula ; logic:not logic:fgwEndEx .
+logic:fgwEndEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "e" ] ;
+    logic:exists logic:fgwEndAtom .
+logic:fgwEndAtom a logic:Formula ; logic:relation logic:freshnessWindowEnd ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
+
+# A logic:Conjecture must have EXACTLY ONE logic:conjectureFormula (the alpha-
+# normalized content_key identity of the conjectured formula) — a raw exactly-one
+# uniqueness formula.
+logic:ConjectureFormulaCardinalityConstraint
+    a logic:Constraint ;
+    rdfs:label "Conjecture formula cardinality constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a logic:Conjecture carries exactly one logic:conjectureFormula — the alpha-normalized content_key identity of the conjectured formula."@x-gmeow-english ;
+    logic:formalizes logic:Conjecture ;
+    logic:severity "Violation" ;
+    logic:message "A Conjecture must have exactly one logic:conjectureFormula (the alpha-normalized xsd:string content_key identity of the conjectured formula)." ;
+    logic:integrity logic:cfcForall .
+logic:cfcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:cfcImpl .
+logic:cfcImpl a logic:Formula ; logic:antecedent logic:cfcGuard ; logic:consequent logic:cfcExists .
+logic:cfcGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:Conjecture ] .
+logic:cfcExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ;
+    logic:exists logic:cfcBody .
+logic:cfcBody a logic:Formula ; logic:and logic:cfcHas , logic:cfcUniq .
+logic:cfcHas a logic:Formula ; logic:relation logic:conjectureFormula ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
+logic:cfcUniq a logic:Formula ; logic:not logic:cfcOther .
+logic:cfcOther a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "y" ] ;
+    logic:exists logic:cfcOtherBody .
+logic:cfcOtherBody a logic:Formula ; logic:and logic:cfcHasY , logic:cfcDistinct .
+logic:cfcHasY a logic:Formula ; logic:relation logic:conjectureFormula ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+logic:cfcDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "y" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
+
+# A logic:Conjecture whose logic:conjectureLifecycleState is
+# logic:ConjectureRefutedInStandpoint must name at least one
+# logic:conjectureRefutationWitness (a concrete logic:ContradictionWitness); a
+# refutation with no witness is a hard error — a raw guarded-existence formula.
+logic:ConjectureRefutationWitnessConstraint
+    a logic:Constraint ;
+    rdfs:label "Conjecture refutation-witness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a logic:Conjecture in logic:ConjectureRefutedInStandpoint names at least one logic:conjectureRefutationWitness — the concrete logic:ContradictionWitness backing the refutation."@x-gmeow-english ;
+    logic:formalizes logic:Conjecture ;
+    logic:severity "Violation" ;
+    logic:message "A Conjecture in logic:ConjectureRefutedInStandpoint must name at least one logic:conjectureRefutationWitness (the concrete logic:ContradictionWitness); a refutation with no witness is a hard error." ;
+    logic:integrity logic:crwForall .
+logic:crwForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:crwImpl .
+logic:crwImpl a logic:Formula ; logic:antecedent logic:crwGuard ; logic:consequent logic:crwExists .
+logic:crwGuard a logic:Formula ; logic:and logic:crwType , logic:crwRefuted .
+logic:crwType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:Conjecture ] .
+logic:crwRefuted a logic:Formula ; logic:relation logic:conjectureLifecycleState ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ConjectureRefutedInStandpoint ] .
+logic:crwExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "w" ] ;
+    logic:exists logic:crwAtom .
+logic:crwAtom a logic:Formula ; logic:relation logic:conjectureRefutationWitness ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] .
 
 # =========================================================================== #
 # Flagship acceptance — the typed conformance-failure lattice and the five

@@ -1385,6 +1385,59 @@ fn derive_has_value_iri_emits_sh_has_value() {
 }
 
 #[test]
+fn derive_has_value_typed_literal_preserves_datatype() {
+    // A typed fixed value `owl:hasValue "1"^^xsd:integer` must derive a TYPED sh:hasValue,
+    // carrying the datatype IRI — never a bare untyped `"1"` (which would match the wrong
+    // literal). This exercises the graphutil `Node::Lit` datatype-preservation fix.
+    let ds = shape_dataset(
+        "g:Prob a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:totalMass ; owl:hasValue \"1\"^^xsd:integer ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let has_typed = all_components(&shapes).iter().any(|c| matches!(
+        c,
+        ConstraintComponent::HasValue(crate::ir::ShapeValue::Literal { lexical, datatype, lang })
+            if lexical == "1"
+                && datatype.as_deref() == Some("http://www.w3.org/2001/XMLSchema#integer")
+                && lang.is_none()
+    ));
+    assert!(
+        has_typed,
+        "owl:hasValue \"1\"^^xsd:integer must derive a TYPED sh:hasValue (datatype preserved): {:?}",
+        all_components(&shapes)
+    );
+    // The projected SHACL surface carries the datatype, not a bare untyped literal.
+    let ttl = crate::projections::shapes::project_validation_shapes_shacl(
+        &crate::ir::LogicProgram::new(vec![], vec![], vec![], None).with_validation_shapes(shapes),
+    );
+    assert!(
+        ttl.contains("sh:hasValue \"1\"^^<http://www.w3.org/2001/XMLSchema#integer>"),
+        "the derived SHACL must carry the typed literal: {ttl}"
+    );
+}
+
+#[test]
+fn derive_has_value_plain_literal_stays_untyped() {
+    // A plain `xsd:string` fixed value normalizes to an untyped carrier (datatype None), so an
+    // authored `"foo"` and an equivalent `"foo"^^xsd:string` derive the same untyped sh:hasValue.
+    let ds = shape_dataset(
+        "g:Doc a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:label ; owl:hasValue \"foo\" ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let untyped = all_components(&shapes).iter().any(|c| matches!(
+        c,
+        ConstraintComponent::HasValue(crate::ir::ShapeValue::Literal { lexical, datatype, lang })
+            if lexical == "foo" && datatype.is_none() && lang.is_none()
+    ));
+    assert!(
+        untyped,
+        "a plain literal must derive an untyped sh:hasValue (datatype None): {:?}",
+        all_components(&shapes)
+    );
+}
+
+#[test]
 fn derive_has_value_blank_hard_fails() {
     // A fixed value cannot be an anonymous node — hard-fail, never a silent drop.
     let ds = shape_dataset(
@@ -1535,6 +1588,124 @@ fn derive_qualified_cardinality_emits_qualified_value_shape() {
 }
 
 #[test]
+fn derive_qualified_cardinality_on_data_range_emits_plain_datatype_and_count() {
+    // `owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:decimal` is the DATATYPE-qualified peer
+    // of `owl:onClass`. It must read as a PLAIN `sh:datatype xsd:decimal` + `sh:maxCount 1` (a bare
+    // datatype the JSON-Schema deriver can read), never a hard-fail for "requires owl:onClass".
+    let ds = shape_dataset(
+        "g:Measurement a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:appraisalValue ; \
+           owl:maxQualifiedCardinality \"1\"^^xsd:nonNegativeInteger ; \
+           owl:onDataRange xsd:decimal ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("onDataRange must derive, not fail");
+    let pc = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .find(|p| p.path.ends_with("appraisalValue"))
+        .expect("a property on appraisalValue");
+    assert_eq!(
+        pc.max_count,
+        Some(1),
+        "maxQualifiedCardinality 1 → sh:maxCount 1"
+    );
+    assert_eq!(pc.min_count, None, "no min on a max-qualified cardinality");
+    assert!(
+        pc.components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Datatype(d)
+                if d == "http://www.w3.org/2001/XMLSchema#decimal")),
+        "onDataRange xsd:decimal → sh:datatype xsd:decimal: {:?}",
+        pc.components
+    );
+    assert!(
+        !pc.components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::QualifiedValueShape { .. })),
+        "a datatype filler degrades to a plain datatype, not a qualified value shape: {:?}",
+        pc.components
+    );
+}
+
+#[test]
+fn derive_qualified_cardinality_omits_plain_class_without_a_backing_universal() {
+    // `owl:maxQualifiedCardinality 1 ; owl:onClass g:C` counts ONLY the values that ARE a C; it
+    // does NOT entail that EVERY value of the property is a C. So the faithful projection is the
+    // `sh:qualifiedValueShape` ALONE — a bare `sh:class g:C` would over-claim the universal
+    // (caught by the lift/derive round-trip `certify` invariant). No `rdfs:range`/`allValuesFrom`
+    // backs the filler here, so NO plain class is emitted.
+    let ds = shape_dataset(
+        "g:C a owl:Class . \
+         g:K a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:mediates ; \
+           owl:maxQualifiedCardinality \"1\"^^xsd:nonNegativeInteger ; owl:onClass g:C ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let pc = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .find(|p| p.path.ends_with("mediates"))
+        .expect("a property on mediates");
+    assert!(
+        !pc.components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(_))),
+        "a qualified cardinality with no backing universal must NOT emit a plain sh:class (over-claim): {:?}",
+        pc.components
+    );
+    assert!(
+        pc.components.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::QualifiedValueShape { max, .. } if *max == Some(1)
+        )),
+        "the faithful qualified value shape carries the count: {:?}",
+        pc.components
+    );
+}
+
+#[test]
+fn derive_qualified_cardinality_emits_plain_class_when_a_closed_range_backs_it() {
+    // The bare `sh:class g:C` — which the JSON-Schema deriver / purrdf object-class node-ref path
+    // read (they ignore the class nested inside a `sh:qualifiedValueShape`) — IS emitted for a
+    // qualified cardinality when a genuine universal backs it: here a closed-world-opted-in
+    // `rdfs:range g:mediates g:C`. Then both the plain class (the universal) and the qualified
+    // value shape (the count) are present, and the round trip stays equivalent.
+    let ds = shape_dataset_with_logic(
+        "g:C a owl:Class . \
+         g:mediates a owl:ObjectProperty ; rdfs:range g:C . \
+         g:K a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:mediates ; \
+           owl:maxQualifiedCardinality \"1\"^^xsd:nonNegativeInteger ; owl:onClass g:C ] .\n\
+         [] a logic:ClosureEntry ; logic:closureKey g:mediates ; logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let pc = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .filter(|p| p.path.ends_with("mediates"))
+        .find(|p| {
+            p.components
+                .iter()
+                .any(|c| matches!(c, ConstraintComponent::QualifiedValueShape { .. }))
+        })
+        .expect("the qualified property shape on mediates");
+    assert!(
+        pc.components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(d) if d.ends_with("/C"))),
+        "a closed-world range g:C must emit the plain sh:class for the JSON-Schema deriver: {:?}",
+        pc.components
+    );
+    assert!(
+        pc.components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::QualifiedValueShape { .. })),
+        "the faithful qualified value shape is still emitted: {:?}",
+        pc.components
+    );
+}
+
+#[test]
 fn derive_single_property_has_key_emits_inverse_functional_shape() {
     // `K owl:hasKey ( P )` is the OWL 2 DL way to state a datatype/single-property key (an
     // owl:InverseFunctionalProperty on a datatype property would be OWL 2 Full). Its closed-world
@@ -1657,6 +1828,62 @@ fn derive_all_values_from_faceted_datatype_emits_length_and_pattern_facets() {
             ConstraintComponent::Datatype(d) if d.ends_with("string")
         )),
         "owl:onDatatype xsd:string → sh:datatype xsd:string: {comps:?}"
+    );
+}
+
+#[test]
+fn derive_all_values_from_faceted_datatype_emits_numeric_range_facets() {
+    // An owl:allValuesFrom whose filler is a faceted rdfs:Datatype with numeric bound
+    // restrictions (xsd:minInclusive / xsd:maxInclusive and their exclusive peers) reads as a
+    // single SHACL NumericRange the values must satisfy — the closed unit interval [0, 1] and a
+    // half-open lower-bound-exclusive interval.
+    let ds = shape_dataset(
+        "g:ConceptCategorization a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:typicality ; owl:allValuesFrom \
+           [ a rdfs:Datatype ; owl:onDatatype xsd:decimal ; owl:withRestrictions ( \
+              [ xsd:minInclusive \"0\"^^xsd:decimal ] \
+              [ xsd:maxInclusive \"1\"^^xsd:decimal ] ) ] ] .\n\
+         g:RationalValue a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:denominator ; owl:allValuesFrom \
+           [ a rdfs:Datatype ; owl:onDatatype xsd:integer ; owl:withRestrictions ( \
+              [ xsd:minExclusive \"0\"^^xsd:integer ] ) ] ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let typicality: Vec<&ConstraintComponent> = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .filter(|p| p.path.ends_with("typicality"))
+        .flat_map(|p| &p.components)
+        .collect();
+    assert!(
+        typicality.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::NumericRange {
+                min: Some(lo),
+                max: Some(hi),
+                min_inclusive: true,
+                max_inclusive: true,
+            } if *lo == 0.0 && *hi == 1.0
+        )),
+        "closed unit interval → sh:minInclusive 0 / sh:maxInclusive 1: {typicality:?}"
+    );
+    let denominator: Vec<&ConstraintComponent> = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .filter(|p| p.path.ends_with("denominator"))
+        .flat_map(|p| &p.components)
+        .collect();
+    assert!(
+        denominator.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::NumericRange {
+                min: Some(lo),
+                max: None,
+                min_inclusive: false,
+                ..
+            } if *lo == 0.0
+        )),
+        "lower-bound-exclusive → sh:minExclusive 0, no upper: {denominator:?}"
     );
 }
 
@@ -1815,6 +2042,35 @@ fn derive_closed_world_closure_entry_does_not_suppress() {
         shapes.iter().any(|s| s.iri.contains("Article")),
         "a ClosedWorldClosure entry is the default reading, not an opt-out: {shapes:?}"
     );
+}
+
+#[test]
+fn derive_grounding_namespaces_are_authoring_ground() {
+    // declarative-migration wave 1: the dogfooded grounding slices (math:, lang:, logic:) are authoring ground
+    // too — their hand-authored shapes migrate to derived projections, so a restriction on a
+    // math:/lang:/logic: class must derive a shape (not be skipped as an imported ontology).
+    let ttl = "@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+               @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+               @prefix owl:  <http://www.w3.org/2002/07/owl#> .\n\
+               @prefix math: <https://blackcatinformatics.ca/math/> .\n\
+               @prefix lang: <https://blackcatinformatics.ca/lang/> .\n\
+               @prefix logic:<https://blackcatinformatics.ca/logic/> .\n\
+               math:NumberSystem a owl:Class .\n\
+               math:Number a owl:Class ; rdfs:subClassOf \
+               [ a owl:Restriction ; owl:onProperty math:inNumberSystem ; \
+                 owl:qualifiedCardinality 1 ; owl:onClass math:NumberSystem ] .\n\
+               lang:Form a owl:Class ; rdfs:subClassOf \
+               [ a owl:Restriction ; owl:onProperty lang:inSignSystem ; owl:cardinality 1 ] .\n\
+               logic:Plan a owl:Class ; rdfs:subClassOf \
+               [ a owl:Restriction ; owl:onProperty logic:planGoal ; owl:cardinality 1 ] .";
+    let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("parse dataset ok");
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    for expect in ["math/Number", "lang/Form", "logic/Plan"] {
+        assert!(
+            shapes.iter().any(|s| s.iri.contains(expect)),
+            "grounding class {expect} must derive a validation shape: {shapes:?}"
+        );
+    }
 }
 
 // ── Shape-migration additions (sh:or / range facets / complement / value-keyed) ──
