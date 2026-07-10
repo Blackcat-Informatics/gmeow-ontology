@@ -315,7 +315,7 @@ fn chase_world_into(
     // the EDB).
     let mut store = RelationStore::new();
     for f in edb_facts {
-        store.insert(&f.predicate, f.subject.clone(), f.object.clone());
+        store.insert(&f.predicate, &f.subject, &f.object);
     }
     out.extend(echo_asserted(world, edb_facts)?);
 
@@ -408,7 +408,7 @@ fn chase_world_into(
             }
             let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
             let derivation_id = mint_derivation_id(&fact_rule_iri(&sources), &src_refs);
-            store.insert(&fact.predicate, fact.subject.clone(), fact.object.clone());
+            store.insert(&fact.predicate, &fact.subject, &fact.object);
             out.push(DerivedRow {
                 graph: world.to_owned(),
                 subject: fact.subject,

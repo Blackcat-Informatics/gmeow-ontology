@@ -67,7 +67,7 @@ use crate::physical::cursor::LendingIterator;
 use crate::physical::id::{RowId, TermRef};
 use crate::physical::plan::{Executable, RulePlan};
 use crate::physical::store::{Bound, RelationStore};
-use crate::provenance::{mint_derivation_id, term_display};
+use crate::provenance::mint_derivation_id;
 use crate::query_ir::QBuiltin;
 use crate::rule_ir::{
     DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactKeyMap, FactStore, Provenance,
@@ -849,7 +849,7 @@ fn eval_world_stratified(
             depth.insert(f.key(), 0);
         }
         if store.insert(f.clone()) {
-            rel.insert(&f.predicate, f.subject.clone(), f.object.clone());
+            rel.insert(&f.predicate, &f.subject, &f.object);
         }
     }
 
@@ -1091,29 +1091,22 @@ fn eval_stratum_fixpoint(
             // are provenance-independent, so the committed fact set is byte-identical
             // across modes.  A winner is always a genuinely-new fact (heads already
             // present are skipped above via `store.contains_key`), so the lockstep insert
-            // returns `Some(row_id)`.
-            let row_id = if store.insert(winner.head.clone()) {
+            // returns `Some(...)`.
+            let ids = if store.insert(winner.head.clone()) {
                 rel.insert(
                     &winner.head.predicate,
-                    winner.head.subject.clone(),
-                    winner.head.object.clone(),
+                    &winner.head.subject,
+                    &winner.head.object,
                 )
             } else {
                 None
             };
             // Stage the committed argument tuple into the phase-scoped value column
             // (arena), paired with its RowId; the read-back below turns the column into
-            // the next round's delta bitset.  The term-id lookups resolve the just-interned
-            // head terms (never a fresh alloc).
-            if let Some(row_id) = row_id {
-                let s_id = rel
-                    .interner()
-                    .lookup(&term_display(&winner.head.subject))
-                    .expect("a just-committed head subject is interned");
-                let o_id = rel
-                    .interner()
-                    .lookup(&term_display(&winner.head.object))
-                    .expect("a just-committed head object is interned");
+            // the next round's delta bitset.  The subject/object term ids come straight
+            // back from the columnar insert (never re-derived via a second interner
+            // lookup — the just-interned head terms).
+            if let Some((s_id, o_id, row_id)) = ids {
                 let tuple = arena.alloc(&[TermRef::term(s_id), TermRef::term(o_id)]);
                 committed.push((tuple, row_id));
             }
@@ -1234,7 +1227,7 @@ pub(crate) fn evaluate(
     // provenance-only `depth` bookkeeping.
     for f in &edb_facts {
         if store.insert(f.clone()) {
-            rel.insert(&f.predicate, f.subject.clone(), f.object.clone());
+            rel.insert(&f.predicate, &f.subject, &f.object);
         }
     }
 
@@ -1506,7 +1499,7 @@ mod tests {
         let mut rel = RelationStore::new();
         for (s, o) in [("z", "p"), ("a", "q"), ("m", "r")] {
             assert!(
-                rel.insert(&nn("edge"), term(s), term(o)).is_some(),
+                rel.insert(&nn("edge"), &term(s), &term(o)).is_some(),
                 "each anti-lexical row inserts"
             );
         }
@@ -2224,7 +2217,7 @@ mod tests {
     fn val_edb(pairs: &[(&str, i64)]) -> RelationStore {
         let mut edb = RelationStore::new();
         for (s, n) in pairs {
-            edb.insert(&nn("val"), term(s), int_lit(*n));
+            edb.insert(&nn("val"), &term(s), &int_lit(*n));
         }
         edb
     }
@@ -2358,9 +2351,9 @@ mod tests {
         };
         // EDB: seed(a, a), edge(a, b), edge(b, c).
         let mut edb = RelationStore::new();
-        edb.insert(&nn("seed"), term("a"), term("a"));
-        edb.insert(&nn("edge"), term("a"), term("b"));
-        edb.insert(&nn("edge"), term("b"), term("c"));
+        edb.insert(&nn("seed"), &term("a"), &term("a"));
+        edb.insert(&nn("edge"), &term("a"), &term("b"));
+        edb.insert(&nn("edge"), &term("b"), &term("c"));
 
         let out = evaluate(edb, &exe(&[seed_rule, step_rule]), None).expect("evaluate");
         let NativeOutcome::Decided(budgeted) = out else {
@@ -2428,7 +2421,7 @@ mod tests {
     fn rel_store_from(triples: &[(&str, &str, &str)]) -> RelationStore {
         let mut rel = RelationStore::new();
         for &(s, p, o) in triples {
-            rel.insert(&nn(p), term(s), term(o));
+            rel.insert(&nn(p), &term(s), &term(o));
         }
         rel
     }
@@ -2676,7 +2669,7 @@ mod tests {
 
         // Skip lane: the same program returns the derived answer, minting no reifier.
         let mut rel = RelationStore::new();
-        rel.insert(&nn("src"), quoted.clone(), term("z"));
+        rel.insert(&nn("src"), &quoted, &term("z"));
         let NativeOutcome::Decided(b) = evaluate(rel, &exe(&rules), None).expect("skip evaluate")
         else {
             panic!("expected Decided from the Skip lane");

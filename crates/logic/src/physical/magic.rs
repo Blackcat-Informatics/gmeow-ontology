@@ -1241,7 +1241,7 @@ pub(crate) fn resolve_native(
     let mut edb = extract_edb(foreign, world);
     if let Some(seed) = &transformed.seed {
         let fact = seed_to_fact(seed)?;
-        edb.insert(&fact.predicate, fact.subject, fact.object);
+        edb.insert(&fact.predicate, &fact.subject, &fact.object);
     }
     // The step/derivation budget is honoured DURING the fixpoint: `Exhausted` on a cut,
     // `Ok` on a natural fixpoint (including the pure-EDB case, where no rule fires).  The
@@ -1699,7 +1699,7 @@ mod tests {
         let mut edb = extract_edb(&foreign, &world_nn);
         if let Some(seed) = &transformed.seed {
             let f = seed_to_fact(seed).unwrap();
-            edb.insert(&f.predicate, f.subject, f.object);
+            edb.insert(&f.predicate, &f.subject, &f.object);
         }
         let facts = match evaluate(edb, &exe(&transformed.rules), None).unwrap() {
             NativeOutcome::Decided(budgeted) => budgeted.rows,
@@ -2214,8 +2214,8 @@ mod tests {
             let mut edb = RelationStore::new();
             edb.insert(
                 &format!("{BASE}src"),
-                TermValue::iri(x.clone()),
-                TermValue::iri(y.clone()),
+                &TermValue::iri(x.clone()),
+                &TermValue::iri(y.clone()),
             );
             edb
         };
@@ -2610,7 +2610,7 @@ mod tests {
         let mut edb = extract_edb(foreign, world);
         if let Some(seed) = &transformed.seed {
             let f = seed_to_fact(seed).unwrap();
-            edb.insert(&f.predicate, f.subject, f.object);
+            edb.insert(&f.predicate, &f.subject, &f.object);
         }
         let facts = match evaluate(edb, &exe(&transformed.rules), None).unwrap() {
             NativeOutcome::Decided(b) => b.rows,
@@ -2836,7 +2836,7 @@ mod tests {
         let mut edb = extract_edb(&foreign, &world_nn);
         if let Some(seed) = &mp.seed {
             let f = seed_to_fact(seed).unwrap();
-            edb.insert(&f.predicate, f.subject, f.object);
+            edb.insert(&f.predicate, &f.subject, &f.object);
         }
         let facts = match evaluate(edb, &exe(&mp.rules), None).unwrap() {
             NativeOutcome::Decided(b) => b.rows,

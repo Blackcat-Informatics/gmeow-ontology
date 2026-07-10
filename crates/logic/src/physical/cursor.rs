@@ -499,8 +499,8 @@ mod tests {
             assert!(
                 s.insert(
                     "http://ex/p",
-                    TermValue::iri("http://ex/a"),
-                    TermValue::iri(format!("http://ex/{o}")),
+                    &TermValue::iri("http://ex/a"),
+                    &TermValue::iri(format!("http://ex/{o}")),
                 )
                 .is_some()
             );
