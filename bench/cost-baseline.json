@@ -1,5 +1,5 @@
 {
-  "case_count": 9,
+  "case_count": 16,
   "cases": [
     {
       "agreement": {
@@ -22,6 +22,62 @@
         "derived_count": 3,
         "engine": "gmeow-logic/0.1.0+nemo+scryer",
         "peak_live_bytes": 34937
+      },
+      "oracle": {
+        "derived_count": 3,
+        "engine": "nemo"
+      },
+      "world": "https://example.org/bench/world"
+    },
+    {
+      "agreement": {
+        "golden_token": "derived=4",
+        "native_golden_token": "derived=4",
+        "native_oracle_token": "derived=4",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "derived=4"
+      },
+      "case": "doctors-like",
+      "corpus": "chasebench-mini",
+      "fragment": "existential",
+      "golden_rows": 4,
+      "native": {
+        "alloc_bytes": 3279782,
+        "alloc_count": 27824,
+        "consumed_steps": 4,
+        "cost_vector": [],
+        "derived_count": 4,
+        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "peak_live_bytes": 29729
+      },
+      "oracle": {
+        "derived_count": 4,
+        "engine": "nemo"
+      },
+      "world": "https://example.org/bench/world"
+    },
+    {
+      "agreement": {
+        "golden_token": "derived=3",
+        "native_golden_token": "derived=3",
+        "native_oracle_token": "derived=3",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "derived=3"
+      },
+      "case": "lubm-like",
+      "corpus": "chasebench-mini",
+      "fragment": "existential",
+      "golden_rows": 3,
+      "native": {
+        "alloc_bytes": 4744473,
+        "alloc_count": 40063,
+        "consumed_steps": 3,
+        "cost_vector": [],
+        "derived_count": 3,
+        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "peak_live_bytes": 34989
       },
       "oracle": {
         "derived_count": 3,
@@ -88,6 +144,66 @@
         "engine": "nemo"
       },
       "world": "urn:gmeow:nary:world"
+    },
+    {
+      "agreement": {
+        "golden_token": "derived=10",
+        "native_golden_token": "derived=10",
+        "native_oracle_token": "87b46808860fb0c1eb6079fc7367358183837876",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "87b46808860fb0c1eb6079fc7367358183837876"
+      },
+      "case": "stb-like",
+      "corpus": "nary-mini",
+      "fragment": "nary-existential",
+      "golden_rows": 10,
+      "native": {
+        "alloc_bytes": 773065,
+        "alloc_count": 7969,
+        "closure_fingerprint": "87b46808860fb0c1eb6079fc7367358183837876",
+        "consumed_steps": 24,
+        "cost_vector": [],
+        "derived_count": 10,
+        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "peak_live_bytes": 94509
+      },
+      "oracle": {
+        "closure_count": 10,
+        "closure_fingerprint": "87b46808860fb0c1eb6079fc7367358183837876",
+        "engine": "nemo"
+      },
+      "world": "urn:gmeow:nary:world"
+    },
+    {
+      "agreement": {
+        "golden_token": "derived=3",
+        "native_golden_token": "derived=3",
+        "native_oracle_token": "68917dd0ed0fc7c5ddb9a5273dcf7fa6183b277b2dd47a7bb79d8b060112446f",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "68917dd0ed0fc7c5ddb9a5273dcf7fa6183b277b2dd47a7bb79d8b060112446f"
+      },
+      "case": "ancestor-query",
+      "corpus": "nemo-kr2024-mini",
+      "fragment": "backward",
+      "golden_rows": 3,
+      "native": {
+        "alloc_bytes": 280728,
+        "alloc_count": 3588,
+        "answer_count": 3,
+        "answers_fingerprint": "68917dd0ed0fc7c5ddb9a5273dcf7fa6183b277b2dd47a7bb79d8b060112446f",
+        "consumed_steps": 9,
+        "cost_vector": [],
+        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "peak_live_bytes": 31689
+      },
+      "oracle": {
+        "answer_count": 3,
+        "answers_fingerprint": "68917dd0ed0fc7c5ddb9a5273dcf7fa6183b277b2dd47a7bb79d8b060112446f",
+        "engine": "scryer"
+      },
+      "world": "https://example.org/bench/world"
     },
     {
       "agreement": {
@@ -164,6 +280,141 @@
     },
     {
       "agreement": {
+        "golden_token": "derived=10",
+        "native_golden_token": "derived=10",
+        "native_oracle_token": "0d84466554d296a5a509495191251472f1c83cfca18ef74ffe262d7d201d379a",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "0d84466554d296a5a509495191251472f1c83cfca18ef74ffe262d7d201d379a"
+      },
+      "case": "mutual-recursion",
+      "corpus": "relational-core-mini",
+      "fragment": "forward",
+      "golden_rows": 10,
+      "native": {
+        "alloc_bytes": 6247705,
+        "alloc_count": 54311,
+        "consumed_steps": 10,
+        "cost_vector": [
+          [
+            "https://example.org/bench/rules/mr-even-step",
+            "https://example.org/bench/even",
+            1,
+            4
+          ],
+          [
+            "https://example.org/bench/rules/mr-odd-base",
+            "https://example.org/bench/odd",
+            1,
+            4
+          ],
+          [
+            "https://example.org/bench/rules/mr-odd-step",
+            "https://example.org/bench/odd",
+            1,
+            2
+          ]
+        ],
+        "derived_count": 10,
+        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "peak_live_bytes": 58473,
+        "rows_fingerprint": "0d84466554d296a5a509495191251472f1c83cfca18ef74ffe262d7d201d379a"
+      },
+      "oracle": {
+        "engine": "nemo",
+        "row_count": 14,
+        "rows_fingerprint": "0d84466554d296a5a509495191251472f1c83cfca18ef74ffe262d7d201d379a"
+      },
+      "world": "https://example.org/bench/world"
+    },
+    {
+      "agreement": {
+        "golden_token": "derived=6",
+        "native_golden_token": "derived=6",
+        "native_oracle_token": "5447f838db015f827b8d62343f77931f7d9c676602bb0da83646834bdaa65a98",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "5447f838db015f827b8d62343f77931f7d9c676602bb0da83646834bdaa65a98"
+      },
+      "case": "non-linear-transitive-closure",
+      "corpus": "relational-core-mini",
+      "fragment": "forward",
+      "golden_rows": 6,
+      "native": {
+        "alloc_bytes": 3990910,
+        "alloc_count": 34450,
+        "consumed_steps": 6,
+        "cost_vector": [
+          [
+            "https://example.org/bench/rules/nltc-base",
+            "https://example.org/bench/path",
+            1,
+            3
+          ],
+          [
+            "https://example.org/bench/rules/nltc-join",
+            "https://example.org/bench/path",
+            1,
+            3
+          ]
+        ],
+        "derived_count": 6,
+        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "peak_live_bytes": 44101,
+        "rows_fingerprint": "5447f838db015f827b8d62343f77931f7d9c676602bb0da83646834bdaa65a98"
+      },
+      "oracle": {
+        "engine": "nemo",
+        "row_count": 9,
+        "rows_fingerprint": "5447f838db015f827b8d62343f77931f7d9c676602bb0da83646834bdaa65a98"
+      },
+      "world": "https://example.org/bench/world"
+    },
+    {
+      "agreement": {
+        "golden_token": "derived=4",
+        "native_golden_token": "derived=4",
+        "native_oracle_token": "b082266a94784f35afdb0dd05d3197ab6ec425d54d1c4bbc589ae80101c8f80d",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "b082266a94784f35afdb0dd05d3197ab6ec425d54d1c4bbc589ae80101c8f80d"
+      },
+      "case": "points-to",
+      "corpus": "relational-core-mini",
+      "fragment": "forward",
+      "golden_rows": 4,
+      "native": {
+        "alloc_bytes": 3953008,
+        "alloc_count": 33961,
+        "consumed_steps": 4,
+        "cost_vector": [
+          [
+            "https://example.org/bench/rules/pt-base",
+            "https://example.org/bench/pointsTo",
+            1,
+            2
+          ],
+          [
+            "https://example.org/bench/rules/pt-copy",
+            "https://example.org/bench/pointsTo",
+            1,
+            2
+          ]
+        ],
+        "derived_count": 4,
+        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "peak_live_bytes": 42113,
+        "rows_fingerprint": "b082266a94784f35afdb0dd05d3197ab6ec425d54d1c4bbc589ae80101c8f80d"
+      },
+      "oracle": {
+        "engine": "nemo",
+        "row_count": 8,
+        "rows_fingerprint": "b082266a94784f35afdb0dd05d3197ab6ec425d54d1c4bbc589ae80101c8f80d"
+      },
+      "world": "https://example.org/bench/world"
+    },
+    {
+      "agreement": {
         "golden_token": "derived=2",
         "native_golden_token": "derived=2",
         "native_oracle_token": "62f716d024cd5c0ae67195157d008fc9bcccab7ecb0df10117bd617b27d4d494",
@@ -219,8 +470,8 @@
       "fragment": "forward",
       "golden_rows": 8,
       "native": {
-        "alloc_bytes": 5459892,
-        "alloc_count": 47655,
+        "alloc_bytes": 5459473,
+        "alloc_count": 47641,
         "consumed_steps": 8,
         "cost_vector": [
           [
@@ -348,18 +599,42 @@
   },
   "ledgers": {
     "chasebench-mini": {
-      "agree": 2,
-      "cases": 2,
+      "agree": 6,
+      "cases": 6,
       "corpus_only": 0,
       "dl_gap": 0,
-      "finding_count": 2,
-      "finding_graph_blake3": "d9c758426c40e8b12d830a06f54cab35efcde6716f232aa913e66aa2c6b65dd1",
+      "finding_count": 6,
+      "finding_graph_blake3": "7e3b2cd6c21f854f97f6ea48cbb652374161227cad90affd984a08a2792cf680",
       "findings": [
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/014b3c7d0fa87276eb1e486916777dd3",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/4aa58ec9b74463f0153493985ba71c65"
+        },
         {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/d74fffbb75111a38fb28b7ebbaf31fcc",
           "antecedents": [],
           "code": "reason.divergence.agreement",
           "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/7ef874632a5703282d14c159cb503c80"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/140f5e3bfbbab33d28319f353accbd32",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/b81d657a45ce1ca7b807896f188b6f4b"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/457619b881237324245b0976b783b560",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bd3142e733564d779f5d7992cbce38fd"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/a7822ff931dd4c8fb0e0b3ec6281fb50",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/ee83f1676c7c5a56194f590a22668fea"
         },
         {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/31e159d1f715e22b57136a9996bb38da",
@@ -370,12 +645,12 @@
       ]
     },
     "nary-mini": {
-      "agree": 4,
-      "cases": 4,
+      "agree": 6,
+      "cases": 6,
       "corpus_only": 0,
       "dl_gap": 0,
-      "finding_count": 4,
-      "finding_graph_blake3": "0f8576dae8c1613ee3d1808c438b637af12b16855527a51aeb58e8f360c68422",
+      "finding_count": 6,
+      "finding_graph_blake3": "37c8169a51b2e49f54342cfb4eca9469ba0fb8c981981441a6dcef290953188c",
       "findings": [
         {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/678b1390334b1fac71eec2f6f119b2b6",
@@ -388,6 +663,18 @@
           "antecedents": [],
           "code": "reason.divergence.agreement",
           "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/4e4d1c93f0c1d269c7e967078c55933f"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/50a062e84a1cd0642e4fc86d06da4ce2",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/a80e164801be0877888f3a3a9a6d9cfb"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/a634e33e7c1e26f7b7ac47f53a88e8b2",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/cd11e2642ef1e582a822535c7e4a2432"
         },
         {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/f48ce302203f58dd4f6ac90b8aa3ca5c",
@@ -404,12 +691,12 @@
       ]
     },
     "nemo-kr2024-mini": {
-      "agree": 4,
-      "cases": 4,
+      "agree": 6,
+      "cases": 6,
       "corpus_only": 0,
       "dl_gap": 0,
-      "finding_count": 4,
-      "finding_graph_blake3": "49f9011ba14424c9b37c9329fd2a4cc38c84e696a7d7b5ad8545533c2c16539c",
+      "finding_count": 6,
+      "finding_graph_blake3": "5045913f33f8fd69de1f1d78fecdb2091eaa065c173fab4dcadcebef14a4d48d",
       "findings": [
         {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/904335816af109d55ba49a40f2ed1557",
@@ -422,6 +709,18 @@
           "antecedents": [],
           "code": "reason.divergence.agreement",
           "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/691a7c0e619da77a130f9d486f651ff6"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/0dbf60b71eb9942025f419a83e5f4b35",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/6e0ab30e4beabc2d9d66c590ce29a090"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/770478b3da13d0910d273651329cf91c",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/6f4a319e5c5a7b3b9bec28def2a844d9"
         },
         {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/53e66072951ae1a7c3c22dc3645be8f6",
@@ -438,12 +737,12 @@
       ]
     },
     "relational-core-mini": {
-      "agree": 8,
-      "cases": 8,
+      "agree": 14,
+      "cases": 14,
       "corpus_only": 0,
       "dl_gap": 0,
-      "finding_count": 8,
-      "finding_graph_blake3": "af6f81f99c939fb56709fd101a7ec88d848b054196617ed32454f72c5da23471",
+      "finding_count": 14,
+      "finding_graph_blake3": "5ad25e7490e3ae7225b48679a6792b11c1cec4b4479a06237b1bc72396c3560b",
       "findings": [
         {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/d7f9dad000434c585e2cd30caa3a6420",
@@ -476,16 +775,52 @@
           "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/3f54fee0c07a9b0c2f08d96d0512a147"
         },
         {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/34e9e225b8c532fca02d0a0993e1f7ad",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/4d88150ecc45398078ec6e8083b94370"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/fdd4f18a9760131267dd4b7df1de4ead",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/aa57441493f55e1518830e77a73d6673"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/bf9c924ffb31380dbab530ae70391451",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bafdb2d0b328e4211d715923e80c4dc0"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/08f5b1ed306b0444a14628994704e0c3",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bf66843afb4e3a9f1b4eeb7a09c9b7b6"
+        },
+        {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/c722eec246cbdf23c16a7362b3f18907",
           "antecedents": [],
           "code": "reason.divergence.agreement",
           "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bfcd12dc206ca8f78a5464114daa810f"
         },
         {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/9c3cf1c9513f7217dfd3450bcaac7724",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/c8d91eb50f38d66b3d83f7728175fd5f"
+        },
+        {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/80b7ab1ef549dccf0269a7b5d59e61e2",
           "antecedents": [],
           "code": "reason.divergence.agreement",
           "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/cb6876933c9442a218f2ca88c7a8b38c"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/1ae0532a272fbfa3059aa5e7b5d3625c",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/daa361c4a4378393c65300c5abca86b7"
         },
         {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/0240f0180ab892c47506bbeee1844b85",

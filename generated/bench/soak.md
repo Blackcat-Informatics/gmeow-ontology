@@ -17,11 +17,11 @@ Soak window: 3 runs.
 
 | corpus | cases | agree | corpus_only | dl_gap | gap_zero | finding_graph_blake3 |
 |---|---|---|---|---|---|---|
-| chasebench-mini | 2 | 2 | 0 | 0 | true | d9c758426c40e8b12d830a06f54cab35efcde6716f232aa913e66aa2c6b65dd1 |
-| nary-mini | 4 | 4 | 0 | 0 | true | 0f8576dae8c1613ee3d1808c438b637af12b16855527a51aeb58e8f360c68422 |
-| nemo-kr2024-mini | 4 | 4 | 0 | 0 | true | 49f9011ba14424c9b37c9329fd2a4cc38c84e696a7d7b5ad8545533c2c16539c |
-| relational-core-mini | 8 | 8 | 0 | 0 | true | af6f81f99c939fb56709fd101a7ec88d848b054196617ed32454f72c5da23471 |
+| chasebench-mini | 6 | 6 | 0 | 0 | true | 7e3b2cd6c21f854f97f6ea48cbb652374161227cad90affd984a08a2792cf680 |
+| nary-mini | 6 | 6 | 0 | 0 | true | 37c8169a51b2e49f54342cfb4eca9469ba0fb8c981981441a6dcef290953188c |
+| nemo-kr2024-mini | 6 | 6 | 0 | 0 | true | 5045913f33f8fd69de1f1d78fecdb2091eaa065c173fab4dcadcebef14a4d48d |
+| relational-core-mini | 14 | 14 | 0 | 0 | true | 5ad25e7490e3ae7225b48679a6792b11c1cec4b4479a06237b1bc72396c3560b |
 
-Combined soak digest (blake3 over the sorted per-corpus finding-graph digests): `bff417a407b4b9becca19a399ae5adb1e55d07004b9c4b00bf73b5de116ced48`.
+Combined soak digest (blake3 over the sorted per-corpus finding-graph digests): `02677c48509c08db4ab86326b240dcfaa4e88d657b9359540df3473c458100e5`.
 
 Gap-zero HELD across 4 corpora at soak window 3; engine pins native `gmeow-logic/0.1.0+nemo+scryer`, nemo `4415bc2e180adf33a7a4b98ddc41be9914b7584e`, scryer `master`.

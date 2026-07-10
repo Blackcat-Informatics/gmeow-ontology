@@ -18,12 +18,19 @@ Engine pins: native `gmeow-logic/0.1.0+nemo+scryer`, nemo `4415bc2e180adf33a7a4b
 | corpus | case | fragment | consumed_steps | derived | alloc_bytes | alloc_count | peak_live_bytes | native_vs_golden | native_vs_oracle |
 |---|---|---|---|---|---|---|---|---|---|
 | chasebench-mini | deep-linear | existential | 3 | 3 | 4752910 | 40138 | 34937 | true | true |
+| chasebench-mini | doctors-like | existential | 4 | 4 | 3279782 | 27824 | 29729 | true | true |
+| chasebench-mini | lubm-like | existential | 3 | 3 | 4744473 | 40063 | 34989 | true | true |
 | nary-mini | co-witness | nary-existential | 16 | 6 | 571879 | 5768 | 102307 | true | true |
 | nary-mini | split-null | nary-existential | 14 | 6 | 464762 | 4760 | 88846 | true | true |
+| nary-mini | stb-like | nary-existential | 24 | 10 | 773065 | 7969 | 94509 | true | true |
+| nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 280728 | 3588 | 31689 | true | true |
 | nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 164797 | 2086 | 25492 | true | true |
 | nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3911672 | 33198 | 37822 | true | true |
+| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6247705 | 54311 | 58473 | true | true |
+| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3990910 | 34450 | 44101 | true | true |
+| relational-core-mini | points-to | forward | 4 | 4 | 3953008 | 33961 | 42113 | true | true |
 | relational-core-mini | reachability | forward | 2 | 2 | 3711272 | 31284 | 36685 | true | true |
-| relational-core-mini | same-generation | forward | 8 | 8 | 5459892 | 47655 | 54978 | true | true |
+| relational-core-mini | same-generation | forward | 8 | 8 | 5459473 | 47641 | 54978 | true | true |
 | relational-core-mini | scc | forward | 8 | 8 | 6169418 | 52906 | 53796 | true | true |
 | relational-core-mini | transitive-closure | forward | 3 | 3 | 3911843 | 33222 | 37785 | true | true |
 
@@ -33,6 +40,13 @@ Engine pins: native `gmeow-logic/0.1.0+nemo+scryer`, nemo `4415bc2e180adf33a7a4b
 |---|---|---|---|---|---|
 | nemo-kr2024-mini | transitive-connection | https://example.org/bench/rules/conn-base | https://example.org/bench/conn | 1 | 2 |
 | nemo-kr2024-mini | transitive-connection | https://example.org/bench/rules/conn-step | https://example.org/bench/conn | 1 | 1 |
+| relational-core-mini | mutual-recursion | https://example.org/bench/rules/mr-even-step | https://example.org/bench/even | 1 | 4 |
+| relational-core-mini | mutual-recursion | https://example.org/bench/rules/mr-odd-base | https://example.org/bench/odd | 1 | 4 |
+| relational-core-mini | mutual-recursion | https://example.org/bench/rules/mr-odd-step | https://example.org/bench/odd | 1 | 2 |
+| relational-core-mini | non-linear-transitive-closure | https://example.org/bench/rules/nltc-base | https://example.org/bench/path | 1 | 3 |
+| relational-core-mini | non-linear-transitive-closure | https://example.org/bench/rules/nltc-join | https://example.org/bench/path | 1 | 3 |
+| relational-core-mini | points-to | https://example.org/bench/rules/pt-base | https://example.org/bench/pointsTo | 1 | 2 |
+| relational-core-mini | points-to | https://example.org/bench/rules/pt-copy | https://example.org/bench/pointsTo | 1 | 2 |
 | relational-core-mini | reachability | https://example.org/bench/rules/reach-base | https://example.org/bench/reach | 1 | 1 |
 | relational-core-mini | reachability | https://example.org/bench/rules/reach-step | https://example.org/bench/reach | 1 | 1 |
 | relational-core-mini | same-generation | https://example.org/bench/rules/sg-base | https://example.org/bench/same_gen | 1 | 6 |
@@ -47,9 +61,9 @@ Engine pins: native `gmeow-logic/0.1.0+nemo+scryer`, nemo `4415bc2e180adf33a7a4b
 
 | corpus | cases | agree | corpus_only | dl_gap | findings | finding_graph_blake3 |
 |---|---|---|---|---|---|---|
-| chasebench-mini | 2 | 2 | 0 | 0 | 2 | d9c758426c40e8b12d830a06f54cab35efcde6716f232aa913e66aa2c6b65dd1 |
-| nary-mini | 4 | 4 | 0 | 0 | 4 | 0f8576dae8c1613ee3d1808c438b637af12b16855527a51aeb58e8f360c68422 |
-| nemo-kr2024-mini | 4 | 4 | 0 | 0 | 4 | 49f9011ba14424c9b37c9329fd2a4cc38c84e696a7d7b5ad8545533c2c16539c |
-| relational-core-mini | 8 | 8 | 0 | 0 | 8 | af6f81f99c939fb56709fd101a7ec88d848b054196617ed32454f72c5da23471 |
+| chasebench-mini | 6 | 6 | 0 | 0 | 6 | 7e3b2cd6c21f854f97f6ea48cbb652374161227cad90affd984a08a2792cf680 |
+| nary-mini | 6 | 6 | 0 | 0 | 6 | 37c8169a51b2e49f54342cfb4eca9469ba0fb8c981981441a6dcef290953188c |
+| nemo-kr2024-mini | 6 | 6 | 0 | 0 | 6 | 5045913f33f8fd69de1f1d78fecdb2091eaa065c173fab4dcadcebef14a4d48d |
+| relational-core-mini | 14 | 14 | 0 | 0 | 14 | 5ad25e7490e3ae7225b48679a6792b11c1cec4b4479a06237b1bc72396c3560b |
 
-9 case(s) across 4 corpora in the committed cost baseline.
+16 case(s) across 4 corpora in the committed cost baseline.
