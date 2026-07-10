@@ -1022,6 +1022,125 @@ mod tests {
     }
 
     #[test]
+    fn transpile_graph_fans_out_without_x_gmeow_leak() {
+        // The on-gate, fixture-scale twin of the off-gate CLI process test
+        // (`gmeow-cli/tests/self_sufficiency.rs::transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak`),
+        // driven through the REAL production chain (`up_project` → `transform_nt`, via
+        // `transpile_graph`) — no CLI process, no bundle load. Proves the two halves
+        // together, through the FULL chain (not `transform_nt` alone):
+        //
+        //  * fan-out: an equivalentProperty cell makes MAXIMAL(G) mirror `gmeow:knows`
+        //    back out to `foaf:knows` — more triples come out than were asserted.
+        //  * zero-leak: a GMEOW-native literal carrying an internal `x-gmeow-*` tag
+        //    (passed through `up_project`'s gmeow-namespace passthrough leg unchanged,
+        //    per `put_executor::fact_queries`) survives to the MAXIMAL(G) boundary
+        //    retagged to its public BCP-47 form — never as the internal tag.
+        let source_nt = format!(
+            "{}{}",
+            nt(EX_ME, FOAF_KNOWS, "https://example.org/you"),
+            lit(EX_ME, GM_FULL_NAME, "\"Ada Lovelace\"@x-gmeow-english"),
+        );
+        let up_inputs = UpProjectionInputs {
+            sssom_texts: vec![knows_sssom()],
+            projection_ttls: Vec::new(),
+            ontology_nt: String::new(),
+            discharged_section_cells: BTreeSet::new(),
+        };
+        let maximal_inputs = MaximalInputs {
+            ontology_nt: format!(
+                "<{GM_KNOWS}> <{RDF_TYPE}> <http://www.w3.org/2002/07/owl#ObjectProperty> .\n"
+            ),
+            cells: vec![CellInput {
+                iri: "https://blackcatinformatics.ca/gmeow/te/knows-foaf".to_owned(),
+                subject: GM_KNOWS.to_owned(),
+                predicate_curie: "owl:equivalentProperty".to_owned(),
+                object: FOAF_KNOWS.to_owned(),
+                confidence: "0.9".to_owned(),
+            }],
+            denied: Vec::new(),
+            projection_queries: Vec::new(),
+        };
+
+        // Non-vacuity / negative control: with NO tag_map, the internal tag survives
+        // the full chain untouched — proving the fixture genuinely would have leaked
+        // before the retag boundary existed (not a vacuously-passing assertion below).
+        let unmapped = transpile_graph(
+            &source_nt,
+            "leak-control",
+            &up_inputs,
+            &maximal_inputs,
+            &TagMap::new(),
+        )
+        .unwrap();
+        assert!(
+            unmapped
+                .transform
+                .base_plus_derived_nt
+                .contains("x-gmeow-english"),
+            "fixture is vacuous: with an empty tag_map the internal tag should still \
+             be present: {}",
+            unmapped.transform.base_plus_derived_nt
+        );
+
+        let mut tag_map = TagMap::new();
+        tag_map.insert("x-gmeow-english".to_owned(), "en".to_owned());
+
+        let report = transpile_graph(
+            &source_nt,
+            "fanout-no-leak",
+            &up_inputs,
+            &maximal_inputs,
+            &tag_map,
+        )
+        .unwrap();
+
+        // Fan-out: MAXIMAL(G) genuinely produced MORE than was asserted — the
+        // equivalentProperty cell mirrors gmeow:knows back out to foaf:knows.
+        assert!(
+            report.transform.saturated >= 1,
+            "no saturation fan-out fired: {report:?}"
+        );
+        assert!(
+            report.transform.base_plus_derived_nt.contains(&format!(
+                "<{EX_ME}> <{FOAF_KNOWS}> <https://example.org/you> ."
+            )),
+            "equivalentProperty mirror missing: {}",
+            report.transform.base_plus_derived_nt
+        );
+
+        // Zero-leak: no x-gmeow-* internal tag survives the full chain, on ANY literal
+        // (parsed, not just a substring scan) — using the same `is_internal_tag`
+        // predicate the P10 suppression leak sweep uses.
+        let out_quads = flat_quads_from_nt(&report.transform.base_plus_derived_nt).unwrap();
+        assert!(
+            out_quads.iter().all(|q| match &q.object {
+                RdfTerm::Literal(literal) => literal
+                    .language
+                    .as_deref()
+                    .is_none_or(|lang| !gmeow_validate::language_tags::is_internal_tag(lang)),
+                _ => true,
+            }),
+            "an internal x-gmeow-* tag leaked into MAXIMAL(G): {}",
+            report.transform.base_plus_derived_nt
+        );
+        assert!(
+            !report.transform.base_plus_derived_nt.contains("x-gmeow"),
+            "x-gmeow substring leaked: {}",
+            report.transform.base_plus_derived_nt
+        );
+
+        // The properly-tagged public form DOES appear, routed through tag_map.
+        assert!(
+            report
+                .transform
+                .base_plus_derived_nt
+                .contains("\"Ada Lovelace\"@en"),
+            "public BCP-47 retag missing: {}",
+            report.transform.base_plus_derived_nt
+        );
+    }
+
+    #[test]
     fn transpile_graph_rejects_empty_lift() {
         // A source with no lawful lift rule produces an empty draft — surfaced, never
         // a silent empty publication.
