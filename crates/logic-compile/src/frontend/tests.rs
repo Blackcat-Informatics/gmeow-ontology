@@ -1628,10 +1628,12 @@ fn derive_qualified_cardinality_on_data_range_emits_plain_datatype_and_count() {
 }
 
 #[test]
-fn derive_qualified_cardinality_on_class_emits_plain_class_for_json_schema() {
-    // `owl:maxQualifiedCardinality 1 ; owl:onClass g:C` must carry a PLAIN `sh:class g:C` (which the
-    // JSON-Schema deriver reads), in ADDITION to the faithful `sh:qualifiedValueShape` (which the
-    // deriver ignores). Without the plain class the object-class filler is invisible downstream.
+fn derive_qualified_cardinality_omits_plain_class_without_a_backing_universal() {
+    // `owl:maxQualifiedCardinality 1 ; owl:onClass g:C` counts ONLY the values that ARE a C; it
+    // does NOT entail that EVERY value of the property is a C. So the faithful projection is the
+    // `sh:qualifiedValueShape` ALONE — a bare `sh:class g:C` would over-claim the universal
+    // (caught by the lift/derive round-trip `certify` invariant). No `rdfs:range`/`allValuesFrom`
+    // backs the filler here, so NO plain class is emitted.
     let ds = shape_dataset(
         "g:C a owl:Class . \
          g:K a owl:Class ; rdfs:subClassOf \
@@ -1645,27 +1647,62 @@ fn derive_qualified_cardinality_on_class_emits_plain_class_for_json_schema() {
         .find(|p| p.path.ends_with("mediates"))
         .expect("a property on mediates");
     assert!(
+        !pc.components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(_))),
+        "a qualified cardinality with no backing universal must NOT emit a plain sh:class (over-claim): {:?}",
+        pc.components
+    );
+    assert!(
+        pc.components.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::QualifiedValueShape { max, .. } if *max == Some(1)
+        )),
+        "the faithful qualified value shape carries the count: {:?}",
+        pc.components
+    );
+}
+
+#[test]
+fn derive_qualified_cardinality_emits_plain_class_when_a_closed_range_backs_it() {
+    // The bare `sh:class g:C` — which the JSON-Schema deriver / purrdf object-class node-ref path
+    // read (they ignore the class nested inside a `sh:qualifiedValueShape`) — IS emitted for a
+    // qualified cardinality when a genuine universal backs it: here a closed-world-opted-in
+    // `rdfs:range g:mediates g:C`. Then both the plain class (the universal) and the qualified
+    // value shape (the count) are present, and the round trip stays equivalent.
+    let ds = shape_dataset_with_logic(
+        "g:C a owl:Class . \
+         g:mediates a owl:ObjectProperty ; rdfs:range g:C . \
+         g:K a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:mediates ; \
+           owl:maxQualifiedCardinality \"1\"^^xsd:nonNegativeInteger ; owl:onClass g:C ] .\n\
+         [] a logic:ClosureEntry ; logic:closureKey g:mediates ; logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let pc = shapes
+        .iter()
+        .flat_map(|s| &s.properties)
+        .filter(|p| p.path.ends_with("mediates"))
+        .find(|p| {
+            p.components
+                .iter()
+                .any(|c| matches!(c, ConstraintComponent::QualifiedValueShape { .. }))
+        })
+        .expect("the qualified property shape on mediates");
+    assert!(
         pc.components
             .iter()
             .any(|c| matches!(c, ConstraintComponent::Class(d) if d.ends_with("/C"))),
-        "onClass filler must also emit a plain sh:class for the JSON-Schema deriver: {:?}",
+        "a closed-world range g:C must emit the plain sh:class for the JSON-Schema deriver: {:?}",
         pc.components
     );
-    let qvs = pc
-        .components
-        .iter()
-        .find(|c| matches!(c, ConstraintComponent::QualifiedValueShape { .. }))
-        .expect("the faithful qualified value shape is still emitted");
-    match qvs {
-        ConstraintComponent::QualifiedValueShape { max, .. } => {
-            assert_eq!(
-                *max,
-                Some(1),
-                "the count stays on the qualified value shape"
-            );
-        }
-        _ => unreachable!(),
-    }
+    assert!(
+        pc.components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::QualifiedValueShape { .. })),
+        "the faithful qualified value shape is still emitted: {:?}",
+        pc.components
+    );
 }
 
 #[test]

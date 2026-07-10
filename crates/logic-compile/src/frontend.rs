@@ -1840,26 +1840,33 @@ pub fn derive_validation_shapes(
                             .push(pc);
                     }
                     Some(Node::Iri(q)) => {
-                        // Emit BOTH the faithful `sh:qualifiedValueShape` (which carries the count
-                        // on the values that satisfy the inner shape) AND a plain `sh:class`. The
-                        // JSON-Schema deriver and the purrdf-shapes external-object-class node-ref
-                        // path read a BARE `sh:class`; they IGNORE the class nested inside a
-                        // `sh:qualifiedValueShape`, so without the plain `sh:class` the object-class
-                        // filler is invisible downstream.
-                        let pc = PropertyConstraintIr::new(
-                            &on,
-                            None,
-                            None,
-                            None,
-                            vec![
-                                ConstraintComponent::Class(q.clone()),
-                                ConstraintComponent::QualifiedValueShape {
-                                    shape: vec![ConstraintComponent::Class(q)],
-                                    min: qlo,
-                                    max: qhi,
-                                },
-                            ],
-                        )?;
+                        // The faithful projection of a qualified cardinality is the
+                        // `sh:qualifiedValueShape` alone — it carries the count on exactly the
+                        // values that satisfy the inner shape. A BARE `sh:class q` reads as the
+                        // UNIVERSAL "every value of `on` is a q", which a qualified cardinality
+                        // (min/max `onClass q`) does NOT entail, so emitting it unconditionally
+                        // OVER-CLAIMS (caught by the lift/derive round-trip `certify` invariant).
+                        // Emit the bare `sh:class` — which the JSON-Schema deriver and the
+                        // purrdf-shapes object-class node-ref path read (they ignore the class
+                        // nested inside a `sh:qualifiedValueShape`) — ONLY when a genuine universal
+                        // backs it: an `owl:allValuesFrom q` is already emitted by its own arm
+                        // above, and here we cover a closed-world-opted-in `rdfs:range on q` (the
+                        // same `ClosedWorldClosure` opt-in that gates the property-level range
+                        // shape). With neither universal, only the qualified shape is emitted.
+                        let range_backed = closed_optins.contains(&on)
+                            && objects(store, &Subject::Iri(on.clone()), &p_range)
+                                .into_iter()
+                                .any(|c| matches!(c, Node::Iri(r) if r == q));
+                        let mut comps = Vec::new();
+                        if range_backed {
+                            comps.push(ConstraintComponent::Class(q.clone()));
+                        }
+                        comps.push(ConstraintComponent::QualifiedValueShape {
+                            shape: vec![ConstraintComponent::Class(q)],
+                            min: qlo,
+                            max: qhi,
+                        });
+                        let pc = PropertyConstraintIr::new(&on, None, None, None, comps)?;
                         entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                             .2
                             .push(pc);
