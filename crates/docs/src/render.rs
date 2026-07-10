@@ -2074,6 +2074,56 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
         blank(&mut out);
     }
 
+    // ── How this term degrades under projection (present only when the dynamic
+    // per-term loss digest is attached) ──────────────────────────────────────────
+    // The dynamic per-shape join (B2): DISTINCT from the static whole-program rows
+    // on `Page::LogicLossLedger` (`owl-dl`, `datalog`, …) — this surfaces ONLY the
+    // `property-path:<shape-iri>` rows the live `stage-mappings` projection ledger
+    // emits for a `logic:PathShape` this term owns. An attached-but-empty join
+    // renders the honest "carried exactly by every projection" text rather than
+    // omitting the section — never conflated with the section being absent
+    // because no digest was attached at all.
+    if let Some(digest) = &model.term_loss {
+        heading(&mut out, 2, model.ui("body_term_projection_degradation"));
+        match digest.by_term.get(&term.iri) {
+            Some(rows) if !rows.is_empty() => {
+                push_line(
+                    &mut out,
+                    "| Target | Preservation kind | Complexity class | Lossy drops |",
+                );
+                push_line(&mut out, "| --- | --- | --- | --- |");
+                for row in rows {
+                    let drops = if row.lossy_drops.is_empty() {
+                        "—".to_string()
+                    } else {
+                        row.lossy_drops
+                            .iter()
+                            .map(|d| md_escape(&one_line(d)))
+                            .collect::<Vec<_>>()
+                            .join("<br>")
+                    };
+                    push_line(
+                        &mut out,
+                        &format!(
+                            "| `{}` | `{}` | `{}` | {} |",
+                            code_escape(&row.target),
+                            code_escape(&row.preservation_kind),
+                            code_escape(&row.complexity_class),
+                            drops,
+                        ),
+                    );
+                }
+            }
+            _ => {
+                push_line(
+                    &mut out,
+                    &format!("- {}", model.ui("body_term_projection_degradation_none")),
+                );
+            }
+        }
+        blank(&mut out);
+    }
+
     // ── Documentation coverage (always present) ──────────────────────────────────
     // The six richness dimensions this term carries, read from the shared coverage
     // source — exactly the predicates behind the `docs/missing-*` lint, so the page
@@ -5379,6 +5429,7 @@ mod tests {
             ui_catalog: crate::i18n::UiCatalog::default(),
             reasoning: None,
             diagnostics: None,
+            term_loss: None,
             lang: String::new(),
         }
     }

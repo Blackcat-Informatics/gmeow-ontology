@@ -238,14 +238,169 @@ pub(crate) fn diagnostics_digest_from_upstream(
     })
 }
 
-/// Discover the docs model under `root`, attach the native-reasoner `verdict` and
-/// the diagnostics→term join digest (from `upstream`), and project it to the
-/// documentation named graph (N-Quads). The verdict is required so the SPARQL
-/// surface always carries the per-term reasoning status (never a fabricated
-/// default); the diagnostics digest is required (hard-fails on a missing
-/// `stage-validate`/`stage-compile-logic` upstream product) so the per-term
-/// "Diagnostics you might hit" surface and any `gmeow:doc*` diagnostics
-/// projection never fabricate a "no diagnostics" claim. The per-term
+/// The `rdfs:label` prefix the compiler's projection ledger stamps on a per-shape
+/// row (`format!("property-path:{}", pp.shape_iri)` in
+/// `logic_compile::projections::report::build_projection_report_from`). ONLY
+/// labels carrying this EXACT prefix are per-term/per-shape; every other row
+/// (`"owl-dl"`, `"datalog"`, `"shacl-json-schema"`, …) is a whole-program row
+/// already rendered on the STATIC `Page::LogicLossLedger`
+/// (`gmeow_logic_compile::projections::projection_ledger_rows`) and must never be
+/// re-rendered per-term here.
+const PROPERTY_PATH_LABEL_PREFIX: &str = "property-path:";
+
+/// The `logic:` namespace the compiler's projection ledger mints its vocabulary
+/// under (`crate::ir::LOGIC_NAMESPACE`, duplicated here as a literal so this reader
+/// needs no dependency on `gmeow-logic-compile`'s internal IR module).
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+const LOGIC_PROJECTION_TARGET_TYPE: &str = "https://blackcatinformatics.ca/logic/ProjectionTarget";
+const LOGIC_PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/preservationKind";
+const LOGIC_COMPLEXITY_CLASS: &str = "https://blackcatinformatics.ca/logic/complexityClass";
+const GMEOW_LOSSY_DROP: &str = "https://blackcatinformatics.ca/gmeow/lossyDrop";
+const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+
+/// Fold the dynamic per-term projection-loss join [`TermLossDigest`] from the LIVE
+/// `stage-mappings` product's [`GRAPH_PROJECTION_LEDGER`](crate::stages::carrier::GRAPH_PROJECTION_LEDGER)
+/// named graph — the compiler's committed projection report, read off the
+/// PRODUCER's already-parsed dataset via
+/// [`producer_graph`](crate::stages::carrier::producer_graph) (PIPELINE_SPINE §4:
+/// a pure keyed fold, never a re-run of the logic compiler / mappings stage).
+/// Hard-fails when `stage-mappings` is absent from `upstream` (no-optionality).
+///
+/// Only `logic:ProjectionTarget` rows whose `rdfs:label` carries the
+/// [`PROPERTY_PATH_LABEL_PREFIX`] are per-term candidates; the shape IRI is
+/// recovered by stripping that prefix, then resolved to a documented term by, in
+/// order: (a) an exact match against a [`DocShape::shape_iri`](
+/// gmeow_docs::model::DocShape::shape_iri), taking its
+/// [`target_term`](gmeow_docs::model::DocShape::target_term); (b) failing that, an
+/// exact match of the bare shape IRI against a known [`DocTerm::iri`](
+/// gmeow_docs::model::DocTerm::iri). A row that resolves to neither is honestly
+/// absent from `by_term` — never forced, never fabricated. Whole-program rows
+/// (no `property-path:` prefix) are skipped entirely: they apply project-wide,
+/// not per-term, and are already rendered on the static loss-ledger page (A4).
+pub(crate) fn term_loss_digest_from_upstream(
+    upstream: &BTreeMap<String, StageProduct>,
+    shapes: &[gmeow_docs::model::DocShape],
+    terms: &[gmeow_docs::model::DocTerm],
+) -> Result<gmeow_docs::model::TermLossDigest, gmeow_errors::Diag> {
+    let ledger = crate::stages::carrier::producer_graph(
+        upstream,
+        "stage-mappings",
+        crate::stages::carrier::GRAPH_PROJECTION_LEDGER,
+    )?;
+
+    // First pass: fold every `logic:ProjectionTarget` subject's label/preservation-
+    // kind/complexity-class/lossy-drops off the flat quad stream (order-independent —
+    // a subject's predicates may arrive in any order).
+    let mut target_subjects: BTreeSet<String> = BTreeSet::new();
+    let mut labels: BTreeMap<String, String> = BTreeMap::new();
+    let mut preservation_kinds: BTreeMap<String, String> = BTreeMap::new();
+    let mut complexity_classes: BTreeMap<String, String> = BTreeMap::new();
+    let mut lossy_drops: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for q in ledger.owned_quads() {
+        let RdfTerm::Iri(subject) = &q.subject else {
+            continue;
+        };
+        match q.predicate.as_str() {
+            RDF_TYPE => {
+                if let RdfTerm::Iri(object) = &q.object
+                    && object == LOGIC_PROJECTION_TARGET_TYPE
+                {
+                    target_subjects.insert(subject.clone());
+                }
+            }
+            RDFS_LABEL => {
+                if let RdfTerm::Literal(lit) = &q.object {
+                    labels.insert(subject.clone(), lit.lexical_form.clone());
+                }
+            }
+            LOGIC_PRESERVATION_KIND => {
+                if let RdfTerm::Iri(object) = &q.object {
+                    let local = object.strip_prefix(LOGIC_NS).unwrap_or(object.as_str());
+                    preservation_kinds.insert(subject.clone(), local.to_string());
+                }
+            }
+            LOGIC_COMPLEXITY_CLASS => {
+                if let RdfTerm::Literal(lit) = &q.object {
+                    complexity_classes.insert(subject.clone(), lit.lexical_form.clone());
+                }
+            }
+            GMEOW_LOSSY_DROP => {
+                if let RdfTerm::Literal(lit) = &q.object {
+                    lossy_drops
+                        .entry(subject.clone())
+                        .or_default()
+                        .push(lit.lexical_form.clone());
+                }
+            }
+            _ => {}
+        }
+    }
+
+    // Second pass: join every property-path row to a documented term, in ledger-
+    // subject order (deterministic — `target_subjects` is a `BTreeSet`).
+    let shape_to_term: BTreeMap<&str, &str> = shapes
+        .iter()
+        .map(|s| (s.shape_iri.as_str(), s.target_term.as_str()))
+        .collect();
+    let known_term_iris: BTreeSet<&str> = terms.iter().map(|t| t.iri.as_str()).collect();
+
+    let mut total_property_path_rows = 0usize;
+    let mut by_term: BTreeMap<String, Vec<gmeow_docs::model::TermLossRow>> = BTreeMap::new();
+    for subject in &target_subjects {
+        let Some(label) = labels.get(subject) else {
+            continue;
+        };
+        let Some(shape_iri) = label.strip_prefix(PROPERTY_PATH_LABEL_PREFIX) else {
+            // A whole-program row (e.g. "owl-dl") — not per-term, skip.
+            continue;
+        };
+        total_property_path_rows += 1;
+
+        let resolved_term = shape_to_term
+            .get(shape_iri)
+            .copied()
+            .or_else(|| known_term_iris.get(shape_iri).copied());
+        let Some(term_iri) = resolved_term else {
+            // Genuinely unjoinable: no DocShape claims this shape IRI, and the bare
+            // shape IRI names no documented term either. Honest absence.
+            continue;
+        };
+
+        let mut drops: Vec<String> = lossy_drops.get(subject).cloned().unwrap_or_default();
+        drops.sort();
+        drops.dedup();
+
+        by_term
+            .entry(term_iri.to_string())
+            .or_default()
+            .push(gmeow_docs::model::TermLossRow {
+                target: label.clone(),
+                preservation_kind: preservation_kinds.get(subject).cloned().unwrap_or_default(),
+                complexity_class: complexity_classes.get(subject).cloned().unwrap_or_default(),
+                lossy_drops: drops,
+            });
+    }
+    for rows in by_term.values_mut() {
+        rows.sort_by(|a, b| a.target.cmp(&b.target));
+    }
+
+    Ok(gmeow_docs::model::TermLossDigest {
+        by_term,
+        total_property_path_rows,
+    })
+}
+
+/// Discover the docs model under `root`, attach the native-reasoner `verdict`, the
+/// diagnostics→term join digest, and the dynamic per-term projection-loss join
+/// digest (all from `upstream`), and project it to the documentation named graph
+/// (N-Quads). The verdict is required so the SPARQL surface always carries the
+/// per-term reasoning status (never a fabricated default); the diagnostics digest
+/// is required (hard-fails on a missing `stage-validate`/`stage-compile-logic`
+/// upstream product) so the per-term "Diagnostics you might hit" surface and any
+/// `gmeow:doc*` diagnostics projection never fabricate a "no diagnostics" claim;
+/// the term-loss digest is required (hard-fails on a missing `stage-mappings`
+/// upstream product) so the per-term "how this term degrades under projection"
+/// surface never fabricates a "carried exactly" claim. The per-term
 /// content-address provenance is read from the committed manifest (self-healing
 /// on a term-adding build; see `gmeow_docs::model::DocsModel::discover`).
 pub fn render_docs_graph(
@@ -264,6 +419,8 @@ pub fn render_docs_graph(
     let diagnostics =
         diagnostics_digest_from_upstream(upstream, &known_term_iris, &model.constraint_rules)?;
     model.attach_diagnostics(diagnostics);
+    let term_loss = term_loss_digest_from_upstream(upstream, &model.shapes, &model.terms)?;
+    model.attach_term_loss(term_loss);
     Ok(to_gmeow_rdf(&model))
 }
 
@@ -402,14 +559,17 @@ pub struct DocsRenderStage {
 impl DocsRenderStage {
     /// Construct the stage. It discovers the docs model from the slice catalog at
     /// the root and consumes `stage-reason` so the projected documentation graph
-    /// carries the per-term native-reasoner status (`gmeow:docReasoningStatus`), and
+    /// carries the per-term native-reasoner status (`gmeow:docReasoningStatus`),
     /// `stage-validate` + `stage-compile-logic` so it carries the diagnostics→term
-    /// join digest (the term page's "Diagnostics you might hit" surface).
+    /// join digest (the term page's "Diagnostics you might hit" surface), and
+    /// `stage-mappings` so it carries the dynamic per-term projection-loss join
+    /// digest (the term page's "how this term degrades under projection" surface).
     pub fn new() -> Self {
         Self {
             consumes: vec![
                 "stage-compile-logic".to_string(),
                 "stage-gts-compose".to_string(),
+                "stage-mappings".to_string(),
                 "stage-reason".to_string(),
                 "stage-validate".to_string(),
             ],
@@ -431,13 +591,11 @@ impl Stage for DocsRenderStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v5: `diagnostics_digest_from_upstream` now folds from the `stage-validate`
-        // + `stage-compile-logic` products' full-fidelity JSON diagnostics artifacts
-        // (`SHACL_JSON_PATH` / `DIAG_JSON_PATH`) rather than the lossy
-        // `diagnostics:nodes` blob, so `by_term`/`by_slice` join against genuine
-        // `Location.logical`/`Finding.attributions` data. Bumped so the cache
-        // re-derives the digest after the data-source change.
-        "docs_render.v5"
+        // v6: adds `term_loss_digest_from_upstream`, folding the dynamic per-term
+        // projection-loss join from the `stage-mappings` product's live
+        // `GRAPH_PROJECTION_LEDGER` graph. Bumped so the cache re-derives the
+        // rendered graph now that a new upstream product feeds it.
+        "docs_render.v6"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The raw-source half of this DocsRender leaf — declared so a guide /
@@ -541,13 +699,16 @@ mod tests {
         );
     }
 
-    /// A `stage-validate` + `stage-compile-logic` upstream pair whose JSON
-    /// diagnostics artifacts carry an EMPTY [`gmeow_errors::Report`] (zero
-    /// findings, never an absent artifact — a missing artifact must hard-fail,
-    /// see [`diagnostics_digest_from_upstream`]) — the minimal upstream
-    /// `render_docs_graph` needs so a source-lane test can render the whole-repo
-    /// docs graph without a real pipeline run.
-    fn empty_diagnostics_upstream() -> BTreeMap<String, StageProduct> {
+    /// A `stage-validate` + `stage-compile-logic` + `stage-mappings` upstream
+    /// triple whose JSON diagnostics artifacts carry an EMPTY
+    /// [`gmeow_errors::Report`] (zero findings, never an absent artifact — a
+    /// missing artifact must hard-fail, see [`diagnostics_digest_from_upstream`])
+    /// and whose `stage-mappings` product carries an EMPTY dataset (zero
+    /// `GRAPH_PROJECTION_LEDGER` rows, never an absent product — a missing
+    /// product must hard-fail, see [`term_loss_digest_from_upstream`]) — the
+    /// minimal upstream `render_docs_graph` needs so a source-lane test can
+    /// render the whole-repo docs graph without a real pipeline run.
+    fn empty_render_docs_graph_upstream() -> BTreeMap<String, StageProduct> {
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
         upstream.insert(
             "stage-validate".to_string(),
@@ -564,6 +725,10 @@ mod tests {
                 crate::stages::compile_logic::DIAG_JSON_PATH,
                 &gmeow_errors::Report::new("logic-compile"),
             ),
+        );
+        upstream.insert(
+            "stage-mappings".to_string(),
+            StageProduct::new("stage-mappings", "test-empty-mappings-digest"),
         );
         upstream
     }
@@ -752,10 +917,158 @@ mod tests {
         );
     }
 
+    /// Build a synthetic `stage-mappings` product whose `GRAPH_PROJECTION_LEDGER`
+    /// named graph carries EXACTLY the given Turtle `body`, parsed and re-rooted
+    /// via [`crate::stages::carrier::parse_into_graph`] — the SAME producer-
+    /// attached-graph lane the real `stage-mappings` stage rides
+    /// (`mappings::run`'s own `parse_into_graph(..., GRAPH_PROJECTION_LEDGER)`
+    /// call), so this test exercises the real production read path
+    /// (`term_loss_digest_from_upstream` → `producer_graph`) rather than a stub.
+    fn mappings_product_with_ledger(turtle_body: &str) -> StageProduct {
+        let dataset = crate::stages::carrier::parse_into_graph(
+            turtle_body.as_bytes(),
+            "text/turtle",
+            crate::stages::carrier::GRAPH_PROJECTION_LEDGER,
+        )
+        .expect("parse synthetic projection-ledger turtle");
+        StageProduct::from_artifacts_over("stage-mappings", dataset, BTreeMap::new())
+    }
+
+    #[test]
+    fn term_loss_digest_joins_property_path_rows_and_hard_fails_on_missing_upstream() {
+        use gmeow_docs::model::{DocShape, DocTerm, DocTermCategory};
+
+        // (a) resolves via a DocShape whose shape_iri matches the ledger row and
+        // whose target_term names a documented term.
+        let shape_a = "https://blackcatinformatics.ca/gmeow/examples/logic/nearbyOrgs";
+        let term_a = "https://blackcatinformatics.ca/gmeow/PredicatePath";
+        // (b) a property-path row whose shape IRI resolves to NEITHER a DocShape
+        // NOR a known DocTerm — honestly absent from `by_term`.
+        let shape_b = "https://example.test/shapes/unresolvable";
+        // (c) resolves via the FALLBACK: no DocShape claims it, but the bare shape
+        // IRI itself names a known DocTerm.
+        let shape_c = "https://blackcatinformatics.ca/gmeow/AncestorsTo3";
+        let term_c = shape_c;
+
+        let preservation_kind_val = format!("{LOGIC_NS}SoundUnderApproximation");
+        let turtle = format!(
+            "<https://example.test/target/a> <{rdf_type}> <{pt}> .\n\
+             <https://example.test/target/a> <{label}> \"property-path:{shape_a}\" .\n\
+             <https://example.test/target/a> <{pk}> <{pk_val}> .\n\
+             <https://example.test/target/a> <{cc}> \"PTIME\" .\n\
+             <https://example.test/target/a> <{drop}> \"structural note B\" .\n\
+             <https://example.test/target/a> <{drop}> \"structural note A\" .\n\
+             <https://example.test/target/b> <{rdf_type}> <{pt}> .\n\
+             <https://example.test/target/b> <{label}> \"property-path:{shape_b}\" .\n\
+             <https://example.test/target/b> <{pk}> <{pk_val}> .\n\
+             <https://example.test/target/b> <{cc}> \"PTIME\" .\n\
+             <https://example.test/target/c> <{rdf_type}> <{pt}> .\n\
+             <https://example.test/target/c> <{label}> \"property-path:{shape_c}\" .\n\
+             <https://example.test/target/c> <{pk}> <{pk_val}> .\n\
+             <https://example.test/target/c> <{cc}> \"PTIME\" .\n\
+             <https://example.test/target/whole-program> <{rdf_type}> <{pt}> .\n\
+             <https://example.test/target/whole-program> <{label}> \"owl-dl\" .\n\
+             <https://example.test/target/whole-program> <{pk}> <{pk_val}> .\n\
+             <https://example.test/target/whole-program> <{cc}> \"PTIME\" .\n",
+            rdf_type = RDF_TYPE,
+            pt = LOGIC_PROJECTION_TARGET_TYPE,
+            label = RDFS_LABEL,
+            pk = LOGIC_PRESERVATION_KIND,
+            pk_val = preservation_kind_val,
+            cc = LOGIC_COMPLEXITY_CLASS,
+            drop = GMEOW_LOSSY_DROP,
+            shape_a = shape_a,
+            shape_b = shape_b,
+            shape_c = shape_c,
+        );
+
+        let shapes = vec![DocShape {
+            shape_iri: shape_a.to_string(),
+            target_term: term_a.to_string(),
+            messages: Vec::new(),
+            owner_slice: "test-slice".to_string(),
+        }];
+        let terms = vec![
+            DocTerm {
+                iri: term_a.to_string(),
+                curie: "gmeow:PredicatePath".to_string(),
+                category: DocTermCategory::Class,
+                owner_slice: "test-slice".to_string(),
+                ..Default::default()
+            },
+            DocTerm {
+                iri: term_c.to_string(),
+                curie: "gmeow:AncestorsTo3".to_string(),
+                category: DocTermCategory::Class,
+                owner_slice: "test-slice".to_string(),
+                ..Default::default()
+            },
+        ];
+
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert(
+            "stage-mappings".to_string(),
+            mappings_product_with_ledger(&turtle),
+        );
+
+        let digest = term_loss_digest_from_upstream(&upstream, &shapes, &terms)
+            .expect("digest folds from synthetic stage-mappings upstream");
+
+        assert_eq!(
+            digest.total_property_path_rows, 3,
+            "3 property-path rows (a, b, c) counted; the whole-program row must not count"
+        );
+        assert_eq!(
+            digest.by_term.get(term_a).map(Vec::len),
+            Some(1),
+            "shape_a joins via DocShape.shape_iri -> target_term"
+        );
+        let row_a = &digest.by_term[term_a][0];
+        assert_eq!(row_a.target, format!("property-path:{shape_a}"));
+        assert_eq!(row_a.preservation_kind, "SoundUnderApproximation");
+        assert_eq!(row_a.complexity_class, "PTIME");
+        assert_eq!(
+            row_a.lossy_drops,
+            vec![
+                "structural note A".to_string(),
+                "structural note B".to_string()
+            ],
+            "lossy_drops must be sorted"
+        );
+        assert_eq!(
+            digest.by_term.get(term_c).map(Vec::len),
+            Some(1),
+            "shape_c joins via the bare-shape-IRI == DocTerm.iri fallback"
+        );
+        assert!(
+            !digest
+                .by_term
+                .values()
+                .flatten()
+                .any(|r| r.target.contains("unresolvable")),
+            "shape_b names no DocShape and no DocTerm — honestly absent from by_term"
+        );
+        assert!(
+            !digest
+                .by_term
+                .values()
+                .flatten()
+                .any(|r| r.target == "owl-dl"),
+            "a whole-program row must never enter by_term"
+        );
+
+        // Missing the declared `stage-mappings` upstream product hard-fails (never a
+        // silent empty digest).
+        assert!(
+            term_loss_digest_from_upstream(&BTreeMap::new(), &shapes, &terms).is_err(),
+            "missing stage-mappings must hard-fail"
+        );
+    }
+
     #[test]
     fn docs_graph_is_nonempty_and_parses() {
         let root = repo_root();
-        let upstream = empty_diagnostics_upstream();
+        let upstream = empty_render_docs_graph_upstream();
         let nq = render_docs_graph(&root, ReasoningVerdict::default(), &upstream)
             .expect("render docs graph");
         let dataset =

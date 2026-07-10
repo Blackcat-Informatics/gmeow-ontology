@@ -1053,6 +1053,18 @@ pub struct DocsModel {
     /// the source-model JSON golden is unaffected.
     #[serde(skip)]
     pub diagnostics: Option<DiagnosticsDigest>,
+    /// The dynamic per-term projection-loss join, attached AFTER source discovery
+    /// by the production build from the already-materialized `stage-mappings`
+    /// product's live `GRAPH_PROJECTION_LEDGER` graph (never a re-run of the logic
+    /// compiler — reason/compile-once). `None` in source-only contexts (unit
+    /// tests, a bare `discover`): the per-term "how this term degrades under
+    /// projection" section renders ONLY when a digest is attached, so an
+    /// unevaluated model never fabricates a "carried exactly" claim. The
+    /// production path attaches it (or hard-fails on a missing `stage-mappings`
+    /// upstream product), never silently skips it. `#[serde(skip)]` so the
+    /// source-model JSON golden is unaffected.
+    #[serde(skip)]
+    pub term_loss: Option<TermLossDigest>,
 }
 
 /// The native reasoner's consistency verdict, attached to a [`DocsModel`] by the
@@ -1157,6 +1169,55 @@ pub struct DiagnosticsDigest {
     pub total: usize,
 }
 
+/// One row of the per-term dynamic projection-loss join: a single
+/// `logic:ProjectionTarget` from the live `GRAPH_PROJECTION_LEDGER` graph whose
+/// `rdfs:label` carries the `property-path:<shape-iri>` prefix and resolved to a
+/// documented term (see [`TermLossDigest`]).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct TermLossRow {
+    /// The FULL `rdfs:label` value carried by the `logic:ProjectionTarget`
+    /// (e.g. `property-path:https://.../nearbyOrgs`), kept whole (not stripped
+    /// of its prefix) so the row is traceable back to its exact ledger entry.
+    pub target: String,
+    /// The local name of the `logic:preservationKind` object IRI (e.g.
+    /// `SoundUnderApproximation`, `ExactPreservation`).
+    pub preservation_kind: String,
+    /// The `logic:complexityClass` plain-string literal.
+    pub complexity_class: String,
+    /// The `gmeow:lossyDrop` plain-string literals, sorted and deduped.
+    pub lossy_drops: Vec<String>,
+}
+
+/// The dynamic per-term projection-loss join, folded from the LIVE
+/// `GRAPH_PROJECTION_LEDGER` named graph — `stage-mappings`'s committed
+/// projection report, attached AFTER source discovery (never a re-run of the
+/// logic compiler; reason/compile-once). DISTINCT from the STATIC whole-program
+/// rows already rendered on `Page::LogicLossLedger`
+/// (`gmeow_logic_compile::projections::projection_ledger_rows`, e.g. `owl-dl`,
+/// `datalog`) and from the authored worked examples
+/// ([`DocsModel::loss_targets`], A4): this digest carries ONLY the per-shape
+/// `property-path:<shape-iri>` rows the ledger emits when a concrete
+/// `logic:PathShape` is compiled, joined to a documented term via
+/// [`DocShape::shape_iri`] → [`DocShape::target_term`] (falling back to an
+/// exact match of the bare shape IRI against a [`DocTerm::iri`] when no
+/// `DocShape` claims it). Whole-program rows never enter `by_term` — they
+/// apply project-wide, not per-term, and stay on the static ledger page. A
+/// property-path row that resolves to no documented term is honestly absent
+/// from `by_term` (never forced) — see [`total_property_path_rows`](
+/// Self::total_property_path_rows) for the raw pre-join count, so a real-repo
+/// non-vacuity assertion can distinguish "the ledger genuinely has no
+/// property-path content" from "content exists but nothing joined a term".
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct TermLossDigest {
+    /// Rows keyed by the exact documented term IRI they joined to (sorted keys;
+    /// each row list sorted by `target`).
+    pub by_term: BTreeMap<String, Vec<TermLossRow>>,
+    /// The total count of `property-path:`-prefixed `logic:ProjectionTarget`
+    /// rows found in the live ledger, whether or not they joined to a
+    /// documented term.
+    pub total_property_path_rows: usize,
+}
+
 impl DocsModel {
     /// Attach the native reasoner's consistency verdict to this model (the
     /// production build's post-discovery step). Idempotent: overwrites any prior
@@ -1170,6 +1231,14 @@ impl DocsModel {
     /// Idempotent: overwrites any prior digest.
     pub fn attach_diagnostics(&mut self, digest: DiagnosticsDigest) {
         self.diagnostics = Some(digest);
+    }
+
+    /// Attach the dynamic per-term projection-loss digest to this model (the
+    /// production build's post-discovery step, mirroring
+    /// [`attach_diagnostics`](Self::attach_diagnostics)). Idempotent: overwrites
+    /// any prior digest.
+    pub fn attach_term_loss(&mut self, digest: TermLossDigest) {
+        self.term_loss = Some(digest);
     }
 
     /// Resolve a UI-chrome string for `key` in this model's target [`lang`], using
@@ -1579,6 +1648,7 @@ impl DocsModel {
             ui_catalog: UiCatalog::default(),
             reasoning: None,
             diagnostics: None,
+            term_loss: None,
             lang: String::new(),
         }
     }

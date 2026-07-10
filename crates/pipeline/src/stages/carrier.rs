@@ -265,6 +265,12 @@ pub(crate) fn serialize_carrier_snapshot(
         &docs_model.constraint_rules,
     )?;
     docs_model.attach_diagnostics(diagnostics_digest);
+    let term_loss_digest = crate::stages::docs_render::term_loss_digest_from_upstream(
+        upstream,
+        &docs_model.shapes,
+        &docs_model.terms,
+    )?;
+    docs_model.attach_term_loss(term_loss_digest);
     serialize_carrier_snapshot_with_docs_model(root, upstream, carrier, &docs_model)
 }
 
@@ -683,7 +689,11 @@ fn source_load_graph(
 /// the producer's already-parsed named graph, never re-parses the producer's byte
 /// artifact). The producer attached it via `parse_into_graph`; this is the read half —
 /// no parse. A missing producer HARD-fails (no-optionality).
-fn producer_graph(
+///
+/// `pub(crate)` (not module-private) because `docs_render`'s carrier-lane digests
+/// (e.g. the per-term projection-loss join, B2) read a producer's named graph the
+/// same way `assemble_carrier` does — one read helper, not a duplicate.
+pub(crate) fn producer_graph(
     upstream: &BTreeMap<String, StageProduct>,
     stage: &str,
     graph_iri: &str,

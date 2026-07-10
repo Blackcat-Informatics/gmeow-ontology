@@ -113,6 +113,7 @@ fn small_model() -> DocsModel {
         ui_catalog: UiCatalog::default(),
         reasoning: None,
         diagnostics: None,
+        term_loss: None,
         lang: String::new(),
     }
 }
