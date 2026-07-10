@@ -329,6 +329,30 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
 /// Absent slices have no floor (their first declaration sets it in review).
 const FLOOR_FILE: &str = "governance/slice-quality-floors.tsv";
 
+/// The committed PER-AXIS floor artifact: `<slice-iri>\t
+/// <axis-local-name>\t<floor:f64>` per line — a NEW file, distinct in shape from
+/// [`FLOOR_FILE`]'s per-slice tier ratchet (never overloaded onto it).
+const AXIS_FLOOR_FILE: &str = "governance/slice-quality-axis-floors.tsv";
+
+/// The `gmeow:axisGmn1Coverage` local name — the sole axis this gate's per-axis
+/// floor pass currently enforces. A grounding slice (directory under
+/// `slices/grounding/`) is hard-gated at floor `1.0` even when absent from
+/// [`AXIS_FLOOR_FILE`] — grounding coverage is total NOW (Task 6) and never
+/// silently unfloored.
+const AXIS_GMN1_COVERAGE: &str = "axisGmn1Coverage";
+
+/// Whether `slice_dir` is a grounding slice — the `slices/grounding/` PATH prefix
+/// (there is no `gmeow:tierGrounding` predicate to read; `slices/grounding/` is
+/// organizational path-only per `slices/vocabulary.ttl`).
+fn is_grounding_slice(slice_dir: &Path) -> bool {
+    slice_dir
+        .components()
+        .map(|c| c.as_os_str())
+        .collect::<Vec<_>>()
+        .windows(2)
+        .any(|w| w[0] == "slices" && w[1] == "grounding")
+}
+
 /// The `make check` opt-in tier ratchet gate.
 ///
 /// For every slice that declares `gmeow:sliceQualityTier`: the measured roll-up
@@ -427,13 +451,121 @@ pub fn slice_quality_gate() -> i32 {
             }
         }
     }
-    if failures > 0 {
+
+    // SECOND pass: the per-axis committed floor — additive to,
+    // never replacing, the roll-up-tier ratchet above. Runs over EVERY discovered
+    // slice, opted-in or not: a grounding slice can never clear the gate on
+    // axisGmn1Coverage < 1.0 regardless of its roll-up tier or opt-in status.
+    let axis_floors = match load_axis_floors(&root) {
+        Ok(f) => f,
+        Err(e) => return fail(format!("slice-quality-gate: {e}")),
+    };
+    let mut axis_checked = 0usize;
+    let mut axis_failures = 0usize;
+    for dir in &dirs {
+        let report = match score_slice_with_rubric(dir, rubric.clone()) {
+            Ok(r) => r,
+            Err(e) => return fail(format!("slice-quality-gate: {}: {e}", dir.display())),
+        };
+        let Some(grade) = report
+            .assessment
+            .grades
+            .iter()
+            .find(|g| axis_local_name(&g.axis_iri) == AXIS_GMN1_COVERAGE)
+        else {
+            continue; // the axis is unbound in this rubric snapshot — the binding gate above already caught that
+        };
+        let floor = axis_floors
+            .get(&(
+                report.assessment.slice.clone(),
+                AXIS_GMN1_COVERAGE.to_owned(),
+            ))
+            .copied()
+            .or_else(|| is_grounding_slice(dir).then_some(1.0));
+        let Some(floor) = floor else {
+            continue; // no committed floor recorded and not grounding → unfloored, advisory only
+        };
+        axis_checked += 1;
+        use gmeow_slice_quality::gate::AxisRatchetVerdict;
+        match gmeow_slice_quality::gate::evaluate_axis_floor(grade.score, floor) {
+            AxisRatchetVerdict::Pass => {}
+            AxisRatchetVerdict::MeasuredBelowFloor => {
+                emit_error(
+                    "gmeow-dev.slice-quality.gate",
+                    format!(
+                        "FAIL {} measures {AXIS_GMN1_COVERAGE} {:.6} — below its committed per-axis floor {floor:.6} ({AXIS_FLOOR_FILE})",
+                        report.assessment.slice, grade.score
+                    ),
+                );
+                axis_failures += 1;
+            }
+        }
+    }
+
+    if failures > 0 || axis_failures > 0 {
         return fail(format!(
-            "slice-quality-gate: {failures} of {checked} opted-in slice(s) below their declared tier"
+            "slice-quality-gate: {failures} of {checked} opted-in slice(s) below their declared tier; {axis_failures} of {axis_checked} slice(s) below a committed per-axis floor"
         ));
     }
-    println!("slice-quality-gate: {checked} opted-in slice(s) hold their declared tier");
+    println!(
+        "slice-quality-gate: {checked} opted-in slice(s) hold their declared tier; {axis_checked} slice(s) hold their committed per-axis floors"
+    );
     0
+}
+
+/// The local name of an IRI (the tail after the last `/` or `#`) — used to match a
+/// rubric axis IRI against the bare local name [`AXIS_FLOOR_FILE`] rows carry.
+fn axis_local_name(iri: &str) -> &str {
+    iri.rsplit(['/', '#']).next().unwrap_or(iri)
+}
+
+/// Load the committed PER-AXIS floors, keyed by `(slice IRI,
+/// axis local name)`.
+///
+/// # Errors
+/// A HARD FAIL (.goals no-optionality) when the gate cannot read the floor it must
+/// enforce: the file is missing/unreadable, a non-comment line is not a
+/// `<slice-iri>\t<axis-local-name>\t<floor:f64>` triple, or the floor is not a
+/// valid `f64`. Never a silently-disabled floor or a silently-skipped line.
+fn load_axis_floors(
+    root: &Path,
+) -> gmeow_errors::Result<std::collections::HashMap<(String, String), f64>> {
+    let path = root.join(AXIS_FLOOR_FILE);
+    let text = std::fs::read_to_string(&path).map_err(|e| {
+        sqe(format!(
+            "cannot read per-axis ratchet floor file {} (the gate cannot enforce a floor it cannot read): {e}",
+            path.display()
+        ))
+    })?;
+    let mut out = std::collections::HashMap::new();
+    for (idx, raw) in text.lines().enumerate() {
+        let line = raw.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let lineno = idx + 1;
+        let Some((iri, rest)) = line.split_once('\t') else {
+            return Err(sqe(format!(
+                "{}:{lineno}: malformed axis-floor line (want <slice-iri>\\t<axis-local-name>\\t<floor:f64>): {raw:?}",
+                path.display()
+            )));
+        };
+        let Some((axis_local, floor_str)) = rest.split_once('\t') else {
+            return Err(sqe(format!(
+                "{}:{lineno}: malformed axis-floor line (want <slice-iri>\\t<axis-local-name>\\t<floor:f64>): {raw:?}",
+                path.display()
+            )));
+        };
+        let floor: f64 = floor_str.trim().parse().map_err(|_| {
+            sqe(format!(
+                "{}:{lineno}: floor {:?} is not a valid f64",
+                path.display(),
+                floor_str.trim()
+            ))
+        })?;
+        out.insert((iri.trim().to_owned(), axis_local.trim().to_owned()), floor);
+    }
+    Ok(out)
 }
 
 /// Load the committed floor ranks keyed by slice IRI.

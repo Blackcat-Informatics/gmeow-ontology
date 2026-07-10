@@ -43,6 +43,29 @@
             }
           ],
           "message": {
+            "text": "the slice directory carries no resolvable slices/ path prefix — GMN-1 coverage cannot be measured (vacuous 1.0)."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0bbe5df4a42face2"
+          },
+          "ruleId": "slice-quality.gmn1-coverage.no-repo-root"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
             "text": "the slice authors no identity-strength correspondence (none, or only lossy closeMatch-class alignments the lens calculus cannot carry) — the correspondence-calculus adoption axis is not applicable (vacuous 1.0), not a full-adoption pass."
           },
           "partialFingerprints": {
@@ -162,6 +185,29 @@
           },
           "partialFingerprints": {
             "gmeowFindingHash/v2": "8f70d9cf2da052e1"
+          },
+          "ruleId": "slice-quality.grade"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "axisGmn1Coverage: Maximal (score 1.00)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "66c1dad6093d5344"
           },
           "ruleId": "slice-quality.grade"
         },
@@ -430,6 +476,13 @@
               },
               "helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-documentation-no-docs",
               "id": "slice-quality.documentation.no-docs"
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-gmn1-coverage-no-repo-root",
+              "id": "slice-quality.gmn1-coverage.no-repo-root"
             },
             {
               "defaultConfiguration": {
