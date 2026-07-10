@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The arrangement's native lending cursor: a galloping [`LendingIterator`] over
-//! **row-id-ordered** runs (issue 1418, item 6).
+//! **row-id-ordered** runs (the zero-alloc engine substrate's galloping-cursor item).
 //!
 //! # What this replaces
 //!
@@ -24,12 +24,12 @@
 //! scan.  It is emphatically NOT a seek to "the row whose term equals X": the
 //! cursor never compares `TermId` *values*, only row-index positions, so it can
 //! never introduce a key-sorted (lexical) ordering.  This is the exact primitive
-//! issue-1306's leapfrog-triejoin / WCOJ lever reuses (multiway leapfrog needs only
+//! a future leapfrog-triejoin / WCOJ lever reuses (multiway leapfrog needs only
 //! `seek` + `next`), so it is built here even though nothing in THIS PR calls
 //! [`LendingIterator::seek`] on the scan path directly — [`RowCursor::select_both`]
 //! drives it internally for the two-cursor intersection.
 //!
-//! # Byte-identity boundary (critical — issue 1418 Enhancement Audit #11)
+//! # Byte-identity boundary (critical)
 //!
 //! Value runs stay **row-id-ordered**.  A relation's row indices are appended in
 //! store-global insertion order, and (within one relation) `row_ids[idx]` is
@@ -58,7 +58,7 @@ mod sealed {
 /// to the `&mut self` borrow (`Item<'a>`), so a driver never collects a `Vec`.
 ///
 /// Sealed via [`sealed::Sealed`] (only [`RowCursor`] implements it).  The two
-/// methods are the whole contract issue-1306's WCOJ lever composes:
+/// methods are the whole contract a future WCOJ lever composes:
 /// [`next`](Self::next) (advance-and-yield) and [`seek`](Self::seek) (gallop to a
 /// row-index frontier).
 pub(crate) trait LendingIterator: sealed::Sealed {
@@ -417,7 +417,7 @@ mod tests {
         );
     }
 
-    /// LEAPFROG-MERGE DIFFERENTIAL TEST (required by Task 6).
+    /// LEAPFROG-MERGE DIFFERENTIAL TEST.
     ///
     /// The galloping leapfrog intersection MUST yield exactly the same row-index
     /// sequence, in the same order, as the naive linear two-pointer merge — across a

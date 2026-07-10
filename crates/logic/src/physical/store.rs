@@ -347,12 +347,12 @@ impl Relation {
     ///
     /// The cursor yields interned [`TermId`] rows plus each row's store-global
     /// [`RowId`] one at a time, borrowing this relation's columns — NO per-stage `Vec`
-    /// is materialized (issue 1418, item 6; the eager-`Vec` `select_*` kernels are
+    /// is materialized (the eager-`Vec` `select_*` kernels are
     /// deleted, greenfield).  A caller resolves term surfaces lazily via the store's
     /// interner only where it stringifies, and tests delta membership on the `RowId`
     /// with a single word probe.
     ///
-    /// # Adornment dispatched ONCE per call, never per row (issue 1418, item 4)
+    /// # Adornment dispatched ONCE per call, never per row
     ///
     /// The [`Bound`] shape (the query-plan *adornment*) is resolved by a SINGLE `match`
     /// here — once per `select` invocation — into the specialized cursor constructor
@@ -381,7 +381,7 @@ impl Relation {
 #[derive(Debug, Clone, Default)]
 pub(crate) struct RelationStore {
     /// The store's term dictionary, shared by every relation (the persistent term
-    /// arena — never reset within the store's lifetime; the issue-1307 DAG seam).
+    /// arena — never reset within the store's lifetime; the future structured-term DAG seam).
     interner: TermInterner,
     /// The store's predicate dictionary: predicate IRI surface → dense [`PredId`],
     /// interned once at first insert.  Keeps [`relations`](Self::relations) keyed by a
@@ -502,7 +502,7 @@ impl RelationStore {
     /// [`interner`](Self::interner) where you stringify, and the store-global [`RowId`]
     /// for a one-word delta-bitset probe.  Picks the cheapest index for the bound
     /// positions; an unknown predicate yields an empty cursor (over the shared
-    /// [`empty`](Self::empty) relation) — NO `Vec` is materialized (issue 1418, item 6).
+    /// [`empty`](Self::empty) relation) — NO `Vec` is materialized.
     pub(crate) fn select(&self, predicate: &str, bound: Bound) -> RowCursor<'_> {
         self.relation(predicate)
             .unwrap_or(&self.empty)
@@ -755,7 +755,7 @@ mod tests {
         );
     }
 
-    /// THE BYTE-IDENTITY INVARIANT (issue 1418, item 6): within ONE relation,
+    /// THE BYTE-IDENTITY INVARIANT: within ONE relation,
     /// row-INDEX order and store-global [`RowId`] order COINCIDE.
     ///
     /// `row_ids[idx]` is assigned once per successful store-wide `insert` (a strictly

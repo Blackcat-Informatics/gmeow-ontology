@@ -284,7 +284,7 @@ fn atom_bound(rel: &RelationStore, subj: Option<&str>, obj: Option<&str>) -> Opt
 
 /// Extend each partial solution by index-selecting `atom`'s matching rows under `scan`.
 ///
-/// This is the ONE-TIME [`Scan`]-mode dispatch (issue 1418, item 4): once per operator
+/// This is the ONE-TIME [`Scan`]-mode dispatch: once per operator
 /// (per atom-scan invocation, NOT per row) it lifts the semi-naive scan mode to the
 /// `const SCAN: u8` compile-time parameter of [`extend_solutions_kernel`] via this
 /// single enum `match`, so the per-row delta filter is resolved at monomorphization
@@ -337,14 +337,14 @@ fn extend_solutions_kernel<const SCAN: u8>(
             continue;
         };
         // Drive the arrangement's galloping lending cursor directly — NO per-stage
-        // `Vec<(TermId, TermId, RowId)>` is materialized for this atom's selection
-        // (issue 1418, item 6).  Each `next()` yields one borrowed id row in row-id
+        // `Vec<(TermId, TermId, RowId)>` is materialized for this atom's selection.
+        // Each `next()` yields one borrowed id row in row-id
         // (insertion) order, byte-identical to the former eager `select` vector.
         let mut cursor = rel.select(pred, bound);
         while let Some((s_id, o_id, row_id)) = cursor.next() {
             // Semi-naive position decomposition on the selected row's dense RowId — the
             // same delta×full split `extend_solutions` applies, but membership is one
-            // `u64`-word test on the delta bitset (issue 1418, item 5).  `SCAN` is a
+            // `u64`-word test on the delta bitset.  `SCAN` is a
             // monomorphization constant, so `keep_row` is branch-free on the scan mode,
             // with NO three-`String` `Fact::key()` allocation and NO hashing per row.
             if !keep_row::<SCAN>(delta, row_id) {
@@ -937,7 +937,7 @@ struct FixpointState<'a> {
 /// the forward leg) or commits facts only ([`ProvenanceMode::Skip`], the backward leg) — the
 /// committed fact set, insertion order, and step budget are identical either way.
 ///
-/// # The type-state executor gate (issue 1418, item 7)
+/// # The type-state executor gate
 ///
 /// This is the semi-naive executor entry point, and it is **unrepresentable without an
 /// [`Executable`]**: the rules of stratum `stratum` are read from `exe`, whose only
@@ -967,7 +967,7 @@ fn eval_stratum_fixpoint(
     // per-key materialization and no hashing.
     let mut delta = DenseBitset::all_set(rel.row_count());
 
-    // The phase-scoped row/tuple arena for THIS stratum's rounds (issue 1418, item 3): a
+    // The phase-scoped row/tuple arena for THIS stratum's rounds: a
     // genuinely resettable bump buffer the committed argument tuples are allocated into
     // each round, read back to build the next round's dense delta, then truncated at
     // the round boundary (allocate → sort-commit → reset).  It is thread-local by
@@ -1052,7 +1052,7 @@ fn eval_stratum_fixpoint(
         // Reset the phase-scoped arena for THIS round (truncate the real backing
         // buffer — a genuine reclaim, matching the allocate → commit → reset phases).
         // This is the round boundary at which BOTH the value column (arena) and the
-        // delta bitset (built below) are reset in lockstep (issue 1418, item 5, step 4).
+        // delta bitset (built below) are reset in lockstep.
         arena.reset();
         // The round's committed rows, paired as (staged argument tuple, dense RowId), in
         // the FactKey-sorted commit order.  The arena is the arrangement's contiguous
@@ -1132,7 +1132,7 @@ fn eval_stratum_fixpoint(
         }
 
         // Build the next round's delta as a dense `u64`-word bitset: row-id membership
-        // over the value column just staged (issue 1418, item 5).  Read each committed
+        // over the value column just staged.  Read each committed
         // row back out of the phase-scoped arena and set its dense RowId's bit, so the
         // next round tests delta membership with ONE word test per selected row and no
         // hashing.  Sized to the store's current row count so every selectable row is
@@ -1477,10 +1477,10 @@ mod tests {
         );
     }
 
-    /// FULL-SCAN ORDER-INVARIANCE GATE (issue 1418, item 6 — the primary byte-drift
-    /// landmine for Tasks 5/6).
+    /// FULL-SCAN ORDER-INVARIANCE GATE (the primary byte-drift
+    /// landmine for the galloping-cursor full-scan work).
     ///
-    /// The leading unbound body atom drives a [`Bound::Any`] FULL SCAN.  Item 6 replaces
+    /// The leading unbound body atom drives a [`Bound::Any`] FULL SCAN.  This replaces
     /// the materialized `Vec<(TermId, TermId, RowId)>` with a galloping lending
     /// [`RowCursor`](crate::physical::cursor::RowCursor); the cursor MUST iterate
     /// **row-id (insertion) order** — NEVER a key-sorted (lexical) order, which would
@@ -2001,9 +2001,9 @@ mod tests {
         );
     }
 
-    /// COMMIT-ORDER / GOVERNOR INVARIANT (the issue-1418, Task-2 + Task-3 blocking constraint).
+    /// COMMIT-ORDER / GOVERNOR INVARIANT (the arena-reset / dense-ID blocking constraint).
     ///
-    /// Task 3 stamps every committed row with a dense `RowId` (insertion order) and keys
+    /// Every committed row is stamped with a dense `RowId` (insertion order), which keys
     /// the semi-naive delta on a `RowId` bitset.  `RowId` order is MINT (insertion) order,
     /// NOT lexical order — so if the winner sort or the `governor.charge()` prefix ever
     /// ordered by `RowId` it would silently drift both the emitted bytes and the

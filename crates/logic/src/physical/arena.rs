@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The phase-scoped row/tuple bump arena (issue 1418, item 3).
+//! The phase-scoped row/tuple bump arena.
 //!
 //! # Two arenas, one contradiction resolved
 //!
@@ -10,7 +10,7 @@
 //! * a **persistent term arena** — never reset within its lifetime — backing the
 //!   interned terms.  That is exactly what [`crate::facts::TermInterner`] already is
 //!   (insertion-ordered, per-store, never truncated); it is the content-addressed DAG
-//!   seam a future structured-term DAG (issue 1307) grows function-symbol nodes into,
+//!   seam a future structured-term DAG grows function-symbol nodes into,
 //!   addressed through the [`crate::physical::id::TermRef`] handle.  This module does
 //!   NOT duplicate it.
 //!
