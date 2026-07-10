@@ -42,13 +42,18 @@
 //! `{ a_p ∈ delta, a_{<p} ∈ full, a_{>p} ∈ store∖delta }` visits every delta-touching
 //! solution exactly once, so each round joins only against newly-derived facts.
 
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::BTreeMap;
+use std::hash::{BuildHasher, Hash, Hasher};
 
+use foldhash::fast::FixedState;
+use hashbrown::{HashMap, HashTable};
 use purrdf::TermValue;
 
 use crate::facts::TypedFactSet;
 use crate::oracle::{TypedChaseResult, TypedProvenance, TypedRow};
 use crate::physical::binding_pattern::BindingPattern;
+use crate::physical::bitset::DenseBitset;
+use crate::physical::id::RowId;
 use crate::physical::seminaive::StepGovernor;
 use crate::provenance::{LOGIC_NAMESPACE, term_display};
 use crate::rule_ir::{EvalTerm, lower_nemo_term};
@@ -180,6 +185,32 @@ pub(crate) fn lower_program_generic_rules(
 /// The N3-surface tuple of a ground row — the dedup / delta key.
 type RowSurface = Vec<String>;
 
+/// Fixed-seed hash of a `(relation, N3-surface)` dedup key, for [`GenericStore`]'s
+/// borrowed-key [`HashTable`] probe (mirrors `facts::TypedFactSet`'s `fact_key_hash`):
+/// the caller hashes the borrowed key directly, never cloning it to hash it.
+///
+/// The seed is fixed (`FixedState::default()`) and never persisted — determinism comes
+/// from insertion order and the sorted commit, never from this hash.
+#[inline]
+fn generic_key_hash(relation: &str, surface: &RowSurface) -> u64 {
+    let mut hasher = FixedState::default().build_hasher();
+    relation.hash(&mut hasher);
+    surface.hash(&mut hasher);
+    hasher.finish()
+}
+
+/// `relation → column-position → term N3-surface → ascending entry indices`.
+///
+/// Every map is fixed-seed (`FixedState`, never SipHash), and the outer/innermost
+/// `String`-keyed levels use hashbrown's `entry_ref` so a relation / surface already
+/// present (the common case — only ~2-3 distinct relations, each surface recurring
+/// across columns) is not re-cloned on repeat inserts.
+type PosValueIndex = HashMap<
+    String,
+    HashMap<usize, HashMap<String, Vec<usize>, FixedState>, FixedState>,
+    FixedState,
+>;
+
 /// A per-round winning derivation: `(head-row, firing rule IRI, matched
 /// antecedent rows)`, keyed by `(relation, head-surface)` in the round map.
 type RoundWinner = (Vec<TermValue>, String, Vec<GenericAntecedent>);
@@ -218,19 +249,35 @@ struct GenericEntry {
 #[derive(Default)]
 struct GenericStore {
     entries: Vec<GenericEntry>,
-    keys: HashSet<(String, RowSurface)>,
-    by_relation: HashMap<String, Vec<usize>>,
+    /// The O(1) dedup key set: a borrowed-key hashbrown [`HashTable`] holding the ROW
+    /// INDEX into `entries` only (mirrors `facts::TypedFactSet`'s `keys`).  The
+    /// `(relation, surface)` key lives once in the [`GenericEntry`] itself, so a probe
+    /// compares against `entries[i]` in place — nothing is cloned to check membership.
+    keys: HashTable<usize>,
+    /// `relation → ascending entry indices` (fixed-seed `FixedState`, never SipHash).
+    by_relation: HashMap<String, Vec<usize>, FixedState>,
     /// `relation → column-position → term N3-surface → ascending entry indices`.
     ///
     /// Nested (not a `(usize, String)` tuple key) so the hot-loop lookup in
     /// [`extend`] borrows `&pos` and `&surface` directly — no per-lookup `String`
     /// clone of the bound surface.
-    by_pos_value: HashMap<String, HashMap<usize, HashMap<String, Vec<usize>>>>,
+    by_pos_value: PosValueIndex,
 }
 
 impl GenericStore {
+    /// Whether `relation(surface)` is already stored — a borrowed-key [`HashTable`]
+    /// probe (mirrors `facts::TypedFactSet::push_fact`): the key is hashed and compared
+    /// in place against the stored entry, allocating NOTHING on the hot per-solution
+    /// membership check.
     fn contains(&self, relation: &str, surface: &RowSurface) -> bool {
-        self.keys.contains(&(relation.to_owned(), surface.clone()))
+        let hash = generic_key_hash(relation, surface);
+        let entries = &self.entries;
+        self.keys
+            .find(hash, |&i| {
+                let e = &entries[i];
+                e.relation == relation && e.surface == *surface
+            })
+            .is_some()
     }
 
     /// Insert `relation(row)` if new; return the new entry's index, or `None` if it
@@ -243,31 +290,51 @@ impl GenericStore {
         antecedents: Vec<GenericAntecedent>,
     ) -> Option<usize> {
         let surface: RowSurface = row.iter().map(term_display).collect();
-        if !self.keys.insert((relation.clone(), surface.clone())) {
+        let hash = generic_key_hash(&relation, &surface);
+        // Borrowed-key dedup probe: compare against the stored entry in place, never
+        // cloning the `(relation, surface)` key to check membership.
+        let entries = &self.entries;
+        if self
+            .keys
+            .find(hash, |&i| {
+                let e = &entries[i];
+                e.relation == relation && e.surface == surface
+            })
+            .is_some()
+        {
             return None;
         }
         let idx = self.entries.len();
+        // Multi-value indexes: `entry_ref` reuses an already-present relation / surface
+        // key rather than recloning it (only ~2-3 distinct relations, so most inserts
+        // hit the existing-key case).  Each bucket stays ascending (idx grows monotonically).
         self.by_relation
-            .entry(relation.clone())
+            .entry_ref(relation.as_str())
             .or_default()
             .push(idx);
-        // Value index: register this entry's surface at every column position, each
-        // bucket staying ascending (idx grows monotonically).
-        let rel_index = self.by_pos_value.entry(relation.clone()).or_default();
+        let rel_index = self.by_pos_value.entry_ref(relation.as_str()).or_default();
         for (pos, s) in surface.iter().enumerate() {
             rel_index
                 .entry(pos)
                 .or_default()
-                .entry(s.clone())
+                .entry_ref(s.as_str())
                 .or_default()
                 .push(idx);
         }
+        // Own the `(relation, surface)` key exactly once, as the entry itself.
         self.entries.push(GenericEntry {
             relation,
             row,
             surface,
             rule_iri,
             antecedents,
+        });
+        // Register the row index in the dedup table (rehashing a stored key resolves it
+        // via `entries[i]`, so no owned key is retained by the table).
+        let entries = &self.entries;
+        self.keys.insert_unique(hash, idx, |&i| {
+            let e = &entries[i];
+            generic_key_hash(&e.relation, &e.surface)
         });
         Some(idx)
     }
@@ -399,7 +466,7 @@ enum Scan {
 fn extend(
     atom: &GenericAtom,
     store: &GenericStore,
-    delta: &HashSet<usize>,
+    delta: &DenseBitset,
     scan: &Scan,
     solutions: &[GenSolution],
 ) -> Vec<GenSolution> {
@@ -451,7 +518,7 @@ fn extend(
         };
 
         for &i in candidates {
-            let in_delta = delta.contains(&i);
+            let in_delta = delta.contains(RowId::from_index(i));
             let keep = match scan {
                 Scan::Delta => in_delta,
                 Scan::Full => true,
@@ -480,7 +547,7 @@ fn extend(
 /// position `p` of `{ a_p ∈ delta, a_{<p} ∈ full, a_{>p} ∈ store∖delta }`. A bodyless
 /// rule yields nothing (the empty solution never touches delta) — RL/RDF has no
 /// bodyless rules, so this is inert there.
-fn join_body(rule: &GenericRule, store: &GenericStore, delta: &HashSet<usize>) -> Vec<GenSolution> {
+fn join_body(rule: &GenericRule, store: &GenericStore, delta: &DenseBitset) -> Vec<GenSolution> {
     let k = rule.body.len();
     if k == 0 {
         return Vec::new();
@@ -592,7 +659,10 @@ pub(crate) fn materialize_generic_budgeted(
 
     // Seed the EDB: every typed fact becomes a stored row `relation(args…)` with the
     // native term values resolved from the set's interner.
-    let mut delta: HashSet<usize> = HashSet::new();
+    // The round delta is a dense row-index bitset (mirrors `seminaive`'s delta): one
+    // word test per selected row, no hashing. Built incrementally as EDB rows insert —
+    // the row indices are dense, monotonic, and append-only, exactly its contract.
+    let mut delta = DenseBitset::new();
     for fact in facts.facts() {
         let row: Vec<TermValue> = fact
             .args
@@ -600,7 +670,7 @@ pub(crate) fn materialize_generic_budgeted(
             .map(|&id| interner.resolve(id).clone())
             .collect();
         if let Some(idx) = store.insert(fact.predicate.clone(), row, None, Vec::new()) {
-            delta.insert(idx);
+            delta.set(RowId::from_index(idx));
         }
     }
 
@@ -626,7 +696,9 @@ pub(crate) fn materialize_generic_budgeted(
         if round.is_empty() {
             break; // fixpoint
         }
-        let mut new_delta: HashSet<usize> = HashSet::with_capacity(round.len());
+        // Pre-size to cover every row id this round can mint (current store rows plus at
+        // most one per round winner); `set` still grows on demand if needed.
+        let mut new_delta = DenseBitset::with_capacity(store.entries.len() + round.len());
         // Commit winners in the BTreeMap's sorted `(relation, row-surface)` order — the
         // deterministic counting point.  The step budget is charged once per committed
         // winner; when it is spent we stop BEFORE committing the next winner, leaving a
@@ -637,7 +709,7 @@ pub(crate) fn materialize_generic_budgeted(
                 break 'fixpoint;
             }
             if let Some(idx) = store.insert(relation, row, Some(rule_iri), antecedents) {
-                new_delta.insert(idx);
+                new_delta.set(RowId::from_index(idx));
             }
             governor.charge();
         }
