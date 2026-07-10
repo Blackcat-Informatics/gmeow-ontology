@@ -1,17 +1,19 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The projection axis's constraints component must never punish migration. Under
-//! Principle 17 the PROJECTING source for a slice's structural constraints
-//! (`owl:Restriction` / `owl:disjointWith`) is the `module.ttl` OWL/RDFS axioms
-//! themselves — they derive `generated/shapes/*` via
-//! `derive_validation_shapes` — never a hand-authored `shapes.ttl`, which is a
-//! second source of truth and migration debt (Principle 17). These tests pin
-//! the objective reading: a slice that migrates (module.ttl axioms present,
-//! `shapes.ttl` deleted) scores full constraints credit and raises no penalty
-//! finding, while a slice that still ships `shapes.ttl` scores no higher and
-//! additionally carries the debt finding. The `links_out` / `no-mappings` half
-//! of the axis is untouched by this fix and is pinned unaffected.
+//! The projection axis's constraints component measures whether a slice has
+//! expressed its validation as a PURE projection. Under Principle 17 a slice's
+//! structural constraints (`owl:Restriction` / `owl:disjointWith`) are maximally
+//! projected only when they live SOLELY as the `module.ttl` OWL/RDFS axioms
+//! (which derive `generated/shapes/*` via `derive_validation_shapes`) with the
+//! hand-authored `shapes.ttl` — a second source of truth — retired. These tests
+//! pin the objective, falsifiable reading: a migrated slice (module.ttl axioms
+//! present, `shapes.ttl` deleted) earns full constraints credit and raises no
+//! penalty finding, while a slice still shipping `shapes.ttl` scores STRICTLY
+//! LOWER (the credit is unearned until the second source is retired) and
+//! additionally carries the debt finding. Migration is the only way to earn the
+//! credit and can never lose it. The `links_out` / `no-mappings` half of the
+//! axis is untouched by this fix and is pinned unaffected.
 
 use std::path::PathBuf;
 
@@ -127,24 +129,32 @@ fn migrated_slice_scores_full_constraints_credit_and_no_penalty_finding() {
 }
 
 #[test]
-fn unmigrated_slice_shipping_shapes_ttl_scores_no_higher_and_carries_debt_finding() {
+fn unmigrated_slice_shipping_shapes_ttl_scores_strictly_lower_and_carries_debt_finding() {
     // Same constraints, but the slice still ships the hand-authored shapes.ttl:
-    // this must raise the migration-debt advisory and must NOT score any higher
-    // than the migrated case above (it may only ever score the same or lower).
+    // its validation is NOT yet a pure projection, so the constraints credit is
+    // unearned. This must raise the migration-debt advisory AND score strictly
+    // lower than the migrated case — retiring shapes.ttl is the only way to earn
+    // the credit, so keeping it is a real, measurable shortfall (not a no-op).
     let migrated = Fixture::new("baseline", false, false).score();
     let unmigrated = Fixture::new("debt", true, false).score();
 
-    assert!(
-        unmigrated.score <= migrated.score,
-        "shipping shapes.ttl must never score higher than the migrated state: {} vs {}",
-        unmigrated.score,
+    assert_eq!(
+        migrated.score, 1.0,
+        "the migrated slice earns full projection credit, got {}",
         migrated.score
     );
     assert_eq!(
-        unmigrated.score, migrated.score,
-        "the constraints component is credited from the module.ttl axioms alone, so keeping \
-         shapes.ttl neither helps nor hurts the score, got {} vs {}",
-        unmigrated.score, migrated.score
+        unmigrated.score, 0.0,
+        "a constraint-bearing slice still shipping shapes.ttl has not projected its validation \
+         (1 obligation, 0 met), got {} ({:?})",
+        unmigrated.score, unmigrated.codes
+    );
+    assert!(
+        unmigrated.score < migrated.score,
+        "shipping shapes.ttl must score STRICTLY lower than the migrated state (the axis rewards \
+         migration, never the second source of truth): {} vs {}",
+        unmigrated.score,
+        migrated.score
     );
     assert!(
         unmigrated
