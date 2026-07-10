@@ -15907,6 +15907,18 @@ enums:
       thrFlagshipDepthRegistered:
         meaning: https://blackcatinformatics.ca/gmeow/thrFlagshipDepthRegistered
         title: flagship-depth floor — Registered
+      thrGmn1CoverageExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrGmn1CoverageExemplified
+        title: GMN-1-coverage floor — Exemplified
+      thrGmn1CoverageGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrGmn1CoverageGrounded
+        title: GMN-1-coverage floor — Grounded
+      thrGmn1CoverageLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrGmn1CoverageLinked
+        title: GMN-1-coverage floor — Linked
+      thrGmn1CoverageMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrGmn1CoverageMaximal
+        title: GMN-1-coverage floor — Maximal
       thrGroundingExemplified:
         meaning: https://blackcatinformatics.ca/gmeow/thrGroundingExemplified
         title: grounding floor — Exemplified
@@ -21466,6 +21478,9 @@ enums:
       axisFlagshipCounterExampleDepth:
         meaning: https://blackcatinformatics.ca/gmeow/axisFlagshipCounterExampleDepth
         title: Flagship Counter-Example Depth
+      axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/axisGmn1Coverage
+        title: GMN-1 Coverage
       axisMaximalGrounding:
         meaning: https://blackcatinformatics.ca/gmeow/axisMaximalGrounding
         title: Maximal Grounding

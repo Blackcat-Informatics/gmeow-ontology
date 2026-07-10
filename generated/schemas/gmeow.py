@@ -384,6 +384,10 @@ class AxisThresholdEnum(str, Enum):
     thrFlagshipDepthLinked = "thrFlagshipDepthLinked"
     thrFlagshipDepthMaximal = "thrFlagshipDepthMaximal"
     thrFlagshipDepthRegistered = "thrFlagshipDepthRegistered"
+    thrGmn1CoverageExemplified = "thrGmn1CoverageExemplified"
+    thrGmn1CoverageGrounded = "thrGmn1CoverageGrounded"
+    thrGmn1CoverageLinked = "thrGmn1CoverageLinked"
+    thrGmn1CoverageMaximal = "thrGmn1CoverageMaximal"
     thrGroundingExemplified = "thrGroundingExemplified"
     thrGroundingGrounded = "thrGroundingGrounded"
     thrGroundingLinked = "thrGroundingLinked"
@@ -2669,6 +2673,7 @@ class PronounSetEnum(str, Enum):
 class QualityAxisEnum(str, Enum):
     axisDocumentation = "axisDocumentation"
     axisFlagshipCounterExampleDepth = "axisFlagshipCounterExampleDepth"
+    axisGmn1Coverage = "axisGmn1Coverage"
     axisMaximalGrounding = "axisMaximalGrounding"
     axisMaximalInformation = "axisMaximalInformation"
     axisMaximalLinkage = "axisMaximalLinkage"

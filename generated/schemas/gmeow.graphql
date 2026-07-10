@@ -360,6 +360,10 @@ enum AxisThresholdEnum {
   thrFlagshipDepthLinked
   thrFlagshipDepthMaximal
   thrFlagshipDepthRegistered
+  thrGmn1CoverageExemplified
+  thrGmn1CoverageGrounded
+  thrGmn1CoverageLinked
+  thrGmn1CoverageMaximal
   thrGroundingExemplified
   thrGroundingGrounded
   thrGroundingLinked
@@ -2645,6 +2649,7 @@ enum PronounSetEnum {
 enum QualityAxisEnum {
   axisDocumentation
   axisFlagshipCounterExampleDepth
+  axisGmn1Coverage
   axisMaximalGrounding
   axisMaximalInformation
   axisMaximalLinkage

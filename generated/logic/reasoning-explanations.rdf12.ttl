@@ -13628,6 +13628,12 @@
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
+   <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/QualityValue> >> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/axisGreen> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Entity> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Atype-propagation> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -47157,7 +47163,7 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/skolem/19c2e72eb86b6d040f351339828f4db2693546e2> <https://blackcatinformatics.ca/gmeow/frameRealm> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/skolem/f3377f8b69ba47971d9a246a362adb39dd0d38fc> <http://www.w3.org/2002/07/owl#hasValue> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/skolem/a2452ce3b088fc9fc5388bb0e451d44b8a98a42e> <http://www.w3.org/2002/07/owl#hasValue> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AhasValue-assertion> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -47808,7 +47814,7 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/skolem/50538e4eb9ef57647891610c782087248aa06c5d> <https://blackcatinformatics.ca/gmeow/frameRealm> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/skolem/f3377f8b69ba47971d9a246a362adb39dd0d38fc> <http://www.w3.org/2002/07/owl#hasValue> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/skolem/a2452ce3b088fc9fc5388bb0e451d44b8a98a42e> <http://www.w3.org/2002/07/owl#hasValue> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AhasValue-assertion> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -48000,7 +48006,7 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/skolem/66e6e0e2ae427e3a97cf3d227f8168a6442cad19> <https://blackcatinformatics.ca/gmeow/frameRealm> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/skolem/f3377f8b69ba47971d9a246a362adb39dd0d38fc> <http://www.w3.org/2002/07/owl#hasValue> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/skolem/a2452ce3b088fc9fc5388bb0e451d44b8a98a42e> <http://www.w3.org/2002/07/owl#hasValue> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AhasValue-assertion> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -48208,7 +48214,7 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/skolem/77def3f499f04cf5e26ea9e3b518d6e1f1bcae95> <https://blackcatinformatics.ca/gmeow/frameRealm> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/skolem/f3377f8b69ba47971d9a246a362adb39dd0d38fc> <http://www.w3.org/2002/07/owl#hasValue> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/skolem/a2452ce3b088fc9fc5388bb0e451d44b8a98a42e> <http://www.w3.org/2002/07/owl#hasValue> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AhasValue-assertion> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -48790,7 +48796,7 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/skolem/d91d1ebaa2cfd29ec6b44e7ef6826121fb1fd264> <https://blackcatinformatics.ca/gmeow/frameRealm> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/skolem/f3377f8b69ba47971d9a246a362adb39dd0d38fc> <http://www.w3.org/2002/07/owl#hasValue> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/skolem/a2452ce3b088fc9fc5388bb0e451d44b8a98a42e> <http://www.w3.org/2002/07/owl#hasValue> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AhasValue-assertion> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -49240,7 +49246,7 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/skolem/f23abd638c69e6a331af874bdcf1dd85cf034c1d> <https://blackcatinformatics.ca/gmeow/frameRealm> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/skolem/f3377f8b69ba47971d9a246a362adb39dd0d38fc> <http://www.w3.org/2002/07/owl#hasValue> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/skolem/a2452ce3b088fc9fc5388bb0e451d44b8a98a42e> <http://www.w3.org/2002/07/owl#hasValue> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalTime> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AhasValue-assertion> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
