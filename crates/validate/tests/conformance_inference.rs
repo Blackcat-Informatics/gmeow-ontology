@@ -31,7 +31,6 @@ const OWL_IRREFLEXIVE: &str = "http://www.w3.org/2002/07/owl#IrreflexiveProperty
 const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
 
 const INFERENCE_MODULE: &str = "slices/core/inference/module.ttl";
-const INFERENCE_SHAPES: &str = "slices/core/inference/shapes.ttl";
 
 /// The allowed logic: master metaclasses (exactly one per class — the invariant).
 const LOGIC_MASTERS: &[&str] = &[
@@ -341,9 +340,20 @@ ex:componentSelfAttack a gmeow:Attack ;
 /// Validate `slice module + instance` against the *slice* `shapes.ttl` — the twin
 /// of `run_shacl(_data(instance), shapes_path=_SHAPES)`.
 fn validate_against_slice_shapes(instance_ttl: &str) -> ValidationReport {
-    let shapes_ttl =
-        fs::read_to_string(repo_root().join(INFERENCE_SHAPES)).expect("inference shapes");
-    let shapes = parse_shapes(&shapes_ttl).expect("inference shapes parse");
+    // The hand-authored slice shapes were retired (Principle 17): the inference constraints
+    // are now projected into generated/shapes/*. Validate against the projected surface — the
+    // minimal instance only carries inference-relevant types, so only the inference-derived
+    // shapes fire on it.
+    let shapes_dir = repo_root().join("generated").join("shapes");
+    let mut shapes_ttl = String::new();
+    for entry in fs::read_dir(&shapes_dir).expect("generated/shapes dir") {
+        let path = entry.expect("dir entry").path();
+        if path.extension().and_then(|s| s.to_str()) == Some("ttl") {
+            shapes_ttl.push_str(&fs::read_to_string(&path).expect("read projected shape"));
+            shapes_ttl.push('\n');
+        }
+    }
+    let shapes = parse_shapes(&shapes_ttl).expect("projected shapes parse");
     let module_nt = ttl_file_to_nt(&repo_root().join(INFERENCE_MODULE));
     let instance_nt = ttl_str_to_nt(&format!("{PRELUDE}{instance_ttl}"));
     let data_nt = format!("{module_nt}\n{instance_nt}");
