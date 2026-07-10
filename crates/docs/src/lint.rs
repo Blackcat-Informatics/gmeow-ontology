@@ -306,6 +306,7 @@ mod tests {
             reasoning: None,
             diagnostics: None,
             term_loss: None,
+            schema_fragments: None,
             lang: String::new(),
         }
     }

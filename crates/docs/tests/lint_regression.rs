@@ -111,6 +111,7 @@ fn model_with_terms(terms: Vec<DocTerm>) -> DocsModel {
         reasoning: None,
         diagnostics: None,
         term_loss: None,
+        schema_fragments: None,
         lang: String::new(),
     }
 }

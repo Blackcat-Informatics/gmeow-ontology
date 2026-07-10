@@ -453,6 +453,7 @@ mod tests {
             reasoning: None,
             diagnostics: None,
             term_loss: None,
+            schema_fragments: None,
             lang: String::new(),
         }
     }
@@ -513,6 +514,7 @@ mod tests {
             reasoning: None,
             diagnostics: None,
             term_loss: None,
+            schema_fragments: None,
             lang: String::new(),
         };
         assert_eq!(to_gmeow_rdf(&model), "");

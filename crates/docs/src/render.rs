@@ -180,6 +180,10 @@ pub enum Page {
     /// table (impl, capabilities, resources, dataflow). Emitted only when the
     /// model carries a discovered pipeline (`model.pipeline.is_some()`).
     PipelineDag,
+    /// The RDF-to-developer glossary (`glossary/index`) — a fixed mapping from RDF
+    /// / OWL / SHACL vocabulary to the everyday software concepts they correspond
+    /// to, a bridge for readers who do not know RDF.
+    Glossary,
     /// The offline SPARQL playground (`sparql/index`). Emitted only when the pipeline
     /// supplies a bundled query asset (never in a model-only render).
     SparqlPlayground,
@@ -221,6 +225,7 @@ impl Page {
             Page::LearningPath(slug) => format!("learning-paths/{slug}"),
             Page::FourBoxes => "four-boxes".to_string(),
             Page::PipelineDag => "pipeline".to_string(),
+            Page::Glossary => "glossary".to_string(),
             Page::SparqlPlayground => "sparql".to_string(),
         }
     }
@@ -299,6 +304,7 @@ impl Page {
                 .unwrap_or_else(|| slug.clone()),
             Page::FourBoxes => "What is this?".to_string(),
             Page::PipelineDag => "Build pipeline".to_string(),
+            Page::Glossary => "Glossary".to_string(),
             Page::SparqlPlayground => "SPARQL playground".to_string(),
         }
     }
@@ -548,6 +554,7 @@ fn pages(model: &DocsModel) -> Vec<Page> {
         Page::LogicDiagnostics,
         Page::RecipeIndex,
         Page::LearningPathIndex,
+        Page::Glossary,
     ];
     // The curated "four boxes" doctrine page only when its prose is present.
     if model.four_boxes.is_some() {
@@ -622,6 +629,10 @@ pub fn to_markdown_exec(model: &DocsModel, page: &Page, exec: &ExecutableDocsDat
         Page::SparqlPlayground => md_playground(model, exec),
         _ => to_markdown_base(model, page),
     };
+    // The generalized page-level cite-this-surface on every durable NON-term page
+    // (the term page carries its own richer content-addressed Citation section).
+    // Distinct from the coarse-grain provenance footer below.
+    append_cite_this_surface(&mut md, model, page);
     // Every durable page carries the coarse-grain provenance footer: the
     // producing-stage chain of the docs render, walked BACKWARD over
     // `gmeow:dataflowConsumes` from `stage-docs-render` — the build-grain
@@ -664,6 +675,7 @@ fn to_markdown_base(model: &DocsModel, page: &Page) -> String {
         Page::LearningPath(slug) => md_learning_path(model, slug),
         Page::FourBoxes => md_four_boxes(model),
         Page::PipelineDag => md_pipeline_dag(model),
+        Page::Glossary => md_glossary(model),
         // Routed through `to_markdown_exec`; this arm keeps the match exhaustive.
         Page::SparqlPlayground => md_playground(model, &ExecutableDocsData::default()),
     }
@@ -876,6 +888,47 @@ fn md_landing(model: &DocsModel) -> String {
             model.slices.len()
         ),
     );
+
+    // ── Task-first navigation: promote the authored recipes and learning paths
+    // to a prominent "I want to…" block so a goal-oriented reader starts from a
+    // task rather than the vocabulary, plus the RDF-to-developer glossary bridge.
+    // Rendered only when the guides slice authored at least one recipe / learning
+    // path (honest absence otherwise); the glossary link is always offered.
+    {
+        let from = Page::Landing.dir();
+        heading(&mut out, 2, model.ui("body_i_want_to"));
+        for recipe in &model.recipes {
+            push_line(
+                &mut out,
+                &format!(
+                    "- [{}]({}index.md) — {}",
+                    md_escape(&recipe.title),
+                    rel(&from, &Page::Recipe(recipe.slug.clone()).dir()),
+                    md_escape(&one_line(&recipe.goal)),
+                ),
+            );
+        }
+        for path in &model.learning_paths {
+            push_line(
+                &mut out,
+                &format!(
+                    "- [{}]({}index.md) — {}",
+                    md_escape(&path.title),
+                    rel(&from, &Page::LearningPath(path.slug.clone()).dir()),
+                    md_escape(&one_line(&path.goal)),
+                ),
+            );
+        }
+        push_line(
+            &mut out,
+            &format!(
+                "- [{}]({}index.md) — a bridge for readers new to RDF.",
+                md_escape(model.ui("body_glossary")),
+                rel(&from, &Page::Glossary.dir()),
+            ),
+        );
+        blank(&mut out);
+    }
 
     heading(&mut out, 2, model.ui("body_vocabulary_by_category"));
     push_line(&mut out, "| Category | Terms |");
@@ -1630,6 +1683,38 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
         line(&mut out, &md_escape(def));
     }
 
+    // ── Progressive disclosure: the DEVELOPER surface first (how to USE the
+    // term — quickstart, multi-syntax examples, conformance Do/Don't, diagnostics),
+    // then the ACADEMIC surface below (the formal axioms, derivation provenance,
+    // projection fidelity, and citation). Every prior section is preserved; the two
+    // tiers only reorder them and add the multi-syntax tabs + DL axioms.
+    out.push_str(&term_developer_surface(model, term, &from, exec));
+    out.push_str(&term_academic_surface(model, term, &from, exec));
+
+    // Enriched build-pipeline stage section (only when the term IS a stage).
+    append_stage_section(&mut out, model, term, &from);
+
+    out
+}
+
+/// The DEVELOPER-facing tier of the term page: everything a consumer needs to
+/// pick up and USE the term. Leads with the synthesized quickstart and the
+/// multi-syntax example tabs (Turtle / JSON-LD / JSON Schema / OpenAPI), then the
+/// shape (super-classes, domain, range, SHACL constraints), the conformance
+/// Do/Don't pairs, the diagnostics the term might trip, and the advisory / usage
+/// context. Returns a Markdown fragment; `from` is the term page's site-relative
+/// directory (rebound to an owned `String` so every moved block reads `&from`
+/// unchanged).
+fn term_developer_surface(
+    model: &DocsModel,
+    term: &DocTerm,
+    from: &str,
+    exec: &ExecutableDocsData,
+) -> String {
+    let from = from.to_string();
+    let mut out = String::new();
+    heading(&mut out, 2, model.ui("body_developer_surface"));
+
     // ── Quickstart (synthesized Turtle skeleton + playground link) ─────────────
     // A pure render of the term's OWN domain/range shape — always present (every
     // term renders some skeleton, or an honest "no skeleton" comment), so a
@@ -1656,6 +1741,11 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
         }
         blank(&mut out);
     }
+
+    // ── The same example, in several concrete syntaxes (the SyntaxTabProvider
+    // seam): Turtle, JSON-LD, and — when the schema digest is attached — the
+    // per-term JSON Schema + OpenAPI fragments ("use this term without RDF").
+    append_syntax_tabs(&mut out, model, term);
 
     // ── Neighbourhood diagram (the term and its 1-hop relations) ────────────────
     // Gated on the identical predicate as the emission loop in `render_site_lang`
@@ -1697,6 +1787,106 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
         heading(&mut out, 2, model.ui("body_range"));
         for r in &term.range {
             push_line(&mut out, &format!("- {}", term_link(model, &from, r)));
+        }
+        blank(&mut out);
+    }
+
+    // ── Constraints (SHACL node shapes — DISTINCT from the verify-query index) ───
+    let constraints: Vec<&str> = model
+        .shapes
+        .iter()
+        .filter(|s| s.target_term == term.iri)
+        .flat_map(|s| s.messages.iter().map(String::as_str))
+        .collect();
+    let mut constraint_msgs: Vec<&str> = constraints;
+    constraint_msgs.sort_unstable();
+    constraint_msgs.dedup();
+    if !constraint_msgs.is_empty() {
+        heading(&mut out, 2, model.ui("body_constraints"));
+        for msg in constraint_msgs {
+            push_line(&mut out, &format!("- {}", md_escape(msg)));
+        }
+        blank(&mut out);
+    }
+
+    // ── Conformance examples (Do/Don't fixtures referencing this term) ──────────
+    let mut term_fixtures: Vec<&crate::model::DocFixture> = model
+        .fixtures
+        .iter()
+        .filter(|f| f.terms_referenced.iter().any(|c| c == &term.curie))
+        .collect();
+    term_fixtures.sort_by(|a, b| {
+        a.slice
+            .cmp(&b.slice)
+            .then_with(|| a.logical_path.cmp(&b.logical_path))
+    });
+    if !term_fixtures.is_empty() {
+        heading(&mut out, 2, model.ui("body_conformance_examples"));
+        for fixture in &term_fixtures {
+            let label = match fixture.kind {
+                crate::model::DocFixtureKind::Wellformed => model.ui("body_label_do"),
+                crate::model::DocFixtureKind::CounterExample => model.ui("body_label_dont"),
+            };
+            push_line(
+                &mut out,
+                &format!("- **{label}:** `{}`", code_escape(&fixture.logical_path)),
+            );
+            push_fixture_binding_bullets(&mut out, model, &from, fixture);
+        }
+        let fixture_index_href = rel(&from, &Page::FixtureIndex.dir());
+        push_line(
+            &mut out,
+            &format!("- See the [conformance fixtures index]({fixture_index_href}index.md)."),
+        );
+        blank(&mut out);
+    }
+
+    // ── Diagnostics you might hit (present only when a diagnostics digest is attached)
+    // Live counts + code list joined from `stage-validate` + `stage-compile-logic` (B1);
+    // a term with a genuine `by_term` entry lists each finding (deep-linked into the
+    // constraint catalog ONLY when a real `help_uri` resolved); an attached-but-empty
+    // digest renders the honest "no diagnostics" line rather than omitting the section —
+    // never conflated with the section being absent because no digest was attached at all.
+    if let Some(digest) = &model.diagnostics {
+        heading(&mut out, 2, model.ui("body_diagnostics_you_might_hit"));
+        match digest.by_term.get(&term.iri) {
+            Some(findings) if !findings.is_empty() => {
+                let mut by_severity: BTreeMap<&str, usize> = BTreeMap::new();
+                for finding in findings {
+                    *by_severity.entry(finding.severity.as_str()).or_default() += 1;
+                }
+                let counts = by_severity
+                    .iter()
+                    .map(|(severity, count)| format!("{count} {severity}"))
+                    .collect::<Vec<_>>()
+                    .join(" · ");
+                push_line(
+                    &mut out,
+                    &format!("- **{}:** {counts}", model.ui("body_label_severity")),
+                );
+                for finding in findings {
+                    let code_display = match &finding.help_uri {
+                        // The display text is md-escaped; the link *target* is the raw
+                        // URL (escaping a target corrupts the href).
+                        Some(uri) => format!("[`{}`]({uri})", code_escape(&finding.code)),
+                        None => format!("`{}`", code_escape(&finding.code)),
+                    };
+                    push_line(
+                        &mut out,
+                        &format!(
+                            "- {code_display} ({}): {}",
+                            md_escape(&finding.category),
+                            md_escape(&finding.message)
+                        ),
+                    );
+                }
+            }
+            _ => {
+                push_line(
+                    &mut out,
+                    &format!("- {}", model.ui("body_diagnostics_none")),
+                );
+            }
         }
         blank(&mut out);
     }
@@ -1746,6 +1936,116 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
             }
         }
         blank(&mut out);
+    }
+
+    // ── Related terms (bidirectional: skos:related / pairsWith / seeAlso) ────────
+    if !term.related_terms.is_empty() {
+        heading(&mut out, 2, model.ui("body_related_terms"));
+        for related in &term.related_terms {
+            push_line(&mut out, &format!("- {}", term_link(model, &from, related)));
+        }
+        blank(&mut out);
+    }
+
+    // ── Examples using this term (cross-links to the full source on slice pages) ─
+    let mut term_examples: Vec<&crate::model::DocExample> = model
+        .examples
+        .iter()
+        .filter(|e| e.terms_referenced.iter().any(|c| c == &term.curie))
+        .collect();
+    term_examples.sort_by(|a, b| {
+        a.slice
+            .cmp(&b.slice)
+            .then_with(|| a.logical_path.cmp(&b.logical_path))
+    });
+    if !term_examples.is_empty() {
+        heading(&mut out, 2, model.ui("body_examples_using_this_term"));
+        for example in term_examples {
+            let slice_href = model
+                .slices
+                .iter()
+                .find(|s| s.iri == example.slice)
+                .map(|s| rel(&from, &Page::Slice(slice_slug(s)).dir()));
+            match slice_href {
+                Some(href) => push_line(
+                    &mut out,
+                    &format!(
+                        "- [{}]({}index.md) — `{}`",
+                        md_escape(&example.title),
+                        href,
+                        code_escape(&example.logical_path)
+                    ),
+                ),
+                None => push_line(
+                    &mut out,
+                    &format!(
+                        "- {} — `{}`",
+                        md_escape(&example.title),
+                        code_escape(&example.logical_path)
+                    ),
+                ),
+            }
+        }
+        blank(&mut out);
+    }
+
+    // ── Notation grammars (whole-slice cross-link, see GMEOW_LANG_SLICE_IRI) ────
+    if term.owner_slice == GMEOW_LANG_SLICE_IRI && !model.grammars.is_empty() {
+        heading(&mut out, 2, model.ui("body_notation_grammars"));
+        let notation_index_href = rel(&from, &Page::NotationIndex.dir());
+        push_line(
+            &mut out,
+            &format!(
+                "- See the [notation grammars index]({notation_index_href}index.md) for the \
+                 GMN / GTS / Turtle W3C EBNF surface-syntax exhibits."
+            ),
+        );
+        blank(&mut out);
+    }
+
+    // ── Profiles (named profiles whose membership includes this term) ─────────────
+    if !term.profiles.is_empty() {
+        heading(&mut out, 2, model.ui("body_profiles"));
+        let chips = term
+            .profiles
+            .iter()
+            .map(|p| format!("`{}`", code_escape(p)))
+            .collect::<Vec<_>>()
+            .join(" · ");
+        push_line(&mut out, &format!("- {chips}"));
+        blank(&mut out);
+    }
+
+    out
+}
+
+/// The ACADEMIC-facing tier of the term page: the formal structure and its
+/// provenance. Leads with the Description-Logic axioms the term genuinely
+/// carries, then the cross-vocabulary alignments and their preservation caveats,
+/// the lowered-logic disciplines, the reasoning verdict and the reasoner-derived
+/// "inferred facts" / "unsatisfiable because" panels, the per-term
+/// projection-fidelity table, coverage/stability/changelog metadata, and finally
+/// the content-addressed cite-this-term citation. Returns a Markdown fragment.
+fn term_academic_surface(
+    model: &DocsModel,
+    term: &DocTerm,
+    from: &str,
+    exec: &ExecutableDocsData,
+) -> String {
+    let from = from.to_string();
+    let mut out = String::new();
+    heading(&mut out, 2, model.ui("body_academic_surface"));
+
+    // ── Description-Logic axioms (the formal reading of the asserted structure) ──
+    // Only the axioms the model GENUINELY carries: subsumption from each parent,
+    // and — for a property — the standard domain/range axioms. Never a fabricated
+    // value restriction or intersection (see `dl_axioms`).
+    {
+        let axioms = dl_axioms(model, term);
+        if !axioms.is_empty() {
+            heading(&mut out, 2, model.ui("body_dl_axioms"));
+            fenced(&mut out, "text", &axioms.join("\n"));
+        }
     }
 
     // ── Alignments (per-term cross-walks projected from the slice mappings) ──────
@@ -1865,29 +2165,11 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
         }
     }
 
-    // ── Constraints (SHACL node shapes — DISTINCT from the verify-query index) ───
-    let constraints: Vec<&str> = model
-        .shapes
-        .iter()
-        .filter(|s| s.target_term == term.iri)
-        .flat_map(|s| s.messages.iter().map(String::as_str))
-        .collect();
-    let mut constraint_msgs: Vec<&str> = constraints;
-    constraint_msgs.sort_unstable();
-    constraint_msgs.dedup();
-    if !constraint_msgs.is_empty() {
-        heading(&mut out, 2, model.ui("body_constraints"));
-        for msg in constraint_msgs {
-            push_line(&mut out, &format!("- {}", md_escape(msg)));
-        }
-        blank(&mut out);
-    }
-
-    // ── Related terms (bidirectional: skos:related / pairsWith / seeAlso) ────────
-    if !term.related_terms.is_empty() {
-        heading(&mut out, 2, model.ui("body_related_terms"));
-        for related in &term.related_terms {
-            push_line(&mut out, &format!("- {}", term_link(model, &from, related)));
+    // ── Formalized by (reverse logic:formalizes back-refs) ──────────────────────
+    if !term.formalized_by.is_empty() {
+        heading(&mut out, 2, model.ui("body_formalized_by"));
+        for subject in &term.formalized_by {
+            push_line(&mut out, &format!("- {}", term_link(model, &from, subject)));
         }
         blank(&mut out);
     }
@@ -1922,115 +2204,6 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
         );
         blank(&mut out);
     }
-
-    // ── Examples using this term (cross-links to the full source on slice pages) ─
-    let mut term_examples: Vec<&crate::model::DocExample> = model
-        .examples
-        .iter()
-        .filter(|e| e.terms_referenced.iter().any(|c| c == &term.curie))
-        .collect();
-    term_examples.sort_by(|a, b| {
-        a.slice
-            .cmp(&b.slice)
-            .then_with(|| a.logical_path.cmp(&b.logical_path))
-    });
-    if !term_examples.is_empty() {
-        heading(&mut out, 2, model.ui("body_examples_using_this_term"));
-        for example in term_examples {
-            let slice_href = model
-                .slices
-                .iter()
-                .find(|s| s.iri == example.slice)
-                .map(|s| rel(&from, &Page::Slice(slice_slug(s)).dir()));
-            match slice_href {
-                Some(href) => push_line(
-                    &mut out,
-                    &format!(
-                        "- [{}]({}index.md) — `{}`",
-                        md_escape(&example.title),
-                        href,
-                        code_escape(&example.logical_path)
-                    ),
-                ),
-                None => push_line(
-                    &mut out,
-                    &format!(
-                        "- {} — `{}`",
-                        md_escape(&example.title),
-                        code_escape(&example.logical_path)
-                    ),
-                ),
-            }
-        }
-        blank(&mut out);
-    }
-
-    // ── Conformance examples (Do/Don't fixtures referencing this term) ──────────
-    let mut term_fixtures: Vec<&crate::model::DocFixture> = model
-        .fixtures
-        .iter()
-        .filter(|f| f.terms_referenced.iter().any(|c| c == &term.curie))
-        .collect();
-    term_fixtures.sort_by(|a, b| {
-        a.slice
-            .cmp(&b.slice)
-            .then_with(|| a.logical_path.cmp(&b.logical_path))
-    });
-    if !term_fixtures.is_empty() {
-        heading(&mut out, 2, model.ui("body_conformance_examples"));
-        for fixture in &term_fixtures {
-            let label = match fixture.kind {
-                crate::model::DocFixtureKind::Wellformed => model.ui("body_label_do"),
-                crate::model::DocFixtureKind::CounterExample => model.ui("body_label_dont"),
-            };
-            push_line(
-                &mut out,
-                &format!("- **{label}:** `{}`", code_escape(&fixture.logical_path)),
-            );
-            push_fixture_binding_bullets(&mut out, model, &from, fixture);
-        }
-        let fixture_index_href = rel(&from, &Page::FixtureIndex.dir());
-        push_line(
-            &mut out,
-            &format!("- See the [conformance fixtures index]({fixture_index_href}index.md)."),
-        );
-        blank(&mut out);
-    }
-
-    // ── Notation grammars (whole-slice cross-link, see GMEOW_LANG_SLICE_IRI) ────
-    if term.owner_slice == GMEOW_LANG_SLICE_IRI && !model.grammars.is_empty() {
-        heading(&mut out, 2, model.ui("body_notation_grammars"));
-        let notation_index_href = rel(&from, &Page::NotationIndex.dir());
-        push_line(
-            &mut out,
-            &format!(
-                "- See the [notation grammars index]({notation_index_href}index.md) for the \
-                 GMN / GTS / Turtle W3C EBNF surface-syntax exhibits."
-            ),
-        );
-        blank(&mut out);
-    }
-
-    // ── Formalized by (reverse logic:formalizes back-refs) ──────────────────────
-    if !term.formalized_by.is_empty() {
-        heading(&mut out, 2, model.ui("body_formalized_by"));
-        for subject in &term.formalized_by {
-            push_line(&mut out, &format!("- {}", term_link(model, &from, subject)));
-        }
-        blank(&mut out);
-    }
-
-    // ── Stability (always present; tier-derived default or explicit) ──────────────
-    heading(&mut out, 2, model.ui("body_stability"));
-    push_line(
-        &mut out,
-        &format!(
-            "- **{}:** {}",
-            model.ui("body_label_status"),
-            term.stability.label()
-        ),
-    );
-    blank(&mut out);
 
     // ── Reasoning status (present only when the native reasoner verdict is attached)
     // The textual, accessible counterpart of the reasoning badge: a class is
@@ -2112,56 +2285,6 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
             );
             for premise in &entailment.premises {
                 push_line(&mut out, &format!("  - via `{}`", code_escape(premise)));
-            }
-        }
-        blank(&mut out);
-    }
-
-    // ── Diagnostics you might hit (present only when a diagnostics digest is attached)
-    // Live counts + code list joined from `stage-validate` + `stage-compile-logic` (B1);
-    // a term with a genuine `by_term` entry lists each finding (deep-linked into the
-    // constraint catalog ONLY when a real `help_uri` resolved); an attached-but-empty
-    // digest renders the honest "no diagnostics" line rather than omitting the section —
-    // never conflated with the section being absent because no digest was attached at all.
-    if let Some(digest) = &model.diagnostics {
-        heading(&mut out, 2, model.ui("body_diagnostics_you_might_hit"));
-        match digest.by_term.get(&term.iri) {
-            Some(findings) if !findings.is_empty() => {
-                let mut by_severity: BTreeMap<&str, usize> = BTreeMap::new();
-                for finding in findings {
-                    *by_severity.entry(finding.severity.as_str()).or_default() += 1;
-                }
-                let counts = by_severity
-                    .iter()
-                    .map(|(severity, count)| format!("{count} {severity}"))
-                    .collect::<Vec<_>>()
-                    .join(" · ");
-                push_line(
-                    &mut out,
-                    &format!("- **{}:** {counts}", model.ui("body_label_severity")),
-                );
-                for finding in findings {
-                    let code_display = match &finding.help_uri {
-                        // The display text is md-escaped; the link *target* is the raw
-                        // URL (escaping a target corrupts the href).
-                        Some(uri) => format!("[`{}`]({uri})", code_escape(&finding.code)),
-                        None => format!("`{}`", code_escape(&finding.code)),
-                    };
-                    push_line(
-                        &mut out,
-                        &format!(
-                            "- {code_display} ({}): {}",
-                            md_escape(&finding.category),
-                            md_escape(&finding.message)
-                        ),
-                    );
-                }
-            }
-            _ => {
-                push_line(
-                    &mut out,
-                    &format!("- {}", model.ui("body_diagnostics_none")),
-                );
             }
         }
         blank(&mut out);
@@ -2250,18 +2373,17 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
         blank(&mut out);
     }
 
-    // ── Profiles (named profiles whose membership includes this term) ─────────────
-    if !term.profiles.is_empty() {
-        heading(&mut out, 2, model.ui("body_profiles"));
-        let chips = term
-            .profiles
-            .iter()
-            .map(|p| format!("`{}`", code_escape(p)))
-            .collect::<Vec<_>>()
-            .join(" · ");
-        push_line(&mut out, &format!("- {chips}"));
-        blank(&mut out);
-    }
+    // ── Stability (always present; tier-derived default or explicit) ──────────────
+    heading(&mut out, 2, model.ui("body_stability"));
+    push_line(
+        &mut out,
+        &format!(
+            "- **{}:** {}",
+            model.ui("body_label_status"),
+            term.stability.label()
+        ),
+    );
+    blank(&mut out);
 
     // ── Changelog (added-in version + reified per-release entries) ──────────────
     if term.added_in_version.is_some() || !term.changelog.is_empty() {
@@ -2293,7 +2415,8 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
     // RDFC-1.0 canonical digest of the term's defining triples (gmeow:definitionDigest),
     // so `<iri>@<digest>` pins the exact definition this page describes. The concept
     // DOI (read from metadata/gmeow-self.ttl) cites the whole ontology; the owner
-    // slice's identifier cites the slice when one is registered.
+    // slice's identifier cites the slice when one is registered. This is the
+    // per-term instance of the page-level cite-this-surface (`append_cite_this_surface`).
     heading(&mut out, 2, model.ui("body_citation"));
     push_line(
         &mut out,
@@ -2338,9 +2461,366 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
     }
     blank(&mut out);
 
-    // Enriched build-pipeline stage section (only when the term IS a stage).
-    append_stage_section(&mut out, model, term, &from);
+    out
+}
 
+// ── Multi-syntax example tabs (the concrete `SyntaxTabProvider` OCP seam) ─────
+//
+// A term's example is rendered in several concrete serializations. Each is
+// produced by a `SyntaxTabProvider`: a PURE `fn(&DocTerm, &DocsModel) ->
+// Option<DocSyntaxTab>` yielding one labeled, language-tagged code block, or
+// `None` when this term carries no honest content for that syntax (the tab is
+// then simply absent — the seam's honest layering, never a fabricated
+// placeholder). The providers run in the fixed order of `SYNTAX_TAB_PROVIDERS`.
+//
+// EXTENSION POINT (append-only): a sibling issue adding a GMN-compact / Python /
+// Rust tab (the dialects and Pydantic siblings) plugs in by APPENDING ONE
+// provider fn to `SYNTAX_TAB_PROVIDERS` and implementing it — the term-page
+// renderer (`append_syntax_tabs`) and the `DocSyntaxTab` container never change.
+
+/// One rendered example-syntax tab: a language-tagged code block with a label.
+struct DocSyntaxTab {
+    /// Stable slug id for the tab (part of the tab identity a future interactive
+    /// renderer keys on; the static markdown render uses `label`/`lang`/`body`).
+    #[allow(dead_code)]
+    id: String,
+    /// The human tab label (a format proper noun, e.g. `Turtle`, or a localized
+    /// UI-chrome string for the schema panels).
+    label: String,
+    /// The fenced-code language tag (e.g. `turtle`, `json`).
+    lang: String,
+    /// The code-block body.
+    body: String,
+}
+
+/// A pure example-syntax tab producer. `None` = this term has no honest content
+/// for the syntax (absent tab).
+type SyntaxTabProvider = fn(&DocTerm, &DocsModel) -> Option<DocSyntaxTab>;
+
+/// The ordered example-syntax providers. APPEND-ONLY extension point: a sibling
+/// issue adding a GMN-compact / Python / Rust tab appends its provider fn here.
+const SYNTAX_TAB_PROVIDERS: &[SyntaxTabProvider] = &[
+    turtle_syntax_tab,
+    jsonld_syntax_tab,
+    json_schema_syntax_tab,
+    openapi_syntax_tab,
+];
+
+/// Whether a synthesized quickstart skeleton carries at least one Turtle triple
+/// line (a non-comment, non-blank line) — the class/property skeletons do; the
+/// individual/datatype/other skeletons are comment-only, so their example tabs
+/// are honestly absent.
+fn skeleton_has_triple(skeleton: &str) -> bool {
+    skeleton
+        .lines()
+        .any(|l| !l.trim_start().is_empty() && !l.trim_start().starts_with('#'))
+}
+
+/// The Turtle example tab: the term's synthesized quickstart skeleton verbatim.
+/// Present for a class/property (they synthesize a triple skeleton); absent for
+/// an individual/datatype/other whose skeleton is comment-only.
+fn turtle_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> {
+    let body = synthesize_quickstart(model, term);
+    if !skeleton_has_triple(&body) {
+        return None;
+    }
+    Some(DocSyntaxTab {
+        id: "turtle".to_string(),
+        label: "Turtle".to_string(),
+        lang: "turtle".to_string(),
+        body: body.trim_end().to_string(),
+    })
+}
+
+/// The JSON-LD example tab: the SAME quickstart Turtle, transcoded to a
+/// deterministic JSON-LD document via the native `purrdf` codec. `None` when the
+/// skeleton carries no triple or fails to parse/transcode (honest absence — no
+/// fabricated document).
+fn jsonld_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> {
+    let skeleton = synthesize_quickstart(model, term);
+    if !skeleton_has_triple(&skeleton) {
+        return None;
+    }
+    let body = quickstart_turtle_to_jsonld(&skeleton)?;
+    Some(DocSyntaxTab {
+        id: "jsonld".to_string(),
+        label: "JSON-LD".to_string(),
+        lang: "json".to_string(),
+        body,
+    })
+}
+
+/// The JSON Schema fragment tab ("use this term without RDF"): the class's
+/// `$defs` fragment from the attached schema digest. `None` when no digest is
+/// attached (source-only render) or the term has no fragment — honest absence.
+fn json_schema_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> {
+    let body = model
+        .schema_fragments
+        .as_ref()?
+        .schema_by_term
+        .get(&term.iri)?
+        .clone();
+    Some(DocSyntaxTab {
+        id: "json-schema".to_string(),
+        label: model.ui("body_schema_fragment").to_string(),
+        lang: "json".to_string(),
+        body,
+    })
+}
+
+/// The OpenAPI fragment tab: the class's `components/schemas` fragment from the
+/// attached schema digest. `None` under the same honest-absence conditions as
+/// [`json_schema_syntax_tab`].
+fn openapi_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> {
+    let body = model
+        .schema_fragments
+        .as_ref()?
+        .openapi_by_term
+        .get(&term.iri)?
+        .clone();
+    Some(DocSyntaxTab {
+        id: "openapi".to_string(),
+        label: model.ui("body_openapi_fragment").to_string(),
+        lang: "json".to_string(),
+        body,
+    })
+}
+
+/// The canonical `@prefix`/`@base` preamble under which a synthesized quickstart
+/// skeleton (which uses bare `gmeow:`/`logic:`/`math:`/`owl:`… CURIEs and the
+/// relative `<subject>`/`<...>` placeholders) parses as a self-contained Turtle
+/// document: a base resolves the relative placeholders, and every prefix a
+/// `quickstart_label`/`term.curie` can emit is declared.
+const QUICKSTART_TURTLE_PREAMBLE: &str = concat!(
+    "@base <https://blackcatinformatics.ca/gmeow/example/> .\n",
+    "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n",
+    "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n",
+    "@prefix math: <https://blackcatinformatics.ca/math/> .\n",
+    "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n",
+    "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n",
+    "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n",
+    "@prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n",
+    "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n",
+);
+
+/// Transcode one synthesized quickstart Turtle skeleton to a deterministic
+/// JSON-LD document using the native `purrdf` codecs: parse the skeleton (under
+/// [`QUICKSTART_TURTLE_PREAMBLE`]) into an in-memory dataset, then serialize with
+/// `serialize_dataset_to_jsonld` (sorted keys / `@graph`, byte-stable). `None`
+/// when the skeleton fails to parse or yields no quads (honest absence). A pure
+/// in-memory transcode — no `generated/` disk read.
+fn quickstart_turtle_to_jsonld(skeleton: &str) -> Option<String> {
+    let doc = format!("{QUICKSTART_TURTLE_PREAMBLE}{skeleton}");
+    let dataset = purrdf::parse_dataset(doc.as_bytes(), "text/turtle", None).ok()?;
+    if dataset.quad_count() == 0 {
+        return None;
+    }
+    purrdf::native_codecs::jsonld::serialize_dataset_to_jsonld(&dataset).ok()
+}
+
+/// Render the ordered example-syntax tabs for a term under the "Example in
+/// multiple syntaxes" heading. Since the site is static markdown/HTML, "tabs" are
+/// sequential labeled fenced code blocks (the house style — cf. the loss-ledger's
+/// labeled blocks). Emits nothing when no provider yields a tab (a source-only
+/// render of an individual/datatype term produces no tabs — honest absence).
+fn append_syntax_tabs(out: &mut String, model: &DocsModel, term: &DocTerm) {
+    let tabs: Vec<DocSyntaxTab> = SYNTAX_TAB_PROVIDERS
+        .iter()
+        .filter_map(|provider| provider(term, model))
+        .collect();
+    if tabs.is_empty() {
+        return;
+    }
+    heading(out, 2, model.ui("body_example_syntaxes"));
+    for tab in &tabs {
+        push_line(out, &format!("**{}**", md_escape(&tab.label)));
+        blank(out);
+        fenced(out, &tab.lang, &tab.body);
+    }
+}
+
+// ── Description-Logic axiom rendering (academic surface) ─────────────────────
+//
+// A small, HONEST DL-notation formatter over the model data a term genuinely
+// carries: subsumption (`⊑`) from each parent, and — for a property — the
+// standard domain (`∃R.⊤ ⊑ D`) and range (`⊤ ⊑ ∀R.C`) axioms that `rdfs:domain`
+// / `rdfs:range` denote. It never invents a value restriction the model does not
+// carry (no fabricated `∃r.C` filler, no `⊓` intersection), so every line is a
+// faithful DL reading of an asserted triple. Uses the standard glyphs (`⊑ ∃ ∀
+// ⊤`); `lang-bridge::gmn_symbology` is a glyph-cost table, not a DL renderer, so
+// this formatter owns the notation.
+
+/// The compact DL name for an IRI: its CURIE when it names a documented term or a
+/// GMEOW-family IRI, else the bare local name — never the full IRI.
+fn dl_name(model: &DocsModel, iri: &str) -> String {
+    if let Some(term) = model.terms.iter().find(|t| t.iri == iri) {
+        return term.curie.clone();
+    }
+    let curie = to_curie(iri);
+    if curie != iri {
+        return curie;
+    }
+    local_name(iri).to_string()
+}
+
+/// The Description-Logic axioms a term GENUINELY carries, one per line (empty
+/// when none): `C ⊑ P` per parent (class subsumption / property sub-role), plus,
+/// for a property, the standard domain (`∃R.⊤ ⊑ D`) and range (`⊤ ⊑ ∀R.C`) axioms.
+fn dl_axioms(model: &DocsModel, term: &DocTerm) -> Vec<String> {
+    let self_name = term.curie.clone();
+    let mut lines: Vec<String> = Vec::new();
+    for parent in &term.parents {
+        lines.push(format!("{self_name} ⊑ {}", dl_name(model, parent)));
+    }
+    if term.category == DocTermCategory::Property {
+        for d in &term.domain {
+            lines.push(format!("∃{self_name}.⊤ ⊑ {}", dl_name(model, d)));
+        }
+        for r in &term.range {
+            lines.push(format!("⊤ ⊑ ∀{self_name}.{}", dl_name(model, r)));
+        }
+    }
+    lines
+}
+
+// ── Page-level cite-this-surface (the generalized citation affordance) ────────
+//
+// The per-term Citation section (blake3 content digest + slice DOI + ontology
+// concept DOI) generalized to a page-level "cite this page" block on every OTHER
+// durable surface (fixtures index, competency index, notation index / grammar,
+// pipeline DAG, glossary). The term page keeps its richer content-addressed form
+// inline (`term_academic_surface`); this block is distinct from the Task-12
+// per-page provenance footer.
+
+/// Whether `page` is a durable, citable surface carrying the generalized
+/// "cite this page" block. The term page is excluded here — its cite-this-term
+/// surface is the richer inline Citation section.
+fn page_is_citable(page: &Page) -> bool {
+    matches!(
+        page,
+        Page::FixtureIndex
+            | Page::CompetencyIndex
+            | Page::NotationIndex
+            | Page::Grammar(_)
+            | Page::PipelineDag
+            | Page::Glossary
+    )
+}
+
+/// Append the generalized page-level "cite this page" block: the whole-ontology
+/// concept DOI (when the model carries one) and the page's stable site locator.
+/// A no-op on a non-citable page (see [`page_is_citable`]).
+fn append_cite_this_surface(out: &mut String, model: &DocsModel, page: &Page) {
+    if !page_is_citable(page) {
+        return;
+    }
+    blank(out);
+    heading(out, 2, model.ui("body_cite_this_page"));
+    if let Some(doi) = &model.concept_doi {
+        push_line(
+            out,
+            &format!(
+                "- **{}:** [{}](https://doi.org/{})",
+                model.ui("body_label_cite_ontology"),
+                md_escape(doi),
+                doi
+            ),
+        );
+    }
+    push_line(
+        out,
+        &format!(
+            "- **{}:** `{}`",
+            model.ui("body_label_permalink"),
+            code_escape(&page.html_path())
+        ),
+    );
+    blank(out);
+}
+
+/// The RDF-to-developer glossary: a fixed mapping from the RDF / OWL / SHACL
+/// vocabulary this site uses to the everyday software concepts they correspond
+/// to, so a reader who does not know RDF has a bridge into the rest of the site.
+/// A pure, authored table (no model data), deterministic.
+fn md_glossary(model: &DocsModel) -> String {
+    let mut out = String::new();
+    heading(&mut out, 1, model.ui("body_glossary"));
+    line(
+        &mut out,
+        "If you build software but have not worked with RDF, these are the \
+         everyday concepts behind the vocabulary this site uses. The mapping is \
+         approximate — a bridge into the model, not an exact equivalence.",
+    );
+    push_line(
+        &mut out,
+        "| RDF / OWL / SHACL | Developer concept | Notes |",
+    );
+    push_line(&mut out, "| --- | --- | --- |");
+    // (rdf-term, developer-concept, note) — authored, sorted-by-intent.
+    const ROWS: &[(&str, &str, &str)] = &[
+        (
+            "Class",
+            "Type",
+            "A named category of thing — like a struct/record type or an interface.",
+        ),
+        (
+            "Property",
+            "Field",
+            "A typed attribute or relation on a thing — like a struct field or a foreign key.",
+        ),
+        (
+            "Individual",
+            "Instance / value",
+            "A concrete thing of some class — like a row or an object instance.",
+        ),
+        (
+            "IRI",
+            "Typed global ID",
+            "A globally-unique identifier for a thing — like a URL-shaped primary key.",
+        ),
+        (
+            "Triple",
+            "Row (subject, predicate, object)",
+            "One fact: `subject predicate object` — like a single (id, column, value) cell.",
+        ),
+        (
+            "SHACL shape",
+            "Schema validation",
+            "Constraints a graph must satisfy — like a JSON Schema or a DB `CHECK`/`NOT NULL`.",
+        ),
+        (
+            "Ontology",
+            "Schema + rules",
+            "The class/property vocabulary plus its axioms — a schema that also entails new facts.",
+        ),
+        (
+            "rdfs:subClassOf",
+            "Subtype / `extends`",
+            "One class specialises another — like inheritance between types.",
+        ),
+        (
+            "Domain / range",
+            "Field's owner type / value type",
+            "Which class a property applies to, and what type its values take.",
+        ),
+        (
+            "Reasoner",
+            "Inference engine",
+            "Derives entailed facts and detects contradictions from the axioms.",
+        ),
+    ];
+    for (rdf, dev, note) in ROWS {
+        push_line(
+            &mut out,
+            &format!(
+                "| `{}` | {} | {} |",
+                code_escape(rdf),
+                md_escape(dev),
+                md_escape(note)
+            ),
+        );
+    }
+    blank(&mut out);
     out
 }
 
@@ -5847,6 +6327,7 @@ mod tests {
             reasoning: None,
             diagnostics: None,
             term_loss: None,
+            schema_fragments: None,
             lang: String::new(),
         }
     }
