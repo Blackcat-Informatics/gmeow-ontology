@@ -2312,6 +2312,8 @@ dependencies = [
  "blake3",
  "chrono",
  "criterion",
+ "csv",
+ "flate2",
  "foldhash 0.1.5",
  "gmeow-errors",
  "gmeow-logic-compile",
