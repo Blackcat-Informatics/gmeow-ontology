@@ -236,41 +236,8 @@
               "type": "array"
             }
           ]
-        },
-        "gmeow:memberOfLabelSet": {
-          "anyOf": [
-            {
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
-            },
-            {
-              "items": {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              "minItems": 1,
-              "type": "array"
-            }
-          ]
         }
       },
-      "required": [
-        "gmeow:memberOfLabelSet"
-      ],
       "type": "object"
     },
     "AffectClassifierOutput": {
@@ -294,146 +261,12 @@
               "type": "array"
             }
           ]
-        },
-        "gmeow:classifiedTarget": {
-          "anyOf": [
-            {
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
-            },
-            {
-              "items": {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              "minItems": 1,
-              "type": "array"
-            }
-          ]
-        },
-        "gmeow:classifierScore": {
-          "anyOf": [
-            {
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {
-                  "properties": {
-                    "@type": {
-                      "type": "string"
-                    },
-                    "@value": {}
-                  },
-                  "required": [
-                    "@value"
-                  ],
-                  "type": "object"
-                }
-              ]
-            },
-            {
-              "items": {
-                "anyOf": [
-                  {
-                    "type": "number"
-                  },
-                  {
-                    "properties": {
-                      "@type": {
-                        "type": "string"
-                      },
-                      "@value": {}
-                    },
-                    "required": [
-                      "@value"
-                    ],
-                    "type": "object"
-                  }
-                ]
-              },
-              "minItems": 1,
-              "type": "array"
-            }
-          ]
-        },
-        "gmeow:emittedLabel": {
-          "anyOf": [
-            {
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
-            },
-            {
-              "items": {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              "minItems": 1,
-              "type": "array"
-            }
-          ]
-        },
-        "gmeow:producedBy": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
-        },
-        "gmeow:scoreSemantics": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
         }
       },
-      "required": [
-        "gmeow:classifiedTarget",
-        "gmeow:classifierScore",
-        "gmeow:emittedLabel",
-        "gmeow:producedBy",
-        "gmeow:scoreSemantics"
-      ],
       "type": "object"
     },
     "AffectComposite": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
         "@annotation": {
           "$ref": "#/$defs/Annotation"
@@ -453,41 +286,8 @@
               "type": "array"
             }
           ]
-        },
-        "gmeow:affectiveConstituent": {
-          "anyOf": [
-            {
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
-            },
-            {
-              "items": {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              "minItems": 1,
-              "type": "array"
-            }
-          ]
         }
       },
-      "required": [
-        "gmeow:affectiveConstituent"
-      ],
       "type": "object"
     },
     "AffectDecision": {
@@ -565,61 +365,8 @@
               "type": "array"
             }
           ]
-        },
-        "gmeow:profilePolarity": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
-        },
-        "gmeow:profileRangeMax": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "properties": {
-                "@type": {
-                  "type": "string"
-                },
-                "@value": {}
-              },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
-            }
-          ]
-        },
-        "gmeow:profileRangeMin": {
-          "anyOf": [
-            {
-              "type": "number"
-            },
-            {
-              "properties": {
-                "@type": {
-                  "type": "string"
-                },
-                "@value": {}
-              },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
-            }
-          ]
         }
       },
-      "required": [
-        "gmeow:profileRangeMax",
-        "gmeow:profileRangeMin"
-      ],
       "type": "object"
     },
     "AffectVectorObservation": {
@@ -7437,6 +7184,7 @@
       "type": "object"
     },
     "DerivedAffectIntensityObservation": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
         "@annotation": {
           "$ref": "#/$defs/Annotation"
@@ -7456,68 +7204,8 @@
               "type": "array"
             }
           ]
-        },
-        "gmeow:appraisalValue": {
-          "anyOf": [
-            {},
-            {
-              "items": {},
-              "maxItems": 0,
-              "type": "array"
-            }
-          ]
-        },
-        "gmeow:intensityBasis": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
-        },
-        "gmeow:metricProfile": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
-        },
-        "gmeow:normFunction": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
-        },
-        "gmeow:weightingPolicy": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
         }
       },
-      "required": [
-        "gmeow:intensityBasis",
-        "gmeow:metricProfile",
-        "gmeow:normFunction",
-        "gmeow:weightingPolicy"
-      ],
       "type": "object"
     },
     "Desire": {
@@ -16168,6 +15856,7 @@
       "type": "object"
     },
     "ModelInferenceRun": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
         "@annotation": {
           "$ref": "#/$defs/Annotation"
@@ -16187,14 +15876,8 @@
               "type": "array"
             }
           ]
-        },
-        "gmeow:modelIdentifier": {},
-        "gmeow:modelRevision": {}
+        }
       },
-      "required": [
-        "gmeow:modelIdentifier",
-        "gmeow:modelRevision"
-      ],
       "type": "object"
     },
     "MonetaryAmount": {

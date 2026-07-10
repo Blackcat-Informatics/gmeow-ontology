@@ -19,6 +19,160 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/hasAboutness> ?g . $this <https://blackcatinformatics.ca/gmeow/hasAboutness> ?v . FILTER ( !isIRI(?v) ) }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/AffectClassifierLabelNotEmotionTypeConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A classifier label must not be modeled as a gmeow:EmotionType — 'neutral' (or any no-detected-affect label) as an EmotionType is a hard fail; labels are external identities, never canonical emotion vocabulary." ;
+        sh:select """SELECT $this WHERE { $this a <https://blackcatinformatics.ca/gmeow/EmotionType> . }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/AffectClassifierLabelRegisteredConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierLabel> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectClassifierLabel must be registered in a gmeow:AffectLabelSet via gmeow:memberOfLabelSet — an unregistered label fails canonical projection." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ?o . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutputCalibrationConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A score claimed as a calibrated probability requires a gmeow:scoreCalibration profile — a raw sigmoid/softmax score stored as a confidence without calibration metadata is a hard fail (confidence is not a probability without a declared mapping)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/scoreSemantics> <https://blackcatinformatics.ca/gmeow/scoreCalibratedProbability> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/scoreCalibration> ?c . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutputLabelPresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectClassifierOutput must carry a gmeow:emittedLabel (a registered gmeow:AffectClassifierLabel IRI)." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/emittedLabel> ?o . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutputNoInnerAffectConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A classifier output must not directly assert inner affect (gmeow:emotionType / gmeow:emotionBearer) — it supports a gmeow:AffectiveClaim by gmeow:supportsAffectiveClaim (evidence, never entailment); asserting inner affect without the claim boundary is a hard fail." ;
+        sh:select """SELECT $this WHERE { { $this <https://blackcatinformatics.ca/gmeow/emotionType> ?e . } UNION { $this <https://blackcatinformatics.ca/gmeow/emotionBearer> ?b . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutputProducedByPresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectClassifierOutput must be gmeow:producedBy exactly one gmeow:ModelInferenceRun — output provenance is mandatory." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/producedBy> ?o . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutputScorePresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectClassifierOutput must carry a raw gmeow:classifierScore." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/classifierScore> ?o . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutputSemanticsPresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectClassifierOutput must declare exactly one gmeow:scoreSemantics (sigmoid/softmax/…) — a bare or ambiguous score meaning is uninterpretable." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/scoreSemantics> ?o . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/AffectClassifierOutputTargetPresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectClassifierOutput must name its gmeow:classifiedTarget (the span classified) — an output with no target is unmoored evidence." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/classifiedTarget> ?o . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/AffectCompositeConstituentPresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectComposite> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectComposite> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectComposite must declare at least one gmeow:affectiveConstituent — a named compound with no decomposition is a forbidden unanalyzed primitive (model up from axes, or add the missing axis)." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/affectiveConstituent> ?o . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/AffectDecisionRuleConsistencyConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectClassifierOutput> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A classifier output's gmeow:scoreSemantics implies a label-set decision rule (softmax → argmax, sigmoid → independent-threshold) that MUST match its emitted label's set gmeow:labelSetDecision — a softmax score over a multi-label set (or a sigmoid over an exclusive set) is an inconsistency (a hard fail)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/scoreSemantics> ?sem . $this <https://blackcatinformatics.ca/gmeow/emittedLabel> ?label . ?sem <https://blackcatinformatics.ca/gmeow/impliesLabelSetDecision> ?implied . ?label <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ?set . ?set <https://blackcatinformatics.ca/gmeow/labelSetDecision> ?declared . FILTER ( ?implied != ?declared ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/AffectDecisionSingleLabelConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectDecision> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectDecision> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:AffectDecision may only be recorded over a single-label (gmeow:decisionArgmax) label set — a categorical argmax decision over a multi-label set has no single winner (a hard fail)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/decidedLabel> ?label . ?label <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ?set . ?set <https://blackcatinformatics.ca/gmeow/labelSetDecision> ?rule . FILTER ( ?rule != <https://blackcatinformatics.ca/gmeow/decisionArgmax> ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/AffectScaleProfileRangeConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "An AffectScaleProfile is degenerate: gmeow:profileRangeMax must strictly exceed gmeow:profileRangeMin — an inverted or empty range frames nothing (Principle 11)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/profileRangeMin> ?min . $this <https://blackcatinformatics.ca/gmeow/profileRangeMax> ?max . FILTER ( ?max <= ?min ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/AppraisalDimensionValuePairConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/Appraisal> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Appraisal> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A dimensional value needs its dimension (and a dimension its value) — half a reading is no reading." ;
+        sh:select """SELECT $this WHERE { { $this <https://blackcatinformatics.ca/gmeow/appraisalValue> ?v . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/appraisalDimension> ?d . } } UNION { $this <https://blackcatinformatics.ca/gmeow/appraisalDimension> ?d2 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/appraisalValue> ?v2 . } } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/AppraisalFramedValueConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/Appraisal> ;
@@ -39,6 +193,17 @@
         sh:severity sh:Violation ;
         sh:message "An Appraisal must read SOMETHING: a dimensional value (dimension + value) or at least one aesthetic quality." ;
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/gmeow/appraisalQuality> ?q . } UNION { $this <https://blackcatinformatics.ca/gmeow/appraisalDimension> ?d . $this <https://blackcatinformatics.ca/gmeow/appraisalValue> ?vv . } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/AppraisalScaleProfileIsProfileConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/Appraisal> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/Appraisal> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:appraisalScaleProfile names exactly one gmeow:AffectScaleProfile IRI — never a literal, a blank node, or a non-profile IRI (the reshape's frame must actually be a frame, Principle 6)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/appraisalScaleProfile> ?p . FILTER NOT EXISTS { ?p a <https://blackcatinformatics.ca/gmeow/AffectScaleProfile> . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/AssessmentMethodConstraintProceduralConstraintShape>
@@ -162,6 +327,61 @@
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { ?att a <https://blackcatinformatics.ca/gmeow/Attestation> . { ?att <https://blackcatinformatics.ca/gmeow/attestedSubject> $this . } UNION { $this <https://blackcatinformatics.ca/gmeow/hasAttestation> ?att . } } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityBasisPresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A derived affect intensity must declare its gmeow:intensityBasis (the AffectVectorObservation it is the norm of) — a floating intensity with no basis is a hard fail (Principle 12)." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/intensityBasis> ?o . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityMetricPresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A derived affect intensity must declare its gmeow:metricProfile (scale normalization) — an intensity with no declared scale is a hard fail." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/metricProfile> ?o . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityNoStoredMagnitudeConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A derived affect intensity must NOT carry a stored magnitude (gmeow:appraisalValue) — the norm is a recomputable derived view, never a stored ground fact (Principle 12); a stored intensity value is a hard fail." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/appraisalValue> ?v . }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityNormPresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A derived affect intensity must declare its gmeow:normFunction (the math:Norm) — a raw L² over the non-orthogonal affect basis is not a default; the metric is an explicit, grounded math:Norm IRI or it is a hard fail." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/normFunction> ?o . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityWeightingIriConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/DerivedAffectIntensityObservation> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A derived affect intensity must declare its gmeow:weightingPolicy — the basis is non-orthogonal, so the weighting is an explicit, machine-readable gmeow:WeightingPolicy IRI, never assumed and never a free-text string." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/weightingPolicy> ?w . FILTER ( isIRI(?w) ) } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/DisclosureLeakConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/DisclosureLeakShape> ;
@@ -171,6 +391,17 @@
         sh:severity sh:Violation ;
         sh:message "A fact marked gmeow:policyNeverPublic or gmeow:policyInternalOnly must not be eligible for any public consumer (e.g. consumerPublicSite, consumerWikidata, consumerWikipedia, consumerSchemaOrgJsonLd, consumerFoafExport). Principle 10: suppression, never erasure — withhold at projection time." ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/hasDisclosurePolicy> ?policy . FILTER ( ?policy IN (<https://blackcatinformatics.ca/gmeow/policyNeverPublic>, <https://blackcatinformatics.ca/gmeow/policyInternalOnly>) ) $this <https://blackcatinformatics.ca/gmeow/eligibleForConsumer> ?consumer . FILTER ( ?consumer IN (<https://blackcatinformatics.ca/gmeow/consumerPublicSite>, <https://blackcatinformatics.ca/gmeow/consumerWikidata>, <https://blackcatinformatics.ca/gmeow/consumerWikipedia>, <https://blackcatinformatics.ca/gmeow/consumerSchemaOrgJsonLd>, <https://blackcatinformatics.ca/gmeow/consumerFoafExport>) ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ExclusiveAffectiveClaimConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/AffectiveClaim> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/AffectiveClaim> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "At most one gmeow:AffectiveClaim may be routed over one target from a single-label (gmeow:decisionArgmax) classifier run — a threshold policy admitting two mutually-exclusive claims over an exclusive label set is a hard fail." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/observedFeature> ?target . ?out1 <https://blackcatinformatics.ca/gmeow/supportsAffectiveClaim> $this . ?out1 <https://blackcatinformatics.ca/gmeow/producedBy> ?run . ?out1 <https://blackcatinformatics.ca/gmeow/emittedLabel> ?l1 . ?l1 <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ?set . ?set <https://blackcatinformatics.ca/gmeow/labelSetDecision> <https://blackcatinformatics.ca/gmeow/decisionArgmax> . ?other a <https://blackcatinformatics.ca/gmeow/AffectiveClaim> . ?other <https://blackcatinformatics.ca/gmeow/observedFeature> ?target . FILTER ( ?other != $this ) ?out2 <https://blackcatinformatics.ca/gmeow/supportsAffectiveClaim> ?other . ?out2 <https://blackcatinformatics.ca/gmeow/producedBy> ?run . ?out2 <https://blackcatinformatics.ca/gmeow/emittedLabel> ?l2 . ?l2 <https://blackcatinformatics.ca/gmeow/memberOfLabelSet> ?set . }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/ExemplarEvidenceConstraintProceduralConstraintShape>
@@ -287,6 +518,39 @@
         sh:severity sh:Violation ;
         sh:message "Every Manifestation must embody at least one Expression (gmeow:embodies)." ;
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/embodies> ?v0 . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ModelInferenceRunIdentifierPresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ModelInferenceRun> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ModelInferenceRun> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A ModelInferenceRun must declare exactly one gmeow:modelIdentifier (the model repo id) — run provenance is mandatory and single-valued." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/modelIdentifier> ?o . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ModelInferenceRunRevisionPresentConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ModelInferenceRun> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ModelInferenceRun> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A ModelInferenceRun must declare exactly one pinned gmeow:modelRevision — a model name without a single pinned revision fails reproducibility (a hard fail)." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/modelRevision> ?o . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/ModelInferenceRunRevisionUniqueConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ModelInferenceRun> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/ModelInferenceRun> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A ModelInferenceRun must declare exactly one pinned gmeow:modelRevision — a model name without a single pinned revision fails reproducibility (a hard fail)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/modelRevision> ?a . $this <https://blackcatinformatics.ca/gmeow/modelRevision> ?b . FILTER ( ?a != ?b ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/NarrativeDiscourseAnchorConstraintProceduralConstraintShape>
