@@ -4765,3 +4765,170 @@ lang:gcpHas a logic:Formula ;
     logic:exists lang:gcpCp .
 lang:gcpCp a logic:Formula ; logic:relation gmeow:gmnCodepoints ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "cp" ] .
+
+# =========================================================================== #
+# Procedural constraints (#1194): the final gaps closing the projection of the #
+# hand-authored SHACL sh:sparql shapes. InternalLanguageTag uses the lang()    #
+# language-tag filter (logic:termLangTagPresent / logic:termLangTagMatches);    #
+# the GmnVersionOverclaim residual disjuncts (direct-mnemomorphic and the      #
+# gmnAcceptWindow tolerance) are authored as peer constraints beside the        #
+# translationCorrespondence disjunct above; SlotIndexUnique is a self-join.    #
+# =========================================================================== #
+
+# Every language-tagged literal on a gmeow: predicate must use the 'x-gmeow-'
+# private-use language-tag prefix. The focus is any node carrying such a literal
+# (a raw sh:SPARQLTarget); the violation is a gmeow-predicate literal whose tag
+# is present but does not match the x-gmeow- private-use pattern.
+lang:InternalLanguageTagConstraint
+    a logic:Constraint ;
+    rdfs:label "GMEOW internal language-tag constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: every language-tagged literal on a gmeow: predicate uses an 'x-gmeow-' private-use language tag (RFC 5646 private-use subtag discipline)."@x-gmeow-english ;
+    logic:formalizes gmeow:InternalLanguageTagShape ;
+    logic:severity "Violation" ;
+    logic:message "Literals in GMEOW must use the 'x-gmeow-' private-use prefix for language tags." ;
+    logic:integrity lang:iltForall .
+lang:iltForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:iltImpl .
+lang:iltImpl a logic:Formula ; logic:antecedent lang:iltGuard ; logic:consequent lang:iltPhi .
+lang:iltGuard a logic:Formula ; logic:relation logic:sparqlTarget ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+        [ logic:termIndex 1 ; logic:termLiteral """SELECT DISTINCT ?this WHERE { ?this ?p ?value . FILTER ( STRSTARTS(STR(?p), "https://blackcatinformatics.ca/gmeow/") ) FILTER ( isLiteral(?value) && lang(?value) != "" ) }""" ] .
+lang:iltPhi a logic:Formula ; logic:not lang:iltEx .
+lang:iltEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+    logic:exists lang:iltBody .
+lang:iltBody a logic:Formula ; logic:and lang:iltLink , lang:iltNs , lang:iltLit , lang:iltLangPresent , lang:iltNotXgmeow .
+lang:iltLink a logic:Formula ; logic:relation logic:linkVia ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] , [ logic:termIndex 2 ; logic:termVariable "value" ] .
+lang:iltNs a logic:Formula ; logic:relation logic:termStrStarts ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ] , [ logic:termIndex 1 ; logic:termLiteral "https://blackcatinformatics.ca/gmeow/" ] .
+lang:iltLit a logic:Formula ; logic:relation logic:termIsLiteral ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] .
+lang:iltLangPresent a logic:Formula ; logic:relation logic:termLangTagPresent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] .
+lang:iltNotXgmeow a logic:Formula ; logic:not lang:iltXgmeow .
+lang:iltXgmeow a logic:Formula ; logic:relation logic:termLangTagMatches ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] , [ logic:termIndex 1 ; logic:termLiteral "^x-gmeow-[a-z0-9\\-]+$" ] , [ logic:termIndex 2 ; logic:termLiteral "i" ] .
+
+# GmnVersionOverclaim residual peer 1 — the migration record IS the correspondence:
+# a subject of gmeow:gmnMigratesTo carrying logic:mnemomorphic true directly (no
+# separate lang:translationCorrespondence hop) over a stronger-than-additive bump.
+lang:GmnVersionOverclaimDirectConstraint
+    a logic:Constraint ;
+    rdfs:label "GMN version overclaim (direct) constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a GMN migration (a subject of gmeow:gmnMigratesTo) that carries logic:mnemomorphic true DIRECTLY is honest only over an additive bump (a destination gmeow:versionScale of gmeow:scaleMinor or gmeow:scaleTrivial)."@x-gmeow-english ;
+    logic:formalizes lang:GmnVersionOverclaimShape ;
+    logic:severity "Violation" ;
+    logic:message "A GMN migration claims logic:mnemomorphic true over a stronger-than-additive version bump; the version machinery never claims more than its lineage discharges." ;
+    logic:integrity lang:gvdForall .
+lang:gvdForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vg" ] ;
+    logic:forall lang:gvdImpl .
+lang:gvdImpl a logic:Formula ; logic:antecedent lang:gvdGuard ; logic:consequent lang:gvdPhi .
+lang:gvdGuard a logic:Formula ; logic:relation gmeow:gmnMigratesTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vg" ] .
+lang:gvdPhi a logic:Formula ; logic:not lang:gvdEx .
+lang:gvdEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termVariable "m" ] , [ logic:termIndex 2 ; logic:termVariable "sc" ] ;
+    logic:exists lang:gvdBody .
+lang:gvdBody a logic:Formula ; logic:and lang:gvdTo , lang:gvdMnemo , lang:gvdMember , lang:gvdScale , lang:gvdNotMinor , lang:gvdNotTrivial .
+lang:gvdTo a logic:Formula ; logic:relation gmeow:gmnMigratesTo ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+lang:gvdMnemo a logic:Formula ; logic:relation logic:mnemomorphic ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] .
+lang:gvdMember a logic:Formula ; logic:relation gmeow:versionMember ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+lang:gvdScale a logic:Formula ; logic:relation gmeow:versionScale ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "sc" ] .
+lang:gvdNotMinor a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sc" ] , [ logic:termIndex 1 ; logic:termIri gmeow:scaleMinor ] .
+lang:gvdNotTrivial a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "sc" ] , [ logic:termIndex 1 ; logic:termIri gmeow:scaleTrivial ] .
+
+# GmnVersionOverclaim residual peer 2 — the accept-window tolerance: a
+# gmeow:gmnAcceptWindow greater than 1 is silent tolerance, not judged migration.
+lang:GmnAcceptWindowOverclaimConstraint
+    a logic:Constraint ;
+    rdfs:label "GMN accept-window overclaim constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a gmeow:gmnAcceptWindow is at most 1; a window greater than 1 is silent tolerance, not judged migration."@x-gmeow-english ;
+    logic:formalizes lang:GmnVersionOverclaimShape ;
+    logic:severity "Violation" ;
+    logic:message "A gmeow:gmnAcceptWindow exceeds 1; the version machinery never claims more than its lineage discharges." ;
+    logic:integrity lang:gawForall .
+lang:gawForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] ;
+    logic:forall lang:gawImpl .
+lang:gawImpl a logic:Formula ; logic:antecedent lang:gawGuard ; logic:consequent lang:gawPhi .
+lang:gawGuard a logic:Formula ; logic:relation gmeow:gmnAcceptWindow ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "w" ] .
+lang:gawPhi a logic:Formula ; logic:relation logic:termLessEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "w" ] , [ logic:termIndex 1 ; logic:termLiteral "1" ; logic:termLiteralDatatype xsd:integer ] .
+
+# SlotIndexUnique — two lang:FormSlot individuals of one lang:ComposedForm never
+# share a lang:slotIndex (a self-join over lang:formSlot with a distinct filter).
+lang:SlotIndexUniqueConstraint
+    a logic:Constraint ;
+    rdfs:label "Slot index uniqueness constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: two distinct lang:FormSlot individuals of one lang:ComposedForm never share a lang:slotIndex, so constituent order is unambiguous."@x-gmeow-english ;
+    logic:formalizes lang:SlotIndexUniqueShape ;
+    logic:severity "Violation" ;
+    logic:message "Two form slots of one composed form share a slot index." ;
+    logic:integrity lang:siuForall .
+lang:siuForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall lang:siuImpl .
+lang:siuImpl a logic:Formula ; logic:antecedent lang:siuGuard ; logic:consequent lang:siuPhi .
+lang:siuGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri lang:ComposedForm ] .
+lang:siuPhi a logic:Formula ; logic:not lang:siuEx .
+lang:siuEx a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s1" ] , [ logic:termIndex 1 ; logic:termVariable "s2" ] , [ logic:termIndex 2 ; logic:termVariable "i" ] ;
+    logic:exists lang:siuBody .
+lang:siuBody a logic:Formula ; logic:and lang:siuF1 , lang:siuF2 , lang:siuI1 , lang:siuI2 , lang:siuDistinct .
+lang:siuF1 a logic:Formula ; logic:relation lang:formSlot ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s1" ] .
+lang:siuF2 a logic:Formula ; logic:relation lang:formSlot ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s2" ] .
+lang:siuI1 a logic:Formula ; logic:relation lang:slotIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s1" ] , [ logic:termIndex 1 ; logic:termVariable "i" ] .
+lang:siuI2 a logic:Formula ; logic:relation lang:slotIndex ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s2" ] , [ logic:termIndex 1 ; logic:termVariable "i" ] .
+lang:siuDistinct a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s1" ] , [ logic:termIndex 1 ; logic:termVariable "s2" ] .
+
+# =========================================================================== #
+# Procedural constraint (#1194): slot-index contiguity. A lang:ComposedForm's  #
+# slot indexes are zero-based and contiguous — MIN = 0 and MAX = COUNT - 1.    #
+# A MIN/MAX/COUNT(DISTINCT) grouped aggregate, authored as a                    #
+# logic:AggregateQueryConstraint projecting to the sh:SPARQLConstraint twin of #
+# the hand-authored lang:SlotContiguityShape.                                  #
+# =========================================================================== #
+lang:SlotContiguityConstraint
+    a logic:AggregateQueryConstraint ;
+    rdfs:label "Slot contiguity constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a lang:ComposedForm's lang:slotIndex values are zero-based and contiguous — the minimum index is 0 and the maximum is the distinct slot count minus one, so a gap or a non-zero start is rejected."@x-gmeow-english ;
+    logic:onClass lang:ComposedForm ;
+    logic:formalizes lang:SlotContiguityShape ;
+    logic:severity "Violation" ;
+    logic:message "A composed form's slot indexes are not zero-based and contiguous." ;
+    logic:aqPattern
+        [ logic:aqSubj "this" ; logic:aqPred lang:formSlot ; logic:aqObj "s" ] ,
+        [ logic:aqSubj "s" ; logic:aqPred lang:slotIndex ; logic:aqObj "i" ] ;
+    logic:aqBinding
+        [ logic:aqResult "cnt" ; logic:aqFunction "COUNT" ; logic:aqDistinct true ; logic:aqOperandVar "i" ] ,
+        [ logic:aqResult "mx" ; logic:aqFunction "MAX" ; logic:aqOperandVar "i" ] ,
+        [ logic:aqResult "mn" ; logic:aqFunction "MIN" ; logic:aqOperandVar "i" ] ;
+    logic:aqHaving
+        [ logic:aqLeftVar "mn" ; logic:aqOp "!=" ; logic:aqRightInt 0 ] ,
+        [ logic:aqLeftVar "mx" ; logic:aqLeftPlus 1 ; logic:aqOp "!=" ; logic:aqRightVar "cnt" ] .

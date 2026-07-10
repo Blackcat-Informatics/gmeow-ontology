@@ -698,3 +698,65 @@ logic:stsSrcMod a logic:Formula ; logic:relation gmeow:sourceModifiedAt ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "srcMod" ] .
 logic:stsLe a logic:Formula ; logic:relation logic:termLessEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "srcMod" ] , [ logic:termIndex 1 ; logic:termVariable "assertedAt" ] .
+
+gmeow:ClaimNeedsEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:label "Claim needs evidence constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity warning: an LLM-extracted gmeow:StandpointClaim carrying no gmeow:groundedIn evidence span is a flagged hallucination — surfaced, retained, never deleted (P10). Targets only machine-extracted claims: a human assertion without pinned evidence is ordinary testimony, not a flag."@x-gmeow-english ;
+    logic:severity "Warning" ;
+    logic:formalizes gmeow:ClaimNeedsEvidenceShape ;
+    logic:message "An LLM-extracted claim carries no gmeow:groundedIn evidence span — a flagged hallucination (P10: flagged, never deleted). See docs/hallucination-resistant-kg.md." ;
+    logic:integrity logic:cneForall .
+logic:cneForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall logic:cneImpl .
+logic:cneImpl a logic:Formula ; logic:antecedent logic:cneGuard ; logic:consequent logic:cneExists .
+logic:cneGuard a logic:Formula ; logic:and logic:cneType , logic:cneMethod .
+logic:cneType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:StandpointClaim ] .
+logic:cneMethod a logic:Formula ; logic:relation gmeow:observationMethod ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:methodLlmExtraction ] .
+logic:cneExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "span" ] ;
+    logic:exists logic:cneBody .
+logic:cneBody a logic:Formula ; logic:relation gmeow:groundedIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "span" ] .
+
+gmeow:GroundingSpanConstraint
+    a logic:Constraint ;
+    rdfs:label "Grounding span constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a span used for claim grounding (an object of gmeow:groundedIn) must be mechanically checkable — pinned into a chunk (gmeow:spanOfChunk), offset-located (gmeow:spanStart / gmeow:spanEnd), and polarity-classified (gmeow:supportPolarity). Targets only spans reached via gmeow:groundedIn — citation selectors are not chunk-pinned and are not targeted."@x-gmeow-english ;
+    logic:formalizes gmeow:GroundingSpanShape ;
+    logic:message "A grounding span must be mechanically checkable — pinned into a chunk (gmeow:spanOfChunk), offset-located (gmeow:spanStart / gmeow:spanEnd), and polarity-classified (gmeow:supportPolarity)." ;
+    logic:integrity logic:gspForall .
+logic:gspForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "claim" ] ;
+    logic:forall logic:gspImpl .
+logic:gspImpl a logic:Formula ; logic:antecedent logic:gspGuard ; logic:consequent logic:gspBody .
+logic:gspGuard a logic:Formula ; logic:relation gmeow:groundedIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+logic:gspBody a logic:Formula ; logic:and logic:gspChunk , logic:gspStart , logic:gspEnd , logic:gspPolarity .
+logic:gspChunk a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "c" ] ;
+    logic:exists logic:gspChunkAtom .
+logic:gspChunkAtom a logic:Formula ; logic:relation gmeow:spanOfChunk ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
+logic:gspStart a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] ;
+    logic:exists logic:gspStartAtom .
+logic:gspStartAtom a logic:Formula ; logic:relation gmeow:spanStart ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+logic:gspEnd a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "e" ] ;
+    logic:exists logic:gspEndAtom .
+logic:gspEndAtom a logic:Formula ; logic:relation gmeow:spanEnd ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
+logic:gspPolarity a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ;
+    logic:exists logic:gspPolarityAtom .
+logic:gspPolarityAtom a logic:Formula ; logic:relation gmeow:supportPolarity ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .

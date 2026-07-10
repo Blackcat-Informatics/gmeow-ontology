@@ -382,6 +382,17 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/claimCredence> ?v . FILTER ( ?v > '1.0'^^<http://www.w3.org/2001/XMLSchema#decimal> ) }""" ;
     ] .
 
+<https://blackcatinformatics.ca/gmeow/ClaimNeedsEvidenceConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/ClaimNeedsEvidenceShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/StandpointClaim> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Warning ;
+        sh:message "An LLM-extracted claim carries no gmeow:groundedIn evidence span — a flagged hallucination (P10: flagged, never deleted). See docs/hallucination-resistant-kg.md." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/observationMethod> <https://blackcatinformatics.ca/gmeow/methodLlmExtraction> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/groundedIn> ?span . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/gmeow/CoarsenToReachabilityConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/gmeow/coarsenTo> ;
@@ -837,6 +848,17 @@
         sh:severity sh:Violation ;
         sh:message "A gmeow:Permission's gmeow:deonticModality must be gmeow:deonticPermission; a permission carrying an obligation or prohibition modality is ill-formed." ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/deonticModality> ?v . FILTER ( ?v NOT IN (<https://blackcatinformatics.ca/gmeow/deonticPermission>) ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/gmeow/GroundingSpanConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/gmeow/GroundingSpanShape> ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/gmeow/groundedIn> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A grounding span must be mechanically checkable — pinned into a chunk (gmeow:spanOfChunk), offset-located (gmeow:spanStart / gmeow:spanEnd), and polarity-classified (gmeow:supportPolarity)." ;
+        sh:select """SELECT $this WHERE { ?claim <https://blackcatinformatics.ca/gmeow/groundedIn> $this . { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/spanOfChunk> ?c . } } UNION { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/spanStart> ?s . } } UNION { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/spanEnd> ?e . } } UNION { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/supportPolarity> ?p . } } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/gmeow/HazardBearerConstraintProceduralConstraintShape>
@@ -2005,6 +2027,17 @@
         sh:select """SELECT $this WHERE { { $this a <https://blackcatinformatics.ca/lang/Form> . } UNION { $this a <https://blackcatinformatics.ca/lang/Denotation> . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/lang/GmnAcceptWindowOverclaimConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/GmnVersionOverclaimShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gmnAcceptWindow> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:gmnAcceptWindow exceeds 1; the version machinery never claims more than its lineage discharges." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/gmnAcceptWindow> ?w . FILTER ( ?w > '1'^^<http://www.w3.org/2001/XMLSchema#integer> ) }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/lang/GmnCodepointCanonicalConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/GmnCodepointCanonicalShape> ;
@@ -2082,6 +2115,17 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/gmnMigratesTo> ?vg . $this <https://blackcatinformatics.ca/gmeow/gmnMigratesTo> ?v . $this <https://blackcatinformatics.ca/lang/translationCorrespondence> ?c . ?c <https://blackcatinformatics.ca/logic/mnemomorphic> 'true'^^<http://www.w3.org/2001/XMLSchema#boolean> . ?m <https://blackcatinformatics.ca/gmeow/versionMember> ?v . ?m <https://blackcatinformatics.ca/gmeow/versionScale> ?sc . FILTER ( ?sc != <https://blackcatinformatics.ca/gmeow/scaleMinor> ) FILTER ( ?sc != <https://blackcatinformatics.ca/gmeow/scaleTrivial> ) }""" ;
     ] .
 
+<https://blackcatinformatics.ca/lang/GmnVersionOverclaimDirectConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/GmnVersionOverclaimShape> ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/gmnMigratesTo> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A GMN migration claims logic:mnemomorphic true over a stronger-than-additive version bump; the version machinery never claims more than its lineage discharges." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/gmnMigratesTo> ?vg . $this <https://blackcatinformatics.ca/gmeow/gmnMigratesTo> ?v . $this <https://blackcatinformatics.ca/logic/mnemomorphic> 'true'^^<http://www.w3.org/2001/XMLSchema#boolean> . ?m <https://blackcatinformatics.ca/gmeow/versionMember> ?v . ?m <https://blackcatinformatics.ca/gmeow/versionScale> ?sc . FILTER ( ?sc != <https://blackcatinformatics.ca/gmeow/scaleMinor> ) FILTER ( ?sc != <https://blackcatinformatics.ca/gmeow/scaleTrivial> ) }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/lang/GraphemeRepertoireConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/lang/Grapheme> ;
@@ -2146,6 +2190,17 @@
         sh:severity sh:Violation ;
         sh:message "A lang:slotForm value must be a resource (a blank node or IRI), never a literal." ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/slotForm> ?g . $this <https://blackcatinformatics.ca/lang/slotForm> ?v . FILTER ( !( isIRI(?v) || isBlank(?v) ) ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/lang/SlotIndexUniqueConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/lang/SlotIndexUniqueShape> ;
+    sh:targetClass <https://blackcatinformatics.ca/lang/ComposedForm> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "Two form slots of one composed form share a slot index." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/formSlot> ?s1 . $this <https://blackcatinformatics.ca/lang/formSlot> ?s2 . ?s1 <https://blackcatinformatics.ca/lang/slotIndex> ?i . ?s2 <https://blackcatinformatics.ca/lang/slotIndex> ?i . FILTER ( ?s1 != ?s2 ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/lang/SurfaceAnalysisStructureConstraintProceduralConstraintShape>

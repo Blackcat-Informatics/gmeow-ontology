@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# ---------------------------------------------------------------------------
+# Constraint 6 — StatementMetadata: exactly one of qObject / qObjectLiteral
+# ---------------------------------------------------------------------------
+gmeow:StatementMetadataObjectXorConstraint
+    a logic:Constraint ;
+    rdfs:label "StatementMetadata object exactly-one constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> ;
+    skos:definition "A closed-world integrity constraint: a gmeow:StatementMetadata names exactly one of gmeow:qObject (an IRI object) or gmeow:qObjectLiteral (a literal object)."@x-gmeow-english ;
+    logic:formalizes gmeow:StatementMetadataShape ;
+    logic:severity "Violation" ;
+    logic:message "StatementMetadata needs exactly one of qObject (IRI) or qObjectLiteral" ;
+    logic:integrity gmeow:smXoForall .
+gmeow:smXoForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall gmeow:smXoImpl .
+gmeow:smXoImpl a logic:Formula ; logic:antecedent gmeow:smXoGuard ; logic:consequent gmeow:smXoPhi .
+gmeow:smXoGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:StatementMetadata ] .
+gmeow:smXoPhi a logic:Formula ; logic:or gmeow:smXoL , gmeow:smXoR .
+gmeow:smXoL a logic:Formula ; logic:and gmeow:smXoA1 , gmeow:smXoNotB1 .
+gmeow:smXoR a logic:Formula ; logic:and gmeow:smXoNotA1 , gmeow:smXoB1 .
+gmeow:smXoA1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ; logic:exists gmeow:smXoAAtom1 .
+gmeow:smXoAAtom1 a logic:Formula ; logic:relation gmeow:qObject ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+gmeow:smXoNotA1 a logic:Formula ; logic:not gmeow:smXoA2 .
+gmeow:smXoA2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ; logic:exists gmeow:smXoAAtom2 .
+gmeow:smXoAAtom2 a logic:Formula ; logic:relation gmeow:qObject ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
+gmeow:smXoB1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "l" ] ; logic:exists gmeow:smXoBAtom1 .
+gmeow:smXoBAtom1 a logic:Formula ; logic:relation gmeow:qObjectLiteral ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "l" ] .
+gmeow:smXoNotB1 a logic:Formula ; logic:not gmeow:smXoB2 .
+gmeow:smXoB2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "l" ] ; logic:exists gmeow:smXoBAtom2 .
+gmeow:smXoBAtom2 a logic:Formula ; logic:relation gmeow:qObjectLiteral ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "l" ] .

@@ -1,0 +1,225 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# ---------------------------------------------------------------------------
+# Constraint 7 — CompetencyQuestion: cqDataFile only in asserted (reasoningNone) lane
+# ---------------------------------------------------------------------------
+gmeow:CompetencyQuestionDataFileLaneConstraint
+    a logic:Constraint ;
+    rdfs:label "CompetencyQuestion data-file lane constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    skos:definition "A closed-world integrity constraint: a gmeow:CompetencyQuestion must not carry gmeow:cqDataFile together with gmeow:cqReasoning gmeow:reasoningRdfs; the data file is only honoured in the asserted gmeow:reasoningNone lane."@x-gmeow-english ;
+    logic:formalizes gmeow:CompetencyQuestionShape ;
+    logic:severity "Violation" ;
+    logic:message "CompetencyQuestion gmeow:cqDataFile is only honoured in the asserted (gmeow:reasoningNone) lane, not gmeow:reasoningRdfs" ;
+    logic:integrity gmeow:cqdForall .
+gmeow:cqdForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall gmeow:cqdImpl .
+gmeow:cqdImpl a logic:Formula ; logic:antecedent gmeow:cqdGuard ; logic:consequent gmeow:cqdPhi .
+gmeow:cqdGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:CompetencyQuestion ] .
+gmeow:cqdPhi a logic:Formula ; logic:not gmeow:cqdAnd .
+gmeow:cqdAnd a logic:Formula ; logic:and gmeow:cqdDataEx , gmeow:cqdRdfsAtom .
+gmeow:cqdDataEx a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ; logic:exists gmeow:cqdDataAtom .
+gmeow:cqdDataAtom a logic:Formula ; logic:relation gmeow:cqDataFile ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+gmeow:cqdRdfsAtom a logic:Formula ; logic:relation gmeow:cqReasoning ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:reasoningRdfs ] .
+
+# ---------------------------------------------------------------------------
+# Constraint 8 — CompetencyQuestion: exactly one of cqQuery / cqQueryFile
+# ---------------------------------------------------------------------------
+gmeow:CompetencyQuestionQueryXorConstraint
+    a logic:Constraint ;
+    rdfs:label "CompetencyQuestion query exactly-one constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    skos:definition "A closed-world integrity constraint: a gmeow:CompetencyQuestion names exactly one of gmeow:cqQuery (an inline query) or gmeow:cqQueryFile (a referenced query file)."@x-gmeow-english ;
+    logic:formalizes gmeow:CompetencyQuestionShape ;
+    logic:severity "Violation" ;
+    logic:message "CompetencyQuestion needs exactly one of gmeow:cqQuery (inline) or gmeow:cqQueryFile (referenced)" ;
+    logic:integrity gmeow:cqqForall .
+gmeow:cqqForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall gmeow:cqqImpl .
+gmeow:cqqImpl a logic:Formula ; logic:antecedent gmeow:cqqGuard ; logic:consequent gmeow:cqqPhi .
+gmeow:cqqGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:CompetencyQuestion ] .
+gmeow:cqqPhi a logic:Formula ; logic:or gmeow:cqqL , gmeow:cqqR .
+gmeow:cqqL a logic:Formula ; logic:and gmeow:cqqA1 , gmeow:cqqNotB1 .
+gmeow:cqqR a logic:Formula ; logic:and gmeow:cqqNotA1 , gmeow:cqqB1 .
+gmeow:cqqA1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "q" ] ; logic:exists gmeow:cqqAAtom1 .
+gmeow:cqqAAtom1 a logic:Formula ; logic:relation gmeow:cqQuery ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] .
+gmeow:cqqNotA1 a logic:Formula ; logic:not gmeow:cqqA2 .
+gmeow:cqqA2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "q" ] ; logic:exists gmeow:cqqAAtom2 .
+gmeow:cqqAAtom2 a logic:Formula ; logic:relation gmeow:cqQuery ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "q" ] .
+gmeow:cqqB1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "f" ] ; logic:exists gmeow:cqqBAtom1 .
+gmeow:cqqBAtom1 a logic:Formula ; logic:relation gmeow:cqQueryFile ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] .
+gmeow:cqqNotB1 a logic:Formula ; logic:not gmeow:cqqB2 .
+gmeow:cqqB2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "f" ] ; logic:exists gmeow:cqqBAtom2 .
+gmeow:cqqBAtom2 a logic:Formula ; logic:relation gmeow:cqQueryFile ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] .
+
+# ---------------------------------------------------------------------------
+# Constraint 9 — CompetencyQuestion: exactly one expectation (ASK XOR SELECT)
+# ---------------------------------------------------------------------------
+gmeow:CompetencyQuestionExpectationXorConstraint
+    a logic:Constraint ;
+    rdfs:label "CompetencyQuestion expectation exactly-one constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    skos:definition "A closed-world integrity constraint: a gmeow:CompetencyQuestion names exactly one expectation kind — gmeow:cqExpectAsk (for ASK queries) exclusive-or at least one SELECT expectation (gmeow:cqExpectRow or gmeow:cqExpectRowCount)."@x-gmeow-english ;
+    logic:formalizes gmeow:CompetencyQuestionShape ;
+    logic:severity "Violation" ;
+    logic:message "CompetencyQuestion needs exactly one expectation: either gmeow:cqExpectAsk (for ASK) XOR at least one SELECT expectation (gmeow:cqExpectRow or gmeow:cqExpectRowCount)" ;
+    logic:integrity gmeow:cqeForall .
+gmeow:cqeForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall gmeow:cqeImpl .
+gmeow:cqeImpl a logic:Formula ; logic:antecedent gmeow:cqeGuard ; logic:consequent gmeow:cqePhi .
+gmeow:cqeGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:CompetencyQuestion ] .
+gmeow:cqePhi a logic:Formula ; logic:or gmeow:cqeL , gmeow:cqeR .
+gmeow:cqeL a logic:Formula ; logic:and gmeow:cqeAskEx1 , gmeow:cqeNotSelect1 .
+gmeow:cqeR a logic:Formula ; logic:and gmeow:cqeNotAsk1 , gmeow:cqeSelect1 .
+# A = ∃cqExpectAsk
+gmeow:cqeAskEx1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ; logic:exists gmeow:cqeAskAtom1 .
+gmeow:cqeAskAtom1 a logic:Formula ; logic:relation gmeow:cqExpectAsk ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
+gmeow:cqeNotAsk1 a logic:Formula ; logic:not gmeow:cqeAskEx2 .
+gmeow:cqeAskEx2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ] ; logic:exists gmeow:cqeAskAtom2 .
+gmeow:cqeAskAtom2 a logic:Formula ; logic:relation gmeow:cqExpectAsk ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] .
+# B = Or[∃cqExpectRow, ∃cqExpectRowCount]
+gmeow:cqeSelect1 a logic:Formula ; logic:or gmeow:cqeRowEx1 , gmeow:cqeRowCountEx1 .
+gmeow:cqeRowEx1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] ; logic:exists gmeow:cqeRowAtom1 .
+gmeow:cqeRowAtom1 a logic:Formula ; logic:relation gmeow:cqExpectRow ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
+gmeow:cqeRowCountEx1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "rc" ] ; logic:exists gmeow:cqeRowCountAtom1 .
+gmeow:cqeRowCountAtom1 a logic:Formula ; logic:relation gmeow:cqExpectRowCount ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "rc" ] .
+gmeow:cqeNotSelect1 a logic:Formula ; logic:not gmeow:cqeSelect2 .
+gmeow:cqeSelect2 a logic:Formula ; logic:or gmeow:cqeRowEx2 , gmeow:cqeRowCountEx2 .
+gmeow:cqeRowEx2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "r" ] ; logic:exists gmeow:cqeRowAtom2 .
+gmeow:cqeRowAtom2 a logic:Formula ; logic:relation gmeow:cqExpectRow ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "r" ] .
+gmeow:cqeRowCountEx2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "rc" ] ; logic:exists gmeow:cqeRowCountAtom2 .
+gmeow:cqeRowCountAtom2 a logic:Formula ; logic:relation gmeow:cqExpectRowCount ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "rc" ] .
+
+# ---------------------------------------------------------------------------
+# Constraint 10 — StructuralAssertion: exactly one of saPattern / saShape
+# ---------------------------------------------------------------------------
+gmeow:StructuralAssertionXorConstraint
+    a logic:Constraint ;
+    rdfs:label "StructuralAssertion exactly-one constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    skos:definition "A closed-world integrity constraint: a gmeow:StructuralAssertion names exactly one of gmeow:saPattern (a SPARQL ASK) or gmeow:saShape (a sh:NodeShape IRI)."@x-gmeow-english ;
+    logic:formalizes gmeow:StructuralAssertionShape ;
+    logic:severity "Violation" ;
+    logic:message "StructuralAssertion needs exactly one of gmeow:saPattern (SPARQL ASK) or gmeow:saShape (sh:NodeShape IRI)" ;
+    logic:integrity gmeow:saForall .
+gmeow:saForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall gmeow:saImpl .
+gmeow:saImpl a logic:Formula ; logic:antecedent gmeow:saGuard ; logic:consequent gmeow:saPhi .
+gmeow:saGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:StructuralAssertion ] .
+gmeow:saPhi a logic:Formula ; logic:or gmeow:saL , gmeow:saR .
+gmeow:saL a logic:Formula ; logic:and gmeow:saA1 , gmeow:saNotB1 .
+gmeow:saR a logic:Formula ; logic:and gmeow:saNotA1 , gmeow:saB1 .
+gmeow:saA1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ; logic:exists gmeow:saAAtom1 .
+gmeow:saAAtom1 a logic:Formula ; logic:relation gmeow:saPattern ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+gmeow:saNotA1 a logic:Formula ; logic:not gmeow:saA2 .
+gmeow:saA2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ; logic:exists gmeow:saAAtom2 .
+gmeow:saAAtom2 a logic:Formula ; logic:relation gmeow:saPattern ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p" ] .
+gmeow:saB1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] ; logic:exists gmeow:saBAtom1 .
+gmeow:saBAtom1 a logic:Formula ; logic:relation gmeow:saShape ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+gmeow:saNotB1 a logic:Formula ; logic:not gmeow:saB2 .
+gmeow:saB2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "s" ] ; logic:exists gmeow:saBAtom2 .
+gmeow:saBAtom2 a logic:Formula ; logic:relation gmeow:saShape ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "s" ] .
+
+# ---------------------------------------------------------------------------
+# Constraint 11 — ExampleConformance: violates ⇒ code, conforms ⇒ no code
+# ---------------------------------------------------------------------------
+gmeow:ExampleConformanceViolationCodeConstraint
+    a logic:Constraint ;
+    rdfs:label "ExampleConformance violation-code constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ExampleConformance whose gmeow:expectedOutcome is gmeow:violates must carry gmeow:expectedViolationCode, while one whose outcome is gmeow:conforms must not carry it."@x-gmeow-english ;
+    logic:formalizes gmeow:ExampleConformanceShape ;
+    logic:severity "Violation" ;
+    logic:message "ExampleConformance with gmeow:expectedOutcome gmeow:violates must carry gmeow:expectedViolationCode; gmeow:conforms must NOT" ;
+    logic:integrity gmeow:ecForall .
+gmeow:ecForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall gmeow:ecImpl .
+gmeow:ecImpl a logic:Formula ; logic:antecedent gmeow:ecGuard ; logic:consequent gmeow:ecPhi .
+gmeow:ecGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ExampleConformance ] .
+gmeow:ecPhi a logic:Formula ; logic:not gmeow:ecOr .
+gmeow:ecOr a logic:Formula ; logic:or gmeow:ecArm1 , gmeow:ecArm2 .
+# arm1: outcome=violates ∧ ¬∃code
+gmeow:ecArm1 a logic:Formula ; logic:and gmeow:ecViolatesAtom , gmeow:ecNotCode .
+gmeow:ecViolatesAtom a logic:Formula ; logic:relation gmeow:expectedOutcome ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:violates ] .
+gmeow:ecNotCode a logic:Formula ; logic:not gmeow:ecCodeEx1 .
+gmeow:ecCodeEx1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "c" ] ; logic:exists gmeow:ecCodeAtom1 .
+gmeow:ecCodeAtom1 a logic:Formula ; logic:relation gmeow:expectedViolationCode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
+# arm2: outcome=conforms ∧ ∃code
+gmeow:ecArm2 a logic:Formula ; logic:and gmeow:ecConformsAtom , gmeow:ecCodeEx2 .
+gmeow:ecConformsAtom a logic:Formula ; logic:relation gmeow:expectedOutcome ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:conforms ] .
+gmeow:ecCodeEx2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "c" ] ; logic:exists gmeow:ecCodeAtom2 .
+gmeow:ecCodeAtom2 a logic:Formula ; logic:relation gmeow:expectedViolationCode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "c" ] .
+
+# ---------------------------------------------------------------------------
+# Constraint 12 — ExpectedCell: exactly one of cellValueIri / cellValueLiteral
+# ---------------------------------------------------------------------------
+gmeow:ExpectedCellValueXorConstraint
+    a logic:Constraint ;
+    rdfs:label "ExpectedCell value exactly-one constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+    skos:definition "A closed-world integrity constraint: a gmeow:ExpectedCell names exactly one of gmeow:cellValueIri (an IRI value) or gmeow:cellValueLiteral (a literal value)."@x-gmeow-english ;
+    logic:formalizes gmeow:ExpectedCellShape ;
+    logic:severity "Violation" ;
+    logic:message "ExpectedCell needs exactly one of gmeow:cellValueIri or gmeow:cellValueLiteral" ;
+    logic:integrity gmeow:ecvForall .
+gmeow:ecvForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall gmeow:ecvImpl .
+gmeow:ecvImpl a logic:Formula ; logic:antecedent gmeow:ecvGuard ; logic:consequent gmeow:ecvPhi .
+gmeow:ecvGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ExpectedCell ] .
+gmeow:ecvPhi a logic:Formula ; logic:or gmeow:ecvL , gmeow:ecvR .
+gmeow:ecvL a logic:Formula ; logic:and gmeow:ecvA1 , gmeow:ecvNotB1 .
+gmeow:ecvR a logic:Formula ; logic:and gmeow:ecvNotA1 , gmeow:ecvB1 .
+gmeow:ecvA1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "i" ] ; logic:exists gmeow:ecvAAtom1 .
+gmeow:ecvAAtom1 a logic:Formula ; logic:relation gmeow:cellValueIri ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "i" ] .
+gmeow:ecvNotA1 a logic:Formula ; logic:not gmeow:ecvA2 .
+gmeow:ecvA2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "i" ] ; logic:exists gmeow:ecvAAtom2 .
+gmeow:ecvAAtom2 a logic:Formula ; logic:relation gmeow:cellValueIri ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "i" ] .
+gmeow:ecvB1 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ; logic:exists gmeow:ecvBAtom1 .
+gmeow:ecvBAtom1 a logic:Formula ; logic:relation gmeow:cellValueLiteral ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+gmeow:ecvNotB1 a logic:Formula ; logic:not gmeow:ecvB2 .
+gmeow:ecvB2 a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "v" ] ; logic:exists gmeow:ecvBAtom2 .
+gmeow:ecvBAtom2 a logic:Formula ; logic:relation gmeow:cellValueLiteral ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
