@@ -108,6 +108,61 @@ Gate map:
 - `make rust-test` — all Rust crate tests, including `conformance_<slice>.rs` and `crates/conformance`.
 - `make test` — the bespoke pytest residue (shrinking).
 
+## The continuous uplift lane (slice-quality)
+
+Everything above is about **where a hard pass/fail test bit lives** — a
+competency/structural/example cell, a SHACL case, an engine golden, or the pytest
+residue. The slice-quality lane is a different animal: an **advisory, ratchet-gated
+*measuring* instrument** over a slice, not a hard test cell and not a hard
+validation gate. It never asserts a bit is right or wrong; it scores how far a
+slice has been lifted and holds the gains. Keep the two straight — do not file a
+quality *score* as a competency cell, and do not expect a cell to move a tier.
+
+- **Advisory worklist** — `make slice-quality` scores one slice (`SLICE=…`) or the
+  whole repo (`--all`) against the rubric and prints a prioritized worklist: each
+  slice's roll-up tier plus its capping axis (the weakest axis dragging the meet
+  down). This is advisory only — an undeclared slice is scored but **never** gates.
+- **Ratchet gate** — `make slice-quality-gate` (now part of `make check`) enforces
+  the opt-in ratchet for slices that declare `gmeow:sliceQualityTier`. Two
+  committed governance floors back it: the per-slice tier ratchet in
+  `governance/slice-quality-floors.tsv` and the per-axis score ratchet in
+  `governance/slice-quality-axis-floors.tsv`.
+
+This is the sibling of the four blocking *validation* gates in
+[`docs/validation-thresholds.md`](./validation-thresholds.md): same ratchet
+temperament, different family. Those four are hard validation gates over the whole
+ontology; this one measures per-slice quality. Do not conflate the two floor sets.
+
+**The floor-ratchet policy (raise-only, hard-fail enforced).** Both TSVs are
+monotonic non-regression contracts: a committed floor may be **RAISED** freely as
+a slice earns it, and only ever raised — never lowered, never forced upward ahead
+of a real measured uplift (scores stay objective, uncalibrated intrinsic measures;
+you do not tune a floor to a target). The gate verdicts, verbatim from
+`crates/slice-quality/src/gate.rs`, are:
+
+- `MeasuredBelowDeclared` — the slice's measured roll-up tier fell below the tier
+  its manifest declares.
+- `DeclaredBelowFloor` — the manifest lowered its declared tier below the committed
+  ratchet floor.
+- `MeasuredBelowFloor` — a per-axis measured score fell below that axis's committed
+  floor (gated in addition to, never instead of, the roll-up-tier ratchet).
+
+Separately, a **floor-monotonicity** check diffs each floor file against the merge
+base: a lowered floor line, or a deleted floor for a still-live slice/axis, is a
+HARD FAIL that reds `make slice-quality-gate`. Additions and raises are clean;
+greenfield deletion is allowed only once the slice or axis is genuinely gone.
+
+**Sweep work is never an issue.** Cross-cutting quality work — "every slice needs
+X" — is not filed as an issue and never lands as a mega-PR. Re-scope the sweep into
+the rubric (a new or sharpened axis), the curation docs, and the uplift skill, then
+discharge it continuously, one **slice-local** capping-axis fix at a time, each its
+own small slice-local PR that ratchets one floor. The lane is the sweep.
+
+The operational loop — how to read the worklist, pick the capping axis, land the
+slice-local PR, and ratchet the floor — is the contract in the
+`gmeow-slice-uplift` skill (`.agents/skills/gmeow-slice-uplift/SKILL.md`). Follow
+it there; this section only draws the boundary against the hard test cells above.
+
 ## Recipe: move a QA bit into the slice
 
 For each assertion currently in Python (or being newly authored), pick the home:
