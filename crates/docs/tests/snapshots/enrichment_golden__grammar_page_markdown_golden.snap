@@ -1,0 +1,28 @@
+---
+source: crates/docs/tests/enrichment_golden.rs
+expression: head
+---
+# The GMN\-1 \(GMEOW Model Notation\) surface grammar in W3C EBNF, one production per line
+
+`gmn` · notation grammar · License: `AGPL-3.0-only`
+
+## Grammar source
+
+```ebnf
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# The GMN-1 (GMEOW Model Notation) surface grammar in W3C EBNF, one production
+# per line. This file is a RENDERING of the gmeow:gmnGrammar object in the lang
+# module, never its identity: the grammar object carries the normative claims
+# (LL(1) prefix decodability via gmeow:gmnDeterminismClass, the sigil-role and
+# operator tables). GMN is newline-delimited: every record occupies one line and
+# opens with a record-initial sigil, so a reader dispatches on the first token.
+# The in-band '@gmn' header pins the dialect coordinates (schema version and the
+# alias-table reference) before any record. Records are sigil-then-braced
+# key-value lists; a schema-once tabular batch declares its columns once in an
+# '@claims[...]' header and then streams bare rows. Lexical whitespace rules are
+# carried by the codec, not by these productions.
+
+gmnDoc ::= header line*
+header ::= '@gmn' '{' 'v' ':' integer ',' 'aliases' ':' identifier '}' EOL

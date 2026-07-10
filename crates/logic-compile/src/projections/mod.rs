@@ -525,11 +525,37 @@ pub struct ProjectionResult {
 /// concrete per-correspondence drops are interned into `ledger` under the row's target
 /// focus; the report reads them back as `gmeow:lossyDrop`. The returned row carries only
 /// the identity/judgment — the drops live in the single loss store.
+/// The GMEOW endpoint of an alignment cell — the documented `gmeow:` term the
+/// correspondence's projection loss attributes to. GMEOW is always the source `S` of a
+/// `logic:Correspondence` lens, but an authored cell may carry the gmeow term as either the
+/// subject or the object, so prefer a gmeow subject, then a gmeow object; a cell with no
+/// gmeow endpoint (a purely external↔external crossing) yields `None` — never fabricated onto
+/// a term.
+pub(crate) fn gmeow_endpoint(subject: &str, object: &str) -> Option<String> {
+    if subject.starts_with(GMEOW_NS) {
+        Some(subject.to_owned())
+    } else if object.starts_with(GMEOW_NS) {
+        Some(object.to_owned())
+    } else {
+        None
+    }
+}
+
+/// A single IRI as a DOCUMENTED gmeow: source term — `Some(iri)` when GMEOW-namespaced (so a
+/// funnel drop naming it, e.g. a rule head whose predicate is a gmeow: property with no OWL-DL
+/// / SHACL-AF derivation form, attributes to that term's page), else `None` (a `logic:`-NS
+/// construct — no term page yet — or an external IRI stays whole-program; honest computed
+/// absence, never fabricated onto a term).
+pub(crate) fn gmeow_term(iri: &str) -> Option<String> {
+    iri.starts_with(GMEOW_NS).then(|| iri.to_owned())
+}
+
 pub(crate) fn correspondence_result(
     ledger: &mut crate::loss_ledger::LossLedger,
     dialect: &str,
     key: &str,
     residue: Vec<String>,
+    source_term: Option<String>,
 ) -> ProjectionResult {
     use sha2::{Digest, Sha256};
 
@@ -546,7 +572,16 @@ pub(crate) fn correspondence_result(
     let mut actual_drops = Vec::with_capacity(residue.len() + 1);
     actual_drops.push(format!("correspondence: {key}"));
     actual_drops.extend(residue);
-    ledger.record_projection_drops(&target, kind, &structural, &actual_drops);
+    // Attribute this correspondence cell's residue to its DOCUMENTED source term (the GMEOW
+    // endpoint of the alignment) when one is supplied: the whole cell's drops concern that
+    // term projected DOWN to the external vocabulary (Principle 17), so its projection-loss
+    // row lands on that term's page. `None` (a non-gmeow / undocumented endpoint) leaves the
+    // drops whole-program — never fabricated onto a term.
+    let attributed: Vec<(String, Option<String>)> = actual_drops
+        .into_iter()
+        .map(|note| (note, source_term.clone()))
+        .collect();
+    ledger.record_projection_drops_attributed(&target, kind, &structural, &attributed);
     ProjectionResult {
         target,
         // The legal output is the dialect artifact itself (written elsewhere); the row
@@ -1115,18 +1150,25 @@ pub(crate) fn contract_drop_notes(
 /// One drop note per stratified-aggregation (reduce) rule, for a target that cannot represent
 /// aggregation (Datalog / N3 / Nemo). Carried-and-flagged, never silent; an aggregation-free
 /// program adds nothing, so its ledger is byte-unchanged.
-pub(crate) fn aggregation_drop_notes(program: &LogicProgram, target_label: &str) -> Vec<String> {
+/// Each note paired with the DOCUMENTED gmeow: source term it concerns — the aggregation
+/// rule's head predicate when it is a gmeow: property (so a `gmeow:` aggregation whose reduce
+/// form Datalog/N3/Nemo cannot carry lands on that term's page), else `None` (whole-program).
+pub(crate) fn aggregation_drop_notes(
+    program: &LogicProgram,
+    target_label: &str,
+) -> Vec<(String, Option<String>)> {
     program
         .rules
         .iter()
         .filter(|r| r.aggregation.is_some())
         .map(|r| {
-            format!(
+            let note = format!(
                 "rule deriving <{}> uses stratified aggregation (reduce/GROUP BY), which \
                  {target_label} does not represent; it is carried in the canonical logic: layer \
                  and projected to the SHACL-AF reduce surface",
                 r.head.predicate
-            )
+            );
+            (note, gmeow_term(&r.head.predicate))
         })
         .collect()
 }

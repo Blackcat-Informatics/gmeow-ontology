@@ -333,7 +333,7 @@ fn emit_edoal_nt(
             residue.push("get-leg: the put leg is not carried by EDOAL".to_owned());
             residue.push("get-leg: world/standpoint scope is not carried by EDOAL".to_owned());
             let key = format!("{}::{}", local(&cell.iri), b.profile);
-            ledger.push(correspondence_result(loss, "edoal", &key, residue));
+            ledger.push(correspondence_result(loss, "edoal", &key, residue, None));
         }
     }
     Ok(EmittedEdoal {

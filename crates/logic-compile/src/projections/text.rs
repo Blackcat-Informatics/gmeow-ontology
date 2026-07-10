@@ -151,9 +151,13 @@ pub fn project_datalog(
 
     let content = format!("{}\n", lines.join("\n"));
     let structural: Vec<String> = drops.into_iter().map(str::to_owned).collect();
-    let mut actual_drops = contract_drop_notes(program, "Datalog", &|_| false);
+    let mut actual_drops: Vec<(String, Option<String>)> =
+        contract_drop_notes(program, "Datalog", &|_| false)
+            .into_iter()
+            .map(|n| (n, None))
+            .collect();
     actual_drops.extend(aggregation_drop_notes(program, "Datalog"));
-    loss.record_projection_drops("datalog", kind, &structural, &actual_drops);
+    loss.record_projection_drops_attributed("datalog", kind, &structural, &actual_drops);
     ProjectionResult {
         target: "datalog".to_owned(),
         content,
@@ -281,9 +285,13 @@ pub fn project_n3(
 
     let content = format!("{}\n", lines.join("\n"));
     let structural: Vec<String> = drops.into_iter().map(str::to_owned).collect();
-    let mut actual_drops = contract_drop_notes(program, "N3", &|_| false);
+    let mut actual_drops: Vec<(String, Option<String>)> =
+        contract_drop_notes(program, "N3", &|_| false)
+            .into_iter()
+            .map(|n| (n, None))
+            .collect();
     actual_drops.extend(aggregation_drop_notes(program, "N3"));
-    loss.record_projection_drops("n3", kind, &structural, &actual_drops);
+    loss.record_projection_drops_attributed("n3", kind, &structural, &actual_drops);
     ProjectionResult {
         target: "n3".to_owned(),
         content,
@@ -473,7 +481,11 @@ pub fn project_nemo(
     // formula as flagged residue and make the preservation program-dependent: Exact iff the
     // program carries no formulas, else SoundUnder — so the overclaim gate stays honest
     // instead of a static Exact silently omitting the formula layer.
-    let mut actual_drops = formula_residue_notes(program, "Nemo", &|_| false);
+    let mut actual_drops: Vec<(String, Option<String>)> =
+        formula_residue_notes(program, "Nemo", &|_| false)
+            .into_iter()
+            .map(|n| (n, None))
+            .collect();
     actual_drops.extend(aggregation_drop_notes(program, "Nemo"));
     let preservation = if actual_drops.is_empty() {
         kind
@@ -481,7 +493,7 @@ pub fn project_nemo(
         PreservationKind::SoundUnder
     };
     let structural: Vec<String> = drops.into_iter().map(str::to_owned).collect();
-    loss.record_projection_drops("nemo", preservation, &structural, &actual_drops);
+    loss.record_projection_drops_attributed("nemo", preservation, &structural, &actual_drops);
     Ok(ProjectionResult {
         target: "nemo".to_owned(),
         content,

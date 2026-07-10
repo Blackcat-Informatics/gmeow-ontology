@@ -164,12 +164,18 @@ fn spine() -> PipelineSpec {
                     "stage-statements",
                 ],
             ),
+            spec("stage-validate", "validate", &["stage-source-load"]),
             spec(
                 "stage-docs-render",
                 "docs_render",
-                &["stage-gts-compose", "stage-reason"],
+                &[
+                    "stage-compile-logic",
+                    "stage-gts-compose",
+                    "stage-mappings",
+                    "stage-reason",
+                    "stage-validate",
+                ],
             ),
-            spec("stage-validate", "validate", &["stage-source-load"]),
             // The SHACL→JSON-Schema source leaf the snapshot folds; a
             // source-reading ExportLeaf that consumes nothing.
             spec("stage-export-json-schema", "json_schema", &[]),
@@ -181,9 +187,13 @@ fn spine() -> PipelineSpec {
             // leaf, never re-rendered in the presenter (the transform-once razor).
             spec("stage-export-profiles", "profiles", &[]),
             spec("stage-export-evals", "evals", &[]),
-            // references.bib feeds the docs-print PDF #bibliography; a source-reading
-            // ExportLeaf the snapshot folds (mirrors `run.rs::full_spec()`).
+            // The references export leaf: its in-memory product carries the freshly
+            // generated `references.bib` the snapshot folds into the print PDF
+            // bibliography (mirrors `SnapshotStage::consumes()`).
             spec("stage-export-references", "references", &[]),
+            // The five math flagship producer graphs the snapshot folds into gmeow.gts
+            // as their own bundle-internal named graphs (mirrors `SnapshotStage::consumes()`).
+            spec("stage-math-producers", "math_producers", &[]),
             spec(
                 "stage-export-research-objects",
                 "research-objects",

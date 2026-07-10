@@ -206,7 +206,13 @@ pub fn full_spec() -> PipelineSpec {
         st(
             "stage-docs-render",
             "docs_render",
-            &["stage-gts-compose", "stage-reason"],
+            &[
+                "stage-compile-logic",
+                "stage-gts-compose",
+                "stage-mappings",
+                "stage-reason",
+                "stage-validate",
+            ],
         ),
         // The generated constraint catalog: one gmeow:ValidationRule per finding code,
         // enriched from the reasoned graph, folded into the bundle by stage-snapshot.

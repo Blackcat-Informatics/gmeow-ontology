@@ -34,6 +34,25 @@ impl InferenceDiff {
     }
 }
 
+/// One reasoner-derived "why" fact about a documented term: the rule that fired, a
+/// display of the axiom it concluded, and the premises it fired from. Parsed by the
+/// pipeline (`build_executable_docs_data`) from `stage-reason`'s already-materialized
+/// `reasoning-explanations` proof skeletons (reason-once — the reasoner itself never
+/// runs in the docs crate; see [`ExecutableDocsData::term_entailments`]).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Entailment {
+    /// The firing rule: a compact display form (a CURIE where the canonical prefix
+    /// registry knows one, else the bare IRI in `<...>` form) — never a fabricated
+    /// human label, since `viaRule` names a rule IRI, not prose.
+    pub rule: String,
+    /// A compact, deterministic display of the concluded triple (`s p o`,
+    /// CURIE-compacted), in the same style as the "try it" asserted/inferred lines.
+    pub conclusion: String,
+    /// Compact displays of the derivation's premises (zero or more, sorted), in the
+    /// same `s p o` style as [`conclusion`](Self::conclusion).
+    pub premises: Vec<String>,
+}
+
 /// Everything the executable docs surfaces need. Empty ⇒ render the base site only.
 #[derive(Debug, Clone, Default)]
 pub struct ExecutableDocsData {
@@ -49,6 +68,15 @@ pub struct ExecutableDocsData {
     /// Term/slice export both flow through the playground's `DESCRIBE` (client-side,
     /// all RDF formats via purrdf), so this asset is the single export substrate too.
     pub playground_trig: Vec<u8>,
+    /// Per-term reasoner "why" panels (B3): every derivation whose `gmeow:concludes`
+    /// or `gmeow:hasPremise` quoted triple mentions the term's IRI (in subject,
+    /// predicate, or object position), keyed by the exact term IRI. Parsed by the
+    /// pipeline from `stage-reason`'s materialized `reasoning-explanations` artifact
+    /// (reason-once — never a second reasoning pass). Empty in the model-only render
+    /// (`ExecutableDocsData::default`): the "Inferred facts" panel and the
+    /// "unsatisfiable because" derivation lines render only when this map carries an
+    /// entry for the term, never a fabricated "no entailments" claim.
+    pub term_entailments: BTreeMap<String, Vec<Entailment>>,
 }
 
 impl ExecutableDocsData {

@@ -44,6 +44,15 @@ const PAIR_SEP: char = '\u{1f}';
 const STRUCTURAL_CODE: &str = "structural";
 const ACTUAL_CODE: &str = "actual";
 
+/// The `observed` [`Slot`] datatype that marks an actual-drop observation whose value
+/// is the DOCUMENTED SOURCE TERM the drop concerns (an `xsd:anyURI` IRI). A term-specific
+/// projection drop — e.g. a `gmeow:` term whose SSSOM alignment cannot carry a distinction
+/// when projected DOWN to an external vocabulary — carries the source term as this structured
+/// slot (NOT scraped from the free-text note), so the report serialization can attribute the
+/// drop to that term's page. An actual drop with no single source term (a genuinely
+/// program-wide structural limitation) carries no such slot and stays whole-program.
+const SOURCE_TERM_DATATYPE: &str = "http://www.w3.org/2001/XMLSchema#anyURI";
+
 /// One transcode realized-loss row read back from the ledger, in the shape the
 /// transcode hub serializes to `loss.json`.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -156,7 +165,7 @@ impl LossLedger {
         code: &str,
         focus: String,
         tags: &[String],
-        observed: Option<u64>,
+        observed: Option<Slot>,
         note: &str,
         antecedents: &[DiagRef],
     ) -> DiagRef {
@@ -170,8 +179,8 @@ impl LossLedger {
             note,
         )
         .with_focus(focus);
-        if let Some(count) = observed {
-            diag = diag.with_observed(Slot::new(count.to_string()));
+        if let Some(slot) = observed {
+            diag = diag.with_observed(slot);
         }
         for tag in tags {
             diag = diag.with_tag(tag.clone());
@@ -198,7 +207,15 @@ impl LossLedger {
     ) {
         let focus = format!("{from}{PAIR_SEP}{to}");
         let tags = [from.to_owned(), to.to_owned()];
-        self.intern("transcode", code, focus, &tags, Some(count), note, &[]);
+        self.intern(
+            "transcode",
+            code,
+            focus,
+            &tags,
+            Some(Slot::new(count.to_string())),
+            note,
+            &[],
+        );
     }
 
     /// The recorded transcode losses read back and sorted by `(from, to, code)` —
@@ -253,13 +270,39 @@ impl LossLedger {
 
     /// Record one projection's drops: the structural (target-metadata) notes and
     /// the concrete per-run actual notes, both under the target focus (**R1**), the
-    /// declared [`PreservationKind`] carried as a tag.
+    /// declared [`PreservationKind`] carried as a tag. Every actual drop is whole-program
+    /// (no single source term); use [`Self::record_projection_drops_attributed`] to
+    /// attribute a drop to the documented term it concerns.
     pub fn record_projection_drops(
         &mut self,
         target: &str,
         preservation: PreservationKind,
         lossy_drops: &[String],
         actual_drops: &[String],
+    ) {
+        let attributed: Vec<(String, Option<String>)> = actual_drops
+            .iter()
+            .map(|note| (note.clone(), None))
+            .collect();
+        self.record_projection_drops_attributed(target, preservation, lossy_drops, &attributed);
+    }
+
+    /// Record one projection's drops with per-actual-drop SOURCE-TERM ATTRIBUTION: each
+    /// actual drop is `(note, source_term)` where `source_term` is the DOCUMENTED term the
+    /// drop concerns (e.g. the `gmeow:` term whose alignment loses a distinction when
+    /// projected DOWN to an external vocabulary), or `None` for a genuinely program-wide
+    /// drop. The source term rides the actual observation's `observed` slot as a structured
+    /// `xsd:anyURI` (NEVER scraped from the free-text note); the report serialization reads it
+    /// back via [`Self::term_source_drops`] to attribute the drop to that term's page. The
+    /// structural/actual interning and the antecedent DAG are identical to
+    /// [`Self::record_projection_drops`], so the `gmeow:lossyDrop` note bytes are unchanged —
+    /// the attribution is purely additive.
+    pub fn record_projection_drops_attributed(
+        &mut self,
+        target: &str,
+        preservation: PreservationKind,
+        lossy_drops: &[String],
+        actual_drops: &[(String, Option<String>)],
     ) {
         let pres_tag = [format!("preservation:{}", preservation.as_str())];
         // Intern the structural drops FIRST and capture the structural witness handle.
@@ -284,17 +327,55 @@ impl LossLedger {
         // the causing structural note as a related location (the U2 antecedent DAG). When a
         // target declares no structural drop, there is no cause to assert.
         let antecedents: &[DiagRef] = structural_ref.as_slice();
-        for note in actual_drops {
+        for (note, source_term) in actual_drops {
+            // A term-attributed drop carries the source term as a typed `observed` slot; all
+            // actual drops of a target still hash-cons onto ONE witness (the fingerprint keys
+            // on code/category/focus, NOT the observed value), so a target's differently-
+            // attributed drops accumulate as distinct observations on that one witness.
+            let observed = source_term
+                .as_ref()
+                .map(|iri| Slot::typed(iri.clone(), SOURCE_TERM_DATATYPE));
             self.intern(
                 "projection",
                 ACTUAL_CODE,
                 target.to_owned(),
                 &pres_tag,
-                None,
+                observed,
                 note,
                 antecedents,
             );
         }
+    }
+
+    /// The term-attributed actual drops on `target`, each as `(note, source_term_iri)` read
+    /// off the actual witness's observations whose `observed` slot is the typed source-term
+    /// IRI. Sorted by `(source_term, note)` for a deterministic report serialization. Empty
+    /// when the target recorded no term-attributed drop (only whole-program notes).
+    pub fn term_source_drops(&self, target: &str) -> Vec<(String, String)> {
+        let actual_code = format!("{RUNG_PREFIX}{ACTUAL_CODE}");
+        let mut out: Vec<(String, String)> = self
+            .ledger
+            .emit_sorted()
+            .into_iter()
+            .filter(|node| {
+                node.code == actual_code
+                    && node
+                        .source_ctx
+                        .focus
+                        .as_ref()
+                        .is_some_and(|f| f.0 == target)
+            })
+            .flat_map(|node| node.observations.iter())
+            .filter_map(|obs| {
+                obs.observed.as_ref().and_then(|slot| {
+                    (slot.datatype.as_deref() == Some(SOURCE_TERM_DATATYPE))
+                        .then(|| (obs.message.clone(), slot.lexical.clone()))
+                })
+            })
+            .collect();
+        out.sort_by(|a, b| a.1.cmp(&b.1).then_with(|| a.0.cmp(&b.0)));
+        out.dedup();
+        out
     }
 
     /// The combined lossy-drop list for one target read back from the ledger — the
@@ -492,6 +573,69 @@ mod tests {
             !finding.related_locations.is_empty(),
             "to_finding must project the wired antecedent as a related location: {finding:?}"
         );
+    }
+
+    #[test]
+    fn attributed_actual_drops_carry_source_term_and_read_back_sorted() {
+        // Term-attributed drops ride the actual observation's typed `observed` slot; the note
+        // bytes are unchanged (still readable via `projection_drops_for`), and the structured
+        // source term reads back via `term_source_drops`, sorted by (source, note). A drop with
+        // no source term stays whole-program (never surfaces in `term_source_drops`).
+        let mut store = LossLedger::new();
+        store.record_projection_drops_attributed(
+            "sssom",
+            PreservationKind::SoundUnder,
+            &[],
+            &[
+                (
+                    "gmeow:Agent close-match loses caveats".to_owned(),
+                    Some("https://blackcatinformatics.ca/gmeow/Agent".to_owned()),
+                ),
+                (
+                    "gmeow:Activity exact-match loses standpoint".to_owned(),
+                    Some("https://blackcatinformatics.ca/gmeow/Activity".to_owned()),
+                ),
+                ("a genuinely program-wide drop".to_owned(), None),
+            ],
+        );
+
+        // All three notes survive as `gmeow:lossyDrop` (byte-identical to the unattributed
+        // path — the attribution is additive).
+        let drops = store.projection_drops_for("sssom");
+        assert_eq!(
+            drops,
+            vec![
+                "actual: a genuinely program-wide drop".to_owned(),
+                "actual: gmeow:Activity exact-match loses standpoint".to_owned(),
+                "actual: gmeow:Agent close-match loses caveats".to_owned(),
+            ]
+        );
+
+        // Only the two attributed drops read back, sorted by (source term, note); the
+        // program-wide drop is absent.
+        let attributed = store.term_source_drops("sssom");
+        assert_eq!(
+            attributed,
+            vec![
+                (
+                    "gmeow:Activity exact-match loses standpoint".to_owned(),
+                    "https://blackcatinformatics.ca/gmeow/Activity".to_owned()
+                ),
+                (
+                    "gmeow:Agent close-match loses caveats".to_owned(),
+                    "https://blackcatinformatics.ca/gmeow/Agent".to_owned()
+                ),
+            ]
+        );
+
+        // A different target is isolated by focus (R1): no cross-target attribution bleed.
+        assert!(store.term_source_drops("owl-dl").is_empty());
+
+        // The attribution survives the transport round-trip (the compile-logic → mappings JSON
+        // channel carries nodes, not the live store), so the report re-serialized in mappings
+        // sees the same source terms.
+        let round_tripped = LossLedger::from_nodes(store.to_nodes());
+        assert_eq!(round_tripped.term_source_drops("sssom"), attributed);
     }
 
     #[test]

@@ -1447,6 +1447,10 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
         // plus the TEI document, NIF anchor, SemAF/AMR denotation, and GMN-1 codec
         // round-trip emissions).
         let non_logic = [
+            // Program-dependent per-shape projections (authored logic:PathShape instances):
+            // like the alignment dialects, these are NOT the fixed whole-program logic rows the
+            // parity invariant pins, so they are stripped before the byte-comparison.
+            "/target/property-path:",
             "/target/sssom:",
             "/target/fno:",
             "/target/edoal:",
@@ -1471,6 +1475,12 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             // The docs-format grounding rows: the four documentation output formats' derived
             // preservation + dropped-capability residue (folded from `docs_format_rendering`).
             "/target/docs-format:",
+            // The reified per-term projection-loss nodes (`.../target/<target>/termloss/<term>`):
+            // program-dependent attribution rows minted for EVERY target (logic funnel + non-
+            // logic dialects), stripped uniformly by their `/termloss/` segment. They carry a
+            // `logic:lossOfTarget` back-reference and never mutate the parent target block, so
+            // the fixed logic rows stay byte-stable.
+            "/termloss/",
         ];
         // A Turtle subject block is a blank-line-separated group. Drop any block that
         // MENTIONS a non-logic target IRI anywhere: the non-logic target blocks themselves

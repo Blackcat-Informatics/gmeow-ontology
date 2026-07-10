@@ -235,15 +235,23 @@ fn rdf_result(
 }
 
 /// Intern a lossy RDF target's structural (from [`target_meta`]) + per-run `actual_drops`
-/// into the single loss store, keyed by the target focus.
+/// into the single loss store, keyed by the target focus. `attributed` maps a drop note (by
+/// its EXACT string — never scraped) to the DOCUMENTED gmeow: source term it concerns (e.g. a
+/// rule-head predicate with no OWL form), so that drop lands on the term's per-term
+/// projection-loss table; a note absent from the map stays whole-program.
 fn intern_rdf_drops(
     loss: &mut crate::loss_ledger::LossLedger,
     target: &str,
     actual_drops: &[String],
+    attributed: &std::collections::BTreeMap<String, String>,
 ) {
     let (kind, _, structural) = target_meta(target);
     let structural: Vec<String> = structural.into_iter().map(str::to_owned).collect();
-    loss.record_projection_drops(target, kind, &structural, actual_drops);
+    let drops: Vec<(String, Option<String>)> = actual_drops
+        .iter()
+        .map(|note| (note.clone(), attributed.get(note).cloned()))
+        .collect();
+    loss.record_projection_drops_attributed(target, kind, &structural, &drops);
 }
 
 // --------------------------------------------------------------------------- //
@@ -495,6 +503,9 @@ pub fn project_owl_dl(
 ) -> Result<ProjectionResult, OverclaimError> {
     let mut g = TripleSink::default();
     let mut actual_drops: Vec<String> = Vec::new();
+    // Per-drop attribution to a DOCUMENTED gmeow: source term (by exact note string).
+    let mut attributed: std::collections::BTreeMap<String, String> =
+        std::collections::BTreeMap::new();
 
     g.add_iri(
         &format!("{GMEOW_NS}owl/gmeow-dl"),
@@ -565,10 +576,16 @@ pub fn project_owl_dl(
             continue;
         }
         if let Some(local) = pred.strip_prefix(LOGIC_NS) {
-            actual_drops.push(format!(
+            let note = format!(
                 "logic:{local} on <{}> has no OWL DL equivalent",
                 axiom.subject
-            ));
+            );
+            // The dropped assertion is ABOUT its subject; attribute to it when the subject is
+            // a documented gmeow: term (a logic:-NS subject has no term page yet → whole-program).
+            if let Some(src) = super::gmeow_term(&axiom.subject) {
+                attributed.insert(note.clone(), src);
+            }
+            actual_drops.push(note);
         }
     }
 
@@ -603,11 +620,18 @@ pub fn project_owl_dl(
             g.add_iri(&head.subject, &owl_head_pred, &head.obj);
             continue;
         }
-        actual_drops.push(format!(
+        let note = format!(
             "rule head <{}> {} not expressible in OWL DL (body complexity)",
             rule.head.subject,
             super::python_repr(&rule.head.predicate)
-        ));
+        );
+        // The dropped rule is ABOUT its head predicate; attribute to it when it is a
+        // documented gmeow: property (so gmeow:knowsAbout / gmeow:findingCluster / … carry
+        // this OWL-DL loss on their pages), else the drop stays whole-program.
+        if let Some(src) = super::gmeow_term(&rule.head.predicate) {
+            attributed.insert(note.clone(), src);
+        }
+        actual_drops.push(note);
     }
 
     project_formulas_owl_dl(&mut g, program);
@@ -615,7 +639,7 @@ pub fn project_owl_dl(
     actual_drops.extend(contract_drop_notes(program, "OWL 2 DL", &|f| {
         recognize_covering(f).is_some()
     }));
-    intern_rdf_drops(loss, "owl-dl", &actual_drops);
+    intern_rdf_drops(loss, "owl-dl", &actual_drops, &attributed);
     rdf_result("owl-dl", g, "OWL 2 DL", &actual_drops)
 }
 
@@ -630,6 +654,8 @@ pub fn project_owl_el(
 ) -> Result<ProjectionResult, OverclaimError> {
     let mut g = TripleSink::default();
     let mut actual_drops: Vec<String> = Vec::new();
+    let mut attributed: std::collections::BTreeMap<String, String> =
+        std::collections::BTreeMap::new();
 
     g.add_iri(
         &format!("{GMEOW_NS}owl/gmeow-el"),
@@ -791,14 +817,20 @@ pub fn project_owl_el(
     }
 
     for rule in &program.rules {
-        actual_drops.push(format!(
+        let note = format!(
             "rule head <{}> dropped (EL has no rule surface)",
             rule.head.subject
-        ));
+        );
+        // The dropped rule is ABOUT its head predicate; attribute to it when it is a
+        // documented gmeow: property (structural, not scraped from the note).
+        if let Some(src) = super::gmeow_term(&rule.head.predicate) {
+            attributed.insert(note.clone(), src);
+        }
+        actual_drops.push(note);
     }
 
     actual_drops.extend(contract_drop_notes(program, "OWL 2 EL", &|_| false));
-    intern_rdf_drops(loss, "owl-el", &actual_drops);
+    intern_rdf_drops(loss, "owl-el", &actual_drops, &attributed);
     rdf_result("owl-el", g, "OWL 2 EL", &actual_drops)
 }
 
@@ -813,6 +845,8 @@ pub fn project_gufo(
 ) -> Result<ProjectionResult, OverclaimError> {
     let mut g = TripleSink::default();
     let mut actual_drops: Vec<String> = Vec::new();
+    let mut attributed: std::collections::BTreeMap<String, String> =
+        std::collections::BTreeMap::new();
 
     g.add_iri(
         &format!("{GMEOW_NS}foundation/gufo"),
@@ -829,10 +863,14 @@ pub fn project_gufo(
                 continue;
             }
             if let Some(local) = obj.strip_prefix(LOGIC_NS) {
-                actual_drops.push(format!(
+                let note = format!(
                     "rdf:type logic:{local} on <{}> has no gUFO equivalent",
                     axiom.subject
-                ));
+                );
+                if let Some(src) = super::gmeow_term(&axiom.subject) {
+                    attributed.insert(note.clone(), src);
+                }
+                actual_drops.push(note);
             }
             continue;
         }
@@ -843,22 +881,30 @@ pub fn project_gufo(
             continue;
         }
         if let Some(local) = pred.strip_prefix(LOGIC_NS) {
-            actual_drops.push(format!(
+            let note = format!(
                 "logic:{local} on <{}> has no gUFO bridge equivalent",
                 axiom.subject
-            ));
+            );
+            if let Some(src) = super::gmeow_term(&axiom.subject) {
+                attributed.insert(note.clone(), src);
+            }
+            actual_drops.push(note);
         }
     }
 
     for rule in &program.rules {
-        actual_drops.push(format!(
+        let note = format!(
             "rule head <{}> dropped (gUFO bridge has no rule surface)",
             rule.head.subject
-        ));
+        );
+        if let Some(src) = super::gmeow_term(&rule.head.predicate) {
+            attributed.insert(note.clone(), src);
+        }
+        actual_drops.push(note);
     }
 
     actual_drops.extend(contract_drop_notes(program, "the gUFO bridge", &|_| false));
-    intern_rdf_drops(loss, "gufo", &actual_drops);
+    intern_rdf_drops(loss, "gufo", &actual_drops, &attributed);
     rdf_result("gufo", g, "gUFO bridge", &actual_drops)
 }
 
