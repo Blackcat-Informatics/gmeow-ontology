@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! On-gate, gpg-free release-attestation round-trip — the named
-//! "release verification path" consumer.
+//! Gpg-free release-attestation round-trip — the named "release verification
+//! path" consumer.
 //!
 //! Exercises the EXISTING native fold/verify pair
 //! ([`gmeow_pipeline::stages::release::fold_release_bundle`] /
@@ -11,9 +11,18 @@
 //! raw-Ed25519 signing key — never GPG, never an external process, never the
 //! network. `release.rs` already unit-tests this pair against a tiny synthetic
 //! snapshot; this integration test pins the SAME contract against the REAL
-//! shipped bundle, so a regression in the release path is caught on `make check`
-//! even though `make release-sign-gts` itself is a maintainer-only, GPG-gated
-//! lane this repo's tests must never invoke.
+//! shipped bundle, so a regression in the release path is caught even though
+//! `make release-sign-gts` itself is a maintainer-only, GPG-gated lane this
+//! repo's tests must never invoke.
+//!
+//! Off the on-gate default/ci nextest profile (see `.config/nextest.toml`):
+//! `fold_release_bundle`/`verify_release_bundle` each replay the WHOLE
+//! committed ~48 MB bundle, the identical "whole committed bundle" cost class
+//! as `fold_parity`/`fanout_parity`/`end_to_end` (irreducibly O(bundle size),
+//! not fixture cost). Runs on `maint-heavy`. The real crypto-through-the-
+//! built-binary requirement stays on-gate via `crates/gmeow-cli/tests/
+//! bundle_smoke.rs`'s ephemeral-signed positive/negative checks, which build a
+//! small in-process `.gts` rather than replaying the shipped bundle.
 
 use std::path::PathBuf;
 
@@ -113,20 +122,17 @@ fn signer_material(seed: u8) -> ([u8; 32], String, String) {
     (secret, transport.fingerprint, armor)
 }
 
-/// The full signed release-attestation walk — coherence evidence folded and
-/// signed over the REAL committed bundle, then verified — round-trips cleanly
-/// on-gate: an ephemeral Ed25519 key, no GPG binary, no external process, no
-/// network.
-#[test]
-fn release_bundle_with_coherence_evidence_round_trips_natively() {
+/// Fold the REAL committed ~48MB bundle with a signed coherence-evidence
+/// attestation under signer seed 42. `fold_release_bundle` replays the whole
+/// snapshot into a fresh builder — irreducibly O(bundle size); see the module
+/// doc for why this test file runs on `maint-heavy` rather than the on-gate
+/// default/ci profile.
+fn fold_signed_bundle() -> (Vec<u8>, String) {
     let snapshot = committed_snapshot();
     let issued_at = "2026-01-01T00:00:00Z";
-
     let (secret, kid, armor) = signer_material(42);
-
     let evidence = build_coherence_evidence(&snapshot, issued_at)
         .expect("coherence evidence must be derivable from the committed bundle");
-
     let signed_bundle = fold_release_bundle(
         &snapshot,
         vec![evidence],
@@ -138,6 +144,16 @@ fn release_bundle_with_coherence_evidence_round_trips_natively() {
         &armor,
     )
     .expect("fold_release_bundle must succeed over the committed snapshot");
+    (signed_bundle, armor)
+}
+
+/// The full signed release-attestation walk — coherence evidence folded and
+/// signed over the REAL committed bundle, then verified — round-trips
+/// cleanly: an ephemeral Ed25519 key, no GPG binary, no external process, no
+/// network.
+#[test]
+fn release_bundle_with_coherence_evidence_round_trips_natively() {
+    let (signed_bundle, armor) = fold_signed_bundle();
     assert!(
         !signed_bundle.is_empty(),
         "the folded, signed release bundle must be non-empty"
@@ -168,26 +184,7 @@ fn release_bundle_with_coherence_evidence_round_trips_natively() {
 /// exercises real cryptographic verification, not an always-pass stub.
 #[test]
 fn release_bundle_rejects_an_untrusted_out_of_band_key() {
-    let snapshot = committed_snapshot();
-    let issued_at = "2026-01-01T00:00:00Z";
-
-    let (secret, kid, armor) = signer_material(42);
-
-    let evidence = build_coherence_evidence(&snapshot, issued_at)
-        .expect("coherence evidence must be derivable from the committed bundle");
-
-    let signed_bundle = fold_release_bundle(
-        &snapshot,
-        vec![evidence],
-        "https://blackcatinformatics.ca/gmeow/agent/release-verify-roundtrip-test",
-        issued_at,
-        "https://blackcatinformatics.ca/gmeow/release/gmeow.gts",
-        secret,
-        &kid,
-        &armor,
-    )
-    .expect("fold_release_bundle must succeed over the committed snapshot");
-
+    let (signed_bundle, _armor) = fold_signed_bundle();
     let (_other_secret, _other_kid, wrong_armor) = signer_material(43);
 
     assert!(
