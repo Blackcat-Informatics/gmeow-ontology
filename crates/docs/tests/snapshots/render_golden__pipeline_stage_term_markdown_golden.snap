@@ -1,0 +1,87 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: "to_markdown(&model, &Page::Term(slug))"
+---
+# gts sink
+
+`gmeow:stage-gts-sink` · Individual
+
+| Field | Value |
+| --- | --- |
+| CURIE | `gmeow:stage-gts-sink` |
+| IRI | `https://blackcatinformatics.ca/gmeow/stage-gts-sink` |
+| Category | Individual |
+| Slice | [GMEOW Build Pipeline Module](../../slices/pipeline/index.md) |
+
+![completeness: Docs 2/6](../../badges/completeness/2.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Individual](../../badges/category/individual.svg) ![box: ABox](../../badges/box/boxabox.svg)
+
+## Definition
+
+The terminal gts ARCHIVE writer \(the ONE canonical exit / narrow waist\): serialize the assembled carrier to generated/dist/gmeow\.gts\. GTS is exit\-only — produced here and nowhere else; every fold\-reading export leaf reads the carrier dataset off the gmeow:stage\-snapshot bundle, never these bytes\. The carrier is taken off the snapshot bundle \(no re\-assembly — the razor: transform transport→form at most once\), and the by\-reference blob archives are folded in alongside it: the fresh JSON\-Schema/OpenAPI \(gmeow:stage\-export\-json\-schema\), the compiled axiom surface \(gmeow:stage\-compile\-logic\), the native reasoning reports \(gmeow:stage\-reason\), the byte\-decorated RDF 1\.2 statement lanes \(gmeow:stage\-statements\), and the SHACL diagnostics SARIF/findings \(gmeow:stage\-validate\)\. The embedded executable\-docs 'try it' surface reasons over the object\-level EDB, whose authored self\-description graphs ride on gmeow:stage\-source\-load \(read, never re\-loaded\)\. The opaque fanout members \(references, bench, agreement matrix, apache config, matrix, eval/research\-object sidecars, metadata void/dcat\) ride in from their producing export leaves — rendered once, in the leaf, never re\-rendered in the terminal \(the transform\-once razor\)\.
+
+## For developers
+
+## Quickstart
+
+```turtle
+# No example skeleton could be synthesized for `gmeow:stage-gts-sink` — Individual terms carry no domain/range shape to derive a triple pattern from.
+```
+
+## Profiles
+
+- `full`
+
+## Formal & academic
+
+## Box role
+
+[ABox (`gmeow:boxABox`)](../../four-boxes/index.md)
+
+## Documentation coverage
+
+- **2 of 6 dimensions present.** ✓ Definition · ✓ Label · ✗ Usage advice · ✗ Example · ✗ Scope note · ✗ Alignment
+- See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
+
+## Stability
+
+- **Status:** stable
+
+## Citation
+
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/stage-gts-sink>
+- **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
+
+## Build\-pipeline stage
+
+This term is a stage of the [build pipeline](../../pipeline/index.md) — a typed unit of build work the `gmeow-pipeline` executor runs single-pass over the in-memory dataset.
+
+- **Implementation:** `crates/pipeline/src/stages/gts_sink.rs`
+- **Capabilities and resources:** `gmeow:sinkCapability`
+- **Box role:** `gmeow:boxABox`
+
+### Consumes
+
+- [`gmeow:stage-compile-logic`](../stage-compile-logic/index.md)
+- [`gmeow:stage-export-agreement`](../stage-export-agreement/index.md)
+- [`gmeow:stage-export-apache`](../stage-export-apache/index.md)
+- [`gmeow:stage-export-bench`](../stage-export-bench/index.md)
+- [`gmeow:stage-export-constraint-shapes`](../stage-export-constraint-shapes/index.md)
+- [`gmeow:stage-export-evals`](../stage-export-evals/index.md)
+- [`gmeow:stage-export-frame-shapes`](../stage-export-frame-shapes/index.md)
+- [`gmeow:stage-export-json-schema`](../stage-export-json-schema/index.md)
+- [`gmeow:stage-export-matrix`](../stage-export-matrix/index.md)
+- [`gmeow:stage-export-metadata`](../stage-export-metadata/index.md)
+- [`gmeow:stage-export-references`](../stage-export-references/index.md)
+- [`gmeow:stage-export-research-objects`](../stage-export-research-objects/index.md)
+- [`gmeow:stage-export-result-shapes`](../stage-export-result-shapes/index.md)
+- [`gmeow:stage-mappings`](../stage-mappings/index.md)
+- [`gmeow:stage-reason`](../stage-reason/index.md)
+- [`gmeow:stage-snapshot`](../stage-snapshot/index.md)
+- [`gmeow:stage-source-load`](../stage-source-load/index.md)
+- [`gmeow:stage-statements`](../stage-statements/index.md)
+- [`gmeow:stage-validate`](../stage-validate/index.md)
+
+---
+
+**Provenance:** this page ← `stage-docs-render` ← `stage-compile-logic`
+Rendered from `gmeow.gts` by the dogfooded build pipeline.

@@ -130,6 +130,109 @@ fn richest_surface_term_markdown_golden() {
     insta::assert_snapshot!(to_markdown(&model, &Page::Term(slug)));
 }
 
+/// The fixed IRI of a REAL `gmeow:PipelineStage` — the narrow-waist serialization
+/// exit (`gmeow:stage-gts-sink`). Pinned by IRI, not the shifting richest-surface
+/// heuristic, so the enriched pipeline-stage term page is drift-gated by a stable
+/// subject: it carries the sink capability, consumes an upstream producer, and is
+/// consumed by nothing — a deterministic exercise of every stage sub-section.
+const STAGE_GTS_SINK_IRI: &str = "https://blackcatinformatics.ca/gmeow/stage-gts-sink";
+
+/// Resolve the term slug for a stage IRI, hard-failing if the stage individual was
+/// never lifted into a documented term (the exact regression this golden guards:
+/// a `gmeow:PipelineStage` must be a `DocTerm` for its term page — and thus the
+/// enriched stage section — to exist at all).
+fn stage_term_slug(model: &DocsModel, stage_iri: &str) -> String {
+    let term = model
+        .terms
+        .iter()
+        .find(|t| t.iri == stage_iri)
+        .unwrap_or_else(|| {
+            panic!("pipeline stage `{stage_iri}` must be a documented term (has a term page)")
+        });
+    term_slug(term)
+}
+
+#[test]
+fn pipeline_stage_term_markdown_golden() {
+    // A fixed-subject golden over `gmeow:stage-gts-sink`: locks the enriched
+    // "stage of the build pipeline" section — the `stageImpl`→Rust binding, the
+    // consumes / consumed-by dataflow tables, the flowing named graphs, and the
+    // capabilities/resources — so this surface (issue 1404) cannot silently
+    // regress to the pre-wiring DARK state where no stage was a term page.
+    let model = common::cached_model();
+    let slug = stage_term_slug(&model, STAGE_GTS_SINK_IRI);
+    insta::assert_snapshot!(to_markdown(&model, &Page::Term(slug)));
+}
+
+/// A REAL producer stage that has BOTH downstream consumers (a non-empty
+/// consumed-by reverse-edge table) AND a reified `gmeow:BuildDataFlow` carrying
+/// `gmeow:flowEntity` named graphs (a non-empty flowing-graphs table):
+/// `gmeow:stage-compile-logic` is the `logic:flowFrom` of the
+/// compile-logic → reason edge whose three flowing graphs are authored.
+const STAGE_COMPILE_LOGIC_IRI: &str = "https://blackcatinformatics.ca/gmeow/stage-compile-logic";
+
+#[test]
+fn producer_stage_renders_reverse_edges_and_flowing_graphs() {
+    // The sink golden (`pipeline_stage_term_markdown_golden`) is the terminal
+    // stage, so its consumed-by and flowing-graphs tables are correctly ABSENT.
+    // This gate exercises the OTHER two sub-sections on a producer stage: the
+    // "Consumed by" reverse-edge table (built from `pipeline.edges` where
+    // `from == this stage`) and the "Flowing graphs" table (the reified
+    // `gmeow:flowEntity` named graphs), proving both render live on the
+    // production surface.
+    let model = common::cached_model();
+    let slug = stage_term_slug(&model, STAGE_COMPILE_LOGIC_IRI);
+    let page = to_markdown(&model, &Page::Term(slug));
+
+    assert!(
+        page.contains("## Build\\-pipeline stage"),
+        "producer stage page must render the enriched stage section"
+    );
+    assert!(
+        page.contains("### Consumed by"),
+        "producer stage page must render the consumed-by reverse-edge table"
+    );
+    assert!(
+        page.contains("### Flowing graphs"),
+        "producer stage page must render the flowing-graphs table"
+    );
+    // The three authored flowing named graphs of the compile-logic → reason edge.
+    for graph in [
+        "https://blackcatinformatics.ca/gmeow/graph/correspondence",
+        "https://blackcatinformatics.ca/gmeow/graph/logic",
+        "https://blackcatinformatics.ca/gmeow/graph/relational-core",
+    ] {
+        assert!(
+            page.contains(graph),
+            "flowing-graphs table must list the authored named graph `{graph}`"
+        );
+    }
+}
+
+#[test]
+fn every_pipeline_stage_is_a_documented_term() {
+    // Structural gate: every `gmeow:PipelineStage` individual in the build DAG must
+    // be lifted into a documented term, so every stage's term page renders the
+    // enriched stage section. Guards the `category_for_type` wiring against a
+    // future edit that drops the `GMEOW_PIPELINE_STAGE` arm.
+    let model = common::cached_model();
+    let pipeline = model
+        .pipeline
+        .as_ref()
+        .expect("the whole-repo model carries the build pipeline");
+    let term_iris: BTreeSet<&str> = model.terms.iter().map(|t| t.iri.as_str()).collect();
+    let missing: Vec<&str> = pipeline
+        .stages
+        .iter()
+        .map(|s| s.iri.as_str())
+        .filter(|iri| !term_iris.contains(iri))
+        .collect();
+    assert!(
+        missing.is_empty(),
+        "every pipeline stage must be a documented term; missing: {missing:?}"
+    );
+}
+
 /// A deterministic term that carries a per-term changelog: the first by
 /// (curie, iri) sort with a non-empty `changelog`. Keyed off the EXPLICIT
 /// `gmeow:hasChangelogEntry` data — not the richest-surface heuristic, which can
