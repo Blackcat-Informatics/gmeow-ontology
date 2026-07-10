@@ -854,7 +854,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                  proves the datum well-formed — a faithful closed-world projection cannot reproduce \
                  that finding without contradicting the entailment (it would over-claim), so the \
                  finding is a reasoning artifact carried in the canonical logic: layer and its \
-                 hand-authored shape is retained as a closed-world lint (#1194 dating1 residue)",
+                 hand-authored shape is retained as a closed-world lint (dating1 residue)",
             ],
         ),
         "shex" => (

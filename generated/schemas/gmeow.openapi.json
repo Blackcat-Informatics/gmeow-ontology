@@ -906,43 +906,9 @@
           "gmeow:appraisalOf": {},
           "gmeow:appraisalScaleProfile": {
             "anyOf": [
+              {},
               {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/AffectScaleProfile"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
-              },
-              {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/$defs/AffectScaleProfile"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -1006,43 +972,9 @@
           },
           "gmeow:samplePosition": {
             "anyOf": [
+              {},
               {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/NarrativePosition"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
-              },
-              {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/$defs/NarrativePosition"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -1417,74 +1349,18 @@
           },
           "gmeow:assessmentCriterion": {
             "anyOf": [
+              {},
               {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/Criterion"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
-              },
-              {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/$defs/Criterion"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
-                },
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "gmeow:assessmentRubric": {
             "anyOf": [
+              {},
               {
-                "$comment": "gmeow:Rubric has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "gmeow:Rubric has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -3852,43 +3728,9 @@
           },
           "gmeow:cascadeFirstLink": {
             "anyOf": [
+              {},
               {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/CausalLink"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
-              },
-              {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/$defs/CausalLink"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -6802,62 +6644,18 @@
           },
           "gmeow:penaltyPole": {
             "anyOf": [
+              {},
               {
-                "$comment": "gmeow:CriterionPole has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "gmeow:CriterionPole has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "gmeow:rewardPole": {
             "anyOf": [
+              {},
               {
-                "$comment": "gmeow:CriterionPole has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "gmeow:CriterionPole has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -11701,31 +11499,9 @@
           "gmeow:hazardSeverity": {},
           "gmeow:manifestedAsType": {
             "anyOf": [
+              {},
               {
-                "$comment": "gmeow:EventType has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "gmeow:EventType has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -13491,43 +13267,9 @@
           },
           "gmeow:journalEntryPostings": {
             "anyOf": [
+              {},
               {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/Posting"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
-              },
-              {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/$defs/Posting"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -17717,43 +17459,9 @@
           },
           "gmeow:narrationSegment": {
             "anyOf": [
+              {},
               {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/ContentSegment"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
-              },
-              {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/$defs/ContentSegment"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -39428,31 +39136,9 @@
           },
           "gmeow:supportGround": {
             "anyOf": [
+              {},
               {
-                "$comment": "gmeow:JustificationGround has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "gmeow:JustificationGround has no NodeShape; node reference only",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -40465,18 +40151,6 @@
               {
                 "anyOf": [
                   {
-                    "$comment": "external class http://www.w3.org/2000/01/rdf-schema#Literal",
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  },
-                  {
                     "properties": {
                       "@type": {
                         "type": "string"
@@ -40496,18 +40170,6 @@
               {
                 "items": {
                   "anyOf": [
-                    {
-                      "$comment": "external class http://www.w3.org/2000/01/rdf-schema#Literal",
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    },
                     {
                       "properties": {
                         "@type": {
@@ -40534,18 +40196,6 @@
               {
                 "anyOf": [
                   {
-                    "$comment": "external class http://www.w3.org/2000/01/rdf-schema#Literal",
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  },
-                  {
                     "properties": {
                       "@type": {
                         "type": "string"
@@ -40565,18 +40215,6 @@
               {
                 "items": {
                   "anyOf": [
-                    {
-                      "$comment": "external class http://www.w3.org/2000/01/rdf-schema#Literal",
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    },
                     {
                       "properties": {
                         "@type": {
@@ -41767,31 +41405,9 @@
           },
           "lang:inSignSystem": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/lang/SignSystem",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/lang/SignSystem",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -41968,62 +41584,18 @@
           },
           "lang:featureKey": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/lang/FeatureKey",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/lang/FeatureKey",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "lang:featureValue": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/lang/FeatureValue",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/lang/FeatureValue",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -42054,31 +41626,9 @@
           },
           "lang:paraphraseSamenessKind": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/lang/ParaphraseSamenessKind",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/lang/ParaphraseSamenessKind",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -42177,31 +41727,9 @@
           },
           "lang:renderingKind": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/lang/RenderingKind",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/lang/RenderingKind",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -42892,31 +42420,9 @@
           },
           "logic:conjectureLifecycleState": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/logic/ConjectureLifecycleState",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/logic/ConjectureLifecycleState",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -42924,31 +42430,9 @@
           "logic:conjectureStandpoint": {},
           "logic:verdictProvenance": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/logic/VerdictProvenanceKind",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/logic/VerdictProvenanceKind",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -43249,62 +42733,18 @@
           },
           "logic:candidateCategory": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/logic/FormalizationCategory",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/logic/FormalizationCategory",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "logic:candidateContract": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/logic/ReasoningContract",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/logic/ReasoningContract",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -43331,62 +42771,18 @@
           "logic:candidateFormalizes": {},
           "logic:candidateLifecycle": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/logic/CandidateLifecycleState",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/logic/CandidateLifecycleState",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "logic:candidateProjectionBehavior": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/logic/PreservationKind",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/logic/PreservationKind",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -43412,62 +42808,18 @@
           },
           "logic:candidateSemanticRisk": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/logic/SemanticRiskClass",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/logic/SemanticRiskClass",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "logic:candidateSourceField": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/logic/ProseField",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/logic/ProseField",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -43657,136 +43009,36 @@
           },
           "logic:evaluatesGoal": {
             "anyOf": [
+              {},
               {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/Goal"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
-              },
-              {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/$defs/Goal"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
-                },
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "logic:feasibilityStatus": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/logic/FeasibilityStatus",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/logic/FeasibilityStatus",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "logic:goalEvaluationStatus": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/logic/GoalEvaluationStatus",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/logic/GoalEvaluationStatus",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "logic:lifecycleStatus": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/logic/LifecycleStatus",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/logic/LifecycleStatus",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -43795,31 +43047,9 @@
           "logic:satisfactionDegree": {},
           "logic:satisfactionStatus": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/logic/SatisfactionStatus",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/logic/SatisfactionStatus",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -44025,74 +43255,18 @@
           },
           "logic:planGoal": {
             "anyOf": [
+              {},
               {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/Goal"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
-              },
-              {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/$defs/Goal"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
-                },
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "logic:planSuccessMode": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/logic/PlanSuccessMode",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/logic/PlanSuccessMode",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -44247,62 +43421,18 @@
           },
           "math:structureOperation": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/Operation",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/Operation",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "math:underlyingSet": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/Set",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/Set",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -44364,31 +43494,9 @@
           },
           "math:approximates": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/Number",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/Number",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -44635,31 +43743,9 @@
           "math:ambientSpace": {},
           "math:complementSemantics": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/ComplementSemantics",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/ComplementSemantics",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -44785,31 +43871,9 @@
           },
           "math:convergenceMode": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/ConvergenceMode",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/ConvergenceMode",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -44903,31 +43967,9 @@
           },
           "math:baseDimensionExponent": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/DimensionExponent",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/DimensionExponent",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -44996,31 +44038,9 @@
           },
           "math:exponentOfDimension": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/BaseDimension",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/BaseDimension",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -45312,62 +44332,18 @@
           },
           "math:fittedToData": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/DatasetMatrix",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/DatasetMatrix",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "math:modelFormula": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/ModelFormula",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/ModelFormula",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -45471,62 +44447,18 @@
           },
           "math:codomain": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/Set",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/Set",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "math:domain": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/Set",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/Set",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -45557,62 +44489,18 @@
           },
           "math:inBasis": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/Basis",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/Basis",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "math:representsForm": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/SymmetricBilinearForm",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/SymmetricBilinearForm",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -45643,31 +44531,9 @@
           },
           "math:homomorphicOver": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/Operation",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/Operation",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -45684,31 +44550,9 @@
           },
           "math:securityAssumption": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/LatticeHardnessAssumption",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/LatticeHardnessAssumption",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -45752,31 +44596,9 @@
           },
           "math:preservedOperation": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/Operation",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/Operation",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -45854,31 +44676,9 @@
           },
           "math:ingestCorrespondence": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/logic/Correspondence",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/logic/Correspondence",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -45924,31 +44724,9 @@
           },
           "math:integrand": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/MeasurableFunction",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/MeasurableFunction",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -45956,31 +44734,9 @@
           "math:integrationDomain": {},
           "math:withRespectTo": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/Measure",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/Measure",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -46014,31 +44770,9 @@
           },
           "math:hasRootSystem": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/RootSystem",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/RootSystem",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -46118,31 +44852,9 @@
           },
           "math:manifoldStructureKind": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/ManifoldStructureKind",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/ManifoldStructureKind",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -46229,31 +44941,9 @@
           },
           "math:measureOn": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/MeasurableSpace",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/MeasurableSpace",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -46313,31 +45003,9 @@
           },
           "math:argumentSlot": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/ArgumentSlot",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/ArgumentSlot",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -46396,31 +45064,9 @@
           },
           "math:inNumberSystem": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/NumberSystem",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/NumberSystem",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -46513,31 +45159,9 @@
           },
           "math:centeringPolicy": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/CenteringPolicy",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/CenteringPolicy",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -46604,31 +45228,9 @@
           },
           "math:scalingPolicy": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/ScalingPolicy",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/ScalingPolicy",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -46876,31 +45478,9 @@
           },
           "math:hasDimension": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/Dimension",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/Dimension",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -47077,31 +45657,9 @@
           },
           "math:hasConvergence": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/Convergence",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/Convergence",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -47132,31 +45690,9 @@
           },
           "math:hasConvergence": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/Convergence",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/Convergence",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
@@ -47535,31 +46071,9 @@
           },
           "math:inParameterSpace": {
             "anyOf": [
+              {},
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/ParameterSpace",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/ParameterSpace",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
+                "items": {},
                 "type": "array"
               }
             ]
