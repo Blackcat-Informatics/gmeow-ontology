@@ -972,4 +972,195 @@ mod tests {
             );
         }
     }
+
+    // -- Teeth: each of the three integrity-law failure modes genuinely trips
+    // `is_clean() == false`, proven on tiny SYNTHETIC snapshots (never the real
+    // 48 MB committed bundle) so the fixtures stay fixture-scale and on-gate. --
+
+    /// Ingest RDF `text` into a fresh [`purrdf::gts_compose::SnapshotBuilder`]
+    /// (mirrors `crate::stages::release::tests::builder_from`) — the same
+    /// single-exit ingestion (`parse_dataset` → `add_dataset`) those fixtures use
+    /// to author a synthetic snapshot without touching the committed bundle.
+    fn builder_from(text: &str, media_type: &str) -> purrdf::gts_compose::SnapshotBuilder {
+        let dataset =
+            purrdf::parse_dataset(text.as_bytes(), media_type, None).expect("parse fixture");
+        let mut b = purrdf::gts_compose::SnapshotBuilder::new();
+        b.add_dataset(&dataset).expect("add_dataset");
+        b
+    }
+
+    /// TEETH (dangling reference): a `*Blob`-suffixed predicate triple pointing
+    /// at a digest with NO matching stored blob must trip `is_clean() == false`
+    /// and land in `report.dangling`. Built via the public `gts_compose` builder
+    /// surface (`builder_from` + [`purrdf::gts_compose::emit_gts`]) with an empty
+    /// blob list — this failure mode needs no low-level writer access, since the
+    /// dangling-ness lives entirely in the graph, not the blob store.
+    #[test]
+    fn integrity_report_flags_a_dangling_blob_reference() {
+        use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, emit_gts};
+
+        let dangling_digest = format!("blake3:{}", "0".repeat(64));
+        let nq = format!("<https://e/s> <https://e/testBlob> \"{dangling_digest}\" .\n");
+        let b = builder_from(&nq, purrdf::NativeRdfFormat::NTriples.media_type());
+        let snapshot = emit_gts(
+            &b,
+            "dist",
+            None,
+            Vec::new(),
+            Vec::new(),
+            None,
+            None,
+            None,
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit synthetic snapshot with no stored blobs");
+
+        let bundle = Bundle::from_snapshot(&snapshot).expect("fold synthetic snapshot");
+        let report = bundle.integrity_report().expect("integrity report");
+        assert!(
+            !report.is_clean(),
+            "a *Blob predicate pointing at an unstored digest must trip is_clean() == false"
+        );
+        let missing = report
+            .dangling
+            .get("https://e/testBlob")
+            .expect("the testBlob predicate is present in the dangling map");
+        assert_eq!(missing, &vec![dangling_digest]);
+        assert!(
+            report.orphan_blobs.is_empty(),
+            "no blobs are stored at all, so there can be no orphan"
+        );
+        assert!(
+            report.hash_mismatches.is_empty(),
+            "no blobs are stored at all, so there can be no hash mismatch"
+        );
+    }
+
+    /// A hand-authored `dist` snapshot: one `blob` frame whose `pub` metadata is
+    /// supplied VERBATIM (bypassing [`purrdf::gts_compose::BlobRow`]) plus a plain
+    /// `snapshot` frame from `builder`. This is the shared low-level construction
+    /// both [`integrity_report_flags_an_orphan_blob`] and
+    /// [`integrity_report_flags_a_hash_mismatch`] need: `BlobRow`/`emit_gts` (see
+    /// `purrdf-rdf-0.4.0/src/gts_compose.rs::emit_gts`, ~line 549-556) ALWAYS
+    /// computes `pub.digest` as `digest_string(&blob.data)` and ALWAYS stamps a
+    /// non-empty `pub.rep`, so neither an orphan (rep-less) nor a hash-mismatched
+    /// (wrong-digest) blob is constructible through it — every `BlobRow`-authored
+    /// blob is, by construction, correctly keyed and rep-labeled. The lower-level
+    /// [`purrdf::gts::writer::Writer::add_frame_with_options`] (re-exported from
+    /// `purrdf-gts`, the same call `emit_gts` itself makes) takes an arbitrary
+    /// `pub_meta` CBOR value, so it is the genuine producer-side seam: a producer
+    /// that (a) forgets to stamp a `rep` on a blob it stores, or (b) declares a
+    /// `pub.digest` that does not match its own bytes, is a real bug class this
+    /// module's integrity law exists to catch — not a bytes-corruption hack.
+    ///
+    /// Per `purrdf-gts-0.4.0/src/reader.rs::h_blob_frame` (~line 670), the reader
+    /// takes a `pub.digest`-bearing frame's declared digest as the blob's STORE
+    /// KEY verbatim (`pub_digest`, ~line 66-76, only checks the text is
+    /// `blake3:`-shaped or 32 raw bytes — it never recomputes the hash from `d`),
+    /// while `process_frame` (~line 1199-1265) separately recomputes each frame's
+    /// OWN self-hash (`"id"`) over the frame's actual bytes (INCLUDING this same
+    /// `pub_meta` + `"d"`). So a hand-authored frame with a deliberately-wrong
+    /// declared digest is still a fully self-consistent, chain-valid frame — the
+    /// frame self-hash law and this crate's blob-keying law check two different
+    /// things (frame authenticity vs. declared-key-vs-bytes agreement) — which is
+    /// why this construction, unlike raw-byte tampering of the committed bundle,
+    /// is never intercepted upstream before `integrity_report()` runs.
+    fn hand_authored_blob_snapshot(data: Vec<u8>, pub_meta: ciborium::value::Value) -> Vec<u8> {
+        use purrdf::gts::writer::{FrameOptions, Writer};
+
+        let nq = "<https://e/s> <https://e/p> <https://e/o> .\n"; // no *Blob predicate at all
+        let b = builder_from(nq, purrdf::NativeRdfFormat::NTriples.media_type());
+
+        let mut writer = Writer::new("dist");
+        writer
+            .add_frame_with_options(
+                "blob",
+                FrameOptions {
+                    raw: Some(data),
+                    pub_meta: Some(pub_meta),
+                    ..Default::default()
+                },
+            )
+            .expect("add hand-authored blob frame");
+        writer
+            .add_frame_with_options(
+                "snapshot",
+                FrameOptions {
+                    payload: Some(b.snapshot_payload()),
+                    ..Default::default()
+                },
+            )
+            .expect("add snapshot frame");
+        writer.into_bytes()
+    }
+
+    /// TEETH (orphan blob): a stored blob referenced by no `*Blob` predicate AND
+    /// carrying no producer-declared `rep` label must trip `is_clean() == false`
+    /// and land in `report.orphan_blobs`. The digest IS correctly keyed (so this
+    /// test isolates orphan-ness from the hash-mismatch law below).
+    #[test]
+    fn integrity_report_flags_an_orphan_blob() {
+        use ciborium::value::Value;
+        use purrdf::gts::writer::digest_string;
+
+        let data = b"{\"orphan\":true}".to_vec();
+        let digest = digest_string(&data);
+        let pub_meta = Value::Map(vec![
+            ("digest".into(), Value::Text(digest.clone())),
+            ("mt".into(), Value::Text("application/json".to_string())),
+            // Deliberately no "rep" entry: nobody declared why this blob exists.
+        ]);
+        let snapshot = hand_authored_blob_snapshot(data, pub_meta);
+
+        let bundle = Bundle::from_snapshot(&snapshot).expect("fold hand-authored snapshot");
+        let report = bundle.integrity_report().expect("integrity report");
+        assert!(
+            !report.is_clean(),
+            "an unreferenced, rep-less stored blob must trip is_clean() == false"
+        );
+        assert_eq!(report.orphan_blobs, vec![digest]);
+        assert!(
+            report.hash_mismatches.is_empty(),
+            "the orphan blob's digest is correctly keyed; only orphan-ness should fire"
+        );
+        assert!(report.dangling.values().all(Vec::is_empty));
+    }
+
+    /// TEETH (hash mismatch): a stored blob whose declared `pub.digest` does NOT
+    /// equal `blake3(decoded bytes)` must trip `is_clean() == false` and land in
+    /// `report.hash_mismatches`. The blob DOES carry a `rep` (so this test
+    /// isolates the mismatch from the orphan law above — a rep-labeled blob must
+    /// never also be flagged as an orphan, per the existing regression pin).
+    #[test]
+    fn integrity_report_flags_a_hash_mismatch() {
+        use ciborium::value::Value;
+        use purrdf::gts::writer::digest_string;
+
+        let data = b"{\"real\":\"bytes\"}".to_vec();
+        let real_digest = digest_string(&data);
+        let bogus_digest = format!("blake3:{}", "1".repeat(64));
+        assert_ne!(
+            real_digest, bogus_digest,
+            "sanity: the declared digest is genuinely wrong"
+        );
+        let pub_meta = Value::Map(vec![
+            ("digest".into(), Value::Text(bogus_digest.clone())),
+            ("mt".into(), Value::Text("application/json".to_string())),
+            ("rep".into(), Value::Text("mismatched-report".to_string())),
+        ]);
+        let snapshot = hand_authored_blob_snapshot(data, pub_meta);
+
+        let bundle = Bundle::from_snapshot(&snapshot).expect("fold hand-authored snapshot");
+        let report = bundle.integrity_report().expect("integrity report");
+        assert!(
+            !report.is_clean(),
+            "a declared digest that != blake3(decoded bytes) must trip is_clean() == false"
+        );
+        assert_eq!(report.hash_mismatches, vec![(bogus_digest, real_digest)]);
+        assert!(
+            report.orphan_blobs.is_empty(),
+            "the blob carries a rep, so it must not ALSO be flagged as an orphan"
+        );
+        assert!(report.dangling.values().all(Vec::is_empty));
+    }
 }
