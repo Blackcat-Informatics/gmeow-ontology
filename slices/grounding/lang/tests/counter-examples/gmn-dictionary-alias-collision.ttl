@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
-# Counter-example (Item 1 / R5 of #1475): a gmeow:GmnDictionary whose two entries alias
+# Counter-example: a gmeow:GmnDictionary whose two entries alias
 # TWO DIFFERENT terms with the SAME alias string "genv" — the alias table is not
 # injective, so a reader cannot tell which term an occurrence of "genv" names. Fires
 # the sh:sparql constraint of lang:GmnDictionaryAliasInjectivityShape

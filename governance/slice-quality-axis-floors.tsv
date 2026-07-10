@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# The committed PER-AXIS slice-quality floor (Task 7, #1475 F1): the minimum score
+# The committed PER-AXIS slice-quality floor: the minimum score
 # each named axis must MEASURE for each named slice, gated additionally to (never
 # instead of) the roll-up-tier ratchet in slice-quality-floors.tsv. A slice's
 # measured score for the named axis may RISE above its floor freely; falling below
@@ -11,9 +11,9 @@
 #
 # Every slice under slices/grounding/ (logic, lang, math) is HARD-gated at floor
 # 1.0 for axisGmn1Coverage regardless of what this file says (the loader also
-# defaults an absent grounding row to 1.0) — grounding coverage is total NOW
-# (Task 6) and non-negotiable, never silently unfloored. Every other slice is
-# seeded here at its actual measured score as of this commit (Task 7 landing), so
+# defaults an absent grounding row to 1.0) — grounding coverage is total
+# and non-negotiable, never silently unfloored. Every other slice is
+# seeded here at its actual measured score, so
 # the ratchet starts live, not vacuous.
 #
 # Format: <slice-iri>\t<axis-local-name>\t<floor:f64>

@@ -112,7 +112,7 @@ ASK {
     gmeow:processAudit         a gmeow:MentalProcessType .
     gmeow:processExport        a gmeow:MentalProcessType .
 }""" ;
-    gmeow:saRationale "All twelve gmeow:process* seed individuals — the original nine plus the train/audit/export triple (Item 4 of #1475) — MUST be explicitly typed gmeow:MentalProcessType (the value-vocab closed set for this slice)." .
+    gmeow:saRationale "All twelve gmeow:process* seed individuals — the original nine plus the train/audit/export triple — MUST be explicitly typed gmeow:MentalProcessType (the value-vocab closed set for this slice)." .
 
 # --- 7. realizesMentalMoment is a non-functional ObjectProperty (MUST/-NOT) ---
 ex:saRealizesMentalMomentProperty a gmeow:StructuralAssertion ;

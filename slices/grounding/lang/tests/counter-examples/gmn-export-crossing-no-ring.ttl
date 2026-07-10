@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
-# Counter-example (Item 4 of #1475): an export crossing a serialization boundary with NO
+# Counter-example: an export crossing a serialization boundary with NO
 # ring bound. ex:exportRun carries gmeow:mentalProcessType gmeow:processExport (mentation)
 # and generated ex:envelopeExportUnbound, which omits gmeow:gmnSecurityRing — the sh:sparql
 # of lang:GmnExportRingBindingShape fires shacl.SPARQLConstraintComponent

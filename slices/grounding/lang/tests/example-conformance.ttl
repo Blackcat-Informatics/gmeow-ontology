@@ -477,7 +477,7 @@ ex:ecGmnRingLatticeMalformed a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The gmeow:GmnSecurityRing carries no gmeow:gmnRingLevel at all (sh:minCount 1 on lang:GmnRingLatticeWellFormedShape), so it cannot be placed in the Denning product-order lattice — validation MUST emit shacl.MinCountConstraintComponent and NO other finding (lang:GmnRingLatticeMalformed). This gate bites the AUTHORED coordinate, proving it is not vacuous." .
 
-# === Rule (Item 1 / R5 of #1475): a GMN dictionary's alias table is injective === #
+# === Rule: a GMN dictionary's alias table is injective === #
 
 ex:ecGmnDictionaryAliasUnique a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/gmn-dictionary-alias-unique.ttl" ;
@@ -490,7 +490,7 @@ ex:ecGmnDictionaryAliasCollision a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "Two gmeow:GmnDictionaryEntry members of one gmeow:GmnDictionary alias two DIFFERENT terms (gmeow:GmnEnvelope, gmeow:GmnCodebook) with the SAME alias string \"genv\" (the sh:sparql of lang:GmnDictionaryAliasInjectivityShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (lang:GmnDictionaryAliasCollision) — the alias table is not a bijection, so gmeow:gmnCorrNormalToGmn's mnemomorphic claim would be silently corrupted on read-back." .
 
-# === Rule (Item 4 of #1475): a gmeow:processExport crossing binds to its ring === #
+# === Rule: a gmeow:processExport crossing binds to its ring === #
 
 ex:ecGmnExportRingBound a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/gmn-export-ring-bound.ttl" ;

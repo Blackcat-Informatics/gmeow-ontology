@@ -240,21 +240,21 @@ information-flow lattice `⟨SC, ⊑, ⊕, ⊗⟩` (security classes, dominance 
 recognizable as the **serialization-boundary instance** of this same shape: a lattice-graded
 quantity, monotone under composition, attached to a crossing.
 
-**Forward direction (named, not built here).** The unifying reading suggests two future-work
-handles, both out of scope for this PR and intended to become their own future issue:
+**Forward direction (named, not built here).** The unifying reading points toward two further
+extensions of the calculus:
 
 1. a `logic:` **flow-label axis** on the correspondence, alongside `confidence`/`evidenceStrength`/
    `weight`/`probability`/`Determinacy`, so a crossing's information-flow classification composes by
    the same rules as its other quantitative axes;
 2. a **parametric round-trip harness** generalizing the calculus's existing byte-teeth gates — the
-   narrow-waist superset gate, the RDFC-1.0 round-trip, and the forthcoming GMN-1 round-trip gate
-   (built elsewhere in this same PR) are three instances of one round-trip-over-a-crossing shape, and
-   a single parametric harness could discharge all three from one implementation.
+   narrow-waist superset gate, the RDFC-1.0 round-trip, and the GMN-1 round-trip gate are three
+   instances of one round-trip-over-a-crossing shape, and a single parametric harness could discharge
+   all three from one implementation.
 
-Naming this direction is the entire scope of this note. The engine — the flow-label vocabulary, its
-RDF terms, and the parametric harness itself — is **not** implemented here: it is a pointer for a
-future, separately-scoped issue, kept out of this PR's build surface per the canonical-core-refactor
-boundary (`logic:` is canon; expanding it is not a side effect of a downstream-integration PR).
+Naming this direction is the entire scope of this note. The engine itself — the flow-label
+vocabulary, its RDF terms, and the parametric harness — is **not** implemented here: `logic:` is
+canon, and expanding it with a new foundational axis or a generalized harness is a design decision
+that belongs to its own dedicated treatment, not a side effect of naming the direction.
 
 ## Preservation is the lens-law framework (reuse, do not reinvent)
 
@@ -291,7 +291,7 @@ Each former artifact is a registered lowering with its own preservation claim, i
 | up-lift (replaces the heuristic) | the `put` leg — *derived* for mnemomorphic cells | complete-over for invertible; validation-only (mint-with-claim) otherwise; `unsupported` where `get` is non-injective and no witness exists |
 | OWL alignment axioms | the relation, DL-expressible band | under-approx; `unsupported` for caveated overlaps and bridges |
 | OAEI / Alignment-API XML | the whole correspondence set | under-approx; carries `align:measure` where SSSOM/OWL drop confidence |
-| GMN (`gmeow:gmnModelNotation`, the `lang:` dialect charter) | the GMN-0 narrow-waist normal form | section/retraction, exact preservation, `mnemomorphic true`: aliases invert through the version-pinned codebook bijection (injectivity-gated), confidence and annotations ride by reference (never inlined, never lost); discharged by the executed GMN-1 round-trip gate (this PR's Task 6), total over the grounding slices' GMN-0 now and gated toward full coverage by the GMN-1-coverage quality axis (Task 7) elsewhere; the rate–fidelity contract rides the codebook |
+| GMN (`gmeow:gmnModelNotation`, the `lang:` dialect charter) | the GMN-0 narrow-waist normal form | section/retraction, exact preservation, `mnemomorphic true`: aliases invert through the version-pinned codebook bijection (injectivity-gated), confidence and annotations ride by reference (never inlined, never lost); discharged by the executed GMN-1 round-trip gate, total over the grounding slices' GMN-0 now and gated toward full coverage by the GMN-1-coverage quality axis elsewhere; the rate–fidelity contract rides the codebook |
 
 Every lowering is a **legalization** (see [`LOGIC-IR.md`](LOGIC-IR.md) § IR commitments): a total
 function into `⟨ legal output ⊕ flagged residue ⟩`; the loss ledger is the residue set.

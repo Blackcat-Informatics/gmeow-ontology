@@ -231,7 +231,7 @@ ASK {
 }""" ;
     gmeow:saRationale "This layer's five flagship acceptance scenarios MUST each be present as a gmeow:FlagshipScenario binding its worked example, competency question, native producer, counter-example, and a real lang:LangConformanceFailure subclass. If any of the five is absent or missing a link, the acceptance bar is not met and this assertion fails — the depth bar is a contract, not prose." .
 
-# --- 14. No authored gmeow:gmnRingWithin triple exists in the carrier (MUST-NOT, Item 3 of #1475) - #
+# --- 14. No authored gmeow:gmnRingWithin triple exists in the carrier (MUST-NOT) - #
 ex:saNoAuthoredRingWithin a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModuleAndExamples ;
