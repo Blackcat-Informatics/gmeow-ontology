@@ -400,6 +400,32 @@ leaves the gate: the assertions still run on `make maint-rust-heavy`, every othe
 slice's `structural.ttl` stays on-gate (only this one file's datatest case is
 excluded), and the rubric's axis-shape invariants stay drift-gated via
 `make check-generated`.
+The self-sufficiency parity harness added four more whole-bundle CLI tests —
+`gmeow-cli::self_sufficiency::transpile_wheel_mode_equals_repo_mode`,
+`::transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak`,
+`::project_wheel_mode_equals_repo_mode`, and
+`::describe_wheel_mode_equals_repo_mode` (31-53 s locally, `describe` 7.6 s
+standalone but 27.6 s under full-parallelism CI contention; each drives
+`gmeow transpile`/`gmeow project`/`gmeow describe` over the WHOLE embedded
+bundle — the transpile parity test runs it twice, blinded-cwd and repo-cwd
+legs — the identical whole-committed-bundle class as the
+`build_writes_serializations` / `export_respects_language_selector` /
+`project_schema_org_view_filter` trio above; the same wheel-mode==repo-mode
+parity law stays on-gate at fixture scale via
+`self_sufficiency::validate_wheel_mode_equals_repo_mode`, and all four stay on-gate on
+`maint-heavy`).
+The native release-attestation round-trip added a whole-bundle pair —
+`gmeow-pipeline::release_verify_roundtrip::release_bundle_with_coherence_evidence_round_trips_natively`
+and `::release_bundle_rejects_an_untrusted_out_of_band_key` (~75 s each locally;
+`fold_release_bundle`/`verify_release_bundle` each replay the WHOLE committed
+~48 MB `generated/dist/gmeow.gts`, irreducibly O(bundle size), the identical
+whole-committed-bundle class as `fold_parity`/`fanout_parity`/`end_to_end`
+above; the real crypto-through-the-built-binary requirement — accept a valid
+signature, reject an invalid one — stays on-gate via
+`gmeow-cli::bundle_smoke`, which builds a small in-process signed `.gts`
+rather than replaying the shipped bundle, and `release.rs`'s own unit tests
+cover the fold/verify pair's logic against a tiny synthetic snapshot; the full
+committed-bundle round-trip stays on-gate on `maint-heavy`).
 Former off-gate groups such as
 ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
 correspondence parity, mapping parity, carrier/docs archive tests, scoreboards
