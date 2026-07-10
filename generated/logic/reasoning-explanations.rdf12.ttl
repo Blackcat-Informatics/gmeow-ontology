@@ -46773,7 +46773,7 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/skolem/0713c5971d60b27817887cb3f31609a34adf6b52> <https://blackcatinformatics.ca/gmeow/frameRealm> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalPitch> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/skolem/be74165ebcd97f1158bfe63a0a9842ab2e5d88fe> <http://www.w3.org/2002/07/owl#hasValue> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalPitch> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/skolem/003341ee812e6067ba17f52c0424ea9f84f5038f> <http://www.w3.org/2002/07/owl#hasValue> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalPitch> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AhasValue-assertion> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -46959,7 +46959,7 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/skolem/0bb49332255d227ab3b2eae38145ef1118e3a7a4> <https://blackcatinformatics.ca/gmeow/frameRealm> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalPitch> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/skolem/be74165ebcd97f1158bfe63a0a9842ab2e5d88fe> <http://www.w3.org/2002/07/owl#hasValue> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalPitch> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/skolem/003341ee812e6067ba17f52c0424ea9f84f5038f> <http://www.w3.org/2002/07/owl#hasValue> <https://blackcatinformatics.ca/gmeow/frameRealmMusicalPitch> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AhasValue-assertion> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
