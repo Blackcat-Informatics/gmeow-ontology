@@ -1,0 +1,126 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Closed-world constraints for the credence axis of the standpoint slice.
+# Two shapes:
+#   (a) gmeow:ClaimCredenceRangeShape — numeric decimal must lie in [0,1].
+#   (b) gmeow:CredenceBandConsistencyShape — when a node carries BOTH a
+#       qualitative band and a numeric decimal the decimal must fall within
+#       the band's canonical threshold range:
+#         credencePossible    [0.0, 0.5)
+#         credenceLikely      [0.5, 0.9)
+#         credenceCertain     [0.9, 1.0]
+#         credenceUnspecified no decimal permitted
+#
+# The qualitative band is the AUTHORITATIVE projection key. The decimal is
+# ADVISORY finer-grained detail. Authoring only the decimal (no band) does
+# NOT project to a legacy value — intentional non-approximation (Principle 9).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --------------------------------------------------------------------------- #
+# (a) Numeric credence must lie in [0,1].
+#     Two property shapes, one per property, each triggered by sh:targetSubjectsOf.
+# --------------------------------------------------------------------------- #
+
+gmeow:ClaimCredenceRangeShape
+    a sh:NodeShape ;
+    rdfs:label "Claim credence range shape"@x-gmeow-english ;
+    skos:definition "The numeric gmeow:claimCredence value must be an xsd:decimal in [0.0, 1.0]. A decimal outside this range is malformed; there is no valid credence below 0 or above 1."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    sh:targetSubjectsOf gmeow:claimCredence ;
+    sh:property [
+        sh:path gmeow:claimCredence ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        sh:maxInclusive 1.0 ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:claimCredence must be an xsd:decimal in [0.0, 1.0] — a credence value outside this range is malformed." ;
+    ] .
+
+gmeow:StandpointCredenceRangeShape
+    a sh:NodeShape ;
+    rdfs:label "Standpoint credence range shape"@x-gmeow-english ;
+    skos:definition "The numeric gmeow:standpointCredence value must be an xsd:decimal in [0.0, 1.0]. A decimal outside this range is malformed; there is no valid credence below 0 or above 1."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    sh:targetSubjectsOf gmeow:standpointCredence ;
+    sh:property [
+        sh:path gmeow:standpointCredence ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        sh:maxInclusive 1.0 ;
+        sh:severity sh:Violation ;
+        sh:message "gmeow:standpointCredence must be an xsd:decimal in [0.0, 1.0] — a credence value outside this range is malformed." ;
+    ] .
+
+# --------------------------------------------------------------------------- #
+# (b) Band-decimal consistency: when a node carries BOTH a credence band and
+#     a credence decimal, the decimal must fall within the band's threshold range.
+#
+# Canonical thresholds:
+#   credencePossible    [0.0, 0.5)
+#   credenceLikely      [0.5, 0.9)
+#   credenceCertain     [0.9, 1.0]
+#   credenceUnspecified no decimal permitted (any decimal contradicts the
+#                        "no graded belief asserted" semantics of this band)
+#
+# The shape covers both the claim* pair and the standpoint* pair via two
+# UNION arms in the SPARQL constraint. A SPARQLTarget selects any node that
+# carries at least one of the four properties; the constraint then checks for
+# contradictions.
+# --------------------------------------------------------------------------- #
+
+gmeow:CredenceBandConsistencyShape
+    a sh:NodeShape ;
+    rdfs:label "Credence band consistency shape"@x-gmeow-english ;
+    skos:definition "When a node asserts both a qualitative credence band (gmeow:claimCredenceLevel or gmeow:standpointCredenceLevel) and a numeric decimal (gmeow:claimCredence or gmeow:standpointCredence), the decimal must fall within the band's canonical threshold range: credencePossible [0.0, 0.5), credenceLikely [0.5, 0.9), credenceCertain [0.9, 1.0]. Asserting gmeow:credenceUnspecified alongside any decimal is contradictory — that band means no graded belief is present."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+            SELECT ?this WHERE {
+                { ?this gmeow:claimCredenceLevel ?band ; gmeow:claimCredence ?dec . }
+                UNION
+                { ?this gmeow:standpointCredenceLevel ?band ; gmeow:standpointCredence ?dec . }
+            }
+        """ ;
+    ] ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "Credence band and decimal are inconsistent: the decimal must fall within the band's canonical range (credencePossible [0,0.5), credenceLikely [0.5,0.9), credenceCertain [0.9,1.0]) and credenceUnspecified must carry no decimal at all." ;
+        sh:select """
+            PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+            PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
+            SELECT $this WHERE {
+                {
+                    # --- claim* pair ---
+                    $this gmeow:claimCredenceLevel ?band ;
+                          gmeow:claimCredence ?dec .
+                    FILTER (
+                        ( ?band = gmeow:credenceCertain      && ?dec < 0.9  ) ||
+                        ( ?band = gmeow:credenceLikely       && ( ?dec < 0.5 || ?dec >= 0.9 ) ) ||
+                        ( ?band = gmeow:credencePossible     && ( ?dec < 0.0 || ?dec >= 0.5 ) ) ||
+                        ( ?band = gmeow:credenceUnspecified  )
+                    )
+                }
+                UNION
+                {
+                    # --- standpoint* pair ---
+                    $this gmeow:standpointCredenceLevel ?band ;
+                          gmeow:standpointCredence ?dec .
+                    FILTER (
+                        ( ?band = gmeow:credenceCertain      && ?dec < 0.9  ) ||
+                        ( ?band = gmeow:credenceLikely       && ( ?dec < 0.5 || ?dec >= 0.9 ) ) ||
+                        ( ?band = gmeow:credencePossible     && ( ?dec < 0.0 || ?dec >= 0.5 ) ) ||
+                        ( ?band = gmeow:credenceUnspecified  )
+                    )
+                }
+            }
+        """ ;
+    ] .

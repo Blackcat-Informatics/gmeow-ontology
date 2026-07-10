@@ -4200,20 +4200,26 @@ mod ustar_tests {
         assert!(!members.is_empty(), "the shape surface must carry members");
         let names: Vec<&str> = members.iter().map(|(n, _)| n.as_str()).collect();
 
-        // The hand-authored shapes were retired (Principle 17): the surface is the projected
-        // generated/shapes/* — the generated frame shape (P11) is present…
+        // Base hand-authored shape + the generated frame shape (P11) + ≥1 per-slice.
+        assert!(names.contains(&"shapes/gmeow-shapes.ttl"));
         assert!(names.contains(&"generated/shapes/frame-shapes.ttl"));
-        // …and the retired hand-authored root shapes + DSL/manifest lints are ABSENT.
-        for gone in [
-            "shapes/gmeow-shapes.ttl",
+        assert!(
+            names
+                .iter()
+                .any(|n| n.starts_with("slices/") && n.ends_with("/shapes.ttl")),
+            "at least one per-slice shapes.ttl must be folded"
+        );
+        // The FULL surface carries the 4 DSL/manifest lints (the validator filters
+        // them OUT of its data-graph union, but the consumer's DSL phases need them).
+        for dsl in [
             "shapes/mapping-dsl-shapes.ttl",
             "shapes/statement-dsl-shapes.ttl",
             "shapes/test-dsl-shapes.ttl",
             "shapes/slice-manifest-shapes.ttl",
         ] {
             assert!(
-                !names.contains(&gone),
-                "retired hand-authored shape {gone} must NOT be in the projected surface"
+                names.contains(&dsl),
+                "DSL lint {dsl} must be in the FULL shape surface"
             );
         }
         // Member count == on-disk count (no silent drops).

@@ -42,15 +42,11 @@ pub const DSL_SHAPE_FILENAMES: &[&str] = &[
     "validation-shapes.ttl",
 ];
 
-/// Collect `shapes/*.ttl` paths, sorted, excluding DSL-specific files. The hand-authored
-/// root shapes were retired (Principle 17): the validation surface is the projected
-/// `generated/shapes/*`, so an absent or empty `shapes/` directory is expected, not an error.
+/// Collect `shapes/*.ttl` paths, sorted, excluding DSL-specific files.
 pub fn collect_shapes_dir(root: &Path) -> Vec<PathBuf> {
     let dir = root.join("shapes");
-    let Ok(entries) = std::fs::read_dir(&dir) else {
-        return Vec::new();
-    };
-    let mut paths: Vec<PathBuf> = entries
+    let mut paths: Vec<PathBuf> = std::fs::read_dir(&dir)
+        .unwrap_or_else(|e| panic!("cannot read shapes/: {e}"))
         .filter_map(|e| e.ok().map(|e| e.path()))
         .filter(|p| {
             p.extension().and_then(|s| s.to_str()) == Some("ttl")
@@ -122,17 +118,23 @@ pub fn read_ttl(path: &Path) -> String {
         .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()))
 }
 
-/// Assemble the full SHACL shapes corpus as one concatenated Turtle string. The hand-authored
-/// root shapes were retired (Principle 17), so the union is now:
-///   1. `generated/shapes/*.ttl` (the projected validation surface, incl. Principle-11 frames),
-///   2. any residual `shapes/*.ttl` / per-slice `shapes.ttl` (expected empty after retirement).
+/// Assemble the full SHACL shapes corpus as one concatenated Turtle string.
+///
+///   1. `shapes/gmeow-shapes.ttl` (the base shapes file, listed first),
+///   2. other `shapes/*.ttl` excluding DSL-specific files,
+///   3. `generated/shapes/*.ttl` (frame-relativity shapes, Principle 11),
+///   4. per-slice `shapes.ttl` files.
 pub fn whole_shapes_ttl() -> &'static str {
     static CACHE: OnceLock<String> = OnceLock::new();
     CACHE.get_or_init(|| {
         let root = repo_root();
         let mut parts: Vec<String> = Vec::new();
 
-        // Residual authored domain shapes (expected empty — the surface is projected).
+        // 1. Base shapes file first.
+        parts.push(read_ttl(&root.join("shapes").join("gmeow-shapes.ttl")));
+
+        // 2. Additional domain shapes (excludes gmeow-shapes.ttl — already added —
+        //    and DSL files).
         let base_name = "gmeow-shapes.ttl";
         for path in collect_shapes_dir(&root) {
             if path.file_name().and_then(|n| n.to_str()) != Some(base_name) {
@@ -141,12 +143,6 @@ pub fn whole_shapes_ttl() -> &'static str {
         }
 
         // 3. Generated shapes.
-        for path in collect_generated_shapes(&root) {
-            parts.push(read_ttl(&path));
-        }
-
-        // 3. Generated shapes (the projected validation surface — where the retired
-        //    hand-authored domain constraints now live, Principle 17).
         for path in collect_generated_shapes(&root) {
             parts.push(read_ttl(&path));
         }

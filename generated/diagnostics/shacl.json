@@ -407,7 +407,7 @@
     "shaclConforms": false,
     "shaclErrorCount": 0,
     "shaclGatePassed": true,
-    "shaclResultCount": 10,
+    "shaclResultCount": 16,
     "shaclWarningCount": 10,
     "stage": "stage-validate"
   }
