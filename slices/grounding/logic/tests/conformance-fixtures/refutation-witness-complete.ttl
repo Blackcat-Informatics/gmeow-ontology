@@ -10,4 +10,5 @@
 @prefix ex:    <http://example.org/logic/> .
 
 ex:refutationWitness a logic:RefutationAcceptanceWitness ;
-    logic:namesContradictionWitness ex:contradictionWitnessAB .
+    logic:namesContradictionWitness ex:contradictionWitnessAB ;
+    ex:executesNativeProducer "logic::conjecture::conjecture_test" .

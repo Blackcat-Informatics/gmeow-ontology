@@ -10,4 +10,6 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <http://example.org/logic/> .
 
-ex:refutationWitness a logic:RefutationAcceptanceWitness .
+ex:refutationWitness a logic:RefutationAcceptanceWitness ;
+    ex:executesNativeProducer "logic::conjecture::conjecture_test" ;
+    ex:observesRuntimeFailure logic:UnwitnessedRefutation .

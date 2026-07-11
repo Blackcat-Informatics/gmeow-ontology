@@ -11,4 +11,5 @@
 @prefix ex:    <http://example.org/logic/> .
 
 ex:counterfactualWitness a logic:CounterfactualAcceptanceWitness ;
-    logic:selectedByEntrenchment ex:outcomeAlertFired .
+    logic:selectedByEntrenchment ex:outcomeAlertFired ;
+    ex:executesNativeProducer "logic::counterfactual::construct_and_resolve" .

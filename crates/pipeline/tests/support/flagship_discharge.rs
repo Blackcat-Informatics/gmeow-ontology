@@ -21,13 +21,16 @@
 //!    NO slice-namespace failure fires.
 //! 4. **Runs the producer** — invokes a per-slice `producer_assert` callback once per scenario,
 //!    so each slice keeps its own producer-output assertions while sharing the discharge spine.
+//! 5. **Checks counter-example depth** — parses the closed discharge marker and requires the
+//!    per-slice negative callback to return matching structural or native execution evidence;
+//!    native evidence is set-equal to the one declared failure class.
 //!
 //! The failure-class scanner and SHACL shape→class resolution are parameterized by the slice's
 //! base IRI and short prefix, so `lang:`, `math:`, and `logic:` all drive the SAME core.
 
 #![allow(dead_code)]
 
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet, hash_map::Entry};
 use std::path::{Path, PathBuf};
 
 use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
@@ -75,6 +78,69 @@ pub struct Flagship {
     pub failure_class: String,
     /// The `gmeow:demonstratedByProducer` identifier string.
     pub producer: String,
+    /// The declared depth at which the guarding counter-example is executed.
+    pub counter_example_discharge: CounterExampleDischarge,
+}
+
+/// The closed `gmeow:CounterExampleDischarge` marker set.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CounterExampleDischarge {
+    /// The malformed fixture is checked only through structural/SHACL projection surfaces.
+    Structural,
+    /// The malformed fixture is additionally run through the native reasoning producer.
+    ReasonerDriven,
+}
+
+/// What the per-slice counter-example callback actually executed.
+#[derive(Debug, PartialEq, Eq)]
+pub enum CounterExampleExecution {
+    /// No native negative execution; the structural/SHACL proxy is the whole guard.
+    StructuralProxy,
+    /// Native execution completed and observed these typed failure classes.
+    ReasonerDriven(BTreeSet<String>),
+}
+
+/// Enforce agreement between the ontology marker and the execution evidence. Reasoner-driven
+/// evidence is set-equal to the single declared failure class; structural and native results are
+/// never interchangeable.
+pub fn assert_counterexample_depth(flagship: &Flagship, execution: CounterExampleExecution) {
+    match (flagship.counter_example_discharge, execution) {
+        (CounterExampleDischarge::Structural, CounterExampleExecution::StructuralProxy) => {}
+        (
+            CounterExampleDischarge::ReasonerDriven,
+            CounterExampleExecution::ReasonerDriven(observed),
+        ) => {
+            let expected: BTreeSet<String> =
+                std::iter::once(flagship.failure_class.clone()).collect();
+            assert_eq!(
+                observed, expected,
+                "flagship {}: native counter-example execution must observe EXACTLY {{{}}}",
+                flagship.subject, flagship.failure_class
+            );
+        }
+        (declared, actual) => panic!(
+            "flagship {}: counter-example marker/execution mismatch: declared {declared:?}, \
+             executed {actual:?}",
+            flagship.subject
+        ),
+    }
+}
+
+/// Insert one manifest value without silently accepting duplicate predicates.
+fn insert_unique(
+    values: &mut HashMap<String, String>,
+    subject: &str,
+    predicate: &str,
+    value: String,
+) {
+    match values.entry(subject.to_owned()) {
+        Entry::Vacant(slot) => {
+            slot.insert(value);
+        }
+        Entry::Occupied(_) => {
+            panic!("flagship {subject} has duplicate gmeow:{predicate}")
+        }
+    }
 }
 
 /// The per-scenario execution context handed to a slice's `producer_assert` callback: the
@@ -134,7 +200,7 @@ pub fn local_name(iri: &str) -> String {
 
 /// Parse the acceptance manifest into the flagship bindings, resolving each relative fixture
 /// path against `spec.slice_root`, sorted deterministically by subject, asserting exactly
-/// `expected_count` producers are declared.
+/// `expected_count` scenarios are declared.
 pub fn parse_manifest(spec: &SliceSpec, expected_count: usize) -> Vec<Flagship> {
     let manifest = spec.slice_root.join(spec.manifest_rel);
     let ds = parse_file_dataset(&manifest).expect("manifest parses");
@@ -145,6 +211,8 @@ pub fn parse_manifest(spec: &SliceSpec, expected_count: usize) -> Vec<Flagship> 
     let mut counter: HashMap<String, String> = HashMap::new();
     let mut class: HashMap<String, String> = HashMap::new();
     let mut producer: HashMap<String, String> = HashMap::new();
+    let mut discharge: HashMap<String, String> = HashMap::new();
+    let mut scenarios = BTreeSet::new();
 
     // The manifest predicate IRIs, built ONCE. Hoisted to the shared gmeow: vocabulary; only
     // the enforcesFailureClass VALUE stays slice-namespaced.
@@ -152,6 +220,9 @@ pub fn parse_manifest(spec: &SliceSpec, expected_count: usize) -> Vec<Flagship> 
     let pred_counter = format!("{GMEOW_NS}guardedByCounterExample");
     let pred_class = format!("{GMEOW_NS}enforcesFailureClass");
     let pred_producer = format!("{GMEOW_NS}demonstratedByProducer");
+    let pred_discharge = format!("{GMEOW_NS}counterExampleDischarge");
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    let flagship_class = format!("{GMEOW_NS}FlagshipScenario");
 
     for quad in ds.owned_quads() {
         let RdfTerm::Iri(subject) = &quad.subject else {
@@ -166,31 +237,48 @@ pub fn parse_manifest(spec: &SliceSpec, expected_count: usize) -> Vec<Flagship> 
             _ => None,
         };
         let pred = quad.predicate.as_str();
-        if pred == pred_example {
-            example.insert(
-                subject.clone(),
+        if pred == RDF_TYPE && obj_iri.as_deref() == Some(flagship_class.as_str()) {
+            scenarios.insert(subject.clone());
+        } else if pred == pred_example {
+            insert_unique(
+                &mut example,
+                subject,
+                "demonstratedByExample",
                 obj_literal.expect("example is a literal path"),
             );
         } else if pred == pred_counter {
-            counter.insert(
-                subject.clone(),
+            insert_unique(
+                &mut counter,
+                subject,
+                "guardedByCounterExample",
                 obj_literal.expect("counter-example is a literal path"),
             );
         } else if pred == pred_class {
-            class.insert(
-                subject.clone(),
+            insert_unique(
+                &mut class,
+                subject,
+                "enforcesFailureClass",
                 local_name(&obj_iri.expect("failure class is an IRI")),
             );
         } else if pred == pred_producer {
-            producer.insert(
-                subject.clone(),
+            insert_unique(
+                &mut producer,
+                subject,
+                "demonstratedByProducer",
                 obj_literal.expect("producer identifier is a literal"),
+            );
+        } else if pred == pred_discharge {
+            insert_unique(
+                &mut discharge,
+                subject,
+                "counterExampleDischarge",
+                obj_iri.expect("counter-example discharge marker is an IRI"),
             );
         }
     }
 
-    let mut flagships: Vec<Flagship> = producer
-        .keys()
+    let mut flagships: Vec<Flagship> = scenarios
+        .iter()
         .map(|subject| {
             let rel_example = example.get(subject).unwrap_or_else(|| {
                 panic!("flagship {subject} missing gmeow:demonstratedByExample")
@@ -209,6 +297,20 @@ pub fn parse_manifest(spec: &SliceSpec, expected_count: usize) -> Vec<Flagship> 
                     })
                     .clone(),
                 producer: producer[subject].clone(),
+                counter_example_discharge: match discharge.get(subject).map(String::as_str) {
+                    Some(marker) if marker == format!("{GMEOW_NS}structuralDischarge") => {
+                        CounterExampleDischarge::Structural
+                    }
+                    Some(marker) if marker == format!("{GMEOW_NS}reasonerDrivenDischarge") => {
+                        CounterExampleDischarge::ReasonerDriven
+                    }
+                    Some(marker) => panic!(
+                        "flagship {subject} has unknown gmeow:counterExampleDischarge marker <{marker}>"
+                    ),
+                    None => panic!(
+                        "flagship {subject} missing gmeow:counterExampleDischarge"
+                    ),
+                },
             }
         })
         .collect();
@@ -216,7 +318,7 @@ pub fn parse_manifest(spec: &SliceSpec, expected_count: usize) -> Vec<Flagship> 
     assert_eq!(
         flagships.len(),
         expected_count,
-        "the acceptance manifest declares exactly {expected_count} gmeow:FlagshipScenario producers"
+        "the acceptance manifest declares exactly {expected_count} gmeow:FlagshipScenario individuals"
     );
     flagships
 }
@@ -344,7 +446,8 @@ pub fn triggered_slice_failures(
 /// For each of the `expected_count` `gmeow:FlagshipScenario` individuals in the slice manifest,
 /// this asserts (1) the counter-example raises EXACTLY the declared slice failure class over the
 /// union of the native lint and native SHACL channels, (2) the worked example raises NONE, then
-/// (3) invokes `producer_assert` so the slice discharges its own producer-output claims.
+/// (3) invokes `producer_assert` so the slice discharges its own producer-output claims, and (4)
+/// requires the actual counter-example execution depth to agree with its closed marker.
 ///
 /// `producer_assert` receives the parsed [`Flagship`] and a shared [`FlagshipCtx`] (the real
 /// slice catalog and repo root, built once for the whole run).
@@ -352,6 +455,24 @@ pub fn run_flagship_discharge(
     spec: &SliceSpec,
     expected_count: usize,
     producer_assert: &dyn Fn(&Flagship, &FlagshipCtx<'_>),
+) {
+    run_flagship_discharge_with_counterexample(spec, expected_count, producer_assert, &|_, _| {
+        Ok(CounterExampleExecution::StructuralProxy)
+    });
+}
+
+/// Discharge a slice's flagship acceptance bar with an explicit counter-example execution
+/// callback. The callback returns an error for parse, capability, budget, or infrastructure
+/// failures; only a successful [`CounterExampleExecution::ReasonerDriven`] result can satisfy a
+/// `gmeow:reasonerDrivenDischarge` marker.
+pub fn run_flagship_discharge_with_counterexample(
+    spec: &SliceSpec,
+    expected_count: usize,
+    producer_assert: &dyn Fn(&Flagship, &FlagshipCtx<'_>),
+    counterexample_assert: &dyn Fn(
+        &Flagship,
+        &FlagshipCtx<'_>,
+    ) -> Result<CounterExampleExecution, String>,
 ) {
     let flagships = parse_manifest(spec, expected_count);
 
@@ -398,5 +519,15 @@ pub fn run_flagship_discharge(
 
         // ---- (3) Executed producer: the slice asserts its own output structure. ----
         producer_assert(flagship, &ctx);
+
+        // ---- (4) Honest depth: marker and actual negative execution agree exactly. ----
+        let execution = counterexample_assert(flagship, &ctx).unwrap_or_else(|detail| {
+            panic!(
+                "flagship {}: native counter-example execution failed as infrastructure/input, \
+                 not as the declared failure class: {detail}",
+                flagship.subject
+            )
+        });
+        assert_counterexample_depth(flagship, execution);
     }
 }

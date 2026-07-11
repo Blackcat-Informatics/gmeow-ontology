@@ -10,4 +10,6 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <http://example.org/logic/> .
 
-ex:counterfactualWitness a logic:CounterfactualAcceptanceWitness .
+ex:counterfactualWitness a logic:CounterfactualAcceptanceWitness ;
+    ex:executesNativeProducer "logic::counterfactual::construct_and_resolve" ;
+    ex:observesRuntimeFailure logic:UnentrenchedCounterfactual .
