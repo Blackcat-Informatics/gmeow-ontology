@@ -227,6 +227,11 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
     let floor_value_p = id(ds, &g("floorValue"));
     let floor_tier_p = id(ds, &g("floorTier"));
     let mut commitments: Vec<(String, AxisFloorCommitment)> = Vec::new();
+    // Two AxisFloorCommitment individuals for the same (slice, axis) pair
+    // collapse silently in the downstream BTreeMap keyed on that pair
+    // (last-writer-wins) — a hard fail here, never a silent skip.
+    let mut seen_floor_keys: std::collections::BTreeSet<(String, String)> =
+        std::collections::BTreeSet::new();
     for iri in instances_of(ds, &g("AxisFloorCommitment")) {
         let sid = id(ds, &iri)
             .ok_or_else(|| rubric_err(format!("floor commitment {iri} not resolvable")))?;
@@ -236,6 +241,12 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
         let axis = floor_axis_p
             .and_then(|p| one_iri(ds, sid, p))
             .ok_or_else(|| rubric_err(format!("floor commitment {iri} has no gmeow:floorAxis")))?;
+        if !seen_floor_keys.insert((slice.clone(), axis.clone())) {
+            return Err(rubric_err(format!(
+                "duplicate gmeow:AxisFloorCommitment for slice {slice} axis {axis} ({iri}) — \
+                 two commitments for the same (slice, axis) pair collapse silently downstream"
+            )));
+        }
         let floor = floor_value_p
             .and_then(|p| one_lit(ds, sid, p))
             .and_then(|s| s.parse::<f64>().ok())
@@ -261,12 +272,23 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
     // A per-slice raise-only roll-up tier floor. Both required bindings
     // (floorSlice, floorTier) hard-fail when missing, same no-optionality rule.
     let mut tier_floors: Vec<(String, SliceTierFloorCommitment)> = Vec::new();
+    // Two SliceTierFloor individuals for the same slice collapse silently in
+    // the downstream BTreeMap keyed on slice (last-writer-wins) — a hard fail
+    // here, never a silent skip.
+    let mut seen_tier_floor_slices: std::collections::BTreeSet<String> =
+        std::collections::BTreeSet::new();
     for iri in instances_of(ds, &g("SliceTierFloor")) {
         let sid =
             id(ds, &iri).ok_or_else(|| rubric_err(format!("tier floor {iri} not resolvable")))?;
         let slice = floor_slice_p
             .and_then(|p| one_iri(ds, sid, p))
             .ok_or_else(|| rubric_err(format!("tier floor {iri} has no gmeow:floorSlice")))?;
+        if !seen_tier_floor_slices.insert(slice.clone()) {
+            return Err(rubric_err(format!(
+                "duplicate gmeow:SliceTierFloor for slice {slice} ({iri}) — two tier floors for \
+                 the same slice collapse silently downstream"
+            )));
+        }
         let tier = floor_tier_p
             .and_then(|p| one_iri(ds, sid, p))
             .ok_or_else(|| rubric_err(format!("tier floor {iri} has no gmeow:floorTier")))?;
@@ -525,6 +547,81 @@ gmeow:thrFoo a gmeow:AxisThreshold ;
         ))
         .unwrap_err();
         assert!(err.message().contains("no gmeow:floorTier"), "{err}");
+    }
+
+    #[test]
+    fn duplicate_axis_floor_commitment_hard_fails() {
+        // Two AxisFloorCommitment individuals naming the SAME (slice, axis) pair
+        // collapse silently in the downstream BTreeMap (last-writer-wins) — the
+        // loader must hard-fail rather than let one commitment shadow the other.
+        let err = load(&rubric_with(
+            r#"gmeow:floorFooA a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorAxis gmeow:axisFoo ;
+    gmeow:floorValue 0.5 .
+gmeow:floorFooB a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorAxis gmeow:axisFoo ;
+    gmeow:floorValue 0.9 ."#,
+        ))
+        .unwrap_err();
+        assert!(err.message().contains("duplicate"), "{err}");
+        assert!(
+            err.message().contains("axisFoo"),
+            "names the offending axis: {err}"
+        );
+        assert!(
+            err.message().contains("sliceFoo"),
+            "names the offending slice: {err}"
+        );
+    }
+
+    #[test]
+    fn distinct_axis_floor_commitments_for_same_slice_load_cleanly() {
+        // Positive control: two commitments for the SAME slice but DIFFERENT axes
+        // are not duplicates — proves the guard keys on the (slice, axis) pair,
+        // not the slice alone.
+        let rubric = load(&rubric_with(
+            r#"gmeow:axisBar a gmeow:QualityAxis ;
+    gmeow:axisProducer "bar" ;
+    gmeow:axisDimension gmeow:dimBar ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisThreshold gmeow:thrBar .
+gmeow:thrBar a gmeow:AxisThreshold ;
+    gmeow:thresholdTier gmeow:tierRegistered ;
+    gmeow:thresholdFloor 0.0 .
+gmeow:floorFooA a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorAxis gmeow:axisFoo ;
+    gmeow:floorValue 0.5 .
+gmeow:floorFooB a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorAxis gmeow:axisBar ;
+    gmeow:floorValue 0.9 ."#,
+        ))
+        .expect("distinct (slice, axis) commitments load cleanly");
+        assert_eq!(rubric.commitments.len(), 2);
+    }
+
+    #[test]
+    fn duplicate_slice_tier_floor_hard_fails() {
+        // Two SliceTierFloor individuals naming the SAME slice collapse silently
+        // in the downstream BTreeMap (last-writer-wins) — the loader must
+        // hard-fail rather than let one tier floor shadow the other.
+        let err = load(&rubric_with(
+            r#"gmeow:tierFloorFooA a gmeow:SliceTierFloor ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorTier gmeow:tierRegistered .
+gmeow:tierFloorFooB a gmeow:SliceTierFloor ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorTier gmeow:tierRegistered ."#,
+        ))
+        .unwrap_err();
+        assert!(err.message().contains("duplicate"), "{err}");
+        assert!(
+            err.message().contains("sliceFoo"),
+            "names the offending slice: {err}"
+        );
     }
 
     const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
