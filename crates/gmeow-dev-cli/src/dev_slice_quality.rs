@@ -549,6 +549,8 @@ pub fn slice_quality_gate() -> i32 {
         }
         BaseRef::Resolved(base) => {
             let mut mono: Vec<String> = Vec::new();
+            // Permitted, logged floor lowerings (re-anchors) — surfaced as notes, not fails.
+            let mut relax: Vec<String> = Vec::new();
             // Both floor levels are diffed against the ONE rubric module at the base.
             match git_show_base(&root, &base, RUBRIC_MODULE) {
                 BaseFile::Absent => note(
@@ -570,24 +572,34 @@ pub fn slice_quality_gate() -> i32 {
                         Ok(m) => m,
                         Err(e) => return fail(format!("slice-quality-gate: {e}")),
                     };
-                    mono.extend(gmeow_slice_quality::gate::tier_floor_monotonicity(
+                    let tier_mono = gmeow_slice_quality::gate::tier_floor_monotonicity(
                         RUBRIC_MODULE,
                         &base_floors,
                         &floors,
                         |slice| live_slices.contains(slice),
-                    ));
+                    );
+                    mono.extend(tier_mono.violations);
+                    relax.extend(tier_mono.relaxations);
                     // Per-axis floors: same projection, keyed by (slice, axis local).
                     let base_axis = match axis_floors_from_rubric(&base_rubric) {
                         Ok(m) => m,
                         Err(e) => return fail(format!("slice-quality-gate: {e}")),
                     };
-                    mono.extend(gmeow_slice_quality::gate::axis_floor_monotonicity(
+                    let axis_mono = gmeow_slice_quality::gate::axis_floor_monotonicity(
                         RUBRIC_MODULE,
                         &base_axis,
                         &axis_floors,
                         |slice, axis| live_slices.contains(slice) && live_axes.contains(axis),
-                    ));
+                    );
+                    mono.extend(axis_mono.violations);
+                    relax.extend(axis_mono.relaxations);
                 }
+            }
+            // A lowering is a permitted re-anchor (e.g. an axis's measure changed):
+            // log it for visibility, but do NOT red the gate. Only a still-live
+            // floor DELETION is a hard violation.
+            for r in &relax {
+                note("gmeow-dev.slice-quality.gate", r.clone());
             }
             for e in &mono {
                 emit_error("gmeow-dev.slice-quality.gate", format!("FAIL {e}"));
@@ -1483,10 +1495,10 @@ gmeow:afc2 a gmeow:AxisFloorCommitment ;
     }
 
     #[test]
-    fn axis_floor_monotonicity_reds_on_lowered_commitment_vs_base_ttl() {
+    fn axis_floor_monotonicity_logs_relaxation_on_lowered_commitment_vs_base_ttl() {
         // (d) A working-tree module.ttl that LOWERS a committed per-axis floor below
-        // its base-TTL value reds the monotonicity check — parsed and projected
-        // through the SAME loader path the gate uses.
+        // its base-TTL value is a permitted, logged relaxation (not a violation) —
+        // parsed and projected through the SAME loader path the gate uses.
         let base = load_rubric_from_ttl(
             &mini_rubric(
                 r#"gmeow:afc a gmeow:AxisFloorCommitment ; gmeow:floorSlice gmeow:sliceX ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 0.98 ."#,
@@ -1503,22 +1515,27 @@ gmeow:afc2 a gmeow:AxisFloorCommitment ;
         .unwrap();
         let base_map = axis_floors_from_rubric(&base).unwrap();
         let work_map = axis_floors_from_rubric(&work).unwrap();
-        let errs = axis_floor_monotonicity(RUBRIC_MODULE, &base_map, &work_map, |_, _| true);
-        assert_eq!(errs.len(), 1, "the lowered axis floor reds: {errs:#?}");
+        let out = axis_floor_monotonicity(RUBRIC_MODULE, &base_map, &work_map, |_, _| true);
+        assert!(out.violations.is_empty(), "no hard violations: {out:#?}");
+        assert_eq!(
+            out.relaxations.len(),
+            1,
+            "the lowered axis floor is logged: {out:#?}"
+        );
         assert!(
-            errs[0].contains("axisGmn1Coverage") && errs[0].contains("LOWERED"),
-            "names the axis and the lowering: {errs:#?}"
+            out.relaxations[0].contains("axisGmn1Coverage")
+                && out.relaxations[0].contains("re-anchored"),
+            "names the axis and the re-anchor: {out:#?}"
         );
         // The reverse direction (a raise) is clean.
-        assert!(
-            axis_floor_monotonicity(RUBRIC_MODULE, &base_map, &base_map, |_, _| true).is_empty()
-        );
+        let up = axis_floor_monotonicity(RUBRIC_MODULE, &base_map, &base_map, |_, _| true);
+        assert!(up.violations.is_empty() && up.relaxations.is_empty());
     }
 
     #[test]
-    fn tier_floor_monotonicity_reds_on_lowered_tier_vs_base_ttl() {
+    fn tier_floor_monotonicity_logs_relaxation_on_lowered_tier_vs_base_ttl() {
         // (e) A working-tree module.ttl that LOWERS a committed roll-up tier floor
-        // (tierGrounded → tierRegistered) reds the monotonicity check.
+        // (tierGrounded → tierRegistered) is a permitted, logged relaxation.
         let base = load_rubric_from_ttl(
             &mini_rubric(
                 r#"gmeow:stf a gmeow:SliceTierFloor ; gmeow:floorSlice gmeow:sliceX ; gmeow:floorTier gmeow:tierGrounded ."#,
@@ -1535,13 +1552,18 @@ gmeow:afc2 a gmeow:AxisFloorCommitment ;
         .unwrap();
         let base_map = tier_floors_from_rubric(&base).unwrap();
         let work_map = tier_floors_from_rubric(&work).unwrap();
-        let errs = tier_floor_monotonicity(RUBRIC_MODULE, &base_map, &work_map, |_| true);
-        assert_eq!(errs.len(), 1, "the lowered tier floor reds: {errs:#?}");
+        let out = tier_floor_monotonicity(RUBRIC_MODULE, &base_map, &work_map, |_| true);
+        assert!(out.violations.is_empty(), "no hard violations: {out:#?}");
+        assert_eq!(
+            out.relaxations.len(),
+            1,
+            "the lowered tier floor is logged: {out:#?}"
+        );
         assert!(
-            errs[0].contains("LOWERED")
-                && errs[0].contains("tierGrounded")
-                && errs[0].contains("tierRegistered"),
-            "names the lowering old → new: {errs:#?}"
+            out.relaxations[0].contains("re-anchored")
+                && out.relaxations[0].contains("tierGrounded")
+                && out.relaxations[0].contains("tierRegistered"),
+            "names the re-anchor old → new: {out:#?}"
         );
     }
 }
