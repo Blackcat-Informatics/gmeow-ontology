@@ -274,6 +274,8 @@ mod tests {
             tiers: (0..5).map(tier).collect(),
             axes,
             exemptions: vec![],
+            commitments: vec![],
+            tier_floors: vec![],
         }
     }
 

@@ -314,6 +314,13 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     // the only point those blob digests exist.
     crate::stages::docs_format_rendering::fold_docs_format_loss(&mut ledger, &mut loss);
 
+    // Governance-floors projection loss (P17): the two slice-quality floor TSVs are a
+    // sound under-approximation of the ontology-resident gmeow:AxisFloorCommitment /
+    // gmeow:SliceTierFloor individuals — every emitted row is entailed, and the dropped
+    // reifier identity + annotation coat are recorded as residue, never silently dropped.
+    // Blob-free (a pure structural judgment), folded exactly like the docs-format corpus.
+    crate::stages::governance_floors::fold_governance_floors_loss(&mut ledger, &mut loss);
+
     // Standpoint projections — the seven fixed `standpoint-*.rq` queries (template-coded;
     // no DSL input).
     let standpoint = emit_standpoint_sets(root, &vocab).map_err(|e| {

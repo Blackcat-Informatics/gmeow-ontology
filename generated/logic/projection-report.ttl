@@ -8122,6 +8122,24 @@
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ExactPreservation .
 
+<https://blackcatinformatics.ca/logic/target/governance-floor:axis-floors>
+    a logic:ProjectionTarget ;
+    rdfs:label "governance-floor:axis-floors" ;
+    gmeow:lossyDrop "actual: governance-floor projection 'governance-floor:axis-floors' is a sound under-approximation: every emitted row is entailed by its gmeow:AxisFloorCommitment individual; the reifier identity and annotation coat are the enumerated residue (derived preservation = logic:SoundUnderApproximation)" ,
+        "the gmeow:AxisFloorCommitment annotation coat (any rationale / provenance triples on the individual) is dropped: the TSV projects only the core floor tuple" ,
+        "the reified gmeow:AxisFloorCommitment subject identity (the individual IRI) is dropped: the TSV row carries only the projected (slice, floor) tuple, not its reifier" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
+<https://blackcatinformatics.ca/logic/target/governance-floor:tier-floors>
+    a logic:ProjectionTarget ;
+    rdfs:label "governance-floor:tier-floors" ;
+    gmeow:lossyDrop "actual: governance-floor projection 'governance-floor:tier-floors' is a sound under-approximation: every emitted row is entailed by its gmeow:SliceTierFloor individual; the reifier identity and annotation coat are the enumerated residue (derived preservation = logic:SoundUnderApproximation)" ,
+        "the gmeow:SliceTierFloor annotation coat (any rationale / provenance triples on the individual) is dropped: the TSV projects only the core floor tuple" ,
+        "the reified gmeow:SliceTierFloor subject identity (the individual IRI) is dropped: the TSV row carries only the projected (slice, floor) tuple, not its reifier" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/gufo>
     a logic:ProjectionTarget ;
     rdfs:label "gufo" ;
@@ -86630,6 +86648,8 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/gmn1:person-names> ,
         <https://blackcatinformatics.ca/logic/target/gmn1:proficiency> ,
         <https://blackcatinformatics.ca/logic/target/gmn1:word-etymology> ,
+        <https://blackcatinformatics.ca/logic/target/governance-floor:axis-floors> ,
+        <https://blackcatinformatics.ca/logic/target/governance-floor:tier-floors> ,
         <https://blackcatinformatics.ca/logic/target/gufo> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-execgap:fr> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-execgap:zh> ,
