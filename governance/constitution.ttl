@@ -513,7 +513,7 @@ meta:gate-docs-loss-lattice a meta:Gate ;
         "crates/pipeline/src/stages/docs_format_rendering.rs",
         "crates/docs/src/formats.rs",
         "slices/grounding/lang/module.ttl" ;
-    meta:symbol "check_docs_loss_lattice", "build_docs_format_corpus", "renderingBook" ;
+    meta:symbol "check_docs_loss_lattice", "fold_docs_format_loss", "renderingBook" ;
     meta:cliCommand "crate-check" ;
     meta:makeTarget "crate-check" .
 

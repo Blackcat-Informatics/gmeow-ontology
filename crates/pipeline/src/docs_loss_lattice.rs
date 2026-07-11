@@ -4,8 +4,8 @@
 //! The A3 documentation-loss-lattice gate.
 //!
 //! Asserts, over the SINGLE honest per-format capability source
-//! ([`gmeow_docs::formats`] — the same table the print PDF's loss appendix, the
-//! carrier grounding graph, and the loss ledger all read), two falsifiable invariants:
+//! ([`gmeow_docs::formats`] — the same table the print PDF's loss appendix and
+//! external-projection loss ledger both read), two falsifiable invariants:
 //!
 //!   1. **Totality** — every [`Capability`] is, for every [`DocFormat`], in exactly one
 //!      of the format's `representable` / `dropped` partitions (representable XOR

@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked scene: the documentation projection is self-describing. A single
+# gmeow:DocumentedTerm record stands for a term's docs page, gmeow:documents the
+# real term IRI, and carries the page's derived facts; a grounded gmeow:DocEvidence
+# node hangs off the same term as one unit of proof-carrying documentation. The
+# term documented here is gmeow:DocEvidence ITSELF — the projection dogfoods on its
+# own vocabulary — so every referenced gmeow: IRI is a real, declared term.
+#
+# The HARD case is included on purpose: an evidence node is a claim WITH its
+# grounds. ex:evidenceGrounded carries a gmeow:docGroundedBy truthmaker (the
+# competency question that exercises the term); an ungrounded evidence node would
+# be the doc-layer analogue of a DARK finding and is forbidden by the SHACL
+# gmeow:DocEvidenceGroundingShape and the live Rust grounding invariant.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/documentation/> .
+
+# --- The documentation record for the gmeow:DocEvidence class.
+ex:entryDocEvidence a gmeow:DocumentedTerm ;
+    rdfs:label            "Documentation entry: gmeow:DocEvidence"@x-gmeow-english ;
+    gmeow:documents       gmeow:DocEvidence ;
+    gmeow:docCategory     "Class" ;
+    gmeow:docHasDefinition true ;
+    gmeow:docUrl          "terms/doc-evidence/index.html" ;
+    gmeow:docOwnerSlice   <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:docReasoningStatus "satisfiable" .
+
+# --- A competency question that exercises the term — the grounding truthmaker.
+ex:cqEvidenceIsGrounded a gmeow:CompetencyQuestion ;
+    rdfs:label "Is every gmeow:DocEvidence node grounded?"@x-gmeow-english .
+
+# --- The grounded competency evidence node: a claim held together WITH its grounds.
+ex:evidenceCompetency a gmeow:DocEvidence ;
+    rdfs:label            "Doc evidence (competency): gmeow:DocEvidence"@x-gmeow-english ;
+    gmeow:documents       gmeow:DocEvidence ;
+    gmeow:docEvidenceKind gmeow:docEvidenceKindCompetency ;
+    gmeow:docClaim        "exercised by 1 competency question" ;
+    gmeow:docGroundedBy   ex:cqEvidenceIsGrounded ;
+    gmeow:docCompetencyCount 1 ;
+    gmeow:docProducedByChain "stage-docs-render <- stage-source-load" .
+
+# --- The grounded provenance evidence node: grounded by the producing stage.
+ex:evidenceProvenance a gmeow:DocEvidence ;
+    rdfs:label            "Doc evidence (provenance): gmeow:DocEvidence"@x-gmeow-english ;
+    gmeow:documents       gmeow:DocEvidence ;
+    gmeow:docEvidenceKind gmeow:docEvidenceKindProvenance ;
+    gmeow:docClaim        "rendered by the docs build pipeline (2 stage(s))" ;
+    gmeow:docGroundedBy   <https://blackcatinformatics.ca/gmeow/stage-docs-render> ;
+    gmeow:docProducedByChain "stage-docs-render <- stage-source-load" ;
+    gmeow:docProvenanceDepth 2 .

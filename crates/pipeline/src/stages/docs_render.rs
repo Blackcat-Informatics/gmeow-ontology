@@ -495,6 +495,8 @@ pub(crate) fn term_loss_digest_from_upstream(
 /// never joined. Hard-fails when the declared `stage-export-json-schema` product /
 /// artifact is absent or its bytes fail to parse as JSON (never a silently empty
 /// digest).
+#[cfg(test)]
+#[allow(dead_code)]
 pub(crate) fn schema_fragments_from_upstream(
     upstream: &BTreeMap<String, StageProduct>,
     terms: &[gmeow_docs::model::DocTerm],
@@ -761,6 +763,17 @@ impl Stage for DocsRenderStage {
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    /// The named graphs this stage attaches to the carrier (its delta), from the
+    /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
+    /// declarations and verified against the run-time delta by the scheduler.
+    fn attaches_graphs(&self) -> &[String] {
+        crate::stages::attach::graphs(self.id())
+    }
+    /// The blob-representation lanes this stage attaches (its delta), from the single
+    /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
+    fn attaches_blob_reps(&self) -> &[String] {
+        crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
         // v7: the diagnostics→term digest now joins on each finding's purpose-built

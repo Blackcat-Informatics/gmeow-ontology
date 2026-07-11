@@ -125,6 +125,19 @@
 #     stays: the write contract runs on every `make check` (the docs fanout is
 #     drift-gated via `make check-generated`) and the test stays on-gate on
 #     `maint-heavy`.
+#   - gmeow-docs render_golden::render_site_is_byte_stable (33.1 s),
+#     mdbook_render::book_bodies_are_rewrite_of_single_authority (34.5 s),
+#     extract_roundtrip::english_carrier_tree_matches_render_site (32.6 s), and
+#     gmeow-pipeline stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site
+#     (32.9 s): each renders (and re-renders / re-packs / round-trips) the WHOLE
+#     documentation site, so all four are irreducibly O(site size), the same
+#     whole-site class as `rendered_tree_is_disk_faithful` above. Bringing the
+#     grounding-language vocabulary (`math:`/`logic:`/`lang:`, ~1.9k terms) into the
+#     documented-term set grew the rendered site ~40% and nudged these four past the
+#     25 s cliff on page-count alone, not fixture cost. Coverage stays: byte-stable
+#     rendering and the docs archive are drift-gated on every `make check` via
+#     `make check-generated`, the render/mdbook/roundtrip contracts keep their
+#     fixture-scale unit coverage on-gate, and all four stay on-gate on `maint-heavy`.
 #   - gmeow-cli cli::project_unknown_view_fails + cli::describe_env_language_rejected_if_unknown
 #     + gmeow-dev-cli cli_parity::project_view_over_the_snapshot:
 #     3-5 s standalone but 27.5-32.2 s under full-parallelism CI contention. Each
@@ -264,6 +277,10 @@ default-filter = '''
     | (package(gmeow-slicetest) & test(/run_structural_file::core\/slice-quality-rubric\/tests\/structural\.ttl/))
     | (package(gmeow-pipeline) & binary(release_verify_roundtrip))
     | (package(gmeow-cli) & binary(self_sufficiency) & (test(transpile_wheel_mode_equals_repo_mode) | test(transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak) | test(project_wheel_mode_equals_repo_mode) | test(describe_wheel_mode_equals_repo_mode)))
+    | (package(gmeow-docs) & binary(render_golden) & test(render_site_is_byte_stable))
+    | (package(gmeow-docs) & binary(mdbook_render) & test(book_bodies_are_rewrite_of_single_authority))
+    | (package(gmeow-docs) & binary(extract_roundtrip) & test(english_carrier_tree_matches_render_site))
+    | (package(gmeow-pipeline) & test(/stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site/))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
@@ -391,6 +408,36 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 filter = 'package(gmeow-slice-quality) & test(scores_the_logic_slice_green_vs_advisory)'
 test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
+# The affect-producer twin conformance tests (gmeow-validate conformance_affect_producer,
+# the twin_* cases) each drive the SMT-backed affect twin decision procedure — single-threaded
+# solver work that is ~20 s standalone (measured 19-21 s running the binary alone) but rode the
+# 25 s per-test budget cliff (25.1-32 s) under full-parallelism CI contention — the flake was
+# present on the pre-existing PR head and on a fresh run. They are NOT irreducible (a roughly
+# fixed ~20 s solver cost, fixture-independent), so the bias is fix-not-off-gate, the same pattern
+# as `fanout_parity` / the logic-slice scorer above. Serialize them under the `engine` group so
+# concurrent solver/chase work cannot starve them of cores; the tests stay on-gate with full
+# coverage on every `make check`, only their concurrency is capped. The fast conformance_support
+# unit tests in the same binary are not matched and stay fully parallel.
+filter = 'package(gmeow-validate) & binary(conformance_affect_producer) & test(/twin_/)'
+test-group = 'engine'
+slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
+# Bundle-scale pipeline tests that fold the WHOLE committed gmeow.gts / run the full DAG:
+# product_routing::compiler_products_are_first_class_dag_artifacts (full-DAG artifact routing),
+# stages::export::tests::export_produces_structurally_valid_artifacts and
+# stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier (whole-bundle export/serialize),
+# and stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows (whole
+# projection-report union). Each is ~20 s standalone but rode the 25 s cliff (25.5-31 s) under
+# full-parallelism CI contention — the same whole-committed-bundle contention class as
+# `fanout_parity` above, and cheap enough standalone to stay on-gate. Serialize under the `engine`
+# group so bundle-fold work does not contend with concurrent chases; full coverage stays on every
+# `make check`, only concurrency is capped.
+filter = 'package(gmeow-pipeline) & ( (binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts)) | test(/stages::export::tests::export_produces_structurally_valid_artifacts|stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier|stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/) )'
+test-group = 'engine'
+slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
 # The consumer `gmeow validate --deep` AC1 test reasons over the user data merged

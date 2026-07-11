@@ -189,13 +189,14 @@ make cli-build       # produces dist/bin/gmeow
 dist/bin/gmeow info
 dist/bin/gmeow describe gmeow:StandpointClaim
 dist/bin/gmeow transpile source.ttl --profiles all -o out/
-dist/bin/gmeow docs --directory docs-tree
 dist/bin/gmeow mcp
 ```
 
 The public `gmeow` CLI is a native Rust binary backed by the bundled
-`generated/dist/gmeow.gts` snapshot, so description, verification, docs, transpile,
+`generated/dist/gmeow.gts` snapshot, so description, verification, transpile,
 projection, export, CrossRef metadata, and GTS conversion run from the binary alone.
+Documentation projections are regenerated from canonical sources with `make docs`;
+they are intentionally not embedded in the logical bundle.
 Repository maintenance stays on `gmeow-dev`:
 if a command needs `dsl/`, `slices/`, `generated/`, Docker, or dev fixtures, it is a
 developer command.
@@ -286,7 +287,7 @@ hash, text labels, randomart, and valid/invalid/unverified signature counts. See
 | `make wikidata` / `make maint-wikidata-live` | Wikidata QID/PID syntax gate (offline) / + existence check (network) |
 | `make crossref` | Generate the CrossRef DOI deposit XML (deposit schema 5.4.0) |
 | `make acceptance` | Score full transpile on real external RDF snapshots; hard gates plus honest coverage scoreboard |
-| `make docs` | Regenerate `gmeow.gts` docs and extract the committed `ontology-docs/` tree |
+| `make docs` | Regenerate all external documentation projections, including site, book, print, snippets, OKF, and YAML-LD |
 | `make build` | All serializations (`ttl`/`rdf`/`nt`/`jsonld`) + JSON-LD context → `dist/` (ephemeral) |
 | `make maint-quality` | OOPS! pitfall scan (network, best-effort) |
 | `make release` | Regenerate + native reasoning closure + build + compliance report + CrossRef deposit |

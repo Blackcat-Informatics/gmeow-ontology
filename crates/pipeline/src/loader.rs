@@ -69,6 +69,14 @@ pub struct StageSpec {
     pub dataflow_entities: DataFlowEntities,
     /// `gmeow:producesFormat` — output format tags, sorted (export leaves).
     pub formats: Vec<String>,
+    /// `gmeow:attachesGraph` — the named-graph IRIs (kept whole) this stage attaches
+    /// to the carrier as its delta, sorted and deduplicated. Validated against the Rust
+    /// impl's `attaches_graphs()` at bind time (Rust/RDF agreement).
+    pub attaches_graphs: Vec<String>,
+    /// `gmeow:attachesBlobRep` — the blob-representation lane labels this stage attaches
+    /// (e.g. `"axioms-archive"`, `"diagnostics:nodes"`), sorted and deduplicated.
+    /// Validated against the Rust impl's `attaches_blob_reps()` at bind time.
+    pub attaches_blob_reps: Vec<String>,
 }
 
 /// A parsed `gmeow:Pipeline` individual: its id plus its stages.
@@ -288,6 +296,27 @@ fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, gmeow_erro
     formats.sort();
     formats.dedup();
 
+    // gmeow:attachesGraph (zero or more named-graph IRIs, kept whole — they are graphs,
+    // not stages, so they are not reduced to local names).
+    let mut attaches_graphs: Vec<String> = objects(ds, stage_iri, &iri(GMEOW, "attachesGraph"))
+        .into_iter()
+        .filter_map(|t| match t {
+            ObjTerm::Named(nn) => Some(nn),
+            _ => None,
+        })
+        .collect();
+    attaches_graphs.sort();
+    attaches_graphs.dedup();
+
+    // gmeow:attachesBlobRep (zero or more representation-lane label strings).
+    let mut attaches_blob_reps: Vec<String> =
+        objects(ds, stage_iri, &iri(GMEOW, "attachesBlobRep"))
+            .into_iter()
+            .filter_map(literal_string)
+            .collect();
+    attaches_blob_reps.sort();
+    attaches_blob_reps.dedup();
+
     Ok(StageSpec {
         id,
         capabilities,
@@ -297,6 +326,8 @@ fn parse_stage(ds: &RdfDataset, stage_iri: &str) -> Result<StageSpec, gmeow_erro
         // Filled in by from_store from the reified gmeow:DataFlow edges.
         dataflow_entities: Vec::new(),
         formats,
+        attaches_graphs,
+        attaches_blob_reps,
     })
 }
 
@@ -469,6 +500,39 @@ pub fn bind(
                     stage: s.id.clone(),
                     rdf: s.dataflow_entities.clone(),
                     rust: rust_entities,
+                },
+            ));
+        }
+
+        // Attach-declaration agreement (both sides sorted+deduped): the executable twin
+        // must declare exactly the named graphs / blob-rep lanes the RDF
+        // gmeow:attachesGraph / gmeow:attachesBlobRep declare. The scheduler verifies the
+        // ACTUAL run-time delta against this same declaration (error::AttachDrift), so a
+        // Rust/RDF disagreement here would let the run enforce a declaration the authored
+        // model never made (single source of truth).
+        let mut rust_graphs: Vec<String> = stage.attaches_graphs().to_vec();
+        rust_graphs.sort();
+        rust_graphs.dedup();
+        if rust_graphs != s.attaches_graphs {
+            return Err(gmeow_errors::Diag::of_kind(
+                crate::error::AttachDeclMismatch {
+                    stage: s.id.clone(),
+                    lane: "gmeow:attachesGraph".to_string(),
+                    rdf: s.attaches_graphs.clone(),
+                    rust: rust_graphs,
+                },
+            ));
+        }
+        let mut rust_blob_reps: Vec<String> = stage.attaches_blob_reps().to_vec();
+        rust_blob_reps.sort();
+        rust_blob_reps.dedup();
+        if rust_blob_reps != s.attaches_blob_reps {
+            return Err(gmeow_errors::Diag::of_kind(
+                crate::error::AttachDeclMismatch {
+                    stage: s.id.clone(),
+                    lane: "gmeow:attachesBlobRep".to_string(),
+                    rdf: s.attaches_blob_reps.clone(),
+                    rust: rust_blob_reps,
                 },
             ));
         }

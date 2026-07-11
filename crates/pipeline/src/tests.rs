@@ -47,6 +47,8 @@ fn spec(id: &str, consumes: &[&str]) -> StageSpec {
         resources: resources_for(id),
         dataflow_entities: Vec::new(),
         formats: Vec::new(),
+        attaches_graphs: Vec::new(),
+        attaches_blob_reps: Vec::new(),
     }
 }
 
@@ -670,6 +672,9 @@ const G2: &str = "https://example.org/g2";
 struct TwoGraphProducer {
     file: std::path::PathBuf,
     runs: Arc<AtomicUsize>,
+    /// The two named graphs it attaches ([`G1`], [`G2`]) — declared so the scheduler's
+    /// attach-drift check (delta == declaration) passes.
+    attaches: Vec<String>,
 }
 
 impl Stage for TwoGraphProducer {
@@ -678,6 +683,9 @@ impl Stage for TwoGraphProducer {
     }
     fn consumes(&self) -> &[String] {
         &[]
+    }
+    fn attaches_graphs(&self) -> &[String] {
+        &self.attaches
     }
     fn impl_version(&self) -> &str {
         "v1"
@@ -770,6 +778,9 @@ fn artifact_level_invalidation_reruns_only_the_changed_graphs_consumer() {
             st.dataflow_entities = vec![("producer".to_string(), vec![G1.to_string()])];
         } else if st.id == "cg2" {
             st.dataflow_entities = vec![("producer".to_string(), vec![G2.to_string()])];
+        } else if st.id == "producer" {
+            // The producer attaches g1 + g2; declare them so the attach-drift check passes.
+            st.attaches_graphs = vec![G1.to_string(), G2.to_string()];
         }
     }
     let g = s.validate().unwrap();
@@ -780,6 +791,7 @@ fn artifact_level_invalidation_reruns_only_the_changed_graphs_consumer() {
         Arc::new(TwoGraphProducer {
             file: file.clone(),
             runs: Arc::clone(&prod_runs),
+            attaches: vec![G1.to_string(), G2.to_string()],
         }) as Arc<dyn Stage>,
     );
     reg.register(
@@ -830,4 +842,118 @@ fn artifact_level_invalidation_reruns_only_the_changed_graphs_consumer() {
         1,
         "artifact-level: cg2 CACHE-HITS — g2 is unchanged though the producer re-ran"
     );
+}
+
+// ── Attach-drift verification (gmeow:attachesGraph run-time contract) ─────────
+
+/// A synthetic stage that ATTACHES `attach_graph` (a real named graph in its product)
+/// when `Some`, and DECLARES `declared` via `attaches_graphs()`. The scheduler compares
+/// the actual attach delta against the declaration and HARD-fails on any divergence.
+struct AttachTestStage {
+    id: String,
+    attach_graph: Option<String>,
+    declared: Vec<String>,
+}
+
+impl Stage for AttachTestStage {
+    fn id(&self) -> &str {
+        &self.id
+    }
+    fn consumes(&self) -> &[String] {
+        &[]
+    }
+    fn attaches_graphs(&self) -> &[String] {
+        &self.declared
+    }
+    fn impl_version(&self) -> &str {
+        "v1"
+    }
+    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        match &self.attach_graph {
+            Some(g) => {
+                let nq = format!("<https://example.org/s> <https://example.org/p> \"x\" <{g}> .\n");
+                let dataset = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
+                    .map_err(|e| {
+                        gmeow_errors::Diag::of_kind(crate::error::Parse {
+                            message: format!("attach-test dataset: {e}"),
+                        })
+                    })?;
+                Ok(StageOutput::new(StageProduct::from_artifacts_over(
+                    self.id.clone(),
+                    dataset,
+                    std::collections::BTreeMap::new(),
+                )))
+            }
+            None => Ok(StageOutput::new(StageProduct::new(
+                self.id.clone(),
+                "empty",
+            ))),
+        }
+    }
+}
+
+/// Build a two-stage DAG (the attach-test producer → a fake sink) and RUN it, returning
+/// the scheduler result so a test can assert the attach-drift HARD-fail (or clean pass).
+fn run_attach_case(
+    attach_graph: Option<&str>,
+    declared: &[&str],
+) -> Result<(), gmeow_errors::Diag> {
+    let dir = tempfile::tempdir().unwrap();
+    let declared: Vec<String> = declared.iter().map(|s| s.to_string()).collect();
+    let mut s = PipelineSpec {
+        id: "p".to_string(),
+        stages: vec![spec("producer", &[]), spec("sink", &["producer"])],
+    };
+    // The RDF/spec attach declaration must match the Rust impl for bind to pass — this
+    // isolates the scheduler's RUN-TIME drift check from the loader's LOAD-time agreement.
+    for st in &mut s.stages {
+        if st.id == "producer" {
+            st.attaches_graphs = declared.clone();
+        }
+    }
+    let g = s.validate().unwrap();
+    let mut reg = StageRegistry::new();
+    reg.register(
+        "impl:producer".to_string(),
+        Arc::new(AttachTestStage {
+            id: "producer".to_string(),
+            attach_graph: attach_graph.map(|s| s.to_string()),
+            declared: declared.clone(),
+        }) as Arc<dyn Stage>,
+    );
+    reg.register("impl:sink".to_string(), fake("sink", &["producer"]));
+    let bound = bind(&s, &g, &reg).expect("binds (attach declaration agrees Rust↔spec)");
+    let mut ctx = RunContext::open(dir.path().join("cache"), 2).unwrap();
+    run(&g, &bound, &mut ctx).map(|_| ())
+}
+
+#[test]
+fn attach_drift_hard_fails_when_declared_graph_is_not_attached() {
+    // Declares it attaches G but attaches NOTHING → declared-but-not-attached drift.
+    const G: &str = "https://example.org/graph/declared-not-attached";
+    let err = run_attach_case(None, &[G]).expect_err("declared-but-not-attached must HARD-fail");
+    assert_eq!(err.code(), crate::error::AttachDrift::register());
+    assert!(
+        format!("{err}").contains(&format!("declared-but-not-attached [{G:?}]")),
+        "the drift diagnostic must report the unfulfilled declaration: {err}"
+    );
+}
+
+#[test]
+fn attach_drift_hard_fails_when_attached_graph_is_not_declared() {
+    // Attaches G but declares NOTHING → attached-but-undeclared drift (the inverse).
+    const G: &str = "https://example.org/graph/attached-not-declared";
+    let err = run_attach_case(Some(G), &[]).expect_err("attached-but-undeclared must HARD-fail");
+    assert_eq!(err.code(), crate::error::AttachDrift::register());
+    assert!(
+        format!("{err}").contains(&format!("attached-but-undeclared [{G:?}]")),
+        "the drift diagnostic must report the undeclared attachment: {err}"
+    );
+}
+
+#[test]
+fn attach_drift_clean_when_declaration_matches_the_attach_delta() {
+    // Attaches exactly G and declares exactly G → no drift, the run completes.
+    const G: &str = "https://example.org/graph/matched";
+    run_attach_case(Some(G), &[G]).expect("a matching attach declaration must not drift");
 }

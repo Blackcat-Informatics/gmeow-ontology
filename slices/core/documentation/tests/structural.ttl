@@ -1,0 +1,268 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the documentation slice — the
+# slice-resident test-DSL twin of the asserted-TBox MUST invariants for the
+# gmeow:doc* projection vocabulary. Each assertion runs as a SPARQL ASK over the
+# documentation module graph (gmeow:scopeModule) — or module+examples for the
+# grounding invariant — under the native Rust harness (crates/slicetest).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/documentation/tests/> .
+
+# --- 1. The documentation-entry record classes are owl:Class in the TBox (MUST) ---
+ex:saRecordClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:DocumentedTerm       a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:DocumentedSlice      a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:DocumentedConcern    a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:DocumentedMappingSet a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:DocEvidence          a owl:Class ; gmeow:graphBoxRole gmeow:boxTBox .
+}""" ;
+    gmeow:saRationale "The five documentation-entry record classes MUST be owl:Class carrying the gmeow:boxTBox role — every gmeow: term the documentation projection materializes as rdf:type must have a TBox declaration, or the emitted graph names an ownerless orphan the reader cannot resolve." .
+
+# --- 2. DocEvidence is an InformationObject reified evidence node (MUST) ------
+ex:saDocEvidenceIsInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:DocEvidence a owl:Class , logic:Kind ;
+        rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "gmeow:DocEvidence MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject — a reified 'claim with its grounds' unit is a first-class information object. Its grounding obligation is NOT stated as an owl:minCardinality restriction (gmeow:docGroundedBy is an owl:AnnotationProperty carrying mixed IRI/literal objects, so a cardinality restriction on it would leave OWL 2 DL); it is enforced by the SHACL grounding shape and the live Rust invariant instead." .
+
+# --- 3. The DocEvidenceKind value vocabulary and its five seeds exist (MUST) --
+ex:saDocEvidenceKindVocabulary a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:DocEvidenceKind a owl:Class ;
+        rdfs:subClassOf logic:QualityValue .
+    gmeow:docEvidenceKindCompetency  a gmeow:DocEvidenceKind .
+    gmeow:docEvidenceKindDiagnostics a gmeow:DocEvidenceKind .
+    gmeow:docEvidenceKindFixture     a gmeow:DocEvidenceKind .
+    gmeow:docEvidenceKindLoss        a gmeow:DocEvidenceKind .
+    gmeow:docEvidenceKindProvenance  a gmeow:DocEvidenceKind .
+}""" ;
+    gmeow:saRationale "gmeow:DocEvidenceKind MUST be a logic:QualityValue value vocabulary with all five seed individuals (competency, diagnostics, fixture, loss, provenance) present — the kind is a first-class join-able value so a new evidence source enters as a new individual, never a new predicate family." .
+
+# --- 4. The IRI/literal-pointing projection predicates are annotation properties (MUST) ---
+ex:saAnnotationPredicates a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:documents     a owl:AnnotationProperty .
+    gmeow:docOwnerSlice a owl:AnnotationProperty .
+    gmeow:docGroundedBy a owl:AnnotationProperty .
+}""" ;
+    gmeow:saRationale "gmeow:documents / gmeow:docOwnerSlice / gmeow:docGroundedBy MUST be owl:AnnotationProperty — they point at TBox classes/properties or slice/ontology nodes (which a logical object property would pun) or mix IRI and literal objects (which no single object/datatype property could hold), so the annotation form keeps the generated OWL in OWL 2 DL (Principle 3)." .
+
+# --- 5. docEvidenceKind is an object property into the value vocabulary (MUST) ---
+ex:saDocEvidenceKindProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:docEvidenceKind a owl:ObjectProperty ;
+        rdfs:domain gmeow:DocEvidence ;
+        rdfs:range gmeow:DocEvidenceKind .
+}""" ;
+    gmeow:saRationale "gmeow:docEvidenceKind MUST be an owl:ObjectProperty from gmeow:DocEvidence to gmeow:DocEvidenceKind — the instance-level classifier that joins an evidence node to its kind value is the single join key the uniform evidence shape turns on." .
+
+# --- 6. The typed measure predicates are datatype properties (MUST) ----------
+ex:saDatatypeMeasurePredicates a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:docCategory        a owl:DatatypeProperty ; rdfs:range xsd:string .
+    gmeow:docHasDefinition   a owl:DatatypeProperty ; rdfs:range xsd:boolean .
+    gmeow:docUrl             a owl:DatatypeProperty ; rdfs:range xsd:string .
+    gmeow:docReasoningStatus a owl:DatatypeProperty ; rdfs:range xsd:string .
+    gmeow:docClaim           a owl:DatatypeProperty ; rdfs:range xsd:string .
+    gmeow:docProducedByChain a owl:DatatypeProperty ; rdfs:range xsd:string .
+    gmeow:docJudgment        a owl:DatatypeProperty ; rdfs:range xsd:string .
+    gmeow:docCompetencyCount a owl:DatatypeProperty ; rdfs:range xsd:integer .
+    gmeow:docCompetencyQueryDigest a owl:DatatypeProperty ; rdfs:range xsd:string .
+    gmeow:docFindingCount    a owl:DatatypeProperty ; rdfs:range xsd:integer .
+    gmeow:docFixtureCount    a owl:DatatypeProperty ; rdfs:range xsd:integer .
+    gmeow:docLossRowCount    a owl:DatatypeProperty ; rdfs:range xsd:integer .
+    gmeow:docProvenanceDepth a owl:DatatypeProperty ; rdfs:range xsd:integer .
+}""" ;
+    gmeow:saRationale "The typed measure predicates MUST be owl:DatatypeProperty with ranges matching the literals the projection emits (xsd:string / xsd:boolean / xsd:integer) — declaring the exact emitted datatype keeps the folded documentation graph datatype-consistent and lets a reader trust the counts and flags as typed values." .
+
+# --- 7. Every gmeow:DocEvidence in the worked scene is grounded (MUST-NOT) ----
+ex:saNoUngroundedEvidence a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?e a gmeow:DocEvidence .
+    FILTER NOT EXISTS { ?e gmeow:docGroundedBy ?g }
+}""" ;
+    gmeow:saRationale "No gmeow:DocEvidence node in the module+examples scene may lack a gmeow:docGroundedBy truthmaker — the grounding invariant enforced over authored data: a claim without its grounds is a DARK finding, and the worked example must demonstrate the grounded discipline downstream authors copy." .
+
+# --- 8. DocMaturity and DocCoverageDimension are logic:QualityValue value vocabularies (MUST) ---
+ex:saMaturityAndDimensionAreQualityValues a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:DocMaturity a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+    gmeow:DocCoverageDimension a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:DocMaturity and gmeow:DocCoverageDimension MUST each be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — the maturity anchors and coverage dimensions are open individual value vocabularies mirroring gmeow:TermStability / gmeow:DocEvidenceKind, never essential types." .
+
+# --- 9. All 19 dimension + 4 anchor seed individuals are typed to their class (MUST) ---
+ex:saMaturitySeedIndividuals a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:dimDefinition          a gmeow:DocCoverageDimension .
+    gmeow:dimLabel               a gmeow:DocCoverageDimension .
+    gmeow:dimUsageAdvice         a gmeow:DocCoverageDimension .
+    gmeow:dimExample             a gmeow:DocCoverageDimension .
+    gmeow:dimScopeNote           a gmeow:DocCoverageDimension .
+    gmeow:dimAlignment           a gmeow:DocCoverageDimension .
+    gmeow:dimFixturePair         a gmeow:DocCoverageDimension .
+    gmeow:dimCompetencyRationale a gmeow:DocCoverageDimension .
+    gmeow:dimWorkedInstance      a gmeow:DocCoverageDimension .
+    gmeow:dimLossLedgerRow       a gmeow:DocCoverageDimension .
+    gmeow:dimLinkageCoverage     a gmeow:DocCoverageDimension .
+    gmeow:dimAnnotationCoat      a gmeow:DocCoverageDimension .
+    gmeow:dimThesisSentence      a gmeow:DocCoverageDimension .
+    gmeow:dimTranslationCoverage a gmeow:DocCoverageDimension .
+    gmeow:dimTestReach           a gmeow:DocCoverageDimension .
+    gmeow:dimRealizedState       a gmeow:DocCoverageDimension .
+    gmeow:dimProvenanceHonesty   a gmeow:DocCoverageDimension .
+    gmeow:dimProseQuality        a gmeow:DocCoverageDimension .
+    gmeow:dimLossJudgmentSound   a gmeow:DocCoverageDimension .
+    gmeow:docMaturityMinimal     a gmeow:DocMaturity .
+    gmeow:docMaturityBasic       a gmeow:DocMaturity .
+    gmeow:docMaturityFull        a gmeow:DocMaturity .
+    gmeow:docMaturityMaximal     a gmeow:DocMaturity .
+}""" ;
+    gmeow:saRationale "All nineteen gmeow:DocCoverageDimension seed individuals and all four gmeow:DocMaturity anchor individuals MUST be present and typed to their class — the coverage attributes the Formal-Concept closure runs over and the distinguished intents (minimal, basic, full, maximal) it distinguishes. The MAXIMAL-only gmeow:dimLossJudgmentSound is the Principle-17 judgment-valued loss refinement, distinct from the FULL-tier presence bit gmeow:dimLossLedgerRow." .
+
+# --- 10. The four anchor intents nest Minimal ⊆ Basic ⊆ Full ⊆ Maximal (MUST-NOT-violated) ---
+ex:saAnchorIntentsNest a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    VALUES ( ?lo ?hi ) {
+        ( gmeow:docMaturityMinimal gmeow:docMaturityBasic )
+        ( gmeow:docMaturityBasic   gmeow:docMaturityFull )
+        ( gmeow:docMaturityFull    gmeow:docMaturityMaximal )
+    }
+    ?lo gmeow:maturityRequiresDimension ?d .
+    FILTER NOT EXISTS { ?hi gmeow:maturityRequiresDimension ?d }
+}""" ;
+    gmeow:saRationale "No dimension required by a lower maturity anchor may be absent from the next-higher anchor's intent — the anchor intents MUST nest Minimal ⊆ Basic ⊆ Full ⊆ Maximal, so the derived maturity order is a total inclusion chain (the FCA anchors are authored, not inferred). A hit here would mean a lower tier demanded a dimension a higher tier did not, breaking the ladder." .
+
+# --- 11. sliceDocMaturity and docEarnedMaturity are annotation properties (MUST) ---
+ex:saMaturityAnnotationProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:sliceDocMaturity  a owl:AnnotationProperty .
+    gmeow:docEarnedMaturity a owl:AnnotationProperty .
+}""" ;
+    gmeow:saRationale "gmeow:sliceDocMaturity (claimed) and gmeow:docEarnedMaturity (earned floor) MUST be owl:AnnotationProperty — both are asserted ABOUT a slice / documented-record subject a logical object property would pun, so the annotation form keeps the generated OWL in OWL 2 DL (the gmeow:termStability pattern, Principle 3)." .
+
+# --- 12. maturityRequiresDimension is an object property into the dimension vocabulary (MUST) ---
+ex:saMaturityRequiresDimensionProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:maturityRequiresDimension a owl:ObjectProperty ;
+        rdfs:domain gmeow:DocMaturity ;
+        rdfs:range gmeow:DocCoverageDimension .
+}""" ;
+    gmeow:saRationale "gmeow:maturityRequiresDimension MUST be an owl:ObjectProperty from gmeow:DocMaturity to gmeow:DocCoverageDimension — the instance-level join from an anchor value to a dimension value that IS the anchor's intent, the relation the Formal-Concept closure runs over." .
+
+# --- 13. No DocMaturity / DocCoverageDimension INDIVIDUAL is also an owl:Class (MUST-NOT) ---
+# The name-INDEPENDENT anchor-not-fence invariant: a value individual must never be
+# punned as a class (which would re-introduce the essential-type modelling the value
+# vocabulary exists to forbid). The CLASSES gmeow:DocMaturity / gmeow:DocCoverageDimension
+# are owl:Class, but no individual `a` one of them may be.
+ex:saNoMaturityValueIsClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    { ?x a gmeow:DocMaturity } UNION { ?x a gmeow:DocCoverageDimension }
+    ?x a owl:Class .
+}""" ;
+    gmeow:saRationale "No individual typed gmeow:DocMaturity or gmeow:DocCoverageDimension may ALSO be an owl:Class — the name-independent anchor-not-fence invariant: a maturity anchor or coverage dimension is a value, never a class, so punning one as a class would re-introduce the essential-type modelling the value vocabulary forbids (Principle 9)." .
+
+# --- 14. No DocMaturity anchor is rdfs:subClassOf anything (MUST-NOT) ---------
+ex:saNoMaturityAnchorSubclass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    ?anchor a gmeow:DocMaturity ;
+        rdfs:subClassOf ?other .
+}""" ;
+    gmeow:saRationale "No gmeow:DocMaturity anchor individual may be rdfs:subClassOf another — the maturity ORDER is derived from intent inclusion (gmeow:maturityRequiresDimension), never a class hierarchy; a subClassOf edge between tiers would model the order as a fence instead of the intrinsic FCA closure." .
+
+# --- 15. No hard-coded maturity/coverage subclasses exist (MUST-NOT) ----------
+ex:saNoMaturityDenylistSubclasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?rejected {
+        gmeow:FullDoc
+        gmeow:MaximalDoc
+        gmeow:MinimalDoc
+        gmeow:FullyDocumented
+    }
+    ?rejected a owl:Class .
+}""" ;
+    gmeow:saRationale "Hard-coded maturity subclasses (FullDoc, MaximalDoc, MinimalDoc, FullyDocumented) MUST NOT be declared as owl:Class — documentation maturity is a value anchor (a gmeow:DocMaturity individual), never an essential type, mirroring the version-role and term-stability discipline. This enumerated smoke-list backs up the name-independent invariant." .
+
+# --- 16. Every coverage dimension is required by some anchor — no orphan (MUST-NOT-violated) ---
+ex:saNoOrphanDimension a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?d a gmeow:DocCoverageDimension .
+    FILTER NOT EXISTS { ?anchor gmeow:maturityRequiresDimension ?d }
+}""" ;
+    gmeow:saRationale "Every gmeow:DocCoverageDimension individual MUST be referenced by at least one gmeow:maturityRequiresDimension — all dimensions gate, so no ineligible partition remains. Since gmeow:docMaturityMaximal requires all nineteen, this holds today; asserting it means a future orphan dimension (minted but wired into no anchor's intent) reds this gate instead of silently sitting outside the ladder." .

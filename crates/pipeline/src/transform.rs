@@ -769,18 +769,8 @@ fn gts_from_maximal(
             .add_dataset(&statement_dataset)
             .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))?;
     }
-    purrdf::gts_compose::emit_gts(
-        &builder,
-        "dist",
-        None,
-        Vec::new(),
-        Vec::new(),
-        None,
-        None,
-        None,
-        purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
-    )
-    .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))
+    crate::gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
+        .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))
 }
 
 fn statement_layer_nt(derived: &BTreeMap<TripleKey, DerivedTriple>) -> String {

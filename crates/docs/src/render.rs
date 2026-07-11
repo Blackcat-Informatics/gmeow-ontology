@@ -20,7 +20,7 @@
 //! key, and no `HashMap` iteration reaches the output. Rendering the same model
 //! twice is byte-identical.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::OnceLock;
 
 use minijinja::{Environment, context};
@@ -493,14 +493,6 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
         }
     }
 
-    // Casefolded slash-namespace aliases (tiny redirect pages).
-    for (alias_dir, target_dir) in term_aliases(model) {
-        files.insert(
-            join(&alias_dir, "index.html"),
-            alias_redirect_html(&alias_dir, &target_dir).into_bytes(),
-        );
-    }
-
     Site { files }
 }
 
@@ -773,14 +765,15 @@ pub fn okf_doc_reference(term: &DocTerm) -> Option<String> {
         DocTermCategory::Datatype | DocTermCategory::Other => return None,
     };
     // The OKF projection is derived from the COMPOSED ontology (the carrier term surface),
-    // so it covers only core vocabulary with a compact `prefix:local` CURIE. A term whose
-    // curie is a full IRI — a docs-site-only term with no compact form, e.g. a nested
-    // example-namespace `logic:PathShape` individual under `.../gmeow/examples/…` — is NOT in
-    // the OKF export universe, so it emits no OKF link (and the OKF-coverage gate, which pairs
-    // this reference against the emitted OKF docs, correctly skips it rather than flagging a
+    // whose term collector covers only the `gmeow:` core vocabulary (see
+    // `crate::stages::export::collect_terms` — namespace-gated). A term in another
+    // namespace — a grounding-language term (`lang:`/`logic:`/`math:`), an external IRI, or
+    // a docs-site-only nested-example term whose curie is a full IRI — is NOT in the OKF
+    // export universe, so it emits no OKF link (and the OKF-coverage gate, which pairs this
+    // reference against the emitted OKF docs, correctly skips it rather than flagging a
     // dangling link the OKF bundle never promised to render).
-    let (_, local) = term.curie.split_once(':')?;
-    if local.contains(['/', '#']) {
+    let (prefix, local) = term.curie.split_once(':')?;
+    if prefix != "gmeow" || local.contains(['/', '#']) {
         return None;
     }
     Some(format!("gmeow-okf/{dir}/{local}.md"))
@@ -1077,10 +1070,79 @@ fn md_landing(model: &DocsModel) -> String {
     out
 }
 
-/// The documentation-health dashboard: per-dimension coverage of the vocabulary
-/// surface and a completeness distribution. Reads the shared coverage source, so
-/// its per-dimension *covered* counts are the exact complement of the
-/// `docs/missing-*` lint counts.
+/// The number of PER-TERM coverage dimensions a projected term record covers —
+/// counted over the canonical [`crate::coverage::DIMENSIONS`] set so a stray
+/// local name in the read-back can never inflate the completeness distribution.
+fn present_dimension_count(term: &crate::rdf::DocTermFacts) -> usize {
+    crate::coverage::DIMENSIONS
+        .iter()
+        .filter(|dim| term.covers.contains(dim.dimension.local_name()))
+        .count()
+}
+
+/// The short human title of a maturity anchor (`Minimal` / `Basic` / `Full` /
+/// `Maximal`) for the health dashboard.
+fn anchor_title(anchor: crate::maturity::MaturityAnchor) -> String {
+    use crate::maturity::MaturityAnchor::*;
+    match anchor {
+        Minimal => "Minimal",
+        Basic => "Basic",
+        Full => "Full",
+        Maximal => "Maximal",
+    }
+    .to_owned()
+}
+
+/// The gap-to-next-tier burn-down for a slice: the next anchor up the derived
+/// ladder and the dimensions its intent requires that the slice's covered set
+/// (`covers`, read back from `gmeow:docCoversDimension`) does not yet carry. At
+/// the ceiling (earns `Maximal`) there is no next tier.
+fn maturity_gap(
+    earned: Option<crate::maturity::MaturityAnchor>,
+    covers: &BTreeSet<String>,
+) -> String {
+    use crate::maturity::MaturityAnchor;
+    // The next tier above the earned floor; when nothing is earned yet the first
+    // rung (Minimal) is the target.
+    let next = match earned {
+        Some(a) => a.next(),
+        None => Some(MaturityAnchor::Minimal),
+    };
+    let Some(next) = next else {
+        return "at ceiling (Maximal)".to_owned();
+    };
+    let missing: Vec<String> = next
+        .intent()
+        .iter()
+        .filter(|dim| !covers.contains(dim.local_name()))
+        .map(|dim| dimension_label(*dim))
+        .collect();
+    if missing.is_empty() {
+        // The intent is already covered — the slice is one closure step from the
+        // next tier (the emitter reports the largest satisfied anchor as earned).
+        format!("→ {}", anchor_title(next))
+    } else {
+        format!("→ {}: missing {}", anchor_title(next), missing.join(", "))
+    }
+}
+
+/// The human display label for a coverage dimension, resolved from the single
+/// [`crate::coverage`] label authority (per-term and slice-scoped dimensions).
+fn dimension_label(dim: crate::maturity::Dimension) -> String {
+    crate::coverage::DIMENSIONS
+        .iter()
+        .chain(crate::coverage::SLICE_DIMENSIONS.iter())
+        .find(|d| d.dimension == dim)
+        .map_or_else(|| dim.local_name().to_owned(), |d| d.label.to_owned())
+}
+
+/// The documentation-health dashboard, a PURE projection of the emitted
+/// `graph/documentation` incidence: per-dimension coverage of the vocabulary
+/// surface, a completeness distribution, and the per-slice earned-maturity floor
+/// with a gap-to-next-tier burn-down. Every coverage number is read back from
+/// `gmeow:docCoversDimension` / `gmeow:coverageFraction` / `gmeow:docEarnedMaturity`
+/// (never a second recompute from `crate::coverage`), so the dashboard and the
+/// reasoned graph cannot silently disagree.
 fn md_health(model: &DocsModel) -> String {
     let mut out = String::new();
     heading(&mut out, 1, model.ui("body_documentation_health"));
@@ -1097,19 +1159,28 @@ fn md_health(model: &DocsModel) -> String {
     );
 
     let aligned = crate::coverage::alignment_subjects(model);
-    let coverages: Vec<crate::coverage::TermCoverage> = model
-        .terms
-        .iter()
-        .map(|t| crate::coverage::term_coverage(t, &aligned))
-        .collect();
-    let total = coverages.len();
 
-    // Per-dimension coverage — covered count = total − (the docs/missing-* count).
+    // PURE PROJECTION: the health dashboard reads its coverage numbers back from
+    // the emitted `graph/documentation` incidence (`gmeow:docCoversDimension` per
+    // record), NEVER a second recompute from `crate::coverage`. The page and the
+    // reasoned graph are therefore the same bytes read two ways — they cannot
+    // silently diverge.
+    let graph = crate::rdf::documentation_graph(model);
+    let total = graph.terms.len();
+
+    // Per-dimension coverage — covered count = the number of documented terms whose
+    // projected incidence COVERS the dimension (the complement of the
+    // `docs/missing-*` gap).
     heading(&mut out, 2, model.ui("body_coverage_by_dimension"));
     push_line(&mut out, "| Dimension | Covered | Total | % |");
     push_line(&mut out, "| --- | --- | --- | --- |");
-    for (i, dim) in crate::coverage::DIMENSIONS.iter().enumerate() {
-        let covered = coverages.iter().filter(|c| c.flags()[i]).count();
+    for dim in crate::coverage::DIMENSIONS.iter() {
+        let local = dim.dimension.local_name();
+        let covered = graph
+            .terms
+            .iter()
+            .filter(|t| t.covers.contains(local))
+            .count();
         let pct = (covered * 100).checked_div(total).unwrap_or(0);
         push_line(
             &mut out,
@@ -1118,16 +1189,70 @@ fn md_health(model: &DocsModel) -> String {
     }
     blank(&mut out);
 
-    // Completeness distribution: how many terms carry exactly k of the dimensions.
+    // Completeness distribution: how many terms carry exactly k of the dimensions,
+    // counted from the projected per-term covered set.
     heading(&mut out, 2, model.ui("body_completeness_distribution"));
     push_line(&mut out, "| Dimensions present | Terms |");
     push_line(&mut out, "| --- | --- |");
     let dims_total = crate::coverage::TermCoverage::TOTAL;
     for k in (0..=dims_total).rev() {
-        let count = coverages.iter().filter(|c| c.present_count() == k).count();
+        let count = graph
+            .terms
+            .iter()
+            .filter(|t| present_dimension_count(t) == k)
+            .count();
         push_line(&mut out, &format!("| {k} / {dims_total} | {count} |"));
     }
     blank(&mut out);
+
+    // ── Maturity by slice (earned floor + gap-to-next-tier burn-down) ────────────
+    // Projected from the per-slice incidence: `gmeow:docEarnedMaturity` (the FCA
+    // floor), `gmeow:coverageFraction`, and any asserted `gmeow:sliceDocMaturity`.
+    // The gap column names the exact dimensions standing between the slice and its
+    // next tier — the burn-down a slice author reads straight off the dashboard.
+    if !graph.slices.is_empty() {
+        heading(&mut out, 2, model.ui("body_maturity_by_slice"));
+        line(&mut out, model.ui("body_maturity_legend"));
+        push_line(
+            &mut out,
+            "| Slice | Earns | Coverage | Claims | Gap to next tier |",
+        );
+        push_line(&mut out, "| --- | --- | --- | --- | --- |");
+        for slice in &graph.slices {
+            let earned = slice
+                .earned
+                .as_deref()
+                .and_then(crate::maturity::MaturityAnchor::from_local);
+            let asserted = slice
+                .asserted
+                .as_deref()
+                .and_then(crate::maturity::MaturityAnchor::from_local);
+            let earned_label = earned.map_or("—".to_owned(), anchor_title);
+            // The claim column flags an over-claim inline: a slice that asserts a
+            // tier above the earned floor trips the `asserted ⊄ earned` gate.
+            let claim_label = match asserted {
+                None => "—".to_owned(),
+                Some(a) => {
+                    let over = crate::maturity::asserted_exceeds_earned(a, earned);
+                    if over {
+                        format!("⚠ {} (unsupported)", anchor_title(a))
+                    } else {
+                        anchor_title(a)
+                    }
+                }
+            };
+            let gap = maturity_gap(earned, &slice.covers);
+            push_line(
+                &mut out,
+                &format!(
+                    "| `{}` | {earned_label} | {}% | {claim_label} | {gap} |",
+                    code_escape(local_name(&slice.documents)),
+                    (slice.coverage_fraction * 100.0).round() as i64,
+                ),
+            );
+        }
+        blank(&mut out);
+    }
 
     // ── Reasoning (present only when the native-reasoner verdict is attached) ────
     if let Some(verdict) = &model.reasoning {
@@ -1673,8 +1798,8 @@ fn md_term(model: &DocsModel, slug: &str, exec: &ExecutableDocsData) -> String {
     // emitted in `render_site_lang` from this same source (no dangling path); the
     // detailed, linkable surfaces follow in their own sections below.
     {
-        let aligned = crate::coverage::alignment_subjects(model);
-        let badges = crate::badge::term_badges(term, &aligned, model.reasoning.as_ref());
+        let ctx = crate::coverage::CoverageContext::new(model);
+        let badges = crate::badge::term_badges(term, &ctx, model.reasoning.as_ref());
         let row = badges
             .iter()
             .map(|b| {
@@ -2358,8 +2483,8 @@ fn term_academic_surface(
     // source — exactly the predicates behind the `docs/missing-*` lint, so the page
     // and the gate can never disagree about what a term is missing.
     {
-        let aligned = crate::coverage::alignment_subjects(model);
-        let cov = crate::coverage::term_coverage(term, &aligned);
+        let ctx = crate::coverage::CoverageContext::new(model);
+        let cov = crate::coverage::term_coverage(term, &ctx);
         heading(&mut out, 2, model.ui("body_documentation_coverage"));
         let badges = crate::coverage::DIMENSIONS
             .iter()
@@ -2702,7 +2827,7 @@ fn dl_axioms(model: &DocsModel, term: &DocTerm) -> Vec<String> {
 // concept DOI) generalized to a page-level "cite this page" block on every OTHER
 // durable surface (fixtures index, competency index, notation index / grammar,
 // pipeline DAG, glossary). The term page keeps its richer content-addressed form
-// inline (`term_academic_surface`); this block is distinct from the Task-12
+// inline (`term_academic_surface`); this block is distinct from the
 // per-page provenance footer.
 
 /// Whether `page` is a durable, citable surface carrying the generalized
@@ -3552,7 +3677,7 @@ fn md_example_index(model: &DocsModel) -> String {
     // `gmeow_docs::model::extract_worked_instances` — not special-cased to
     // `measure-and-dimension.ttl` (today's only author). Placed on THIS page
     // (rather than a new dedicated `Page` variant) because a worked instance
-    // IS a worked example — the same `examples/*.ttl` scan Task 4's loss-row
+    // IS a worked example — the same `examples/*.ttl` scan the loss-row
     // section reuses, and `Page::ExampleIndex` is already the page readers
     // reach for "show me a concrete instance", so it stays their next stop
     // rather than a fourth example-adjacent page.
@@ -4205,6 +4330,27 @@ fn append_stage_section(out: &mut String, model: &DocsModel, term: &DocTerm, fro
         blank(out);
     }
 
+    // Attaches: the named graphs / blob-rep lanes this stage contributes to the carrier
+    // as its delta (gmeow:attachesGraph / gmeow:attachesBlobRep) — the run-verified
+    // declaration of what the stage produced, so `gmeow docs-on <stage>` self-explains.
+    if !stage.attaches_graphs.is_empty() || !stage.attaches_blob_reps.is_empty() {
+        heading(out, 3, model.ui("body_pipeline_attaches"));
+        for graph in &stage.attaches_graphs {
+            push_line(out, &format!("- `{}`", code_escape(graph)));
+        }
+        for rep in &stage.attaches_blob_reps {
+            push_line(
+                out,
+                &format!(
+                    "- {} `{}`",
+                    model.ui("body_pipeline_attaches_blob"),
+                    code_escape(rep)
+                ),
+            );
+        }
+        blank(out);
+    }
+
     // Consumed by: the downstream stages that read THIS stage's product (the edge
     // reverse — `edges.from == this stage`).
     let mut consumed_by: Vec<&str> = pipeline
@@ -4294,7 +4440,7 @@ pub(crate) fn provenance_chain(
     chain
 }
 
-/// Append the per-page provenance footer: the producing-stage chain (Task 12), the
+/// Append the per-page provenance footer: the producing-stage chain, the
 /// build-grain projection of the single `gmeow:docGroundedBy` provenance relation.
 /// A no-op when the model carries no pipeline (a bare unit-test model) — honest
 /// absence, so the source-model goldens without a pipeline are unaffected.
@@ -5199,17 +5345,132 @@ fn localize_model(model: &DocsModel, lang: &str) -> DocsModel {
 
 // ── Slugging ──────────────────────────────────────────────────────────────────
 
-/// A filesystem-safe slug from a term's local name: the IRI tail after the last
-/// `/` or `#`, lowercased and reduced to `[a-z0-9-]`.
+/// The INJECTIVE documentation-entry slug of a term — the single source of the
+/// `documentation/term/{slug}` doc-entry IRI, the page URL, and every cross-page
+/// link. Returns the term's resolved [`DocTerm::slug`] (assigned once from the
+/// whole term set by [`resolve_term_slugs`] at model build), so the doc-entry
+/// subject is collision-free and its coverage incidence can never be conflated.
+///
+/// A hand-built term (a unit-test fixture that never went through model
+/// resolution) carries an empty `slug`; it then falls back to the base slug —
+/// safe because such tiny models never collide, and the real model always carries
+/// a resolved slug, so this is one function with one answer, never two that can
+/// disagree.
 pub fn term_slug(term: &DocTerm) -> String {
-    slugify(local_name(&term.iri))
+    if term.slug.is_empty() {
+        slugify(local_name(&term.iri))
+    } else {
+        term.slug.clone()
+    }
 }
 
-/// A filesystem-safe slug from a term IRI's local name — the standalone twin of
-/// [`term_slug`] for callers holding an IRI (not a [`DocTerm`]), e.g. `docs-on`
-/// resolving a query to its `terms/<slug>/` page under the ontology-docs blob.
-pub fn slug_for_iri(iri: &str) -> String {
-    slugify(local_name(iri))
+/// The category discriminator segment appended to a contended base slug.
+fn category_slug(category: DocTermCategory) -> &'static str {
+    match category {
+        DocTermCategory::Class => "class",
+        DocTermCategory::Property => "property",
+        DocTermCategory::Individual => "individual",
+        DocTermCategory::Datatype => "datatype",
+        DocTermCategory::Other => "other",
+    }
+}
+
+/// A short, stable IRI discriminator: the first 12 hex chars of the full IRI's
+/// BLAKE3 digest — a deterministic, order-independent tiebreak for the rare case
+/// where two distinct terms share BOTH a base slug and a category.
+fn short_iri_digest(iri: &str) -> String {
+    blake3::hash(iri.as_bytes()).to_hex()[..12].to_owned()
+}
+
+/// Resolve the disambiguated `documentation/term/{slug}` slug for every term whose
+/// base slug COLLIDES — a deterministic pure function of the term set, keyed by
+/// term IRI. Terms whose base slug is already unique are ABSENT from the map (they
+/// keep the base slug via [`term_slug`]'s fallback), so the returned entries are
+/// exactly the colliders — the minority that must change.
+///
+/// # Scheme (minimal churn, no blank nodes)
+///
+/// 1. **Base slug** = [`slugify`] of the IRI's local name (the historical slug).
+///    A base slug carried by exactly ONE term is kept verbatim — the non-colliding
+///    terms' IRIs / URLs / links are unchanged (and they are not in the map).
+/// 2. **Category disambiguation** — a base slug shared by ≥2 distinct terms (the
+///    `slugify` case/punctuation fold is lossy, e.g. class `AcceptanceStatus` and
+///    property `acceptanceStatus` both fold to `acceptancestatus`) gets its
+///    category appended (`-class` / `-property` / `-individual` / `-datatype` /
+///    `-other`).
+/// 3. **Digest tiebreak** — a residual collision (same base AND category, or a
+///    disambiguated slug that would clash with a reserved base) appends
+///    [`short_iri_digest`] of the full IRI; a further clash appends an incrementing
+///    suffix. The full slug set (unique bases ∪ resolved) is asserted injective — a
+///    HARD FAIL otherwise, never silent conflation.
+///
+/// Contended terms are processed in IRI-sorted order, so the assignment is a total
+/// function of the (unordered) term set: the same terms always yield the same map.
+pub fn resolve_term_slugs(terms: &[DocTerm]) -> BTreeMap<String, String> {
+    use std::collections::{HashMap, HashSet};
+
+    // Distinct terms by IRI (first occurrence in IRI-sorted order). A term IRI that
+    // appears more than once in the list (e.g. lifted by two scans) is ONE doc-entry
+    // subject, so it resolves to ONE slug — the injectivity target is distinct IRIs,
+    // not list positions.
+    let mut order: Vec<&DocTerm> = terms.iter().collect();
+    order.sort_by(|a, b| a.iri.cmp(&b.iri));
+    let mut seen: HashSet<&str> = HashSet::new();
+    let distinct: Vec<&DocTerm> = order
+        .into_iter()
+        .filter(|t| seen.insert(t.iri.as_str()))
+        .collect();
+
+    // Base slug per distinct term IRI + how many distinct terms share each base.
+    let base_of: HashMap<&str, String> = distinct
+        .iter()
+        .map(|t| (t.iri.as_str(), slugify(local_name(&t.iri))))
+        .collect();
+    let mut base_count: HashMap<&str, usize> = HashMap::new();
+    for base in base_of.values() {
+        *base_count.entry(base.as_str()).or_default() += 1;
+    }
+
+    // Every uncontended base is reserved (kept verbatim, absent from the map).
+    let mut used: HashSet<String> = HashSet::new();
+    for term in &distinct {
+        let base = &base_of[term.iri.as_str()];
+        if base_count[base.as_str()] == 1 {
+            used.insert(base.clone());
+        }
+    }
+
+    // Disambiguate the contended terms (already in IRI-sorted order → determinism).
+    let mut out: BTreeMap<String, String> = BTreeMap::new();
+    for term in &distinct {
+        let base = &base_of[term.iri.as_str()];
+        if base_count[base.as_str()] == 1 {
+            continue;
+        }
+        let cat = category_slug(term.category);
+        let mut cand = format!("{base}-{cat}");
+        if used.contains(&cand) {
+            cand = format!("{base}-{cat}-{}", short_iri_digest(&term.iri));
+        }
+        let mut n = 2;
+        while used.contains(&cand) {
+            cand = format!("{base}-{cat}-{}-{n}", short_iri_digest(&term.iri));
+            n += 1;
+        }
+        used.insert(cand.clone());
+        out.insert(term.iri.clone(), cand);
+    }
+
+    // Injectivity is the whole point: distinct IRIs → distinct slugs across the
+    // WHOLE surface (unique bases ∪ resolved). `used` grew by exactly one per
+    // reserved base and per resolved slug, so its size must equal the distinct-IRI
+    // count — a HARD FAIL otherwise, never silent conflation.
+    assert_eq!(
+        used.len(),
+        distinct.len(),
+        "resolve_term_slugs produced a non-injective slug surface"
+    );
+    out
 }
 
 /// A filesystem-safe slug from a slice IRI's last path segment.
@@ -5335,19 +5596,23 @@ fn slice_link(model: &DocsModel, from: &str, iri: &str) -> String {
 
 /// A link from a term CURIE to its term page, or a plain `code` CURIE when the
 /// term is not documented.
-/// The compact CURIE for an IRI: `gmeow:Local` / `logic:Local` for the two
-/// GMEOW-family namespaces, otherwise the IRI unchanged. Used by the constraint
-/// catalog to abbreviate a rule's applies-to terms and formalized axiom.
+/// The compact CURIE for an IRI: a `gmeow:` / `logic:` / `math:` / `lang:` CURIE
+/// for the GMEOW-family namespaces, otherwise the IRI unchanged. Used by the
+/// constraint catalog to abbreviate a rule's applies-to terms and formalized
+/// axiom.
 fn to_curie(iri: &str) -> String {
-    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
-    const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
-    if let Some(local) = iri.strip_prefix(GMEOW_NS) {
-        format!("gmeow:{local}")
-    } else if let Some(local) = iri.strip_prefix(LOGIC_NS) {
-        format!("logic:{local}")
-    } else {
-        iri.to_string()
+    const FAMILY: &[(&str, &str)] = &[
+        ("https://blackcatinformatics.ca/gmeow/", "gmeow"),
+        ("https://blackcatinformatics.ca/logic/", "logic"),
+        ("https://blackcatinformatics.ca/math/", "math"),
+        ("https://blackcatinformatics.ca/lang/", "lang"),
+    ];
+    for (ns, prefix) in FAMILY {
+        if let Some(local) = iri.strip_prefix(ns) {
+            return format!("{prefix}:{local}");
+        }
     }
+    iri.to_string()
 }
 
 fn curie_link(model: &DocsModel, from: &str, curie: &str) -> String {
@@ -5750,7 +6015,7 @@ struct SearchRecord {
 pub fn search_index_json(model: &DocsModel) -> String {
     let mut records: Vec<SearchRecord> = Vec::new();
     let alignment_facets = precompute_alignment_facets(model);
-    let aligned = crate::coverage::alignment_subjects(model);
+    let ctx = crate::coverage::CoverageContext::new(model);
 
     for term in &model.terms {
         records.push(SearchRecord {
@@ -5764,7 +6029,7 @@ pub fn search_index_json(model: &DocsModel) -> String {
                 .get(term.iri.as_str())
                 .cloned()
                 .unwrap_or_default(),
-            missing_coverage: crate::coverage::term_coverage(term, &aligned).missing_keys(),
+            missing_coverage: crate::coverage::term_coverage(term, &ctx).missing_keys(),
         });
     }
     for slice in &model.slices {
@@ -6151,51 +6416,6 @@ fn local_name_vec(iris: &[String]) -> Vec<String> {
     iris.iter().map(|i| local_name(i).to_string()).collect()
 }
 
-// ── Casefolded slash-namespace aliases ─────────────────────────────────────────
-
-/// For every term whose canonical slug differs from a casefolded form of its
-/// local name, return `(alias_dir, target_dir)` pairs for tiny redirect pages.
-///
-/// Deterministic: derived purely from sorted terms; aliases that collide with a
-/// canonical slug or with each other are skipped (first-wins, sorted) so two
-/// terms never fight over the same alias directory.
-fn term_aliases(model: &DocsModel) -> Vec<(String, String)> {
-    // All canonical slugs, so an alias never shadows a real term page.
-    let canonical: std::collections::BTreeSet<String> = model.terms.iter().map(term_slug).collect();
-
-    let mut seen_aliases: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    let mut out: Vec<(String, String)> = Vec::new();
-
-    // model.terms is IRI-sorted → first-wins is deterministic.
-    for term in &model.terms {
-        let canonical_slug = term_slug(term);
-        let alias = local_name(&term.iri).to_ascii_lowercase();
-        if alias.is_empty() || alias == canonical_slug {
-            continue;
-        }
-        if canonical.contains(&alias) || !seen_aliases.insert(alias.clone()) {
-            continue;
-        }
-        out.push((format!("terms/{alias}"), format!("terms/{canonical_slug}")));
-    }
-    out.sort();
-    out
-}
-
-/// A tiny redirect HTML page (meta refresh + canonical link + JS fallback) from
-/// an alias directory to the canonical term directory.
-fn alias_redirect_html(alias_dir: &str, target_dir: &str) -> String {
-    let href = rel(alias_dir, target_dir);
-    let target = format!("{href}index.html");
-    format!(
-        "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\" />\n\
-         <meta http-equiv=\"refresh\" content=\"0; url={target}\" />\n\
-         <link rel=\"canonical\" href=\"{target}\" />\n<title>Redirecting…</title>\n\
-         </head>\n<body>\n<p>Redirecting to <a href=\"{target}\">{target}</a>.</p>\n\
-         </body>\n</html>\n"
-    )
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -6215,6 +6435,104 @@ mod tests {
         assert_eq!(root_href(""), "");
         assert_eq!(root_href("slices"), "../");
         assert_eq!(root_href("terms/cat"), "../../");
+    }
+
+    fn term(iri: &str, category: DocTermCategory) -> DocTerm {
+        DocTerm {
+            iri: iri.to_string(),
+            category,
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn stage_page_self_explains_its_attached_graphs_and_blob_reps() {
+        // docs-on <stage> surfaces the stage's declared carrier contribution: the
+        // attached graph/documentation + the attached blob-rep lanes (Step 4 self-explain).
+        use crate::model::{DocPipeline, DocStage};
+        let stage_iri = "https://blackcatinformatics.ca/gmeow/stage-docs-render";
+        let model = DocsModel {
+            pipeline: Some(DocPipeline {
+                stages: vec![DocStage {
+                    iri: stage_iri.to_string(),
+                    attaches_graphs: vec![
+                        "https://blackcatinformatics.ca/gmeow/graph/documentation".to_string(),
+                    ],
+                    attaches_blob_reps: vec!["diagnostics:nodes".to_string()],
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let doc_term = term(stage_iri, DocTermCategory::Individual);
+        let mut out = String::new();
+        append_stage_section(&mut out, &model, &doc_term, "terms/x");
+        assert!(
+            out.contains(model.ui("body_pipeline_attaches")),
+            "the stage page must carry an Attaches heading: {out}"
+        );
+        assert!(
+            out.contains("https://blackcatinformatics.ca/gmeow/graph/documentation"),
+            "the stage page must surface the attached graph/documentation: {out}"
+        );
+        assert!(
+            out.contains("diagnostics:nodes"),
+            "the stage page must surface the attached blob-rep lane: {out}"
+        );
+    }
+
+    #[test]
+    fn resolve_term_slugs_disambiguates_only_colliders_injectively() {
+        let base = "https://blackcatinformatics.ca/gmeow/";
+        let terms = vec![
+            // A unique base — absent from the map, keeps its base slug.
+            term(&format!("{base}Solo"), DocTermCategory::Class),
+            // A class/property case-collision on `acceptancestatus`.
+            term(&format!("{base}AcceptanceStatus"), DocTermCategory::Class),
+            term(
+                &format!("{base}acceptanceStatus"),
+                DocTermCategory::Property,
+            ),
+            // A base+category collision (two Individuals slugging to `foo`).
+            term(&format!("{base}Foo"), DocTermCategory::Individual),
+            term(&format!("{base}foo"), DocTermCategory::Individual),
+        ];
+
+        let map = resolve_term_slugs(&terms);
+
+        // The unique-base term is NOT in the map (falls back to base).
+        assert!(!map.contains_key(&format!("{base}Solo")));
+        // Case-collision resolved by category.
+        assert_eq!(
+            map[&format!("{base}AcceptanceStatus")],
+            "acceptancestatus-class"
+        );
+        assert_eq!(
+            map[&format!("{base}acceptanceStatus")],
+            "acceptancestatus-property"
+        );
+        // Base+category collision: the IRI-lexically-first keeps `foo-individual`,
+        // the other gets the digest tiebreak.
+        assert_eq!(map[&format!("{base}Foo")], "foo-individual");
+        let other = &map[&format!("{base}foo")];
+        assert!(
+            other.starts_with("foo-individual-") && other.len() > "foo-individual-".len(),
+            "digest-disambiguated slug expected, got {other}"
+        );
+
+        // Deterministic: identical input → identical map.
+        assert_eq!(resolve_term_slugs(&terms), map);
+
+        // Injective over the whole surface: term_slug is distinct for every term.
+        let mut resolved = terms.clone();
+        for t in &mut resolved {
+            if let Some(s) = map.get(&t.iri) {
+                t.slug = s.clone();
+            }
+        }
+        let slugs: std::collections::BTreeSet<String> = resolved.iter().map(term_slug).collect();
+        assert_eq!(slugs.len(), resolved.len(), "slugs must be injective");
     }
 
     #[test]
@@ -6420,6 +6738,8 @@ mod tests {
             profiles: Vec::new(),
             depends_on: Vec::new(),
             artifacts: Vec::new(),
+            has_thesis_sentence: false,
+            realized_state_complete: false,
         });
         // Add a worked example so the "try it" surface has something to render.
         model.examples.push(crate::model::DocExample {

@@ -69,6 +69,28 @@ fn spec(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
             Vec::new()
         },
         formats: Vec::new(),
+        // Mirror the bound Rust impl's attach declaration (the same registry-derivation
+        // run.rs::full_spec() does) so bind's Rust/RDF attach agreement holds for the
+        // real production stages this spine test binds. test_sink is absent from the
+        // default registry → empty, matching its no-attach default.
+        attaches_graphs: default_registry()
+            .get(impl_key)
+            .map(|s| {
+                let mut g = s.attaches_graphs().to_vec();
+                g.sort();
+                g.dedup();
+                g
+            })
+            .unwrap_or_default(),
+        attaches_blob_reps: default_registry()
+            .get(impl_key)
+            .map(|s| {
+                let mut b = s.attaches_blob_reps().to_vec();
+                b.sort();
+                b.dedup();
+                b
+            })
+            .unwrap_or_default(),
     }
 }
 

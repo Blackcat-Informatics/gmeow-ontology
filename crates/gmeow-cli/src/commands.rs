@@ -1599,7 +1599,17 @@ pub fn docs_on(
             );
         }
     };
-    let slug = gmeow_docs::render::slug_for_iri(&iri);
+    // Resolve the injective doc-entry slug from the bundle's own emitted
+    // `gmeow:documents` inverse (the collision-free slug map the docs projection
+    // folds into graph/documentation), NOT a stateless recompute that would miss a
+    // disambiguated slug.
+    let Some(slug) = graph.documentation_term_slug(&iri) else {
+        return fail(
+            reporter,
+            "gmeow-cli.docs-on.missing-page",
+            format!("no documentation entry for {iri} in the folded bundle"),
+        );
+    };
     let leaf = if card { "card.md" } else { "index.md" };
     let key = format!("{internal}/terms/{slug}/{leaf}");
     match docs.get(&key) {
