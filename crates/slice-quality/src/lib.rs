@@ -112,22 +112,70 @@ pub fn discover_slice_dirs(slices_root: &Path) -> Vec<PathBuf> {
 
 /// Every authored `.ttl` the quality sweep reads across all slices: the rubric module,
 /// each slice's `manifest.ttl`, and the files [`report::score_slice`] ingests per slice
-/// (`module.ttl`, `examples/`, `tests/`). This is the SINGLE authority the pipeline's
-/// source-load cache key over the assessment graph consults — if any scored file
-/// changes, the attached `graph/quality-assessment` must be recomputed (cache soundness:
-/// a stale scored input would ship a stale assessment in `gmeow.gts`). Deterministic and
-/// deduplicated; only files that exist are returned.
-#[must_use]
-pub fn scored_source_files(repo_root: &Path) -> Vec<PathBuf> {
+/// (`module.ttl`, `examples/`, `tests/`) — PLUS the `DocMaturity` axis's own real inputs
+/// (`crates/slice-quality/src/doc_maturity.rs`), which are NOT covered by
+/// [`report::slice_ttl_paths`]: each slice's `docs.md` (the `ThesisSentence` /
+/// `RealizedState` slice-scoped coverage facts) and each slice's `i18n/*.po` translation
+/// catalogs (the `TranslationCoverage` dimension), both read via `DocMaturity`'s own
+/// `DocsModel::discover` sweep; and the generated `generated/catalog/constraint-catalog.nq`
+/// catalog that same sweep hard-fails without (`crates/docs/src/model.rs::read_constraint_catalog`
+/// — a regenerated tree always carries it, so its absence is a broken invariant, not an
+/// optional input). `generated/catalog/term-content-manifest.nq` is deliberately NOT
+/// listed here: `DocsModel::discover` itself tolerates its absence (the one-shot bootstrap
+/// build that first mints it), so treating it as required-but-missing here would diverge
+/// from the reader it keys.
+///
+/// This is the SINGLE authority the pipeline's source-load cache key over the assessment
+/// graph consults — if any scored file changes, the attached `graph/quality-assessment`
+/// must be recomputed (cache soundness: a stale scored input would ship a stale
+/// assessment in `gmeow.gts`, including a docs-only edit that must not serve a stale
+/// `DocMaturity` verdict). Deterministic and deduplicated.
+///
+/// # Errors
+/// Hard-fails (never a silent skip) if a generated catalog `DocMaturity` requires is
+/// missing on this tree — the same invariant [`gmeow_docs::model::DocsModel::discover`]
+/// enforces. Per-slice files (`docs.md`, `i18n/*.po`, …) are legitimately optional and
+/// are silently omitted when absent.
+pub fn scored_source_files(repo_root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
     let mut files = vec![repo_root.join("slices/core/slice-quality-rubric/module.ttl")];
+    let constraint_catalog = repo_root.join("generated/catalog/constraint-catalog.nq");
+    if !constraint_catalog.is_file() {
+        return Err(gmeow_errors::Diag::of_kind(error::Io {
+            detail: format!(
+                "{}: required by the DocMaturity axis's DocsModel::discover sweep \
+                 (crates/docs/src/model.rs::read_constraint_catalog) but not found on this tree",
+                constraint_catalog.display()
+            ),
+        }));
+    }
+    files.push(constraint_catalog);
     for dir in discover_slice_dirs(&repo_root.join("slices")) {
         files.push(dir.join("manifest.ttl"));
         files.extend(report::slice_ttl_paths(&dir));
+        files.push(dir.join("docs.md"));
+        files.extend(doc_maturity_i18n_paths(&dir));
     }
     files.retain(|p| p.is_file());
     files.sort();
     files.dedup();
-    files
+    Ok(files)
+}
+
+/// A slice's `i18n/*.po` translation catalogs (sorted; empty when the slice ships no
+/// `i18n/` directory) — the `DocMaturity` axis's `TranslationCoverage` dimension input
+/// ([`doc_maturity::DocMaturity`], via `gmeow_docs::i18n::Translations`).
+fn doc_maturity_i18n_paths(slice_dir: &Path) -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    if let Ok(rd) = std::fs::read_dir(slice_dir.join("i18n")) {
+        for entry in rd.flatten() {
+            let p = entry.path();
+            if p.extension().is_some_and(|x| x == "po") {
+                paths.push(p);
+            }
+        }
+    }
+    paths.sort();
+    paths
 }
 
 /// Score every discovered slice once and return all first-class assessment products:
