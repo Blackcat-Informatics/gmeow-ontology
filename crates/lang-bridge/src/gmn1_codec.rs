@@ -518,6 +518,23 @@ pub struct Gmn1Document {
     refs: BTreeMap<String, RefPayload>,
 }
 
+impl Gmn1Document {
+    /// A self-contained GMN-1 surface with an EMPTY out-of-band reference table — the reader
+    /// entry point for raw external text. Any document whose tokens resolve entirely through
+    /// the pinned dictionary / prefix registry (carrying no `r_<hash>` by-reference literals)
+    /// reads back through [`gmn1_read`] from this constructor; a document that DOES name a
+    /// by-reference token the empty table cannot resolve hard-fails as `lang:GmnUncoveredTerm`,
+    /// never a silent drop. This is the only way a caller outside the codec can present raw
+    /// GMN-1 text to the reader (the writer's [`gmn1_write`] is the other source of a document).
+    #[must_use]
+    pub fn from_text(text: impl Into<String>) -> Self {
+        Self {
+            text: text.into(),
+            refs: BTreeMap::new(),
+        }
+    }
+}
+
 /// Encode a REFERENCE-position term (`s p o st ev m ek bd it`: an IRI or blank node
 /// naming an entity) as a GMN-1 token. Deliberately does NOT accept a literal — the
 /// grammar draws no syntactic distinction between a reference and a value token, but the

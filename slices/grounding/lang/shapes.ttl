@@ -1124,12 +1124,15 @@ lang:GmnScriptGlyphCoverageShape
 
 # =========================================================================== #
 # Mentation <-> lang binding gate: gmeow:processExport                       #
-# (mentation, core tier) crossings bind to the ring model. NOT one of the     #
-# eight SHACL hard rules of the "GMN dialect gates" banner above --           #
-# LANG-CONFORMANCE.md's rule count is unchanged; this is a separate           #
-# cross-slice competency check, exercised over the live fixture pair in       #
-# tests/conformance-fixtures/gmn-export-ring-bound.ttl (passes) and           #
-# tests/counter-examples/gmn-export-crossing-no-ring.ttl (fires).             #
+# (mentation, core tier) crossings bind to the ring model. A named            #
+# SHACL-SPARQL conformance row of the GMN dialect matrix                      #
+# (LANG-CONFORMANCE.md, lang:GmnUnringedExportCrossing), exercised over the   #
+# live fixture pair in tests/conformance-fixtures/gmn-export-ring-bound.ttl   #
+# (passes) and tests/counter-examples/gmn-export-crossing-no-ring.ttl         #
+# (fires). Because a ring-less export envelope is a strict subset of the      #
+# general eight-field contract's ring requirement, the counter-example        #
+# co-fires lang:GmnMissingEnvelopeField — the two-class trip set is           #
+# structurally irreducible, asserted exactly by the execution harness.        #
 # =========================================================================== #
 
 lang:GmnExportRingBindingShape
