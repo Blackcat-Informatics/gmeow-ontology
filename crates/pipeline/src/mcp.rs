@@ -31,6 +31,7 @@ use gmeow_logic::result_rdf::{
 use gmeow_logic::transaction::execute::{CommitMode, TxReceipt, execute_transaction};
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::ir::{Formula, LOGIC_NAMESPACE, Term as IrTerm};
+use gmeow_validate::local_oracle::{self, EntailmentView, FixtureView};
 use purrdf::gts::examples::agent_memory::{
     Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
 };
@@ -56,6 +57,67 @@ const TOOL_AGENT_NS: &str = "urn:gmeow:tool:";
 /// signed `gmeow:` canon and NEVER written back.
 const EXTERNAL_OVERLAY_GRAPH: &str = "urn:gmeow:mcp:overlay:external";
 
+/// The GMEOW namespace the native validation surface reasons in — the SAME
+/// namespace the CLI `gmeow validate` passes to `gmeow_validate::data_validate`, so
+/// `validate_local` never diverges from the shipped validator.
+const MCP_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// The origin marker stamped on every `validate_local` finding's primary location —
+/// the transient, inline data has no file path, so this synthetic origin identifies
+/// the tool that produced the finding.
+const VALIDATE_LOCAL_ORIGIN: &str = "mcp:validate_local";
+
+/// A generous ceiling on the inline `data` payload `validate_local` accepts (8 MiB).
+/// A larger payload is a HARD FAIL with a finding-style error — never silently
+/// truncated (a truncated RDF graph would mis-parse and mislead).
+const MAX_VALIDATE_DATA_BYTES: usize = 8 * 1024 * 1024;
+
+/// SELECT the counter-example conformance fixtures from the documentation graph: the
+/// fixture IRI, its authored violation code, the full Turtle body, its label, the
+/// authored outcome/rationale, and each referenced documented term (repeatable).
+const COUNTER_EXAMPLE_FIXTURE_QUERY: &str = "\
+PREFIX gm: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?f ?code ?text ?label ?outcome ?rationale ?term WHERE {
+  ?f a gm:DocFixture ;
+     gm:docFixtureKind gm:docFixtureKindCounterExample ;
+     gm:docViolationCode ?code ;
+     gm:docFixtureText ?text .
+  OPTIONAL { ?f rdfs:label ?label }
+  OPTIONAL { ?f gm:docExpectedOutcome ?outcome }
+  OPTIONAL { ?f gm:conformanceRationale ?rationale }
+  OPTIONAL { ?f gm:documents ?term }
+}";
+
+/// SELECT the well-formed conformance fixtures (positive exemplars) from the
+/// documentation graph: the fixture IRI, the full Turtle body, its label, the
+/// authored outcome, and each referenced documented term (the well-formed↔term join
+/// key). A well-formed fixture carries no violation code.
+const WELLFORMED_FIXTURE_QUERY: &str = "\
+PREFIX gm: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?f ?text ?label ?outcome ?term WHERE {
+  ?f a gm:DocFixture ;
+     gm:docFixtureKind gm:docFixtureKindWellformed ;
+     gm:docFixtureText ?text .
+  OPTIONAL { ?f rdfs:label ?label }
+  OPTIONAL { ?f gm:docExpectedOutcome ?outcome }
+  OPTIONAL { ?f gm:documents ?term }
+}";
+
+/// SELECT the entailment records from the documentation graph: the entailment IRI,
+/// the documented term it grounds on, the rule, the conclusion, and each premise
+/// (repeatable).
+const ENTAILMENT_QUERY: &str = "\
+PREFIX gm: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?e ?term ?rule ?conclusion ?premise WHERE {
+  ?e a gm:Entailment ;
+     gm:documents ?term ;
+     gm:entailmentRule ?rule ;
+     gm:entailmentConclusion ?conclusion .
+  OPTIONAL { ?e gm:entailmentPremise ?premise }
+}";
+
 /// A loaded, bundle-backed view over the GMEOW snapshot for the MCP consumer.
 pub struct McpView {
     /// THIS server's view of the bundled snapshot as the native carrier dataset:
@@ -78,10 +140,21 @@ pub struct McpView {
     /// across all `requested` lists. Empty when the doc graph is absent (then the
     /// `llms.txt` index renders linkless).
     doc_urls: OnceLock<Arc<HashMap<String, String>>>,
+    /// The raw `gmeow.gts` snapshot bytes this view was imported from, retained
+    /// verbatim. `from_snapshot` parses the bundle to the carrier dataset and
+    /// then DISCARDS the bytes; the native validation surface
+    /// (`validate_local`) needs them back — `gmeow_validate::data_validate` reads
+    /// the folded `shapes-archive` blob directly from the raw GTS, not from the
+    /// parsed dataset. Held behind an `Arc<[u8]>` so cloning the view is cheap
+    /// and the (potentially large) bundle is never copied.
+    gts: Arc<[u8]>,
 }
 
 impl McpView {
-    fn from_dataset(dataset: Arc<purrdf::RdfDataset>) -> gmeow_errors::Result<Self> {
+    fn from_dataset(
+        dataset: Arc<purrdf::RdfDataset>,
+        gts: Arc<[u8]>,
+    ) -> gmeow_errors::Result<Self> {
         let (title, version) = {
             let view = FoldView::new(dataset.as_ref());
             export::fold_meta(&view)?
@@ -92,7 +165,14 @@ impl McpView {
             version,
             cache: Mutex::new(HashMap::new()),
             doc_urls: OnceLock::new(),
+            gts,
         })
+    }
+
+    /// The raw `gmeow.gts` snapshot bytes this view serves, for the native
+    /// validation surface that reads the folded `shapes-archive` blob directly.
+    fn gts_bytes(&self) -> &[u8] {
+        &self.gts
     }
 
     /// Resolve a CURIE / local name / IRI / unambiguous prefix to its public
@@ -150,6 +230,178 @@ impl McpView {
         );
         let result = crate::stages::native_query::query(&docs, sparql)?;
         sparql_result_to_json(result)
+    }
+
+    /// Run a SELECT over the documentation graph and return its rows as flat
+    /// `var → lexical-value` maps (the `results.bindings` of the SPARQL-1.1 JSON
+    /// envelope, with each binding's `"value"` extracted). A missing/optional
+    /// variable is simply absent from a row's map.
+    fn docs_select_rows(
+        &self,
+        sparql: &str,
+    ) -> gmeow_errors::Result<Vec<BTreeMap<String, String>>> {
+        let value = self.run_docs_query(sparql)?;
+        let bindings = value
+            .get("results")
+            .and_then(|r| r.get("bindings"))
+            .and_then(Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let rows = bindings
+            .iter()
+            .filter_map(Value::as_object)
+            .map(|binding| {
+                binding
+                    .iter()
+                    .filter_map(|(var, cell)| {
+                        cell.get("value")
+                            .and_then(Value::as_str)
+                            .map(|v| (var.clone(), v.to_owned()))
+                    })
+                    .collect::<BTreeMap<String, String>>()
+            })
+            .collect();
+        Ok(rows)
+    }
+
+    /// Build the two fixture correspondence maps from the `gmeow:graph/documentation`
+    /// projection: `finding-code → counter-example` (keyed on the authored
+    /// `gmeow:docViolationCode`) and `finding-code → positive exemplar` (the
+    /// well-formed sibling joined through a shared referenced term). Both are
+    /// deterministic: a code that repeats across fixtures resolves to the
+    /// lexicographically-first fixture IRI, and the well-formed sibling is the
+    /// lexicographically-first well-formed fixture sharing a referenced term.
+    fn fixture_maps(
+        &self,
+    ) -> gmeow_errors::Result<(BTreeMap<String, FixtureView>, BTreeMap<String, FixtureView>)> {
+        // Counter-example fixtures: aggregate the (possibly multi-`documents`) rows
+        // back per fixture IRI so a fixture is one record with its full referenced-term
+        // set. BTreeMap keeps the fixture IRIs sorted → deterministic first-wins.
+        let mut counter_by_fixture: BTreeMap<String, (FixtureView, BTreeSet<String>)> =
+            BTreeMap::new();
+        for row in self.docs_select_rows(COUNTER_EXAMPLE_FIXTURE_QUERY)? {
+            let (Some(fixture), Some(code), Some(text)) =
+                (row.get("f"), row.get("code"), row.get("text"))
+            else {
+                continue;
+            };
+            let entry = counter_by_fixture
+                .entry(fixture.clone())
+                .or_insert_with(|| {
+                    (
+                        FixtureView {
+                            title: row.get("label").cloned().unwrap_or_else(|| fixture.clone()),
+                            text: text.clone(),
+                            expected_outcome: row.get("outcome").cloned(),
+                            violation_code: Some(code.clone()),
+                            rationale: row.get("rationale").cloned(),
+                        },
+                        BTreeSet::new(),
+                    )
+                });
+            if let Some(term) = row.get("term") {
+                entry.1.insert(term.clone());
+            }
+        }
+
+        // Well-formed fixtures: same aggregation, no violation code (they violate
+        // nothing).
+        let mut wellformed_by_fixture: BTreeMap<String, (FixtureView, BTreeSet<String>)> =
+            BTreeMap::new();
+        for row in self.docs_select_rows(WELLFORMED_FIXTURE_QUERY)? {
+            let (Some(fixture), Some(text)) = (row.get("f"), row.get("text")) else {
+                continue;
+            };
+            let entry = wellformed_by_fixture
+                .entry(fixture.clone())
+                .or_insert_with(|| {
+                    (
+                        FixtureView {
+                            title: row.get("label").cloned().unwrap_or_else(|| fixture.clone()),
+                            text: text.clone(),
+                            expected_outcome: row.get("outcome").cloned(),
+                            violation_code: None,
+                            rationale: row.get("rationale").cloned(),
+                        },
+                        BTreeSet::new(),
+                    )
+                });
+            if let Some(term) = row.get("term") {
+                entry.1.insert(term.clone());
+            }
+        }
+
+        // code → counter-example (first fixture IRI wins) + the code's referenced terms.
+        let mut counter_examples_by_code: BTreeMap<String, FixtureView> = BTreeMap::new();
+        let mut terms_by_code: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+        for (view, terms) in counter_by_fixture.values() {
+            let Some(code) = view.violation_code.clone() else {
+                continue;
+            };
+            counter_examples_by_code
+                .entry(code.clone())
+                .or_insert_with(|| view.clone());
+            // Terms of the CHOSEN (first) counter-example anchor the well-formed join.
+            terms_by_code.entry(code).or_insert_with(|| terms.clone());
+        }
+
+        // code → well-formed sibling sharing a referenced term (first well-formed
+        // fixture IRI wins).
+        let mut wellformed_by_code: BTreeMap<String, FixtureView> = BTreeMap::new();
+        for (code, ce_terms) in &terms_by_code {
+            if let Some((_fixture, (view, _terms))) = wellformed_by_fixture
+                .iter()
+                .find(|(_f, (_v, wf_terms))| !wf_terms.is_disjoint(ce_terms))
+            {
+                wellformed_by_code.insert(code.clone(), view.clone());
+            }
+        }
+
+        Ok((counter_examples_by_code, wellformed_by_code))
+    }
+
+    /// Build `term-IRI → entailments` from the documentation graph's entailment
+    /// records (`gmeow:Entailment`), aggregating each record's premises and grouping
+    /// by the `gmeow:documents` term. Entailment records are iterated in sorted IRI
+    /// order and each entailment's premises are sorted, so the map is deterministic.
+    fn entailment_map(&self) -> gmeow_errors::Result<BTreeMap<String, Vec<EntailmentView>>> {
+        // Aggregate the (possibly multi-premise) rows back per entailment IRI.
+        let mut by_entailment: BTreeMap<String, (String, String, String, BTreeSet<String>)> =
+            BTreeMap::new();
+        for row in self.docs_select_rows(ENTAILMENT_QUERY)? {
+            let (Some(entailment), Some(term), Some(rule), Some(conclusion)) = (
+                row.get("e"),
+                row.get("term"),
+                row.get("rule"),
+                row.get("conclusion"),
+            ) else {
+                continue;
+            };
+            let entry = by_entailment.entry(entailment.clone()).or_insert_with(|| {
+                (
+                    term.clone(),
+                    rule.clone(),
+                    conclusion.clone(),
+                    BTreeSet::new(),
+                )
+            });
+            if let Some(premise) = row.get("premise") {
+                entry.3.insert(premise.clone());
+            }
+        }
+
+        let mut entailments_by_term: BTreeMap<String, Vec<EntailmentView>> = BTreeMap::new();
+        for (term, rule, conclusion, premises) in by_entailment.into_values() {
+            entailments_by_term
+                .entry(term)
+                .or_default()
+                .push(EntailmentView {
+                    rule,
+                    conclusion,
+                    premises: premises.into_iter().collect(),
+                });
+        }
+        Ok(entailments_by_term)
     }
 
     /// Run a SELECT / ASK SPARQL query over the bundle canon UNIONED with a
@@ -474,7 +726,7 @@ impl McpServer {
         let startup_requested =
             resolve_lang(env::var("GMEOW_LANG").ok().as_deref(), &tag_map, &available)?;
         Ok(Self {
-            view: McpView::from_dataset(dataset)?,
+            view: McpView::from_dataset(dataset, Arc::from(snapshot))?,
             mode,
             root,
             tag_map,
@@ -532,6 +784,25 @@ impl McpServer {
                  into the signed gmeow: canon and NEVER written back to disk. Accepts Turtle / \
                  TriG / N-Triples / N-Quads / RDF-XML by file extension.",
                 &[("path", "string"), ("query", "string")],
+            ),
+            tool(
+                "validate_local",
+                "Validate an inline RDF graph against the bundled GMEOW shapes and disciplines \
+                 (the same core as `gmeow validate`), then CLOSE THE LOOP: every finding is \
+                 returned with its rule catalog helpUri, the CORRESPONDING counter-example fixture \
+                 (matched by violation code), a positive well-formed exemplar, and the entailments \
+                 of the term it concerns. `data` is the RDF text; `format` is one of \
+                 turtle|ttl|text/turtle, ntriples|nt|n-triples, nquads|nq|n-quads, trig, \
+                 rdfxml|rdf+xml|xml, jsonld|json-ld. Set `deep` true to ALSO run the Tier-2 \
+                 semantic pass (reasons over your data unioned with the whole bundle's axioms, \
+                 like `gmeow validate --deep` — powerful but multiple minutes; default false). \
+                 Nothing is written (the data is validated in-memory and discarded); an unknown \
+                 format or an oversized payload is a hard error.",
+                &[
+                    ("data", "string"),
+                    ("format", "string"),
+                    ("deep", "boolean"),
+                ],
             ),
             tool(
                 "explain_finding",
@@ -672,6 +943,7 @@ impl McpServer {
             "okf_index" => self.tool_okf_index(args),
             "query_docs" => self.tool_query_docs(args),
             "query_local" => self.tool_query_local(args),
+            "validate_local" => self.tool_validate_local(args),
             "explain_finding" => self.tool_explain_finding(args),
             "store_claim" => self.tool_store_claim(args),
             "conjecture_test" => self.tool_conjecture_test(args),
@@ -811,6 +1083,69 @@ impl McpServer {
         let path = required_str(args, "path")?;
         let query = required_str(args, "query")?;
         Ok(self.view.query_local_json(path, query))
+    }
+
+    /// Validate an inline RDF `data` graph (in `format`) against the bundle's own
+    /// shapes + disciplines through the DEEP (`--deep`) semantic pass — the SAME
+    /// `gmeow_validate::data_validate::run` core the CLI `gmeow validate --deep`
+    /// drives — then CLOSE THE LOOP by enriching each finding with the bundle's
+    /// teaching surface: the rule's catalog help URI, the CORRESPONDING
+    /// counter-example (matched by violation code), a positive exemplar, and the
+    /// term's entailments.
+    ///
+    /// Transient discipline: nothing is written. The data arrives inline as a string
+    /// arg (unlike `query_local`, which reads a file), is validated against the
+    /// retained snapshot bytes, and is discarded. An unrecognized `format` or an
+    /// oversized payload is a HARD FAIL, never a silent mis-parse or truncation.
+    fn tool_validate_local(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let data = required_str(args, "data")?;
+        let format = required_str(args, "format")?;
+        let canonical = canonical_rdf_format(format)?;
+
+        if data.len() > MAX_VALIDATE_DATA_BYTES {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "validate_local: data payload is {} bytes, exceeding the {} byte ceiling; \
+                     split the graph and validate the parts (no silent truncation)",
+                    data.len(),
+                    MAX_VALIDATE_DATA_BYTES
+                ),
+            }));
+        }
+
+        // Tier-1 SHACL + disciplines always run (fast, ~1s). The Tier-2 semantic
+        // pass — reasoning over the user data unioned with the whole bundle's
+        // axioms — is opt-in via `deep` (default false), exactly like
+        // `gmeow validate --deep`: it is powerful but reasons over the entire
+        // bundle (multiple minutes), so an interactive agent requests it only when
+        // structural conformance is not enough. When enabled, a contract-invalid
+        // input is emitted by the engine as a hard Error finding — surfaced here
+        // verbatim, never post-processed away.
+        let deep = optional_bool(args, "deep").unwrap_or(false);
+        let report = gmeow_validate::data_validate::run(
+            data.as_bytes(),
+            canonical,
+            self.view.gts_bytes(),
+            MCP_NAMESPACE,
+            VALIDATE_LOCAL_ORIGIN,
+            deep,
+        )?;
+
+        // Loop closure: extract the correspondence maps from the documentation graph
+        // and enrich each finding through the wasm-clean pure join.
+        let (counter_examples_by_code, wellformed_by_code) = self.view.fixture_maps()?;
+        let entailments_by_term = self.view.entailment_map()?;
+        let enriched = local_oracle::enrich_report(
+            &report,
+            &counter_examples_by_code,
+            &wellformed_by_code,
+            &entailments_by_term,
+        );
+        serde_json::to_string(&enriched).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("validate_local: serialize enriched report: {e}"),
+            })
+        })
     }
 
     fn tool_explain_finding(&self, args: &Value) -> gmeow_errors::Result<String> {
@@ -1620,7 +1955,11 @@ fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
     let required: Vec<&str> = properties
         .iter()
         .filter_map(|(name, _)| {
-            matches!(*name, "term" | "text" | "claim_id" | "path" | "target_iri").then_some(*name)
+            matches!(
+                *name,
+                "term" | "text" | "claim_id" | "path" | "target_iri" | "data" | "format"
+            )
+            .then_some(*name)
         })
         .collect();
     let props = properties
@@ -1636,6 +1975,32 @@ fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
             "required": required,
         },
     })
+}
+
+/// Canonicalize a caller-supplied RDF `format` token to the exact id
+/// `gmeow_validate::data_validate` accepts. Accepts the common aliases per family;
+/// an UNRECOGNIZED format is a HARD FAIL (the accepted set is listed in the error)
+/// so a mistyped format can never silently mis-parse.
+fn canonical_rdf_format(format: &str) -> gmeow_errors::Result<&'static str> {
+    let normalized = format.trim().to_ascii_lowercase();
+    let token = match normalized.as_str() {
+        "turtle" | "ttl" | "text/turtle" => "turtle",
+        "ntriples" | "nt" | "n-triples" => "n-triples",
+        "nquads" | "nq" | "n-quads" => "n-quads",
+        "trig" => "trig",
+        "rdfxml" | "rdf+xml" | "xml" | "rdf" => "rdf+xml",
+        "jsonld" | "json-ld" => "json-ld",
+        other => {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "validate_local: unrecognized RDF format `{other}`; accepted: \
+                     turtle|ttl|text/turtle, ntriples|nt|n-triples, nquads|nq|n-quads, trig, \
+                     rdfxml|rdf+xml|xml|rdf, jsonld|json-ld"
+                ),
+            }));
+        }
+    };
+    Ok(token)
 }
 
 fn resource(uri: &str, name: &str, description: &str, mime: &str) -> Value {
@@ -2378,6 +2743,37 @@ mod tests {
     }
 
     #[test]
+    fn consumer_view_retains_raw_snapshot_and_reaches_shapes_archive() {
+        // The native validation surface (`validate_local`) needs the raw GTS bytes
+        // back so `gmeow_validate` can read the folded `shapes-archive` blob — the
+        // parsed carrier dataset does not carry it. Prove the bytes are retained
+        // verbatim and that the shapes archive is reachable from them, so the
+        // consumer server (the shippable `gmeow mcp`) can validate agent data.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        assert_eq!(
+            server.view.gts_bytes(),
+            bytes.as_slice(),
+            "the view must retain the snapshot bytes verbatim",
+        );
+        let shapes = crate::bundle_blobs::Bundle::from_snapshot(server.view.gts_bytes())
+            .expect("bundle parses from retained bytes")
+            .shapes()
+            .expect("shapes-archive readable from retained bytes");
+        assert!(
+            !shapes.is_empty(),
+            "the shapes-archive blob must be reachable from the retained snapshot \
+             bytes — it is the SHACL surface validate_local checks agent data against",
+        );
+    }
+
+    #[test]
     fn modes_advertise_consumer_and_dev_surfaces() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
@@ -3117,6 +3513,13 @@ mod tests {
             "query_local",
             json!({"path": overlay_path.to_str().unwrap(), "query": "ASK { ?s ?p ?o }"}),
         );
+        // The default (Tier-1) `validate_local` path is fast, so a valid tiny graph
+        // dispatches and returns a well-formed EnrichedReport. (Tier-2 `deep` is opt-in
+        // and reasons over the whole bundle, minutes — never exercised in this loop.)
+        call_args.insert(
+            "validate_local",
+            json!({"data": "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n", "format": "turtle"}),
+        );
         call_args.insert("store_claim", json!({"text": "probe", "dry_run": true}));
         call_args.insert(
             "conjecture_test",
@@ -3145,6 +3548,313 @@ mod tests {
             );
         }
         drop(overlay_dir);
+    }
+
+    /// Build a consumer server over the shipped bundle with a clean language env.
+    fn consumer_server() -> McpServer {
+        let bytes = snapshot();
+        McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap()
+    }
+
+    /// The sorted finding-code multiset of a report.
+    fn codes_of(report: &gmeow_errors::Report) -> Vec<String> {
+        let mut codes: Vec<String> = report.findings.iter().map(|f| f.code.clone()).collect();
+        codes.sort();
+        codes
+    }
+
+    /// Select a REAL counter-example fixture from the SHIPPED bundle's
+    /// `gmeow:graph/documentation` projection whose authored `gmeow:docViolationCode`
+    /// is actually REPRODUCED by the Tier-1 SHACL engine on its own `gmeow:docFixtureText`
+    /// body — the honest correspondence anchor (never weakened to "non-empty").
+    ///
+    /// The candidate for each code is the SAME one the enrichment join attaches:
+    /// `fixture_maps` keys a code to the lexicographically-first fixture IRI carrying
+    /// it, so selecting by `code → (first-fixture IRI, its text)` guarantees the
+    /// attached counter-example's text equals the payload we validate. Returns
+    /// `(fixture_iri, code, text)`. Panics with the observed codes if NONE reproduces
+    /// (a real blocker, not a soft skip).
+    fn select_reproducing_counter_example(server: &McpServer) -> (String, String, String) {
+        let rows = server
+            .view
+            .docs_select_rows(COUNTER_EXAMPLE_FIXTURE_QUERY)
+            .expect("query counter-example fixtures from graph/documentation");
+        // First row per fixture IRI (the fixture's code + full body).
+        let mut by_fixture: BTreeMap<String, (String, String)> = BTreeMap::new();
+        for row in &rows {
+            if let (Some(f), Some(code), Some(text)) =
+                (row.get("f"), row.get("code"), row.get("text"))
+            {
+                by_fixture
+                    .entry(f.clone())
+                    .or_insert_with(|| (code.clone(), text.clone()));
+            }
+        }
+        // code → (first-fixture IRI, its text) — matches `fixture_maps`' first-wins,
+        // so the attached counter-example is exactly this fixture.
+        let mut by_code: BTreeMap<String, (String, String)> = BTreeMap::new();
+        for (iri, (code, text)) in &by_fixture {
+            by_code
+                .entry(code.clone())
+                .or_insert_with(|| (iri.clone(), text.clone()));
+        }
+        assert!(
+            !by_code.is_empty(),
+            "the shipped bundle carries NO bound counter-example fixtures"
+        );
+        for (code, (iri, text)) in &by_code {
+            let report = gmeow_validate::data_validate::run_tier1(
+                text.as_bytes(),
+                "turtle",
+                server.view.gts_bytes(),
+                MCP_NAMESPACE,
+                VALIDATE_LOCAL_ORIGIN,
+            )
+            .expect("tier-1 validate the fixture body");
+            if report.findings.iter().any(|f| &f.code == code) {
+                return (iri.clone(), code.clone(), text.clone());
+            }
+        }
+        panic!(
+            "no bound counter-example fixture reproduced its authored violation code under \
+             Tier-1 validation — observed candidate codes: {:?}",
+            by_code.keys().collect::<Vec<_>>()
+        );
+    }
+
+    /// PARITY + CORRESPONDENCE (end-to-end, production surface): drive the REAL
+    /// `validate_local` tool (default fast Tier-1 path) over a REAL counter-example
+    /// fixture from the shipped bundle, and assert (a) PARITY — the enriched finding
+    /// codes EQUAL `run_tier1` (the `gmeow validate` core); and (b) CORRESPONDENCE —
+    /// at least one finding carries a counter-example, EVERY attached counter-example
+    /// corresponds by violation code + rule help URI, and the finding whose code is
+    /// the chosen fixture's `docViolationCode` gets that fixture's exact body back.
+    #[test]
+    fn validate_local_enrichment_parity_and_correspondence() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let (fixture_iri, code, text) = select_reproducing_counter_example(&server);
+        eprintln!("validate_local test selected fixture={fixture_iri} code={code}");
+        let help_uri = gmeow_validate::rule_catalog::help_uri_for(&code);
+
+        // The CLI core: Tier-1 (the same `run_tier1` `gmeow validate` drives).
+        let tier1 = gmeow_validate::data_validate::run_tier1(
+            text.as_bytes(),
+            "turtle",
+            server.view.gts_bytes(),
+            MCP_NAMESPACE,
+            VALIDATE_LOCAL_ORIGIN,
+        )
+        .expect("tier-1 validate");
+        let tier1_codes = codes_of(&tier1);
+
+        // Drive the REAL tool by DISPATCH BY NAME (deep defaults to false → fast).
+        let enriched = text_payload(
+            server.call_tool_result("validate_local", &json!({"data": text, "format": "turtle"})),
+        );
+        assert_ne!(
+            enriched["ok"],
+            Value::Null,
+            "the tool returned an EnrichedReport: {enriched}"
+        );
+        let findings = enriched["findings"].as_array().expect("findings array");
+
+        // PARITY: with deep off, the tool's finding codes EQUAL the `gmeow validate`
+        // (`run_tier1`) codes exactly — validate_local drops/adds/mutates nothing.
+        let mut local_codes: Vec<String> = findings
+            .iter()
+            .map(|f| f["code"].as_str().unwrap().to_string())
+            .collect();
+        local_codes.sort();
+        assert_eq!(
+            local_codes, tier1_codes,
+            "validate_local must reproduce the gmeow-validate Tier-1 finding codes exactly"
+        );
+
+        // CORRESPONDENCE (BINDING): the finding whose code == the fixture's violation
+        // code carries THAT fixture's body back, with the corresponding help URI.
+        let matched: Vec<&Value> = findings
+            .iter()
+            .filter(|f| f["code"].as_str() == Some(code.as_str()))
+            .collect();
+        assert!(
+            !matched.is_empty(),
+            "the chosen fixture's code {code} must appear among the findings: {enriched}"
+        );
+        let with_ce = matched
+            .iter()
+            .find(|f| !f["counter_example"].is_null())
+            .unwrap_or_else(|| {
+                panic!("the matched finding {code} must carry a counter-example: {enriched}")
+            });
+        assert_eq!(
+            with_ce["counter_example"]["violation_code"].as_str(),
+            Some(code.as_str()),
+            "the attached counter-example corresponds by violation code"
+        );
+        assert_eq!(
+            with_ce["counter_example"]["text"].as_str(),
+            Some(text.as_str()),
+            "the finding whose code is the fixture's violation code gets that fixture's body back"
+        );
+        assert_eq!(
+            with_ce["help_uri"].as_str(),
+            Some(help_uri.as_str()),
+            "the finding carries the rule catalog help URI for its code"
+        );
+
+        // NON-VACUITY + the CORRESPONDENCE INVARIANT across the whole report: at least
+        // one finding got a counter-example, and EVERY attached counter-example's
+        // violation code equals its OWN finding's code (by-code, never blanket).
+        let attached = findings
+            .iter()
+            .filter(|f| !f["counter_example"].is_null())
+            .count();
+        assert!(
+            attached >= 1,
+            "at least one finding must carry a counter-example (non-vacuous): {enriched}"
+        );
+        for f in findings {
+            if !f["counter_example"].is_null() {
+                assert_eq!(
+                    f["counter_example"]["violation_code"].as_str(),
+                    f["code"].as_str(),
+                    "every attached counter-example corresponds to ITS finding's code \
+                     (correspondence, never blanket): {f}"
+                );
+                assert_eq!(
+                    f["help_uri"].as_str(),
+                    Some(
+                        gmeow_validate::rule_catalog::help_uri_for(f["code"].as_str().unwrap())
+                            .as_str()
+                    ),
+                    "every enriched finding carries its rule catalog help URI: {f}"
+                );
+            }
+        }
+    }
+
+    /// DEEP PASS (heavy): drive the tool end-to-end with `deep = true` over a REAL
+    /// counter-example from the shipped bundle and assert the Tier-2 semantic pass ran
+    /// (a `validate.deep.*` finding is present) AND that the Tier-1 surface is
+    /// preserved (true tool-vs-`gmeow validate` parity). `#[ignore]`d because the
+    /// native deep reasoner over the whole bundle runs well past the 120 s on-gate
+    /// nextest cliff; run in the heavy lane / manually
+    /// (`cargo nextest run -E 'test(validate_local_deep)' --run-ignored all`).
+    /// `validate.deep.contract-invalid` is engine-enforced (it fires only on a bundle
+    /// carrying a garbled `logic:admissibleValuation`, which the shipped bundle does
+    /// not) and is regression-covered by
+    /// `gmeow_validate::data_validate` `deep_pass_garbled_contract_produces_error_not_advisory`.
+    #[test]
+    #[ignore = "runs the full-bundle native deep reasoner (>120s); heavy lane only"]
+    fn validate_local_deep_pass_surfaces_deep_finding() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let (_iri, _code, text) = select_reproducing_counter_example(&server);
+
+        // The CLI Tier-1 surface the deep run must preserve.
+        let tier1 = gmeow_validate::data_validate::run_tier1(
+            text.as_bytes(),
+            "turtle",
+            server.view.gts_bytes(),
+            MCP_NAMESPACE,
+            VALIDATE_LOCAL_ORIGIN,
+        )
+        .expect("tier-1 validate");
+        let tier1_codes = codes_of(&tier1);
+
+        // Explicitly request the Tier-2 pass via the `deep` arg.
+        let enriched = text_payload(server.call_tool_result(
+            "validate_local",
+            &json!({"data": text, "format": "turtle", "deep": true}),
+        ));
+        let findings = enriched["findings"].as_array().expect("findings array");
+
+        assert!(
+            findings
+                .iter()
+                .any(|f| f["code"].as_str().unwrap().starts_with("validate.deep.")),
+            "the deep pass must run (a validate.deep.* finding must appear): {enriched}"
+        );
+        let mut tier1_surface: Vec<String> = findings
+            .iter()
+            .map(|f| f["code"].as_str().unwrap().to_string())
+            .filter(|c| !c.starts_with("validate.deep."))
+            .collect();
+        tier1_surface.sort();
+        assert_eq!(
+            tier1_surface, tier1_codes,
+            "the deep run must preserve the Tier-1 surface (parity with gmeow validate)"
+        );
+    }
+
+    /// ROBUSTNESS: an unknown `format`, an oversized `data` payload, and malformed
+    /// RDF each return a well-formed error envelope (`ok:false`) — never a panic, and
+    /// a malformed graph surfaces as an Error, not a silent success.
+    #[test]
+    fn validate_local_hard_fails_bad_format_oversize_and_malformed() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+
+        // Unknown format → error envelope listing the accepted tokens.
+        let bad_format = text_payload(server.call_tool_result(
+            "validate_local",
+            &json!({"data": "<urn:s> <urn:p> <urn:o> .", "format": "bogus"}),
+        ));
+        assert_eq!(
+            bad_format["ok"], false,
+            "unknown format must be a hard fail"
+        );
+        assert!(
+            bad_format["error"]
+                .as_str()
+                .unwrap()
+                .contains("unrecognized RDF format"),
+            "the error must name the offending format: {bad_format}"
+        );
+
+        // Oversized payload → error envelope, no truncation.
+        let huge = format!(
+            "<urn:s> <urn:p> \"{}\" .",
+            "x".repeat(MAX_VALIDATE_DATA_BYTES + 1)
+        );
+        let oversize = text_payload(
+            server.call_tool_result("validate_local", &json!({"data": huge, "format": "turtle"})),
+        );
+        assert_eq!(
+            oversize["ok"], false,
+            "oversized payload must be a hard fail"
+        );
+        assert!(
+            oversize["error"].as_str().unwrap().contains("ceiling"),
+            "the error must explain the size ceiling: {oversize}"
+        );
+
+        // Malformed Turtle → error envelope (the parse hard-fails; never a silent
+        // empty-but-ok report).
+        let malformed = text_payload(server.call_tool_result(
+            "validate_local",
+            &json!({"data": "<urn:s> <urn:p> <urn:o>  # unterminated, no dot", "format": "turtle"}),
+        ));
+        assert_eq!(
+            malformed["ok"], false,
+            "malformed RDF must surface as an error, not a silent success: {malformed}"
+        );
     }
 
     /// The `explain_finding` tool, driven by DISPATCH BY NAME over a server built
