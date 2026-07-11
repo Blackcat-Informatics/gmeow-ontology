@@ -213,5 +213,5 @@ manifesto's grafting posture and the greenfield principle:
 | `gmeow:bcp47Tag`, `gmeow:languageCode` | retained as projection/alignment surfaces of sign-system individuals |
 | `gmeow:NotationSystem`, `gmeow:SymbolicSystem` (notation slice) | notational sign systems; their projection-profile machinery grafted under the rendering layer |
 
-The migration is **executed** — each grafted term landed passing the affected slices'
+The migration is **executed** — with each grafted term passing the affected slices'
 tests and the regenerated bundle, never a big-bang rename.
