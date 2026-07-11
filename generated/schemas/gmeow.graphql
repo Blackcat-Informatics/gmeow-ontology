@@ -345,7 +345,6 @@ enum AxisEnum {
 }
 
 enum AxisExemptionEnum {
-  exemptionDocMaturity
   exemptionDocsPanels
   exemptionGmnProjection
 }
@@ -516,6 +515,11 @@ enum AxisFloorCommitmentEnum {
 }
 
 enum AxisThresholdEnum {
+  thrDocMaturityExemplified
+  thrDocMaturityGrounded
+  thrDocMaturityLinked
+  thrDocMaturityMaximal
+  thrDocMaturityRegistered
   thrDocumentationExemplified
   thrDocumentationGrounded
   thrDocumentationLinked
@@ -1057,6 +1061,43 @@ enum DistanceMetricEnum {
   distanceMetricEuclidean
 }
 
+enum DocCoverageDimensionEnum {
+  dimAlignment
+  dimAnnotationCoat
+  dimCompetencyRationale
+  dimDefinition
+  dimExample
+  dimFixturePair
+  dimLabel
+  dimLinkageCoverage
+  dimLossJudgmentSound
+  dimLossLedgerRow
+  dimProseQuality
+  dimProvenanceHonesty
+  dimRealizedState
+  dimScopeNote
+  dimTestReach
+  dimThesisSentence
+  dimTranslationCoverage
+  dimUsageAdvice
+  dimWorkedInstance
+}
+
+enum DocEvidenceKindEnum {
+  docEvidenceKindCompetency
+  docEvidenceKindDiagnostics
+  docEvidenceKindFixture
+  docEvidenceKindLoss
+  docEvidenceKindProvenance
+}
+
+enum DocMaturityEnum {
+  docMaturityBasic
+  docMaturityFull
+  docMaturityMaximal
+  docMaturityMinimal
+}
+
 enum DocumentationConcernEnum {
   concernDisclosure
   concernFrames
@@ -1279,6 +1320,26 @@ enum ExpressionLanguageEnum {
   exprLangShacl
   exprLangSparqlAsk
   exprLangXacml
+}
+
+enum FanoutExtractionEnum {
+  fanout_catalog_constraint_catalog
+  fanout_catalog_term_content_manifest
+  fanout_diagnostics_logic_compile
+  fanout_diagnostics_shacl
+  fanout_edoal_projections
+  fanout_evals_scores
+  fanout_foundation_gufo
+  fanout_logic_correspondence
+  fanout_logic_correspondence_laws
+  fanout_logic_projection_report
+  fanout_logic_relational_core
+  fanout_profiles
+  fanout_projections_core_prefixes
+  fanout_projections_functions_fno
+  fanout_projections_list_functions_fno
+  fanout_quality_assessment
+  fanout_research_objects
 }
 
 enum FeedPostingKindEnum {
@@ -2814,6 +2875,7 @@ enum PronounSetEnum {
 }
 
 enum QualityAxisEnum {
+  axisDocMaturity
   axisDocumentation
   axisFlagshipCounterExampleDepth
   axisGmn1Coverage
@@ -5096,6 +5158,37 @@ type Distribution {
   distributionFormat: [String!]
 }
 
+type DocCoverageDimension {
+  id: String
+  iri: String
+}
+
+type DocEvidence {
+  id: String
+  iri: String
+  docClaim: [String!]
+  docCompetencyCount: [Int!]
+  docCompetencyQueryDigest: [String!]
+  docEvidenceKind: [DocEvidenceKind!]
+  docFindingCount: [Int!]
+  docFixtureCount: [Int!]
+  docJudgment: [String!]
+  docLossRowCount: [Int!]
+  docProducedByChain: [String!]
+  docProvenanceDepth: [Int!]
+}
+
+type DocEvidenceKind {
+  id: String
+  iri: String
+}
+
+type DocMaturity {
+  id: String
+  iri: String
+  maturityRequiresDimension: [DocCoverageDimension!]
+}
+
 type Document {
   id: String
   iri: String
@@ -5104,6 +5197,29 @@ type Document {
 type DocumentationConcern {
   id: String
   iri: String
+}
+
+type DocumentedConcern {
+  id: String
+  iri: String
+}
+
+type DocumentedMappingSet {
+  id: String
+  iri: String
+}
+
+type DocumentedSlice {
+  id: String
+  iri: String
+}
+
+type DocumentedTerm {
+  id: String
+  iri: String
+  docCategory: [String!]
+  docHasDefinition: [Boolean!]
+  docReasoningStatus: [String!]
 }
 
 type DoxasticStandpointClaim {
@@ -5528,6 +5644,16 @@ type ExtractedRelationship {
 type Family {
   id: String
   iri: String
+}
+
+type FanoutExtraction {
+  id: String
+  iri: String
+  extractsForm: [String!]
+  extractsGraphFamily: [String!]
+  extractsMatch: [String!]
+  extractsPath: [String!]
+  extractsSuffix: [String!]
 }
 
 type FeedPosting {
@@ -7402,12 +7528,15 @@ type PhysicalObject {
 type Pipeline {
   id: String
   iri: String
+  fanoutExtracts: [FanoutExtraction!]
   hasStage: [PipelineStage!]
 }
 
 type PipelineStage {
   id: String
   iri: String
+  attachesBlobRep: [String!]
+  attachesGraph: [String!]
   dataflowConsumes: [PipelineStage!]
   dataflowProduces: [PipelineStage!]
   hasCapability: [StageCapability!]

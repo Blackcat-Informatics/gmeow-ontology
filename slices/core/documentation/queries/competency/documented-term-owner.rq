@@ -1,0 +1,12 @@
+# Competency question: which slice owns a documented term? Every gmeow:DocumentedTerm
+# names exactly one owning slice via gmeow:docOwnerSlice — the bridge from a term's
+# documentation record back to the slice whose module defines it. Asserted lane; the
+# gmeow:cqDataFile overlay supplies the self-describing documented-term scene.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?owner WHERE {
+    ?entry a gmeow:DocumentedTerm ;
+        gmeow:docOwnerSlice ?owner .
+}
+ORDER BY ?owner

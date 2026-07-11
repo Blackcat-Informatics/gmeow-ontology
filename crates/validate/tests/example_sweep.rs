@@ -58,6 +58,7 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/cognition/examples/knowledge-proficiency.ttl", // gmeow:knowledgeProficiencyAgent/Subject → Agent/Entity not typed standalone; gmeow:knowledgeProficiencyLevel/Scale → shared KnowledgeLevel/ProficiencyScale individuals untyped standalone
     "slices/core/deception/examples/blame-deflection.ttl", // gmeow:doxasticClaim → StandpointClaim not typed standalone
     "slices/core/diagnostics/examples/shacl-violation-finding.ttl", // gmeow:findingSeverity → shared DiagnosticSeverity untyped standalone
+    "slices/core/documentation/examples/documented-term.ttl", // gmeow:docEvidenceKind → shared gmeow:DocEvidenceKind individual (docEvidenceKindCompetency/Provenance) typed in module.ttl, untyped standalone
     "slices/core/epistemics/examples/belief-revision.ttl", // gmeow:observationMethod → shared method individual untyped standalone
     "slices/core/epistemics/examples/claim-token-split.ttl", // gmeow:observationMethod → shared method individual (methodExpertJudgement) untyped standalone
     "slices/core/epistemics/examples/flagship-epistemic-ledger.ttl", // gmeow:epistemicAgent → Agent not typed standalone

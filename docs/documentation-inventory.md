@@ -17,6 +17,24 @@ to generated ontology docs:
 - keep root `docs/` for project-level, release, publishing, and process material;
 - flag stale paths, ticket-heavy notes, and duplicate doctrine before they spread.
 
+## The documentation-maturity standard
+
+The bar a slice's documentation is held to is not prose vigilance; it is a lattice of
+structural coverage dimensions the docs generator detects and the maturity gate scores. The
+`gmeow:DocMaturity` anchors (Minimal → Basic → Full → Maximal) and the
+`gmeow:DocCoverageDimension` individuals are minted in
+`slices/core/documentation/module.ttl`; the generator projects per-term coverage into the
+`gmeow:graph/documentation` named graph and reds the build when a slice's asserted tier
+exceeds the tier its coverage earns.
+
+The **normative definition of FULL and MAXIMAL as exactly the surfaces an author must
+provide** lives in the Slice Guide, [`SLICE_GUIDE.md`](SLICE_GUIDE.md) § 6.8 — that is where
+authors decide what to write, so the required-dimension enumeration is stated there once and
+pinned to the vocabulary by `crates/docs/tests/doctrine_matches_vocabulary.rs`. This
+inventory does not restate the enumeration (a second copy would drift); it points to the
+single source. The per-doc realized-state column that FULL requires is cross-referenced from
+[`GROUNDING.md`](GROUNDING.md) § coverage duty.
+
 ## Generator readiness status
 
 The docs generator already discovers `slices/*/*/design/*.md` and renders those

@@ -443,6 +443,10 @@ fn exec_stage(
         // A cache hit re-serves the identical product, so its `diagnostics:nodes` blob
         // (empty for a non-producer) recovers this stage's run-ledger contribution
         // WITHOUT re-running it — byte-identical to the fresh `out.diags`.
+        // The attach-drift check MUST fire here too: a declaration edit need not bump
+        // `impl_version`, so a stale cached product with drifted declarations would sail
+        // through unless the compare runs on the returned product in BOTH branches.
+        verify_attach_drift(stage, &upstream, &product)?;
         let diags = product.diag_nodes();
         return Ok(StageRun {
             id: stage.id().to_string(),
@@ -478,6 +482,11 @@ fn exec_stage(
     let out = stage.run(input)?;
     drop(_guards);
 
+    // Verify the stage's ACTUAL attach delta against its declaration on the cache-miss
+    // path too — the same compare as the cache-hit branch, so drift HARD-fails regardless
+    // of whether the product came fresh or from cache.
+    verify_attach_drift(stage, &upstream, &out.product)?;
+
     Ok(StageRun {
         id: stage.id().to_string(),
         key,
@@ -486,6 +495,101 @@ fn exec_stage(
         elapsed_ms: started.elapsed().as_millis(),
         diags: out.diags,
     })
+}
+
+/// The set of named-graph IRIs a product's carrier bundle carries.
+fn product_graphs(product: &StageProduct) -> std::collections::BTreeSet<String> {
+    product
+        .bundle()
+        .dataset()
+        .owned_named_graphs()
+        .filter_map(|t| match t {
+            purrdf::RdfTerm::Iri(iri) => Some(iri),
+            _ => None,
+        })
+        .collect()
+}
+
+/// The set of blob-representation lane labels a product's carrier bundle carries (the
+/// `representation`-keyed by-reference blob records — NOT the byte-artifact lane).
+fn product_blob_reps(product: &StageProduct) -> std::collections::BTreeSet<String> {
+    product
+        .bundle()
+        .lookaside()
+        .blobs
+        .iter()
+        .filter_map(|r| r.representation.clone())
+        .collect()
+}
+
+/// HARD-fail if a stage's ACTUAL attach delta diverges from its DECLARED attach set,
+/// in either direction. The delta is "what this stage attaches" = the named graphs /
+/// blob-rep lanes present in its OUTPUT product bundle but NOT in its assembled INPUT
+/// (the union over its consumed upstream products) — the cumulative output bundle diffed
+/// against the input, so an upstream graph carried forward is NOT counted as this stage's
+/// attach. Compared against the stage's `attaches_graphs()` / `attaches_blob_reps()`
+/// declaration (Rust/RDF-verified at load). Runs on both the cache-hit and cache-miss
+/// paths (called by [`exec_stage`]) so a cached product with drifted declarations cannot
+/// slip through. No optionality, no fallback.
+fn verify_attach_drift(
+    stage: &dyn Stage,
+    upstream: &BTreeMap<String, StageProduct>,
+    product: &StageProduct,
+) -> Result<(), gmeow_errors::Diag> {
+    use std::collections::BTreeSet;
+
+    // Assembled input sets = union over the consumed upstream products.
+    let mut input_graphs: BTreeSet<String> = BTreeSet::new();
+    let mut input_blob_reps: BTreeSet<String> = BTreeSet::new();
+    for up in upstream.values() {
+        input_graphs.extend(product_graphs(up));
+        input_blob_reps.extend(product_blob_reps(up));
+    }
+
+    let delta_graphs: BTreeSet<String> = product_graphs(product)
+        .difference(&input_graphs)
+        .cloned()
+        .collect();
+    let delta_blob_reps: BTreeSet<String> = product_blob_reps(product)
+        .difference(&input_blob_reps)
+        .cloned()
+        .collect();
+
+    check_lane(
+        stage.id(),
+        "gmeow:attachesGraph",
+        &delta_graphs,
+        stage.attaches_graphs(),
+    )?;
+    check_lane(
+        stage.id(),
+        "gmeow:attachesBlobRep",
+        &delta_blob_reps,
+        stage.attaches_blob_reps(),
+    )?;
+    Ok(())
+}
+
+/// Compare one lane's actual attach delta against its declared set, HARD-failing on any
+/// divergence in either direction ([`crate::error::AttachDrift`]).
+fn check_lane(
+    stage_id: &str,
+    lane: &str,
+    actual: &std::collections::BTreeSet<String>,
+    declared: &[String],
+) -> Result<(), gmeow_errors::Diag> {
+    let declared: std::collections::BTreeSet<String> = declared.iter().cloned().collect();
+    let attached_undeclared: Vec<String> = actual.difference(&declared).cloned().collect();
+    let declared_unattached: Vec<String> = declared.difference(actual).cloned().collect();
+    if !attached_undeclared.is_empty() || !declared_unattached.is_empty() {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::AttachDrift {
+            stage: stage_id.to_string(),
+            lane: lane.to_string(),
+            attached_undeclared,
+            declared_unattached,
+        }));
+    }
+    Ok(())
 }
 
 /// The content digest of a stage's declared raw `input_files`, or `None` when it
