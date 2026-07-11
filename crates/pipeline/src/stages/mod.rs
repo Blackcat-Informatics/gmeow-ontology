@@ -41,6 +41,10 @@ pub mod export;
 pub mod fold_arena;
 pub mod frame_shapes;
 pub mod gate_verdict;
+// The governance-floors export leaf: the two slice-quality floor TSVs projected as
+// lossy views of the ontology-resident gmeow:AxisFloorCommitment / gmeow:SliceTierFloor
+// individuals (Principle 17 — the ontology is canonical, these TSVs are its projection).
+pub mod governance_floors;
 // The GMN-1 round-trip gate: the executed byte witness behind
 // `gmeow:gmnCorrNormalToGmn`'s `logic:mnemomorphic true` declaration, mirroring
 // `superset`'s byte-reconstruction discipline over the grounding slices' GMN-0.
@@ -115,6 +119,10 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register(
         "constraint_shapes",
         Arc::new(constraint_shapes::ConstraintShapesStage),
+    );
+    registry.register(
+        "governance_floors",
+        Arc::new(governance_floors::GovernanceFloorsStage),
     );
     registry.register("result_shapes", Arc::new(result_shapes::ResultShapesStage));
     registry.register(

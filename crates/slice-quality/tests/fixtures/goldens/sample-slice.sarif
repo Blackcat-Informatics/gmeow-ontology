@@ -43,10 +43,10 @@
             }
           ],
           "message": {
-            "text": "axisGmn1Coverage: Round-trip each uncovered GMN-0 construct the advisor names: extend the GMN-1 codec's covered fragment (crates/lang-bridge/src/gmn1_codec.rs) so gmn1_write/gmn1_read carry it losslessly, or — if the construct is genuinely out of the codec's current design scope — file it as a named codec-coverage gap against LANG-GMN.md rather than leaving it silently unmeasured. Raising this slice's committed floor in governance/slice-quality-axis-floors.tsv is a separate, deliberate uplift commit made once the measured score has genuinely risen — the gate enforces non-regression at the committed floor, never automatic ascent."
+            "text": "axisGmn1Coverage: Round-trip each uncovered GMN-0 construct the advisor names: extend the GMN-1 codec's covered fragment (crates/lang-bridge/src/gmn1_codec.rs) so gmn1_write/gmn1_read carry it losslessly, or — if the construct is genuinely out of the codec's current design scope — file it as a named codec-coverage gap against LANG-GMN.md rather than leaving it silently unmeasured. Raising this slice's committed floor — by editing the ontology-resident gmeow:AxisFloorCommitment individual for that (slice, axis) in this slice-quality-rubric slice (generated/governance/slice-quality-axis-floors.tsv is a read-only projection of those individuals, never edited by hand) — is a separate, deliberate uplift commit made once the measured score has genuinely risen; the gate enforces non-regression at the committed floor, never automatic ascent."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "400085c801d12548"
+            "gmeowFindingHash/v2": "6ba433d7e6bc3dcc"
           },
           "ruleId": "slice-quality.axis-advice"
         },

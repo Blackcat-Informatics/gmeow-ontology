@@ -76,6 +76,10 @@ impl GtsSinkStage {
                 "stage-export-frame-shapes".to_string(),
                 "stage-export-result-shapes".to_string(),
                 "stage-export-constraint-shapes".to_string(),
+                // The two slice-quality floor TSVs (P17 projection of the ontology
+                // gmeow:AxisFloorCommitment / gmeow:SliceTierFloor individuals): opaque
+                // REP_GENERATED fanout members read off this leaf's product.
+                "stage-export-governance-floors".to_string(),
             ],
             capabilities: vec![SINK_CAPABILITY.to_string()],
         }
@@ -339,6 +343,7 @@ mod tests {
             "stage-export-evals",
             "stage-export-research-objects",
             "stage-export-metadata",
+            "stage-export-governance-floors",
         ]
         .into_iter()
         .map(|id| StageProduct::from_artifacts(id, BTreeMap::new()))
