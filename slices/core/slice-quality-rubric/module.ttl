@@ -930,6 +930,107 @@ gmeow:thrFlagshipDepthExemplified a gmeow:AxisThreshold ; rdfs:isDefinedBy <http
 gmeow:thrFlagshipDepthMaximal a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "flagship-depth floor — Maximal"@x-gmeow-english ; skos:definition "The flagship-counter-example-depth-axis score floor to earn the Maximal tier — 0.0, the advisory-only not-yet-gated policy."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierMaximal ; gmeow:thresholdFloor 0.0 .
 
 #################################################################
+# Committed floor commitments (ontology-resident, gate-enforced)
+#
+# The canonical, ontology-resident home of the per-slice quality
+# floors the make-check slice-quality gate enforces as raise-only
+# monotonic ratchets. Each gmeow:AxisFloorCommitment pins one
+# (slice, axis) measured-score floor; each gmeow:SliceTierFloor pins
+# one slice's roll-up tier floor. Values are the historically
+# committed floors, transcribed byte-exact. Sorted by slice, then axis.
+#################################################################
+
+# --- Per-axis measured-score floors (gmeow:AxisFloorCommitment) ---
+gmeow:afc-accessibility-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/accessibility> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-accounts-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/accounts> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 0.9954337899543378 .
+gmeow:afc-affect-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/affect> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-agent-runtime-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/agent-runtime> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-agentic-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/agentic> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 0.9759450171821306 .
+gmeow:afc-aggregation-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/aggregation> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-agreements-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/agreements> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-ai-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/ai> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-archaeological-evidence-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-attestation-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/attestation> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-awareness-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/awareness> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-calendar-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/calendar> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-citations-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/citations> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-cognition-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/cognition> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-concepts-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/concepts> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-connectivity-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/connectivity> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-contacts-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/contacts> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-coreference-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/coreference> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 0.9826086956521739 .
+gmeow:afc-creative-works-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/creative-works> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-deception-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/deception> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-diagnostics-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-documents-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/documents> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-dreaming-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/dreaming> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-email-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/email> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-employment-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/employment> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-entities-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/entities> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-epistemics-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/epistemics> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 0.9403973509933775 .
+gmeow:afc-events-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/events> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-evidence-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/evidence> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-expertise-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/expertise> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-finance-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/finance> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-gender-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/gender> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-genealogy-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/genealogy> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-graphrag-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/graphrag> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-gts-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/gts> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-guides-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/guides> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-images-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/images> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-imagination-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/imagination> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-inference-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/inference> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-inhabitation-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/inhabitation> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-inquiry-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/inquiry> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-kernel-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/kernel> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-lang-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/lang> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-language-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/language> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-languages-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/languages> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-learning-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/learning> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-lexicon-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/lexicon> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-lifecycle-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-logic-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/logic> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-math-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/math> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-mentation-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/mentation> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-metacognition-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/metacognition> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-model-serving-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/model-serving> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-music-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/music> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-names-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/names> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-narrative-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/narrative> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-norms-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/norms> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-notation-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/notation> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-notes-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/notes> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-observations-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/observations> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-organization-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/organization> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-pipeline-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/pipeline> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-places-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/places> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-procedures-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/procedures> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-profiles-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/profiles> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-provenance-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/provenance> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-quality-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/quality> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-rights-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/rights> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-risk-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/risk> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-sensory-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/sensory> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-sensory-environment-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-sexuality-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/sexuality> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-slice-quality-rubric-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-software-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/software> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-sources-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/sources> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-standpoint-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/standpoint> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-tags-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/tags> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-teleology-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/teleology> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-temporal-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/temporal> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-trust-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/trust> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+gmeow:afc-versions-axisGmn1Coverage a gmeow:AxisFloorCommitment ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/versions> ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 1.0 .
+
+# --- Per-slice roll-up tier floors (gmeow:SliceTierFloor) ---
+gmeow:stf-lang a gmeow:SliceTierFloor ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/lang> ; gmeow:floorTier gmeow:tierRegistered .
+gmeow:stf-logic a gmeow:SliceTierFloor ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/logic> ; gmeow:floorTier gmeow:tierRegistered .
+gmeow:stf-math a gmeow:SliceTierFloor ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/math> ; gmeow:floorTier gmeow:tierRegistered .
+gmeow:stf-slice-quality-rubric a gmeow:SliceTierFloor ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:floorTier gmeow:tierRegistered .
+gmeow:stf-tags a gmeow:SliceTierFloor ; gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/tags> ; gmeow:floorTier gmeow:tierRegistered .
+
+#################################################################
 # Ontology node
 #################################################################
 
