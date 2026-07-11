@@ -2826,7 +2826,7 @@ fn dl_axioms(model: &DocsModel, term: &DocTerm) -> Vec<String> {
 // concept DOI) generalized to a page-level "cite this page" block on every OTHER
 // durable surface (fixtures index, competency index, notation index / grammar,
 // pipeline DAG, glossary). The term page keeps its richer content-addressed form
-// inline (`term_academic_surface`); this block is distinct from the Task-12
+// inline (`term_academic_surface`); this block is distinct from the
 // per-page provenance footer.
 
 /// Whether `page` is a durable, citable surface carrying the generalized
@@ -3676,7 +3676,7 @@ fn md_example_index(model: &DocsModel) -> String {
     // `gmeow_docs::model::extract_worked_instances` — not special-cased to
     // `measure-and-dimension.ttl` (today's only author). Placed on THIS page
     // (rather than a new dedicated `Page` variant) because a worked instance
-    // IS a worked example — the same `examples/*.ttl` scan Task 4's loss-row
+    // IS a worked example — the same `examples/*.ttl` scan the loss-row
     // section reuses, and `Page::ExampleIndex` is already the page readers
     // reach for "show me a concrete instance", so it stays their next stop
     // rather than a fourth example-adjacent page.
@@ -4439,7 +4439,7 @@ pub(crate) fn provenance_chain(
     chain
 }
 
-/// Append the per-page provenance footer: the producing-stage chain (Task 12), the
+/// Append the per-page provenance footer: the producing-stage chain, the
 /// build-grain projection of the single `gmeow:docGroundedBy` provenance relation.
 /// A no-op when the model carries no pipeline (a bare unit-test model) — honest
 /// absence, so the source-model goldens without a pipeline are unaffected.
