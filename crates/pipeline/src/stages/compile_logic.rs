@@ -285,6 +285,17 @@ impl Stage for CompileLogicStage {
     fn consumes(&self) -> &[String] {
         &[]
     }
+    /// The named graphs this stage attaches to the carrier (its delta), from the
+    /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
+    /// declarations and verified against the run-time delta by the scheduler.
+    fn attaches_graphs(&self) -> &[String] {
+        crate::stages::attach::graphs(self.id())
+    }
+    /// The blob-representation lanes this stage attaches (its delta), from the single
+    /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
+    fn attaches_blob_reps(&self) -> &[String] {
+        crate::stages::attach::blob_reps(self.id())
+    }
     fn impl_version(&self) -> &str {
         // v5: the authored `logic:PathShape` worked-example instances
         // (`PATH_SHAPES_EXAMPLE_PATH`) are now folded into `program.path_shapes`, so

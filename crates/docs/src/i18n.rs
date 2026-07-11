@@ -670,6 +670,8 @@ pub const UI_TEMPLATES: &[(&str, &str)] = &[
     ("body_openapi_fragment", "OpenAPI schema"),
     ("body_other_equivalences", "Other equivalences"),
     ("body_part_of", "Part of"),
+    ("body_pipeline_attaches", "Attaches to the carrier"),
+    ("body_pipeline_attaches_blob", "blob-rep lane"),
     ("body_pipeline_capabilities", "Capabilities and resources"),
     ("body_pipeline_consumed_by", "Consumed by"),
     ("body_pipeline_consumes", "Consumes"),
@@ -1033,9 +1035,10 @@ msgstr ""
 
     #[test]
     fn ui_templates_key_count_is_pinned() {
-        // 60 legacy nav/page/section/category/footer keys + 156 `body_*` chrome
-        // keys routing the Markdown body renderers through the override catalog.
-        assert_eq!(UI_TEMPLATES.len(), 216);
+        // 60 legacy nav/page/section/category/footer keys + 158 `body_*` chrome
+        // keys routing the Markdown body renderers through the override catalog
+        // (incl. the pipeline-stage attach surface: body_pipeline_attaches[_blob]).
+        assert_eq!(UI_TEMPLATES.len(), 218);
     }
 
     #[test]

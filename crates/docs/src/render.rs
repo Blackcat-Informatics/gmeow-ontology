@@ -493,14 +493,6 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
         }
     }
 
-    // Casefolded slash-namespace aliases (tiny redirect pages).
-    for (alias_dir, target_dir) in term_aliases(model) {
-        files.insert(
-            join(&alias_dir, "index.html"),
-            alias_redirect_html(&alias_dir, &target_dir).into_bytes(),
-        );
-    }
-
     Site { files }
 }
 
@@ -4337,6 +4329,27 @@ fn append_stage_section(out: &mut String, model: &DocsModel, term: &DocTerm, fro
         blank(out);
     }
 
+    // Attaches: the named graphs / blob-rep lanes this stage contributes to the carrier
+    // as its delta (gmeow:attachesGraph / gmeow:attachesBlobRep) — the run-verified
+    // declaration of what the stage produced, so `gmeow docs-on <stage>` self-explains.
+    if !stage.attaches_graphs.is_empty() || !stage.attaches_blob_reps.is_empty() {
+        heading(out, 3, model.ui("body_pipeline_attaches"));
+        for graph in &stage.attaches_graphs {
+            push_line(out, &format!("- `{}`", code_escape(graph)));
+        }
+        for rep in &stage.attaches_blob_reps {
+            push_line(
+                out,
+                &format!(
+                    "- {} `{}`",
+                    model.ui("body_pipeline_attaches_blob"),
+                    code_escape(rep)
+                ),
+            );
+        }
+        blank(out);
+    }
+
     // Consumed by: the downstream stages that read THIS stage's product (the edge
     // reverse — `edges.from == this stage`).
     let mut consumed_by: Vec<&str> = pipeline
@@ -6398,51 +6411,6 @@ fn local_name_vec(iris: &[String]) -> Vec<String> {
     iris.iter().map(|i| local_name(i).to_string()).collect()
 }
 
-// ── Casefolded slash-namespace aliases ─────────────────────────────────────────
-
-/// For every term whose canonical slug differs from a casefolded form of its
-/// local name, return `(alias_dir, target_dir)` pairs for tiny redirect pages.
-///
-/// Deterministic: derived purely from sorted terms; aliases that collide with a
-/// canonical slug or with each other are skipped (first-wins, sorted) so two
-/// terms never fight over the same alias directory.
-fn term_aliases(model: &DocsModel) -> Vec<(String, String)> {
-    // All canonical slugs, so an alias never shadows a real term page.
-    let canonical: std::collections::BTreeSet<String> = model.terms.iter().map(term_slug).collect();
-
-    let mut seen_aliases: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    let mut out: Vec<(String, String)> = Vec::new();
-
-    // model.terms is IRI-sorted → first-wins is deterministic.
-    for term in &model.terms {
-        let canonical_slug = term_slug(term);
-        let alias = local_name(&term.iri).to_ascii_lowercase();
-        if alias.is_empty() || alias == canonical_slug {
-            continue;
-        }
-        if canonical.contains(&alias) || !seen_aliases.insert(alias.clone()) {
-            continue;
-        }
-        out.push((format!("terms/{alias}"), format!("terms/{canonical_slug}")));
-    }
-    out.sort();
-    out
-}
-
-/// A tiny redirect HTML page (meta refresh + canonical link + JS fallback) from
-/// an alias directory to the canonical term directory.
-fn alias_redirect_html(alias_dir: &str, target_dir: &str) -> String {
-    let href = rel(alias_dir, target_dir);
-    let target = format!("{href}index.html");
-    format!(
-        "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\" />\n\
-         <meta http-equiv=\"refresh\" content=\"0; url={target}\" />\n\
-         <link rel=\"canonical\" href=\"{target}\" />\n<title>Redirecting…</title>\n\
-         </head>\n<body>\n<p>Redirecting to <a href=\"{target}\">{target}</a>.</p>\n\
-         </body>\n</html>\n"
-    )
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -6470,6 +6438,43 @@ mod tests {
             category,
             ..Default::default()
         }
+    }
+
+    #[test]
+    fn stage_page_self_explains_its_attached_graphs_and_blob_reps() {
+        // docs-on <stage> surfaces the stage's declared carrier contribution: the
+        // attached graph/documentation + the attached blob-rep lanes (Step 4 self-explain).
+        use crate::model::{DocPipeline, DocStage};
+        let stage_iri = "https://blackcatinformatics.ca/gmeow/stage-docs-render";
+        let model = DocsModel {
+            pipeline: Some(DocPipeline {
+                stages: vec![DocStage {
+                    iri: stage_iri.to_string(),
+                    attaches_graphs: vec![
+                        "https://blackcatinformatics.ca/gmeow/graph/documentation".to_string(),
+                    ],
+                    attaches_blob_reps: vec!["diagnostics:nodes".to_string()],
+                    ..Default::default()
+                }],
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let doc_term = term(stage_iri, DocTermCategory::Individual);
+        let mut out = String::new();
+        append_stage_section(&mut out, &model, &doc_term, "terms/x");
+        assert!(
+            out.contains(model.ui("body_pipeline_attaches")),
+            "the stage page must carry an Attaches heading: {out}"
+        );
+        assert!(
+            out.contains("https://blackcatinformatics.ca/gmeow/graph/documentation"),
+            "the stage page must surface the attached graph/documentation: {out}"
+        );
+        assert!(
+            out.contains("diagnostics:nodes"),
+            "the stage page must surface the attached blob-rep lane: {out}"
+        );
     }
 
     #[test]

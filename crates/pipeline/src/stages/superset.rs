@@ -82,8 +82,15 @@ pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors
     let dataset = read_dataset(gts_bytes)?;
     let dataset = dataset.as_ref();
     let blob_members = read_blob_members(gts_bytes)?;
+    // The path↔representative map as DATA: the authored gmeow:fanoutExtracts rows read
+    // back from the bundle (the pipeline slice rides in the default graph). The gate reads
+    // these rows instead of branching in Rust (PIPELINE_SPINE §6/§7).
+    let rules = read_fanout_rules(dataset)?;
 
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+
+    // The reconstructed paths, for the bijection completeness HARD-FAIL below.
+    let mut reconstructed_paths: BTreeSet<String> = BTreeSet::new();
 
     // Named-graph reps: fold each reconstruction graph to its committed RDF bytes.
     for iri in reconstruction_graph_iris(dataset) {
@@ -92,11 +99,12 @@ pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors
         else {
             continue;
         };
-        let rep = graph_rep_for_path(&path).ok_or_else(|| {
-            // A reconstruction graph IRI whose committed path resolves no graph rep is
-            // a wiring contradiction (the IRI came from the rep's own inverse map).
+        reconstructed_paths.insert(path.clone());
+        let rep = graph_rep_for_path(&rules, &path).ok_or_else(|| {
+            // A reconstruction graph IRI whose committed path resolves no fanout rule is
+            // a hole in the promoted map — HARD-fail (the bijection check reports it too).
             stage_err(&format!(
-                "reconstruction graph {iri} maps to {path} but no graph representative"
+                "reconstruction graph {iri} maps to {path} but no gmeow:fanoutExtracts row"
             ))
         })?;
         let folded = reconstruct_graph(dataset, &rep).ok_or_else(|| {
@@ -125,6 +133,11 @@ pub fn project_bundle(gts_bytes: &[u8]) -> Result<BundleProjection, gmeow_errors
         }
     }
 
+    // Bijection completeness HARD-FAIL: the promoted gmeow:fanoutExtracts rows must be a
+    // bijection over the reconstruction graphs — no path unmapped/ambiguous, no stale row —
+    // so reading the map from data never silently drops a path from fanout.
+    check_fanout_bijection(&rules, &reconstructed_paths)?;
+
     Ok(BundleProjection { files })
 }
 
@@ -150,45 +163,184 @@ struct GraphRep {
     form: GraphForm,
 }
 
-/// Resolve the named-graph representative for a committed `generated/` path. RDF
-/// outputs whose committed bytes are a pure canonical graph fold are carried as
-/// named graphs (RDF travels as RDF, the fold is the byte-truth); byte-decorated
-/// outputs fall through to inline blob members. The serialization form is fixed by
-/// the file extension and matches the form the producing stage emits the committed
-/// file with, so
-/// `file == fold` holds by construction. A path whose graph is not (yet) carried
-/// reconstructs to `None` and surfaces as `missing` — how the gate enumerates the
-/// remaining gap.
-fn graph_rep_for_path(path: &str) -> Option<GraphRep> {
-    // EDOAL projections keep their dedicated per-file `graph/projections/<stem>`.
-    if let Some(iri) = edoal_projection_graph_iri(path) {
-        return Some(GraphRep {
-            iri,
-            form: GraphForm::Turtle,
+/// The reconstruction-graph namespace family of a `gmeow:FanoutExtraction` row: how
+/// the per-file named-graph IRI derives from the committed path.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum FanoutFamily {
+    /// `graph/fanout/<path-without-the-generated/-prefix>`.
+    RdfFanout,
+    /// `graph/projections/<stem>.edoal` for `generated/projections/<stem>.edoal.ttl`.
+    Edoal,
+}
+
+/// One parsed `gmeow:FanoutExtraction` row — the DATA the superset gate reads in place
+/// of the former hard-coded path↔representative branches (`graph_rep_for_path` /
+/// `is_rdf_fanout_class` form selection).
+#[derive(Debug, Clone)]
+struct FanoutRule {
+    /// The committed path (exact) or directory prefix (prefix), per `match_prefix`.
+    path: String,
+    /// `true` = prefix match, `false` = exact match.
+    match_prefix: bool,
+    /// An optional suffix filter refining a prefix match (the EDOAL `.edoal.ttl` case).
+    suffix: Option<String>,
+    /// How the reconstruction graph IRI derives from the committed path.
+    family: FanoutFamily,
+    /// The serialization form whose fold equals the committed bytes.
+    form: GraphForm,
+}
+
+impl FanoutRule {
+    /// Whether this rule matches a committed `generated/` path.
+    fn matches(&self, path: &str) -> bool {
+        if self.match_prefix {
+            path.starts_with(&self.path) && self.suffix.as_deref().is_none_or(|s| path.ends_with(s))
+        } else {
+            path == self.path
+        }
+    }
+}
+
+/// Read the `gmeow:fanoutExtracts` rows from the bundle dataset — the path↔representative
+/// map, promoted from hard-coded Rust branches to authored data (the pipeline slice). Each
+/// row carries `gmeow:extractsPath` + `gmeow:extractsMatch` (+ optional
+/// `gmeow:extractsSuffix`), `gmeow:extractsGraphFamily`, and `gmeow:extractsForm`. A
+/// malformed row (missing required field, unknown match/family/form) is a HARD FAIL —
+/// never silently skipped (no-optionality).
+fn read_fanout_rules(dataset: &RdfDataset) -> Result<Vec<FanoutRule>, gmeow_errors::Diag> {
+    const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+    let one = |subj: &str, pred: &str| -> Option<String> {
+        for quad in dataset.owned_quads() {
+            let s_iri = matches!(&quad.subject, purrdf::RdfTerm::Iri(i) if i == subj);
+            if s_iri
+                && quad.predicate == pred
+                && let purrdf::RdfTerm::Literal(lit) = &quad.object
+            {
+                return Some(lit.lexical_form.clone());
+            }
+        }
+        None
+    };
+    // Every subject carrying gmeow:extractsPath is a fanout row.
+    let path_pred = format!("{GMEOW}extractsPath");
+    let mut rows: BTreeSet<String> = BTreeSet::new();
+    for quad in dataset.owned_quads() {
+        if quad.predicate == path_pred
+            && let purrdf::RdfTerm::Iri(subj) = &quad.subject
+        {
+            rows.insert(subj.clone());
+        }
+    }
+    let mut rules = Vec::new();
+    for row in &rows {
+        let field = |local: &str| one(row, &format!("{GMEOW}{local}"));
+        let path = field("extractsPath")
+            .ok_or_else(|| stage_err(&format!("fanout row {row} has no gmeow:extractsPath")))?;
+        let match_kind = field("extractsMatch")
+            .ok_or_else(|| stage_err(&format!("fanout row {row} has no gmeow:extractsMatch")))?;
+        let match_prefix = match match_kind.as_str() {
+            "prefix" => true,
+            "exact" => false,
+            other => {
+                return Err(stage_err(&format!(
+                    "fanout row {row} has unknown gmeow:extractsMatch {other:?} (want exact|prefix)"
+                )));
+            }
+        };
+        let suffix = field("extractsSuffix");
+        let family = match field("extractsGraphFamily")
+            .ok_or_else(|| {
+                stage_err(&format!(
+                    "fanout row {row} has no gmeow:extractsGraphFamily"
+                ))
+            })?
+            .as_str()
+        {
+            "rdf-fanout" => FanoutFamily::RdfFanout,
+            "edoal" => FanoutFamily::Edoal,
+            other => {
+                return Err(stage_err(&format!(
+                    "fanout row {row} has unknown gmeow:extractsGraphFamily {other:?}"
+                )));
+            }
+        };
+        let form = match field("extractsForm")
+            .ok_or_else(|| stage_err(&format!("fanout row {row} has no gmeow:extractsForm")))?
+            .as_str()
+        {
+            "turtle" => GraphForm::Turtle,
+            "ntriples" => GraphForm::NTriples,
+            "nquads-self" => GraphForm::NQuadsSelf,
+            "nquads-diagnostics" => GraphForm::NQuads(GRAPH_DIAGNOSTICS_IRI),
+            other => {
+                return Err(stage_err(&format!(
+                    "fanout row {row} has unknown gmeow:extractsForm {other:?}"
+                )));
+            }
+        };
+        rules.push(FanoutRule {
+            path,
+            match_prefix,
+            suffix,
+            family,
+            form,
         });
     }
-    if !is_rdf_fanout_class(path) {
-        return None;
-    }
-    let iri = rdf_fanout_graph_iri(path)?;
-    let form = if path.ends_with(".nt") {
-        GraphForm::NTriples
-    } else if path == "generated/catalog/constraint-catalog.nq"
-        || path == "generated/catalog/term-content-manifest.nq"
-    {
-        // The catalog / term-manifest `.nq` carry their OWN fanout IRI as the
-        // 4th-column label (they are generated with that label, not the shared
-        // diagnostics one), so their reconstruction restamps back to the per-file
-        // fanout container.
-        GraphForm::NQuadsSelf
-    } else if path.ends_with(".nq") {
-        // The diagnostics `.nq` carry the shared `graph/diagnostics` 4th-column label;
-        // reconstruction restamps to it (not the per-file fanout container).
-        GraphForm::NQuads(GRAPH_DIAGNOSTICS_IRI)
-    } else {
-        GraphForm::Turtle
+    Ok(rules)
+}
+
+/// Resolve the named-graph representative for a committed `generated/` path by reading
+/// the authored `gmeow:fanoutExtracts` rules (no hard-coded branch). Returns `None` when
+/// no rule matches (the path is not carried as a fanout named graph — a byte-decorated /
+/// opaque output that rides a blob member instead). The graph IRI derives from the
+/// matched rule's family; the form is the rule's declared form, so `file == fold` holds
+/// by construction (the producing stage emits with the same form).
+fn graph_rep_for_path(rules: &[FanoutRule], path: &str) -> Option<GraphRep> {
+    let rule = rules.iter().find(|r| r.matches(path))?;
+    let iri = match rule.family {
+        FanoutFamily::Edoal => edoal_projection_graph_iri(path)?,
+        FanoutFamily::RdfFanout => rdf_fanout_graph_iri(path)?,
     };
-    Some(GraphRep { iri, form })
+    Some(GraphRep {
+        iri,
+        form: rule.form,
+    })
+}
+
+/// The completeness HARD-FAIL for the promoted fanout map: assert the
+/// `gmeow:fanoutExtracts` rows are a BIJECTION over the bundle's reconstruction graphs —
+/// every reconstructed path resolves to exactly one row (no unmapped / ambiguous path),
+/// and every row is claimed by at least one path (no stale row). This is the guard that
+/// promoting the branches to a data lookup did not silently drop a path from fanout.
+fn check_fanout_bijection(
+    rules: &[FanoutRule],
+    paths: &BTreeSet<String>,
+) -> Result<(), gmeow_errors::Diag> {
+    // Forward: every reconstructed path matches exactly one rule.
+    for path in paths {
+        let n = rules.iter().filter(|r| r.matches(path)).count();
+        if n != 1 {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::FanoutBijection {
+                message: format!(
+                    "reconstructed path {path} matches {n} gmeow:fanoutExtracts rows (want exactly 1)"
+                ),
+            }));
+        }
+    }
+    // Reverse: every rule is claimed by at least one reconstructed path (no stale row).
+    for rule in rules {
+        let n = paths.iter().filter(|p| rule.matches(p)).count();
+        if n == 0 {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::FanoutBijection {
+                message: format!(
+                    "gmeow:fanoutExtracts row for {:?} ({}) claims no reconstructed path (stale row)",
+                    rule.path,
+                    if rule.match_prefix { "prefix" } else { "exact" }
+                ),
+            }));
+        }
+    }
+    Ok(())
 }
 
 /// The embedded graph label of the committed diagnostics `.nq` files (mirrors
@@ -617,8 +769,18 @@ mod tests {
         );
     }
 
+    /// The authored `gmeow:fanoutExtracts` rows, read from the pipeline slice module.ttl
+    /// (the same data the shipped bundle carries) — the real map the gate reads.
+    fn authored_fanout_rules() -> Vec<FanoutRule> {
+        let root = repo_root();
+        let ttl = std::fs::read(root.join("slices/core/pipeline/module.ttl")).unwrap();
+        let ds = purrdf::parse_dataset(&ttl, "text/turtle", None).unwrap();
+        read_fanout_rules(&ds).unwrap()
+    }
+
     #[test]
     fn byte_decorated_rdf_paths_fall_through_to_blob_members() {
+        let rules = authored_fanout_rules();
         for path in [
             "generated/logic/inferred-closure.rdf12.ttl",
             "generated/logic/reasoning-explanations.rdf12.ttl",
@@ -631,7 +793,7 @@ mod tests {
             "generated/statements/gmeow.rdf12.ttl",
         ] {
             assert!(
-                graph_rep_for_path(path).is_none(),
+                graph_rep_for_path(&rules, path).is_none(),
                 "{path} has generated comments / section markers and must reconstruct from REP_GENERATED"
             );
         }
@@ -689,7 +851,9 @@ mod tests {
         // the superset gate reconstructs, so `file == fold` holds by construction.
         const PATH: &str = "generated/quality/gmeow.quality-assessment.nt";
         assert!(is_rdf_fanout_class(PATH));
-        let rep = graph_rep_for_path(PATH).expect("quality-assessment path resolves a graph rep");
+        let rules = authored_fanout_rules();
+        let rep =
+            graph_rep_for_path(&rules, PATH).expect("quality-assessment path resolves a graph rep");
         assert_eq!(rep.form, GraphForm::NTriples);
         assert_eq!(
             rep.iri,
@@ -790,6 +954,85 @@ mod tests {
         assert_eq!(report.mismatch, vec!["generated/x/drift.ttl".to_string()]);
         assert_eq!(report.orphan, vec!["generated/x/stale.ttl".to_string()]);
         assert!(!report.is_clean());
+    }
+
+    #[test]
+    fn fanout_rules_drive_reconstruction_and_bijection() {
+        // The path↔representative map read as DATA (the promoted gmeow:fanoutExtracts rows):
+        // parse a small row set, prove the form/family/graph-IRI resolution is data-driven,
+        // and prove the bijection HARD-fail fires on an unmapped path AND on a stale row.
+        let ttl = r#"@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+gmeow:r1 gmeow:extractsPath "generated/evals/scores.ttl" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+gmeow:r2 gmeow:extractsPath "generated/logic/gmeow.correspondence.nt" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "ntriples" .
+gmeow:r3 gmeow:extractsPath "generated/diagnostics/shacl.nq" ; gmeow:extractsMatch "exact" ; gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "nquads-diagnostics" .
+gmeow:r4 gmeow:extractsPath "generated/profiles/" ; gmeow:extractsMatch "prefix" ; gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+gmeow:r5 gmeow:extractsPath "generated/projections/" ; gmeow:extractsMatch "prefix" ; gmeow:extractsSuffix ".edoal.ttl" ; gmeow:extractsGraphFamily "edoal" ; gmeow:extractsForm "turtle" .
+"#;
+        let ds = purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).unwrap();
+        let rules = read_fanout_rules(&ds).unwrap();
+        assert_eq!(rules.len(), 5);
+
+        // Form + graph-IRI resolution is driven entirely by the data rows.
+        let rep = graph_rep_for_path(&rules, "generated/evals/scores.ttl").unwrap();
+        assert_eq!(rep.form, GraphForm::Turtle);
+        assert_eq!(
+            rep.iri,
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/evals/scores.ttl"
+        );
+        assert_eq!(
+            graph_rep_for_path(&rules, "generated/logic/gmeow.correspondence.nt")
+                .unwrap()
+                .form,
+            GraphForm::NTriples
+        );
+        assert_eq!(
+            graph_rep_for_path(&rules, "generated/diagnostics/shacl.nq")
+                .unwrap()
+                .form,
+            GraphForm::NQuads(GRAPH_DIAGNOSTICS_IRI)
+        );
+        // The EDOAL prefix+suffix rule resolves the edoal graph family.
+        assert_eq!(
+            graph_rep_for_path(&rules, "generated/projections/foaf.edoal.ttl")
+                .unwrap()
+                .iri,
+            "https://blackcatinformatics.ca/gmeow/graph/projections/foaf.edoal"
+        );
+        // A profiles/ file rides the rdf-fanout prefix rule.
+        assert_eq!(
+            graph_rep_for_path(&rules, "generated/profiles/full.ttl")
+                .unwrap()
+                .iri,
+            "https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/full.ttl"
+        );
+        // A non-EDOAL projection under the same directory does NOT match the suffix-filtered
+        // edoal rule (and no other rule claims it) — no representative.
+        assert!(graph_rep_for_path(&rules, "generated/projections/core-prefixes.ttl").is_none());
+
+        // Bijection holds for a path set each rule claims exactly.
+        let paths: BTreeSet<String> = [
+            "generated/evals/scores.ttl",
+            "generated/logic/gmeow.correspondence.nt",
+            "generated/diagnostics/shacl.nq",
+            "generated/profiles/full.ttl",
+            "generated/projections/foaf.edoal.ttl",
+        ]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+        check_fanout_bijection(&rules, &paths).expect("bijection holds over the covered paths");
+
+        // Deliberately-missing row: a reconstructed path no rule matches HARD-fails.
+        let mut unmapped = paths.clone();
+        unmapped.insert("generated/quality/gmeow.quality-assessment.nt".to_string());
+        let err = check_fanout_bijection(&rules, &unmapped).unwrap_err();
+        assert_eq!(err.code(), crate::error::FanoutBijection::register());
+
+        // Stale row: a rule matching no reconstructed path HARD-fails (drop r2's path).
+        let mut stale = paths.clone();
+        stale.remove("generated/logic/gmeow.correspondence.nt");
+        let err2 = check_fanout_bijection(&rules, &stale).unwrap_err();
+        assert_eq!(err2.code(), crate::error::FanoutBijection::register());
     }
 
     #[test]
