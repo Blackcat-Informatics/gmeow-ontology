@@ -26,16 +26,17 @@
 //!
 //! The round loop here is a structural copy of `least_model_of_reduct`'s loop:
 //! same EDB-seeded delta, same per-round canonical-winner map keyed by head fact,
-//! the SAME first-wins quality tiebreak
-//! ([`RuleRoundCandidate`]'s `(max_src_depth, sum_src_depth, sorted_sources,
-//! rule_iri)`]), same per-fact depth map (EDB depth 0; derived depth = 1 + max
-//! source depth), and the same body-order `source_quad_ids`.  The ONLY substitution
-//! is the join: `join_body`'s full-bucket scan becomes [`join_body_indexed`]'s
-//! index-selected scan.  Because [`RelationStore::select`] preserves insertion
-//! order and the [`RelationStore`] is filled in lockstep with the [`FactStore`], the
-//! produced solution sequence — and hence `source_facts` order and the winner
-//! tiebreak — is identical.  For a single-stratum POSITIVE program the derived rows
-//! therefore equal `least_model_of_reduct(edb, rules, &empty)` exactly; this is
+//! the SAME quality tiebreak
+//! ([`RuleRoundCandidate`]'s total order `(max_src_depth, sum_src_depth,
+//! sorted_sources, rule_iri, sources)`), same per-fact depth map (EDB depth 0; derived
+//! depth = 1 + max source depth), and the same body-order `source_quad_ids`.  The ONLY
+//! substitution is the join: `join_body`'s full-bucket scan becomes
+//! [`join_body_indexed`]'s index-selected scan.  The winner tiebreak is a **total
+//! order over observable provenance**, so byte-identity does NOT depend on the order in
+//! which [`RelationStore::select`] enumerates rows: two derivations that would produce
+//! different output bytes differ in the tiebreak key and the same winner is chosen
+//! regardless of enumeration order.  For a single-stratum POSITIVE program the derived
+//! rows therefore equal `least_model_of_reduct(edb, rules, &empty)` exactly; this is
 //! asserted by the [`physical_native_matches_reference_byte_identical`] oracle test.
 //!
 //! # Stratification (dynamic) + negation
