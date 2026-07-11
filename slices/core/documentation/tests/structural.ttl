@@ -265,4 +265,4 @@ ASK {
     ?d a gmeow:DocCoverageDimension .
     FILTER NOT EXISTS { ?anchor gmeow:maturityRequiresDimension ?d }
 }""" ;
-    gmeow:saRationale "Every gmeow:DocCoverageDimension individual MUST be referenced by at least one gmeow:maturityRequiresDimension — all dimensions gate, so no ineligible partition remains. Since gmeow:docMaturityMaximal requires all eighteen, this holds today; asserting it means a future orphan dimension (minted but wired into no anchor's intent) reds this gate instead of silently sitting outside the ladder." .
+    gmeow:saRationale "Every gmeow:DocCoverageDimension individual MUST be referenced by at least one gmeow:maturityRequiresDimension — all dimensions gate, so no ineligible partition remains. Since gmeow:docMaturityMaximal requires all nineteen, this holds today; asserting it means a future orphan dimension (minted but wired into no anchor's intent) reds this gate instead of silently sitting outside the ladder." .
