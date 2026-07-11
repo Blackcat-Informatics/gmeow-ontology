@@ -334,11 +334,12 @@ const FLOOR_FILE: &str = "governance/slice-quality-floors.tsv";
 /// [`FLOOR_FILE`]'s per-slice tier ratchet (never overloaded onto it).
 const AXIS_FLOOR_FILE: &str = "governance/slice-quality-axis-floors.tsv";
 
-/// The `gmeow:axisGmn1Coverage` local name — the sole axis this gate's per-axis
-/// floor pass currently enforces. A grounding slice (directory under
-/// `slices/grounding/`) is hard-gated at floor `1.0` even when absent from
-/// [`AXIS_FLOOR_FILE`] — grounding coverage is total NOW (Task 6) and never
-/// silently unfloored.
+/// The `gmeow:axisGmn1Coverage` local name — the axis carrying a hard grounding
+/// DEFAULT floor. The per-axis floor pass enforces every committed
+/// `(slice, axis-local)` row in [`AXIS_FLOOR_FILE`] generically; on TOP of that, a
+/// grounding slice (directory under `slices/grounding/`) is hard-gated at floor `1.0`
+/// on this axis even when its row is absent — grounding coverage is total NOW and
+/// never silently unfloored.
 const AXIS_GMN1_COVERAGE: &str = "axisGmn1Coverage";
 
 /// Whether `slice_dir` is a grounding slice — the `slices/grounding/` PATH prefix
@@ -454,8 +455,11 @@ pub fn slice_quality_gate() -> i32 {
 
     // SECOND pass: the per-axis committed floor — additive to,
     // never replacing, the roll-up-tier ratchet above. Runs over EVERY discovered
-    // slice, opted-in or not: a grounding slice can never clear the gate on
-    // axisGmn1Coverage < 1.0 regardless of its roll-up tier or opt-in status.
+    // slice, opted-in or not, and over EVERY axis carrying a committed floor row: a
+    // grounding slice can never clear the gate on axisGmn1Coverage < 1.0 regardless of
+    // its roll-up tier or opt-in status, and a slice can never regress below any other
+    // committed per-axis floor (e.g. axisDocMaturity) either. `axisGmn1Coverage`
+    // additionally carries a hard 1.0 grounding default even when its row is absent.
     let axis_floors = match load_axis_floors(&root) {
         Ok(f) => f,
         Err(e) => return fail(format!("slice-quality-gate: {e}")),
@@ -467,37 +471,33 @@ pub fn slice_quality_gate() -> i32 {
             Ok(r) => r,
             Err(e) => return fail(format!("slice-quality-gate: {}: {e}", dir.display())),
         };
-        let Some(grade) = report
-            .assessment
-            .grades
-            .iter()
-            .find(|g| axis_local_name(&g.axis_iri) == AXIS_GMN1_COVERAGE)
-        else {
-            continue; // the axis is unbound in this rubric snapshot — the binding gate above already caught that
-        };
-        let floor = axis_floors
-            .get(&(
-                report.assessment.slice.clone(),
-                AXIS_GMN1_COVERAGE.to_owned(),
-            ))
-            .copied()
-            .or_else(|| is_grounding_slice(dir).then_some(1.0));
-        let Some(floor) = floor else {
-            continue; // no committed floor recorded and not grounding → unfloored, advisory only
-        };
-        axis_checked += 1;
-        use gmeow_slice_quality::gate::AxisRatchetVerdict;
-        match gmeow_slice_quality::gate::evaluate_axis_floor(grade.score, floor) {
-            AxisRatchetVerdict::Pass => {}
-            AxisRatchetVerdict::MeasuredBelowFloor => {
-                emit_error(
-                    "gmeow-dev.slice-quality.gate",
-                    format!(
-                        "FAIL {} measures {AXIS_GMN1_COVERAGE} {:.6} — below its committed per-axis floor {floor:.6} ({AXIS_FLOOR_FILE})",
-                        report.assessment.slice, grade.score
-                    ),
-                );
-                axis_failures += 1;
+        for grade in &report.assessment.grades {
+            let axis_local = axis_local_name(&grade.axis_iri);
+            // The floor is the committed row for this (slice, axis) if present; failing
+            // that, the grounding hard default applies only to axisGmn1Coverage.
+            let floor = axis_floors
+                .get(&(report.assessment.slice.clone(), axis_local.to_owned()))
+                .copied()
+                .or_else(|| {
+                    (axis_local == AXIS_GMN1_COVERAGE && is_grounding_slice(dir)).then_some(1.0)
+                });
+            let Some(floor) = floor else {
+                continue; // no committed floor and no grounding default → unfloored, advisory only
+            };
+            axis_checked += 1;
+            use gmeow_slice_quality::gate::AxisRatchetVerdict;
+            match gmeow_slice_quality::gate::evaluate_axis_floor(grade.score, floor) {
+                AxisRatchetVerdict::Pass => {}
+                AxisRatchetVerdict::MeasuredBelowFloor => {
+                    emit_error(
+                        "gmeow-dev.slice-quality.gate",
+                        format!(
+                            "FAIL {} measures {axis_local} {:.6} — below its committed per-axis floor {floor:.6} ({AXIS_FLOOR_FILE})",
+                            report.assessment.slice, grade.score
+                        ),
+                    );
+                    axis_failures += 1;
+                }
             }
         }
     }

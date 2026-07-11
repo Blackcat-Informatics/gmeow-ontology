@@ -3,6 +3,13 @@
   "findings": [
     {
       "severity": "warning",
+      "code": "slice-quality.doc-maturity.model-unavailable",
+      "message": "the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured (vacuous 1.0).",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
       "code": "slice-quality.documentation.no-docs",
       "message": "the slice ships no docs.md.",
       "tool": "slice-quality",
@@ -40,6 +47,13 @@
       "severity": "warning",
       "code": "slice-quality.translation.incomplete",
       "message": "zh covers 0/4 label+definition literals; the top tier requires 100% en+fr+cmn.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
+      "message": "axisDocMaturity: Maximal (score 1.00)",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
@@ -143,6 +157,11 @@
     }
   ],
   "rules": [
+    {
+      "id": "slice-quality.doc-maturity.model-unavailable",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-doc-maturity-model-unavailable",
+      "default_severity": "warning"
+    },
     {
       "id": "slice-quality.documentation.no-docs",
       "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-documentation-no-docs",

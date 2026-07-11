@@ -20,6 +20,29 @@
             }
           ],
           "message": {
+            "text": "the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured (vacuous 1.0)."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "bc00ea9d91d82e76"
+          },
+          "ruleId": "slice-quality.doc-maturity.model-unavailable"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
             "text": "the slice ships no docs.md."
           },
           "partialFingerprints": {
@@ -141,6 +164,29 @@
             "gmeowFindingHash/v2": "19ad813d4a5a0141"
           },
           "ruleId": "slice-quality.translation.incomplete"
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "axisDocMaturity: Maximal (score 1.00)"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "0a4487b8abbc359a"
+          },
+          "ruleId": "slice-quality.grade"
         },
         {
           "level": "note",
@@ -470,6 +516,13 @@
           "informationUri": "https://github.com/Blackcat-Informatics/gmeow-ontology",
           "name": "slice-quality",
           "rules": [
+            {
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-doc-maturity-model-unavailable",
+              "id": "slice-quality.doc-maturity.model-unavailable"
+            },
             {
               "defaultConfiguration": {
                 "level": "warning"

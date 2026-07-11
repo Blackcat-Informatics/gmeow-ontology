@@ -36,7 +36,7 @@ pub const PROJECTION_SURFACES: &[(&str, bool)] = &[
     ("docs-pages", true),
     ("loss-ledger", true),
     ("gmn", false),
-    ("doc-maturity", false),
+    ("doc-maturity", true),
     ("docs-panels", false),
 ];
 

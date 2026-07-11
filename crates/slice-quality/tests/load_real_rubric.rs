@@ -34,8 +34,8 @@ fn loads_the_real_rubric_structure() {
         "Registered is the floor"
     );
 
-    // Thirteen quality axes, each with a producer, a dimension, a scope, and floors.
-    assert_eq!(rubric.axes.len(), 13, "thirteen quality axes");
+    // Fourteen quality axes, each with a producer, a dimension, a scope, and floors.
+    assert_eq!(rubric.axes.len(), 14, "fourteen quality axes");
     for axis in &rubric.axes {
         assert!(!axis.producer.is_empty(), "{} binds a producer", axis.iri);
         assert!(
@@ -67,8 +67,9 @@ fn loads_the_real_rubric_structure() {
     ));
     assert_eq!(prov.producer, "provenance_honesty");
 
-    // Three dated, self-cleaning exemptions, each naming a producer symbol.
-    assert_eq!(rubric.exemptions.len(), 3, "three dated exemptions");
+    // Two dated, self-cleaning exemptions, each naming a producer symbol (the
+    // DocMaturity exemption was retired when its axis landed).
+    assert_eq!(rubric.exemptions.len(), 2, "two dated exemptions");
     for ex in &rubric.exemptions {
         assert!(
             !ex.producer.is_empty(),

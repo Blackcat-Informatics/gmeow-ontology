@@ -13,11 +13,13 @@ slice-quality: https://blackcatinformatics.ca/gmeow/slices/sample-slice
     axisShapeMigration: Maximal (1.00)
     axisProseQuality: Maximal (1.00)
     axisProvenanceHonesty: Maximal (1.00)
+    axisDocMaturity: Maximal (1.00)
     axisFlagshipCounterExampleDepth: Maximal (1.00)
-  ranked uplift advice (6):
+  ranked uplift advice (7):
     1. [slice-quality.linkage.no-calculus-eligible-correspondence] the slice authors no identity-strength correspondence (none, or only lossy closeMatch-class alignments the lens calculus cannot carry) — the correspondence-calculus adoption axis is not applicable (vacuous 1.0), not a full-adoption pass.
     2. [slice-quality.testing.no-cells] the slice ships no test cells or competency queries (SLICE_QA).
     3. [slice-quality.gmn1-coverage.no-repo-root] the slice directory carries no resolvable slices/ path prefix — GMN-1 coverage cannot be measured (vacuous 1.0).
     4. [slice-quality.translation.incomplete] fr covers 0/4 label+definition literals; the top tier requires 100% en+fr+cmn.
     5. [slice-quality.translation.incomplete] zh covers 0/4 label+definition literals; the top tier requires 100% en+fr+cmn.
-    6. [slice-quality.documentation.no-docs] the slice ships no docs.md.
+    6. [slice-quality.doc-maturity.model-unavailable] the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured (vacuous 1.0).
+    7. [slice-quality.documentation.no-docs] the slice ships no docs.md.
