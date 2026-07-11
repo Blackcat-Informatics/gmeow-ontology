@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:ConditionalIndependenceGivenShape (Rule P9): a
+# math:ConditionalIndependenceAssertion A ⫫ B | C that names its subject
+# (math:independenceSubject), the event it is independent of (math:independentOf), AND its
+# conditioning set (math:independentGiven) — the C. All three events are measure-theoretic
+# math:ProbabilityEvents (not typed logic:Event, so P11 stays satisfied). It MUST raise NO
+# probability failure class.
+# Positive counterpart of counter-examples/conditional-independence-ungiven.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecConditionalIndependenceGiven).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:givenIndependence a math:ConditionalIndependenceAssertion ;
+    math:independenceSubject ex:symptomEvent ;
+    math:independentOf ex:testEvent ;
+    math:independentGiven ex:diseaseEvent .
+
+ex:symptomEvent a math:ProbabilityEvent .
+ex:testEvent a math:ProbabilityEvent .
+ex:diseaseEvent a math:ProbabilityEvent .

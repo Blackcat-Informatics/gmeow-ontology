@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:DistributionFamilyShape (Rule P6a) and
+# math:DistributionParameterizationShape (Rule P6b): a math:Distribution that names its
+# math:distributionFamily (normal) AND its math:distributionParameterization
+# (mean/stddev), supplying one math:DistributionParameter per required role. Because it
+# names a parameterization, P6b (the supplied-parameter-needs-parameterization SPARQL gate)
+# is satisfied; because each required role is supplied exactly once,
+# math:ParameterRoleCardinalityConstraint (P7) stays silent. It MUST raise NO probability failure class.
+# Positive counterpart of counter-examples/distribution-missing-family.ttl and
+# counter-examples/distribution-missing-parameterization.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecDistributionParameterized).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:normalDistribution a math:Distribution ;
+    math:distributionFamily ex:normalFamily ;
+    math:distributionParameterization ex:meanStddevParameterization ;
+    math:hasDistributionParameter ex:meanParam , ex:stddevParam .
+
+ex:normalFamily a math:DistributionFamily .
+
+ex:meanStddevParameterization a math:DistributionParameterization ;
+    math:requiresParameterRole ex:meanRole , ex:stddevRole .
+
+ex:meanRole a math:DistributionParameterRole .
+ex:stddevRole a math:DistributionParameterRole .
+
+ex:meanParam a math:DistributionParameter ;
+    math:parameterRole ex:meanRole .
+
+ex:stddevParam a math:DistributionParameter ;
+    math:parameterRole ex:stddevRole .

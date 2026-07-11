@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:ConditionedAssertionShape (Rule P8): a
+# math:ConditionalProbability P(A | B) that names its conditioning context through
+# math:conditionalOn — the B — as a measure-theoretic math:ProbabilityEvent (not typed
+# logic:Event, so P11 stays satisfied on it). It MUST raise NO probability failure class.
+# Positive counterpart of counter-examples/conditional-probability-unconditioned.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecConditionalProbabilityConditioned).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:posteriorProbability a math:ConditionalProbability ;
+    math:conditionalOn ex:evidenceEvent .
+
+ex:evidenceEvent a math:ProbabilityEvent .

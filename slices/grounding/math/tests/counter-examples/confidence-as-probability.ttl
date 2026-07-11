@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ConfidenceAsProbabilityConstraint (Rule P10): a
+# math:ProbabilityValue that carries a logic:confidence (a confidence score read as its
+# magnitude) but declares NO logic:probabilityModel to license the confidence→probability
+# reading, so the SHACL-SPARQL constraint fires — shacl.SPARQLConstraintComponent
+# (math:ConfidenceAsProbability).
+# Single violation: it carries a gmeow:hasReferenceFrame so the framing gate
+# math:ProbabilityValueFramedShape (P3) stays SATISFIED (the sh:or hasReferenceFrame arm
+# holds even though the probabilityModel arm is empty), it carries no gmeow:quantityValue
+# so the range gate math:ProbabilityValueRangeShape (P1) is vacuously satisfied, and it is
+# not typed math:OddsValue / math:LogOddsValue so math:ProbabilityScaleDisjointShape (P2)
+# stays satisfied — EXACTLY ONE finding, no sibling probability shape also fires.
+# Back-reference: math:ProbabilityValue / math:ConfidenceAsProbability (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecConfidenceAsProbabilityBad).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:confidenceAsProbability a math:ProbabilityValue ;
+    gmeow:hasReferenceFrame ex:extractionFrame ;
+    logic:confidence "0.8"^^xsd:decimal .
+
+ex:extractionFrame a gmeow:ReferenceFrame .

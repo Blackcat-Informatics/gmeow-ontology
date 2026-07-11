@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:RandomVariableScopedShape (Rule P5): a math:RandomVariable that
+# declares its math:randomVariableDomain and a math:hasDistribution context but OMITS its
+# math:randomVariableCodomain, so that property's sh:minCount 1 fires —
+# shacl.MinCountConstraintComponent (math:UnscopedRandomVariable).
+# Single violation: the domain arm stays SATISFIED, and the node-level sh:or
+# (hasDistribution OR a probability-space domain) is SATISFIED by the present
+# math:hasDistribution; that distribution names its math:distributionFamily so
+# math:DistributionFamilyShape (P6a) stays satisfied and supplies no parameters so
+# math:DistributionParameterizationShape (P6b) / math:ParameterRoleCardinalityConstraint (P7)
+# stay silent — EXACTLY ONE finding, no sibling shape also fires.
+# Back-reference: math:RandomVariable / math:UnscopedRandomVariable (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecRandomVariableUnscopedBad).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:unscopedVariable a math:RandomVariable ;
+    math:randomVariableDomain ex:sampleDomain ;
+    math:hasDistribution ex:heightDistribution .
+
+ex:sampleDomain a math:MeasurableSpace .
+
+ex:heightDistribution a math:Distribution ;
+    math:distributionFamily ex:normalFamily .
+
+ex:normalFamily a math:DistributionFamily .

@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:DistributionFamilyShape (Rule P6a): a math:Distribution that
+# names NO math:distributionFamily, so that property's sh:minCount 1 fires —
+# shacl.MinCountConstraintComponent (math:MissingDistributionParameterization).
+# Single violation: it supplies NO math:hasDistributionParameter, so the parametric
+# gates math:DistributionParameterizationShape (P6b, SHACL-SPARQL) and
+# math:ParameterRoleCardinalityConstraint (P7, SHACL-SPARQL) stay SILENT (both key off a
+# supplied parameter / a named parameterization, neither present) — EXACTLY ONE finding.
+# Back-reference: math:Distribution / math:MissingDistributionParameterization (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecDistributionMissingFamilyBad).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:bareDistribution a math:Distribution .
