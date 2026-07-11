@@ -923,3 +923,23 @@ ex:rowPersistenceLoop a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "diesAt" ; gmeow:cellValueIri exf:eps4 ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "guarantee" ; gmeow:cellValueIri math:bottleneckStabilityTheorem ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "confidence" ; gmeow:cellValueLiteral "0.82" ] .
+
+# === Projection Q — confidence-as-probability and dropped parameterization === #
+ex:cqProjectionLoss a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/projection-confidence-and-dropped-parameterization.rq" ;
+    gmeow:cqDataFile "tests/fixtures/projection-loss.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The projection-side loss ledger made queryable: a math:ProjectionRecord that converts a source confidence into a math:ProbabilityValue without a math:declaredConfidenceMapping, or that lossily drops a source math:Distribution's math:distributionParameterization without enumerating it in logic:unsupportedConstruct, is a recorded projection failure. Over the fixture the answer is exactly the one flagged confidence projection {confidenceProjection → 'OWL annotation (probability literal)' → confidence-as-probability}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqProjectionLossShape ;
+    gmeow:cqExpectRow ex:rowProjectionConfidenceLoss .
+ex:cqProjectionLossShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "projection" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "target" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "issue" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+ex:rowProjectionConfidenceLoss a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "projection" ; gmeow:cellValueIri exf:confidenceProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "OWL annotation (probability literal)" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "issue" ; gmeow:cellValueLiteral "confidence-as-probability" ] .
